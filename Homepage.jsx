@@ -86,7 +86,7 @@ function Nav() {
           </div>
           <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
             {links.map(l => <a key={l.name} href={l.href} style={{ color: "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: 500, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.7)"}>{l.name}</a>)}
-            <a href="#" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, transition: "opacity 0.2s" }} onMouseOver={e => e.target.style.opacity = 0.9} onMouseOut={e => e.target.style.opacity = 1}>Request Briefing</a>
+            <a href="/contact" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, transition: "opacity 0.2s" }} onMouseOver={e => e.target.style.opacity = 0.9} onMouseOut={e => e.target.style.opacity = 1}>Request Briefing</a>
           </div>
           <button className="mob-btn" onClick={() => setOpen(!open)} style={{ display: "none", flexDirection: "column", gap: 4, background: "none", border: "none", cursor: "pointer", padding: 8 }}>
             {[0, 1, 2].map(i => <div key={i} style={{ width: 20, height: 2, background: "#fff", borderRadius: 2 }} />)}
@@ -95,7 +95,7 @@ function Nav() {
         {open && (
           <div style={{ background: DEEP_NAVY, padding: "20px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
             {links.map(l => <a key={l.name} href={l.href} style={{ color: "rgba(255,255,255,0.8)", fontSize: 15 }}>{l.name}</a>)}
-            <a href="#" style={{ color: "#fff", fontSize: 14, fontWeight: 600, background: ELECTRIC, padding: "12px 20px", borderRadius: 6, textAlign: "center" }}>Request Briefing</a>
+            <a href="/contact" style={{ color: "#fff", fontSize: 14, fontWeight: 600, background: ELECTRIC, padding: "12px 20px", borderRadius: 6, textAlign: "center" }}>Request Briefing</a>
           </div>
         )}
       </nav>
@@ -136,8 +136,8 @@ function Hero() {
 
           <FadeIn delay={0.24}>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a href="#" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.25)` }}>Explore Platforms & Tech</a>
-              <a href="#" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.13)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Download Buyer Guide →</a>
+              <a href="/platforms-and-tech" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.25)` }}>Explore Platforms & Tech</a>
+              <a href="/how-to-choose" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.13)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Download Buyer Guide →</a>
             </div>
           </FadeIn>
 
@@ -214,7 +214,7 @@ function Platforms() {
               <SectionLabel>Platforms & Tech</SectionLabel>
               <SectionTitle>Nine decision domains. Not feature buckets.</SectionTitle>
             </div>
-            <a href="#" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all categories →</a>
+            <a href="/platforms-and-tech" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all categories →</a>
           </div>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: 16 }}>
@@ -382,7 +382,7 @@ function Industries() {
               <SectionTitle>CX changes by context. Generic advice fails.</SectionTitle>
               <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4 }}>Healthcare is not retail. Insurance is not telecom. We show how service design, compliance burden, and technology choices shift by vertical.</p>
             </div>
-            <a href="#" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all industries →</a>
+            <a href="/industries" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all industries →</a>
           </div>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
@@ -420,7 +420,7 @@ function Research() {
               <SectionLabel>Research & Insight</SectionLabel>
               <SectionTitle>No press releases. No fluff. No vendor ghostwriting.</SectionTitle>
             </div>
-            <a href="#" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all insights →</a>
+            <a href="/research" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all insights →</a>
           </div>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
@@ -461,7 +461,7 @@ function Advisory() {
               <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, margin: "12px 0 32px" }}>
                 We help CX and contact center leaders make better technology and strategy decisions. We don't sell software. We don't take vendor commissions. We work for you.
               </p>
-              <a href="#" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
+              <a href="/contact" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -529,8 +529,8 @@ function FinalCTA() {
               Whether you need a buying framework, a vendor gut-check, or a strategy session with someone who's operated contact centers at scale — we're here.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="#" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
-              <a href="#" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8 }}>Subscribe to Insights</a>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
+              <a href="/contact" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8 }}>Subscribe to Insights</a>
             </div>
           </div>
         </FadeIn>
@@ -563,13 +563,29 @@ function Footer() {
             </p>
           </div>
           {[
-            { h: "Navigate", links: ["Platforms & Tech", "How to Choose", "Research & Insight", "Vendors", "Advisory"] },
-            { h: "Resources", links: ["TCO Calculator", "CX Maturity Assessment", "Buyer Guides", "Frameworks", "Newsletter"] },
-            { h: "Company", links: ["About", "Our POV", "Contact", "Request Briefing"] },
+            { h: "Navigate", links: [
+              { name: "Platforms & Tech", href: "/platforms-and-tech" },
+              { name: "How to Choose", href: "/how-to-choose" },
+              { name: "Research & Insight", href: "/research" },
+              { name: "Vendors", href: "/vendors" },
+              { name: "Advisory", href: "/advisory" },
+            ]},
+            { h: "Resources", links: [
+              { name: "TCO Calculator", href: "/contact" },
+              { name: "CX Maturity Assessment", href: "/contact" },
+              { name: "Buyer Guides", href: "/how-to-choose" },
+              { name: "Frameworks", href: "/platforms-and-tech" },
+              { name: "Newsletter", href: "/contact" },
+            ]},
+            { h: "Company", links: [
+              { name: "About", href: "/about" },
+              { name: "Contact", href: "/contact" },
+              { name: "Request Briefing", href: "/contact" },
+            ]},
           ].map((col, i) => (
             <div key={i}>
               <h4 style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16 }}>{col.h}</h4>
-              {col.links.map(l => <a key={l} href="#" style={{ display: "block", fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 10, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.4)"}>{l}</a>)}
+              {col.links.map(l => <a key={l.name} href={l.href} style={{ display: "block", fontSize: 13, color: "rgba(255,255,255,0.4)", marginBottom: 10, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.4)"}>{l.name}</a>)}
             </div>
           ))}
         </div>
