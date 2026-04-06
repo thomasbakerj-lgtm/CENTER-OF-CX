@@ -71,9 +71,15 @@ function Nav() {
       <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: bg, backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid rgba(255,255,255,0.05)" : "none", transition: "all 0.35s ease", padding: scrolled ? "12px 0" : "20px 0" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: "50%", background: `linear-gradient(135deg, ${ELECTRIC}, ${NAVY})`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 0 18px rgba(0,136,221,0.25)`, flexShrink: 0 }}>
-              <span style={{ color: "#fff", fontWeight: 700, fontSize: 12, letterSpacing: 1 }}>CX</span>
-            </div>
+            <svg width="34" height="34" viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
+              <g transform="translate(60,60)">
+                <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
+                <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity="0.8"/>
+                <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
+                <line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT_BLUE} strokeWidth="5.5" strokeLinecap="round"/>
+                <line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT_BLUE} strokeWidth="5.5" strokeLinecap="round"/>
+              </g>
+            </svg>
             <span style={{ color: "#fff", fontWeight: 600, fontSize: 14.5, letterSpacing: 0.4 }}>
               THE CENTER OF <span style={{ color: LIGHT_BLUE }}>CX</span>
             </span>
@@ -541,9 +547,15 @@ function Footer() {
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 48, marginBottom: 48 }} className="footer-grid">
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: `linear-gradient(135deg, ${ELECTRIC}, ${NAVY})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ color: "#fff", fontWeight: 700, fontSize: 10 }}>CX</span>
-              </div>
+              <svg width="28" height="28" viewBox="0 0 120 120">
+                <g transform="translate(60,60)">
+                  <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
+                  <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity="0.7"/>
+                  <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
+                  <line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT_BLUE} strokeWidth="5.5" strokeLinecap="round"/>
+                  <line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT_BLUE} strokeWidth="5.5" strokeLinecap="round"/>
+                </g>
+              </svg>
               <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT_BLUE }}>CX</span></span>
             </div>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, maxWidth: 300 }}>
