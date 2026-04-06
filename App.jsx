@@ -5,6 +5,7 @@ import About from './About'
 import Advisory from './Advisory'
 import Contact from './Contact'
 import Subscribe from './Subscribe'
+import HowToChoose from './HowToChoose'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />
+        <Route path="/how-to-choose" element={<HowToChoose />} />
       </Routes>
     </BrowserRouter>
   )
