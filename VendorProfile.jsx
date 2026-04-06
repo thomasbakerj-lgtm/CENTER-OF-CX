@@ -132,6 +132,9 @@ function VendorNotFound() {
 export default function VendorProfile() {
   const { slug } = useParams();
   const vendor = getVendor(slug);
+  const [showReview, setShowReview] = useState(false);
+  const [reviewSent, setReviewSent] = useState(false);
+  const [reviewSending, setReviewSending] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
@@ -267,6 +270,168 @@ export default function VendorProfile() {
           </Section>
         </div>
       </section>
+
+      {/* Community */}
+      <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+        <div style={WRAP}>
+          <FadeIn>
+            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480 }}>
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>Community Intelligence</span>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {v.name}? Share what you've seen.</h3>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't. Every review is attributed by role and company size.</p>
+              </div>
+              <button onClick={() => setShowReview(true)} style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)`, flexShrink: 0 }}>Share Your Experience</button>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      {/* Review Modal */}
+      {showReview && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setShowReview(false)}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(6,19,37,0.7)", backdropFilter: "blur(6px)" }} />
+          <div onClick={e => e.stopPropagation()} style={{ position: "relative", background: "#fff", borderRadius: 16, padding: "36px 32px", maxWidth: 560, width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.25)" }}>
+            <button onClick={() => setShowReview(false)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 20, color: MUTED, cursor: "pointer", lineHeight: 1 }}>×</button>
+
+            {reviewSent ? (
+              <div style={{ textAlign: "center", padding: "32px 0" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${GREEN}12`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                  <span style={{ color: GREEN, fontSize: 22 }}>✓</span>
+                </div>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: NAVY, margin: "0 0 8px" }}>Review submitted. Thank you.</h3>
+                <p style={{ fontSize: 14, color: MUTED, fontFamily: "'DM Sans', sans-serif" }}>Your experience helps the CX community make better technology decisions.</p>
+              </div>
+            ) : (
+              <div>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: NAVY, margin: "0 0 4px" }}>Review {v.name}</h3>
+                <p style={{ fontSize: 13, color: MUTED, margin: "0 0 24px", fontFamily: "'DM Sans', sans-serif" }}>Your feedback is visible to the community and our editorial team. All fields are required unless marked optional.</p>
+
+                <div id="review-form" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <input type="hidden" name="vendor" value={v.name} />
+                  <input type="hidden" name="vendor_slug" value={v.slug} />
+                  <input type="hidden" name="_subject" value={`Community Review: ${v.name} — Center of CX`} />
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>Your overall score</label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {[1,2,3,4,5].map(num => (
+                        <label key={num} style={{ flex: 1 }}>
+                          <input type="radio" name="score" value={num} style={{ display: "none" }} />
+                          <div className="score-opt" style={{ textAlign: "center", padding: "12px 0", borderRadius: 8, border: `1px solid ${BORDER}`, cursor: "pointer", transition: "all 0.15s", fontFamily: "'DM Sans', sans-serif" }}
+                            onClick={e => { e.currentTarget.parentElement.querySelector('input').checked = true; document.querySelectorAll('.score-opt').forEach(el => { el.style.background = '#fff'; el.style.borderColor = BORDER; el.style.color = SLATE; }); e.currentTarget.style.background = `${ELECTRIC}10`; e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}>
+                            <div style={{ fontSize: 18, fontWeight: 700 }}>{num}</div>
+                            <div style={{ fontSize: 10, color: MUTED }}>{["Poor","Below avg","Average","Strong","Excellent"][num-1]}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Your role</label>
+                      <select name="role" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                        <option value="" disabled selected>Select</option>
+                        <option value="CX Leader / VP">CX Leader / VP</option>
+                        <option value="Contact Center Director">Contact Center Director</option>
+                        <option value="IT / CTO / CIO">IT / CTO / CIO</option>
+                        <option value="Operations Executive">Operations Executive</option>
+                        <option value="Agent / Supervisor">Agent / Supervisor</option>
+                        <option value="Consultant / Integrator">Consultant / Integrator</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Company size</label>
+                      <select name="company_size" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                        <option value="" disabled selected>Select</option>
+                        <option value="Under 50 agents">Under 50 agents</option>
+                        <option value="50–200 agents">50–200 agents</option>
+                        <option value="200–500 agents">200–500 agents</option>
+                        <option value="500–1000 agents">500–1000 agents</option>
+                        <option value="1000+ agents">1000+ agents</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>How long have you used {v.name}?</label>
+                    <select name="tenure" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                      <option value="" disabled selected>Select</option>
+                      <option value="Less than 6 months">Less than 6 months</option>
+                      <option value="6–12 months">6–12 months</option>
+                      <option value="1–2 years">1–2 years</option>
+                      <option value="2–4 years">2–4 years</option>
+                      <option value="4+ years">4+ years</option>
+                      <option value="Evaluated but did not buy">Evaluated but did not buy</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>What works well?</label>
+                    <textarea name="what_works" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, resize: "vertical" }} placeholder="Specific capabilities, support quality, implementation experience, daily operations..." />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>What would you change?</label>
+                    <textarea name="what_to_change" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, resize: "vertical" }} placeholder="Gaps, frustrations, missing features, support issues, pricing concerns..." />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Would you recommend {v.name} to a peer?</label>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      {["Yes", "With caveats", "No"].map(opt => (
+                        <label key={opt} style={{ flex: 1 }}>
+                          <input type="radio" name="recommend" value={opt} style={{ display: "none" }} />
+                          <div className="rec-opt" style={{ textAlign: "center", padding: "10px 0", borderRadius: 6, border: `1px solid ${BORDER}`, cursor: "pointer", fontSize: 13, fontWeight: 500, color: SLATE, fontFamily: "'DM Sans', sans-serif", transition: "all 0.15s" }}
+                            onClick={e => { e.currentTarget.parentElement.querySelector('input').checked = true; document.querySelectorAll('.rec-opt').forEach(el => { el.style.background = '#fff'; el.style.borderColor = BORDER; el.style.color = SLATE; }); e.currentTarget.style.background = `${ELECTRIC}10`; e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}>
+                            {opt}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional — displayed as first name + last initial)</span></label>
+                    <input name="reviewer_name" style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} placeholder="Jane S." />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Email <span style={{ fontWeight: 400, color: MUTED }}>(private — for verification only)</span></label>
+                    <input name="email" type="email" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} placeholder="jane@company.com" />
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={reviewSending}
+                    onClick={() => {
+                      const form = document.getElementById("review-form");
+                      const formData = new FormData();
+                      form.querySelectorAll("input, select, textarea").forEach(el => {
+                        if (el.name) {
+                          if (el.type === "radio") { if (el.checked) formData.append(el.name, el.value); }
+                          else formData.append(el.name, el.value);
+                        }
+                      });
+                      setReviewSending(true);
+                      fetch("https://formspree.io/f/xjgplvkz", {
+                        method: "POST", body: formData, headers: { Accept: "application/json" },
+                      }).then(res => { if (res.ok) setReviewSent(true); setReviewSending(false); })
+                      .catch(() => setReviewSending(false));
+                    }}
+                    style={{ width: "100%", background: reviewSending ? SLATE : ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: reviewSending ? "wait" : "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>
+                    {reviewSending ? "Submitting..." : "Submit Review"}
+                  </button>
+
+                  <p style={{ fontSize: 11, color: MUTED, textAlign: "center", margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Your email stays private. Reviews may be edited for clarity.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* CTA */}
       <section style={{ background: WARM, padding: "80px 28px" }}>
