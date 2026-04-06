@@ -6,6 +6,7 @@ import Advisory from './Advisory'
 import Contact from './Contact'
 import Subscribe from './Subscribe'
 import HowToChoose from './HowToChoose'
+import Research from './Research'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />
         <Route path="/how-to-choose" element={<HowToChoose />} />
+        <Route path="/research" element={<Research />} />
       </Routes>
     </BrowserRouter>
   )
