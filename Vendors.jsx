@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { getAllSlugs } from "./VendorData";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -148,17 +149,48 @@ function Stance() {
 }
 
 function BrowseByCategory() {
+  const slugs = getAllSlugs();
+  const toSlug = (name) => name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
   const categories = [
-    { title: "Core CX Platforms", sub: "CCaaS", count: "44", vendors: "Genesys, NICE, Five9, AWS Connect, Talkdesk, 8x8, Cisco, Zoom", desc: "The foundational platform for voice, digital, routing, and workforce management." },
-    { title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", count: "50", vendors: "Kore.ai, Cognigy, Yellow.ai, LivePerson, PolyAI, Amelia, Nuance", desc: "From legacy IVAs to LLM-native virtual assistants and autonomous AI workers." },
-    { title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", count: "30+", vendors: "Uniphore, Observe.AI, Cresta, Coveo, Shelf, Guru, Bloomfire", desc: "Real-time guidance, knowledge retrieval, summarization, and next-best-action." },
-    { title: "Workforce & Quality Management", sub: "WEM · QM · WFM", count: "25+", vendors: "NICE, Verint, Calabrio, Genesys WEM, Five9, Playvox", desc: "Forecasting, scheduling, quality monitoring, coaching, and AI-powered QA." },
-    { title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", count: "53", vendors: "CallMiner, Observe.AI, Qualtrics, Verint, Genesys, Clarabridge", desc: "Sentiment, topic analysis, root cause detection, and cross-channel journey patterns." },
-    { title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", count: "50", vendors: "MuleSoft, Workato, Camunda, Pega, UiPath, Genesys, NICE", desc: "How interactions get routed, how systems share data, and how workflows execute." },
-    { title: "Digital Engagement", sub: "Chat · Messaging · Social", count: "50", vendors: "Ada, Intercom, Sprinklr, Zendesk, Salesforce DE, Khoros, Gladly", desc: "Multi-channel digital engagement platforms, CPaaS, and conversational messaging." },
-    { title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", count: "50+", vendors: "Stripe, Adyen, Worldpay, Forter, Sift, BioCatch, Checkout.com", desc: "Payment processing, PCI compliance, authentication, and fraud prevention in CX." },
-    { title: "CX & AI Governance", sub: "Compliance · Model Risk", count: "Emerging", vendors: "Framework-driven — governance tooling is still consolidating", desc: "Compliance, model evaluation, escalation design, and AI auditability." },
+    { title: "Core CX Platforms", sub: "CCaaS", count: "44", vendors: [
+      { name: "Genesys", slug: "genesys" }, { name: "NICE CXone", slug: "nice-cxone" }, { name: "Five9", slug: "five9" },
+      { name: "Amazon Connect", slug: "amazon-connect" }, { name: "Talkdesk", slug: "talkdesk" },
+      { name: "8x8" }, { name: "Cisco Webex" }, { name: "Zoom" },
+    ], desc: "The foundational platform for voice, digital, routing, and workforce management." },
+    { title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", count: "50", vendors: [
+      { name: "Kore.ai" }, { name: "Cognigy" }, { name: "Yellow.ai" }, { name: "LivePerson" }, { name: "PolyAI" }, { name: "Amelia" }, { name: "Nuance" },
+    ], desc: "From legacy IVAs to LLM-native virtual assistants and autonomous AI workers." },
+    { title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", count: "30+", vendors: [
+      { name: "Uniphore" }, { name: "Observe.AI" }, { name: "Cresta" }, { name: "Coveo" }, { name: "Shelf" }, { name: "Guru" }, { name: "Bloomfire" },
+    ], desc: "Real-time guidance, knowledge retrieval, summarization, and next-best-action." },
+    { title: "Workforce & Quality Management", sub: "WEM · QM · WFM", count: "25+", vendors: [
+      { name: "NICE" }, { name: "Verint" }, { name: "Calabrio" }, { name: "Genesys WEM" }, { name: "Five9" }, { name: "Playvox" },
+    ], desc: "Forecasting, scheduling, quality monitoring, coaching, and AI-powered QA." },
+    { title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", count: "53", vendors: [
+      { name: "CallMiner" }, { name: "Observe.AI" }, { name: "Qualtrics" }, { name: "Verint" }, { name: "Genesys" }, { name: "Clarabridge" },
+    ], desc: "Sentiment, topic analysis, root cause detection, and cross-channel journey patterns." },
+    { title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", count: "50", vendors: [
+      { name: "MuleSoft" }, { name: "Workato" }, { name: "Camunda" }, { name: "Pega" }, { name: "UiPath" }, { name: "Genesys" }, { name: "NICE" },
+    ], desc: "How interactions get routed, how systems share data, and how workflows execute." },
+    { title: "Digital Engagement", sub: "Chat · Messaging · Social", count: "50", vendors: [
+      { name: "Ada" }, { name: "Intercom" }, { name: "Sprinklr" }, { name: "Zendesk" }, { name: "Salesforce DE" }, { name: "Khoros" }, { name: "Gladly" },
+    ], desc: "Multi-channel digital engagement platforms, CPaaS, and conversational messaging." },
+    { title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", count: "50+", vendors: [
+      { name: "Stripe" }, { name: "Adyen" }, { name: "Worldpay" }, { name: "Forter" }, { name: "Sift" }, { name: "BioCatch" }, { name: "Checkout.com" },
+    ], desc: "Payment processing, PCI compliance, authentication, and fraud prevention in CX." },
+    { title: "CX & AI Governance", sub: "Compliance · Model Risk", count: "Emerging", vendors: [], desc: "Compliance, model evaluation, escalation design, and AI auditability. Governance tooling is still consolidating." },
   ];
+
+  const VendorLink = ({ v }) => {
+    const s = v.slug || toSlug(v.name);
+    const exists = slugs.includes(s);
+    return exists ? (
+      <a href={`/vendors/${s}`} style={{ color: ELECTRIC, fontWeight: 600, borderBottom: `1px solid ${ELECTRIC}30`, transition: "border-color 0.2s" }}
+        onMouseOver={e => e.target.style.borderColor = ELECTRIC}
+        onMouseOut={e => e.target.style.borderColor = `${ELECTRIC}30`}>{v.name}</a>
+    ) : <span>{v.name}</span>;
+  };
 
   return (
     <section style={{ background: "#fff", padding: "96px 28px" }}>
@@ -184,7 +216,10 @@ function BrowseByCategory() {
                     <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>{c.title}</h3>
                     <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55, margin: "0 0 12px", fontFamily: "'DM Sans', sans-serif" }}>{c.desc}</p>
                     <p style={{ fontSize: 12.5, color: SLATE, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
-                      <span style={{ fontWeight: 600 }}>Key vendors: </span>{c.vendors}
+                      <span style={{ fontWeight: 600 }}>Key vendors: </span>
+                      {c.vendors.map((v, j) => (
+                        <span key={j}><VendorLink v={v} />{j < c.vendors.length - 1 ? ", " : ""}</span>
+                      ))}
                     </p>
                   </div>
                   <a href="/platforms-and-tech" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif", flexShrink: 0, paddingTop: 4 }}>Explore →</a>
