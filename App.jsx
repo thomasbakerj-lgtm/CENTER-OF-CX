@@ -4,6 +4,7 @@ import PlatformsTech from './PlatformsTech'
 import About from './About'
 import Advisory from './Advisory'
 import Contact from './Contact'
+import Subscribe from './Subscribe'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/subscribe" element={<Subscribe />} />
       </Routes>
     </BrowserRouter>
   )
