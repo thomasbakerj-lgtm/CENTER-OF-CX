@@ -8,6 +8,7 @@ import Subscribe from './Subscribe'
 import HowToChoose from './HowToChoose'
 import Research from './Research'
 import Vendors from './Vendors'
+import Industries from './Industries'
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/how-to-choose" element={<HowToChoose />} />
         <Route path="/research" element={<Research />} />
         <Route path="/vendors" element={<Vendors />} />
+        <Route path="/industries" element={<Industries />} />
       </Routes>
     </BrowserRouter>
   )
