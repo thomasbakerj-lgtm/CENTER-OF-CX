@@ -3,6 +3,7 @@ import Homepage from './Homepage'
 import PlatformsTech from './PlatformsTech'
 import About from './About'
 import Advisory from './Advisory'
+import Contact from './Contact'
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/platforms-and-tech" element={<PlatformsTech />} />
         <Route path="/about" element={<About />} />
         <Route path="/advisory" element={<Advisory />} />
+        <Route path="/contact" element={<Contact />} />
       </Routes>
     </BrowserRouter>
   )
