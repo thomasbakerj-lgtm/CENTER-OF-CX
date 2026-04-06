@@ -530,7 +530,7 @@ function FinalCTA() {
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
-              <a href="/contact" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8 }}>Subscribe to Insights</a>
+              <a href="/subscribe" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8 }}>Subscribe to Insights</a>
             </div>
           </div>
         </FadeIn>
@@ -575,7 +575,7 @@ function Footer() {
               { name: "CX Maturity Assessment", href: "/contact" },
               { name: "Buyer Guides", href: "/how-to-choose" },
               { name: "Frameworks", href: "/platforms-and-tech" },
-              { name: "Newsletter", href: "/contact" },
+              { name: "Newsletter", href: "/subscribe" },
             ]},
             { h: "Company", links: [
               { name: "About", href: "/about" },
