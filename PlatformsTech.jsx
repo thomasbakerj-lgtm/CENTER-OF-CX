@@ -69,7 +69,7 @@ function Nav() {
           </div>
           <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
             {links.map((l, i) => <a key={l.name} href={l.href} style={{ color: i === 0 ? "#fff" : "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: i === 0 ? 600 : 500, fontFamily: "'DM Sans', sans-serif", transition: "color 0.2s", borderBottom: i === 0 ? `2px solid ${ELECTRIC}` : "2px solid transparent", paddingBottom: 2 }}>{l.name}</a>)}
-            <a href="#" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif" }}>Request Briefing</a>
+            <a href="/contact" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif" }}>Request Briefing</a>
           </div>
         </div>
       </nav>
@@ -86,7 +86,7 @@ function Hero() {
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-            <a href="#" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Home</a>
+            <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Home</a>
             <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
             <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>Platforms & Tech</span>
           </div>
@@ -224,7 +224,7 @@ function OrchestrationLayers() {
                           <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10, fontFamily: "'DM Sans', sans-serif" }}>Typical owners</div>
                           <p style={{ fontSize: 13.5, color: SLATE, lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>{layer.roles}</p>
                           <div style={{ marginTop: 16 }}>
-                            <a href="#" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>See vendors in this layer →</a>
+                            <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>See vendors in this layer →</a>
                           </div>
                         </div>
                       </div>
@@ -238,7 +238,7 @@ function OrchestrationLayers() {
 
         <FadeIn delay={0.2}>
           <div style={{ textAlign: "center", marginTop: 40 }}>
-            <a href="#" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Download the full orchestration framework (PDF) →</a>
+            <a href="/contact" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Download the full orchestration framework (PDF) →</a>
           </div>
         </FadeIn>
       </div>
@@ -350,7 +350,7 @@ function Categories() {
                   <div style={{ borderLeft: `1px solid ${BORDER}`, paddingLeft: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, fontFamily: "'DM Sans', sans-serif" }}>Key vendors</div>
                     <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, marginBottom: 16, fontFamily: "'DM Sans', sans-serif" }}>{c.vendors}</p>
-                    <a href="#" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Explore category →</a>
+                    <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Explore category →</a>
                   </div>
                 </div>
               </div>
@@ -458,7 +458,7 @@ function ArchEvolution() {
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, maxWidth: 600, margin: "0 auto 20px", fontFamily: "'DM Sans', sans-serif" }}>
               Cost per resolved interaction drops sharply as automation rises — even as per-agent TCO flattens. The winning metric shifts from cost-per-agent to cost-per-successful-task.
             </p>
-            <a href="#" style={{ fontSize: 14, fontWeight: 600, color: LIGHT, fontFamily: "'DM Sans', sans-serif" }}>Calculate your stack's TCO →</a>
+            <a href="/contact" style={{ fontSize: 14, fontWeight: 600, color: LIGHT, fontFamily: "'DM Sans', sans-serif" }}>Calculate your stack's TCO →</a>
           </div>
         </FadeIn>
       </div>
@@ -478,8 +478,8 @@ function CTA() {
               Whether you're evaluating platforms, planning an AI pilot, or trying to make sense of your current vendor landscape — we offer vendor-neutral advisory with no commissions and no implementation bias.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="#" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
-              <a href="#" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif" }}>Download Buyer Guide</a>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
+              <a href="/how-to-choose" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif" }}>Download Buyer Guide</a>
             </div>
           </div>
         </FadeIn>
