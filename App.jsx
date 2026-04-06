@@ -10,6 +10,7 @@ import Research from './Research'
 import Vendors from './Vendors'
 import Industries from './Industries'
 import TCOCalculator from './TCOCalculator'
+import VendorProfile from './VendorProfile'
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/how-to-choose" element={<HowToChoose />} />
         <Route path="/research" element={<Research />} />
         <Route path="/vendors" element={<Vendors />} />
+        <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
