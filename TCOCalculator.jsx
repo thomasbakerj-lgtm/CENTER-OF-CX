@@ -202,7 +202,7 @@ function Calculator() {
     formData.append("industry", d.industry);
     formData.append("monthly_contacts", contacts.toLocaleString());
 
-    fetch("https://formspree.io/f/xvzvdnry", {
+    fetch("https://formspree.io/f/maqlvwne", {
       method: "POST", body: formData, headers: { Accept: "application/json" },
     }).then(res => { if (res.ok) setResultsSent(true); setSendingResults(false); })
     .catch(() => setSendingResults(false));
