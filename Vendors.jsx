@@ -176,7 +176,7 @@ function BrowseByCategory() {
     { title: "Digital Engagement", sub: "Chat · Messaging · Social", count: "50", vendors: [
       { name: "Ada" }, { name: "Intercom" }, { name: "Sprinklr" }, { name: "Zendesk" }, { name: "Salesforce DE" }, { name: "Khoros" }, { name: "Gladly" },
     ], desc: "Multi-channel digital engagement platforms, CPaaS, and conversational messaging." },
-    { title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", count: "50+", vendors: [
+    { title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", count: "51", href: "/vendors/payments", vendors: [
       { name: "Stripe" }, { name: "Adyen" }, { name: "Worldpay" }, { name: "Forter" }, { name: "Sift" }, { name: "BioCatch" }, { name: "Checkout.com" },
     ], desc: "Payment processing, PCI compliance, authentication, and fraud prevention in CX." },
     { title: "CX & AI Governance", sub: "Compliance · Model Risk", count: "Emerging", vendors: [], desc: "Compliance, model evaluation, escalation design, and AI auditability. Governance tooling is still consolidating." },
