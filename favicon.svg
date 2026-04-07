@@ -1,9 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-  <!-- The Center of CX - Favicon (E4 simplified) -->
-  <g transform="translate(16,16)">
-    <path d="M 6,-11 A 13,13 0 1,0 6,11" fill="none" stroke="#0B1D3A" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M 4,-7 A 8,8 0 1,0 4,7" fill="none" stroke="#0B1D3A" stroke-width="1.5" stroke-linecap="round"/>
-    <line x1="-3.5" y1="-3.5" x2="3.5" y2="3.5" stroke="#0088DD" stroke-width="2" stroke-linecap="round"/>
-    <line x1="3.5" y1="-3.5" x2="-3.5" y2="3.5" stroke="#0088DD" stroke-width="2" stroke-linecap="round"/>
+<svg width="32" height="32" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <rect width="120" height="120" rx="24" fill="#0B1D3A"/>
+  <g transform="translate(60,60)">
+    <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+    <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" opacity="0.7"/>
+    <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+    <line x1="-14" y1="-14" x2="14" y2="14" stroke="#00AAFF" stroke-width="5.5" stroke-linecap="round"/>
+    <line x1="14" y1="-14" x2="-14" y2="14" stroke="#00AAFF" stroke-width="5.5" stroke-linecap="round"/>
   </g>
 </svg>
