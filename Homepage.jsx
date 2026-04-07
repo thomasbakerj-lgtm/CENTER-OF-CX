@@ -160,7 +160,7 @@ function WhyNow() {
     { n: "20–40%", l: "Current automation rate in most contact centers", s: "Up from 5–10% a decade ago" },
     { n: "$305–540", l: "All-in TCO per agent per month today", s: "Down from $450–$800 in 2015" },
     { n: "7–9", l: "Orchestration layers in a modern CX stack", s: "Each with distinct vendors and governance" },
-    { n: "50–70%", l: "Target Tier 1 automation by 2030", s: "Humans handle exceptions, not volume" },
+    { n: "50–70%", l: "Target Tier 1 automation by 2030", s: "Humans handle exceptions. Automation handles volume." },
   ];
   return (
     <section style={{ background: WARM, padding: "96px 28px", borderBottom: `1px solid ${BORDER}` }}>
@@ -168,7 +168,7 @@ function WhyNow() {
         <FadeIn>
           <div style={{ maxWidth: 660 }}>
             <SectionLabel>Why This Matters Now</SectionLabel>
-            <SectionTitle>Customer experience is now an operating discipline — not a slogan.</SectionTitle>
+            <SectionTitle>Customer experience is an operating discipline. Finally.</SectionTitle>
             <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.75, marginTop: 8 }}>
               The contact center stack has more layers, more vendors, and more AI promises than ever. Platform costs shift but don't disappear. Automation rises but complexity rises faster. The leaders who win aren't buying the most technology — they're designing systems where strategy, operations, data, and AI actually align.
             </p>
@@ -212,7 +212,7 @@ function Platforms() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 20, marginBottom: 48 }}>
             <div>
               <SectionLabel>Platforms & Tech</SectionLabel>
-              <SectionTitle>Nine decision domains. Not feature buckets.</SectionTitle>
+              <SectionTitle>Nine decision domains. Each one carries real risk.</SectionTitle>
             </div>
             <a href="/platforms-and-tech" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all categories →</a>
           </div>
@@ -325,7 +325,7 @@ function Tools() {
             <SectionLabel>CX Pro Tools</SectionLabel>
             <SectionTitle>Practical tools for serious operators.</SectionTitle>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4 }}>
-              Free, gated resources built from real frameworks — not recycled whitepapers. Every tool ends with an output you can bring to your next leadership meeting.
+              Free, gated resources built from real frameworks. Every tool ends with an output you can bring to your next leadership meeting.
             </p>
           </div>
         </FadeIn>
@@ -486,8 +486,8 @@ function Advisory() {
 function Differentiators() {
   const diffs = [
     { t: "Strategy to the Floor", d: "We don't stop at the boardroom. We understand queues, SLAs, QA, escalation, and staffing models." },
-    { t: "Not Vendor Propaganda", d: "Technology matters. But tools aren't the strategy. We help you think before you buy." },
-    { t: "AI as an Operating System Issue", d: "Not 'AI is exciting.' How AI changes routing, QA, role design, knowledge, and governance." },
+    { t: "Vendor-Independent", d: "Technology matters. But tools aren't the strategy. We help you think before you buy." },
+    { t: "AI as an Operating System Issue", d: "How AI changes routing, QA, role design, knowledge, and governance. The operational reality behind the headlines." },
     { t: "Vertical Nuance", d: "Healthcare ≠ retail. Insurance ≠ telecom. We show how context changes the right answer." },
   ];
   return (
@@ -497,7 +497,7 @@ function Differentiators() {
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto 56px" }}>
             <SectionLabel>What Makes This Different</SectionLabel>
-            <SectionTitle light>Built for transformation, not inspiration.</SectionTitle>
+            <SectionTitle light>Built for transformation.</SectionTitle>
           </div>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20 }}>
