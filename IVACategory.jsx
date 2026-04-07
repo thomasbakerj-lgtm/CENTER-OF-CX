@@ -126,7 +126,23 @@ export default function IVACategory() {
         <div style={WRAP}>
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Complete Directory</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 40px" }}>All {all.length} IVA vendors, ranked by weighted composite score.</h2>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 24px" }}>All {all.length} IVA vendors, ranked by weighted composite score.</h2>
+          </FadeIn>
+
+          <FadeIn delay={0.03}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, padding: "12px 18px", background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}15`, borderRadius: 8, marginBottom: 24, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: SLATE, marginRight: 8 }}>Dimension scores:</span>
+              {[
+                { abbr: "AUT", full: "Conversational Autonomy" },
+                { abbr: "MCH", full: "Multi-Channel Coverage" },
+                { abbr: "ORC", full: "Orchestration Depth" },
+                { abbr: "ANL", full: "Analytics & Intelligence" },
+              ].map((d, i) => (
+                <span key={i} style={{ fontSize: 11, color: MUTED }}>
+                  <span style={{ fontWeight: 700, color: NAVY }}>{d.abbr}</span> = {d.full}{i < 3 ? <span style={{ color: BORDER, margin: "0 6px" }}>|</span> : ""}
+                </span>
+              ))}
+            </div>
           </FadeIn>
 
           {tiers.map((t, ti) => (
