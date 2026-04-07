@@ -167,7 +167,7 @@ function BrowseByCategory() {
     { title: "Workforce & Quality Management", sub: "WEM · QM · WFM", count: "25+", vendors: [
       { name: "NICE" }, { name: "Verint" }, { name: "Calabrio" }, { name: "Genesys WEM" }, { name: "Five9" }, { name: "Playvox" },
     ], desc: "Forecasting, scheduling, quality monitoring, coaching, and AI-powered QA." },
-    { title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", count: "53", vendors: [
+    { title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", count: "52", href: "/vendors/analytics", vendors: [
       { name: "CallMiner" }, { name: "Observe.AI" }, { name: "Qualtrics" }, { name: "Verint" }, { name: "Genesys" }, { name: "Clarabridge" },
     ], desc: "Sentiment, topic analysis, root cause detection, and cross-channel journey patterns." },
     { title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", count: "44", href: "/vendors/acd-routing", vendors: [
