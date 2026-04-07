@@ -12,6 +12,7 @@ import Industries from './Industries'
 import TCOCalculator from './TCOCalculator'
 import VendorProfile from './VendorProfile'
 import CCaaSCategory from './CCaaSCategory'
+import IVACategory from './IVACategory'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/research" element={<Research />} />
         <Route path="/vendors" element={<Vendors />} />
         <Route path="/vendors/ccaas" element={<CCaaSCategory />} />
+        <Route path="/vendors/iva" element={<IVACategory />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
