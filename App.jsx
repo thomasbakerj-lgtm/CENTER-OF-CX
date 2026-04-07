@@ -16,6 +16,7 @@ import IVACategory from './IVACategory'
 import ACDRoutingCategory from './ACDRoutingCategory'
 import AnalyticsCategory from './AnalyticsCategory'
 import PaymentCategory from './PaymentCategory'
+import DigitalEngagementCategory from './DigitalEngagementCategory'
 
 export default function App() {
   return (
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/vendors/acd-routing" element={<ACDRoutingCategory />} />
         <Route path="/vendors/analytics" element={<AnalyticsCategory />} />
         <Route path="/vendors/payments" element={<PaymentCategory />} />
+        <Route path="/vendors/digital-engagement" element={<DigitalEngagementCategory />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
