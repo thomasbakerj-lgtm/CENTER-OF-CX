@@ -130,13 +130,13 @@ function Hero() {
 function OrchestrationLayers() {
   const [active, setActive] = useState(null);
   const layers = [
-    { n: 7, name: "Analytics, Feedback & Governance", color: "#1a5276", categories: ["WEM (QM/WFM/Coaching)", "Recording & Compliance", "Speech Analytics", "Text Analytics", "Journey Analytics"], roles: "WFM Analyst, QA Leader, Data Analyst, Compliance Officer" },
-    { n: 6, name: "Routing & Experience Orchestration", color: "#1a6b8a", categories: ["ACD / Routing", "Outbound Notifications", "Agent Desktop / Workspace"], roles: "CX Architect, Routing Specialist, Product Manager" },
-    { n: 5, name: "Conversation Management", color: "#1a7f9e", categories: ["Digital Engagement (chat, messaging, social)", "Voice/Telephony", "Mobile/App Engagement", "IVA (legacy bots)", "Agent Desktop / Workspace"], roles: "Conversation Engineer, CX Designer, Telephony Architect" },
-    { n: 4, name: "Reasoning & Planning", color: "#0e8c7f", categories: ["Virtual Assistants (LLM-native)", "Agent Assist", "Knowledge AI", "Autonomous Agents / AI Workers"], roles: "Conversation Engineer, AI Trainer, CX Architect" },
-    { n: 3, name: "Policy & Guardrails", color: "#0e7a5e", categories: ["Payments & PCI Vaults", "Fraud/Risk Systems"], roles: "Compliance Officer, Fraud Ops, Risk Analyst" },
-    { n: 2, name: "Workflow Execution", color: "#1a6b4a", categories: ["RPA (UiPath, AA)", "iPaaS (MuleSoft, Workato)", "BPMN / Workflow Engines (Camunda, Pega)"], roles: "Automation Engineer, Integration Engineer, Workflow Designer" },
-    { n: 1, name: "Data Access", color: "#2c5f3f", categories: ["CRM", "Case/Ticketing", "ERP/Billing/Orders", "Event Streaming", "ITSM"], roles: "Data Product Owner, Data Engineer, Finance Ops" },
+    { n: 7, name: "Analytics, Feedback & Governance", color: "#1a5276", href: "/vendors/analytics", categories: [{t:"WEM (QM/WFM/Coaching)"}, {t:"Recording & Compliance"}, {t:"Speech Analytics",h:"/vendors/analytics"}, {t:"Text Analytics",h:"/vendors/analytics"}, {t:"Journey Analytics",h:"/vendors/analytics"}], roles: "WFM Analyst, QA Leader, Data Analyst, Compliance Officer" },
+    { n: 6, name: "Routing & Experience Orchestration", color: "#1a6b8a", href: "/vendors/acd-routing", categories: [{t:"ACD / Routing",h:"/vendors/acd-routing"}, {t:"Outbound Notifications"}, {t:"Agent Desktop / Workspace"}], roles: "CX Architect, Routing Specialist, Product Manager" },
+    { n: 5, name: "Conversation Management", color: "#1a7f9e", href: "/vendors/digital-engagement", categories: [{t:"Digital Engagement (chat, messaging, social)",h:"/vendors/digital-engagement"}, {t:"Voice/Telephony"}, {t:"Mobile/App Engagement"}, {t:"IVA (legacy bots)",h:"/vendors/iva"}, {t:"Agent Desktop / Workspace"}], roles: "Conversation Engineer, CX Designer, Telephony Architect" },
+    { n: 4, name: "Reasoning & Planning", color: "#0e8c7f", href: "/vendors/iva", categories: [{t:"Virtual Assistants (LLM-native)",h:"/vendors/iva"}, {t:"Agent Assist"}, {t:"Knowledge AI"}, {t:"Autonomous Agents / AI Workers"}], roles: "Conversation Engineer, AI Trainer, CX Architect" },
+    { n: 3, name: "Policy & Guardrails", color: "#0e7a5e", href: "/vendors/payments", categories: [{t:"Payments & PCI Vaults",h:"/vendors/payments"}, {t:"Fraud/Risk Systems"}], roles: "Compliance Officer, Fraud Ops, Risk Analyst" },
+    { n: 2, name: "Workflow Execution", color: "#1a6b4a", categories: [{t:"RPA (UiPath, AA)"}, {t:"iPaaS (MuleSoft, Workato)"}, {t:"BPMN / Workflow Engines (Camunda, Pega)"}], roles: "Automation Engineer, Integration Engineer, Workflow Designer" },
+    { n: 1, name: "Data Access", color: "#2c5f3f", categories: [{t:"CRM"}, {t:"Case/Ticketing"}, {t:"ERP/Billing/Orders"}, {t:"Event Streaming"}, {t:"ITSM"}], roles: "Data Product Owner, Data Engineer, Finance Ops" },
   ];
 
   return (
@@ -216,7 +216,13 @@ function OrchestrationLayers() {
                           {layer.categories.map((c, ci) => (
                             <div key={ci} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
                               <div style={{ width: 4, height: 4, borderRadius: "50%", background: layer.color, flexShrink: 0 }} />
-                              <span style={{ fontSize: 13.5, color: SLATE, fontFamily: "'DM Sans', sans-serif" }}>{c}</span>
+                              {c.h ? (
+                                <a href={c.h} style={{ fontSize: 13.5, color: ELECTRIC, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", borderBottom: `1px solid ${ELECTRIC}30`, transition: "border-color 0.2s" }}
+                                  onMouseOver={e => e.target.style.borderColor = ELECTRIC}
+                                  onMouseOut={e => e.target.style.borderColor = `${ELECTRIC}30`}>{c.t}</a>
+                              ) : (
+                                <span style={{ fontSize: 13.5, color: SLATE, fontFamily: "'DM Sans', sans-serif" }}>{c.t}</span>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -224,7 +230,7 @@ function OrchestrationLayers() {
                           <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10, fontFamily: "'DM Sans', sans-serif" }}>Typical owners</div>
                           <p style={{ fontSize: 13.5, color: SLATE, lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>{layer.roles}</p>
                           <div style={{ marginTop: 16 }}>
-                            <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>See vendors in this layer →</a>
+                            <a href={layer.href || "/vendors"} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>See vendors in this layer →</a>
                           </div>
                         </div>
                       </div>
