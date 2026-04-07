@@ -158,7 +158,7 @@ function BrowseByCategory() {
       { name: "Amazon Connect", slug: "amazon-connect" }, { name: "Talkdesk", slug: "talkdesk" },
       { name: "8x8", slug: "8x8" }, { name: "Cisco Webex", slug: "cisco" }, { name: "Zoom", slug: "zoom" },
     ], desc: "The foundational platform for voice, digital, routing, and workforce management." },
-    { title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", count: "50", href: "/vendors", vendors: [
+    { title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", count: "50", href: "/vendors/iva", vendors: [
       { name: "Kore.ai" }, { name: "Cognigy" }, { name: "Yellow.ai" }, { name: "LivePerson" }, { name: "PolyAI" }, { name: "Amelia" }, { name: "Nuance" },
     ], desc: "From legacy IVAs to LLM-native virtual assistants and autonomous AI workers." },
     { title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", count: "30+", vendors: [
