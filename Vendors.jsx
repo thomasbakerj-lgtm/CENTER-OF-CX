@@ -170,7 +170,7 @@ function BrowseByCategory() {
     { title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", count: "53", vendors: [
       { name: "CallMiner" }, { name: "Observe.AI" }, { name: "Qualtrics" }, { name: "Verint" }, { name: "Genesys" }, { name: "Clarabridge" },
     ], desc: "Sentiment, topic analysis, root cause detection, and cross-channel journey patterns." },
-    { title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", count: "50", vendors: [
+    { title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", count: "44", href: "/vendors/acd-routing", vendors: [
       { name: "MuleSoft" }, { name: "Workato" }, { name: "Camunda" }, { name: "Pega" }, { name: "UiPath" }, { name: "Genesys" }, { name: "NICE" },
     ], desc: "How interactions get routed, how systems share data, and how workflows execute." },
     { title: "Digital Engagement", sub: "Chat · Messaging · Social", count: "50", vendors: [
