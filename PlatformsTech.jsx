@@ -99,7 +99,7 @@ function Hero() {
                 <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>organized for decisions.</span>
               </h1>
               <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 520, margin: "0 0 32px", fontFamily: "'DM Sans', sans-serif" }}>
-                Nine decision domains mapped to seven orchestration layers. Not feature lists. Not vendor marketing. A framework for understanding what you actually need, who owns it, and what breaks when you choose wrong.
+                Nine decision domains mapped to seven orchestration layers. A framework for understanding what you actually need, who owns it, and what breaks when you choose wrong.
               </p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a href="#categories" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 7, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.25)` }}>Explore Categories</a>
@@ -317,9 +317,9 @@ function Categories() {
         <FadeIn>
           <div style={{ maxWidth: 640, marginBottom: 56 }}>
             <Label>Nine Decision Domains</Label>
-            <Title>These are buying decisions, not feature categories.</Title>
+            <Title>These are buying decisions. Each one carries real risk.</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4, fontFamily: "'DM Sans', sans-serif" }}>
-              Every category is framed around the decision a CX leader actually faces — not the way vendors market their products. Each one maps to specific orchestration layers, has distinct budget owners, and carries different risks when you choose wrong.
+              Every category is framed around the decision a CX leader actually faces. Each one maps to specific orchestration layers, has distinct budget owners, and carries different risks when you choose wrong.
             </p>
           </div>
         </FadeIn>
