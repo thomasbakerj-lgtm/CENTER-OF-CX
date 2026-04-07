@@ -115,7 +115,7 @@ function Hero() {
                   { n: "350+", l: "Vendors assessed" },
                   { n: "9", l: "Decision domains" },
                   { n: "7", l: "Orchestration layers" },
-                  { n: "10", l: "Scoring dimensions" },
+                  { n: "27", l: "Scoring dimensions" },
                 ].map((s, i) => (
                   <div key={i} style={{ textAlign: "center", padding: "12px 0" }}>
                     <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: LIGHT }}>{s.n}</div>
@@ -247,8 +247,8 @@ function HowWeEvaluate() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           {[
             { t: "Architecture-level scoring", d: "We evaluate at the orchestration layer level. Routing dependencies, data fabric requirements, API maturity, event-driven capability, and governance overhead. Feature checklists miss what matters — we go deeper." },
-            { t: "Weighted dimension model", d: "Each category uses a custom rubric with 7–10 weighted scoring dimensions. Vendors receive granular scores (High / Med-High / Med / Low-Med / Low) that map to real operational implications." },
-            { t: "Maturity tiering", d: "Vendors are placed into four maturity tiers — Leaders, Advancers, Developers, and Emerging — based on weighted total scores. Our bell curve distributions show exactly where the market clusters and where the gaps are." },
+            { t: "Weighted dimension model", d: "Each category uses a custom rubric with up to 27 weighted scoring dimensions. CCaaS vendors, for example, are scored 1–5 across platform depth, workforce maturity, AI substance, architecture, and commercial fit — with weights reflecting operational importance." },
+            { t: "Maturity tiering", d: "Vendors are placed into four maturity tiers — Strategic Foundation, Strong Contender, Situational Specialist, and Limited Fit — based on weighted composite scores. Our bell curve distributions show exactly where the market clusters and where the gaps are." },
             { t: "Vertical and buyer context", d: "A vendor that's strong for retail may break in healthcare. Our evaluations include vertical fit signals, regulated-readiness indicators, and buyer-type alignment (enterprise vs mid-market vs SMB)." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.08}>
