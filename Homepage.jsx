@@ -195,14 +195,14 @@ function WhyNow() {
 // ─── PLATFORMS & TECH ────────────────────────────────
 function Platforms() {
   const cats = [
-    { t: "Core CX Platforms", s: "CCaaS", d: "When add-ons beat rip-and-replace, and who should not switch platforms." },
-    { t: "Customer Automation", s: "Self-Service AI", d: "IVAs, autonomous resolution, and where AI fails in production." },
+    { t: "Core CX Platforms", s: "CCaaS", d: "When add-ons beat rip-and-replace, and who should not switch platforms.", h: "/vendors/ccaas" },
+    { t: "Customer Automation", s: "Self-Service AI", d: "IVAs, autonomous resolution, and where AI fails in production.", h: "/vendors/iva" },
     { t: "Agent Assist & Knowledge", s: "Real-time Intelligence", d: "RAG realities, adoption traps, and post-contact vs real-time." },
     { t: "Workforce & Quality", s: "Management", d: "Forecasting truth, AI QA vs human QA, and cost control levers." },
-    { t: "Experience Analytics", s: "& Voice of Customer", d: "Root cause vs vanity metrics. Journey visibility that matters." },
-    { t: "CX Orchestration", s: "& Workflow", d: "Routing is dead. Orchestration patterns for CCaaS + CRM + ITSM convergence." },
+    { t: "Experience Analytics", s: "& Voice of Customer", d: "Root cause vs vanity metrics. Journey visibility that matters.", h: "/vendors/analytics" },
+    { t: "CX Orchestration", s: "& Workflow", d: "Routing is dead. Orchestration patterns for CCaaS + CRM + ITSM convergence.", h: "/vendors/acd-routing" },
     { t: "Enterprise & Employee", s: "Service", d: "When ITSM belongs in CX and what you should never unify." },
-    { t: "Payments, Identity", s: "& Trust", d: "PCI, authentication, fraud prevention in the CX workflow." },
+    { t: "Payments, Identity", s: "& Trust", d: "PCI, authentication, fraud prevention in the CX workflow.", h: "/vendors/payments" },
     { t: "CX & AI Governance", s: "Thought Leadership", d: "Compliance, model risk, auditability, and escalation design." },
   ];
   return (
@@ -220,14 +220,14 @@ function Platforms() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: 16 }}>
           {cats.map((c, i) => (
             <FadeIn key={i} delay={i * 0.04}>
-              <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "28px 24px", cursor: "pointer", transition: "all 0.22s", background: "#fff" }}
+              <a href={c.h || "/platforms-and-tech"} style={{ display: "block", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "28px 24px", cursor: "pointer", transition: "all 0.22s", background: "#fff", textDecoration: "none", color: "inherit" }}
                 onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(0,136,221,0.08)"; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.6, textTransform: "uppercase", marginBottom: 8 }}>{c.s}</div>
                 <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 21, fontWeight: 400, color: NAVY, margin: "0 0 8px", lineHeight: 1.25 }}>{c.t}</h3>
                 <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.6, margin: "0 0 16px" }}>{c.d}</p>
-                <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Explore category →</span>
-              </div>
+                <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>{c.h ? "View scored vendors →" : "Explore category →"}</span>
+              </a>
             </FadeIn>
           ))}
         </div>
