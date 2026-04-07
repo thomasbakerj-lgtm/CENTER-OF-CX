@@ -173,7 +173,7 @@ function BrowseByCategory() {
     { title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", count: "44", href: "/vendors/acd-routing", vendors: [
       { name: "MuleSoft" }, { name: "Workato" }, { name: "Camunda" }, { name: "Pega" }, { name: "UiPath" }, { name: "Genesys" }, { name: "NICE" },
     ], desc: "How interactions get routed, how systems share data, and how workflows execute." },
-    { title: "Digital Engagement", sub: "Chat · Messaging · Social", count: "50", vendors: [
+    { title: "Digital Engagement", sub: "Chat · Messaging · Social", count: "50", href: "/vendors/digital-engagement", vendors: [
       { name: "Ada" }, { name: "Intercom" }, { name: "Sprinklr" }, { name: "Zendesk" }, { name: "Salesforce DE" }, { name: "Khoros" }, { name: "Gladly" },
     ], desc: "Multi-channel digital engagement platforms, CPaaS, and conversational messaging." },
     { title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", count: "51", href: "/vendors/payments", vendors: [
