@@ -88,7 +88,7 @@ function Nav() {
 }
 
 function ScoreBadge({ score, tier }) {
-  const color = score >= 90 ? GREEN : score >= 80 ? ELECTRIC : score >= 70 ? AMBER : RED;
+  const color = score >= 85 ? GREEN : score >= 70 ? ELECTRIC : score >= 55 ? AMBER : RED;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
       <div style={{ width: 64, height: 64, borderRadius: "50%", border: `3px solid ${color}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
