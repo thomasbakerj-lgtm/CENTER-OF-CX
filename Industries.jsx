@@ -10,6 +10,33 @@ const SLATE = "#3A4F6A";
 const MUTED = "#6B7F99";
 const BORDER = "#D8E3ED";
 
+const VENDOR_SLUGS = {
+  "Genesys": "genesys", "NICE CXone": "nice-cxone", "Five9": "five9", "Talkdesk": "talkdesk",
+  "Amazon Connect": "amazon-connect", "Cisco Webex": "cisco", "RingCentral": "ringcentral",
+  "8x8": "8x8", "Avaya": "avaya", "Bright Pattern": "bright-pattern", "Enghouse": "enghouse",
+  "Puzzel": "puzzel", "Odigo": "odigo", "Vonage": "vonage",
+  "Talkdesk FS": "talkdesk", "Talkdesk Healthcare": "talkdesk", "Talkdesk Retail": "talkdesk",
+  "Talkdesk Insurance": "talkdesk", "Talkdesk Travel": "talkdesk",
+};
+
+function VendorLinks({ text }) {
+  const parts = text.split(",").map(s => s.trim());
+  return parts.map((name, i) => {
+    const slug = VENDOR_SLUGS[name];
+    return (
+      <span key={i}>
+        {slug ? (
+          <a href={`/vendors/${slug}`} style={{ color: ELECTRIC, fontWeight: 500, borderBottom: `1px solid ${ELECTRIC}30`, transition: "border-color 0.2s" }}
+            onMouseOver={e => e.target.style.borderColor = ELECTRIC}
+            onMouseOut={e => e.target.style.borderColor = `${ELECTRIC}30`}
+            onClick={e => e.stopPropagation()}>{name}</a>
+        ) : <span>{name}</span>}
+        {i < parts.length - 1 ? ", " : ""}
+      </span>
+    );
+  });
+}
+
 function useInView(t = 0.1) {
   const ref = useRef(null);
   const [v, setV] = useState(false);
@@ -265,7 +292,7 @@ function IndustryCard({ ind }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="model-grid">
               <div style={{ background: WARM, borderRadius: 8, padding: "16px 18px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, fontFamily: "'DM Sans', sans-serif", opacity: 0.5 }}>Layer 1 — CCaaS platforms</div>
-                <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{ind.ccaas}</p>
+                <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0, fontFamily: "'DM Sans', sans-serif" }}><VendorLinks text={ind.ccaas} /></p>
               </div>
               <div style={{ background: `${ELECTRIC}06`, borderRadius: 8, padding: "16px 18px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, fontFamily: "'DM Sans', sans-serif" }}>Layer 2 — Vertical CX stack</div>
@@ -274,7 +301,7 @@ function IndustryCard({ ind }) {
             </div>
             <div style={{ marginTop: 16, display: "flex", gap: 16 }}>
               <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Request industry briefing →</a>
-              <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: MUTED, fontFamily: "'DM Sans', sans-serif" }}>Browse vendors →</a>
+              <a href="/vendors/ccaas" style={{ fontSize: 13, fontWeight: 600, color: MUTED, fontFamily: "'DM Sans', sans-serif" }}>Browse CCaaS platforms →</a>
             </div>
           </div>
         </div>
