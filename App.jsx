@@ -18,6 +18,7 @@ import ACDRoutingCategory from './ACDRoutingCategory'
 import AnalyticsCategory from './AnalyticsCategory'
 import PaymentCategory from './PaymentCategory'
 import DigitalEngagementCategory from './DigitalEngagementCategory'
+import AgentAssistCategory from './AgentAssistCategory'
 
 const BASE = "https://contactcentercx.com";
 const SITE = "The Center of CX";
@@ -25,7 +26,7 @@ const SITE = "The Center of CX";
 const SEO_MAP = {
   "/": {
     title: `${SITE} | Independent CX Technology Intelligence`,
-    desc: "252 vendors scored across 6 categories with published methodologies. Independent CX and contact center technology intelligence — scored, weighted, honest.",
+    desc: "267 vendors scored across 7 categories with published methodologies. Independent CX and contact center technology intelligence — scored, weighted, honest.",
   },
   "/platforms-and-tech": {
     title: `Platforms & Tech | ${SITE}`,
@@ -57,7 +58,7 @@ const SEO_MAP = {
   },
   "/vendors": {
     title: `Vendor Intelligence Directory | ${SITE}`,
-    desc: "252 vendors across 6 categories — CCaaS, IVA, ACD/Routing, Analytics, Payments, and Digital Engagement. Scored with published methodologies.",
+    desc: "267 vendors across 7 categories — CCaaS, IVA, ACD/Routing, Analytics, Payments, Digital Engagement, and Agent Assist. Scored with published methodologies.",
   },
   "/vendors/ccaas": {
     title: `CCaaS Platform Market Intelligence — 28 Vendors Scored | ${SITE}`,
@@ -82,6 +83,10 @@ const SEO_MAP = {
   "/vendors/digital-engagement": {
     title: `Digital Engagement Market Intelligence — 50 Platforms Scored | ${SITE}`,
     desc: "50 digital engagement platforms scored across 8 dimensions. The first operator-grade classification of the market — CCaaS-native, messaging, social care, AI automation, and helpdesk.",
+  },
+  "/vendors/agent-assist": {
+    title: `Agent Assist Market Intelligence — 15 Vendors Scored | ${SITE}`,
+    desc: "15 agent assist vendors scored across 10 weighted dimensions. Real-time guidance, knowledge grounding, workflow execution, coaching, compliance, and market proof.",
   },
   "/industries": {
     title: `Industries | ${SITE}`,
@@ -153,6 +158,7 @@ export default function App() {
         <Route path="/vendors/analytics" element={<AnalyticsCategory />} />
         <Route path="/vendors/payments" element={<PaymentCategory />} />
         <Route path="/vendors/digital-engagement" element={<DigitalEngagementCategory />} />
+        <Route path="/vendors/agent-assist" element={<AgentAssistCategory />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
