@@ -288,9 +288,9 @@ function Tools() {
       label: "Calculators & Diagnostics",
       sub: "Interactive tools with immediate output",
       items: [
-        { name: "TCO Calculator", desc: "What your stack actually costs per agent, per contact, per resolved task." },
-        { name: "CX Maturity Assessment", desc: "Where you stand across strategy, ops, tech, analytics, and governance." },
-        { name: "AI Readiness Diagnostic", desc: "Whether your data, workflows, and governance are ready for AI workers." },
+        { name: "TCO Calculator", desc: "What your stack actually costs per agent, per contact, per resolved task.", href: "/tco-calculator" },
+        { name: "CX Maturity Assessment", desc: "Where you stand across strategy, ops, tech, analytics, and governance.", href: "/tools/cx-maturity" },
+        { name: "AI Readiness Diagnostic", desc: "Whether your data, workflows, and governance are ready for AI workers.", href: "/tools/ai-readiness" },
       ],
       accent: ELECTRIC,
     },
@@ -298,10 +298,10 @@ function Tools() {
       label: "Frameworks & Templates",
       sub: "Downloadable IP that demonstrates depth",
       items: [
-        { name: "Experience Scorecard", desc: "Measure what matters: CSAT, FCR, cost-per-contact, containment." },
-        { name: "CX + IT Alignment Framework", desc: "Bridge the gap between experience vision and tech execution." },
-        { name: "Governance & Operating Model", desc: "Who owns what across CX strategy, contact center ops, and AI." },
-        { name: "Service Design Toolkit", desc: "Journey mapping, effort scoring, and friction analysis combined." },
+        { name: "Experience Scorecard", desc: "Measure what matters: CSAT, FCR, cost-per-contact, containment.", href: "/tools/experience-scorecard" },
+        { name: "CX + IT Alignment Framework", desc: "Bridge the gap between experience vision and tech execution.", href: "/tools/cx-it-alignment" },
+        { name: "Governance & Operating Model", desc: "Who owns what across CX strategy, contact center ops, and AI.", href: "/tools/governance-model" },
+        { name: "Service Design Toolkit", desc: "Journey mapping, effort scoring, and friction analysis combined.", href: "/tools/service-design" },
       ],
       accent: "#0099CC",
     },
@@ -309,9 +309,9 @@ function Tools() {
       label: "Planning Tools",
       sub: "For leaders in active transformation",
       items: [
-        { name: "Transformation Roadmap Builder", desc: "90-day planning template with milestones and dependencies." },
-        { name: "Integration Strategy Planner", desc: "Map your stack across the seven orchestration layers." },
-        { name: "Business Case Builder", desc: "The ROI narrative for your board, built from your real numbers." },
+        { name: "Transformation Roadmap Builder", desc: "90-day planning template with milestones and dependencies.", href: "/tools/roadmap-builder" },
+        { name: "Integration Strategy Planner", desc: "Map your stack across the seven orchestration layers.", href: "/tools/integration-planner" },
+        { name: "Business Case Builder", desc: "The ROI narrative for your board, built from your real numbers.", href: "/tools/business-case" },
       ],
       accent: "#006699",
     },
@@ -340,7 +340,7 @@ function Tools() {
                 </div>
                 <div style={{ padding: "8px 0" }}>
                   {tier.items.map((item, ii) => (
-                    <div key={ii} style={{ padding: "16px 24px", cursor: "pointer", transition: "background 0.15s", borderBottom: ii < tier.items.length - 1 ? `1px solid ${BORDER}` : "none" }}
+                    <a key={ii} href={item.href} style={{ display: "block", padding: "16px 24px", cursor: "pointer", transition: "background 0.15s", borderBottom: ii < tier.items.length - 1 ? `1px solid ${BORDER}` : "none", textDecoration: "none", color: "inherit" }}
                       onMouseOver={e => e.currentTarget.style.background = ICE}
                       onMouseOut={e => e.currentTarget.style.background = "transparent"}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
@@ -350,7 +350,7 @@ function Tools() {
                         </div>
                         <span style={{ color: tier.accent, fontSize: 16, flexShrink: 0, fontWeight: 600 }}>→</span>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
