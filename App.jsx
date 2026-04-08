@@ -21,6 +21,7 @@ import DigitalEngagementCategory from './DigitalEngagementCategory'
 import AgentAssistCategory from './AgentAssistCategory'
 import CXEcosystem from './CXEcosystem'
 import ToolGate from './ToolGate'
+import CXMaturity from './CXMaturity'
 
 const BASE = "https://contactcentercx.com";
 const SITE = "The Center of CX";
@@ -94,6 +95,10 @@ const SEO_MAP = {
     title: `CX Industry Ecosystem — 15 Essential Publications & Communities | ${SITE}`,
     desc: "The 15 publications, research hubs, and communities that matter for CX and contact center professionals. Curated by The Center of CX.",
   },
+  "/tools/cx-maturity": {
+    title: `CX Maturity Assessment — Score Your Organization | ${SITE}`,
+    desc: "Score your CX organization across 5 dimensions — strategy, operations, technology, analytics, and governance. 25 questions. Immediate results with maturity tier and recommendations.",
+  },
   "/industries": {
     title: `Industries | ${SITE}`,
     desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and media.",
@@ -166,6 +171,7 @@ export default function App() {
         <Route path="/vendors/digital-engagement" element={<DigitalEngagementCategory />} />
         <Route path="/vendors/agent-assist" element={<AgentAssistCategory />} />
         <Route path="/cx-ecosystem" element={<CXEcosystem />} />
+        <Route path="/tools/cx-maturity" element={<CXMaturity />} />
         <Route path="/tools/:slug" element={<ToolGate />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
