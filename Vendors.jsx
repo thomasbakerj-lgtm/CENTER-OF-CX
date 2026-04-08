@@ -161,7 +161,7 @@ function BrowseByCategory() {
     { title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", count: "50", href: "/vendors/iva", vendors: [
       { name: "Kore.ai" }, { name: "Cognigy" }, { name: "Yellow.ai" }, { name: "LivePerson" }, { name: "PolyAI" }, { name: "Amelia" }, { name: "Nuance" },
     ], desc: "From legacy IVAs to LLM-native virtual assistants and autonomous AI workers." },
-    { title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", count: "30+", vendors: [
+    { title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", count: "15", href: "/vendors/agent-assist", vendors: [
       { name: "Uniphore" }, { name: "Observe.AI" }, { name: "Cresta" }, { name: "Coveo" }, { name: "Shelf" }, { name: "Guru" }, { name: "Bloomfire" },
     ], desc: "Real-time guidance, knowledge retrieval, summarization, and next-best-action." },
     { title: "Workforce & Quality Management", sub: "WEM · QM · WFM", count: "25+", vendors: [
