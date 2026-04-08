@@ -334,6 +334,21 @@ function Footer() {
   );
 }
 
+function EcosystemCallout() {
+  return (
+    <section style={{ background: "#fff", padding: "48px 28px", borderTop: `1px solid ${BORDER}` }}>
+      <div style={WRAP}>
+        <FadeIn>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
+            <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>We're part of a larger CX ecosystem. See the publications and communities we respect.</p>
+            <a href="/cx-ecosystem" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>Explore the CX Ecosystem →</a>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
 export default function About() {
   return (
     <div>
@@ -345,6 +360,7 @@ export default function About() {
       <WhatWeWontDo />
       <Principles />
       <CTA />
+      <EcosystemCallout />
       <Footer />
     </div>
   );
