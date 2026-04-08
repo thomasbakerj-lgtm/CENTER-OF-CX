@@ -157,10 +157,10 @@ function Hero() {
 // ─── WHY NOW ─────────────────────────────────────────
 function WhyNow() {
   const stats = [
-    { n: "20–40%", l: "Current automation rate in most contact centers", s: "Up from 5–10% a decade ago" },
-    { n: "$305–540", l: "All-in TCO per agent per month today", s: "Down from $450–$800 in 2015" },
-    { n: "7–9", l: "Orchestration layers in a modern CX stack", s: "Each with distinct vendors and governance" },
-    { n: "50–70%", l: "Target Tier 1 automation by 2030", s: "Humans handle exceptions. Automation handles volume." },
+    { n: "$71–249", l: "CCaaS platform cost per agent per month", s: "Before labor, WEM, analytics, and integration overhead" },
+    { n: "60–75%", l: "Of contact center cost is labor", s: "Technology alone is never the full picture" },
+    { n: "7", l: "Orchestration layers in a modern CX stack", s: "Each with distinct vendors and governance" },
+    { n: "80%", l: "Of service orgs using generative AI by 2025", s: "Gartner forecast — adoption is accelerating" },
   ];
   return (
     <section style={{ background: WARM, padding: "96px 28px", borderBottom: `1px solid ${BORDER}` }}>
