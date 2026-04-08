@@ -22,6 +22,8 @@ import AgentAssistCategory from './AgentAssistCategory'
 import CXEcosystem from './CXEcosystem'
 import ToolGate from './ToolGate'
 import CXMaturity from './CXMaturity'
+import AIReadiness from './AIReadiness'
+import ExperienceScorecard from './ExperienceScorecard'
 
 const BASE = "https://contactcentercx.com";
 const SITE = "The Center of CX";
@@ -99,6 +101,14 @@ const SEO_MAP = {
     title: `CX Maturity Assessment — Score Your Organization | ${SITE}`,
     desc: "Score your CX organization across 5 dimensions — strategy, operations, technology, analytics, and governance. 25 questions. Immediate results with maturity tier and recommendations.",
   },
+  "/tools/ai-readiness": {
+    title: `AI Readiness Diagnostic — Is Your Contact Center Ready? | ${SITE}`,
+    desc: "Evaluate your data quality, workflow design, integration architecture, governance, and talent readiness for AI-driven automation. 24 questions across 6 dimensions.",
+  },
+  "/tools/experience-scorecard": {
+    title: `Experience Scorecard — Benchmark Your Contact Center | ${SITE}`,
+    desc: "Enter your contact center metrics and compare against industry benchmarks. CSAT, FCR, AHT, containment, cost per contact, attrition, and more. Graded A through D.",
+  },
   "/industries": {
     title: `Industries | ${SITE}`,
     desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and media.",
@@ -172,6 +182,8 @@ export default function App() {
         <Route path="/vendors/agent-assist" element={<AgentAssistCategory />} />
         <Route path="/cx-ecosystem" element={<CXEcosystem />} />
         <Route path="/tools/cx-maturity" element={<CXMaturity />} />
+        <Route path="/tools/ai-readiness" element={<AIReadiness />} />
+        <Route path="/tools/experience-scorecard" element={<ExperienceScorecard />} />
         <Route path="/tools/:slug" element={<ToolGate />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
