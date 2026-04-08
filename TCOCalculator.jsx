@@ -120,17 +120,24 @@ function PctField({ label, value, onChange, hint }) {
 }
 
 function Calculator() {
-  const [d, setD] = useState({
-    agents: 200, supervisors: 20, qaStaff: 5, wfmStaff: 4, trainers: 3, itSupport: 4, sites: 2, industry: "general",
-    agentHourly: 18, agentBenefitsPct: 0.30, supHourly: 30, qaHourly: 28, wfmHourly: 32, trainerHourly: 26, itHourly: 35,
-    monthlyContacts: 120000, aht: 420, fcr: 0.72, containment: 0.25, occupancy: 0.82, shrinkage: 0.30, attrition: 0.35,
-    absenteeism: 0.08, scheduleAdherence: 0.90, avgSpeedAnswer: 28, abandonRate: 0.06, transferRate: 0.15, avgHoldTime: 45,
-    acw: 60, newHireTrainingDays: 21, qualityScore: 0.82, csat: 4.1, nps: 32,
-    channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03,
-    ccaasSeat: 150, wemSeat: 45, telephonyPerMin: 0.025, ivaMonthly: 8000, agentAssistMonthly: 5000, rpaMonthly: 3000,
-    analyticsMonthly: 6000, crmSeat: 75, ipaasMonthly: 4000, recordingMonthly: 3500, knowledgeMgmt: 2500, securityCompliance: 3000,
-    cloudInfra: 5000, psAmortized: 8000, recruitingCostPerHire: 3500, facilitiesCost: 12000,
-  });
+  const industryDefaults = {
+    general: { label: "Cross-Industry Average", agents: 200, agentHourly: 18, monthlyContacts: 120000, aht: 420, fcr: 0.72, containment: 0.25, occupancy: 0.82, shrinkage: 0.30, attrition: 0.35, absenteeism: 0.08, channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 4.1, nps: 32, transferRate: 0.15, acw: 60, ccaasSeat: 150 },
+    financial: { label: "Financial Services", agents: 350, agentHourly: 22, monthlyContacts: 180000, aht: 380, fcr: 0.75, containment: 0.20, occupancy: 0.80, shrinkage: 0.28, attrition: 0.28, absenteeism: 0.07, channelMixVoice: 0.50, channelMixChat: 0.28, channelMixEmail: 0.14, channelMixSocial: 0.04, channelMixSelfServe: 0.04, csat: 4.0, nps: 35, transferRate: 0.12, acw: 75, ccaasSeat: 175 },
+    healthcare: { label: "Healthcare", agents: 250, agentHourly: 20, monthlyContacts: 140000, aht: 480, fcr: 0.68, containment: 0.18, occupancy: 0.78, shrinkage: 0.32, attrition: 0.32, absenteeism: 0.09, channelMixVoice: 0.62, channelMixChat: 0.20, channelMixEmail: 0.12, channelMixSocial: 0.03, channelMixSelfServe: 0.03, csat: 3.9, nps: 28, transferRate: 0.18, acw: 90, ccaasSeat: 165 },
+    retail: { label: "Retail & eCommerce", agents: 180, agentHourly: 16, monthlyContacts: 150000, aht: 340, fcr: 0.70, containment: 0.30, occupancy: 0.84, shrinkage: 0.32, attrition: 0.42, absenteeism: 0.10, channelMixVoice: 0.40, channelMixChat: 0.32, channelMixEmail: 0.15, channelMixSocial: 0.08, channelMixSelfServe: 0.05, csat: 4.2, nps: 38, transferRate: 0.14, acw: 45, ccaasSeat: 135 },
+    telecom: { label: "Telecommunications", agents: 400, agentHourly: 19, monthlyContacts: 250000, aht: 520, fcr: 0.65, containment: 0.22, occupancy: 0.85, shrinkage: 0.30, attrition: 0.38, absenteeism: 0.08, channelMixVoice: 0.52, channelMixChat: 0.26, channelMixEmail: 0.12, channelMixSocial: 0.06, channelMixSelfServe: 0.04, csat: 3.8, nps: 22, transferRate: 0.20, acw: 70, ccaasSeat: 155 },
+    insurance: { label: "Insurance", agents: 300, agentHourly: 21, monthlyContacts: 100000, aht: 540, fcr: 0.70, containment: 0.15, occupancy: 0.78, shrinkage: 0.28, attrition: 0.25, absenteeism: 0.06, channelMixVoice: 0.60, channelMixChat: 0.22, channelMixEmail: 0.13, channelMixSocial: 0.03, channelMixSelfServe: 0.02, csat: 4.0, nps: 30, transferRate: 0.16, acw: 95, ccaasSeat: 170 },
+    bpo: { label: "BPO / Outsourcer", agents: 500, agentHourly: 14, monthlyContacts: 300000, aht: 400, fcr: 0.68, containment: 0.28, occupancy: 0.86, shrinkage: 0.34, attrition: 0.55, absenteeism: 0.12, channelMixVoice: 0.58, channelMixChat: 0.24, channelMixEmail: 0.10, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 3.9, nps: 25, transferRate: 0.17, acw: 55, ccaasSeat: 120 },
+  };
+
+  const baseDefaults = { supervisors: 20, qaStaff: 5, wfmStaff: 4, trainers: 3, itSupport: 4, sites: 2, agentBenefitsPct: 0.30, supHourly: 30, qaHourly: 28, wfmHourly: 32, trainerHourly: 26, itHourly: 35, scheduleAdherence: 0.90, avgSpeedAnswer: 28, abandonRate: 0.06, avgHoldTime: 45, newHireTrainingDays: 21, qualityScore: 0.82, wemSeat: 45, telephonyPerMin: 0.025, ivaMonthly: 8000, agentAssistMonthly: 5000, rpaMonthly: 3000, analyticsMonthly: 6000, crmSeat: 75, ipaasMonthly: 4000, recordingMonthly: 3500, knowledgeMgmt: 2500, securityCompliance: 3000, cloudInfra: 5000, psAmortized: 8000, recruitingCostPerHire: 3500, facilitiesCost: 12000 };
+
+  const loadIndustry = (key) => {
+    const ind = industryDefaults[key];
+    setD(prev => ({ ...prev, ...baseDefaults, ...ind, industry: key }));
+  };
+
+  const [d, setD] = useState({ ...baseDefaults, ...industryDefaults.general, industry: "general" });
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
   const [activeSection, setActiveSection] = useState(0);
   const [sendingResults, setSendingResults] = useState(false);
@@ -272,9 +279,10 @@ function Calculator() {
                   <InputField label="Sites" value={d.sites} onChange={v => set("sites", v)} />
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Industry</label>
-                    <select value={d.industry} onChange={e => set("industry", e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
-                      <option value="general">General</option><option value="financial">Financial Services</option><option value="healthcare">Healthcare</option><option value="retail">Retail & eCommerce</option><option value="telecom">Telecom</option><option value="insurance">Insurance</option><option value="utilities">Utilities</option><option value="government">Government</option><option value="travel">Travel & Hospitality</option>
+                    <select value={d.industry} onChange={e => loadIndustry(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                      <option value="general">Cross-Industry Average</option><option value="financial">Financial Services</option><option value="healthcare">Healthcare</option><option value="retail">Retail & eCommerce</option><option value="telecom">Telecommunications</option><option value="insurance">Insurance</option><option value="bpo">BPO / Outsourcer</option>
                     </select>
+                    <div style={{ fontSize: 10, color: GREEN, marginTop: 3, fontFamily: "'DM Sans', sans-serif" }}>✓ All fields prepopulated with {industryDefaults[d.industry]?.label || "industry"} benchmarks. Adjust any value to match your operation.</div>
                   </div>
                   <InputField label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} />
                 </div>
