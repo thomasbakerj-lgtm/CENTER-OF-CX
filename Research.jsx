@@ -277,6 +277,25 @@ function Footer() {
   );
 }
 
+function EcosystemCallout() {
+  return (
+    <section style={{ background: "#fff", padding: "64px 28px", borderTop: `1px solid ${BORDER}` }}>
+      <div style={WRAP}>
+        <FadeIn>
+          <div style={{ display: "flex", alignItems: "center", gap: 24, padding: "32px 28px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 280 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase" }}>Beyond our research</span>
+              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "6px 0 8px" }}>The CX Ecosystem</h3>
+              <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.6, margin: 0 }}>15 publications, research hubs, and communities that matter for CX and contact center professionals. We curate the destinations worth your time.</p>
+            </div>
+            <a href="/cx-ecosystem" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, flexShrink: 0 }}>Explore the Ecosystem →</a>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
 export default function Research() {
   return (
     <div>
@@ -285,6 +304,7 @@ export default function Research() {
       <ContentTypes />
       <FeaturedArticles />
       <AllArticles />
+      <EcosystemCallout />
       <SubscribeCTA />
       <Footer />
     </div>
