@@ -31,7 +31,7 @@ const resources = [
   },
   {
     name: "CX Dive",
-    url: "https://www.cxdive.com",
+    url: "https://www.customerexperiencedive.com",
     tag: "News",
     tagColor: "#0088DD",
     take: "Best straight-news destination for CX. Operated by Informa TechTarget with tight focus on customer service, personalization, loyalty, AI, and broader CX trends. Clean reporting without vendor influence.",
