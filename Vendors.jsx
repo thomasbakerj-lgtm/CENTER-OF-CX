@@ -343,6 +343,21 @@ function Footer() {
   );
 }
 
+function EcosystemLink() {
+  return (
+    <section style={{ background: WARM, padding: "48px 28px" }}>
+      <div style={WRAP}>
+        <FadeIn>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
+            <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>Looking for CX industry news, research, and community beyond vendor intelligence?</p>
+            <a href="/cx-ecosystem" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>Explore the CX Ecosystem →</a>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
 export default function Vendors() {
   return (
     <div>
@@ -353,6 +368,7 @@ export default function Vendors() {
       <HowWeEvaluate />
       <VendorPagePreview />
       <CTA />
+      <EcosystemLink />
       <Footer />
     </div>
   );
