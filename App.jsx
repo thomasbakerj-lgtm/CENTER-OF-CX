@@ -19,6 +19,7 @@ import AnalyticsCategory from './AnalyticsCategory'
 import PaymentCategory from './PaymentCategory'
 import DigitalEngagementCategory from './DigitalEngagementCategory'
 import AgentAssistCategory from './AgentAssistCategory'
+import CXEcosystem from './CXEcosystem'
 
 const BASE = "https://contactcentercx.com";
 const SITE = "The Center of CX";
@@ -87,6 +88,10 @@ const SEO_MAP = {
   "/vendors/agent-assist": {
     title: `Agent Assist Market Intelligence — 15 Vendors Scored | ${SITE}`,
     desc: "15 agent assist vendors scored across 10 weighted dimensions. Real-time guidance, knowledge grounding, workflow execution, coaching, compliance, and market proof.",
+  },
+  "/cx-ecosystem": {
+    title: `CX Industry Ecosystem — 15 Essential Publications & Communities | ${SITE}`,
+    desc: "The 15 publications, research hubs, and communities that matter for CX and contact center professionals. Curated by The Center of CX.",
   },
   "/industries": {
     title: `Industries | ${SITE}`,
@@ -159,6 +164,7 @@ export default function App() {
         <Route path="/vendors/payments" element={<PaymentCategory />} />
         <Route path="/vendors/digital-engagement" element={<DigitalEngagementCategory />} />
         <Route path="/vendors/agent-assist" element={<AgentAssistCategory />} />
+        <Route path="/cx-ecosystem" element={<CXEcosystem />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
