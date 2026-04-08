@@ -20,6 +20,7 @@ import PaymentCategory from './PaymentCategory'
 import DigitalEngagementCategory from './DigitalEngagementCategory'
 import AgentAssistCategory from './AgentAssistCategory'
 import CXEcosystem from './CXEcosystem'
+import ToolGate from './ToolGate'
 
 const BASE = "https://contactcentercx.com";
 const SITE = "The Center of CX";
@@ -165,6 +166,7 @@ export default function App() {
         <Route path="/vendors/digital-engagement" element={<DigitalEngagementCategory />} />
         <Route path="/vendors/agent-assist" element={<AgentAssistCategory />} />
         <Route path="/cx-ecosystem" element={<CXEcosystem />} />
+        <Route path="/tools/:slug" element={<ToolGate />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
