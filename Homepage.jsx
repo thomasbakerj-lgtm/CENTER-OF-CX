@@ -571,10 +571,10 @@ function Footer() {
               { name: "Advisory", href: "/advisory" },
             ]},
             { h: "Resources", links: [
-              { name: "TCO Calculator", href: "/contact" },
-              { name: "CX Maturity Assessment", href: "/contact" },
+              { name: "TCO Calculator", href: "/tco-calculator" },
+              { name: "CX Ecosystem", href: "/cx-ecosystem" },
+              { name: "Industries", href: "/industries" },
               { name: "Buyer Guides", href: "/how-to-choose" },
-              { name: "Frameworks", href: "/platforms-and-tech" },
               { name: "Newsletter", href: "/subscribe" },
             ]},
             { h: "Company", links: [
