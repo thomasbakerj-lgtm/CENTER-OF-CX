@@ -131,7 +131,7 @@ function FeaturedGuide() {
                     <span key={t} style={{ fontSize: 12, color: SLATE, background: ICE, padding: "4px 10px", borderRadius: 5, fontFamily: "'DM Sans', sans-serif" }}>{t}</span>
                   ))}
                 </div>
-                <a href="/contact" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Download the Guide</a>
+                <a href="/CCaaS-Platform-Buyer-Guide-2026.pdf" target="_blank" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Download the Guide</a>
               </div>
               <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, display: "flex", alignItems: "center", justifyContent: "center", padding: 40, minHeight: 300 }}>
                 <div style={{ textAlign: "center" }}>
