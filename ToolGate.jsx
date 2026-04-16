@@ -7,9 +7,7 @@ const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
 const TOOLS = {
-  "roadmap-builder": { name: "Transformation Roadmap Builder", desc: "Build a 90-day CX transformation plan with milestones, dependencies, and stakeholder alignment. Start from your current state and map to your target operating model.", category: "Planning Tool", status: "coming-soon" },
-  "integration-planner": { name: "Integration Strategy Planner", desc: "Map your current and target technology stack across the seven CX orchestration layers. Identify integration gaps, dependency risks, and consolidation opportunities.", category: "Planning Tool", status: "coming-soon" },
-  "business-case": { name: "Business Case Builder", desc: "Build the ROI narrative for your board using your real numbers. Model labor savings, automation impact, vendor consolidation economics, and implementation costs.", category: "Planning Tool", status: "coming-soon" },
+  // All tools are now live with dedicated routes. This gate serves as fallback for unknown slugs.
 };
 
 export default function ToolGate() {
