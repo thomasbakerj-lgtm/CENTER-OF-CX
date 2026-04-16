@@ -34,6 +34,8 @@ import InsuranceVertical from './InsuranceVertical'
 import InsuranceSubVerticalPage from './InsuranceSubVerticalPage'
 import UtilitiesVertical from './UtilitiesVertical'
 import UtilitiesSubVerticalPage from './UtilitiesSubVerticalPage'
+import GovernmentVertical from './GovernmentVertical'
+import GovernmentSubVerticalPage from './GovernmentSubVerticalPage'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -172,6 +174,10 @@ const SEO_MAP = {
     title: `Telecommunications CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
   },
+  "/industries/government": {
+    title: `Government & Public Sector CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for federal, state, local, courts, public safety, and social services. FedRAMP, accessibility, multilingual support, and citizen trust.",
+  },
   "/industries/utilities": {
     title: `Utilities & Energy CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for electric, gas, water, municipal, renewable energy, and competitive supply. Storm response, outage management, and regulatory compliance.",
@@ -277,6 +283,8 @@ export default function App() {
         <Route path="/industries/insurance/:slug" element={<InsuranceSubVerticalPage />} />
         <Route path="/industries/utilities" element={<UtilitiesVertical />} />
         <Route path="/industries/utilities/:slug" element={<UtilitiesSubVerticalPage />} />
+        <Route path="/industries/government" element={<GovernmentVertical />} />
+        <Route path="/industries/government/:slug" element={<GovernmentSubVerticalPage />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
