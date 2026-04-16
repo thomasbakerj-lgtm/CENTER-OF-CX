@@ -131,7 +131,7 @@ function Hero() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Generic advice fails.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560, fontFamily: "'DM Sans', sans-serif" }}>
-              Regulatory burden, customer emotion, channel mix, data sensitivity, and service urgency vary dramatically by vertical. The right CCaaS platform for a bank looks nothing like the right one for a retailer. We map the differences so your decisions account for them.
+              Ten verticals. 61 sub-verticals. 2,135 capability checkpoints. Each vertical has dedicated CX intelligence — benchmarks, failure modes, 7-layer technology stack mapping, vendor recommendations, and integration pitfalls built from real operational data.
             </p>
           </div>
         </FadeIn>
@@ -175,91 +175,51 @@ function StackModel() {
 
 function IndustryGrid() {
   const industries = [
-    {
-      name: "Financial Services",
-      sub: "Banking · Credit Unions · Insurance · Fintech · Lending",
-      why: "Trust-sensitive interactions, high compliance burden, complex servicing journeys, fraud and authentication challenges.",
-      ccaas: "Talkdesk FS, NICE CXone, Genesys, Amazon Connect, RingCentral",
-      overlay: "Glia, Kasisto, Unblu, Verint, Personetics, Amelia, Cognigy",
-    },
-    {
-      name: "Healthcare",
-      sub: "Payers · Providers · Digital Health · Patient Access",
-      why: "Emotionally charged interactions, HIPAA complexity, fragmented systems, scheduling and triage challenges.",
-      ccaas: "NICE CXone, Genesys, Talkdesk Healthcare, Cisco Webex, 8x8",
-      overlay: "Orbita, Hyro.ai, Nuance, Amelia, Qualtrics, LivePerson, Invoca",
-    },
-    {
-      name: "Retail & eCommerce",
-      sub: "DTC · Omnichannel · Marketplaces · Subscription",
-      why: "High-volume speed-sensitive service, returns and fulfillment complexity, seasonal staffing pressure, low friction tolerance.",
-      ccaas: "Talkdesk Retail, Genesys, NICE CXone, RingCentral, Five9",
-      overlay: "Gladly, Kustomer, Gorgias, Salesforce, Ada, Forethought, Coveo",
-    },
-    {
-      name: "Telecommunications",
-      sub: "Telecom · SaaS · Enterprise Software · Consumer Tech",
-      why: "Technical troubleshooting, recurring revenue retention, tiered support models, churn tied to service quality.",
-      ccaas: "Genesys, NICE CXone, Avaya, Cisco Webex, Amazon Connect",
-      overlay: "ServiceNow, Verint, Cognigy, Sprinklr, Amdocs",
-    },
-    {
-      name: "Insurance",
-      sub: "P&C · Life · Health · Claims · Underwriting Support",
-      why: "High-value service moments, claims journey complexity, regulatory compliance, trust preservation.",
-      ccaas: "NICE CXone, Genesys, Talkdesk Insurance, Bright Pattern, Enghouse",
-      overlay: "Glia, Guidewire, Duck Creek, Unblu, Cognigy, Amelia",
-    },
-    {
-      name: "Travel & Hospitality",
-      sub: "Airlines · Hotels · OTAs · Car Rental · Logistics",
-      why: "Real-time service failures, disruption management, loyalty-intensive models, multilingual demand spikes.",
-      ccaas: "Genesys, Talkdesk Travel, NICE CXone, Puzzel, RingCentral",
-      overlay: "Sprinklr, Zendesk, Uniphore, Verint, Amelia, Qualtrics",
-    },
-    {
-      name: "Utilities & Energy",
-      sub: "Power · Gas · Water · Energy Retailers",
-      why: "Essential service relationships, outage communication, billing sensitivity, regulatory complexity.",
-      ccaas: "Odigo, Genesys, NICE CXone, Cisco Webex, Amazon Connect",
-      overlay: "Opower, Verint, Cognigy, Boost.ai, Qualtrics, UiPath",
-    },
-    {
-      name: "Government & Public Sector",
-      sub: "Citizen Services · Benefits · Municipal Contact Centers",
-      why: "Accessibility requirements, budget constraints, process-heavy journeys, multilingual and inclusive design needs.",
-      ccaas: "NICE CXone, Genesys, Cisco Webex, Odigo, Enghouse",
-      overlay: "Verint Citizen, Cognigy, Nuance, ServiceNow, Qualtrics XM",
-    },
-    {
-      name: "Manufacturing & Automotive",
-      sub: "Industrial · Field Service · Dealership · After-Sales",
-      why: "Scheduling complexity, field dispatch coordination, asset-centric service, local service expectations.",
-      ccaas: "Genesys, NICE CXone, Odigo, Enghouse, Bright Pattern",
-      overlay: "IFS, PTC, Syncron, ServiceMax, Salesforce Manufacturing",
-    },
-    {
-      name: "Media & Entertainment",
-      sub: "Streaming · Fan Engagement · Events · Publishing",
-      why: "High-volume event spikes, subscriber retention, content-driven support, real-time interaction demands.",
-      ccaas: "Genesys, NICE CXone, Five9, Vonage, RingCentral",
-      overlay: "Sprinklr, Zendesk, Cognigy, LivePerson, Salesforce",
-    },
+    { name: "Financial Services", href: "/industries/financial-services", subs: 7, checks: 245, sub: "Retail Banking · Credit Unions · Insurance · Wealth · Lending · Fintech · Payments", stat: "79% CSAT", why: "Trust-sensitive, compliance-heavy, multi-system authentication, and core banking integration complexity that most CCaaS vendors underestimate." },
+    { name: "Healthcare", href: "/industries/healthcare", subs: 6, checks: 210, sub: "Health Systems · Health Insurance · Provider Groups · Digital Health · Pharma · Home Health", stat: "52% FCR", why: "Emotionally charged patient interactions, HIPAA at every layer, EHR integration, and scheduling fragmentation across clinical and administrative systems." },
+    { name: "Retail & eCommerce", href: "/industries/retail", subs: 6, checks: 210, sub: "eCommerce/DTC · Omnichannel · Subscription · Marketplace · Luxury · Grocery/Delivery", stat: "35% containment", why: "High-volume speed-sensitive service, returns and fulfillment complexity, seasonal 10x surges, and commerce platform integration." },
+    { name: "Telecommunications", href: "/industries/telecom", subs: 6, checks: 210, sub: "Mobile/Wireless · Broadband/ISP · Cable/Pay TV · Enterprise Comms · MSPs · Fiber", stat: "NPS of 14", why: "Lowest NPS of any industry. Billing complexity, BSS/OSS integration, outage surges, SIM swap fraud, and 45% annual agent attrition." },
+    { name: "Travel & Hospitality", href: "/industries/travel", subs: 6, checks: 210, sub: "Airlines · Hotels & Resorts · OTAs · Car Rental · Cruise Lines · Tours & Experiences", stat: "12% abandonment", why: "Disruption volume spikes of 10-50x, multilingual support across timezones, GDS integration, and loyalty recognition failures." },
+    { name: "Insurance", href: "/industries/insurance", subs: 6, checks: 210, sub: "Personal Lines P&C · Commercial · Life & Annuities · Workers' Comp · Specialty · Insurtech", stat: "$146B CAT losses", why: "FNOL is the moment of truth. CAT surge capacity, state DOI compliance across 50 jurisdictions, and warranty claim adjudication stakes." },
+    { name: "Utilities & Energy", href: "/industries/utilities", subs: 6, checks: 210, sub: "Electric IOU · Natural Gas · Water · Municipal/Co-Op · Renewable/DER · Energy Retail", stat: "10-50x storm surges", why: "Most extreme volume variability of any industry. Outage communication, PUC compliance, payment difficulty as public health issue." },
+    { name: "Government & Public Sector", href: "/industries/government", subs: 6, checks: 210, sub: "Federal · State · Local/Municipal · Courts & Justice · Public Safety/911 · Social Services", stat: "11 pts behind private sector", why: "FedRAMP, Section 508, Title VI language access, FERPA, CJIS — legal mandates before functionality is even evaluated." },
+    { name: "Manufacturing & Automotive", href: "/industries/manufacturing", subs: 6, checks: 210, sub: "Automotive OEM · Dealer/Retail · Industrial B2B · Consumer Electronics · Aerospace · Food & Beverage", stat: "30M+ vehicles recalled/yr", why: "Warranty adjudication, recall surge routing, connected vehicle telemetry, parts logistics, and NHTSA/ITAR compliance." },
+    { name: "Education", href: "/industries/education", subs: 6, checks: 210, sub: "Undergrad Admissions · Graduate Programs · Financial Aid · Student Services · IT Help Desk · Online Education", stat: "72% cite service for not re-enrolling", why: "FERPA governs every interaction. FAFSA season creates 3-5x surges. Siloed departments create a runaround. Retention signals hidden in service data." },
   ];
 
   return (
     <section style={{ background: "#fff", padding: "96px 28px" }}>
       <div style={WRAP}>
         <FadeIn>
-          <div style={{ maxWidth: 560, marginBottom: 48 }}>
+          <div style={{ maxWidth: 600, marginBottom: 48 }}>
             <Label>Ten verticals</Label>
-            <Title>Each one mapped with CCaaS platforms and vertical-specific overlays.</Title>
+            <Title>Each one mapped with sub-vertical frameworks, vendor stacks, and integration pitfalls.</Title>
+            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8, fontFamily: "'DM Sans', sans-serif" }}>Every vertical page includes sourced statistics, failure modes, 7-layer technology stack mapping, benchmark tables, BPO analysis, vendor recommendations, and 6 clickable sub-verticals — each with its own interactive CX stack assessment.</p>
           </div>
         </FadeIn>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {industries.map((ind, i) => (
             <FadeIn key={i} delay={i * 0.03}>
-              <IndustryCard ind={ind} />
+              <a href={ind.href} style={{ display: "block", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 28px", cursor: "pointer", transition: "all 0.22s", textDecoration: "none", color: "inherit", background: "#fff" }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,136,221,0.06)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+                  <div style={{ flex: 1, minWidth: 280 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: 0 }}>{ind.name}</h3>
+                      <span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 600, background: `${ELECTRIC}08`, padding: "2px 8px", borderRadius: 4 }}>{ind.subs} sub-verticals · {ind.checks} checkpoints</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: MUTED, fontFamily: "'DM Sans', sans-serif", marginBottom: 8 }}>{ind.sub}</div>
+                    <p style={{ fontSize: 13.5, color: SLATE, lineHeight: 1.55, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{ind.why}</p>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
+                    <div style={{ background: WARM, borderRadius: 6, padding: "8px 14px", textAlign: "right" }}>
+                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: ELECTRIC }}>{ind.stat}</div>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Explore vertical →</span>
+                  </div>
+                </div>
+              </a>
             </FadeIn>
           ))}
         </div>
