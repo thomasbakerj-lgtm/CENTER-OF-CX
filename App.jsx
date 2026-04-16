@@ -38,6 +38,8 @@ import GovernmentVertical from './GovernmentVertical'
 import GovernmentSubVerticalPage from './GovernmentSubVerticalPage'
 import ManufacturingVertical from './ManufacturingVertical'
 import ManufacturingSubVerticalPage from './ManufacturingSubVerticalPage'
+import EducationVertical from './EducationVertical'
+import EducationSubVerticalPage from './EducationSubVerticalPage'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -176,6 +178,10 @@ const SEO_MAP = {
     title: `Telecommunications CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
   },
+  "/industries/education": {
+    title: `Education CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for admissions, financial aid, student services, IT help desk, and online education. FERPA, enrollment yield, retention, and student lifecycle.",
+  },
   "/industries/manufacturing": {
     title: `Manufacturing & Automotive CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for automotive OEM, dealers, industrial B2B, consumer electronics, aerospace, and food manufacturing. Warranty, recalls, parts logistics, and field service.",
@@ -293,6 +299,8 @@ export default function App() {
         <Route path="/industries/government/:slug" element={<GovernmentSubVerticalPage />} />
         <Route path="/industries/manufacturing" element={<ManufacturingVertical />} />
         <Route path="/industries/manufacturing/:slug" element={<ManufacturingSubVerticalPage />} />
+        <Route path="/industries/education" element={<EducationVertical />} />
+        <Route path="/industries/education/:slug" element={<EducationSubVerticalPage />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
