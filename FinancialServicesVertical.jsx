@@ -22,13 +22,13 @@ export default function FinancialServicesVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const subVerticals = [
-    { name: "Retail Banking", desc: "Account servicing, fraud alerts, card disputes, loan inquiries, and branch-to-digital migration. The highest volume sub-vertical with the broadest channel mix.", contact: "High volume, moderate complexity" },
-    { name: "Credit Unions", desc: "Member-centric service with relationship depth. Smaller operations but higher trust expectations and community accountability.", contact: "Lower volume, higher relationship intensity" },
-    { name: "Insurance (P&C, Life, Health)", desc: "Claims intake (FNOL), policy servicing, renewals, underwriting support, and high-emotion service journeys. Compliance and empathy are equally critical.", contact: "Moderate volume, high complexity per interaction" },
-    { name: "Wealth Management & Advisory", desc: "Portfolio inquiries, advisor scheduling, compliance-sensitive communications, and high-value client retention. Every interaction carries revenue risk.", contact: "Low volume, very high value per interaction" },
-    { name: "Lending & Mortgage", desc: "Application status, document collection, rate inquiries, closing coordination, and servicing. Long lifecycle journeys with multiple handoffs.", contact: "Seasonal volume spikes, complex multi-step journeys" },
-    { name: "Fintech & Neobanks", desc: "Digital-native service models with app-first support, instant resolution expectations, and chat-heavy channel mix. Speed and self-service define the experience.", contact: "High digital volume, low tolerance for friction" },
-    { name: "Payments & Processing", desc: "Merchant support, transaction disputes, terminal troubleshooting, settlement inquiries, and integration support. B2B and B2C service models coexist.", contact: "Mixed B2B and B2C, technical support needs" },
+    { name: "Retail Banking", slug: "retail-banking", desc: "Account servicing, fraud alerts, card disputes, loan inquiries, and branch-to-digital migration. The highest volume sub-vertical with the broadest channel mix.", contact: "High volume, moderate complexity" },
+    { name: "Credit Unions", slug: "credit-unions", desc: "Member-centric service with relationship depth. Smaller operations but higher trust expectations and community accountability.", contact: "Lower volume, higher relationship intensity" },
+    { name: "Insurance (P&C, Life, Health)", slug: "insurance", desc: "Claims intake (FNOL), policy servicing, renewals, underwriting support, and high-emotion service journeys. Compliance and empathy are equally critical.", contact: "Moderate volume, high complexity per interaction" },
+    { name: "Wealth Management & Advisory", slug: "wealth-management", desc: "Portfolio inquiries, advisor scheduling, compliance-sensitive communications, and high-value client retention. Every interaction carries revenue risk.", contact: "Low volume, very high value per interaction" },
+    { name: "Lending & Mortgage", slug: "lending-mortgage", desc: "Application status, document collection, rate inquiries, closing coordination, and servicing. Long lifecycle journeys with multiple handoffs.", contact: "Seasonal volume spikes, complex multi-step journeys" },
+    { name: "Fintech & Neobanks", slug: "fintech-neobanks", desc: "Digital-native service models with app-first support, instant resolution expectations, and chat-heavy channel mix. Speed and self-service define the experience.", contact: "High digital volume, low tolerance for friction" },
+    { name: "Payments & Processing", slug: "payments-processing", desc: "Merchant support, transaction disputes, terminal troubleshooting, settlement inquiries, and integration support. B2B and B2C service models coexist.", contact: "Mixed B2B and B2C, technical support needs" },
   ];
 
   const stats = [
@@ -121,13 +121,14 @@ export default function FinancialServicesVertical() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
             {subVerticals.map((sv, i) => (
               <FadeIn key={i} delay={i * 0.04}>
-                <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s" }}
+                <a href={`/industries/financial-services/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }}
                   onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
                   onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
                   <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3>
                   <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p>
                   <span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span>
-                </div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div>
+                </a>
               </FadeIn>
             ))}
           </div>
