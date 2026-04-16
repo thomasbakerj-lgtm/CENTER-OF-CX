@@ -26,6 +26,8 @@ import RetailVertical from './RetailVertical'
 import FSSubVerticalPage from './FSSubVerticalPage'
 import HCSubVerticalPage from './HCSubVerticalPage'
 import RetailSubVerticalPage from './RetailSubVerticalPage'
+import TelecomVertical from './TelecomVertical'
+import TelecomSubVerticalPage from './TelecomSubVerticalPage'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -160,6 +162,10 @@ const SEO_MAP = {
     title: `Retail & eCommerce CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for eCommerce, omnichannel retail, subscription, and marketplace operations. Benchmarks, seasonal scaling, and commerce-integrated vendor recommendations.",
   },
+  "/industries/telecom": {
+    title: `Telecommunications CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
+  },
   "/tco-calculator": {
     title: `TCO Calculator | ${SITE}`,
     desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and request a working session.",
@@ -245,6 +251,8 @@ export default function App() {
         <Route path="/industries/financial-services/:slug" element={<FSSubVerticalPage />} />
         <Route path="/industries/healthcare/:slug" element={<HCSubVerticalPage />} />
         <Route path="/industries/retail/:slug" element={<RetailSubVerticalPage />} />
+        <Route path="/industries/telecom" element={<TelecomVertical />} />
+        <Route path="/industries/telecom/:slug" element={<TelecomSubVerticalPage />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
