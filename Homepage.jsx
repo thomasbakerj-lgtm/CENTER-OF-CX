@@ -365,12 +365,12 @@ function Tools() {
 // ─── INDUSTRIES ──────────────────────────────────────
 function Industries() {
   const inds = [
-    { n: "Financial Services", d: "Banking, insurance, fintech — trust-sensitive, compliance-heavy service journeys." },
-    { n: "Healthcare", d: "Payers, providers, digital health — emotionally charged, privacy-complex interactions." },
-    { n: "Retail & eCommerce", d: "DTC, omnichannel, marketplace — high-volume, speed-sensitive service." },
-    { n: "Telecom & Technology", d: "SaaS, enterprise support, consumer tech — churn tied to service quality." },
-    { n: "Travel & Hospitality", d: "Airlines, hotels, OTAs — disruption management and loyalty-intensive models." },
-    { n: "Utilities & Energy", d: "Essential services — outage comms, billing sensitivity, regulatory complexity." },
+    { n: "Financial Services", d: "Banking, insurance, fintech — trust-sensitive, compliance-heavy service journeys.", h: "/industries/financial-services" },
+    { n: "Healthcare", d: "Payers, providers, digital health — emotionally charged, privacy-complex interactions.", h: "/industries" },
+    { n: "Retail & eCommerce", d: "DTC, omnichannel, marketplace — high-volume, speed-sensitive service.", h: "/industries" },
+    { n: "Telecom & Technology", d: "SaaS, enterprise support, consumer tech — churn tied to service quality.", h: "/industries" },
+    { n: "Travel & Hospitality", d: "Airlines, hotels, OTAs — disruption management and loyalty-intensive models.", h: "/industries" },
+    { n: "Utilities & Energy", d: "Essential services — outage comms, billing sensitivity, regulatory complexity.", h: "/industries" },
   ];
   return (
     <section style={{ background: "#fff", padding: "96px 28px" }}>
@@ -388,13 +388,13 @@ function Industries() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
           {inds.map((ind, i) => (
             <FadeIn key={i} delay={i * 0.05}>
-              <div style={{ padding: "28px 24px", border: `1px solid ${BORDER}`, borderRadius: 10, cursor: "pointer", transition: "all 0.22s", background: "#fff" }}
+              <a href={ind.h} style={{ display: "block", padding: "28px 24px", border: `1px solid ${BORDER}`, borderRadius: 10, cursor: "pointer", transition: "all 0.22s", background: "#fff", textDecoration: "none", color: "inherit" }}
                 onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,136,221,0.06)"; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
                 <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>{ind.n}</h3>
                 <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55, margin: "0 0 14px" }}>{ind.d}</p>
                 <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Explore vertical →</span>
-              </div>
+              </a>
             </FadeIn>
           ))}
         </div>
