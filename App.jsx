@@ -20,13 +20,15 @@ import PaymentCategory from './PaymentCategory'
 import DigitalEngagementCategory from './DigitalEngagementCategory'
 import AgentAssistCategory from './AgentAssistCategory'
 import CXEcosystem from './CXEcosystem'
-import ToolGate from './ToolGate'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
 import CXITAlignment from './CXITAlignment'
 import GovernanceModel from './GovernanceModel'
 import ServiceDesign from './ServiceDesign'
+import RoadmapBuilder from './RoadmapBuilder'
+import IntegrationPlanner from './IntegrationPlanner'
+import BusinessCaseBuilder from './BusinessCaseBuilder'
 
 const BASE = "https://contactcentercx.com";
 const SITE = "The Center of CX";
@@ -124,6 +126,18 @@ const SEO_MAP = {
     title: `Service Design Toolkit — Journey Friction Mapper | ${SITE}`,
     desc: "Score your customer journeys on 6 friction dimensions. Get a prioritized friction map showing where to invest in service design improvements.",
   },
+  "/tools/roadmap-builder": {
+    title: `Transformation Roadmap Builder — 90-Day Plan | ${SITE}`,
+    desc: "Build a structured 90-day CX transformation plan with 18 milestones, dependencies, and status tracking across three phases.",
+  },
+  "/tools/integration-planner": {
+    title: `Integration Strategy Planner — Map Your CX Stack | ${SITE}`,
+    desc: "Map your technology stack across 7 CX orchestration layers. Identify integration gaps, legacy dependencies, and consolidation opportunities.",
+  },
+  "/tools/business-case": {
+    title: `Business Case Builder — CX Transformation ROI | ${SITE}`,
+    desc: "Model the ROI of your CX transformation. Calculate savings from AHT reduction, self-service containment, attrition improvement, and FCR gains.",
+  },
   "/industries": {
     title: `Industries | ${SITE}`,
     desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and media.",
@@ -202,7 +216,9 @@ export default function App() {
         <Route path="/tools/cx-it-alignment" element={<CXITAlignment />} />
         <Route path="/tools/governance-model" element={<GovernanceModel />} />
         <Route path="/tools/service-design" element={<ServiceDesign />} />
-        <Route path="/tools/:slug" element={<ToolGate />} />
+        <Route path="/tools/roadmap-builder" element={<RoadmapBuilder />} />
+        <Route path="/tools/integration-planner" element={<IntegrationPlanner />} />
+        <Route path="/tools/business-case" element={<BusinessCaseBuilder />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
