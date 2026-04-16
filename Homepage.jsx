@@ -369,7 +369,7 @@ function Industries() {
     { n: "Healthcare", d: "Payers, providers, digital health — emotionally charged, privacy-complex interactions.", h: "/industries/healthcare" },
     { n: "Retail & eCommerce", d: "DTC, omnichannel, marketplace — high-volume, speed-sensitive service.", h: "/industries/retail" },
     { n: "Telecom & Technology", d: "SaaS, enterprise support, consumer tech — churn tied to service quality.", h: "/industries/telecom" },
-    { n: "Travel & Hospitality", d: "Airlines, hotels, OTAs — disruption management and loyalty-intensive models.", h: "/industries" },
+    { n: "Travel & Hospitality", d: "Airlines, hotels, OTAs — disruption management and loyalty-intensive models.", h: "/industries/travel" },
     { n: "Utilities & Energy", d: "Essential services — outage comms, billing sensitivity, regulatory complexity.", h: "/industries" },
   ];
   return (
