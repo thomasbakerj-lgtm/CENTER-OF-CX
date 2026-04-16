@@ -20,6 +20,7 @@ import PaymentCategory from './PaymentCategory'
 import DigitalEngagementCategory from './DigitalEngagementCategory'
 import AgentAssistCategory from './AgentAssistCategory'
 import CXEcosystem from './CXEcosystem'
+import FinancialServicesVertical from './FinancialServicesVertical'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -142,6 +143,10 @@ const SEO_MAP = {
     title: `Industries | ${SITE}`,
     desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and media.",
   },
+  "/industries/financial-services": {
+    title: `Financial Services CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for banking, insurance, lending, and wealth management. Benchmarks, technology stack mapping, failure modes, BPO guidance, and vendor recommendations.",
+  },
   "/tco-calculator": {
     title: `TCO Calculator | ${SITE}`,
     desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and request a working session.",
@@ -221,6 +226,7 @@ export default function App() {
         <Route path="/tools/business-case" element={<BusinessCaseBuilder />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
+        <Route path="/industries/financial-services" element={<FinancialServicesVertical />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
