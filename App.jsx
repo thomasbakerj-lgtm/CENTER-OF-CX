@@ -28,6 +28,8 @@ import HCSubVerticalPage from './HCSubVerticalPage'
 import RetailSubVerticalPage from './RetailSubVerticalPage'
 import TelecomVertical from './TelecomVertical'
 import TelecomSubVerticalPage from './TelecomSubVerticalPage'
+import TravelVertical from './TravelVertical'
+import TravelSubVerticalPage from './TravelSubVerticalPage'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -166,6 +168,10 @@ const SEO_MAP = {
     title: `Telecommunications CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
   },
+  "/industries/travel": {
+    title: `Travel & Hospitality CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for airlines, hotels, OTAs, car rental, cruise lines, and tours. Disruption management, multilingual support, and GDS-integrated vendor recommendations.",
+  },
   "/tco-calculator": {
     title: `TCO Calculator | ${SITE}`,
     desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and request a working session.",
@@ -253,6 +259,8 @@ export default function App() {
         <Route path="/industries/retail/:slug" element={<RetailSubVerticalPage />} />
         <Route path="/industries/telecom" element={<TelecomVertical />} />
         <Route path="/industries/telecom/:slug" element={<TelecomSubVerticalPage />} />
+        <Route path="/industries/travel" element={<TravelVertical />} />
+        <Route path="/industries/travel/:slug" element={<TravelSubVerticalPage />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
