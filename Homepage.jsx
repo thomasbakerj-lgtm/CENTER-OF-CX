@@ -364,40 +364,47 @@ function Tools() {
 
 // ─── INDUSTRIES ──────────────────────────────────────
 function Industries() {
-  const inds = [
-    { n: "Financial Services", d: "Banking, insurance, fintech — trust-sensitive, compliance-heavy service journeys.", h: "/industries/financial-services" },
-    { n: "Healthcare", d: "Payers, providers, digital health — emotionally charged, privacy-complex interactions.", h: "/industries/healthcare" },
-    { n: "Retail & eCommerce", d: "DTC, omnichannel, marketplace — high-volume, speed-sensitive service.", h: "/industries/retail" },
-    { n: "Telecom & Technology", d: "SaaS, enterprise support, consumer tech — churn tied to service quality.", h: "/industries/telecom" },
-    { n: "Travel & Hospitality", d: "Airlines, hotels, OTAs — disruption management and loyalty-intensive models.", h: "/industries/travel" },
-    { n: "Utilities & Energy", d: "Essential services — outage comms, billing sensitivity, regulatory complexity.", h: "/industries" },
+  const top3 = [
+    { n: "Financial Services", d: "7 sub-verticals from retail banking to payments processing. 245 capability checkpoints across compliance, identity verification, and core banking integration. The most regulated CX in any industry.", h: "/industries/financial-services", stat: "79% CSAT", statNote: "Below potential — authentication friction and billing complexity suppress scores" },
+    { n: "Healthcare", d: "6 sub-verticals from health systems to pharma. 210 capability checkpoints across HIPAA, EHR integration, and patient access. Where empathy and compliance intersect.", h: "/industries/healthcare", stat: "52% FCR", statNote: "Lowest in CX — scheduling fragmentation and multi-system lookups prevent resolution" },
+    { n: "Retail & eCommerce", d: "6 sub-verticals from DTC to luxury. 210 capability checkpoints across commerce platforms, returns automation, and seasonal scaling. Speed defines everything.", h: "/industries/retail", stat: "93%", statNote: "Of customers make repeat purchases from companies with excellent service" },
   ];
   return (
     <section style={{ background: "#fff", padding: "96px 28px" }}>
       <div style={WRAP}>
         <FadeIn>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 20, marginBottom: 48 }}>
-            <div style={{ maxWidth: 520 }}>
-              <SectionLabel>Industry Expertise</SectionLabel>
-              <SectionTitle>CX changes by context. Generic advice fails.</SectionTitle>
-              <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4 }}>Healthcare is not retail. Insurance is not telecom. We show how service design, compliance burden, and technology choices shift by vertical.</p>
-            </div>
-            <a href="/industries" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all industries →</a>
+          <div style={{ maxWidth: 600, marginBottom: 48 }}>
+            <SectionLabel>Industry Expertise</SectionLabel>
+            <SectionTitle>CX changes by context. Generic advice fails.</SectionTitle>
+            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4 }}>Every vertical has different compliance burdens, technology stacks, failure modes, and customer expectations. We've built dedicated intelligence for each — with sub-vertical frameworks, vendor mapping, benchmarks, and the integration pitfalls that generic CX platforms consistently miss.</p>
           </div>
         </FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
-          {inds.map((ind, i) => (
-            <FadeIn key={i} delay={i * 0.05}>
-              <a href={ind.h} style={{ display: "block", padding: "28px 24px", border: `1px solid ${BORDER}`, borderRadius: 10, cursor: "pointer", transition: "all 0.22s", background: "#fff", textDecoration: "none", color: "inherit" }}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16, marginBottom: 32 }}>
+          {top3.map((ind, i) => (
+            <FadeIn key={i} delay={i * 0.06}>
+              <a href={ind.h} style={{ display: "block", padding: "28px 24px", border: `1px solid ${BORDER}`, borderRadius: 10, cursor: "pointer", transition: "all 0.22s", background: "#fff", textDecoration: "none", color: "inherit", height: "100%" }}
                 onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,136,221,0.06)"; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>{ind.n}</h3>
-                <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55, margin: "0 0 14px" }}>{ind.d}</p>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>{ind.n}</h3>
+                <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.6, margin: "0 0 16px" }}>{ind.d}</p>
+                <div style={{ background: WARM, borderRadius: 6, padding: "10px 14px", marginBottom: 14 }}>
+                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: ELECTRIC }}>{ind.stat}</span>
+                  <span style={{ fontSize: 11, color: MUTED, marginLeft: 8 }}>{ind.statNote}</span>
+                </div>
                 <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Explore vertical →</span>
               </a>
             </FadeIn>
           ))}
         </div>
+        <FadeIn delay={0.2}>
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
+            <div style={{ maxWidth: 560 }}>
+              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 8px" }}>10 verticals. 31 sub-verticals. 1,085 capability checkpoints.</h3>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: 0 }}>From telecommunications and insurance to government, utilities, and education — each vertical has dedicated CX intelligence with sub-vertical frameworks, 7-layer technology stacks, vendor recommendations, failure modes, and integration pitfalls built from real operational data.</p>
+            </div>
+            <a href="/industries" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "14px 24px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Explore All 10 Industries →</a>
+          </div>
+        </FadeIn>
       </div>
     </section>
   );
