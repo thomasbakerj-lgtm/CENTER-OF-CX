@@ -24,6 +24,9 @@ import ToolGate from './ToolGate'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
+import CXITAlignment from './CXITAlignment'
+import GovernanceModel from './GovernanceModel'
+import ServiceDesign from './ServiceDesign'
 
 const BASE = "https://contactcentercx.com";
 const SITE = "The Center of CX";
@@ -109,6 +112,18 @@ const SEO_MAP = {
     title: `Experience Scorecard — Benchmark Your Contact Center | ${SITE}`,
     desc: "Enter your contact center metrics and compare against industry benchmarks. CSAT, FCR, AHT, containment, cost per contact, attrition, and more. Graded A through D.",
   },
+  "/tools/cx-it-alignment": {
+    title: `CX + IT Alignment Framework | ${SITE}`,
+    desc: "Rate 15 paired CX and IT statements to reveal alignment gaps in strategy, data, platforms, AI, and governance. Identify where misalignment creates friction.",
+  },
+  "/tools/governance-model": {
+    title: `Governance & Operating Model | ${SITE}`,
+    desc: "Map ownership across 30 CX responsibilities — strategy, operations, technology, AI, analytics, and budget. Identify governance gaps and overloaded functions.",
+  },
+  "/tools/service-design": {
+    title: `Service Design Toolkit — Journey Friction Mapper | ${SITE}`,
+    desc: "Score your customer journeys on 6 friction dimensions. Get a prioritized friction map showing where to invest in service design improvements.",
+  },
   "/industries": {
     title: `Industries | ${SITE}`,
     desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and media.",
@@ -184,6 +199,9 @@ export default function App() {
         <Route path="/tools/cx-maturity" element={<CXMaturity />} />
         <Route path="/tools/ai-readiness" element={<AIReadiness />} />
         <Route path="/tools/experience-scorecard" element={<ExperienceScorecard />} />
+        <Route path="/tools/cx-it-alignment" element={<CXITAlignment />} />
+        <Route path="/tools/governance-model" element={<GovernanceModel />} />
+        <Route path="/tools/service-design" element={<ServiceDesign />} />
         <Route path="/tools/:slug" element={<ToolGate />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
