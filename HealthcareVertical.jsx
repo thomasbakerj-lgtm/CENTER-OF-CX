@@ -22,12 +22,12 @@ export default function HealthcareVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const subVerticals = [
-    { name: "Health Systems & Hospitals", desc: "Patient access, scheduling, billing inquiries, care coordination, and discharge follow-up. High emotional intensity with HIPAA governing every interaction.", contact: "High volume, high sensitivity" },
-    { name: "Health Insurance (Payers)", desc: "Benefits verification, claims status, prior authorization, provider search, and enrollment. Complex multi-step journeys with regulatory language requirements.", contact: "Very high volume, complex policy logic" },
-    { name: "Provider Groups & Clinics", desc: "Appointment scheduling, prescription refills, referral coordination, and billing. Smaller operations but patients expect the same responsiveness as large systems.", contact: "Moderate volume, relationship-intensive" },
-    { name: "Digital Health & Telehealth", desc: "Platform support, virtual visit scheduling, technical troubleshooting, and prescription management. Digital-native patients with low tolerance for friction.", contact: "Growing volume, digital-first channels" },
-    { name: "Pharmaceutical & Life Sciences", desc: "Patient support programs, co-pay assistance, adverse event reporting, and HCP inquiries. Regulatory constraints shape every workflow.", contact: "Specialized volume, strict compliance" },
-    { name: "Home Health & Post-Acute", desc: "Visit scheduling, caregiver coordination, supply management, and family communication. Vulnerable populations requiring empathy-first design.", contact: "Lower volume, highest emotional stakes" },
+    { name: "Health Systems & Hospitals", slug: "health-systems", desc: "Patient access, scheduling, billing inquiries, care coordination, and discharge follow-up. High emotional intensity with HIPAA governing every interaction.", contact: "High volume, high sensitivity" },
+    { name: "Health Insurance (Payers)", slug: "health-insurance", desc: "Benefits verification, claims status, prior authorization, provider search, and enrollment. Complex multi-step journeys with regulatory language requirements.", contact: "Very high volume, complex policy logic" },
+    { name: "Provider Groups & Clinics", slug: "provider-groups", desc: "Appointment scheduling, prescription refills, referral coordination, and billing. Smaller operations but patients expect the same responsiveness as large systems.", contact: "Moderate volume, relationship-intensive" },
+    { name: "Digital Health & Telehealth", slug: "digital-health", desc: "Platform support, virtual visit scheduling, technical troubleshooting, and prescription management. Digital-native patients with low tolerance for friction.", contact: "Growing volume, digital-first channels" },
+    { name: "Pharmaceutical & Life Sciences", slug: "pharma-life-sciences", desc: "Patient support programs, co-pay assistance, adverse event reporting, and HCP inquiries. Regulatory constraints shape every workflow.", contact: "Specialized volume, strict compliance" },
+    { name: "Home Health & Post-Acute", slug: "home-health", desc: "Visit scheduling, caregiver coordination, supply management, and family communication. Vulnerable populations requiring empathy-first design.", contact: "Lower volume, highest emotional stakes" },
   ];
 
   const stats = [
@@ -95,7 +95,7 @@ export default function HealthcareVertical() {
           <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>A health system contact center managing patient access for 50 hospitals has fundamentally different requirements than a payer handling benefits verification for 3 million members. The technology, compliance, and staffing models diverge completely.</p>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
-          {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span></div></FadeIn>))}
+          {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><a href={`/industries/healthcare/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span><div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div></a></FadeIn>))}
         </div>
       </div></section>
 
