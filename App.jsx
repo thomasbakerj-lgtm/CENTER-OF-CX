@@ -36,6 +36,8 @@ import UtilitiesVertical from './UtilitiesVertical'
 import UtilitiesSubVerticalPage from './UtilitiesSubVerticalPage'
 import GovernmentVertical from './GovernmentVertical'
 import GovernmentSubVerticalPage from './GovernmentSubVerticalPage'
+import ManufacturingVertical from './ManufacturingVertical'
+import ManufacturingSubVerticalPage from './ManufacturingSubVerticalPage'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -174,6 +176,10 @@ const SEO_MAP = {
     title: `Telecommunications CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
   },
+  "/industries/manufacturing": {
+    title: `Manufacturing & Automotive CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for automotive OEM, dealers, industrial B2B, consumer electronics, aerospace, and food manufacturing. Warranty, recalls, parts logistics, and field service.",
+  },
   "/industries/government": {
     title: `Government & Public Sector CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for federal, state, local, courts, public safety, and social services. FedRAMP, accessibility, multilingual support, and citizen trust.",
@@ -285,6 +291,8 @@ export default function App() {
         <Route path="/industries/utilities/:slug" element={<UtilitiesSubVerticalPage />} />
         <Route path="/industries/government" element={<GovernmentVertical />} />
         <Route path="/industries/government/:slug" element={<GovernmentSubVerticalPage />} />
+        <Route path="/industries/manufacturing" element={<ManufacturingVertical />} />
+        <Route path="/industries/manufacturing/:slug" element={<ManufacturingSubVerticalPage />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
