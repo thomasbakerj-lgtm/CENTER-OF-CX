@@ -399,7 +399,7 @@ function Industries() {
         <FadeIn delay={0.2}>
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP_NAVY})`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
             <div style={{ maxWidth: 560 }}>
-              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 8px" }}>10 verticals. 31 sub-verticals. 1,085 capability checkpoints.</h3>
+              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 8px" }}>10 verticals. 61 sub-verticals. 2,135 capability checkpoints.</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: 0 }}>From telecommunications and insurance to government, utilities, and education — each vertical has dedicated CX intelligence with sub-vertical frameworks, 7-layer technology stacks, vendor recommendations, failure modes, and integration pitfalls built from real operational data.</p>
             </div>
             <a href="/industries" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "14px 24px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Explore All 10 Industries →</a>
