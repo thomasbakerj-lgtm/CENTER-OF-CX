@@ -22,12 +22,12 @@ export default function RetailVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const subVerticals = [
-    { name: "eCommerce / DTC", desc: "Order status, returns, shipping issues, payment disputes, and cart abandonment recovery. Digital-native with chat and messaging-heavy channel mix. Speed defines the experience.", contact: "Very high volume, low AHT, peak seasonality" },
-    { name: "Omnichannel Retail", desc: "Buy online pick up in store, cross-channel returns, inventory inquiries, and loyalty programs. The complexity is in the handoff between digital and physical.", contact: "Mixed channels, complex fulfillment queries" },
-    { name: "Subscription & Membership", desc: "Billing cycles, cancellation and retention, membership benefits, and recurring order management. Every interaction carries churn risk.", contact: "Moderate volume, high retention stakes" },
-    { name: "Marketplace Sellers", desc: "Seller support, buyer disputes, listing issues, payment holds, and policy enforcement. Two-sided marketplace dynamics create unique CX challenges.", contact: "Dual audience, policy-heavy resolution" },
-    { name: "Luxury & Specialty", desc: "Concierge-style service, product expertise, after-purchase care, and VIP client management. Experience quality directly influences purchase decisions.", contact: "Lower volume, very high value per interaction" },
-    { name: "Grocery & Delivery", desc: "Substitution issues, delivery windows, order modifications, refunds, and real-time logistics communication. Speed and accuracy are non-negotiable.", contact: "High volume, time-sensitive, real-time logistics" },
+    { name: "eCommerce / DTC", slug: "ecommerce-dtc", desc: "Order status, returns, shipping issues, payment disputes, and cart abandonment recovery. Digital-native with chat and messaging-heavy channel mix. Speed defines the experience.", contact: "Very high volume, low AHT, peak seasonality" },
+    { name: "Omnichannel Retail", slug: "omnichannel-retail", desc: "Buy online pick up in store, cross-channel returns, inventory inquiries, and loyalty programs. The complexity is in the handoff between digital and physical.", contact: "Mixed channels, complex fulfillment queries" },
+    { name: "Subscription & Membership", slug: "subscription-membership", desc: "Billing cycles, cancellation and retention, membership benefits, and recurring order management. Every interaction carries churn risk.", contact: "Moderate volume, high retention stakes" },
+    { name: "Marketplace Sellers", slug: "marketplace", desc: "Seller support, buyer disputes, listing issues, payment holds, and policy enforcement. Two-sided marketplace dynamics create unique CX challenges.", contact: "Dual audience, policy-heavy resolution" },
+    { name: "Luxury & Specialty", slug: "luxury-specialty", desc: "Concierge-style service, product expertise, after-purchase care, and VIP client management. Experience quality directly influences purchase decisions.", contact: "Lower volume, very high value per interaction" },
+    { name: "Grocery & Delivery", slug: "grocery-delivery", desc: "Substitution issues, delivery windows, order modifications, refunds, and real-time logistics communication. Speed and accuracy are non-negotiable.", contact: "High volume, time-sensitive, real-time logistics" },
   ];
 
   const stats = [
@@ -95,7 +95,7 @@ export default function RetailVertical() {
           <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>A Shopify DTC brand handling returns over chat and a luxury retailer providing concierge service have fundamentally different technology needs, staffing models, and success metrics. The platform that serves one will often fail the other.</p>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
-          {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span></div></FadeIn>))}
+          {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><a href={`/industries/retail/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span><div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div></a></FadeIn>))}
         </div>
       </div></section>
 
