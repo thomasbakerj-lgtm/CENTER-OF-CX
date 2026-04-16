@@ -23,6 +23,8 @@ export default function FSSubVerticalPage() {
   const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [company, setCompany] = useState("");
   const [sending, setSending] = useState(false);
   const [statuses, setStatuses] = useState({});
+  const [expandedLayers, setExpandedLayers] = useState({});
+  const toggleLayer = (li) => setExpandedLayers(prev => ({ ...prev, [li]: !prev[li] }));
 
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
 
@@ -155,6 +157,40 @@ export default function FSSubVerticalPage() {
                         );
                       })}
                     </div>
+
+                    {/* Vendor Stack */}
+                    {layer.stack && layer.stack.length > 0 && (
+                      <div style={{ background: "#fff", borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}` }}>
+                        <button onClick={() => toggleLayer(li)} style={{ width: "100%", padding: "10px 18px", background: `${ELECTRIC}04`, border: "none", borderTop: `1px solid ${BORDER}`, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC }}>Recommended Technology Stack ({layer.stack.length} providers)</span>
+                          <span style={{ fontSize: 11, color: MUTED }}>{expandedLayers[li] ? "▾ Hide" : "▸ Show"}</span>
+                        </button>
+                        {expandedLayers[li] && (
+                          <div style={{ padding: "12px 18px 16px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                              {layer.stack.map((v, vi) => (
+                                <div key={vi} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 12px", background: WARM, borderRadius: 6, border: `1px solid ${BORDER}` }}>
+                                  <div style={{ width: 4, height: "100%", minHeight: 40, borderRadius: 2, background: ELECTRIC, flexShrink: 0 }} />
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+                                      {v.href ? <a href={v.href} style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{v.name}</a> : <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{v.name}</span>}
+                                      <span style={{ fontSize: 9, fontWeight: 600, color: MUTED, background: "#fff", padding: "1px 6px", borderRadius: 3, border: `1px solid ${BORDER}` }}>{v.role}</span>
+                                    </div>
+                                    <p style={{ fontSize: 12, color: SLATE, margin: "2px 0 0", lineHeight: 1.5 }}>{v.why}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            {layer.pitfall && (
+                              <div style={{ marginTop: 10, padding: "10px 12px", background: `${AMBER}06`, border: `1px solid ${AMBER}18`, borderRadius: 6 }}>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 0.5, textTransform: "uppercase" }}>Integration pitfall</span>
+                                <p style={{ fontSize: 12, color: SLATE, margin: "3px 0 0", lineHeight: 1.5 }}>{layer.pitfall}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {layer.risk && (
                       <div style={{ fontSize: 11, color: RED, padding: "6px 18px", background: `${RED}06`, borderRadius: "0 0 6px 6px", border: `1px solid ${RED}15`, borderTop: "none" }}>
