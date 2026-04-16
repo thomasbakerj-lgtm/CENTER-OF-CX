@@ -30,6 +30,8 @@ import TelecomVertical from './TelecomVertical'
 import TelecomSubVerticalPage from './TelecomSubVerticalPage'
 import TravelVertical from './TravelVertical'
 import TravelSubVerticalPage from './TravelSubVerticalPage'
+import InsuranceVertical from './InsuranceVertical'
+import InsuranceSubVerticalPage from './InsuranceSubVerticalPage'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -168,6 +170,10 @@ const SEO_MAP = {
     title: `Telecommunications CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
   },
+  "/industries/insurance": {
+    title: `Insurance CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for P&C, life, commercial, workers comp, specialty lines, and insurtech. Claims management, CAT response, and state DOI compliance.",
+  },
   "/industries/travel": {
     title: `Travel & Hospitality CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for airlines, hotels, OTAs, car rental, cruise lines, and tours. Disruption management, multilingual support, and GDS-integrated vendor recommendations.",
@@ -261,6 +267,8 @@ export default function App() {
         <Route path="/industries/telecom/:slug" element={<TelecomSubVerticalPage />} />
         <Route path="/industries/travel" element={<TravelVertical />} />
         <Route path="/industries/travel/:slug" element={<TravelSubVerticalPage />} />
+        <Route path="/industries/insurance" element={<InsuranceVertical />} />
+        <Route path="/industries/insurance/:slug" element={<InsuranceSubVerticalPage />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
