@@ -21,6 +21,8 @@ import DigitalEngagementCategory from './DigitalEngagementCategory'
 import AgentAssistCategory from './AgentAssistCategory'
 import CXEcosystem from './CXEcosystem'
 import FinancialServicesVertical from './FinancialServicesVertical'
+import HealthcareVertical from './HealthcareVertical'
+import RetailVertical from './RetailVertical'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -147,6 +149,14 @@ const SEO_MAP = {
     title: `Financial Services CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for banking, insurance, lending, and wealth management. Benchmarks, technology stack mapping, failure modes, BPO guidance, and vendor recommendations.",
   },
+  "/industries/healthcare": {
+    title: `Healthcare CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for health systems, payers, providers, and digital health. Patient access benchmarks, HIPAA-aware technology mapping, and failure modes.",
+  },
+  "/industries/retail": {
+    title: `Retail & eCommerce CX Intelligence | ${SITE}`,
+    desc: "Vertical-specific CX intelligence for eCommerce, omnichannel retail, subscription, and marketplace operations. Benchmarks, seasonal scaling, and commerce-integrated vendor recommendations.",
+  },
   "/tco-calculator": {
     title: `TCO Calculator | ${SITE}`,
     desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and request a working session.",
@@ -227,6 +237,8 @@ export default function App() {
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/industries/financial-services" element={<FinancialServicesVertical />} />
+        <Route path="/industries/healthcare" element={<HealthcareVertical />} />
+        <Route path="/industries/retail" element={<RetailVertical />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
