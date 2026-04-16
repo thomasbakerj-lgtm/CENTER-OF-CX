@@ -24,6 +24,7 @@ import FinancialServicesVertical from './FinancialServicesVertical'
 import HealthcareVertical from './HealthcareVertical'
 import RetailVertical from './RetailVertical'
 import FSSubVerticalPage from './FSSubVerticalPage'
+import HCSubVerticalPage from './HCSubVerticalPage'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -241,6 +242,7 @@ export default function App() {
         <Route path="/industries/healthcare" element={<HealthcareVertical />} />
         <Route path="/industries/retail" element={<RetailVertical />} />
         <Route path="/industries/financial-services/:slug" element={<FSSubVerticalPage />} />
+        <Route path="/industries/healthcare/:slug" element={<HCSubVerticalPage />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
