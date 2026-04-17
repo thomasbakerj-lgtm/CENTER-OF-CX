@@ -137,7 +137,7 @@ function Hero() {
           <FadeIn delay={0.24}>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
               <a href="/platforms-and-tech" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.25)` }}>Explore Platforms & Tech</a>
-              <a href="/how-to-choose" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.13)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Download Buyer Guide →</a>
+              <a href="/how-to-choose" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.13)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Buyer Guides &amp; Tools →</a>
             </div>
           </FadeIn>
 
@@ -239,40 +239,63 @@ function Platforms() {
 // ─── HOW TO CHOOSE ───────────────────────────────────
 function HowToChoose() {
   const guides = [
-    { t: "How to Choose a CCaaS Platform", tag: "Buyer Guide" },
-    { t: "When to Buy AI vs Wait", tag: "Decision Framework" },
-    { t: "Platform vs Point Solution Math", tag: "Analysis" },
-    { t: "RFPs That Don't Fail", tag: "Playbook" },
-    { t: "AI Pilots That Survive Scale", tag: "Operator Briefing" },
+    { t: "CCaaS Platform Buyer's Guide", tag: "Buyer Guide", pages: "18 pages", href: "/research/ccaas-buyer-guide", live: true },
+    { t: "IVA & Conversational AI Buyer's Guide", tag: "Buyer Guide", pages: "25 pages", href: "/research/iva-buyer-guide", live: true },
+    { t: "Workforce & Quality Management Buyer's Guide", tag: "Buyer Guide", pages: "Coming Q2 2026", live: false },
+    { t: "Agent Assist & Knowledge AI Buyer's Guide", tag: "Buyer Guide", pages: "Coming Q3 2026", live: false },
+    { t: "Advanced Analytics Buyer's Guide", tag: "Buyer Guide", pages: "Coming Q3 2026", live: false },
   ];
   return (
     <section style={{ background: `linear-gradient(168deg, ${DEEP_NAVY}, ${NAVY})`, padding: "96px 28px", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", top: "40%", left: "50%", width: 700, height: 700, borderRadius: "50%", transform: "translate(-50%, -50%)", background: "radial-gradient(circle, rgba(0,136,221,0.05) 0%, transparent 70%)" }} />
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn>
-          <div style={{ maxWidth: 520, marginBottom: 44 }}>
+          <div style={{ maxWidth: 560, marginBottom: 44 }}>
             <SectionLabel>How to Choose</SectionLabel>
-            <SectionTitle light>Buying frameworks that actually prevent bad decisions.</SectionTitle>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.65, marginTop: 4 }}>Each guide includes a downloadable PDF, maturity checklist, vendor traps to avoid, and metrics to validate your decision.</p>
+            <SectionTitle light>Independent buyer's guides. No vendor sponsorship. No pay-to-play.</SectionTitle>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.65, marginTop: 4 }}>Each guide scores vendors on weighted dimensions, maps buyer scenarios to shortlists, and includes the demo questions and TCO realities that vendor briefings leave out.</p>
           </div>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
           {guides.map((g, i) => (
             <FadeIn key={i} delay={i * 0.06}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 28px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: i === 0 ? "10px 10px 0 0" : i === guides.length - 1 ? "0 0 10px 10px" : 0, borderTop: i > 0 ? "none" : undefined, cursor: "pointer", transition: "background 0.2s", flexWrap: "wrap", gap: 12 }}
-                onMouseOver={e => e.currentTarget.style.background = "rgba(0,136,221,0.06)"}
-                onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.025)"}>
-                <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, minWidth: 240 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 8, background: "rgba(0,136,221,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ color: ELECTRIC, fontSize: 14 }}>↓</span>
+              {g.live ? (
+                <a href={g.href} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 28px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: i === 0 ? "10px 10px 0 0" : 0, borderTop: i > 0 ? "none" : undefined, cursor: "pointer", transition: "background 0.2s", flexWrap: "wrap", gap: 12, textDecoration: "none", color: "inherit" }}
+                  onMouseOver={e => e.currentTarget.style.background = "rgba(0,136,221,0.06)"}
+                  onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.025)"}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, minWidth: 240 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 8, background: "rgba(0,136,221,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ color: ELECTRIC, fontSize: 14 }}>↓</span>
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: "#fff", margin: 0 }}>{g.t}</h3>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 2 }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 600, color: LIGHT_BLUE, letterSpacing: 0.5, textTransform: "uppercase" }}>{g.tag}</span>
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>·</span>
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{g.pages}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: "#fff", margin: 0 }}>{g.t}</h3>
-                    <span style={{ fontSize: 11.5, fontWeight: 600, color: LIGHT_BLUE, letterSpacing: 0.5, textTransform: "uppercase" }}>{g.tag}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Access Guide →</span>
+                </a>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 28px", background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.03)", borderRadius: i === guides.length - 1 ? "0 0 10px 10px" : 0, borderTop: i > 0 ? "none" : undefined, flexWrap: "wrap", gap: 12, opacity: 0.6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, minWidth: 240 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 8, background: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 14 }}>◆</span>
+                    </div>
+                    <div>
+                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: "rgba(255,255,255,0.7)", margin: 0 }}>{g.t}</h3>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 2 }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: 0.5, textTransform: "uppercase" }}>{g.tag}</span>
+                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)" }}>·</span>
+                        <span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>{g.pages}</span>
+                      </div>
+                    </div>
                   </div>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.25)", fontStyle: "italic" }}>In development</span>
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Download →</span>
-              </div>
+              )}
             </FadeIn>
           ))}
         </div>
