@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
 import { getIVAVendor, ivaTierConfig, ivaScoringDimensions } from "./IVAData";
 import { getAgentAssistVendor, aaTierConfig, aaDimensions } from "./AgentAssistData";
+import { getWEMVendor, getWEMLeaderboardScores } from "./WEMData";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -136,6 +137,7 @@ export default function VendorProfile() {
   const vendor = getVendor(slug);
   const ivaVendor = !vendor ? getIVAVendor(slug) : null;
   const aaVendor = !vendor && !ivaVendor ? getAgentAssistVendor(slug) : null;
+  const wemVendor = !vendor && !ivaVendor && !aaVendor ? getWEMVendor(slug) : null;
   const [showReview, setShowReview] = useState(false);
   const [reviewSent, setReviewSent] = useState(false);
   const [reviewSending, setReviewSending] = useState(false);
@@ -423,6 +425,160 @@ export default function VendorProfile() {
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Request a Vendor Briefing</a>
               <a href="/vendors/agent-assist" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Agent Assist Vendors →</a>
+            </div>
+          </div>
+        </FadeIn></div></section>
+
+        <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span></div></div></footer>
+      </div>
+    );
+  }
+
+  // ─── WEM/QM VENDOR PROFILE ───
+  if (wemVendor) {
+    const wv = wemVendor;
+    const lbScores = getWEMLeaderboardScores(wv.vendor);
+    const nativeColor = wv.native === "Native" ? GREEN : wv.native === "Mixed" ? AMBER : LIGHT;
+    const attrs = [
+      { label: "Market Layer", value: wv.layerName },
+      { label: "Segment", value: wv.segment },
+      { label: "Architecture", value: wv.native },
+      { label: "Enterprise Depth", value: `${wv.entDepth}/5` },
+      { label: "AI-QA Maturity", value: `${wv.aiQA}/5` },
+      { label: "BPO Support", value: `${wv.bpo}/5` },
+    ];
+    return (
+      <div><Nav />
+        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+          <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
+              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors/wem-qm" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>WEM/QM</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{wv.vendor}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
+              <div style={{ maxWidth: 620 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{wv.segment}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: nativeColor, background: `${nativeColor}15`, padding: "3px 10px", borderRadius: 4 }}>{wv.native}</span>
+                </div>
+                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{wv.vendor}</h1>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{wv.rec}</p>
+              </div>
+              <div style={{ flexShrink: 0, textAlign: "center" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Rank in layer</div>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", border: `3px solid ${ELECTRIC}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: ELECTRIC }}>#{wv.rank}</span>
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>of {wv.layerKey === "fullSuiteWEM" ? 12 : wv.layerKey === "wfmSpecialists" ? 6 : 7}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Dimension Scores */}
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}><FadeIn>
+            <Section label="Vendor Dimensions" title="Three core scores.">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="profile-grid">
+                {[
+                  { name: "Enterprise Depth", score: wv.entDepth, desc: "Suitability for large, complex, multi-site, multi-skill, compliance-heavy operations" },
+                  { name: "AI-QA Maturity", score: wv.aiQA, desc: "Credibility of 100% interaction review, auto-scoring, coaching workflows, and operational usability" },
+                  { name: "BPO Support", score: wv.bpo, desc: "Multi-client fit, role separation, governance, and reporting isolation" },
+                ].map((d, i) => {
+                  const color = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED;
+                  return (
+                    <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                        <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: 0 }}>{d.name}</h3>
+                        <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color }}>{d.score}<span style={{ fontSize: 13, color: MUTED }}>/5</span></span>
+                      </div>
+                      <div style={{ width: "100%", height: 6, background: BORDER, borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
+                        <div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
+                      </div>
+                      <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>{d.desc}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </Section>
+          </FadeIn></div>
+        </section>
+
+        {/* Leaderboard Positions */}
+        {Object.keys(lbScores).length > 0 && (
+          <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+            <div style={WRAP}><FadeIn>
+              <Section label="Weighted Rankings" title="How they score across decision modes.">
+                <p style={{ fontSize: 13, color: MUTED, marginBottom: 20 }}>The same vendor scores differently depending on what you're buying. These are weighted totals out of 5.0 using the scoring framework with mode-specific criteria weights.</p>
+                <div style={{ display: "grid", gridTemplateColumns: `repeat(${Object.keys(lbScores).length}, 1fr)`, gap: 16 }} className="profile-grid">
+                  {Object.entries(lbScores).map(([mode, entry], i) => {
+                    const pct = (entry.score / 5) * 100;
+                    const color = entry.score >= 4.5 ? GREEN : entry.score >= 3.5 ? ELECTRIC : entry.score >= 2.5 ? AMBER : RED;
+                    return (
+                      <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>{entry.modeName}</div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
+                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color }}>#{entry.rank}</span>
+                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: MUTED }}>{entry.score.toFixed(2)}/5</span>
+                        </div>
+                        <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden", marginBottom: 6 }}>
+                          <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3 }} />
+                        </div>
+                        <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>{entry.read}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
+            </FadeIn></div>
+          </section>
+        )}
+
+        {/* Key Attributes */}
+        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
+          <div style={WRAP}><FadeIn>
+            <Section label="Vendor Profile" title="Key attributes." dark>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="profile-grid">
+                {attrs.map((a, i) => (
+                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>{a.label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: "#fff" }}>{a.value}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+                <a href="/vendors/wem-qm" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to WEM/QM Intelligence</a>
+                <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+              </div>
+            </Section>
+          </FadeIn></div>
+        </section>
+
+        {/* Community */}
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}><FadeIn>
+            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480 }}>
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {wv.vendor} for WEM/WFM/QM? Share what you've seen.</h3>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
+              </div>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+            </div>
+          </FadeIn></div>
+        </section>
+
+        {/* CTA */}
+        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {wv.vendor} for workforce or quality management?</h2>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>The right shortlist depends on whether you're buying a workforce control plane, a balanced WEM suite, or a QA modernization overlay. We can help.</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Request a WEM/QM Briefing</a>
+              <a href="/vendors/wem-qm" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All WEM/QM Vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
