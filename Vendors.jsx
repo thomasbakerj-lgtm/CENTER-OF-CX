@@ -164,7 +164,7 @@ function BrowseByCategory() {
     { title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", count: "15", href: "/vendors/agent-assist", vendors: [
       { name: "Uniphore" }, { name: "Observe.AI" }, { name: "Cresta" }, { name: "Coveo" }, { name: "Shelf" }, { name: "Guru" }, { name: "Bloomfire" },
     ], desc: "Real-time guidance, knowledge retrieval, summarization, and next-best-action." },
-    { title: "Workforce & Quality Management", sub: "WEM · QM · WFM", count: "25+", vendors: [
+    { title: "Workforce & Quality Management", sub: "WEM · QM · WFM", count: "25+", href: "/vendors/wem-qm", vendors: [
       { name: "NICE" }, { name: "Verint" }, { name: "Calabrio" }, { name: "Genesys WEM" }, { name: "Five9" }, { name: "Playvox" },
     ], desc: "Forecasting, scheduling, quality monitoring, coaching, and AI-powered QA." },
     { title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", count: "52", href: "/vendors/analytics", vendors: [
