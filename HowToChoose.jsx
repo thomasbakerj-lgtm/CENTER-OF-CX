@@ -104,7 +104,7 @@ function Hero() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>actually prevent bad decisions.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560, fontFamily: "'DM Sans', sans-serif" }}>
-              Each guide includes a maturity checklist, vendor traps to avoid, metrics to validate your decision, and a downloadable framework. Built for buyer journeys, structured around the decisions that actually matter.
+              Two buyer's guides with independently scored vendor intelligence. Ten interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
             </p>
           </div>
         </FadeIn>
@@ -114,78 +114,72 @@ function Hero() {
 }
 
 function FeaturedGuide() {
+  const guides = [
+    {
+      title: "IVA & Conversational AI Buyer's Guide 2026",
+      desc: "43 vendors scored across 4 dimensions. The Human Premium workforce framework. Market forecasts through 2029 with Gartner, Forrester, and Opus Research validation.",
+      tags: ["43 vendors", "Market forecasts", "Human Premium", "Demo questions", "TCO reality"],
+      pages: "25 pages", href: "/research/iva-buyer-guide", edition: "IVA Buyer Guide",
+    },
+    {
+      title: "CCaaS Platform Buyer's Guide 2026",
+      desc: "28 platforms scored across 7 weighted dimensions. Individual vendor profiles with strengths, weaknesses, best-fit scenarios, red flags, and competitive context.",
+      tags: ["28 platforms", "7 dimensions", "Vendor profiles", "Migration risk", "Negotiation intel"],
+      pages: "18 pages", href: "/research/ccaas-buyer-guide", edition: "CCaaS Buyer Guide",
+    },
+  ];
   return (
     <section style={{ background: WARM, padding: "96px 28px", borderBottom: `1px solid ${BORDER}` }}>
       <div style={WRAP}>
         <FadeIn>
-          <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 14, overflow: "hidden" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 0 }} className="split-grid">
-              <div style={{ padding: "48px 40px" }}>
-                <div style={{ display: "inline-block", background: `${ELECTRIC}10`, color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", padding: "4px 10px", borderRadius: 4, marginBottom: 16, fontFamily: "'DM Sans', sans-serif" }}>Featured Guide</div>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: NAVY, lineHeight: 1.2, margin: "0 0 16px" }}>How to Choose a CCaaS Platform</h2>
-                <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, margin: "0 0 24px", fontFamily: "'DM Sans', sans-serif" }}>
-                  The most consequential technology decision in modern contact center operations. This guide walks you through architecture evaluation, vendor assessment, migration risk, and the questions most RFPs forget to ask.
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 28 }}>
-                  {["Architecture fit", "Vendor scoring", "Migration risk", "Hidden costs", "Integration readiness"].map(t => (
-                    <span key={t} style={{ fontSize: 12, color: SLATE, background: ICE, padding: "4px 10px", borderRadius: 5, fontFamily: "'DM Sans', sans-serif" }}>{t}</span>
-                  ))}
-                </div>
-                <a href="/CCaaS-Platform-Buyer-Guide-2026.pdf" target="_blank" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Download the Guide</a>
-              </div>
-              <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, display: "flex", alignItems: "center", justifyContent: "center", padding: 40, minHeight: 300 }}>
-                <div style={{ textAlign: "center" }}>
-                  <LogoMark size={64} light={true} />
-                  <div style={{ marginTop: 20, fontSize: 13, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", letterSpacing: 1 }}>2026 EDITION</div>
-                  <div style={{ marginTop: 6, fontSize: 18, color: "#fff", fontFamily: "'Instrument Serif', Georgia, serif" }}>CX Platform Buyer Guide</div>
-                </div>
-              </div>
-            </div>
+          <div style={{ marginBottom: 40 }}>
+            <Label>Buyer's Guides</Label>
+            <Title>Deep research, independently scored. No vendor sponsorship.</Title>
           </div>
         </FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="split-grid">
+          {guides.map((g, i) => (
+            <FadeIn key={i} delay={i * 0.08}>
+              <a href={g.href} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 14, overflow: "hidden", textDecoration: "none", color: "inherit", transition: "all 0.22s", height: "100%" }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,136,221,0.08)"; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+                <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, padding: "28px 24px", display: "flex", alignItems: "center", gap: 16 }}>
+                  <LogoMark size={40} light={true} />
+                  <div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 1 }}>2026 EDITION</div>
+                    <div style={{ fontSize: 15, color: "#fff", fontFamily: "'Instrument Serif', Georgia, serif" }}>{g.edition}</div>
+                  </div>
+                  <span style={{ marginLeft: "auto", fontSize: 11, color: LIGHT, background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4, fontWeight: 600 }}>{g.pages}</span>
+                </div>
+                <div style={{ padding: "24px 24px 28px" }}>
+                  <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 10px", lineHeight: 1.25 }}>{g.title}</h3>
+                  <p style={{ fontSize: 13.5, color: SLATE, lineHeight: 1.65, margin: "0 0 16px" }}>{g.desc}</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 16 }}>
+                    {g.tags.map(t => (<span key={t} style={{ fontSize: 11, color: SLATE, background: ICE, padding: "3px 8px", borderRadius: 4 }}>{t}</span>))}
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Access Guide →</span>
+                </div>
+              </a>
+            </FadeIn>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
 function GuidesList() {
-  const guides = [
-    {
-      tag: "Decision Framework",
-      title: "When to Buy AI vs Wait",
-      desc: "The AI vendor landscape moves faster than procurement cycles. This framework helps you evaluate whether your organization is ready to buy, which use cases justify immediate investment, and which ones need another quarter of operational groundwork.",
-      includes: ["Readiness scorecard", "Use case prioritization matrix", "Build vs buy analysis", "Vendor maturity signals"],
-    },
-    {
-      tag: "Analysis",
-      title: "Platform vs Point Solution Math",
-      desc: "The all-in-one platform pitch is compelling. The best-of-breed argument is equally strong. This analysis gives you the actual math — TCO modeling, integration overhead, governance complexity, and the hidden costs that vendors on both sides leave out of the conversation.",
-      includes: ["TCO comparison model", "Integration cost calculator", "Governance overhead mapping", "Decision tree"],
-    },
-    {
-      tag: "Playbook",
-      title: "RFPs That Actually Work",
-      desc: "Most CX technology RFPs are recycled templates that reward vendors who write good proposals over vendors who build good platforms. This playbook restructures the RFP process around operational outcomes, architecture fit, and the questions that reveal what demos hide.",
-      includes: ["RFP question library", "Scoring methodology", "Demo evaluation framework", "Reference check guide"],
-    },
-    {
-      tag: "Operator Briefing",
-      title: "AI Pilots That Survive Scale",
-      desc: "95% of AI pilots produce impressive demos. A fraction survive contact with production traffic, real customer variance, and organizational resistance. This briefing covers the structural requirements — data quality, workflow design, governance, and team readiness — that separate pilots that scale from pilots that stall.",
-      includes: ["Scale readiness assessment", "Failure mode analysis", "Governance checklist", "Phased rollout template"],
-    },
-    {
-      tag: "Strategy Guide",
-      title: "Vendor Traps and Myths",
-      desc: "Every category has them. The CCaaS vendor that locks you into proprietary integrations. The AI startup that demos beautifully on curated data. The WEM vendor whose analytics require a separate license. This guide catalogs the traps buyers hit most often and how to spot them before you sign.",
-      includes: ["Trap catalog by category", "Contract red flags", "Negotiation leverage points", "Exit clause checklist"],
-    },
-    {
-      tag: "Framework",
-      title: "CX Maturity Assessment",
-      desc: "Before you buy anything, you need to know where you stand. This self-assessment evaluates your organization across five dimensions — strategy, operations, technology, analytics, and governance — and produces a maturity score with specific recommendations for each gap.",
-      includes: ["Self-scoring assessment", "Maturity model (5 levels)", "Gap analysis by dimension", "Prioritized action plan"],
-    },
+  const tools = [
+    { title: "TCO Calculator", desc: "Model your true 3-year contact center technology cost — license, implementation, integration, internal labor, and hidden overhead. Compare build vs buy.", href: "/tco-calculator", tag: "Calculator" },
+    { title: "CX Maturity Assessment", desc: "Score your organization across strategy, operations, technology, analytics, and governance. 25 questions with immediate results and tier classification.", href: "/tools/cx-maturity", tag: "Assessment" },
+    { title: "AI Readiness Assessment", desc: "Evaluate whether your organization is ready for AI deployment across data quality, workflow design, governance, and team readiness.", href: "/tools/ai-readiness", tag: "Assessment" },
+    { title: "Experience Scorecard", desc: "Score your customer experience across service quality, channel effectiveness, resolution performance, and customer effort.", href: "/tools/experience-scorecard", tag: "Scorecard" },
+    { title: "CX-IT Alignment Tool", desc: "Evaluate the alignment between your CX strategy and IT architecture. Identify gaps that prevent technology from delivering on CX promises.", href: "/tools/cx-it-alignment", tag: "Diagnostic" },
+    { title: "Governance Model Builder", desc: "Design your AI governance framework — escalation design, model evaluation, compliance monitoring, and decision authority mapping.", href: "/tools/governance-model", tag: "Framework" },
+    { title: "Service Design Canvas", desc: "Map your service interactions across channels, touchpoints, and resolution paths. Identify friction points and automation opportunities.", href: "/tools/service-design", tag: "Canvas" },
+    { title: "CX Roadmap Builder", desc: "Build a phased technology roadmap aligned to your maturity level, budget constraints, and operational priorities.", href: "/tools/roadmap-builder", tag: "Planner" },
+    { title: "Integration Planner", desc: "Map your integration landscape — CRM, CCaaS, WEM, knowledge, identity — and identify the dependencies that determine deployment success.", href: "/tools/integration-planner", tag: "Planner" },
+    { title: "Business Case Builder", desc: "Build the financial justification for CX technology investment with ROI projections, risk-adjusted scenarios, and executive-ready output.", href: "/tools/business-case", tag: "Builder" },
   ];
 
   return (
@@ -193,30 +187,24 @@ function GuidesList() {
       <div style={WRAP}>
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
-            <Label>Buyer Guides & Frameworks</Label>
-            <Title>Each guide produces something you can bring to your next leadership meeting.</Title>
+            <Label>Interactive Tools</Label>
+            <Title>Ten self-service tools. Each one produces a deliverable you can use immediately.</Title>
+            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>Every tool is email-gated with instant results. No waiting, no sales call required. Your scored output is delivered on-screen the moment you complete the assessment.</p>
           </div>
         </FadeIn>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {guides.map((g, i) => (
-            <FadeIn key={i} delay={i * 0.05}>
-              <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "32px 28px", transition: "border-color 0.2s, box-shadow 0.2s" }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,136,221,0.06)"; }}
-                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>{g.tag}</span>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="split-grid">
+          {tools.map((t, i) => (
+            <FadeIn key={i} delay={i * 0.04}>
+              <a href={t.href} style={{ display: "block", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", transition: "all 0.2s", textDecoration: "none", color: "inherit", height: "100%" }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase" }}>{t.tag}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC }}>Launch →</span>
                 </div>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 10px" }}>{g.title}</h3>
-                <p style={{ fontSize: 14.5, color: SLATE, lineHeight: 1.7, margin: "0 0 20px", fontFamily: "'DM Sans', sans-serif" }}>{g.desc}</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                    {g.includes.map(item => (
-                      <span key={item} style={{ fontSize: 12, color: MUTED, background: WARM, padding: "4px 10px", borderRadius: 5, fontFamily: "'DM Sans', sans-serif" }}>{item}</span>
-                    ))}
-                  </div>
-                  <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>Get the guide →</a>
-                </div>
-              </div>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>{t.title}</h3>
+                <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.55, margin: 0 }}>{t.desc}</p>
+              </a>
             </FadeIn>
           ))}
         </div>
