@@ -98,3 +98,5 @@ export const acdQuadrants = [
   { name: "Strong Routing, Low AI", position: "High Routing + Low AI", vendors: ["Cisco", "Avaya", "Alvaria", "Mitel", "Netcall", "Puzzel"], desc: "Mature routing engines with deep queue and skills logic, but AI-enhanced decisioning is lagging. Strong operational foundation, weaker innovation trajectory." },
   { name: "Basic ACD Territory", position: "Low Routing + Low AI", vendors: ["Vonage", "Aircall", "LiveAgent", "Convoso", "TCN", "NUSO"], desc: "Fundamental call routing with minimal AI or orchestration capability. Adequate for simple operations, ceiling-limited for anything beyond basic ACD." },
 ];
+
+export const getACDVendor = (slug) => acdVendors.find(v => v.slug === slug) || null;
