@@ -83,10 +83,12 @@ export default function AgentAssistCategory() {
                         {t.name} <span style={{ fontWeight: 400, opacity: 0.7 }}>({t.range})</span>
                       </div>
                       {t.vendors.map((v, j) => (
-                        <div key={j} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: 11.5, color: SLATE, borderBottom: j < t.vendors.length - 1 ? `1px solid ${BORDER}` : "none" }}>
+                        <a key={j} href={`/vendors/${v.slug}`} style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: 11.5, color: SLATE, borderBottom: j < t.vendors.length - 1 ? `1px solid ${BORDER}` : "none", textDecoration: "none", transition: "color 0.15s" }}
+                          onMouseOver={e => e.currentTarget.style.color = ELECTRIC}
+                          onMouseOut={e => e.currentTarget.style.color = SLATE}>
                           <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "72%" }}>{v.name}</span>
                           <span style={{ fontWeight: 700, color: t.color, fontSize: 11 }}>{v.score}</span>
-                        </div>
+                        </a>
                       ))}
                     </div>
                     <div style={{ background: t.color, color: "#fff", textAlign: "center", padding: "4px", borderRadius: "0 0 6px 6px", fontSize: 10, fontWeight: 700 }}>{t.vendors.length}</div>
@@ -130,9 +132,9 @@ export default function AgentAssistCategory() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                   {t.vendors.map((v, vi) => (
-                    <div key={vi} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "border-color 0.2s" }}
-                      onMouseOver={e => e.currentTarget.style.borderColor = t.color}
-                      onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
+                    <a key={vi} href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "all 0.2s", textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                      onMouseOver={e => { e.currentTarget.style.borderColor = t.color; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                      onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
 
                       <div style={{ width: 40, height: 40, borderRadius: "50%", border: `2px solid ${t.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 14, color: t.color }}>{v.score}</span>
@@ -163,7 +165,9 @@ export default function AgentAssistCategory() {
                           </div>
                         ))}
                       </div>
-                    </div>
+
+                      <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, flexShrink: 0 }}>→</span>
+                    </a>
                   ))}
                 </div>
               </div>
