@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
+import { getIVAVendor, ivaTierConfig, ivaScoringDimensions } from "./IVAData";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -132,12 +133,159 @@ function VendorNotFound() {
 export default function VendorProfile() {
   const { slug } = useParams();
   const vendor = getVendor(slug);
+  const ivaVendor = !vendor ? getIVAVendor(slug) : null;
   const [showReview, setShowReview] = useState(false);
   const [reviewSent, setReviewSent] = useState(false);
   const [reviewSending, setReviewSending] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
+  // ─── IVA VENDOR PROFILE ───
+  if (ivaVendor) {
+    const iv = ivaVendor;
+    const tierCfg = ivaTierConfig[iv.tier] || { color: MUTED, range: "—" };
+    const dims = [
+      { name: "Conversational Autonomy", score: iv.autonomy, desc: "End-to-end interaction management, intent resolution, and escalation" },
+      { name: "Multi-Channel Coverage", score: iv.multiChannel, desc: "Voice, chat, web, messaging, and cross-channel continuity" },
+      { name: "Orchestration Depth", score: iv.orchestration, desc: "Business action execution, workflow coordination, and backend integration" },
+      { name: "Analytics & Intelligence", score: iv.analytics, desc: "Reporting, conversation analytics, intent insights, and closed-loop learning" },
+    ];
+    return (
+      <div><Nav />
+        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+          <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
+              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a>
+              <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a>
+              <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors/iva" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>IVA</a>
+              <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{iv.name}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
+              <div style={{ maxWidth: 600 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{iv.type}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{iv.modality}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{iv.segment}</span>
+                </div>
+                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{iv.name}</h1>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{iv.summary}</p>
+              </div>
+              <div style={{ flexShrink: 0 }}>
+                <ScoreBadge score={iv.score} tier={iv.tier} />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Dimension Scores */}
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}>
+            <FadeIn>
+              <Section label="Scoring Dimensions" title="Four dimensions, equally weighted.">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="profile-grid">
+                  {dims.map((d, i) => {
+                    const color = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED;
+                    return (
+                      <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                          <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: 0 }}>{d.name}</h3>
+                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color }}>{d.score}<span style={{ fontSize: 13, color: MUTED }}>/5</span></span>
+                        </div>
+                        <div style={{ width: "100%", height: 6, background: `${BORDER}`, borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
+                          <div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
+                        </div>
+                        <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>{d.desc}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* Key Attributes */}
+        <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}>
+            <FadeIn>
+              <Section label="Vendor Profile" title="Key attributes.">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="profile-grid">
+                  {[
+                    { label: "Differentiator", value: iv.diff },
+                    { label: "Primary Use Case", value: iv.useCase },
+                    { label: "AI Origin", value: iv.origin },
+                    { label: "Modality", value: iv.modality },
+                    { label: "Market Segment", value: iv.segment },
+                    { label: "Tier", value: `${iv.tier} (${tierCfg.range})` },
+                  ].map((attr, i) => (
+                    <div key={i} style={{ background: WARM, borderRadius: 8, padding: "16px 18px" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>{attr.label}</div>
+                      <div style={{ fontSize: 14, fontWeight: 500, color: NAVY }}>{attr.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* Tier Context */}
+        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
+          <div style={WRAP}>
+            <FadeIn>
+              <Section label="Market Position" title={`${iv.tier} tier — ${tierCfg.range} score range.`} dark>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>{tierCfg.desc}</p>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to IVA Market Intelligence</a>
+                  <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+                </div>
+              </Section>
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* Community */}
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}>
+            <FadeIn>
+              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+                <div style={{ maxWidth: 480 }}>
+                  <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
+                  <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {iv.name}? Share what you've seen.</h3>
+                  <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
+                </div>
+                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", boxShadow: "0 4px 18px rgba(0,136,221,0.2)", flexShrink: 0 }}>Share Your Experience</a>
+              </div>
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section style={{ background: "#fff", padding: "80px 28px" }}>
+          <div style={WRAP}>
+            <FadeIn>
+              <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {iv.name} for your organization?</h2>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {iv.name} fits your operating model, vertical requirements, and integration landscape.</p>
+                <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
+                  <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Request a Vendor Briefing</a>
+                  <a href="/vendors/iva" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All IVA Vendors →</a>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </section>
+
+        <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span></div></div></footer>
+      </div>
+    );
+  }
+
+  // ─── CCaaS VENDOR PROFILE (existing) ───
   if (!vendor) return <VendorNotFound />;
 
   const v = vendor;
