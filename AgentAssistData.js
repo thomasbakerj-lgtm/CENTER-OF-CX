@@ -30,6 +30,7 @@ export const agentAssistVendors = [
 ];
 
 export const getAllAgentAssist = () => agentAssistVendors;
+export const getAgentAssistVendor = (slug) => agentAssistVendors.find(v => v.slug === slug) || null;
 
 export const aaTierConfig = {
   "Elite": { color: "#10B981", range: "86–90", desc: "Default shortlist leaders. Full orchestration, deep real-time guidance, grounded knowledge, workflow execution, and enterprise-grade governance." },
