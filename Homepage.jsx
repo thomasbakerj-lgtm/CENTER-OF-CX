@@ -198,7 +198,7 @@ function Platforms() {
     { t: "Core CX Platforms", s: "CCaaS", d: "When add-ons beat rip-and-replace, and who should not switch platforms.", h: "/vendors/ccaas" },
     { t: "Customer Automation", s: "Self-Service AI", d: "IVAs, autonomous resolution, and where AI fails in production.", h: "/vendors/iva" },
     { t: "Agent Assist & Knowledge", s: "Real-time Intelligence", d: "RAG realities, adoption traps, and post-contact vs real-time.", h: "/vendors/agent-assist" },
-    { t: "Workforce & Quality", s: "Management", d: "Forecasting truth, AI QA vs human QA, and cost control levers." },
+    { t: "Workforce & Quality", s: "Management", d: "Forecasting truth, AI QA vs human QA, and cost control levers.", h: "/vendors/wem-qm" },
     { t: "Experience Analytics", s: "& Voice of Customer", d: "Root cause vs vanity metrics. Journey visibility that matters.", h: "/vendors/analytics" },
     { t: "CX Orchestration", s: "& Workflow", d: "Routing is dead. Orchestration patterns for CCaaS + CRM + ITSM convergence.", h: "/vendors/acd-routing" },
     { t: "Enterprise & Employee", s: "Service", d: "When ITSM belongs in CX and what you should never unify." },
