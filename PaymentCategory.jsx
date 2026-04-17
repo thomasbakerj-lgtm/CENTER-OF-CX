@@ -119,9 +119,9 @@ export default function PaymentCategory() {
               const catColor = catObj ? catObj.color : MUTED;
               return (
                 <FadeIn key={vi} delay={Math.min(vi * 0.02, 0.5)}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "border-color 0.2s" }}
-                    onMouseOver={e => e.currentTarget.style.borderColor = catColor}
-                    onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
+                  <a href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "all 0.2s", textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                    onMouseOver={e => { e.currentTarget.style.borderColor = catColor; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                    onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
 
                     <div style={{ width: 38, height: 38, borderRadius: "50%", border: `2px solid ${catColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 13, color: catColor }}>{v.score}</span>
@@ -162,7 +162,9 @@ export default function PaymentCategory() {
                         </div>
                       ))}
                     </div>
-                  </div>
+
+                    <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, flexShrink: 0 }}>→</span>
+                  </a>
                 </FadeIn>
               );
             })}
