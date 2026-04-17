@@ -606,6 +606,7 @@ function Footer() {
               { name: "CX Ecosystem", href: "/cx-ecosystem" },
               { name: "Industries", href: "/industries" },
               { name: "Buyer Guides", href: "/how-to-choose" },
+              { name: "The Human Premium", href: "/human-premium" },
               { name: "Newsletter", href: "/subscribe" },
             ]},
             { h: "Company", links: [
