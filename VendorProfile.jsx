@@ -5,6 +5,9 @@ import { getIVAVendor, ivaTierConfig, ivaScoringDimensions } from "./IVAData";
 import { getAgentAssistVendor, aaTierConfig, aaDimensions } from "./AgentAssistData";
 import { getWEMVendor, getWEMLeaderboardScores } from "./WEMData";
 import { getAnalyticsVendor, analyticsDimensions } from "./AnalyticsData";
+import { getACDVendor, acdDimensions } from "./ACDRoutingData";
+import { getDEVendor, deDimensions } from "./DigitalEngagementData";
+import { getPaymentVendor, paymentDimensions } from "./PaymentData";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -140,6 +143,9 @@ export default function VendorProfile() {
   const aaVendor = !vendor && !ivaVendor ? getAgentAssistVendor(slug) : null;
   const wemVendor = !vendor && !ivaVendor && !aaVendor ? getWEMVendor(slug) : null;
   const anaVendor = !vendor && !ivaVendor && !aaVendor && !wemVendor ? getAnalyticsVendor(slug) : null;
+  const acdVendor = !vendor && !ivaVendor && !aaVendor && !wemVendor && !anaVendor ? getACDVendor(slug) : null;
+  const deVendor = !vendor && !ivaVendor && !aaVendor && !wemVendor && !anaVendor && !acdVendor ? getDEVendor(slug) : null;
+  const payVendor = !vendor && !ivaVendor && !aaVendor && !wemVendor && !anaVendor && !acdVendor && !deVendor ? getPaymentVendor(slug) : null;
   const [showReview, setShowReview] = useState(false);
   const [reviewSent, setReviewSent] = useState(false);
   const [reviewSending, setReviewSending] = useState(false);
@@ -699,6 +705,256 @@ export default function VendorProfile() {
           </div>
         </FadeIn></div></section>
 
+        <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span></div></div></footer>
+      </div>
+    );
+  }
+
+  // ─── ACD/ROUTING VENDOR PROFILE ───
+  if (acdVendor) {
+    const av = acdVendor;
+    const scoreColor = av.score >= 4.0 ? GREEN : av.score >= 3.5 ? ELECTRIC : av.score >= 3.0 ? AMBER : RED;
+    const dims = [
+      { name: "Routing Logic", score: av.rl }, { name: "Data Inputs", score: av.di }, { name: "Latency Under Load", score: av.lat },
+      { name: "Queue Architecture", score: av.qa }, { name: "Failover / Redundancy", score: av.fo }, { name: "Observability", score: av.obs },
+      { name: "AI/LLM Routing", score: av.ai }, { name: "Integrations", score: av.int }, { name: "WEM Alignment", score: av.wem }, { name: "Global Scale", score: av.glo },
+    ];
+    return (
+      <div><Nav />
+        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+          <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
+              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors/acd-routing" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>ACD/Routing</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{av.name}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
+              <div style={{ maxWidth: 620 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{av.segment}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{av.tier}</span>
+                  {av.quadrant && <span style={{ fontSize: 11, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{av.quadrant}</span>}
+                </div>
+                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{av.profile}</p>
+              </div>
+              <div style={{ flexShrink: 0, textAlign: "center" }}>
+                <div style={{ width: 72, height: 72, borderRadius: "50%", border: `3px solid ${scoreColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: scoreColor }}>{av.score}</span>
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>out of 5.0</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+          <Section label="Scoring Dimensions" title="Ten routing and orchestration dimensions.">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }} className="profile-grid">
+              {dims.map((d, i) => { const c = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED; return (
+                <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>{d.name}</span>
+                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: c }}>{d.score}<span style={{ fontSize: 11, color: MUTED }}>/5</span></span>
+                  </div>
+                  <div style={{ width: "100%", height: 4, background: BORDER, borderRadius: 2, overflow: "hidden" }}><div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: c, borderRadius: 2 }} /></div>
+                </div>
+              ); })}
+            </div>
+          </Section>
+        </FadeIn></div></section>
+        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
+          <Section label="Market Position" title={`${av.tier} — ${av.segment}`} dark>
+            {av.rmi && <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 16 }}>Routing Maturity Index: {av.rmi}</p>}
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to ACD/Routing Intelligence</a>
+              <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+            </div>
+          </Section>
+        </FadeIn></div></section>
+        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {av.name}?</h2>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your routing architecture and orchestration requirements.</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
+              <a href="/vendors/acd-routing" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All ACD/Routing Vendors →</a>
+            </div>
+          </div>
+        </FadeIn></div></section>
+        <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span></div></div></footer>
+      </div>
+    );
+  }
+
+  // ─── DIGITAL ENGAGEMENT VENDOR PROFILE ───
+  if (deVendor) {
+    const dv = deVendor;
+    const scoreColor = dv.score >= 85 ? GREEN : dv.score >= 70 ? ELECTRIC : dv.score >= 55 ? AMBER : RED;
+    const dims = [
+      { name: "Channel Breadth", score: dv.ch }, { name: "AI & Automation", score: dv.ai }, { name: "Agent Desktop", score: dv.desk },
+      { name: "Orchestration", score: dv.orch }, { name: "Integrations", score: dv.intg }, { name: "Analytics", score: dv.anl },
+      { name: "Enterprise Readiness", score: dv.ent }, { name: "Cost Model", score: dv.cost },
+    ];
+    return (
+      <div><Nav />
+        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+          <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
+              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors/digital-engagement" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Digital Engagement</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{dv.name}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
+              <div style={{ maxWidth: 620 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{dv.archetype}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{dv.tier}</span>
+                </div>
+                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{dv.name}</h1>
+                <div style={{ display: "flex", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
+                  <div><span style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>Strength: </span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{dv.strength}</span></div>
+                  <div><span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>Weakness: </span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{dv.weakness}</span></div>
+                </div>
+              </div>
+              <div style={{ flexShrink: 0 }}><ScoreBadge score={dv.score} tier={dv.tier} /></div>
+            </div>
+          </div>
+        </section>
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+          <Section label="Scoring Dimensions" title="Eight digital engagement dimensions.">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }} className="profile-grid">
+              {dims.map((d, i) => { const c = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED; return (
+                <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{d.name}</span>
+                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: c }}>{d.score}<span style={{ fontSize: 12, color: MUTED }}>/5</span></span>
+                  </div>
+                  <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: c, borderRadius: 3 }} /></div>
+                </div>
+              ); })}
+            </div>
+          </Section>
+        </FadeIn></div></section>
+        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
+          <Section label="Market Position" title={`${dv.tier} — ${dv.archetype}`} dark>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Digital Engagement Intelligence</a>
+              <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+            </div>
+          </Section>
+        </FadeIn></div></section>
+        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {dv.name}?</h2>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {dv.name} fits your digital engagement and channel strategy.</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
+              <a href="/vendors/digital-engagement" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Digital Engagement Vendors →</a>
+            </div>
+          </div>
+        </FadeIn></div></section>
+        <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span></div></div></footer>
+      </div>
+    );
+  }
+
+  // ─── PAYMENTS VENDOR PROFILE ───
+  if (payVendor) {
+    const pv = payVendor;
+    const maxScore = 24;
+    const scoreColor = pv.score >= 20 ? GREEN : pv.score >= 15 ? ELECTRIC : pv.score >= 10 ? AMBER : RED;
+    const dims = [
+      { name: "Online / E-commerce", score: pv.onl }, { name: "POS / In-Store", score: pv.pos }, { name: "Kiosk / Self-Serve", score: pv.kio },
+      { name: "Handheld / mPOS", score: pv.hh }, { name: "Payment Orchestration", score: pv.orch }, { name: "Alt-Pay / Wallets", score: pv.alt },
+      { name: "Global Reach", score: pv.glob }, { name: "Enterprise Fit", score: pv.ent },
+    ];
+    const csuite = [
+      { role: "CFO", fit: pv.cfo }, { role: "CTO", fit: pv.cto }, { role: "CIO", fit: pv.cio }, { role: "COO", fit: pv.coo }, { role: "CX", fit: pv.cx },
+    ].filter(c => c.fit);
+    return (
+      <div><Nav />
+        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+          <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
+              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors/payments" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Payments</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{pv.name}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
+              <div style={{ maxWidth: 620 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{pv.cat}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{pv.role}</span>
+                </div>
+                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{pv.name}</h1>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{pv.diff}</p>
+              </div>
+              <div style={{ flexShrink: 0, textAlign: "center" }}>
+                <div style={{ width: 72, height: 72, borderRadius: "50%", border: `3px solid ${scoreColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: scoreColor }}>{pv.score}</span>
+                </div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>of {maxScore}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+          <Section label="Capability Dimensions" title="Eight payment capability dimensions.">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }} className="profile-grid">
+              {dims.map((d, i) => { const c = d.score >= 3 ? GREEN : d.score >= 2 ? AMBER : RED; return (
+                <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{d.name}</span>
+                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: c }}>{d.score}<span style={{ fontSize: 12, color: MUTED }}>/3</span></span>
+                  </div>
+                  <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${(d.score / 3) * 100}%`, height: "100%", background: c, borderRadius: 3 }} /></div>
+                </div>
+              ); })}
+            </div>
+          </Section>
+        </FadeIn></div></section>
+        <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="profile-grid">
+            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Best-fit scenario</div>
+              <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.65, margin: 0 }}>{pv.bestFit}</p>
+            </div>
+            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Caution</div>
+              <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.65, margin: 0 }}>{pv.caution}</p>
+            </div>
+          </div>
+        </FadeIn></div></section>
+        {csuite.length > 0 && (
+          <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
+            <Section label="C-Suite Lens" title="Who cares most about this vendor." dark>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {csuite.map((c, i) => (
+                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "12px 18px", textAlign: "center", minWidth: 80 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: LIGHT }}>{c.role}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{c.fit}</div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          </FadeIn></div></section>
+        )}
+        <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {pv.name}?</h2>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {pv.name} fits your payment architecture, PCI requirements, and channel strategy.</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
+              <a href="/vendors/payments" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Payment Vendors →</a>
+            </div>
+          </div>
+        </FadeIn></div></section>
         <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span></div></div></footer>
       </div>
     );
