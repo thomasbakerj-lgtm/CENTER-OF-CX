@@ -41,6 +41,7 @@ import ManufacturingSubVerticalPage from './ManufacturingSubVerticalPage'
 import EducationVertical from './EducationVertical'
 import EducationSubVerticalPage from './EducationSubVerticalPage'
 import WEMCategory from './WEMCategory'
+import GatedReport from './GatedReport'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -179,6 +180,14 @@ const SEO_MAP = {
     title: `Telecommunications CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
   },
+  "/research/iva-buyer-guide": {
+    title: `IVA & Conversational AI Buyer's Guide 2026 | ${SITE}`,
+    desc: "43 vendors scored. The Human Premium framework. Market forecasts through 2029. Independent research — no vendor sponsorship.",
+  },
+  "/research/ccaas-buyer-guide": {
+    title: `CCaaS Platform Buyer's Guide 2026 | ${SITE}`,
+    desc: "28 CCaaS platforms scored across 7 dimensions. Strengths, weaknesses, best-fit, and red flags for every major platform.",
+  },
   "/vendors/wem-qm": {
     title: `Workforce & Quality Management — 25 Vendors Scored | ${SITE}`,
     desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
@@ -307,6 +316,7 @@ export default function App() {
         <Route path="/industries/education" element={<EducationVertical />} />
         <Route path="/industries/education/:slug" element={<EducationSubVerticalPage />} />
         <Route path="/vendors/wem-qm" element={<WEMCategory />} />
+        <Route path="/research/:slug" element={<GatedReport />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
