@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
 import { getIVAVendor, ivaTierConfig, ivaScoringDimensions } from "./IVAData";
+import { getAgentAssistVendor, aaTierConfig, aaDimensions } from "./AgentAssistData";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -134,6 +135,7 @@ export default function VendorProfile() {
   const { slug } = useParams();
   const vendor = getVendor(slug);
   const ivaVendor = !vendor ? getIVAVendor(slug) : null;
+  const aaVendor = !vendor && !ivaVendor ? getAgentAssistVendor(slug) : null;
   const [showReview, setShowReview] = useState(false);
   const [reviewSent, setReviewSent] = useState(false);
   const [reviewSending, setReviewSending] = useState(false);
@@ -279,6 +281,151 @@ export default function VendorProfile() {
             </FadeIn>
           </div>
         </section>
+
+        <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span></div></div></footer>
+      </div>
+    );
+  }
+
+  // ─── AGENT ASSIST VENDOR PROFILE ───
+  if (aaVendor) {
+    const aa = aaVendor;
+    const tierCfg = aaTierConfig[aa.tier] || { color: MUTED, range: "—" };
+    const dimScores = aaDimensions.map(d => ({ ...d, score: aa[d.abbr.toLowerCase()] }));
+    return (
+      <div><Nav />
+        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+          <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
+              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/vendors/agent-assist" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Agent Assist</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{aa.name}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
+              <div style={{ maxWidth: 600 }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{aa.type}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>Agent Assist & Knowledge</span>
+                  {aa.momentum === "Up" && <span style={{ fontSize: 11, fontWeight: 600, color: GREEN, background: `${GREEN}15`, padding: "3px 10px", borderRadius: 4 }}>↑ Momentum</span>}
+                </div>
+                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{aa.name}</h1>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{aa.bestFor}. {tierCfg.desc}</p>
+              </div>
+              <div style={{ flexShrink: 0 }}><ScoreBadge score={aa.score} tier={aa.tier} /></div>
+            </div>
+          </div>
+        </section>
+
+        {/* Strengths & Weaknesses */}
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}>
+            <FadeIn>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="profile-grid">
+                <div>
+                  <Section label="Assessment" title="What they do well.">
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[aa.strength1, aa.strength2, aa.strength3].map((s, i) => (
+                        <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8 }}>
+                          <div style={{ width: 22, height: 22, borderRadius: 6, background: `${GREEN}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}><span style={{ color: GREEN, fontSize: 12, fontWeight: 700 }}>+</span></div>
+                          <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55 }}>{s}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Section>
+                </div>
+                <div>
+                  <Section label="Honest assessment" title="Where to probe.">
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[aa.weakness1, aa.weakness2, aa.watchout].filter(Boolean).map((w, i) => (
+                        <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8 }}>
+                          <div style={{ width: 22, height: 22, borderRadius: 6, background: `${AMBER}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}><span style={{ color: AMBER, fontSize: 12, fontWeight: 700 }}>!</span></div>
+                          <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55 }}>{w}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Section>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* 10 Dimension Scores */}
+        <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}>
+            <FadeIn>
+              <Section label="Scoring Dimensions" title="Ten weighted dimensions.">
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} className="profile-grid">
+                  {dimScores.map((d, i) => {
+                    const color = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED;
+                    return (
+                      <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <div><span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{d.name}</span><span style={{ fontSize: 10, color: MUTED, marginLeft: 6 }}>{d.weight}%</span></div>
+                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color }}>{d.score}<span style={{ fontSize: 12, color: MUTED }}>/5</span></span>
+                        </div>
+                        <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
+                        </div>
+                        <p style={{ fontSize: 11, color: MUTED, margin: "6px 0 0" }}>{d.desc}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* Best Fit */}
+        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
+          <div style={WRAP}>
+            <FadeIn>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="profile-grid">
+                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "28px 24px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Best-fit scenario</div>
+                  <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, margin: 0 }}>{aa.bestFor}</p>
+                </div>
+                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "28px 24px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Watch out for</div>
+                  <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, margin: 0 }}>{aa.watchout}</p>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+                <a href="/vendors/agent-assist" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Agent Assist Intelligence</a>
+                <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+              </div>
+            </FadeIn>
+          </div>
+        </section>
+
+        {/* Community */}
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}><FadeIn>
+            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480 }}>
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {aa.name} for agent assist? Share what you've seen.</h3>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
+              </div>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+            </div>
+          </FadeIn></div>
+        </section>
+
+        {/* CTA */}
+        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {aa.name} for agent assist?</h2>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {aa.name} fits your operating model, vertical requirements, and integration landscape.</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Request a Vendor Briefing</a>
+              <a href="/vendors/agent-assist" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Agent Assist Vendors →</a>
+            </div>
+          </div>
+        </FadeIn></div></section>
 
         <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span></div></div></footer>
       </div>
