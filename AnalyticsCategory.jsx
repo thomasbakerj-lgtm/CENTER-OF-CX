@@ -82,7 +82,9 @@ export default function AnalyticsCategory() {
                       <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5, margin: "0 0 10px" }}>{c.desc}</p>
                       <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                         {vendors.slice(0, 4).map((v, j) => (
-                          <span key={j} style={{ fontSize: 10, color: SLATE, background: WARM, padding: "1px 6px", borderRadius: 3, border: `1px solid ${BORDER}` }}>{v.name} <span style={{ fontWeight: 700, color: c.color }}>{v.score}</span></span>
+                          <a key={j} href={`/vendors/${v.slug}`} style={{ fontSize: 10, color: SLATE, background: WARM, padding: "1px 6px", borderRadius: 3, border: `1px solid ${BORDER}`, textDecoration: "none", transition: "border-color 0.15s" }}
+                            onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
+                            onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>{v.name} <span style={{ fontWeight: 700, color: c.color }}>{v.score}</span></a>
                         ))}
                         {vendors.length > 4 && <span style={{ fontSize: 10, color: MUTED }}>+{vendors.length - 4} more</span>}
                       </div>
@@ -129,9 +131,9 @@ export default function AnalyticsCategory() {
 
                   <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                     {vendors.map((v, vi) => (
-                      <div key={vi} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "border-color 0.2s" }}
-                        onMouseOver={e => e.currentTarget.style.borderColor = cat.color}
-                        onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
+                      <a key={vi} href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "all 0.2s", textDecoration: "none", color: "inherit", cursor: "pointer" }}
+                        onMouseOver={e => { e.currentTarget.style.borderColor = cat.color; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                        onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
 
                         <div style={{ width: 40, height: 40, borderRadius: "50%", border: `2px solid ${cat.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                           <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 14, color: cat.color }}>{v.score}</span>
@@ -156,7 +158,9 @@ export default function AnalyticsCategory() {
                             </div>
                           ))}
                         </div>
-                      </div>
+
+                        <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, flexShrink: 0 }}>→</span>
+                      </a>
                     ))}
                   </div>
                 </div>
