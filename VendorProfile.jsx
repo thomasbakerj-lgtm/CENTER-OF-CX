@@ -253,7 +253,7 @@ export default function VendorProfile() {
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>{tierCfg.desc}</p>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to IVA Market Intelligence</a>
-                  <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+                  
                 </div>
               </Section>
             </FadeIn>
@@ -405,7 +405,7 @@ export default function VendorProfile() {
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
                 <a href="/vendors/agent-assist" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Agent Assist Intelligence</a>
-                <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+                
               </div>
             </FadeIn>
           </div>
@@ -559,7 +559,7 @@ export default function VendorProfile() {
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
                 <a href="/vendors/wem-qm" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to WEM/QM Intelligence</a>
-                <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+                
               </div>
             </Section>
           </FadeIn></div>
@@ -673,7 +673,7 @@ export default function VendorProfile() {
               <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Scores are most meaningful when compared within the same platform category — a CCaaS platform and an AI-native overlay serve different buying motions.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Analytics Intelligence</a>
-                <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+                
               </div>
             </Section>
           </FadeIn></div>
@@ -769,7 +769,7 @@ export default function VendorProfile() {
             {av.rmi && <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 16 }}>Routing Maturity Index: {av.rmi}</p>}
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to ACD/Routing Intelligence</a>
-              <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+              
             </div>
           </Section>
         </FadeIn></div></section>
@@ -858,7 +858,7 @@ export default function VendorProfile() {
           <Section label="Market Position" title={`${dv.tier} — ${dv.archetype}`} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Digital Engagement Intelligence</a>
-              <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: "#fff", background: ELECTRIC, padding: "8px 16px", borderRadius: 6 }}>Request a Vendor Briefing</a>
+              
             </div>
           </Section>
         </FadeIn></div></section>
@@ -975,6 +975,13 @@ export default function VendorProfile() {
             </Section>
           </FadeIn></div></section>
         )}
+
+        {/* Back navigation */}
+        <section style={{ background: WARM, padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}>
+            <a href="/vendors/payments" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>← Back to Payments Intelligence</a>
+          </div>
+        </section>
 
         {/* Community */}
         <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
@@ -1136,6 +1143,13 @@ export default function VendorProfile() {
               })}
             </div>
           </Section>
+        </div>
+      </section>
+
+      {/* Back navigation */}
+      <section style={{ background: "#fff", padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
+        <div style={WRAP}>
+          <a href="/vendors/ccaas" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>← Back to CCaaS Platform Intelligence</a>
         </div>
       </section>
 
@@ -1316,7 +1330,7 @@ export default function VendorProfile() {
                 </p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.25)` }}>Request a Vendor Briefing</a>
-                  <a href="/vendors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif" }}>Browse All Vendors →</a>
+                  <a href="/vendors/ccaas" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif" }}>See All CCaaS Vendors →</a>
                 </div>
               </div>
             </div>
