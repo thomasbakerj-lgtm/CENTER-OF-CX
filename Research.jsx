@@ -148,6 +148,18 @@ function ContentTypes() {
 function FeaturedArticles() {
   const featured = [
     {
+      tag: "Buyer's Guide", color: "#0088DD", read: "25 pages",
+      title: "IVA & Conversational AI Platform Buyer's Guide 2026",
+      desc: "43 vendors scored across 4 dimensions. The Human Premium workforce framework. Market forecasts through 2029 with validated Gartner, Forrester, and Opus Research data. Architecture eras, buyer scenarios, demo questions, TCO reality, and implementation pitfalls.",
+      href: "/IVA-Conversational-AI-Buyer-Guide-2026.pdf",
+    },
+    {
+      tag: "Buyer's Guide", color: "#10B981", read: "18 pages",
+      title: "CCaaS Platform Buyer's Guide 2026",
+      desc: "28 vendors scored across 7 dimensions. The definitive guide to evaluating CCaaS platforms — strengths, weaknesses, best-fit scenarios, red flags, and competitive context for every major platform.",
+      href: "/CCaaS-Platform-Buyer-Guide-2026.pdf",
+    },
+    {
       tag: "CX Reality Check", color: "#D4380D", read: "8 min",
       title: "Why Your CCaaS Migration Didn't Cut Costs",
       desc: "The pitch was compelling: move to the cloud, reduce infrastructure spend, pay per seat. Two years later, most organizations are spending the same or more. Here's where the money actually went — and what the vendors left out of the business case.",
@@ -171,7 +183,7 @@ function FeaturedArticles() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="feat-grid">
           {featured.map((a, i) => (
             <FadeIn key={i} delay={i * 0.08}>
-              <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, overflow: "hidden", cursor: "pointer", transition: "all 0.22s", height: "100%" }}
+              <a href={a.href || "#"} target={a.href ? "_blank" : undefined} style={{ display: "block", border: `1px solid ${BORDER}`, borderRadius: 12, overflow: "hidden", cursor: "pointer", transition: "all 0.22s", height: "100%", textDecoration: "none", color: "inherit" }}
                 onMouseOver={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,136,221,0.08)"; }}
                 onMouseOut={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ height: 5, background: a.color }} />
@@ -182,9 +194,9 @@ function FeaturedArticles() {
                   </div>
                   <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 12px", lineHeight: 1.25 }}>{a.title}</h3>
                   <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, margin: "0 0 20px", fontFamily: "'DM Sans', sans-serif" }}>{a.desc}</p>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Read →</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>{a.href ? "Download →" : "Read →"}</span>
                 </div>
-              </div>
+              </a>
             </FadeIn>
           ))}
         </div>
