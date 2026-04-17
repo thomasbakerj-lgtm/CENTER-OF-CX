@@ -270,7 +270,7 @@ export default function IVACategory() {
                 </p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.25)` }}>Request an IVA Briefing</a>
-                  <a href="/IVA-Conversational-AI-Buyer-Guide-2026.pdf" target="_blank" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Download IVA Buyer's Guide (PDF) →</a>
+                  <a href="/research/iva-buyer-guide" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Download IVA Buyer's Guide (PDF) →</a>
                 </div>
               </div>
             </div>
