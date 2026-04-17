@@ -104,10 +104,12 @@ export default function IVACategory() {
                         {t.name} <span style={{ fontWeight: 400, opacity: 0.7 }}>({t.range})</span>
                       </div>
                       {t.vendors.map((v, j) => (
-                        <div key={j} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "3px 0", fontSize: 11.5, color: SLATE, borderBottom: j < t.vendors.length - 1 ? `1px solid ${BORDER}` : "none" }}>
+                        <a key={j} href={`/vendors/${v.slug}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "3px 0", fontSize: 11.5, color: SLATE, borderBottom: j < t.vendors.length - 1 ? `1px solid ${BORDER}` : "none", textDecoration: "none", transition: "color 0.15s" }}
+                          onMouseOver={e => e.currentTarget.style.color = ELECTRIC}
+                          onMouseOut={e => e.currentTarget.style.color = SLATE}>
                           <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "75%" }}>{v.name}</span>
                           <span style={{ fontWeight: 700, color: t.color, fontSize: 11 }}>{v.score}</span>
-                        </div>
+                        </a>
                       ))}
                     </div>
                     <div style={{ background: t.color, color: "#fff", textAlign: "center", padding: "5px", borderRadius: "0 0 6px 6px", fontSize: 11, fontWeight: 700 }}>
@@ -157,9 +159,9 @@ export default function IVACategory() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {t.vendors.map((v, vi) => (
-                    <div key={vi} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, transition: "all 0.2s", cursor: "default" }}
-                      onMouseOver={e => { e.currentTarget.style.borderColor = t.color; e.currentTarget.style.boxShadow = `0 4px 16px ${t.color}10`; }}
-                      onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
+                    <a key={vi} href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, transition: "all 0.2s", cursor: "pointer", textDecoration: "none", color: "inherit" }}
+                      onMouseOver={e => { e.currentTarget.style.borderColor = t.color; e.currentTarget.style.boxShadow = `0 4px 16px ${t.color}10`; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                      onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}>
 
                       <div style={{ width: 44, height: 44, borderRadius: "50%", border: `2.5px solid ${t.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: t.color }}>{v.score}</span>
@@ -182,7 +184,9 @@ export default function IVACategory() {
                           </div>
                         ))}
                       </div>
-                    </div>
+
+                      <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, flexShrink: 0 }}>→</span>
+                    </a>
                   ))}
                 </div>
               </div>
