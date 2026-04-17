@@ -133,7 +133,9 @@ export default function WEMCategory() {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {marketLayers[activeTab].vendors.map((v, i) => (
             <FadeIn key={`${activeTab}-${i}`} delay={i * 0.03}>
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "18px 22px" }}>
+              <a href={`/vendors/${v.slug}`} style={{ display: "block", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "18px 22px", textDecoration: "none", color: "inherit", transition: "all 0.2s", cursor: "pointer" }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.transform = "translateY(0)"; }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
                   <div style={{ flex: 1, minWidth: 240 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
@@ -143,14 +145,15 @@ export default function WEMCategory() {
                     </div>
                     <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", margin: "4px 0 0", lineHeight: 1.5 }}>{v.rec}</p>
                   </div>
-                  <div style={{ display: "flex", gap: 16, flexShrink: 0 }}>
+                  <div style={{ display: "flex", gap: 16, flexShrink: 0, alignItems: "center" }}>
                     <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>Enterprise</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: v.entDepth >= 5 ? GREEN : v.entDepth >= 4 ? LIGHT : AMBER }}>{v.entDepth}</div></div>
                     <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>AI-QA</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: v.aiQA >= 5 ? GREEN : v.aiQA >= 4 ? LIGHT : AMBER }}>{v.aiQA}</div></div>
                     <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>BPO</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: v.bpo >= 5 ? GREEN : v.bpo >= 4 ? LIGHT : AMBER }}>{v.bpo}</div></div>
                     <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>Native</div><div style={{ fontSize: 11, color: v.native === "Native" ? GREEN : v.native === "Mixed" ? AMBER : LIGHT, fontWeight: 600 }}>{v.native}</div></div>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>→</span>
                   </div>
                 </div>
-              </div>
+              </a>
             </FadeIn>
           ))}
         </div>
