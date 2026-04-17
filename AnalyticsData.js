@@ -32,7 +32,7 @@ export const analyticsVendors = [
 
   // ═══ C: WEM / QA / QM PLATFORMS ═══
   { name: "Verint WFO", slug: "verint-wfo", score: 35, cat: "C", catLabel: "WEM / QA / QM", segment: "WEM/QM", intel: 5, autoQA: 4, opsWF: 4, wfm: 6, prodIns: 3, intData: 6, scaleGov: 6, summary: "Enterprise WFO suite with deep WFM alignment and integration. Analytics are embedded within the broader workforce optimization platform." },
-  { name: "NICE WEM", slug: "nice-wem", score: 35, cat: "C", catLabel: "WEM / QA / QM", segment: "WEM/QM", intel: 5, autoQA: 4, opsWF: 4, wfm: 6, prodIns: 2, intData: 6, scaleGov: 6, summary: "Analytics capabilities within the WEM suite. Strong WFM and integration depth. Product insights are limited compared to the standalone CXone analytics offering." },
+  { name: "NICE WEM", slug: "nice-wem-analytics", score: 35, cat: "C", catLabel: "WEM / QA / QM", segment: "WEM/QM", intel: 5, autoQA: 4, opsWF: 4, wfm: 6, prodIns: 2, intData: 6, scaleGov: 6, summary: "Analytics capabilities within the WEM suite. Strong WFM and integration depth. Product insights are limited compared to the standalone CXone analytics offering." },
   { name: "Calabrio", slug: "calabrio-analytics", score: 28, cat: "C", catLabel: "WEM / QA / QM", segment: "WEM/QM", intel: 4, autoQA: 4, opsWF: 4, wfm: 6, prodIns: 2, intData: 4, scaleGov: 6, summary: "WEM-embedded analytics with the strongest WFM alignment in its class. Intelligence and integration depth trail the top WEM players." },
   { name: "Playvox", slug: "playvox-analytics", score: 26, cat: "C", catLabel: "WEM / QA / QM", segment: "WEM/QM", intel: 4, autoQA: 4, opsWF: 4, wfm: 4, prodIns: 2, intData: 4, scaleGov: 6, summary: "QA and workforce analytics for mid-market. Solid governance and scalability but intelligence and product insights are limited." },
 
@@ -80,3 +80,5 @@ export const analyticsDimensions = [
   { abbr: "IDT", name: "Integration / Data", desc: "Data accessibility, API depth, warehouse connectivity, and ecosystem integration maturity." },
   { abbr: "SGV", name: "Scale / Governance", desc: "Enterprise scalability, data governance, security, compliance, and multi-region capability." },
 ];
+
+export const getAnalyticsVendor = (slug) => analyticsVendors.find(v => v.slug === slug) || null;
