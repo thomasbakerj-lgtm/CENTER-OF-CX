@@ -78,3 +78,5 @@ export const deDimensions = [
   { abbr: "ENT", name: "Enterprise Readiness", desc: "Security, compliance, governance, admin controls, scalability, and multi-region support." },
   { abbr: "CST", name: "Cost Model", desc: "Pricing accessibility, TCO predictability, and value relative to capability delivered." },
 ];
+
+export const getDEVendor = (slug) => deVendors.find(v => v.slug === slug) || null;
