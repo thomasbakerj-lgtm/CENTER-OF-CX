@@ -40,6 +40,7 @@ import ManufacturingVertical from './ManufacturingVertical'
 import ManufacturingSubVerticalPage from './ManufacturingSubVerticalPage'
 import EducationVertical from './EducationVertical'
 import EducationSubVerticalPage from './EducationSubVerticalPage'
+import WEMCategory from './WEMCategory'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -160,7 +161,7 @@ const SEO_MAP = {
   },
   "/industries": {
     title: `Industries | ${SITE}`,
-    desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and media.",
+    desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and education.",
   },
   "/industries/financial-services": {
     title: `Financial Services CX Intelligence | ${SITE}`,
@@ -177,6 +178,10 @@ const SEO_MAP = {
   "/industries/telecom": {
     title: `Telecommunications CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
+  },
+  "/vendors/wem-qm": {
+    title: `Workforce & Quality Management — 25 Vendors Scored | ${SITE}`,
+    desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
   },
   "/industries/education": {
     title: `Education CX Intelligence | ${SITE}`,
@@ -301,6 +306,7 @@ export default function App() {
         <Route path="/industries/manufacturing/:slug" element={<ManufacturingSubVerticalPage />} />
         <Route path="/industries/education" element={<EducationVertical />} />
         <Route path="/industries/education/:slug" element={<EducationSubVerticalPage />} />
+        <Route path="/vendors/wem-qm" element={<WEMCategory />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
