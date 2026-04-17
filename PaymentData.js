@@ -88,3 +88,5 @@ export const csuiteLenses = [
   { abbr: "COO", name: "Operations", desc: "Uptime, issue reduction, device ops, multichannel consistency, support quality." },
   { abbr: "CX", name: "Experience", desc: "Friction reduction, self-service, agent workflow, device CX, journey continuity." },
 ];
+
+export const getPaymentVendor = (slug) => paymentVendors.find(v => v.slug === slug) || null;
