@@ -70,43 +70,43 @@ export const marketLayers = {
     name: "Full-Suite WEM / CCaaS-Embedded",
     description: "Enterprise WEM suites and CCaaS platforms with embedded WFM + QM modules. The control-plane layer.",
     vendors: [
-      { rank: 1, vendor: "NICE", segment: "Enterprise WEM suite", entDepth: 5, aiQA: 5, native: "Native", rec: "Best overall control plane if you want broad WFM + mature AI-QA in one stack", bpo: 5 },
-      { rank: 2, vendor: "Verint", segment: "Enterprise WEM suite", entDepth: 5, aiQA: 5, native: "Native", rec: "Strongest alternative to NICE for enterprise breadth and automation depth", bpo: 5 },
-      { rank: 3, vendor: "Calabrio", segment: "Enterprise WEM suite", entDepth: 5, aiQA: 4, native: "Native", rec: "Best balanced suite if you want less sprawl and clearer WEM focus", bpo: 4 },
-      { rank: 4, vendor: "Genesys", segment: "CCaaS-embedded WEM", entDepth: 5, aiQA: 3, native: "Native", rec: "Strong if you are already a Genesys shop and want tighter platform alignment", bpo: 4 },
-      { rank: 5, vendor: "Amazon Connect", segment: "CCaaS-embedded WFM/QM", entDepth: 4, aiQA: 4, native: "Native", rec: "Strong for AWS-centric buyers, but still less WEM-mature than NICE/Verint/Calabrio", bpo: 3 },
-      { rank: 6, vendor: "Webex", segment: "CCaaS-embedded WFO", entDepth: 4, aiQA: 3, native: "Native", rec: "Legitimate suite, but usually not the first name in advanced WEM evaluations", bpo: 4 },
-      { rank: 7, vendor: "Talkdesk", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 4, native: "Mixed", rec: "Good fit where native ease matters, but complex WFM often pushes you toward Verint partner path", bpo: 3 },
-      { rank: 8, vendor: "Five9", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 3, native: "Mixed", rec: "Worth evaluating if already on Five9, but the WEM story is not as clean as the leaders", bpo: 3 },
-      { rank: 9, vendor: "RingCentral", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 4, native: "Acquired-native", rec: "Now more credible post-CommunityWFM absorption; still needs more proof at top-end scale", bpo: 3 },
-      { rank: 10, vendor: "Zendesk", segment: "Digital-service WEM", entDepth: 3, aiQA: 5, native: "Acquired-native", rec: "Strong for digital support QA + WFM, not a voice-first enterprise WEM replacement", bpo: 2 },
-      { rank: 11, vendor: "Content Guru", segment: "CCaaS + WEM", entDepth: 4, aiQA: 3, native: "Mixed", rec: "Real platform, but evaluate carefully where WFM depth depends on partner integration paths", bpo: 4 },
-      { rank: 12, vendor: "8x8", segment: "CCaaS-embedded WEM", entDepth: 3, aiQA: 3, native: "Mixed", rec: "Improving, but still not where I'd start for complex enterprise WFM-led transformation", bpo: 3 },
+      { rank: 1, vendor: "NICE", slug: "nice-wem", segment: "Enterprise WEM suite", entDepth: 5, aiQA: 5, native: "Native", rec: "Best overall control plane if you want broad WFM + mature AI-QA in one stack", bpo: 5 },
+      { rank: 2, vendor: "Verint", slug: "verint-wem", segment: "Enterprise WEM suite", entDepth: 5, aiQA: 5, native: "Native", rec: "Strongest alternative to NICE for enterprise breadth and automation depth", bpo: 5 },
+      { rank: 3, vendor: "Calabrio", slug: "calabrio-wem", segment: "Enterprise WEM suite", entDepth: 5, aiQA: 4, native: "Native", rec: "Best balanced suite if you want less sprawl and clearer WEM focus", bpo: 4 },
+      { rank: 4, vendor: "Genesys", slug: "genesys-wem", segment: "CCaaS-embedded WEM", entDepth: 5, aiQA: 3, native: "Native", rec: "Strong if you are already a Genesys shop and want tighter platform alignment", bpo: 4 },
+      { rank: 5, vendor: "Amazon Connect", slug: "amazon-wem", segment: "CCaaS-embedded WFM/QM", entDepth: 4, aiQA: 4, native: "Native", rec: "Strong for AWS-centric buyers, but still less WEM-mature than NICE/Verint/Calabrio", bpo: 3 },
+      { rank: 6, vendor: "Webex", slug: "webex-wem", segment: "CCaaS-embedded WFO", entDepth: 4, aiQA: 3, native: "Native", rec: "Legitimate suite, but usually not the first name in advanced WEM evaluations", bpo: 4 },
+      { rank: 7, vendor: "Talkdesk", slug: "talkdesk-wem", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 4, native: "Mixed", rec: "Good fit where native ease matters, but complex WFM often pushes you toward Verint partner path", bpo: 3 },
+      { rank: 8, vendor: "Five9", slug: "five9-wem", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 3, native: "Mixed", rec: "Worth evaluating if already on Five9, but the WEM story is not as clean as the leaders", bpo: 3 },
+      { rank: 9, vendor: "RingCentral", slug: "ringcentral-wem", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 4, native: "Acquired-native", rec: "Now more credible post-CommunityWFM absorption; still needs more proof at top-end scale", bpo: 3 },
+      { rank: 10, vendor: "Zendesk", slug: "zendesk-wem", segment: "Digital-service WEM", entDepth: 3, aiQA: 5, native: "Acquired-native", rec: "Strong for digital support QA + WFM, not a voice-first enterprise WEM replacement", bpo: 2 },
+      { rank: 11, vendor: "Content Guru", slug: "contentguru-wem", segment: "CCaaS + WEM", entDepth: 4, aiQA: 3, native: "Mixed", rec: "Real platform, but evaluate carefully where WFM depth depends on partner integration paths", bpo: 4 },
+      { rank: 12, vendor: "8x8", slug: "8x8-wem", segment: "CCaaS-embedded WEM", entDepth: 3, aiQA: 3, native: "Mixed", rec: "Improving, but still not where I'd start for complex enterprise WFM-led transformation", bpo: 3 },
     ],
   },
   wfmSpecialists: {
     name: "Best-of-Breed WFM Specialists",
     description: "Pure-play workforce management platforms. These vendors survive because forecasting, scheduling, adherence, shrinkage, and intraday control are harder to fake than AI scorecards.",
     vendors: [
-      { rank: 1, vendor: "Aspect", segment: "Specialist WFM", entDepth: 5, aiQA: 2, native: "Native", rec: "Best pure WFM specialist on the shortlist", bpo: 4 },
-      { rank: 2, vendor: "Peopleware / injixo", segment: "Specialist WFM", entDepth: 4, aiQA: 2, native: "Native", rec: "Strong modern WFM option, especially where usability and planning workflow matter", bpo: 3 },
-      { rank: 3, vendor: "Eleveo", segment: "WFM + QM specialist", entDepth: 4, aiQA: 3, native: "Native", rec: "Best hybrid specialist if you want WFM plus credible QM in one vendor", bpo: 3 },
-      { rank: 4, vendor: "Assembled", segment: "Support-ops WFM", entDepth: 3, aiQA: 2, native: "Native", rec: "Very strong for support operations, less proven for classic voice-heavy enterprise WFM", bpo: 3 },
-      { rank: 5, vendor: "Pipkins", segment: "Specialist WFM", entDepth: 4, aiQA: 1, native: "Native", rec: "Still viable where WFM rigor matters more than AI gloss", bpo: 3 },
-      { rank: 6, vendor: "Enghouse", segment: "WFM specialist / broader CC", entDepth: 3, aiQA: 2, native: "Native", rec: "Relevant, but not first-wave unless you already live in the Enghouse ecosystem", bpo: 3 },
+      { rank: 1, vendor: "Aspect", slug: "aspect-wem", segment: "Specialist WFM", entDepth: 5, aiQA: 2, native: "Native", rec: "Best pure WFM specialist on the shortlist", bpo: 4 },
+      { rank: 2, vendor: "Peopleware / injixo", slug: "injixo-wem", segment: "Specialist WFM", entDepth: 4, aiQA: 2, native: "Native", rec: "Strong modern WFM option, especially where usability and planning workflow matter", bpo: 3 },
+      { rank: 3, vendor: "Eleveo", slug: "eleveo-wem", segment: "WFM + QM specialist", entDepth: 4, aiQA: 3, native: "Native", rec: "Best hybrid specialist if you want WFM plus credible QM in one vendor", bpo: 3 },
+      { rank: 4, vendor: "Assembled", slug: "assembled-wem", segment: "Support-ops WFM", entDepth: 3, aiQA: 2, native: "Native", rec: "Very strong for support operations, less proven for classic voice-heavy enterprise WFM", bpo: 3 },
+      { rank: 5, vendor: "Pipkins", slug: "pipkins-wem", segment: "Specialist WFM", entDepth: 4, aiQA: 1, native: "Native", rec: "Still viable where WFM rigor matters more than AI gloss", bpo: 3 },
+      { rank: 6, vendor: "Enghouse", slug: "enghouse-wem", segment: "WFM specialist / broader CC", entDepth: 3, aiQA: 2, native: "Native", rec: "Relevant, but not first-wave unless you already live in the Enghouse ecosystem", bpo: 3 },
     ],
   },
   aiQAOverlays: {
     name: "AI-QA / Auto-QA Overlays",
     description: "AI-first quality management platforms. Auto-QA is now baseline — the real separation is explainability, calibration, coaching integration, and how cleanly the model output becomes supervisor action.",
     vendors: [
-      { rank: 1, vendor: "Observe.AI", segment: "Auto-QA overlay", entDepth: 3, aiQA: 5, native: "Native", rec: "Best pure Auto-QA posture on the board", bpo: 3 },
-      { rank: 2, vendor: "CallMiner", segment: "Analytics-led AI-QA", entDepth: 4, aiQA: 5, native: "Native", rec: "Best if QA, compliance, and analytics need to sit together", bpo: 4 },
-      { rank: 3, vendor: "Cresta", segment: "AI-QA + coaching", entDepth: 3, aiQA: 5, native: "Native", rec: "Strongest coaching-forward AI-QM play", bpo: 3 },
-      { rank: 4, vendor: "MiaRec", segment: "Auto-QA / conversation intelligence", entDepth: 3, aiQA: 4, native: "Native", rec: "Strong practical Auto-QA option with clear contact-center focus", bpo: 3 },
-      { rank: 5, vendor: "evaluagent", segment: "QA improvement platform", entDepth: 3, aiQA: 4, native: "Native", rec: "Good fit for modernizing governance, not just automating scoring", bpo: 3 },
-      { rank: 6, vendor: "MaestroQA", segment: "QA automation", entDepth: 3, aiQA: 4, native: "Native", rec: "Best fit for support-centric QA modernization", bpo: 2 },
-      { rank: 7, vendor: "Scorebuddy", segment: "QA/coaching platform", entDepth: 3, aiQA: 4, native: "Native", rec: "Good option when coaching and QA ops matter as much as scoring coverage", bpo: 4 },
+      { rank: 1, vendor: "Observe.AI", slug: "observeai-wem", segment: "Auto-QA overlay", entDepth: 3, aiQA: 5, native: "Native", rec: "Best pure Auto-QA posture on the board", bpo: 3 },
+      { rank: 2, vendor: "CallMiner", slug: "callminer-wem", segment: "Analytics-led AI-QA", entDepth: 4, aiQA: 5, native: "Native", rec: "Best if QA, compliance, and analytics need to sit together", bpo: 4 },
+      { rank: 3, vendor: "Cresta", slug: "cresta-wem", segment: "AI-QA + coaching", entDepth: 3, aiQA: 5, native: "Native", rec: "Strongest coaching-forward AI-QM play", bpo: 3 },
+      { rank: 4, vendor: "MiaRec", slug: "miarec-wem", segment: "Auto-QA / conversation intelligence", entDepth: 3, aiQA: 4, native: "Native", rec: "Strong practical Auto-QA option with clear contact-center focus", bpo: 3 },
+      { rank: 5, vendor: "evaluagent", slug: "evaluagent-wem", segment: "QA improvement platform", entDepth: 3, aiQA: 4, native: "Native", rec: "Good fit for modernizing governance, not just automating scoring", bpo: 3 },
+      { rank: 6, vendor: "MaestroQA", slug: "maestroqa-wem", segment: "QA automation", entDepth: 3, aiQA: 4, native: "Native", rec: "Best fit for support-centric QA modernization", bpo: 2 },
+      { rank: 7, vendor: "Scorebuddy", slug: "scorebuddy-wem", segment: "QA/coaching platform", entDepth: 3, aiQA: 4, native: "Native", rec: "Good option when coaching and QA ops matter as much as scoring coverage", bpo: 4 },
     ],
   },
 };
@@ -137,3 +137,32 @@ export const brutalConclusions = [
   "The weak move is buying 'WEM' from a vendor whose real strength is only QM or only AI coaching. Another weak move is assuming a partner-led WFM story carries the same roadmap control, support model, and product cohesion as a native suite.",
   "Consolidation is real. Playvox is rolling into NICE, Klaus is now Zendesk QA, CommunityWFM is absorbed into RingCentral. Counting old sub-brands as separate market leaders distorts your map.",
 ];
+
+// Lookup function — searches across all three market layers
+export function getWEMVendor(slug) {
+  for (const layerKey of Object.keys(marketLayers)) {
+    const layer = marketLayers[layerKey];
+    const v = layer.vendors.find(v => v.slug === slug);
+    if (v) return { ...v, layerName: layer.name, layerDesc: layer.description, layerKey };
+  }
+  return null;
+}
+
+// Get all WEM slugs for routing
+export function getAllWEMSlugs() {
+  const slugs = [];
+  for (const layer of Object.values(marketLayers)) {
+    layer.vendors.forEach(v => { if (v.slug) slugs.push(v.slug); });
+  }
+  return slugs;
+}
+
+// Get leaderboard entries for a vendor
+export function getWEMLeaderboardScores(vendorName) {
+  const scores = {};
+  for (const [mode, lb] of Object.entries(leaderboards)) {
+    const entry = lb.vendors.find(v => v.vendor === vendorName);
+    if (entry) scores[mode] = { ...entry, modeName: lb.name };
+  }
+  return scores;
+}
