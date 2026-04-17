@@ -256,58 +256,58 @@ function OrchestrationLayers() {
 function Categories() {
   const cats = [
     {
-      t: "Core CX Platforms", s: "CCaaS", layers: "5, 6, 7",
+      t: "Core CX Platforms", s: "CCaaS", layers: "5, 6, 7", href: "/vendors/ccaas",
       d: "The foundational platform for voice, digital channels, routing, and workforce management. Most enterprises already have one — the real question is whether to optimize, extend, or replace.",
       questions: ["Who should not switch platforms", "When add-ons beat rip-and-replace", "Platform-native AI vs best-of-breed"],
       vendors: "Genesys, NICE, Five9, AWS Connect, Cisco, Talkdesk, 8x8, Zoom",
     },
     {
-      t: "Customer Automation & Self-Service AI", s: "IVA · Bots · Autonomous Resolution", layers: "4, 5",
+      t: "Customer Automation & Self-Service AI", s: "IVA · Bots · Autonomous Resolution", layers: "4, 5", href: "/vendors/iva",
       d: "The fastest-moving category in the stack. From legacy intent-based IVAs to LLM-native virtual assistants and fully autonomous AI workers handling multi-step tasks.",
       questions: ["Platform-native vs best-of-breed AI", "Where AI fails in production", "Containment rate realities"],
       vendors: "Cognigy, Kore.ai, Ada, Google CCAI, Nuance, PolyAI",
     },
     {
-      t: "Agent Assist & Knowledge", s: "Real-time Intelligence · RAG · Knowledge AI", layers: "4",
+      t: "Agent Assist & Knowledge", s: "Real-time Intelligence · RAG · Knowledge AI", layers: "4", href: "/vendors/agent-assist",
       d: "Real-time guidance, knowledge retrieval, summarization, and next-best-action delivered to agents during live interactions. The adoption gap here is enormous.",
       questions: ["Real-time vs post-contact value", "RAG realities and grounding quality", "Adoption traps most teams hit"],
       vendors: "Uniphore, Observe.AI, Cresta, Coveo, Shelf, Guru",
     },
     {
-      t: "Workforce & Quality Management", s: "WEM · QM · WFM · Coaching", layers: "7",
+      t: "Workforce & Quality Management", s: "WEM · QM · WFM · Coaching", layers: "7", href: "/vendors/wem-qm",
       d: "Forecasting, scheduling, quality monitoring, coaching, and performance management. AI is transforming QA from 2% sample reviews to 100% automated evaluation.",
       questions: ["AI QA vs human QA — what actually works", "Forecasting truth in volatile environments", "Cost control levers most teams miss"],
       vendors: "NICE, Verint, Calabrio, Genesys WEM, Five9",
     },
     {
-      t: "Experience Analytics & VoC", s: "Speech · Text · Journey Analytics", layers: "7",
+      t: "Experience Analytics & VoC", s: "Speech · Text · Journey Analytics", layers: "7", href: "/vendors/analytics",
       d: "Understanding what's actually happening in customer interactions — sentiment, topics, root cause, journey patterns — versus what your dashboards claim is happening.",
       questions: ["Root cause vs vanity metrics", "Journey visibility across fragmented systems", "When speech analytics ROI is real vs theoretical"],
       vendors: "CallMiner, Observe.AI, Qualtrics, Genesys, Verint",
     },
     {
-      t: "CX Orchestration & Workflow", s: "Routing · Integration · Process Automation", layers: "2, 6",
+      t: "CX Orchestration & Workflow", s: "Routing · Integration · Process Automation", layers: "2, 6", href: "/vendors/acd-routing",
       d: "The glue layer. How interactions get routed, how systems share data, how workflows execute across CRM, CCaaS, and back-office systems. Routing as a standalone category is dead.",
       questions: ["Orchestration patterns that actually work", "CCaaS + CRM + ITSM convergence", "iPaaS vs RPA vs workflow engines"],
       vendors: "MuleSoft, Workato, Camunda, Pega, UiPath",
     },
     {
-      t: "Enterprise & Employee Service", s: "ITSM · EX-CX Overlap", layers: "1, 2",
+      t: "Enterprise & Employee Service", s: "ITSM · EX-CX Overlap", layers: "1, 2", href: "/vendors",
       d: "When internal service management belongs in the CX stack and when it doesn't. The overlap between employee experience and customer experience creates real architectural questions.",
       questions: ["When ITSM belongs in CX", "What you should never unify", "The EX-CX connection that matters"],
       vendors: "ServiceNow, BMC, Jira Service Management, Freshservice",
     },
     {
-      t: "Payments, Identity & Trust", s: "PCI · Authentication · Fraud", layers: "3",
+      t: "Payments, Identity & Trust", s: "PCI · Authentication · Fraud", layers: "3", href: "/vendors/payments",
       d: "The compliance and security layer that most CX strategies ignore until something breaks. PCI, authentication friction, fraud prevention, and identity verification within the service workflow.",
       questions: ["PCI segmentation in modern stacks", "Authentication vs customer effort tradeoffs", "Fraud prevention without CX destruction"],
       vendors: "Stripe, Adyen, Forter, Sift, BioCatch, PCI Proxy",
     },
     {
-      t: "CX & AI Governance", s: "Compliance · Model Risk · Auditability", layers: "3, 7",
-      d: "The thought-leadership wedge. As AI handles more interactions, governance becomes the difference between scale and catastrophe. Escalation design, model evaluation, regression testing, policy maps.",
-      questions: ["What AI governance actually requires operationally", "Escalation design for AI-first contact centers", "Regulatory exposure most teams underestimate"],
-      vendors: "Emerging category — frameworks matter more than vendors here",
+      t: "Digital Engagement", s: "Chat · Messaging · Social · CPaaS", layers: "5", href: "/vendors/digital-engagement",
+      d: "Multi-channel digital engagement platforms, conversational messaging, social media management, and CPaaS. The layer that connects your brand to customers on the channels they actually use.",
+      questions: ["Messaging vs chat — what's the real difference", "Social CX management at scale", "CPaaS vs platform-native digital channels"],
+      vendors: "Ada, Intercom, Sprinklr, Zendesk, Khoros, Gladly",
     },
   ];
 
@@ -356,7 +356,7 @@ function Categories() {
                   <div style={{ borderLeft: `1px solid ${BORDER}`, paddingLeft: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, fontFamily: "'DM Sans', sans-serif" }}>Key vendors</div>
                     <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, marginBottom: 16, fontFamily: "'DM Sans', sans-serif" }}>{c.vendors}</p>
-                    <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Explore category →</a>
+                    <a href={c.href || "/vendors"} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Explore category →</a>
                   </div>
                 </div>
               </div>
