@@ -773,6 +773,21 @@ export default function VendorProfile() {
             </div>
           </Section>
         </FadeIn></div></section>
+
+        {/* Community */}
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}><FadeIn>
+            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480 }}>
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {av.name}? Share what you've seen.</h3>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't.</p>
+              </div>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+            </div>
+          </FadeIn></div>
+        </section>
+
         <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {av.name}?</h2>
@@ -847,6 +862,21 @@ export default function VendorProfile() {
             </div>
           </Section>
         </FadeIn></div></section>
+
+        {/* Community */}
+        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}><FadeIn>
+            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480 }}>
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {dv.name}? Share what you've seen.</h3>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't.</p>
+              </div>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+            </div>
+          </FadeIn></div>
+        </section>
+
         <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {dv.name}?</h2>
@@ -945,6 +975,21 @@ export default function VendorProfile() {
             </Section>
           </FadeIn></div></section>
         )}
+
+        {/* Community */}
+        <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}><FadeIn>
+            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480 }}>
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {pv.name}? Share what you've seen.</h3>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't.</p>
+              </div>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+            </div>
+          </FadeIn></div>
+        </section>
+
         <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {pv.name}?</h2>
