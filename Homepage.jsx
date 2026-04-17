@@ -53,6 +53,7 @@ function Nav() {
     { name: "How to Choose", href: "/how-to-choose" },
     { name: "Research", href: "/research" },
     { name: "Vendors", href: "/vendors" },
+    { name: "The Human Premium", href: "/human-premium" },
     { name: "Advisory", href: "/advisory" },
   ];
   const bg = scrolled ? "rgba(6,19,37,0.96)" : "transparent";
@@ -339,6 +340,17 @@ function Tools() {
       ],
       accent: "#006699",
     },
+    {
+      label: "The Human Premium",
+      sub: "Career growth in the AI era",
+      items: [
+        { name: "Four New CX Roles", desc: "Complex Issue Resolver, AI Trainer, Experience Designer, and Quality Lead — roles that didn't exist two years ago.", href: "/human-premium" },
+        { name: "Growth Playbook", desc: "Seven moves that separate those who thrive from those who get displaced. Each with a concrete action step.", href: "/human-premium" },
+        { name: "Certifications That Compound", desc: "12 certifications across AI, CX, and data analytics — with costs, time, and why each one matters.", href: "/human-premium" },
+        { name: "Five Career Paths", desc: "Go deeper, go wider, go technical, go independent, or go build. Pick the one that fits your ambition.", href: "/human-premium" },
+      ],
+      accent: "#10B981",
+    },
   ];
 
   return (
@@ -354,7 +366,7 @@ function Tools() {
           </div>
         </FadeIn>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           {tiers.map((tier, ti) => (
             <FadeIn key={ti} delay={ti * 0.1}>
               <div style={{ background: "#fff", borderRadius: 14, border: `1px solid ${BORDER}`, overflow: "hidden", height: "100%" }}>
