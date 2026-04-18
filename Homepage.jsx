@@ -504,9 +504,9 @@ function Advisory() {
           <FadeIn>
             <div>
               <SectionLabel>Advisory</SectionLabel>
-              <SectionTitle>Vendor-neutral guidance. No commissions. No implementation.</SectionTitle>
+              <SectionTitle>Vendor-neutral guidance. Aligned to your outcomes.</SectionTitle>
               <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, margin: "12px 0 32px" }}>
-                We help CX and contact center leaders make better technology and strategy decisions. We don't sell software. We don't take vendor commissions. We work for you.
+                We help CX and contact center leaders make better technology and strategy decisions. We do not sell software. We do not implement platforms. Our advisory is grounded in independent research and aligned to your operational reality.
               </p>
               <a href="/contact" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
             </div>
