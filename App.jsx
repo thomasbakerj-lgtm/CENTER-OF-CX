@@ -198,6 +198,10 @@ const SEO_MAP = {
     title: `Why Your CCaaS Migration Didn't Cut Costs | ${SITE}`,
     desc: "The business case looked clean. Two years later, most organizations are spending the same or more. A 20-year operator breaks down where the money actually went across five CCaaS migrations.",
   },
+  "/research/orchestration-framework": {
+    title: `The 7-Layer CX Orchestration Framework 2026 | ${SITE}`,
+    desc: "How every layer connects, who owns each one, and what to prepare for in the next 12 months. Layer-by-layer deep dives, integration dependencies, and a 14-question readiness checklist.",
+  },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management — 25 Vendors Scored | ${SITE}`,
     desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
