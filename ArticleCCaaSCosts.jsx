@@ -122,7 +122,7 @@ export default function ArticleCCaaSCosts() {
             </P>
 
             <P>
-              And here is the stat that haunts me: according to the Puzzel State of Contact Centres 2026 report, only 3 percent of contact centers operate on a single, unified platform. The average organization is running 3.9 different contact center technologies. So even after migration, most organizations end up in a hybrid state that is more complex, not less.
+              And here is the stat that haunts me: according to Puzzel's 2026 State of Contact Centers report, only 3 percent of contact centers operate on a single, unified platform. The average organization is running 3.9 different contact center technologies. So even after migration, most organizations end up in a hybrid state that is more complex, not less.
             </P>
 
             <H2>So why does this keep happening?</H2>
@@ -190,7 +190,7 @@ export default function ArticleCCaaSCosts() {
               <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.7 }}>
                 <p style={{ margin: "0 0 6px" }}>Forrester: Cloud migration outcome rates across enterprise categories</p>
                 <p style={{ margin: "0 0 6px" }}>Gartner: Public cloud cost overrun projections for I+O leaders</p>
-                <p style={{ margin: "0 0 6px" }}>Puzzel: State of Contact Centres 2026 (platform fragmentation data)</p>
+                <p style={{ margin: "0 0 6px" }}>Puzzel: State of Contact Centers 2026 (platform fragmentation data)</p>
                 <p style={{ margin: "0 0 6px" }}>Blackchair: Integration challenge survey data on CCaaS migration delays</p>
                 <p style={{ margin: "0 0 6px" }}>InflectionCX: CCaaS Total Cost of Ownership analysis, 2026</p>
                 <p style={{ margin: "0 0 6px" }}>Business Research Insights: CCaaS Software Market analysis (cost overrun data)</p>
