@@ -61,14 +61,14 @@ export default function ExperienceScorecard() {
   const handleGate = async () => {
     if (!email.includes("@")) return;
     setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Experience Scorecard", _subject: "Experience Scorecard Access" }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xlgabvbr", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Experience Scorecard", _subject: "Experience Scorecard Access" }) }); } catch (e) {}
     setSending(false);
     setPhase("input");
   };
 
   const handleResults = async () => {
     const metricResults = scored.map(m => `${m.name}: ${m.val} (${m.result.grade})`).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Experience Scorecard", overallGrade, metricsScored: scored.length, results: metricResults, _subject: `Experience Scorecard: Grade ${overallGrade} — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xlgabvbr", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Experience Scorecard", overallGrade, metricsScored: scored.length, results: metricResults, _subject: `Experience Scorecard: Grade ${overallGrade} — ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
