@@ -58,12 +58,12 @@ const SITE = "The Center of CX";
 
 const SEO_MAP = {
   "/": {
-    title: `${SITE} | Independent CX Technology Intelligence`,
-    desc: "267 vendors scored across 7 categories with published methodologies. Independent CX and contact center technology intelligence — scored, weighted, honest.",
+    title: `${SITE} | Independent CX + Contact Center Technology Intelligence`,
+    desc: "276 vendors scored across 8 categories. Buyer guides, interactive tools, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play.",
   },
   "/platforms-and-tech": {
-    title: `Platforms & Tech | ${SITE}`,
-    desc: "Nine decision domains mapped to seven orchestration layers. A framework for understanding what CX technology you actually need, who owns it, and what breaks when you choose wrong.",
+    title: `Platforms + Tech | ${SITE}`,
+    desc: "Nine CX technology decision domains mapped to seven orchestration layers. Understand what you need, who owns it, and what breaks when you choose wrong.",
   },
   "/about": {
     title: `Our POV | ${SITE}`,
@@ -71,38 +71,38 @@ const SEO_MAP = {
   },
   "/advisory": {
     title: `Advisory Services | ${SITE}`,
-    desc: "Strategy, vendor evaluation, and transformation advisory for CX and contact center leaders. Vendor-independent guidance backed by scored intelligence.",
+    desc: "Vendor-independent CX strategy, vendor evaluation, and transformation advisory for contact center leaders. Backed by scored intelligence across 276 vendors.",
   },
   "/contact": {
     title: `Request a Working Session | ${SITE}`,
-    desc: "Tell us your challenge. We'll come prepared with relevant vendor intelligence, frameworks, and honest assessments.",
+    desc: "Tell us your challenge. We come prepared with vendor intelligence, frameworks, and honest assessments tailored to your situation.",
   },
   "/subscribe": {
     title: `Subscribe | ${SITE}`,
-    desc: "Get CX technology intelligence delivered. Vendor updates, framework releases, and market analysis from The Center of CX.",
+    desc: "CX technology intelligence delivered. Vendor updates, framework releases, and market analysis from The Center of CX.",
   },
   "/how-to-choose": {
-    title: `How to Choose | ${SITE}`,
-    desc: "Buyer guides, decision frameworks, and evaluation tools for CX technology decisions. Built from operational experience.",
+    title: `How to Choose | Buyer Guides + Interactive Tools | ${SITE}`,
+    desc: "Two independently scored buyer guides and ten interactive CX tools. Every output is actionable. No placeholders. No vendor sponsorship.",
   },
   "/research": {
-    title: `Research & Insight | ${SITE}`,
-    desc: "Original research, market analysis, and operator briefings on CX technology, AI automation, and contact center transformation.",
+    title: `Research + Insight | ${SITE}`,
+    desc: "Original research, market analysis, and operator briefings on CX technology, AI in the contact center, and workforce transformation.",
   },
   "/vendors": {
-    title: `Vendor Intelligence Directory | ${SITE}`,
-    desc: "267 vendors across 7 categories — CCaaS, IVA, ACD/Routing, Analytics, Payments, Digital Engagement, and Agent Assist. Scored with published methodologies.",
+    title: `Vendor Intelligence | 276 Vendors Scored Across 8 Categories | ${SITE}`,
+    desc: "276 vendors across 8 categories. CCaaS, IVA, Agent Assist, WEM, Analytics, ACD/Routing, Digital Engagement, and Payments. Independently scored with published methodologies.",
   },
   "/vendors/ccaas": {
-    title: `CCaaS Platform Market Intelligence — 28 Vendors Scored | ${SITE}`,
-    desc: "28 CCaaS vendors scored across 27 weighted dimensions. Bell curve placement, scoring methodology, and honest assessments. Strategic Foundation to Limited Fit.",
+    title: `CCaaS Platform Market Intelligence | 28 Vendors Scored | ${SITE}`,
+    desc: "28 CCaaS vendors scored across 7 weighted dimensions. Bell curve placement, scoring methodology, and honest assessments for enterprise buyers.",
   },
   "/vendors/iva": {
     title: `IVA Market Intelligence — 43 Vendors Scored | ${SITE}`,
     desc: "43 IVA vendors scored on Conversational Autonomy, Multi-Channel Coverage, Orchestration Depth, and Analytics. Leaders to Emerging tier placement.",
   },
   "/vendors/acd-routing": {
-    title: `ACD & Routing Market Intelligence — 44 Vendors Scored | ${SITE}`,
+    title: `ACD + Routing Market Intelligence — 44 Vendors Scored | ${SITE}`,
     desc: "44 ACD/Routing vendors scored across 10 dimensions including routing logic, AI readiness, failover, and global scale. Quadrant matrix and tier rankings.",
   },
   "/vendors/analytics": {
@@ -122,7 +122,7 @@ const SEO_MAP = {
     desc: "15 agent assist vendors scored across 10 weighted dimensions. Real-time guidance, knowledge grounding, workflow execution, coaching, compliance, and market proof.",
   },
   "/cx-ecosystem": {
-    title: `CX Industry Ecosystem — 15 Essential Publications & Communities | ${SITE}`,
+    title: `CX Industry Ecosystem — 15 Essential Publications + Communities | ${SITE}`,
     desc: "The 15 publications, research hubs, and communities that matter for CX and contact center professionals. Curated by The Center of CX.",
   },
   "/tools/cx-maturity": {
@@ -142,7 +142,7 @@ const SEO_MAP = {
     desc: "Rate 15 paired CX and IT statements to reveal alignment gaps in strategy, data, platforms, AI, and governance. Identify where misalignment creates friction.",
   },
   "/tools/governance-model": {
-    title: `Governance & Operating Model | ${SITE}`,
+    title: `Governance + Operating Model | ${SITE}`,
     desc: "Map ownership across 30 CX responsibilities — strategy, operations, technology, AI, analytics, and budget. Identify governance gaps and overloaded functions.",
   },
   "/tools/service-design": {
@@ -174,7 +174,7 @@ const SEO_MAP = {
     desc: "Vertical-specific CX intelligence for health systems, payers, providers, and digital health. Patient access benchmarks, HIPAA-aware technology mapping, and failure modes.",
   },
   "/industries/retail": {
-    title: `Retail & eCommerce CX Intelligence | ${SITE}`,
+    title: `Retail + eCommerce CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for eCommerce, omnichannel retail, subscription, and marketplace operations. Benchmarks, seasonal scaling, and commerce-integrated vendor recommendations.",
   },
   "/industries/telecom": {
@@ -182,7 +182,7 @@ const SEO_MAP = {
     desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
   },
   "/research/iva-buyer-guide": {
-    title: `IVA & Conversational AI Buyer's Guide 2026 | ${SITE}`,
+    title: `IVA + Conversational AI Buyer's Guide 2026 | ${SITE}`,
     desc: "43 vendors scored. The Human Premium framework. Market forecasts through 2029. Independent research — no vendor sponsorship.",
   },
   "/research/ccaas-buyer-guide": {
@@ -194,7 +194,7 @@ const SEO_MAP = {
     desc: "Four new roles, five career paths, twelve certifications, and the growth playbook for CX professionals thriving in the AI era. Technology intelligence without workforce intelligence is half a strategy.",
   },
   "/vendors/wem-qm": {
-    title: `Workforce & Quality Management — 25 Vendors Scored | ${SITE}`,
+    title: `Workforce + Quality Management — 25 Vendors Scored | ${SITE}`,
     desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
   },
   "/industries/education": {
@@ -202,15 +202,15 @@ const SEO_MAP = {
     desc: "Vertical-specific CX intelligence for admissions, financial aid, student services, IT help desk, and online education. FERPA, enrollment yield, retention, and student lifecycle.",
   },
   "/industries/manufacturing": {
-    title: `Manufacturing & Automotive CX Intelligence | ${SITE}`,
+    title: `Manufacturing + Automotive CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for automotive OEM, dealers, industrial B2B, consumer electronics, aerospace, and food manufacturing. Warranty, recalls, parts logistics, and field service.",
   },
   "/industries/government": {
-    title: `Government & Public Sector CX Intelligence | ${SITE}`,
+    title: `Government + Public Sector CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for federal, state, local, courts, public safety, and social services. FedRAMP, accessibility, multilingual support, and citizen trust.",
   },
   "/industries/utilities": {
-    title: `Utilities & Energy CX Intelligence | ${SITE}`,
+    title: `Utilities + Energy CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for electric, gas, water, municipal, renewable energy, and competitive supply. Storm response, outage management, and regulatory compliance.",
   },
   "/industries/insurance": {
@@ -218,7 +218,7 @@ const SEO_MAP = {
     desc: "Vertical-specific CX intelligence for P&C, life, commercial, workers comp, specialty lines, and insurtech. Claims management, CAT response, and state DOI compliance.",
   },
   "/industries/travel": {
-    title: `Travel & Hospitality CX Intelligence | ${SITE}`,
+    title: `Travel + Hospitality CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for airlines, hotels, OTAs, car rental, cruise lines, and tours. Disruption management, multilingual support, and GDS-integrated vendor recommendations.",
   },
   "/tco-calculator": {
@@ -239,8 +239,15 @@ function SEOManager() {
     if (pathname.startsWith("/vendors/") && !SEO_MAP[pathname]) {
       const slug = pathname.replace("/vendors/", "");
       const vendorName = slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-      seo.title = `${vendorName} — Vendor Profile | ${SITE}`;
-      seo.desc = `Independent assessment of ${vendorName}. Strengths, weaknesses, red flags, competitive context, and community reviews.`;
+      seo.title = `${vendorName} | Vendor Profile | ${SITE}`;
+      seo.desc = `Independent assessment of ${vendorName}. Scores, strengths, weaknesses, competitive context, and community reviews.`;
+    }
+
+    if (pathname.startsWith("/industries/") && !SEO_MAP[pathname]) {
+      const slug = pathname.replace("/industries/", "").split("/")[0];
+      const name = slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+      seo.title = `${name} CX Intelligence | ${SITE}`;
+      seo.desc = `Dedicated CX technology intelligence for ${name}. Sub-vertical frameworks, vendor mapping, benchmarks, and integration pitfalls.`;
     }
 
     document.title = seo.title;
@@ -251,16 +258,78 @@ function SEOManager() {
       el.setAttribute("content", content);
     };
 
+    // Core meta
     setMeta("name", "description", seo.desc);
+    setMeta("name", "robots", "index, follow, max-snippet:-1, max-image-preview:large");
+    setMeta("name", "author", "The Center of CX");
+    setMeta("name", "publisher", "The Center of CX");
+
+    // Open Graph
     setMeta("property", "og:title", seo.title);
     setMeta("property", "og:description", seo.desc);
     setMeta("property", "og:url", `${BASE}${pathname}`);
+    setMeta("property", "og:type", pathname === "/" ? "website" : "article");
+    setMeta("property", "og:site_name", "The Center of CX");
+    setMeta("property", "og:locale", "en_US");
+
+    // Twitter Card
+    setMeta("name", "twitter:card", "summary_large_image");
     setMeta("name", "twitter:title", seo.title);
     setMeta("name", "twitter:description", seo.desc);
+    setMeta("name", "twitter:site", "@centerofcx");
 
+    // GEO tags
+    setMeta("name", "geo.region", "US");
+    setMeta("name", "geo.placename", "United States");
+
+    // Topic/category signals
+    setMeta("name", "category", "Technology");
+    setMeta("name", "coverage", "Worldwide");
+    setMeta("name", "topic", "Contact Center Technology, Customer Experience, CX Intelligence, IVA, CCaaS, AI in CX");
+
+    // Canonical
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
     canonical.setAttribute("href", `${BASE}${pathname}`);
+
+    // JSON-LD structured data (homepage only)
+    if (pathname === "/") {
+      let script = document.querySelector('script[data-ld="org"]');
+      if (!script) {
+        script = document.createElement("script");
+        script.type = "application/ld+json";
+        script.setAttribute("data-ld", "org");
+        document.head.appendChild(script);
+      }
+      script.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "The Center of CX",
+        "url": BASE,
+        "description": "Independent CX and contact center technology intelligence platform. 276 vendors scored across 8 categories.",
+        "foundingDate": "2026",
+        "sameAs": [],
+        "knowsAbout": ["Contact Center Technology", "Customer Experience", "CCaaS", "IVA", "Conversational AI", "Workforce Management", "CX Analytics", "Digital Engagement"]
+      });
+    }
+
+    // JSON-LD WebSite for sitelinks search
+    if (pathname === "/") {
+      let ws = document.querySelector('script[data-ld="website"]');
+      if (!ws) {
+        ws = document.createElement("script");
+        ws.type = "application/ld+json";
+        ws.setAttribute("data-ld", "website");
+        document.head.appendChild(ws);
+      }
+      ws.textContent = JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "The Center of CX",
+        "url": BASE,
+        "description": "Independent CX technology intelligence for enterprise buyers. Vendor scoring, buyer guides, and interactive tools.",
+      });
+    }
 
   }, [pathname]);
 
