@@ -19,7 +19,8 @@ const reports = {
       "Buyer scenarios mapping your situation to specific vendor shortlists",
     ],
     pdf: "/IVA-Conversational-AI-Buyer-Guide-2026.pdf",
-    category: "IVA & Conversational AI",
+    formspree: "https://formspree.io/f/xojydbwe",
+    category: "IVA + Conversational AI",
     backLink: "/vendors/iva",
     backLabel: "IVA Market Intelligence",
   },
@@ -36,6 +37,7 @@ const reports = {
       "Commercial negotiation intelligence — what to push on, what to protect",
     ],
     pdf: "/CCaaS-Platform-Buyer-Guide-2026.pdf",
+    formspree: "https://formspree.io/f/myklwvjy",
     category: "CCaaS Platforms",
     backLink: "/vendors/ccaas",
     backLabel: "CCaaS Market Intelligence",
@@ -52,6 +54,7 @@ const reports = {
       "Forward-looking preparation for agentic AI, regulatory changes, and architecture evolution",
     ],
     pdf: "/CX-Orchestration-Framework-2026.pdf",
+    formspree: "https://formspree.io/f/mgorkboe",
     category: "Platforms + Tech",
     backLink: "/platforms-and-tech",
     backLabel: "Platforms + Tech Intelligence",
@@ -97,7 +100,7 @@ export default function GatedReport() {
     if (!formData.name || !formData.email) return;
     setSending(true);
     try {
-      await fetch("https://formspree.io/f/xnjolywk", {
+      await fetch(report.formspree, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
