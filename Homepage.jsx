@@ -449,7 +449,7 @@ function Industries() {
 // ─── RESEARCH & INSIGHT ──────────────────────────────
 function Research() {
   const pieces = [
-    { tag: "CX Reality Check", t: "Why Your CCaaS Migration Didn't Cut Costs", read: "8 min" },
+    { tag: "CX Reality Check", t: "Why Your CCaaS Migration Didn't Cut Costs", read: "8 min", href: "/research/ccaas-migration-costs" },
     { tag: "Market Map", t: "Agent Assist: Who's Real vs Who's Marketing", read: "12 min" },
     { tag: "Operator Briefing", t: "What 50–70% Automation Actually Requires", read: "10 min" },
     { tag: "Future Forecast", t: "The AI Worker Thesis: Confidence Level Assessment", read: "14 min" },
@@ -467,9 +467,12 @@ function Research() {
           </div>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
-          {pieces.map((p, i) => (
+          {pieces.map((p, i) => {
+            const Tag = p.href ? "a" : "div";
+            const linkProps = p.href ? { href: p.href } : {};
+            return (
             <FadeIn key={i} delay={i * 0.06}>
-              <div style={{ background: "#fff", borderRadius: 10, border: `1px solid ${BORDER}`, overflow: "hidden", cursor: "pointer", transition: "all 0.22s" }}
+              <Tag {...linkProps} style={{ display: "block", background: "#fff", borderRadius: 10, border: `1px solid ${BORDER}`, overflow: "hidden", cursor: "pointer", transition: "all 0.22s", textDecoration: "none", color: "inherit" }}
                 onMouseOver={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,136,221,0.06)"; }}
                 onMouseOut={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ height: 4, background: `linear-gradient(90deg, ${ELECTRIC}, ${LIGHT_BLUE})` }} />
@@ -481,9 +484,10 @@ function Research() {
                   <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 19, fontWeight: 400, color: NAVY, margin: "0 0 16px", lineHeight: 1.3 }}>{p.t}</h3>
                   <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Read →</span>
                 </div>
-              </div>
+              </Tag>
             </FadeIn>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
