@@ -49,7 +49,7 @@ function Nav() {
   const [open, setOpen] = useState(false);
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   const links = [
-    { name: "Platforms & Tech", href: "/platforms-and-tech" },
+    { name: "Platforms + Tech", href: "/platforms-and-tech" },
     { name: "How to Choose", href: "/how-to-choose" },
     { name: "Research", href: "/research" },
     { name: "Vendors", href: "/vendors" },
@@ -132,20 +132,20 @@ function Hero() {
 
           <FadeIn delay={0.16}>
             <p style={{ fontSize: "clamp(15px, 1.7vw, 18px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 580, margin: "0 0 40px" }}>
-              Buying frameworks, vendor intelligence, and AI reality checks for contact center and CX leaders navigating the next era of customer operations. Vendor-neutral. Operationally grounded. Built by people who've run it.
+              Independent vendor intelligence, buyer frameworks, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play. No fluff.
             </p>
           </FadeIn>
 
           <FadeIn delay={0.24}>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-              <a href="/platforms-and-tech" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.25)` }}>Explore Platforms & Tech</a>
-              <a href="/how-to-choose" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.13)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Buyer Guides &amp; Tools →</a>
+              <a href="/platforms-and-tech" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.25)` }}>Explore Platforms + Tech</a>
+              <a href="/how-to-choose" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.13)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Buyer Guides + Tools</a>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.32}>
             <div style={{ marginTop: 48, display: "flex", gap: 20, flexWrap: "wrap" }}>
-              {["CCaaS Leaders", "CX Operations", "Digital & IT", "AI & Data"].map(t => (
+              {["CCaaS Leaders", "CX Operations", "Digital + IT", "AI + Data"].map(t => (
                 <span key={t} style={{ color: "rgba(255,255,255,0.3)", fontSize: 11.5, fontWeight: 600, letterSpacing: 1, textTransform: "uppercase" }}>{t}</span>
               ))}
             </div>
@@ -159,10 +159,10 @@ function Hero() {
 // ─── WHY NOW ─────────────────────────────────────────
 function WhyNow() {
   const stats = [
-    { n: "$71–249", l: "CCaaS platform cost per agent per month", s: "Before labor, WEM, analytics, and integration overhead" },
-    { n: "60–75%", l: "Of contact center cost is labor", s: "Technology alone is never the full picture" },
-    { n: "7", l: "Orchestration layers in a modern CX stack", s: "Each with distinct vendors and governance" },
-    { n: "80%", l: "Of service orgs using generative AI by 2025", s: "Gartner forecast — adoption is accelerating" },
+    { n: "$71–249", l: "CCaaS platform cost per agent per month", s: "Before you add labor, WEM, analytics, and integration overhead" },
+    { n: "60–75%", l: "Of contact center cost is labor", s: "Technology alone never tells the full story" },
+    { n: "7", l: "Orchestration layers in a modern CX stack", s: "Each layer has distinct vendors, dependencies, and governance" },
+    { n: "80%", l: "Of service orgs will use generative AI by 2026", s: "Gartner forecast. Adoption is real. Readiness is not." },
   ];
   return (
     <section style={{ background: WARM, padding: "96px 28px", borderBottom: `1px solid ${BORDER}` }}>
@@ -172,7 +172,7 @@ function WhyNow() {
             <SectionLabel>Why This Matters Now</SectionLabel>
             <SectionTitle>Customer experience is an operating discipline. Finally.</SectionTitle>
             <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.75, marginTop: 8 }}>
-              The contact center stack has more layers, more vendors, and more AI promises than ever. Platform costs shift but don't disappear. Automation rises but complexity rises faster. The leaders who win aren't buying the most technology — they're designing systems where strategy, operations, data, and AI actually align.
+              The contact center stack has more layers, more vendors, and more AI promises than ever. Platform costs shift but never disappear. Automation grows but complexity grows faster. The leaders who win are not buying the most technology. They are designing systems where strategy, operations, data, and AI actually work together.
             </p>
           </div>
         </FadeIn>
@@ -197,15 +197,15 @@ function WhyNow() {
 // ─── PLATFORMS & TECH ────────────────────────────────
 function Platforms() {
   const cats = [
-    { t: "Core CX Platforms", s: "CCaaS", d: "When add-ons beat rip-and-replace, and who should not switch platforms.", h: "/vendors/ccaas" },
-    { t: "Customer Automation", s: "Self-Service AI", d: "IVAs, autonomous resolution, and where AI fails in production.", h: "/vendors/iva" },
-    { t: "Agent Assist & Knowledge", s: "Real-time Intelligence", d: "RAG realities, adoption traps, and post-contact vs real-time.", h: "/vendors/agent-assist" },
-    { t: "Workforce & Quality", s: "Management", d: "Forecasting truth, AI QA vs human QA, and cost control levers.", h: "/vendors/wem-qm" },
-    { t: "Experience Analytics", s: "& Voice of Customer", d: "Root cause vs vanity metrics. Journey visibility that matters.", h: "/vendors/analytics" },
-    { t: "CX Orchestration", s: "& Workflow", d: "Routing is dead. Orchestration patterns for CCaaS + CRM + ITSM convergence.", h: "/vendors/acd-routing" },
-    { t: "Enterprise & Employee", s: "Service", d: "When ITSM belongs in CX and what you should never unify." },
-    { t: "Payments, Identity", s: "& Trust", d: "PCI, authentication, fraud prevention in the CX workflow.", h: "/vendors/payments" },
-    { t: "CX & AI Governance", s: "Thought Leadership", d: "Compliance, model risk, auditability, and escalation design." },
+    { t: "Core CX Platforms", s: "CCaaS", d: "When add-ons beat rip-and-replace. Who should switch platforms and who shouldn't.", h: "/vendors/ccaas" },
+    { t: "Customer Automation", s: "IVA + Self-Service AI", d: "Where IVAs actually contain, where they fail, and what autonomous resolution looks like in production.", h: "/vendors/iva" },
+    { t: "Agent Assist + Knowledge", s: "Real-Time Intelligence", d: "RAG realities, adoption traps, and the gap between post-contact summaries and real-time guidance.", h: "/vendors/agent-assist" },
+    { t: "Workforce + Quality", s: "WEM + QM", d: "Forecasting truth, AI QA vs human QA, and the cost levers most operations overlook.", h: "/vendors/wem-qm" },
+    { t: "Experience Analytics", s: "VoC + Journey Intelligence", d: "Root cause vs vanity metrics. The analytics that change behavior vs the dashboards nobody opens.", h: "/vendors/analytics" },
+    { t: "CX Orchestration", s: "ACD + Workflow + Integration", d: "Skills-based routing is dead. Orchestration patterns for CCaaS, CRM, and ITSM convergence.", h: "/vendors/acd-routing" },
+    { t: "Digital Engagement", s: "Chat + Messaging + Social", d: "Channel breadth without channel depth is a trap. Who owns the full digital conversation.", h: "/vendors/digital-engagement" },
+    { t: "Payments + Identity", s: "PCI + Auth + Trust", d: "PCI compliance, authentication friction, and fraud prevention inside the CX workflow.", h: "/vendors/payments" },
+    { t: "CX + AI Governance", s: "Compliance + Model Risk", d: "Auditability, escalation design, and the governance layer most AI deployments skip.", h: "/platforms-and-tech" },
   ];
   return (
     <section style={{ background: "#fff", padding: "96px 28px" }}>
@@ -213,7 +213,7 @@ function Platforms() {
         <FadeIn>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 20, marginBottom: 48 }}>
             <div>
-              <SectionLabel>Platforms & Tech</SectionLabel>
+              <SectionLabel>Platforms + Tech</SectionLabel>
               <SectionTitle>Nine decision domains. Each one carries real risk.</SectionTitle>
             </div>
             <a href="/platforms-and-tech" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all categories →</a>
@@ -242,9 +242,9 @@ function Platforms() {
 function HowToChoose() {
   const guides = [
     { t: "CCaaS Platform Buyer's Guide", tag: "Buyer Guide", pages: "18 pages", href: "/research/ccaas-buyer-guide", live: true },
-    { t: "IVA & Conversational AI Buyer's Guide", tag: "Buyer Guide", pages: "25 pages", href: "/research/iva-buyer-guide", live: true },
-    { t: "Workforce & Quality Management Buyer's Guide", tag: "Buyer Guide", pages: "Coming Q2 2026", live: false },
-    { t: "Agent Assist & Knowledge AI Buyer's Guide", tag: "Buyer Guide", pages: "Coming Q3 2026", live: false },
+    { t: "IVA + Conversational AI Buyer's Guide", tag: "Buyer Guide", pages: "25 pages", href: "/research/iva-buyer-guide", live: true },
+    { t: "Workforce + Quality Management Buyer's Guide", tag: "Buyer Guide", pages: "Coming Q2 2026", live: false },
+    { t: "Agent Assist + Knowledge AI Buyer's Guide", tag: "Buyer Guide", pages: "Coming Q3 2026", live: false },
     { t: "Advanced Analytics Buyer's Guide", tag: "Buyer Guide", pages: "Coming Q3 2026", live: false },
   ];
   return (
@@ -310,7 +310,7 @@ function HowToChoose() {
 function Tools() {
   const tiers = [
     {
-      label: "Calculators & Diagnostics",
+      label: "Calculators + Diagnostics",
       sub: "Interactive tools with immediate output",
       items: [
         { name: "TCO Calculator", desc: "What your stack actually costs per agent, per contact, per resolved task.", href: "/tco-calculator" },
@@ -320,12 +320,12 @@ function Tools() {
       accent: ELECTRIC,
     },
     {
-      label: "Frameworks & Templates",
+      label: "Frameworks + Templates",
       sub: "Downloadable IP that demonstrates depth",
       items: [
         { name: "Experience Scorecard", desc: "Measure what matters: CSAT, FCR, cost-per-contact, containment.", href: "/tools/experience-scorecard" },
         { name: "CX + IT Alignment Framework", desc: "Bridge the gap between experience vision and tech execution.", href: "/tools/cx-it-alignment" },
-        { name: "Governance & Operating Model", desc: "Who owns what across CX strategy, contact center ops, and AI.", href: "/tools/governance-model" },
+        { name: "Governance + Operating Model", desc: "Who owns what across CX strategy, contact center ops, and AI.", href: "/tools/governance-model" },
         { name: "Service Design Toolkit", desc: "Journey mapping, effort scoring, and friction analysis combined.", href: "/tools/service-design" },
       ],
       accent: "#0099CC",
@@ -344,9 +344,9 @@ function Tools() {
       label: "The Human Premium",
       sub: "Career growth in the AI era",
       items: [
-        { name: "Four New CX Roles", desc: "Complex Issue Resolver, AI Trainer, Experience Designer, and Quality Lead — roles that didn't exist two years ago.", href: "/human-premium" },
+        { name: "Four New CX Roles", desc: "Complex Issue Resolver, AI Trainer, Experience Designer, and Quality Lead. Roles that didn't exist two years ago.", href: "/human-premium" },
         { name: "Growth Playbook", desc: "Seven moves that separate those who thrive from those who get displaced. Each with a concrete action step.", href: "/human-premium" },
-        { name: "Certifications That Compound", desc: "12 certifications across AI, CX, and data analytics — with costs, time, and why each one matters.", href: "/human-premium" },
+        { name: "Certifications That Compound", desc: "12 certifications across AI, CX, and data analytics. Includes costs, time, and why each one matters.", href: "/human-premium" },
         { name: "Five Career Paths", desc: "Go deeper, go wider, go technical, go independent, or go build. Pick the one that fits your ambition.", href: "/human-premium" },
       ],
       accent: "#10B981",
@@ -401,9 +401,9 @@ function Tools() {
 // ─── INDUSTRIES ──────────────────────────────────────
 function Industries() {
   const top3 = [
-    { n: "Financial Services", d: "7 sub-verticals from retail banking to payments processing. 245 capability checkpoints across compliance, identity verification, and core banking integration. The most regulated CX in any industry.", h: "/industries/financial-services", stat: "79% CSAT", statNote: "Below potential — authentication friction and billing complexity suppress scores" },
-    { n: "Healthcare", d: "6 sub-verticals from health systems to pharma. 210 capability checkpoints across HIPAA, EHR integration, and patient access. Where empathy and compliance intersect.", h: "/industries/healthcare", stat: "52% FCR", statNote: "Lowest in CX — scheduling fragmentation and multi-system lookups prevent resolution" },
-    { n: "Retail & eCommerce", d: "6 sub-verticals from DTC to luxury. 210 capability checkpoints across commerce platforms, returns automation, and seasonal scaling. Speed defines everything.", h: "/industries/retail", stat: "93%", statNote: "Of customers make repeat purchases from companies with excellent service" },
+    { n: "Financial Services", d: "7 sub-verticals from retail banking to payments processing. 245 capability checkpoints across compliance, identity verification, and core banking integration. The most regulated CX in any industry.", h: "/industries/financial-services", stat: "79% CSAT", statNote: "Below potential. Authentication friction and billing complexity suppress scores." },
+    { n: "Healthcare", d: "6 sub-verticals from health systems to pharma. 210 capability checkpoints across HIPAA, EHR integration, and patient access. Where empathy and compliance intersect.", h: "/industries/healthcare", stat: "52% FCR", statNote: "Lowest in CX. Scheduling fragmentation and multi-system lookups prevent first-call resolution." },
+    { n: "Retail + eCommerce", d: "6 sub-verticals from DTC to luxury. 210 capability checkpoints across commerce platforms, returns automation, and seasonal scaling. Speed defines everything.", h: "/industries/retail", stat: "93%", statNote: "Of customers make repeat purchases from companies with excellent service." },
   ];
   return (
     <section style={{ background: "#fff", padding: "96px 28px" }}>
@@ -412,7 +412,7 @@ function Industries() {
           <div style={{ maxWidth: 600, marginBottom: 48 }}>
             <SectionLabel>Industry Expertise</SectionLabel>
             <SectionTitle>CX changes by context. Generic advice fails.</SectionTitle>
-            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4 }}>Every vertical has different compliance burdens, technology stacks, failure modes, and customer expectations. We've built dedicated intelligence for each — with sub-vertical frameworks, vendor mapping, benchmarks, and the integration pitfalls that generic CX platforms consistently miss.</p>
+            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4 }}>Every vertical has different compliance burdens, technology stacks, failure modes, and customer expectations. We built dedicated intelligence for each one. Sub-vertical frameworks, vendor mapping, benchmarks, and the integration pitfalls that generic CX platforms consistently miss.</p>
           </div>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16, marginBottom: 32 }}>
@@ -436,7 +436,7 @@ function Industries() {
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP_NAVY})`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
             <div style={{ maxWidth: 560 }}>
               <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 8px" }}>10 verticals. 61 sub-verticals. 2,135 capability checkpoints.</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: 0 }}>From telecommunications and insurance to government, utilities, and education — each vertical has dedicated CX intelligence with sub-vertical frameworks, 7-layer technology stacks, vendor recommendations, failure modes, and integration pitfalls built from real operational data.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: 0 }}>From telecommunications and insurance to government, utilities, and education. Each vertical has dedicated CX intelligence with sub-vertical frameworks, 7-layer technology stacks, vendor recommendations, failure modes, and integration pitfalls built from real operational data.</p>
             </div>
             <a href="/industries" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "14px 24px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Explore All 10 Industries →</a>
           </div>
@@ -460,7 +460,7 @@ function Research() {
         <FadeIn>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 20, marginBottom: 48 }}>
             <div>
-              <SectionLabel>Research & Insight</SectionLabel>
+              <SectionLabel>Research + Insight</SectionLabel>
               <SectionTitle>No press releases. No fluff. No vendor ghostwriting.</SectionTitle>
             </div>
             <a href="/research" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>View all insights →</a>
@@ -528,10 +528,10 @@ function Advisory() {
 // ─── DIFFERENTIATORS ─────────────────────────────────
 function Differentiators() {
   const diffs = [
-    { t: "Strategy to the Floor", d: "We don't stop at the boardroom. We understand queues, SLAs, QA, escalation, and staffing models." },
-    { t: "Vendor-Independent", d: "Technology matters. But tools aren't the strategy. We help you think before you buy." },
-    { t: "AI as an Operating System Issue", d: "How AI changes routing, QA, role design, knowledge, and governance. The operational reality behind the headlines." },
-    { t: "Vertical Nuance", d: "Healthcare ≠ retail. Insurance ≠ telecom. We show how context changes the right answer." },
+    { t: "Strategy to the Floor", d: "We don't stop at the boardroom. We understand queues, SLAs, QA processes, escalation paths, and staffing models." },
+    { t: "Vendor-Independent", d: "Technology matters. But tools are not the strategy. We help you think clearly before you buy." },
+    { t: "AI as an Operating System Issue", d: "How AI changes routing, QA, role design, knowledge management, and governance. The operational reality behind the headlines." },
+    { t: "Vertical Depth", d: "Healthcare is not retail. Insurance is not telecom. We show how industry context changes what the right answer looks like." },
   ];
   return (
     <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP_NAVY})`, padding: "96px 28px", position: "relative", overflow: "hidden" }}>
@@ -569,7 +569,7 @@ function FinalCTA() {
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto" }}>
             <SectionTitle>Ready to make better CX decisions?</SectionTitle>
             <p style={{ fontSize: 15.5, color: SLATE, lineHeight: 1.65, margin: "8px 0 36px" }}>
-              Whether you need a buying framework, a vendor gut-check, or a strategy session with someone who's operated contact centers at scale — we're here.
+              Whether you need a buying framework, a vendor gut-check, or a strategy session with someone who has operated contact centers at scale. We are here for it.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8, boxShadow: `0 4px 20px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
@@ -607,9 +607,9 @@ function Footer() {
           </div>
           {[
             { h: "Navigate", links: [
-              { name: "Platforms & Tech", href: "/platforms-and-tech" },
+              { name: "Platforms + Tech", href: "/platforms-and-tech" },
               { name: "How to Choose", href: "/how-to-choose" },
-              { name: "Research & Insight", href: "/research" },
+              { name: "Research + Insight", href: "/research" },
               { name: "Vendors", href: "/vendors" },
               { name: "Advisory", href: "/advisory" },
             ]},
