@@ -68,12 +68,12 @@ export default function BusinessCaseBuilder() {
 
   const handleGate = async () => {
     if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Business Case Builder", _subject: "Business Case Builder Access" }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/mjgjwzwz", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Business Case Builder", _subject: "Business Case Builder Access" }) }); } catch (e) {}
     setSending(false); setPhase("build");
   };
 
   const handleSave = async () => {
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Business Case", annualSavings: fmtK(totalAnnualSavings), investment: fmtK(totalInvestment), paybackMonths, threeYearROI: threeYearROI.toFixed(0) + "%", ahtSavings: fmtK(ahtSavings), containmentSavings: fmtK(containmentSavings), attritionSavings: fmtK(attritionSavings), _subject: `Business Case: ${fmtK(totalAnnualSavings)}/yr savings — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/mjgjwzwz", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Business Case", annualSavings: fmtK(totalAnnualSavings), investment: fmtK(totalInvestment), paybackMonths, threeYearROI: threeYearROI.toFixed(0) + "%", ahtSavings: fmtK(ahtSavings), containmentSavings: fmtK(containmentSavings), attritionSavings: fmtK(attritionSavings), _subject: `Business Case: ${fmtK(totalAnnualSavings)}/yr savings — ${company || name || email}` }) }); } catch (e) {}
     setPhase("saved");
   };
 
