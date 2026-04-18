@@ -244,7 +244,7 @@ function OrchestrationLayers() {
 
         <FadeIn delay={0.2}>
           <div style={{ textAlign: "center", marginTop: 40 }}>
-            <a href="/contact" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Request the full orchestration framework →</a>
+            <a href="/research/orchestration-framework" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Download the full orchestration framework (PDF) →</a>
           </div>
         </FadeIn>
       </div>
