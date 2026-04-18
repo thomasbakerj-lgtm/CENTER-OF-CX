@@ -49,13 +49,13 @@ export default function GovernanceModel() {
 
   const handleGate = async () => {
     if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Governance & Operating Model", _subject: "Governance Model Access" }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/mojydbde", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Governance & Operating Model", _subject: "Governance Model Access" }) }); } catch (e) {}
     setSending(false); setPhase("assign");
   };
 
   const handleResults = async () => {
     const summary = ROLES.map((r, i) => `${r}: ${primaryCounts[i]}P/${secondaryCounts[i]}S`).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Governance Model", assigned: assignedCount, unowned: unownedItems.length, distribution: summary, _subject: `Governance: ${unownedItems.length} unowned — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/mojydbde", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Governance Model", assigned: assignedCount, unowned: unownedItems.length, distribution: summary, _subject: `Governance: ${unownedItems.length} unowned — ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
