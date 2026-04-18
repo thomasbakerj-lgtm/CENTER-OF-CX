@@ -195,7 +195,7 @@ export default function HumanPremium() {
                 { name: "IBM AI Foundations for Business", link: "https://www.ibm.com/training/collection/ibm-ai-foundations-for-business", time: "~15 hours", cost: "Free", why: "Business-oriented AI understanding. Good starting point." },
               ]},
               { cat: "CX & Contact Center", color: GREEN, certs: [
-                { name: "ICMI Certified Associate (CCCA)", link: "https://www.icmi.com/training-and-certification", time: "Self-paced", cost: "$995", why: "Industry-standard contact center management credential." },
+                { name: "ICMI Certified Associate (CCCA)", link: "https://www.icmi.com/training", time: "Self-paced", cost: "$995", why: "Industry-standard contact center management credential." },
                 { name: "COPC CX Standard", link: "https://www.copc.com/training/", time: "3-5 days", cost: "Varies", why: "Operations excellence. The gold standard for CX performance." },
                 { name: "HDI Support Center Analyst", link: "https://www.thinkhdi.com/education/courses", time: "2 days", cost: "~$1,500", why: "Service desk and support operations. Strong for IT+CX roles." },
                 { name: "Qualtrics XM Certification", link: "https://www.qualtrics.com/training/", time: "Self-paced", cost: "Free", why: "Experience management platform skills. Growing demand." },
