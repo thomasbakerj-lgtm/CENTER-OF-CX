@@ -481,7 +481,7 @@ function CTA() {
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
             <Title>Need help navigating the stack?</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px", fontFamily: "'DM Sans', sans-serif" }}>
-              Whether you're evaluating platforms, planning an AI pilot, or trying to make sense of your current vendor landscape — we offer vendor-neutral advisory with no commissions and no implementation bias.
+              Whether you're evaluating platforms, planning an AI pilot, or trying to make sense of your current vendor landscape, we offer vendor-neutral advisory grounded in independent research and real operational experience.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
