@@ -247,6 +247,22 @@ function OrchestrationLayers() {
             <a href="/research/orchestration-framework" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>Download the full orchestration framework (PDF) →</a>
           </div>
         </FadeIn>
+
+        <FadeIn delay={0.25}>
+          <div style={{ marginTop: 48, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div>
+                <span style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>Interactive</span>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: "#fff", margin: "4px 0 0" }}>7-Layer Orchestration Map</h3>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "4px 0 0", fontFamily: "'DM Sans', sans-serif" }}>Watch how a live interaction flows through all 7 layers. Toggle role lenses. Switch scenarios.</p>
+              </div>
+              <a href="/seven-layers-map.html" target="_blank" rel="noopener noreferrer" style={{ background: ELECTRIC, color: "#fff", fontSize: 12, fontWeight: 600, padding: "10px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif", flexShrink: 0, boxShadow: "0 4px 14px rgba(0,136,221,0.25)" }}>Launch Full Map →</a>
+            </div>
+            <div style={{ position: "relative", width: "100%", height: 480, overflow: "hidden" }}>
+              <iframe src="/seven-layers-map.html" style={{ width: "100%", height: "100%", border: "none", borderRadius: "0 0 14px 14px" }} title="7-Layer CX Orchestration Map" loading="lazy" />
+            </div>
+          </div>
+        </FadeIn>
       </div>
     </section>
   );
