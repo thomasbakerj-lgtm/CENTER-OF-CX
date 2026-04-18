@@ -53,13 +53,13 @@ export default function IntegrationPlanner() {
 
   const handleGate = async () => {
     if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Integration Strategy Planner", _subject: "Integration Planner Access" }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xrerqdqo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Integration Strategy Planner", _subject: "Integration Planner Access" }) }); } catch (e) {}
     setSending(false); setPhase("map");
   };
 
   const handleResults = async () => {
     const summary = LAYERS.map((l, li) => `L${l.n} ${l.name}: ${layerHealth(li).toFixed(1)}/4`).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Integration Planner", mapped: mappedCount, gaps: gapCount, legacy: legacyCount, summary, _subject: `Integration Map: ${gapCount} gaps, ${legacyCount} legacy — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xrerqdqo", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Integration Planner", mapped: mappedCount, gaps: gapCount, legacy: legacyCount, summary, _subject: `Integration Map: ${gapCount} gaps, ${legacyCount} legacy — ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
