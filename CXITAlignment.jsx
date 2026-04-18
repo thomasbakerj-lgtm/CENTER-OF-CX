@@ -84,14 +84,14 @@ export default function CXITAlignment() {
   const handleGate = async () => {
     if (!email.includes("@")) return;
     setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "CX + IT Alignment Framework", _subject: "CX+IT Alignment Access" }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xeevgdge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "CX + IT Alignment Framework", _subject: "CX+IT Alignment Access" }) }); } catch (e) {}
     setSending(false);
     setPhase("assess");
   };
 
   const handleResults = async () => {
     const dimResults = AREAS.map(a => `${a.name}: CX=${areaAvg(a.id,"cx").toFixed(1)} IT=${areaAvg(a.id,"it").toFixed(1)} Gap=${areaGap(a.id).toFixed(1)}`).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "CX + IT Alignment", overallGap: overallGap.toFixed(2), gapLevel: gapLevel.label, dimensions: dimResults, _subject: `CX+IT Alignment: ${gapLevel.label} (Gap ${overallGap.toFixed(1)}) — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xeevgdge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "CX + IT Alignment", overallGap: overallGap.toFixed(2), gapLevel: gapLevel.label, dimensions: dimResults, _subject: `CX+IT Alignment: ${gapLevel.label} (Gap ${overallGap.toFixed(1)}) — ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
