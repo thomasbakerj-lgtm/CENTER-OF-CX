@@ -249,19 +249,39 @@ function OrchestrationLayers() {
         </FadeIn>
 
         <FadeIn delay={0.25}>
-          <div style={{ marginTop: 48, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, overflow: "hidden" }}>
-            <div style={{ padding: "20px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div>
-                <span style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>Interactive</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: "#fff", margin: "4px 0 0" }}>7-Layer Orchestration Map</h3>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "4px 0 0", fontFamily: "'DM Sans', sans-serif" }}>Watch how a live interaction flows through all 7 layers. Toggle role lenses. Switch scenarios.</p>
+          <a href="/seven-layers-map.html" target="_blank" rel="noopener noreferrer" style={{ display: "block", marginTop: 48, background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(0,136,221,0.08) 100%)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 14, overflow: "hidden", textDecoration: "none", color: "inherit", transition: "all 0.3s" }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(0,136,221,0.3)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(0,136,221,0.12)"; }}
+            onMouseOut={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
+            <div style={{ padding: "32px 32px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ flex: 1, minWidth: 280 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: LIGHT, boxShadow: `0 0 12px ${LIGHT}`, animation: "pulse 2.4s ease-in-out infinite" }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>Interactive Experience</span>
+                </div>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: "#fff", margin: "0 0 8px" }}>7-Layer Orchestration Map</h3>
+                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: "0 0 16px", fontFamily: "'DM Sans', sans-serif", maxWidth: 480 }}>
+                  Watch a live customer interaction flow through all seven layers in real time. Toggle between Leader, Manager, and Agent lenses. Switch scenarios. See which layers are handled by AI and which require human judgment.
+                </p>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                  {["Auto-playing scenarios", "Role-based lenses", "Live KPI dashboard", "AI vs Human routing"].map(f => (
+                    <span key={f} style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "'DM Sans', sans-serif" }}>{f}</span>
+                  ))}
+                </div>
               </div>
-              <a href="/seven-layers-map.html" target="_blank" rel="noopener noreferrer" style={{ background: ELECTRIC, color: "#fff", fontSize: 12, fontWeight: 600, padding: "10px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif", flexShrink: 0, boxShadow: "0 4px 14px rgba(0,136,221,0.25)" }}>Launch Full Map →</a>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, flexShrink: 0 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, width: 140 }}>
+                  {[
+                    { n: "L1", c: "#2c5f3f" }, { n: "L2", c: "#1a6b4a" }, { n: "L3", c: "#0e7a5e" }, { n: "L4", c: "#0e8c7f" },
+                    { n: "L5", c: "#1a7f9e" }, { n: "L6", c: "#1a6b8a" }, { n: "L7", c: "#1a5276" },
+                  ].map(l => (
+                    <div key={l.n} style={{ background: l.c, borderRadius: 3, padding: "6px 0", textAlign: "center", fontSize: 8, color: "#fff", fontWeight: 600, fontFamily: "'DM Sans', sans-serif", letterSpacing: 0.5 }}>{l.n}</div>
+                  ))}
+                </div>
+                <span style={{ background: ELECTRIC, color: "#fff", fontSize: 13, fontWeight: 600, padding: "12px 24px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: "0 4px 14px rgba(0,136,221,0.3)" }}>Launch Full Map →</span>
+              </div>
             </div>
-            <div style={{ position: "relative", width: "100%", height: 480, overflow: "hidden" }}>
-              <iframe src="/seven-layers-map.html" style={{ width: "100%", height: "100%", border: "none", borderRadius: "0 0 14px 14px" }} title="7-Layer CX Orchestration Map" loading="lazy" />
-            </div>
-          </div>
+          </a>
+          <style>{`@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }`}</style>
         </FadeIn>
       </div>
     </section>
