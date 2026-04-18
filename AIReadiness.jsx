@@ -75,14 +75,14 @@ export default function AIReadiness() {
   const handleGate = async () => {
     if (!email.includes("@")) return;
     setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "AI Readiness Diagnostic", _subject: "AI Readiness Diagnostic Access" }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xqewqjpr", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "AI Readiness Diagnostic", _subject: "AI Readiness Diagnostic Access" }) }); } catch (e) {}
     setSending(false);
     setPhase("assess");
   };
 
   const handleResults = async () => {
     const dimResults = DIMS.map(d => `${d.name}: ${dimScore(d.id).toFixed(1)}/5`).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "AI Readiness Diagnostic", overallScore: overallScore.toFixed(2), tier: tier.tier, dimensions: dimResults, _subject: `AI Readiness: ${tier.tier} (${overallScore.toFixed(1)}/5) — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xqewqjpr", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "AI Readiness Diagnostic", overallScore: overallScore.toFixed(2), tier: tier.tier, dimensions: dimResults, _subject: `AI Readiness: ${tier.tier} (${overallScore.toFixed(1)}/5) — ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
