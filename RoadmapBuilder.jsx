@@ -60,13 +60,13 @@ export default function RoadmapBuilder() {
 
   const handleGate = async () => {
     if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Transformation Roadmap Builder", _subject: "Roadmap Builder Access" }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xwvaozor", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Transformation Roadmap Builder", _subject: "Roadmap Builder Access" }) }); } catch (e) {}
     setSending(false); setPhase("build");
   };
 
   const handleSave = async () => {
     const summary = PHASES.map(p => `${p.name}: ${p.milestones.filter(m => getStatus(m.id) === "complete").length}/${p.milestones.length} complete`).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Roadmap Builder", initiative, completed: completedCount, atRisk: atRiskCount, total: allMilestones.length, summary, _subject: `Roadmap: ${completedCount}/${allMilestones.length} complete, ${atRiskCount} at risk — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xwvaozor", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Roadmap Builder", initiative, completed: completedCount, atRisk: atRiskCount, total: allMilestones.length, summary, _subject: `Roadmap: ${completedCount}/${allMilestones.length} complete, ${atRiskCount} at risk — ${company || name || email}` }) }); } catch (e) {}
     setPhase("saved");
   };
 
