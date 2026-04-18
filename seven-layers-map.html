@@ -1,0 +1,1021 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Seven Layers of the Contact Center — Interactive Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef2f7;
+    --bg-2: #f6f8fb;
+    --panel: #ffffff;
+    --ink: #0b1733;
+    --ink-2: #1e2a4a;
+    --ink-dim: #5a6784;
+    --ink-faint: #9aa4bb;
+    --line: #dbe1ec;
+    --line-2: #c7cfdf;
+    --accent: #2cb8c4;
+    --accent-2: #1e8a95;
+    --cta: #2f7dff;
+    --good: #10a37f;
+    --warn: #d97706;
+    --bad: #dc2626;
+
+    --h1: #3b5bdb;
+    --h2: #0ea5a4;
+    --h3: #2cb8c4;
+    --h4: #7b5cd4;
+    --h5: #d67a3c;
+    --h6: #d24a6b;
+    --h7: #0b1733;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-weight: 400; }
+  body {
+    height: 100vh; overflow: hidden;
+    background:
+      radial-gradient(ellipse 900px 600px at 20% 0%, rgba(44,184,196,0.08), transparent 60%),
+      radial-gradient(ellipse 900px 600px at 100% 100%, rgba(59,91,219,0.05), transparent 60%),
+      var(--bg);
+    display: flex; flex-direction: column;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 400; letter-spacing: 0.02em; }
+  .serif { font-family: 'Instrument Serif', serif; font-weight: 400; letter-spacing: -0.01em; }
+
+  /* ─── Header ─── */
+  .header {
+    padding: 10px 28px; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--line); background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+    flex-shrink: 0;
+  }
+  .mark { display: flex; gap: 10px; align-items: center; }
+  .mark .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px rgba(44,184,196,0.6); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(0.8);} }
+  .mark .label { font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ink); font-weight: 600; }
+  .title-mini { display: flex; align-items: baseline; gap: 10px; }
+  .title-mini h1 { margin: 0; font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 20px; letter-spacing: -0.01em; }
+  .title-mini h1 em { color: var(--accent-2); font-style: italic; }
+  .title-mini .sub { font-size: 11px; color: var(--ink-dim); }
+  .role-tabs { display: flex; gap: 4px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+  .role-tab {
+    padding: 5px 14px; border-radius: 999px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-dim); border: none; background: transparent; transition: all 0.2s;
+  }
+  .role-tab.active { background: var(--ink); color: white; }
+  .role-tab:hover:not(.active) { color: var(--ink); }
+
+  /* ─── Leader KPI strip (top) ─── */
+  .kpi-strip {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 1px; background: var(--line);
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .kpi {
+    background: var(--panel); padding: 8px 14px;
+    display: flex; flex-direction: column; gap: 2px;
+    position: relative;
+  }
+  .kpi.highlight { background: color-mix(in oklab, var(--accent) 8%, white); }
+  .kpi-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); }
+  .kpi-val { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--ink); line-height: 1; letter-spacing: -0.02em; }
+  .kpi-val .unit { font-family: 'Inter', sans-serif; font-weight: 400; font-size: 12px; color: var(--ink-dim); margin-left: 2px; }
+  .kpi-delta { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; display: flex; align-items: center; gap: 3px; }
+  .kpi-delta.up { color: var(--good); }
+  .kpi-delta.down { color: var(--bad); }
+  .kpi-delta.flat { color: var(--ink-faint); }
+  .kpi-spark { position: absolute; right: 10px; top: 8px; width: 40px; height: 18px; opacity: 0.5; }
+
+  /* ─── Main stage ─── */
+  .stage {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 170px 1fr 260px;
+    gap: 16px;
+    padding: 12px 24px;
+    max-width: 1600px; width: 100%; margin: 0 auto;
+    position: relative;
+    min-height: 0;
+  }
+
+  /* ─── Left: customer + floor manager ─── */
+  .left-col { display: grid; grid-template-rows: auto 1fr; gap: 12px; min-height: 0; }
+
+  .bookend {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    position: relative;
+  }
+  .avatar {
+    width: 54px; height: 54px; border-radius: 50%;
+    background: linear-gradient(160deg, #fff, #e8ecf4);
+    border: 1px solid var(--line-2);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.4s;
+  }
+  .avatar.active { box-shadow: 0 2px 12px rgba(44,184,196,0.35), 0 0 0 3px rgba(44,184,196,0.15); border-color: var(--accent); }
+  .avatar.agent.active { box-shadow: 0 2px 12px rgba(214,122,60,0.3), 0 0 0 3px rgba(214,122,60,0.15); border-color: var(--h5); }
+  .avatar svg { width: 26px; height: 26px; stroke: var(--ink); fill: none; stroke-width: 1.6; }
+  .role-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
+  .role-name { font-family: 'Instrument Serif', serif; font-size: 15px; color: var(--ink); }
+  .role-state { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-dim); text-align: center; line-height: 1.4; min-height: 24px; }
+  .bookend.active .role-state { color: var(--accent-2); }
+  .bookend.agent.active .role-state { color: var(--h5); }
+
+  /* ─── Floor / manager panel ─── */
+  .floor {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px; display: flex; flex-direction: column; gap: 10px;
+    min-height: 0; overflow: hidden;
+  }
+  .floor-h {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .floor-h .owner { color: var(--ink); font-weight: 600; }
+  .queue-list { display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .queue-row {
+    display: grid; grid-template-columns: 20px 1fr auto; gap: 6px; align-items: center;
+    padding: 4px 6px; border-radius: 6px; background: var(--bg-2);
+    font-size: 10.5px;
+  }
+  .queue-row .ch { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-faint); }
+  .queue-row .name { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .queue-row .time { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-dim); }
+  .queue-row.hot { background: color-mix(in oklab, var(--bad) 10%, white); }
+  .queue-row.hot .time { color: var(--bad); }
+  .queue-row.live { background: color-mix(in oklab, var(--accent) 10%, white); }
+
+  .agents-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;
+    padding: 8px 0 4px;
+  }
+  .agent-chip {
+    aspect-ratio: 1; border-radius: 4px; background: var(--bg-2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--ink-dim);
+    border: 1px solid transparent;
+  }
+  .agent-chip.busy { background: var(--accent); color: white; }
+  .agent-chip.break { background: var(--bg); color: var(--ink-faint); }
+  .agent-chip.self { border-color: var(--ink); background: var(--h5); color: white; }
+
+  /* ─── Center column ─── */
+  .center {
+    display: grid; grid-template-rows: auto 1fr auto; gap: 10px; min-height: 0;
+  }
+
+  /* Focus card */
+  .focus-card {
+    position: relative;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 12px; padding: 14px 18px 12px; overflow: hidden;
+    box-shadow: 0 4px 20px rgba(11,23,51,0.04);
+    min-height: 0;
+  }
+  .focus-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--hue, var(--accent)); transition: background 0.4s;
+  }
+  .focus-head {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+  }
+  .focus-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .focus-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px; border-radius: 5px;
+    background: color-mix(in oklab, var(--hue, var(--accent)) 12%, transparent);
+    color: var(--hue, var(--accent-2));
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+    letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500;
+  }
+  .focus-badge i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .focus-badge.owner-iva { color: var(--accent-2); background: color-mix(in oklab, var(--accent) 12%, transparent); }
+  .focus-badge.owner-agent { color: var(--h5); background: color-mix(in oklab, var(--h5) 14%, transparent); }
+  .focus-badge.owner-handoff { color: var(--warn); background: color-mix(in oklab, var(--warn) 14%, transparent); }
+  .focus-step { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: var(--ink-faint); letter-spacing: 0.12em; text-transform: uppercase; }
+  .focus-title {
+    margin: 6px 0 4px; font-family: 'Instrument Serif', serif;
+    font-size: 26px; line-height: 1.05; color: var(--ink); letter-spacing: -0.015em;
+  }
+  .focus-lede { font-size: 12px; line-height: 1.5; color: var(--ink-dim); max-width: 640px; }
+
+  .focus-body {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line);
+  }
+  .focus-col-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 5px; }
+  .lever {
+    font-size: 11.5px; color: var(--ink); line-height: 1.4; margin-bottom: 4px;
+    display: flex; gap: 6px; align-items: baseline;
+  }
+  .lever b { font-family: 'JetBrains Mono', monospace; font-weight: 500; font-size: 9.5px; color: var(--hue, var(--accent-2)); text-transform: uppercase; letter-spacing: 0.1em; min-width: 60px; flex-shrink: 0; }
+  .role-visibility {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .role-visibility .rv {
+    font-size: 11px; display: grid; grid-template-columns: 80px 1fr; gap: 6px; align-items: baseline;
+    padding: 3px 0; border-bottom: 1px dashed var(--line);
+  }
+  .role-visibility .rv:last-child { border: none; }
+  .rv-role { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+  .rv-role.applicable { color: var(--ink); font-weight: 600; }
+  .rv-act { color: var(--ink-dim); font-size: 11px; }
+  .rv-act.applicable { color: var(--ink); }
+
+  .focus-progress { position: absolute; left: 3px; right: 0; bottom: 0; height: 2px; background: var(--line); }
+  .focus-progress b { display: block; height: 100%; background: var(--hue, var(--accent)); width: 0%; transition: width 0.08s linear; }
+
+  .focus-card.pop { animation: pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+  @keyframes pop {
+    0% { transform: scale(0.98); opacity: 0.5; }
+    60% { transform: scale(1.005); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ─── Stack index + feedback loop ─── */
+  .stack-wrap {
+    position: relative;
+    padding: 26px 0 8px;
+  }
+  .stack-index {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px;
+    position: relative;
+    z-index: 2;
+  }
+  .layer-cell {
+    position: relative; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 8px 10px 10px; cursor: pointer;
+    transition: all 0.3s; overflow: hidden;
+  }
+  .layer-cell::before {
+    content: ''; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px;
+    background: var(--hue); border-radius: 2px; opacity: 0.55; transition: opacity 0.3s;
+  }
+  .layer-cell:hover { transform: translateY(-2px); }
+  .layer-cell:hover::before { opacity: 1; }
+  .layer-cell.active {
+    border-color: var(--hue);
+    background: color-mix(in oklab, var(--hue) 8%, var(--panel));
+    box-shadow: 0 4px 14px color-mix(in oklab, var(--hue) 28%, transparent);
+  }
+  .layer-cell.active::before { opacity: 1; width: 4px; }
+  .layer-cell.done { background: var(--bg-2); }
+  .cell-n { font-family: 'Instrument Serif', serif; font-size: 18px; line-height: 1; color: var(--hue); }
+  .cell-tag { font-family: 'JetBrains Mono', monospace; font-size: 7.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); margin-top: 2px; }
+  .cell-title { font-size: 10px; line-height: 1.2; color: var(--ink); margin-top: 2px; font-weight: 500; }
+  .cell-owner {
+    position: absolute; top: 4px; right: 4px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 7px; color: white; font-weight: 600;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .layer-cell.owner-iva .cell-owner { opacity: 1; background: var(--accent); }
+  .layer-cell.owner-agent .cell-owner { opacity: 1; background: var(--h5); }
+
+  /* Feedback loop arcs above the stack */
+  .feedback-svg {
+    position: absolute; left: 0; right: 0; top: 0; height: 28px; width: 100%;
+    pointer-events: none; z-index: 1;
+  }
+  .feedback-svg path { fill: none; stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.55; }
+  .feedback-svg path.live { stroke: var(--h4); stroke-width: 1.4; opacity: 0.9; animation: dash 1.5s linear infinite; }
+  .feedback-svg .arrow { fill: var(--ink-faint); }
+  .feedback-svg .arrow.live { fill: var(--h4); }
+  .feedback-label {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--ink-faint);
+    letter-spacing: 0.18em; text-transform: uppercase;
+    background: var(--bg); padding: 0 8px;
+  }
+  @keyframes dash { to { stroke-dashoffset: -20; } }
+
+  /* Concurrency ticker at bottom */
+  .ticker {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-dim);
+    flex-shrink: 0;
+  }
+  .ticker .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); animation: pulse 1.6s ease-in-out infinite; }
+  .ticker .scenario-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+  .ticker .sub { color: var(--ink-faint); margin-right: 6px; }
+  .ticker select, .ticker button {
+    background: transparent; border: 1px solid var(--line-2); color: var(--ink);
+    padding: 3px 10px; border-radius: 999px; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em;
+    outline: none;
+  }
+  .ticker button { text-transform: uppercase; color: var(--ink-dim); }
+  .ticker button:hover { color: var(--ink); border-color: var(--accent); }
+
+  /* ─── Right: agent + IVA co-pilot ─── */
+  .right-col { display: grid; grid-template-rows: auto 1fr; gap: 12px; min-height: 0; }
+
+  .copilot {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px; display: flex; flex-direction: column; gap: 8px;
+    min-height: 0; overflow: hidden;
+    position: relative;
+  }
+  .copilot-h {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .copilot-h b { color: var(--ink); font-weight: 600; }
+  .copilot-h .status { margin-left: auto; color: var(--good); display: flex; gap: 4px; align-items: center; }
+  .copilot-h .status i { width: 5px; height: 5px; border-radius: 50%; background: var(--good); box-shadow: 0 0 6px var(--good); }
+
+  .suggestion {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 10px; font-size: 11px; line-height: 1.4; color: var(--ink);
+    position: relative;
+  }
+  .suggestion .kind {
+    font-family: 'JetBrains Mono', monospace; font-size: 8.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent-2); margin-bottom: 3px;
+  }
+  .suggestion.warn .kind { color: var(--warn); }
+  .suggestion.kb .kind { color: var(--h4); }
+  .suggestion-footer {
+    display: flex; gap: 4px; margin-top: 5px;
+  }
+  .suggestion-footer button {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 3px 7px;
+    border-radius: 4px; border: 1px solid var(--line-2); background: white; color: var(--ink-dim);
+    cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .suggestion-footer button:hover { border-color: var(--ink); color: var(--ink); }
+
+  /* SVG connector overlay */
+  .connect-svg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  .connect-svg path { fill: none; stroke: var(--line-2); stroke-width: 1; stroke-dasharray: 3 4; }
+  .connect-svg path.live {
+    stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 4 5;
+    animation: dash 1.2s linear infinite;
+  }
+  .connect-svg path.live.warm { stroke: var(--h5); }
+
+  /* Role-lens dimming */
+  body.lens-leader .kpi-strip { box-shadow: 0 0 0 2px var(--ink) inset; }
+  body.lens-manager .floor { box-shadow: 0 0 0 2px var(--ink) inset; }
+  body.lens-agent .copilot { box-shadow: 0 0 0 2px var(--ink) inset; }
+  body.lens-leader .floor, body.lens-leader .copilot,
+  body.lens-manager .kpi-strip, body.lens-manager .copilot,
+  body.lens-agent .kpi-strip, body.lens-agent .floor { opacity: 0.62; }
+
+</style>
+</head>
+<body class="lens-all">
+
+<header class="header">
+  <div class="mark">
+    <span class="dot"></span>
+    <span class="label mono">CX Orchestration · 7-Layer Map</span>
+  </div>
+  <div class="title-mini">
+    <h1>Seven layers, <em>one</em> continuous flow</h1>
+    <span class="sub">— customer ↔ IVA ↔ agent, governed by manager + leader</span>
+  </div>
+  <div class="role-tabs" id="roleTabs">
+    <button class="role-tab active" data-lens="all">All</button>
+    <button class="role-tab" data-lens="leader">Leader</button>
+    <button class="role-tab" data-lens="manager">Manager</button>
+    <button class="role-tab" data-lens="agent">Agent</button>
+  </div>
+</header>
+
+<!-- Leader KPI strip -->
+<div class="kpi-strip" id="kpiStrip">
+  <div class="kpi"><div class="kpi-label mono">Containment</div><div class="kpi-val" id="kpi-contain">72<span class="unit">%</span></div><div class="kpi-delta up">▲ 2.1 vs Q</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--good)" stroke-width="1.2" points="0,14 8,12 16,10 24,8 32,6 40,4"/></svg></div>
+  <div class="kpi"><div class="kpi-label mono">CSAT</div><div class="kpi-val" id="kpi-csat">4.6<span class="unit">/5</span></div><div class="kpi-delta up">▲ 0.1</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--good)" stroke-width="1.2" points="0,10 8,11 16,9 24,7 32,8 40,5"/></svg></div>
+  <div class="kpi"><div class="kpi-label mono">Avg Handle</div><div class="kpi-val" id="kpi-aht">3<span class="unit">m 42s</span></div><div class="kpi-delta down">▼ 14s</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--good)" stroke-width="1.2" points="0,6 8,8 16,10 24,9 32,12 40,13"/></svg></div>
+  <div class="kpi"><div class="kpi-label mono">Cost / Contact</div><div class="kpi-val" id="kpi-cost">$2.14</div><div class="kpi-delta down">▼ $0.18</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--good)" stroke-width="1.2" points="0,5 8,7 16,9 24,8 32,11 40,13"/></svg></div>
+  <div class="kpi"><div class="kpi-label mono">SLA · 80/20</div><div class="kpi-val" id="kpi-sla">91<span class="unit">%</span></div><div class="kpi-delta flat">— steady</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--ink-faint)" stroke-width="1.2" points="0,8 8,7 16,9 24,8 32,7 40,8"/></svg></div>
+  <div class="kpi highlight"><div class="kpi-label mono">Live Now</div><div class="kpi-val" id="kpi-live">284<span class="unit">convos</span></div><div class="kpi-delta up">▲ 12 · 5m</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--accent-2)" stroke-width="1.2" points="0,10 8,8 16,9 24,6 32,4 40,3"/></svg></div>
+</div>
+
+<main class="stage">
+  <!-- Left col: customer + floor -->
+  <div class="left-col">
+    <div class="bookend customer" id="customerBook">
+      <div class="avatar">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </div>
+      <div class="role-label mono">End customer</div>
+      <div class="role-name serif">Maya · retail</div>
+      <div class="role-state mono" id="customerState">idle</div>
+    </div>
+
+    <!-- Manager floor panel -->
+    <div class="floor" id="floor">
+      <div class="floor-h">
+        <span><span class="owner">Manager</span> · Floor</span>
+        <span id="floor-count">12 live</span>
+      </div>
+      <div class="queue-list" id="queueList"></div>
+      <div class="floor-h" style="margin-top:auto">
+        <span>Agent roster</span>
+        <span><span style="color:var(--accent)">●</span> busy · <span style="color:var(--ink-faint)">●</span> avail</span>
+      </div>
+      <div class="agents-grid" id="agentsGrid"></div>
+    </div>
+  </div>
+
+  <!-- Center col -->
+  <div class="center">
+    <div class="focus-card" id="focusCard">
+      <div class="focus-head">
+        <div class="focus-badges">
+          <div class="focus-badge" id="focusBadge"><i></i><span>READY</span></div>
+          <div class="focus-badge owner-iva" id="focusOwner" style="display:none"><i></i><span>IVA</span></div>
+        </div>
+        <div class="focus-step mono" id="focusStep">step 0 / 0</div>
+      </div>
+      <h2 class="focus-title" id="focusTitle">Seven layers, one continuous flow</h2>
+      <p class="focus-lede" id="focusLede">Press play. Watch a customer request traverse the stack. IVA drives the common path; on complex steps it warm-hands off to the human agent while staying on as co-pilot.</p>
+      <div class="focus-body" id="focusBody" style="display:none">
+        <div>
+          <div class="focus-col-label mono">Excellence Levers</div>
+          <div id="focusLevers"></div>
+        </div>
+        <div>
+          <div class="focus-col-label mono">Role Visibility & Action</div>
+          <div class="role-visibility" id="focusRoles"></div>
+        </div>
+      </div>
+      <div class="focus-progress"><b id="focusBar"></b></div>
+    </div>
+
+    <!-- Stack index w/ feedback loop -->
+    <div class="stack-wrap">
+      <svg class="feedback-svg" id="feedbackSvg" viewBox="0 0 1000 28" preserveAspectRatio="none"></svg>
+      <div class="feedback-label mono">↻ Feedback loop · L7 → L3/L4/L6</div>
+      <div class="stack-index" id="stackIndex"></div>
+    </div>
+
+    <!-- Scenario runner -->
+    <div class="ticker">
+      <span class="dot"></span>
+      <div class="scenario-text" id="scenarioText"><span class="sub">›</span> booting scenario…</div>
+      <select id="scenarioSelect"></select>
+      <button id="playBtn">Pause</button>
+    </div>
+  </div>
+
+  <!-- Right col: agent + IVA co-pilot -->
+  <div class="right-col">
+    <div class="bookend agent" id="agentBook">
+      <div class="avatar agent">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/><path d="M18 6l4-4M18 2l4 4" stroke-width="1.2"/></svg>
+      </div>
+      <div class="role-label mono">Human agent</div>
+      <div class="role-name serif">Jordan · T2</div>
+      <div class="role-state mono" id="agentState">monitoring 3 convos</div>
+    </div>
+
+    <!-- IVA co-pilot (always visible; intensifies when agent is driving) -->
+    <div class="copilot" id="copilot">
+      <div class="copilot-h">
+        <span><b>IVA</b> · co-pilot</span>
+        <span class="status"><i></i> ON</span>
+      </div>
+      <div id="copilotBody" style="display:flex;flex-direction:column;gap:6px;overflow:hidden;flex:1;min-height:0">
+        <div class="suggestion kb">
+          <div class="kind mono">KB lookup</div>
+          Order #A-91204 · shipped 04/16 · 2 stops from hub · ETA 4:30pm.
+          <div class="suggestion-footer">
+            <button>Insert</button><button>Dismiss</button>
+          </div>
+        </div>
+        <div class="suggestion">
+          <div class="kind mono">Draft reply</div>
+          "Good news — your package is 2 stops out and should arrive by 4:30pm today."
+          <div class="suggestion-footer">
+            <button>Send</button><button>Edit</button>
+          </div>
+        </div>
+        <div class="suggestion warn">
+          <div class="kind mono">Sentiment</div>
+          Tone: neutral · no escalation risk detected.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <svg class="connect-svg" id="connectSvg" preserveAspectRatio="none"></svg>
+</main>
+
+<script>
+/* ─── LAYERS ─── */
+const LAYERS = {
+  1: { tag:'L01', title:'Data Access', hue:'var(--h1)',
+    lede:'The foundation — unified reads across CRM, orders, billing, knowledge, and conversation history.',
+    levers:[
+      ['source','Consolidated view across 9 systems of record'],
+      ['freshness','Sub-second materialized cache for live reads'],
+      ['entitlements','Row-level ACLs by agent tier + customer region'],
+    ],
+    roles:{
+      leader:['applicable','Approves data strategy, vendor consolidation, residency'],
+      manager:['applicable','Monitors data freshness alerts, resolves outages'],
+      agent:['n/a','Benefits passively — accurate data surfaces in UI'],
+      iva:['applicable','Reads via governed APIs; no direct DB access'],
+    }},
+  2: { tag:'L02', title:'Workflow Execution', hue:'var(--h2)',
+    lede:'The hands — tool calls that read, write, and change the world. Idempotent, logged, reversible.',
+    levers:[
+      ['idempotency','Every write keyed — safe on retry'],
+      ['reversal','One-click rollback for last 90 days of ops'],
+      ['audit','Signed receipt per action · WORM storage'],
+    ],
+    roles:{
+      leader:['applicable','Reviews auto-execution scope + audit exception rate'],
+      manager:['applicable','Tunes which workflows auto-run vs require approval'],
+      agent:['applicable','Triggers sensitive workflows (refunds, overrides)'],
+      iva:['applicable','Executes low-risk workflows autonomously'],
+    }},
+  3: { tag:'L03', title:'Policy & Guardrails', hue:'var(--h3)',
+    lede:'Rules of engagement — PII redaction, refund caps, tone enforcement, escalation triggers.',
+    levers:[
+      ['pii','Auto-redact 14 PII classes in transcripts'],
+      ['refund cap','IVA $50 · Agent $500 · Manager unlimited'],
+      ['tone','Brand-voice scorer on every IVA utterance'],
+    ],
+    roles:{
+      leader:['applicable','Sets policy bands, compliance posture, risk tolerance'],
+      manager:['applicable','Tunes caps by queue; approves exceptions'],
+      agent:['applicable','Overrides within their tier; documents exceptions'],
+      iva:['applicable','Obeys policies; flags for handoff when blocked'],
+    }},
+  4: { tag:'L04', title:'Reasoning & Planning', hue:'var(--h4)',
+    lede:'The brain — decomposing requests into steps, selecting tools, plotting shortest path to resolution.',
+    levers:[
+      ['model','Haiku for routing · Sonnet for complex reasoning'],
+      ['tool set','47 tools · scoped by policy + agent tier'],
+      ['self-critique','Plan reviewed before execution; low-conf → human'],
+    ],
+    roles:{
+      leader:['applicable','Approves model vendors, spend envelope, eval bar'],
+      manager:['applicable','Reviews plan-failure trends; reports patterns back'],
+      agent:['applicable','Sees the plan; can edit / approve / override'],
+      iva:['applicable','Generates + executes plans within guardrails'],
+    }},
+  5: { tag:'L05', title:'Conversation Management', hue:'var(--h5)',
+    lede:'Turn-by-turn dialogue across voice, chat, email — memory, interruption, language.',
+    levers:[
+      ['channels','Voice · Chat · Email · SMS · WhatsApp'],
+      ['memory','30-day session memory · GDPR right-to-forget'],
+      ['barge-in','Sub-200ms interruption for voice'],
+    ],
+    roles:{
+      leader:['n/a','Strategic only — selects channel investments'],
+      manager:['applicable','Staffs by channel load; tunes IVA persona'],
+      agent:['applicable','Lives here — speaks, listens, summarizes'],
+      iva:['applicable','Lives here — speaks, listens, summarizes'],
+    }},
+  6: { tag:'L06', title:'Routing & Orchestration', hue:'var(--h6)',
+    lede:'Who handles this, on what channel, and how seamless is the handoff? Warm-transfers AI→human with full context.',
+    levers:[
+      ['routing','Skill · language · value · sentiment · IVA confidence'],
+      ['handoff','Full transcript + plan + state in < 300ms'],
+      ['sla guard','Auto-escalate at 80% SLA burn'],
+    ],
+    roles:{
+      leader:['applicable','Sets routing strategy, tier definitions, SLA targets'],
+      manager:['applicable','Adjusts in real-time; reassigns skills, breaks ties'],
+      agent:['applicable','Accepts warm transfers with full context'],
+      iva:['applicable','Requests handoff when confidence drops below bar'],
+    }},
+  7: { tag:'L07', title:'Analytics, Feedback & Governance', hue:'var(--h7)',
+    lede:'Every interaction becomes evidence — QA, sentiment, drift, compliance, coaching — looped back into L3/L4/L6.',
+    levers:[
+      ['qa coverage','100% auto-scored · 5% human-sampled'],
+      ['drift','Weekly eval vs gold set · alert on > 3% drop'],
+      ['coaching','Per-agent deltas vs peer median'],
+    ],
+    roles:{
+      leader:['applicable','Primary home — ROI, containment, CSAT, vendor scorecards'],
+      manager:['applicable','Team + agent-level analytics, coaching loops'],
+      agent:['applicable','Sees own scorecard; coaching nudges in-app'],
+      iva:['applicable','Feeds its own retraining signal via labeled outcomes'],
+    }},
+};
+
+/* ─── SCENARIOS ─── */
+const SCENARIOS = [
+  {
+    name:'Simple · "Where\'s my order?"',
+    intro:{cust:'"hi, where\'s my order?"', agent:'monitoring · 3 convos', sys:'inbound chat · voice bridged', meta:'IVA'},
+    steps:[
+      {n:1,owner:'iva',cust:'authenticated',agent:'ambient',sys:'reads identity + last 3 orders + entitlements'},
+      {n:2,owner:'iva',cust:'account resolved',agent:'watching',sys:'calls lookup_order(#A-91204) + fetch_tracking()'},
+      {n:3,owner:'iva',cust:'PII masked in logs',agent:'watching',sys:'no shipping promise without ETA confidence ≥ 0.8'},
+      {n:4,owner:'iva',cust:'intent: order_status',agent:'watching',sys:'plan: check_auth → lookup → estimate_eta → draft'},
+      {n:5,owner:'iva',cust:'listening…',agent:'watching',sys:'"package is 2 stops away, ETA 4:30pm"'},
+      {n:6,owner:'iva',cust:'satisfied',agent:'no handoff',sys:'keeps on IVA · high containment score'},
+      {n:7,owner:'iva',cust:'"thanks!" · CSAT 5/5',agent:'closed',sys:'scores logged · retraining delta queued'},
+    ],
+    outro:{cust:'resolved · 11.3s',agent:'next in queue',sys:'loop complete · fully contained',meta:'DONE'},
+  },
+  {
+    name:'Complex · "I want a refund" → human',
+    intro:{cust:'"this is broken, I want a refund"', agent:'monitoring', sys:'sentiment −0.6 · priority high', meta:'IVA'},
+    steps:[
+      {n:1,owner:'iva',cust:'identity verified',agent:'watching',sys:'pulls order + warranty + prior tickets + LTV $4.2k'},
+      {n:4,owner:'iva',cust:'intent: refund + frustration',agent:'watching',sys:'plan: verify → assess → refund OR escalate'},
+      {n:3,owner:'iva',cust:'guardrails engage',agent:'alerted',sys:'refund_cap $50 (IVA) · item $340 → REQUIRES HUMAN'},
+      {n:6,owner:'handoff',cust:'warm-transferring…',agent:'↗ accepting · context received',sys:'route → Tier-2 · skill=appliances · full transcript'},
+      {n:5,owner:'agent',cust:'"Jordan here, let me help"',agent:'speaking · IVA drafts',sys:'human turn · IVA continues as co-pilot'},
+      {n:2,owner:'agent',cust:'refund issued $340',agent:'executes override',sys:'issue_refund · policy exception logged'},
+      {n:7,owner:'agent',cust:'CSAT 4/5 · recovered',agent:'wrap-up',sys:'saved customer · cap edge case → policy review'},
+    ],
+    outro:{cust:'resolved · 3m 40s',agent:'ready',sys:'handoff complete · policy team notified',meta:'HANDOFF'},
+  },
+  {
+    name:'Complex · Multilingual + sensitive op',
+    intro:{cust:'"ändern Sie meine Adresse nach Berlin"', agent:'monitoring', sys:'EN→DE detected · 2FA required', meta:'IVA'},
+    steps:[
+      {n:5,owner:'iva',cust:'DE · "kein Problem"',agent:'ambient',sys:'multilingual bridge engaged'},
+      {n:4,owner:'iva',cust:'intent: update_address',agent:'watching',sys:'plan: verify_2fa → lookup → update → re-route orders'},
+      {n:3,owner:'iva',cust:'verifying…',agent:'watching',sys:'sensitive op · 2FA + voice match required'},
+      {n:1,owner:'iva',cust:'identity strong',agent:'watching',sys:'billing + shipping + 2 active orders loaded'},
+      {n:6,owner:'handoff',cust:'sensitive op pause',agent:'↗ confirming policy',sys:'DE regulation → human confirmation'},
+      {n:2,owner:'agent',cust:'address updated',agent:'re-routes orders',sys:'PATCH /customers/:id · 2 orders re-routed'},
+      {n:7,owner:'agent',cust:'CSAT 5/5',agent:'closed',sys:'DE fluency sample saved for training'},
+    ],
+    outro:{cust:'resolved · 1m 18s',agent:'monitoring',sys:'handoff complete · DE policy reviewed',meta:'HANDOFF'},
+  },
+];
+
+/* ─── Build UI ─── */
+const stackIndex = document.getElementById('stackIndex');
+for (let n = 1; n <= 7; n++) {
+  const L = LAYERS[n];
+  const el = document.createElement('div');
+  el.className = 'layer-cell';
+  el.dataset.n = n;
+  el.style.setProperty('--hue', L.hue);
+  el.innerHTML = `
+    <div class="cell-owner mono">·</div>
+    <div class="cell-n serif">${String(n).padStart(2,'0')}</div>
+    <div class="cell-tag mono">${L.tag}</div>
+    <div class="cell-title">${L.title}</div>
+  `;
+  el.addEventListener('click', () => jumpTo(n));
+  stackIndex.appendChild(el);
+}
+
+/* Feedback loop SVG — arcs from L7 back to L3, L4, L6 */
+function drawFeedback() {
+  const svg = document.getElementById('feedbackSvg');
+  const wrap = document.querySelector('.stack-wrap');
+  const wrapRect = wrap.getBoundingClientRect();
+  svg.setAttribute('viewBox', `0 0 ${wrapRect.width} 28`);
+  const cells = [...stackIndex.querySelectorAll('.layer-cell')];
+  const positions = cells.map(c => {
+    const r = c.getBoundingClientRect();
+    return r.left - wrapRect.left + r.width/2;
+  });
+  const x7 = positions[6], x3 = positions[2], x4 = positions[3], x6 = positions[5];
+  svg.innerHTML = '';
+  [x3, x4, x6].forEach(tx => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const midX = (x7 + tx) / 2;
+    p.setAttribute('d', `M ${x7} 26 C ${midX} 2, ${midX} 2, ${tx} 26`);
+    p.classList.add('live');
+    svg.appendChild(p);
+    const arr = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    arr.setAttribute('points', `${tx-3},22 ${tx+3},22 ${tx},27`);
+    arr.classList.add('arrow','live');
+    svg.appendChild(arr);
+  });
+}
+
+/* References */
+const focusCard = document.getElementById('focusCard');
+const focusBadge = document.getElementById('focusBadge');
+const focusOwner = document.getElementById('focusOwner');
+const focusTitle = document.getElementById('focusTitle');
+const focusLede = document.getElementById('focusLede');
+const focusBody = document.getElementById('focusBody');
+const focusLevers = document.getElementById('focusLevers');
+const focusRoles = document.getElementById('focusRoles');
+const focusStep = document.getElementById('focusStep');
+const focusBar = document.getElementById('focusBar');
+const customerState = document.getElementById('customerState');
+const agentState = document.getElementById('agentState');
+const customerBook = document.getElementById('customerBook');
+const agentBook = document.getElementById('agentBook');
+const scenarioText = document.getElementById('scenarioText');
+const scenarioSelect = document.getElementById('scenarioSelect');
+const playBtn = document.getElementById('playBtn');
+const copilotBody = document.getElementById('copilotBody');
+const queueList = document.getElementById('queueList');
+const agentsGrid = document.getElementById('agentsGrid');
+const connectSvg = document.getElementById('connectSvg');
+
+SCENARIOS.forEach((s, i) => {
+  const opt = document.createElement('option');
+  opt.value = i; opt.textContent = s.name;
+  scenarioSelect.appendChild(opt);
+});
+
+/* Floor mock */
+const FLOOR_QUEUES = [
+  {ch:'VC', name:'Maya · order status', t:'0:11', live:true},
+  {ch:'CH', name:'Luis · billing Q', t:'1:04'},
+  {ch:'EM', name:'Priya · refund req', t:'2:42'},
+  {ch:'VC', name:'Sam · warranty', t:'4:11', hot:true},
+  {ch:'CH', name:'Noor · DE address', t:'0:32'},
+  {ch:'WA', name:'Kai · order ETA', t:'0:08'},
+  {ch:'CH', name:'Ivy · activation', t:'1:51'},
+];
+function renderFloor() {
+  queueList.innerHTML = FLOOR_QUEUES.map(q => `
+    <div class="queue-row ${q.hot?'hot':''} ${q.live?'live':''}">
+      <span class="ch mono">${q.ch}</span>
+      <span class="name">${q.name}</span>
+      <span class="time mono">${q.t}</span>
+    </div>
+  `).join('');
+  // agents grid — 18 slots
+  const states = ['busy','busy','busy','avail','busy','break','busy','avail','self','busy','busy','avail','busy','break','busy','busy','avail','busy'];
+  const inits = ['AM','JR','KT','—','DN','☕','BH','—','JO','LP','RY','—','MK','☕','TS','QN','—','ZV'];
+  agentsGrid.innerHTML = states.map((s, i) => `<div class="agent-chip ${s}">${inits[i]}</div>`).join('');
+}
+renderFloor();
+
+/* KPI jitter */
+function jitterKPIs() {
+  const live = document.getElementById('kpi-live');
+  const n = 280 + Math.floor(Math.random() * 20);
+  live.innerHTML = `${n}<span class="unit">convos</span>`;
+}
+setInterval(jitterKPIs, 2000);
+
+/* ─── State machine ─── */
+const STEP_MS = 3400;
+let currentScenario = 0;
+let stepIdx = -1;
+let playing = true;
+let stepTimer = null;
+let progressTimer = null;
+let stepStart = 0;
+
+function setRoleRow(key, appl, text) {
+  const app = appl === 'applicable';
+  return `<div class="rv"><span class="rv-role ${app?'applicable':''}">${key}</span><span class="rv-act ${app?'applicable':''}">${app?'':'(n/a) '}${text}</span></div>`;
+}
+
+function renderCopilot(step, owner) {
+  if (!step) {
+    copilotBody.innerHTML = `
+      <div class="suggestion kb"><div class="kind mono">Ready</div>Listening for customer signal — will surface KB, drafts, and sentiment in real-time.</div>
+    `;
+    return;
+  }
+  const L = LAYERS[step.n];
+  // Contextual co-pilot suggestions based on layer + owner
+  const agentMode = owner === 'agent' || owner === 'handoff';
+  const items = [];
+  if (step.n === 1) items.push({kind:'kb', text:'Identity verified · voiceprint · confidence 0.94'});
+  if (step.n === 2) items.push({kind:'kb', text:`Tool queued: ${agentMode?'issue_refund($340)':'lookup_order() + fetch_tracking()'}`});
+  if (step.n === 3) items.push({kind:'warn', text: agentMode?'Cap override requires supervisor note':'Policy flagged — prepare handoff packet'});
+  if (step.n === 4) items.push({kind:'kb', text:`Plan: ${step.sys.replace(/^plan:\s*/,'')}`});
+  if (step.n === 5) items.push({kind:'draft', text: agentMode?'Draft: "I understand. Let me apply the full refund now."':'Draft: "your package is 2 stops out, ETA 4:30pm"'});
+  if (step.n === 6) items.push({kind:'kb', text: agentMode?'Context packet delivered · transcript + plan + state':'Routing: confidence high → keep on IVA'});
+  if (step.n === 7) items.push({kind:'kb', text:'Logged: sentiment +0.6 · resolution 9.1 · delta → training'});
+  // Always show sentiment line
+  items.push({kind:'sent', text:`Sentiment: ${step.n<=3?'neutral':'positive'} · ${agentMode?'agent tone: empathetic':'IVA tone: on-brand'}`});
+
+  copilotBody.innerHTML = items.slice(0,3).map(it => {
+    const cls = it.kind === 'warn' ? 'warn' : it.kind === 'draft' ? '' : 'kb';
+    const label = ({kb:'KB Lookup', warn:'Guardrail', draft:'Draft reply', sent:'Sentiment'})[it.kind];
+    const footer = it.kind === 'draft' ? '<div class="suggestion-footer"><button>Send</button><button>Edit</button></div>' : '';
+    return `<div class="suggestion ${cls}"><div class="kind mono">${label}</div>${it.text}${footer}</div>`;
+  }).join('');
+}
+
+function renderStep() {
+  const scen = SCENARIOS[currentScenario];
+  const cells = [...stackIndex.querySelectorAll('.layer-cell')];
+
+  if (stepIdx === -1) {
+    cells.forEach(c => { c.className = 'layer-cell'; });
+    focusBadge.innerHTML = `<i></i><span>${scen.intro.meta}</span>`;
+    focusBadge.className = 'focus-badge owner-iva';
+    focusOwner.style.display = 'none';
+    focusCard.style.setProperty('--hue', 'var(--accent)');
+    focusTitle.textContent = scen.name;
+    focusLede.textContent = 'IVA takes the call. Watch the stack respond.';
+    focusBody.style.display = 'none';
+    focusStep.textContent = 'inbound';
+    customerState.textContent = scen.intro.cust;
+    agentState.textContent = scen.intro.agent;
+    scenarioText.innerHTML = `<span class="sub">›</span> ${scen.intro.sys}`;
+    customerBook.classList.add('active');
+    agentBook.classList.remove('active');
+    focusCard.classList.remove('pop'); void focusCard.offsetWidth; focusCard.classList.add('pop');
+    drawConnectors(null, 'iva');
+    renderCopilot(null, 'iva');
+    return;
+  }
+  if (stepIdx >= scen.steps.length) {
+    const lastOwner = scen.steps[scen.steps.length-1].owner;
+    cells.forEach(c => { c.classList.remove('active'); c.classList.add('done'); });
+    focusBadge.innerHTML = `<i></i><span>${scen.outro.meta}</span>`;
+    focusBadge.className = 'focus-badge owner-iva';
+    focusOwner.style.display = 'none';
+    focusCard.style.setProperty('--hue', 'var(--h2)');
+    focusTitle.textContent = 'Resolved';
+    focusLede.textContent = scen.outro.sys;
+    focusBody.style.display = 'none';
+    focusStep.textContent = 'complete';
+    customerState.textContent = scen.outro.cust;
+    agentState.textContent = scen.outro.agent;
+    scenarioText.innerHTML = `<span class="sub">›</span> ${scen.outro.sys}`;
+    customerBook.classList.remove('active');
+    agentBook.classList.toggle('active', lastOwner === 'agent');
+    focusCard.classList.remove('pop'); void focusCard.offsetWidth; focusCard.classList.add('pop');
+    drawConnectors(null, lastOwner === 'agent' ? 'agent' : 'iva');
+    return;
+  }
+
+  const step = scen.steps[stepIdx];
+  const L = LAYERS[step.n];
+
+  cells.forEach(c => {
+    c.classList.remove('active');
+    c.classList.remove('owner-iva','owner-agent');
+  });
+  for (let k = 0; k < stepIdx; k++) {
+    const pn = scen.steps[k].n; const pOwner = scen.steps[k].owner;
+    const cell = stackIndex.querySelector(`.layer-cell[data-n="${pn}"]`);
+    if (cell) {
+      cell.classList.add('done');
+      cell.classList.add(pOwner==='agent'||pOwner==='handoff'?'owner-agent':'owner-iva');
+      cell.querySelector('.cell-owner').textContent = pOwner==='agent'||pOwner==='handoff'?'A':'i';
+    }
+  }
+  const active = stackIndex.querySelector(`.layer-cell[data-n="${step.n}"]`);
+  if (active) {
+    active.classList.add('active');
+    active.classList.remove('done');
+    active.classList.add(step.owner==='agent'||step.owner==='handoff'?'owner-agent':'owner-iva');
+    active.querySelector('.cell-owner').textContent = step.owner==='agent'||step.owner==='handoff'?'A':'i';
+  }
+
+  const ownerClass = 'owner-' + (step.owner === 'handoff' ? 'handoff' : step.owner);
+  const ownerLabel = step.owner === 'agent' ? 'HUMAN AGENT' : step.owner === 'handoff' ? 'HANDOFF · IVA → HUMAN' : 'IVA';
+  focusBadge.innerHTML = `<i></i><span>${L.tag} · ${L.title.toUpperCase()}</span>`;
+  focusBadge.className = 'focus-badge';
+  focusBadge.style.color = L.hue;
+  focusBadge.style.background = `color-mix(in oklab, ${L.hue} 12%, transparent)`;
+  focusOwner.style.display = '';
+  focusOwner.className = 'focus-badge ' + ownerClass;
+  focusOwner.innerHTML = `<i></i><span>${ownerLabel}</span>`;
+  focusCard.style.setProperty('--hue', L.hue);
+  focusTitle.textContent = L.title;
+  focusLede.textContent = L.lede;
+  focusBody.style.display = 'grid';
+  focusLevers.innerHTML = L.levers.map(([k,v]) => `<div class="lever"><b>${k}</b><span>${v}</span></div>`).join('');
+  focusRoles.innerHTML = [
+    setRoleRow('Leader', L.roles.leader[0], L.roles.leader[1]),
+    setRoleRow('Manager', L.roles.manager[0], L.roles.manager[1]),
+    setRoleRow('Agent', L.roles.agent[0], L.roles.agent[1]),
+    setRoleRow('IVA', L.roles.iva[0], L.roles.iva[1]),
+  ].join('');
+  focusStep.textContent = `step ${stepIdx+1} / ${scen.steps.length}`;
+
+  customerState.textContent = step.cust;
+  agentState.textContent = step.agent;
+  scenarioText.innerHTML = `<span class="sub">› ${scen.name.split('·')[1]?.trim() || scen.name}</span>${step.sys}`;
+
+  customerBook.classList.toggle('active', step.owner !== 'agent');
+  agentBook.classList.toggle('active', step.owner === 'agent' || step.owner === 'handoff');
+
+  focusCard.classList.remove('pop'); void focusCard.offsetWidth; focusCard.classList.add('pop');
+  drawConnectors(step.n, step.owner);
+  renderCopilot(step, step.owner);
+}
+
+function advance() {
+  stepIdx++;
+  const scen = SCENARIOS[currentScenario];
+  if (stepIdx > scen.steps.length) stepIdx = -1;
+  renderStep();
+  runProgressBar();
+}
+function runProgressBar() {
+  clearInterval(progressTimer);
+  stepStart = performance.now();
+  focusBar.style.width = '0%';
+  progressTimer = setInterval(() => {
+    const t = Math.min(1, (performance.now() - stepStart) / STEP_MS);
+    focusBar.style.width = (t * 100) + '%';
+    if (t >= 1) clearInterval(progressTimer);
+  }, 60);
+}
+function startLoop() {
+  clearTimeout(stepTimer); clearInterval(progressTimer);
+  function tick() {
+    if (!playing) return;
+    advance();
+    stepTimer = setTimeout(tick, STEP_MS);
+  }
+  tick();
+}
+function jumpTo(n) {
+  const scen = SCENARIOS[currentScenario];
+  const idx = scen.steps.findIndex(s => s.n === n);
+  if (idx >= 0) {
+    stepIdx = idx; renderStep(); runProgressBar();
+    clearTimeout(stepTimer);
+    if (playing) stepTimer = setTimeout(() => {
+      advance();
+      stepTimer = setTimeout(function loop(){ if(playing){advance(); stepTimer=setTimeout(loop, STEP_MS);} }, STEP_MS);
+    }, STEP_MS);
+  }
+}
+
+/* Connectors */
+function drawConnectors(activeN, owner) {
+  const stage = document.querySelector('.stage');
+  const rect = stage.getBoundingClientRect();
+  connectSvg.innerHTML = '';
+  connectSvg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
+  connectSvg.setAttribute('width', rect.width); connectSvg.setAttribute('height', rect.height);
+
+  const cust = customerBook.querySelector('.avatar').getBoundingClientRect();
+  const ag = agentBook.querySelector('.avatar').getBoundingClientRect();
+  const fc = focusCard.getBoundingClientRect();
+
+  const cx = cust.right - rect.left;
+  const cy = cust.top + cust.height/2 - rect.top;
+  const ax = ag.left - rect.left;
+  const ay = ag.top + ag.height/2 - rect.top;
+  const fxL = fc.left - rect.left;
+  const fxR = fc.right - rect.left;
+  const fy = fc.top + fc.height/2 - rect.top;
+
+  const mid1 = (cx + fxL) / 2;
+  const p1 = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p1.setAttribute('d', `M ${cx} ${cy} C ${mid1} ${cy}, ${mid1} ${fy}, ${fxL} ${fy}`);
+  if (activeN !== null) p1.classList.add('live');
+  connectSvg.appendChild(p1);
+
+  const mid2 = (fxR + ax) / 2;
+  const p2 = document.createElementNS('http://www.w3.org/2000/svg','path');
+  p2.setAttribute('d', `M ${fxR} ${fy} C ${mid2} ${fy}, ${mid2} ${ay}, ${ax} ${ay}`);
+  if (activeN !== null && (owner === 'agent' || owner === 'handoff')) p2.classList.add('live','warm');
+  else if (activeN !== null) p2.classList.add('live');
+  connectSvg.appendChild(p2);
+}
+
+/* Role lens tabs */
+document.querySelectorAll('.role-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.role-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.body.className = 'lens-' + t.dataset.lens;
+  });
+});
+
+/* Controls */
+scenarioSelect.addEventListener('change', e => {
+  currentScenario = +e.target.value;
+  stepIdx = -1; playing = true; playBtn.textContent = 'Pause';
+  startLoop();
+});
+playBtn.addEventListener('click', () => {
+  playing = !playing;
+  playBtn.textContent = playing ? 'Pause' : 'Play';
+  if (playing) startLoop();
+  else { clearTimeout(stepTimer); clearInterval(progressTimer); }
+});
+
+window.addEventListener('load', () => {
+  stepIdx = -1;
+  renderStep();
+  drawFeedback();
+  startLoop();
+});
+window.addEventListener('resize', () => {
+  drawFeedback();
+  const scen = SCENARIOS[currentScenario];
+  const step = (stepIdx >= 0 && stepIdx < scen.steps.length) ? scen.steps[stepIdx] : null;
+  drawConnectors(step?.n ?? null, step?.owner ?? null);
+});
+</script>
+</body>
+</html>
