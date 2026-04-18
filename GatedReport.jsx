@@ -40,6 +40,22 @@ const reports = {
     backLink: "/vendors/ccaas",
     backLabel: "CCaaS Market Intelligence",
   },
+  "orchestration-framework": {
+    title: "The 7-Layer CX Orchestration Framework 2026",
+    subtitle: "How every layer connects, who owns each one, and what to prepare for in the next 12 months.",
+    pages: "13 pages",
+    highlights: [
+      "Seven orchestration layers mapped with ownership, vendor landscape, and rate of change",
+      "Layer-by-layer deep dives with key decisions, 12-month outlook, and preparation steps",
+      "Integration dependency map showing what breaks when each layer fails",
+      "14-question readiness checklist with maturity scoring (Foundation to Industry-Leading)",
+      "Forward-looking preparation for agentic AI, regulatory changes, and architecture evolution",
+    ],
+    pdf: "/CX-Orchestration-Framework-2026.pdf",
+    category: "Platforms + Tech",
+    backLink: "/platforms-and-tech",
+    backLabel: "Platforms + Tech Intelligence",
+  },
 };
 
 function LogoMark({size=34}){return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={0.6}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={0.8}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
