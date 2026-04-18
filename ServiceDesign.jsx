@@ -56,14 +56,14 @@ export default function ServiceDesign() {
   const handleGate = async () => {
     if (!email.includes("@")) return;
     setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Service Design Toolkit", _subject: "Service Design Toolkit Access" }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xgorkqkk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Service Design Toolkit", _subject: "Service Design Toolkit Access" }) }); } catch (e) {}
     setSending(false);
     setPhase("select");
   };
 
   const handleResults = async () => {
     const results = selected.map(j => `${JOURNEYS[j].name}: ${journeyFriction(j).toFixed(1)}/5 friction`).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Service Design Toolkit", overallFriction: overallFriction.toFixed(2), journeysScored: selected.length, results, _subject: `Service Design: ${frictionLabel(overallFriction)} (${overallFriction.toFixed(1)}/5) — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xgorkqkk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Service Design Toolkit", overallFriction: overallFriction.toFixed(2), journeysScored: selected.length, results, _subject: `Service Design: ${frictionLabel(overallFriction)} (${overallFriction.toFixed(1)}/5) — ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
