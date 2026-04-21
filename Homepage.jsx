@@ -159,10 +159,10 @@ function Hero() {
 // ─── WHY NOW ─────────────────────────────────────────
 function WhyNow() {
   const stats = [
-    { n: "$71–249", l: "CCaaS platform cost per agent per month", s: "Before you add labor, WEM, analytics, and integration overhead" },
-    { n: "60–75%", l: "Of contact center cost is labor", s: "Technology alone never tells the full story" },
-    { n: "7", l: "Orchestration layers in a modern CX stack", s: "Each layer has distinct vendors, dependencies, and governance" },
-    { n: "80%", l: "Of service orgs will use generative AI by 2026", s: "Gartner forecast. Adoption is real. Readiness is not." },
+    { n: "80%", l: "Of service orgs will apply generative AI by 2026", s: "Gartner projects that by 2026, 80% of customer service and support organizations will use generative AI in some form." },
+    { n: "38%", l: "Measure agent satisfaction and well-being", s: "85% of contact centers track abandonment. 84% track AHT. Only 38% measure the people doing the work." },
+    { n: "$65–249", l: "Per agent per month is just the license", s: "The real cost shows up in labor, deployment, integrations, and whatever your vendor decided not to bundle." },
+    { n: "7", l: "Orchestration layers in a modern CX stack", s: "Distinct vendors, dependencies, and governance requirements at each layer. Most organizations manage this complexity by accident." },
   ];
   return (
     <section style={{ background: WARM, padding: "96px 28px", borderBottom: `1px solid ${BORDER}` }}>
@@ -179,16 +179,21 @@ function WhyNow() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 24, marginTop: 56 }}>
           {stats.map((s, i) => (
             <FadeIn key={i} delay={i * 0.08}>
-              <div style={{ background: "#fff", borderRadius: 12, padding: "32px 24px", border: `1px solid ${BORDER}`, transition: "border-color 0.2s, box-shadow 0.2s", cursor: "default" }}
+              <div style={{ background: "#fff", borderRadius: 12, padding: "32px 24px", border: `1px solid ${BORDER}`, transition: "border-color 0.2s, box-shadow 0.2s", cursor: "default", height: "100%" }}
                 onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "0 4px 18px rgba(0,136,221,0.07)"; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 34, color: ELECTRIC, marginBottom: 6 }}>{s.n}</div>
                 <div style={{ fontSize: 13.5, fontWeight: 600, color: NAVY, marginBottom: 4, lineHeight: 1.4 }}>{s.l}</div>
-                <div style={{ fontSize: 12.5, color: MUTED }}>{s.s}</div>
+                <div style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.5 }}>{s.s}</div>
               </div>
             </FadeIn>
           ))}
         </div>
+        <FadeIn delay={0.4}>
+          <p style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: "italic", fontSize: 18, color: NAVY, lineHeight: 1.7, marginTop: 36, textAlign: "center", maxWidth: 720, margin: "36px auto 0", letterSpacing: "-0.01em", opacity: 0.75 }}>
+            AI is getting deployed fast. Most teams still over-measure speed, under-measure agent health, underestimate total platform cost, and under-manage stack complexity.
+          </p>
+        </FadeIn>
       </div>
     </section>
   );
