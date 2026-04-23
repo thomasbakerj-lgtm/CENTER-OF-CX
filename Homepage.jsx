@@ -10,6 +10,8 @@ const SLATE = "#3A4F6A";
 const MUTED = "#6B7F99";
 const BORDER = "#D8E3ED";
 const AMBER = "#F59E0B";
+const GREEN = "#10B981";
+const RED = "#EF4444";
 
 function useInView(threshold = 0.12) {
   const ref = useRef(null);
