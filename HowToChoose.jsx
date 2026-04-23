@@ -104,7 +104,7 @@ function Hero() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>actually prevent bad decisions.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560, fontFamily: "'DM Sans', sans-serif" }}>
-              Two buyer's guides with independently scored vendor intelligence. Ten interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
+              Two buyer's guides with independently scored vendor intelligence. 15 interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
             </p>
           </div>
         </FadeIn>
@@ -180,6 +180,11 @@ function GuidesList() {
     { title: "CX Roadmap Builder", desc: "Build a phased technology roadmap aligned to your maturity level, budget constraints, and operational priorities.", href: "/tools/roadmap-builder", tag: "Planner" },
     { title: "Integration Planner", desc: "Map your integration landscape — CRM, CCaaS, WEM, knowledge, identity — and identify the dependencies that determine deployment success.", href: "/tools/integration-planner", tag: "Planner" },
     { title: "Business Case Builder", desc: "Build the financial justification for CX technology investment with ROI projections, risk-adjusted scenarios, and executive-ready output.", href: "/tools/business-case", tag: "Builder" },
+    { title: "Staffing Requirement Calculator", desc: "Convert call volume, AHT, SLA target, and shrinkage into required FTE using Erlang C. Sensitivity analysis shows what happens when you are short.", href: "/tools/staffing-calculator", tag: "WFM" },
+    { title: "Shrinkage Planner", desc: "Model planned vs unplanned shrinkage across 8 categories. See the staffing gap it creates and quantify the annual cost of lost capacity.", href: "/tools/shrinkage-planner", tag: "WFM" },
+    { title: "Occupancy Risk Simulator", desc: "See when efficiency becomes burnout. Model how occupancy levels affect idle time, attrition risk, and the hidden cost of pushing utilization too high.", href: "/tools/occupancy-risk", tag: "WFM" },
+    { title: "Forecast Accuracy Tracker", desc: "Compare forecast vs actual by interval and channel. Calculate MAPE, bias, and identify the intervals where your forecast breaks down.", href: "/tools/forecast-accuracy", tag: "WFM" },
+    { title: "Schedule Adherence Calculator", desc: "See how 1-10 points of adherence loss cascade into SLA degradation, ASA spikes, higher abandonment, and overtime cost.", href: "/tools/schedule-adherence", tag: "WFM" },
   ];
 
   return (
@@ -188,7 +193,7 @@ function GuidesList() {
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
             <Label>Interactive Tools</Label>
-            <Title>Ten self-service tools. Each one produces a deliverable you can use immediately.</Title>
+            <Title>15 self-service tools. Each one produces a deliverable you can use immediately.</Title>
             <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>Every tool is email-gated with instant results. No waiting, no sales call required. Your scored output is delivered on-screen the moment you complete the assessment.</p>
           </div>
         </FadeIn>
