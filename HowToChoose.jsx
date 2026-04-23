@@ -104,7 +104,7 @@ function Hero() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>actually prevent bad decisions.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560, fontFamily: "'DM Sans', sans-serif" }}>
-              Two buyer's guides with independently scored vendor intelligence. 25 interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
+              Two buyer's guides with independently scored vendor intelligence. 29 interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
             </p>
           </div>
         </FadeIn>
@@ -195,6 +195,10 @@ function GuidesList() {
     { title: "QA Scorecard Builder", desc: "Build weighted QA evaluation forms by contact type with critical-fail criteria. Three templates. Test evaluation mode.", href: "/tools/qa-scorecard", tag: "Quality" },
     { title: "FCR Leakage Diagnostic", desc: "Identify what drives repeat contacts across 6 dimensions: policy, handoffs, channels, knowledge, skills, workflows.", href: "/tools/fcr-leakage", tag: "Quality" },
     { title: "Calibration Drift Checker", desc: "Enter scores from multiple evaluators on the same calls. See inter-rater reliability, bias, and worst disagreements.", href: "/tools/calibration-drift", tag: "Quality" },
+    { title: "Vendor Match Engine", desc: "Tell us your environment, priorities, and constraints. Get a ranked vendor shortlist with fit reasoning from 276 scored profiles.", href: "/tools/vendor-match", tag: "Selection" },
+    { title: "Platform Decision Matrix", desc: "For each of the 7 orchestration layers, assess your current platform. Get a layer-by-layer recommendation: stay, extend, or replace.", href: "/tools/platform-decision", tag: "Selection" },
+    { title: "Contract Risk Scanner", desc: "Select your contract terms across 7 critical areas. See which clauses protect you and which expose you.", href: "/tools/contract-risk", tag: "Selection" },
+    { title: "Transformation Readiness Scorecard", desc: "Go/no-go assessment across leadership, budget, team, vendor maturity, technical readiness, and change management.", href: "/tools/transformation-readiness", tag: "Selection" },
   ];
 
   return (
@@ -203,7 +207,7 @@ function GuidesList() {
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
             <Label>Interactive Tools</Label>
-            <Title>25 self-service tools. Each one produces a deliverable you can use immediately.</Title>
+            <Title>29 self-service tools. Each one produces a deliverable you can use immediately.</Title>
             <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>Every tool is email-gated with instant results. No waiting, no sales call required. Your scored output is delivered on-screen the moment you complete the assessment.</p>
           </div>
         </FadeIn>
