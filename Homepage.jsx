@@ -358,6 +358,18 @@ function Tools() {
       accent: AMBER,
     },
     {
+      label: "Cost + Economics",
+      sub: "The math the vendor slide skips",
+      items: [
+        { name: "Attrition Cost Calculator", desc: "The full cost of every departure: recruiting, training, ramp, OT, and QA drag.", href: "/tools/attrition-cost" },
+        { name: "Cost per Contact vs Resolution", desc: "Handle cost and resolution cost are different numbers. Most teams confuse them.", href: "/tools/cost-per-contact" },
+        { name: "AI Deflection Reality Check", desc: "Net savings after bot leakage, containment failure, and escalation premiums.", href: "/tools/ai-deflection" },
+        { name: "Channel Shift Economics", desc: "What really happens to staffing when voice migrates to chat, bot, or email.", href: "/tools/channel-shift" },
+        { name: "License Bundle Gap Checker", desc: "Quoted seat price vs what you actually need. The gap runs 40-100%.", href: "/tools/license-gap" },
+      ],
+      accent: RED,
+    },
+    {
       label: "The Human Premium",
       sub: "Career growth in the AI era",
       items: [
