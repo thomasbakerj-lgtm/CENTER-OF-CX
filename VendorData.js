@@ -73,7 +73,7 @@ export const vendors = {
 
   "five9": {
     name: "Five9", slug: "five9", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Enterprise Core", tier: "Strong Contender", score: 78, website: "five9.com",
+    segment: "Enterprise Core", tier: "Strategic Foundation", score: 78, website: "five9.com",
     summary: "Pragmatic enterprise CCaaS with strong outbound heritage and solid market credibility. Five9 balances capability depth with implementation speed and has one of the strongest partner ecosystems in the market. The AI portfolio is growing rapidly, and the platform handles the mid-market to large enterprise range well.",
     strengths: [
       "Balanced platform — strong enough for enterprise complexity, deployable fast enough for mid-market timelines",
@@ -210,7 +210,7 @@ export const vendors = {
 
   "zoom": {
     name: "Zoom Contact Center", slug: "zoom", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Growth Challenger", tier: "Strong Contender", score: 70, website: "zoom.com",
+    segment: "Growth Challenger", tier: "Strong Contender", score: 63, website: "zoom.com",
     summary: "Modern UX and practical AI momentum with strong ecosystem pull from the Zoom installed base. Zoom Contact Center has evolved rapidly from a meeting-adjacent add-on into a credible mid-market CCaaS platform that's beginning to win enterprise deals. The brand familiarity, UX quality, and AI investment are creating real momentum — particularly in digital-first and media/hospitality environments.",
     strengths: [
       "Familiar brand and ecosystem pull — organizations already using Zoom Phone and Meetings can expand into contact center with minimal change management",
@@ -242,7 +242,7 @@ export const vendors = {
 
   "ringcentral": {
     name: "RingCentral RingCX", slug: "ringcentral", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Growth Challenger", tier: "Situational Specialist", score: 64, website: "ringcentral.com",
+    segment: "Growth Challenger", tier: "Strong Contender", score: 64, website: "ringcentral.com",
     summary: "Good UC+CC simplification story and strong channel motion. RingCentral's current RingCX platform should be evaluated separately from the legacy RingCentral Contact Center product. The platform is most compelling in distributed service environments and UC consolidation scenarios where simplicity and channel accessibility matter more than deep enterprise complexity.",
     strengths: [
       "Strong channel leverage and partner accessibility — one of the easiest CCaaS platforms for advisors to carry",
@@ -267,7 +267,7 @@ export const vendors = {
 
   "bright-pattern": {
     name: "Bright Pattern", slug: "bright-pattern", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Growth Challenger", tier: "Situational Specialist", score: 66, website: "brightpattern.com",
+    segment: "Growth Challenger", tier: "Strong Contender", score: 66, website: "brightpattern.com",
     summary: "Useful broad feature set for midmarket service operations where functionality matters more than brand power. Bright Pattern delivers practical omnichannel capability with integrated QM and AI at a competitive price point. A solid midmarket comparator that tends to underperform in high-stakes enterprise selections where ecosystem gravity and prestige signal matter.",
     strengths: [
       "Practical feature breadth covering omnichannel, QM, and AI at a competitive midmarket price point",
@@ -289,7 +289,7 @@ export const vendors = {
 
   "8x8": {
     name: "8x8", slug: "8x8", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Growth Challenger", tier: "Situational Specialist", score: 63, website: "8x8.com",
+    segment: "Growth Challenger", tier: "Strong Contender", score: 63, website: "8x8.com",
     summary: "Value-oriented unified UC+CC platform with practical fit for SMB and midmarket buyers. 8x8 delivers omnichannel contact center capability bundled with unified communications, making it compelling for cost-conscious organizations seeking consolidation. Enterprise gravity is limited.",
     strengths: [
       "Unified UC+CC value proposition for organizations wanting a single-vendor communications and service platform",
@@ -311,7 +311,7 @@ export const vendors = {
 
   "odigo": {
     name: "Odigo", slug: "odigo", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Growth Challenger", tier: "Situational Specialist", score: 64, website: "odigo.com",
+    segment: "Growth Challenger", tier: "Strong Contender", score: 64, website: "odigo.com",
     summary: "Strong regional relevance in Europe, especially in regulated and sovereignty-sensitive sectors. Odigo delivers a credible CCaaS foundation for organizations where European data sovereignty, regulated-industry fit, and regional go-to-market strength matter more than global-market scale.",
     strengths: [
       "Strong sovereignty positioning and European data residency for regulated sectors",
@@ -332,7 +332,7 @@ export const vendors = {
 
   "ujet": {
     name: "UJET", slug: "ujet", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "CCaaS Growth Specialist", tier: "Situational Specialist", score: 61, website: "ujet.cx",
+    segment: "CCaaS Growth Specialist", tier: "Strong Contender", score: 61, website: "ujet.cx",
     summary: "Modern CCaaS story with mobile-first and digital-native relevance. UJET appeals to organizations redesigning customer service around app-centric and digital-native journeys. The platform has genuine AI substance and growing WFM capabilities, but its market footprint is smaller than top-tier leaders.",
     strengths: [
       "Mobile-first and digital-native CX design — strong for app-centric support journeys",
@@ -421,7 +421,7 @@ export const vendors = {
 
   "anywhere-now": {
     name: "AnywhereNow", slug: "anywhere-now", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Teams-Native Specialist", tier: "Situational Specialist", score: 58, website: "anywhere365.io",
+    segment: "Teams-Native Specialist", tier: "Strong Contender", score: 58, website: "anywhere365.io",
     summary: "Relevant Teams-native foundation for Microsoft-standardized enterprise environments. AnywhereNow is compelling when Microsoft Teams is a true strategic constraint and the organization wants contact center capability built natively on Azure and Teams infrastructure. Outside that specific context, its relevance drops significantly.",
     strengths: [
       "True Teams-native architecture — built on Azure and Microsoft stack from the ground up",
@@ -463,7 +463,7 @@ export const vendors = {
 
   "alvaria": {
     name: "Alvaria", slug: "alvaria", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Legacy / Specialist", tier: "Situational Specialist", score: 59, website: "alvaria.com",
+    segment: "Legacy / Specialist", tier: "Limited Fit", score: 59, website: "alvaria.com",
     summary: "Relevant for outreach-heavy and legacy enterprise environments. Alvaria (formerly Aspect + Noble Systems) carries strong outbound and compliant-dialing heritage that remains valuable in collections, outreach, and compliance-intensive outbound scenarios. The broader modern CCaaS narrative is weaker.",
     strengths: [
       "Strong outbound and compliant dialing capabilities — one of the best for collections and compliant outreach",
@@ -505,7 +505,7 @@ export const vendors = {
 
   "luware": {
     name: "Luware", slug: "luware", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
-    segment: "Teams-Native Specialist", tier: "Situational Specialist", score: 55, website: "luware.com",
+    segment: "Teams-Native Specialist", tier: "Strong Contender", score: 55, website: "luware.com",
     summary: "Useful Teams-native customer service platform, especially in Europe. Like AnywhereNow, Luware is only compelling when Microsoft Teams is the mandated communication standard. European-market strength and managed service models are differentiators within this narrow lane.",
     strengths: [
       "Teams-native architecture with European market strength",
