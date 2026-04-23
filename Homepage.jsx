@@ -346,6 +346,18 @@ function Tools() {
       accent: "#006699",
     },
     {
+      label: "WFM + Staffing",
+      sub: "The tools operators actually need daily",
+      items: [
+        { name: "Staffing Requirement Calculator", desc: "Erlang C model. Volume, AHT, SLA, and shrinkage to required FTE with sensitivity analysis.", href: "/tools/staffing-calculator" },
+        { name: "Shrinkage Planner", desc: "Planned vs unplanned shrinkage across 8 categories. See the gap and the cost.", href: "/tools/shrinkage-planner" },
+        { name: "Occupancy Risk Simulator", desc: "When efficiency becomes burnout. The math behind the 85% occupancy threshold.", href: "/tools/occupancy-risk" },
+        { name: "Forecast Accuracy Tracker", desc: "Forecast vs actual by interval and channel. MAPE, bias, and worst-interval analysis.", href: "/tools/forecast-accuracy" },
+        { name: "Schedule Adherence Calculator", desc: "How 1-10 points of adherence loss cascades into SLA, abandonment, and overtime.", href: "/tools/schedule-adherence" },
+      ],
+      accent: AMBER,
+    },
+    {
       label: "The Human Premium",
       sub: "Career growth in the AI era",
       items: [
