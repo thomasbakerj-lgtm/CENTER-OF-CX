@@ -50,6 +50,11 @@ import ShrinkagePlanner from './ShrinkagePlanner'
 import OccupancyRiskSimulator from './OccupancyRiskSimulator'
 import ForecastAccuracyTracker from './ForecastAccuracyTracker'
 import ScheduleAdherenceCalculator from './ScheduleAdherenceCalculator'
+import AttritionCostCalculator from './AttritionCostCalculator'
+import CostPerContactCalculator from './CostPerContactCalculator'
+import AIDeflectionRealityCheck from './AIDeflectionRealityCheck'
+import ChannelShiftModel from './ChannelShiftModel'
+import LicenseBundleGapChecker from './LicenseBundleGapChecker'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -248,6 +253,26 @@ const SEO_MAP = {
     title: `Schedule Adherence Impact Calculator | ${SITE}`,
     desc: "See how 1-10 points of adherence loss cascade into SLA degradation, ASA spikes, higher abandonment, and overtime cost.",
   },
+  "/tools/attrition-cost": {
+    title: `Attrition Cost Calculator | The True Cost of Agent Turnover | ${SITE}`,
+    desc: "Quantify the full cost of every agent departure: recruiting, training, nesting, ramp-to-proficiency, supervisor burden, overtime, and QA drag.",
+  },
+  "/tools/cost-per-contact": {
+    title: `Cost per Contact vs Cost per Resolution Calculator | ${SITE}`,
+    desc: "A $7 call that takes 3 contacts to resolve costs $21. Separate handle cost from resolution cost and quantify the real price of low FCR.",
+  },
+  "/tools/ai-deflection": {
+    title: `AI Deflection Reality Check | Net Savings After the Fine Print | ${SITE}`,
+    desc: "Your vendor says 40% deflection. What does net savings look like after bot leakage, containment failure, escalation premiums, and operating costs?",
+  },
+  "/tools/channel-shift": {
+    title: `Channel Shift Economics Model | ${SITE}`,
+    desc: "What happens when you move voice to chat, bot, or email? Model the real staffing, cost, and transition impact of channel migration.",
+  },
+  "/tools/license-gap": {
+    title: `License Bundle Gap Checker | List Price vs Real Cost | ${SITE}`,
+    desc: "Compare the vendor seat price against what you actually need. WEM, QA, analytics, AI, telephony, storage, support. See the real gap.",
+  },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management — 25 Vendors Scored | ${SITE}`,
     desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
@@ -428,6 +453,11 @@ export default function App() {
         <Route path="/tools/occupancy-risk" element={<OccupancyRiskSimulator />} />
         <Route path="/tools/forecast-accuracy" element={<ForecastAccuracyTracker />} />
         <Route path="/tools/schedule-adherence" element={<ScheduleAdherenceCalculator />} />
+        <Route path="/tools/attrition-cost" element={<AttritionCostCalculator />} />
+        <Route path="/tools/cost-per-contact" element={<CostPerContactCalculator />} />
+        <Route path="/tools/ai-deflection" element={<AIDeflectionRealityCheck />} />
+        <Route path="/tools/channel-shift" element={<ChannelShiftModel />} />
+        <Route path="/tools/license-gap" element={<LicenseBundleGapChecker />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/industries/financial-services" element={<FinancialServicesVertical />} />
