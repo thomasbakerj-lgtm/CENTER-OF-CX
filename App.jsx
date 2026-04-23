@@ -45,6 +45,11 @@ import WEMCategory from './WEMCategory'
 import GatedReport from './GatedReport'
 import HumanPremium from './HumanPremium'
 import ArticleCCaaSCosts from './ArticleCCaaSCosts'
+import StaffingCalculator from './StaffingCalculator'
+import ShrinkagePlanner from './ShrinkagePlanner'
+import OccupancyRiskSimulator from './OccupancyRiskSimulator'
+import ForecastAccuracyTracker from './ForecastAccuracyTracker'
+import ScheduleAdherenceCalculator from './ScheduleAdherenceCalculator'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -163,6 +168,26 @@ const SEO_MAP = {
     title: `Business Case Builder — CX Transformation ROI | ${SITE}`,
     desc: "Model the ROI of your CX transformation. Calculate savings from AHT reduction, self-service containment, attrition improvement, and FCR gains.",
   },
+  "/tools/staffing-calculator": {
+    title: `Staffing Requirement Calculator — Erlang C | ${SITE}`,
+    desc: "Convert call volume, AHT, SLA target, and shrinkage into required FTE using Erlang C. Sensitivity analysis shows the cost of being short even one agent.",
+  },
+  "/tools/shrinkage-planner": {
+    title: `Shrinkage Planner — Planned vs Unplanned | ${SITE}`,
+    desc: "Model planned and unplanned shrinkage categories. See the staffing gap, effective agents, and annual cost of every point of shrinkage.",
+  },
+  "/tools/occupancy-risk": {
+    title: `Occupancy Risk Simulator | ${SITE}`,
+    desc: "See when efficiency becomes burnout. Model how occupancy levels affect agent idle time, attrition risk, and the hidden cost of pushing utilization too high.",
+  },
+  "/tools/forecast-accuracy": {
+    title: `Forecast Accuracy Tracker | ${SITE}`,
+    desc: "Compare forecast vs actual by period and channel. Identify bias, measure accuracy, and quantify the cost of forecast error.",
+  },
+  "/tools/schedule-adherence": {
+    title: `Schedule Adherence Impact Calculator | ${SITE}`,
+    desc: "See how 2-5 points of adherence loss cascades into ASA degradation, SLA misses, higher abandonment, and overtime cost.",
+  },
   "/industries": {
     title: `Industries | ${SITE}`,
     desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and education.",
@@ -202,6 +227,26 @@ const SEO_MAP = {
   "/research/orchestration-framework": {
     title: `The 7-Layer CX Orchestration Framework 2026 | ${SITE}`,
     desc: "How every layer connects, who owns each one, and what to prepare for in the next 12 months. Layer-by-layer deep dives, integration dependencies, and a 14-question readiness checklist.",
+  },
+  "/tools/staffing-calculator": {
+    title: `Staffing Requirement Calculator | Erlang C Staffing Model | ${SITE}`,
+    desc: "Convert call volume, AHT, SLA target, and shrinkage into required FTE using Erlang C. Sensitivity analysis shows exactly what happens when you are short.",
+  },
+  "/tools/shrinkage-planner": {
+    title: `Shrinkage Planner | Planned vs Unplanned Shrinkage Modeling | ${SITE}`,
+    desc: "Model planned and unplanned shrinkage across 8 categories. See the staffing gap it creates and quantify the annual cost of lost capacity.",
+  },
+  "/tools/occupancy-risk": {
+    title: `Occupancy Risk Simulator | When Efficiency Becomes Burnout | ${SITE}`,
+    desc: "See how occupancy levels affect agent idle time, burnout risk, attrition, and hidden turnover costs. The math behind the 85% occupancy threshold.",
+  },
+  "/tools/forecast-accuracy": {
+    title: `Forecast Accuracy Tracker | Forecast vs Actual by Interval | ${SITE}`,
+    desc: "Compare forecast vs actual by interval and channel. Calculate MAPE, bias, and identify the intervals where your forecast breaks down.",
+  },
+  "/tools/schedule-adherence": {
+    title: `Schedule Adherence Impact Calculator | ${SITE}`,
+    desc: "See how 1-10 points of adherence loss cascade into SLA degradation, ASA spikes, higher abandonment, and overtime cost.",
   },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management — 25 Vendors Scored | ${SITE}`,
@@ -378,6 +423,11 @@ export default function App() {
         <Route path="/tools/roadmap-builder" element={<RoadmapBuilder />} />
         <Route path="/tools/integration-planner" element={<IntegrationPlanner />} />
         <Route path="/tools/business-case" element={<BusinessCaseBuilder />} />
+        <Route path="/tools/staffing-calculator" element={<StaffingCalculator />} />
+        <Route path="/tools/shrinkage-planner" element={<ShrinkagePlanner />} />
+        <Route path="/tools/occupancy-risk" element={<OccupancyRiskSimulator />} />
+        <Route path="/tools/forecast-accuracy" element={<ForecastAccuracyTracker />} />
+        <Route path="/tools/schedule-adherence" element={<ScheduleAdherenceCalculator />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/industries/financial-services" element={<FinancialServicesVertical />} />
