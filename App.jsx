@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import Homepage from './Homepage'
 import PlatformsTech from './PlatformsTech'
 import About from './About'
@@ -349,6 +350,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <SEOManager />
+      <Analytics />
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/platforms-and-tech" element={<PlatformsTech />} />
