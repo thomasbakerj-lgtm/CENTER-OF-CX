@@ -55,6 +55,11 @@ import CostPerContactCalculator from './CostPerContactCalculator'
 import AIDeflectionRealityCheck from './AIDeflectionRealityCheck'
 import ChannelShiftModel from './ChannelShiftModel'
 import LicenseBundleGapChecker from './LicenseBundleGapChecker'
+import AHTDecomposition from './AHTDecomposition'
+import AgentExperienceDiagnostic from './AgentExperienceDiagnostic'
+import QAScorecardBuilder from './QAScorecardBuilder'
+import FCRLeakageDiagnostic from './FCRLeakageDiagnostic'
+import CalibrationDriftChecker from './CalibrationDriftChecker'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -273,6 +278,26 @@ const SEO_MAP = {
     title: `License Bundle Gap Checker | List Price vs Real Cost | ${SITE}`,
     desc: "Compare the vendor seat price against what you actually need. WEM, QA, analytics, AI, telephony, storage, support. See the real gap.",
   },
+  "/tools/aht-decomposition": {
+    title: `AHT Decomposition Tool | Break Handle Time Into Actionable Components | ${SITE}`,
+    desc: "Stop reducing AHT generically. Break it into talk, hold, wrap, transfer, search, and admin. Target the segments that are reducible without hurting quality.",
+  },
+  "/tools/agent-experience": {
+    title: `Agent Experience Diagnostic | Five Dimensions That Drive Retention | ${SITE}`,
+    desc: "Assess schedule control, tooling, knowledge, supervisor quality, and career visibility. Scored output with attrition risk projection.",
+  },
+  "/tools/qa-scorecard": {
+    title: `QA Scorecard Builder | Weighted Evaluation Forms by Contact Type | ${SITE}`,
+    desc: "Build context-specific QA scorecards with weighted dimensions and critical-fail criteria. Test with a sample evaluation. Three templates included.",
+  },
+  "/tools/fcr-leakage": {
+    title: `FCR Leakage Diagnostic | What Drives Repeat Contacts | ${SITE}`,
+    desc: "Low FCR is a symptom. This tool identifies the root cause across policy, handoffs, channels, knowledge, skills, and workflows.",
+  },
+  "/tools/calibration-drift": {
+    title: `Calibration Drift Checker | QA Evaluator Consistency Analysis | ${SITE}`,
+    desc: "Enter scores from multiple evaluators on the same calls. See inter-rater reliability, evaluator bias, and the calls that generate the most disagreement.",
+  },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management — 25 Vendors Scored | ${SITE}`,
     desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
@@ -458,6 +483,11 @@ export default function App() {
         <Route path="/tools/ai-deflection" element={<AIDeflectionRealityCheck />} />
         <Route path="/tools/channel-shift" element={<ChannelShiftModel />} />
         <Route path="/tools/license-gap" element={<LicenseBundleGapChecker />} />
+        <Route path="/tools/aht-decomposition" element={<AHTDecomposition />} />
+        <Route path="/tools/agent-experience" element={<AgentExperienceDiagnostic />} />
+        <Route path="/tools/qa-scorecard" element={<QAScorecardBuilder />} />
+        <Route path="/tools/fcr-leakage" element={<FCRLeakageDiagnostic />} />
+        <Route path="/tools/calibration-drift" element={<CalibrationDriftChecker />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/industries/financial-services" element={<FinancialServicesVertical />} />
