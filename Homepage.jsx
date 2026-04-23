@@ -372,6 +372,18 @@ function Tools() {
       accent: RED,
     },
     {
+      label: "Performance + Quality",
+      sub: "Measure what actually drives outcomes",
+      items: [
+        { name: "AHT Decomposition Tool", desc: "Break handle time into talk, hold, wrap, transfer, search, and admin. Target the reducible parts.", href: "/tools/aht-decomposition" },
+        { name: "Agent Experience Diagnostic", desc: "Five dimensions that drive retention: schedule, tooling, knowledge, coaching, career.", href: "/tools/agent-experience" },
+        { name: "QA Scorecard Builder", desc: "Weighted evaluation forms by contact type with critical-fail criteria and test evaluation.", href: "/tools/qa-scorecard" },
+        { name: "FCR Leakage Diagnostic", desc: "What drives repeat contacts: policy, handoffs, channels, knowledge, skills, or workflows.", href: "/tools/fcr-leakage" },
+        { name: "Calibration Drift Checker", desc: "Measure evaluator consistency. Make calibration sessions data-driven.", href: "/tools/calibration-drift" },
+      ],
+      accent: "#7C3AED",
+    },
+    {
       label: "The Human Premium",
       sub: "Career growth in the AI era",
       items: [
