@@ -104,7 +104,7 @@ function Hero() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>actually prevent bad decisions.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560, fontFamily: "'DM Sans', sans-serif" }}>
-              Two buyer's guides with independently scored vendor intelligence. 20 interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
+              Two buyer's guides with independently scored vendor intelligence. 25 interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
             </p>
           </div>
         </FadeIn>
@@ -190,6 +190,11 @@ function GuidesList() {
     { title: "AI Deflection Reality Check", desc: "Net savings after bot leakage, containment failure, escalation premiums, platform cost, and ongoing tuning. The math the vendor slide skips.", href: "/tools/ai-deflection", tag: "Cost" },
     { title: "Channel Shift Economics Model", desc: "What happens when you move 10-20% of voice to chat, bot, or email? Model real staffing, cost, and transition impact.", href: "/tools/channel-shift", tag: "Cost" },
     { title: "License Bundle Gap Checker", desc: "Compare the vendor seat price against what you actually need. WEM, QA, analytics, AI, telephony, storage. See the gap.", href: "/tools/license-gap", tag: "Cost" },
+    { title: "AHT Decomposition Tool", desc: "Break handle time into talk, hold, wrap, transfer, search, and admin. Target the reducible segments without hurting quality.", href: "/tools/aht-decomposition", tag: "Quality" },
+    { title: "Agent Experience Diagnostic", desc: "Assess schedule control, tooling friction, knowledge gaps, supervisor quality, and career visibility. Scored with attrition risk.", href: "/tools/agent-experience", tag: "Quality" },
+    { title: "QA Scorecard Builder", desc: "Build weighted QA evaluation forms by contact type with critical-fail criteria. Three templates. Test evaluation mode.", href: "/tools/qa-scorecard", tag: "Quality" },
+    { title: "FCR Leakage Diagnostic", desc: "Identify what drives repeat contacts across 6 dimensions: policy, handoffs, channels, knowledge, skills, workflows.", href: "/tools/fcr-leakage", tag: "Quality" },
+    { title: "Calibration Drift Checker", desc: "Enter scores from multiple evaluators on the same calls. See inter-rater reliability, bias, and worst disagreements.", href: "/tools/calibration-drift", tag: "Quality" },
   ];
 
   return (
@@ -198,7 +203,7 @@ function GuidesList() {
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
             <Label>Interactive Tools</Label>
-            <Title>20 self-service tools. Each one produces a deliverable you can use immediately.</Title>
+            <Title>25 self-service tools. Each one produces a deliverable you can use immediately.</Title>
             <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>Every tool is email-gated with instant results. No waiting, no sales call required. Your scored output is delivered on-screen the moment you complete the assessment.</p>
           </div>
         </FadeIn>
