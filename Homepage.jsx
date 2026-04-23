@@ -384,6 +384,17 @@ function Tools() {
       accent: "#7C3AED",
     },
     {
+      label: "Vendor Selection",
+      sub: "From shortlist to signed contract",
+      items: [
+        { name: "Vendor Match Engine", desc: "Ranked shortlist based on your environment, priorities, and constraints.", href: "/tools/vendor-match" },
+        { name: "Platform Decision Matrix", desc: "Stay, extend, or replace. Layer-by-layer recommendation.", href: "/tools/platform-decision" },
+        { name: "Contract Risk Scanner", desc: "7 critical contract terms analyzed. See the red flags before you sign.", href: "/tools/contract-risk" },
+        { name: "Transformation Readiness", desc: "The go/no-go assessment. Six dimensions. Phased recommendation.", href: "/tools/transformation-readiness" },
+      ],
+      accent: ELECTRIC,
+    },
+    {
       label: "The Human Premium",
       sub: "Career growth in the AI era",
       items: [
