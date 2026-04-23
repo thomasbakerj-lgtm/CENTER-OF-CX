@@ -60,6 +60,10 @@ import AgentExperienceDiagnostic from './AgentExperienceDiagnostic'
 import QAScorecardBuilder from './QAScorecardBuilder'
 import FCRLeakageDiagnostic from './FCRLeakageDiagnostic'
 import CalibrationDriftChecker from './CalibrationDriftChecker'
+import VendorMatchEngine from './VendorMatchEngine'
+import PlatformDecisionMatrix from './PlatformDecisionMatrix'
+import ContractRiskScanner from './ContractRiskScanner'
+import TransformationReadiness from './TransformationReadiness'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -298,6 +302,22 @@ const SEO_MAP = {
     title: `Calibration Drift Checker | QA Evaluator Consistency Analysis | ${SITE}`,
     desc: "Enter scores from multiple evaluators on the same calls. See inter-rater reliability, evaluator bias, and the calls that generate the most disagreement.",
   },
+  "/tools/vendor-match": {
+    title: `Vendor Match Engine | Ranked Shortlist for Your Environment | ${SITE}`,
+    desc: "Tell us your operation size, vertical, priorities, and constraints. Get a ranked vendor shortlist with fit scores from 276 independently scored profiles.",
+  },
+  "/tools/platform-decision": {
+    title: `Platform Decision Matrix | Stay, Extend, or Replace by Layer | ${SITE}`,
+    desc: "Assess your current platform across all 7 orchestration layers. Get a layer-by-layer recommendation: stay, extend, evaluate, or replace.",
+  },
+  "/tools/contract-risk": {
+    title: `Contract Risk Scanner | Find Red Flags Before You Sign | ${SITE}`,
+    desc: "Select your contract terms across 7 critical areas. See which clauses protect you, which expose you, and what to renegotiate.",
+  },
+  "/tools/transformation-readiness": {
+    title: `Transformation Readiness Scorecard | Go/No-Go Assessment | ${SITE}`,
+    desc: "Score leadership alignment, budget realism, team capacity, vendor maturity, technical readiness, and change management. Get a phased recommendation.",
+  },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management — 25 Vendors Scored | ${SITE}`,
     desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
@@ -488,6 +508,10 @@ export default function App() {
         <Route path="/tools/qa-scorecard" element={<QAScorecardBuilder />} />
         <Route path="/tools/fcr-leakage" element={<FCRLeakageDiagnostic />} />
         <Route path="/tools/calibration-drift" element={<CalibrationDriftChecker />} />
+        <Route path="/tools/vendor-match" element={<VendorMatchEngine />} />
+        <Route path="/tools/platform-decision" element={<PlatformDecisionMatrix />} />
+        <Route path="/tools/contract-risk" element={<ContractRiskScanner />} />
+        <Route path="/tools/transformation-readiness" element={<TransformationReadiness />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/industries/financial-services" element={<FinancialServicesVertical />} />
