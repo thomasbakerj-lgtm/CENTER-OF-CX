@@ -88,10 +88,10 @@ function Nav() {
 }
 
 const tierConfig = {
-  "Strategic Foundation": { color: GREEN, bg: `${GREEN}08`, border: `${GREEN}20`, label: "85–100", desc: "Vendors that can credibly anchor serious enterprise or regulated CCaaS programs with broad platform substance." },
-  "Strong Contender": { color: ELECTRIC, bg: `${ELECTRIC}08`, border: `${ELECTRIC}20`, label: "70–84", desc: "Strong platforms with clear relevance and meaningful differentiation, but narrower universality than top-tier leaders." },
-  "Situational Specialist": { color: AMBER, bg: `${AMBER}08`, border: `${AMBER}20`, label: "55–69", desc: "Useful in defined motions, segments, or regions. Credible in their lane but should be qualified carefully for broader enterprise needs." },
-  "Limited Fit": { color: RED, bg: `${RED}08`, border: `${RED}20`, label: "Below 55", desc: "Relevant only for SMB or narrow use cases. Should not appear in enterprise-scale evaluations." },
+  "Strategic Foundation": { color: GREEN, bg: `${GREEN}08`, border: `${GREEN}20`, label: "Top Tier Core", desc: "Vendors that can credibly anchor serious enterprise or regulated CCaaS programs with broad platform substance. Default benchmarks in any enterprise evaluation." },
+  "Strong Contender": { color: ELECTRIC, bg: `${ELECTRIC}08`, border: `${ELECTRIC}20`, label: "Upper-Mid Core", desc: "Strong platforms with clear relevance and meaningful differentiation. Credible enterprise or mid-market options with specific strengths that can outperform top-tier leaders in defined scenarios." },
+  "Situational Specialist": { color: AMBER, bg: `${AMBER}08`, border: `${AMBER}20`, label: "Specialist", desc: "Useful in defined motions, segments, or regions. Legacy bridge, regional, or niche strength. Qualified carefully for broader enterprise needs." },
+  "Limited Fit": { color: RED, bg: `${RED}08`, border: `${RED}20`, label: "Narrow Fit", desc: "Relevant for SMB, narrow use cases, or legacy outbound. Should not appear in enterprise-scale evaluations without specific justification." },
   "Adjacent": { color: PURPLE, bg: `${PURPLE}08`, border: `${PURPLE}20`, label: "N/A", desc: "Influential to CX stack design but evaluated as adjacent platforms, not core CCaaS foundation." },
 };
 
@@ -311,7 +311,7 @@ export default function CCaaSCategory() {
           <FadeIn delay={0.3}>
             <div style={{ marginTop: 32, textAlign: "center" }}>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", maxWidth: 600, margin: "0 auto" }}>
-                Tier placement follows the composite score: Strategic Foundation (85–100), Strong Contender (70–84), Situational Specialist (55–69), Limited Fit (below 55). Adjacent platforms are tracked for CX stack influence and are evaluated separately from the core CCaaS bell curve.
+                Tier placement is analyst-assigned based on market position, platform substance, and enterprise credibility — not a formula. The weighted composite score provides a quantitative benchmark. 24 core vendors scored across 27 dimensions. 4 adjacent platforms tracked for CX stack influence.
               </p>
             </div>
           </FadeIn>
