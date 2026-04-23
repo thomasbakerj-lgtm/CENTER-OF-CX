@@ -87,7 +87,7 @@ export default function CXMaturity() {
     if (!email.includes("@")) return;
     setSending(true);
     try {
-      await fetch("https://formspree.io/f/xdaygjev", {
+      await fetch("https://formspree.io/f/mdaygjev", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name, company, tool: "CX Maturity Assessment", _subject: "CX Maturity Assessment Access" }),
@@ -100,7 +100,7 @@ export default function CXMaturity() {
   const handleResults = async () => {
     const dimResults = DIMS.map(d => `${d.name}: ${dimScore(d.id).toFixed(1)}/5`).join(" | ");
     try {
-      await fetch("https://formspree.io/f/xdaygjev", {
+      await fetch("https://formspree.io/f/mdaygjev", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, name, company, tool: "CX Maturity Assessment", overallScore: overallScore.toFixed(2), tier: tier.tier, dimensions: dimResults, _subject: `CX Maturity: ${tier.tier} (${overallScore.toFixed(1)}/5) — ${company || name || email}` }),
