@@ -104,7 +104,7 @@ function Hero() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>actually prevent bad decisions.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560, fontFamily: "'DM Sans', sans-serif" }}>
-              Two buyer's guides with independently scored vendor intelligence. 15 interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
+              Two buyer's guides with independently scored vendor intelligence. 20 interactive tools that produce scored, actionable output. No placeholder content — everything on this page is live and ready to use.
             </p>
           </div>
         </FadeIn>
@@ -185,6 +185,11 @@ function GuidesList() {
     { title: "Occupancy Risk Simulator", desc: "See when efficiency becomes burnout. Model how occupancy levels affect idle time, attrition risk, and the hidden cost of pushing utilization too high.", href: "/tools/occupancy-risk", tag: "WFM" },
     { title: "Forecast Accuracy Tracker", desc: "Compare forecast vs actual by interval and channel. Calculate MAPE, bias, and identify the intervals where your forecast breaks down.", href: "/tools/forecast-accuracy", tag: "WFM" },
     { title: "Schedule Adherence Calculator", desc: "See how 1-10 points of adherence loss cascade into SLA degradation, ASA spikes, higher abandonment, and overtime cost.", href: "/tools/schedule-adherence", tag: "WFM" },
+    { title: "Attrition Cost Calculator", desc: "Quantify the full cost of every agent departure: recruiting, training, nesting, ramp-to-proficiency, supervisor burden, and QA drag.", href: "/tools/attrition-cost", tag: "Cost" },
+    { title: "Cost per Contact vs Resolution", desc: "A $7 call that takes 3 contacts to resolve costs $21. Separate handle cost from resolution cost and see the real price of low FCR.", href: "/tools/cost-per-contact", tag: "Cost" },
+    { title: "AI Deflection Reality Check", desc: "Net savings after bot leakage, containment failure, escalation premiums, platform cost, and ongoing tuning. The math the vendor slide skips.", href: "/tools/ai-deflection", tag: "Cost" },
+    { title: "Channel Shift Economics Model", desc: "What happens when you move 10-20% of voice to chat, bot, or email? Model real staffing, cost, and transition impact.", href: "/tools/channel-shift", tag: "Cost" },
+    { title: "License Bundle Gap Checker", desc: "Compare the vendor seat price against what you actually need. WEM, QA, analytics, AI, telephony, storage. See the gap.", href: "/tools/license-gap", tag: "Cost" },
   ];
 
   return (
@@ -193,7 +198,7 @@ function GuidesList() {
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
             <Label>Interactive Tools</Label>
-            <Title>15 self-service tools. Each one produces a deliverable you can use immediately.</Title>
+            <Title>20 self-service tools. Each one produces a deliverable you can use immediately.</Title>
             <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>Every tool is email-gated with instant results. No waiting, no sales call required. Your scored output is delivered on-screen the moment you complete the assessment.</p>
           </div>
         </FadeIn>
