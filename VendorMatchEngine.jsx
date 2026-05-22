@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 960, margin: "0 auto", padding: "0 28px" };
@@ -435,6 +436,46 @@ export default function VendorMatchEngine() {
               </>)}
             </div>);
           })}
+        </div>
+
+        {/* Download report */}
+        <div style={{marginBottom:20}}>
+          <ReportExport
+            toolName="Vendor Match Analysis"
+            subtitle={`${d.size} · ${d.vertical} · ${d.priorities.length} priorities weighted`}
+            userName={name}
+            userEmail={email}
+            sections={[
+              { title: "Environment", type: "table", rows: [
+                ["Vertical", d.vertical || "Not specified"],
+                ["Operation Size", d.size || "Not specified"],
+                ["Current Platform", d.currentPlatform && d.currentPlatform !== "None / Greenfield" ? d.currentPlatform : "Greenfield / not specified"],
+                ["Priorities", d.priorities.map(p => PRIORITIES.find(pr => pr.id === p)?.name || p).join(", ") || "None selected"],
+                ["Compliance Requirements", d.compliance.join(", ") || "None selected"],
+                ["Budget Sensitivity", d.budgetSensitivity],
+                ["Billing Preference", d.billingPreference],
+                ["Contract Term", d.termLength],
+              ]},
+              { title: "Vendor Shortlist — Top 5", type: "findings", items: results.slice(0, 5).map((v, i) => `#${i+1} ${v.name} (Fit Score: ${v.score}) — ${v.tier}. ${v.strengths[0] || ""}`) },
+              { title: "Fit Scores", type: "metrics", items: results.slice(0, 4).map(v => ({
+                label: v.name.split(" ")[0],
+                value: v.score.toString(),
+                color: v.score >= 85 ? GREEN : v.score >= 70 ? AMBER : MUTED,
+                sub: v.score >= 85 ? "Strong Fit" : v.score >= 70 ? "Good Fit" : "Conditional",
+              })) },
+              { title: "Top Match Intelligence", type: "actions", items: results.slice(0, 3).map((v, i) => ({
+                action: `${v.name}`,
+                detail: `Strengths: ${v.strengths.join("; ")}. Risk: ${v.risks[0] || "N/A"}.${v.integrations && v.integrations.length > 0 ? ` Verified integrations: ${v.integrations.join(", ")}.` : ""}`,
+                priority: i === 0 ? "high" : undefined,
+              })) },
+              { title: "Recommended Next Steps", type: "next", items: [
+                { tool: "Platform Decision Matrix", reason: "Assess your current platform across all 7 layers before committing" },
+                { tool: "Contract Risk Scanner", reason: "Analyze contract terms before signing with your top match" },
+                { tool: "Transformation Readiness", reason: "Confirm organizational readiness before starting implementation" },
+              ]},
+              { title: "Important Note", type: "text", content: "This shortlist is generated from independently scored vendor data across 27 weighted dimensions. Vendor fit depends on details this tool cannot capture: integration complexity, contract terms, implementation timelines, and organizational readiness. Use this as a starting point for deeper evaluation, not as a final decision." },
+            ]}
+          />
         </div>
 
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:24}} className="pg">
