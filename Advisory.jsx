@@ -52,11 +52,11 @@ function Nav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   const links = [
-    { name: "Platforms & Tech", href: "/platforms-and-tech" },
-    { name: "How to Choose", href: "/how-to-choose" },
+    { name: "Vendors", href: "/vendors" },
+    { name: "Tools", href: "/how-to-choose" },
     { name: "Research", href: "/research" },
     { name: "Vendors", href: "/vendors" },
-    { name: "Advisory", href: "/advisory" },
+    { name: "The Human Premium", href: "/human-premium" },
   ];
   return (
     <>
@@ -76,7 +76,7 @@ function Nav() {
           </a>
           <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
             {links.map((l, i) => <a key={l.name} href={l.href} style={{ color: l.name === "Advisory" ? "#fff" : "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: l.name === "Advisory" ? 600 : 500, fontFamily: "'DM Sans', sans-serif", transition: "color 0.2s", borderBottom: l.name === "Advisory" ? `2px solid ${ELECTRIC}` : "2px solid transparent", paddingBottom: 2 }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = l.name === "Advisory" ? "#fff" : "rgba(255,255,255,0.7)"}>{l.name}</a>)}
-            <a href="/contact" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif" }}>Request Briefing</a>
+            <a href="/contact" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif" }}>Subscribe</a>
           </div>
         </div>
       </nav>
