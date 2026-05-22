@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -165,9 +166,52 @@ export default function StaffingCalculator() {
                 <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, margin: 0 }}>Erlang C formula. Industry standard for contact center staffing. Models probability of waiting based on traffic intensity, then iterates to find minimum agents meeting your service level. Shrinkage applied post-calculation. Assumes random arrivals and exponential service times.</p>
               </div>
 
-              <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
+                <ReportExport
+                  toolName="Staffing Requirement Calculator"
+                  subtitle="Erlang C Staffing Analysis"
+                  userName={name}
+                  userEmail={email}
+                  sections={[
+                    { title: "Input Parameters", type: "table", rows: [
+                      ["Contacts per Interval", vol.toString()],
+                      ["Interval Length", `${intv} minutes`],
+                      ["Average Handle Time", `${Math.floor(aht/60)}m ${aht%60}s (${aht}s)`],
+                      ["Service Level Target", `${slT}% in ${slS} seconds`],
+                      ["Total Shrinkage", `${shrink}%`],
+                      ["Traffic Intensity", `${r.A.toFixed(1)} Erlangs`],
+                      ["Industry Preset", PRESETS[preset]?.label || "Custom"],
+                    ]},
+                    { title: "Staffing Results", type: "metrics", items: [
+                      { label: "Base Agents Required", value: r.raw.toString(), color: ELECTRIC, sub: "Before shrinkage" },
+                      { label: "Scheduled FTE", value: r.sched.toString(), color: NAVY, sub: `With ${shrink}% shrinkage` },
+                      { label: "Occupancy", value: `${(r.occ*100).toFixed(1)}%`, color: r.occ > 0.90 ? RED : r.occ > 0.85 ? AMBER : GREEN },
+                      { label: "Service Level", value: `${(r.sl*100).toFixed(1)}%`, color: r.sl >= slT/100 ? GREEN : RED },
+                      { label: "Avg Speed of Answer", value: asaD, color: ELECTRIC },
+                      { label: "Probability of Wait", value: `${(r.pw*100).toFixed(1)}%`, color: MUTED },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      `At ${vol} contacts per ${intv}-minute interval with ${Math.floor(aht/60)}m ${aht%60}s AHT, you need ${r.raw} agents on the phones to meet ${slT}/${slS} service level.`,
+                      `After applying ${shrink}% shrinkage, you need ${r.sched} scheduled FTE.`,
+                      r.occ > 0.88 ? `Current occupancy of ${(r.occ*100).toFixed(0)}% is above the burnout threshold. Attrition risk is elevated.` : `Occupancy at ${(r.occ*100).toFixed(0)}% is within a healthy operating range.`,
+                      `A 20% volume spike would require ${calc(Math.round(vol*1.2), aht, intv, slT/100, slS, shrink/100).sched} FTE (+${calc(Math.round(vol*1.2), aht, intv, slT/100, slS, shrink/100).sched - r.sched} agents).`,
+                    ]},
+                    { title: "Recommended Actions", type: "actions", items: [
+                      ...(r.occ > 0.88 ? [{ action: "Address occupancy risk immediately", detail: `At ${(r.occ*100).toFixed(0)}%, agents have insufficient recovery time between contacts. Target 82-85% occupancy by adding ${Math.ceil(r.raw * (r.occ - 0.85) / 0.85)} agents or reducing volume through AI deflection.`, priority: "high" }] : []),
+                      ...(shrink > 32 ? [{ action: "Investigate shrinkage composition", detail: `${shrink}% total shrinkage is above the 28-30% industry benchmark. Use the Shrinkage Planner to identify which categories are driving the gap.`, priority: "medium" }] : []),
+                      { action: "Model AHT reduction opportunities", detail: `A 10% AHT reduction (${aht}s → ${Math.round(aht*0.9)}s) would reduce base staffing from ${r.raw} to ${calc(vol, Math.round(aht*0.9), intv, slT/100, slS, shrink/100).raw} agents. Use the AHT Decomposition tool to identify reducible components.`, priority: "medium" },
+                      { action: "Build contingency for volume spikes", detail: `Plan for +20% volume scenarios. Identify ${calc(Math.round(vol*1.2), aht, intv, slT/100, slS, shrink/100).sched - r.sched} agents who can be activated through overtime, cross-training, or BPO partnership.` },
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Shrinkage Planner", reason: "Break shrinkage into 8 categories and identify what is driving the gap" },
+                      { tool: "AHT Decomposition", reason: "Identify which AHT components are reducible without hurting quality" },
+                      { tool: "Attrition Cost Calculator", reason: "Quantify the cost if occupancy-driven burnout increases turnover" },
+                    ]},
+                    { title: "Methodology", type: "text", content: "Calculated using the Erlang C formula — the industry standard for contact center staffing models. Assumes random call arrivals (Poisson distribution) and exponential service times. Shrinkage is applied post-calculation to convert base agents to scheduled FTE. What-if scenarios model sensitivity to volume spikes, AHT increases, and service level changes." },
+                  ]}
+                />
                 <a href="/vendors/wem-qm" style={{ background: ELECTRIC, color: "#fff", fontSize: 13, fontWeight: 600, padding: "11px 20px", borderRadius: 7 }}>Explore WFM Vendors</a>
-                <a href="/tco-calculator" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 13, fontWeight: 600, padding: "11px 20px", borderRadius: 7 }}>TCO Calculator</a>
+                <a href="/tools/shrinkage-planner" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 13, fontWeight: 600, padding: "11px 20px", borderRadius: 7 }}>Shrinkage Planner</a>
                 <a href="/how-to-choose" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 13, fontWeight: 600, padding: "11px 20px", borderRadius: 7 }}>All Tools</a>
               </div>
             </div>
