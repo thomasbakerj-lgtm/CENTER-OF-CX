@@ -15,7 +15,7 @@ return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:
 <a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={34}/><span style={{color:"#fff",fontWeight:600,fontSize:14.5,letterSpacing:0.4}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a>
 <div className="nav-links" style={{display:"flex",alignItems:"center",gap:28}}>
 {links.map(l=><a key={l.name} href={l.href} style={{color:"rgba(255,255,255,0.7)",fontSize:13.5,fontWeight:500,transition:"color 0.2s"}} onMouseOver={e=>e.target.style.color="#fff"} onMouseOut={e=>e.target.style.color="rgba(255,255,255,0.7)"}>{l.name}</a>)}
-<a href="/contact" style={{color:"#fff",fontSize:13,fontWeight:600,background:ELECTRIC,padding:"9px 20px",borderRadius:6}}>Request Briefing</a>
+<a href="/contact" style={{color:"#fff",fontSize:13,fontWeight:600,background:ELECTRIC,padding:"9px 20px",borderRadius:6}}>Subscribe</a>
 </div></div></nav></>)}
 
 const resources = [
@@ -31,7 +31,7 @@ const resources = [
   },
   {
     name: "CX Dive",
-    url: "https://www.customerexperiencedive.com",
+    url: "https://www.cxdive.com",
     tag: "News",
     tagColor: "#0088DD",
     take: "Best straight-news destination for CX. Operated by Informa TechTarget with tight focus on customer service, personalization, loyalty, AI, and broader CX trends. Clean reporting without vendor influence.",
