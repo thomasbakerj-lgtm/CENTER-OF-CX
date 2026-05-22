@@ -55,11 +55,11 @@ function Nav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   const links = [
-    { name: "Platforms & Tech", href: "/platforms-and-tech" },
-    { name: "How to Choose", href: "/how-to-choose" },
-    { name: "Research", href: "/research" },
     { name: "Vendors", href: "/vendors" },
-    { name: "Advisory", href: "/advisory" },
+    { name: "Tools", href: "/how-to-choose" },
+    { name: "Industries", href: "/industries" },
+    { name: "Research", href: "/research" },
+    { name: "The Human Premium", href: "/human-premium" },
   ];
   return (
     <>
@@ -79,7 +79,7 @@ function Nav() {
           </a>
           <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
             {links.map(l => <a key={l.name} href={l.href} style={{ color: l.name === "Vendors" ? "#fff" : "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: l.name === "Vendors" ? 600 : 500, fontFamily: "'DM Sans', sans-serif", transition: "color 0.2s", borderBottom: l.name === "Vendors" ? `2px solid ${ELECTRIC}` : "2px solid transparent", paddingBottom: 2 }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = l.name === "Vendors" ? "#fff" : "rgba(255,255,255,0.7)"}>{l.name}</a>)}
-            <a href="/contact" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif" }}>Request Briefing</a>
+            <a href="/subscribe" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif" }}>Subscribe</a>
           </div>
         </div>
       </nav>
@@ -101,7 +101,7 @@ const scoringGroups = [
   { name: "AI Substance", weight: 20, dims: ["Agent Copilot (6)", "Supervisor Copilot (3)", "Knowledge Grounding (4)", "AI Orchestration / Journey Intelligence (7)"] },
   { name: "Architecture", weight: 16, dims: ["Cloud-Native Depth (4)", "API / Extensibility (5)", "Marketplace / Ecosystem (4)", "Hybrid / Migration Support (3)"] },
   { name: "Enterprise Readiness", weight: 15, dims: ["Security / Compliance (6)", "Availability / Resilience (4)", "Global Scale / Data Residency (5)"] },
-  { name: "Commercial & Market Fit", weight: 11, dims: ["Partner Leverage (4)", "Time-to-Value (3)", "Services Burden (2)", "Vertical Credibility (5)", "BPO Suitability (2)", "SMB-Midmarket Fit (2)"] },
+  { name: "Commercial + Market Fit", weight: 18, dims: ["Partner Leverage (4)", "Time-to-Value (3)", "Services Burden (2)", "Vertical Credibility (5)", "BPO Suitability (2)", "SMB-Midmarket Fit (2)"] },
 ];
 
 export default function CCaaSCategory() {
@@ -143,19 +143,17 @@ export default function CCaaSCategory() {
               {core.length} vendors scored across 27 weighted dimensions covering platform depth, workforce maturity, AI substance, architecture, enterprise readiness, and commercial fit. Every score is sourced, weighted, and placed on a maturity bell curve.
             </p>
           </FadeIn>
-          <FadeIn delay={0.1}>
-            <div style={{ display: "flex", gap: 20, marginTop: 32, flexWrap: "wrap" }}>
-              {[
-                { n: core.length, l: "Vendors scored" },
-                { n: "27", l: "Scoring dimensions" },
-                { n: "6", l: "Category groups" },
-                { n: "4", l: "Maturity tiers" },
-              ].map((s, i) => (
-                <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "14px 20px", textAlign: "center", minWidth: 100 }}>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: LIGHT }}>{s.n}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{s.l}</div>
-                </div>
-              ))}
+          <FadeIn delay={0.15}>
+            <div style={{ display: "flex", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
+              <a href="/research/ccaas-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.03)", transition: "background 0.15s" }}
+                onMouseOver={e => e.currentTarget.style.background = "rgba(0,136,221,0.08)"}
+                onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>CCaaS Buyer Guide (18 pages) ↓</a>
+              <a href="/tools/vendor-match" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.03)", transition: "background 0.15s" }}
+                onMouseOver={e => e.currentTarget.style.background = "rgba(0,136,221,0.08)"}
+                onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>Vendor Match Engine →</a>
+              <a href="/research/ccaas-migration-costs" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.03)", transition: "background 0.15s" }}
+                onMouseOver={e => e.currentTarget.style.background = "rgba(0,136,221,0.08)"}
+                onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}>Why CCaaS Migrations Don't Cut Costs →</a>
             </div>
           </FadeIn>
         </div>
@@ -318,24 +316,40 @@ export default function CCaaSCategory() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section style={{ background: WARM, padding: "80px 28px" }}>
+      {/* Tools + Next Steps */}
+      <section style={{ background: WARM, padding: "48px 28px" }}>
         <div style={WRAP}>
           <FadeIn>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.08) 0%, transparent 70%)" }} />
-              <div style={{ position: "relative", zIndex: 1 }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Need help choosing the right platform?</h2>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>
-                  Tell us your operating model, vertical, and constraints. We'll deliver a scored shortlist of 3–5 platforms with honest assessments of each one — drawn from this data.
-                </p>
-                <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-                  <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.25)` }}>Request a Vendor Shortlist</a>
-                  <a href="/tco-calculator" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Calculate Your TCO →</a>
-                </div>
-              </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="method-grid">
+              <a href="/tools/vendor-match" style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "22px 20px", textDecoration: "none", color: "inherit", transition: "all 0.2s", borderLeft: `3px solid ${ELECTRIC}` }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,136,221,0.08)"; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.borderLeftColor = ELECTRIC; e.currentTarget.style.boxShadow = "none"; }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Most used</div>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>Vendor Match Engine</h3>
+                <p style={{ fontSize: 12, color: MUTED, margin: "0 0 8px", lineHeight: 1.5 }}>Tell us your environment and priorities. Get a ranked shortlist from these {core.length} vendors.</p>
+                <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC }}>Launch tool →</span>
+              </a>
+              <a href="/tools/platform-decision" style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "22px 20px", textDecoration: "none", color: "inherit", transition: "all 0.2s", borderLeft: `3px solid ${LIGHT}` }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = LIGHT; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,170,255,0.08)"; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.borderLeftColor = LIGHT; e.currentTarget.style.boxShadow = "none"; }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Assessment</div>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>Platform Decision Matrix</h3>
+                <p style={{ fontSize: 12, color: MUTED, margin: "0 0 8px", lineHeight: 1.5 }}>Assess your current platform across all 7 layers. Stay, extend, or replace.</p>
+                <span style={{ fontSize: 12, fontWeight: 600, color: LIGHT }}>Launch tool →</span>
+              </a>
+              <a href="/tools/contract-risk" style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "22px 20px", textDecoration: "none", color: "inherit", transition: "all 0.2s", borderLeft: `3px solid ${RED}` }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = RED; e.currentTarget.style.boxShadow = "0 4px 16px rgba(239,68,68,0.08)"; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.borderLeftColor = RED; e.currentTarget.style.boxShadow = "none"; }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Before you sign</div>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>Contract Risk Scanner</h3>
+                <p style={{ fontSize: 12, color: MUTED, margin: "0 0 8px", lineHeight: 1.5 }}>7 critical contract terms analyzed with negotiation recommendations.</p>
+                <span style={{ fontSize: 12, fontWeight: 600, color: RED }}>Launch tool →</span>
+              </a>
             </div>
           </FadeIn>
+          <div style={{ marginTop: 20, textAlign: "center" }}>
+            <span style={{ fontSize: 13, color: MUTED }}>Need a human? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Request a working session →</a></span>
+          </div>
         </div>
       </section>
 
