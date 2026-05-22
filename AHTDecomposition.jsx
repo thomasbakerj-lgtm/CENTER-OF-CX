@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -222,10 +223,42 @@ export default function AHTDecomposition() {
               </p>
             </div>
 
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+              <ReportExport
+                toolName="AHT Decomposition Analysis"
+                subtitle={`${fmtTime(totalAHT)} total handle time — ${COMPONENTS.length} components analyzed`}
+                userName={name}
+                userEmail={email}
+                sections={[
+                  { title: "AHT Component Breakdown", type: "table", rows: COMPONENTS.map(c => [c.name, `${fmtTime(values[c.id])} (${(totalAHT > 0 ? (values[c.id] / totalAHT) * 100 : 0).toFixed(0)}%)`]) },
+                  { title: "Summary Metrics", type: "metrics", items: [
+                    { label: "Total AHT", value: fmtTime(totalAHT), color: ELECTRIC },
+                    { label: "Actual Talk Time", value: `${talkPct.toFixed(0)}%`, color: ELECTRIC, sub: fmtTime(values.talk) },
+                    { label: "Non-Talk Time", value: `${nonTalkPct.toFixed(0)}%`, color: nonTalkPct > 45 ? RED : nonTalkPct > 38 ? AMBER : GREEN },
+                    { label: "Reducible Time", value: fmtTime(reducibleTime), color: AMBER, sub: `${reduciblePct.toFixed(0)}% of AHT` },
+                  ]},
+                  { title: "Key Findings", type: "findings", items: [
+                    `Your total AHT is ${fmtTime(totalAHT)}. Only ${talkPct.toFixed(0)}% is actual customer conversation.`,
+                    `${fmtTime(reducibleTime)} (${reduciblePct.toFixed(0)}%) is spent on hold, wrap, search, and admin — all reducible without cutting talk time.`,
+                    ...scenarios.filter(s => s.savedSec > 10).map(s => `${s.name} could save ${s.savedSec}s per contact (${s.savedPct}% reduction): ${s.desc}.`),
+                    `Combined optimizations could reduce AHT from ${fmtTime(totalAHT)} to ${fmtTime(Math.round(combinedNew))} — a ${((1 - combinedNew / totalAHT) * 100).toFixed(0)}% improvement.`,
+                  ]},
+                  { title: "Optimization Priorities", type: "actions", items: scenarios.sort((a, b) => b.savedSec - a.savedSec).map((s, i) => ({
+                    action: `${s.name}: -${s.savedSec}s per contact`,
+                    detail: `${s.desc}. New AHT: ${fmtTime(s.newAHT)}. Investment required: ${s.investment}.`,
+                    priority: i === 0 ? "high" : i === 1 ? "medium" : undefined,
+                  })) },
+                  { title: "Next Steps", type: "next", items: [
+                    { tool: "Staffing Calculator", reason: "Model how AHT reduction changes your FTE requirement" },
+                    { tool: "Cost per Contact Calculator", reason: "See how AHT reduction impacts per-contact economics" },
+                    { tool: "Agent Experience Diagnostic", reason: "Assess whether tooling friction is driving hold and search time" },
+                  ]},
+                  { title: "Key Principle", type: "text", content: "The goal is not shorter calls. The goal is less time spent on activities that are not conversation. Hold, search, admin, and wrap are where AHT reduction lives. Talk time is where resolution quality lives. Protect the latter while attacking the former." },
+                ]}
+              />
               <a href="/tools/staffing-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Staffing Calculator →</a>
               <a href="/tools/cost-per-contact" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Cost per Contact →</a>
-              <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
+              <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>All Tools</a>
             </div>
           </div>
         </section>
