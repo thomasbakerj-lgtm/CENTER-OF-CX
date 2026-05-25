@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -166,7 +167,24 @@ export default function LicenseBundleGapChecker() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/tco-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>TCO Calculator →</a>
+              
+                <ReportExport toolName="License Bundle Gap Analysis" subtitle="Quoted vs Effective Seat Price" userName={name} userEmail={email} sections={[
+                    { title: "Module Checklist", type: "table", rows: modules.filter(m => m.needed).map(m => [m.name, m.included ? "Included" : "+$" + m.cost + "/mo"]) },
+                    { title: "Cost Gap", type: "metrics", items: [
+                      { label: "Quoted Price", value: "$" + basePrice + "/mo", color: ELECTRIC },
+                      { label: "Effective Price", value: "$" + effectivePrice.toFixed(0) + "/mo", color: RED },
+                      { label: "Gap", value: gap.toFixed(0) + "%", color: gap > 50 ? RED : gap > 30 ? AMBER : GREEN },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "Quoted $" + basePrice + " becomes $" + effectivePrice.toFixed(0) + " with required modules — " + gap.toFixed(0) + "% gap.",
+                      gap > 40 ? "Above 40% industry average. Negotiate add-ons into base contract." : "Within typical range but worth negotiating.",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Contract Risk Scanner", reason: "Check add-on pricing commitments in your contract" },
+                      { tool: "TCO Calculator", reason: "Build full cost picture including this gap" },
+                    ]},
+                  ]} />
+                <a href="/tco-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>TCO Calculator →</a>
               <a href="/research/ccaas-buyer-guide" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>CCaaS Buyer Guide →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
