@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
@@ -216,6 +217,18 @@ export default function BusinessCaseBuilder() {
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 6 }}>{fmtK(totalAnnualSavings)} annual savings. {paybackMonths}-month payback. {threeYearROI.toFixed(0)}% 3-year ROI.</p>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", marginBottom: 24 }}>Your business case has been sent to your email with full breakdowns.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+                
+                <ReportExport toolName="Business Case" subtitle={"ROI Analysis for CX Transformation"} userName={name} userEmail={email} sections={[
+                    { title: "Financial Summary", type: "metrics", items: [
+                      { label: "Total Investment", value: "$" + Math.round(totalInvestment).toLocaleString(), color: "#EF4444" },
+                      { label: "Annual Savings", value: "$" + Math.round(annualSavings).toLocaleString(), color: "#10B981" },
+                      { label: "Payback Period", value: paybackMonths + " months", color: "#0088DD" },
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "TCO Calculator", reason: "Validate total cost assumptions" },
+                      { tool: "Transformation Readiness", reason: "Confirm organizational readiness" },
+                    ]},
+                  ]} />
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Request a Working Session</a>
                 <a href="/tco-calculator" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Try the TCO Calculator →</a>
               </div>
