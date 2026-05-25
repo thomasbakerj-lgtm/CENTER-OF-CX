@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -144,6 +145,27 @@ export default function ScheduleAdherenceCalculator() {
               </div>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <ReportExport toolName="Schedule Adherence Impact Analysis" subtitle="Adherence Cascade Model" userName={name} userEmail={email} sections={[
+                    { title: "Adherence Inputs", type: "table", rows: [
+                      ["Baseline Adherence", baseAdherence + "%"],
+                      ["Adherence Loss", adherenceLoss + " points"],
+                      ["Effective Adherence", (baseAdherence - adherenceLoss) + "%"],
+                    ]},
+                    { title: "Cascade Impact", type: "metrics", items: [
+                      { label: "SLA Impact", value: slaImpact.toFixed(1) + "pt", color: RED },
+                      { label: "Abandonment Increase", value: "+" + abandonIncrease.toFixed(1) + "%", color: AMBER },
+                      { label: "Overtime Hours", value: overtimeHrs.toFixed(0) + "hrs/wk", color: RED },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      adherenceLoss + " points of adherence loss cascades into " + slaImpact.toFixed(1) + " points of SLA degradation.",
+                      "This generates approximately " + overtimeHrs.toFixed(0) + " hours of weekly overtime to compensate.",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Staffing Calculator", reason: "Model FTE buffer needed to absorb adherence variance" },
+                      { tool: "Occupancy Risk Simulator", reason: "Check whether adherence gaps are creating occupancy spikes" },
+                    ]},
+                  ]} />
+                
                 <a href="/tools/staffing-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Staffing Calculator →</a>
                 <a href="/tools/occupancy-risk" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Occupancy Risk →</a>
                 <a href="/tools/forecast-accuracy" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Forecast Accuracy →</a>
