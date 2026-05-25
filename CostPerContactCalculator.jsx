@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -170,7 +171,23 @@ export default function CostPerContactCalculator() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/tools/attrition-cost" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Attrition Cost Calculator →</a>
+              
+                <ReportExport toolName="Cost per Contact Analysis" subtitle="Handle Cost vs Resolution Cost" userName={name} userEmail={email} sections={[
+                    { title: "Cost Metrics", type: "metrics", items: [
+                      { label: "Cost per Contact", value: "$" + costPerContact.toFixed(2), color: ELECTRIC },
+                      { label: "Cost per Resolution", value: "$" + costPerResolution.toFixed(2), color: costPerResolution > costPerContact * 1.3 ? RED : AMBER },
+                      { label: "FCR Rate", value: fcr + "%", color: fcr >= 80 ? GREEN : fcr >= 70 ? AMBER : RED },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "Cost per contact ($" + costPerContact.toFixed(2) + ") vs cost per resolution ($" + costPerResolution.toFixed(2) + ") — " + ((costPerResolution / costPerContact - 1) * 100).toFixed(0) + "% gap from repeat contacts.",
+                      fcr < 75 ? "FCR at " + fcr + "% is below benchmark. Every 1% improvement reduces volume 1-3%." : "FCR at " + fcr + "% is within acceptable range.",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "FCR Leakage Diagnostic", reason: "Find root causes of repeat contacts" },
+                      { tool: "AHT Decomposition", reason: "Identify which AHT components drive cost" },
+                    ]},
+                  ]} />
+                <a href="/tools/attrition-cost" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Attrition Cost Calculator →</a>
               <a href="/tco-calculator" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>TCO Calculator →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
