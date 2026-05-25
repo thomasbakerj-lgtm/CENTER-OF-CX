@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -163,7 +164,23 @@ export default function AIDeflectionRealityCheck() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/tools/cost-per-contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Cost per Contact Calculator →</a>
+              
+                <ReportExport toolName="AI Deflection Reality Check" subtitle="Net Savings After Leakage + Escalation" userName={name} userEmail={email} sections={[
+                    { title: "Deflection Waterfall", type: "metrics", items: [
+                      { label: "Gross Deflection", value: grossDeflection + "%", color: ELECTRIC },
+                      { label: "Net Rate", value: netRate.toFixed(1) + "%", color: netRate < grossDeflection * 0.6 ? RED : AMBER },
+                      { label: "Net Savings", value: "$" + Math.round(netSavings).toLocaleString(), color: netSavings > 0 ? GREEN : RED },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "Vendor claims " + grossDeflection + "% deflection. Net effective rate after all factors: " + netRate.toFixed(1) + "%.",
+                      netRate < grossDeflection * 0.5 ? "Net rate is less than half the vendor projection. Typical — most vendors overstate by 40-60%." : "Net rate is closer to projections than average.",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Channel Shift Economics", reason: "Model staffing impact of deflection changes" },
+                      { tool: "TCO Calculator", reason: "Include real deflection in total cost model" },
+                    ]},
+                  ]} />
+                <a href="/tools/cost-per-contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Cost per Contact Calculator →</a>
               <a href="/research/iva-buyer-guide" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>IVA Buyer Guide →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
