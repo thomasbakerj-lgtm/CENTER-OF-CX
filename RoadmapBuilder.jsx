@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 900, margin: "0 auto", padding: "0 28px" };
@@ -169,6 +170,14 @@ export default function RoadmapBuilder() {
               <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: GREEN, margin: "0 0 12px" }}>Roadmap saved.</h2>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 24 }}>{completedCount}/{allMilestones.length} milestones complete. {atRiskCount > 0 ? `${atRiskCount} at risk or blocked.` : "No items at risk."} Your roadmap status has been sent to your email.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+                
+                <ReportExport toolName="Transformation Roadmap" subtitle={"90-Day Planning Framework"} userName={name} userEmail={email} sections={[
+                    { title: "Roadmap Phases", type: "table", rows: phases.map(p => [p.name, p.items.length + " milestones"]) },
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Governance Model", reason: "Define who owns each roadmap phase" },
+                      { tool: "Business Case Builder", reason: "Build ROI case for roadmap initiatives" },
+                    ]},
+                  ]} />
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Request a Working Session</a>
                 <a href="/tools/governance-model" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Map Governance →</a>
               </div>
