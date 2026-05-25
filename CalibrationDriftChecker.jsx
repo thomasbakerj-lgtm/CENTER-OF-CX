@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -217,7 +218,21 @@ export default function CalibrationDriftChecker() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/tools/qa-scorecard" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>QA Scorecard Builder →</a>
+              
+                <ReportExport toolName="Calibration Drift Analysis" subtitle="QA Evaluator Consistency Report" userName={name} userEmail={email} sections={[
+                    { title: "Evaluator Scores", type: "table", rows: evalStats.map(e => [e.name, "Avg: " + e.avg.toFixed(1) + " | Bias: " + (e.bias > 0 ? "+" : "") + e.bias.toFixed(1)]) },
+                    { title: "Calibration Metrics", type: "metrics", items: [
+                      { label: "Inter-Rater Reliability", value: reliability.toFixed(0) + "%", color: reliability >= 85 ? GREEN : reliability >= 70 ? AMBER : RED },
+                      { label: "Avg Score Range", value: avgRange.toFixed(1) + "pts", color: avgRange > 15 ? RED : avgRange > 10 ? AMBER : GREEN },
+                      { label: "Grand Average", value: grandAvg.toFixed(1), color: ELECTRIC },
+                    ]},
+                    { title: "Biggest Disagreements", type: "findings", items: worstCalls.map((c,i) => "#" + (i+1) + " " + c.call + ": " + c.range + "-point spread (scores: " + c.vals.join(", ") + ")") },
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "QA Scorecard Builder", reason: "Build clearer scorecards to reduce interpretation drift" },
+                      { tool: "Agent Experience Diagnostic", reason: "Inconsistent QA undermines agent trust" },
+                    ]},
+                  ]} />
+                <a href="/tools/qa-scorecard" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>QA Scorecard Builder →</a>
               <a href="/tools/agent-experience" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Agent Experience Diagnostic →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
