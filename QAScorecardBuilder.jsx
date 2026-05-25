@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -179,7 +180,22 @@ export default function QAScorecardBuilder() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/tools/agent-experience" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Agent Experience Diagnostic →</a>
+              
+                <ReportExport toolName="QA Scorecard" subtitle={template + " Contact Type"} userName={name} userEmail={email} sections={[
+                    { title: "Scorecard Structure", type: "table", rows: categories.map(c => [c.name, "Weight: " + c.weight + "% | " + c.criteria.length + " criteria (" + c.criteria.filter(cr => cr.critical).length + " critical)"]) },
+                    { title: "Configuration", type: "metrics", items: [
+                      { label: "Categories", value: categories.length.toString(), color: ELECTRIC },
+                      { label: "Total Criteria", value: categories.reduce((a,c) => a + c.criteria.length, 0).toString(), color: ELECTRIC },
+                      { label: "Critical-Fail Items", value: categories.reduce((a,c) => a + c.criteria.filter(cr => cr.critical).length, 0).toString(), color: RED },
+                      { label: "Weight Valid", value: totalWeight === 100 ? "Yes" : "No (" + totalWeight + "%)", color: totalWeight === 100 ? GREEN : RED },
+                    ]},
+                    { title: "Key Principle", type: "text", content: "A password reset and a billing dispute require different evaluation criteria. Build 3-5 scorecards by contact type to evaluate what matters for each interaction." },
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Calibration Drift Checker", reason: "Test evaluator consistency using this scorecard" },
+                      { tool: "Agent Experience Diagnostic", reason: "QA quality depends on agent tooling and training" },
+                    ]},
+                  ]} />
+                <a href="/tools/agent-experience" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Agent Experience Diagnostic →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
           </div>
