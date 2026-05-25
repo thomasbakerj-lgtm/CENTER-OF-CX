@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -114,6 +115,21 @@ export default function OccupancyRiskSimulator() {
               </div>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <ReportExport toolName="Occupancy Risk Analysis" subtitle="Occupancy Threshold + Attrition Impact Model" userName={name} userEmail={email} sections={[
+                    { title: "Occupancy Analysis", type: "metrics", items: [
+                      { label: "Current Occupancy", value: occupancy + "%", color: occupancy > 90 ? RED : occupancy > 85 ? AMBER : GREEN },
+                      { label: "Risk Level", value: occupancy > 90 ? "Critical" : occupancy > 85 ? "Elevated" : "Healthy", color: occupancy > 90 ? RED : occupancy > 85 ? AMBER : GREEN },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "At " + occupancy + "% occupancy, agents have " + (100 - occupancy) + "% of their time for recovery between contacts.",
+                      occupancy > 88 ? "This occupancy level is associated with 25-40% higher attrition. The cost of lost agents exceeds the cost of adding headcount." : "Occupancy is within a sustainable operating range.",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Staffing Calculator", reason: "Model the FTE needed to reduce occupancy to 85%" },
+                      { tool: "Attrition Cost Calculator", reason: "Quantify the cost if high occupancy drives turnover" },
+                    ]},
+                  ]} />
+                
                 <a href="/tools/staffing-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Staffing Calculator →</a>
                 <a href="/tools/shrinkage-planner" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Shrinkage Planner →</a>
                 <a href="/human-premium" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>The Human Premium →</a>
