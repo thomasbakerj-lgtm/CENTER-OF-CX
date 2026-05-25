@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -211,7 +212,21 @@ export default function FCRLeakageDiagnostic() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/tools/cost-per-contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Calculate Cost per Resolution →</a>
+              
+                <ReportExport toolName="FCR Leakage Diagnostic" subtitle={"Score: " + overallScore.toFixed(1) + "/5 — " + tier.tier} userName={name} userEmail={email} sections={[
+                    { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
+                    { title: "Assessment", type: "metrics", items: [
+                      { label: "Leakage Score", value: overallScore.toFixed(1) + "/5", color: tier.color },
+                      { label: "Classification", value: tier.tier, color: tier.color },
+                    ]},
+                    { title: "Top Leakage Sources", type: "findings", items: [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id)).slice(0,3).map((d,i) => "#" + (i+1) + " " + d.name + " (" + dimScore(d.id).toFixed(1) + "/5): " + d.desc) },
+                    { title: "Key Principle", type: "text", content: "FCR is not an agent problem. It is a system problem. Most repeat contacts are caused by policy constraints, knowledge gaps, and broken workflows." },
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Cost per Contact Calculator", reason: "See how FCR leakage inflates resolution cost" },
+                      { tool: "AHT Decomposition", reason: "Find where hold and search time indicate knowledge gaps" },
+                    ]},
+                  ]} />
+                <a href="/tools/cost-per-contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Calculate Cost per Resolution →</a>
               <a href="/tools/aht-decomposition" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>AHT Decomposition →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
