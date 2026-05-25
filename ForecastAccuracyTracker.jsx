@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -226,6 +227,22 @@ export default function ForecastAccuracyTracker() {
               </div>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <ReportExport toolName="Forecast Accuracy Analysis" subtitle="Forecast vs Actual — Interval-Level Accuracy" userName={name} userEmail={email} sections={[
+                    { title: "Forecast Data", type: "table", rows: data.map(d => [d.interval, "F: " + d.forecast + " / A: " + d.actual + " (Err: " + ((d.actual - d.forecast) / d.forecast * 100).toFixed(1) + "%)"]) },
+                    { title: "Accuracy Metrics", type: "metrics", items: [
+                      { label: "MAPE", value: mape.toFixed(1) + "%", color: mape > 10 ? RED : mape > 5 ? AMBER : GREEN },
+                      { label: "Bias", value: (bias > 0 ? "+" : "") + bias.toFixed(1) + "%", color: Math.abs(bias) > 5 ? AMBER : GREEN, sub: bias > 0 ? "Over-forecasting" : "Under-forecasting" },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "MAPE of " + mape.toFixed(1) + "% — " + (mape < 5 ? "excellent accuracy" : mape < 10 ? "acceptable but improvable" : "significant forecasting gap requiring investigation"),
+                      Math.abs(bias) > 3 ? "Systematic " + (bias > 0 ? "over" : "under") + "-forecasting bias of " + Math.abs(bias).toFixed(1) + "% detected." : "No significant directional bias detected.",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Staffing Calculator", reason: "Model staffing impact of forecast accuracy improvements" },
+                      { tool: "Schedule Adherence", reason: "Check if adherence gaps compound forecast errors" },
+                    ]},
+                  ]} />
+                
                 <a href="/tools/staffing-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Staffing Calculator →</a>
                 <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
               </div>
