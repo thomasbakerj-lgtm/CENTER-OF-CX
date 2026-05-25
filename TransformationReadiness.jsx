@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -201,7 +202,21 @@ export default function TransformationReadiness() {
         </div>
 
         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-          <a href="/tools/platform-decision" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Platform Decision Matrix →</a>
+          
+                <ReportExport toolName="Transformation Readiness" subtitle={"Score: " + overallScore.toFixed(1) + "/5 — " + tier.tier} userName={name} userEmail={email} sections={[
+                    { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
+                    { title: "Assessment", type: "metrics", items: [
+                      { label: "Readiness", value: overallScore.toFixed(1) + "/5", color: tier.color },
+                      { label: "Status", value: tier.tier, color: tier.color },
+                    ]},
+                    { title: "Recommendation", type: "text", content: tier.phase },
+                    { title: "Gaps to Close", type: "findings", items: DIMS.filter(d => dimScore(d.id) < 3.5).sort((a,b) => dimScore(a.id) - dimScore(b.id)).map(d => d.name + " (" + dimScore(d.id).toFixed(1) + "): Use " + d.fixLabel).concat(DIMS.filter(d => dimScore(d.id) < 3.5).length === 0 ? ["Ready to proceed."] : []) },
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Vendor Match Engine", reason: "Get ranked shortlist if score is 3.5+" },
+                      { tool: "Platform Decision Matrix", reason: "Assess current platform before committing" },
+                    ]},
+                  ]} />
+                <a href="/tools/platform-decision" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Platform Decision Matrix →</a>
           <a href="/tools/contract-risk" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Contract Risk Scanner →</a>
           <a href="/how-to-choose" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Explore All 29 Tools</a>
         </div>
