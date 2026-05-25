@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -161,7 +162,25 @@ export default function AttritionCostCalculator() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/tools/occupancy-risk" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Occupancy Risk Simulator →</a>
+              
+                <ReportExport toolName="Attrition Cost Analysis" subtitle="Total Cost of Agent Turnover" userName={name} userEmail={email} sections={[
+                    { title: "Cost Components", type: "table", rows: Object.entries(costs).map(([k,v]) => [k, "$" + Math.round(v).toLocaleString()]) },
+                    { title: "Summary", type: "metrics", items: [
+                      { label: "Cost per Departure", value: "$" + Math.round(totalCost).toLocaleString(), color: RED },
+                      { label: "Annual Cost", value: "$" + Math.round(annualCost).toLocaleString(), color: RED },
+                      { label: "Attrition Rate", value: attritionRate + "%", color: attritionRate > 30 ? RED : attritionRate > 20 ? AMBER : GREEN },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "Every departure costs $" + Math.round(totalCost).toLocaleString() + " including recruiting, training, ramp, OT, and quality drag.",
+                      "At " + attritionRate + "% attrition across " + headcount + " agents, annual cost is $" + Math.round(annualCost).toLocaleString() + ".",
+                      "Reducing attrition by 5 points saves $" + Math.round(totalCost * headcount * 0.05).toLocaleString() + " annually.",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Agent Experience Diagnostic", reason: "Identify which dimensions drive attrition" },
+                      { tool: "Occupancy Risk Simulator", reason: "Check if occupancy is contributing to burnout" },
+                    ]},
+                  ]} />
+                <a href="/tools/occupancy-risk" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Occupancy Risk Simulator →</a>
               <a href="/human-premium" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>The Human Premium →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
