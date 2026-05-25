@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -191,6 +192,23 @@ export default function ChannelShiftModel() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <ReportExport toolName="Channel Shift Economics" subtitle="Voice to Digital Migration Model" userName={name} userEmail={email} sections={[
+                    { title: "Channel Mix", type: "table", rows: channels.map(c => [c.name, c.current + "% → " + c.target + "%"]) },
+                    { title: "Economic Impact", type: "metrics", items: [
+                      { label: "Net Staffing Change", value: (staffDelta >= 0 ? "+" : "") + staffDelta + " FTE", color: staffDelta < 0 ? GREEN : RED },
+                      { label: "Annual Savings", value: "$" + Math.round(annualSavings).toLocaleString(), color: annualSavings > 0 ? GREEN : RED },
+                      { label: "Transition Cost", value: "$" + Math.round(transitionCost).toLocaleString(), color: AMBER },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "Shifting channel mix generates " + (staffDelta < 0 ? "a net reduction" : "a net increase") + " of " + Math.abs(staffDelta) + " FTE.",
+                      transitionCost > 0 ? "Transition costs of $" + Math.round(transitionCost).toLocaleString() + " include training, technology, and parallel-run expenses." : "",
+                    ].filter(Boolean) },
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "AI Deflection Reality Check", reason: "Validate automation assumptions in this channel mix" },
+                      { tool: "Staffing Calculator", reason: "Model post-shift staffing requirements" },
+                    ]},
+                  ]} />
+                
               <a href="/tools/ai-deflection" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>AI Deflection Reality Check →</a>
               <a href="/tools/cost-per-contact" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Cost per Contact →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
