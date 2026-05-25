@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -212,7 +213,24 @@ export default function AgentExperienceDiagnostic() {
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/tools/attrition-cost" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Calculate Your Attrition Cost →</a>
+              
+                <ReportExport toolName="Agent Experience Diagnostic" subtitle={"Score: " + overallScore.toFixed(1) + "/5 — " + tier.tier} userName={name} userEmail={email} sections={[
+                    { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
+                    { title: "Overall Assessment", type: "metrics", items: [
+                      { label: "Overall Score", value: overallScore.toFixed(1) + "/5", color: tier.color },
+                      { label: "Classification", value: tier.tier, color: tier.color },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "Overall agent experience score: " + overallScore.toFixed(1) + "/5 (" + tier.tier + ").",
+                      tier.desc,
+                      "Weakest dimension: " + [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].name + " (" + dimScore([...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].id).toFixed(1) + "/5).",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Attrition Cost Calculator", reason: "Calculate what this experience level costs in turnover" },
+                      { tool: "The Human Premium", reason: "Career growth strategies for agent retention" },
+                    ]},
+                  ]} />
+                <a href="/tools/attrition-cost" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Calculate Your Attrition Cost →</a>
               <a href="/human-premium" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>The Human Premium →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
