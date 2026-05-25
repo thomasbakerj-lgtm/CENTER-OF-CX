@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -147,6 +148,24 @@ export default function ShrinkagePlanner() {
               </div>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <ReportExport toolName="Shrinkage Analysis" subtitle="8-Category Shrinkage Model" userName={name} userEmail={email} sections={[
+                    { title: "Shrinkage Breakdown", type: "table", rows: categories.map(c => [c.name, ((values[c.id] || c.default).toFixed(1)) + "%"]).concat([["Total Shrinkage", totalShrinkage.toFixed(1) + "%"]]) },
+                    { title: "Key Metrics", type: "metrics", items: [
+                      { label: "Total Shrinkage", value: totalShrinkage.toFixed(1) + "%", color: totalShrinkage > 32 ? RED : totalShrinkage > 28 ? AMBER : GREEN },
+                      { label: "Annual Cost Impact", value: "$" + Math.round(annualCost).toLocaleString(), color: RED },
+                      { label: "Planned vs Unplanned", value: planned.toFixed(0) + "% / " + unplanned.toFixed(0) + "%", color: ELECTRIC },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "Total shrinkage of " + totalShrinkage.toFixed(1) + "% means for every 100 scheduled agents, only " + (100 - totalShrinkage).toFixed(0) + " are available to handle contacts.",
+                      totalShrinkage > 30 ? "Your shrinkage is above the 28-30% industry benchmark. Focus on the largest unplanned categories." : "Your shrinkage is within the industry benchmark range.",
+                      "Annual cost impact at current shrinkage: $" + Math.round(annualCost).toLocaleString() + ".",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "Staffing Calculator", reason: "Model required FTE with this shrinkage factor" },
+                      { tool: "Occupancy Risk Simulator", reason: "Check if low shrinkage is driving high occupancy" },
+                    ]},
+                  ]} />
+                
                 <a href="/tools/staffing-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Staffing Calculator →</a>
                 <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
               </div>
