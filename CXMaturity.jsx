@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
@@ -272,6 +273,23 @@ export default function CXMaturity() {
               <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Want help closing the gaps?</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 0 24px", maxWidth: 440, marginLeft: "auto", marginRight: "auto" }}>Your maturity profile has been saved. Request a working session and we'll arrive with specific recommendations for your weakest dimensions — drawn from our vendor intelligence and operational frameworks.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+                
+                <ReportExport toolName="CX Maturity Assessment" subtitle={"Score: " + overallScore.toFixed(1) + "/5 — " + tier.name} userName={name} userEmail={email} sections={[
+                    { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
+                    { title: "Assessment", type: "metrics", items: [
+                      { label: "Maturity Score", value: overallScore.toFixed(1) + "/5", color: tier.color },
+                      { label: "Maturity Level", value: tier.name, color: tier.color },
+                    ]},
+                    { title: "Key Findings", type: "findings", items: [
+                      "Overall CX maturity: " + overallScore.toFixed(1) + "/5 (" + tier.name + ").",
+                      "Strongest dimension: " + [...DIMS].sort((a,b) => dimScore(b.id) - dimScore(a.id))[0].name + " (" + dimScore([...DIMS].sort((a,b) => dimScore(b.id) - dimScore(a.id))[0].id).toFixed(1) + "/5).",
+                      "Weakest dimension: " + [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].name + " (" + dimScore([...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].id).toFixed(1) + "/5).",
+                    ]},
+                    { title: "Next Steps", type: "next", items: [
+                      { tool: "AI Readiness Diagnostic", reason: "Assess AI-specific readiness" },
+                      { tool: "Transformation Readiness", reason: "Determine if you are ready to act on gaps" },
+                    ]},
+                  ]} />
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Request a Working Session</a>
                 <a href="/vendors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Browse Vendor Intelligence →</a>
               </div>
