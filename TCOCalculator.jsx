@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -486,6 +487,31 @@ function Calculator() {
                       <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: "#fff", margin: "0 0 8px" }}>Want help interpreting these numbers?</h3>
                       <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 20px" }}>Send your results to our advisory team. We'll review your TCO breakdown, identify the highest-impact levers, and come to the working session prepared.</p>
                       <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+                        <ReportExport toolName="Total Cost of Ownership Analysis" subtitle={agents + " agents · " + d.industry + " vertical"} userName="" userEmail="" sections={[
+                          { title: "Organization Profile", type: "table", rows: [
+                            ["Agents", agents.toString()], ["Supervisors", String(d.supervisors)], ["Sites", String(d.sites)],
+                            ["Industry", d.industry], ["Monthly Contacts", contacts.toLocaleString()],
+                            ["AHT", Math.floor(n(d.aht)/60) + ":" + String(n(d.aht)%60).padStart(2,"0")],
+                            ["FCR", pct(d.fcr)], ["Containment", pct(d.containment)], ["Attrition", pct(d.attrition)],
+                          ]},
+                          { title: "TCO Summary", type: "metrics", items: [
+                            { label: "Annual TCO", value: fmtK(annualTCO), color: ELECTRIC },
+                            { label: "Per Agent/Month", value: fmt(tcoPerAgent), color: ELECTRIC },
+                            { label: "Cost per Contact", value: "$" + costPerContact.toFixed(2), color: ELECTRIC },
+                            { label: "Cost per Resolution", value: "$" + costPerResolution.toFixed(2), color: costPerResolution > costPerContact * 1.3 ? RED : AMBER },
+                          ]},
+                          { title: "Cost Distribution", type: "table", rows: [
+                            ["Labor", fmtK(totalMonthlyLabor) + "/mo (" + pct(laborPct) + ")"],
+                            ["Technology", fmtK(totalMonthlyTech) + "/mo (" + pct(techPct) + ")"],
+                            ["Overhead", fmtK(totalMonthlyOverhead) + "/mo (" + pct(overheadPct) + ")"],
+                          ]},
+                          { title: "Optimization Opportunities", type: "actions", items: optimizations.slice(0,4).map((o,i) => ({ action: o.title, detail: o.desc + " Potential impact: " + o.impact + ".", priority: i === 0 ? "high" : i === 1 ? "medium" : undefined })) },
+                          { title: "Next Steps", type: "next", items: [
+                            { tool: "License Bundle Gap Checker", reason: "Check if your seat price includes what you need" },
+                            { tool: "AI Deflection Reality Check", reason: "Model realistic automation savings" },
+                            { tool: "Staffing Calculator", reason: "Validate FTE requirements" },
+                          ]},
+                        ]} />
                         <button onClick={sendResults} disabled={sendingResults} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: sendingResults ? "wait" : "pointer", fontFamily: "'DM Sans', sans-serif" }}>
                           {sendingResults ? "Sending..." : "Send Results & Request Session"}
                         </button>
