@@ -233,7 +233,36 @@ export default function AIReadiness() {
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
               <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the gaps?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your AI readiness profile has been saved. Request a working session and we'll arrive with a specific plan for your weakest dimensions — including vendor recommendations and implementation sequencing.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your AI readiness profile is below.</p>
+              <div style={{ textAlign: "left", maxWidth: 600, margin: "0 auto 24px" }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>AI Architecture Readiness</h3>
+                <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "12px 16px", marginBottom: 16 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{overallScore >= 4 ? "Era 4: LLM-Native" : overallScore >= 3 ? "Era 3: Hybrid (Intent + LLM)" : overallScore >= 2 ? "Era 2: Intent-Based" : "Era 1: Rules-Based"}</span>
+                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "4px 0 0" }}>{overallScore >= 4 ? "Your org is ready for autonomous AI agents with LLM-native architecture." : overallScore >= 3 ? "You can deploy hybrid IVA with intent matching + LLM fallback. Full autonomous AI requires closing data and governance gaps." : overallScore >= 2 ? "Focus on structured intent-based automation first. LLM deployment requires data quality and governance foundations." : "Start with rules-based automation (IVR optimization, simple chatbot). Build data and workflow foundations before AI investment."}</p>
+                </div>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Close These Gaps First</h3>
+                {[...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id)).slice(0, 3).map((d, i) => {
+                  const tools = {
+                    data: { href: "/tools/integration-planner", name: "Integration Planner", why: "Map data sources and fix access gaps" },
+                    workflow: { href: "/tools/aht-decomposition", name: "AHT Decomposition", why: "Find which workflows are automatable" },
+                    integration: { href: "/tools/platform-decision", name: "Platform Decision Matrix", why: "Assess integration readiness per layer" },
+                    governance: { href: "/tools/governance-model", name: "Governance Model", why: "Define AI decision authority and guardrails" },
+                    talent: { href: "/tools/agent-experience", name: "Agent Experience", why: "Assess team readiness for AI-augmented work" },
+                    measurement: { href: "/tools/ai-deflection", name: "AI Deflection Reality Check", why: "Set realistic measurement baselines" },
+                  };
+                  const rec = tools[d.id] || tools.data;
+                  return (
+                    <div key={d.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "8px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                      <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: LIGHT, width: 20, flexShrink: 0 }}>{i + 1}</span>
+                      <div>
+                        <span style={{ fontSize: 13, color: "#fff", fontWeight: 600 }}>{d.name}</span>
+                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>{dimScore(d.id).toFixed(1)}/5</span>
+                        <div style={{ marginTop: 4 }}><a href={rec.href} style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "3px 10px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.15)" }}>→ {rec.name}: {rec.why}</a></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
                 <ReportExport toolName="AI Readiness Diagnostic" subtitle={"Score: " + overallScore.toFixed(1) + "/5 — " + tier.name} userName={name} userEmail={email} sections={[
