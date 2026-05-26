@@ -1127,6 +1127,42 @@ export default function VendorProfile() {
         <div style={WRAP}>
           <Section label="Competitive landscape" title="How they compare.">
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.75, margin: "0 0 24px", fontFamily: "'DM Sans', sans-serif" }}>{v.competitiveContext}</p>
+
+            {/* Beats / Loses To */}
+            {(v.beats || v.losesTo) && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }} className="cg">
+                {v.beats && <div style={{ background: `${GREEN}06`, border: `1px solid ${GREEN}25`, borderRadius: 8, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Tends to win against</div>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.beats}</p>
+                </div>}
+                {v.losesTo && <div style={{ background: `${RED}06`, border: `1px solid ${RED}20`, borderRadius: 8, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Tends to lose to</div>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.losesTo}</p>
+                </div>}
+              </div>
+            )}
+
+            {/* Knockout / Why Shortlists */}
+            {(v.whyShortlists || v.knockoutRisk) && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }} className="cg">
+                {v.whyShortlists && <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Why they make shortlists</div>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.whyShortlists}</p>
+                </div>}
+                {v.knockoutRisk && <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Early knockout trigger</div>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.knockoutRisk}</p>
+                </div>}
+              </div>
+            )}
+
+            {v.lossPattern && (
+              <div style={{ background: `${AMBER}06`, border: `1px solid ${AMBER}20`, borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 1, textTransform: "uppercase" }}>Loss Pattern: </span>
+                <span style={{ fontSize: 13, color: SLATE, fontFamily: "'DM Sans', sans-serif" }}>{v.lossPattern}</span>
+              </div>
+            )}
+
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               {v.competitors.map((c, i) => {
                 const compSlug = c.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
@@ -1145,6 +1181,54 @@ export default function VendorProfile() {
           </Section>
         </div>
       </section>
+
+      {/* Vertical Fit + Integrations */}
+      {(v.verticalFit || v.integrations) && (
+        <section style={{ background: WARM, padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
+          <div style={WRAP}>
+            {v.verticalFit && (
+              <div style={{ marginBottom: v.integrations ? 32 : 0 }}>
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>Vertical Fit</span>
+                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px", lineHeight: 1.2 }}>Industry scoring.</h2>
+                {v.verticalSummary && <p style={{ fontSize: 13, color: MUTED, marginBottom: 14, fontFamily: "'DM Sans', sans-serif" }}>{v.verticalSummary}</p>}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {Object.entries(v.verticalFit).sort((a, b) => b[1] - a[1]).map(([vert, score]) => {
+                    const c = score >= 5 ? GREEN : score >= 4 ? "#7CB342" : score === 3 ? AMBER : "#9CA3AF";
+                    const vSlug = vert.toLowerCase().replace(/ \+ /g, "-").replace(/\s+/g, "-");
+                    return (
+                      <a key={vert} href={`/vendors/ccaas/${vSlug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "#fff", border: `1px solid ${c}30`, borderRadius: 6, fontSize: 12, fontFamily: "'DM Sans', sans-serif", transition: "border-color 0.15s" }}
+                        onMouseOver={e => e.currentTarget.style.borderColor = c}
+                        onMouseOut={e => e.currentTarget.style.borderColor = `${c}30`}>
+                        <span style={{ width: 20, height: 20, borderRadius: "50%", background: `${c}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: c }}>{score}</span>
+                        <span style={{ color: NAVY, fontWeight: 500 }}>{vert}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {v.integrations && v.integrations.length > 0 && (
+              <div>
+                <span style={{ color: GREEN, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>Verified Integrations</span>
+                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 12px", lineHeight: 1.2 }}>Native integration coverage.</h2>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {v.integrations.map((ig, i) => (
+                    <span key={i} style={{ fontSize: 12, padding: "5px 12px", borderRadius: 5, background: `${GREEN}08`, border: `1px solid ${GREEN}20`, color: GREEN, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{ig}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {v.recommendedUse && (
+              <div style={{ marginTop: 20, padding: "12px 16px", background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}15`, borderRadius: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase" }}>Recommended use: </span>
+                <span style={{ fontSize: 13, color: SLATE, fontFamily: "'DM Sans', sans-serif" }}>{v.recommendedUse}</span>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Back navigation */}
       <section style={{ background: "#fff", padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
