@@ -122,7 +122,7 @@ function Hero() {
             <span style={{ color: "rgba(255,255,255,0.35)" }}>Zero vendor sponsorship.</span>
           </h1>
           <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 520 }}>
-            A resource for CX operators. Independently scored vendor intelligence, operational calculators, and buyer frameworks for contact center professionals. Constantly evolving & ALWAYS helping.
+            The resource CX operators actually use. Independently scored vendor intelligence, operational calculators, and buyer frameworks for contact center professionals.
           </p>
         </div>
 
@@ -176,8 +176,8 @@ function RolePaths() {
   const roles = [
     { role: "I'm evaluating platforms", color: ELECTRIC, tools: [
       { name: "Vendor Match Engine", href: "/tools/vendor-match" },
+      { name: "RFP Requirement Builder", href: "/tools/rfp-builder" },
       { name: "Platform Decision Matrix", href: "/tools/platform-decision" },
-      { name: "CCaaS Buyer Guide", href: "/research/ccaas-buyer-guide" },
       { name: "Contract Risk Scanner", href: "/tools/contract-risk" },
     ]},
     { role: "I'm running operations", color: AMBER, tools: [
