@@ -67,6 +67,7 @@ import TransformationReadiness from './TransformationReadiness'
 import CategoryVerticalPage from './CategoryVerticalPage'
 import RFPRequirementBuilder from './RFPRequirementBuilder'
 import PrivacyPolicy from './PrivacyPolicy'
+import TermsOfService from './TermsOfService'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -309,6 +310,10 @@ const SEO_MAP = {
     title: `Privacy Policy | ${SITE}`,
     desc: "How The Center of CX handles your data. No vendor access to user data. No advertising cookies. No third-party tracking.",
   },
+  "/terms": {
+    title: `Terms of Service | ${SITE}`,
+    desc: "Terms governing use of The Center of CX. Tool disclaimers, vendor assessment independence, intellectual property, and liability limitations.",
+  },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management — 25 Vendors Scored | ${SITE}`,
     desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
@@ -517,6 +522,7 @@ export default function App() {
         <Route path="/tools/transformation-readiness" element={<TransformationReadiness />} />
         <Route path="/tools/rfp-builder" element={<RFPRequirementBuilder />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
         <Route path="/vendors/:categorySlug/:verticalSlug" element={<CategoryVerticalPage />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
