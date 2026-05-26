@@ -64,6 +64,7 @@ import VendorMatchEngine from './VendorMatchEngine'
 import PlatformDecisionMatrix from './PlatformDecisionMatrix'
 import ContractRiskScanner from './ContractRiskScanner'
 import TransformationReadiness from './TransformationReadiness'
+import CategoryVerticalPage from './CategoryVerticalPage'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -362,10 +363,22 @@ function SEOManager() {
     };
 
     if (pathname.startsWith("/vendors/") && !SEO_MAP[pathname]) {
-      const slug = pathname.replace("/vendors/", "");
-      const vendorName = slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-      seo.title = `${vendorName} | Vendor Profile | ${SITE}`;
-      seo.desc = `Independent assessment of ${vendorName}. Scores, strengths, weaknesses, competitive context, and community reviews.`;
+      const parts = pathname.replace("/vendors/", "").split("/");
+      if (parts.length === 2) {
+        // Category × Vertical page: /vendors/ccaas/healthcare
+        const catNames = { ccaas: "CCaaS Platforms", iva: "IVA + Conversational AI", "agent-assist": "Agent Assist", "wem-qm": "WEM + Quality", analytics: "CX Analytics", "acd-routing": "ACD + Routing", "digital-engagement": "Digital Engagement", payments: "Payments + Identity" };
+        const vertNames = { "financial-services": "Financial Services", healthcare: "Healthcare", retail: "Retail + eCommerce", telecom: "Telecom", insurance: "Insurance", travel: "Travel + Hospitality", government: "Government", utilities: "Utilities", manufacturing: "Manufacturing", education: "Education" };
+        const catName = catNames[parts[0]] || parts[0];
+        const vertName = vertNames[parts[1]] || parts[1];
+        seo.title = `${catName} for ${vertName} | Scored Vendors + Vertical Fit | ${SITE}`;
+        seo.desc = `${catName} vendors scored for ${vertName}. Vertical fit rankings, compliance requirements, key integration systems, and evaluation guidance specific to ${vertName} contact centers.`;
+      } else {
+        // Single vendor profile: /vendors/genesys
+        const slug = parts[0];
+        const vendorName = slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+        seo.title = `${vendorName} | Vendor Profile | ${SITE}`;
+        seo.desc = `Independent assessment of ${vendorName}. Scores, strengths, weaknesses, competitive context, and community reviews.`;
+      }
     }
 
     if (pathname.startsWith("/industries/") && !SEO_MAP[pathname]) {
@@ -512,6 +525,7 @@ export default function App() {
         <Route path="/tools/platform-decision" element={<PlatformDecisionMatrix />} />
         <Route path="/tools/contract-risk" element={<ContractRiskScanner />} />
         <Route path="/tools/transformation-readiness" element={<TransformationReadiness />} />
+        <Route path="/vendors/:categorySlug/:verticalSlug" element={<CategoryVerticalPage />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
         <Route path="/industries/financial-services" element={<FinancialServicesVertical />} />
