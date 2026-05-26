@@ -206,9 +206,32 @@ export default function FCRLeakageDiagnostic() {
             })()}
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0 }}>
-                <strong style={{ color: "#fff" }}>FCR is not an agent problem. It is a system problem.</strong> Most repeat contacts are caused by policy constraints, knowledge gaps, and broken workflows. Agents cannot resolve what the system does not let them resolve. The highest-ROI FCR improvements come from fixing the top leakage source identified above. Every 1% improvement in FCR reduces total contact volume by 1-3%, which directly reduces staffing, overtime, and customer effort.
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: "0 0 16px" }}>
+                <strong style={{ color: "#fff" }}>FCR is not an agent problem. It is a system problem.</strong> Every 1% FCR improvement reduces total volume 1-3%.
               </p>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Fix Roadmap by Leakage Source</h3>
+              {[...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id)).slice(0, 3).map((d, i) => {
+                const fixes = {
+                  policy: { action: "Audit escalation authority matrix", meeting: "Schedule a 1-hour session with ops leadership to review the top 10 contact types and their resolution authority levels.", tool: "/tools/governance-model", toolName: "Governance Model" },
+                  handoff: { action: "Map transfer paths and context loss", meeting: "Pull transfer reason codes for last 30 days. Identify top 5 transfer destinations. Audit whether context transfers with the customer.", tool: "/tools/aht-decomposition", toolName: "AHT Decomposition" },
+                  channel: { action: "Align channel to issue complexity", meeting: "Map your top 10 issue types to the channel best suited for resolution. Simple status checks → self-service. Complex disputes → voice.", tool: "/tools/channel-shift", toolName: "Channel Shift Model" },
+                  knowledge: { action: "Audit knowledge base freshness and findability", meeting: "Have 5 agents search for answers to your top 10 questions. Measure time to find, accuracy, and whether the answer exists.", tool: "/tools/qa-scorecard", toolName: "QA Scorecard Builder" },
+                  skill: { action: "Map skill gaps to contact types with lowest FCR", meeting: "Pull FCR by agent tenure band. If new agents have 15%+ lower FCR, the gap is training. If tenured agents are also low, the gap is authority.", tool: "/tools/agent-experience", toolName: "Agent Experience Diagnostic" },
+                  workflow: { action: "Identify workflows that force callbacks by design", meeting: "Map your top 10 workflows end-to-end. Flag any step that requires the customer to call back (approvals, processing times, system limitations).", tool: "/tools/integration-planner", toolName: "Integration Planner" },
+                };
+                const fix = fixes[d.id] || fixes.policy;
+                return (
+                  <div key={d.id} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "12px 14px", marginBottom: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{d.icon} {d.name} ({dimScore(d.id).toFixed(1)}/5)</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: i === 0 ? RED : AMBER, padding: "2px 6px", borderRadius: 3, background: i === 0 ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)" }}>{i === 0 ? "Priority 1" : "Priority " + (i + 1)}</span>
+                    </div>
+                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", margin: "4px 0 6px", lineHeight: 1.5 }}><strong style={{ color: "rgba(255,255,255,0.7)" }}>Action:</strong> {fix.action}</p>
+                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "0 0 6px", lineHeight: 1.5 }}><strong style={{ color: "rgba(255,255,255,0.5)" }}>Meeting prep:</strong> {fix.meeting}</p>
+                    <a href={fix.tool} style={{ fontSize: 11, fontWeight: 600, color: LIGHT, padding: "3px 10px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.12)" }}>Use {fix.toolName} →</a>
+                  </div>
+                );
+              })}
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
