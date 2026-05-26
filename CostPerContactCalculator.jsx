@@ -165,9 +165,27 @@ export default function CostPerContactCalculator() {
             </div>
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0 }}>
-                <strong style={{ color: "#fff" }}>Why this distinction matters:</strong> Most contact centers report cost per contact and treat it as cost per resolution. They are not the same number. A center with a $7 cost per contact and 72% FCR has a real cost per resolution of $9.80. Every point of FCR improvement reduces total contact volume, which reduces staffing, overtime, and platform usage. FCR improvement is the single highest-ROI operational lever available because it attacks cost, customer effort, and agent workload simultaneously.
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Vertical Benchmarks</h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }}>
+                {[
+                  { vert: "Financial Services", cpc: "$8.50-$12", cpr: "$11-$16", fcr: "74%" },
+                  { vert: "Healthcare", cpc: "$9-$14", cpr: "$14-$22", fcr: "52%" },
+                  { vert: "Retail", cpc: "$5-$8", cpr: "$6.50-$10", fcr: "78%" },
+                ].map((b, i) => (
+                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>{b.vert}</div>
+                    <div style={{ fontSize: 12, color: "#fff" }}>CPC: {b.cpc}</div>
+                    <div style={{ fontSize: 12, color: "#fff" }}>CPR: {b.cpr}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Avg FCR: {b.fcr}</div>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5, margin: "0 0 12px" }}>
+                Your cost per contact is ${costPerContact.toFixed(2)} and cost per resolution is ${costPerResolution.toFixed(2)}. The {((costPerResolution / costPerContact - 1) * 100).toFixed(0)}% gap is driven by a {fcr}% FCR rate.
               </p>
+              {fcr < 78 && (
+                <a href="/tools/fcr-leakage" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)", display: "inline-block" }}>→ Run FCR Leakage Diagnostic to find why resolution fails</a>
+              )}
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
