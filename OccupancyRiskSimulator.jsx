@@ -109,9 +109,33 @@ export default function OccupancyRiskSimulator() {
               </div>
 
               <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0 }}>
-                  <strong style={{ color: "#fff" }}>The hidden math:</strong> Pushing occupancy from 85% to 92% saves staffing in the short term. But research consistently shows that sustained occupancy above 88% drives attrition up by 15-40%. The cost of replacing an agent ($5,000-$12,000 in hiring, training, and ramp time) often exceeds the staffing savings within 6 months. The most efficient occupancy target for sustained operations is 82-86%.
+                {currentOcc > 85 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <h3 style={{ fontSize: 12, fontWeight: 700, color: RED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>What This Occupancy Costs You</h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
+                      <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px", textAlign: "center", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Extra agents needed for 85%</div>
+                        <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: "#fff" }}>+{Math.ceil(n(d.agents) * (currentOcc / 85 - 1))}</div>
+                      </div>
+                      <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px", textAlign: "center", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Estimated extra attrition cost</div>
+                        <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: RED }}>${Math.round(n(d.agents) * 0.15 * n(d.hiringCost) * (currentOcc - 85) / 10 / 1000)}K/yr</div>
+                      </div>
+                      <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px", textAlign: "center", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Staffing cost to fix</div>
+                        <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: GREEN }}>${Math.round(Math.ceil(n(d.agents) * (currentOcc / 85 - 1)) * n(d.hourlyRate) * 2080 / 1000)}K/yr</div>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>If the staffing cost is less than the attrition cost, adding agents is the better investment. It usually is.</p>
+                  </div>
+                )}
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.55, margin: 0 }}>
+                  The most efficient occupancy target for sustained operations is 82-86%. Above 88%, attrition increases 15-40% and the cost of replacement exceeds the staffing savings within 6 months.
                 </p>
+                <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <a href="/tools/staffing-calculator" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" }}>→ Staffing Calculator: model the FTE for 85%</a>
+                  <a href="/tools/attrition-cost" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" }}>→ Attrition Cost: quantify the turnover impact</a>
+                </div>
               </div>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
