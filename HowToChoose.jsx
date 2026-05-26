@@ -52,6 +52,7 @@ const CATEGORIES = [
       { title: "Platform Decision Matrix", desc: "Stay, extend, or replace — layer-by-layer across 7 orchestration layers.", href: "/tools/platform-decision" },
       { title: "Contract Risk Scanner", desc: "7 contract terms analyzed. Negotiation recommendations for every flag.", href: "/tools/contract-risk" },
       { title: "Transformation Readiness", desc: "Go/no-go assessment. Six dimensions. Phased recommendation.", href: "/tools/transformation-readiness" },
+      { title: "RFP Requirement Builder", desc: "Weighted requirements by layer. Tailored to your vertical and priorities.", href: "/tools/rfp-builder", popular: true },
     ]},
   { id: "assessment", label: "Assessments + Scorecards", color: GREEN, desc: "Where do you stand",
     tools: [
