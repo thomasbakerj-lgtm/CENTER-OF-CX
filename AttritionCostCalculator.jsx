@@ -156,9 +156,27 @@ export default function AttritionCostCalculator() {
             </div>
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0 }}>
-                <strong style={{ color: "#fff" }}>The number nobody puts in the budget:</strong> Most contact centers budget for recruiting and training but never quantify the productivity loss during ramp, the supervisor time diverted to new hires, or the quality drag from agents who have not yet built pattern recognition. The true cost of a departure is typically 50-75% of an agent's annual salary when all seven components are included. At 35% attrition, a 200-agent operation is spending the equivalent of 35-50 full-time salaries just replacing the people who leave.
-              </p>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 12 }}>What Is Driving This Attrition?</h3>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5, marginBottom: 14 }}>At {d.attritionRate}% attrition, one or more of these drivers is likely active. Each links to the tool that diagnoses it.</p>
+              {[
+                { driver: "Occupancy above 85%", likelihood: n(d.attritionRate) > 35 ? "High" : "Medium", tool: "/tools/occupancy-risk", toolName: "Occupancy Risk Simulator", why: "Agents with insufficient recovery time between contacts burn out and leave. This is the #1 controllable attrition driver." },
+                { driver: "Inadequate coaching or QA feedback", likelihood: "Medium", tool: "/tools/agent-experience", toolName: "Agent Experience Diagnostic", why: "Agents who feel unsupported and uncoachedleave faster than agents who feel underpaid. Assess supervisor quality and coaching frequency." },
+                { driver: "Schedule inflexibility", likelihood: n(d.attritionRate) > 40 ? "High" : "Medium", tool: "/tools/agent-experience", toolName: "Agent Experience Diagnostic", why: "Schedule control is the most underestimated retention lever. Assess shift-swap, split-shift, and preference-based scheduling." },
+                { driver: "No visible career path", likelihood: "Medium", tool: "/human-premium", toolName: "The Human Premium", why: "When agents cannot see what comes after this role, they leave to find it somewhere else. Four new CX roles are emerging." },
+              ].map((item, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: item.likelihood === "High" ? RED : AMBER, padding: "2px 6px", borderRadius: 3, background: item.likelihood === "High" ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)", flexShrink: 0, marginTop: 2 }}>{item.likelihood}</span>
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{item.driver}</span>
+                    <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", margin: "2px 0 4px", lineHeight: 1.5 }}>{item.why}</p>
+                    <a href={item.tool} style={{ fontSize: 11, fontWeight: 600, color: LIGHT, padding: "2px 8px", borderRadius: 3, border: "1px solid rgba(255,255,255,0.12)" }}>→ {item.toolName}</a>
+                  </div>
+                </div>
+              ))}
+              <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(255,255,255,0.03)", borderRadius: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Benchmark: </span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Industry average attrition: 30-45%. Top-quartile operations: 18-25%. If you are above 35%, at least two of the drivers above are active.</span>
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
