@@ -231,19 +231,48 @@ function WhyVerticalMatters() {
 }
 
 function CTA() {
+  const cats = [
+    { name: "CCaaS Platforms", slug: "ccaas" },
+    { name: "IVA + Conversational AI", slug: "iva" },
+    { name: "Agent Assist", slug: "agent-assist" },
+    { name: "WEM + Quality", slug: "wem-qm" },
+    { name: "Analytics", slug: "analytics" },
+    { name: "ACD + Routing", slug: "acd-routing" },
+    { name: "Digital Engagement", slug: "digital-engagement" },
+    { name: "Payments", slug: "payments" },
+  ];
+  const verts = [
+    { name: "Financial Services", slug: "financial-services" },
+    { name: "Healthcare", slug: "healthcare" },
+    { name: "Retail", slug: "retail" },
+    { name: "Insurance", slug: "insurance" },
+    { name: "Telecom", slug: "telecom" },
+    { name: "Government", slug: "government" },
+    { name: "Travel", slug: "travel" },
+    { name: "Utilities", slug: "utilities" },
+    { name: "Manufacturing", slug: "manufacturing" },
+    { name: "Education", slug: "education" },
+  ];
   return (
-    <section style={{ background: WARM, padding: "96px 28px", borderTop: `1px solid ${BORDER}` }}>
+    <section style={{ background: "#fff", padding: "48px 28px", borderTop: `1px solid ${BORDER}` }}>
       <div style={WRAP}>
         <FadeIn>
-          <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
-            <Title>Need guidance specific to your vertical?</Title>
-            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px" }}>
-              We help CX leaders in regulated, complex, and high-volume verticals make better technology and strategy decisions. Tell us your industry and your challenge — we'll come prepared with relevant vendor intelligence and frameworks.
-            </p>
-            <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Request an Industry Briefing</a>
-              <a href="/advisory" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Explore Advisory</a>
-            </div>
+          <div style={{ marginBottom: 20 }}>
+            <Label>Vendors scored by vertical</Label>
+            <Title>Find vendors matched to your industry.</Title>
+            <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, maxWidth: 560 }}>Every vendor category is scored for each vertical. Compliance requirements, integration dependencies, and vertical fit — all in one page.</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 6 }}>
+            {verts.map(v => (
+              <a key={v.slug} href={`/vendors/ccaas/${v.slug}`} style={{ display: "block", padding: "12px 14px", border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 13, fontWeight: 500, color: NAVY, transition: "all 0.15s" }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = NAVY; }}>
+                {v.name} <span style={{ fontSize: 11, color: MUTED }}>→ CCaaS vendors</span>
+              </a>
+            ))}
+          </div>
+          <div style={{ marginTop: 20, textAlign: "center" }}>
+            <span style={{ fontSize: 13, color: MUTED }}>Need a human? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Request a working session →</a></span>
           </div>
         </FadeIn>
       </div>
