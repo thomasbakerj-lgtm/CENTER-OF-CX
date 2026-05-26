@@ -65,6 +65,8 @@ import PlatformDecisionMatrix from './PlatformDecisionMatrix'
 import ContractRiskScanner from './ContractRiskScanner'
 import TransformationReadiness from './TransformationReadiness'
 import CategoryVerticalPage from './CategoryVerticalPage'
+import RFPRequirementBuilder from './RFPRequirementBuilder'
+import PrivacyPolicy from './PrivacyPolicy'
 import CXMaturity from './CXMaturity'
 import AIReadiness from './AIReadiness'
 import ExperienceScorecard from './ExperienceScorecard'
@@ -299,6 +301,14 @@ const SEO_MAP = {
     title: `Transformation Readiness Scorecard | Go/No-Go Assessment | ${SITE}`,
     desc: "Score leadership alignment, budget realism, team capacity, vendor maturity, technical readiness, and change management. Get a phased recommendation.",
   },
+  "/tools/rfp-builder": {
+    title: `RFP Requirement Builder | Weighted Requirements by Layer | ${SITE}`,
+    desc: "Generate weighted RFP requirements organized by the 7 orchestration layers. Tailored to your vertical, operation size, and priorities. Downloadable document.",
+  },
+  "/privacy": {
+    title: `Privacy Policy | ${SITE}`,
+    desc: "How The Center of CX handles your data. No vendor access to user data. No advertising cookies. No third-party tracking.",
+  },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management — 25 Vendors Scored | ${SITE}`,
     desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
@@ -505,6 +515,8 @@ export default function App() {
         <Route path="/tools/platform-decision" element={<PlatformDecisionMatrix />} />
         <Route path="/tools/contract-risk" element={<ContractRiskScanner />} />
         <Route path="/tools/transformation-readiness" element={<TransformationReadiness />} />
+        <Route path="/tools/rfp-builder" element={<RFPRequirementBuilder />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/vendors/:categorySlug/:verticalSlug" element={<CategoryVerticalPage />} />
         <Route path="/vendors/:slug" element={<VendorProfile />} />
         <Route path="/industries" element={<Industries />} />
