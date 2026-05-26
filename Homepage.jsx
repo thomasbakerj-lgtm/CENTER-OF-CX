@@ -499,7 +499,7 @@ function Footer() {
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 20, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)" }}>© 2026 The Center of CX. All rights reserved.</span>
           <div style={{ display: "flex", gap: 20 }}>
-            {["Privacy", "Terms"].map(l => <a key={l} href="#" style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "rgba(255,255,255,0.4)"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.2)"}>{l}</a>)}
+            {[{n:"Privacy",h:"/privacy"},{n:"Terms",h:"/terms"}].map(l => <a key={l.n} href={l.h} style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "rgba(255,255,255,0.4)"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.2)"}>{l.n}</a>)}
           </div>
         </div>
       </div>
