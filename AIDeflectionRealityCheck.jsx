@@ -158,9 +158,28 @@ export default function AIDeflectionRealityCheck() {
             </div>
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0 }}>
-                <strong style={{ color: "#fff" }}>The gap between the slide and the spreadsheet:</strong> Most AI deflection business cases show gross savings and stop. The reality includes four cost categories vendors rarely surface: bot leakage (customers who abandon the bot and call anyway, costing you the bot interaction AND the call), containment failure (the bot marks it resolved but the customer calls back), the escalation premium (post-bot calls run 20-30% longer because the customer is already frustrated), and ongoing operating costs (platform, QA, tuning, and knowledge maintenance). Net savings typically run 40-65% of the vendor projection.
-              </p>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Scenario Comparison</h3>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>How do your numbers compare to three common deflection projections?</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  { label: "Vendor Optimistic", gross: 45, leakage: 5, fail: 8, escalation: 15, note: "Typical vendor pitch" },
+                  { label: "Industry Average", gross: 30, leakage: 12, fail: 15, escalation: 25, note: "Research consensus" },
+                  { label: "Conservative", gross: 20, leakage: 18, fail: 20, escalation: 30, note: "First 12 months reality" },
+                ].map((s, i) => {
+                  const sNet = s.gross * (1 - s.leakage/100) * (1 - s.fail/100);
+                  return (
+                    <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>{s.label}</div>
+                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: "#fff" }}>{sNet.toFixed(0)}% net</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{s.note}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <a href="/vendors/iva" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" }}>→ See 43 scored IVA vendors</a>
+                <a href="/tools/channel-shift" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" }}>→ Channel Shift Economics</a>
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
