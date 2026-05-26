@@ -183,26 +183,6 @@ const SEO_MAP = {
     title: `Business Case Builder — CX Transformation ROI | ${SITE}`,
     desc: "Model the ROI of your CX transformation. Calculate savings from AHT reduction, self-service containment, attrition improvement, and FCR gains.",
   },
-  "/tools/staffing-calculator": {
-    title: `Staffing Requirement Calculator — Erlang C | ${SITE}`,
-    desc: "Convert call volume, AHT, SLA target, and shrinkage into required FTE using Erlang C. Sensitivity analysis shows the cost of being short even one agent.",
-  },
-  "/tools/shrinkage-planner": {
-    title: `Shrinkage Planner — Planned vs Unplanned | ${SITE}`,
-    desc: "Model planned and unplanned shrinkage categories. See the staffing gap, effective agents, and annual cost of every point of shrinkage.",
-  },
-  "/tools/occupancy-risk": {
-    title: `Occupancy Risk Simulator | ${SITE}`,
-    desc: "See when efficiency becomes burnout. Model how occupancy levels affect agent idle time, attrition risk, and the hidden cost of pushing utilization too high.",
-  },
-  "/tools/forecast-accuracy": {
-    title: `Forecast Accuracy Tracker | ${SITE}`,
-    desc: "Compare forecast vs actual by period and channel. Identify bias, measure accuracy, and quantify the cost of forecast error.",
-  },
-  "/tools/schedule-adherence": {
-    title: `Schedule Adherence Impact Calculator | ${SITE}`,
-    desc: "See how 2-5 points of adherence loss cascades into ASA degradation, SLA misses, higher abandonment, and overtime cost.",
-  },
   "/industries": {
     title: `Industries | ${SITE}`,
     desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and education.",
