@@ -34,7 +34,16 @@ export const vendors = {
       "The AI roadmap is ambitious; validate which capabilities are GA vs beta before building your business case around them",
     ],
     competitors: ["NICE CXone", "Five9", "Amazon Connect", "Talkdesk", "Cisco Webex"],
-    competitiveContext: "Genesys and NICE CXone are the two strongest enterprise CCaaS platforms. Genesys has the edge in routing sophistication and native WEM integration. NICE has the edge in interaction analytics and QA depth. Five9 competes well on ease of deployment and mid-market value. Amazon Connect wins on AWS-native integration and consumption pricing. Talkdesk is catching up on AI but lacks the enterprise deployment track record.",
+    competitiveContext: "Genesys and NICE CXone are the two strongest enterprise CCaaS platforms. Genesys has the edge in routing sophistication and native WEM integration. NICE has the edge in interaction analytics and QA depth. Five9 competes well on ease of deployment and mid-market value. Amazon Connect wins on AWS-native integration and consumption pricing. Talkdesk is catching up on AI but lacks the enterprise deployment track record.",,
+    beats: "Lighter midmarket and regional platforms",
+    losesTo: "NICE in QA-heavy regulated ops; AWS in builder-led cloud plays",
+    whyShortlists: "Broad suite depth strong orchestration native WEM marketplace global enterprise credibility",
+    knockoutRisk: "Fails value test if customer is midmarket low-complexity or speed-first",
+    lossPattern: "Over-scoped for smaller buyers or loses on simplicity/cost",
+    recommendedUse: "Default benchmark in serious enterprise evaluations",
+    verticalFit: { "Financial Services": 5, "Healthcare": 5, "Insurance": 5, "Retail + eCommerce": 5, "Telecom": 5, "Utilities": 4, "Manufacturing": 5, "Travel + Hospitality": 5, "Media + Entertainment": 4, "Government": 5 },
+    integrations: ["Healthcare: Epic", "Insurance: Guidewire (ClaimCenter / PolicyCenter / BillingCenter)"],
+    verticalSummary: "Broadest all-around cross-vertical foundation strength"
   },
 
   "nice-cxone": {
@@ -64,7 +73,16 @@ export const vendors = {
       "Contract terms for enterprise deals can be rigid — negotiate flexibility on seat counts and module adoption phasing",
     ],
     competitors: ["Genesys Cloud CX", "Five9", "Talkdesk", "Verint", "Calabrio"],
-    competitiveContext: "NICE and Genesys are the market's two enterprise CCaaS leaders. NICE wins on analytics and QA depth. Genesys wins on routing sophistication and ecosystem breadth. Against Verint and Calabrio, NICE competes directly on WEM and increasingly wins because WEM is embedded in the CCaaS. Five9 competes on ease of deployment and mid-market pricing.",
+    competitiveContext: "NICE and Genesys are the market's two enterprise CCaaS leaders. NICE wins on analytics and QA depth. Genesys wins on routing sophistication and ecosystem breadth. Against Verint and Calabrio, NICE competes directly on WEM and increasingly wins because WEM is embedded in the CCaaS. Five9 competes on ease of deployment and mid-market pricing.",,
+    beats: "RingCentral, 8x8, lighter challengers",
+    losesTo: "Genesys in broader orchestration stories; AWS in cloud-builder shops",
+    whyShortlists: "Elite WEM QA analytics compliance and regulated-enterprise posture",
+    knockoutRisk: "Gets cut when buyer wants simpler commercials or lighter transformation path",
+    lossPattern: "Can lose on perceived heaviness or transformation burden",
+    recommendedUse: "Default benchmark for regulated and QA-heavy environments",
+    verticalFit: { "Financial Services": 5, "Healthcare": 5, "Insurance": 5, "Retail + eCommerce": 4, "Telecom": 5, "Utilities": 5, "Manufacturing": 4, "Travel + Hospitality": 4, "Media + Entertainment": 4, "Government": 5 },
+    integrations: ["Healthcare: Epic"],
+    verticalSummary: "Elite fit in regulated QA-heavy and ops-complex environments"
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -96,7 +114,16 @@ export const vendors = {
       "International deployment capabilities should be validated for your specific regions",
     ],
     competitors: ["Genesys Cloud CX", "NICE CXone", "Talkdesk", "Amazon Connect", "8x8"],
-    competitiveContext: "Five9 sits in a strong middle position — more enterprise-capable than Talkdesk or 8x8, faster to deploy than Genesys or NICE. Against Genesys, Five9 trades routing depth for implementation speed. Against NICE, Five9 trades analytics depth for a cleaner mid-market fit. Very partner-carryable compared with heavier enterprise suites.",
+    competitiveContext: "Five9 sits in a strong middle position — more enterprise-capable than Talkdesk or 8x8, faster to deploy than Genesys or NICE. Against Genesys, Five9 trades routing depth for implementation speed. Against NICE, Five9 trades analytics depth for a cleaner mid-market fit. Very partner-carryable compared with heavier enterprise suites.",,
+    beats: "Midmarket challengers and lighter unified-stack vendors",
+    losesTo: "Genesys and NICE in top-tier strategic bakeoffs",
+    whyShortlists: "Pragmatic enterprise credibility strong outbound partner accessibility",
+    knockoutRisk: "Gets cut when buyer wants top-tier all-stack depth or stronger sovereignty story",
+    lossPattern: "Can lose when buyers want the broadest enterprise control plane",
+    recommendedUse: "Benchmark for pragmatic modernization and blended service/sales",
+    verticalFit: { "Financial Services": 4, "Healthcare": 4, "Insurance": 4, "Retail + eCommerce": 5, "Telecom": 4, "Utilities": 3, "Manufacturing": 3, "Travel + Hospitality": 4, "Media + Entertainment": 5, "Government": 3 },
+    integrations: ["Healthcare: Epic", "Healthcare: Oracle Health / Cerner", "Healthcare: athenahealth", "Financial services / credit union: Jack Henry (Symitar / Quest / related products)", "Financial services: Fiserv"],
+    verticalSummary: "Strong in pragmatic service and sales environments with good retail/media fit"
   },
 
   "cisco": {
@@ -123,7 +150,15 @@ export const vendors = {
       "Implementation partners should have Webex Contact Center experience, not just broader Cisco expertise",
     ],
     competitors: ["Genesys Cloud CX", "NICE CXone", "Zoom", "RingCentral", "Amazon Connect"],
-    competitiveContext: "Cisco competes best when the decision is influenced by security posture, existing Cisco infrastructure, and enterprise consolidation logic. Against Genesys and NICE, Cisco trades broader CCaaS depth for security and collaboration adjacency. Against Zoom and RingCentral, Cisco brings significantly more enterprise gravity.",
+    competitiveContext: "Cisco competes best when the decision is influenced by security posture, existing Cisco infrastructure, and enterprise consolidation logic. Against Genesys and NICE, Cisco trades broader CCaaS depth for security and collaboration adjacency. Against Zoom and RingCentral, Cisco brings significantly more enterprise gravity.",,
+    beats: "UC-adjacent and security-sensitive alternatives",
+    losesTo: "Genesys/NICE in pure CCaaS-led bakeoffs",
+    whyShortlists: "Security enterprise trust collaboration adjacency telecom/government relevance",
+    knockoutRisk: "Gets cut in pure greenfield CX beauty contests with no Cisco estate advantage",
+    lossPattern: "Can lose when brand pull is weaker than specialist CCaaS leaders",
+    recommendedUse: "Use in Cisco-heavy estates and security-sensitive enterprise deals",
+    verticalFit: { "Financial Services": 4, "Healthcare": 5, "Insurance": 4, "Retail + eCommerce": 3, "Telecom": 5, "Utilities": 4, "Manufacturing": 4, "Travel + Hospitality": 3, "Media + Entertainment": 3, "Government": 5 },
+    verticalSummary: "Security-first enterprise and public-sector fit with strong telecom relevance"
   },
 
   "talkdesk": {
@@ -151,7 +186,16 @@ export const vendors = {
       "Do not confuse vertical messaging with guaranteed operational superiority — packaging strength and operational depth are different things",
     ],
     competitors: ["Genesys Cloud CX", "NICE CXone", "Five9", "Amazon Connect", "RingCentral"],
-    competitiveContext: "Talkdesk's strongest position is against mid-market and growing enterprise buyers who value vertical specialization and modern architecture. Against Genesys, Talkdesk trades routing depth and global scale for vertical-specific workflows and a cleaner UX. Against Five9, Talkdesk offers stronger vertical positioning but a less mature outbound engine.",
+    competitiveContext: "Talkdesk's strongest position is against mid-market and growing enterprise buyers who value vertical specialization and modern architecture. Against Genesys, Talkdesk trades routing depth and global scale for vertical-specific workflows and a cleaner UX. Against Five9, Talkdesk offers stronger vertical positioning but a less mature outbound engine.",,
+    beats: "Regional and lighter enterprise challengers",
+    losesTo: "Genesys/NICE in brutal enterprise complexity; AWS in heavy cloud-build accounts",
+    whyShortlists: "Clear business packaging strong vertical story good partner carryability",
+    knockoutRisk: "Gets cut when extreme custom telecom industrial or multinational complexity appears",
+    lossPattern: "Can lose when packaging looks stronger than operating depth",
+    recommendedUse: "Use in vertical-led modernization and experience transformation",
+    verticalFit: { "Financial Services": 5, "Healthcare": 5, "Insurance": 5, "Retail + eCommerce": 5, "Telecom": 3, "Utilities": 3, "Manufacturing": 3, "Travel + Hospitality": 5, "Media + Entertainment": 3, "Government": 3 },
+    integrations: ["Healthcare: Epic", "Healthcare: Oracle Health / Cerner", "Healthcare: athenahealth", "Insurance: Guidewire (ClaimCenter / PolicyCenter / BillingCenter)", "Insurance: Duck Creek", "Retail / Ecommerce: Shopify"],
+    verticalSummary: "Strong packaged vertical story especially in financial services healthcare insurance and travel"
   },
 
   "amazon-connect": {
@@ -180,7 +224,15 @@ export const vendors = {
       "Architecture governance risk can distort field outcomes — evaluate whether your team can sustain ongoing platform development",
     ],
     competitors: ["Genesys Cloud CX", "NICE CXone", "Five9", "Talkdesk", "Google CCAI"],
-    competitiveContext: "Amazon Connect occupies a unique position — it competes on architecture flexibility and AWS ecosystem depth rather than out-of-box completeness. Against Genesys and NICE, Connect trades turnkey functionality for infrastructure-level control. Against Five9 and Talkdesk, Connect appeals to the CTO with engineering resources who wants to own the architecture.",
+    competitiveContext: "Amazon Connect occupies a unique position — it competes on architecture flexibility and AWS ecosystem depth rather than out-of-box completeness. Against Genesys and NICE, Connect trades turnkey functionality for infrastructure-level control. Against Five9 and Talkdesk, Connect appeals to the CTO with engineering resources who wants to own the architecture.",,
+    beats: "Rigid suites in highly customized cloud-native scenarios",
+    losesTo: "Genesys/NICE where packaged ops depth matters more",
+    whyShortlists: "Programmable architecture scale API depth resilience and AWS ecosystem",
+    knockoutRisk: "Gets cut when buyer lacks cloud engineering discipline or needs more opinionated out-of-box ops",
+    lossPattern: "Can lose when customer needs turnkey WEM-rich packaged operation",
+    verticalFit: { "Financial Services": 4, "Healthcare": 4, "Insurance": 4, "Retail + eCommerce": 4, "Telecom": 4, "Utilities": 4, "Manufacturing": 3, "Travel + Hospitality": 4, "Media + Entertainment": 4, "Government": 3 },
+    integrations: ["Healthcare: Epic", "Retail / Ecommerce: Shopify"],
+    verticalSummary: "Strong where cloud engineering maturity and extensibility matter"
   },
 
   "content-guru": {
@@ -205,7 +257,16 @@ export const vendors = {
       "Validate go-to-market coverage and partner availability in your region",
     ],
     competitors: ["Genesys Cloud CX", "NICE CXone", "Cisco Webex", "Odigo"],
-    competitiveContext: "Content Guru competes in a specific lane — mission-critical, high-availability, government and regulated environments. Against Genesys and NICE, it trades broad-market gravity for deeper resilience and compliance proof. Against Odigo, it shares European relevance but with stronger public-sector credentials.",
+    competitiveContext: "Content Guru competes in a specific lane — mission-critical, high-availability, government and regulated environments. Against Genesys and NICE, it trades broad-market gravity for deeper resilience and compliance proof. Against Odigo, it shares European relevance but with stronger public-sector credentials.",,
+    beats: "Regional or lighter regulated alternatives",
+    losesTo: "Genesys/NICE/Cisco where broader enterprise gravity matters",
+    whyShortlists: "Mission-critical resilience compliance public-sector strength",
+    knockoutRisk: "Gets cut when broad commercial-market awareness or ecosystem breadth matter",
+    lossPattern: "Can lose on mindshare and ecosystem familiarity",
+    recommendedUse: "Use in public-sector and high-availability environments",
+    verticalFit: { "Financial Services": 4, "Healthcare": 4, "Insurance": 4, "Retail + eCommerce": 2, "Telecom": 4, "Utilities": 4, "Manufacturing": 3, "Travel + Hospitality": 2, "Media + Entertainment": 2, "Government": 5 },
+    integrations: ["Retail / Ecommerce: Magento / Adobe Commerce", "Hospitality: Micros Fidelio / hotel booking stack", "Hospitality: HORECA", "Financial services / credit union: Jack Henry (Symitar / Quest / related products)", "Financial services: Fiserv", "Utilities / field operations: PowerOn / ENMAC / SSE SIMS / GeoCall / I-CAD"],
+    verticalSummary: "High-strength fit where resilience compliance and mission-critical operations dominate"
   },
 
   "zoom": {
@@ -233,7 +294,16 @@ export const vendors = {
       "Qualify complexity honestly — Zoom's strength is in the mid-market and growing enterprise, and its enterprise proof is building but still earlier stage",
     ],
     competitors: ["RingCentral", "8x8", "Five9", "Talkdesk", "Dialpad"],
-    competitiveContext: "Zoom competes most directly with RingCentral and 8x8 in the UC+CC convergence space, but is increasingly winning against Talkdesk and Five9 in mid-market evaluations. Against RingCentral, Zoom has stronger UX and brand momentum. Against 8x8, Zoom has more AI investment and market energy. Against Five9, Zoom trades outbound depth for ecosystem pull and faster deployment.",
+    competitiveContext: "Zoom competes most directly with RingCentral and 8x8 in the UC+CC convergence space, but is increasingly winning against Talkdesk and Five9 in mid-market evaluations. Against RingCentral, Zoom has stronger UX and brand momentum. Against 8x8, Zoom has more AI investment and market energy. Against Five9, Zoom trades outbound depth for ecosystem pull and faster deployment.",,
+    beats: "UC-adjacent midmarket challengers",
+    losesTo: "Genesys/NICE/Cisco in deeper enterprise or secure environments",
+    whyShortlists: "Familiar brand easy expansion from Zoom estate strong user adoption",
+    knockoutRisk: "Gets cut when enterprise workforce and compliance demands get serious",
+    lossPattern: "Can lose when friendliness masks lighter ops depth",
+    recommendedUse: "Use in digital-first and Zoom-estate service expansion",
+    verticalFit: { "Financial Services": 3, "Healthcare": 3, "Insurance": 3, "Retail + eCommerce": 4, "Telecom": 2, "Utilities": 2, "Manufacturing": 2, "Travel + Hospitality": 4, "Media + Entertainment": 5, "Government": 2 },
+    integrations: ["Healthcare: Epic", "Healthcare: Oracle Health / Cerner"],
+    verticalSummary: "Good in digital-first and experience-forward environments"
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -262,7 +332,16 @@ export const vendors = {
       "Can be oversold into more complex CCaaS needs than the platform should handle",
     ],
     competitors: ["Zoom", "8x8", "Five9", "Talkdesk", "Vonage"],
-    competitiveContext: "RingCentral competes primarily in the UC+CC convergence space against Zoom and 8x8. Against Zoom, RingCentral has a larger installed UC base but weaker brand momentum. Against 8x8, it's a close competitor on value. Against Five9 and Talkdesk, RingCentral needs careful qualification — deeper enterprise evaluations tend to favor the purpose-built CCaaS players.",
+    competitiveContext: "RingCentral competes primarily in the UC+CC convergence space against Zoom and 8x8. Against Zoom, RingCentral has a larger installed UC base but weaker brand momentum. Against 8x8, it's a close competitor on value. Against Five9 and Talkdesk, RingCentral needs careful qualification — deeper enterprise evaluations tend to favor the purpose-built CCaaS players.",,
+    beats: "SMB-midmarket unified-stack vendors",
+    losesTo: "Genesys/NICE/Five9 in deeper enterprise evaluations",
+    whyShortlists: "UC+CC simplification strong channel leverage accessible commercial story",
+    knockoutRisk: "Gets cut when deep WEM/QM/routing complexity is required",
+    lossPattern: "Can lose when buyer realizes complexity exceeds platform sweet spot",
+    recommendedUse: "Use in distributed-service and simplification-led deals",
+    verticalFit: { "Financial Services": 3, "Healthcare": 3, "Insurance": 3, "Retail + eCommerce": 4, "Telecom": 3, "Utilities": 2, "Manufacturing": 2, "Travel + Hospitality": 4, "Media + Entertainment": 4, "Government": 2 },
+    integrations: ["Healthcare: Epic", "Healthcare: Oracle Health / Cerner", "Healthcare: athenahealth", "Financial services / credit union: Jack Henry (Symitar / Quest / related products)", "Financial services: Fiserv"],
+    verticalSummary: "Best in simpler service models and UC-led transformations"
   },
 
   "bright-pattern": {
@@ -284,7 +363,15 @@ export const vendors = {
     notFit: "Board-visible enterprise selections where brand confidence matters. Large-scale transformations requiring deep partner ecosystem.",
     redFlags: ["Good practical option; evaluate carefully whether your organization needs the market confidence that comes with a top-tier brand"],
     competitors: ["Five9", "Talkdesk", "RingCentral", "8x8"],
-    competitiveContext: "Bright Pattern competes best when the buyer values functionality-per-dollar over brand gravitas. Usually loses to Five9, Talkdesk, and Genesys when confidence and scale matter more than cost efficiency.",
+    competitiveContext: "Bright Pattern competes best when the buyer values functionality-per-dollar over brand gravitas. Usually loses to Five9, Talkdesk, and Genesys when confidence and scale matter more than cost efficiency.",,
+    beats: "Smaller practical alternatives",
+    losesTo: "Five9/Talkdesk/Genesys when confidence and scale matter",
+    whyShortlists: "Practical feature breadth simpler deployment midmarket usability",
+    knockoutRisk: "Gets cut when ecosystem gravity or top-tier proof is required",
+    lossPattern: "Can lose due to lower market presence and weaker strategic confidence",
+    recommendedUse: "Use as a practical midmarket comparator",
+    verticalFit: { "Financial Services": 3, "Healthcare": 3, "Insurance": 3, "Retail + eCommerce": 4, "Telecom": 2, "Utilities": 2, "Manufacturing": 2, "Travel + Hospitality": 3, "Media + Entertainment": 3, "Government": 2 },
+    verticalSummary: "Useful generalist fit for midmarket service environments"
   },
 
   "8x8": {
@@ -306,7 +393,15 @@ export const vendors = {
     notFit: "Large-scale transformation with strict governance demands. Enterprise evaluations where top-tier depth is table stakes.",
     redFlags: ["Useful value option — verify that your complexity requirements won't outgrow the platform within your contract term"],
     competitors: ["RingCentral", "Zoom", "Vonage", "Five9"],
-    competitiveContext: "8x8 competes most directly with RingCentral and Zoom in unified-stack value plays. Usually loses to Genesys, NICE, and Five9 in serious enterprise evaluations. Against RingCentral, 8x8 competes on price; against Zoom, 8x8 has less brand momentum.",
+    competitiveContext: "8x8 competes most directly with RingCentral and Zoom in unified-stack value plays. Usually loses to Genesys, NICE, and Five9 in serious enterprise evaluations. Against RingCentral, 8x8 competes on price; against Zoom, 8x8 has less brand momentum.",,
+    beats: "Smaller UC+CC vendors",
+    losesTo: "Genesys/NICE/Five9 in serious enterprise evaluations",
+    whyShortlists: "Unified value cost-conscious consolidation global SMB-midmarket reach",
+    knockoutRisk: "Gets cut when enterprise gravity or advanced WEM depth are required",
+    lossPattern: "Can lose when enterprise buyers want more depth and ecosystem pull",
+    recommendedUse: "Use in cost-conscious consolidation plays",
+    verticalFit: { "Financial Services": 3, "Healthcare": 3, "Insurance": 3, "Retail + eCommerce": 4, "Telecom": 3, "Utilities": 2, "Manufacturing": 2, "Travel + Hospitality": 3, "Media + Entertainment": 3, "Government": 2 },
+    verticalSummary: "Value-oriented fit for midmarket cross-channel service"
   },
 
   "odigo": {
@@ -327,7 +422,15 @@ export const vendors = {
     notFit: "North America-led deals with low sovereignty sensitivity. Global enterprise standardization programs.",
     redFlags: ["Strong regional specialist — do not position as a universal answer outside Europe-first requirements"],
     competitors: ["Genesys Cloud CX", "NICE CXone", "Content Guru", "Puzzel"],
-    competitiveContext: "Odigo wins in European sovereignty-sensitive contexts where global leaders may face compliance scrutiny. Usually loses to Genesys and NICE in global-enterprise standards deals. Shares some European overlap with Content Guru but with different vertical strengths.",
+    competitiveContext: "Odigo wins in European sovereignty-sensitive contexts where global leaders may face compliance scrutiny. Usually loses to Genesys and NICE in global-enterprise standards deals. Shares some European overlap with Content Guru but with different vertical strengths.",,
+    beats: "Regional competitors in sovereignty-sensitive markets",
+    losesTo: "Genesys/NICE in global-enterprise standards deals",
+    whyShortlists: "European sovereignty fit regulated-sector relevance strong regional logic",
+    knockoutRisk: "Gets cut outside Europe-first or sovereignty-led requirements",
+    lossPattern: "Can lose when global-scale expectations exceed regional strength",
+    recommendedUse: "Use in Europe-first regulated-sector pursuits",
+    verticalFit: { "Financial Services": 5, "Healthcare": 3, "Insurance": 4, "Retail + eCommerce": 2, "Telecom": 4, "Utilities": 4, "Manufacturing": 3, "Travel + Hospitality": 3, "Media + Entertainment": 2, "Government": 5 },
+    verticalSummary: "Especially strong in Europe regulated and sovereignty-sensitive sectors"
   },
 
   "ujet": {
@@ -348,7 +451,15 @@ export const vendors = {
     notFit: "Legacy-heavy multinational operations. Enterprise evaluations demanding extensive deployment references at scale.",
     redFlags: ["Interesting challenger — demand proof of production performance rather than relying on the modern-platform narrative alone"],
     competitors: ["Talkdesk", "Five9", "Zoom", "Dialpad"],
-    competitiveContext: "UJET competes as a modern challenger against Talkdesk and Zoom in digital-first evaluations. Usually loses to Genesys, NICE, and Five9 when enterprise proof matters. Differentiates on mobile-first design.",
+    competitiveContext: "UJET competes as a modern challenger against Talkdesk and Zoom in digital-first evaluations. Usually loses to Genesys, NICE, and Five9 when enterprise proof matters. Differentiates on mobile-first design.",,
+    beats: "Older less modern-feeling options in app-centric support",
+    losesTo: "Genesys/NICE/Five9 when enterprise proof matters",
+    whyShortlists: "Modern mobile-first and digital-native CX design",
+    knockoutRisk: "Gets cut when deep enterprise breadth or scale proof is demanded",
+    lossPattern: "Can lose when modern story outruns field proof",
+    recommendedUse: "Use where customer wants modern CX rework more than legacy migration support",
+    verticalFit: { "Financial Services": 3, "Healthcare": 4, "Insurance": 3, "Retail + eCommerce": 4, "Telecom": 2, "Utilities": 2, "Manufacturing": 2, "Travel + Hospitality": 3, "Media + Entertainment": 3, "Government": 2 },
+    verticalSummary: "Modern CX fit where mobile-first and digital service matter"
   },
 
   "avaya": {
@@ -374,7 +485,15 @@ export const vendors = {
       "Financial and organizational stability should be validated independently before committing to a multi-year platform strategy",
     ],
     competitors: ["Genesys Cloud CX", "NICE CXone", "Cisco Webex", "Enghouse"],
-    competitiveContext: "Avaya's competitive relevance is almost entirely tied to its installed base. Against Genesys, NICE, and Cisco, Avaya loses in future-state cloud-led deals. Its wins come from incumbent defense scenarios where switching costs and organizational disruption favor staying.",
+    competitiveContext: "Avaya's competitive relevance is almost entirely tied to its installed base. Against Genesys, NICE, and Cisco, Avaya loses in future-state cloud-led deals. Its wins come from incumbent defense scenarios where switching costs and organizational disruption favor staying.",,
+    beats: "Installed-base alternatives with weaker incumbency",
+    losesTo: "Genesys/NICE/Cisco in future-state cloud-led deals",
+    whyShortlists: "Installed-base relevance hybrid transition familiarity in incumbent estates",
+    knockoutRisk: "Gets cut when buyer wants a clean future-state cloud bet",
+    lossPattern: "Can lose when legacy baggage overwhelms product discussion",
+    recommendedUse: "Use in incumbent transition strategy not default greenfield ranking",
+    verticalFit: { "Financial Services": 4, "Healthcare": 3, "Insurance": 4, "Retail + eCommerce": 2, "Telecom": 5, "Utilities": 3, "Manufacturing": 4, "Travel + Hospitality": 2, "Media + Entertainment": 2, "Government": 4 },
+    verticalSummary: "Still relevant in incumbent-heavy telecom BFSI and government estates"
   },
 
   "enghouse": {
@@ -395,7 +514,15 @@ export const vendors = {
     notFit: "Net-new cloud-first transformation with executive urgency. Evaluations where a cohesive modern platform narrative matters.",
     redFlags: ["Useful when migration is the problem — evaluate carefully whether you're buying a bridge or a destination"],
     competitors: ["Avaya", "Genesys Cloud CX", "Cisco Webex"],
-    competitiveContext: "Enghouse wins in coexistence and migration-led strategies. Loses to Genesys, NICE, and Talkdesk in cleaner cloud-first evaluations. Competes with Avaya for legacy-bridge scenarios.",
+    competitiveContext: "Enghouse wins in coexistence and migration-led strategies. Loses to Genesys, NICE, and Talkdesk in cleaner cloud-first evaluations. Competes with Avaya for legacy-bridge scenarios.",,
+    beats: "Legacy coexistence scenarios",
+    losesTo: "Genesys/NICE/Talkdesk in cleaner cloud-first evaluations",
+    whyShortlists: "Flexible migration story broad installed-base utility mixed-estate coexistence",
+    knockoutRisk: "Gets cut in clean-sheet cloud transformation contests",
+    lossPattern: "Can lose when portfolio complexity weakens narrative clarity",
+    recommendedUse: "Use in installed-base and coexistence programs",
+    verticalFit: { "Financial Services": 3, "Healthcare": 3, "Insurance": 3, "Retail + eCommerce": 2, "Telecom": 4, "Utilities": 3, "Manufacturing": 4, "Travel + Hospitality": 2, "Media + Entertainment": 2, "Government": 3 },
+    verticalSummary: "Pragmatic mixed-estate and transformation fit more than category-leading vertical strength"
   },
 
   "dialpad": {
@@ -416,7 +543,15 @@ export const vendors = {
     notFit: "Highly governed regulated enterprise or BPO environments. Complex multi-site operations.",
     redFlags: ["Do not let brand narrative outrun operational evidence — validate production depth for your complexity level"],
     competitors: ["Zoom", "RingCentral", "Aircall", "8x8"],
-    competitiveContext: "Dialpad competes in the AI-native challenger space against Zoom and newer entrants. Usually loses to Genesys, NICE, Five9, and Cisco in enterprise operations. Wins on AI messaging and simplicity with lean buyers.",
+    competitiveContext: "Dialpad competes in the AI-native challenger space against Zoom and newer entrants. Usually loses to Genesys, NICE, Five9, and Cisco in enterprise operations. Wins on AI messaging and simplicity with lean buyers.",,
+    beats: "Smaller SMB alternatives",
+    losesTo: "Genesys/NICE/Five9/Cisco in enterprise operations",
+    whyShortlists: "AI-native messaging fast simplicity and lean operations appeal",
+    knockoutRisk: "Gets cut when enterprise governance routing and WEM depth are tested",
+    lossPattern: "Can lose when “AI-native” does not equal enterprise maturity",
+    recommendedUse: "Use for lean AI-centric SMB/midmarket comparisons",
+    verticalFit: { "Financial Services": 2, "Healthcare": 2, "Insurance": 2, "Retail + eCommerce": 3, "Telecom": 2, "Utilities": 2, "Manufacturing": 2, "Travel + Hospitality": 3, "Media + Entertainment": 3, "Government": 1 },
+    verticalSummary: "AI-native challenger more relevant in simpler fast-moving service organizations"
   },
 
   "anywhere-now": {
@@ -437,7 +572,15 @@ export const vendors = {
     notFit: "Non-Microsoft organizations or multi-stack flexibility demands. General-purpose CCaaS evaluations.",
     redFlags: ["Only relevant when Microsoft is strategic — do not include in evaluations where Teams centrality is weak"],
     competitors: ["Luware", "Cisco Webex", "Genesys Cloud CX"],
-    competitiveContext: "AnywhereNow competes with Luware in the Teams-native space. Against Genesys, Cisco, and AWS, it wins only when the Microsoft mandate overrides broader CCaaS depth requirements.",
+    competitiveContext: "AnywhereNow competes with Luware in the Teams-native space. Against Genesys, Cisco, and AWS, it wins only when the Microsoft mandate overrides broader CCaaS depth requirements.",,
+    beats: "Non-Microsoft weaker options in Teams-first accounts",
+    losesTo: "Genesys/Cisco/AWS when broader platform logic matters",
+    whyShortlists: "Teams-native fit Microsoft estate alignment Azure relevance",
+    knockoutRisk: "Gets cut when Microsoft centrality is weak",
+    lossPattern: "Can lose because ecosystem dependence narrows appeal",
+    recommendedUse: "Use in Teams-first enterprise evaluations",
+    verticalFit: { "Financial Services": 3, "Healthcare": 3, "Insurance": 3, "Retail + eCommerce": 3, "Telecom": 2, "Utilities": 2, "Manufacturing": 3, "Travel + Hospitality": 2, "Media + Entertainment": 2, "Government": 3 },
+    verticalSummary: "Teams-native fit in Microsoft-standardized enterprise service models"
   },
 
   "puzzel": {
@@ -458,7 +601,15 @@ export const vendors = {
     notFit: "Global enterprise standardization pursuits. Complex regulated environments requiring deep governance.",
     redFlags: ["Keep it regional and practical — do not inflate category position beyond its natural scope"],
     competitors: ["Odigo", "Content Guru", "Bright Pattern"],
-    competitiveContext: "Puzzel competes regionally against Odigo and lighter European providers. Loses to Genesys, Five9, and Talkdesk in larger transformation programs.",
+    competitiveContext: "Puzzel competes regionally against Odigo and lighter European providers. Loses to Genesys, Five9, and Talkdesk in larger transformation programs.",,
+    beats: "Smaller local alternatives",
+    losesTo: "Genesys/Five9/Talkdesk in larger transformation programs",
+    whyShortlists: "Practical regional platform usable omni service and partner accessibility",
+    knockoutRisk: "Gets cut when global scale or enterprise governance depth is needed",
+    lossPattern: "Can lose when buyer wants more strategic depth or global capability",
+    recommendedUse: "Use in Nordic UK and regional service organizations",
+    verticalFit: { "Financial Services": 2, "Healthcare": 2, "Insurance": 2, "Retail + eCommerce": 3, "Telecom": 2, "Utilities": 2, "Manufacturing": 2, "Travel + Hospitality": 4, "Media + Entertainment": 3, "Government": 2 },
+    verticalSummary: "Regional practical fit for service organizations with simpler operating needs"
   },
 
   "alvaria": {
@@ -479,7 +630,15 @@ export const vendors = {
     notFit: "General-purpose enterprise CCaaS bakeoffs. Modern inbound-first or digital-first transformations.",
     redFlags: ["Treat as situational specialist only — evaluate whether outbound depth justifies a narrower platform foundation"],
     competitors: ["Five9", "Genesys Cloud CX", "NICE CXone"],
-    competitiveContext: "Alvaria wins on outbound heritage and compliant dialing. Loses to nearly any modern broad CCaaS core vendor in general-purpose evaluations. Five9 is the most direct competitor given its strong outbound capabilities on a modern platform.",
+    competitiveContext: "Alvaria wins on outbound heritage and compliant dialing. Loses to nearly any modern broad CCaaS core vendor in general-purpose evaluations. Five9 is the most direct competitor given its strong outbound capabilities on a modern platform.",,
+    beats: "Narrow outreach-heavy alternatives",
+    losesTo: "Almost any modern broad CCaaS core vendor",
+    whyShortlists: "Legacy outreach and compliant outbound relevance",
+    knockoutRisk: "Gets cut in modern broad CCaaS foundation selections",
+    lossPattern: "Can lose because market sees it as specialist not broad platform",
+    recommendedUse: "Use selectively in outbound-heavy legacy cases",
+    verticalFit: { "Financial Services": 3, "Healthcare": 2, "Insurance": 3, "Retail + eCommerce": 2, "Telecom": 4, "Utilities": 2, "Manufacturing": 3, "Travel + Hospitality": 1, "Media + Entertainment": 1, "Government": 2 },
+    verticalSummary: "More situational around outreach and legacy enterprise estates"
   },
 
   "vonage": {
@@ -500,7 +659,15 @@ export const vendors = {
     notFit: "Regulated enterprise and large BPO operations. Any evaluation where CCaaS foundation depth is scrutinized.",
     redFlags: ["Do not position as universal foundation — evaluate whether the comms-adjacent value justifies a thinner CCaaS layer"],
     competitors: ["RingCentral", "8x8", "Five9"],
-    competitiveContext: "Vonage competes in communications-led midmarket scenarios. Loses to Five9, Genesys, and Talkdesk in serious CCaaS selections.",
+    competitiveContext: "Vonage competes in communications-led midmarket scenarios. Loses to Five9, Genesys, and Talkdesk in serious CCaaS selections.",,
+    beats: "Lighter communications-led alternatives",
+    losesTo: "Five9/Genesys/Talkdesk in serious CCaaS selections",
+    whyShortlists: "Integration flexibility communications adjacency CRM-friendly motion",
+    knockoutRisk: "Gets cut when enterprise control-plane depth is scrutinized",
+    lossPattern: "Can lose because buyers view it as situational not foundational",
+    recommendedUse: "Use in CRM-led midmarket and blended comms environments",
+    verticalFit: { "Financial Services": 2, "Healthcare": 2, "Insurance": 2, "Retail + eCommerce": 3, "Telecom": 2, "Utilities": 2, "Manufacturing": 2, "Travel + Hospitality": 3, "Media + Entertainment": 3, "Government": 2 },
+    verticalSummary: "Situational fit where integration and communications adjacency matter"
   },
 
   "luware": {
@@ -520,7 +687,15 @@ export const vendors = {
     notFit: "Non-Microsoft enterprise environments. General-purpose CCaaS evaluations.",
     redFlags: ["Important only when Microsoft is strategic — outside Teams-centric contexts, relevance is minimal"],
     competitors: ["AnywhereNow", "Cisco Webex"],
-    competitiveContext: "Luware competes with AnywhereNow in the Teams-native space. Against broader CCaaS platforms, both Teams-native vendors win only when the Microsoft mandate is non-negotiable.",
+    competitiveContext: "Luware competes with AnywhereNow in the Teams-native space. Against broader CCaaS platforms, both Teams-native vendors win only when the Microsoft mandate is non-negotiable.",,
+    beats: "Weaker Teams-centric alternatives",
+    losesTo: "Genesys/Cisco/AWS when broader architecture matters",
+    whyShortlists: "Teams-centric service fit especially in Microsoft-heavy Europe accounts",
+    knockoutRisk: "Gets cut when Teams is not central or broader control-plane needs dominate",
+    lossPattern: "Can lose when buyers want broader vendor-agnostic platform power",
+    recommendedUse: "Use in Teams-mandated and Europe-led accounts",
+    verticalFit: { "Financial Services": 3, "Healthcare": 3, "Insurance": 3, "Retail + eCommerce": 2, "Telecom": 2, "Utilities": 2, "Manufacturing": 3, "Travel + Hospitality": 2, "Media + Entertainment": 2, "Government": 3 },
+    verticalSummary: "Useful in Teams-led enterprise environments requiring Microsoft-native CX"
   },
 
   // ═══════════════════════════════════════════════════════════
@@ -536,7 +711,15 @@ export const vendors = {
     bestFit: "SMB-midmarket simplification and bundled CX.", notFit: "Large-scale or regulated service environments.",
     redFlags: ["Do not elevate into enterprise core discussions without evidence of depth at your complexity level"],
     competitors: ["RingCentral", "8x8", "GoTo"],
-    competitiveContext: "Competes with RingCentral, 8x8, and GoTo in SMB-midmarket. Loses to every enterprise-core vendor in larger evaluations.",
+    competitiveContext: "Competes with RingCentral, 8x8, and GoTo in SMB-midmarket. Loses to every enterprise-core vendor in larger evaluations.",,
+    beats: "Small all-in-one alternatives",
+    losesTo: "8x8/RingCentral/Five9 and enterprise-core vendors",
+    whyShortlists: "All-in-one communications and service simplicity",
+    knockoutRisk: "Gets cut in high-complexity or enterprise-governed contact center reviews",
+    lossPattern: "Can lose when buyer needs deeper routing and workforce controls",
+    recommendedUse: "Use in smaller all-in-one CX evaluations",
+    verticalFit: { "Financial Services": 1, "Healthcare": 1, "Insurance": 1, "Retail + eCommerce": 2, "Telecom": 1, "Utilities": 1, "Manufacturing": 1, "Travel + Hospitality": 2, "Media + Entertainment": 2, "Government": 1 },
+    verticalSummary: "Primarily all-in-one SMB-midmarket value play"
   },
 
   "aircall": {
@@ -548,7 +731,15 @@ export const vendors = {
     bestFit: "SMB sales/support teams and lower-midmarket environments.", notFit: "Regulated enterprise or complex omnichannel operations.",
     redFlags: ["Keep in SMB lane only — gets cut immediately in serious enterprise CCaaS evaluations"],
     competitors: ["Dialpad", "GoTo", "Nextiva"],
-    competitiveContext: "Aircall competes with Dialpad and GoTo for SMB buyers. Loses to nearly all enterprise-core platforms.",
+    competitiveContext: "Aircall competes with Dialpad and GoTo for SMB buyers. Loses to nearly all enterprise-core platforms.",,
+    beats: "Older SMB telephony alternatives",
+    losesTo: "Nearly all enterprise-core CCaaS platforms",
+    whyShortlists: "Easy SMB sale modern integrations speed and usability",
+    knockoutRisk: "Gets cut immediately in serious enterprise CCaaS evaluations",
+    lossPattern: "Can lose when buyer matures beyond SMB complexity",
+    recommendedUse: "Use only for SMB/lower-midmarket comparison set",
+    verticalFit: { "Financial Services": 1, "Healthcare": 1, "Insurance": 1, "Retail + eCommerce": 3, "Telecom": 1, "Utilities": 1, "Manufacturing": 1, "Travel + Hospitality": 2, "Media + Entertainment": 2, "Government": 1 },
+    verticalSummary: "Mainly lower-midmarket fit with limited deep vertical foundation credibility"
   },
 
   "goto": {
@@ -560,7 +751,15 @@ export const vendors = {
     bestFit: "Cost-sensitive SMB buyers seeking fast consolidation.", notFit: "Complex multi-site regulated operations. Any enterprise-scale evaluation.",
     redFlags: ["Keep strictly in SMB-midmarket lens — no enterprise relevance"],
     competitors: ["Nextiva", "Aircall", "8x8"],
-    competitiveContext: "GoTo competes with Nextiva and Aircall for cost-sensitive SMB buyers. Loses to 8x8, RingCentral, and Five9 in any evaluation with modest complexity.",
+    competitiveContext: "GoTo competes with Nextiva and Aircall for cost-sensitive SMB buyers. Loses to 8x8, RingCentral, and Five9 in any evaluation with modest complexity.",,
+    beats: "Small-business alternatives",
+    losesTo: "8x8/RingCentral/Five9 and enterprise leaders",
+    whyShortlists: "Simple all-in-one value for SMB buyers",
+    knockoutRisk: "Gets cut when enterprise depth and governance matter",
+    lossPattern: "Can lose once buyers compare to stronger midmarket-enterprise platforms",
+    recommendedUse: "Use in SMB cost-sensitive reviews",
+    verticalFit: { "Financial Services": 1, "Healthcare": 1, "Insurance": 1, "Retail + eCommerce": 2, "Telecom": 1, "Utilities": 1, "Manufacturing": 1, "Travel + Hospitality": 2, "Media + Entertainment": 2, "Government": 1 },
+    verticalSummary: "Mainly SMB practicality rather than vertical depth"
   },
 
   // ═══════════════════════════════════════════════════════════
