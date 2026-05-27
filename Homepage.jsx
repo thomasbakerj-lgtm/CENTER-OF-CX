@@ -118,7 +118,7 @@ function Hero() {
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 680, marginBottom: 36 }}>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 14px" }}>
-            29 free tools. 276 scored vendors.{" "}
+            30 free tools. 276 scored vendors.{" "}
             <span style={{ color: "rgba(255,255,255,0.35)" }}>Zero vendor sponsorship.</span>
           </h1>
           <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 520 }}>
@@ -130,7 +130,7 @@ function Hero() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="hero-paths">
           {[
             { label: "Look up a vendor", sub: "276 profiles across 8 categories", href: "/vendors", icon: "◉" },
-            { label: "Run a calculator", sub: "29 tools — staffing, TCO, AHT, QA", href: "/how-to-choose", icon: "⚡" },
+            { label: "Run a calculator", sub: "30 tools — staffing, TCO, AHT, QA", href: "/how-to-choose", icon: "⚡" },
             { label: "Read the research", sub: "Buyer guides, articles, frameworks", href: "/research", icon: "↓" },
           ].map((p, i) => (
             <a key={i} href={p.href} style={{ display: "block", padding: "20px 18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, transition: "all 0.2s", textDecoration: "none" }}
@@ -239,7 +239,7 @@ function FeaturedTools() {
       <div style={WRAP}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Featured tools</div>
-          <a href="/how-to-choose" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>All 29 tools →</a>
+          <a href="/how-to-choose" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>All 30 tools →</a>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="tools-grid">
           {featured.map((t, i) => (
