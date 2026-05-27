@@ -178,7 +178,7 @@ export default function RoadmapBuilder() {
                       { tool: "Business Case Builder", reason: "Build ROI case for roadmap initiatives" },
                     ]},
                   ]} />
-                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Request a Working Session</a>
+                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
                 <a href="/tools/governance-model" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Map Governance →</a>
               </div>
             </div>

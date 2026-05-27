@@ -198,7 +198,7 @@ export default function IntegrationPlanner() {
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
               <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to optimize your stack?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your integration map has been saved. Request a working session and we'll identify consolidation opportunities, migration sequencing, and vendor recommendations for your weakest layers.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your integration map has been saved. Connect with a consultant and they'll identify consolidation opportunities, migration sequencing, and vendor recommendations for your weakest layers.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
                 <ReportExport toolName="Integration Strategy" subtitle={"7-Layer Integration Map"} userName={name} userEmail={email} sections={[
@@ -208,7 +208,7 @@ export default function IntegrationPlanner() {
                       { tool: "CX-IT Alignment", reason: "Ensure integration priorities align CX and IT" },
                     ]},
                   ]} />
-                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Request a Working Session</a>
+                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
                 <a href="/platforms-and-tech" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Explore Platforms & Tech →</a>
               </div>
             </div>

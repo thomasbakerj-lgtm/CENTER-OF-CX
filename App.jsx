@@ -95,12 +95,12 @@ const SEO_MAP = {
     desc: "How we think about CX technology, why independence matters, and the operating philosophy behind The Center of CX.",
   },
   "/advisory": {
-    title: `Advisory Services | ${SITE}`,
-    desc: "Vendor-independent CX strategy, vendor evaluation, and transformation advisory for contact center leaders. Backed by scored intelligence across 283 vendors.",
+    title: `Find a CX Consultant | ${SITE}`,
+    desc: "Connect with vetted CX and contact center technology consultants. Platform selection, AI strategy, operational transformation. We match you with specialists in your vertical and challenge.",
   },
   "/contact": {
-    title: `Request a Working Session | ${SITE}`,
-    desc: "Tell us your challenge. We come prepared with vendor intelligence, frameworks, and honest assessments tailored to your situation.",
+    title: `Connect with a CX Consultant | ${SITE}`,
+    desc: "Tell us your challenge. We connect you with vetted CX consultants who specialize in your vertical, stack, and transformation stage.",
   },
   "/subscribe": {
     title: `Subscribe | ${SITE}`,
@@ -344,7 +344,7 @@ const SEO_MAP = {
   },
   "/tco-calculator": {
     title: `TCO Calculator | ${SITE}`,
-    desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and request a working session.",
+    desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and connect with a consultant.",
   },
 };
 
@@ -354,7 +354,7 @@ function SEOManager() {
   useEffect(() => {
     const seo = SEO_MAP[pathname] || {
       title: `${SITE} | Independent CX Technology Intelligence`,
-      desc: "Independent CX and contact center technology intelligence. Vendor scoring, buyer frameworks, and advisory services.",
+      desc: "Independent CX and contact center technology intelligence. Vendor scoring, buyer frameworks, and consultant matching.",
     };
 
     if (pathname.startsWith("/vendors/") && !SEO_MAP[pathname]) {
@@ -439,7 +439,7 @@ function SEOManager() {
         "@type": "Organization",
         "name": "The Center of CX",
         "url": BASE,
-        "description": "Independent CX and contact center technology intelligence platform. 283 vendors scored across 8 categories.",
+        "description": "Independent CX and contact center technology intelligence. 283 vendors scored. 30 free tools. Consultant matching for platform selection and AI strategy.",
         "foundingDate": "2026",
         "sameAs": [],
         "knowsAbout": ["Contact Center Technology", "Customer Experience", "CCaaS", "IVA", "Conversational AI", "Workforce Management", "CX Analytics", "Digital Engagement"]

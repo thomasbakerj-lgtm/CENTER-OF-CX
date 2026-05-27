@@ -342,7 +342,7 @@ export default function RFPRequirementBuilder() {
             </div>
 
             <div style={{ marginTop: 20, textAlign: "center" }}>
-              <span style={{ fontSize: 13, color: MUTED }}>Want someone to review this before you send it? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Request a working session →</a></span>
+              <span style={{ fontSize: 13, color: MUTED }}>Want expert eyes on this? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Connect with a consultant →</a></span>
             </div>
           </div>
         </section>

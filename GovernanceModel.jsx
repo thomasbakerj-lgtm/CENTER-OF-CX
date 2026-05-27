@@ -215,7 +215,7 @@ export default function GovernanceModel() {
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center", marginTop: 20 }}>
               <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Need help structuring governance?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your governance profile has been saved. Request a working session and we'll help you resolve ownership gaps, balance workloads, and build a governance model that scales.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your governance profile has been saved. Connect with a consultant and they'll help you resolve ownership gaps, balance workloads, and build a governance model that scales.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
                 <ReportExport toolName="Governance + Operating Model" subtitle={"Governance Assessment"} userName={name} userEmail={email} sections={[
@@ -228,7 +228,7 @@ export default function GovernanceModel() {
                       { tool: "Roadmap Builder", reason: "Build phased plan from governance findings" },
                     ]},
                   ]} />
-                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Request a Working Session</a>
+                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
                 <a href="/vendors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Browse Vendor Intelligence →</a>
               </div>
             </div>

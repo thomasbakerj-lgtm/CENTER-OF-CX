@@ -277,7 +277,7 @@ export default function CXITAlignment() {
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
               <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the alignment gaps?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your alignment profile has been saved. Request a working session and we'll help you build a joint CX-IT governance model, prioritize the gaps, and map technology decisions to shared outcomes.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your alignment profile has been saved. Connect with a consultant and we'll help you build a joint CX-IT governance model, prioritize the gaps, and map technology decisions to shared outcomes.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
                 <ReportExport toolName="CX-IT Alignment Framework" subtitle={"Score: " + overallScore.toFixed(1) + "/5"} userName={name} userEmail={email} sections={[
@@ -294,7 +294,7 @@ export default function CXITAlignment() {
                       { tool: "Integration Planner", reason: "Map technical integration dependencies" },
                     ]},
                   ]} />
-                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Request a Working Session</a>
+                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
                 <a href="/tools/governance-model" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Governance & Operating Model →</a>
               </div>
             </div>

@@ -182,7 +182,7 @@ export default function HowToChoose() {
       {/* Advisory whisper */}
       <section style={{ background: WARM, padding: "24px 28px", borderTop: `1px solid ${BORDER}` }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <span style={{ fontSize: 13, color: MUTED }}>Need help interpreting results? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Request a working session →</a></span>
+          <span style={{ fontSize: 13, color: MUTED }}>Need help interpreting results? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Connect with a consultant →</a></span>
           <span style={{ fontSize: 12, color: "rgba(107,127,153,0.5)" }}>All tools are free. No sales call required.</span>
         </div>
       </section>

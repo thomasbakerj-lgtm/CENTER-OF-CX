@@ -213,7 +213,7 @@ export default function IVACategory() {
             ))}
           </div>
           <div style={{ marginTop: 16, textAlign: "center" }}>
-            <span style={{ fontSize: 13, color: MUTED }}>Need a human? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Request a working session →</a></span>
+            <span style={{ fontSize: 13, color: MUTED }}>Need expert guidance? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Connect with a vetted CX consultant →</a></span>
           </div>
         </div>
       </section>

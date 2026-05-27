@@ -159,7 +159,7 @@ function WhatWeDo() {
     { title: "Operational depth", desc: "TCO models, orchestration architecture, staffing implications, QA design, and governance frameworks. We go where most CX content stops — the queue, the SLA, the escalation path." },
     { title: "Industry-specific CX", desc: "Ten verticals, each with vertical-specific vendor maps, stack layer models, and specialization breakdowns. Because healthcare CX is nothing like retail CX." },
     { title: "Practical tools", desc: "TCO calculators, maturity assessments, AI readiness diagnostics, and planning templates. Tools that give you output you can bring to your next leadership meeting." },
-    { title: "Advisory", desc: "Independent guidance on platform selection, AI pilots, operating model design, and transformation planning. When implementation support is needed, we connect you with vetted technology partners." },
+    { title: "Consultant Matching", desc: "We connect CX leaders with vetted consultants who specialize in platform selection, AI strategy, and contact center transformation. We are the intelligence layer — they are the implementation experts." },
   ];
   return (
     <section style={{ background: "#fff", padding: "96px 28px" }}>
@@ -242,7 +242,7 @@ function WhatWeWontDo() {
                 { no: "Vendor propaganda", why: "We don't take placement fees. Vendors earn coverage through demonstrated capability." },
                 { no: "Abstract inspiration", why: "Every framework, tool, and assessment produces output you can act on Monday morning." },
                 { no: "Feature-level comparisons", why: "We evaluate platforms at the architecture, operations, and governance level." },
-                { no: "Implementation services", why: "We advise on decisions and connect you with the right partners. Keeping advisory and delivery separate protects the integrity of both." },
+                { no: "Implementation services", why: "We are the intelligence platform, not the implementor. We connect you with the right consultants. Keeping intelligence and delivery separate protects the integrity of both." },
                 { no: "AI hype", why: "We show how AI restructures routing, QA, role design, knowledge, and governance. The operational implications are what matter." },
               ].map((item, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "18px 20px" }}>
@@ -270,7 +270,7 @@ function Principles() {
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 32 }}>
           {[
-            { n: "01", t: "Editorially independent, commercially transparent", d: "Our research, scoring, and vendor evaluations are completely independent. No vendor pays for coverage or placement. When you engage us for advisory, we connect you with vetted technology partners — and we're upfront about how those relationships work." },
+            { n: "01", t: "Editorially independent, commercially transparent", d: "Our research, scoring, and vendor evaluations are completely independent. No vendor pays for coverage or placement. When you need expert guidance, we connect you with vetted technology consultants — and we're transparent about how those relationships work." },
             { n: "02", t: "Operator credibility", d: "Our frameworks are built by people who've managed queues, staffing models, SLAs, and QA programs. We understand what happens when the theory hits the floor." },
             { n: "03", t: "Architecture over features", d: "We evaluate technology at the system level — orchestration layers, integration dependencies, governance requirements. Checkbox feature comparisons tell you what a platform can do. We tell you what it will do to your operations." },
             { n: "04", t: "Vertical specificity", d: "We don't give the same advice to a hospital that we give to a retailer. Compliance burden, customer emotion, channel mix, and data sensitivity change every recommendation." },
@@ -300,7 +300,7 @@ function CTA() {
               Whether you're evaluating platforms, building an AI business case, or trying to make sense of a fragmented vendor landscape — we offer the clarity that vendor sales calls can't.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Working Session</a>
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Find a Consultant →</a>
               <a href="/platforms-and-tech" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Explore the Platform</a>
             </div>
           </div>

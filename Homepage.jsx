@@ -435,12 +435,12 @@ function AdvisoryNote() {
     <section style={{ background: "#fff", padding: "36px 28px", borderBottom: `1px solid ${BORDER}` }}>
       <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
         <div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>Need a human?</span>
-          <span style={{ fontSize: 14, color: MUTED, marginLeft: 8 }}>We also do vendor-neutral advisory for CX leaders navigating platform decisions.</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>Need expert guidance?</span>
+          <span style={{ fontSize: 14, color: MUTED, marginLeft: 8 }}>We connect CX leaders with vetted consultants who specialize in platform selection, AI, and contact center transformation.</span>
         </div>
         <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, padding: "8px 20px", border: `1px solid ${ELECTRIC}`, borderRadius: 6, transition: "all 0.15s", flexShrink: 0 }}
           onMouseOver={e => { e.target.style.background = ELECTRIC; e.target.style.color = "#fff"; }}
-          onMouseOut={e => { e.target.style.background = "transparent"; e.target.style.color = ELECTRIC; }}>Request a working session</a>
+          onMouseOut={e => { e.target.style.background = "transparent"; e.target.style.color = ELECTRIC; }}>Find a consultant →</a>
       </div>
     </section>
   );
@@ -466,7 +466,7 @@ function Footer() {
               <span style={{ color: "#fff", fontWeight: 600, fontSize: 12.5 }}>THE CENTER OF <span style={{ color: LIGHT_BLUE }}>CX</span></span>
             </a>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.6, maxWidth: 280 }}>
-              Independent CX + contact center technology intelligence. Vendor-neutral. Operationally grounded.
+              Independent CX + contact center technology intelligence. The resource CX professionals use to make better decisions.
             </p>
           </div>
           {[

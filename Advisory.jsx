@@ -121,13 +121,13 @@ function HowWeWork() {
           <FadeIn>
             <div>
               <Label>How we work</Label>
-              <Title>Advisory that stays on the decision side of the line.</Title>
+              <Title>We connect you with the right consultant for your challenge.</Title>
               <div style={{ fontSize: 15.5, color: SLATE, lineHeight: 1.8, marginTop: 12, fontFamily: "'DM Sans', sans-serif" }}>
                 <p style={{ marginBottom: 20 }}>
                   We help CX and contact center leaders make better technology and strategy decisions. Our work focuses on the questions that matter before implementation begins — which platform fits your operating model, whether your organization is ready for AI at scale, which vendors deserve a deeper look, and which ones you should walk away from.
                 </p>
                 <p>
-                  When you need implementation support, we connect you with vetted technology partners who specialize in your vertical and stack. We keep advisory and delivery separate because it protects the integrity of both.
+                  We are the intelligence platform — not the consulting firm. When you need expert guidance on platform selection, AI strategy, or operational transformation, we match you with vetted consultants who specialize in your vertical and stack.
                 </p>
               </div>
             </div>
@@ -199,7 +199,7 @@ function Offerings() {
       <div style={WRAP}>
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
-            <Label>Advisory offerings</Label>
+            <Label>How we connect you</Label>
             <Title>Six ways to engage. Each one produces a clear deliverable.</Title>
           </div>
         </FadeIn>
@@ -244,7 +244,7 @@ function Boundaries() {
             <Label light>Clear boundaries</Label>
             <Title light>What we do, what we leave to others, and why.</Title>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.65, marginTop: 8, fontFamily: "'DM Sans', sans-serif" }}>
-              Keeping advisory and delivery separate means our recommendations stay clean. Here's exactly where our work starts and stops.
+              We keep intelligence and consulting separate because it protects the integrity of both. Here's exactly where our work starts and stops.
             </p>
           </div>
         </FadeIn>
@@ -275,7 +275,7 @@ function Boundaries() {
                 "System integration and custom development",
                 "Ongoing managed services and support",
                 "Staffing, recruiting, and BPO operations",
-                "Vendor contract negotiation (we advise, partners execute)",
+                "Vendor contract negotiation (consultants advise and negotiate)",
                 "Change management and training delivery",
               ].map((item, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, padding: "8px 0" }}>
@@ -336,13 +336,13 @@ function CTA() {
             <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.08) 0%, transparent 70%)" }} />
             <div style={{ position: "relative", zIndex: 1 }}>
               <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 16px" }}>
-                Request a working session.
+                Tell us your challenge. We will match you with the right consultant.
               </h2>
               <p style={{ fontSize: 15.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, maxWidth: 480, margin: "0 auto 32px", fontFamily: "'DM Sans', sans-serif" }}>
                 60 minutes. No pitch deck. A direct conversation about your CX challenges with someone who understands both the strategy and the operations.
               </p>
               <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 20px rgba(0,136,221,0.3)` }}>Request a Working Session</a>
+                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 20px rgba(0,136,221,0.3)` }}>Find a Consultant →</a>
                 <a href="/platforms-and-tech" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "15px 32px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif" }}>Explore the Platform →</a>
               </div>
             </div>

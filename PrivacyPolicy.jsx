@@ -43,7 +43,7 @@ export default function PrivacyPolicy() {
 
           <S>How we use your information</S>
           <P>We use your email address to deliver the tool results, reports, or guides you requested. If you subscribe to our newsletter, we use your email to send periodic CX intelligence updates. We may use your information to follow up with relevant resources based on the tools you used — for example, if you run the Staffing Calculator, we may send you related content about workforce optimization.</P>
-          <P>We do not sell, rent, or share your personal information with vendors, technology companies, or any third party for marketing purposes. This is a core commitment. No vendor pays to access your data. No vendor receives your information unless you explicitly request an introduction through our advisory services.</P>
+          <P>We do not sell, rent, or share your personal information with vendors, technology companies, or any third party for marketing purposes. This is a core commitment. No vendor pays to access your data. No vendor receives your information unless you explicitly request a consultant introduction through our matching service.</P>
 
           <S>Vendor independence</S>
           <P>No vendor pays to appear on this site. No vendor pays to rank higher. No vendor receives access to user data collected through our tools, forms, or subscriptions. Vendor scores are independently assigned based on published methodologies. This independence is foundational to our value and we will not compromise it.</P>

@@ -133,7 +133,7 @@ function ContactPage() {
               </div>
 
               <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 400, color: NAVY, lineHeight: 1.12, margin: "0 0 20px", letterSpacing: "-0.015em" }}>
-                Request a working session.
+                Tell us your challenge. We will connect you with a vetted consultant.
               </h1>
               <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: "0 0 40px", fontFamily: "'DM Sans', sans-serif" }}>
                 60 minutes with someone who understands both the strategy and the operations. Tell us about your situation, and we'll come prepared with relevant context from our vendor intelligence and frameworks.
@@ -142,7 +142,7 @@ function ContactPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                 {[
                   { q: "What happens after I submit?", a: "We review your submission and respond within one business day with availability and any follow-up questions." },
-                  { q: "Is there a cost?", a: "Initial working sessions are complimentary. We'll be upfront about scope and pricing before any paid engagement begins." },
+                  { q: "Is there a cost?", a: "Initial consultation matching is complimentary. The consultant will discuss scope and pricing directly with you." },
                   { q: "What should I prepare?", a: "A clear description of your current challenge is enough. If you have vendor shortlists, architecture diagrams, or RFPs in progress, bring those too." },
                 ].map((faq, i) => (
                   <div key={i}>
@@ -181,7 +181,7 @@ function ContactPage() {
 
                   <div onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     {/* Hidden Formspree helper */}
-                    <input type="hidden" name="_subject" value="New Working Session Request — Center of CX" />
+                    <input type="hidden" name="_subject" value="New Consultant Match Request — Center of CX" />
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <div>

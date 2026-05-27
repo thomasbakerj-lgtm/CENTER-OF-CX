@@ -312,7 +312,7 @@ export default function CXEcosystem() {
               <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Where we fit</span>
               <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: NAVY, margin: "8px 0 16px" }}>We score vendors. They cover the industry. Both matter.</h2>
               <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7 }}>
-                The Center of CX provides scored vendor intelligence, buyer frameworks, and advisory services. The publications on this page provide news, community, practitioner guidance, and research that we don't replicate. We're complementary by design — strong CX decisions require both vendor-level depth and industry-wide perspective.
+                The Center of CX provides scored vendor intelligence, buyer frameworks, and consultant matching. The publications on this page provide news, community, practitioner guidance, and research that we don't replicate. We're complementary by design — strong CX decisions require both vendor-level depth and industry-wide perspective.
               </p>
               <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 28, flexWrap: "wrap" }}>
                 <a href="/vendors" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore Our Vendor Intelligence</a>
