@@ -123,8 +123,8 @@ const SEO_MAP = {
     desc: "28 CCaaS vendors scored across 7 weighted dimensions. Bell curve placement, scoring methodology, and honest assessments for enterprise buyers.",
   },
   "/vendors/iva": {
-    title: `IVA Market Intelligence — 43 Vendors Scored | ${SITE}`,
-    desc: "43 IVA vendors scored on Conversational Autonomy, Multi-Channel Coverage, Orchestration Depth, and Analytics. Leaders to Emerging tier placement.",
+    title: `IVA + Conversational AI Market Intelligence — 50 Vendors Scored Across 7 Categories | ${SITE}`,
+    desc: "50 IVA and conversational AI vendors scored across 7 market categories: Enterprise IVA, Voice-Native, Helpdesk AI, CCaaS-Native, Agent Assist, Ecommerce, and CRM/Workflow. 100-point scoring model. Use-case shortlists. Phase 1 + Phase 2 research.",
   },
   "/vendors/acd-routing": {
     title: `ACD + Routing Market Intelligence — 44 Vendors Scored | ${SITE}`,
