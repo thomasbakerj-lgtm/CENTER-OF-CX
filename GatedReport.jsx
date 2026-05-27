@@ -7,10 +7,10 @@ const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 const reports = {
   "iva-buyer-guide": {
     title: "IVA & Conversational AI Platform Buyer's Guide 2026",
-    subtitle: "43 vendors scored across 4 dimensions. The Human Premium workforce framework. Market forecasts through 2029.",
+    subtitle: "50 vendors scored across 7 market categories. The Human Premium workforce framework. Market forecasts through 2029.",
     pages: "25 pages",
     highlights: [
-      "43 vendors scored on conversational autonomy, multi-channel, orchestration, and analytics",
+      "50 vendors scored across conversational autonomy, multi-channel, orchestration, and analytics",
       "Five architecture eras — know where every vendor sits and where the market is heading",
       "The Human Premium — why the best CX operations invest more in people, not less",
       "12 / 24 / 36-month forecasts with confidence levels, validated by Gartner and Forrester",

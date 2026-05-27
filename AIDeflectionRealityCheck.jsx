@@ -177,7 +177,7 @@ export default function AIDeflectionRealityCheck() {
                 })}
               </div>
               <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <a href="/vendors/iva" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" }}>→ See 43 scored IVA vendors</a>
+                <a href="/vendors/iva" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" }}>→ See 50 scored IVA vendors</a>
                 <a href="/tools/channel-shift" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" }}>→ Channel Shift Economics</a>
               </div>
             </div>

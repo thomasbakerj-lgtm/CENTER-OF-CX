@@ -8,7 +8,7 @@ function LogoMark({size=28,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:
 
 const CATEGORIES = {
   ccaas: { name: "CCaaS Platforms", full: "Core CX Platforms (CCaaS)", page: "/vendors/ccaas", vendorCount: 24 },
-  iva: { name: "IVA + Conversational AI", full: "Customer Automation", page: "/vendors/iva", vendorCount: 43 },
+  iva: { name: "IVA + Conversational AI", full: "Customer Automation", page: "/vendors/iva", vendorCount: 50 },
   "agent-assist": { name: "Agent Assist + Knowledge", full: "Agent Assist + Knowledge AI", page: "/vendors/agent-assist", vendorCount: 38 },
   "wem-qm": { name: "WEM + Quality Management", full: "Workforce + Quality Management", page: "/vendors/wem-qm", vendorCount: 32 },
   analytics: { name: "CX Analytics", full: "Experience Analytics", page: "/vendors/analytics", vendorCount: 45 },

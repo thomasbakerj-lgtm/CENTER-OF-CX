@@ -150,7 +150,7 @@ function FeaturedArticles() {
     {
       tag: "Buyer's Guide", color: "#0088DD", read: "25 pages",
       title: "IVA & Conversational AI Platform Buyer's Guide 2026",
-      desc: "43 vendors scored across 4 dimensions. The Human Premium workforce framework. Market forecasts through 2029 with validated Gartner, Forrester, and Opus Research data. Architecture eras, buyer scenarios, demo questions, TCO reality, and implementation pitfalls.",
+      desc: "50 vendors scored across 7 market categories. The Human Premium workforce framework. Market forecasts through 2029 with validated Gartner, Forrester, and Opus Research data. Architecture eras, buyer scenarios, demo questions, TCO reality, and implementation pitfalls.",
       href: "/research/iva-buyer-guide",
     },
     {

@@ -118,7 +118,7 @@ function Hero() {
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 680, marginBottom: 36 }}>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 14px" }}>
-            30 free tools. 276 scored vendors.{" "}
+            30 free tools. 283 scored vendors.{" "}
             <span style={{ color: "rgba(255,255,255,0.35)" }}>Zero vendor sponsorship.</span>
           </h1>
           <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 520 }}>
@@ -129,7 +129,7 @@ function Hero() {
         {/* Three paths — immediately visible */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="hero-paths">
           {[
-            { label: "Look up a vendor", sub: "276 profiles across 8 categories", href: "/vendors", icon: "◉" },
+            { label: "Look up a vendor", sub: "283 profiles across 8 categories", href: "/vendors", icon: "◉" },
             { label: "Run a calculator", sub: "30 tools — staffing, TCO, AHT, QA", href: "/how-to-choose", icon: "⚡" },
             { label: "Read the research", sub: "Buyer guides, articles, frameworks", href: "/research", icon: "↓" },
           ].map((p, i) => (
@@ -264,7 +264,7 @@ function FeaturedTools() {
 function VendorIntel() {
   const cats = [
     { s: "CCaaS", t: "Core CX Platforms", n: "24 vendors", h: "/vendors/ccaas" },
-    { s: "IVA", t: "Customer Automation", n: "43 vendors", h: "/vendors/iva" },
+    { s: "IVA", t: "Customer Automation", n: "50 vendors", h: "/vendors/iva" },
     { s: "Agent Assist", t: "Agent Assist + Knowledge", n: "38 vendors", h: "/vendors/agent-assist" },
     { s: "WEM + QM", t: "Workforce + Quality", n: "32 vendors", h: "/vendors/wem-qm" },
     { s: "Analytics", t: "Experience Analytics", n: "45 vendors", h: "/vendors/analytics" },
@@ -279,7 +279,7 @@ function VendorIntel() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
               <span style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Vendor intelligence</span>
-              <span style={{ fontSize: 12, color: "rgba(107,127,153,0.6)", marginLeft: 12 }}>276 vendors · 8 categories · scored independently</span>
+              <span style={{ fontSize: 12, color: "rgba(107,127,153,0.6)", marginLeft: 12 }}>283 vendors · 8 categories · scored independently</span>
             </div>
             <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Browse all vendors →</a>
           </div>

@@ -84,7 +84,7 @@ const SITE = "The Center of CX";
 const SEO_MAP = {
   "/": {
     title: `${SITE} | Independent CX + Contact Center Technology Intelligence`,
-    desc: "276 vendors scored across 8 categories. Buyer guides, interactive tools, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play.",
+    desc: "283 vendors scored across 8 categories. Buyer guides, interactive tools, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play.",
   },
   "/platforms-and-tech": {
     title: `Platforms + Tech | ${SITE}`,
@@ -96,7 +96,7 @@ const SEO_MAP = {
   },
   "/advisory": {
     title: `Advisory Services | ${SITE}`,
-    desc: "Vendor-independent CX strategy, vendor evaluation, and transformation advisory for contact center leaders. Backed by scored intelligence across 276 vendors.",
+    desc: "Vendor-independent CX strategy, vendor evaluation, and transformation advisory for contact center leaders. Backed by scored intelligence across 283 vendors.",
   },
   "/contact": {
     title: `Request a Working Session | ${SITE}`,
@@ -115,8 +115,8 @@ const SEO_MAP = {
     desc: "Original research, market analysis, and operator briefings on CX technology, AI in the contact center, and workforce transformation.",
   },
   "/vendors": {
-    title: `Vendor Intelligence | 276 Vendors Scored Across 8 Categories | ${SITE}`,
-    desc: "276 vendors across 8 categories. CCaaS, IVA, Agent Assist, WEM, Analytics, ACD/Routing, Digital Engagement, and Payments. Independently scored with published methodologies.",
+    title: `Vendor Intelligence | 283 Vendors Scored Across 8 Categories | ${SITE}`,
+    desc: "283 vendors across 8 categories. CCaaS, IVA, Agent Assist, WEM, Analytics, ACD/Routing, Digital Engagement, and Payments. Independently scored with published methodologies.",
   },
   "/vendors/ccaas": {
     title: `CCaaS Platform Market Intelligence | 28 Vendors Scored | ${SITE}`,
@@ -208,7 +208,7 @@ const SEO_MAP = {
   },
   "/research/iva-buyer-guide": {
     title: `IVA + Conversational AI Buyer's Guide 2026 | ${SITE}`,
-    desc: "43 vendors scored. The Human Premium framework. Market forecasts through 2029. Independent research — no vendor sponsorship.",
+    desc: "50 vendors scored across 7 categories. The Human Premium framework. Market forecasts through 2029. Independent research — no vendor sponsorship.",
   },
   "/research/ccaas-buyer-guide": {
     title: `CCaaS Platform Buyer's Guide 2026 | ${SITE}`,
@@ -288,7 +288,7 @@ const SEO_MAP = {
   },
   "/tools/vendor-match": {
     title: `Vendor Match Engine | Ranked Shortlist for Your Environment | ${SITE}`,
-    desc: "Tell us your operation size, vertical, priorities, and constraints. Get a ranked vendor shortlist with fit scores from 276 independently scored profiles.",
+    desc: "Tell us your operation size, vertical, priorities, and constraints. Get a ranked vendor shortlist with fit scores from 283 independently scored profiles.",
   },
   "/tools/platform-decision": {
     title: `Platform Decision Matrix | Stay, Extend, or Replace by Layer | ${SITE}`,
@@ -439,7 +439,7 @@ function SEOManager() {
         "@type": "Organization",
         "name": "The Center of CX",
         "url": BASE,
-        "description": "Independent CX and contact center technology intelligence platform. 276 vendors scored across 8 categories.",
+        "description": "Independent CX and contact center technology intelligence platform. 283 vendors scored across 8 categories.",
         "foundingDate": "2026",
         "sameAs": [],
         "knowsAbout": ["Contact Center Technology", "Customer Experience", "CCaaS", "IVA", "Conversational AI", "Workforce Management", "CX Analytics", "Digital Engagement"]
