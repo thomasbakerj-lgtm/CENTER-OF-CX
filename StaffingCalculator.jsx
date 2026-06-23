@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ReportExport from "./ReportExport";
-import { COLORS, BENCH, classifyOccupancy, classifyShrinkage } from "./lib/benchmarks";
-import { publishToolResult } from "./lib/toolData";
+import { COLORS, BENCH, classifyOccupancy, classifyShrinkage } from "from "./src/lib/benchmarks";
+import { publishToolResult } from "./src/lib/toolData";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
