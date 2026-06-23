@@ -122,7 +122,7 @@ function Hero() {
             <span style={{ color: "rgba(255,255,255,0.35)" }}>Zero vendor sponsorship.</span>
           </h1>
           <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 520 }}>
-            The resource CX operators actually use. Independently scored vendor intelligence, operational calculators, and buyer frameworks for contact center professionals.
+            The resource for CX operators. Independently scored vendor intelligence, operational calculators, and buyer frameworks for contact center professionals.
           </p>
         </div>
 
