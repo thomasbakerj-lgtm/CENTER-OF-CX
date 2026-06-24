@@ -115,15 +115,22 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
   );
 }
 
+// Industry benchmarks validated against 2025/2026 published data (SQM Group, Sprinklr,
+// Metrigy, BLS/Indeed/Salary.com wage data, Forrester CCaaS Wave, Balto/Parloa containment,
+// Giva turnover). AHT is full handle time (talk+hold+ACW); ACW is the line-closed slice.
+// Sources summarized in BENCHMARK_SOURCES below. Last validated: June 2026.
 const INDUSTRY = {
-  general: { label: "Cross-Industry Average", agents: 200, agentHourly: 18, monthlyContacts: 120000, aht: 420, fcr: 0.72, containment: 0.25, occupancy: 0.82, shrinkage: 0.30, attrition: 0.35, absenteeism: 0.08, channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 4.1, nps: 32, transferRate: 0.15, acw: 60, ccaasSeat: 150 },
-  financial: { label: "Financial Services", agents: 350, agentHourly: 22, monthlyContacts: 180000, aht: 380, fcr: 0.75, containment: 0.20, occupancy: 0.80, shrinkage: 0.28, attrition: 0.28, absenteeism: 0.07, channelMixVoice: 0.50, channelMixChat: 0.28, channelMixEmail: 0.14, channelMixSocial: 0.04, channelMixSelfServe: 0.04, csat: 4.0, nps: 35, transferRate: 0.12, acw: 75, ccaasSeat: 175 },
-  healthcare: { label: "Healthcare", agents: 250, agentHourly: 20, monthlyContacts: 140000, aht: 480, fcr: 0.68, containment: 0.18, occupancy: 0.78, shrinkage: 0.32, attrition: 0.32, absenteeism: 0.09, channelMixVoice: 0.62, channelMixChat: 0.20, channelMixEmail: 0.12, channelMixSocial: 0.03, channelMixSelfServe: 0.03, csat: 3.9, nps: 28, transferRate: 0.18, acw: 90, ccaasSeat: 165 },
-  retail: { label: "Retail & eCommerce", agents: 180, agentHourly: 16, monthlyContacts: 150000, aht: 340, fcr: 0.70, containment: 0.30, occupancy: 0.84, shrinkage: 0.32, attrition: 0.42, absenteeism: 0.10, channelMixVoice: 0.40, channelMixChat: 0.32, channelMixEmail: 0.15, channelMixSocial: 0.08, channelMixSelfServe: 0.05, csat: 4.2, nps: 38, transferRate: 0.14, acw: 45, ccaasSeat: 135 },
-  telecom: { label: "Telecommunications", agents: 400, agentHourly: 19, monthlyContacts: 250000, aht: 520, fcr: 0.65, containment: 0.22, occupancy: 0.85, shrinkage: 0.30, attrition: 0.38, absenteeism: 0.08, channelMixVoice: 0.52, channelMixChat: 0.26, channelMixEmail: 0.12, channelMixSocial: 0.06, channelMixSelfServe: 0.04, csat: 3.8, nps: 22, transferRate: 0.20, acw: 70, ccaasSeat: 155 },
-  insurance: { label: "Insurance", agents: 300, agentHourly: 21, monthlyContacts: 100000, aht: 540, fcr: 0.70, containment: 0.15, occupancy: 0.78, shrinkage: 0.28, attrition: 0.25, absenteeism: 0.06, channelMixVoice: 0.60, channelMixChat: 0.22, channelMixEmail: 0.13, channelMixSocial: 0.03, channelMixSelfServe: 0.02, csat: 4.0, nps: 30, transferRate: 0.16, acw: 95, ccaasSeat: 170 },
-  bpo: { label: "BPO / Outsourcer", agents: 500, agentHourly: 14, monthlyContacts: 300000, aht: 400, fcr: 0.68, containment: 0.28, occupancy: 0.86, shrinkage: 0.34, attrition: 0.55, absenteeism: 0.12, channelMixVoice: 0.58, channelMixChat: 0.24, channelMixEmail: 0.10, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 3.9, nps: 25, transferRate: 0.17, acw: 55, ccaasSeat: 120 },
+  general: { label: "Cross-Industry Average", agents: 200, agentHourly: 19, monthlyContacts: 120000, aht: 390, fcr: 0.70, containment: 0.28, occupancy: 0.82, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 4.1, nps: 32, transferRate: 0.15, acw: 45, ccaasSeat: 150 },
+  financial: { label: "Financial Services", agents: 350, agentHourly: 22, monthlyContacts: 180000, aht: 360, fcr: 0.74, containment: 0.25, occupancy: 0.80, shrinkage: 0.28, attrition: 0.30, absenteeism: 0.07, channelMixVoice: 0.50, channelMixChat: 0.28, channelMixEmail: 0.14, channelMixSocial: 0.04, channelMixSelfServe: 0.04, csat: 4.0, nps: 35, transferRate: 0.12, acw: 60, ccaasSeat: 175 },
+  healthcare: { label: "Healthcare", agents: 250, agentHourly: 20, monthlyContacts: 140000, aht: 450, fcr: 0.71, containment: 0.18, occupancy: 0.78, shrinkage: 0.32, attrition: 0.33, absenteeism: 0.09, channelMixVoice: 0.62, channelMixChat: 0.20, channelMixEmail: 0.12, channelMixSocial: 0.03, channelMixSelfServe: 0.03, csat: 3.9, nps: 28, transferRate: 0.18, acw: 75, ccaasSeat: 165 },
+  retail: { label: "Retail & eCommerce", agents: 180, agentHourly: 16, monthlyContacts: 150000, aht: 300, fcr: 0.78, containment: 0.32, occupancy: 0.84, shrinkage: 0.32, attrition: 0.45, absenteeism: 0.10, channelMixVoice: 0.40, channelMixChat: 0.32, channelMixEmail: 0.15, channelMixSocial: 0.08, channelMixSelfServe: 0.05, csat: 4.2, nps: 38, transferRate: 0.14, acw: 40, ccaasSeat: 135 },
+  telecom: { label: "Telecommunications", agents: 400, agentHourly: 19, monthlyContacts: 250000, aht: 510, fcr: 0.66, containment: 0.25, occupancy: 0.85, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.52, channelMixChat: 0.26, channelMixEmail: 0.12, channelMixSocial: 0.06, channelMixSelfServe: 0.04, csat: 3.8, nps: 22, transferRate: 0.20, acw: 60, ccaasSeat: 155 },
+  insurance: { label: "Insurance", agents: 300, agentHourly: 21, monthlyContacts: 100000, aht: 510, fcr: 0.70, containment: 0.16, occupancy: 0.78, shrinkage: 0.28, attrition: 0.27, absenteeism: 0.06, channelMixVoice: 0.60, channelMixChat: 0.22, channelMixEmail: 0.13, channelMixSocial: 0.03, channelMixSelfServe: 0.02, csat: 4.0, nps: 30, transferRate: 0.16, acw: 75, ccaasSeat: 170 },
+  bpo: { label: "BPO / Outsourcer", agents: 500, agentHourly: 15, monthlyContacts: 300000, aht: 390, fcr: 0.68, containment: 0.28, occupancy: 0.86, shrinkage: 0.34, attrition: 0.55, absenteeism: 0.12, channelMixVoice: 0.58, channelMixChat: 0.24, channelMixEmail: 0.10, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 3.9, nps: 25, transferRate: 0.17, acw: 50, ccaasSeat: 120 },
 };
+
+// Shown in-tool and in the report so the "benchmarked" claim is backed by named, dated sources.
+const BENCHMARK_SOURCES = "Benchmarks validated June 2026 against: SQM Group (FCR, occupancy), Sprinklr & Calabrio (AHT, shrinkage), Giva & SQM (attrition 38–45%), Indeed/Salary.com/BLS (agent wages), Forrester CCaaS Wave & vendor pricing pages (CCaaS $100–250/seat), Balto/Parloa/Teneo (containment 20–40%). Values are cross-industry medians; your operation will vary — adjust any field.";
 
 const BASE = { supervisors: 20, qaStaff: 5, wfmStaff: 4, trainers: 3, itSupport: 4, sites: 2, agentBenefitsPct: 0.30, supHourly: 30, qaHourly: 28, wfmHourly: 32, trainerHourly: 26, itHourly: 35, scheduleAdherence: 0.90, avgSpeedAnswer: 28, abandonRate: 0.06, avgHoldTime: 45, newHireTrainingDays: 21, qualityScore: 0.82, wemSeat: 45, telephonyPerMin: 0.025, ivaMonthly: 8000, agentAssistMonthly: 5000, rpaMonthly: 3000, analyticsMonthly: 6000, crmSeat: 75, ipaasMonthly: 4000, recordingMonthly: 3500, knowledgeMgmt: 2500, securityCompliance: 3000, cloudInfra: 5000, psAmortized: 8000, recruitingCostPerHire: 3500, facilitiesCost: 12000, implementationOneTime: 0, escalatorPct: 0.04 };
 
@@ -153,7 +160,11 @@ function computeTCO(d) {
 
   const contacts = n(d.monthlyContacts) || 1;
   const voiceContacts = contacts * n(d.channelMixVoice);
-  const voiceMinutes = voiceContacts * ((n(d.aht) + n(d.avgHoldTime) + n(d.acw)) / 60);
+  // AHT is full handle time (talk+hold+ACW). Telephony bills only the line-open slice
+  // (talk+hold = AHT - ACW); ACW happens after disconnect. The old model added hold+ACW
+  // on top of AHT, inflating handle minutes ~22%.
+  const lineOpenSec = Math.max(0, n(d.aht) - n(d.acw));
+  const voiceMinutes = voiceContacts * (lineOpenSec / 60);
   const telephony = voiceMinutes * n(d.telephonyPerMin);
 
   const seats = n(d.agents) + n(d.supervisors) + n(d.qaStaff) + n(d.wfmStaff);
@@ -170,13 +181,13 @@ function computeTCO(d) {
   const humanContacts = contacts * (1 - n(d.containment));
   const costPerHuman = monthly / (humanContacts || 1);
 
-  // Marginal (variable) cost of one handled contact = handle-time labor only.
+  // Marginal (variable) cost of one handled contact = full handle-time labor (AHT).
   // This is what deflecting/avoiding a contact actually frees — NOT the fully loaded
   // cost-per-contact (which carries fixed tech, facilities, overhead that don't fall
   // when volume drops). Using marginal cost is the core anti-inflation fix.
-  const handleMin = (n(d.aht) + n(d.avgHoldTime) + n(d.acw)) / 60;
+  const handleMin = n(d.aht) / 60;
   const loadedPerMin = loaded / 60;
-  const marginalPerContact = handleMin * loadedPerMin + (n(d.channelMixVoice) * handleMin * n(d.telephonyPerMin));
+  const marginalPerContact = handleMin * loadedPerMin + (n(d.channelMixVoice) * (lineOpenSec / 60) * n(d.telephonyPerMin));
 
   // 3-year projection: current operation carried forward with an escalator, plus any
   // one-time implementation. Year 1 = the annual snapshot, so the two views reconcile.
@@ -416,6 +427,7 @@ function Calculator() {
                       {Object.entries(INDUSTRY).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                     </select>
                     <div style={{ fontSize: 10, color: GREEN, marginTop: 3 }}>✓ Prepopulated with {INDUSTRY[d.industry]?.label} benchmarks. Adjust any value.</div>
+                    <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }} title={BENCHMARK_SOURCES}>Benchmarks validated June 2026 (SQM, Sprinklr, Forrester, BLS wage data). Hover for sources.</div>
                   </div>
                   <NumField label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} />
                 </div>
@@ -452,9 +464,9 @@ function Calculator() {
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
                 <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Operational KPIs</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                  <NumField label="AHT (seconds)" value={d.aht} onChange={v => set("aht", v)} step={5} min={1} pulled={pulled.aht} hint={<span style={{ color: getBench(n(d.aht), 300, 600, true) }}>{mmss(d.aht)} — Bench: 5:00–7:00</span>} />
-                  <NumField label="ACW (seconds)" value={d.acw} onChange={v => set("acw", v)} step={5} min={0} hint="After-call work" />
-                  <NumField label="Hold Time (seconds)" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} />
+                  <NumField label="AHT (seconds)" value={d.aht} onChange={v => set("aht", v)} step={5} min={1} pulled={pulled.aht} hint={<span style={{ color: getBench(n(d.aht), 300, 600, true) }}>{mmss(d.aht)} — full handle time. Bench: 5:00–7:00</span>} />
+                  <NumField label="ACW (seconds)" value={d.acw} onChange={v => set("acw", v)} step={5} min={0} hint="After-call work (within AHT, line closed)" />
+                  <NumField label="Hold Time (seconds)" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Within AHT (line open)" />
                   <NumField label="FCR" value={d.fcr} onChange={v => set("fcr", v)} suffix="%" factor={100} min={0} max={100} hint={<span style={{ color: getBench(n(d.fcr), 0.65, 0.85) }}>Bench: 65–85%</span>} />
                   <NumField label="Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" factor={100} min={0} max={100} hint={<span style={{ color: getBench(n(d.containment), 0.15, 0.45) }}>Bench: 15–45%</span>} />
                   <NumField label="Occupancy" value={d.occupancy} onChange={v => set("occupancy", v)} suffix="%" factor={100} min={0} max={100} pulled={pulled.occupancy} hint={<span style={{ color: n(d.occupancy) > BENCH.occupancy.cautionMax ? RED : n(d.occupancy) > BENCH.occupancy.healthyMax ? AMBER : GREEN }}>{Math.round(BENCH.occupancy.healthyMax * 100)}–{Math.round(BENCH.occupancy.cautionMax * 100)}% healthy. Above = burnout</span>} />
@@ -663,7 +675,7 @@ function Calculator() {
                           ]},
                           { title: "Analyst Read", type: "findings", items: analyst },
                           { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + " — " + fmtK(o.net) + "/mo", detail: o.desc, priority: i === 0 ? "high" : i === 1 ? "medium" : undefined })) },
-                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead at ${173} productive hours/agent/month. The 3-year view carries the current operation forward at a ${Math.round(n(d.escalatorPct) * 100)}% annual escalator plus any one-time implementation; year 1 equals the annual snapshot so the views reconcile. Optimization savings are valued at marginal (variable) cost — handle-time labor freed per contact — not fully-loaded cost per contact, because fixed tech and facilities don't fall when volume drops. Levers are de-overlapped (each acts on the volume the prior leaves) and scaled by a ${STANCE[stance].label} confidence stance, so totals are defensible rather than inflated.` },
+                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead at ${173} productive hours/agent/month. The 3-year view carries the current operation forward at a ${Math.round(n(d.escalatorPct) * 100)}% annual escalator plus any one-time implementation; year 1 equals the annual snapshot so the views reconcile. Optimization savings are valued at marginal (variable) cost — handle-time labor freed per contact — not fully-loaded cost per contact, because fixed tech and facilities don't fall when volume drops. Levers are de-overlapped (each acts on the volume the prior leaves) and scaled by a ${STANCE[stance].label} confidence stance, so totals are defensible rather than inflated. ${BENCHMARK_SOURCES}` },
                           { title: "Next Steps", type: "next", items: [
                             { tool: "License Bundle Gap Checker", reason: "Audit whether your seat price covers what you actually need", href: "/tools/license-gap" },
                             { tool: "AI Deflection Reality Check", reason: "Pressure-test the containment savings above", href: "/tools/ai-deflection" },
