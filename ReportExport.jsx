@@ -10,9 +10,9 @@ const SLATE = "#3A4F6A";
 
 /**
  * ReportExport — Reusable report generation component
- * 
+ *
  * Usage in any tool:
- * 
+ *
  * <ReportExport
  *   toolName="Staffing Requirement Calculator"
  *   subtitle="Erlang C Staffing Analysis"
@@ -26,6 +26,9 @@ const SLATE = "#3A4F6A";
  *     { title: "Next Steps", type: "next", items: [{ tool: "Shrinkage Planner", reason: "Your shrinkage is above benchmark", href: "/tools/shrinkage-planner" }] },
  *   ]}
  * />
+ *
+ * Next-step items support an optional `href`. When present, the tool renders as a
+ * clickable link (absolute URL, so it works in the popup preview and the saved PDF).
  */
 
 export default function ReportExport({ toolName, subtitle, userName, userEmail, sections = [] }) {
@@ -48,6 +51,11 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
   const generateReport = () => {
     const win = window.open("", "_blank");
     if (!win) { alert("Please allow pop-ups to download your report."); return; }
+
+    // Resolve relative next-step links against the live origin so they work in the
+    // popup preview (whose own URL is about:blank) and remain clickable in the PDF.
+    const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "";
+    const absUrl = (href) => !href ? null : (/^https?:\/\//i.test(href) ? href : origin + (href.startsWith("/") ? href : "/" + href));
 
     const renderSection = (s, i) => {
       if (s.type === "table") {
@@ -96,11 +104,13 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
       if (s.type === "next") {
         return `<div class="section next-section">
           <h3>${s.title}</h3>
-          <div class="next-tools">${s.items.map(n => `
-            <div class="next-tool">
-              <strong>${n.tool}</strong>
-              <span>${n.reason}</span>
-            </div>`).join("")}
+          <div class="next-tools">${s.items.map(nx => {
+            const url = absUrl(nx.href);
+            const inner = `<strong>${nx.tool}${url ? ' <span class="next-arrow">&rarr;</span>' : ""}</strong><span>${nx.reason}</span>`;
+            return url
+              ? `<a class="next-tool next-link" href="${url}" target="_blank" rel="noopener">${inner}</a>`
+              : `<div class="next-tool">${inner}</div>`;
+          }).join("")}
           </div>
         </div>`;
       }
@@ -117,11 +127,11 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
 <title>${toolName} — Report</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
-  
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  
+
   @page { margin: 0.6in 0.7in; size: letter; }
-  
+
   body {
     font-family: 'DM Sans', -apple-system, sans-serif;
     color: ${NAVY};
@@ -284,6 +294,7 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
   .next-tool {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     padding: 8px 10px;
     background: #F0F9FF;
     border: 1px solid #DBEAFE;
@@ -292,6 +303,10 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
   }
   .next-tool strong { color: ${NAVY}; }
   .next-tool span { color: ${MUTED}; }
+  .next-link { text-decoration: none; color: inherit; transition: background 0.15s, border-color 0.15s; }
+  .next-link strong { color: ${ELECTRIC}; }
+  .next-arrow { color: ${ELECTRIC}; font-weight: 700; }
+  .next-link:hover { background: #E3F2FD; border-color: ${ELECTRIC}; }
 
   .text-block { font-size: 9.5pt; color: ${SLATE}; line-height: 1.6; }
 
@@ -335,6 +350,7 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
   @media print {
     .print-bar { display: none !important; }
     body { padding-top: 0 !important; }
+    .next-link { background: #F0F9FF !important; }
   }
   @media screen {
     body { padding: 56px 32px 32px; max-width: 800px; margin: 0 auto; }
