@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult } from "./src/lib/toolData";
@@ -15,22 +15,56 @@ const fmtFull = (v) => "$" + Math.round(v).toLocaleString();
 
 function LogoMark({ size = 34, light = true }) { const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC; return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>; }
 
-/* Field is defined at MODULE scope (not inside the component) so it keeps a stable
-   identity across renders — otherwise React remounts it on every keystroke and the
-   input loses focus after one character. */
-function Field({ label, value, onChange, prefix, suffix, hint }) {
+/* Field is module-scope so it keeps a stable identity across renders. The custom
+   steppers use refs (valRef tracks the live value, accRef accumulates during a hold)
+   so a press-and-hold accelerates without stale-closure drift, and because Card/H are
+   also module-scope now, the input element is never remounted mid-press. */
+function Field({ label, value, onChange, prefix, suffix, hint, step = 1, min, max }) {
+  const holdRef = useRef(null);
+  const valRef = useRef(value);
+  valRef.current = value;
+  const accRef = useRef(0);
+
+  const clamp = (x) => {
+    if (min != null && x < min) x = min;
+    if (max != null && x > max) x = max;
+    return Math.round(x * 100) / 100;
+  };
+  const stop = () => { if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; } };
+  const start = (dir) => {
+    stop();
+    accRef.current = clamp(n(valRef.current));
+    const doStep = () => { accRef.current = clamp(accRef.current + dir * step); onChange(String(accRef.current)); };
+    doStep();
+    let delay = 280;
+    const tick = () => { doStep(); delay = Math.max(45, delay - 30); holdRef.current = setTimeout(tick, delay); };
+    holdRef.current = setTimeout(tick, delay);
+  };
+
+  const btn = { width: 22, height: 15, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: MUTED, cursor: "pointer", padding: 0, lineHeight: 1, fontSize: 8, userSelect: "none" };
   return (
     <div>
       <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 3 }}>{label}</label>
       <div style={{ position: "relative" }}>
-        {prefix && <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: MUTED }}>{prefix}</span>}
-        <input type="number" value={value} onChange={e => onChange(e.target.value)}
-          style={{ width: "100%", padding: "9px 12px", paddingLeft: prefix ? 22 : 12, paddingRight: suffix ? 38 : 12, fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, outline: "none" }} />
-        {suffix && <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: MUTED }}>{suffix}</span>}
+        {prefix && <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
+        <input type="number" value={value} step={step} onChange={e => onChange(e.target.value)}
+          style={{ width: "100%", padding: "9px 12px", paddingLeft: prefix ? 22 : 12, paddingRight: suffix ? 58 : 32, fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, outline: "none" }} />
+        {suffix && <span style={{ position: "absolute", right: 32, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: MUTED, pointerEvents: "none" }}>{suffix}</span>}
+        <div style={{ position: "absolute", right: 4, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 1 }}>
+          <button type="button" aria-label="Increase" style={btn} onMouseDown={e => { e.preventDefault(); start(1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(1); }} onTouchEnd={stop}>▲</button>
+          <button type="button" aria-label="Decrease" style={btn} onMouseDown={e => { e.preventDefault(); start(-1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(-1); }} onTouchEnd={stop}>▼</button>
+        </div>
       </div>
       {hint && <div style={{ fontSize: 10, color: MUTED, marginTop: 2 }}>{hint}</div>}
     </div>
   );
+}
+
+function Card({ children, accent }) {
+  return <div style={{ background: "#fff", border: `1px solid ${accent ? accent + "40" : BORDER}`, borderRadius: 10, padding: "24px 22px", marginBottom: 16 }}>{children}</div>;
+}
+function H({ children, color }) {
+  return <h3 style={{ fontSize: 13, fontWeight: 700, color: color || ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>{children}</h3>;
 }
 
 const STANCE = {
@@ -152,16 +186,9 @@ export default function BusinessCaseBuilder() {
     { label: "Attrition reduction", key: "attrition", val: r.buckets.attrition },
   ].sort((a, b) => b.val - a.val);
 
-  const Card = ({ children, accent }) => (
-    <div style={{ background: "#fff", border: `1px solid ${accent ? accent + "40" : BORDER}`, borderRadius: 10, padding: "24px 22px", marginBottom: 16 }}>{children}</div>
-  );
-  const H = ({ children, color }) => (
-    <h3 style={{ fontSize: 13, fontWeight: 700, color: color || ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>{children}</h3>
-  );
-
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh", background: WARM }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:700px){.bc-grid{grid-template-columns:1fr!important}.bc-sum{grid-template-columns:1fr!important}}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}input[type=number]{-moz-appearance:textfield}@media(max-width:700px){.bc-grid{grid-template-columns:1fr!important}.bc-sum{grid-template-columns:1fr!important}}`}</style>
 
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -179,28 +206,28 @@ export default function BusinessCaseBuilder() {
           <Card>
             <H>Current State</H>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="bc-grid">
-              <Field label="Agent Count" value={d.agents} onChange={v => set("agents", v)} />
-              <Field label="Avg Agent Hourly Rate" value={d.avgHourly} onChange={v => set("avgHourly", v)} prefix="$" />
-              <Field label="Benefits & Burden" value={d.benefitsPct} onChange={v => set("benefitsPct", v)} suffix="%" hint="Typically 25–35%" />
-              <Field label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} />
-              <Field label="Current AHT (sec)" value={d.currentAHT} onChange={v => set("currentAHT", v)} hint={`${(n(d.currentAHT) / 60).toFixed(1)} min total`} />
-              <Field label="Current ACW (sec)" value={d.currentACW} onChange={v => set("currentACW", v)} hint="After-call work — part of AHT" />
-              <Field label="Current FCR" value={d.currentFCR} onChange={v => set("currentFCR", v)} suffix="%" />
-              <Field label="Annual Attrition" value={d.currentAttrition} onChange={v => set("currentAttrition", v)} suffix="%" />
-              <Field label="Cost per Contact" value={d.costPerContact} onChange={v => set("costPerContact", v)} prefix="$" hint="Fully loaded" />
-              <Field label="Recruiting Cost / Hire" value={d.recruitCostPerHire} onChange={v => set("recruitCostPerHire", v)} prefix="$" />
-              <Field label="New Hire Training Days" value={d.trainingDays} onChange={v => set("trainingDays", v)} />
+              <Field label="Agent Count" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} />
+              <Field label="Avg Agent Hourly Rate" value={d.avgHourly} onChange={v => set("avgHourly", v)} prefix="$" step={0.5} min={0} />
+              <Field label="Benefits & Burden" value={d.benefitsPct} onChange={v => set("benefitsPct", v)} suffix="%" hint="Typically 25–35%" min={0} max={100} />
+              <Field label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} />
+              <Field label="Current AHT (sec)" value={d.currentAHT} onChange={v => set("currentAHT", v)} step={5} min={1} hint={`${(n(d.currentAHT) / 60).toFixed(1)} min total`} />
+              <Field label="Current ACW (sec)" value={d.currentACW} onChange={v => set("currentACW", v)} step={5} min={0} hint="After-call work — part of AHT" />
+              <Field label="Current FCR" value={d.currentFCR} onChange={v => set("currentFCR", v)} suffix="%" min={0} max={100} />
+              <Field label="Annual Attrition" value={d.currentAttrition} onChange={v => set("currentAttrition", v)} suffix="%" min={0} max={100} />
+              <Field label="Cost per Contact" value={d.costPerContact} onChange={v => set("costPerContact", v)} prefix="$" step={0.5} min={0} hint="Fully loaded" />
+              <Field label="Recruiting Cost / Hire" value={d.recruitCostPerHire} onChange={v => set("recruitCostPerHire", v)} prefix="$" step={100} min={0} />
+              <Field label="New Hire Training Days" value={d.trainingDays} onChange={v => set("trainingDays", v)} min={0} />
             </div>
           </Card>
 
           <Card accent={GREEN}>
             <H color={GREEN}>Target Improvements</H>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="bc-grid">
-              <Field label="Handle-time Reduction (talk/hold)" value={d.htReduction} onChange={v => set("htReduction", v)} suffix="%" hint="Applied to AHT minus ACW" />
-              <Field label="ACW Reduction" value={d.acwReduction} onChange={v => set("acwReduction", v)} suffix="%" hint="Auto-summary. Applied to ACW only" />
-              <Field label="FCR Improvement" value={d.fcrImprovement} onChange={v => set("fcrImprovement", v)} suffix="pts" hint="Industry: 5–10 pt lift" />
-              <Field label="Attrition Reduction" value={d.attritionReduction} onChange={v => set("attritionReduction", v)} suffix="%" hint="Industry: 15–25%" />
-              <Field label="Self-Service Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" hint="Industry: 10–25%" />
+              <Field label="Handle-time Reduction (talk/hold)" value={d.htReduction} onChange={v => set("htReduction", v)} suffix="%" min={0} max={100} hint="Applied to AHT minus ACW" />
+              <Field label="ACW Reduction" value={d.acwReduction} onChange={v => set("acwReduction", v)} suffix="%" min={0} max={100} hint="Auto-summary. Applied to ACW only" />
+              <Field label="FCR Improvement" value={d.fcrImprovement} onChange={v => set("fcrImprovement", v)} suffix="pts" min={0} max={100} hint="Industry: 5–10 pt lift" />
+              <Field label="Attrition Reduction" value={d.attritionReduction} onChange={v => set("attritionReduction", v)} suffix="%" min={0} max={100} hint="Industry: 15–25%" />
+              <Field label="Self-Service Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" min={0} max={100} hint="Industry: 10–25%" />
             </div>
             <p style={{ fontSize: 11, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>ACW is modeled as a slice of AHT, so handle-time and ACW reductions never double-count the same minutes. Containment removes contacts from the handled pool before any per-contact saving is applied.</p>
           </Card>
@@ -208,9 +235,9 @@ export default function BusinessCaseBuilder() {
           <Card accent={AMBER}>
             <H color={AMBER}>Investment</H>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="bc-grid">
-              <Field label="Implementation (one-time)" value={d.implementationCost} onChange={v => set("implementationCost", v)} prefix="$" hint="PS, migration, integration" />
-              <Field label="New Platform / Agent / Mo" value={d.newPlatformPerAgentMo} onChange={v => set("newPlatformPerAgentMo", v)} prefix="$" hint="Recurring solution cost" />
-              <Field label="Migration Timeline" value={d.migrationMonths} onChange={v => set("migrationMonths", v)} suffix="mo" />
+              <Field label="Implementation (one-time)" value={d.implementationCost} onChange={v => set("implementationCost", v)} prefix="$" step={5000} min={0} hint="PS, migration, integration" />
+              <Field label="New Platform / Agent / Mo" value={d.newPlatformPerAgentMo} onChange={v => set("newPlatformPerAgentMo", v)} prefix="$" step={5} min={0} hint="Recurring solution cost" />
+              <Field label="Migration Timeline" value={d.migrationMonths} onChange={v => set("migrationMonths", v)} suffix="mo" min={1} max={36} />
             </div>
           </Card>
 
