@@ -76,7 +76,7 @@ const STANCE = {
 /* De-overlapped model: every contact-based saving runs on the HANDLED pool
    (post-deflection); ACW is a disjoint slice of AHT; FCR repeats are on handled
    volume. Confidence weighting turns gross into a stance-adjusted net. */
-function computeCase(d, stanceKey) {
+function computeCase(d, stanceKey, rampOn) {
   const loaded = n(d.avgHourly) * (1 + n(d.benefitsPct) / 100);
   const annual = n(d.monthlyContacts) * 12;
   const deflected = annual * (n(d.containment) / 100);
@@ -105,13 +105,37 @@ function computeCase(d, stanceKey) {
   const net = containment * cf.c + handleTime * cf.h + fcr * cf.f + attrition * cf.a;
 
   const recurring = n(d.newPlatformPerAgentMo) * n(d.agents) * 12;
-  const tco3 = n(d.implementationCost) + recurring * 3;
-  const roi3 = tco3 > 0 ? ((net * 3 - tco3) / tco3 * 100) : 0;
-  const monthlyNet = net / 12 - recurring / 12;
-  const payback = monthlyNet > 0 ? Math.ceil(n(d.implementationCost) / monthlyNet) : 0;
-  const netValue3 = net * 3 - tco3;
+  const impl = n(d.implementationCost);
+  const tco3 = impl + recurring * 3;
 
-  return { loaded, annual, handled, deflected, buckets, gross, net, haircut: gross - net, recurring, tco3, roi3, payback, netValue3, avoidedTurnover, avoidedRepeats };
+  // Monthly cash flow with a savings ramp. During the migration window, savings are
+  // ~0 while the new platform is already being paid; after go-live they phase up
+  // linearly to full over the ramp window. This turns an idealized instant payback
+  // into an honest J-curve. With rampOn=false it collapses to the old instant model.
+  const M = Math.max(0, Math.min(36, n(d.migrationMonths)));
+  const R = Math.max(1, n(d.rampMonths));
+  const monthlyFull = net / 12;
+  const monthlyPlatform = recurring / 12;
+  const factor = (t) => {
+    if (!rampOn) return 1;
+    if (t <= M) return 0;
+    if (t <= M + R) return (t - M) / R;
+    return 1;
+  };
+  const cumFlow = [-impl];
+  let cum = -impl, savings3 = 0, year1 = 0, payback = 0;
+  for (let t = 1; t <= 36; t++) {
+    const s = factor(t) * monthlyFull;
+    savings3 += s;
+    if (t <= 12) year1 += s;
+    cum += s - monthlyPlatform;
+    cumFlow.push(cum);
+    if (payback === 0 && cum >= 0) payback = t;
+  }
+  const roi3 = tco3 > 0 ? ((savings3 - tco3) / tco3 * 100) : 0;
+  const netValue3 = savings3 - tco3;
+
+  return { loaded, annual, handled, deflected, buckets, gross, net, haircut: gross - net, recurring, tco3, roi3, payback, netValue3, avoidedTurnover, avoidedRepeats, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, rampOn };
 }
 
 function caseInsights(r, d, stanceKey) {
@@ -122,7 +146,8 @@ function caseInsights(r, d, stanceKey) {
   if (n(d.attritionReduction) > 25) flags.push(`${n(d.attritionReduction)}% attrition reduction is optimistic (15–25% is realistic) and the hardest lever to attribute to a platform. Discount it heavily or footnote it.`);
   const perAgentImpl = n(d.agents) > 0 ? n(d.implementationCost) / n(d.agents) : 0;
   if (perAgentImpl > 0 && perAgentImpl < 2000) flags.push(`Implementation of ${fmtFull(n(d.implementationCost))} for ${n(d.agents)} agents is ~${fmtFull(perAgentImpl)}/agent — low for a platform transformation (typical $3–8K/agent). An understated investment is the fastest way to lose board trust; a complete figure lengthens payback but survives diligence.`);
-  if (r.payback > 0 && r.payback < 3) flags.push(`A ${r.payback}-month payback reads as too-good-to-be-true and invites scrutiny. Confirm the investment captures professional services, change management, and internal time before you present it.`);
+  if (r.payback === 0) flags.push(`At this platform cost, monthly savings never exceed monthly platform spend within three years — the case does not pay back as modeled. Revisit platform cost, targets, or stance before presenting.`);
+  else if (r.payback > 0 && r.payback < 3) flags.push(`A ${r.payback}-month payback reads as too-good-to-be-true and invites scrutiny. Confirm the investment captures professional services, change management, and internal time before you present it.`);
 
   const out = [...flags.slice(0, 2)];
 
@@ -131,6 +156,15 @@ function caseInsights(r, d, stanceKey) {
   const labelMap = { containment: "self-service containment", handleTime: "handle-time reduction", fcr: "FCR improvement", attrition: "attrition reduction" };
   const topShare = Math.round(topVal / r.gross * 100);
   out.push(`${topShare}% of your case rests on ${labelMap[topName]}. ${topName === "containment" ? "A board probes deflection hardest — bring a pilot result or vendor benchmark." : topName === "attrition" ? "That's the softest, least-attributable lever — expect the most pushback there." : "It's a relatively defensible lever, which strengthens the case."}`);
+
+  if (r.rampOn && r.payback > 0) {
+    const instMonthly = r.monthlyFull - r.monthlyPlatform;
+    const instPay = instMonthly > 0 ? Math.ceil(n(d.implementationCost) / instMonthly) : 0;
+    if (instPay > 0 && r.payback > instPay)
+      out.push(`Phasing savings over your ${r.M}-month migration and ${r.R}-month ramp moves payback from an idealized ${instPay} months to a realistic ${r.payback}. The phased figure is the one a CFO will trust — lead with it.`);
+  } else if (!r.rampOn) {
+    out.push(`Savings phasing is off, so this assumes 100% of savings land on day one — an idealized payback. Turn on phasing for the board-defensible number that accounts for migration and ramp.`);
+  }
 
   out.push(`The ${stanceKey} stance applies a ${fmtK(r.haircut)} haircut to gross savings. Presenting gross ${fmtK(r.gross)} and net ${fmtK(r.net)} side by side signals you've already stress-tested your own numbers.`);
 
@@ -141,12 +175,13 @@ const DEFAULTS = {
   agents: 200, avgHourly: 18, benefitsPct: 30, monthlyContacts: 120000, currentAHT: 420, currentACW: 45,
   currentFCR: 72, currentAttrition: 35, costPerContact: 7, recruitCostPerHire: 3500, trainingDays: 21,
   htReduction: 12, acwReduction: 30, fcrImprovement: 8, attritionReduction: 20, containment: 15,
-  implementationCost: 750000, newPlatformPerAgentMo: 135, migrationMonths: 9,
+  implementationCost: 750000, newPlatformPerAgentMo: 135, migrationMonths: 9, rampMonths: 6,
 };
 
 export default function BusinessCaseBuilder() {
   const [d, setD] = useState(DEFAULTS);
   const [stance, setStance] = useState("expected");
+  const [rampOn, setRampOn] = useState(true);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
 
   const [capOpen, setCapOpen] = useState(false);
@@ -155,17 +190,31 @@ export default function BusinessCaseBuilder() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const r = computeCase(d, stance);
+  const r = computeCase(d, stance, rampOn);
   const insights = caseInsights(r, d, stance);
+
+  // J-curve: cumulative cash flow over 36 months. Dips during migration, climbs as
+  // savings ramp, crosses zero at payback.
+  const spark = (() => {
+    const W = 600, H = 88, pad = 8;
+    const arr = r.cumFlow;
+    const minV = Math.min(...arr), maxV = Math.max(...arr), span = (maxV - minV) || 1;
+    const x = i => pad + (i / (arr.length - 1)) * (W - 2 * pad);
+    const y = v => pad + (1 - (v - minV) / span) * (H - 2 * pad);
+    const pts = arr.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+    return { W, H, pts, y0: y(0), pbx: r.payback > 0 ? x(r.payback) : null, end: arr[arr.length - 1] };
+  })();
+  const paybackLabel = r.payback > 0 ? `${r.payback} mo` : ">36 mo";
 
   useEffect(() => {
     publishToolResult("business-case-builder", {
       agents: n(d.agents), annualContacts: r.annual, grossSavings: Math.round(r.gross),
       netSavings: Math.round(r.net), stance, paybackMonths: r.payback, threeYearROI: Math.round(r.roi3),
-      implementationCost: n(d.implementationCost), analystRead: insights[0],
+      implementationCost: n(d.implementationCost), year1Savings: Math.round(r.year1), rampOn,
+      migrationMonths: r.M, rampMonths: r.R, analystRead: insights[0],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [d, stance]);
+  }, [d, stance, rampOn]);
 
   const submitCapture = async () => {
     if (!capEmail.includes("@") || capState === "sending") return;
@@ -234,11 +283,16 @@ export default function BusinessCaseBuilder() {
 
           <Card accent={AMBER}>
             <H color={AMBER}>Investment</H>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="bc-grid">
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }} className="bc-grid">
               <Field label="Implementation (one-time)" value={d.implementationCost} onChange={v => set("implementationCost", v)} prefix="$" step={5000} min={0} hint="PS, migration, integration" />
               <Field label="New Platform / Agent / Mo" value={d.newPlatformPerAgentMo} onChange={v => set("newPlatformPerAgentMo", v)} prefix="$" step={5} min={0} hint="Recurring solution cost" />
-              <Field label="Migration Timeline" value={d.migrationMonths} onChange={v => set("migrationMonths", v)} suffix="mo" min={1} max={36} />
+              <Field label="Migration Timeline" value={d.migrationMonths} onChange={v => set("migrationMonths", v)} suffix="mo" min={1} max={36} hint="Build phase — ~0% savings" />
+              <Field label="Ramp to Full Savings" value={d.rampMonths} onChange={v => set("rampMonths", v)} suffix="mo" min={1} max={24} hint="Post-go-live climb to 100%" />
             </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <input type="checkbox" checked={rampOn} onChange={e => setRampOn(e.target.checked)} style={{ width: 15, height: 15, accentColor: ELECTRIC, cursor: "pointer" }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Phase in savings over migration + ramp <span style={{ color: MUTED, fontWeight: 400 }}>(recommended — honest payback)</span></span>
+            </label>
           </Card>
 
           {/* Stance selector */}
@@ -262,12 +316,13 @@ export default function BusinessCaseBuilder() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 22 }} className="bc-sum">
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: GREEN }}>{fmtK(r.net)}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Net Annual Savings</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>gross {fmtK(r.gross)} − {fmtK(r.haircut)} haircut</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Net Annual Savings <span style={{ opacity: 0.6 }}>· run-rate</span></div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{rampOn ? `year 1 ${fmtK(r.year1)} after ramp` : `gross ${fmtK(r.gross)} − ${fmtK(r.haircut)} haircut`}</div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: r.payback && r.payback <= 12 ? GREEN : r.payback <= 18 ? AMBER : RED }}>{r.payback || "—"} mo</div>
+                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: r.payback && r.payback <= 12 ? GREEN : (r.payback && r.payback <= 18) ? AMBER : RED }}>{paybackLabel}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Payback Period</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{rampOn ? `phased: ${r.M}mo build + ${r.R}mo ramp` : "idealized — phasing off"}</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: r.roi3 > 100 ? GREEN : r.roi3 > 0 ? AMBER : RED }}>{Math.round(r.roi3)}%</div>
@@ -290,6 +345,26 @@ export default function BusinessCaseBuilder() {
                 );
               })}
             </div>
+
+            {rampOn && (
+              <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: 1, textTransform: "uppercase" }}>Cumulative Cash Flow · 36 months</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{r.payback > 0 ? `Breaks even month ${r.payback}` : "No breakeven in 3 yrs"} · ends {fmtK(spark.end)}</span>
+                </div>
+                <svg viewBox={`0 0 ${spark.W} ${spark.H}`} width="100%" height="88" preserveAspectRatio="none" style={{ display: "block", overflow: "visible" }}>
+                  <line x1="0" y1={spark.y0} x2={spark.W} y2={spark.y0} stroke="rgba(255,255,255,0.25)" strokeWidth="1" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+                  {spark.pbx != null && <line x1={spark.pbx} y1="0" x2={spark.pbx} y2={spark.H} stroke={GREEN} strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />}
+                  <polyline points={spark.pts} fill="none" stroke={LIGHT} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+                  {spark.pbx != null && <circle cx={spark.pbx} cy={spark.y0} r="3.5" fill={GREEN} />}
+                </svg>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>
+                  <span>Month 0 · −{fmtK(Math.abs(r.cumFlow[0]))}</span>
+                  <span>Migration {r.M}mo</span>
+                  <span>Month 36</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Analyst Read — the defensibility layer */}
@@ -331,13 +406,13 @@ export default function BusinessCaseBuilder() {
               userName={capName}
               userEmail={capEmail}
               sections={[
-                { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation returns ${fmtK(r.net)} in net annual savings (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)}/yr platform cost — a ${r.payback}-month payback and ${Math.round(r.roi3)}% three-year ROI on ${fmtK(r.tco3)} total cost of ownership. Savings are de-overlapped (no double-counted minutes or contacts) and discounted for attribution risk, so the figures are presented to survive financial scrutiny rather than to maximize a headline.` },
+                { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in net annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)}/yr platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp — year one delivers ${fmtK(r.year1)} as the program ramps — producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-3-year"} payback and ${Math.round(r.roi3)}% three-year ROI on ${fmtK(r.tco3)} total cost of ownership. Savings are de-overlapped (no double-counted minutes or contacts) and discounted for attribution risk, so the figures are presented to survive financial scrutiny rather than to maximize a headline.` },
                 { title: "Financial Summary", type: "metrics", items: [
-                  { label: "Net Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[stance].label} stance` },
-                  { label: "Gross (pre-haircut)", value: fmtFull(r.gross), color: MUTED, sub: `Confidence haircut ${fmtFull(r.haircut)}` },
+                  { label: "Net Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[stance].label} · run-rate` },
+                  { label: rampOn ? "Year 1 (ramped)" : "Gross (pre-haircut)", value: rampOn ? fmtFull(r.year1) : fmtFull(r.gross), color: rampOn ? ELECTRIC : MUTED, sub: rampOn ? `${r.M}mo build + ${r.R}mo ramp` : `Haircut ${fmtFull(r.haircut)}` },
                   { label: "One-time Investment", value: fmtFull(n(d.implementationCost)), color: RED },
                   { label: "Annual Platform Cost", value: fmtFull(r.recurring), color: AMBER },
-                  { label: "Payback Period", value: `${r.payback} months`, color: ELECTRIC },
+                  { label: "Payback Period", value: r.payback > 0 ? `${r.payback} months` : ">36 months", color: ELECTRIC, sub: rampOn ? "phased" : "idealized" },
                   { label: "3-Year ROI", value: `${Math.round(r.roi3)}%`, color: GREEN, sub: `on ${fmtFull(r.tco3)} TCO` },
                 ]},
                 { title: "Savings Breakdown", type: "table", rows: bucketRows.map(b => [b.label, fmtFull(b.val) + ` (${Math.round(r.gross > 0 ? b.val / r.gross * 100 : 0)}% of gross)`]) },
@@ -350,6 +425,8 @@ export default function BusinessCaseBuilder() {
                   ["Handle-time saved per contact", `${(((n(d.currentAHT) - Math.min(n(d.currentACW), n(d.currentAHT))) * n(d.htReduction) / 100) + (Math.min(n(d.currentACW), n(d.currentAHT)) * n(d.acwReduction) / 100)).toFixed(0)}s`],
                   ["Avoided repeat contacts (FCR)", Math.round(r.avoidedRepeats).toLocaleString()],
                   ["Avoided turnover (attrition)", `${r.avoidedTurnover.toFixed(1)} agents/yr`],
+                  ["Savings phasing", rampOn ? `${r.M}-mo migration (0% savings) + ${r.R}-mo linear ramp to full` : "Off — full savings assumed from day one"],
+                  ...(rampOn ? [["Year 1 savings (ramped)", fmtFull(r.year1) + ` of ${fmtFull(r.net)} run-rate`]] : []),
                   ["Confidence weighting", `containment ${Math.round(STANCE[stance].c * 100)}%, handle-time ${Math.round(STANCE[stance].h * 100)}%, FCR ${Math.round(STANCE[stance].f * 100)}%, attrition ${Math.round(STANCE[stance].a * 100)}%`],
                 ]},
                 { title: "Recommended Next Steps", type: "next", items: [
@@ -357,7 +434,7 @@ export default function BusinessCaseBuilder() {
                   { tool: "Transformation Readiness", reason: "Confirm the organization can actually deliver these targets", href: "/tools/transformation-readiness" },
                   { tool: "Contract Risk Scanner", reason: "Pressure-test vendor pricing before it enters the case", href: "/tools/contract-risk" },
                 ]},
-                { title: "Methodology", type: "text", content: "Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance) to produce net savings. ROI is calculated against three-year total cost of ownership (one-time implementation plus recurring platform cost), not implementation alone. This is deliberately conservative: the goal is a number a CFO will approve, not the largest possible headline." },
+                { title: "Methodology", type: "text", content: "Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance) to produce net savings. Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one. ROI is calculated against three-year total cost of ownership (one-time implementation plus recurring platform cost). This is deliberately conservative: the goal is a number a CFO will approve, not the largest possible headline." },
               ]}
             />
             <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8 }}>Connect with a Consultant →</a>
