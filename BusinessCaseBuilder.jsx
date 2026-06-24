@@ -353,9 +353,9 @@ export default function BusinessCaseBuilder() {
                   ["Confidence weighting", `containment ${Math.round(STANCE[stance].c * 100)}%, handle-time ${Math.round(STANCE[stance].h * 100)}%, FCR ${Math.round(STANCE[stance].f * 100)}%, attrition ${Math.round(STANCE[stance].a * 100)}%`],
                 ]},
                 { title: "Recommended Next Steps", type: "next", items: [
-                  { tool: "TCO Calculator", reason: "Validate the platform cost assumptions behind this case" },
-                  { tool: "Transformation Readiness", reason: "Confirm the organization can actually deliver these targets" },
-                  { tool: "Contract Risk Scanner", reason: "Pressure-test vendor pricing before it enters the case" },
+                  { tool: "TCO Calculator", reason: "Validate the platform cost assumptions behind this case", href: "/tools/tco-calculator" },
+                  { tool: "Transformation Readiness", reason: "Confirm the organization can actually deliver these targets", href: "/tools/transformation-readiness" },
+                  { tool: "Contract Risk Scanner", reason: "Pressure-test vendor pricing before it enters the case", href: "/tools/contract-risk" },
                 ]},
                 { title: "Methodology", type: "text", content: "Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance) to produce net savings. ROI is calculated against three-year total cost of ownership (one-time implementation plus recurring platform cost), not implementation alone. This is deliberately conservative: the goal is a number a CFO will approve, not the largest possible headline." },
               ]}
