@@ -396,10 +396,10 @@ export default function StaffingCalculator() {
                     { action: "Build spike contingency", detail: `Plan for +20% volume. Identify ${spike.sched - r.sched} agents activatable via overtime, cross-training, or BPO overflow.` },
                   ]},
                   { title: "Next Steps", type: "next", items: [
-                    { tool: "Shrinkage Planner", reason: "Break shrinkage into categories and find what drives the gap" },
-                    { tool: "AHT Decomposition", reason: "Identify which handle-time components are reducible" },
-                    { tool: "Occupancy Risk Simulator", reason: "Stress-test how fragile this plan is to a forecast miss" },
-                    { tool: "Attrition Cost Calculator", reason: "Quantify the cost if occupancy-driven burnout raises turnover" },
+                    { tool: "Shrinkage Planner", reason: "Break shrinkage into categories and find what drives the gap", href: "/tools/shrinkage-planner" },
+                    { tool: "AHT Decomposition", reason: "Identify which handle-time components are reducible", href: "/tools/aht-decomposition" },
+                    { tool: "Occupancy Risk Simulator", reason: "Stress-test how fragile this plan is to a forecast miss", href: "/tools/occupancy-risk" },
+                    { tool: "Attrition Cost Calculator", reason: "Quantify the cost if occupancy-driven burnout raises turnover", href: "/tools/attrition-cost" },
                   ]},
                   { title: "Methodology", type: "text", content: "Erlang C via the numerically stable Erlang B recursion. Assumes random Poisson arrivals and exponential handle times. Erlang C assumes infinite patience (no abandonment) and tends to over-staff; the optional patience input estimates abandonment and an Erlang A-adjusted requirement. The optional occupancy cap staffs to the greater of meeting service level and holding occupancy at or below the ceiling. Shrinkage is applied post-calculation to convert base agents to scheduled FTE." },
                 ]}
