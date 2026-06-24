@@ -51,6 +51,45 @@ function abandonmentCheck(N, A, ahtSec, patienceSec) {
   return { estAband: C * pAbandonIfDelayed };
 }
 
+/* The insight layer: turn the raw metrics into the one or two things an operator
+   actually needs to read — the tension between SLA aggressiveness, occupancy, and
+   over/under-service. Priority-ordered; the UI takes the top two. This is the
+   "synthesis, not metric-dump" pattern other tools adopt where their data supports it. */
+function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct) {
+  const out = [];
+  const slPct = r.sl * 100, targetPct = slTargetFrac * 100, overBy = slPct - targetPct, occPct = r.occ * 100;
+  const looseOcc = r.occ < BENCH.occupancy.targetLow;
+  const aggressive = slTargetFrac >= 0.88 || slSec <= 10;
+  const band = `${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}%`;
+
+  if (capOn && r.capped)
+    out.push(`Your ${capPct}% occupancy cap — not the service-level target — is setting headcount here, adding agents beyond what the SLA alone required to hold occupancy at ${occPct.toFixed(1)}%.`);
+
+  if (occInfo.band === "critical")
+    out.push(`Service level is met, but occupancy at ${occPct.toFixed(1)}% is critical — efficient on paper, fragile in practice. One forecast miss or absence spike and quality drops.${!capOn ? " Turn on the occupancy cap to hold a ceiling." : ""}`);
+
+  if (overBy >= 3) {
+    let t = `You're delivering ${slPct.toFixed(1)}% against your ${targetPct.toFixed(0)}% target — ${r.raw} agents is the fewest whole number that clears the SLA, so you're over-serving by ${Math.round(overBy)} points.`;
+    if (looseOcc) t += ` Occupancy is ${occPct.toFixed(1)}%, below the ${band} efficiency band, confirming you're staffed ahead of your own SLA.`;
+    t += ` If ${targetPct.toFixed(0)}% is firm this is correct; if it's aspirational, a slightly looser target or threshold frees capacity.`;
+    out.push(t);
+  }
+
+  if (occInfo.band === "caution")
+    out.push(`Occupancy at ${occPct.toFixed(1)}% is in the caution band — workable but tight. Aim for the ${band} target so a bad week doesn't break adherence.`);
+
+  if (looseOcc && occInfo.band === "healthy" && overBy < 3)
+    out.push(`Occupancy at ${occPct.toFixed(1)}% sits below the ${band} efficiency band while service level is met — you have headroom to absorb growth, or could run leaner if cost is the priority.`);
+
+  if (aggressive)
+    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service (ASA ${Math.round(r.asa)}s, only ${(r.pw * 100).toFixed(0)}% of callers wait) — fast, but you carry agents to buy that speed. Most centers run 80% in 20–30s.`);
+
+  if (out.length === 0)
+    out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${slPct.toFixed(1)}% are both in healthy ranges — a balanced plan with room to flex.`);
+
+  return out;
+}
+
 const PRESETS = {
   general: { label: "Cross-Industry", volume: 400, aht: 360, slT: 0.80, slS: 20, shrink: 0.30 },
   financial: { label: "Financial Services", volume: 500, aht: 320, slT: 0.80, slS: 20, shrink: 0.28 },
@@ -113,7 +152,11 @@ export default function StaffingCalculator() {
 
   const aband = abandonmentCheck(r.raw, r.A, aht, patience);
   const adjR = aband ? calc(Math.max(1, Math.round(vol * (1 - aband.estAband))), aht, intv, slT / 100, slS, shrink / 100, occCap) : null;
-  const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1; // hide when adjustment rounds to zero
+  // Show abandonment only when it's actually actionable: a real agent difference AND
+  // either material abandonment (>=5%) or a 2+ agent saving. Hides trivial 1-agent/1% cases.
+  const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
+
+  const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct);
 
   const spike = calc(Math.round(vol * 1.2), aht, intv, slT / 100, slS, shrink / 100, occCap);
   const ahtUp = calc(vol, Math.round(aht * 1.1), intv, slT / 100, slS, shrink / 100, occCap);
@@ -128,6 +171,7 @@ export default function StaffingCalculator() {
       occupancyCap: occCap || undefined, occupancyCapped: r.capped || undefined,
       patienceSec: patience || undefined,
       estAbandonment: abandMeaningful ? +(aband.estAband).toFixed(4) : undefined,
+      analystRead: insights[0],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vol, intv, aht, shrink, slT, slS, patience, capOn, capPct]);
@@ -205,6 +249,13 @@ export default function StaffingCalculator() {
               <S label="Service Level" value={`${(r.sl * 100).toFixed(1)}%`} sub={`Target: ${slT}% in ${slS}s`} color={r.sl >= slT / 100 ? GREEN : RED} />
               <S label="Avg Speed of Answer" value={asaD} sub="Estimated wait time" />
               <S label="Prob. of Wait" value={`${(r.pw * 100).toFixed(1)}%`} sub="Chance a caller waits" />
+            </div>
+
+            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Analyst Read</div>
+              {insights.slice(0, 2).map((t, i) => (
+                <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>
+              ))}
             </div>
 
             <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px 18px 14px", marginBottom: 12 }}>
@@ -332,7 +383,7 @@ export default function StaffingCalculator() {
                   { title: "Key Findings", type: "findings", items: [
                     `At ${vol} contacts per ${intv}-minute interval with ${fmtMS(aht)} AHT, you need ${r.raw} agents on the phones to meet ${slT}/${slS} service level${r.capped ? ` while holding occupancy under your ${capPct}% cap` : ""}.`,
                     `After applying ${shrink}% shrinkage, that becomes ${r.sched} scheduled FTE.`,
-                    `Occupancy is ${(r.occ * 100).toFixed(0)}% — ${occInfo.label.toLowerCase()}. ${occInfo.message}`,
+                    ...insights.slice(0, 2),
                     shrinkInfo.message,
                     ...(abandMeaningful ? [`With ${patience}s average patience, an estimated ${(aband.estAband * 100).toFixed(1)}% of contacts would abandon; the abandonment-adjusted estimate is ${adjR.raw} base agents versus the Erlang C ${r.raw}.`] : []),
                     `A 20% volume spike would require ${spike.sched} FTE (${spike.sched - r.sched >= 0 ? "+" : ""}${spike.sched - r.sched} agents).`,
