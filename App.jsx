@@ -342,7 +342,7 @@ const SEO_MAP = {
     title: `Travel + Hospitality CX Intelligence | ${SITE}`,
     desc: "Vertical-specific CX intelligence for airlines, hotels, OTAs, car rental, cruise lines, and tours. Disruption management, multilingual support, and GDS-integrated vendor recommendations.",
   },
-  "/tco-calculator": {
+  "/tools/tco-calculator": {
     title: `TCO Calculator | ${SITE}`,
     desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and connect with a consultant.",
   },
@@ -550,6 +550,7 @@ export default function App() {
         <Route path="/research/:slug" element={<GatedReport />} />
         <Route path="/human-premium" element={<HumanPremium />} />
         <Route path="/research/ccaas-migration-costs" element={<ArticleCCaaSCosts />} />
+        <Route path="/tools/tco-calculator" element={<TCOCalculator />} />
         <Route path="/tco-calculator" element={<TCOCalculator />} />
       </Routes>
     </BrowserRouter>
