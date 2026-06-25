@@ -5,21 +5,19 @@ import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
-const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
-const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
+const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, VIOLET = "#7C6FE8";
+const WRAP = { maxWidth: 980, margin: "0 auto", padding: "0 28px" };
 
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const fmt = (v) => (v < 0 ? "-$" : "$") + Math.abs(Math.round(n(v))).toLocaleString();
 const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x); return s + (a >= 1000000 ? "$" + (a / 1000000).toFixed(2) + "M" : a >= 1000 ? "$" + (a / 1000).toFixed(0) + "K" : "$" + Math.round(a)); };
-const pctStr = (v) => (n(v) * 100).toFixed(1) + "%";
 
 function LogoMark({ size = 30, light = true }) {
   const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC;
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
 }
 
-// Live-committing field with hold-to-accelerate steppers + PULLED badge (suite standard).
-function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, factor = 1, pulled }) {
+function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, factor = 1, pulled, compact }) {
   const display = n(value) * factor;
   const [local, setLocal] = useState(String(display));
   const holdRef = useRef(null), valRef = useRef(display);
@@ -29,93 +27,120 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
   const clamp = (x) => { if (min != null && x < min) x = min; if (max != null && x > max) x = max; return Math.round(x * 1000) / 1000; };
   const stop = () => { if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; } };
   const start = (dir) => { stop(); let v = clamp(n(valRef.current)); const doStep = () => { v = clamp(v + dir * step); setLocal(String(v)); onChange(v / factor); }; doStep(); let delay = 280; const tick = () => { doStep(); delay = Math.max(45, delay - 30); holdRef.current = setTimeout(tick, delay); }; holdRef.current = setTimeout(tick, delay); };
-  const btn = { width: 22, height: 15, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: MUTED, cursor: "pointer", padding: 0, fontSize: 8, userSelect: "none" };
+  const btn = { width: 20, height: 14, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: MUTED, cursor: "pointer", padding: 0, fontSize: 7, userSelect: "none" };
   return (
     <div>
-      <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+      <label style={{ fontSize: compact ? 11 : 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
         {label}{pulled && <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: ICE, padding: "1px 5px", borderRadius: 4 }}>PULLED</span>}
       </label>
       <div style={{ position: "relative" }}>
-        {prefix && <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
+        {prefix && <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
         <input type="text" inputMode="decimal" value={local} onChange={e => { setLocal(e.target.value); commit(e.target.value); }} onBlur={() => setLocal(String(Math.round(display * 1000) / 1000))}
-          style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 26 : 12, paddingRight: 44, outline: "none" }}
+          style={{ width: "100%", padding: compact ? "8px 10px" : "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 24 : (compact ? 10 : 12), paddingRight: 40, outline: "none" }}
           onFocus={e => e.target.style.borderColor = ELECTRIC} onBlurCapture={e => e.target.style.borderColor = BORDER} />
-        {suffix && <span style={{ position: "absolute", right: 30, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: MUTED, pointerEvents: "none" }}>{suffix}</span>}
-        <div style={{ position: "absolute", right: 4, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 1 }}>
+        {suffix && <span style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: MUTED, pointerEvents: "none" }}>{suffix}</span>}
+        <div style={{ position: "absolute", right: 3, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 1 }}>
           <button type="button" style={btn} onMouseDown={e => { e.preventDefault(); start(1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(1); }} onTouchEnd={stop}>▲</button>
           <button type="button" style={btn} onMouseDown={e => { e.preventDefault(); start(-1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(-1); }} onTouchEnd={stop}>▼</button>
         </div>
       </div>
-      {hint && <span style={{ fontSize: 11, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
+      {hint && <span style={{ fontSize: 10.5, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
     </div>
   );
 }
 
-// Stance = how much truly-deflected capacity converts to cash (you must reduce or
-// re-deploy FTE to bank it). Costs are never haircut — only the savings side.
 const STANCE = {
   conservative: { label: "Conservative", f: 0.70, note: "Freed capacity is hard to bank without headcount action — heavy haircut." },
   expected: { label: "Expected", f: 0.85, note: "Realistic conversion of freed capacity to cash. The defensible default." },
   aggressive: { label: "Aggressive", f: 1.00, note: "Full capacity value, no haircut — matches the vendor ROI slide." },
 };
 
-const BASE = {
-  monthlyContacts: 80000, costPerContact: 7, marginalPerContact: 4.2, grossDeflection: 40,
-  botLeakage: 15, containmentFailure: 12, escalationPenalty: 25,
-  qaCost: 2000, botPlatformCost: 8000, tuningHours: 40, tuningRate: 65,
-  knowledgeMaintHours: 20, knowledgeRate: 55,
-};
+const ENV0 = { monthlyContacts: 80000, costPerContact: 7, marginalPerContact: 4.2 };
+const VENDOR0 = { grossDeflection: 40, botLeakage: 15, containmentFailure: 12, escalationPenalty: 25, botPlatformCost: 8000, qaCost: 2000, tuningHours: 40, tuningRate: 65, knowledgeMaintHours: 20, knowledgeRate: 55 };
+const VENDORB0 = { grossDeflection: 32, botLeakage: 9, containmentFailure: 9, escalationPenalty: 18, botPlatformCost: 5000, qaCost: 1200, tuningHours: 25, tuningRate: 65, knowledgeMaintHours: 12, knowledgeRate: 55 };
 
-function compute(d, stanceKey) {
-  const monthly = n(d.monthlyContacts);
-  const cpc = n(d.costPerContact);
-  const marg = n(d.marginalPerContact) > 0 ? n(d.marginalPerContact) : cpc * 0.6;
+// Per-vendor engine. env (volume + cost) is shared; v is the vendor's claimed
+// performance + operating cost. Returns the full reality picture incl. dual
+// realization, closed-form break-even thresholds, and a 12-month ramp.
+function compute(env, v, stanceKey, rampMonths, rampOn) {
+  const M = n(env.monthlyContacts), cpc = n(env.costPerContact);
+  const marg = n(env.marginalPerContact) > 0 ? n(env.marginalPerContact) : cpc * 0.6;
   const sf = STANCE[stanceKey].f;
+  const Gp = n(v.grossDeflection), G = Gp / 100, L = n(v.botLeakage) / 100, F = n(v.containmentFailure) / 100, esc = n(v.escalationPenalty) / 100;
+  const keep = (1 - L) * (1 - F), ret = 1 - keep;
 
-  const grossDeflected = monthly * (n(d.grossDeflection) / 100);
-  const leaked = grossDeflected * (n(d.botLeakage) / 100);
-  const failed = (grossDeflected - leaked) * (n(d.containmentFailure) / 100);
-  const netDeflected = Math.max(0, grossDeflected - leaked - failed);
-  const returned = leaked + failed;
-  const netDeflectionRate = monthly > 0 ? netDeflected / monthly * 100 : 0;
+  const grossDeflected = M * G, netDeflected = M * G * keep, returned = M * G * ret;
+  const netDeflectionRate = M > 0 ? netDeflected / M * 100 : 0;
+  const opex = n(v.botPlatformCost) + n(v.qaCost) + n(v.tuningHours) * n(v.tuningRate) + n(v.knowledgeMaintHours) * n(v.knowledgeRate);
+  const escalationPremium = returned * marg * esc;
+  const vendorClaim = grossDeflected * cpc;
 
-  const opex = n(d.botPlatformCost) + n(d.qaCost) + n(d.tuningHours) * n(d.tuningRate) + n(d.knowledgeMaintHours) * n(d.knowledgeRate);
-  const escalationPremium = returned * marg * (n(d.escalationPenalty) / 100);
+  // Net savings per unit gross fraction (excl. fixed opex): K·G − opex reconciles exactly.
+  const K = marg * M * (keep * sf - ret * esc);
+  const realSaving = netDeflected * marg * sf;
+  const netSavings = K * G - opex;
+  const realizedDollarsPct = vendorClaim > 0 ? netSavings / vendorClaim * 100 : 0;     // financial lens
+  const realizedDeflectionPct = Gp > 0 ? netDeflectionRate / Gp * 100 : 0;              // operational lens
 
-  const vendorClaim = grossDeflected * cpc;               // the inflated pitch (loaded cost)
-  const realSaving = netDeflected * marg * sf;            // truly deflected, marginal, stance-adjusted
-  const netSavings = realSaving - escalationPremium - opex;
-  const realizedPct = vendorClaim > 0 ? netSavings / vendorClaim * 100 : 0;
+  // Break-even thresholds (closed form): what would have to be true.
+  const beGrossPct = K > 0 ? (opex / K) * 100 : Infinity;          // min claimed deflection to break even
+  const platformHeadroom = netSavings;                            // opex can rise this much before net=0
+  let leakTolPct = null;                                           // max leakage before net=0
+  if (marg * M * G > 0 && (sf + esc) > 0) { const kStar = (esc + opex / (marg * M * G)) / (sf + esc); const Lstar = 1 - kStar / (1 - F); leakTolPct = Math.max(0, Math.min(100, Lstar * 100)); }
 
-  // Honest bridge from vendor pitch to reality. Reconciles exactly to netSavings.
+  // 12-month ramp: deflection climbs to target over rampMonths (bot tuning curve).
+  const monthly = [];
+  let year1 = 0;
+  for (let m = 1; m <= 12; m++) { const gm = G * (rampOn ? Math.min(1, m / Math.max(1, rampMonths)) : 1); const nm = K * gm - opex; monthly.push(nm); year1 += nm; }
+  const steadyAnnual = 12 * netSavings;
+
   const waterfall = [
     { label: "Vendor claim (gross × loaded cost)", value: vendorClaim, type: "positive" },
     { label: "Loaded → marginal (fixed cost doesn't fall)", value: -grossDeflected * (cpc - marg), type: "negative" },
-    { label: "Bot leakage (abandon bot, call in)", value: -leaked * marg, type: "negative" },
-    { label: "Containment failure (false resolution)", value: -failed * marg, type: "negative" },
+    { label: "Bot leakage (abandon bot, call in)", value: -M * G * L * marg, type: "negative" },
+    { label: "Containment failure (false resolution)", value: -M * G * (1 - L) * F * marg, type: "negative" },
     { label: `Capacity-to-cash haircut (${STANCE[stanceKey].label})`, value: -netDeflected * marg * (1 - sf), type: "negative" },
     { label: "Escalation premium (post-bot calls cost more)", value: -escalationPremium, type: "negative" },
     { label: "Operating cost (platform, QA, tuning, KM)", value: -opex, type: "negative" },
   ];
 
-  return { monthly, cpc, marg, sf, grossDeflected, leaked, failed, netDeflected, returned, netDeflectionRate, opex, escalationPremium, vendorClaim, realSaving, netSavings, realizedPct, waterfall };
+  return { M, cpc, marg, sf, Gp, grossDeflected, netDeflected, returned, netDeflectionRate, opex, escalationPremium, vendorClaim, realSaving, netSavings, realizedDollarsPct, realizedDeflectionPct, beGrossPct, platformHeadroom, leakTolPct, monthly, year1, steadyAnnual, waterfall };
 }
 
-function buildAnalystRead(d, r, stanceKey) {
+// Bot-performance sensitivity: hold env + claimed deflection + stance, vary leakage
+// and containment failure across three bands. Anchored to the user's own inputs.
+function buildSensitivity(env, v, stanceKey, rampMonths, rampOn) {
+  const bands = [
+    { label: "Best case", mult: 0.5, note: "Bot performs above plan" },
+    { label: "Likely (your inputs)", mult: 1.0, note: "As entered" },
+    { label: "First 12 months", mult: 1.6, note: "Early-life reality" },
+  ];
+  return bands.map(b => {
+    const vv = { ...v, botLeakage: Math.min(100, n(v.botLeakage) * b.mult), containmentFailure: Math.min(100, n(v.containmentFailure) * b.mult) };
+    const r = compute(env, vv, stanceKey, rampMonths, rampOn);
+    return { ...b, netSavings: r.netSavings, netDeflectionRate: r.netDeflectionRate };
+  });
+}
+
+function buildAnalystRead(env, v, stanceKey, r) {
   const out = [];
-  out.push(`The vendor pitch of ${fmtK(r.vendorClaim)}/mo assumes ${n(d.grossDeflection)}% deflection valued at fully-loaded ${fmt(r.cpc)}/contact. After leakage, containment failure, marginal-cost reality, and operating cost, you keep ${fmtK(r.netSavings)}/mo — ${r.realizedPct.toFixed(0)}% of the slide.`);
+  out.push(`Two lenses on the same pitch: operationally, the bot delivers ${r.realizedDeflectionPct.toFixed(0)}% of the deflection promised (${r.netDeflectionRate.toFixed(0)}% true vs ${r.Gp}% claimed); financially, you keep ${r.realizedDollarsPct.toFixed(0)}% of the dollar value. The gap between those two is not the vendor failing twice — it's your conservative choice to value savings at marginal cost, which a CFO should expect you to defend, not hide.`);
 
   if (r.cpc > 0 && r.marg / r.cpc < 0.85)
-    out.push(`Savings are valued at marginal cost (${fmt(r.marg)}/contact), not loaded (${fmt(r.cpc)}). Deflecting a contact frees agent handle time, not the fixed platform and facilities cost baked into the loaded figure. Banking it as cash means reducing or re-deploying FTE — otherwise you've freed capacity, not cut spend.`);
+    out.push(`Savings are valued at marginal cost (${fmt(r.marg)}/contact), not loaded (${fmt(r.cpc)}). Deflecting a contact frees agent handle time, not the fixed platform and facilities cost in the loaded figure. Banking it as cash means reducing or re-deploying FTE — otherwise you've freed capacity, not cut spend.`);
 
-  out.push(`Your true deflection rate is ${r.netDeflectionRate.toFixed(1)}%, not the ${n(d.grossDeflection)}% claimed — ${Math.round(r.returned).toLocaleString()} contacts/mo leak back or come back falsely resolved. That gap is the number to take into vendor negotiations.`);
+  if (isFinite(r.beGrossPct)) {
+    const headroom = r.Gp - r.beGrossPct;
+    out.push(headroom > 20
+      ? `This program breaks even at just ${r.beGrossPct.toFixed(0)}% gross deflection — you're claiming ${r.Gp}%, so it has wide headroom. The risk here isn't whether it pays back; it's whether you actually capture the freed capacity as cash. Negotiate on price and tuning support, not on whether to proceed.`
+      : `Break-even sits at ${r.beGrossPct.toFixed(0)}% gross deflection against your ${r.Gp}% claim — a thin margin. If real-world deflection lands below ${r.beGrossPct.toFixed(0)}%, this is a net cost. Get the vendor to commit to a deflection floor in the contract.`);
+  } else {
+    out.push(`At these assumptions the program never breaks even — operating and escalation cost exceed the realistic savings at any deflection rate. The platform cost is too high for this volume, or leakage is too severe.`);
+  }
 
-  if (r.netSavings < 0)
-    out.push(`At these assumptions the program is a net cost of ${fmtK(Math.abs(r.netSavings))}/mo. The operating and escalation costs exceed the realistic savings. Either deflection has to rise, leakage has to fall, or the platform cost is too high for this volume.`);
-  else if (r.opex > r.realSaving * 0.5)
-    out.push(`Operating cost (${fmtK(r.opex)}/mo) eats ${Math.round(r.opex / r.realSaving * 100)}% of gross realized savings — the program works but is overhead-heavy. At higher volume the fixed platform cost amortizes better; at this volume it's a thin margin.`);
+  out.push(`Your true deflection rate is ${r.netDeflectionRate.toFixed(1)}%, not the ${r.Gp}% claimed — ${Math.round(r.returned).toLocaleString()} contacts/mo leak back or come back falsely resolved. That gap, plus the ${fmt(r.marg)} marginal basis, are the two numbers to take into the vendor negotiation.`);
 
-  out.push(`The ${STANCE[stanceKey].label} stance haircuts realized capacity to ${Math.round(r.sf * 100)}%. Operating and escalation costs are never haircut — they're real cash out — so the conservative case is appropriately the harshest.`);
+  out.push(`Operating and escalation costs are never haircut by the stance — they're real cash out — so the Conservative case is appropriately the harshest. Run all three before you present.`);
   return out;
 }
 
@@ -123,66 +148,105 @@ function Nav() {
   return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
 }
 
+// Vendor-specific input block (rendered once, or twice in A/B compare mode).
+function VendorInputs({ v, onChange, compact }) {
+  const f = (k) => (val) => onChange(k, val);
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: compact ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 10 }} className="cg">
+      <NumField compact={compact} label="Gross deflection" value={v.grossDeflection} onChange={f("grossDeflection")} suffix="%" step={1} min={0} max={100} hint="Vendor promise" />
+      <NumField compact={compact} label="Bot leakage" value={v.botLeakage} onChange={f("botLeakage")} suffix="%" step={1} min={0} max={100} hint="Abandon bot, call in" />
+      <NumField compact={compact} label="Containment failure" value={v.containmentFailure} onChange={f("containmentFailure")} suffix="%" step={1} min={0} max={100} hint="Bot says resolved, isn't" />
+      <NumField compact={compact} label="Escalation premium" value={v.escalationPenalty} onChange={f("escalationPenalty")} suffix="%" step={1} min={0} max={200} hint="Post-bot calls cost more" />
+      <NumField compact={compact} label="Bot platform cost" value={v.botPlatformCost} onChange={f("botPlatformCost")} prefix="$" suffix="/mo" step={500} min={0} />
+      <NumField compact={compact} label="QA + monitoring" value={v.qaCost} onChange={f("qaCost")} prefix="$" suffix="/mo" step={250} min={0} />
+      <NumField compact={compact} label="Tuning hrs/mo" value={v.tuningHours} onChange={f("tuningHours")} suffix="hrs" step={5} min={0} />
+      <NumField compact={compact} label="Tuning rate" value={v.tuningRate} onChange={f("tuningRate")} prefix="$" suffix="/hr" step={5} min={0} />
+      <NumField compact={compact} label="Knowledge maint" value={v.knowledgeMaintHours} onChange={f("knowledgeMaintHours")} suffix="hrs/mo" step={5} min={0} />
+      <NumField compact={compact} label="Knowledge rate" value={v.knowledgeRate} onChange={f("knowledgeRate")} prefix="$" suffix="/hr" step={5} min={0} />
+    </div>
+  );
+}
 export default function AIDeflectionRealityCheck() {
-  const [d, setD] = useState(BASE);
+  const [env, setEnv] = useState(ENV0);
+  const [vA, setVA] = useState(VENDOR0);
+  const [vB, setVB] = useState(VENDORB0);
   const [stance, setStance] = useState("expected");
+  const [rampOn, setRampOn] = useState(true);
+  const [rampMonths, setRampMonths] = useState(6);
+  const [compareMode, setCompareMode] = useState(false);
   const [pulled, setPulled] = useState({});
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
+  const setE = (k, v) => setEnv(p => ({ ...p, [k]: v }));
+  const setVendorA = (k, v) => setVA(p => ({ ...p, [k]: v }));
+  const setVendorB = (k, v) => setVB(p => ({ ...p, [k]: v }));
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  // Auto-fill volume + both cost bases from TCO / Business Case via the shared contract.
   useEffect(() => {
     const next = {}, got = {};
-    const mc = getPrimitive("monthlyContacts"); const ac = getPrimitive("annualContacts");
+    const mc = getPrimitive("monthlyContacts"), ac = getPrimitive("annualContacts");
     if (mc != null && !isNaN(mc)) { next.monthlyContacts = Math.round(mc); got.monthlyContacts = true; }
     else if (ac != null && !isNaN(ac)) { next.monthlyContacts = Math.round(ac / 12); got.monthlyContacts = true; }
     const cpc = getPrimitive("costPerContact");
     if (cpc != null && !isNaN(cpc)) { next.costPerContact = cpc; got.costPerContact = true; }
     const marg = getPrimitive("marginalPerContact");
     if (marg != null && !isNaN(marg)) { next.marginalPerContact = marg; got.marginalPerContact = true; }
-    if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); }
+    if (Object.keys(next).length) { setEnv(p => ({ ...p, ...next })); setPulled(got); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const r = compute(d, stance);
-  const analyst = buildAnalystRead(d, r, stance);
+  const rA = compute(env, vA, stance, rampMonths, rampOn);
+  const rB = compute(env, vB, stance, rampMonths, rampOn);
+  const sens = buildSensitivity(env, vA, stance, rampMonths, rampOn);
+  const analyst = buildAnalystRead(env, vA, stance, rA);
+  const winner = compareMode ? (rA.netSavings >= rB.netSavings ? "A" : "B") : null;
 
-  // Publish the REALISTIC deflection + savings so TCO / Business Case stop modeling vendor fantasy.
   useEffect(() => {
     publishToolResult("ai-deflection", {
-      grossDeflectionClaimed: n(d.grossDeflection), realisticDeflectionRate: +r.netDeflectionRate.toFixed(1),
-      deflectionNetSavingsMonthly: Math.round(r.netSavings), deflectionNetSavingsAnnual: Math.round(r.netSavings * 12),
-      realizedVsVendorPct: Math.round(r.realizedPct), stance, analystRead: analyst[0],
+      grossDeflectionClaimed: n(vA.grossDeflection), realisticDeflectionRate: +rA.netDeflectionRate.toFixed(1),
+      deflectionNetSavingsMonthly: Math.round(rA.netSavings), deflectionNetSavingsAnnual: Math.round(rA.steadyAnnual),
+      deflectionYear1Net: Math.round(rA.year1), realizedDollarsPct: Math.round(rA.realizedDollarsPct),
+      realizedDeflectionPct: Math.round(rA.realizedDeflectionPct), breakEvenDeflectionPct: isFinite(rA.beGrossPct) ? +rA.beGrossPct.toFixed(1) : null,
+      stance, analystRead: analyst[0],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [d, stance]);
+  }, [env, vA, stance, rampOn, rampMonths]);
 
   const sendResults = () => {
     setSending(true);
     const body = new FormData();
     body.append("_subject", "AI Deflection Reality Check — Center of CX");
     body.append("source", "AI Deflection Reality Check");
-    body.append("vendor_claim", fmtK(r.vendorClaim));
-    body.append("net_savings_monthly", fmtK(r.netSavings));
-    body.append("realistic_deflection", r.netDeflectionRate.toFixed(1) + "%");
-    body.append("realized_pct", Math.round(r.realizedPct) + "%");
+    body.append("vendor_claim", fmtK(rA.vendorClaim));
+    body.append("net_savings_monthly", fmtK(rA.netSavings));
+    body.append("realistic_deflection", rA.netDeflectionRate.toFixed(1) + "%");
+    body.append("dollars_realized", Math.round(rA.realizedDollarsPct) + "%");
+    body.append("deflection_realized", Math.round(rA.realizedDeflectionPct) + "%");
     body.append("stance", stance);
     fetch("https://formspree.io/f/maqlvwne", { method: "POST", body, headers: { Accept: "application/json" } })
       .then(res => { if (res.ok) setSent(true); setSending(false); }).catch(() => setSending(false));
   };
 
+  const summaryCard = (label, value, sub, color, dark) => (
+    <div style={{ background: dark ? `linear-gradient(135deg, ${NAVY}, ${DEEP})` : WARM, border: dark ? "none" : `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
+      <div style={{ fontSize: 10.5, fontWeight: 700, color: dark ? color : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
+      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: dark ? "#fff" : color }}>{value}</div>
+      <div style={{ fontSize: 10.5, color: dark ? "rgba(255,255,255,0.4)" : MUTED }}>{sub}</div>
+    </div>
+  );
+
+  const realColor = (p) => p >= 60 ? GREEN : p >= 35 ? AMBER : RED;
+
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:760px){.cg{grid-template-columns:1fr 1fr!important}.wf{grid-template-columns:1fr 70px!important}.wf .wfb{display:none}}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:760px){.cg{grid-template-columns:1fr 1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}.ab{grid-template-columns:1fr!important}.wf{grid-template-columns:1fr 70px!important}.wf .wfb{display:none}}`}</style>
       <Nav />
 
-      <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 28px 36px" }}>
+      <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "52px 28px 32px" }}>
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>AI Deflection Reality Check</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 640 }}>Your vendor says 40% deflection. This does the math the slide skips — leakage, containment failure, escalation premiums, operating cost, and the marginal-cost reality that deflection frees variable labor, not your fully-loaded cost per contact.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 660 }}>Your vendor says 40% deflection. This does the math the slide skips — leakage, containment failure, escalation premiums, operating cost, and the marginal-cost reality that deflection frees variable labor, not your fully-loaded cost per contact. Compare two vendors, find the break-even, and model the ramp.</p>
           {Object.keys(pulled).length > 0 && (
             <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}>
               <span style={{ fontSize: 12, color: "#fff", fontWeight: 600 }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from your TCO run.</span>
@@ -192,77 +256,146 @@ export default function AIDeflectionRealityCheck() {
         </div>
       </section>
 
-      <section style={{ background: WARM, padding: "32px 28px", borderBottom: `1px solid ${BORDER}` }}>
+      <section style={{ background: WARM, padding: "28px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
-            <NumField label="Monthly contacts" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
-            <NumField label="Loaded cost / contact" value={d.costPerContact} onChange={v => set("costPerContact", v)} prefix="$" step={0.25} min={0} pulled={pulled.costPerContact} hint="Vendor's basis" />
-            <NumField label="Marginal cost / contact" value={d.marginalPerContact} onChange={v => set("marginalPerContact", v)} prefix="$" step={0.25} min={0} pulled={pulled.marginalPerContact} hint="What deflection frees" />
-            <NumField label="Gross deflection" value={d.grossDeflection} onChange={v => set("grossDeflection", v)} suffix="%" step={1} min={0} max={100} hint="Vendor promise" />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase" }}>Your environment <span style={{ color: MUTED, fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>· shared across vendors</span></div>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <input type="checkbox" checked={compareMode} onChange={e => setCompareMode(e.target.checked)} style={{ width: 15, height: 15, accentColor: ELECTRIC, cursor: "pointer" }} />
+              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Compare two vendors (A/B)</span>
+            </label>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginTop: 12 }} className="cg">
-            <NumField label="Bot leakage" value={d.botLeakage} onChange={v => set("botLeakage", v)} suffix="%" step={1} min={0} max={100} hint="Abandon bot, call in" />
-            <NumField label="Containment failure" value={d.containmentFailure} onChange={v => set("containmentFailure", v)} suffix="%" step={1} min={0} max={100} hint="Bot says resolved, isn't" />
-            <NumField label="Escalation premium" value={d.escalationPenalty} onChange={v => set("escalationPenalty", v)} suffix="%" step={1} min={0} max={200} hint="Post-bot calls cost more" />
-            <NumField label="Bot platform cost" value={d.botPlatformCost} onChange={v => set("botPlatformCost", v)} prefix="$" suffix="/mo" step={500} min={0} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="cg">
+            <NumField label="Monthly contacts" value={env.monthlyContacts} onChange={v => setE("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
+            <NumField label="Loaded cost / contact" value={env.costPerContact} onChange={v => setE("costPerContact", v)} prefix="$" step={0.25} min={0} pulled={pulled.costPerContact} hint="Vendor's basis" />
+            <NumField label="Marginal cost / contact" value={env.marginalPerContact} onChange={v => setE("marginalPerContact", v)} prefix="$" step={0.25} min={0} pulled={pulled.marginalPerContact} hint="What deflection frees" />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginTop: 12 }} className="cg">
-            <NumField label="QA + monitoring" value={d.qaCost} onChange={v => set("qaCost", v)} prefix="$" suffix="/mo" step={250} min={0} />
-            <NumField label="Tuning hours/mo" value={d.tuningHours} onChange={v => set("tuningHours", v)} suffix="hrs" step={5} min={0} />
-            <NumField label="Tuning rate" value={d.tuningRate} onChange={v => set("tuningRate", v)} prefix="$" suffix="/hr" step={5} min={0} />
-            <NumField label="Knowledge maint" value={d.knowledgeMaintHours} onChange={v => set("knowledgeMaintHours", v)} suffix="hrs/mo" step={5} min={0} />
-          </div>
+
+          {!compareMode ? (
+            <div style={{ marginTop: 16 }}><VendorInputs v={vA} onChange={setVendorA} /></div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginTop: 16 }} className="ab">
+              <div style={{ background: "#fff", border: `1px solid ${ELECTRIC}`, borderRadius: 10, padding: "16px 16px" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, marginBottom: 12 }}>● Vendor A</div>
+                <VendorInputs v={vA} onChange={setVendorA} compact />
+              </div>
+              <div style={{ background: "#fff", border: `1px solid ${VIOLET}`, borderRadius: 10, padding: "16px 16px" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: VIOLET, marginBottom: 12 }}>● Vendor B</div>
+                <VendorInputs v={vB} onChange={setVendorB} compact />
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "36px 28px" }}>
+      <section style={{ background: "#fff", padding: "32px 28px" }}>
         <div style={WRAP}>
-          {/* Stance */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 24, background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
-            <div><div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Savings stance</div><div style={{ fontSize: 12, color: MUTED }}>{STANCE[stance].note}</div></div>
+          {/* Stance + ramp */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 24, background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
+            <div style={{ flex: "1 1 260px" }}><div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Savings stance</div><div style={{ fontSize: 12, color: MUTED }}>{STANCE[stance].note}</div></div>
             <div style={{ display: "flex", gap: 6, background: "#fff", padding: 4, borderRadius: 8, border: `1px solid ${BORDER}` }}>
               {Object.entries(STANCE).map(([k, v]) => <button key={k} onClick={() => setStance(k)} style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer", background: stance === k ? ELECTRIC : "transparent", color: stance === k ? "#fff" : SLATE }}>{v.label}</button>)}
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="cg">
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Vendor Claims</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: ELECTRIC }}>{fmtK(r.vendorClaim)}<span style={{ fontSize: 14, color: MUTED }}>/mo</span></div>
-              <div style={{ fontSize: 11, color: MUTED }}>{n(d.grossDeflection)}% at loaded {fmt(r.cpc)}/contact</div>
+          {/* A/B comparison */}
+          {compareMode && (
+            <div style={{ marginBottom: 28 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Vendor A vs Vendor B <span style={{ fontSize: 12, fontWeight: 400, color: MUTED }}>· same environment, {STANCE[stance].label.toLowerCase()} stance</span></h3>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="ab">
+                {[{ k: "A", r: rA, c: ELECTRIC }, { k: "B", r: rB, c: VIOLET }].map(({ k, r, c }) => (
+                  <div key={k} style={{ background: winner === k ? `${c}0D` : "#fff", border: `2px solid ${winner === k ? c : BORDER}`, borderRadius: 12, padding: "20px 22px", position: "relative" }}>
+                    {winner === k && <span style={{ position: "absolute", top: -10, right: 16, background: c, color: "#fff", fontSize: 10, fontWeight: 700, padding: "2px 10px", borderRadius: 10, letterSpacing: 0.5 }}>HIGHER NET</span>}
+                    <div style={{ fontSize: 12, fontWeight: 700, color: c, marginBottom: 10 }}>● Vendor {k} <span style={{ color: MUTED, fontWeight: 400 }}>· claims {r.Gp}%</span></div>
+                    <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: r.netSavings >= 0 ? GREEN : RED }}>{fmtK(r.netSavings)}<span style={{ fontSize: 13, color: MUTED }}>/mo net</span></div>
+                    <div style={{ display: "flex", gap: 18, marginTop: 12 }}>
+                      <div><div style={{ fontSize: 10, color: MUTED }}>True deflection</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{r.netDeflectionRate.toFixed(1)}%</div></div>
+                      <div><div style={{ fontSize: 10, color: MUTED }}>Dollars realized</div><div style={{ fontSize: 15, fontWeight: 600, color: realColor(r.realizedDollarsPct) }}>{r.realizedDollarsPct.toFixed(0)}%</div></div>
+                      <div><div style={{ fontSize: 10, color: MUTED }}>Break-even</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{isFinite(r.beGrossPct) ? r.beGrossPct.toFixed(0) + "%" : "—"}</div></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 12.5, color: SLATE, marginTop: 12, lineHeight: 1.55, background: WARM, borderRadius: 8, padding: "10px 14px" }}>
+                {Math.abs(rA.netSavings - rB.netSavings) < Math.max(rA.netSavings, rB.netSavings) * 0.1
+                  ? `Near tie on net savings — but Vendor ${rA.realizedDollarsPct >= rB.realizedDollarsPct ? "A" : "B"} realizes more of its pitch (${Math.max(rA.realizedDollarsPct, rB.realizedDollarsPct).toFixed(0)}% vs ${Math.min(rA.realizedDollarsPct, rB.realizedDollarsPct).toFixed(0)}%). The higher-claim vendor isn't delivering more value; decide on price, tuning burden, and contract terms.`
+                  : `Vendor ${winner} nets ${fmtK(Math.abs(rA.netSavings - rB.netSavings))}/mo more. Note whether that's from a higher deflection claim (riskier) or lower operating cost (more durable) before you let the headline decide.`}
+              </p>
             </div>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: r.netSavings > 0 ? GREEN : RED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Net Savings (Reality)</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: "#fff" }}>{fmtK(r.netSavings)}<span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/mo</span></div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{r.netSavings < 0 ? "Net cost, not savings" : `${fmtK(r.netSavings * 12)}/year`}</div>
-            </div>
-            <div style={{ background: WARM, border: `1px solid ${r.realizedPct >= 60 ? GREEN : r.realizedPct >= 40 ? AMBER : RED}`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Reality vs Claim</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: r.realizedPct >= 60 ? GREEN : r.realizedPct >= 40 ? AMBER : RED }}>{r.realizedPct.toFixed(0)}%</div>
-              <div style={{ fontSize: 11, color: MUTED }}>of the pitch you actually keep</div>
-            </div>
+          )}
+
+          {/* Primary (Vendor A) headline — dual realization */}
+          {compareMode && <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Vendor A — full reality breakdown</h3>}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 28 }} className="s4">
+            {summaryCard("Vendor Claims", fmtK(rA.vendorClaim) + "/mo", `${rA.Gp}% at loaded ${fmt(rA.cpc)}`, ELECTRIC)}
+            {summaryCard("Net Savings (Reality)", fmtK(rA.netSavings) + "/mo", rA.netSavings < 0 ? "net cost" : `${fmtK(rA.netSavings * 12)}/yr steady`, rA.netSavings > 0 ? GREEN : RED, true)}
+            {summaryCard("Deflection Realized", rA.realizedDeflectionPct.toFixed(0) + "%", `${rA.netDeflectionRate.toFixed(0)}% true of ${rA.Gp}% claimed`, realColor(rA.realizedDeflectionPct))}
+            {summaryCard("Dollars Realized", rA.realizedDollarsPct.toFixed(0) + "%", "of the pitch's $ value", realColor(rA.realizedDollarsPct))}
           </div>
 
+          {/* Waterfall */}
           <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Savings Waterfall: Vendor Claim → Reality</h3>
-          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Net deflection rate: <strong style={{ color: NAVY }}>{r.netDeflectionRate.toFixed(1)}%</strong> vs the {n(d.grossDeflection)}% claimed.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>True deflection: <strong style={{ color: NAVY }}>{rA.netDeflectionRate.toFixed(1)}%</strong> vs {rA.Gp}% claimed.</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 28 }}>
-            {r.waterfall.map((w, i) => {
-              const maxAbs = Math.max(...r.waterfall.map(x => Math.abs(x.value)), 1);
-              const width = Math.abs(w.value) / maxAbs * 100;
+            {rA.waterfall.map((w, i) => {
+              const maxAbs = Math.max(...rA.waterfall.map(x => Math.abs(x.value)), 1);
               return (
                 <div key={i} style={{ display: "grid", gridTemplateColumns: "260px 1fr 90px", gap: 12, alignItems: "center", padding: "6px 0" }} className="wf">
                   <span style={{ fontSize: 12, color: SLATE }}>{w.label}</span>
-                  <div className="wfb" style={{ height: 18, background: WARM, borderRadius: 4, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${width}%`, background: w.type === "positive" ? GREEN : RED, borderRadius: 4, opacity: 0.75 }} />
-                  </div>
+                  <div className="wfb" style={{ height: 18, background: WARM, borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.abs(w.value) / maxAbs * 100}%`, background: w.type === "positive" ? GREEN : RED, borderRadius: 4, opacity: 0.75 }} /></div>
                   <span style={{ fontSize: 13, fontWeight: 600, color: w.type === "positive" ? GREEN : RED, textAlign: "right" }}>{w.value >= 0 ? "+" : ""}{fmtK(w.value)}</span>
                 </div>
               );
             })}
             <div style={{ display: "grid", gridTemplateColumns: "260px 1fr 90px", gap: 12, alignItems: "center", padding: "10px 0", borderTop: `2px solid ${NAVY}`, marginTop: 4 }} className="wf">
-              <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Net monthly savings</span>
-              <div className="wfb" />
-              <span style={{ fontSize: 15, fontWeight: 700, color: r.netSavings >= 0 ? GREEN : RED, textAlign: "right" }}>{fmtK(r.netSavings)}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Net monthly savings</span><div className="wfb" />
+              <span style={{ fontSize: 15, fontWeight: 700, color: rA.netSavings >= 0 ? GREEN : RED, textAlign: "right" }}>{fmtK(rA.netSavings)}</span>
+            </div>
+          </div>
+
+          {/* Break-even */}
+          <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "20px 22px", marginBottom: 24 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Break-Even: What Would Have to Be True</h3>
+            <p style={{ fontSize: 12, color: MUTED, marginBottom: 14 }}>The thresholds to take into the negotiation — where this stops paying off.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="s3">
+              {[
+                { l: "Break-even deflection", v: isFinite(rA.beGrossPct) ? rA.beGrossPct.toFixed(1) + "%" : "never", s: `you claim ${rA.Gp}%`, c: isFinite(rA.beGrossPct) && rA.beGrossPct < rA.Gp * 0.6 ? GREEN : AMBER },
+                { l: "Max leakage tolerated", v: rA.leakTolPct != null ? rA.leakTolPct.toFixed(0) + "%" : "—", s: `you're at ${n(vA.botLeakage)}%`, c: rA.leakTolPct != null && rA.leakTolPct > n(vA.botLeakage) * 1.5 ? GREEN : AMBER },
+                { l: "Operating-cost headroom", v: fmtK(rA.platformHeadroom) + "/mo", s: "before net hits $0", c: rA.platformHeadroom > 0 ? GREEN : RED },
+              ].map((t, i) => (
+                <div key={i} style={{ background: WARM, borderRadius: 8, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>{t.l}</div>
+                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: t.c }}>{t.v}</div>
+                  <div style={{ fontSize: 11, color: MUTED }}>{t.s}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Ramp */}
+          <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "20px 22px", marginBottom: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
+              <div>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: 0 }}>First-Year Ramp</h3>
+                <p style={{ fontSize: 12, color: MUTED, margin: "2px 0 0" }}>Deflection climbs to target as the bot is tuned — year 1 is not steady-state.</p>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                  <input type="checkbox" checked={rampOn} onChange={e => setRampOn(e.target.checked)} style={{ width: 14, height: 14, accentColor: ELECTRIC }} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Model ramp</span>
+                </label>
+                {rampOn && <div style={{ width: 130 }}><NumField compact label="Ramp to full (mo)" value={rampMonths} onChange={setRampMonths} min={1} max={12} step={1} /></div>}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 24, alignItems: "flex-end", flexWrap: "wrap" }}>
+              <div><div style={{ fontSize: 11, color: MUTED }}>Year 1 {rampOn ? `(ramped ${rampMonths}mo)` : "(full)"}</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: rA.year1 >= 0 ? GREEN : RED }}>{fmtK(rA.year1)}</div></div>
+              <div><div style={{ fontSize: 11, color: MUTED }}>Steady-state annual</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: NAVY }}>{fmtK(rA.steadyAnnual)}</div></div>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 48 }}>
+                  {rA.monthly.map((m, i) => { const mx = Math.max(...rA.monthly.map(Math.abs), 1); return <div key={i} title={`Mo ${i + 1}: ${fmtK(m)}`} style={{ flex: 1, height: `${Math.max(4, Math.abs(m) / mx * 100)}%`, background: m >= 0 ? GREEN : RED, opacity: 0.35 + 0.65 * (i / 11), borderRadius: 2 }} />; })}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: MUTED, marginTop: 3 }}><span>Mo 1</span><span>net savings / mo</span><span>Mo 12</span></div>
+              </div>
             </div>
           </div>
 
@@ -272,24 +405,18 @@ export default function AIDeflectionRealityCheck() {
             {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
           </div>
 
+          {/* Sensitivity (anchored to inputs) */}
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Scenario Comparison</h3>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>True (net) deflection rate under three common projection profiles:</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-              {[
-                { label: "Vendor Optimistic", gross: 45, leakage: 5, fail: 8, note: "Typical pitch" },
-                { label: "Industry Average", gross: 30, leakage: 12, fail: 15, note: "Research consensus" },
-                { label: "Conservative", gross: 20, leakage: 18, fail: 20, note: "First 12 months" },
-              ].map((s, i) => {
-                const sNet = s.gross * (1 - s.leakage / 100) * (1 - s.fail / 100);
-                return (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>{s.label}</div>
-                    <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: "#fff" }}>{sNet.toFixed(0)}% net</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{s.gross}% claimed · {s.note}</div>
-                  </div>
-                );
-              })}
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Bot-Performance Sensitivity</h3>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>Your volume, cost, claimed deflection, and stance held fixed — only leakage and containment failure vary. This is the risk if the bot doesn't perform as promised.</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }} className="s3">
+              {sens.map((s, i) => (
+                <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "12px 14px", border: `1px solid ${i === 1 ? "rgba(0,170,255,0.4)" : "rgba(255,255,255,0.06)"}` }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.55)", marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: s.netSavings >= 0 ? "#fff" : RED }}>{fmtK(s.netSavings)}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>/mo</span></div>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{s.netDeflectionRate.toFixed(1)}% true defl · {s.note}</div>
+                </div>
+              ))}
             </div>
             <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
               <a href="/vendors/iva" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)" }}>→ 50 scored IVA vendors</a>
@@ -298,16 +425,27 @@ export default function AIDeflectionRealityCheck() {
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <ReportExport toolName="AI Deflection Reality Check" subtitle={`Net savings after leakage + escalation · ${STANCE[stance].label} stance`} userName="" userEmail="" sections={[
+            <ReportExport toolName="AI Deflection Reality Check" subtitle={`Net savings after the fine print · ${STANCE[stance].label} stance`} userName="" userEmail="" sections={[
               { title: "Deflection Reality", type: "metrics", items: [
-                { label: "Vendor Claim", value: fmtK(r.vendorClaim) + "/mo", color: ELECTRIC, sub: `${n(d.grossDeflection)}% at ${fmt(r.cpc)}` },
-                { label: "Net Savings", value: fmtK(r.netSavings) + "/mo", color: r.netSavings > 0 ? GREEN : RED, sub: r.netSavings > 0 ? fmtK(r.netSavings * 12) + "/yr" : "net cost" },
-                { label: "Realized vs Claim", value: r.realizedPct.toFixed(0) + "%", color: r.realizedPct >= 60 ? GREEN : r.realizedPct >= 40 ? AMBER : RED },
-                { label: "True Deflection Rate", value: r.netDeflectionRate.toFixed(1) + "%", color: AMBER, sub: `vs ${n(d.grossDeflection)}% claimed` },
+                { label: "Vendor Claim", value: fmtK(rA.vendorClaim) + "/mo", color: ELECTRIC, sub: `${rA.Gp}% at ${fmt(rA.cpc)}` },
+                { label: "Net Savings", value: fmtK(rA.netSavings) + "/mo", color: rA.netSavings > 0 ? GREEN : RED, sub: rA.netSavings > 0 ? fmtK(rA.steadyAnnual) + "/yr" : "net cost" },
+                { label: "Deflection Realized", value: rA.realizedDeflectionPct.toFixed(0) + "%", color: realColor(rA.realizedDeflectionPct), sub: "operational" },
+                { label: "Dollars Realized", value: rA.realizedDollarsPct.toFixed(0) + "%", color: realColor(rA.realizedDollarsPct), sub: "financial" },
               ]},
-              { title: "Vendor Claim → Reality Bridge", type: "table", rows: r.waterfall.map(w => [w.label, (w.value >= 0 ? "+" : "") + fmt(w.value)]).concat([["Net monthly savings", fmt(r.netSavings)]]) },
+              { title: "Vendor Claim → Reality Bridge", type: "table", rows: rA.waterfall.map(w => [w.label, (w.value >= 0 ? "+" : "") + fmt(w.value)]).concat([["Net monthly savings", fmt(rA.netSavings)]]) },
+              { title: "Break-Even Thresholds", type: "table", rows: [
+                ["Break-even deflection", isFinite(rA.beGrossPct) ? rA.beGrossPct.toFixed(1) + "% (claim " + rA.Gp + "%)" : "never breaks even"],
+                ["Max leakage tolerated", rA.leakTolPct != null ? rA.leakTolPct.toFixed(0) + "% (at " + n(vA.botLeakage) + "%)" : "—"],
+                ["Operating-cost headroom", fmtK(rA.platformHeadroom) + "/mo before net $0"],
+                ["Year 1 (ramped " + rampMonths + "mo)", fmtK(rA.year1) + " vs steady " + fmtK(rA.steadyAnnual)],
+              ]},
+              ...(compareMode ? [{ title: "Vendor A vs Vendor B", type: "table", rows: [
+                ["Vendor A net (claims " + rA.Gp + "%)", fmtK(rA.netSavings) + "/mo · " + rA.realizedDollarsPct.toFixed(0) + "% realized"],
+                ["Vendor B net (claims " + rB.Gp + "%)", fmtK(rB.netSavings) + "/mo · " + rB.realizedDollarsPct.toFixed(0) + "% realized"],
+                ["Higher net", "Vendor " + winner],
+              ]}] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Truly deflected contacts (gross minus bot leakage minus containment failure) are valued at marginal cost — the variable handle-time labor deflection frees — not the fully-loaded cost per contact the vendor uses, because fixed platform and facilities cost don't fall with volume. Realized capacity is scaled by a ${STANCE[stance].label} capacity-to-cash stance. Operating and escalation costs are real cash and are never haircut. The waterfall bridges the vendor's loaded-cost claim to the realistic net, and reconciles exactly to the net figure.` },
+              { title: "Methodology", type: "text", content: `Truly deflected contacts (gross minus bot leakage minus containment failure) are valued at marginal cost — the variable handle-time labor deflection frees — not the fully-loaded cost per contact the vendor uses, because fixed platform and facilities cost don't fall with volume. Realized capacity is scaled by the ${STANCE[stance].label} capacity-to-cash stance; operating and escalation costs are real cash and are never haircut. Deflection Realized is the operational lens (true rate ÷ claimed); Dollars Realized is the financial lens (net cash ÷ the vendor's loaded-cost claim). Break-even thresholds are solved in closed form. The waterfall reconciles exactly to net savings.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "TCO Calculator", reason: "Feed the realistic deflection rate into your total cost model", href: "/tools/tco-calculator" },
                 { tool: "Channel Shift Economics", reason: "Model the staffing impact of moving volume off voice", href: "/tools/channel-shift" },
