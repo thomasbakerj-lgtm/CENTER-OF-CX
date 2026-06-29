@@ -102,7 +102,7 @@ function compute(d, mechKey) {
   const scale = scaled ? eligible / reqShift : 1;
 
   const adverseCoef = (CURVE[d.adverseCurve] || CURVE.moderate).c;
-  const erf = n(d.escReturnFactor);
+  const erf = Math.max(1, n(d.escReturnFactor)); // a failed deflection re-contact is never cheaper than the original call
 
   let shifted = 0, Dtot = 0, Etot = 0, targetMin = 0, botFee = 0, chatHandled = 0;
   const perTarget = TARGETS.map(t => {
@@ -162,6 +162,7 @@ function buildVerdict(d, r, mechKey) {
     return { label: "Do not approve yet", color: RED, be, pt, curRes, detail: be == null ? `Net negative, and it never breaks even within range — even perfect ${pt.key.toLowerCase()} resolution can't offset the bot fees, displacement loss, and transition. Rework the plan.` : `Breaks even at ${be.toFixed(0)}% ${pt.key.toLowerCase()} resolution; you're at ${curRes}% (${(be - curRes).toFixed(0)} pts short). Fix resolution before shifting.` };
   }
   if (riskAny) return { label: "Approve only with pilot", color: AMBER, be, pt, curRes, detail: `Net positive, but you've flagged CX/risk-sensitive volume. Require a pilot to validate resolution and CSAT before full rollout — cost-positive is not the same as safe.` };
+  if (be != null && be < 1) return { label: "Approve", color: GREEN, be, pt, curRes, detail: `Net positive — but break-even resolves to ~0%, which usually means your bot cost or return-factor assumptions are too generous. Verify those before treating this as a clean approval.` };
   return { label: "Approve", color: GREEN, be, pt, curRes, detail: `Net positive at ${curRes}% ${pt.key.toLowerCase()} resolution${be != null ? ` (break-even ${be.toFixed(0)}%)` : ""}. The shift clears its bar.` };
 }
 
@@ -223,6 +224,8 @@ export default function ChannelShiftModel() {
   if (r.netRealizable < 0) flags.push({ sev: "warn", t: `Net negative (${fmtK(r.netRealizable)}/mo). Escalations, displacement loss, and bot fees outweigh the freed voice capacity — you're moving the wrong volume or the resolution rate is too low.` });
   if (riskAny && r.netRealizable >= 0) flags.push({ sev: "warn", t: `Cost-positive, but you've flagged CX/risk-sensitive volume (${RISKS.filter(x => d[x.k]).map(x => x.label).join(", ")}). Require pilot validation before approval — this tool prices capacity, not customer harm.` });
   TARGETS.forEach(t => { if (n(d[t.shift]) > 0 && n(d[t.disp]) >= 100) flags.push({ sev: "info", t: `${t.key} displacement at 100% assumes every adopted contact replaces a voice call. Digital channels usually generate some new demand — 70-85% is more defensible.` }); });
+  if (n(d.shiftToBot) > 0 && n(d.botCost) <= 0.10) flags.push({ sev: "warn", t: `Bot cost is ${money(n(d.botCost))} — near-free. Real bots carry per-resolution or platform fees; a $0 bot makes any shift look costless and drives break-even toward 0%. Set a realistic per-contact cost.` });
+  if (verdict.be != null && verdict.be < 1 && r.netRealizable > 0 && r.shifted > 0) flags.push({ sev: "warn", t: "Break-even resolves to ~0% — the shift looks profitable at any resolution. That usually means the bot cost or escalation return factor is too generous, not that the shift is risk-free. Sanity-check those before approving." });
   if (mech === "none") flags.push({ sev: "warn", t: "No capacity action selected — freed-labor value is $0. Pick a mechanism before presenting any savings number." });
 
   useEffect(() => {
@@ -327,7 +330,7 @@ export default function ChannelShiftModel() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, margin: "18px 0 0" }} className="s3">
             <NumField label="Eligible voice for shift" value={d.eligibility} onChange={v => set("eligibility", v)} suffix="%" step={5} min={0} max={100} hint="Structurally shiftable — exclude complex/regulated/emotional volume" />
-            <NumField label="Escalation return factor" value={d.escReturnFactor} onChange={v => set("escReturnFactor", v)} suffix="x" step={0.1} min={1} hint="Recovery friction vs a normal call (1.0–1.5)" />
+            <NumField label="Escalation return factor" value={d.escReturnFactor} onChange={v => set("escReturnFactor", v)} suffix="x" step={0.1} min={1} hint="Re-contact friction: 1.0 same as a direct call, 1.2 frustrated, 1.5 complex recovery" />
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>Residual complexity curve</label>
               <div style={{ display: "flex", gap: 4, background: "#fff", padding: 3, borderRadius: 7, border: `1px solid ${BORDER}` }}>
