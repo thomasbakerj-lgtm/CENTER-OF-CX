@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import InfoDot from "./src/lib/InfoDot";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -17,7 +18,7 @@ function LogoMark({ size = 30, light = true }) {
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
 }
 
-function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, factor = 1, pulled, compact }) {
+function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, factor = 1, pulled, compact, info, infoTitle, infoAlign }) {
   const display = n(value) * factor;
   const [local, setLocal] = useState(String(display));
   const holdRef = useRef(null), valRef = useRef(display);
@@ -31,7 +32,7 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
   return (
     <div>
       <label style={{ fontSize: compact ? 11 : 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-        {label}{pulled && <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: ICE, padding: "1px 5px", borderRadius: 4 }}>PULLED</span>}
+        {label}{info && <InfoDot text={info} title={infoTitle || label} align={infoAlign} />}{pulled && <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: ICE, padding: "1px 5px", borderRadius: 4 }}>PULLED</span>}
       </label>
       <div style={{ position: "relative" }}>
         {prefix && <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
@@ -67,6 +68,18 @@ const RISKS = [
   { k: "riskAuth", label: "Complex identity / auth" },
   { k: "riskEmotion", label: "High emotion / consequence" },
 ];
+
+const DEFS = {
+  loadedOH: "The multiplier that turns base wage into fully-burdened cost — benefits, payroll tax, facilities, equipment. An $18/hr agent at 1.35x costs about $24/hr loaded. Used for the cost view; savings use the lower marginal multiplier instead.",
+  marginalOH: "The multiplier for the cost that actually disappears when a contact goes away — wage plus benefits, but not fixed facilities or equipment. Savings are valued on this, because freeing one contact doesn't shrink your building.",
+  eligibility: "The share of voice that is structurally safe to move — simple, transactional, low-risk volume. Exclude complex, regulated, emotional, or revenue-sensitive contacts. This caps the shift so the tool never implies all voice is movable.",
+  erf: "When a contact fails in the target channel and returns to voice, how much harder that recovery call is than a normal one (1.0 same, 1.2 frustrated, 1.5 complex). The bounced call always existed, so only the extra friction counts as new cost.",
+  curve: "As easy volume leaves voice, the calls that remain are harder, so average voice handle time rises. Mild / Moderate / Severe sets how much — it stops the tool assuming leftover voice work is as quick as today's blended average.",
+  resolution: "The share of shifted contacts that actually resolve in the target channel without bouncing back to voice. Transactional issues resolve high, complex issues low. This is the lever that decides whether a shift saves money.",
+  displacement: "Of the contacts that do resolve in the target channel, the share that truly replace a voice call. The rest is new demand from people who'd never have called — real, but not a voice saving. Rarely 100%.",
+  capacity: "How freed agent time becomes money. Absorbing growth banks little cash; reducing overtime or avoiding hires is finance-creditable; headcount reduction is fully cashable but riskiest. Freed capacity isn't savings until you commit to one.",
+  botCost: "The per-contact fee your bot or self-service platform charges — real cash, paid on every attempt including failures. A $0 bot is almost never real and makes any shift look free.",
+};
 
 const TARGETS = [
   { key: "Chat", color: GREEN, shift: "shiftToChat", res: "resChat", disp: "dispChat", eff: (d) => n(d.chatAHT) / Math.max(0.1, n(d.chatConc)), bot: false },
@@ -257,9 +270,9 @@ export default function ChannelShiftModel() {
       <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>→ {t === "Bot" ? "Bot / Self-Service" : t}</div>
       <NumField compact label="Shift" value={d["shiftTo" + t]} onChange={v => set("shiftTo" + t, v)} suffix="pts" step={1} min={0} max={100} />
       <div style={{ height: 6 }} />
-      <NumField compact label="Resolution rate" value={d["res" + t]} onChange={v => set("res" + t, v)} suffix="%" step={1} min={0} max={100} pulled={t === "Bot" && pulled.resBot} hint={t === "Bot" && pulled.resBot ? "from AI Deflection" : "resolves without bouncing"} />
+      <NumField compact label="Resolution rate" value={d["res" + t]} onChange={v => set("res" + t, v)} suffix="%" step={1} min={0} max={100} pulled={t === "Bot" && pulled.resBot} hint={t === "Bot" && pulled.resBot ? "from AI Deflection" : "resolves without bouncing"} info={DEFS.resolution} infoTitle="Resolution rate" />
       <div style={{ height: 6 }} />
-      <NumField compact label="Displacement" value={d["disp" + t]} onChange={v => set("disp" + t, v)} suffix="%" step={1} min={0} max={100} hint="% that truly replace a voice call" />
+      <NumField compact label="Displacement" value={d["disp" + t]} onChange={v => set("disp" + t, v)} suffix="%" step={1} min={0} max={100} hint="% that truly replace a voice call" info={DEFS.displacement} infoTitle="Displacement" />
     </div>
   );
 
@@ -313,8 +326,8 @@ export default function ChannelShiftModel() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
             <NumField label="Monthly contacts" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
             <NumField label="Agent hourly" value={d.hourlyRate} onChange={v => set("hourlyRate", v)} prefix="$" suffix="/hr" step={0.5} min={0} pulled={pulled.hourlyRate} />
-            <NumField label="Loaded overhead" value={d.loadedOH} onChange={v => set("loadedOH", v)} suffix="x" step={0.05} min={1} />
-            <NumField label="Marginal overhead" value={d.marginalOH} onChange={v => set("marginalOH", v)} suffix="x" step={0.02} min={1} hint="Savings basis" />
+            <NumField label="Loaded overhead" value={d.loadedOH} onChange={v => set("loadedOH", v)} suffix="x" step={0.05} min={1} info={DEFS.loadedOH} infoTitle="Loaded overhead" />
+            <NumField label="Marginal overhead" value={d.marginalOH} onChange={v => set("marginalOH", v)} suffix="x" step={0.02} min={1} hint="Savings basis" info={DEFS.marginalOH} infoTitle="Marginal overhead" infoAlign="right" />
           </div>
           <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase", margin: "18px 0 12px" }}>Current mix <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: mixTotal === 100 ? MUTED : RED }}>· {mixTotal}%</span> &amp; handle</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
@@ -325,14 +338,14 @@ export default function ChannelShiftModel() {
             <NumField label="Voice AHT" value={d.voiceAHT} onChange={v => set("voiceAHT", v)} suffix="min" step={0.5} min={0} />
             <NumField label="Chat AHT / conc" value={d.chatAHT} onChange={v => set("chatAHT", v)} suffix="min" step={0.5} min={0} hint={`conc ${d.chatConc}x`} />
             <NumField label="Email AHT" value={d.emailAHT} onChange={v => set("emailAHT", v)} suffix="min" step={0.5} min={0} />
-            <NumField label="Bot cost / contact" value={d.botCost} onChange={v => set("botCost", v)} prefix="$" step={0.05} min={0} />
+            <NumField label="Bot cost / contact" value={d.botCost} onChange={v => set("botCost", v)} prefix="$" step={0.05} min={0} info={DEFS.botCost} infoTitle="Bot cost / contact" infoAlign="right" />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, margin: "18px 0 0" }} className="s3">
-            <NumField label="Eligible voice for shift" value={d.eligibility} onChange={v => set("eligibility", v)} suffix="%" step={5} min={0} max={100} hint="Structurally shiftable — exclude complex/regulated/emotional volume" />
-            <NumField label="Escalation return factor" value={d.escReturnFactor} onChange={v => set("escReturnFactor", v)} suffix="x" step={0.1} min={1} hint="Re-contact friction: 1.0 same as a direct call, 1.2 frustrated, 1.5 complex recovery" />
+            <NumField label="Eligible voice for shift" value={d.eligibility} onChange={v => set("eligibility", v)} suffix="%" step={5} min={0} max={100} hint="Structurally shiftable — exclude complex/regulated/emotional volume" info={DEFS.eligibility} infoTitle="Eligible voice for shift" />
+            <NumField label="Escalation return factor" value={d.escReturnFactor} onChange={v => set("escReturnFactor", v)} suffix="x" step={0.1} min={1} hint="Re-contact friction: 1.0 same as a direct call, 1.2 frustrated, 1.5 complex recovery" info={DEFS.erf} infoTitle="Escalation return factor" />
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>Residual complexity curve</label>
+              <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Residual complexity curve<InfoDot text={DEFS.curve} title="Residual complexity curve" align="right" /></label>
               <div style={{ display: "flex", gap: 4, background: "#fff", padding: 3, borderRadius: 7, border: `1px solid ${BORDER}` }}>
                 {Object.entries(CURVE).map(([k, v]) => <button key={k} onClick={() => set("adverseCurve", k)} style={{ flex: 1, fontSize: 11, fontWeight: 600, padding: "7px 4px", borderRadius: 5, border: "none", cursor: "pointer", background: d.adverseCurve === k ? ELECTRIC : "transparent", color: d.adverseCurve === k ? "#fff" : SLATE }}>{v.label}</button>)}
               </div>
@@ -353,7 +366,7 @@ export default function ChannelShiftModel() {
           {/* Capacity action + risk guardrails */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }} className="cg">
             <div style={{ background: WARM, border: `1px solid ${mech === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2 }}>Capacity action</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>Capacity action<InfoDot text={DEFS.capacity} title="Capacity action" /></div>
               <div style={{ fontSize: 12, color: mech === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[mech].note}</div>
               <select value={mech} onChange={e => setMech(e.target.value)} style={{ width: "100%", fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
                 {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
