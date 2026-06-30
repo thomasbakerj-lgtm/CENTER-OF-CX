@@ -132,6 +132,7 @@ export default function LicenseBundleGapChecker() {
   const [seats18mo, setSeats18mo] = useState(0);
   const [evidence, setEvidence] = useState("estimate");
   const [confirmed, setConfirmed] = useState(false);
+  const [dblAck, setDblAck] = useState(false);
   const [pulled, setPulled] = useState({});
   const [sending, setSending] = useState(false); const [sent, setSent] = useState(false);
   const [modules, setModules] = useState(() => {
@@ -179,7 +180,9 @@ export default function LicenseBundleGapChecker() {
   const commitBasisPrice = commitBasis === "quoted" ? quotedSeat : commitBasis === "custom" ? n(commitRate) : effLicenseSeat;
   const commitExpSeats = Math.max(0, n(committedSeats) - billable);
   const commitExpAnnual = commitExpSeats * commitBasisPrice * 12;
-  const year3Seat = effPlatformSeat * Math.pow(1 + n(uplift) / 100, 2);
+  const usagePerSeat = billable > 0 ? usageMonthly / billable : 0;
+  const year3LicenseSeat = effLicenseSeat * Math.pow(1 + n(uplift) / 100, 2);
+  const year3Seat = year3LicenseSeat + usagePerSeat; // uplift applies to contracted license rates; usage held flat (volume-driven, not seat-priced)
   const exp18Annual = n(seats18mo) * effPlatformSeat * 12;
   const gapColor = gapPct > 80 ? RED : gapPct > 40 ? AMBER : GREEN;
 
@@ -189,7 +192,7 @@ export default function LicenseBundleGapChecker() {
 
   // CONFIDENCE
   const planningOK = billable > 0 && quotedSeat > 0 && unknowns.length === 0 && !anyUnsure;
-  const financeOK = planningOK && DOC_EVIDENCE.has(evidence) && n(committedSeats) > 0 && n(uplift) > 0 && (usageFlagged.length === 0 || usageMonthly > 0) && confirmed;
+  const financeOK = planningOK && DOC_EVIDENCE.has(evidence) && n(committedSeats) > 0 && n(uplift) > 0 && (usageFlagged.length === 0 || usageMonthly > 0) && (doubles.length === 0 || dblAck) && confirmed;
   const confidence = financeOK ? "Finance-grade" : planningOK ? "Planning-grade" : "Directional";
   const confColor = confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? ELECTRIC : AMBER;
 
@@ -213,9 +216,17 @@ export default function LicenseBundleGapChecker() {
   if (tiers.length) analyst.push(`${tiers.join(" and ")} ${tiers.length > 1 ? "are" : "is"} a tier upgrade, not a line item — getting ${tiers.length > 1 ? "them" : "it"} can force every seat to a higher edition, not just the users of the feature. Confirm the upgrade scope in writing before you model it.`);
   if (usageMonthly > 0) analyst.push(`${fmtK(usageMonthly)}/mo runs through usage meters and is normalized across seats for comparison only — it is not a seat fee. These scale with volume, so cap or commit them deliberately rather than leaving them open-ended.`);
   if (commitExpSeats > 0) analyst.push(`You're committed to ${n(committedSeats)} seats but staff ${billable}. That ${commitExpSeats}-seat gap, priced at the ${commitBasis === "quoted" ? "quoted base" : commitBasis === "custom" ? "custom commit" : "license"} seat, is ${fmtK(commitExpAnnual)}/yr of commit exposure — use it to negotiate the minimum down or win ramp flexibility, but budget it until the contract says otherwise.`);
-  if (n(uplift) > 0) analyst.push(`At ${n(uplift)}% annual uplift the platform seat-equivalent moves from ${"$" + effPlatformSeat.toFixed(0)} to ${"$" + year3Seat.toFixed(0)} by year three. Negotiate the renewal cap now, while you hold the leverage.`);
+  if (n(uplift) > 0) analyst.push(`At ${n(uplift)}% annual uplift, the license component rises while usage fees are held flat: the license seat moves from ${"$" + effLicenseSeat.toFixed(0)} to ${"$" + year3LicenseSeat.toFixed(0)}, putting the year-three platform seat-equivalent at ${"$" + year3Seat.toFixed(0)}, assuming no usage-volume growth. Negotiate the renewal cap now, while you hold the leverage.`);
   if (shelfware.length) analyst.push(`Bundled-but-unused capability is leverage, not recoverable savings. Use ${shelfware.map(m => m.name).join(", ")} to challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Do not count it as cash unless the vendor confirms a price reduction in writing.`);
   analyst.push(`Use this to budget the real platform baseline and negotiate the terms before signature: price every required module and edition delta in writing, co-term add-ons to the master agreement, cap usage fees, and rate-lock the ${n(seats18mo) > 0 ? n(seats18mo) + " seats" : "seats"} you'll need within eighteen months. The quote is the opening move, not the price.`);
+
+  const evLabel = EVIDENCE_OPTS.find(e => e.v === evidence)?.l || evidence;
+  const caveats = [];
+  if (doubles.length > 0 && !dblAck) caveats.push(`possible double count not yet confirmed as separate charges (${doubles.map(id => DBL_LABEL[id]).join("; ")})`);
+  if (unknowns.length) caveats.push(`${unknowns.length} required module${unknowns.length > 1 ? "s" : ""} with unknown inclusion`);
+  if (anyUnsure) caveats.push(`needs marked Unsure`);
+  if (usageFlagged.length && usageMonthly === 0) caveats.push(`usage-based module${usageFlagged.length > 1 ? "s" : ""} with no usage cost entered`);
+  const confLine = `Confidence: ${confidence}. Evidence source: ${evLabel}. ` + (caveats.length ? `Open issues: ${caveats.join("; ")}.` : doubles.length > 0 && dblAck ? `Commercial overlap: module and usage fees confirmed as separate charges.` : `No unresolved commercial caveats.`);
 
   useEffect(() => {
     publishToolResult("license-gap", {
@@ -400,7 +411,7 @@ export default function LicenseBundleGapChecker() {
           {(commitExpSeats > 0 || n(uplift) > 0 || n(seats18mo) > 0) && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 18 }} className="s3">
               <div style={{ ...card, textAlign: "left", opacity: commitExpSeats > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Commit Exposure</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 21, color: commitExpSeats > 0 ? AMBER : MUTED }}>{commitExpSeats > 0 ? `${commitExpSeats} seats` : "none"}</div><div style={{ fontSize: 10, color: MUTED }}>{commitExpSeats > 0 ? `vs ${billable} active · ${fmtK(commitExpAnnual)}/yr at ${commitBasis} basis` : "committed ≤ active"}</div></div>
-              <div style={{ ...card, textAlign: "left", opacity: n(uplift) > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Year-3 Seat-Eq</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 21, color: n(uplift) > 0 ? RED : MUTED }}>${year3Seat.toFixed(0)}</div><div style={{ fontSize: 10, color: MUTED }}>{n(uplift) > 0 ? `from $${effPlatformSeat.toFixed(0)} at ${n(uplift)}% uplift` : "enter uplift to project"}</div></div>
+              <div style={{ ...card, textAlign: "left", opacity: n(uplift) > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Year-3 Seat-Eq</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 21, color: n(uplift) > 0 ? RED : MUTED }}>${year3Seat.toFixed(0)}</div><div style={{ fontSize: 10, color: MUTED }}>{n(uplift) > 0 ? `license $${effLicenseSeat.toFixed(0)}→$${year3LicenseSeat.toFixed(0)} at ${n(uplift)}%, usage flat` : "enter uplift to project"}</div></div>
               <div style={{ ...card, textAlign: "left", opacity: n(seats18mo) > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>18-mo Expansion</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 21, color: n(seats18mo) > 0 ? SLATE : MUTED }}>{fmtK(exp18Annual)}</div><div style={{ fontSize: 10, color: MUTED }}>{n(seats18mo) > 0 ? `${n(seats18mo)} seats · rate-lock now` : "enter expansion seats"}</div></div>
             </div>
           )}
@@ -424,7 +435,13 @@ export default function LicenseBundleGapChecker() {
               </label>
             </div>
           </div>
-          {confidence !== "Finance-grade" && <p style={{ fontSize: 11.5, color: MUTED, margin: "0 0 18px" }}>{confidence === "Directional" ? "Directional until needed modules have known inclusion and pricing. Resolve every Unknown and Unsure to reach Planning-grade." : "Planning-grade. Finance-grade needs a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, renewal uplift, priced usage, and confirmation in writing."}</p>}
+          {doubles.length > 0 && (
+            <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", border: `1px solid ${dblAck ? GREEN : AMBER}`, background: `${dblAck ? GREEN : AMBER}0A`, borderRadius: 8, padding: "9px 14px", marginBottom: 8 }}>
+              <input type="checkbox" checked={dblAck} onChange={e => setDblAck(e.target.checked)} style={{ width: 15, height: 15, accentColor: GREEN }} />
+              <span style={{ fontSize: 12, color: SLATE, fontWeight: 600 }}>Possible double counts confirmed as separate charges{!dblAck && <span style={{ color: AMBER, fontWeight: 700 }}> — required for Finance-grade</span>}</span>
+            </label>
+          )}
+          {confidence !== "Finance-grade" && <p style={{ fontSize: 11.5, color: MUTED, margin: "0 0 18px" }}>{confidence === "Directional" ? "Directional until needed modules have known inclusion and pricing. Resolve every Unknown and Unsure to reach Planning-grade." : `Planning-grade. Finance-grade needs a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, renewal uplift, priced usage${doubles.length > 0 && !dblAck ? ", possible double counts confirmed separate" : ""}, and confirmation in writing.`}</p>}
 
           {/* Shelfware */}
           {shelfware.length > 0 && (
@@ -454,6 +471,7 @@ export default function LicenseBundleGapChecker() {
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <ReportExport toolName="License Bundle Gap Analysis" subtitle={`Quoted vs effective platform seat · ${confidence}`} userName="" userEmail="" sections={[
+              { title: "Confidence & Evidence", type: "text", content: confLine },
               { title: "Seat Economics", type: "metrics", items: [
                 { label: "Quoted Seat", value: "$" + quotedSeat.toFixed(0), color: ELECTRIC, sub: "vendor headline" },
                 { label: "Eff. License Seat", value: "$" + effLicenseSeat.toFixed(0), color: SLATE, sub: "seat+modules+tier" },
@@ -477,10 +495,10 @@ export default function LicenseBundleGapChecker() {
                 ...(n(uplift) > 0 ? [{ label: "Year-3 Seat-Eq", value: "$" + year3Seat.toFixed(0), color: RED, sub: n(uplift) + "% uplift" }] : []),
                 ...(n(seats18mo) > 0 ? [{ label: "18-mo Expansion", value: fmtK(exp18Annual), color: SLATE }] : []),
               ] }] : []),
-              ...(shelfware.length ? [{ title: "Shelfware (leverage, not savings)", type: "findings", items: [`Bundled but unused: ${shelfware.map(m => m.name).join(", ")}. Challenge tier fit, request credits, secure implementation concessions, or negotiate future module access — not recoverable unless confirmed in writing.`] }] : []),
+              ...(shelfware.length ? [{ title: "Shelfware (leverage, not savings)", type: "text", content: `${shelfware.length} module${shelfware.length > 1 ? "s" : ""} bundled but unused: ${shelfware.map(m => m.name).join(", ")}. Challenge tier fit, request credits, secure implementation concessions, or negotiate future module access — not recoverable unless the vendor confirms a reduction in writing.` }] : []),
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Three figures, deliberately distinct. Quoted seat = base monthly across seat classes / billable seats. Effective license seat adds required per-seat add-ons and edition (tier) upgrades, each priced only on the seats in its scope, then divided by billable seats — still a true per-seat figure. Effective platform seat-equivalent adds usage-based fees and normalizes across billable seats for comparison only; it is not a vendor seat price, because usage scales with volume, not seats. Hidden annual is the platform total over the quoted baseline, decomposed into add-ons, tier upgrades, and usage. Tier upgrades may force the whole base onto a higher edition — confirm scope in writing. Commit exposure prices idle committed seats at the chosen basis (license seat by default, not the usage-loaded equivalent, to avoid overstating). Shelfware is leverage only, never recoverable savings. Confidence is ${confidence}; Finance-grade requires a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, usage treatment, renewal uplift, license basis, and written confirmation. Evidence source: ${EVIDENCE_OPTS.find(e => e.v === evidence)?.l}.` },
+              { title: "Methodology", type: "text", content: `Three figures, deliberately distinct. Quoted seat = base monthly across seat classes / billable seats. Effective license seat adds required per-seat add-ons and edition (tier) upgrades, each priced only on the seats in its scope, then divided by billable seats — still a true per-seat figure. Effective platform seat-equivalent adds usage-based fees and normalizes across billable seats for comparison only; it is not a vendor seat price, because usage scales with volume, not seats. Hidden annual is the platform total over the quoted baseline, decomposed into add-ons, tier upgrades, and usage. Tier upgrades may force the whole base onto a higher edition — confirm scope in writing. Commit exposure prices idle committed seats at the chosen basis (license seat by default, not the usage-loaded equivalent, to avoid overstating). The year-three projection applies the renewal uplift to the contracted license rates only and holds usage flat, because usage scales with volume rather than the contract. Shelfware is leverage only, never recoverable savings. Confidence is ${confidence}; Finance-grade requires a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, usage treatment, renewal uplift, license basis, and written confirmation. Evidence source: ${EVIDENCE_OPTS.find(e => e.v === evidence)?.l}.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "Contract Risk Scanner", reason: "Rate-locks, co-term, promo expiration, upgrade scope, and minimum-commit terms behind these numbers", href: "/tools/contract-risk" },
                 { tool: "TCO Calculator", reason: "Roll the platform seat-equivalent and usage fees into full cost of ownership", href: "/tools/tco-calculator" },
