@@ -24,6 +24,8 @@ const DEFS = {
   vacancyMode: "Incremental to staffed plan charges only the overtime premium, because the empty seat's base wage is not being paid. Gross coverage spend charges the full overtime cost and should be used only when the departed agent's stopped payroll is credited somewhere else, or you will double count.",
   mech: "How recovered capacity converts to money. None means you keep the slack and realize zero. Avoid or slow hiring (the default) is the most common honest lever. Reduce headcount realizes the most but is the hardest commitment to make.",
   confidence: "Confidence is split into two axes. Cost basis asks whether the per-departure cost inputs are validated: estimated, from HR data, or finance-confirmed and inside the frontline band. Realization asks whether the savings can be booked: a mechanism like Reduce Overtime or Reduce Headcount makes capacity bankable, while None or Absorb Growth keeps it as planning value only. The export headlines the weaker of the two, and any hard integrity flag forces both to Directional.",
+  sensitivity: "The all-in figure multiplies six uncertain inputs, and multiplying uncertainty compounds it, so the true cost is a range, not a point. The planning band tightens as you confirm inputs: about plus or minus 25 percent on estimates, 15 percent on HR data, 10 percent on finance-confirmed figures. This exists for CFO alignment: a finance team trusts a defensible range far more than a single exact number, and a lone precise figure invites a vendor or budget owner to attack one input and dismiss the whole model. The band is how the number survives scrutiny.",
+  costToAchieve: "Realizable savings are shown gross, before the money you spend to actually cut attrition: pay adjustments, coaching, scheduling tools, better hiring. This exists for CFO alignment because no CFO will book a savings number without the cost to capture it. Enter the annual cost per point of reduction and the tool nets it out and shows the return, turning a scary gross figure into a fundable business case. Real programs cost more per point as you push lower (diminishing returns), so treat deep cuts as the optimistic end.",
 };
 
 const MECH_OPTS = [
@@ -93,7 +95,7 @@ export default function AttritionCostCalculator() {
     rampMonths: 3, rampProductivity: 75,
     supervisorHoursPerNew: 10, supLoadedRate: 55,
     overtimePremium: 50, vacancyDays: 30, vacancyCoverageFraction: 60, vacancyMode: "incremental",
-    mech: 75, evidence: "estimate",
+    mech: 75, evidence: "estimate", costPerPoint: 0,
   });
   const [pulled, setPulled] = useState({});
   const set = (k, v) => setD(p => ({ ...p, [k]: v }));
@@ -144,13 +146,23 @@ export default function AttritionCostCalculator() {
   const earlyWashouts = Math.round(hires * (n(d.earlyWashoutRate) / 100));
   const earlyWaste = earlyWashouts * hireCash;
 
-  // ---- REDUCTION SCENARIOS: realizable = avoided hires x (cash + capacity*mech) ----
+  // ---- UNCERTAINTY BAND: point estimate of 6 multiplied inputs -> show a planning range (tightens with input quality) ----
+  const uncPct = d.evidence === "finance" ? 0.10 : d.evidence === "hrdata" ? 0.15 : 0.25;
+  const allInLow = allInPerDeparture * (1 - uncPct), allInHigh = allInPerDeparture * (1 + uncPct);
+  const annLow = annualReplBurden * (1 - uncPct), annHigh = annualReplBurden * (1 + uncPct);
+
+  // ---- REDUCTION SCENARIOS: realizable = avoided hires x (cash + capacity*mech); net of cost-to-achieve ----
+  const costPerPoint = n(d.costPerPoint);
   const scenarios = [5, 10, 15, 20].map(redPts => {
     const newRate = Math.max(0, n(d.attritionRate) - redPts);
     const avoided = departures - Math.round(n(d.agents) * (newRate / 100));
     const cash = avoided * bf * cashPerDeparture;
     const cap = avoided * bf * capacityPerDeparture * mech;
-    return { redPts, newRate, avoided, cash, cap, total: cash + cap };
+    const gross = cash + cap;
+    const achieveCost = redPts * costPerPoint;
+    const net = gross - achieveCost;
+    const roi = achieveCost > 0 ? gross / achieveCost : null;
+    return { redPts, newRate, avoided, cash, cap, total: gross, achieveCost, net, roi };
   });
 
   // ---- INTEGRITY FLAGS ----
@@ -344,9 +356,10 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Recovered only if you act</div>
             </div>
             <div style={{ background: `linear-gradient(135deg, #7F1D1D, #991B1B)`, borderRadius: 10, padding: 22, textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#FCA5A5", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>All-In Per Departure</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#FCA5A5", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>All-In Per Departure<InfoDot text={DEFS.sensitivity} title="Why a range, not a point" align="right" /></div>
               <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 34, color: "#fff" }}>{fmtK(allInPerDeparture)}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{Math.round(pctSalary)}% of salary · per refill</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>range {fmtK(allInLow)} – {fmtK(allInHigh)} (±{Math.round(uncPct * 100)}%)</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{Math.round(pctSalary)}% of salary · per refill</div>
             </div>
           </div>
 
@@ -354,6 +367,7 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
             <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 18px" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Annual Replacement Burden</div>
               <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: NAVY }}>{fmtK(annualReplBurden)}</div>
+              <div style={{ fontSize: 11, color: MUTED }}>range {fmtK(annLow)} – {fmtK(annHigh)} (±{Math.round(uncPct * 100)}%)</div>
               <div style={{ fontSize: 12, color: MUTED }}>{fmtK(annualCashBurden)} cash + {fmtK(annualCapBurden)} capacity · {hires} of {departures} departures refilled</div>
               <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Current-state diagnosis — not automatically recoverable.</div>
             </div>
@@ -393,13 +407,22 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
 
           <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Realizable value if you reduce attrition</h3>
           <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Cash in full; capacity at {Math.round(mech * 100)}% per mechanism; both scaled to {n(d.backfillRate)}% backfill. Realizable value, not the burden above.{!downsizing && unbackfilled > 0 ? " Under forced under-staffing, retained capacity carries additional value — see Staffing." : ""}{downsizing ? " Note: under intended downsizing, retaining agents slows your planned reduction — this credits only replacement cost avoided on the seats you would refill, not a net headcount saving." : ""}</p>
+          <div style={{ maxWidth: 300, marginBottom: 14 }}>
+            <NumField label="Cost to achieve (per point / yr)" value={d.costPerPoint} onChange={v => set("costPerPoint", v)} suffix="$" step={5000} info={DEFS.costToAchieve} infoTitle="Cost to achieve — CFO net view" hint={costPerPoint > 0 ? "Cards show net of this spend" : "0 = show gross only"} />
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 26 }} className="cg">
             {scenarios.map((s, i) => (
-              <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 16, textAlign: "center" }}>
+              <div key={i} style={{ background: WARM, border: `1px solid ${costPerPoint > 0 && s.net < 0 ? RED : BORDER}`, borderRadius: 10, padding: 16, textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>−{s.redPts} pts → {s.newRate}%</div>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: GREEN }}>{fmtK(s.total)}</div>
-                <div style={{ fontSize: 11, color: MUTED }}>realizable / yr</div>
-                <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }}>{fmtK(s.cash)} cash avoided + {fmtK(s.cap)} capacity value<br />{s.avoided} fewer departures</div>
+                {costPerPoint > 0 ? (<>
+                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: s.net < 0 ? RED : GREEN }}>{s.net < 0 ? "−" : ""}{fmtK(Math.abs(s.net))}</div>
+                  <div style={{ fontSize: 11, color: MUTED }}>net / yr</div>
+                  <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }}>{fmtK(s.total)} gross − {fmtK(s.achieveCost)} cost<br />{s.roi != null ? `${s.roi.toFixed(1)}x return · ` : ""}{s.avoided} fewer</div>
+                </>) : (<>
+                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: GREEN }}>{fmtK(s.total)}</div>
+                  <div style={{ fontSize: 11, color: MUTED }}>realizable / yr</div>
+                  <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }}>{fmtK(s.cash)} cash avoided + {fmtK(s.cap)} capacity value<br />{s.avoided} fewer departures</div>
+                </>)}
                 <div style={{ fontSize: 9, fontWeight: 700, color: tierColor(realization), letterSpacing: 0.3, textTransform: "uppercase", marginTop: 6, padding: "2px 6px", borderRadius: 3, background: `${tierColor(realization)}14`, display: "inline-block" }}>{bookLabel}</div>
               </div>
             ))}
@@ -449,7 +472,7 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
                 `Realization confidence: ${realization}. ${realizationReason}`,
                 `Backfill basis: ${n(d.backfillRate)}% of departures replaced (${hires} of ${departures}). Replacement cost scales with this; ${unbackfilled} un-backfilled seats are ${downsizing ? "a deliberate reduction with no replacement cost" : "lost capacity routed to Staffing/Occupancy, not zeroed out as free"}.`,
                 `Vacancy costing: ${d.vacancyMode === "gross" ? "Gross coverage spend (full OT) — overstates incremental cost unless the vacant seat's stopped payroll is credited elsewhere. Incremental (OT premium only) is the conservative default." : "Incremental, OT premium only (the conservative default)."}`,
-                `Cost basis: ${Math.round(pctSalary)}% of salary (${fmt$(allInPerDeparture)}) versus the 40–60% frontline band of ${fmt$(bandLo)}–${fmt$(bandHi)}. ${guardrailOk ? "Within band." : "Outside band — verify inputs before citing."} The $10–20K all-in reference assumes typical frontline wages and is not salary-adjusted.`,
+                `Cost basis: ${Math.round(pctSalary)}% of salary (${fmt$(allInPerDeparture)}, planning range ${fmt$(allInLow)}–${fmt$(allInHigh)} at ±${Math.round(uncPct * 100)}%) versus the 40–60% frontline band of ${fmt$(bandLo)}–${fmt$(bandHi)}. ${guardrailOk ? "Within band." : "Outside band — verify inputs before citing."} The $10–20K all-in reference assumes typical frontline wages and is not salary-adjusted.`,
               ]},
               ...(flags.length > 0 ? [{ title: "Integrity Flags", type: "findings", items: flags.map(f => `${f.sev === "high" ? "[FLAG] " : "[NOTE] "}${f.t}`) }] : []),
               { title: "Cost Per Replaced Departure", type: "table", rows: [
@@ -474,7 +497,9 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
                 `At ${n(d.backfillRate)}% backfill, ${hires} of ${departures} departures are refilled, for an annual replacement burden of ${fmt$(annualReplBurden)} (${fmt$(annualCashBurden)} cash). This is a current-state diagnosis, not recoverable savings.`,
                 unbackfilled > 0 ? `${unbackfilled} departures/yr are not refilled. ${downsizing ? "Treated as a deliberate reduction with no replacement cost." : "This is lost capacity, not zero cost — quantify the output and service-level impact in Staffing/Occupancy."}` : `All departures are refilled, so the full replacement cycle applies.`,
                 `${n(d.earlyWashoutRate)}% of replacement hires wash out before productivity, wasting about ${fmt$(earlyWaste)} of recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}and training cash — a subset of cash burden and the most recoverable slice.`,
-                `Cutting attrition 5 points realizes ${fmt$(scenarios[0].total)} (${fmt$(scenarios[0].cash)} cash avoided + ${fmt$(scenarios[0].cap)} capacity value), gated by backfill and mechanism. Bookability: ${bookLabel.toLowerCase()} — not booked EBITDA unless tied to a budget action.`,
+                costPerPoint > 0
+                  ? `Cutting attrition 5 points yields ${fmt$(scenarios[0].total)} gross; net of ${fmt$(scenarios[0].achieveCost)} to achieve it is ${fmt$(scenarios[0].net)}${scenarios[0].roi != null ? ` (${scenarios[0].roi.toFixed(1)}x return)` : ""}. Bookability: ${bookLabel.toLowerCase()} — net is the figure to take to budget.`
+                  : `Cutting attrition 5 points realizes ${fmt$(scenarios[0].total)} gross (${fmt$(scenarios[0].cash)} cash avoided + ${fmt$(scenarios[0].cap)} capacity value), gated by backfill and mechanism. Bookability: ${bookLabel.toLowerCase()} — not booked EBITDA unless tied to a budget action, and this is before the cost to achieve the reduction.`,
               ]},
               { title: "Methodology", type: "findings", items: [
                 `Cost model: per replaced departure = cash (recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}training wages, trainer, vacancy OT) + capacity (nesting and ramp productivity loss, supervisor coaching). Capacity is recovered time, booked only via a realization mechanism.`,
