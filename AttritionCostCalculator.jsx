@@ -158,7 +158,7 @@ export default function AttritionCostCalculator() {
   const topComp = Math.max(recruiting, training, vacancy, nestingLoss, rampLoss, supervisorBurden);
   if (pctSalary > 100) flags.push({ t: "All-in exceeds 100% of salary — manager-tier territory, implausible for a frontline agent. Re-check ramp loss, vacancy coverage, and double counting.", sev: "high" });
   else if (pctSalary > 60) flags.push({ t: `All-in is ${Math.round(pctSalary)}% of salary, above the typical frontline sanity band of about 40–60%. Defensible for complex or regulated centers, but validate role type and inputs.`, sev: "med" });
-  if (allInPerDeparture > 0 && allInPerDeparture < 10000) flags.push({ t: "All-in is below the ~$10K McKinsey floor for a US onshore agent. Expected only for offshore, BPO, or low-cost geography — otherwise inputs are likely understated.", sev: "med" });
+  else if (pctSalary > 0 && pctSalary < 30) flags.push({ t: `All-in is only ${Math.round(pctSalary)}% of salary, below the 40–60% frontline band. Plausible for offshore or BPO, but for a US onshore center it usually signals understated training, ramp, or vacancy inputs — validate before citing.`, sev: "med" });
   if (allInPerDeparture > 0 && topComp / allInPerDeparture > 0.55) flags.push({ t: `One component is over 55% of all-in cost (${fmt$(topComp)}). A single line dominating this hard usually means an overstated duration or rate — verify before citing.`, sev: "med" });
   if (n(d.attritionRate) < 10) flags.push({ t: "Attrition under 10% is low for a contact center — validate the denominator (separations ÷ average headcount, rolling 12 months).", sev: "med" });
   else if (n(d.attritionRate) > 50) flags.push({ t: "Attrition over 50% is severe churn. The early-washout share is usually where the recoverable waste sits — confirm it.", sev: "med" });
@@ -175,7 +175,8 @@ export default function AttritionCostCalculator() {
 
   // ---- CONFIDENCE (a hard flag forces Directional) ----
   let confidence = "Directional";
-  const guardrailOk = pctSalary <= 60 && allInPerDeparture >= 10000;
+  const bandLo = n(d.avgSalary) * 0.40, bandHi = n(d.avgSalary) * 0.60;
+  const guardrailOk = pctSalary >= 30 && pctSalary <= 60;
   if (d.evidence === "hrdata" && mech >= 0.6) confidence = "Planning-grade";
   if (d.evidence === "finance" && mech >= 0.6 && guardrailOk) confidence = "Finance-grade";
   const hardFlag = flags.some(f => f.sev === "high");
@@ -345,7 +346,7 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, padding: "10px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: confColor, letterSpacing: 1, textTransform: "uppercase", padding: "3px 8px", borderRadius: 4, background: `${confColor}1a` }}>{confidence}</span>
-            <span style={{ fontSize: 12, color: SLATE }}>Frontline benchmark band is 40–60% of salary and $10–20K all-in; this result is {Math.round(pctSalary)}% / {fmtK(allInPerDeparture)}.{hardFlag ? " A hard integrity flag is active — export held at Directional." : ""}</span>
+            <span style={{ fontSize: 12, color: SLATE }}>Frontline band is 40–60% of salary ({fmtK(bandLo)}–{fmtK(bandHi)} here); the published $10–20K all-in reference assumes typical frontline wages. This result is {Math.round(pctSalary)}% / {fmtK(allInPerDeparture)} — {guardrailOk ? "within band" : pctSalary > 60 ? "above band, validate" : "below band, validate"}.{hardFlag ? " A hard integrity flag is active — export held at Directional." : ""}</span>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 26 }} className="cg3">
@@ -409,7 +410,7 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
                 `Export confidence: ${confidence}.${hardFlag ? " A hard integrity flag is active, so the export is held at Directional regardless of inputs — resolve the flagged item before booking." : confidence === "Finance-grade" ? " Finance-confirmed inputs, a committed mechanism, and a result inside the frontline benchmark." : confidence === "Planning-grade" ? " Real HR figures and a committed mechanism, but not finance-confirmed. Treat as planning input, not a booked number." : " Default or estimated inputs, or no committed mechanism. Directional only — do not book these savings."}`,
                 `Backfill basis: ${n(d.backfillRate)}% of departures replaced (${hires} of ${departures}). Replacement cost scales with this; ${unbackfilled} un-backfilled seats are ${downsizing ? "a deliberate reduction with no replacement cost" : "lost capacity routed to Staffing/Occupancy, not zeroed out as free"}.`,
                 `Vacancy costing: ${d.vacancyMode === "gross" ? "Gross coverage spend (full OT) — valid only if departed-agent payroll savings is tracked elsewhere." : "Incremental, OT premium only (the conservative default)."}`,
-                `Cost basis: ${Math.round(pctSalary)}% of salary versus the published frontline band of 40–60%. ${guardrailOk ? "Within benchmark." : "Outside benchmark — verify inputs before citing."}`,
+                `Cost basis: ${Math.round(pctSalary)}% of salary (${fmt$(allInPerDeparture)}) versus the 40–60% frontline band of ${fmt$(bandLo)}–${fmt$(bandHi)}. ${guardrailOk ? "Within band." : "Outside band — verify inputs before citing."} The $10–20K all-in reference assumes typical frontline wages and is not salary-adjusted.`,
               ]},
               ...(flags.length > 0 ? [{ title: "Integrity Flags", type: "findings", items: flags.map(f => `${f.sev === "high" ? "[FLAG] " : "[NOTE] "}${f.t}`) }] : []),
               { title: "Cost Per Replaced Departure", type: "table", rows: [
