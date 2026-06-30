@@ -13,16 +13,17 @@ const fmt$ = v => "$" + Math.round(v).toLocaleString();
 
 const DEFS = {
   benefitsLoad: "The percentage added to base wage for employer-paid benefits, payroll taxes, and overhead. The tool loads wage-paid time at this rate because you really do pay salary plus benefits while a new hire trains or ramps, not just base wage.",
-  backfill: "The share of departures you actually replace. Avoided recruiting and training is only real cash savings for seats you would have refilled. If the center is shrinking or freezing hiring, crediting full replacement savings overstates the case, so backfill scales both the burden and the realizable value.",
+  backfill: "The share of departures you actually replace. Replacement cost only exists for seats you refill: no hire means no recruiting, training, ramp, or coverage spend. Backfill therefore scales the entire replacement cycle. Seats you do not refill are a capacity decision, not a replacement cost, and are handled separately below.",
+  unbackfill: "What happens to the seats you do not refill. Intended downsizing means the capacity reduction is deliberate, so it is not a turnover cost. Forced under-staffing means you are losing output you still need; that lost capacity is real but is valued in Staffing and Occupancy, not invented here, so this tool routes it rather than guessing a number.",
   marginalCash: "Cash out the door is spend that genuinely disappears when a backfilled departure is avoided: recruiting, training wages, sign-on, and overtime premium. It is credited at 100 percent in savings because you simply stop spending it.",
   capacity: "Capacity is recovered agent and supervisor time, not cash. It only becomes money if you act on it, so it is gated by a realization mechanism. With no mechanism committed, recovered capacity is worth zero in hard savings.",
   denominator: "Attrition here is separations divided by average headcount over the year. Define it before you trust it: voluntary only or total, regrettable or all, and a rolling twelve-month actual rather than a bad month annualized. Annualizing one rough month is the most common way centers accidentally inflate their own rate.",
-  early: "The share of departures that leave before reaching full productivity, often inside the first ninety days. Their recruiting and training cash is mostly sunk with near-zero productive return, which makes early attrition the highest-waste and most recoverable segment of the problem.",
+  early: "The share of new hires who wash out before reaching productive output, usually inside the first ninety days. Their recruiting and training cash is mostly sunk with near-zero return, which makes early attrition the highest-waste and most recoverable segment. It is measured against hires, not all departures, so it can never exceed the replacement cash it is drawn from.",
   nesting: "Nesting is supervised live production right after classroom training, where the new hire handles real contacts at reduced output. The loss is the unproductive share of fully-paid time during that period.",
   ramp: "Ramp is the post-nesting stretch before a new hire reaches tenured-agent parity on AHT, QA, and FCR, not merely the point they finish training. Default to fully-productive parity, which is months not days, and value only the shortfall against full output. Ramp starts after nesting so the two never overlap.",
   vacancyMode: "Incremental to staffed plan charges only the overtime premium, because the empty seat's base wage is not being paid. Gross coverage spend charges the full overtime cost and should be used only when the departed agent's stopped payroll is credited somewhere else, or you will double count.",
   mech: "How recovered capacity converts to money. None means you keep the slack and realize zero. Avoid or slow hiring (the default) is the most common honest lever. Reduce headcount realizes the most but is the hardest commitment to make.",
-  confidence: "Directional uses default costs, an uncommitted mechanism, or an undefined backfill basis. Planning-grade uses your real HR figures, a committed lever, and a stated backfill. Finance-grade also requires finance-confirmed inputs and a result inside the published frontline benchmark.",
+  confidence: "Directional uses default costs, an uncommitted mechanism, or an unresolved capacity decision. Planning-grade uses your real HR figures and a committed lever. Finance-grade also requires finance-confirmed inputs and a result inside the published frontline benchmark. Any hard integrity flag forces the export back to Directional.",
 };
 
 const MECH_OPTS = [
@@ -37,7 +38,11 @@ const BACKFILL_OPTS = [
   { v: 100, label: "Replace all departures" },
   { v: 75, label: "Replace most (75%)" },
   { v: 50, label: "Replace some (50%)" },
-  { v: 0, label: "Do not backfill (shrinking)" },
+  { v: 0, label: "Do not backfill" },
+];
+const INTENT_OPTS = [
+  { v: "forced", label: "Forced under-staffing (lost capacity)" },
+  { v: "downsizing", label: "Intended downsizing (deliberate)" },
 ];
 
 function NumField({ label, value, onChange, suffix, hint, step = 1, min = 0, info, infoTitle, pulled }) {
@@ -80,7 +85,8 @@ function LogoMark({ size = 34 }) {
 
 export default function AttritionCostCalculator() {
   const [d, setD] = useState({
-    agents: 200, attritionRate: 35, avgSalary: 38000, benefitsLoadPct: 28, backfillRate: 100, earlyAttritionShare: 40,
+    agents: 200, attritionRate: 35, avgSalary: 38000, benefitsLoadPct: 28,
+    backfillRate: 100, unbackfillIntent: "forced", earlyWashoutRate: 25,
     recruitingCost: 2500, screeningHours: 8, hrLoadedRate: 48,
     trainingWeeks: 6, trainerLoadedRate: 45, classSize: 12, signOnBonus: 0,
     nestingWeeks: 4, nestingProductivity: 50,
@@ -107,17 +113,18 @@ export default function AttritionCostCalculator() {
   const mech = n(d.mech) / 100;
   const wageHourly = n(d.avgSalary) / 2080;
   const loadedHourly = wageHourly * (1 + n(d.benefitsLoadPct) / 100);
+  const downsizing = d.unbackfillIntent === "downsizing";
 
-  // CASH OUT THE DOOR (per backfilled departure)
+  // ---- PER REPLACED DEPARTURE (the replacement cycle) ----
   const recruiting = n(d.recruitingCost) + n(d.screeningHours) * n(d.hrLoadedRate);
   const trDays = n(d.trainingWeeks) * 5;
   const training = trDays * 8 * loadedHourly + trDays * 8 * n(d.trainerLoadedRate) / Math.max(1, n(d.classSize));
   const signOn = n(d.signOnBonus);
   const vacHours = n(d.vacancyDays) * 8 * (n(d.vacancyCoverageFraction) / 100);
   const vacancy = d.vacancyMode === "gross" ? vacHours * wageHourly * (1 + n(d.overtimePremium) / 100) : vacHours * wageHourly * (n(d.overtimePremium) / 100);
-  const cashPerDeparture = recruiting + training + signOn + vacancy;
+  const hireCash = recruiting + training + signOn; // sunk on every hire, recoverable on early washout
+  const cashPerDeparture = hireCash + vacancy;
 
-  // CAPACITY / OPPORTUNITY (per backfilled departure)
   const nestingLoss = n(d.nestingWeeks) * 5 * 8 * loadedHourly * (1 - n(d.nestingProductivity) / 100);
   const rampLoss = n(d.rampMonths) * 22 * 8 * loadedHourly * (1 - n(d.rampProductivity) / 100);
   const supervisorBurden = n(d.supervisorHoursPerNew) * n(d.supLoadedRate);
@@ -126,17 +133,18 @@ export default function AttritionCostCalculator() {
   const allInPerDeparture = cashPerDeparture + capacityPerDeparture;
   const pctSalary = n(d.avgSalary) > 0 ? allInPerDeparture / n(d.avgSalary) * 100 : 0;
 
-  // ANNUAL BURDEN (backfill-scaled current-state diagnosis — NOT savings)
-  const backfilled = departures * bf;
-  const annualCashBurden = backfilled * cashPerDeparture;
-  const annualCapBurden = backfilled * capacityPerDeparture;
-  const annualAllInBurden = annualCashBurden + annualCapBurden;
+  // ---- ANNUAL: backfill scales HIRES; everything keys off hires (consistent) ----
+  const hires = Math.round(departures * bf);
+  const unbackfilled = departures - hires;
+  const annualCashBurden = hires * cashPerDeparture;
+  const annualCapBurden = hires * capacityPerDeparture;
+  const annualReplBurden = annualCashBurden + annualCapBurden; // replacement-cycle burden
 
-  // EARLY ATTRITION (diagnostic overlay — subset lens, not additive)
-  const earlyDepartures = Math.round(departures * (n(d.earlyAttritionShare) / 100));
-  const earlyWaste = earlyDepartures * (recruiting + training + signOn);
+  // ---- EARLY WASHOUT: measured against HIRES -> always a subset of cash burden ----
+  const earlyWashouts = Math.round(hires * (n(d.earlyWashoutRate) / 100));
+  const earlyWaste = earlyWashouts * hireCash;
 
-  // REDUCTION SCENARIOS — REALIZABLE (backfill + mechanism gated)
+  // ---- REDUCTION SCENARIOS: realizable = avoided hires x (cash + capacity*mech) ----
   const scenarios = [5, 10, 15, 20].map(redPts => {
     const newRate = Math.max(0, n(d.attritionRate) - redPts);
     const avoided = departures - Math.round(n(d.agents) * (newRate / 100));
@@ -145,22 +153,33 @@ export default function AttritionCostCalculator() {
     return { redPts, newRate, avoided, cash, cap, total: cash + cap };
   });
 
-  // INTEGRITY FLAGS
+  // ---- INTEGRITY FLAGS ----
   const flags = [];
+  const topComp = Math.max(recruiting, training, vacancy, nestingLoss, rampLoss, supervisorBurden);
   if (pctSalary > 100) flags.push({ t: "All-in exceeds 100% of salary — manager-tier territory, implausible for a frontline agent. Re-check ramp loss, vacancy coverage, and double counting.", sev: "high" });
   else if (pctSalary > 60) flags.push({ t: `All-in is ${Math.round(pctSalary)}% of salary, above the typical frontline sanity band of about 40–60%. Defensible for complex or regulated centers, but validate role type and inputs.`, sev: "med" });
-  if (allInPerDeparture < 10000) flags.push({ t: "All-in is below the ~$10K McKinsey floor for a US onshore agent. Expected only for offshore, BPO, or low-cost geography — otherwise inputs are likely understated.", sev: "med" });
+  if (allInPerDeparture > 0 && allInPerDeparture < 10000) flags.push({ t: "All-in is below the ~$10K McKinsey floor for a US onshore agent. Expected only for offshore, BPO, or low-cost geography — otherwise inputs are likely understated.", sev: "med" });
+  if (allInPerDeparture > 0 && topComp / allInPerDeparture > 0.55) flags.push({ t: `One component is over 55% of all-in cost (${fmt$(topComp)}). A single line dominating this hard usually means an overstated duration or rate — verify before citing.`, sev: "med" });
   if (n(d.attritionRate) < 10) flags.push({ t: "Attrition under 10% is low for a contact center — validate the denominator (separations ÷ average headcount, rolling 12 months).", sev: "med" });
-  else if (n(d.attritionRate) > 50) flags.push({ t: "Attrition over 50% is severe churn. Model early attrition separately — the first-90-day share is usually where the recoverable waste sits.", sev: "high" });
-  if (bf < 1) flags.push({ t: `Backfill is ${n(d.backfillRate)}%: cost and savings scale down accordingly. Departures you do not replace defer a capacity question to Staffing — they are not free.`, sev: "med" });
+  else if (n(d.attritionRate) > 50) flags.push({ t: "Attrition over 50% is severe churn. The early-washout share is usually where the recoverable waste sits — confirm it.", sev: "med" });
+  if (unbackfilled > 0 && !downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures/yr are not replaced under forced under-staffing. That lost capacity is a real cost, but it is an output and service-level question — quantify it in Staffing and Occupancy, not here. This tool does not zero it out as free.`, sev: "high" });
+  if (unbackfilled > 0 && downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures/yr are a deliberate headcount reduction, so they carry no replacement cost. Confirm this is truly intended and not a hiring freeze in disguise.`, sev: "med" });
   if (n(d.mech) === 0) flags.push({ t: "Mechanism is None, so recovered capacity is credited at $0. The savings shown are avoided cash only — the honest floor.", sev: "med" });
   if (n(d.mech) === 100) flags.push({ t: "Reduce headcount realizes 100% of capacity but is the hardest lever to commit. Confirm leadership will hold the seats out.", sev: "med" });
 
-  // CONFIDENCE
+  // ---- HARD INVARIANT: a recoverable subset can never exceed its parent ----
+  // Structurally guaranteed (earlyWaste = hires*rate*hireCash <= hires*cashPerDeparture),
+  // but asserted defensively so any future refactor that breaks it self-reports instead of shipping a contradictory PDF.
+  const invariantOk = earlyWaste <= annualCashBurden + 0.5;
+  if (!invariantOk) flags.push({ t: `Integrity invariant violated: early-washout waste (${fmt$(earlyWaste)}) exceeds annual cash burden (${fmt$(annualCashBurden)}). A subset cannot exceed its parent — do not cite this export. Confidence forced to Directional.`, sev: "high" });
+
+  // ---- CONFIDENCE (a hard flag forces Directional) ----
   let confidence = "Directional";
   const guardrailOk = pctSalary <= 60 && allInPerDeparture >= 10000;
   if (d.evidence === "hrdata" && mech >= 0.6) confidence = "Planning-grade";
   if (d.evidence === "finance" && mech >= 0.6 && guardrailOk) confidence = "Finance-grade";
+  const hardFlag = flags.some(f => f.sev === "high");
+  if (hardFlag) confidence = "Directional";
   const confColor = confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? ELECTRIC : AMBER;
 
   useEffect(() => {
@@ -168,12 +187,12 @@ export default function AttritionCostCalculator() {
       agents: n(d.agents), attritionRate: n(d.attritionRate),
       attritionCashPerDeparture: Math.round(cashPerDeparture),
       attritionAllInPerDeparture: Math.round(allInPerDeparture),
-      attritionAnnualCashBurden: Math.round(annualCashBurden),
-      attritionAnnualAllInBurden: Math.round(annualAllInBurden),
+      attritionAnnualReplBurden: Math.round(annualReplBurden),
+      attritionUnbackfilled: unbackfilled,
       attritionConfidence: confidence,
-      analystRead: `Attrition: ${fmt$(cashPerDeparture)} cash + ${fmt$(capacityPerDeparture)} capacity per departure (${Math.round(pctSalary)}% of salary), ${fmt$(annualAllInBurden)} annual burden at ${n(d.backfillRate)}% backfill.`,
+      analystRead: `Attrition: ${fmt$(allInPerDeparture)}/replaced departure (${Math.round(pctSalary)}% salary); ${fmt$(annualReplBurden)} annual replacement burden at ${n(d.backfillRate)}% backfill; ${unbackfilled} seats/yr ${downsizing ? "shed deliberately" : "lost (route to Staffing)"}.`,
     });
-  }, [cashPerDeparture, allInPerDeparture, annualCashBurden, annualAllInBurden, confidence]);
+  }, [cashPerDeparture, allInPerDeparture, annualReplBurden, unbackfilled, confidence]);
 
   const cashRows = [
     { name: "Recruiting + screening", cost: recruiting, color: "#3B82F6" },
@@ -196,11 +215,31 @@ export default function AttritionCostCalculator() {
   );
 
   const mechLabel = MECH_OPTS.find(m => m.v === n(d.mech))?.label.toLowerCase() || "none";
-  const analystRead = `Attrition cost is not one number, and the honest version refuses to pretend it is. Replacing one frontline agent here runs about ${fmt$(allInPerDeparture)} all-in, roughly ${Math.round(pctSalary)}% of annual salary — inside the published frontline band of 40 to 60 percent, which is the test that lets a CFO trust the rest of the model.
+  const unbackfillSentence = unbackfilled <= 0
+    ? `Every departure is replaced, so the full replacement cycle applies.`
+    : downsizing
+      ? `${unbackfilled} of your ${departures} departures a year are a deliberate reduction, so they carry no replacement cost — confirm that is intended and not a quiet hiring freeze.`
+      : `${unbackfilled} of your ${departures} departures a year are not replaced under forced under-staffing. That is not free: you are losing output you still need. This tool does not pretend that is $0 — it routes the lost-capacity value to Staffing and Occupancy, where service-level and overtime effects can be modeled honestly.`;
+
+  const analystRead = (hires === 0)
+    ? (downsizing
+        ? `At 0% backfill, this model does not generate replacement cost, because the center is not refilling departures. Here that is intended downsizing: ${departures} seats a year are being shed on purpose, so there is no recruiting, training, or ramp spend to recover, and early-washout waste is correctly $0 — there are no new hires to wash out.
+
+What this tool will not do is call that a $0 problem and move on. Confirm the reduction is genuinely planned and not a hiring freeze wearing downsizing's clothes. If the demand those seats carried has not gone away, the exposure has simply moved from replacement cost to capacity, and that belongs in Staffing and Occupancy.
+
+The per-refill economics above still stand as the cost you would re-incur the moment you start backfilling again: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${Math.round(pctSalary)}% of salary. Treat that as the price of reversing the reduction, not as a current burden.`
+        : `At 0% backfill, this model does not generate replacement cost, because the center is not replacing departures. That does not mean attrition is harmless. With no hires, there is no recruiting, training, or ramp spend, so replacement burden and early-washout waste are both correctly $0 — but the economic exposure has not vanished, it has shifted.
+
+Under forced under-staffing it moves to understaffing, occupancy, service level, backlog, burnout, and customer-impact risk. None of that is a replacement cost, so this tool deliberately does not invent a dollar for it; it routes the case to Staffing and Occupancy, where lost output, overtime on the remaining team, and SLA breach can be modeled honestly. That is also why this export is held at Directional with a hard flag: the real cost lives in a model this calculator is not.
+
+The per-refill economics above remain valid as the cost you re-incur the moment you resume hiring: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${Math.round(pctSalary)}% of salary. Do not read the $0 replacement burden as "attrition is free."`)
+    : `Attrition cost is not one number, and the honest version refuses to pretend it is. Replacing one frontline agent here runs about ${fmt$(allInPerDeparture)} all-in, roughly ${Math.round(pctSalary)}% of annual salary — inside the published frontline band of 40 to 60 percent, the test that lets a CFO trust the rest of the model.
 
 That figure is a burden, not a savings cheque. About ${fmt$(cashPerDeparture)} is cash out the door: recruiting, training wages, sign-on, and the overtime premium to cover the empty seat. The other ${fmt$(capacityPerDeparture)} is recovered capacity — nesting and ramp time you pay full wage for at partial output, plus supervisor coaching. Cash disappears when a backfilled departure is avoided; capacity becomes money only when leadership commits a mechanism. At ${n(d.backfillRate)}% backfill and a "${mechLabel}" mechanism, that is why the realizable column is smaller than the burden.
 
-The sharpest line in this model is early attrition. ${n(d.earlyAttritionShare)}% of your departures — about ${earlyDepartures} agents a year — leave before reaching full productivity, and the ${fmt$(earlyWaste)} of recruiting and training spent on them returns almost nothing. That is the most recoverable money on the page. The defensible business case is not "attrition costs us everything." It is "this much is cash, this much is capacity, this much we can actually realize, and this slice is near-pure waste we can attack first."`;
+Backfill is the assumption most attrition models get wrong. Replacement cost only exists for seats you refill. ${unbackfillSentence}
+
+The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of your new hires — about ${earlyWashouts} a year — leave before reaching productive output, and the ${fmt$(earlyWaste)} of recruiting and training spent on them returns almost nothing. Because it is measured against hires, it can never exceed your replacement cash; it is the cleanest target on the page. The defensible business case is not "attrition costs us everything." It is "this much is cash, this much is capacity, this much we can actually realize, and this slice is near-pure waste we can attack first."`;
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
@@ -212,7 +251,7 @@ The sharpest line in this model is early attrition. ${n(d.earlyAttritionShare)}%
         <div style={WRAP}>
           <span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 10 }}>Cost + Economics</span>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 10px" }}>Attrition Cost Calculator</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, maxWidth: 700 }}>The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act — scaled by how much you actually backfill. The all-in is a burden estimate, not automatic savings, and it is benchmarked against the published 40–60% of salary band for frontline roles.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, maxWidth: 700 }}>The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act. Replacement cost scales with how much you backfill; seats you do not refill are treated as a capacity decision, never as free. Benchmarked against the published 40–60% of salary band for frontline roles.</p>
         </div>
       </section>
 
@@ -225,9 +264,10 @@ The sharpest line in this model is early attrition. ${n(d.earlyAttritionShare)}%
             <NumField label="Avg agent salary" value={d.avgSalary} onChange={v => set("avgSalary", v)} suffix="$/yr" step={1000} pulled={pulled.avgSalary} />
             <NumField label="Benefits + overhead" value={d.benefitsLoadPct} onChange={v => set("benefitsLoadPct", v)} suffix="%" info={DEFS.benefitsLoad} infoTitle="Benefits + overhead load" />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }} className="cg">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }} className="cg">
             <Select label="Backfill basis" value={d.backfillRate} onChange={v => set("backfillRate", Number(v))} opts={BACKFILL_OPTS} info={DEFS.backfill} infoTitle="Backfill basis" />
-            <NumField label="Early attrition (pre-productivity)" value={d.earlyAttritionShare} onChange={v => set("earlyAttritionShare", v)} suffix="%" info={DEFS.early} infoTitle="Early attrition" hint="Leave before full productivity" />
+            <Select label="Un-backfilled seats are…" value={d.unbackfillIntent} onChange={v => set("unbackfillIntent", v)} opts={INTENT_OPTS} info={DEFS.unbackfill} infoTitle="Un-backfilled seats" />
+            <NumField label="Early washout (new hires)" value={d.earlyWashoutRate} onChange={v => set("earlyWashoutRate", v)} suffix="%" info={DEFS.early} infoTitle="Early washout rate" hint="Leave before productivity" />
           </div>
 
           <h2 style={{ fontSize: 13, fontWeight: 700, color: NAVY, margin: "22px 0 14px", letterSpacing: 0.3, textTransform: "uppercase" }}>Cash Out The Door<InfoDot text={DEFS.marginalCash} title="Cash out the door" /></h2>
@@ -278,28 +318,34 @@ The sharpest line in this model is early attrition. ${n(d.earlyAttritionShare)}%
             <div style={{ background: `linear-gradient(135deg, #7F1D1D, #991B1B)`, borderRadius: 10, padding: 22, textAlign: "center" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#FCA5A5", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>All-In Per Departure</div>
               <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 34, color: "#fff" }}>{fmtK(allInPerDeparture)}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{Math.round(pctSalary)}% of salary · burden</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{Math.round(pctSalary)}% of salary · per refill</div>
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }} className="cg3">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }} className="cg3">
             <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 18px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Annual Attrition Burden</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: NAVY }}>{fmtK(annualAllInBurden)}</div>
-              <div style={{ fontSize: 12, color: MUTED }}>{fmtK(annualCashBurden)} cash + {fmtK(annualCapBurden)} capacity · {Math.round(backfilled)} of {departures} departures backfilled</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Annual Replacement Burden</div>
+              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: NAVY }}>{fmtK(annualReplBurden)}</div>
+              <div style={{ fontSize: 12, color: MUTED }}>{fmtK(annualCashBurden)} cash + {fmtK(annualCapBurden)} capacity · {hires} of {departures} departures refilled</div>
               <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Current-state diagnosis — not automatically recoverable.</div>
             </div>
+            <div style={{ border: `1px solid ${unbackfilled > 0 && !downsizing ? RED : BORDER}`, background: unbackfilled > 0 && !downsizing ? "#FEF6F6" : "#fff", borderRadius: 10, padding: "16px 18px" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: unbackfilled > 0 && !downsizing ? RED : SLATE, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Un-backfilled Seats</div>
+              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: unbackfilled > 0 && !downsizing ? RED : NAVY }}>{unbackfilled}/yr</div>
+              <div style={{ fontSize: 12, color: SLATE }}>{unbackfilled === 0 ? "All departures refilled" : downsizing ? "Deliberate reduction — no replacement cost" : "Lost capacity — not free"}</div>
+              <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>{unbackfilled === 0 ? "Full replacement cycle applies." : downsizing ? "Confirm this is intended." : "Value the output loss in Staffing / Occupancy."}</div>
+            </div>
             <div style={{ border: `1px solid ${AMBER}`, background: "#FFFBF4", borderRadius: 10, padding: "16px 18px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#92400E", letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Early-Attrition Waste</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: "#92400E" }}>{fmtK(earlyWaste)}</div>
-              <div style={{ fontSize: 12, color: SLATE }}>{n(d.earlyAttritionShare)}% ({earlyDepartures}/yr) leave before full productivity</div>
-              <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Recruiting + training cash with near-zero return — the most recoverable slice.</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#92400E", letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Early-Washout Waste</div>
+              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: "#92400E" }}>{fmtK(earlyWaste)}</div>
+              <div style={{ fontSize: 12, color: SLATE }}>{n(d.earlyWashoutRate)}% of hires ({earlyWashouts}/yr) leave pre-productivity</div>
+              <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Subset of cash burden — the most recoverable slice.</div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, padding: "10px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: confColor, letterSpacing: 1, textTransform: "uppercase", padding: "3px 8px", borderRadius: 4, background: `${confColor}1a` }}>{confidence}</span>
-            <span style={{ fontSize: 12, color: SLATE }}>Frontline benchmark band is 40–60% of salary and $10–20K all-in; this result is {Math.round(pctSalary)}% / {fmtK(allInPerDeparture)}.</span>
+            <span style={{ fontSize: 12, color: SLATE }}>Frontline benchmark band is 40–60% of salary and $10–20K all-in; this result is {Math.round(pctSalary)}% / {fmtK(allInPerDeparture)}.{hardFlag ? " A hard integrity flag is active — export held at Directional." : ""}</span>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 26 }} className="cg3">
@@ -308,7 +354,7 @@ The sharpest line in this model is early attrition. ${n(d.earlyAttritionShare)}%
           </div>
 
           <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Realizable value if you reduce attrition</h3>
-          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Cash credited in full; capacity at {Math.round(mech * 100)}% per mechanism; both scaled to {n(d.backfillRate)}% backfill. This is realizable value, not the burden above.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Cash in full; capacity at {Math.round(mech * 100)}% per mechanism; both scaled to {n(d.backfillRate)}% backfill. Realizable value, not the burden above.{!downsizing && unbackfilled > 0 ? " Under forced under-staffing, retained capacity carries additional value — see Staffing." : ""}</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 26 }} className="cg">
             {scenarios.map((s, i) => (
               <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: 16, textAlign: "center" }}>
@@ -360,12 +406,13 @@ The sharpest line in this model is early attrition. ${n(d.earlyAttritionShare)}%
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <ReportExport toolName="Attrition Cost Analysis" subtitle={`Total Cost of Agent Turnover — ${confidence}`} userName="" userEmail="" sections={[
               { title: "Confidence & Evidence", type: "findings", items: [
-                `Export confidence: ${confidence}. ${confidence === "Finance-grade" ? "Finance-confirmed inputs, a committed realization mechanism, and a result inside the frontline benchmark." : confidence === "Planning-grade" ? "Real HR figures and a committed mechanism, but not finance-confirmed. Treat as planning input, not a booked number." : "Default or estimated inputs, or no committed mechanism. Directional only — do not book these savings."}`,
-                `Backfill basis: ${n(d.backfillRate)}% of departures replaced. Cost and savings are scaled to this rate; unreplaced seats defer a capacity question to Staffing.`,
+                `Export confidence: ${confidence}.${hardFlag ? " A hard integrity flag is active, so the export is held at Directional regardless of inputs — resolve the flagged item before booking." : confidence === "Finance-grade" ? " Finance-confirmed inputs, a committed mechanism, and a result inside the frontline benchmark." : confidence === "Planning-grade" ? " Real HR figures and a committed mechanism, but not finance-confirmed. Treat as planning input, not a booked number." : " Default or estimated inputs, or no committed mechanism. Directional only — do not book these savings."}`,
+                `Backfill basis: ${n(d.backfillRate)}% of departures replaced (${hires} of ${departures}). Replacement cost scales with this; ${unbackfilled} un-backfilled seats are ${downsizing ? "a deliberate reduction with no replacement cost" : "lost capacity routed to Staffing/Occupancy, not zeroed out as free"}.`,
                 `Vacancy costing: ${d.vacancyMode === "gross" ? "Gross coverage spend (full OT) — valid only if departed-agent payroll savings is tracked elsewhere." : "Incremental, OT premium only (the conservative default)."}`,
                 `Cost basis: ${Math.round(pctSalary)}% of salary versus the published frontline band of 40–60%. ${guardrailOk ? "Within benchmark." : "Outside benchmark — verify inputs before citing."}`,
               ]},
-              { title: "Cost Per Departure", type: "table", rows: [
+              ...(flags.length > 0 ? [{ title: "Integrity Flags", type: "findings", items: flags.map(f => `${f.sev === "high" ? "[FLAG] " : "[NOTE] "}${f.t}`) }] : []),
+              { title: "Cost Per Replaced Departure", type: "table", rows: [
                 ["Recruiting + screening (cash)", fmt$(recruiting)],
                 ["Training: wages + trainer (cash)", fmt$(training)],
                 ...(signOn > 0 ? [["Sign-on bonus (cash)", fmt$(signOn)]] : []),
@@ -378,15 +425,16 @@ The sharpest line in this model is early attrition. ${n(d.earlyAttritionShare)}%
                 { label: "Cash per departure", value: fmt$(cashPerDeparture), color: ELECTRIC },
                 { label: "Capacity per departure", value: fmt$(capacityPerDeparture), color: AMBER },
                 { label: "All-in per departure", value: fmt$(allInPerDeparture), color: RED },
-                { label: "Annual all-in burden", value: fmt$(annualAllInBurden), color: RED },
-                { label: "Early-attrition waste", value: fmt$(earlyWaste), color: AMBER },
+                { label: "Annual replacement burden", value: fmt$(annualReplBurden), color: RED },
+                { label: "Early-washout waste", value: fmt$(earlyWaste), color: AMBER },
                 { label: "Realizable: −5 pts", value: fmt$(scenarios[0].total), color: GREEN },
               ]},
               { title: "Key Findings", type: "findings", items: [
-                `Each backfilled departure costs ${fmt$(cashPerDeparture)} cash plus ${fmt$(capacityPerDeparture)} recovered capacity — ${fmt$(allInPerDeparture)} all-in, about ${Math.round(pctSalary)}% of salary.`,
-                `Annual burden at ${n(d.backfillRate)}% backfill is ${fmt$(annualAllInBurden)} (${fmt$(annualCashBurden)} cash). This is a current-state diagnosis, not recoverable savings.`,
-                `${n(d.earlyAttritionShare)}% of departures leave before full productivity, wasting about ${fmt$(earlyWaste)} of recruiting and training cash — the most recoverable slice.`,
-                `Cutting attrition 5 points realizes ${fmt$(scenarios[0].total)} (${fmt$(scenarios[0].cash)} cash + ${fmt$(scenarios[0].cap)} capacity), gated by backfill and the chosen mechanism — not the all-in headline.`,
+                `Each replaced departure costs ${fmt$(cashPerDeparture)} cash plus ${fmt$(capacityPerDeparture)} recovered capacity — ${fmt$(allInPerDeparture)} all-in, about ${Math.round(pctSalary)}% of salary.`,
+                `At ${n(d.backfillRate)}% backfill, ${hires} of ${departures} departures are refilled, for an annual replacement burden of ${fmt$(annualReplBurden)} (${fmt$(annualCashBurden)} cash). This is a current-state diagnosis, not recoverable savings.`,
+                unbackfilled > 0 ? `${unbackfilled} departures/yr are not refilled. ${downsizing ? "Treated as a deliberate reduction with no replacement cost." : "This is lost capacity, not zero cost — quantify the output and service-level impact in Staffing/Occupancy."}` : `All departures are refilled, so the full replacement cycle applies.`,
+                `${n(d.earlyWashoutRate)}% of hires wash out before productivity, wasting about ${fmt$(earlyWaste)} of recruiting and training cash — a subset of cash burden and the most recoverable slice.`,
+                `Cutting attrition 5 points realizes ${fmt$(scenarios[0].total)} (${fmt$(scenarios[0].cash)} cash + ${fmt$(scenarios[0].cap)} capacity), gated by backfill and mechanism — not the all-in headline.`,
               ]},
               { title: "Next Steps", type: "next", items: [
                 { tool: "Occupancy Risk Simulator", href: "/tools/occupancy-risk", reason: "Check whether occupancy is driving burnout-led exits" },
