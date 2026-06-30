@@ -23,7 +23,7 @@ const DEFS = {
   ramp: "Ramp is the post-nesting stretch before a new hire reaches tenured-agent parity on AHT, QA, and FCR, not merely the point they finish training. Default to fully-productive parity, which is months not days, and value only the shortfall against full output. Ramp starts after nesting so the two never overlap.",
   vacancyMode: "Incremental to staffed plan charges only the overtime premium, because the empty seat's base wage is not being paid. Gross coverage spend charges the full overtime cost and should be used only when the departed agent's stopped payroll is credited somewhere else, or you will double count.",
   mech: "How recovered capacity converts to money. None means you keep the slack and realize zero. Avoid or slow hiring (the default) is the most common honest lever. Reduce headcount realizes the most but is the hardest commitment to make.",
-  confidence: "Directional uses default costs, an uncommitted mechanism, or an unresolved capacity decision. Planning-grade uses your real HR figures and a committed lever. Finance-grade also requires finance-confirmed inputs and a result inside the published frontline benchmark. Any hard integrity flag forces the export back to Directional.",
+  confidence: "Confidence is split into two axes. Cost basis asks whether the per-departure cost inputs are validated: estimated, from HR data, or finance-confirmed and inside the frontline band. Realization asks whether the savings can be booked: a mechanism like Reduce Overtime or Reduce Headcount makes capacity bankable, while None or Absorb Growth keeps it as planning value only. The export headlines the weaker of the two, and any hard integrity flag forces both to Directional.",
 };
 
 const MECH_OPTS = [
@@ -155,17 +155,20 @@ export default function AttritionCostCalculator() {
 
   // ---- INTEGRITY FLAGS ----
   const flags = [];
-  const topComp = Math.max(recruiting, training, vacancy, nestingLoss, rampLoss, supervisorBurden);
   if (pctSalary > 100) flags.push({ t: "All-in exceeds 100% of salary — manager-tier territory, implausible for a frontline agent. Re-check ramp loss, vacancy coverage, and double counting.", sev: "high" });
   else if (pctSalary > 60) flags.push({ t: `All-in is ${Math.round(pctSalary)}% of salary, above the typical frontline sanity band of about 40–60%. Defensible for complex or regulated centers, but validate role type and inputs.`, sev: "med" });
   else if (pctSalary > 0 && pctSalary < 30) flags.push({ t: `All-in is only ${Math.round(pctSalary)}% of salary, below the 40–60% frontline band. Plausible for offshore or BPO, but for a US onshore center it usually signals understated training, ramp, or vacancy inputs — validate before citing.`, sev: "med" });
-  if (allInPerDeparture > 0 && topComp / allInPerDeparture > 0.55) flags.push({ t: `One component is over 55% of all-in cost (${fmt$(topComp)}). A single line dominating this hard usually means an overstated duration or rate — verify before citing.`, sev: "med" });
+  const compNames = [["Recruiting + screening", recruiting], ["Training", training], ["Vacancy coverage", vacancy], ["Nesting loss", nestingLoss], ["Ramp loss", rampLoss], ["Supervisor coaching", supervisorBurden]];
+  const topComp = compNames.reduce((a, b) => b[1] > a[1] ? b : a, compNames[0]);
+  if (allInPerDeparture > 0 && topComp[1] / allInPerDeparture > 0.55) flags.push({ t: `${topComp[0]} is over 55% of all-in cost (${fmt$(topComp[1])}). A single line dominating this hard usually means an overstated duration or rate — verify before citing.`, sev: "med" });
+  else if (allInPerDeparture > 0 && training / allInPerDeparture > 0.40) flags.push({ t: `Training is the dominant cost driver (${Math.round(training / allInPerDeparture * 100)}% of all-in). That can be valid for a long program, but validate training duration, paid hours, class size, and trainer allocation.`, sev: "med" });
   if (n(d.attritionRate) < 10) flags.push({ t: "Attrition under 10% is low for a contact center — validate the denominator (separations ÷ average headcount, rolling 12 months).", sev: "med" });
   else if (n(d.attritionRate) > 50) flags.push({ t: "Attrition over 50% is severe churn. The early-washout share is usually where the recoverable waste sits — confirm it.", sev: "med" });
   if (unbackfilled > 0 && !downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures/yr are not replaced under forced under-staffing. That lost capacity is a real cost, but it is an output and service-level question — quantify it in Staffing and Occupancy, not here. This tool does not zero it out as free.`, sev: "high" });
   if (unbackfilled > 0 && downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures/yr are a deliberate headcount reduction, so they carry no replacement cost. Confirm this is truly intended and not a hiring freeze in disguise.`, sev: "med" });
   if (n(d.mech) === 0) flags.push({ t: "Mechanism is None, so recovered capacity is credited at $0. The savings shown are avoided cash only — the honest floor.", sev: "med" });
   if (n(d.mech) === 100) flags.push({ t: "Reduce headcount realizes 100% of capacity but is the hardest lever to commit. Confirm leadership will hold the seats out.", sev: "med" });
+  if (d.vacancyMode === "gross") flags.push({ t: "Vacancy costing is Gross coverage spend (full OT). This counts base wage you would have paid anyway and overstates incremental attrition cost unless the departed agent's stopped payroll is credited elsewhere. Use Incremental for a clean business case.", sev: "med" });
 
   // ---- HARD INVARIANT: a recoverable subset can never exceed its parent ----
   // Structurally guaranteed (earlyWaste = hires*rate*hireCash <= hires*cashPerDeparture),
@@ -173,15 +176,38 @@ export default function AttritionCostCalculator() {
   const invariantOk = earlyWaste <= annualCashBurden + 0.5;
   if (!invariantOk) flags.push({ t: `Integrity invariant violated: early-washout waste (${fmt$(earlyWaste)}) exceeds annual cash burden (${fmt$(annualCashBurden)}). A subset cannot exceed its parent — do not cite this export. Confidence forced to Directional.`, sev: "high" });
 
-  // ---- CONFIDENCE (a hard flag forces Directional) ----
-  let confidence = "Directional";
+  // ---- TWO-AXIS CONFIDENCE: cost-basis (are inputs validated?) vs realization (can savings be booked?) ----
   const bandLo = n(d.avgSalary) * 0.40, bandHi = n(d.avgSalary) * 0.60;
   const guardrailOk = pctSalary >= 30 && pctSalary <= 60;
-  if (d.evidence === "hrdata" && mech >= 0.6) confidence = "Planning-grade";
-  if (d.evidence === "finance" && mech >= 0.6 && guardrailOk) confidence = "Finance-grade";
+  const inBand = pctSalary >= 40 && pctSalary <= 60;
+  const RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
   const hardFlag = flags.some(f => f.sev === "high");
-  if (hardFlag) confidence = "Directional";
-  const confColor = confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? ELECTRIC : AMBER;
+
+  let costBasis = "Directional";
+  if (d.evidence === "hrdata") costBasis = "Planning-grade";
+  if (d.evidence === "finance" && guardrailOk) costBasis = "Finance-grade";
+
+  let realization = "Directional";
+  if (mech >= 0.9) realization = "Finance-grade";      // reduce vendor / headcount — hard cash lever
+  else if (mech >= 0.6) realization = "Planning-grade"; // reduce OT / avoid hiring — soft lever
+  // mech 0 (none) and 0.25 (absorb growth) stay Directional — capacity not booked as cash
+
+  if (hardFlag) { costBasis = "Directional"; realization = "Directional"; }
+  const confidence = RANK[costBasis] <= RANK[realization] ? costBasis : realization; // overall = weaker axis
+  const tierColor = t => t === "Finance-grade" ? GREEN : t === "Planning-grade" ? ELECTRIC : AMBER;
+
+  const mechName = MECH_OPTS.find(m => m.v === n(d.mech))?.label || "None";
+  const costBasisReason = hardFlag ? "Held at Directional by an active hard integrity flag — resolve it first."
+    : costBasis === "Finance-grade" ? "Finance-confirmed inputs with a cost basis inside the 40–60% frontline band."
+    : costBasis === "Planning-grade" ? "Real HR figures, but not finance-confirmed."
+    : d.evidence === "estimate" ? "Inputs are estimated or default — replace with real figures to raise this."
+    : !guardrailOk ? "Cost basis sits outside the 40–60% frontline band — validate inputs." : "Inputs not yet confirmed.";
+  const realizationReason = hardFlag ? "Held at Directional by an active hard integrity flag — resolve it first."
+    : realization === "Finance-grade" ? `"${mechName}" is a hard cash lever — savings are bookable once committed in budget.`
+    : realization === "Planning-grade" ? `"${mechName}" is a soft lever — tie it to a budget action to book it.`
+    : n(d.mech) === 0 ? "No mechanism selected, so recovered capacity is worth $0 — only avoided cash applies."
+    : `"${mechName}" absorbs freed capacity into growth rather than booking cash — planning value only.`;
+  const bookLabel = realization === "Finance-grade" ? "Bookable if committed" : realization === "Planning-grade" ? "Soft lever — tie to budget" : "Planning only";
 
   useEffect(() => {
     if (publishToolResult) publishToolResult("attrition-cost", {
@@ -234,13 +260,13 @@ The per-refill economics above still stand as the cost you would re-incur the mo
 Under forced under-staffing it moves to understaffing, occupancy, service level, backlog, burnout, and customer-impact risk. None of that is a replacement cost, so this tool deliberately does not invent a dollar for it; it routes the case to Staffing and Occupancy, where lost output, overtime on the remaining team, and SLA breach can be modeled honestly. That is also why this export is held at Directional with a hard flag: the real cost lives in a model this calculator is not.
 
 The per-refill economics above remain valid as the cost you re-incur the moment you resume hiring: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${Math.round(pctSalary)}% of salary. Do not read the $0 replacement burden as "attrition is free."`)
-    : `Attrition cost is not one number, and the honest version refuses to pretend it is. Replacing one frontline agent here runs about ${fmt$(allInPerDeparture)} all-in, roughly ${Math.round(pctSalary)}% of annual salary — inside the published frontline band of 40 to 60 percent, the test that lets a CFO trust the rest of the model.
+    : `Attrition cost is not one number, and the honest version refuses to pretend it is. Replacing one frontline agent here runs about ${fmt$(allInPerDeparture)} all-in, roughly ${Math.round(pctSalary)}% of annual salary — ${inBand ? "inside the published frontline band of 40 to 60 percent, the test that lets a CFO trust the rest of the model" : pctSalary > 60 ? "above the published frontline band of 40 to 60 percent, so validate the ramp, vacancy, and training inputs before a CFO sees it; complex or regulated centers can justify it, but it is not automatically defensible" : "below the published frontline band of 40 to 60 percent, which reads as either an efficient or offshore model or understated inputs — confirm which before relying on it"}.
 
 That figure is a burden, not a savings cheque. About ${fmt$(cashPerDeparture)} is cash out the door: recruiting, training wages, sign-on, and the overtime premium to cover the empty seat. The other ${fmt$(capacityPerDeparture)} is recovered capacity — nesting and ramp time you pay full wage for at partial output, plus supervisor coaching. Cash disappears when a backfilled departure is avoided; capacity becomes money only when leadership commits a mechanism. At ${n(d.backfillRate)}% backfill and a "${mechLabel}" mechanism, that is why the realizable column is smaller than the burden.
 
 Backfill is the assumption most attrition models get wrong. Replacement cost only exists for seats you refill. ${unbackfillSentence}
 
-The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of your new hires — about ${earlyWashouts} a year — leave before reaching productive output, and the ${fmt$(earlyWaste)} of recruiting and training spent on them returns almost nothing. Because it is measured against hires, it can never exceed your replacement cash; it is the cleanest target on the page. The defensible business case is not "attrition costs us everything." It is "this much is cash, this much is capacity, this much we can actually realize, and this slice is near-pure waste we can attack first."`;
+The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of your replacement hires — about ${earlyWashouts} a year — leave before reaching productive output, and the ${fmt$(earlyWaste)} of recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}and training cash spent on them returns almost nothing. Because it is measured against hires, it can never exceed your replacement cash; it is the cleanest target on the page. The defensible business case is not "attrition costs us everything." It is "this much is cash, this much is capacity, this much we can actually realize, and this slice is near-pure waste we can attack first."`;
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
@@ -309,7 +335,7 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: 22, textAlign: "center" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Cash Per Departure</div>
               <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 34, color: "#fff" }}>{fmtK(cashPerDeparture)}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Real spend — saved in full</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>Avoided when a refill is prevented</div>
             </div>
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: 22, textAlign: "center" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Capacity Per Departure</div>
@@ -339,14 +365,24 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
             <div style={{ border: `1px solid ${AMBER}`, background: "#FFFBF4", borderRadius: 10, padding: "16px 18px" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#92400E", letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Early-Washout Waste</div>
               <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: "#92400E" }}>{fmtK(earlyWaste)}</div>
-              <div style={{ fontSize: 12, color: SLATE }}>{n(d.earlyWashoutRate)}% of hires ({earlyWashouts}/yr) leave pre-productivity</div>
+              <div style={{ fontSize: 12, color: SLATE }}>{n(d.earlyWashoutRate)}% of replacement hires ({earlyWashouts}/yr) leave pre-productivity</div>
               <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Subset of cash burden — the most recoverable slice.</div>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22, padding: "10px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: confColor, letterSpacing: 1, textTransform: "uppercase", padding: "3px 8px", borderRadius: 4, background: `${confColor}1a` }}>{confidence}</span>
-            <span style={{ fontSize: 12, color: SLATE }}>Frontline band is 40–60% of salary ({fmtK(bandLo)}–{fmtK(bandHi)} here); the published $10–20K all-in reference assumes typical frontline wages. This result is {Math.round(pctSalary)}% / {fmtK(allInPerDeparture)} — {guardrailOk ? "within band" : pctSalary > 60 ? "above band, validate" : "below band, validate"}.{hardFlag ? " A hard integrity flag is active — export held at Directional." : ""}</span>
+          <div style={{ marginBottom: 22, padding: "12px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" }}>Cost basis</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: tierColor(costBasis), letterSpacing: 1, textTransform: "uppercase", padding: "3px 8px", borderRadius: 4, background: `${tierColor(costBasis)}1a` }}>{costBasis}</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase" }}>Realization</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: tierColor(realization), letterSpacing: 1, textTransform: "uppercase", padding: "3px 8px", borderRadius: 4, background: `${tierColor(realization)}1a` }}>{realization}</span>
+              </div>
+            </div>
+            <div style={{ fontSize: 11, color: SLATE, lineHeight: 1.5 }}><strong style={{ color: NAVY }}>Cost basis:</strong> {costBasisReason} <strong style={{ color: NAVY }}>Realization:</strong> {realizationReason}</div>
+            <div style={{ fontSize: 12, color: SLATE, marginTop: 6 }}>Frontline band is 40–60% of salary ({fmtK(bandLo)}–{fmtK(bandHi)} here); the published $10–20K all-in reference assumes typical frontline wages. This result is {Math.round(pctSalary)}% / {fmtK(allInPerDeparture)} — {guardrailOk ? "within band" : pctSalary > 60 ? "above band, validate" : "below band, validate"}.</div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 26 }} className="cg3">
@@ -362,7 +398,8 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
                 <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>−{s.redPts} pts → {s.newRate}%</div>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: GREEN }}>{fmtK(s.total)}</div>
                 <div style={{ fontSize: 11, color: MUTED }}>realizable / yr</div>
-                <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }}>{fmtK(s.cash)} cash + {fmtK(s.cap)} capacity<br />{s.avoided} fewer departures</div>
+                <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }}>{fmtK(s.cash)} cash avoided + {fmtK(s.cap)} capacity value<br />{s.avoided} fewer departures</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: tierColor(realization), letterSpacing: 0.3, textTransform: "uppercase", marginTop: 6, padding: "2px 6px", borderRadius: 3, background: `${tierColor(realization)}14`, display: "inline-block" }}>{bookLabel}</div>
               </div>
             ))}
           </div>
@@ -405,11 +442,12 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <ReportExport toolName="Attrition Cost Analysis" subtitle={`Total Cost of Agent Turnover — ${confidence}`} userName="" userEmail="" sections={[
+            <ReportExport toolName="Attrition Cost Analysis" subtitle={`Total Cost of Agent Turnover — Cost basis ${costBasis} · Realization ${realization}`} userName="" userEmail="" sections={[
               { title: "Confidence & Evidence", type: "findings", items: [
-                `Export confidence: ${confidence}.${hardFlag ? " A hard integrity flag is active, so the export is held at Directional regardless of inputs — resolve the flagged item before booking." : confidence === "Finance-grade" ? " Finance-confirmed inputs, a committed mechanism, and a result inside the frontline benchmark." : confidence === "Planning-grade" ? " Real HR figures and a committed mechanism, but not finance-confirmed. Treat as planning input, not a booked number." : " Default or estimated inputs, or no committed mechanism. Directional only — do not book these savings."}`,
+                `Cost-basis confidence: ${costBasis}. ${costBasisReason}`,
+                `Realization confidence: ${realization}. ${realizationReason}`,
                 `Backfill basis: ${n(d.backfillRate)}% of departures replaced (${hires} of ${departures}). Replacement cost scales with this; ${unbackfilled} un-backfilled seats are ${downsizing ? "a deliberate reduction with no replacement cost" : "lost capacity routed to Staffing/Occupancy, not zeroed out as free"}.`,
-                `Vacancy costing: ${d.vacancyMode === "gross" ? "Gross coverage spend (full OT) — valid only if departed-agent payroll savings is tracked elsewhere." : "Incremental, OT premium only (the conservative default)."}`,
+                `Vacancy costing: ${d.vacancyMode === "gross" ? "Gross coverage spend (full OT) — overstates incremental cost unless the vacant seat's stopped payroll is credited elsewhere. Incremental (OT premium only) is the conservative default." : "Incremental, OT premium only (the conservative default)."}`,
                 `Cost basis: ${Math.round(pctSalary)}% of salary (${fmt$(allInPerDeparture)}) versus the 40–60% frontline band of ${fmt$(bandLo)}–${fmt$(bandHi)}. ${guardrailOk ? "Within band." : "Outside band — verify inputs before citing."} The $10–20K all-in reference assumes typical frontline wages and is not salary-adjusted.`,
               ]},
               ...(flags.length > 0 ? [{ title: "Integrity Flags", type: "findings", items: flags.map(f => `${f.sev === "high" ? "[FLAG] " : "[NOTE] "}${f.t}`) }] : []),
@@ -428,14 +466,18 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
                 { label: "All-in per departure", value: fmt$(allInPerDeparture), color: RED },
                 { label: "Annual replacement burden", value: fmt$(annualReplBurden), color: RED },
                 { label: "Early-washout waste", value: fmt$(earlyWaste), color: AMBER },
-                { label: "Realizable: −5 pts", value: fmt$(scenarios[0].total), color: GREEN },
+                { label: `Realizable −5 pts (${bookLabel})`, value: fmt$(scenarios[0].total), color: GREEN },
               ]},
               { title: "Key Findings", type: "findings", items: [
                 `Each replaced departure costs ${fmt$(cashPerDeparture)} cash plus ${fmt$(capacityPerDeparture)} recovered capacity — ${fmt$(allInPerDeparture)} all-in, about ${Math.round(pctSalary)}% of salary.`,
                 `At ${n(d.backfillRate)}% backfill, ${hires} of ${departures} departures are refilled, for an annual replacement burden of ${fmt$(annualReplBurden)} (${fmt$(annualCashBurden)} cash). This is a current-state diagnosis, not recoverable savings.`,
                 unbackfilled > 0 ? `${unbackfilled} departures/yr are not refilled. ${downsizing ? "Treated as a deliberate reduction with no replacement cost." : "This is lost capacity, not zero cost — quantify the output and service-level impact in Staffing/Occupancy."}` : `All departures are refilled, so the full replacement cycle applies.`,
-                `${n(d.earlyWashoutRate)}% of hires wash out before productivity, wasting about ${fmt$(earlyWaste)} of recruiting and training cash — a subset of cash burden and the most recoverable slice.`,
-                `Cutting attrition 5 points realizes ${fmt$(scenarios[0].total)} (${fmt$(scenarios[0].cash)} cash + ${fmt$(scenarios[0].cap)} capacity), gated by backfill and mechanism — not the all-in headline.`,
+                `${n(d.earlyWashoutRate)}% of replacement hires wash out before productivity, wasting about ${fmt$(earlyWaste)} of recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}and training cash — a subset of cash burden and the most recoverable slice.`,
+                `Cutting attrition 5 points realizes ${fmt$(scenarios[0].total)} (${fmt$(scenarios[0].cash)} cash avoided + ${fmt$(scenarios[0].cap)} capacity value), gated by backfill and mechanism. Bookability: ${bookLabel.toLowerCase()} — not booked EBITDA unless tied to a budget action.`,
+              ]},
+              { title: "Methodology", type: "findings", items: [
+                `Cost model: per replaced departure = cash (recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}training wages, trainer, vacancy OT) + capacity (nesting and ramp productivity loss, supervisor coaching). Capacity is recovered time, booked only via a realization mechanism.`,
+                `Benchmark guardrail: the 40–60%-of-salary frontline sanity band is based on role-specific replacement-cost estimates (frontline ≈ 40% of salary, well below the generic 50–200% turnover figure). The $10–20K all-in reference is the published contact-center agent replacement estimate and is not salary-adjusted.`,
               ]},
               { title: "Next Steps", type: "next", items: [
                 { tool: "Occupancy Risk Simulator", href: "/tools/occupancy-risk", reason: "Check whether occupancy is driving burnout-led exits" },
