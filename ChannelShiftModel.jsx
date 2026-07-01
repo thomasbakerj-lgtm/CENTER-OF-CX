@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { normalizeForPublish } from "./src/lib/metrics";
 import InfoDot from "./src/lib/InfoDot";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -51,7 +52,7 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
 }
 
 const MECH = {
-  none: { label: "Not selected", f: 0.00, note: "No capacity action — freed-labor value stays $0 until you commit to one." },
+  none: { label: "Not selected", f: 0.00, note: "No capacity action: freed-labor value stays $0 until you commit to one." },
   growth: { label: "Absorb growth / backlog", f: 0.25, note: "Capacity value, not cash this cycle." },
   overtime: { label: "Reduce overtime", f: 0.60, note: "Finance-creditable." },
   hiring: { label: "Avoid hiring / attrition freeze", f: 0.75, note: "Finance-creditable over the cycle. The defensible default." },
@@ -70,15 +71,15 @@ const RISKS = [
 ];
 
 const DEFS = {
-  loadedOH: "The multiplier that turns base wage into fully-burdened cost — benefits, payroll tax, facilities, equipment. An $18/hr agent at 1.35x costs about $24/hr loaded. Used for the cost view; savings use the lower marginal multiplier instead.",
-  marginalOH: "The multiplier for the cost that actually disappears when a contact goes away — wage plus benefits, but not fixed facilities or equipment. Savings are valued on this, because freeing one contact doesn't shrink your building.",
-  eligibility: "The share of voice that is structurally safe to move — simple, transactional, low-risk volume. Exclude complex, regulated, emotional, or revenue-sensitive contacts. This caps the shift so the tool never implies all voice is movable.",
+  loadedOH: "The multiplier that turns base wage into fully-burdened cost: benefits, payroll tax, facilities, equipment. An $18/hr agent at 1.35x costs about $24/hr loaded. Used for the cost view; savings use the lower marginal multiplier instead.",
+  marginalOH: "The multiplier for the cost that actually disappears when a contact goes away: wage plus benefits, but not fixed facilities or equipment. Savings are valued on this, because freeing one contact doesn't shrink your building.",
+  eligibility: "The share of voice that is structurally safe to move: simple, transactional, low-risk volume. Exclude complex, regulated, emotional, or revenue-sensitive contacts. This caps the shift so the tool never implies all voice is movable.",
   erf: "When a contact fails in the target channel and returns to voice, how much harder that recovery call is than a normal one (1.0 same, 1.2 frustrated, 1.5 complex). The bounced call always existed, so only the extra friction counts as new cost.",
-  curve: "As easy volume leaves voice, the calls that remain are harder, so average voice handle time rises. Mild / Moderate / Severe sets how much — it stops the tool assuming leftover voice work is as quick as today's blended average.",
+  curve: "As easy volume leaves voice, the calls that remain are harder, so average voice handle time rises. Mild / Moderate / Severe sets how much. It stops the tool assuming leftover voice work is as quick as today's blended average.",
   resolution: "The share of shifted contacts that actually resolve in the target channel without bouncing back to voice. Transactional issues resolve high, complex issues low. This is the lever that decides whether a shift saves money.",
-  displacement: "Of the contacts that do resolve in the target channel, the share that truly replace a voice call. The rest is new demand from people who'd never have called — real, but not a voice saving. Rarely 100%.",
+  displacement: "Of the contacts that do resolve in the target channel, the share that truly replace a voice call. The rest is new demand from people who'd never have called: real, but not a voice saving. Rarely 100%.",
   capacity: "How freed agent time becomes money. Absorbing growth banks little cash; reducing overtime or avoiding hires is finance-creditable; headcount reduction is fully cashable but riskiest. Freed capacity isn't savings until you commit to one.",
-  botCost: "The per-contact fee your bot or self-service platform charges — real cash, paid on every attempt including failures. A $0 bot is almost never real and makes any shift look free.",
+  botCost: "The per-contact fee your bot or self-service platform charges: real cash, paid on every attempt including failures. A $0 bot is almost never real and makes any shift look free.",
 };
 
 const TARGETS = [
@@ -172,24 +173,24 @@ function buildVerdict(d, r, mechKey) {
   const be = solveBreakEven(d, mechKey, pt);
   const curRes = n(d[pt.res]);
   if (r.netRealizable < 0) {
-    return { label: "Do not approve yet", color: RED, be, pt, curRes, detail: be == null ? `Net negative, and it never breaks even within range — even perfect ${pt.key.toLowerCase()} resolution can't offset the bot fees, displacement loss, and transition. Rework the plan.` : `Breaks even at ${be.toFixed(0)}% ${pt.key.toLowerCase()} resolution; you're at ${curRes}% (${(be - curRes).toFixed(0)} pts short). Fix resolution before shifting.` };
+    return { label: "Do not approve yet", color: RED, be, pt, curRes, detail: be == null ? `Net negative, and it never breaks even within range. Even perfect ${pt.key.toLowerCase()} resolution can't offset the bot fees, displacement loss, and transition. Rework the plan.` : `Breaks even at ${be.toFixed(0)}% ${pt.key.toLowerCase()} resolution; you're at ${curRes}% (${(be - curRes).toFixed(0)} pts short). Fix resolution before shifting.` };
   }
-  if (riskAny) return { label: "Approve only with pilot", color: AMBER, be, pt, curRes, detail: `Net positive, but you've flagged CX/risk-sensitive volume. Require a pilot to validate resolution and CSAT before full rollout — cost-positive is not the same as safe.` };
-  if (be != null && be < 1) return { label: "Approve", color: GREEN, be, pt, curRes, detail: `Net positive — but break-even resolves to ~0%, which usually means your bot cost or return-factor assumptions are too generous. Verify those before treating this as a clean approval.` };
+  if (riskAny) return { label: "Approve only with pilot", color: AMBER, be, pt, curRes, detail: `Net positive, but you've flagged CX/risk-sensitive volume. Require a pilot to validate resolution and CSAT before full rollout. Cost-positive is not the same as safe.` };
+  if (be != null && be < 1) return { label: "Approve", color: GREEN, be, pt, curRes, detail: `Net positive, but break-even resolves to ~0%, which usually means your bot cost or return-factor assumptions are too generous. Verify those before treating this as a clean approval.` };
   return { label: "Approve", color: GREEN, be, pt, curRes, detail: `Net positive at ${curRes}% ${pt.key.toLowerCase()} resolution${be != null ? ` (break-even ${be.toFixed(0)}%)` : ""}. The shift clears its bar.` };
 }
 
 function buildAnalystRead(d, r, mechKey, verdict) {
   const out = [];
-  out.push(`Of ${Math.round(r.voiceVol).toLocaleString()} voice contacts, only ${Math.round(r.eligible).toLocaleString()} (${n(d.eligibility)}%) are structurally eligible to shift. Within that, ${Math.round(r.shifted).toLocaleString()} are shifted — but the number that matters is ${Math.round(r.Dtot).toLocaleString()}: the contacts that both resolve in the target channel and actually replace a voice call. That's the real shift, not the headline percentage.`);
+  out.push(`Of ${Math.round(r.voiceVol).toLocaleString()} voice contacts, only ${Math.round(r.eligible).toLocaleString()} (${n(d.eligibility)}%) are structurally eligible to shift. Within that, ${Math.round(r.shifted).toLocaleString()} are shifted, but the number that matters is ${Math.round(r.Dtot).toLocaleString()}: the contacts that both resolve in the target channel and actually replace a voice call. That's the real shift, not the headline percentage.`);
 
-  out.push(`${Math.round(r.Etot).toLocaleString()} contacts don't resolve and bounce back to voice. Critically, those were always going to be voice calls — so only the extra friction of a frustrated re-contact (your ${n(d.escReturnFactor)}x return factor) is new cost, not the whole call. And displacement matters: digital adoption that doesn't pull a customer out of the voice queue is new demand, not savings, which is why this nets to ${fmtK(r.netRealizable)}/mo, not the gross.`);
+  out.push(`${Math.round(r.Etot).toLocaleString()} contacts don't resolve and bounce back to voice. Critically, those were always going to be voice calls, so only the extra friction of a frustrated re-contact (your ${n(d.escReturnFactor)}x return factor) is new cost, not the whole call. And displacement matters: digital adoption that doesn't pull a customer out of the voice queue is new demand, not savings, which is why this nets to ${fmtK(r.netRealizable)}/mo, not the gross.`);
 
-  if (verdict.be != null && verdict.pt) out.push(`Decision threshold: this shift breaks even at ${verdict.be.toFixed(0)}% ${verdict.pt.key.toLowerCase()} resolution. You're modeling ${verdict.curRes}%. ${verdict.curRes >= verdict.be ? "You clear it — but validate that resolution rate against real deflection data before committing." : "You're below it — fixing resolution comes before shifting, not after."}`);
+  if (verdict.be != null && verdict.pt) out.push(`Decision threshold: this shift breaks even at ${verdict.be.toFixed(0)}% ${verdict.pt.key.toLowerCase()} resolution. You're modeling ${verdict.curRes}%. ${verdict.curRes >= verdict.be ? "You clear it, but validate that resolution rate against real deflection data before committing." : "You're below it. Fixing resolution comes before shifting, not after."}`);
 
-  out.push(`Freed voice time is capacity, not cash. The realizable figure assumes ${MECH[mechKey].label}${mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}; bot platform fees (${fmtK(r.botFee)}/mo) are real cash and netted in full. Residual voice runs ${((r.adverseMult - 1) * 100).toFixed(0)}% harder under your ${(CURVE[d.adverseCurve] || CURVE.moderate).label.toLowerCase()} complexity curve — the agents left on voice are working your hardest demand.`);
+  out.push(`Freed voice time is capacity, not cash. The realizable figure assumes ${MECH[mechKey].label}${mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}; bot platform fees (${fmtK(r.botFee)}/mo) are real cash and netted in full. Residual voice runs ${((r.adverseMult - 1) * 100).toFixed(0)}% harder under your ${(CURVE[d.adverseCurve] || CURVE.moderate).label.toLowerCase()} complexity curve: the agents left on voice are working your hardest demand.`);
 
-  out.push(`This is the operating-capacity question only. It does not value what those interactions are worth to the business — that's Return per Contact. And the full investment case (ramp timing, phasing, approval packaging) belongs in Business Case Builder; this exports the headline.`);
+  out.push(`This is the operating-capacity question only. It does not value what those interactions are worth to the business. That's Return per Contact. And the full investment case (ramp timing, phasing, approval packaging) belongs in Business Case Builder; this exports the headline.`);
   return out;
 }
 
@@ -232,30 +233,30 @@ export default function ChannelShiftModel() {
   const riskAny = RISKS.some(x => d[x.k]);
   const flags = [];
   if (mixTotal !== 100) flags.push({ sev: "warn", t: `Current channel mix sums to ${mixTotal}%, not 100%. Fix the mix or every number is off.` });
-  if (r.scaled) flags.push({ sev: "warn", t: `Requested shift exceeds eligible voice (${n(d.eligibility)}% of voice = ${Math.round(r.eligible).toLocaleString()}). Shifts were scaled to fit — you can't move volume that isn't structurally eligible.` });
-  if (verdict.be != null && verdict.pt) flags.push({ sev: verdict.curRes >= verdict.be ? "info" : "warn", t: `Break-even ${verdict.pt.key.toLowerCase()} resolution is ${verdict.be.toFixed(0)}%; you're modeling ${verdict.curRes}%${verdict.curRes >= verdict.be ? " — clears it." : ` — ${(verdict.be - verdict.curRes).toFixed(0)} pts short.`}` });
-  if (r.netRealizable < 0) flags.push({ sev: "warn", t: `Net negative (${fmtK(r.netRealizable)}/mo). Escalations, displacement loss, and bot fees outweigh the freed voice capacity — you're moving the wrong volume or the resolution rate is too low.` });
-  if (riskAny && r.netRealizable >= 0) flags.push({ sev: "warn", t: `Cost-positive, but you've flagged CX/risk-sensitive volume (${RISKS.filter(x => d[x.k]).map(x => x.label).join(", ")}). Require pilot validation before approval — this tool prices capacity, not customer harm.` });
-  TARGETS.forEach(t => { if (n(d[t.shift]) > 0 && n(d[t.disp]) >= 100) flags.push({ sev: "info", t: `${t.key} displacement at 100% assumes every adopted contact replaces a voice call. Digital channels usually generate some new demand — 70-85% is more defensible.` }); });
-  if (n(d.shiftToBot) > 0 && n(d.botCost) <= 0.10) flags.push({ sev: "warn", t: `Bot cost is ${money(n(d.botCost))} — near-free. Real bots carry per-resolution or platform fees; a $0 bot makes any shift look costless and drives break-even toward 0%. Set a realistic per-contact cost.` });
-  if (verdict.be != null && verdict.be < 1 && r.netRealizable > 0 && r.shifted > 0) flags.push({ sev: "warn", t: "Break-even resolves to ~0% — the shift looks profitable at any resolution. That usually means the bot cost or escalation return factor is too generous, not that the shift is risk-free. Sanity-check those before approving." });
-  if (mech === "none") flags.push({ sev: "warn", t: "No capacity action selected — freed-labor value is $0. Pick a mechanism before presenting any savings number." });
+  if (r.scaled) flags.push({ sev: "warn", t: `Requested shift exceeds eligible voice (${n(d.eligibility)}% of voice = ${Math.round(r.eligible).toLocaleString()}). Shifts were scaled to fit. You can't move volume that isn't structurally eligible.` });
+  if (verdict.be != null && verdict.pt) flags.push({ sev: verdict.curRes >= verdict.be ? "info" : "warn", t: `Break-even ${verdict.pt.key.toLowerCase()} resolution is ${verdict.be.toFixed(0)}%; you're modeling ${verdict.curRes}%${verdict.curRes >= verdict.be ? ", clears it." : `, ${(verdict.be - verdict.curRes).toFixed(0)} pts short.`}` });
+  if (r.netRealizable < 0) flags.push({ sev: "warn", t: `Net negative (${fmtK(r.netRealizable)}/mo). Escalations, displacement loss, and bot fees outweigh the freed voice capacity. You're moving the wrong volume or the resolution rate is too low.` });
+  if (riskAny && r.netRealizable >= 0) flags.push({ sev: "warn", t: `Cost-positive, but you've flagged CX/risk-sensitive volume (${RISKS.filter(x => d[x.k]).map(x => x.label).join(", ")}). Require pilot validation before approval. This tool prices capacity, not customer harm.` });
+  TARGETS.forEach(t => { if (n(d[t.shift]) > 0 && n(d[t.disp]) >= 100) flags.push({ sev: "info", t: `${t.key} displacement at 100% assumes every adopted contact replaces a voice call. Digital channels usually generate some new demand. 70-85% is more defensible.` }); });
+  if (n(d.shiftToBot) > 0 && n(d.botCost) <= 0.10) flags.push({ sev: "warn", t: `Bot cost is ${money(n(d.botCost))}, near-free. Real bots carry per-resolution or platform fees; a $0 bot makes any shift look costless and drives break-even toward 0%. Set a realistic per-contact cost.` });
+  if (verdict.be != null && verdict.be < 1 && r.netRealizable > 0 && r.shifted > 0) flags.push({ sev: "warn", t: "Break-even resolves to ~0%. The shift looks profitable at any resolution. That usually means the bot cost or escalation return factor is too generous, not that the shift is risk-free. Sanity-check those before approving." });
+  if (mech === "none") flags.push({ sev: "warn", t: "No capacity action selected: freed-labor value is $0. Pick a mechanism before presenting any savings number." });
 
   useEffect(() => {
-    publishToolResult("channel-shift", {
+    publishToolResult("channel-shift", normalizeForPublish({
       channelShiftNetRealizableMonthly: Math.round(r.netRealizable), channelShiftNetRealizableAnnual: Math.round(r.netRealizable * 12),
       channelShiftGrossMonthly: Math.round(r.gross), channelShiftDisplacedVoice: Math.round(r.Dtot), channelShiftBouncedMonthly: Math.round(r.Etot),
       channelShiftFteFreed: +r.fteFreed.toFixed(1), channelShiftTransition: Math.round(r.transition),
       channelShiftPaybackMonths: isFinite(r.payback) ? +r.payback.toFixed(1) : null, channelShiftBreakEvenRes: verdict.be != null ? +verdict.be.toFixed(0) : null,
       capacityAction: mech, grade, analystRead: analyst[0],
-    });
+    }, { sourceTool: "channel-shift" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
 
   const sendResults = () => {
     setSending(true);
     const body = new FormData();
-    body.append("_subject", "Channel Shift Economics — Center of CX");
+    body.append("_subject", "Channel Shift Economics, Center of CX");
     body.append("source", "Channel Shift Economics");
     body.append("net_realizable_monthly", fmtK(r.netRealizable));
     body.append("verdict", verdict.label);
@@ -285,7 +286,7 @@ export default function ChannelShiftModel() {
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>Channel Shift Economics</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 700 }}>Channel shift only creates value when eligible demand resolves in the target channel at a rate high enough to offset failure, escalation, residual voice complexity, transition cost, and capacity realization. This model does not assume digital adoption equals savings — it separates shifted, resolved, displaced, and finance-realizable volume.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 700 }}>Channel shift only creates value when eligible demand resolves in the target channel at a rate high enough to offset failure, escalation, residual voice complexity, transition cost, and capacity realization. This model does not assume digital adoption equals savings. It separates shifted, resolved, displaced, and finance-realizable volume.</p>
           <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             {Object.keys(pulled).length > 0 && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}>
@@ -342,7 +343,7 @@ export default function ChannelShiftModel() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, margin: "18px 0 0" }} className="s3">
-            <NumField label="Eligible voice for shift" value={d.eligibility} onChange={v => set("eligibility", v)} suffix="%" step={5} min={0} max={100} hint="Structurally shiftable — exclude complex/regulated/emotional volume" info={DEFS.eligibility} infoTitle="Eligible voice for shift" />
+            <NumField label="Eligible voice for shift" value={d.eligibility} onChange={v => set("eligibility", v)} suffix="%" step={5} min={0} max={100} hint="Structurally shiftable, exclude complex/regulated/emotional volume" info={DEFS.eligibility} infoTitle="Eligible voice for shift" />
             <NumField label="Escalation return factor" value={d.escReturnFactor} onChange={v => set("escReturnFactor", v)} suffix="x" step={0.1} min={1} hint="Re-contact friction: 1.0 same as a direct call, 1.2 frustrated, 1.5 complex recovery" info={DEFS.erf} infoTitle="Escalation return factor" />
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Residual complexity curve<InfoDot text={DEFS.curve} title="Residual complexity curve" align="right" /></label>
@@ -354,7 +355,7 @@ export default function ChannelShiftModel() {
           </div>
 
           <div style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase", margin: "20px 0 4px" }}>Shift from voice → target</div>
-          <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts — set them to what your data supports.</p>
+          <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts. Set them to what your data supports.</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="s3">
             {TARGETS.map(t => <ShiftCard key={t.key} t={t.key} color={t.color} />)}
           </div>
@@ -486,7 +487,7 @@ export default function ChannelShiftModel() {
               ]},
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${n(d.eligibility)}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${n(d.escReturnFactor)}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call — the rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mech].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Residual voice AHT rises under the ${(CURVE[d.adverseCurve] || CURVE.moderate).label} complexity curve. Break-even is the target resolution rate at which net realizable crosses zero. Grade: ${grade}. This is an operating-capacity model, not a value or full-investment model.` },
+              { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${n(d.eligibility)}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${n(d.escReturnFactor)}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call. The rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mech].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Residual voice AHT rises under the ${(CURVE[d.adverseCurve] || CURVE.moderate).label} complexity curve. Break-even is the target resolution rate at which net realizable crosses zero. Grade: ${grade}. This is an operating-capacity model, not a value or full-investment model.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "AI Deflection Reality Check", reason: "Validate the bot resolution rate this decision rests on", href: "/tools/ai-deflection" },
                 { tool: "Business Case Builder", reason: "Build the full investment case: ramp, phasing, approval packaging", href: "/tools/business-case" },
