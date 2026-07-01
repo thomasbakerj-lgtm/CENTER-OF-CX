@@ -22,7 +22,7 @@ const DEFS = {
   marginalCPC: { title: "Marginal cost per contact", text: "The cost that actually disappears when one contact goes away: agent wage plus benefits for the handle time, not facilities or licenses. Savings are valued here because fixed costs do not refund when volume drops." },
   loadedCPC: { title: "Loaded cost per contact", text: "Fully burdened cost including facilities, software, and overhead. Used only for the unit metric you report upward, never for savings, because valuing savings at loaded cost is the most common way these numbers get inflated." },
   repeatModel: { title: "Repeat-behavior model", text: "The same FCR yields different leakage depending on how an unresolved issue behaves. One-callback assumes each failed issue returns once. Geometric assumes callbacks can themselves fail, so some issues return several times. If you have measured your real repeat rate, enter it and ignore the model." },
-  repeatMult: { title: "Repeat complexity multiplier", text: "Repeat contacts often cost more than first contacts: longer handle time, more transfers, escalation, and back-office rework. Default is 1.0. Raise it only if you have evidence, do not invent the number." },
+  repeatMult: { title: "Repeat complexity multiplier", text: "Repeat contacts often cost more than first contacts: longer handle time, more transfers, escalation, and back-office rework. Published estimates put repeats at 1.5x to 2x a first contact, with outliers to 4x. Guidance: 1.0x to 2.0x is the normal modeled range, 2.0x to 2.5x is elevated and fits centers where repeats escalate or run long, and above 2.5x is a high assumption to validate against your own handle-time and escalation data before using it in a business case. Default is 1.0x. Raise it only on evidence, do not invent the number." },
   ceiling: { title: "Opportunity times capture", text: "Two separate truths. Opportunity is how much controllable leakage exists, which is high when your diagnostic is weak. Capture is how much of it you can realistically book in year one, which is high when your diagnostic is strong. Headroom is measured against a practical maximum near 90%, stricter for stricter scope, not against a perfect 100%, because gains get much harder above world-class. Their product caps your target, so a center cannot claim a gain it has no realistic ability to capture." },
   controllable: { title: "Controllable vs non-controllable burden", text: "Only part of your repeat burden is inside your control this year. The rest comes from issue complexity, structural constraints, and customer-driven failures that no process fix removes. Savings are drawn only from the controllable slice." },
   sourcing: { title: "Sourcing model", text: "For in-house teams, reduced volume is capacity, not cash, until a mechanism converts it. For an outsourced per-contact model, reduced volume stops being billed, so it converts to cash directly. Same volume drop, very different cash speed." },
@@ -165,6 +165,7 @@ function engine(I) {
   if (repeatModel === "measured" && (measuredRate < 0 || measuredRate > 0.6)) flags.push("Measured repeat share is outside the plausible 0 to 60% range. Recheck the figure.");
   if (method === "internal" && windowDays < 7) flags.push("Callback window of " + windowDays + " days is short. Internal FCR measured on a short window captures fewer return contacts and tends to run high, so the true repeat burden is likely larger than shown. This matters most for cross-channel and enterprise scope, where customers often return days later.");
   if (neverPaysBack) flags.push("Recurring cost meets or exceeds steady-state realizable savings, so this project does not pay back at any horizon under the current scope. Reduce recurring cost, strengthen the mechanism, or narrow the target.");
+  if (repeatMult > 2.5) flags.push("Repeat complexity multiplier above 2.5x sits beyond most published estimates, which put repeats at 1.5x to 2x a first contact, with outliers to 4x. Confirm it against your own handle-time, escalation, and rework data before presenting these figures.");
   if (lCPC && mCPC > lCPC) flags.push("Marginal cost per contact exceeds loaded cost, which is impossible. Correct the inputs.");
   if (repeatMult < 1) flags.push("Repeat complexity multiplier below 1.0 implies repeats are cheaper than first contacts, which is implausible.");
   else if (lCPC && mCPC >= 0.85 * lCPC) flags.push("Marginal cost is close to loaded cost. You may have entered loaded cost. The savings basis must be marginal.");
@@ -240,8 +241,9 @@ export default function FCRLeakageDiagnostic() {
 
   const engineInput = { M, fcr: fcrPct / 100, mCPC, lCPC, repeatModel, measuredRate: measuredPct / 100, measuredTargetRate: measuredTargetPct > 0 ? measuredTargetPct / 100 : null, pathModel, repeatMult, dScore: dScore || 3, askTarget: targetPct / 100, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays };
   const R = engine(engineInput);
+  const aggMult = Math.min(3.0, Math.max(1.5, repeatMult + 0.4));
   const sensLo = engine({ ...engineInput, repeatModel: "one", repeatMult: 1.0 });
-  const sensHi = engine({ ...engineInput, repeatModel: "geometric", repeatMult: 1.5 });
+  const sensHi = engine({ ...engineInput, repeatModel: "geometric", repeatMult: aggMult });
   const sorted = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id));
   const top = sorted[0];
   const confColor = (c) => c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : MUTED;
@@ -305,6 +307,7 @@ export default function FCRLeakageDiagnostic() {
                 {repeatModel === "measured" && measuredTargetPct === 0 && <Sel label="Improvement path model" value={pathModel} onChange={setPathModel} options={[{ v: "one", l: "One-callback path" }, { v: "geometric", l: "Geometric path" }, { v: "proportional", l: "Proportional to failure reduction" }]} />}
                 <NumField label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} align="right" />
               </div>
+              {repeatMult > 2.5 ? <p style={{ fontSize: 12, color: RED, marginTop: 12, lineHeight: 1.5 }}>High assumption at {fmtX(repeatMult)}x. This is above most published estimates. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.</p> : repeatMult > 2.0 ? <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Elevated at {fmtX(repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.</p> : null}
             </div>
 
             <div style={card}>
@@ -371,7 +374,7 @@ export default function FCRLeakageDiagnostic() {
               <span style={{ fontSize: 12, color: SLATE }}>Realization <strong style={{ color: confColor(R.realConf) }}>{R.realConf}</strong></span>
               <span style={{ fontSize: 12, color: SLATE }}>Headline reports the weaker axis.</span>
               <InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} />
-              <div style={{ flexBasis: "100%", fontSize: 12, color: SLATE, lineHeight: 1.5, marginTop: 2 }}>Rated {R.headlineConf} because {R.confReason}</div>
+              <div style={{ flexBasis: "100%", fontSize: 12, color: SLATE, lineHeight: 1.5, marginTop: 2 }}>{R.confReason.charAt(0).toUpperCase() + R.confReason.slice(1)}</div>
             </div>
 
             <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
@@ -447,7 +450,7 @@ export default function FCRLeakageDiagnostic() {
               {[
                 { k: "Conservative", d: "one-callback, 1.0x cost", r: sensLo },
                 { k: "Current model", d: `${repeatModel === "geometric" ? "geometric" : repeatModel === "measured" ? "measured" : "one-callback"}, ${fmtX(repeatMult)}x cost`, r: R, cur: true },
-                { k: "Aggressive", d: "geometric, 1.5x cost", r: sensHi },
+                { k: "Aggressive", d: `geometric, ${fmtX(aggMult)}x cost`, r: sensHi },
               ].map((row, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < 2 ? `1px solid ${BORDER}` : "none", background: row.cur ? `${ELECTRIC}06` : "transparent" }}>
                   <span style={{ fontSize: 12.5, fontWeight: row.cur ? 700 : 600, color: row.cur ? ELECTRIC : NAVY, width: 120 }}>{row.k}</span>
@@ -485,7 +488,7 @@ export default function FCRLeakageDiagnostic() {
                   { label: "Payback / Year-1 net / Year-2 net", value: (R.neverPaysBack ? "never" : R.payback ? "mo " + R.payback : "48mo+") + " / " + money(R.year1Net) + " / " + money(R.year2Net), color: R.year1Net >= 0 ? GREEN : RED },
                 ] },
                 { title: "Confidence and Risk Flags", type: "findings", items: [
-                  `Headline ${R.headlineConf}. Cost basis ${R.costConf}, realization ${R.realConf}. The headline reports the weaker axis. Rated ${R.headlineConf} because ${R.confReason}`,
+                  `Headline ${R.headlineConf}. Cost basis ${R.costConf}, realization ${R.realConf}. The headline reports the weaker axis. ${R.confReason.charAt(0).toUpperCase() + R.confReason.slice(1)}`,
                   ...(R.flags.length ? R.flags : ["No integrity flags raised."]),
                 ] },
                 { title: "Dimension Scores", type: "table", rows: DIMS.map((d) => [d.name, dimScore(d.id).toFixed(1) + "/5 (" + d.ownerClass + ")"]) },
