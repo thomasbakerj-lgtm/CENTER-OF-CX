@@ -483,7 +483,7 @@ export default function ChannelShiftModel() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="s3">
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Chat reskilling</div><div style={{ fontSize: 20, fontWeight: 600, color: NAVY }}>{fmtK(r.training)}</div></div>
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Ramp productivity loss</div><div style={{ fontSize: 20, fontWeight: 600, color: NAVY }}>{fmtK(r.ramp)}</div></div>
-            <div style={{ background: WARM, border: `1px solid ${isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Payback (headline)</div><div style={{ fontSize: 20, fontWeight: 600, color: isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER }}>{isFinite(r.payback) ? r.payback.toFixed(1) + " mo" : "never"}</div></div>
+            <div style={{ background: WARM, border: `1px solid ${isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Payback (headline)</div><div style={{ fontSize: 20, fontWeight: 600, color: isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER }}>{isFinite(r.payback) ? r.payback.toFixed(1) + " mo" : "Never"}</div></div>
           </div>
 
           {/* Analyst */}
@@ -520,7 +520,7 @@ export default function ChannelShiftModel() {
                 ["Bot platform fees (real cash)", fmtK(-r.botFee) + "/mo"],
                 ["Net realizable", fmtK(r.netRealizable) + "/mo"],
                 ["Transition (one-time)", fmtK(r.transition)],
-                ["Payback", isFinite(r.payback) ? r.payback.toFixed(1) + " months" : "does not pay back"],
+                ["Payback", isFinite(r.payback) ? r.payback.toFixed(1) + " months" : "Does not pay back"],
               ]},
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
