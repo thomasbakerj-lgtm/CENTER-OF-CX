@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { normalizeForPublish } from "./src/lib/metrics";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -52,7 +53,7 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
 // Capacity action drives realization. Freed handle time is not cash until you commit to a
 // mechanism; "none" credits nothing. Each carries an honest cashability ceiling.
 const MECH = {
-  none: { label: "Not selected", f: 0.00, cred: "none", note: "No capacity action — realizable savings stay $0 until you commit to one." },
+  none: { label: "Not selected", f: 0.00, cred: "none", note: "No capacity action: realizable savings stay $0 until you commit to one." },
   growth: { label: "Absorb growth / backlog", f: 0.25, cred: "capacity", note: "Capacity value, not cash this cycle." },
   overtime: { label: "Reduce overtime", f: 0.60, cred: "finance", note: "Finance-creditable." },
   hiring: { label: "Avoid hiring / attrition freeze", f: 0.75, cred: "finance", note: "Finance-creditable over the cycle. The defensible default." },
@@ -86,7 +87,7 @@ function compute(d, mechKey) {
   const cprLoaded = loaded * C;
 
   // Volume denominator: handled contacts (default) or resolved issues. The repeat
-  // math differs, so the basis must be explicit — another place a tool can lie by accident.
+  // math differs, so the basis must be explicit. Another place a tool can lie by accident.
   const vol = n(d.monthlyContacts);
   let handled, resolutions, repeatContacts;
   if (d.denominator === "issues") { resolutions = vol; handled = vol * C; repeatContacts = vol * (C - 1); }
@@ -94,7 +95,7 @@ function compute(d, mechKey) {
   repeatContacts = Math.max(0, repeatContacts);
   const repeatShare = handled > 0 ? repeatContacts / handled : 0;
 
-  // Baseline pool — the marginal cost of ALL repeat demand. A burden and a ceiling,
+  // Baseline pool: the marginal cost of ALL repeat demand. A burden and a ceiling,
   // NOT a savings figure and NOT "created." Realization does not apply here.
   const burden = repeatContacts * marg;
   const burdenLoaded = repeatContacts * loaded;   // accounting view
@@ -124,12 +125,12 @@ function compute(d, mechKey) {
   });
 
   const flags = [];
-  if (loaded > 0 && marg >= loaded) flags.push({ sev: "warn", t: "Marginal cost is not below loaded. Marginal must be the lower, variable cost — eliminating a contact can't recover the fixed platform and facilities in the loaded figure. Check the cost basis." });
+  if (loaded > 0 && marg >= loaded) flags.push({ sev: "warn", t: "Marginal cost is not below loaded. Marginal must be the lower, variable cost. Eliminating a contact can't recover the fixed platform and facilities in the loaded figure. Check the cost basis." });
   if (chPctTotal !== 100) flags.push({ sev: "warn", t: `Channel mix sums to ${chPctTotal}%, not 100%. Channel spend is scaled to volume, but blended handle cost reads true only at 100%.` });
-  if (repeatShare > 0.25) flags.push({ sev: "info", t: `Repeat demand is ${(repeatShare * 100).toFixed(0)}% of all contacts — a resolution problem, not a price problem. Cutting contact cost won't fix it; raising FCR will.` });
-  if (fcr < 0.70 && Mu < 1.3) flags.push({ sev: "warn", t: `Low FCR (${n(d.fcrRate)}%) paired with shallow non-FCR depth (M=${Mu}) likely understates the repeat burden. Validate reopened cases, callbacks, transfers, and follow-ups — real M is usually higher than 1.3.` });
-  if (mechKey === "none") flags.push({ sev: "warn", t: "No capacity action selected — realizable savings are $0. Pick a mechanism (overtime, hiring avoidance, vendor reduction, or headcount) before presenting any savings number." });
-  if (mechKey === "headcount") flags.push({ sev: "info", t: "Headcount reduction is fully cashable but carries the highest change and CSAT risk — confirm the FCR gain is durable before committing to it." });
+  if (repeatShare > 0.25) flags.push({ sev: "info", t: `Repeat demand is ${(repeatShare * 100).toFixed(0)}% of all contacts, a resolution problem, not a price problem. Cutting contact cost won't fix it; raising FCR will.` });
+  if (fcr < 0.70 && Mu < 1.3) flags.push({ sev: "warn", t: `Low FCR (${n(d.fcrRate)}%) paired with shallow non-FCR depth (M=${Mu}) likely understates the repeat burden. Validate reopened cases, callbacks, transfers, and follow-ups. Real M is usually higher than 1.3.` });
+  if (mechKey === "none") flags.push({ sev: "warn", t: "No capacity action selected: realizable savings are $0. Pick a mechanism (overtime, hiring avoidance, vendor reduction, or headcount) before presenting any savings number." });
+  if (mechKey === "headcount") flags.push({ sev: "info", t: "Headcount reduction is fully cashable but carries the highest change and CSAT risk. Confirm the FCR gain is durable before committing to it." });
 
   return { C, gapPct, cprLoaded, loaded, marg, mf, handled: Math.round(handled), resolutions: Math.round(resolutions), repeatContacts: Math.round(repeatContacts), repeatShare, burden, burdenLoaded, channels, blendedHandle, blendedEffMin, chPctTotal, fteBurden, dividend, flags };
 }
@@ -137,14 +138,14 @@ function compute(d, mechKey) {
 function buildAnalystRead(d, r, mechKey) {
   const out = [];
   const unit = d.denominator === "issues" ? "resolved issue" : "handled contact";
-  out.push(`Your cost per contact is ${money(r.loaded)}, but your cost per resolution is ${money(r.cprLoaded)} — a ${r.gapPct.toFixed(0)}% premium. The gap is repeat demand: ${(r.repeatShare * 100).toFixed(0)}% of every handled contact is a repeat tied to an unresolved issue. The contact price isn't the problem; the repeat rate is. That's the 2026 move from cost-per-contact to resolution-cost thinking.`);
+  out.push(`Your cost per contact is ${money(r.loaded)}, but your cost per resolution is ${money(r.cprLoaded)}, a ${r.gapPct.toFixed(0)}% premium. The gap is repeat demand: ${(r.repeatShare * 100).toFixed(0)}% of every handled contact is a repeat tied to an unresolved issue. The contact price isn't the problem; the repeat rate is. That's the 2026 move from cost-per-contact to resolution-cost thinking.`);
 
-  out.push(`Your repeat-demand capacity burden is ${fmtK(r.burden)}/mo (${r.fteBurden.toFixed(1)} FTE of handling) — the marginal cost of all repeat contacts. Read it as a ceiling, not a savings figure: you can't release all of it, because FCR never reaches 100%. The realistic releases come from the FCR improvements below.`);
+  out.push(`Your repeat-demand capacity burden is ${fmtK(r.burden)}/mo (${r.fteBurden.toFixed(1)} FTE of handling), the marginal cost of all repeat contacts. Read it as a ceiling, not a savings figure: you can't release all of it, because FCR never reaches 100%. The realistic releases come from the FCR improvements below.`);
 
   const d10 = r.dividend.find(x => x.p === 10);
-  if (d10) out.push(`Lifting FCR 10 points to ${d10.newFCR.toFixed(0)}% releases ${fmtK(d10.released)}/mo of that burden (capacity released, not yet cash). At your selected action — ${MECH[mechKey].label}${mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""} — ${fmtK(d10.realizable)}/mo is realizable this cycle. ${mechKey === "none" ? "Right now that's $0 because no capacity action is selected." : "Realization depends entirely on that action — change it and the number changes."} A +10 point FCR move is root-cause work, not a quick toggle; treat +15 as a transformation case, not a base case.`);
+  if (d10) out.push(`Lifting FCR 10 points to ${d10.newFCR.toFixed(0)}% releases ${fmtK(d10.released)}/mo of that burden (capacity released, not yet cash). At your selected action, ${MECH[mechKey].label}${mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}, ${fmtK(d10.realizable)}/mo is realizable this cycle. ${mechKey === "none" ? "Right now that's $0 because no capacity action is selected." : "Realization depends entirely on that action. Change it and the number changes."} A +10 point FCR move is root-cause work, not a quick toggle; treat +15 as a transformation case, not a base case.`);
 
-  out.push(`Reported cost-per-contact and cost-per-resolution are full loaded cost — correct for unit-cost metrics. Capacity burden and released figures are marginal. Realizable is marginal scaled by the capacity action. Those are four different numbers and the report keeps them separate on purpose — most CX ROI decks blur them, which is how bad automation gets justified.`);
+  out.push(`Reported cost-per-contact and cost-per-resolution are full loaded cost, correct for unit-cost metrics. Capacity burden and released figures are marginal. Realizable is marginal scaled by the capacity action. Those are four different numbers and the report keeps them separate on purpose. Most CX ROI decks blur them, which is how bad automation gets justified.`);
   return out;
 }
 
@@ -186,22 +187,22 @@ export default function CostPerContactCalculator() {
   const mechSelected = mech !== "none";
   const grade = (sourced && mechSelected && d.validated) ? "Finance-grade" : (sourced || mechSelected) ? "Planning-grade" : "Directional";
   const gradeColor = grade === "Finance-grade" ? GREEN : grade === "Planning-grade" ? AMBER : MUTED;
-  const gradeWhy = grade === "Finance-grade" ? "cost basis sourced, mechanism set, data validated" : grade === "Planning-grade" ? "partial rigor — for Finance-grade: source the cost basis, select a mechanism, validate FCR/M" : "default inputs — set your numbers";
+  const gradeWhy = grade === "Finance-grade" ? "cost basis sourced, mechanism set, data validated" : grade === "Planning-grade" ? "partial rigor. For Finance-grade: source the cost basis, select a mechanism, validate FCR/M" : "default inputs: set your numbers";
 
 useEffect(() => {
-    publishToolResult("cost-per-contact", {
+    publishToolResult("cost-per-contact", normalizeForPublish({
       costPerContact: +r.loaded.toFixed(2), costPerResolution: +r.cprLoaded.toFixed(2),
       contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: n(d.fcrRate) / 100,
       repeatContactsMonthly: r.repeatContacts, repeatDemandBurdenMonthly: Math.round(r.burden), fteBurden: +r.fteBurden.toFixed(1),
       capacityAction: mech, capacityRealizationPct: Math.round(r.mf * 100), grade, analystRead: analyst[0],
-    });
+    }, { sourceTool: "cost-per-contact" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
 
   const sendResults = () => {
     setSending(true);
     const body = new FormData();
-    body.append("_subject", "Cost per Contact / Resolution — Center of CX");
+    body.append("_subject", "Cost per Contact / Resolution, Center of CX");
     body.append("source", "Cost per Contact Calculator");
     body.append("cost_per_contact", money(r.loaded));
     body.append("cost_per_resolution", money(r.cprLoaded));
@@ -291,7 +292,7 @@ useEffect(() => {
             </div>
           </div>
 
-          {/* Summary — burden is a ceiling, not a savings */}
+          {/* Summary: burden is a ceiling, not a savings */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 12 }} className="s4">
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Contact</div>
@@ -315,7 +316,7 @@ useEffect(() => {
             </div>
           </div>
           <p style={{ fontSize: 12, color: SLATE, marginBottom: 28, background: `${RED}06`, border: `1px solid ${RED}20`, borderRadius: 8, padding: "10px 14px", lineHeight: 1.5 }}>
-            The <strong>burden</strong> is a ceiling — the marginal cost of all repeat demand, not a savings figure. You can't release all of it (FCR never hits 100%). Realistic releases from FCR improvement, and what's actually realizable given your capacity action, are below.
+            The <strong>burden</strong> is a ceiling, the marginal cost of all repeat demand, not a savings figure. You can't release all of it (FCR never hits 100%). Realistic releases from FCR improvement, and what's actually realizable given your capacity action, are below.
           </p>
 
           {/* Integrity */}
@@ -351,7 +352,7 @@ useEffect(() => {
 
           {/* Channel */}
           <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Channel Handle Economics</h3>
-          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Handle-labor only — concurrency is why chat undercuts voice. Blended: <strong style={{ color: NAVY }}>{money(r.blendedHandle)}</strong>/contact. Averages hide complexity; shift only resolvable, low-complexity volume — model it in Channel Shift.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Handle-labor only. Concurrency is why chat undercuts voice. Blended: <strong style={{ color: NAVY }}>{money(r.blendedHandle)}</strong>/contact. Averages hide complexity; shift only resolvable, low-complexity volume. Model it in Channel Shift.</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 28 }} className="s3">
             {r.channels.map((ch, i) => (
               <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px" }}>
@@ -378,7 +379,7 @@ useEffect(() => {
           {/* Calculation drawer */}
           <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 24, overflow: "hidden" }}>
             <button onClick={() => setShowMath(s => !s)} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", background: WARM, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: NAVY }}>
-              <span>Show the math — every formula, every value</span><span style={{ color: MUTED }}>{showMath ? "−" : "+"}</span>
+              <span>Show the math, every formula, every value</span><span style={{ color: MUTED }}>{showMath ? "−" : "+"}</span>
             </button>
             {showMath && (
               <div style={{ padding: "16px 20px" }}>
@@ -422,14 +423,14 @@ useEffect(() => {
               ]},
               { title: "Three Value Layers (don't conflate)", type: "table", rows: [
                 ["Repeat-demand burden (baseline ceiling, marginal)", fmtK(r.burden) + "/mo"],
-                ["Capacity released — FCR +10pts (incremental, marginal)", fmtK((r.dividend.find(x => x.p === 10) || {}).released) + "/mo"],
+                ["Capacity released: FCR +10pts (incremental, marginal)", fmtK((r.dividend.find(x => x.p === 10) || {}).released) + "/mo"],
                 [`Realizable this cycle (${MECH[mech].label}, ${Math.round(r.mf * 100)}%)`, fmtK((r.dividend.find(x => x.p === 10) || {}).realizable) + "/mo"],
-                ["Burden, loaded (accounting only — not savings)", fmtK(r.burdenLoaded) + "/mo"],
+                ["Burden, loaded (accounting only, not savings)", fmtK(r.burdenLoaded) + "/mo"],
               ]},
-              { title: "FCR Dividend — Released → Realizable", type: "table", rows: r.dividend.map(s => ["FCR +" + s.p + " → " + s.newFCR.toFixed(0) + "% (" + s.tier + ")", "released " + fmtK(s.released * 12) + "/yr · realizable " + fmtK(s.realizable * 12) + "/yr"]) },
+              { title: "FCR Dividend: Released → Realizable", type: "table", rows: r.dividend.map(s => ["FCR +" + s.p + " → " + s.newFCR.toFixed(0) + "% (" + s.tier + ")", "released " + fmtK(s.released * 12) + "/yr · realizable " + fmtK(s.realizable * 12) + "/yr"]) },
               ...(r.flags.length ? [{ title: "Integrity Checks", type: "findings", items: r.flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts — a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mech].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. Report grade: ${grade} — ${gradeWhy}.` },
+              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mech].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. Report grade: ${grade}, ${gradeWhy}.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "FCR Leakage Diagnostic", reason: "Decompose repeat demand by root cause and friction type", href: "/tools/fcr-leakage" },
                 { tool: "Channel Shift Economics", reason: "Move resolvable volume to cheaper channels by issue type", href: "/tools/channel-shift" },
