@@ -188,10 +188,11 @@ export default function CostPerContactCalculator() {
   const gradeColor = grade === "Finance-grade" ? GREEN : grade === "Planning-grade" ? AMBER : MUTED;
   const gradeWhy = grade === "Finance-grade" ? "cost basis sourced, mechanism set, data validated" : grade === "Planning-grade" ? "partial rigor — for Finance-grade: source the cost basis, select a mechanism, validate FCR/M" : "default inputs — set your numbers";
 
-  useEffect(() => {
+useEffect(() => {
     publishToolResult("cost-per-contact", {
       costPerContact: +r.loaded.toFixed(2), costPerResolution: +r.cprLoaded.toFixed(2),
       contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: n(d.fcrRate) / 100,
+      repeatContactsMonthly: r.repeatContacts, repeatDemandBurdenMonthly: Math.round(r.burden), fteBurden: +r.fteBurden.toFixed(1),
       capacityAction: mech, capacityRealizationPct: Math.round(r.mf * 100), grade, analystRead: analyst[0],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
