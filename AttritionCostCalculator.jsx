@@ -224,7 +224,7 @@ export default function AttritionCostCalculator() {
 
   useEffect(() => {
     if (publishToolResult) publishToolResult("attrition-cost", {
-      agents: n(d.agents), attritionRate: n(d.attritionRate),
+      agents: n(d.agents), attritionRate: n(d.attritionRate) / 100,
       attritionCashPerDeparture: Math.round(cashPerDeparture),
       attritionAllInPerDeparture: Math.round(allInPerDeparture),
       attritionAnnualReplBurden: Math.round(annualReplBurden),
