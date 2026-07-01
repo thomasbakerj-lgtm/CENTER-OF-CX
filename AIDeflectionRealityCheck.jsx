@@ -203,7 +203,7 @@ export default function AIDeflectionRealityCheck() {
 
   useEffect(() => {
     publishToolResult("ai-deflection", {
-      grossDeflectionClaimed: n(vA.grossDeflection), realisticDeflectionRate: +rA.netDeflectionRate.toFixed(1),
+      grossDeflectionClaimed: n(vA.grossDeflection), realisticDeflectionRate: +(rA.netDeflectionRate / 100).toFixed(4),
       deflectionNetSavingsMonthly: Math.round(rA.netSavings), deflectionNetSavingsAnnual: Math.round(rA.steadyAnnual),
       deflectionYear1Net: Math.round(rA.year1), realizedDollarsPct: Math.round(rA.realizedDollarsPct),
       realizedDeflectionPct: Math.round(rA.realizedDeflectionPct), breakEvenDeflectionPct: isFinite(rA.beGrossPct) ? +rA.beGrossPct.toFixed(1) : null,
