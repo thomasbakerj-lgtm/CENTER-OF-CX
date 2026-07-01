@@ -23,7 +23,7 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
   const fac = factor || 1;
   const toDisp = (v) => Math.round(n(v) * fac * 1000) / 1000;
   const [local, setLocal] = useState(String(toDisp(value)));
-  const focusedRef = useRef(false), holdRef = useRef(null), valRef = useRef(n(value));
+  const focusedRef = useRef(false), holdRef = useRef(null), valRef = useRef(n(value)), pressingRef = useRef(false), stopRef = useRef(null);
   valRef.current = n(value);
   useEffect(() => { if (!focusedRef.current) setLocal(String(toDisp(value))); /* eslint-disable-next-line */ }, [value]);
   const clampN = (x) => { if (min != null && x < min) x = min; if (max != null && x > max) x = max; return Math.round(x * 1000) / 1000; };
@@ -41,16 +41,31 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
     onChange(clean / fac);
     setLocal(String(clean));
   };
-  const stop = () => { if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; } };
-  const start = (dir) => {
-    stop();
-    const stepOnce = () => { const next = clampN(n(valRef.current) * fac + dir * step); valRef.current = next / fac; setLocal(String(next)); onChange(next / fac); };
-    stepOnce();
-    let delay = 300;
-    const tick = () => { stepOnce(); delay = Math.max(60, delay - 25); holdRef.current = setTimeout(tick, delay); };
-    holdRef.current = setTimeout(tick, delay);
+  // Stable stop: reads/writes only refs, so it can be added and removed from window listeners by identity.
+  if (!stopRef.current) stopRef.current = () => {
+    pressingRef.current = false;
+    if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; }
+    window.removeEventListener("mouseup", stopRef.current);
+    window.removeEventListener("touchend", stopRef.current);
+    window.removeEventListener("pointerup", stopRef.current);
+    window.removeEventListener("pointercancel", stopRef.current);
   };
-  const btn = { width: 20, height: 14, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: MUTED, cursor: "pointer", padding: 0, fontSize: 7, userSelect: "none" };
+  const stop = stopRef.current;
+  useEffect(() => stop, []); // clear any running hold on unmount
+  const stepValue = (dir) => { const next = clampN(n(valRef.current) * fac + dir * step); valRef.current = next / fac; setLocal(String(next)); onChange(next / fac); };
+  const start = (dir) => {
+    if (pressingRef.current) return;
+    pressingRef.current = true;
+    window.addEventListener("mouseup", stop);
+    window.addEventListener("touchend", stop);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    stepValue(dir);                                   // one guaranteed step per press
+    let delay = 320;
+    const tick = () => { if (!pressingRef.current) { holdRef.current = null; return; } stepValue(dir); delay = Math.max(60, delay - 25); holdRef.current = setTimeout(tick, delay); };
+    holdRef.current = setTimeout(tick, delay);        // acceleration only begins after the initial hold delay
+  };
+  const btn = { width: 20, height: 14, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: MUTED, cursor: "pointer", padding: 0, fontSize: 7, userSelect: "none", touchAction: "none" };
   return (
     <div>
       <label style={{ fontSize: compact ? 11 : 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
@@ -65,8 +80,8 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
           style={{ width: "100%", padding: compact ? "8px 10px" : "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 24 : (compact ? 10 : 12), paddingRight: 40, outline: "none" }} />
         {suffix && <span style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: MUTED, pointerEvents: "none" }}>{suffix}</span>}
         <div style={{ position: "absolute", right: 3, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 1 }}>
-          <button type="button" style={btn} onMouseDown={e => { e.preventDefault(); start(1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(1); }} onTouchEnd={stop}>▲</button>
-          <button type="button" style={btn} onMouseDown={e => { e.preventDefault(); start(-1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(-1); }} onTouchEnd={stop}>▼</button>
+          <button type="button" style={btn} onPointerDown={e => { e.preventDefault(); start(1); }}>▲</button>
+          <button type="button" style={btn} onPointerDown={e => { e.preventDefault(); start(-1); }}>▼</button>
         </div>
       </div>
       {hint && <span style={{ fontSize: 10.5, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
