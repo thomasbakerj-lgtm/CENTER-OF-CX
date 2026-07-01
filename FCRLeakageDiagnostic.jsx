@@ -9,6 +9,8 @@ const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const S
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 
 const money = (n) => "$" + Math.round(n).toLocaleString();
+const money2 = (n) => "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtX = (x) => (Math.round(Number(x) * 100) / 100).toString();
 const pct = (n, d = 1) => (n * 100).toFixed(d) + "%";
 const num = (v) => { const x = parseFloat(String(v).replace(/[^0-9.\-]/g, "")); return isNaN(x) ? 0 : x; };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -21,7 +23,7 @@ const DEFS = {
   loadedCPC: { title: "Loaded cost per contact", text: "Fully burdened cost including facilities, software, and overhead. Used only for the unit metric you report upward, never for savings, because valuing savings at loaded cost is the most common way these numbers get inflated." },
   repeatModel: { title: "Repeat-behavior model", text: "The same FCR yields different leakage depending on how an unresolved issue behaves. One-callback assumes each failed issue returns once. Geometric assumes callbacks can themselves fail, so some issues return several times. If you have measured your real repeat rate, enter it and ignore the model." },
   repeatMult: { title: "Repeat complexity multiplier", text: "Repeat contacts often cost more than first contacts: longer handle time, more transfers, escalation, and back-office rework. Default is 1.0. Raise it only if you have evidence, do not invent the number." },
-  ceiling: { title: "Opportunity times capture", text: "Two separate truths. Opportunity is how much controllable leakage exists, which is high when your diagnostic is weak. Capture is how much of it you can realistically book in year one, which is high when your diagnostic is strong. Their product caps your target, so a broken center cannot claim a gain it has no ability to capture." },
+  ceiling: { title: "Opportunity times capture", text: "Two separate truths. Opportunity is how much controllable leakage exists, which is high when your diagnostic is weak. Capture is how much of it you can realistically book in year one, which is high when your diagnostic is strong. Headroom is measured against a practical maximum near 90%, stricter for stricter scope, not against a perfect 100%, because gains get much harder above world-class. Their product caps your target, so a center cannot claim a gain it has no realistic ability to capture." },
   controllable: { title: "Controllable vs non-controllable burden", text: "Only part of your repeat burden is inside your control this year. The rest comes from issue complexity, structural constraints, and customer-driven failures that no process fix removes. Savings are drawn only from the controllable slice." },
   sourcing: { title: "Sourcing model", text: "For in-house teams, reduced volume is capacity, not cash, until a mechanism converts it. For an outsourced per-contact model, reduced volume stops being billed, so it converts to cash directly. Same volume drop, very different cash speed." },
   mech: { title: "Realization mechanism", text: "Freed agent time is capacity, not cash, until you commit to converting it. None means zero dollars realized for in-house. The mechanism sets how much capacity becomes budget, from absorbing growth up to removing headcount." },
@@ -32,7 +34,7 @@ const DEFS = {
 function NumField({ label, value, onChange, prefix, suffix, step = 1, min = 0, max = 1e12, pulled, info, infoTitle, align }) {
   const valRef = useRef(value); const holdRef = useRef(null); const delayRef = useRef(280);
   useEffect(() => { valRef.current = value; }, [value]);
-  const commit = (v) => { const c = clamp(v, min, max); valRef.current = c; onChange(c); };
+  const commit = (v) => { const c = clamp(Math.round(v * 10000) / 10000, min, max); valRef.current = c; onChange(c); };
   const startHold = (dir) => {
     commit(num(valRef.current) + dir * step); delayRef.current = 280;
     const tick = () => { commit(num(valRef.current) + dir * step); delayRef.current = Math.max(45, delayRef.current - 30); holdRef.current = setTimeout(tick, delayRef.current); };
@@ -96,7 +98,7 @@ const DIMS = [
 
 // Pure engine. UI and export both read this object. No separate aggregation.
 function engine(I) {
-  const { M, fcr: fcrIn, mCPC, lCPC, repeatModel, measuredRate, measuredTargetRate, pathModel, repeatMult, dScore, askTarget, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty } = I;
+  const { M, fcr: fcrIn, mCPC, lCPC, repeatModel, measuredRate, measuredTargetRate, pathModel, repeatMult, dScore, askTarget, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays } = I;
   let fcr = fcrIn, fcrWasPercent = false;
   if (fcr > 1 && fcr <= 100) { fcr = fcr / 100; fcrWasPercent = true; }
   const fcrImpossible = !(fcr > 0 && fcr < 1);
@@ -115,8 +117,9 @@ function engine(I) {
   const burdenYr = repeats * repeatCPC * 12;
 
   const opp = opportunity(dScore), cap = capture(dScore);
-  const maxUplift = (1 - fcr) * opp * cap;
-  const ceilingFCR = clamp(fcr + maxUplift, fcr, 0.95);
+  const practicalMax = { voice: 0.93, cc: 0.90, digital: 0.90, enterprise: 0.88 }[scope] || 0.90;
+  const maxUplift = Math.max(0, practicalMax - fcr) * opp * cap;
+  const ceilingFCR = clamp(fcr + maxUplift, fcr, practicalMax);
   const overCeiling = askTarget > ceilingFCR + 1e-9;
   const target = clamp(askTarget, fcr, ceilingFCR);
 
@@ -141,12 +144,14 @@ function engine(I) {
 
   const steadyMo = realizableYr / 12;
   const recurMo = investRecurring / 12;
+  const neverPaysBack = realizableYr > 0 && realizableYr <= investRecurring;
   const rampMo = (m) => (m >= 4 ? steadyMo : steadyMo * (m / 4));
   let cum = 0, payback = null;
   for (let m = 1; m <= 48; m++) { cum += rampMo(m) - recurMo; if (payback === null && cum >= investOneTime) payback = m; }
   let c12 = 0; for (let m = 1; m <= 12; m++) c12 += rampMo(m) - recurMo;
   const year1Net = c12 - investOneTime;
   const year2Net = (realizableYr - investRecurring) + year1Net;
+  const paybackLabel = neverPaysBack ? "never at current scope" : payback ? "month " + payback : "beyond 48 months";
 
   const band = { estimate: 0.25, ops: 0.15, finance: 0.10 }[costBasis];
   let realizationRank = { none: 0, absorb: 1, overtime: 1, hiring: 2, vendor: 2, headcount: 3 }[mech];
@@ -158,6 +163,8 @@ function engine(I) {
   if (fcrImpossible) flags.push("Current FCR was outside 0 to 100% and had to be clamped. The result is unreliable until the input is corrected.");
   if (repeats > M + 1) flags.push("Repeat contacts exceed total contacts, which is impossible. The inputs are inconsistent.");
   if (repeatModel === "measured" && (measuredRate < 0 || measuredRate > 0.6)) flags.push("Measured repeat share is outside the plausible 0 to 60% range. Recheck the figure.");
+  if (method === "internal" && windowDays < 7) flags.push("Callback window of " + windowDays + " days is short. Internal FCR measured on a short window captures fewer return contacts and tends to run high, so the true repeat burden is likely larger than shown. This matters most for cross-channel and enterprise scope, where customers often return days later.");
+  if (neverPaysBack) flags.push("Recurring cost meets or exceeds steady-state realizable savings, so this project does not pay back at any horizon under the current scope. Reduce recurring cost, strengthen the mechanism, or narrow the target.");
   if (lCPC && mCPC > lCPC) flags.push("Marginal cost per contact exceeds loaded cost, which is impossible. Correct the inputs.");
   if (repeatMult < 1) flags.push("Repeat complexity multiplier below 1.0 implies repeats are cheaper than first contacts, which is implausible.");
   else if (lCPC && mCPC >= 0.85 * lCPC) flags.push("Marginal cost is close to loaded cost. You may have entered loaded cost. The savings basis must be marginal.");
@@ -173,8 +180,16 @@ function engine(I) {
   const order = ["Directional", "Planning-grade", "Finance-grade"];
   if (fcrPulledDirty) { const ci = order.indexOf("Planning-grade"); if (order.indexOf(costConf) > ci) costConf = "Planning-grade"; if (order.indexOf(realConf) > ci) realConf = "Planning-grade"; }
   const headlineConf = order[Math.min(order.indexOf(costConf), order.indexOf(realConf))];
+  const mechReason = { none: "none is selected, so freed capacity converts to no cash", absorb: "absorb future growth builds capacity but weak near-term cash conversion", overtime: "reduce overtime is only a partial cash lever", hiring: "avoid or slow hiring is a moderate cash lever", vendor: "reduce outsourcer volume is a strong cash lever", headcount: "reduce headcount is a full cash lever" }[mech];
+  const weakerIsReal = order.indexOf(realConf) <= order.indexOf(costConf);
+  let confReason;
+  if (hardFlag) confReason = "an input is physically impossible, so the result is blocked.";
+  else if (!defDeclared) confReason = "the FCR definition is not declared, so the result is not comparable across centers.";
+  else if (fcrPulledDirty) confReason = "FCR was pulled from another tool in the wrong unit, so confidence is capped until you confirm the value.";
+  else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + (sourcing === "bpo" ? ", though per-contact billing converts directly" : "") + ".";
+  else confReason = "cost basis is " + costConf + " because " + (costBasis === "estimate" ? "cost inputs are estimates, not validated data" : costBasis === "ops" ? "cost inputs are operations data, not finance-confirmed" : "cost inputs are finance-confirmed") + ".";
 
-  return { repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, realizableYr, steadyMo, payback, year1Net, year2Net, band, headlineConf, costConf, realConf, flags, hardFlag };
+  return { repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, band, headlineConf, costConf, realConf, confReason, flags, hardFlag };
 }
 
 const MECH_OPTS = [
@@ -223,7 +238,10 @@ export default function FCRLeakageDiagnostic() {
   const dScore = DIMS.reduce((a, d) => a + dimScore(d.id), 0) / DIMS.length;
   const defDeclared = scope !== "" && method !== "";
 
-  const R = engine({ M, fcr: fcrPct / 100, mCPC, lCPC, repeatModel, measuredRate: measuredPct / 100, measuredTargetRate: measuredTargetPct > 0 ? measuredTargetPct / 100 : null, pathModel, repeatMult, dScore: dScore || 3, askTarget: targetPct / 100, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty });
+  const engineInput = { M, fcr: fcrPct / 100, mCPC, lCPC, repeatModel, measuredRate: measuredPct / 100, measuredTargetRate: measuredTargetPct > 0 ? measuredTargetPct / 100 : null, pathModel, repeatMult, dScore: dScore || 3, askTarget: targetPct / 100, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays };
+  const R = engine(engineInput);
+  const sensLo = engine({ ...engineInput, repeatModel: "one", repeatMult: 1.0 });
+  const sensHi = engine({ ...engineInput, repeatModel: "geometric", repeatMult: 1.5 });
   const sorted = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id));
   const top = sorted[0];
   const confColor = (c) => c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : MUTED;
@@ -235,7 +253,7 @@ export default function FCRLeakageDiagnostic() {
       repeatContactBurden: R.burdenYr, controllableRepeatBurden: R.controllableBurdenYr, cashRealizableSavings: R.realizableYr,
       repeatContactShare: R.repeatShare, marginalPerContact: mCPC, targetFCR: R.target, fcr: fcrPct / 100, monthlyContacts: M,
       fcrLeakageConfidence: R.headlineConf,
-      analystRead: `Repeat burden ${money(R.burdenYr)}/yr (${money(R.controllableBurdenYr)} controllable). ${money(R.realizableYr)} realizable at ${pct(R.target)} FCR, payback ${R.payback ? "month " + R.payback : "beyond 4 years"}.`,
+      analystRead: `Repeat burden ${money(R.burdenYr)}/yr (${money(R.controllableBurdenYr)} controllable). ${money(R.realizableYr)} realizable at ${pct(R.target)} FCR, payback ${R.paybackLabel}.`,
     });
   }, [phase, R.burdenYr, R.realizableYr, R.payback]);
 
@@ -269,11 +287,12 @@ export default function FCRLeakageDiagnostic() {
               <h3 style={{ ...h3, marginBottom: 6 }}>Declare your FCR definition</h3>
               <p style={{ fontSize: 12, color: MUTED, marginBottom: 16, lineHeight: 1.5 }}>FCR has no industry standard. Until you declare scope and method, the result stays Directional and is not comparable across centers.</p>
               <div className="g3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                <Sel label="Resolution scope" value={scope} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Assisted voice only" }, { v: "cc", l: "Contact center, cross-channel" }, { v: "digital", l: "Digital plus assisted" }, { v: "enterprise", l: "Enterprise one-contact" }]} />
+                <Sel label="Resolution scope" value={scope} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Voice only" }, { v: "cc", l: "CC cross-channel" }, { v: "digital", l: "Digital + assisted" }, { v: "enterprise", l: "Enterprise OCR" }]} />
                 <Sel label="Measurement method" value={method} onChange={setMethod} options={[{ v: "", l: "Select..." }, { v: "survey", l: "External post-call survey" }, { v: "internal", l: "Internal callback window" }]} />
                 {method === "internal" ? <NumField label="Callback window" value={windowDays} onChange={setWindowDays} suffix=" days" step={1} min={1} max={30} /> : <div />}
               </div>
               {scope === "voice" && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Voice-only scope is the most generous definition. It usually inflates FCR and understates leakage, because a customer who failed in chat or a bot before calling is not counted.</p>}
+              {method === "internal" && windowDays < 7 && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>A {windowDays}-day callback window is short. It captures fewer return contacts, so internal FCR tends to read high and the true leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, since customers often return through another channel days later. Common practice is 7 to 30 days depending on issue type.</p>}
             </div>
 
             <div style={card}>
@@ -352,25 +371,26 @@ export default function FCRLeakageDiagnostic() {
               <span style={{ fontSize: 12, color: SLATE }}>Realization <strong style={{ color: confColor(R.realConf) }}>{R.realConf}</strong></span>
               <span style={{ fontSize: 12, color: SLATE }}>Headline reports the weaker axis.</span>
               <InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} />
+              <div style={{ flexBasis: "100%", fontSize: 12, color: SLATE, lineHeight: 1.5, marginTop: 2 }}>Rated {R.headlineConf} because {R.confReason}</div>
             </div>
 
             <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
               <div style={{ background: `${RED}06`, border: `1px solid ${RED}22`, borderRadius: 12, padding: "22px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Annual repeat burden</span><Tag text={R.shareBasis} color={RED} /><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 40, color: RED }}>{money(R.burdenYr)}</div>
-                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{Math.round(R.repeats).toLocaleString()} repeats/mo at {pct(R.repeatShare)} of volume ({R.shareSource}), valued at {money(R.repeatCPC)} marginal per repeat. Burden ceiling, not recoverable. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
+                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{Math.round(R.repeats).toLocaleString()} repeats/mo at {pct(R.repeatShare)} of volume ({R.shareSource}), valued at {money2(R.repeatCPC)} repeat-adjusted marginal cost ({money2(mCPC)} base times {fmtX(repeatMult)}x complexity). Burden ceiling, not recoverable. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
               </div>
               <div style={{ background: `${GREEN}06`, border: `1px solid ${GREEN}22`, borderRadius: 12, padding: "22px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Year-1 net</span><Tag text="Assumed" color={GREEN} /><InfoDot text={DEFS.invest.text} title={DEFS.invest.title} /></div>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 40, color: R.year1Net >= 0 ? GREEN : RED }}>{money(R.year1Net)}</div>
-                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{money(R.realizableYr)}/yr realizable at steady state. Payback {R.payback ? "month " + R.payback : "beyond 48 months"}. Year-2 net {money(R.year2Net)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
+                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{money(R.realizableYr)}/yr realizable at steady state. Payback {R.paybackLabel}. Year-2 net {money(R.year2Net)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
               </div>
             </div>
 
             <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18 }}>
               <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "16px 20px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>Controllable vs non-controllable</span><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: SLATE }}>Controllable leakage burden <Tag text="Capped" color={AMBER} /></span><strong style={{ color: NAVY }}>{money(R.controllableBurdenYr)}</strong></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>Burden split, not savings</span><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: SLATE }}>Theoretical controllable burden <Tag text="Capped" color={AMBER} /></span><strong style={{ color: NAVY }}>{money(R.controllableBurdenYr)}</strong></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: SLATE }}>Non-controllable <Tag text="Excluded" color={MUTED} /></span><strong style={{ color: MUTED }}>{money(R.nonControllableBurdenYr)}</strong></div>
                 <p style={{ fontSize: 10.5, color: MUTED, lineHeight: 1.45, marginTop: 8 }}>Burden, not savings. The controllable slice is not cash-realizable unless the selected mechanism converts freed capacity, and only net of the cost to achieve it.</p>
               </div>
@@ -421,17 +441,37 @@ export default function FCRLeakageDiagnostic() {
               </div>
             </div>
 
+            <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px 22px", marginBottom: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}><h3 style={{ fontSize: 13, fontWeight: 700, color: NAVY, margin: 0 }}>Assumption sensitivity</h3><InfoDot text="Repeat-contact cost premiums run 1.5x to 2x in published research, and repeat behavior can be one-callback or geometric. This shows how those two assumptions swing year-one net, holding your FCR, target, mechanism, and costs constant, so you can see which assumptions matter most before acting." title="Assumption sensitivity" /></div>
+              <p style={{ fontSize: 11.5, color: MUTED, marginBottom: 12, lineHeight: 1.5 }}>Same FCR, target, mechanism, and costs. Only the repeat-behavior model and cost premium change.</p>
+              {[
+                { k: "Conservative", d: "one-callback, 1.0x cost", r: sensLo },
+                { k: "Current model", d: `${repeatModel === "geometric" ? "geometric" : repeatModel === "measured" ? "measured" : "one-callback"}, ${fmtX(repeatMult)}x cost`, r: R, cur: true },
+                { k: "Aggressive", d: "geometric, 1.5x cost", r: sensHi },
+              ].map((row, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < 2 ? `1px solid ${BORDER}` : "none", background: row.cur ? `${ELECTRIC}06` : "transparent" }}>
+                  <span style={{ fontSize: 12.5, fontWeight: row.cur ? 700 : 600, color: row.cur ? ELECTRIC : NAVY, width: 120 }}>{row.k}</span>
+                  <span style={{ fontSize: 11.5, color: MUTED, flex: 1 }}>{row.d}</span>
+                  <span style={{ fontSize: 12, color: SLATE }}>burden {money(row.r.burdenYr)}</span>
+                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 17, color: row.r.year1Net >= 0 ? GREEN : RED, width: 110, textAlign: "right" }}>{money(row.r.year1Net)}</span>
+                </div>
+              ))}
+              <p style={{ fontSize: 10.5, color: MUTED, marginTop: 8 }}>Rightmost column is year-one net. If the sign flips across these rows, your repeat-cost assumption is the deciding factor and is worth measuring before you commit.</p>
+            </div>
+
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <button onClick={() => { setCurrentDim(DIMS.length - 1); setPhase("diagnostic"); }} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>← Back to diagnostic</button>
               <ReportExport toolName="FCR Leakage Diagnostic" subtitle={`${R.headlineConf} • Repeat burden ${money(R.burdenYr)}/yr • Year-1 net ${money(R.year1Net)}`} userName="" userEmail="" sections={[
-                { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.payback ? "in month " + R.payback : "beyond 48 months"}. Confidence is ${R.headlineConf}.` },
+                { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.neverPaysBack ? "never at current scope" : R.payback ? "in month " + R.payback : "beyond 48 months"}. Confidence is ${R.headlineConf}.` },
                 { title: "Definitions and Scope Used", type: "findings", items: [
                   `FCR definition: ${scopeLabel}, ${methodLabel}.`,
-                  `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${repeatMult}x.`,
+                  `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${fmtX(repeatMult)}x.`,
                   `Sourcing: ${sourcing === "bpo" ? "outsourced per-contact (direct cash conversion)" : "in-house (capacity, gated by mechanism)"}. Mechanism: ${MECH_OPTS.find((o) => o.v === mech).l}.`,
-                  `Cost basis: ${costBasis}. Target capped by diagnostic: ${R.overCeiling ? "yes, at " + pct(R.ceilingFCR) : "no"}.`,
+                  `Cost basis: ${{estimate:"Estimate marginal cost (±25%)",ops:"Operations-data marginal cost (±15%)",finance:"Finance-confirmed marginal cost (±10%)"}[costBasis]}. Target capped by diagnostic: ${R.overCeiling ? "yes, at " + pct(R.ceilingFCR) : "no"}.`,
                 ] },
                 { title: "Leakage Economics", type: "metrics", items: [
                   { label: "Repeat share of volume", value: pct(R.repeatShare) + " (" + R.shareBasis + ")", color: RED },
+                  { label: "Effective repeat cost", value: money2(mCPC) + " base times " + fmtX(repeatMult) + "x = " + money2(R.repeatCPC), color: SLATE },
                   { label: "Annual repeat burden (marginal)", value: money(R.burdenYr), color: RED },
                   { label: "Burden range (±" + (R.band * 100) + "%)", value: money(R.burdenYr * (1 - R.band)) + " to " + money(R.burdenYr * (1 + R.band)), color: SLATE },
                   { label: "Controllable leakage burden (not yet savings)", value: money(R.controllableBurdenYr), color: AMBER },
@@ -442,10 +482,10 @@ export default function FCRLeakageDiagnostic() {
                   { label: "Gross capacity value", value: money(R.grossYr), color: SLATE },
                   { label: "Realizable via " + (sourcing === "bpo" ? "billing reduction" : "mechanism"), value: money(R.realizableYr), color: GREEN },
                   { label: "One-time / recurring cost", value: money(investOneTime) + " / " + money(investRecurring), color: SLATE },
-                  { label: "Payback / Year-1 net / Year-2 net", value: (R.payback ? "mo " + R.payback : "48mo+") + " / " + money(R.year1Net) + " / " + money(R.year2Net), color: R.year1Net >= 0 ? GREEN : RED },
+                  { label: "Payback / Year-1 net / Year-2 net", value: (R.neverPaysBack ? "never" : R.payback ? "mo " + R.payback : "48mo+") + " / " + money(R.year1Net) + " / " + money(R.year2Net), color: R.year1Net >= 0 ? GREEN : RED },
                 ] },
                 { title: "Confidence and Risk Flags", type: "findings", items: [
-                  `Headline ${R.headlineConf}. Cost basis ${R.costConf}, realization ${R.realConf}. The headline reports the weaker axis.`,
+                  `Headline ${R.headlineConf}. Cost basis ${R.costConf}, realization ${R.realConf}. The headline reports the weaker axis. Rated ${R.headlineConf} because ${R.confReason}`,
                   ...(R.flags.length ? R.flags : ["No integrity flags raised."]),
                 ] },
                 { title: "Dimension Scores", type: "table", rows: DIMS.map((d) => [d.name, dimScore(d.id).toFixed(1) + "/5 (" + d.ownerClass + ")"]) },
