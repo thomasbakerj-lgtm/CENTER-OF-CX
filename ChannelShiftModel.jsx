@@ -20,15 +20,36 @@ function LogoMark({ size = 30, light = true }) {
 }
 
 function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, factor = 1, pulled, compact, info, infoTitle, infoAlign }) {
-  const display = n(value) * factor;
-  const [local, setLocal] = useState(String(display));
-  const holdRef = useRef(null), valRef = useRef(display);
-  valRef.current = display;
-  useEffect(() => { setLocal(String(Math.round(display * 1000) / 1000)); /* eslint-disable-next-line */ }, [value]);
-  const commit = (raw) => { const p = parseFloat(raw); onChange(isNaN(p) ? 0 : p / factor); };
-  const clamp = (x) => { if (min != null && x < min) x = min; if (max != null && x > max) x = max; return Math.round(x * 1000) / 1000; };
+  const fac = factor || 1;
+  const toDisp = (v) => Math.round(n(v) * fac * 1000) / 1000;
+  const [local, setLocal] = useState(String(toDisp(value)));
+  const focusedRef = useRef(false), holdRef = useRef(null), valRef = useRef(n(value));
+  valRef.current = n(value);
+  useEffect(() => { if (!focusedRef.current) setLocal(String(toDisp(value))); /* eslint-disable-next-line */ }, [value]);
+  const clampN = (x) => { if (min != null && x < min) x = min; if (max != null && x > max) x = max; return Math.round(x * 1000) / 1000; };
+  const onType = (e) => {
+    const raw = e.target.value;
+    setLocal(raw);
+    if (raw.trim() === "" || raw === "-" || raw === "." || raw === "-.") return;
+    const parsed = parseFloat(raw);
+    if (!isNaN(parsed)) onChange(parsed / fac);
+  };
+  const onBlurField = () => {
+    focusedRef.current = false;
+    const parsed = parseFloat(local);
+    const clean = isNaN(parsed) ? n(value) : clampN(parsed);
+    onChange(clean / fac);
+    setLocal(String(clean));
+  };
   const stop = () => { if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; } };
-  const start = (dir) => { stop(); let v = clamp(n(valRef.current)); const doStep = () => { v = clamp(v + dir * step); setLocal(String(v)); onChange(v / factor); }; doStep(); let delay = 280; const tick = () => { doStep(); delay = Math.max(45, delay - 30); holdRef.current = setTimeout(tick, delay); }; holdRef.current = setTimeout(tick, delay); };
+  const start = (dir) => {
+    stop();
+    const stepOnce = () => { const next = clampN(n(valRef.current) * fac + dir * step); valRef.current = next / fac; setLocal(String(next)); onChange(next / fac); };
+    stepOnce();
+    let delay = 300;
+    const tick = () => { stepOnce(); delay = Math.max(60, delay - 25); holdRef.current = setTimeout(tick, delay); };
+    holdRef.current = setTimeout(tick, delay);
+  };
   const btn = { width: 20, height: 14, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: MUTED, cursor: "pointer", padding: 0, fontSize: 7, userSelect: "none" };
   return (
     <div>
@@ -37,9 +58,11 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
       </label>
       <div style={{ position: "relative" }}>
         {prefix && <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
-        <input type="text" inputMode="decimal" value={local} onChange={e => { setLocal(e.target.value); commit(e.target.value); }} onBlur={() => setLocal(String(Math.round(display * 1000) / 1000))}
-          style={{ width: "100%", padding: compact ? "8px 10px" : "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 24 : (compact ? 10 : 12), paddingRight: 40, outline: "none" }}
-          onFocus={e => e.target.style.borderColor = ELECTRIC} onBlurCapture={e => e.target.style.borderColor = BORDER} />
+        <input type="text" inputMode="decimal" value={local}
+          onFocus={e => { focusedRef.current = true; e.target.style.borderColor = ELECTRIC; }}
+          onChange={onType}
+          onBlur={e => { e.target.style.borderColor = BORDER; onBlurField(); }}
+          style={{ width: "100%", padding: compact ? "8px 10px" : "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 24 : (compact ? 10 : 12), paddingRight: 40, outline: "none" }} />
         {suffix && <span style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: MUTED, pointerEvents: "none" }}>{suffix}</span>}
         <div style={{ position: "absolute", right: 3, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 1 }}>
           <button type="button" style={btn} onMouseDown={e => { e.preventDefault(); start(1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(1); }} onTouchEnd={stop}>▲</button>
