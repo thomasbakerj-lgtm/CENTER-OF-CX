@@ -96,7 +96,11 @@ const DIMS = [
 
 // Pure engine. UI and export both read this object. No separate aggregation.
 function engine(I) {
-  const { M, fcr, mCPC, lCPC, repeatModel, measuredRate, measuredTargetRate, pathModel, repeatMult, dScore, askTarget, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared } = I;
+  const { M, fcr: fcrIn, mCPC, lCPC, repeatModel, measuredRate, measuredTargetRate, pathModel, repeatMult, dScore, askTarget, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty } = I;
+  let fcr = fcrIn, fcrWasPercent = false;
+  if (fcr > 1 && fcr <= 100) { fcr = fcr / 100; fcrWasPercent = true; }
+  const fcrImpossible = !(fcr > 0 && fcr < 1);
+  if (fcrImpossible) fcr = clamp(fcr, 0.01, 0.99);
   const opportunity = (s) => clamp(0.15 + (5 - s) / 4 * 0.65, 0.15, 0.80);
   const capture = (s) => clamp(0.25 + (s - 1) / 4 * 0.65, 0.25, 0.90);
   const shareOne = (f) => (1 - f) / (2 - f);
@@ -149,7 +153,11 @@ function engine(I) {
   if (sourcing === "bpo") realizationRank = Math.max(realizationRank, 2);
 
   const flags = [];
-  if (repeatModel === "measured" && (repeatShare < 0 || repeatShare > 0.6)) flags.push("Measured repeat share is outside the plausible 0 to 60% range. Recheck the figure.");
+  if (fcrPulledDirty) flags.push("Current FCR was pulled from another tool as a whole number and normalized to " + pct(fcr) + ". Confidence is capped until you confirm it. The upstream tool is publishing FCR in the wrong unit, which is a suite-contract issue worth fixing at the source.");
+  if (fcrWasPercent) flags.push("Current FCR arrived as a whole number and was read as " + pct(fcr) + ". Confirm the upstream tool publishes FCR as a fraction, not a percentage.");
+  if (fcrImpossible) flags.push("Current FCR was outside 0 to 100% and had to be clamped. The result is unreliable until the input is corrected.");
+  if (repeats > M + 1) flags.push("Repeat contacts exceed total contacts, which is impossible. The inputs are inconsistent.");
+  if (repeatModel === "measured" && (measuredRate < 0 || measuredRate > 0.6)) flags.push("Measured repeat share is outside the plausible 0 to 60% range. Recheck the figure.");
   if (lCPC && mCPC > lCPC) flags.push("Marginal cost per contact exceeds loaded cost, which is impossible. Correct the inputs.");
   if (repeatMult < 1) flags.push("Repeat complexity multiplier below 1.0 implies repeats are cheaper than first contacts, which is implausible.");
   else if (lCPC && mCPC >= 0.85 * lCPC) flags.push("Marginal cost is close to loaded cost. You may have entered loaded cost. The savings basis must be marginal.");
@@ -157,12 +165,13 @@ function engine(I) {
   if (target <= fcr + 1e-9) flags.push("Target FCR is not above current. There is no improvement to value.");
   if (overCeiling) flags.push("Target was capped at " + pct(ceilingFCR) + ", the most your diagnostic says you can capture.");
   if (mech === "none" && sourcing !== "bpo") flags.push("No mechanism and in-house sourcing. Realizable savings are $0 until you commit to one.");
-  const hardFlag = flags.some((f) => /impossible|outside the plausible/.test(f));
+  const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped/.test(f));
 
   let costConf = costBasis === "finance" ? "Finance-grade" : costBasis === "ops" ? "Planning-grade" : "Directional";
   let realConf = realizationRank >= 3 ? "Finance-grade" : realizationRank >= 2 ? "Planning-grade" : "Directional";
   if (hardFlag || !defDeclared) { costConf = "Directional"; realConf = "Directional"; }
   const order = ["Directional", "Planning-grade", "Finance-grade"];
+  if (fcrPulledDirty) { const ci = order.indexOf("Planning-grade"); if (order.indexOf(costConf) > ci) costConf = "Planning-grade"; if (order.indexOf(realConf) > ci) realConf = "Planning-grade"; }
   const headlineConf = order[Math.min(order.indexOf(costConf), order.indexOf(realConf))];
 
   return { repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, realizableYr, steadyMo, payback, year1Net, year2Net, band, headlineConf, costConf, realConf, flags, hardFlag };
@@ -186,7 +195,7 @@ function LogoMark({ size = 30 }) {
 export default function FCRLeakageDiagnostic() {
   const [phase, setPhase] = useState("setup");
   const [M, setM] = useState(() => getPrimitive("monthlyContacts") || 50000);
-  const [fcrPct, setFcrPct] = useState(() => Math.round((getPrimitive("fcr") || 0.72) * 100));
+  const [fcrPct, setFcrPct] = useState(() => { const raw = getPrimitive("fcr"); const f = raw == null ? 0.72 : raw > 1 ? raw / 100 : raw; return clamp(Math.round(f * 100), 1, 99); });
   const [mCPC, setMCPC] = useState(() => getPrimitive("marginalPerContact") || getPrimitive("marginalCPC") || 6.5);
   const [lCPC, setLCPC] = useState(() => getPrimitive("loadedCPC") || getPrimitive("costPerContact") || 11);
   const [scope, setScope] = useState(""); const [method, setMethod] = useState(""); const [windowDays, setWindowDays] = useState(7);
@@ -197,9 +206,13 @@ export default function FCRLeakageDiagnostic() {
   const [sourcing, setSourcing] = useState("inhouse"); const [mech, setMech] = useState("hiring");
   const [investOneTime, setInvestOneTime] = useState(150000); const [investRecurring, setInvestRecurring] = useState(90000);
   const [costBasis, setCostBasis] = useState("estimate");
+  const [fcrConfirmed, setFcrConfirmed] = useState(false);
   const [currentDim, setCurrentDim] = useState(0); const [scores, setScores] = useState({});
 
-  const pulledM = !!getPrimitive("monthlyContacts"); const pulledFcr = getPrimitive("fcr") != null;
+  const rawPulledFcr = getPrimitive("fcr");
+  const pulledM = !!getPrimitive("monthlyContacts"); const pulledFcr = rawPulledFcr != null;
+  const fcrPulledDirty = rawPulledFcr != null && rawPulledFcr > 1 && !fcrConfirmed;
+  const onFcr = (v) => { setFcrConfirmed(true); setFcrPct(v); };
   const pulledMcpc = (getPrimitive("marginalPerContact") || getPrimitive("marginalCPC")) != null;
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
 
@@ -210,7 +223,7 @@ export default function FCRLeakageDiagnostic() {
   const dScore = DIMS.reduce((a, d) => a + dimScore(d.id), 0) / DIMS.length;
   const defDeclared = scope !== "" && method !== "";
 
-  const R = engine({ M, fcr: fcrPct / 100, mCPC, lCPC, repeatModel, measuredRate: measuredPct / 100, measuredTargetRate: measuredTargetPct > 0 ? measuredTargetPct / 100 : null, pathModel, repeatMult, dScore: dScore || 3, askTarget: targetPct / 100, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared });
+  const R = engine({ M, fcr: fcrPct / 100, mCPC, lCPC, repeatModel, measuredRate: measuredPct / 100, measuredTargetRate: measuredTargetPct > 0 ? measuredTargetPct / 100 : null, pathModel, repeatMult, dScore: dScore || 3, askTarget: targetPct / 100, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty });
   const sorted = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id));
   const top = sorted[0];
   const confColor = (c) => c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : MUTED;
@@ -246,7 +259,7 @@ export default function FCRLeakageDiagnostic() {
               <h3 style={h3}>Volume + Economics</h3>
               <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <NumField label="Monthly contacts" value={M} onChange={setM} step={500} pulled={pulledM} />
-                <NumField label="Current FCR" value={fcrPct} onChange={setFcrPct} suffix="%" step={1} min={1} max={99} pulled={pulledFcr} info={DEFS.fcrDef.text} infoTitle={DEFS.fcrDef.title} />
+                <NumField label="Current FCR" value={fcrPct} onChange={onFcr} suffix="%" step={1} min={1} max={99} pulled={pulledFcr} info={DEFS.fcrDef.text} infoTitle={DEFS.fcrDef.title} />
                 <NumField label="Marginal cost / contact" value={mCPC} onChange={setMCPC} prefix="$" step={0.25} pulled={pulledMcpc} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
                 <NumField label="Loaded cost / contact" value={lCPC} onChange={setLCPC} prefix="$" step={0.25} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} align="right" />
               </div>
@@ -322,6 +335,17 @@ export default function FCRLeakageDiagnostic() {
       {phase === "results" && (
         <section style={{ padding: "40px 28px 60px" }}>
           <div style={WRAP}>
+            {R.hardFlag && (
+              <div>
+                <div style={{ background: `${RED}0A`, border: `2px solid ${RED}`, borderRadius: 12, padding: "26px 28px", marginBottom: 20 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1.5, textTransform: "uppercase" }}>Result blocked: invalid inputs</span>
+                  <p style={{ fontSize: 14, color: NAVY, lineHeight: 1.6, margin: "10px 0 14px" }}>The engine produced a physically impossible value, so no result is shown. An invalid result is not a low-confidence result. Correct the inputs below and the economics will return.</p>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>{R.flags.filter((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped/.test(f)).map((f, i) => <li key={i} style={{ fontSize: 13, color: RED, lineHeight: 1.5, marginBottom: 4 }}>{f}</li>)}</ul>
+                </div>
+                <button onClick={() => setPhase("setup")} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: "pointer" }}>Adjust inputs</button>
+              </div>
+            )}
+            {!R.hardFlag && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "12px 16px", marginBottom: 20 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: confColor(R.headlineConf), letterSpacing: 1, textTransform: "uppercase" }}>{R.headlineConf}</span>
               <span style={{ fontSize: 12, color: SLATE }}>Cost basis <strong style={{ color: confColor(R.costConf) }}>{R.costConf}</strong></span>
@@ -346,8 +370,9 @@ export default function FCRLeakageDiagnostic() {
             <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18 }}>
               <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "16px 20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>Controllable vs non-controllable</span><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: SLATE }}>Controllable this year <Tag text="Capped" color={AMBER} /></span><strong style={{ color: NAVY }}>{money(R.controllableBurdenYr)}</strong></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: SLATE }}>Controllable leakage burden <Tag text="Capped" color={AMBER} /></span><strong style={{ color: NAVY }}>{money(R.controllableBurdenYr)}</strong></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: SLATE }}>Non-controllable <Tag text="Excluded" color={MUTED} /></span><strong style={{ color: MUTED }}>{money(R.nonControllableBurdenYr)}</strong></div>
+                <p style={{ fontSize: 10.5, color: MUTED, lineHeight: 1.45, marginTop: 8 }}>Burden, not savings. The controllable slice is not cash-realizable unless the selected mechanism converts freed capacity, and only net of the cost to achieve it.</p>
               </div>
               <div style={{ background: NAVY, borderRadius: 12, padding: "16px 20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>Opportunity times capture</span><InfoDot text={DEFS.ceiling.text} title={DEFS.ceiling.title} /></div>
@@ -398,7 +423,7 @@ export default function FCRLeakageDiagnostic() {
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <ReportExport toolName="FCR Leakage Diagnostic" subtitle={`${R.headlineConf} • Repeat burden ${money(R.burdenYr)}/yr • Year-1 net ${money(R.year1Net)}`} userName="" userEmail="" sections={[
-                { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin, of which ${money(R.controllableBurdenYr)} is controllable this year. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.payback ? "in month " + R.payback : "beyond 48 months"}. Confidence is ${R.headlineConf}.` },
+                { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.payback ? "in month " + R.payback : "beyond 48 months"}. Confidence is ${R.headlineConf}.` },
                 { title: "Definitions and Scope Used", type: "findings", items: [
                   `FCR definition: ${scopeLabel}, ${methodLabel}.`,
                   `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${repeatMult}x.`,
@@ -409,7 +434,7 @@ export default function FCRLeakageDiagnostic() {
                   { label: "Repeat share of volume", value: pct(R.repeatShare) + " (" + R.shareBasis + ")", color: RED },
                   { label: "Annual repeat burden (marginal)", value: money(R.burdenYr), color: RED },
                   { label: "Burden range (±" + (R.band * 100) + "%)", value: money(R.burdenYr * (1 - R.band)) + " to " + money(R.burdenYr * (1 + R.band)), color: SLATE },
-                  { label: "Controllable this year", value: money(R.controllableBurdenYr), color: AMBER },
+                  { label: "Controllable leakage burden (not yet savings)", value: money(R.controllableBurdenYr), color: AMBER },
                   { label: "Non-controllable (excluded)", value: money(R.nonControllableBurdenYr), color: MUTED },
                 ] },
                 { title: "Cash Conversion and Payback", type: "metrics", items: [
@@ -443,6 +468,7 @@ export default function FCRLeakageDiagnostic() {
               <button onClick={() => setPhase("setup")} style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>Adjust inputs</button>
               <a href="/tools/cost-per-contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, textDecoration: "none" }}>Cost per Resolution →</a>
             </div>
+            </>)}
           </div>
         </section>
       )}
