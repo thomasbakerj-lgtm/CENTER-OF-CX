@@ -191,7 +191,7 @@ export default function CostPerContactCalculator() {
   useEffect(() => {
     publishToolResult("cost-per-contact", {
       costPerContact: +r.loaded.toFixed(2), costPerResolution: +r.cprLoaded.toFixed(2),
-      contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: n(d.fcrRate),
+      contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: n(d.fcrRate) / 100,
       repeatContactsMonthly: r.repeatContacts, repeatDemandBurdenMonthly: Math.round(r.burden), fteBurden: +r.fteBurden.toFixed(1),
       capacityAction: mech, capacityRealizationPct: Math.round(r.mf * 100), grade, analystRead: analyst[0],
     });
