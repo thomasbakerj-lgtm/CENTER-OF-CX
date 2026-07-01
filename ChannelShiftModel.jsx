@@ -304,16 +304,6 @@ export default function ChannelShiftModel() {
       .then(res => { if (res.ok) setSent(true); setSending(false); }).catch(() => setSending(false));
   };
 
-  const ShiftCard = ({ t, color }) => (
-    <div style={{ background: "#fff", border: `1px solid ${color}40`, borderRadius: 8, padding: "12px 14px" }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>→ {t === "Bot" ? "Bot / Self-Service" : t}</div>
-      <NumField compact label="Shift" value={d["shiftTo" + t]} onChange={v => set("shiftTo" + t, v)} suffix="pts" step={1} min={0} max={100} />
-      <div style={{ height: 6 }} />
-      <NumField compact label="Resolution rate" value={d["res" + t]} onChange={v => set("res" + t, v)} suffix="%" step={1} min={0} max={100} pulled={t === "Bot" && pulled.resBot} hint={t === "Bot" && pulled.resBot ? "from AI Deflection" : "resolves without bouncing"} info={DEFS.resolution} infoTitle="Resolution rate" />
-      <div style={{ height: 6 }} />
-      <NumField compact label="Displacement" value={d["disp" + t]} onChange={v => set("disp" + t, v)} suffix="%" step={1} min={0} max={100} hint="% that truly replace a voice call" info={DEFS.displacement} infoTitle="Displacement" />
-    </div>
-  );
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
@@ -395,7 +385,16 @@ export default function ChannelShiftModel() {
           <div style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase", margin: "20px 0 4px" }}>Shift from voice → target</div>
           <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts. Set them to what your data supports.</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="s3">
-            {TARGETS.map(t => <ShiftCard key={t.key} t={t.key} color={t.color} />)}
+            {TARGETS.map(tc => { const t = tc.key, color = tc.color; return (
+              <div key={t} style={{ background: "#fff", border: `1px solid ${color}40`, borderRadius: 8, padding: "12px 14px" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>&rarr; {t === "Bot" ? "Bot / Self-Service" : t}</div>
+                <NumField compact label="Shift" value={d["shiftTo" + t]} onChange={v => set("shiftTo" + t, v)} suffix="pts" step={1} min={0} max={100} />
+                <div style={{ height: 6 }} />
+                <NumField compact label="Resolution rate" value={d["res" + t]} onChange={v => set("res" + t, v)} suffix="%" step={1} min={0} max={100} pulled={t === "Bot" && pulled.resBot} hint={t === "Bot" && pulled.resBot ? "from AI Deflection" : "resolves without bouncing"} info={DEFS.resolution} infoTitle="Resolution rate" />
+                <div style={{ height: 6 }} />
+                <NumField compact label="Displacement" value={d["disp" + t]} onChange={v => set("disp" + t, v)} suffix="%" step={1} min={0} max={100} hint="% that truly replace a voice call" info={DEFS.displacement} infoTitle="Displacement" />
+              </div>
+            ); })}
           </div>
         </div>
       </section>
