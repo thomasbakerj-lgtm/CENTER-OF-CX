@@ -26,7 +26,7 @@ const MODULES = [
   { id: "telephony", name: "BYOC / Telephony", typical: 5, desc: "Carrier, SIP trunking", dStatus: "usage", dScope: "all" },
   { id: "storage", name: "Storage / Archival", typical: 8, desc: "Extended retention", dStatus: "limited", dScope: "all" },
   { id: "support", name: "Premium Support / TAM", typical: 12, desc: "24/7, dedicated CSM, SLA", dStatus: "included", dScope: "all" },
-  { id: "services", name: "Professional Services", typical: 0, desc: "Implementation (one-time)", dStatus: "thirdparty", dScope: "all" },
+  { id: "services", name: "Professional Services", typical: 0, desc: "Implementation (one-time)", dStatus: "onetime", dScope: "all" },
 ];
 
 const USAGE_TYPES = [
@@ -40,7 +40,7 @@ const USAGE_TYPES = [
 
 const STATUS_OPTS = [
   { v: "included", l: "Included" }, { v: "limited", l: "Incl, limited" }, { v: "addon", l: "Add-on SKU" },
-  { v: "tier", l: "Tier upgrade" }, { v: "usage", l: "Usage-based" }, { v: "thirdparty", l: "Third-party" }, { v: "unknown", l: "Unknown" },
+  { v: "tier", l: "Tier upgrade" }, { v: "usage", l: "Usage-based" }, { v: "thirdparty", l: "Third-party" }, { v: "onetime", l: "One-time" }, { v: "unknown", l: "Unknown" },
 ];
 const NEED_OPTS = [{ v: "yes", l: "Yes" }, { v: "no", l: "No" }, { v: "unsure", l: "Unsure" }];
 const SCOPE_OPTS = [{ v: "all", l: "All seats" }, { v: "agent", l: "Agents" }, { v: "agentsup", l: "Agents+Sups" }, { v: "sup", l: "Supervisors" }, { v: "admin", l: "Admins" }, { v: "analyst", l: "Analysts" }];
@@ -128,12 +128,13 @@ export default function LicenseBundleGapChecker() {
   const billable = classes.reduce((s, c) => s + n(c.count), 0);
   const baseMonthly = classes.reduce((s, c) => s + n(c.count) * n(c.price), 0);
   const scopeSeats = (sc) => sc === "all" ? billable : sc === "agentsup" ? (cls.agent + cls.sup) : sc === "agent" ? cls.agent : sc === "sup" ? cls.sup : sc === "admin" ? cls.admin : sc === "analyst" ? cls.analyst : billable;
-  let addOnMonthly = 0, tierMonthly = 0;
+  let addOnMonthly = 0, tierMonthly = 0, oneTimeTotal = 0;
   const unknowns = [], limiteds = [], tiers = [], usageFlagged = [], doubles = [];
   MODULES.forEach(mod => {
     const m = modules[mod.id]; if (m.need !== "yes") return;
     const appl = scopeSeats(m.scope || "all");
-    if (m.status === "addon" || m.status === "thirdparty") addOnMonthly += appl * n(m.cost);
+    if (m.status === "onetime") oneTimeTotal += n(m.cost);
+    else if (m.status === "addon" || m.status === "thirdparty") addOnMonthly += appl * n(m.cost);
     else if (m.status === "tier") { tierMonthly += appl * n(m.cost); tiers.push(mod.name); }
     else if (m.status === "unknown") unknowns.push(mod.name);
     else if (m.status === "limited") limiteds.push(mod.name);
@@ -193,6 +194,7 @@ export default function LicenseBundleGapChecker() {
   if (usageMonthly > 0) analyst.push(`${fmtK(usageMonthly)}/mo runs through usage meters and is normalized across seats for comparison only. It is not a seat fee. These scale with volume, so cap or commit them deliberately rather than leaving them open-ended.`);
   if (commitExpSeats > 0) analyst.push(`You're committed to ${n(committedSeats)} seats but staff ${billable}. That ${commitExpSeats}-seat gap, priced at the ${commitBasis === "quoted" ? "quoted base" : commitBasis === "custom" ? "custom commit" : "license"} seat, is ${fmtK(commitExpAnnual)}/yr of commit exposure. Use it to negotiate the minimum down or win ramp flexibility, but budget it until the contract says otherwise.`);
   if (n(uplift) > 0) analyst.push(`At ${n(uplift)}% annual uplift, the license component rises while usage fees are held flat: the license seat moves from ${"$" + effLicenseSeat.toFixed(0)} to ${"$" + year3LicenseSeat.toFixed(0)}, putting the year-three platform seat-equivalent at ${"$" + year3Seat.toFixed(0)}, assuming no usage-volume growth. Negotiate the renewal cap now, while you hold the leverage.`);
+  if (oneTimeTotal > 0) analyst.push(`Implementation is a one-time cost of ${fmtK(oneTimeTotal)}, deliberately excluded from the recurring seat economics and the hidden annual, which are monthly and per-seat. Budget it once and negotiate it as an upfront concession or waiver; it is not part of the per-seat premium.`);
   if (shelfware.length) analyst.push(`Bundled-but-unused capability is leverage, not recoverable savings. Use ${shelfware.map(m => m.name).join(", ")} to challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Do not count it as cash unless the vendor confirms a price reduction in writing.`);
   analyst.push(`Use this to budget the real platform baseline and negotiate the terms before signature: price every required module and edition delta in writing, co-term add-ons to the master agreement, cap usage fees, and rate-lock the ${n(seats18mo) > 0 ? n(seats18mo) + " seats" : "seats"} you'll need within eighteen months. The quote is the opening move, not the price.`);
 
@@ -208,7 +210,7 @@ export default function LicenseBundleGapChecker() {
     publishToolResult("license-gap", normalizeForPublish({
       licenseQuotedSeat: +quotedSeat.toFixed(2), licenseEffectiveLicenseSeat: +effLicenseSeat.toFixed(2), licenseEffectivePlatformSeat: +effPlatformSeat.toFixed(2),
       licenseBundleGapPct: +gapPct.toFixed(1), licenseAddOnAnnual: Math.round(decomp.addOns), licenseTierAnnual: Math.round(decomp.tier), licenseUsageMonthly: Math.round(usageMonthly),
-      licenseHiddenAnnual: Math.round(hiddenAnnual), licenseAnnualPlatform: Math.round(annualPlatform), licenseYear3Seat: +year3Seat.toFixed(2),
+      licenseHiddenAnnual: Math.round(hiddenAnnual), licenseImplementationOneTime: Math.round(oneTimeTotal), licenseAnnualPlatform: Math.round(annualPlatform), licenseYear3Seat: +year3Seat.toFixed(2),
       licenseCommitExposureAnnual: Math.round(commitExpAnnual), agents: billable, licenseConfidence: confidence, analystRead: analyst[0],
     }, { sourceTool: "license-gap" }).clean); /* eslint-disable-next-line */
   }, [classes, modules, usage, committedSeats, commitBasis, commitRate, uplift, seats18mo, evidence, confirmed]);
@@ -316,7 +318,8 @@ export default function LicenseBundleGapChecker() {
             {MODULES.map((mod, i) => {
               const m = modules[mod.id];
               const isCost = COST_STATUS.has(m.status);
-              const showCost = m.need === "yes" && isCost;
+              const isOneTime = m.status === "onetime";
+              const showCost = m.need === "yes" && (isCost || isOneTime);
               const showScope = m.need === "yes" && isCost;
               const isGap = m.need === "yes" && (isCost || m.status === "usage");
               const isShelf = m.need === "no" && (m.status === "included" || m.status === "limited");
@@ -328,14 +331,14 @@ export default function LicenseBundleGapChecker() {
                   <span style={{ fontSize: 11, color: MUTED }} className="moddesc">{mod.desc}</span>
                   <div><Select value={m.need} onChange={v => setMod(mod.id, "need", v)} options={NEED_OPTS} color={m.need === "yes" ? NAVY : m.need === "unsure" ? AMBER : MUTED} /></div>
                   <div><Select value={m.status} onChange={v => setMod(mod.id, "status", v)} options={STATUS_OPTS} color={isCost ? AMBER : m.status === "unknown" ? RED : m.status === "usage" ? TEAL : SLATE} /></div>
-                  <div>{showScope ? <Select value={m.scope} onChange={v => setMod(mod.id, "scope", v)} options={SCOPE_OPTS} color={SLATE} /> : <span style={{ fontSize: 10.5, color: BORDER, display: "block", textAlign: "center" }}>-</span>}</div>
+                  <div>{showScope ? <Select value={m.scope} onChange={v => setMod(mod.id, "scope", v)} options={SCOPE_OPTS} color={SLATE} /> : <span style={{ fontSize: 10, color: isOneTime && m.need === "yes" ? SLATE : BORDER, display: "block", textAlign: "center" }}>{isOneTime && m.need === "yes" ? "one-time total" : "-"}</span>}</div>
                   <div>{showCost ? <Cell value={m.cost} onChange={v => setMod(mod.id, "cost", v)} prefix="$" /> : <span style={{ fontSize: 10.5, color: BORDER, display: "block", textAlign: "right" }}>{m.status === "usage" ? "below" : "-"}</span>}</div>
                 </div>
               );
             })}
           </div>
           <p style={{ fontSize: 11, color: MUTED, marginTop: 8 }}>
-            Add-ons <strong style={{ color: AMBER }}>{fmtK(addOnMonthly)}/mo</strong> · tier upgrades <strong style={{ color: AMBER }}>{fmtK(tierMonthly)}/mo</strong> · scoped to the seats each touches · {shelfware.length} shelfware · {unknowns.length} unknown
+            Add-ons <strong style={{ color: AMBER }}>{fmtK(addOnMonthly)}/mo</strong> · tier upgrades <strong style={{ color: AMBER }}>{fmtK(tierMonthly)}/mo</strong>{oneTimeTotal > 0 ? <> · implementation <strong style={{ color: SLATE }}>{fmtK(oneTimeTotal)} one-time</strong></> : null} · scoped to the seats each touches · {shelfware.length} shelfware · {unknowns.length} unknown
           </p>
 
           {/* USAGE */}
@@ -382,6 +385,12 @@ export default function LicenseBundleGapChecker() {
               ))}
             </div>
           </div>
+
+          {oneTimeTotal > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, marginBottom: 18 }}>
+              <span style={{ fontSize: 12, color: SLATE }}>Implementation (one-time), excluded from the recurring seat economics and hidden annual</span><strong style={{ fontSize: 14, color: NAVY }}>{fmtK(oneTimeTotal)}</strong>
+            </div>
+          )}
 
           {/* Commercial traps */}
           {(commitExpSeats > 0 || n(uplift) > 0 || n(seats18mo) > 0) && (
@@ -474,7 +483,7 @@ export default function LicenseBundleGapChecker() {
               ...(shelfware.length ? [{ title: "Shelfware (leverage, not savings)", type: "text", content: `${shelfware.length} module${shelfware.length > 1 ? "s" : ""} bundled but unused: ${shelfware.map(m => m.name).join(", ")}. Challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Not recoverable unless the vendor confirms a reduction in writing.` }] : []),
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Three figures, deliberately distinct. Quoted seat = base monthly across seat classes / billable seats. Effective license seat adds required per-seat add-ons and edition (tier) upgrades, each priced only on the seats in its scope, then divided by billable seats. Still a true per-seat figure. Effective platform seat-equivalent adds usage-based fees and normalizes across billable seats for comparison only; it is not a vendor seat price, because usage scales with volume, not seats. Hidden annual is the platform total over the quoted baseline, decomposed into add-ons, tier upgrades, and usage. Tier upgrades may force the whole base onto a higher edition. Confirm scope in writing. Commit exposure prices idle committed seats at the chosen basis (license seat by default, not the usage-loaded equivalent, to avoid overstating). The year-three projection applies the renewal uplift to the contracted license rates only and holds usage flat, because usage scales with volume rather than the contract. Shelfware is leverage only, never recoverable savings. Confidence is ${confidence}; Finance-grade requires a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, usage treatment, renewal uplift, license basis, and written confirmation. Evidence source: ${EVIDENCE_OPTS.find(e => e.v === evidence)?.l}.` },
+              { title: "Methodology", type: "text", content: `Three figures, deliberately distinct. Quoted seat = base monthly across seat classes / billable seats. Effective license seat adds required per-seat add-ons and edition (tier) upgrades, each priced only on the seats in its scope, then divided by billable seats. Still a true per-seat figure. Effective platform seat-equivalent adds usage-based fees and normalizes across billable seats for comparison only; it is not a vendor seat price, because usage scales with volume, not seats. Hidden annual is the platform total over the quoted baseline, decomposed into add-ons, tier upgrades, and usage. Tier upgrades may force the whole base onto a higher edition. Confirm scope in writing. Commit exposure prices idle committed seats at the chosen basis (license seat by default, not the usage-loaded equivalent, to avoid overstating). The year-three projection applies the renewal uplift to the contracted license rates only and holds usage flat, because usage scales with volume rather than the contract. Implementation and other one-time costs are shown separately and excluded from the recurring seat economics and hidden annual, because those are monthly and per-seat. Shelfware is leverage only, never recoverable savings. Confidence is ${confidence}; Finance-grade requires a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, usage treatment, renewal uplift, license basis, and written confirmation. Evidence source: ${EVIDENCE_OPTS.find(e => e.v === evidence)?.l}.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "Contract Risk Scanner", reason: "Rate-locks, co-term, promo expiration, upgrade scope, and minimum-commit terms behind these numbers", href: "/tools/contract-risk" },
                 { tool: "TCO Calculator", reason: "Roll the platform seat-equivalent and usage fees into full cost of ownership", href: "/tools/tco-calculator" },
