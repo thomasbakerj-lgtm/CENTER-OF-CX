@@ -167,12 +167,18 @@ export default function LicenseBundleGapChecker() {
 
   // SELF-AUDIT: rank recurring cost drivers, detect category errors before they reach a board deck
   const drivers = [];
-  MODULES.forEach(mod => { const m = modules[mod.id]; if (m.need !== "yes") return; const appl = scopeSeats(m.scope || "all"); if (m.status === "addon" || m.status === "tier") drivers.push({ name: mod.name, annual: appl * n(m.cost) * 12 }); });
-  if (usageMonthly > 0) drivers.push({ name: "Usage fees (metered)", annual: usageMonthly * 12 });
+  MODULES.forEach(mod => { const m = modules[mod.id]; if (m.need !== "yes") return; const appl = scopeSeats(m.scope || "all"); if (m.status === "addon" || m.status === "tier") drivers.push({ name: mod.name, annual: appl * n(m.cost) * 12, usage: false }); });
+  if (usageMonthly > 0) drivers.push({ name: "Usage fees (metered)", annual: usageMonthly * 12, usage: true });
   drivers.sort((a, b) => b.annual - a.annual);
   const topDriver = drivers[0] || { name: "none", annual: 0 };
   const dominanceShare = hiddenAnnual > 0 ? topDriver.annual / hiddenAnnual : 0;
-  const singleDriverDominant = drivers.length >= 2 && dominanceShare > 0.8;
+  // Miscategorization risk is a per-seat or tier line dominating the RECURRING LICENSE cost. Usage can legitimately dominate the hidden annual in AI-heavy contracts, so it is treated separately and never as a category error.
+  const recurringAnnual = decomp.addOns + decomp.tier;
+  const recurDrivers = drivers.filter(d => !d.usage);
+  const topRecur = recurDrivers[0] || { name: "none", annual: 0 };
+  const recurDominance = recurringAnnual > 0 ? topRecur.annual / recurringAnnual : 0;
+  const singleDriverDominant = recurDrivers.length >= 2 && recurDominance > 0.8;
+  const usageDominant = hiddenAnnual > 0 && (usageMonthly * 12) / hiddenAnnual > 0.8;
   const gapImplausible = gapPct > 500;
   const seatImplausible = quotedSeat > 0 && effLicenseSeat > quotedSeat * 5;
   const hardDoubt = gapImplausible || seatImplausible;
@@ -197,7 +203,8 @@ export default function LicenseBundleGapChecker() {
   if (shelfware.length) flags.push({ sev: "info", t: `Shelfware leverage: ${shelfware.map(m => m.name).join(", ")} bundled but unused. Leverage for a lower tier or credits, not recoverable savings.` });
   if (usageMonthly > 0) flags.push({ sev: "info", t: `Normalized, not seat costs: ${fmtK(usageMonthly)}/mo of usage fees are spread across seats for comparison only. They scale with volume, not seats. The platform equivalent is not a vendor seat price.` });
   needPriced.forEach(mod => { if (n(modules[mod.id].cost) === 0) flags.push({ sev: "info", t: `${mod.name} is needed and priced, but its cost is $0. Pull the real figure from the quote or the gap is understated.` }); });
-  if (singleDriverDominant) flags.push({ sev: "warn", t: `${topDriver.name} drives ${(dominanceShare * 100).toFixed(0)}% of the hidden annual. A single dominant line is the classic sign of a miscategorized cost. Confirm its pricing behavior, per-seat, usage, or one-time, before using these figures; confidence is held below Finance-grade until you do.` });
+  if (singleDriverDominant) flags.push({ sev: "warn", t: `${topRecur.name} drives ${(recurDominance * 100).toFixed(0)}% of the recurring license cost. A single per-seat or tier line that dominates is the classic sign of a one-time or total fee miscoded as recurring. Confirm its pricing behavior before using these figures; confidence is held below Finance-grade until you do.` });
+  if (usageDominant) flags.push({ sev: "info", t: `Usage fees are ${Math.round((usageMonthly * 12 / hiddenAnnual) * 100)}% of the hidden annual. That is a usage-heavy contract, not a miscategorization, but the platform seat-equivalent will swing with volume. Confirm the volume assumptions and cap or commit these fees.` });
   if (gapImplausible) flags.push({ sev: "warn", t: `Bundle gap of ${gapPct.toFixed(0)}% is implausibly high, which caps confidence at Directional. Recheck for a one-time or usage cost coded as recurring per-seat.` });
   if (seatImplausible) flags.push({ sev: "warn", t: `Effective seat $${effLicenseSeat.toFixed(0)} is over ${Math.round(effLicenseSeat / Math.max(1, quotedSeat))}x the quoted $${quotedSeat.toFixed(0)}, which caps confidence at Directional. A gap this size almost always means a line item is miscategorized.` });
 
@@ -404,7 +411,7 @@ export default function LicenseBundleGapChecker() {
           {drivers.length > 0 && (
             <div style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px", marginBottom: 18 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 8 }}>Top recurring cost drivers</div>
-              {drivers.slice(0, 4).map((d, i) => { const share = hiddenAnnual > 0 ? d.annual / hiddenAnnual : 0; const hot = i === 0 && singleDriverDominant; return (
+              {drivers.slice(0, 4).map((d, i) => { const share = hiddenAnnual > 0 ? d.annual / hiddenAnnual : 0; const hot = !d.usage && d.name === topRecur.name && singleDriverDominant; return (
                 <div key={d.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 0", borderBottom: i < Math.min(3, drivers.length - 1) ? `1px solid ${BORDER}` : "none" }}>
                   <span style={{ fontSize: 12, color: MUTED, width: 16 }}>{i + 1}</span>
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: hot ? RED : NAVY, flex: 1 }}>{d.name}{hot ? " (confirm periodicity)" : ""}</span>
