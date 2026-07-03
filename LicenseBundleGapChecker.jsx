@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { normalizeForPublish } from "./src/lib/metrics";
+import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -49,23 +51,23 @@ const DBL_MAP = { ai: "ai", analytics: "transcription", digital: "sms", recordin
 const DBL_LABEL = { ai: "AI add-on + AI usage tokens", analytics: "analytics module + transcription minutes", digital: "digital channel module + SMS/WhatsApp fees", recording: "recording module + storage retention", telephony: "telephony module + voice/carrier usage" };
 
 const DEFS = {
-  baseSeat: "The advertised per-agent price the vendor leads with. It typically covers core voice, routing, and basic reporting only — most everything else is priced separately.",
-  effLicenseSeat: "The seat price plus the per-seat modules and edition upgrades you require. Still a true per-seat number — what one production-ready license actually costs.",
-  effPlatform: "The license seat plus usage-based fees, normalized across billable seats for comparison. This is a comparison figure, not a seat price — usage scales with volume, not seats.",
-  gap: "How far the all-in platform cost per seat sits above the quote. It is not overcharging — it's the part of a production-ready platform's cost the headline seat price leaves out.",
+  baseSeat: "The advertised per-agent price the vendor leads with. It typically covers core voice, routing, and basic reporting only. Most everything else is priced separately.",
+  effLicenseSeat: "The seat price plus the per-seat modules and edition upgrades you require. Still a true per-seat number: what one production-ready license actually costs.",
+  effPlatform: "The license seat plus usage-based fees, normalized across billable seats for comparison. This is a comparison figure, not a seat price. Usage scales with volume, not seats.",
+  gap: "How far the all-in platform cost per seat sits above the quote. It is not overcharging. It's the part of a production-ready platform's cost the headline seat price leaves out.",
   basis: "Named licenses bill per assigned user; concurrent bills on peak simultaneous logins. With part-time agents, seasonal ramps, or shared queues, your billable count can differ sharply from headcount.",
   seatClass: "A CCaaS quote rarely maps to one price times all agents. Supervisors, admins, and analysts are often priced differently or on different editions. Enter the classes your quote actually contains.",
   status: "How a module is priced matters as much as whether you need it. An add-on is a separate line; a tier upgrade forces a higher edition; usage-based bills by volume. Completely different economics.",
   scope: "Not every module is priced on every seat. WEM may cover agents and supervisors, AI assist only agents, admin features only admins. Set who each add-on or upgrade applies to so the cost isn't overstated.",
-  tier: "Not a line-item add-on — getting this means moving seats to a higher edition. Enter the per-seat edition delta; it applies to the seats in scope. Vendors often require the whole base on the higher edition, so confirm scope in writing.",
-  limited: "Included, but capped — limited retention, minutes, sessions, or seats. The cap is where overage charges hide, so it's flagged for you to confirm against real volume.",
-  unknown: "You don't yet know whether this is included, and recording that honestly is the point. Unknown inclusion on a needed module caps export confidence — false precision is worse than a flagged gap.",
+  tier: "Not a line-item add-on. Getting this means moving seats to a higher edition. Enter the per-seat edition delta; it applies to the seats in scope. Vendors often require the whole base on the higher edition, so confirm scope in writing.",
+  limited: "Included, but capped: limited retention, minutes, sessions, or seats. The cap is where overage charges hide, so it's flagged for you to confirm against real volume.",
+  unknown: "You don't yet know whether this is included, and recording that honestly is the point. Unknown inclusion on a needed module caps export confidence. False precision is worse than a flagged gap.",
   usage: "Metered charges that don't live in the seat price: AI tokens, bot sessions, transcription, storage, SMS, carrier minutes. The biggest reason a per-seat model understates real cost.",
-  committed: "The minimum seats your contract obligates you to pay for, which can exceed the seats you actually staff. Paying more committed than active is commit exposure — not waste, but real money and leverage.",
+  committed: "The minimum seats your contract obligates you to pay for, which can exceed the seats you actually staff. Paying more committed than active is commit exposure, not waste, but real money and leverage.",
   commitBasis: "Minimum commitments are usually priced on contracted licenses, not your usage-loaded equivalent. Pricing idle committed seats at the platform equivalent overstates the exposure, so this defaults to the license seat.",
   uplift: "The annual percentage your rates rise at renewal. A quote that looks fine in year one can look very different in year three; this projects the seat forward so you negotiate the uplift now.",
   seats18mo: "Seats you expect to add within eighteen months, priced at today's rate. It shows the exposure to rate-lock before signing, while you still have leverage.",
-  shelfware: "Modules bundled into your tier that you don't use. Leverage to negotiate a lower tier or credits — but usually not a line you can drop on its own, so it is flagged, never counted as recoverable savings.",
+  shelfware: "Modules bundled into your tier that you don't use. Leverage to negotiate a lower tier or credits, but usually not a line you can drop on its own, so it is flagged, never counted as recoverable savings.",
   confidence: "How much weight this output can carry. Finance-grade is deliberately hard: it requires a real document as the evidence source, committed seats, usage fees, renewal uplift, license basis, and terms confirmed in writing.",
   evidence: "What the numbers rest on. An estimate is a guess; a vendor email beats a guess; a proposal or order form is what finance will trust. Finance-grade requires a document, not a checkbox.",
 };
@@ -84,34 +86,6 @@ function Cell({ value, onChange, prefix }) {
     {prefix && <span style={{ position: "absolute", left: 7, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
     <input type="number" value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "6px 8px", paddingLeft: prefix ? 16 : 8, fontSize: 12, border: `1px solid ${BORDER}`, borderRadius: 5, textAlign: "right", color: NAVY, outline: "none" }} />
   </div>;
-}
-function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, pulled, info, infoTitle }) {
-  const [local, setLocal] = useState(String(n(value)));
-  const holdRef = useRef(null), valRef = useRef(n(value));
-  valRef.current = n(value);
-  useEffect(() => { setLocal(String(n(value))); /* eslint-disable-next-line */ }, [value]);
-  const clamp = (x) => { if (min != null && x < min) x = min; if (max != null && x > max) x = max; return Math.round(x * 1000) / 1000; };
-  const stop = () => { if (holdRef.current) { clearTimeout(holdRef.current); holdRef.current = null; } };
-  const start = (dir) => { stop(); let v = clamp(n(valRef.current)); const d = () => { v = clamp(v + dir * step); setLocal(String(v)); onChange(v); }; d(); let delay = 280; const tick = () => { d(); delay = Math.max(45, delay - 30); holdRef.current = setTimeout(tick, delay); }; holdRef.current = setTimeout(tick, delay); };
-  const btn = { width: 20, height: 14, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: MUTED, cursor: "pointer", padding: 0, fontSize: 7, userSelect: "none" };
-  return (
-    <div>
-      <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-        {label}{info && <InfoDot text={info} title={infoTitle || label} />}{pulled && <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: ICE, padding: "1px 5px", borderRadius: 4 }}>PULLED</span>}
-      </label>
-      <div style={{ position: "relative" }}>
-        {prefix && <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
-        <input type="text" inputMode="decimal" value={local} onChange={e => { setLocal(e.target.value); const p = parseFloat(e.target.value); onChange(isNaN(p) ? 0 : p); }} onBlur={() => setLocal(String(n(value)))}
-          style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 24 : 12, paddingRight: 40, outline: "none" }} />
-        {suffix && <span style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: MUTED, pointerEvents: "none" }}>{suffix}</span>}
-        <div style={{ position: "absolute", right: 3, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 1 }}>
-          <button type="button" style={btn} onMouseDown={e => { e.preventDefault(); start(1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(1); }} onTouchEnd={stop}>▲</button>
-          <button type="button" style={btn} onMouseDown={e => { e.preventDefault(); start(-1); }} onMouseUp={stop} onMouseLeave={stop} onTouchStart={e => { e.preventDefault(); start(-1); }} onTouchEnd={stop}>▼</button>
-        </div>
-      </div>
-      {hint && <span style={{ fontSize: 10.5, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
-    </div>
-  );
 }
 function Nav() {
   return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
@@ -201,23 +175,23 @@ export default function LicenseBundleGapChecker() {
   doubles.forEach(id => flags.push(dblAck
     ? { sev: "info", t: `Double count reviewed: ${DBL_LABEL[id]} confirmed as separate charges.` }
     : { sev: "warn", t: `Possible double count: ${DBL_LABEL[id]} are both entered. Confirm these are separate charges, not one already including the other.` }));
-  if (unknowns.length) flags.push({ sev: "warn", t: `Unknown inclusion: ${unknowns.join(", ")} needed but bundle status unconfirmed. Get it in writing — this caps confidence at Directional.` });
+  if (unknowns.length) flags.push({ sev: "warn", t: `Unknown inclusion: ${unknowns.join(", ")} needed but bundle status unconfirmed. Get it in writing. This caps confidence at Directional.` });
   if (limiteds.length) flags.push({ sev: "warn", t: `Limited inclusion: ${limiteds.join(", ")} included but capped. Confirm the limit against real volume; overage is where the next surprise hides.` });
-  if (tiers.length) flags.push({ sev: "warn", t: `Tier upgrade: ${tiers.join(", ")} force an edition jump ($${tierMonthly > 0 ? Math.round(tierMonthly / Math.max(1, billable)) : 0}/seat blended). Vendor may require all seats on the higher edition — confirm upgrade scope in writing.` });
+  if (tiers.length) flags.push({ sev: "warn", t: `Tier upgrade: ${tiers.join(", ")} force an edition jump ($${tierMonthly > 0 ? Math.round(tierMonthly / Math.max(1, billable)) : 0}/seat blended). Vendor may require all seats on the higher edition. Confirm upgrade scope in writing.` });
   if (usageFlagged.length && usageMonthly === 0) flags.push({ sev: "warn", t: `Usage fee missing: ${usageFlagged.join(", ")} usage-based, but no usage cost entered. The platform equivalent is understated until you add it.` });
-  if (commitExpSeats > 0) flags.push({ sev: "warn", t: `Commit exposure: ${n(committedSeats)} committed vs ${billable} active — ${commitExpSeats} idle seats at the ${commitBasis === "quoted" ? "quoted" : commitBasis === "custom" ? "custom" : "license"} basis ($${commitBasisPrice.toFixed(0)}) = ${fmtK(commitExpAnnual)}/yr. Leverage and real cost, not waste.` });
-  if (n(uplift) === 0) flags.push({ sev: "info", t: `Renewal exposure: no annual uplift entered. Ask for the renewal cap and enter it — year one rarely tells the year-three story.` });
+  if (commitExpSeats > 0) flags.push({ sev: "warn", t: `Commit exposure: ${n(committedSeats)} committed vs ${billable} active, ${commitExpSeats} idle seats at the ${commitBasis === "quoted" ? "quoted" : commitBasis === "custom" ? "custom" : "license"} basis ($${commitBasisPrice.toFixed(0)}) = ${fmtK(commitExpAnnual)}/yr. Leverage and real cost, not waste.` });
+  if (n(uplift) === 0) flags.push({ sev: "info", t: `Renewal exposure: no annual uplift entered. Ask for the renewal cap and enter it. Year one rarely tells the year-three story.` });
   if (shelfware.length) flags.push({ sev: "info", t: `Shelfware leverage: ${shelfware.map(m => m.name).join(", ")} bundled but unused. Leverage for a lower tier or credits, not recoverable savings.` });
-  if (usageMonthly > 0) flags.push({ sev: "info", t: `Normalized, not seat costs: ${fmtK(usageMonthly)}/mo of usage fees are spread across seats for comparison only. They scale with volume, not seats — the platform equivalent is not a vendor seat price.` });
-  needPriced.forEach(mod => { if (n(modules[mod.id].cost) === 0) flags.push({ sev: "info", t: `${mod.name} is needed and priced, but its cost is $0 — pull the real figure from the quote or the gap is understated.` }); });
+  if (usageMonthly > 0) flags.push({ sev: "info", t: `Normalized, not seat costs: ${fmtK(usageMonthly)}/mo of usage fees are spread across seats for comparison only. They scale with volume, not seats. The platform equivalent is not a vendor seat price.` });
+  needPriced.forEach(mod => { if (n(modules[mod.id].cost) === 0) flags.push({ sev: "info", t: `${mod.name} is needed and priced, but its cost is $0. Pull the real figure from the quote or the gap is understated.` }); });
 
   // ANALYST READ (reviewer wording)
   const analyst = [];
-  analyst.push(`The quoted seat price is not the production-ready license cost. This model separates the vendor's headline seat from required add-ons, tier upgrades, usage-based charges, support packages, commit exposure, and renewal uplift. Across ${billable} billable seats the ${"$" + quotedSeat.toFixed(0)} quote becomes ${"$" + effLicenseSeat.toFixed(0)} once required per-seat modules and edition upgrades are added, and ${"$" + effPlatformSeat.toFixed(0)} per-seat-equivalent once usage fees are normalized in — a ${gapPct.toFixed(0)}% premium worth ${fmtK(hiddenAnnual)}/yr. The hidden annual amount is not automatically waste; it is the portion of platform cost the quote did not make obvious.`);
+  analyst.push(`The quoted seat price is not the production-ready license cost. This model separates the vendor's headline seat from required add-ons, tier upgrades, usage-based charges, support packages, commit exposure, and renewal uplift. Across ${billable} billable seats the ${"$" + quotedSeat.toFixed(0)} quote becomes ${"$" + effLicenseSeat.toFixed(0)} once required per-seat modules and edition upgrades are added, and ${"$" + effPlatformSeat.toFixed(0)} per-seat-equivalent once usage fees are normalized in, a ${gapPct.toFixed(0)}% premium worth ${fmtK(hiddenAnnual)}/yr. The hidden annual amount is not automatically waste; it is the portion of platform cost the quote did not make obvious.`);
   if (decomp.addOns + decomp.tier + decomp.usage > 0) analyst.push(`That hidden annual breaks down as ${fmtK(decomp.addOns)} required add-ons, ${fmtK(decomp.tier)} tier upgrades, and ${fmtK(decomp.usage)} usage fees. Each is a different negotiation: add-ons get co-termed and rate-locked, edition upgrades get scope-confirmed, usage fees get capped or committed. Treating them as one number hides the levers.`);
-  if (tiers.length) analyst.push(`${tiers.join(" and ")} ${tiers.length > 1 ? "are" : "is"} a tier upgrade, not a line item — getting ${tiers.length > 1 ? "them" : "it"} can force every seat to a higher edition, not just the users of the feature. Confirm the upgrade scope in writing before you model it.`);
-  if (usageMonthly > 0) analyst.push(`${fmtK(usageMonthly)}/mo runs through usage meters and is normalized across seats for comparison only — it is not a seat fee. These scale with volume, so cap or commit them deliberately rather than leaving them open-ended.`);
-  if (commitExpSeats > 0) analyst.push(`You're committed to ${n(committedSeats)} seats but staff ${billable}. That ${commitExpSeats}-seat gap, priced at the ${commitBasis === "quoted" ? "quoted base" : commitBasis === "custom" ? "custom commit" : "license"} seat, is ${fmtK(commitExpAnnual)}/yr of commit exposure — use it to negotiate the minimum down or win ramp flexibility, but budget it until the contract says otherwise.`);
+  if (tiers.length) analyst.push(`${tiers.join(" and ")} ${tiers.length > 1 ? "are" : "is"} a tier upgrade, not a line item. Getting ${tiers.length > 1 ? "them" : "it"} can force every seat to a higher edition, not just the users of the feature. Confirm the upgrade scope in writing before you model it.`);
+  if (usageMonthly > 0) analyst.push(`${fmtK(usageMonthly)}/mo runs through usage meters and is normalized across seats for comparison only. It is not a seat fee. These scale with volume, so cap or commit them deliberately rather than leaving them open-ended.`);
+  if (commitExpSeats > 0) analyst.push(`You're committed to ${n(committedSeats)} seats but staff ${billable}. That ${commitExpSeats}-seat gap, priced at the ${commitBasis === "quoted" ? "quoted base" : commitBasis === "custom" ? "custom commit" : "license"} seat, is ${fmtK(commitExpAnnual)}/yr of commit exposure. Use it to negotiate the minimum down or win ramp flexibility, but budget it until the contract says otherwise.`);
   if (n(uplift) > 0) analyst.push(`At ${n(uplift)}% annual uplift, the license component rises while usage fees are held flat: the license seat moves from ${"$" + effLicenseSeat.toFixed(0)} to ${"$" + year3LicenseSeat.toFixed(0)}, putting the year-three platform seat-equivalent at ${"$" + year3Seat.toFixed(0)}, assuming no usage-volume growth. Negotiate the renewal cap now, while you hold the leverage.`);
   if (shelfware.length) analyst.push(`Bundled-but-unused capability is leverage, not recoverable savings. Use ${shelfware.map(m => m.name).join(", ")} to challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Do not count it as cash unless the vendor confirms a price reduction in writing.`);
   analyst.push(`Use this to budget the real platform baseline and negotiate the terms before signature: price every required module and edition delta in writing, co-term add-ons to the master agreement, cap usage fees, and rate-lock the ${n(seats18mo) > 0 ? n(seats18mo) + " seats" : "seats"} you'll need within eighteen months. The quote is the opening move, not the price.`);
@@ -231,18 +205,18 @@ export default function LicenseBundleGapChecker() {
   const confLine = `Confidence: ${confidence}. Evidence source: ${evLabel}. ` + (caveats.length ? `Open issues: ${caveats.join("; ")}.` : doubles.length > 0 && dblAck ? `Commercial overlap: module and usage fees confirmed as separate charges.` : `No unresolved commercial caveats.`);
 
   useEffect(() => {
-    publishToolResult("license-gap", {
+    publishToolResult("license-gap", normalizeForPublish({
       licenseQuotedSeat: +quotedSeat.toFixed(2), licenseEffectiveLicenseSeat: +effLicenseSeat.toFixed(2), licenseEffectivePlatformSeat: +effPlatformSeat.toFixed(2),
       licenseBundleGapPct: +gapPct.toFixed(1), licenseAddOnAnnual: Math.round(decomp.addOns), licenseTierAnnual: Math.round(decomp.tier), licenseUsageMonthly: Math.round(usageMonthly),
       licenseHiddenAnnual: Math.round(hiddenAnnual), licenseAnnualPlatform: Math.round(annualPlatform), licenseYear3Seat: +year3Seat.toFixed(2),
       licenseCommitExposureAnnual: Math.round(commitExpAnnual), agents: billable, licenseConfidence: confidence, analystRead: analyst[0],
-    }); /* eslint-disable-next-line */
+    }, { sourceTool: "license-gap" }).clean); /* eslint-disable-next-line */
   }, [classes, modules, usage, committedSeats, commitBasis, commitRate, uplift, seats18mo, evidence, confirmed]);
 
   const sendResults = () => {
     setSending(true);
     const b = new FormData();
-    b.append("_subject", "License Bundle Gap (v4) — Center of CX"); b.append("source", "License Bundle Gap Checker");
+    b.append("_subject", "License Bundle Gap (v4), Center of CX"); b.append("source", "License Bundle Gap Checker");
     b.append("quoted_seat", "$" + quotedSeat.toFixed(0)); b.append("eff_license_seat", "$" + effLicenseSeat.toFixed(0)); b.append("eff_platform_seat_eq", "$" + effPlatformSeat.toFixed(0));
     b.append("gap_pct", gapPct.toFixed(0) + "%"); b.append("hidden_annual", fmtK(hiddenAnnual)); b.append("confidence", confidence); b.append("evidence", evidence);
     fetch("https://formspree.io/f/maqlvwne", { method: "POST", body: b, headers: { Accept: "application/json" } })
@@ -263,7 +237,7 @@ export default function LicenseBundleGapChecker() {
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>License Bundle Gap Checker</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 720 }}>The advertised seat price is not the license cost. This reconciles the quote against what you actually pay: base seats by class, required add-ons and edition upgrades scoped to the seats they touch, usage fees normalized for comparison, minimum commits, and renewal uplift — plus the shelfware you can use as leverage. It hands TCO and Contract Risk better numbers; it does not replace them.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 720 }}>The advertised seat price is not the license cost. This reconciles the quote against what you actually pay: base seats by class, required add-ons and edition upgrades scoped to the seats they touch, usage fees normalized for comparison, minimum commits, and renewal uplift, plus the shelfware you can use as leverage. It hands TCO and Contract Risk better numbers; it does not replace them.</p>
           {pulled.agents && <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}><span style={{ fontSize: 12, color: "#fff", fontWeight: 600 }}>Agent count pulled from your TCO run. Editable below.</span></div>}
         </div>
       </section>
@@ -354,8 +328,8 @@ export default function LicenseBundleGapChecker() {
                   <span style={{ fontSize: 11, color: MUTED }} className="moddesc">{mod.desc}</span>
                   <div><Select value={m.need} onChange={v => setMod(mod.id, "need", v)} options={NEED_OPTS} color={m.need === "yes" ? NAVY : m.need === "unsure" ? AMBER : MUTED} /></div>
                   <div><Select value={m.status} onChange={v => setMod(mod.id, "status", v)} options={STATUS_OPTS} color={isCost ? AMBER : m.status === "unknown" ? RED : m.status === "usage" ? TEAL : SLATE} /></div>
-                  <div>{showScope ? <Select value={m.scope} onChange={v => setMod(mod.id, "scope", v)} options={SCOPE_OPTS} color={SLATE} /> : <span style={{ fontSize: 10.5, color: BORDER, display: "block", textAlign: "center" }}>—</span>}</div>
-                  <div>{showCost ? <Cell value={m.cost} onChange={v => setMod(mod.id, "cost", v)} prefix="$" /> : <span style={{ fontSize: 10.5, color: BORDER, display: "block", textAlign: "right" }}>{m.status === "usage" ? "below" : "—"}</span>}</div>
+                  <div>{showScope ? <Select value={m.scope} onChange={v => setMod(mod.id, "scope", v)} options={SCOPE_OPTS} color={SLATE} /> : <span style={{ fontSize: 10.5, color: BORDER, display: "block", textAlign: "center" }}>-</span>}</div>
+                  <div>{showCost ? <Cell value={m.cost} onChange={v => setMod(mod.id, "cost", v)} prefix="$" /> : <span style={{ fontSize: 10.5, color: BORDER, display: "block", textAlign: "right" }}>{m.status === "usage" ? "below" : "-"}</span>}</div>
                 </div>
               );
             })}
@@ -376,7 +350,7 @@ export default function LicenseBundleGapChecker() {
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 11, color: MUTED, marginTop: 8 }}>Total metered fees <strong style={{ color: TEAL }}>{fmtK(usageMonthly)}/mo</strong>, normalized to {fmtK(usageMonthly / Math.max(1, billable))}/seat for comparison only — not a seat fee.</p>
+          <p style={{ fontSize: 11, color: MUTED, marginTop: 8 }}>Total metered fees <strong style={{ color: TEAL }}>{fmtK(usageMonthly)}/mo</strong>, normalized to {fmtK(usageMonthly / Math.max(1, billable))}/seat for comparison only, not a seat fee.</p>
         </div>
       </section>
 
@@ -440,7 +414,7 @@ export default function LicenseBundleGapChecker() {
           {doubles.length > 0 && (
             <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", border: `1px solid ${dblAck ? GREEN : AMBER}`, background: `${dblAck ? GREEN : AMBER}0A`, borderRadius: 8, padding: "9px 14px", marginBottom: 8 }}>
               <input type="checkbox" checked={dblAck} onChange={e => setDblAck(e.target.checked)} style={{ width: 15, height: 15, accentColor: GREEN }} />
-              <span style={{ fontSize: 12, color: SLATE, fontWeight: 600 }}>Possible double counts confirmed as separate charges{!dblAck && <span style={{ color: AMBER, fontWeight: 700 }}> — required for Finance-grade</span>}</span>
+              <span style={{ fontSize: 12, color: SLATE, fontWeight: 600 }}>Possible double counts confirmed as separate charges{!dblAck && <span style={{ color: AMBER, fontWeight: 700 }}>, required for Finance-grade</span>}</span>
             </label>
           )}
           {confidence !== "Finance-grade" && <p style={{ fontSize: 11.5, color: MUTED, margin: "0 0 18px" }}>{confidence === "Directional" ? "Directional until needed modules have known inclusion and pricing. Resolve every Unknown and Unsure to reach Planning-grade." : `Planning-grade. Finance-grade needs a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, renewal uplift, priced usage${doubles.length > 0 && !dblAck ? ", possible double counts confirmed separate" : ""}, and confirmation in writing.`}</p>}
@@ -448,8 +422,8 @@ export default function LicenseBundleGapChecker() {
           {/* Shelfware */}
           {shelfware.length > 0 && (
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 18px", marginBottom: 18 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>Shelfware — leverage, not savings<InfoDot text={DEFS.shelfware} title="Shelfware" /></div>
-              <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5, margin: 0 }}>Bundled but unused: {shelfware.map(m => m.name).join(", ")}. Use it to challenge tier fit, request credits, secure implementation concessions, or negotiate future module access — not recoverable cash unless the vendor confirms a reduction in writing.</p>
+              <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>Shelfware: leverage, not savings<InfoDot text={DEFS.shelfware} title="Shelfware" /></div>
+              <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5, margin: 0 }}>Bundled but unused: {shelfware.map(m => m.name).join(", ")}. Use it to challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Not recoverable cash unless the vendor confirms a reduction in writing.</p>
             </div>
           )}
 
@@ -497,10 +471,10 @@ export default function LicenseBundleGapChecker() {
                 ...(n(uplift) > 0 ? [{ label: "Year-3 Seat-Eq", value: "$" + year3Seat.toFixed(0), color: RED, sub: n(uplift) + "% uplift" }] : []),
                 ...(n(seats18mo) > 0 ? [{ label: "18-mo Expansion", value: fmtK(exp18Annual), color: SLATE }] : []),
               ] }] : []),
-              ...(shelfware.length ? [{ title: "Shelfware (leverage, not savings)", type: "text", content: `${shelfware.length} module${shelfware.length > 1 ? "s" : ""} bundled but unused: ${shelfware.map(m => m.name).join(", ")}. Challenge tier fit, request credits, secure implementation concessions, or negotiate future module access — not recoverable unless the vendor confirms a reduction in writing.` }] : []),
+              ...(shelfware.length ? [{ title: "Shelfware (leverage, not savings)", type: "text", content: `${shelfware.length} module${shelfware.length > 1 ? "s" : ""} bundled but unused: ${shelfware.map(m => m.name).join(", ")}. Challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Not recoverable unless the vendor confirms a reduction in writing.` }] : []),
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Three figures, deliberately distinct. Quoted seat = base monthly across seat classes / billable seats. Effective license seat adds required per-seat add-ons and edition (tier) upgrades, each priced only on the seats in its scope, then divided by billable seats — still a true per-seat figure. Effective platform seat-equivalent adds usage-based fees and normalizes across billable seats for comparison only; it is not a vendor seat price, because usage scales with volume, not seats. Hidden annual is the platform total over the quoted baseline, decomposed into add-ons, tier upgrades, and usage. Tier upgrades may force the whole base onto a higher edition — confirm scope in writing. Commit exposure prices idle committed seats at the chosen basis (license seat by default, not the usage-loaded equivalent, to avoid overstating). The year-three projection applies the renewal uplift to the contracted license rates only and holds usage flat, because usage scales with volume rather than the contract. Shelfware is leverage only, never recoverable savings. Confidence is ${confidence}; Finance-grade requires a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, usage treatment, renewal uplift, license basis, and written confirmation. Evidence source: ${EVIDENCE_OPTS.find(e => e.v === evidence)?.l}.` },
+              { title: "Methodology", type: "text", content: `Three figures, deliberately distinct. Quoted seat = base monthly across seat classes / billable seats. Effective license seat adds required per-seat add-ons and edition (tier) upgrades, each priced only on the seats in its scope, then divided by billable seats. Still a true per-seat figure. Effective platform seat-equivalent adds usage-based fees and normalizes across billable seats for comparison only; it is not a vendor seat price, because usage scales with volume, not seats. Hidden annual is the platform total over the quoted baseline, decomposed into add-ons, tier upgrades, and usage. Tier upgrades may force the whole base onto a higher edition. Confirm scope in writing. Commit exposure prices idle committed seats at the chosen basis (license seat by default, not the usage-loaded equivalent, to avoid overstating). The year-three projection applies the renewal uplift to the contracted license rates only and holds usage flat, because usage scales with volume rather than the contract. Shelfware is leverage only, never recoverable savings. Confidence is ${confidence}; Finance-grade requires a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, usage treatment, renewal uplift, license basis, and written confirmation. Evidence source: ${EVIDENCE_OPTS.find(e => e.v === evidence)?.l}.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "Contract Risk Scanner", reason: "Rate-locks, co-term, promo expiration, upgrade scope, and minimum-commit terms behind these numbers", href: "/tools/contract-risk" },
                 { tool: "TCO Calculator", reason: "Roll the platform seat-equivalent and usage fees into full cost of ownership", href: "/tools/tco-calculator" },
