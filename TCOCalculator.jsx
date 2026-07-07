@@ -112,7 +112,8 @@ const DEFS = {
   aht: "Average Handle Time, the full time an agent spends per contact including talk, hold, and after-call work. It drives both the marginal cost per contact and the labor freed when you reduce it, so it is one of the largest levers in the model.",
   acw: "After-Call Work, the wrap-up time after the caller disconnects, counted inside AHT. The tool subtracts it from AHT to size telephony minutes, because you stop paying for the line once the call ends but still pay the agent.",
   fcr: "First Contact Resolution, the share of contacts resolved without a repeat. It sets cost per resolution, since a lower FCR means paying to handle the same issue more than once, and it sizes the repeat-contact savings lever.",
-  containment: "The share of contacts fully handled by self-service or a bot with no agent. This is not FCR: containment is about never reaching an agent, FCR is about not calling back. Raising it deflects volume, valued at marginal cost.",
+  containment: "The share of contacts fully handled by self-service or a bot with no agent. This is not FCR (never reaching an agent versus not calling back), and it is an outcome, not the self-service entry channel, which the tool models separately. Raising it deflects volume, valued at marginal cost.",
+  costPerResolution: "Total cost per issue actually resolved, estimated as cost per contact times the contacts each issue takes (about 2 minus FCR under the standard one-plus-repeat model). A lower FCR raises it because more issues need a second contact. If you track an observed recontact rate, that is the more precise figure.",
   occupancy: "The share of logged-in time agents spend actively handling contacts. Above about 90 percent it drives burnout and attrition, so the tool warns when capturing a saving by cutting heads would push it higher.",
   shrinkage: "The share of paid time agents are not available to handle contacts (training, breaks, meetings, absence). The tool uses it to translate 173 paid hours into productive hours, though labor cost is still computed on paid hours because you pay for shrinkage.",
   attrition: "Annual agent turnover as a share of headcount. It sets how many replacement hires you fund each month, and therefore the recruiting, training, and ramp cost carried in the model.",
@@ -157,7 +158,7 @@ function computeTCO(d, stanceKey = "expected") {
   const annual = monthly * 12;
   const agents = n(d.agents) || 1;
   const costPerContact = monthly / contacts;
-  const costPerResolution = monthly / ((contacts * n(d.fcr)) || 1);
+  const costPerResolution = costPerContact * (2 - n(d.fcr)); // contacts per resolution ~ 1 + repeat rate = (2 - FCR); standard repeat model, not 1/FCR
   const humanContacts = contacts * (1 - n(d.containment));
   const costPerHuman = monthly / (humanContacts || 1);
 
@@ -202,6 +203,14 @@ function computeTCO(d, stanceKey = "expected") {
   if (n(d.psAmortized) > 0 && n(d.implementationOneTime) > 0) flags.push({ level: "note", msg: `Both amortized professional services (recurring) and a one-time implementation are set. Confirm you are not entering the same cost twice: amortized PS is a recurring monthly line, the one-time figure is a separate upfront cost added once.` });
   const agentsPerSup = n(d.agents) / Math.max(1, n(d.supervisors));
   if (agentsPerSup > 20) flags.push({ level: "flag", msg: `Span of control is ${Math.round(agentsPerSup)} agents per supervisor, well above the 10 to 15 norm. Thin supervision understates labor cost. Confirm the supervisor count before treating this as Finance-grade.` });
+  // Cross-metric coherence: operational sanity, not just financial. These surface as items to
+  // confirm and shape the analyst read; they do not block the cost-input grade.
+  const occ = n(d.occupancy);
+  if (occ > 0 && occ < 0.70) flags.push({ level: "note", msg: `Occupancy is ${pct0(occ)}, below the 83 to 87 percent target, so idle capacity already exists. Freeing more capacity through deflection or AHT is a redeployment or hiring-avoidance opportunity, not immediate cash, until you address why occupancy is low (overstaffing, interval mismatch, or measurement).` });
+  if (n(d.abandonRate) > 0.05 && n(d.avgSpeedAnswer) > 0 && n(d.avgSpeedAnswer) < 15) flags.push({ level: "note", msg: `Abandonment is ${pct0(d.abandonRate)} while answer speed is ${Math.round(n(d.avgSpeedAnswer))} seconds. High abandon with fast answer is unusual; check for short-abandon counting, interval volatility, or a blended-channel measure.` });
+  if (n(d.fcr) > 0.75 && n(d.csat) > 0 && n(d.csat) < 3.5) flags.push({ level: "note", msg: `FCR is ${pct0(d.fcr)} but CSAT is ${n(d.csat).toFixed(1)} of 5. High resolution with low satisfaction suggests resolution does not equal a good experience, or FCR is measured loosely. Confirm the FCR definition.` });
+  const ahtCut = n(d.aht) > 0 ? (n(d.aht) - n(d.targetAht)) / n(d.aht) : 0;
+  if (ahtCut > 0.20 && (n(d.qualityScore) > 0 && n(d.qualityScore) < 0.75 || n(d.csat) > 0 && n(d.csat) < 3.5)) flags.push({ level: "note", msg: `The AHT target cuts handle time ${pct0(ahtCut)} while quality is already soft (QA ${pct0(d.qualityScore)}, CSAT ${n(d.csat).toFixed(1)}). Make sure the reduction comes from tools and knowledge, not rushing, or you risk a cheaper but worse operation.` });
   const hasBlock = flags.some(f => f.level === "block");
   const hasFlag = flags.some(f => f.level === "flag");
 
@@ -231,6 +240,13 @@ function computeTCO(d, stanceKey = "expected") {
     techPerAgent: tech / agents, y1, y2, y3, threeYear,
     wageMonthly, licenseMonthly, flatMonthly, wEff, lEff, single,
     perAgentMonth, productiveHours, flags, hasBlock, hasFlag, domKey, domShare, confidence, sensitivity, openIssues, itemsToConfirm,
+    agentHandled: contacts * (1 - n(d.containment)),
+    breakdown: {
+      seats,
+      agentLabor, supLabor, qaLabor, wfmLabor, trainerLabor, itLabor,
+      ccaas, wem, crm, aiUsage, analytics: n(d.analyticsMonthly), ipaas: n(d.ipaasMonthly), recording: n(d.recordingMonthly), knowledge: n(d.knowledgeMgmt), security: n(d.securityCompliance), telephony,
+      cloudInfra: n(d.cloudInfra), psAmortized: n(d.psAmortized), facilities: n(d.facilitiesCost), attritionCost,
+    },
   };
 }
 
@@ -240,7 +256,9 @@ function buildOptimizations(d, r, stanceKey) {
   const f = STANCE[stanceKey].f;
   const out = [];
   const contacts = r.contacts;
-  let pool = contacts;
+  // Levers act on the volume agents actually handle, not gross demand. Start from
+  // agent-handled contacts so the deflection lever leaves the correct pool for FCR and AHT.
+  let pool = contacts * (1 - n(d.containment));
 
   const targetCont = Math.max(n(d.containment), n(d.targetContainment));
   const deflectable = Math.max(0, (targetCont - n(d.containment))) * contacts;
@@ -266,7 +284,7 @@ function buildOptimizations(d, r, stanceKey) {
     const minSaved = (n(d.aht) - targetAht) / 60;
     const gross = minSaved * pool * (r.loaded / 60);
     out.push({ key: "aht", title: "Reduce average handle time", gross, net: gross * f,
-      desc: `Bring AHT ${mmss(d.aht)} to ${mmss(targetAht)} across ${Math.round(pool).toLocaleString()} remaining contacts per month. Applied only to contacts still handled, so it does not double count deflected volume.` });
+      desc: `Bring AHT ${mmss(d.aht)} to ${mmss(targetAht)} across ${Math.round(pool).toLocaleString()} agent-handled contacts per month (after deflection). Applied only to contacts agents still handle, so it does not double count deflected volume.` });
   }
 
   if (n(d.attrition) > n(d.targetAttrition)) {
@@ -288,10 +306,10 @@ function buildOptimizations(d, r, stanceKey) {
 function buildAnalystRead(d, r, opt, stanceKey) {
   const out = [];
   const resPremium = r.costPerResolution / r.costPerContact - 1;
-  if (resPremium > 0.25)
-    out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) runs ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}). Your ${pct(d.fcr)} FCR means you pay to handle the same issue more than once, and that gap, not the headline, is where the money leaks.`);
+  if (resPremium > 0.12)
+    out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) runs ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}). At ${pct(d.fcr)} FCR a share of issues take more than one contact to close (this uses the standard one plus repeat-rate model, about ${(2 - n(d.fcr)).toFixed(2)} contacts per resolution), and that gap is where rework cost sits.`);
   else
-    out.push(`Cost per contact $${r.costPerContact.toFixed(2)} and per resolution $${r.costPerResolution.toFixed(2)} are close, so your ${pct(d.fcr)} FCR is not inflating rework cost much. The cost story is in volume and labor, not repeats.`);
+    out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) is ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}), a small gap at ${pct(d.fcr)} FCR, so rework is not a major cost driver here. The cost story is volume and labor.`);
 
   if (r.laborPct > 0.80)
     out.push(`Labor is ${pct(r.laborPct)} of TCO, so this is a people-cost operation. The highest-leverage moves are deflection and AHT, which free agent capacity, rather than trimming the ${pct(r.techPct)} tech line. Cutting tech here barely moves the total.`);
@@ -309,6 +327,7 @@ function buildAnalystRead(d, r, opt, stanceKey) {
   out.push(`Savings are valued at marginal cost ($${r.marginalPerContact.toFixed(2)} per contact), not fully loaded ($${r.costPerContact.toFixed(2)}). Deflecting contacts frees agent time but not fixed tech and facilities, so capturing it as cash requires reducing or redeploying FTE. That is the conversation to have, not assume.`);
 
   if (opt.occRisk) out.push(`Occupancy at ${pct(d.occupancy)} is in the burnout zone (above ${pct0(BENCH.occupancy.cautionMax)}). That is a hidden cost, because it drives the very attrition inflating your overhead. Model it in the Occupancy Risk Simulator before assuming the savings above are free.`);
+  else if (n(d.occupancy) > 0 && n(d.occupancy) < 0.70) out.push(`Occupancy at ${pct(d.occupancy)} sits well below the 83 to 87 percent target, so you already carry idle capacity. The savings above are real as freed capacity, but they will not become cash until you redeploy that time or reduce headcount, and the first question is why occupancy is this low. Pressure-test it in the Occupancy Risk Simulator and Staffing Calculator before booking these numbers.`);
   return out;
 }
 function Calculator() {
@@ -492,7 +511,7 @@ function Calculator() {
                     <div style={{ fontSize: 10, color: GREEN, marginTop: 3 }}>Prepopulated with {INDUSTRY[d.industry]?.label} benchmarks. Adjust any value.</div>
                     <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }} title={BENCHMARK_SOURCES}>Benchmarks validated July 2026 (SQM, Sprinklr, Forrester, BLS wage data). Hover for sources.</div>
                   </div>
-                  <NumField label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} />
+                  <NumField label="Monthly Contacts (gross demand)" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} hint={`All interactions initiated. About ${Math.round(n(d.monthlyContacts) * (1 - n(d.containment))).toLocaleString()} reach an agent at ${pct0(d.containment)} containment.`} />
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>{navBtn(1, "Next: Labor Costs", true)}</div>
               </div>
@@ -545,7 +564,7 @@ function Calculator() {
                   <NumField label="NPS (-100 to 100)" value={d.nps} onChange={v => set("nps", v)} min={-100} max={100} />
                   <NumField label="New Hire Training (days)" value={d.newHireTrainingDays} onChange={v => set("newHireTrainingDays", v)} min={0} />
                 </div>
-                <p style={{ fontSize: 11, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>CSAT, NPS, QA score, schedule adherence, ASA, abandon rate, transfer rate, hold time, and absenteeism are captured for benchmarking and the analyst read. They do not change the TCO total. AHT, FCR, containment, occupancy, shrinkage, and attrition do.</p>
+                <p style={{ fontSize: 11, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>Only headcount, wages, attrition, contract and usage prices, and AHT (through voice minutes) move the current TCO total. FCR, containment, occupancy, and shrinkage do not change current cost; they size the optimization opportunity and derived metrics. CSAT, NPS, QA, adherence, ASA, abandon, transfer, hold, and absenteeism are context for the analyst read and coherence checks.</p>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(1, "Back", false)}{navBtn(3, "Next: Channel Mix", true)}</div>
               </div>
             )}
@@ -685,7 +704,10 @@ function Calculator() {
                 <div style={{ background: NAVY, borderRadius: 14, padding: "32px 28px", color: "#fff", marginBottom: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.8, textTransform: "uppercase", color: LIGHT }}>Complete TCO Results</div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: confColor, background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6 }}>{r.confidence}</div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: confColor, background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6, display: "inline-block" }}>{r.confidence}</div>
+                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>cost inputs, not savings or KPIs</div>
+                    </div>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }} className="kpi-grid">
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
@@ -821,10 +843,20 @@ function Calculator() {
                             { label: "Marginal per Contact", value: "$" + r.marginalPerContact.toFixed(2), color: MUTED, sub: "variable cost" },
                           ]},
                           { title: "3-Year Projection", type: "table", rows: [
-                            ["Year 1 (snapshot)", fmtK(r.y1)], ["Year 2", fmtK(r.y2)], ["Year 3", fmtK(r.y3)],
+                            ["Annual run-rate (Year 1)", fmtK(r.y1)], ["Year 2", fmtK(r.y2)], ["Year 3", fmtK(r.y3)],
                             ["Escalators", escLabel + ", usage and facilities flat"],
-                            ...(n(d.implementationOneTime) > 0 ? [["One-time implementation", fmtK(n(d.implementationOneTime))]] : []),
+                            ...(n(d.implementationOneTime) > 0 ? [["One-time implementation", fmtK(n(d.implementationOneTime))], ["Year 1 cash (run-rate + implementation)", fmtK(r.y1 + n(d.implementationOneTime))]] : []),
                             ["3-Year Total", fmtK(r.threeYear)],
+                          ]},
+                          { title: "Cost Reconciliation", type: "table", rows: [
+                            ["Labor, agents", fmt(r.breakdown.agentLabor)],
+                            ["Labor, supervisors QA WFM trainers IT", fmt(r.breakdown.supLabor + r.breakdown.qaLabor + r.breakdown.wfmLabor + r.breakdown.trainerLabor + r.breakdown.itLabor)],
+                            ["Technology, " + r.breakdown.seats + " seats (CCaaS WEM CRM)", fmt(r.breakdown.ccaas + r.breakdown.wem + r.breakdown.crm)],
+                            ["Technology, AI usage analytics iPaaS recording knowledge security", fmt(r.breakdown.aiUsage + r.breakdown.analytics + r.breakdown.ipaas + r.breakdown.recording + r.breakdown.knowledge + r.breakdown.security)],
+                            ["Technology, telephony (" + Math.round(r.voiceMinutes).toLocaleString() + " min)", fmt(r.breakdown.telephony)],
+                            ["Overhead, cloud prof-services facilities", fmt(r.breakdown.cloudInfra + r.breakdown.psAmortized + r.breakdown.facilities)],
+                            ["Overhead, attrition (" + r.monthlyHires + " hires x " + fmt(r.perHire) + ")", fmt(r.breakdown.attritionCost)],
+                            ["Total monthly", fmt(r.monthly)],
                           ]},
                           { title: "Cost Distribution", type: "table", rows: [
                             ["Labor", fmtK(r.labor) + "/mo (" + pct(r.laborPct) + ")"],
@@ -833,7 +865,7 @@ function Calculator() {
                           ]},
                           { title: "Analyst Read", type: "findings", items: analyst },
                           { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: i === 0 ? "high" : i === 1 ? "medium" : undefined })) },
-                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on 173 paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage 3.5 percent and license 6 percent); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Levers are de-overlapped (each acts on the volume the prior leaves) and scaled by a ${STANCE[stance].label} confidence stance, so totals are defensible rather than inflated. ${BENCHMARK_SOURCES}` },
+                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on 173 paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage 3.5 percent and license 6 percent); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by a ${STANCE[stance].label} confidence stance, so totals are defensible rather than inflated. ${BENCHMARK_SOURCES}` },
                           { title: "Next Steps", type: "next", items: [
                             { tool: "License Bundle Gap Checker", reason: "Audit whether your seat price covers what you actually need", href: "/tools/license-gap" },
                             { tool: "AI Deflection Reality Check", reason: "Pressure-test the containment savings above", href: "/tools/ai-deflection" },
