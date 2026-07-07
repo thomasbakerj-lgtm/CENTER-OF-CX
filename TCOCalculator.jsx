@@ -399,6 +399,10 @@ function Calculator() {
       laborPct: +r.laborPct.toFixed(4), techPct: +r.techPct.toFixed(4), threeYearTCO: Math.round(r.threeYear),
       optimizationNetMonthly: Math.round(opt.netTotal), stance, analystRead: analyst[0],
       wageEscalatorPct: n(d.wageEscalatorPct), licenseEscalatorPct: n(d.licenseEscalatorPct), tcoConfidence: r.confidence,
+      // Baseline facts for downstream tools (e.g. Business Case Builder). Facts, not
+      // conclusions: raw current-state drivers so a downstream case inherits the same
+      // starting point. Targets and hair-cut savings are deliberately NOT published.
+      agentHourly: n(d.agentHourly), aht: n(d.aht), fcr: n(d.fcr), attritionRate: n(d.attrition),
     };
     publishToolResult("tco-calculator", normalizeForPublish(primitives, { sourceTool: "tco-calculator" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
