@@ -61,13 +61,14 @@ function NumField({ label, value, onChange, prefix, suffix, step = 1, min = 0, m
   );
 }
 
-function Sel({ label, value, onChange, options, info, infoTitle, align }) {
+function Sel({ label, value, onChange, options, info, infoTitle, align, disabled, note }) {
   return (
     <div>
-      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: SLATE, marginBottom: 6 }}>{label}{info && <InfoDot text={info} title={infoTitle} align={align} />}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} style={{ width: "100%", padding: "11px 12px", fontSize: 14, fontWeight: 600, color: NAVY, border: `1px solid ${BORDER}`, borderRadius: 8, background: "#fff", outline: "none", cursor: "pointer" }}>
+      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: disabled ? MUTED : SLATE, marginBottom: 6 }}>{label}{info && <InfoDot text={info} title={infoTitle} align={align} />}</label>
+      <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} style={{ width: "100%", padding: "11px 12px", fontSize: 14, fontWeight: 600, color: disabled ? MUTED : NAVY, border: `1px solid ${BORDER}`, borderRadius: 8, background: disabled ? WARM : "#fff", outline: "none", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.7 : 1 }}>
         {options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
       </select>
+      {note && <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.45, margin: "6px 0 0" }}>{note}</p>}
     </div>
   );
 }
@@ -140,7 +141,11 @@ function engine(I) {
   const nonControllableBurdenYr = burdenYr - controllableBurdenYr;
 
   const MECHVAL = { none: 0, absorb: 0.25, overtime: 0.60, hiring: 0.75, vendor: 0.90, headcount: 1.00 }[mech];
-  const realFactor = sourcing === "bpo" ? Math.max(MECHVAL, 1.0) : MECHVAL;
+  // On a per-contact outsourced contract the invoice falls with volume, so no
+  // capacity mechanism is needed and none is applied. The mechanism selector is
+  // inert here, which is why the UI disables it and the report stops naming it.
+  const mechApplies = sourcing !== "bpo";
+  const realFactor = mechApplies ? MECHVAL : 1.0;
   const realizableYr = grossYr * realFactor;
 
   const steadyMo = realizableYr / 12;
@@ -163,8 +168,13 @@ function engine(I) {
   const paybackLabel = neverPaysBack ? "never at current scope" : payback ? "month " + payback : "beyond 48 months";
 
   const band = { estimate: 0.25, ops: 0.15, finance: 0.10 }[costBasis];
-  let realizationRank = { none: 0, absorb: 1, overtime: 1, hiring: 2, vendor: 2, headcount: 3 }[mech];
-  if (sourcing === "bpo") realizationRank = Math.max(realizationRank, 2);
+  // BPO realization is Planning-grade, full stop. It was previously Math.max(rank, 2),
+  // which let an inert mechanism selector lift an outsourced case to Finance-grade.
+  // Finance-grade requires confirming there is no minimum volume commitment, which
+  // this tool does not collect, so it routes that to Contract Risk instead.
+  let realizationRank = mechApplies
+    ? { none: 0, absorb: 1, overtime: 1, hiring: 2, vendor: 2, headcount: 3 }[mech]
+    : 2;
 
   const flags = [];
   if (fcrPulledDirty) flags.push("Current FCR was pulled from another tool as a whole number and normalized to " + pct(fcr) + ". Confidence is capped until you confirm it. The upstream tool is publishing FCR in the wrong unit, which is a suite-contract issue worth fixing at the source.");
@@ -182,6 +192,7 @@ function engine(I) {
   if (target <= fcr + 1e-9) flags.push("Target FCR is not above current. There is no improvement to value.");
   if (overCeiling) flags.push("Target was capped at " + pct(ceilingFCR) + ", the most your diagnostic says you can capture.");
   if (mech === "none" && sourcing !== "bpo") flags.push("No mechanism and in-house sourcing. Realizable savings are $0 until you commit to one.");
+  if (!mechApplies) flags.push("Outsourced per-contact sourcing converts volume reduction to cash at 100%, and the realization mechanism does not apply. This assumes billing tracks actual volume with no minimum commitment. If your contract carries a volume floor, nothing is saved until you drop below it. Confirm the commitment terms in Contract Risk Scanner before presenting these savings.");
   const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped/.test(f));
 
   let costConf = costBasis === "finance" ? "Finance-grade" : costBasis === "ops" ? "Planning-grade" : "Directional";
@@ -190,16 +201,18 @@ function engine(I) {
   const order = ["Directional", "Planning-grade", "Finance-grade"];
   if (fcrPulledDirty) { const ci = order.indexOf("Planning-grade"); if (order.indexOf(costConf) > ci) costConf = "Planning-grade"; if (order.indexOf(realConf) > ci) realConf = "Planning-grade"; }
   const headlineConf = order[Math.min(order.indexOf(costConf), order.indexOf(realConf))];
-  const mechReason = { none: "none is selected, so freed capacity converts to no cash", absorb: "absorb future growth builds capacity but weak near-term cash conversion", overtime: "reduce overtime is only a partial cash lever", hiring: "avoid or slow hiring is a moderate cash lever", vendor: "reduce outsourcer volume is a strong cash lever", headcount: "reduce headcount is a full cash lever" }[mech];
+  const mechReason = mechApplies
+    ? { none: "none is selected, so freed capacity converts to no cash", absorb: "absorb future growth builds capacity but weak near-term cash conversion", overtime: "reduce overtime is only a partial cash lever", hiring: "avoid or slow hiring is a moderate cash lever", vendor: "reduce outsourcer volume is a strong cash lever", headcount: "reduce headcount is a full cash lever" }[mech]
+    : "per-contact billing falls directly with volume, so no capacity mechanism is required. It is held at Planning-grade rather than Finance-grade until a minimum volume commitment is ruled out";
   const weakerIsReal = order.indexOf(realConf) <= order.indexOf(costConf);
   let confReason;
   if (hardFlag) confReason = "an input is physically impossible, so the result is blocked.";
   else if (!defDeclared) confReason = "the FCR definition is not declared, so the result is not comparable across centers.";
   else if (fcrPulledDirty) confReason = "FCR was pulled from another tool in the wrong unit, so confidence is capped until you confirm the value.";
-  else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + (sourcing === "bpo" ? ", though per-contact billing converts directly" : "") + ".";
+  else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + ".";
   else confReason = "cost basis is " + costConf + " because " + (costBasis === "estimate" ? "cost inputs are estimates, not validated data" : costBasis === "ops" ? "cost inputs are operations data, not finance-confirmed" : "cost inputs are finance-confirmed") + ".";
 
-  return { repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag };
+  return { repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag };
 }
 
 const MECH_OPTS = [
@@ -365,7 +378,7 @@ export default function FCRLeakageDiagnostic() {
               <h3 style={h3}>Realization + Investment</h3>
               <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <Sel label="Sourcing model" value={sourcing} onChange={setSourcing} info={DEFS.sourcing.text} infoTitle={DEFS.sourcing.title} options={[{ v: "inhouse", l: "In-house (capacity, needs mechanism)" }, { v: "bpo", l: "Outsourced per-contact (direct cash)" }]} />
-                <Sel label="Realization mechanism" value={mech} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} />
+                <Sel label="Realization mechanism" value={mech} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} disabled={sourcing === "bpo"} note={sourcing === "bpo" ? "Not used. On a per-contact contract the invoice falls with volume, so savings convert at 100% without a capacity mechanism. Switch to in-house sourcing to apply one." : null} />
                 <NumField label="One-time cost to achieve" value={investOneTime} onChange={setInvestOneTime} prefix="$" step={10000} info={DEFS.invest.text} infoTitle={DEFS.invest.title} />
                 <NumField label="Recurring annual cost" value={investRecurring} onChange={setInvestRecurring} prefix="$" step={5000} align="right" />
                 <Sel label="Cost basis" value={costBasis} onChange={setCostBasis} info={DEFS.confidence.text} infoTitle={DEFS.confidence.title} options={[{ v: "estimate", l: "Estimate (±25%)" }, { v: "ops", l: "Operations data (±15%)" }, { v: "finance", l: "Finance-confirmed (±10%)" }]} />
@@ -535,7 +548,8 @@ export default function FCRLeakageDiagnostic() {
                 realization_confidence: R.realConf,
                 current_fcr: fcrPct + "%",
                 target_fcr: targetPct + "%",
-                capacity_action: mech,
+                capacity_action: R.mechApplies ? mech : "not applicable (bpo)",
+                realization_factor: R.realFactor,
                 sourcing,
                 hard_flag: R.hardFlag ? "yes" : "no",
                 integrity_flags: R.flags.length,
@@ -546,7 +560,7 @@ export default function FCRLeakageDiagnostic() {
                 { title: "Definitions and Scope Used", type: "findings", items: [
                   `FCR definition: ${scopeLabel}, ${methodLabel}.`,
                   `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${fmtX(repeatMult)}x.`,
-                  `Sourcing: ${sourcing === "bpo" ? "outsourced per-contact (direct cash conversion)" : "in-house (capacity, gated by mechanism)"}. Mechanism: ${MECH_OPTS.find((o) => o.v === mech).l}.`,
+                  `Sourcing: ${sourcing === "bpo" ? "outsourced per-contact. Volume reduction converts to cash at 100% through billing. No capacity mechanism applies, and none was used." : "in-house. Freed capacity is gated by a mechanism. Mechanism applied: " + MECH_OPTS.find((o) => o.v === mech).l + "."}`,
                   `Cost basis: ${{estimate:"Estimate marginal cost (±25%)",ops:"Operations-data marginal cost (±15%)",finance:"Finance-confirmed marginal cost (±10%)"}[costBasis]}. Target capped by diagnostic: ${R.overCeiling ? "yes, at " + pct(R.ceilingFCR) : "no"}.`,
                 ] },
                 { title: "Leakage Economics", type: "metrics", items: [
@@ -577,7 +591,9 @@ export default function FCRLeakageDiagnostic() {
                 { title: "30-Day Operating Test", type: "findings", items: [`Target: ${top.name}, owned by ${top.owner}.`, `First move: ${top.test.move}.`, `Leading indicator: ${top.test.lead}. Lagging indicator: ${top.test.lag}.`, `Stop condition: ${top.test.stop}.`] },
                 { title: "Assumptions and Exclusions", type: "findings", items: [
                   "Savings valued at marginal cost, never loaded. Loaded cost is context only.",
-                  "Repeat burden is a ceiling. Only the controllable slice, converted through the sourcing model and mechanism, is realizable.",
+                  sourcing === "bpo"
+                    ? "Repeat burden is a ceiling. Only the controllable slice is realizable, converted at 100% through per-contact billing. This assumes no minimum volume commitment."
+                    : "Repeat burden is a ceiling. Only the controllable slice, converted through the selected capacity mechanism, is realizable.",
                   "Non-controllable leakage (complexity, structural, customer-driven) is excluded from savings.",
                   "Balancing metrics (reopen, transfer, escalation, AHT, confirmed containment, CSAT) must hold or the FCR gain is not real.",
                   "Interval staffing, multi-year board case, and contract penalties are out of scope and routed below.",
