@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, muted: MUTED } = COLORS;
 const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const BORDER = "#D8E3ED";
@@ -208,6 +209,20 @@ function LogoMark({ size = 30 }) {
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={0.6} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={0.8} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
 }
 
+/* Scenario contract. Defaults are STATIC on purpose: the state initializers
+   below seed from cross-tool pulls, but the URL diff must be taken against a
+   fixed baseline or the same link would decode differently in another session. */
+const TOOL_ID = "fcr-leakage";
+const ROUTE = "/tools/fcr-leakage";
+const DEFAULTS = {
+  phase: "setup", M: 50000, fcrPct: 72, mCPC: 6.5, lCPC: 11,
+  scope: "", method: "", windowDays: 7, repeatModel: "one",
+  measuredPct: 22, measuredTargetPct: 0, pathModel: "one",
+  repeatMult: 1.0, targetPct: 80, sourcing: "inhouse", mech: "hiring",
+  investOneTime: 150000, investRecurring: 90000,
+  costBasis: "estimate", fcrConfirmed: false, scores: {},
+};
+
 export default function FCRLeakageDiagnostic() {
   const [phase, setPhase] = useState("setup");
   const [M, setM] = useState(() => getPrimitive("monthlyContacts") || 50000);
@@ -224,12 +239,32 @@ export default function FCRLeakageDiagnostic() {
   const [costBasis, setCostBasis] = useState("estimate");
   const [fcrConfirmed, setFcrConfirmed] = useState(false);
   const [currentDim, setCurrentDim] = useState(0); const [scores, setScores] = useState({});
+  const [fromLink, setFromLink] = useState(false);
+
+  useEffect(() => {
+    // A scenario link is a deliberate act. It outranks the cross-tool pulls that
+    // seeded the initializers, and it suppresses the PULLED badges and the
+    // dirty-unit confidence cap, which would otherwise reflect someone else's session.
+    const sc = readScenario(TOOL_ID, DEFAULTS);
+    if (!sc) return;
+    setM(sc.M); setFcrPct(sc.fcrPct); setMCPC(sc.mCPC); setLCPC(sc.lCPC);
+    setScope(sc.scope); setMethod(sc.method); setWindowDays(sc.windowDays);
+    setRepeatModel(sc.repeatModel); setMeasuredPct(sc.measuredPct);
+    setMeasuredTargetPct(sc.measuredTargetPct); setPathModel(sc.pathModel);
+    setRepeatMult(sc.repeatMult); setTargetPct(sc.targetPct);
+    setSourcing(sc.sourcing); setMech(sc.mech);
+    setInvestOneTime(sc.investOneTime); setInvestRecurring(sc.investRecurring);
+    setCostBasis(sc.costBasis); setFcrConfirmed(sc.fcrConfirmed);
+    setScores(sc.scores); setPhase(sc.phase);
+    setFromLink(true);
+    clearScenarioParam();
+  }, []);
 
   const rawPulledFcr = getPrimitive("fcr");
-  const pulledM = !!getPrimitive("monthlyContacts"); const pulledFcr = rawPulledFcr != null;
-  const fcrPulledDirty = rawPulledFcr != null && rawPulledFcr > 1 && !fcrConfirmed;
+  const pulledM = !fromLink && !!getPrimitive("monthlyContacts"); const pulledFcr = !fromLink && rawPulledFcr != null;
+  const fcrPulledDirty = !fromLink && rawPulledFcr != null && rawPulledFcr > 1 && !fcrConfirmed;
   const onFcr = (v) => { setFcrConfirmed(true); setFcrPct(v); };
-  const pulledMcpc = (getPrimitive("marginalPerContact") || getPrimitive("marginalCPC")) != null;
+  const pulledMcpc = !fromLink && (getPrimitive("marginalPerContact") || getPrimitive("marginalCPC")) != null;
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
 
   const setScore = (dimId, qIdx, val) => setScores((p) => ({ ...p, [`${dimId}-${qIdx}`]: val }));
@@ -241,6 +276,14 @@ export default function FCRLeakageDiagnostic() {
 
   const engineInput = { M, fcr: fcrPct / 100, mCPC, lCPC, repeatModel, measuredRate: measuredPct / 100, measuredTargetRate: measuredTargetPct > 0 ? measuredTargetPct / 100 : null, pathModel, repeatMult, dScore: dScore || 3, askTarget: targetPct / 100, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays };
   const R = engine(engineInput);
+
+  /* Exact input set the scenario link carries. Phase rides along so a shared
+     link opens on the results the sender was looking at, not an empty wizard. */
+  const scenario = {
+    phase, M, fcrPct, mCPC, lCPC, scope, method, windowDays, repeatModel,
+    measuredPct, measuredTargetPct, pathModel, repeatMult, targetPct,
+    sourcing, mech, investOneTime, investRecurring, costBasis, fcrConfirmed, scores,
+  };
   const aggMult = Math.min(3.0, Math.max(1.5, repeatMult + 0.4));
   const sensLo = engine({ ...engineInput, repeatModel: "one", repeatMult: 1.0 });
   const sensHi = engine({ ...engineInput, repeatModel: "geometric", repeatMult: aggMult });
@@ -462,9 +505,33 @@ export default function FCRLeakageDiagnostic() {
               <p style={{ fontSize: 10.5, color: MUTED, marginTop: 8 }}>Rightmost column is year-one net. If the sign flips across these rows, your repeat-cost assumption is the deciding factor and is worth measuring before you commit.</p>
             </div>
 
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={() => { setCurrentDim(DIMS.length - 1); setPhase("diagnostic"); }} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>← Back to diagnostic</button>
-              <ReportExport toolName="FCR Leakage Diagnostic" subtitle={`${R.headlineConf} • Repeat burden ${money(R.burdenYr)}/yr • Year-1 net ${money(R.year1Net)}`} userName="" userEmail="" sections={[
+            <ReportActions
+              toolId={TOOL_ID}
+              toolName="FCR Leakage Diagnostic"
+              subtitle={`${R.headlineConf} • Repeat burden ${money(R.burdenYr)}/yr • Year-1 net ${money(R.year1Net)}`}
+              routePath={ROUTE}
+              state={scenario}
+              defaults={DEFAULTS}
+              confidence={R.headlineConf}
+              summary={[
+                { label: "Repeat burden annual", value: money(R.burdenYr) },
+                { label: "Controllable burden annual", value: money(R.controllableBurdenYr) },
+                { label: "Realizable annual", value: money(R.realizableYr) },
+                { label: "Year-1 net", value: money(R.year1Net) },
+                { label: "Payback", value: R.neverPaysBack ? "never at current scope" : R.payback ? "month " + R.payback : "beyond 48 months" },
+              ]}
+              signals={{
+                cost_basis_confidence: R.costConf,
+                realization_confidence: R.realConf,
+                current_fcr: fcrPct + "%",
+                target_fcr: targetPct + "%",
+                capacity_action: mech,
+                sourcing,
+                hard_flag: R.hardFlag ? "yes" : "no",
+                integrity_flags: R.flags.length,
+                from_scenario_link: fromLink ? "yes" : "no",
+              }}
+              sections={[
                 { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.neverPaysBack ? "never at current scope" : R.payback ? "in month " + R.payback : "beyond 48 months"}. Confidence is ${R.headlineConf}.` },
                 { title: "Definitions and Scope Used", type: "findings", items: [
                   `FCR definition: ${scopeLabel}, ${methodLabel}.`,
@@ -507,7 +574,11 @@ export default function FCRLeakageDiagnostic() {
                   { tool: "Business Case Builder", reason: "Build the multi-year board case on these numbers", href: "/tools/business-case" },
                   { tool: "Transformation Readiness", reason: "Confirm the organization can actually capture the upside", href: "/tools/transformation-readiness" },
                 ] },
-              ]} />
+              ]}
+            />
+
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
+              <button onClick={() => { setCurrentDim(DIMS.length - 1); setPhase("diagnostic"); }} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>← Back to diagnostic</button>
               <button onClick={() => setPhase("setup")} style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>Adjust inputs</button>
               <a href="/tools/cost-per-contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, textDecoration: "none" }}>Cost per Resolution →</a>
             </div>
