@@ -151,7 +151,12 @@ function engine(I) {
   for (let m = 1; m <= 48; m++) { cum += rampMo(m) - recurMo; if (payback === null && cum >= investOneTime) payback = m; }
   let c12 = 0; for (let m = 1; m <= 12; m++) c12 += rampMo(m) - recurMo;
   const year1Net = c12 - investOneTime;
-  const year2Net = (realizableYr - investRecurring) + year1Net;
+  // Standalone year two: steady-state savings less the recurring cost. The one-time
+  // cost is gone by then. Reported separately from the two-year cumulative, because
+  // a single figure named "year-2 net" that silently carried year one overstated
+  // year two by exactly the amount of year-one net.
+  const year2Net = realizableYr - investRecurring;
+  const cum2Yr = year1Net + year2Net;
   const paybackLabel = neverPaysBack ? "never at current scope" : payback ? "month " + payback : "beyond 48 months";
 
   const band = { estimate: 0.25, ops: 0.15, finance: 0.10 }[costBasis];
@@ -191,7 +196,7 @@ function engine(I) {
   else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + (sourcing === "bpo" ? ", though per-contact billing converts directly" : "") + ".";
   else confReason = "cost basis is " + costConf + " because " + (costBasis === "estimate" ? "cost inputs are estimates, not validated data" : costBasis === "ops" ? "cost inputs are operations data, not finance-confirmed" : "cost inputs are finance-confirmed") + ".";
 
-  return { repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, band, headlineConf, costConf, realConf, confReason, flags, hardFlag };
+  return { repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag };
 }
 
 const MECH_OPTS = [
@@ -429,7 +434,7 @@ export default function FCRLeakageDiagnostic() {
               <div style={{ background: `${GREEN}06`, border: `1px solid ${GREEN}22`, borderRadius: 12, padding: "22px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Year-1 net</span><Tag text="Assumed" color={GREEN} /><InfoDot text={DEFS.invest.text} title={DEFS.invest.title} /></div>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 40, color: R.year1Net >= 0 ? GREEN : RED }}>{money(R.year1Net)}</div>
-                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{money(R.realizableYr)}/yr realizable at steady state. Payback {R.paybackLabel}. Year-2 net {money(R.year2Net)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
+                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{money(R.realizableYr)}/yr realizable at steady state. Payback {R.paybackLabel}. Year-2 net {money(R.year2Net)}, two-year cumulative {money(R.cum2Yr)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
               </div>
             </div>
 
@@ -518,6 +523,8 @@ export default function FCRLeakageDiagnostic() {
                 { label: "Controllable burden annual", value: money(R.controllableBurdenYr) },
                 { label: "Realizable annual", value: money(R.realizableYr) },
                 { label: "Year-1 net", value: money(R.year1Net) },
+                { label: "Year-2 net standalone", value: money(R.year2Net) },
+                { label: "Two-year cumulative net", value: money(R.cum2Yr) },
                 { label: "Payback", value: R.neverPaysBack ? "never at current scope" : R.payback ? "month " + R.payback : "beyond 48 months" },
               ]}
               signals={{
@@ -540,8 +547,8 @@ export default function FCRLeakageDiagnostic() {
                   `Cost basis: ${{estimate:"Estimate marginal cost (±25%)",ops:"Operations-data marginal cost (±15%)",finance:"Finance-confirmed marginal cost (±10%)"}[costBasis]}. Target capped by diagnostic: ${R.overCeiling ? "yes, at " + pct(R.ceilingFCR) : "no"}.`,
                 ] },
                 { title: "Leakage Economics", type: "metrics", items: [
-                  { label: "Repeat share of volume", value: pct(R.repeatShare) + " (" + R.shareBasis + ")", color: RED },
-                  { label: "Effective repeat cost", value: money2(mCPC) + " base times " + fmtX(repeatMult) + "x = " + money2(R.repeatCPC), color: SLATE },
+                  { label: "Repeat share of volume", value: pct(R.repeatShare), color: RED, sub: R.shareBasis },
+                  { label: "Effective repeat cost", value: money2(R.repeatCPC), color: SLATE, sub: money2(mCPC) + " base times " + fmtX(repeatMult) + "x" },
                   { label: "Annual repeat burden (marginal)", value: money(R.burdenYr), color: RED },
                   { label: "Burden range (±" + (R.band * 100) + "%)", value: money(R.burdenYr * (1 - R.band)) + " to " + money(R.burdenYr * (1 + R.band)), color: SLATE },
                   { label: "Controllable leakage burden (not yet savings)", value: money(R.controllableBurdenYr), color: AMBER },
@@ -551,8 +558,12 @@ export default function FCRLeakageDiagnostic() {
                   { label: "Diagnostic ceiling FCR / applied target", value: pct(R.ceilingFCR) + " / " + pct(R.target), color: NAVY },
                   { label: "Gross capacity value", value: money(R.grossYr), color: SLATE },
                   { label: "Realizable via " + (sourcing === "bpo" ? "billing reduction" : "mechanism"), value: money(R.realizableYr), color: GREEN },
-                  { label: "One-time / recurring cost", value: money(investOneTime) + " / " + money(investRecurring), color: SLATE },
-                  { label: "Payback / Year-1 net / Year-2 net", value: (R.neverPaysBack ? "never" : R.payback ? "mo " + R.payback : "48mo+") + " / " + money(R.year1Net) + " / " + money(R.year2Net), color: R.year1Net >= 0 ? GREEN : RED },
+                  { label: "One-time cost", value: money(investOneTime), color: SLATE },
+                  { label: "Recurring annual cost", value: money(investRecurring), color: SLATE },
+                  { label: "Payback", value: R.neverPaysBack ? "never" : R.payback ? "month " + R.payback : "48mo+", color: R.neverPaysBack ? RED : NAVY },
+                  { label: "Year-1 net (after one-time cost)", value: money(R.year1Net), color: R.year1Net >= 0 ? GREEN : RED },
+                  { label: "Year-2 net (standalone)", value: money(R.year2Net), color: R.year2Net >= 0 ? GREEN : RED },
+                  { label: "Two-year cumulative net", value: money(R.cum2Yr), color: R.cum2Yr >= 0 ? GREEN : RED, sub: "year 1 plus year 2" },
                 ] },
                 { title: "Confidence and Risk Flags", type: "findings", items: [
                   `Headline ${R.headlineConf}. Cost basis ${R.costConf}, realization ${R.realConf}. The headline reports the weaker axis. ${R.confReason.charAt(0).toUpperCase() + R.confReason.slice(1)}`,
