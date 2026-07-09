@@ -4,6 +4,7 @@ import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import InfoDot from "./src/lib/InfoDot";
+import { MECH, MECH_ORDER } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -90,15 +91,6 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
   );
 }
 
-const MECH = {
-  none: { label: "Not selected", f: 0.00, note: "No capacity action: freed-labor value stays $0 until you commit to one." },
-  growth: { label: "Absorb growth / backlog", f: 0.25, note: "Capacity value, not cash this cycle." },
-  overtime: { label: "Reduce overtime", f: 0.60, note: "Finance-creditable." },
-  hiring: { label: "Avoid hiring / attrition freeze", f: 0.75, note: "Finance-creditable over the cycle. The defensible default." },
-  vendor: { label: "Vendor / BPO volume reduction", f: 0.90, note: "Often highly cashable." },
-  headcount: { label: "Headcount reduction", f: 1.00, note: "Fully cashable, but the highest change and CSAT risk." },
-};
-const MECH_ORDER = ["none", "growth", "overtime", "hiring", "vendor", "headcount"];
 const CURVE = { mild: { label: "Mild", c: 0.08, note: "Easy volume leaves; residual voice AHT rises slightly." }, moderate: { label: "Moderate", c: 0.15, note: "Typical support environment." }, severe: { label: "Severe", c: 0.30, note: "Remaining voice work becomes materially harder." } };
 const RISKS = [
   { k: "riskComplaint", label: "High complaint sensitivity" },
