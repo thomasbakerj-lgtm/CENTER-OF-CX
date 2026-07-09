@@ -9,7 +9,7 @@ const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, mu
 const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const BORDER = "#D8E3ED";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 
-const money = (n) => "$" + Math.round(n).toLocaleString();
+const money = (n) => { const v = Math.round(n); return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString(); };
 const money2 = (n) => "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtX = (x) => (Math.round(Number(x) * 100) / 100).toString();
 const pct = (n, d = 1) => (n * 100).toFixed(d) + "%";
@@ -145,7 +145,10 @@ function engine(I) {
 
   const steadyMo = realizableYr / 12;
   const recurMo = investRecurring / 12;
-  const neverPaysBack = realizableYr > 0 && realizableYr <= investRecurring;
+  // A project that realizes nothing never pays back. The old `realizableYr > 0`
+  // guard excluded exactly that case, so a $0 mechanism reported "beyond 48 months"
+  // when the true answer is never, and the recurring-cost flag never fired.
+  const neverPaysBack = realizableYr <= investRecurring;
   const rampMo = (m) => (m >= 4 ? steadyMo : steadyMo * (m / 4));
   let cum = 0, payback = null;
   for (let m = 1; m <= 48; m++) { cum += rampMo(m) - recurMo; if (payback === null && cum >= investOneTime) payback = m; }
@@ -557,7 +560,7 @@ export default function FCRLeakageDiagnostic() {
                 { title: "Cash Conversion and Payback", type: "metrics", items: [
                   { label: "Diagnostic ceiling FCR / applied target", value: pct(R.ceilingFCR) + " / " + pct(R.target), color: NAVY },
                   { label: "Gross capacity value", value: money(R.grossYr), color: SLATE },
-                  { label: "Realizable via " + (sourcing === "bpo" ? "billing reduction" : "mechanism"), value: money(R.realizableYr), color: GREEN },
+                  { label: "Realizable via " + (sourcing === "bpo" ? "billing reduction" : "mechanism"), value: money(R.realizableYr), color: R.realizableYr > 0 ? GREEN : RED },
                   { label: "One-time cost", value: money(investOneTime), color: SLATE },
                   { label: "Recurring annual cost", value: money(investRecurring), color: SLATE },
                   { label: "Payback", value: R.neverPaysBack ? "never" : R.payback ? "month " + R.payback : "48mo+", color: R.neverPaysBack ? RED : NAVY },
