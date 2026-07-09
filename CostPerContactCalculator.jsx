@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -46,6 +47,12 @@ const BASE = {
   voiceAHT: 7, chatAHT: 9, emailAHT: 5,
   voiceConcurrency: 1, chatConcurrency: 2.5, emailConcurrency: 1,
 };
+
+/* Scenario contract. Module scope for stable identity across renders. */
+const TOOL_ID = "cost-per-contact";
+const ROUTE = "/tools/cost-per-contact";
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const DEFAULTS = { d: BASE, mech: "hiring" };
 
 function compute(d, mechKey) {
   const fcr = Math.min(1, n(d.fcrRate) / 100), Mu = Math.max(1, n(d.contactsPerUnresolved));
@@ -123,16 +130,19 @@ function Nav() {
   return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
 }
 export default function CostPerContactCalculator() {
-  const [d, setD] = useState(BASE);
-  const [mech, setMech] = useState("hiring");
+  const [d, setD] = useState(() => clone(DEFAULTS.d));
+  const [mech, setMech] = useState(DEFAULTS.mech);
   const [pulled, setPulled] = useState({});
   const [showMath, setShowMath] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [fromLink, setFromLink] = useState(false);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
+    // A scenario link is a deliberate act and outranks the ambient cross-tool pull.
+    const s = readScenario(TOOL_ID, DEFAULTS);
+    if (s) { setD(s.d); setMech(s.mech); setFromLink(true); clearScenarioParam(); return; }
+
     const next = {}, got = {};
     const mc = getPrimitive("monthlyContacts"), ac = getPrimitive("annualContacts");
     if (mc != null && !isNaN(mc)) { next.monthlyContacts = Math.round(mc); got.monthlyContacts = true; }
@@ -169,20 +179,8 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
 
-  const sendResults = () => {
-    setSending(true);
-    const body = new FormData();
-    body.append("_subject", "Cost per Contact / Resolution, Center of CX");
-    body.append("source", "Cost per Contact Calculator");
-    body.append("cost_per_contact", money(r.loaded));
-    body.append("cost_per_resolution", money(r.cprLoaded));
-    body.append("repeat_demand_share", (r.repeatShare * 100).toFixed(0) + "%");
-    body.append("repeat_burden", fmtK(r.burden) + "/mo");
-    body.append("capacity_action", MECH[mech].label);
-    body.append("grade", grade);
-    fetch("https://formspree.io/f/maqlvwne", { method: "POST", body, headers: { Accept: "application/json" } })
-      .then(res => { if (res.ok) setSent(true); setSending(false); }).catch(() => setSending(false));
-  };
+  /* Exact input set the scenario link carries. */
+  const scenario = { d, mech };
 
   const cprColor = r.gapPct > 40 ? RED : r.gapPct > 20 ? AMBER : GREEN;
   const tierColor = (t) => t === "Operational" ? GREEN : t === "Root-cause work" ? AMBER : RED;
@@ -383,8 +381,29 @@ useEffect(() => {
             {n(d.fcrRate) < 78 && <a href="/tools/fcr-leakage" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)", display: "inline-block" }}>→ Run FCR Leakage Diagnostic to find why resolution fails</a>}
           </div>
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <ReportExport toolName="Cost per Contact / Resolution" subtitle={`Handle vs resolution cost · ${grade} · action: ${MECH[mech].label}`} userName="" userEmail="" sections={[
+          <ReportActions
+            toolId={TOOL_ID}
+            toolName="Cost per Contact / Resolution"
+            subtitle={`Handle vs resolution cost · ${grade} · action: ${MECH[mech].label}`}
+            routePath={ROUTE}
+            state={scenario}
+            defaults={DEFAULTS}
+            confidence={grade}
+            summary={[
+              { label: "Cost per contact", value: money(r.loaded) },
+              { label: "Cost per resolution", value: money(r.cprLoaded) },
+              { label: "Repeat demand share", value: (r.repeatShare * 100).toFixed(0) + "%" },
+              { label: "Repeat burden", value: fmtK(r.burden) + "/mo" },
+            ]}
+            signals={{
+              capacity_action: MECH[mech].label,
+              fcr_rate: n(d.fcrRate) + "%",
+              volume_basis: d.denominator,
+              cost_validated: d.validated ? "yes" : "no",
+              integrity_flags: r.flags.length,
+              from_scenario_link: fromLink ? "yes" : "no",
+            }}
+            sections={[
               { title: "Cost Metrics", type: "metrics", items: [
                 { label: "Cost per Contact", value: money(r.loaded), color: ELECTRIC, sub: "loaded" },
                 { label: "Cost per Resolution", value: money(r.cprLoaded), color: cprColor, sub: `${r.C.toFixed(2)} contacts/issue` },
@@ -406,8 +425,10 @@ useEffect(() => {
                 { tool: "Channel Shift Economics", reason: "Move resolvable volume to cheaper channels by issue type", href: "/tools/channel-shift" },
                 { tool: "Business Case Builder", reason: "Add implementation cost, ramp, and payback to realizable savings", href: "/tools/business-case" },
               ]},
-            ]} />
-            <button onClick={sendResults} disabled={sending} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: sending ? "wait" : "pointer" }}>{sent ? "Sent ✓" : sending ? "Sending..." : "Send Results & Request Review"}</button>
+            ]}
+          />
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 20 }}>
             <a href="/tools/tco-calculator" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>TCO Calculator →</a>
           </div>
         </div>
