@@ -4,6 +4,7 @@ import InfoDot from "./src/lib/InfoDot";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { MECH, MECH_ORDER } from "./src/lib/mech";
 
 const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, muted: MUTED } = COLORS;
 const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const BORDER = "#D8E3ED";
@@ -24,7 +25,7 @@ const DEFS = {
   loadedCPC: { title: "Loaded cost per contact", text: "Fully burdened cost including facilities, software, and overhead. Used only for the unit metric you report upward, never for savings, because valuing savings at loaded cost is the most common way these numbers get inflated." },
   repeatModel: { title: "Repeat-behavior model", text: "The same FCR yields different leakage depending on how an unresolved issue behaves. One-callback assumes each failed issue returns once. Geometric assumes callbacks can themselves fail, so some issues return several times. If you have measured your real repeat rate, enter it and ignore the model." },
   repeatMult: { title: "Repeat complexity multiplier", text: "Repeat contacts often cost more than first contacts: longer handle time, more transfers, escalation, and back-office rework. Published estimates put repeats at 1.5x to 2x a first contact, with outliers to 4x. Guidance: 1.0x to 2.0x is the normal modeled range, 2.0x to 2.5x is elevated and fits centers where repeats escalate or run long, and above 2.5x is a high assumption to validate against your own handle-time and escalation data before using it in a business case. Default is 1.0x. Raise it only on evidence, do not invent the number." },
-  ceiling: { title: "Opportunity times capture", text: "Two separate truths. Opportunity is how much controllable leakage exists, which is high when your diagnostic is weak. Capture is how much of it you can realistically book in year one, which is high when your diagnostic is strong. Headroom is measured against a practical maximum near 90%, stricter for stricter scope, not against a perfect 100%, because gains get much harder above world-class. Their product caps your target, so a center cannot claim a gain it has no realistic ability to capture." },
+  ceiling: { title: "Opportunity times capture", text: "Two separate truths. Opportunity is how much controllable leakage exists, which is high when your diagnostic is weak. Capture is how much of it you can realistically book in year one, which is high when your diagnostic is strong. Headroom is measured against a practical maximum, not a perfect 100%, because gains get much harder above world-class. That maximum tightens as the definition broadens: voice-only 93%, cross-channel 90%, digital plus assisted 89%, enterprise one-contact 88%. Their product caps your target, so a center cannot claim a gain it has no realistic ability to capture." },
   controllable: { title: "Controllable vs non-controllable burden", text: "Only part of your repeat burden is inside your control this year. The rest comes from issue complexity, structural constraints, and customer-driven failures that no process fix removes. Savings are drawn only from the controllable slice." },
   sourcing: { title: "Sourcing model", text: "For in-house teams, reduced volume is capacity, not cash, until a mechanism converts it. For an outsourced per-contact model, reduced volume stops being billed, so it converts to cash directly. Same volume drop, very different cash speed." },
   mech: { title: "Realization mechanism", text: "Freed agent time is capacity, not cash, until you commit to converting it. None means zero dollars realized for in-house. The mechanism sets how much capacity becomes budget, from absorbing growth up to removing headcount." },
@@ -119,7 +120,12 @@ function engine(I) {
   const burdenYr = repeats * repeatCPC * 12;
 
   const opp = opportunity(dScore), cap = capture(dScore);
-  const practicalMax = { voice: 0.93, cc: 0.90, digital: 0.90, enterprise: 0.88 }[scope] || 0.90;
+  // Practical FCR ceiling by definition strictness. Broader scope means more ways
+  // for a contact to count as unresolved, so the achievable ceiling falls.
+  // "digital" previously duplicated "cc" at 0.90, which made two scope options
+  // produce identical output. It sits between cc and enterprise because it adds
+  // self-service to the resolution set. These are judgment values, stated openly.
+  const practicalMax = { voice: 0.93, cc: 0.90, digital: 0.89, enterprise: 0.88 }[scope] || 0.90;
   const maxUplift = Math.max(0, practicalMax - fcr) * opp * cap;
   const ceilingFCR = clamp(fcr + maxUplift, fcr, practicalMax);
   const overCeiling = askTarget > ceilingFCR + 1e-9;
@@ -140,7 +146,8 @@ function engine(I) {
   const controllableBurdenYr = burdenYr * opp;
   const nonControllableBurdenYr = burdenYr - controllableBurdenYr;
 
-  const MECHVAL = { none: 0, absorb: 0.25, overtime: 0.60, hiring: 0.75, vendor: 0.90, headcount: 1.00 }[mech];
+  const mechKey = normMech(mech);
+  const MECHVAL = MECH[mechKey].f;
   // On a per-contact outsourced contract the invoice falls with volume, so no
   // capacity mechanism is needed and none is applied. The mechanism selector is
   // inert here, which is why the UI disables it and the report stops naming it.
@@ -172,9 +179,9 @@ function engine(I) {
   // which let an inert mechanism selector lift an outsourced case to Finance-grade.
   // Finance-grade requires confirming there is no minimum volume commitment, which
   // this tool does not collect, so it routes that to Contract Risk instead.
-  let realizationRank = mechApplies
-    ? { none: 0, absorb: 1, overtime: 1, hiring: 2, vendor: 2, headcount: 3 }[mech]
-    : 2;
+  // BPO converts through billing, which is finance-creditable but not confirmed
+  // cash until a minimum volume commitment is ruled out. Planning-grade, always.
+  let realizationRank = mechApplies ? CRED_RANK[MECH[mechKey].cred] : 2;
 
   const flags = [];
   if (fcrPulledDirty) flags.push("Current FCR was pulled from another tool as a whole number and normalized to " + pct(fcr) + ". Confidence is capped until you confirm it. The upstream tool is publishing FCR in the wrong unit, which is a suite-contract issue worth fixing at the source.");
@@ -188,6 +195,7 @@ function engine(I) {
   if (lCPC && mCPC > lCPC) flags.push("Marginal cost per contact exceeds loaded cost, which is impossible. Correct the inputs.");
   if (repeatMult < 1) flags.push("Repeat complexity multiplier below 1.0 implies repeats are cheaper than first contacts, which is implausible.");
   else if (lCPC && mCPC >= 0.85 * lCPC) flags.push("Marginal cost is close to loaded cost. You may have entered loaded cost. The savings basis must be marginal.");
+  else if (lCPC && mCPC > 0 && mCPC <= 0.35 * lCPC) flags.push("Marginal cost is " + Math.round((mCPC / lCPC) * 100) + "% of loaded cost. Marginal cost is mostly agent wage and benefits, so it usually runs 50% to 75% of loaded. A ratio this low means either an unusually fixed cost base or a wrong input, and burden scales directly with it. Confirm the figure before presenting, especially if it was pulled from another tool.");
   if (!defDeclared) flags.push("FCR definition not declared. The result is not comparable across centers until you state how you measure it.");
   if (target <= fcr + 1e-9) flags.push("Target FCR is not above current. There is no improvement to value.");
   if (overCeiling) flags.push("Target was capped at " + pct(ceilingFCR) + ", the most your diagnostic says you can capture.");
@@ -201,8 +209,16 @@ function engine(I) {
   const order = ["Directional", "Planning-grade", "Finance-grade"];
   if (fcrPulledDirty) { const ci = order.indexOf("Planning-grade"); if (order.indexOf(costConf) > ci) costConf = "Planning-grade"; if (order.indexOf(realConf) > ci) realConf = "Planning-grade"; }
   const headlineConf = order[Math.min(order.indexOf(costConf), order.indexOf(realConf))];
+  const MECH_REASON = {
+    none: "no capacity action is selected, so freed capacity converts to no cash",
+    growth: "absorbing growth or backlog builds capacity, which finance does not credit as savings this cycle",
+    overtime: "reducing overtime stops a payment finance already makes, which is creditable, but it is not cash leaving the cost base",
+    hiring: "avoiding or slowing hiring is finance-creditable over the cycle, but it is not cash leaving the cost base",
+    vendor: "reducing outsourcer volume takes cash off the invoice",
+    headcount: "reducing headcount takes cash off the payroll",
+  };
   const mechReason = mechApplies
-    ? { none: "none is selected, so freed capacity converts to no cash", absorb: "absorb future growth builds capacity but weak near-term cash conversion", overtime: "reduce overtime is only a partial cash lever", hiring: "avoid or slow hiring is a moderate cash lever", vendor: "reduce outsourcer volume is a strong cash lever", headcount: "reduce headcount is a full cash lever" }[mech]
+    ? MECH_REASON[mechKey]
     : "per-contact billing falls directly with volume, so no capacity mechanism is required. It is held at Planning-grade rather than Finance-grade until a minimum volume commitment is ruled out";
   const weakerIsReal = order.indexOf(realConf) <= order.indexOf(costConf);
   let confReason;
@@ -212,17 +228,22 @@ function engine(I) {
   else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + ".";
   else confReason = "cost basis is " + costConf + " because " + (costBasis === "estimate" ? "cost inputs are estimates, not validated data" : costBasis === "ops" ? "cost inputs are operations data, not finance-confirmed" : "cost inputs are finance-confirmed") + ".";
 
-  return { repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag };
+  return { mechKey, repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag };
 }
 
-const MECH_OPTS = [
-  { v: "none", l: "None (in-house capacity only, $0)" },
-  { v: "absorb", l: "Absorb future growth (25%)" },
-  { v: "overtime", l: "Reduce overtime (60%)" },
-  { v: "hiring", l: "Avoid or slow hiring (75%)" },
-  { v: "vendor", l: "Reduce outsourcer volume (90%)" },
-  { v: "headcount", l: "Reduce headcount (100%)" },
-];
+/* The mechanism list lived here as a fourth divergent copy, keyed "absorb" where
+   the shared module says "growth". It now comes from src/lib/mech.js. Any scenario
+   link minted before this change still carries the old key, so normalize on read. */
+const MECH_ALIAS = { absorb: "growth" };
+const normMech = (m) => (MECH[m] ? m : MECH[MECH_ALIAS[m]] ? MECH_ALIAS[m] : "hiring");
+const MECH_OPTS = MECH_ORDER.map((k) => ({ v: k, l: MECH[k].label + (k === "none" ? " ($0)" : `  (${Math.round(MECH[k].f * 100)}%)`) }));
+
+/* Realization confidence follows the credit class, not the mechanism name.
+   Capacity-only is Directional. Finance-creditable is Planning-grade. Cash out
+   the door is Finance-grade. This replaced a rubric in which Finance-grade
+   realization was reachable only through headcount reduction, the one mechanism
+   the suite explicitly tells people not to default to. */
+const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
 const LABELS = ["", "Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
 const GAMING = ["Reopen / repeat-contact rate", "Transfer rate", "Escalation rate", "AHT drift (chasing FCR by lengthening calls)", "Confirmed bot containment, not raw containment", "CSAT / CES", "QA resolution accuracy", "Complaint rate"];
 
@@ -255,7 +276,7 @@ export default function FCRLeakageDiagnostic() {
   const [measuredPct, setMeasuredPct] = useState(22); const [measuredTargetPct, setMeasuredTargetPct] = useState(0); const [pathModel, setPathModel] = useState("one");
   const [repeatMult, setRepeatMult] = useState(1.0);
   const [targetPct, setTargetPct] = useState(80);
-  const [sourcing, setSourcing] = useState("inhouse"); const [mech, setMech] = useState("hiring");
+  const [sourcing, setSourcing] = useState("inhouse"); const [mech, setMech] = useState("hiring");  // must be a key in src/lib/mech.js
   const [investOneTime, setInvestOneTime] = useState(150000); const [investRecurring, setInvestRecurring] = useState(90000);
   const [costBasis, setCostBasis] = useState("estimate");
   const [fcrConfirmed, setFcrConfirmed] = useState(false);
@@ -273,7 +294,7 @@ export default function FCRLeakageDiagnostic() {
     setRepeatModel(sc.repeatModel); setMeasuredPct(sc.measuredPct);
     setMeasuredTargetPct(sc.measuredTargetPct); setPathModel(sc.pathModel);
     setRepeatMult(sc.repeatMult); setTargetPct(sc.targetPct);
-    setSourcing(sc.sourcing); setMech(sc.mech);
+    setSourcing(sc.sourcing); setMech(normMech(sc.mech));  // legacy links keyed "absorb"
     setInvestOneTime(sc.investOneTime); setInvestRecurring(sc.investRecurring);
     setCostBasis(sc.costBasis); setFcrConfirmed(sc.fcrConfirmed);
     setScores(sc.scores); setPhase(sc.phase);
@@ -548,7 +569,8 @@ export default function FCRLeakageDiagnostic() {
                 realization_confidence: R.realConf,
                 current_fcr: fcrPct + "%",
                 target_fcr: targetPct + "%",
-                capacity_action: R.mechApplies ? mech : "not applicable (bpo)",
+                capacity_action: R.mechApplies ? MECH[R.mechKey].label : "not applicable (bpo)",
+                credit_class: R.mechApplies ? MECH[R.mechKey].cred : "billing",
                 realization_factor: R.realFactor,
                 sourcing,
                 hard_flag: R.hardFlag ? "yes" : "no",
@@ -560,7 +582,7 @@ export default function FCRLeakageDiagnostic() {
                 { title: "Definitions and Scope Used", type: "findings", items: [
                   `FCR definition: ${scopeLabel}, ${methodLabel}.`,
                   `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${fmtX(repeatMult)}x.`,
-                  `Sourcing: ${sourcing === "bpo" ? "outsourced per-contact. Volume reduction converts to cash at 100% through billing. No capacity mechanism applies, and none was used." : "in-house. Freed capacity is gated by a mechanism. Mechanism applied: " + MECH_OPTS.find((o) => o.v === mech).l + "."}`,
+                  `Sourcing: ${sourcing === "bpo" ? "outsourced per-contact. Volume reduction converts to cash at 100% through billing. No capacity mechanism applies, and none was used." : "in-house. Freed capacity is gated by a mechanism. Mechanism applied: " + MECH[R.mechKey].label + " (" + Math.round(MECH[R.mechKey].f * 100) + "%), credited as " + MECH[R.mechKey].cred + "."}`,
                   `Cost basis: ${{estimate:"Estimate marginal cost (±25%)",ops:"Operations-data marginal cost (±15%)",finance:"Finance-confirmed marginal cost (±10%)"}[costBasis]}. Target capped by diagnostic: ${R.overCeiling ? "yes, at " + pct(R.ceilingFCR) : "no"}.`,
                 ] },
                 { title: "Leakage Economics", type: "metrics", items: [
@@ -573,7 +595,7 @@ export default function FCRLeakageDiagnostic() {
                 ] },
                 { title: "Cash Conversion and Payback", type: "metrics", items: [
                   { label: "Diagnostic ceiling FCR / applied target", value: pct(R.ceilingFCR) + " / " + pct(R.target), color: NAVY },
-                  { label: "Gross capacity value", value: money(R.grossYr), color: SLATE },
+                  { label: sourcing === "bpo" ? "Gross volume reduction value" : "Gross capacity value", value: money(R.grossYr), color: SLATE },
                   { label: "Realizable via " + (sourcing === "bpo" ? "billing reduction" : "mechanism"), value: money(R.realizableYr), color: R.realizableYr > 0 ? GREEN : RED },
                   { label: "One-time cost", value: money(investOneTime), color: SLATE },
                   { label: "Recurring annual cost", value: money(investRecurring), color: SLATE },
