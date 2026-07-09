@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import InfoDot from "./src/lib/InfoDot";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -141,6 +142,12 @@ const BASE = {
   riskComplaint: false, riskRegulated: false, riskSave: false, riskVulnerable: false, riskAuth: false, riskEmotion: false,
 };
 
+/* Scenario contract. Module scope for stable identity across renders. */
+const TOOL_ID = "channel-shift";
+const ROUTE = "/tools/channel-shift";
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const DEFAULTS = { d: BASE, mech: "hiring" };
+
 function compute(d, mechKey) {
   const monthly = n(d.monthlyContacts);
   const marginalPerMin = n(d.hourlyRate) * n(d.marginalOH) / 60;
@@ -236,16 +243,19 @@ function Nav() {
   return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
 }
 export default function ChannelShiftModel() {
-  const [d, setD] = useState(BASE);
-  const [mech, setMech] = useState("hiring");
+  const [d, setD] = useState(() => clone(DEFAULTS.d));
+  const [mech, setMech] = useState(DEFAULTS.mech);
   const [pulled, setPulled] = useState({});
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [fromLink, setFromLink] = useState(false);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
   const toggle = (k) => setD(prev => ({ ...prev, [k]: !prev[k] }));
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
+    // A scenario link is a deliberate act and outranks the ambient cross-tool pull.
+    const sc = readScenario(TOOL_ID, DEFAULTS);
+    if (sc) { setD(sc.d); setMech(sc.mech); setFromLink(true); clearScenarioParam(); return; }
+
     const next = {}, got = {};
     const mc = getPrimitive("monthlyContacts"), ac = getPrimitive("annualContacts");
     if (mc != null && !isNaN(mc)) { next.monthlyContacts = Math.round(mc); got.monthlyContacts = true; }
@@ -291,18 +301,8 @@ export default function ChannelShiftModel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
 
-  const sendResults = () => {
-    setSending(true);
-    const body = new FormData();
-    body.append("_subject", "Channel Shift Economics, Center of CX");
-    body.append("source", "Channel Shift Economics");
-    body.append("net_realizable_monthly", fmtK(r.netRealizable));
-    body.append("verdict", verdict.label);
-    body.append("break_even", verdict.be != null ? verdict.be.toFixed(0) + "%" : "n/a");
-    body.append("grade", grade);
-    fetch("https://formspree.io/f/maqlvwne", { method: "POST", body, headers: { Accept: "application/json" } })
-      .then(res => { if (res.ok) setSent(true); setSending(false); }).catch(() => setSending(false));
-  };
+  /* Exact input set the scenario link carries. */
+  const scenario = { d, mech };
 
 
   return (
@@ -499,8 +499,27 @@ export default function ChannelShiftModel() {
             </label>
           </div>
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <ReportExport toolName="Channel Shift Economics" subtitle={`Voice → digital · ${verdict.label} · ${grade}`} userName="" userEmail="" sections={[
+          <ReportActions
+            toolId={TOOL_ID}
+            toolName="Channel Shift Economics"
+            subtitle={`Voice → digital · ${verdict.label} · ${grade}`}
+            routePath={ROUTE}
+            state={scenario}
+            defaults={DEFAULTS}
+            confidence={grade}
+            summary={[
+              { label: "Net realizable monthly", value: fmtK(r.netRealizable) },
+              { label: "Verdict", value: verdict.label },
+              { label: "Break-even", value: verdict.be != null ? verdict.be.toFixed(0) + "%" : "n/a" },
+            ]}
+            signals={{
+              capacity_action: MECH[mech].label,
+              eligibility_pct: n(d.eligibility) + "%",
+              cost_validated: d.validated ? "yes" : "no",
+              adverse_curve: d.adverseCurve,
+              from_scenario_link: fromLink ? "yes" : "no",
+            }}
+            sections={[
               { title: "Decision", type: "metrics", items: [
                 { label: "Verdict", value: verdict.label, color: verdict.color },
                 { label: "Net Realizable", value: fmtK(r.netRealizable) + "/mo", color: r.netRealizable > 0 ? GREEN : RED, sub: r.netRealizable > 0 ? fmtK(r.netRealizable * 12) + "/yr" : "net cost" },
@@ -530,8 +549,10 @@ export default function ChannelShiftModel() {
                 { tool: "Business Case Builder", reason: "Build the full investment case: ramp, phasing, approval packaging", href: "/tools/business-case" },
                 { tool: "Staffing Calculator", reason: "Re-staff voice and chat for the post-shift mix", href: "/tools/staffing-calculator" },
               ]},
-            ]} />
-            <button onClick={sendResults} disabled={sending} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: sending ? "wait" : "pointer" }}>{sent ? "Sent ✓" : sending ? "Sending..." : "Send Results & Request Review"}</button>
+            ]}
+          />
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 20 }}>
             <a href="/tools/ai-deflection" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>AI Deflection →</a>
           </div>
         </div>
