@@ -200,6 +200,7 @@ function engine(I) {
   if (target <= fcr + 1e-9) flags.push("Target FCR is not above current. There is no improvement to value.");
   if (overCeiling) flags.push("Target was capped at " + pct(ceilingFCR) + ", the most your diagnostic says you can capture.");
   if (mech === "none" && sourcing !== "bpo") flags.push("No mechanism and in-house sourcing. Realizable savings are $0 until you commit to one.");
+  if (mechApplies && mechKey === "vendor") flags.push("You selected in-house sourcing and a mechanism that reduces outsourcer volume. Those only hold together if you route overflow or seasonal volume to a per-contact vendor. If you do not, there is no invoice to reduce, the savings are capacity rather than cash, and this should be modeled as avoid hiring instead. This is the only path to Finance-grade realization that does not reduce headcount, so it will be the first assumption a CFO tests.");
   if (!mechApplies) flags.push("Outsourced per-contact sourcing converts volume reduction to cash at 100%, and the realization mechanism does not apply. This assumes billing tracks actual volume with no minimum commitment. If your contract carries a volume floor, nothing is saved until you drop below it. Confirm the commitment terms in Contract Risk Scanner before presenting these savings.");
   const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped/.test(f));
 
