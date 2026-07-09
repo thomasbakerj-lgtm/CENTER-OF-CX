@@ -68,7 +68,12 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
         // Six 22pt serif figures do not fit one row. Wrap by count, and shrink the
         // face size to the longest value so a dollar figure is never clipped.
         const nItems = s.items.length;
-        const cols = nItems <= 4 ? nItems : nItems <= 6 ? 3 : 4;
+        // Balance the grid so the last row is not a lone orphan card.
+        // 9 items become 3x3, not 4+4+1.
+        const cols = nItems <= 4 ? nItems
+          : nItems % 3 === 0 ? 3
+          : nItems % 4 === 0 ? 4
+          : nItems <= 6 ? 3 : 4;
         // Size each card to its OWN value. One verbose card must not shrink the
         // headline figures beside it.
         const sizeOf = (v) => { const len = String(v).replace(/<[^>]*>/g, "").length;
