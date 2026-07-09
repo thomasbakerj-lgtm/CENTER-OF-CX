@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { MECH, MECH_ORDER, MECH_DEFAULT } from "./src/lib/mech";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -49,11 +50,7 @@ function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min,
   );
 }
 
-const STANCE = {
-  conservative: { label: "Conservative", f: 0.70, note: "Freed capacity is hard to bank without headcount action — heavy haircut." },
-  expected: { label: "Expected", f: 0.85, note: "Realistic conversion of freed capacity to cash. The defensible default." },
-  aggressive: { label: "Aggressive", f: 1.00, note: "Full capacity value, no haircut — matches the vendor ROI slide." },
-};
+
 
 const ENV0 = { monthlyContacts: 80000, costPerContact: 7, marginalPerContact: 4.2 };
 const VENDOR0 = { grossDeflection: 40, botLeakage: 15, containmentFailure: 12, escalationPenalty: 25, botPlatformCost: 8000, qaCost: 2000, tuningHours: 40, tuningRate: 65, knowledgeMaintHours: 20, knowledgeRate: 55 };
@@ -62,10 +59,12 @@ const VENDORB0 = { grossDeflection: 32, botLeakage: 9, containmentFailure: 9, es
 // Per-vendor engine. env (volume + cost) is shared; v is the vendor's claimed
 // performance + operating cost. Returns the full reality picture incl. dual
 // realization, closed-form break-even thresholds, and a 12-month ramp.
-function compute(env, v, stanceKey, rampMonths, rampOn) {
+function compute(env, v, mechKey, rampMonths, rampOn) {
   const M = n(env.monthlyContacts), cpc = n(env.costPerContact);
   const marg = n(env.marginalPerContact) > 0 ? n(env.marginalPerContact) : cpc * 0.6;
-  const sf = STANCE[stanceKey].f;
+  // Freed capacity converts to cash only through a committed action. "none" is 0.
+  // Operating cost and escalation premium are real cash and are never scaled by sf.
+  const sf = MECH[mechKey].f;
   const Gp = n(v.grossDeflection), G = Gp / 100, L = n(v.botLeakage) / 100, F = n(v.containmentFailure) / 100, esc = n(v.escalationPenalty) / 100;
   const keep = (1 - L) * (1 - F), ret = 1 - keep;
 
@@ -99,7 +98,7 @@ function compute(env, v, stanceKey, rampMonths, rampOn) {
     { label: "Loaded → marginal (fixed cost doesn't fall)", value: -grossDeflected * (cpc - marg), type: "negative" },
     { label: "Bot leakage (abandon bot, call in)", value: -M * G * L * marg, type: "negative" },
     { label: "Containment failure (false resolution)", value: -M * G * (1 - L) * F * marg, type: "negative" },
-    { label: `Capacity-to-cash haircut (${STANCE[stanceKey].label})`, value: -netDeflected * marg * (1 - sf), type: "negative" },
+    { label: `Capacity not converted to cash (${MECH[mechKey].label})`, value: -netDeflected * marg * (1 - sf), type: "negative" },
     { label: "Escalation premium (post-bot calls cost more)", value: -escalationPremium, type: "negative" },
     { label: "Operating cost (platform, QA, tuning, KM)", value: -opex, type: "negative" },
   ];
@@ -107,9 +106,9 @@ function compute(env, v, stanceKey, rampMonths, rampOn) {
   return { M, cpc, marg, sf, Gp, grossDeflected, netDeflected, returned, netDeflectionRate, opex, escalationPremium, vendorClaim, realSaving, netSavings, realizedDollarsPct, realizedDeflectionPct, beGrossPct, platformHeadroom, leakTolPct, monthly, year1, steadyAnnual, waterfall };
 }
 
-// Bot-performance sensitivity: hold env + claimed deflection + stance, vary leakage
+// Bot-performance sensitivity: hold env + claimed deflection + capacity action, vary leakage
 // and containment failure across three bands. Anchored to the user's own inputs.
-function buildSensitivity(env, v, stanceKey, rampMonths, rampOn) {
+function buildSensitivity(env, v, mechKey, rampMonths, rampOn) {
   const bands = [
     { label: "Best case", mult: 0.5, note: "Bot performs above plan" },
     { label: "Likely (your inputs)", mult: 1.0, note: "As entered" },
@@ -117,30 +116,32 @@ function buildSensitivity(env, v, stanceKey, rampMonths, rampOn) {
   ];
   return bands.map(b => {
     const vv = { ...v, botLeakage: Math.min(100, n(v.botLeakage) * b.mult), containmentFailure: Math.min(100, n(v.containmentFailure) * b.mult) };
-    const r = compute(env, vv, stanceKey, rampMonths, rampOn);
+    const r = compute(env, vv, mechKey, rampMonths, rampOn);
     return { ...b, netSavings: r.netSavings, netDeflectionRate: r.netDeflectionRate };
   });
 }
 
-function buildAnalystRead(env, v, stanceKey, r) {
+function buildAnalystRead(env, v, mechKey, r) {
   const out = [];
-  out.push(`Two lenses on the same pitch: operationally, the bot delivers ${r.realizedDeflectionPct.toFixed(0)}% of the deflection promised (${r.netDeflectionRate.toFixed(0)}% true vs ${r.Gp}% claimed); financially, you keep ${r.realizedDollarsPct.toFixed(0)}% of the dollar value. The gap between those two is not the vendor failing twice — it's your conservative choice to value savings at marginal cost, which a CFO should expect you to defend, not hide.`);
+  out.push(`Two lenses on the same pitch: operationally, the bot delivers ${r.realizedDeflectionPct.toFixed(0)}% of the deflection promised (${r.netDeflectionRate.toFixed(0)}% true vs ${r.Gp}% claimed); financially, you keep ${r.realizedDollarsPct.toFixed(0)}% of the dollar value. The gap between those two is not the vendor failing twice, it's your conservative choice to value savings at marginal cost, which a CFO should expect you to defend, not hide.`);
 
   if (r.cpc > 0 && r.marg / r.cpc < 0.85)
-    out.push(`Savings are valued at marginal cost (${fmt(r.marg)}/contact), not loaded (${fmt(r.cpc)}). Deflecting a contact frees agent handle time, not the fixed platform and facilities cost in the loaded figure. Banking it as cash means reducing or re-deploying FTE — otherwise you've freed capacity, not cut spend.`);
+    out.push(`Savings are valued at marginal cost (${fmt(r.marg)}/contact), not loaded (${fmt(r.cpc)}). Deflecting a contact frees agent handle time, not the fixed platform and facilities cost in the loaded figure. Banking it as cash means reducing or re-deploying FTE, otherwise you've freed capacity, not cut spend.`);
 
   if (isFinite(r.beGrossPct)) {
     const headroom = r.Gp - r.beGrossPct;
     out.push(headroom > 20
-      ? `This program breaks even at just ${r.beGrossPct.toFixed(0)}% gross deflection — you're claiming ${r.Gp}%, so it has wide headroom. The risk here isn't whether it pays back; it's whether you actually capture the freed capacity as cash. Negotiate on price and tuning support, not on whether to proceed.`
-      : `Break-even sits at ${r.beGrossPct.toFixed(0)}% gross deflection against your ${r.Gp}% claim — a thin margin. If real-world deflection lands below ${r.beGrossPct.toFixed(0)}%, this is a net cost. Get the vendor to commit to a deflection floor in the contract.`);
+      ? `This program breaks even at just ${r.beGrossPct.toFixed(0)}% gross deflection, you're claiming ${r.Gp}%, so it has wide headroom. The risk here isn't whether it pays back; it's whether you actually capture the freed capacity as cash. Negotiate on price and tuning support, not on whether to proceed.`
+      : `Break-even sits at ${r.beGrossPct.toFixed(0)}% gross deflection against your ${r.Gp}% claim, a thin margin. If real-world deflection lands below ${r.beGrossPct.toFixed(0)}%, this is a net cost. Get the vendor to commit to a deflection floor in the contract.`);
   } else {
-    out.push(`At these assumptions the program never breaks even — operating and escalation cost exceed the realistic savings at any deflection rate. The platform cost is too high for this volume, or leakage is too severe.`);
+    out.push(`At these assumptions the program never breaks even, operating and escalation cost exceed the realistic savings at any deflection rate. The platform cost is too high for this volume, or leakage is too severe.`);
   }
 
-  out.push(`Your true deflection rate is ${r.netDeflectionRate.toFixed(1)}%, not the ${r.Gp}% claimed — ${Math.round(r.returned).toLocaleString()} contacts/mo leak back or come back falsely resolved. That gap, plus the ${fmt(r.marg)} marginal basis, are the two numbers to take into the vendor negotiation.`);
+  out.push(`Your true deflection rate is ${r.netDeflectionRate.toFixed(1)}%, not the ${r.Gp}% claimed, ${Math.round(r.returned).toLocaleString()} contacts/mo leak back or come back falsely resolved. That gap, plus the ${fmt(r.marg)} marginal basis, are the two numbers to take into the vendor negotiation.`);
 
-  out.push(`Operating and escalation costs are never haircut by the stance — they're real cash out — so the Conservative case is appropriately the harshest. Run all three before you present.`);
+  out.push(mechKey === "none"
+    ? `You have selected no capacity action, so realized savings are $0 and the only cash moving is operating cost and escalation premium. That is the honest answer, and it is the case most business cases quietly skip. Freed handle time is capacity. It becomes money when you reduce overtime, slow hiring, cut vendor volume, or reduce headcount. Pick one, or present this as a capacity story rather than a savings story.`
+    : `Freed capacity is valued at ${Math.round(MECH[mechKey].f * 100)}% under ${MECH[mechKey].label}. Operating cost and escalation premium are real cash out and are never scaled by that action, which is why "Not selected" still shows a loss rather than zero. Note what the vendor's ROI slide assumes: valuing this at full deflection means Headcount reduction, 100%. If nobody is cutting heads, the slide is not your number.`);
   return out;
 }
 
@@ -170,7 +171,7 @@ export default function AIDeflectionRealityCheck() {
   const [env, setEnv] = useState(ENV0);
   const [vA, setVA] = useState(VENDOR0);
   const [vB, setVB] = useState(VENDORB0);
-  const [stance, setStance] = useState("expected");
+  const [mech, setMech] = useState(MECH_DEFAULT);
   const [rampOn, setRampOn] = useState(true);
   const [rampMonths, setRampMonths] = useState(6);
   const [compareMode, setCompareMode] = useState(false);
@@ -195,10 +196,10 @@ export default function AIDeflectionRealityCheck() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const rA = compute(env, vA, stance, rampMonths, rampOn);
-  const rB = compute(env, vB, stance, rampMonths, rampOn);
-  const sens = buildSensitivity(env, vA, stance, rampMonths, rampOn);
-  const analyst = buildAnalystRead(env, vA, stance, rA);
+  const rA = compute(env, vA, mech, rampMonths, rampOn);
+  const rB = compute(env, vB, mech, rampMonths, rampOn);
+  const sens = buildSensitivity(env, vA, mech, rampMonths, rampOn);
+  const analyst = buildAnalystRead(env, vA, mech, rA);
   const winner = compareMode ? (rA.netSavings >= rB.netSavings ? "A" : "B") : null;
 
   useEffect(() => {
@@ -207,22 +208,22 @@ export default function AIDeflectionRealityCheck() {
       deflectionNetSavingsMonthly: Math.round(rA.netSavings), deflectionNetSavingsAnnual: Math.round(rA.steadyAnnual),
       deflectionYear1Net: Math.round(rA.year1), realizedDollarsPct: Math.round(rA.realizedDollarsPct),
       realizedDeflectionPct: Math.round(rA.realizedDeflectionPct), breakEvenDeflectionPct: isFinite(rA.beGrossPct) ? +rA.beGrossPct.toFixed(1) : null,
-      stance, analystRead: analyst[0],
+      capacityAction: mech, analystRead: analyst[0],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [env, vA, stance, rampOn, rampMonths]);
+  }, [env, vA, mech, rampOn, rampMonths]);
 
   const sendResults = () => {
     setSending(true);
     const body = new FormData();
-    body.append("_subject", "AI Deflection Reality Check — Center of CX");
+    body.append("_subject", "AI Deflection Reality Check, Center of CX");
     body.append("source", "AI Deflection Reality Check");
     body.append("vendor_claim", fmtK(rA.vendorClaim));
     body.append("net_savings_monthly", fmtK(rA.netSavings));
     body.append("realistic_deflection", rA.netDeflectionRate.toFixed(1) + "%");
     body.append("dollars_realized", Math.round(rA.realizedDollarsPct) + "%");
     body.append("deflection_realized", Math.round(rA.realizedDeflectionPct) + "%");
-    body.append("stance", stance);
+    body.append("capacity_action", MECH[mech].label);
     fetch("https://formspree.io/f/maqlvwne", { method: "POST", body, headers: { Accept: "application/json" } })
       .then(res => { if (res.ok) setSent(true); setSending(false); }).catch(() => setSending(false));
   };
@@ -246,7 +247,7 @@ export default function AIDeflectionRealityCheck() {
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>AI Deflection Reality Check</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 660 }}>Your vendor says 40% deflection. This does the math the slide skips — leakage, containment failure, escalation premiums, operating cost, and the marginal-cost reality that deflection frees variable labor, not your fully-loaded cost per contact. Compare two vendors, find the break-even, and model the ramp.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 660 }}>Your vendor says 40% deflection. This does the math the slide skips, leakage, containment failure, escalation premiums, operating cost, and the marginal-cost reality that deflection frees variable labor, not your fully-loaded cost per contact. Compare two vendors, find the break-even, and model the ramp.</p>
           {Object.keys(pulled).length > 0 && (
             <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}>
               <span style={{ fontSize: 12, color: "#fff", fontWeight: 600 }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from your TCO run.</span>
@@ -290,18 +291,33 @@ export default function AIDeflectionRealityCheck() {
 
       <section style={{ background: "#fff", padding: "32px 28px" }}>
         <div style={WRAP}>
-          {/* Stance + ramp */}
+          {/* Capacity action + ramp */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 24, background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
-            <div style={{ flex: "1 1 260px" }}><div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Savings stance</div><div style={{ fontSize: 12, color: MUTED }}>{STANCE[stance].note}</div></div>
-            <div style={{ display: "flex", gap: 6, background: "#fff", padding: 4, borderRadius: 8, border: `1px solid ${BORDER}` }}>
-              {Object.entries(STANCE).map(([k, v]) => <button key={k} onClick={() => setStance(k)} style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer", background: stance === k ? ELECTRIC : "transparent", color: stance === k ? "#fff" : SLATE }}>{v.label}</button>)}
+            <div style={{ flex: "1 1 300px" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Capacity action</div>
+              <div style={{ fontSize: 12, color: mech === "none" ? AMBER : MUTED }}>{MECH[mech].note}</div>
+              <div style={{ fontSize: 11, color: MUTED, marginTop: 6, lineHeight: 1.5 }}>
+                This moves the money, not the bot. Net savings, dollars realized, and break-even all respond.
+                True deflection rate and Deflection Realized will not: those are properties of the bot, and no
+                accounting choice changes how many contacts it actually resolves.
+              </div>
+            </div>
+            <div style={{ flex: "0 1 280px" }}>
+              <select value={mech} onChange={e => setMech(e.target.value)} style={{ width: "100%", fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${mech === "none" ? AMBER : BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : "  (0%)"}</option>)}
+              </select>
+              {mech === "headcount" && (
+                <div style={{ fontSize: 11, color: AMBER, marginTop: 6, lineHeight: 1.5 }}>
+                  This is the assumption behind most vendor ROI slides. If nobody is cutting heads, this is not your number.
+                </div>
+              )}
             </div>
           </div>
 
           {/* A/B comparison */}
           {compareMode && (
             <div style={{ marginBottom: 28 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Vendor A vs Vendor B <span style={{ fontSize: 12, fontWeight: 400, color: MUTED }}>· same environment, {STANCE[stance].label.toLowerCase()} stance</span></h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Vendor A vs Vendor B <span style={{ fontSize: 12, fontWeight: 400, color: MUTED }}>· same environment, {MECH[mech].label.toLowerCase()}</span></h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="ab">
                 {[{ k: "A", r: rA, c: ELECTRIC }, { k: "B", r: rB, c: VIOLET }].map(({ k, r, c }) => (
                   <div key={k} style={{ background: winner === k ? `${c}0D` : "#fff", border: `2px solid ${winner === k ? c : BORDER}`, borderRadius: 12, padding: "20px 22px", position: "relative" }}>
@@ -311,21 +327,21 @@ export default function AIDeflectionRealityCheck() {
                     <div style={{ display: "flex", gap: 18, marginTop: 12 }}>
                       <div><div style={{ fontSize: 10, color: MUTED }}>True deflection</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{r.netDeflectionRate.toFixed(1)}%</div></div>
                       <div><div style={{ fontSize: 10, color: MUTED }}>Dollars realized</div><div style={{ fontSize: 15, fontWeight: 600, color: realColor(r.realizedDollarsPct) }}>{r.realizedDollarsPct.toFixed(0)}%</div></div>
-                      <div><div style={{ fontSize: 10, color: MUTED }}>Break-even</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{isFinite(r.beGrossPct) ? r.beGrossPct.toFixed(0) + "%" : "—"}</div></div>
+                      <div><div style={{ fontSize: 10, color: MUTED }}>Break-even</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{isFinite(r.beGrossPct) ? r.beGrossPct.toFixed(0) + "%" : "n/a"}</div></div>
                     </div>
                   </div>
                 ))}
               </div>
               <p style={{ fontSize: 12.5, color: SLATE, marginTop: 12, lineHeight: 1.55, background: WARM, borderRadius: 8, padding: "10px 14px" }}>
                 {Math.abs(rA.netSavings - rB.netSavings) < Math.max(rA.netSavings, rB.netSavings) * 0.1
-                  ? `Near tie on net savings — but Vendor ${rA.realizedDollarsPct >= rB.realizedDollarsPct ? "A" : "B"} realizes more of its pitch (${Math.max(rA.realizedDollarsPct, rB.realizedDollarsPct).toFixed(0)}% vs ${Math.min(rA.realizedDollarsPct, rB.realizedDollarsPct).toFixed(0)}%). The higher-claim vendor isn't delivering more value; decide on price, tuning burden, and contract terms.`
+                  ? `Near tie on net savings, but Vendor ${rA.realizedDollarsPct >= rB.realizedDollarsPct ? "A" : "B"} realizes more of its pitch (${Math.max(rA.realizedDollarsPct, rB.realizedDollarsPct).toFixed(0)}% vs ${Math.min(rA.realizedDollarsPct, rB.realizedDollarsPct).toFixed(0)}%). The higher-claim vendor isn't delivering more value; decide on price, tuning burden, and contract terms.`
                   : `Vendor ${winner} nets ${fmtK(Math.abs(rA.netSavings - rB.netSavings))}/mo more. Note whether that's from a higher deflection claim (riskier) or lower operating cost (more durable) before you let the headline decide.`}
               </p>
             </div>
           )}
 
-          {/* Primary (Vendor A) headline — dual realization */}
-          {compareMode && <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Vendor A — full reality breakdown</h3>}
+          {/* Primary (Vendor A) headline: dual realization */}
+          {compareMode && <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Vendor A: full reality breakdown</h3>}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 28 }} className="s4">
             {summaryCard("Vendor Claims", fmtK(rA.vendorClaim) + "/mo", `${rA.Gp}% at loaded ${fmt(rA.cpc)}`, ELECTRIC)}
             {summaryCard("Net Savings (Reality)", fmtK(rA.netSavings) + "/mo", rA.netSavings < 0 ? "net cost" : `${fmtK(rA.netSavings * 12)}/yr steady`, rA.netSavings > 0 ? GREEN : RED, true)}
@@ -356,11 +372,11 @@ export default function AIDeflectionRealityCheck() {
           {/* Break-even */}
           <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "20px 22px", marginBottom: 24 }}>
             <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Break-Even: What Would Have to Be True</h3>
-            <p style={{ fontSize: 12, color: MUTED, marginBottom: 14 }}>The thresholds to take into the negotiation — where this stops paying off.</p>
+            <p style={{ fontSize: 12, color: MUTED, marginBottom: 14 }}>The thresholds to take into the negotiation, where this stops paying off.</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="s3">
               {[
                 { l: "Break-even deflection", v: isFinite(rA.beGrossPct) ? rA.beGrossPct.toFixed(1) + "%" : "never", s: `you claim ${rA.Gp}%`, c: isFinite(rA.beGrossPct) && rA.beGrossPct < rA.Gp * 0.6 ? GREEN : AMBER },
-                { l: "Max leakage tolerated", v: rA.leakTolPct != null ? rA.leakTolPct.toFixed(0) + "%" : "—", s: `you're at ${n(vA.botLeakage)}%`, c: rA.leakTolPct != null && rA.leakTolPct > n(vA.botLeakage) * 1.5 ? GREEN : AMBER },
+                { l: "Max leakage tolerated", v: rA.leakTolPct != null ? rA.leakTolPct.toFixed(0) + "%" : "n/a", s: `you're at ${n(vA.botLeakage)}%`, c: rA.leakTolPct != null && rA.leakTolPct > n(vA.botLeakage) * 1.5 ? GREEN : AMBER },
                 { l: "Operating-cost headroom", v: fmtK(rA.platformHeadroom) + "/mo", s: "before net hits $0", c: rA.platformHeadroom > 0 ? GREEN : RED },
               ].map((t, i) => (
                 <div key={i} style={{ background: WARM, borderRadius: 8, padding: "14px 16px" }}>
@@ -377,7 +393,7 @@ export default function AIDeflectionRealityCheck() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
               <div>
                 <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: 0 }}>First-Year Ramp</h3>
-                <p style={{ fontSize: 12, color: MUTED, margin: "2px 0 0" }}>Deflection climbs to target as the bot is tuned — year 1 is not steady-state.</p>
+                <p style={{ fontSize: 12, color: MUTED, margin: "2px 0 0" }}>Deflection climbs to target as the bot is tuned, year 1 is not steady-state.</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                 <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
@@ -408,7 +424,7 @@ export default function AIDeflectionRealityCheck() {
           {/* Sensitivity (anchored to inputs) */}
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Bot-Performance Sensitivity</h3>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>Your volume, cost, claimed deflection, and stance held fixed — only leakage and containment failure vary. This is the risk if the bot doesn't perform as promised.</p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>Your volume, cost, claimed deflection, and capacity action held fixed. Only leakage and containment failure vary. This is the risk if the bot doesn't perform as promised.</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }} className="s3">
               {sens.map((s, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "12px 14px", border: `1px solid ${i === 1 ? "rgba(0,170,255,0.4)" : "rgba(255,255,255,0.06)"}` }}>
@@ -425,7 +441,7 @@ export default function AIDeflectionRealityCheck() {
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <ReportExport toolName="AI Deflection Reality Check" subtitle={`Net savings after the fine print · ${STANCE[stance].label} stance`} userName="" userEmail="" sections={[
+            <ReportExport toolName="AI Deflection Reality Check" subtitle={`Net savings after the fine print · capacity action: ${MECH[mech].label}`} userName="" userEmail="" sections={[
               { title: "Deflection Reality", type: "metrics", items: [
                 { label: "Vendor Claim", value: fmtK(rA.vendorClaim) + "/mo", color: ELECTRIC, sub: `${rA.Gp}% at ${fmt(rA.cpc)}` },
                 { label: "Net Savings", value: fmtK(rA.netSavings) + "/mo", color: rA.netSavings > 0 ? GREEN : RED, sub: rA.netSavings > 0 ? fmtK(rA.steadyAnnual) + "/yr" : "net cost" },
@@ -435,7 +451,7 @@ export default function AIDeflectionRealityCheck() {
               { title: "Vendor Claim → Reality Bridge", type: "table", rows: rA.waterfall.map(w => [w.label, (w.value >= 0 ? "+" : "") + fmt(w.value)]).concat([["Net monthly savings", fmt(rA.netSavings)]]) },
               { title: "Break-Even Thresholds", type: "table", rows: [
                 ["Break-even deflection", isFinite(rA.beGrossPct) ? rA.beGrossPct.toFixed(1) + "% (claim " + rA.Gp + "%)" : "never breaks even"],
-                ["Max leakage tolerated", rA.leakTolPct != null ? rA.leakTolPct.toFixed(0) + "% (at " + n(vA.botLeakage) + "%)" : "—"],
+                ["Max leakage tolerated", rA.leakTolPct != null ? rA.leakTolPct.toFixed(0) + "% (at " + n(vA.botLeakage) + "%)" : "n/a"],
                 ["Operating-cost headroom", fmtK(rA.platformHeadroom) + "/mo before net $0"],
                 ["Year 1 (ramped " + rampMonths + "mo)", fmtK(rA.year1) + " vs steady " + fmtK(rA.steadyAnnual)],
               ]},
@@ -445,7 +461,7 @@ export default function AIDeflectionRealityCheck() {
                 ["Higher net", "Vendor " + winner],
               ]}] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Truly deflected contacts (gross minus bot leakage minus containment failure) are valued at marginal cost — the variable handle-time labor deflection frees — not the fully-loaded cost per contact the vendor uses, because fixed platform and facilities cost don't fall with volume. Realized capacity is scaled by the ${STANCE[stance].label} capacity-to-cash stance; operating and escalation costs are real cash and are never haircut. Deflection Realized is the operational lens (true rate ÷ claimed); Dollars Realized is the financial lens (net cash ÷ the vendor's loaded-cost claim). Break-even thresholds are solved in closed form. The waterfall reconciles exactly to net savings.` },
+              { title: "Methodology", type: "text", content: `Truly deflected contacts (gross minus bot leakage minus containment failure) are valued at marginal cost, the variable handle-time labor deflection frees, not the fully-loaded cost per contact the vendor uses, because fixed platform and facilities cost don't fall with volume. Freed handle time is capacity, not cash, until an action converts it. Realized capacity is scaled by the selected capacity action (${MECH[mech].label}, ${Math.round(MECH[mech].f * 100)}%), and "Not selected" realizes $0. Operating cost and escalation premium are real cash out and are never scaled by that action, which is why no action still shows a loss rather than zero. Valuing deflection at 100% is Headcount reduction, which is the assumption most vendor ROI slides make silently. Deflection Realized is the operational lens (true rate ÷ claimed); Dollars Realized is the financial lens (net cash ÷ the vendor's loaded-cost claim). Break-even thresholds are solved in closed form. The waterfall reconciles exactly to net savings.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "TCO Calculator", reason: "Feed the realistic deflection rate into your total cost model", href: "/tools/tco-calculator" },
                 { tool: "Channel Shift Economics", reason: "Model the staffing impact of moving volume off voice", href: "/tools/channel-shift" },
