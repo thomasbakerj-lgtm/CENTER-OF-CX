@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import InfoDot from "./src/lib/InfoDot";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, MUTED = COLORS.muted;
 const DEEP = "#061325", LIGHT = "#00AAFF", WARM = "#F8FAFB", SLATE = "#3A4F6A", BORDER = "#D8E3ED";
@@ -85,23 +86,36 @@ function LogoMark({ size = 34 }) {
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={.6} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={.8} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
 }
 
+/* Scenario contract. Module scope so state initializers and the URL encoder
+   read from one definition, and the identity is stable across renders. */
+const TOOL_ID = "attrition-cost";
+const ROUTE = "/tools/attrition-cost";
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const BASE = {
+  agents: 200, attritionRate: 35, avgSalary: 38000, benefitsLoadPct: 28,
+  backfillRate: 100, unbackfillIntent: "forced", earlyWashoutRate: 25,
+  recruitingCost: 2500, screeningHours: 8, hrLoadedRate: 48,
+  trainingWeeks: 6, trainerLoadedRate: 45, classSize: 12, signOnBonus: 0,
+  nestingWeeks: 4, nestingProductivity: 50,
+  rampMonths: 3, rampProductivity: 75,
+  supervisorHoursPerNew: 10, supLoadedRate: 55,
+  overtimePremium: 50, vacancyDays: 30, vacancyCoverageFraction: 60, vacancyMode: "incremental",
+  mech: 75, evidence: "estimate", costPerPoint: 0,
+};
+const DEFAULTS = { d: BASE };
+
 export default function AttritionCostCalculator() {
-  const [d, setD] = useState({
-    agents: 200, attritionRate: 35, avgSalary: 38000, benefitsLoadPct: 28,
-    backfillRate: 100, unbackfillIntent: "forced", earlyWashoutRate: 25,
-    recruitingCost: 2500, screeningHours: 8, hrLoadedRate: 48,
-    trainingWeeks: 6, trainerLoadedRate: 45, classSize: 12, signOnBonus: 0,
-    nestingWeeks: 4, nestingProductivity: 50,
-    rampMonths: 3, rampProductivity: 75,
-    supervisorHoursPerNew: 10, supLoadedRate: 55,
-    overtimePremium: 50, vacancyDays: 30, vacancyCoverageFraction: 60, vacancyMode: "incremental",
-    mech: 75, evidence: "estimate", costPerPoint: 0,
-  });
+  const [d, setD] = useState(() => clone(DEFAULTS.d));
   const [pulled, setPulled] = useState({});
+  const [fromLink, setFromLink] = useState(false);
   const set = (k, v) => setD(p => ({ ...p, [k]: v }));
   const n = v => Number(v) || 0;
 
   useEffect(() => {
+    // A scenario link is a deliberate act and outranks the ambient cross-tool pull.
+    const sc = readScenario(TOOL_ID, DEFAULTS);
+    if (sc) { setD(sc.d); setFromLink(true); clearScenarioParam(); return; }
+
     const pa = getPrimitive && getPrimitive("agents");
     const ph = getPrimitive && getPrimitive("agentHourly");
     const next = {}, badge = {};
@@ -465,8 +479,31 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
             ))}
           </div>
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <ReportExport toolName="Attrition Cost Analysis" subtitle={`Total Cost of Agent Turnover. Cost basis ${costBasis} · Realization ${realization}`} userName="" userEmail="" sections={[
+          <ReportActions
+            toolId={TOOL_ID}
+            toolName="Attrition Cost Analysis"
+            subtitle={`Total Cost of Agent Turnover. Cost basis ${costBasis} · Realization ${realization}`}
+            routePath={ROUTE}
+            state={{ d }}
+            defaults={DEFAULTS}
+            confidence={confidence}
+            summary={[
+              { label: "Cash per departure", value: fmt$(cashPerDeparture) },
+              { label: "All-in per departure", value: fmt$(allInPerDeparture) },
+              { label: "Annual replacement burden", value: fmt$(annualReplBurden) },
+              { label: "Early-washout waste", value: fmt$(earlyWaste) },
+            ]}
+            signals={{
+              cost_basis_confidence: costBasis,
+              realization_confidence: realization,
+              attrition_rate: n(d.attritionRate) + "%",
+              agents: n(d.agents),
+              evidence: d.evidence,
+              hard_flag: hardFlag ? "yes" : "no",
+              integrity_flags: flags.length,
+              from_scenario_link: fromLink ? "yes" : "no",
+            }}
+            sections={[
               { title: "Confidence & Evidence", type: "findings", items: [
                 `Cost-basis confidence: ${costBasis}. ${costBasisReason}`,
                 `Realization confidence: ${realization}. ${realizationReason}`,
@@ -510,7 +547,10 @@ The sharpest recoverable line is early washout. ${n(d.earlyWashoutRate)}% of you
                 { tool: "Agent Experience Diagnostic", href: "/tools/agent-experience", reason: "Identify which retention dimensions are failing" },
                 { tool: "FCR Leakage Diagnostic", href: "/tools/fcr-leakage", reason: "Quantify the new-hire rework and repeat-contact cost" },
               ]},
-            ]} />
+            ]}
+          />
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
             <a href="/tools/occupancy-risk" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Occupancy Risk Simulator →</a>
             <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
           </div>
