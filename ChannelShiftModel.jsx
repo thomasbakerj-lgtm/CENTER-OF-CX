@@ -114,7 +114,8 @@ const DEFS = {
   marginalOH: "The multiplier for the cost that actually disappears when a contact goes away: wage plus benefits, but not fixed facilities or equipment. Savings are valued on this, because freeing one contact doesn't shrink your building.",
   eligibility: "The share of voice that is structurally safe to move: simple, transactional, low-risk volume. Exclude complex, regulated, emotional, or revenue-sensitive contacts. This caps the shift so the tool never implies all voice is movable.",
   erf: "When a contact fails in the target channel and returns to voice, how much harder that recovery call is than a normal one (1.0 same, 1.2 frustrated, 1.5 complex). The bounced call always existed, so only the extra friction counts as new cost.",
-  curve: "As easy volume leaves voice, the calls that remain are harder, so average voice handle time rises. Mild / Moderate / Severe sets how much. It stops the tool assuming leftover voice work is as quick as today's blended average.",
+  curve: "As easy volume leaves voice, the calls that remain are harder, so average voice handle time rises. Mild / Moderate / Severe sets how much. Because total voice minutes are fixed, choosing a curve also fixes how simple the departing calls must have been, which the tool shows you below.",
+  shiftPts: "Percentage points of your TOTAL monthly contact volume that you intend to move out of voice into this channel. Shifting 10 points takes voice from 70% to 60% of the mix and this channel up by 10, so the mix still sums to 100.",
   resolution: "The share of shifted contacts that actually resolve in the target channel without bouncing back to voice. Transactional issues resolve high, complex issues low. This is the lever that decides whether a shift saves money.",
   displacement: "Of the contacts that do resolve in the target channel, the share that truly replace a voice call. The rest is new demand from people who'd never have called: real, but not a voice saving. Rarely 100%.",
   capacity: "How freed agent time becomes money. Absorbing growth banks little cash; reducing overtime or avoiding hires is finance-creditable; headcount reduction is fully cashable but riskiest. Freed capacity isn't savings until you commit to one.",
@@ -174,10 +175,28 @@ function compute(d, mechKey) {
     return { ...t, S, res: n(d[t.res]), disp: n(d[t.disp]), E, R, D, incremental };
   });
 
-  const adverseMult = 1 + adverseCoef * (voiceVol > 0 ? shifted / voiceVol : 0);
-  const voiceEff = n(d.voiceAHT) / Math.max(0.1, n(d.voiceConc)) * adverseMult;
-  const voiceFreedMin = Dtot * voiceEff;
-  const recoveryMin = Etot * voiceEff * (erf - 1);     // only the EXTRA friction is new cost
+  // Adverse selection, anchored on the RESIDUAL, which is what the copy claims and
+  // what an operator can verify after launch ("our voice AHT rose 4%").
+  //
+  // Total voice minutes are conserved: shifting does not change any call's length,
+  // only which calls remain. So the residual uplift FIXES the departing AHT:
+  //     voiceVol * baseEff  =  Dtot * deptEff  +  (voiceVol - Dtot) * residualEff
+  // Setting both independently would double-count the same physical effect, which
+  // is exactly what the previous version did, and it inflated savings.
+  const shiftShare = voiceVol > 0 ? shifted / voiceVol : 0;
+  const residualUplift = adverseCoef * shiftShare;
+  const baseEff = n(d.voiceAHT) / Math.max(0.1, n(d.voiceConc));
+  const residualEff = baseEff * (1 + residualUplift);
+  const residCalls = Math.max(0, voiceVol - Dtot);
+  const deptEffRaw = Dtot > 0 ? (voiceVol * baseEff - residCalls * residualEff) / Dtot : baseEff;
+
+  // Hard invariant: the calls that left cannot have taken negative time.
+  const deptImpossible = Dtot > 0 && deptEffRaw <= 0;
+  const deptImplausible = !deptImpossible && Dtot > 0 && deptEffRaw < 2;
+  const deptEff = Math.max(0, deptEffRaw);
+
+  const voiceFreedMin = Dtot * deptEff;
+  const recoveryMin = Etot * deptEff * (erf - 1);     // only the EXTRA friction is new cost
   const netMin = voiceFreedMin - targetMin - recoveryMin;
   const laborCashGross = netMin * marginalPerMin;
   const laborCash = laborCashGross * mf;
@@ -192,7 +211,7 @@ function compute(d, mechKey) {
   const transition = training + ramp;
   const payback = netRealizable > 0 ? transition / netRealizable : Infinity;
 
-  return { monthly, voiceVol, eligible, scaled, marginalPerMin, loadedPerMin, mf, shifted, Dtot, Etot, perTarget, adverseMult, voiceEff, netMin, laborCash, botFee, netRealizable, gross, fteFreed, training, ramp, transition, payback };
+  return { monthly, voiceVol, eligible, scaled, marginalPerMin, loadedPerMin, mf, shifted, Dtot, Etot, perTarget, shiftShare, residualUplift, baseEff, residualEff, deptEff, deptEffRaw, deptImpossible, deptImplausible, netMin, laborCash, botFee, netRealizable, gross, fteFreed, training, ramp, transition, payback };
 }
 
 // Solve the resolution rate (for a given target) at which net realizable crosses zero.
@@ -233,7 +252,8 @@ function buildAnalystRead(d, r, mechKey, verdict) {
 
   if (verdict.be != null && verdict.pt) out.push(`Decision threshold: this shift breaks even at ${verdict.be.toFixed(0)}% ${verdict.pt.key.toLowerCase()} resolution. You're modeling ${verdict.curRes}%. ${verdict.curRes >= verdict.be ? "You clear it, but validate that resolution rate against real deflection data before committing." : "You're below it. Fixing resolution comes before shifting, not after."}`);
 
-  out.push(`Freed voice time is capacity, not cash. The realizable figure assumes ${MECH[mechKey].label}${mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}; bot platform fees (${fmtK(r.botFee)}/mo) are real cash and netted in full. Residual voice runs ${((r.adverseMult - 1) * 100).toFixed(0)}% harder under your ${(CURVE[d.adverseCurve] || CURVE.moderate).label.toLowerCase()} complexity curve: the agents left on voice are working your hardest demand.`);
+  out.push(`Freed voice time is capacity, not cash. The realizable figure assumes ${MECH[mechKey].label}${mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}; bot platform fees (${fmtK(r.botFee)}/mo) are real cash and netted in full. Residual voice runs ${(r.residualUplift * 100).toFixed(1)}% harder under your ${(CURVE[d.adverseCurve] || CURVE.moderate).label.toLowerCase()} complexity curve: the agents left on voice are working your hardest demand.`);
+  if (r.Dtot > 0) out.push(`Check this assumption before you trust the number. Holding total voice minutes constant, a ${(r.residualUplift * 100).toFixed(1)}% residual uplift means the ${Math.round(r.Dtot).toLocaleString()} contacts you displace must average ${r.deptEff.toFixed(1)} minutes against your ${r.baseEff.toFixed(1)} minute voice baseline. If the volume you plan to shift is not meaningfully simpler than that, your complexity curve is set too high and this case is understated. If it is far simpler, the curve is set too low and the case is overstated.`);
 
   out.push(`This is the operating-capacity question only. It does not value what those interactions are worth to the business. That's Return per Contact. And the full investment case (ramp timing, phasing, approval packaging) belongs in Business Case Builder; this exports the headline.`);
   return out;
@@ -270,6 +290,7 @@ export default function ChannelShiftModel() {
 
   const r = compute(d, mech);
   const verdict = buildVerdict(d, r, mech);
+  const shiftPts = n(d.shiftToChat) + n(d.shiftToBot) + n(d.shiftToEmail);
   const analyst = buildAnalystRead(d, r, mech, verdict);
 
   const sourced = pulled.monthlyContacts && pulled.hourlyRate;
@@ -289,6 +310,9 @@ export default function ChannelShiftModel() {
   if (n(d.shiftToBot) > 0 && n(d.botCost) <= 0.10) flags.push({ sev: "warn", t: `Bot cost is ${money(n(d.botCost))}, near-free. Real bots carry per-resolution or platform fees; a $0 bot makes any shift look costless and drives break-even toward 0%. Set a realistic per-contact cost.` });
   if (verdict.be != null && verdict.be < 1 && r.netRealizable > 0 && r.shifted > 0) flags.push({ sev: "warn", t: "Break-even resolves to ~0%. The shift looks profitable at any resolution. That usually means the bot cost or escalation return factor is too generous, not that the shift is risk-free. Sanity-check those before approving." });
   if (mech === "none") flags.push({ sev: "warn", t: "No capacity action selected: freed-labor value is $0. Pick a mechanism before presenting any savings number." });
+  if (r.deptImpossible) flags.push({ sev: "warn", t: `Impossible assumption. A ${(r.residualUplift * 100).toFixed(1)}% residual uplift on this much displaced volume implies the departing calls took zero or negative time. Freed minutes were clamped to zero. Lower the complexity curve or reduce the shift.` });
+  else if (r.deptImplausible) flags.push({ sev: "warn", t: `Your ${(CURVE[d.adverseCurve] || CURVE.moderate).label.toLowerCase()} curve implies the displaced contacts average ${r.deptEffRaw.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute voice baseline. That is close to zero handle time. The curve is almost certainly too severe for the volume being moved.` });
+  else if (r.Dtot > 0) flags.push({ sev: "info", t: `Implied assumption: the ${Math.round(r.Dtot).toLocaleString()} displaced contacts average ${r.deptEff.toFixed(1)} minutes against your ${r.baseEff.toFixed(1)} minute voice baseline, and the voice work left behind rises to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are unchanged. If the volume you are shifting is not that much simpler, lower the curve.` });
 
   useEffect(() => {
     publishToolResult("channel-shift", normalizeForPublish({
@@ -382,13 +406,57 @@ export default function ChannelShiftModel() {
             </div>
           </div>
 
+          {r.Dtot > 0 && (
+            <div style={{
+              marginTop: 14, background: "#fff", borderRadius: 8, padding: "14px 16px",
+              border: `1px solid ${r.deptImpossible || r.deptImplausible ? RED : BORDER}`,
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: r.deptImpossible || r.deptImplausible ? RED : SLATE, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
+                What this curve is actually claiming
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 22, alignItems: "flex-end" }}>
+                <div>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: NAVY }}>{r.baseEff.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span></div>
+                  <div style={{ fontSize: 10.5, color: MUTED }}>Voice baseline today</div>
+                </div>
+                <div style={{ fontSize: 15, color: MUTED, paddingBottom: 4 }}>&rarr;</div>
+                <div>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: r.deptImpossible || r.deptImplausible ? RED : ELECTRIC }}>
+                    {r.deptEffRaw.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span>
+                  </div>
+                  <div style={{ fontSize: 10.5, color: MUTED }}>Implied AHT of the calls you displace</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 19, fontWeight: 700, color: AMBER }}>{r.residualEff.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span></div>
+                  <div style={{ fontSize: 10.5, color: MUTED }}>Voice left behind, {(r.residualUplift * 100).toFixed(1)}% harder</div>
+                </div>
+              </div>
+              <p style={{ fontSize: 11, color: SLATE, lineHeight: 1.6, margin: "12px 0 0" }}>
+                Total voice minutes do not change when you shift: the same calls take the same time, only fewer of them
+                stay. So choosing a residual uplift also decides how simple the departing calls must have been. If the
+                volume you plan to move is not around {r.deptEffRaw.toFixed(1)} minutes, this curve is the wrong one.
+              </p>
+            </div>
+          )}
+
           <div style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase", margin: "20px 0 4px" }}>Shift from voice → target</div>
-          <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts. Set them to what your data supports.</p>
+          <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Points are the plan. Everything under them is the discount. Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts. Set them to what your data supports.</p>
+
+          <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", marginBottom: 12, fontSize: 11.5, color: SLATE, lineHeight: 1.6 }}>
+            <strong style={{ color: NAVY }}>How to use the points.</strong> A point is one percent of your total monthly contact volume,
+            moved out of voice. Voice is currently {n(d.voicePct)}% of the mix. Shifting {shiftPts} points takes it to {Math.max(0, n(d.voicePct) - shiftPts)}%.
+            {" "}Start by asking how much voice is <em>structurally eligible</em> to move, set that above, then set points to match.
+            {shiftPts > 0 && (
+              <> You have requested <strong>{Math.round(r.monthly * shiftPts / 100).toLocaleString()}</strong> contacts against an eligible pool of{" "}
+              <strong>{Math.round(r.eligible).toLocaleString()}</strong>.{r.scaled ? " That exceeds the pool, so the shift was scaled down to fit." : " That fits."}</>
+            )}
+            {shiftPts > n(d.voicePct) && <span style={{ color: RED, fontWeight: 600 }}> You are asking to move more volume than exists in voice.</span>}
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="s3">
             {TARGETS.map(tc => { const t = tc.key, color = tc.color; return (
               <div key={t} style={{ background: "#fff", border: `1px solid ${color}40`, borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>&rarr; {t === "Bot" ? "Bot / Self-Service" : t}</div>
-                <NumField compact label="Shift" value={d["shiftTo" + t]} onChange={v => set("shiftTo" + t, v)} suffix="pts" step={1} min={0} max={100} />
+                <NumField compact label="Shift" value={d["shiftTo" + t]} onChange={v => set("shiftTo" + t, v)} suffix="pts" step={1} min={0} max={100} hint="pts of total volume" info={DEFS.shiftPts} infoTitle="Shift points" />
                 <div style={{ height: 6 }} />
                 <NumField compact label="Resolution rate" value={d["res" + t]} onChange={v => set("res" + t, v)} suffix="%" step={1} min={0} max={100} pulled={t === "Bot" && pulled.resBot} hint={t === "Bot" && pulled.resBot ? "from AI Deflection" : "resolves without bouncing"} info={DEFS.resolution} infoTitle="Resolution rate" />
                 <div style={{ height: 6 }} />
@@ -533,6 +601,12 @@ export default function ChannelShiftModel() {
                 ["Displaced voice (resolved x displacement)", Math.round(r.Dtot).toLocaleString()],
                 ["Bounced back to voice", Math.round(r.Etot).toLocaleString()],
               ]},
+              { title: "Adverse Selection (implied, not assumed twice)", type: "table", rows: [
+                ["Voice AHT baseline", r.baseEff.toFixed(1) + " min"],
+                [`Residual voice AHT after shift (${(r.residualUplift * 100).toFixed(1)}% uplift)`, r.residualEff.toFixed(1) + " min"],
+                ["Implied AHT of displaced contacts", r.deptEff.toFixed(1) + " min"],
+                ["Total voice minutes before and after", Math.round(r.voiceVol * r.baseEff).toLocaleString() + " (conserved)"],
+              ]},
               { title: "Economics", type: "table", rows: [
                 ["Net agent-minutes freed/mo", Math.round(r.netMin).toLocaleString()],
                 [`Realized labor (${MECH[mech].label}, ${Math.round(r.mf * 100)}%)`, fmtK(r.laborCash) + "/mo"],
@@ -543,7 +617,7 @@ export default function ChannelShiftModel() {
               ]},
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${n(d.eligibility)}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${n(d.escReturnFactor)}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call. The rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mech].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Residual voice AHT rises under the ${(CURVE[d.adverseCurve] || CURVE.moderate).label} complexity curve. Break-even is the target resolution rate at which net realizable crosses zero. Grade: ${grade}. This is an operating-capacity model, not a value or full-investment model.` },
+              { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${n(d.eligibility)}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${n(d.escReturnFactor)}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call. The rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mech].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Adverse selection is anchored on the residual: under the ${(CURVE[d.adverseCurve] || CURVE.moderate).label} complexity curve, voice AHT for the calls left behind rises ${(r.residualUplift * 100).toFixed(1)}% to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are conserved, since shifting changes which calls remain, not how long any call takes. That conservation fixes the implied AHT of the displaced contacts at ${r.deptEff.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute baseline. The tool never sets both ends independently, because that would count the same effect twice and overstate freed capacity. Break-even is the target resolution rate at which net realizable crosses zero. Grade: ${grade}. This is an operating-capacity model, not a value or full-investment model.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "AI Deflection Reality Check", reason: "Validate the bot resolution rate this decision rests on", href: "/tools/ai-deflection" },
                 { tool: "Business Case Builder", reason: "Build the full investment case: ramp, phasing, approval packaging", href: "/tools/business-case" },
