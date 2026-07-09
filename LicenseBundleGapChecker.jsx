@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -50,6 +51,32 @@ const DOC_EVIDENCE = new Set(["proposal", "orderform", "sku", "msa"]);
 const DBL_MAP = { ai: "ai", analytics: "transcription", digital: "sms", recording: "storage", telephony: "voice" };
 const DBL_LABEL = { ai: "AI add-on + AI usage tokens", analytics: "analytics module + transcription minutes", digital: "digital channel module + SMS/WhatsApp fees", recording: "recording module + storage retention", telephony: "telephony module + voice/carrier usage" };
 
+/* Scenario contract. Module scope so the identity is stable across renders,
+   and so state initializers and the URL encoder read from one definition. */
+const TOOL_ID = "license-gap";
+const ROUTE = "/tools/license-gap";
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+const DEFAULTS = {
+  classes: [
+    { id: "agent", name: "Agent", count: 150, price: 125 },
+    { id: "sup", name: "Supervisor", count: 0, price: 150 },
+    { id: "admin", name: "Admin", count: 0, price: 200 },
+    { id: "analyst", name: "Analyst", count: 0, price: 170 },
+  ],
+  basis: "named",
+  committedSeats: 0,
+  commitBasis: "license",
+  commitRate: 0,
+  uplift: 0,
+  seats18mo: 0,
+  evidence: "estimate",
+  confirmed: false,
+  dblAck: false,
+  modules: (() => { const m = {}; MODULES.forEach(mod => { m[mod.id] = { need: mod.core ? "yes" : "no", status: mod.dStatus, cost: mod.typical, scope: mod.dScope }; }); return m; })(),
+  usage: (() => { const u = {}; USAGE_TYPES.forEach(t => { u[t.id] = 0; }); return u; })(),
+};
+
 const DEFS = {
   baseSeat: "The advertised per-agent price the vendor leads with. It typically covers core voice, routing, and basic reporting only. Most everything else is priced separately.",
   effLicenseSeat: "The seat price plus the per-seat modules and edition upgrades you require. Still a true per-seat number: what one production-ready license actually costs.",
@@ -92,29 +119,38 @@ function Nav() {
 }
 
 export default function LicenseBundleGapChecker() {
-  const [classes, setClasses] = useState([
-    { id: "agent", name: "Agent", count: 150, price: 125 },
-    { id: "sup", name: "Supervisor", count: 0, price: 150 },
-    { id: "admin", name: "Admin", count: 0, price: 200 },
-    { id: "analyst", name: "Analyst", count: 0, price: 170 },
-  ]);
-  const [basis, setBasis] = useState("named");
-  const [committedSeats, setCommittedSeats] = useState(0);
-  const [commitBasis, setCommitBasis] = useState("license");
-  const [commitRate, setCommitRate] = useState(0);
-  const [uplift, setUplift] = useState(0);
-  const [seats18mo, setSeats18mo] = useState(0);
-  const [evidence, setEvidence] = useState("estimate");
-  const [confirmed, setConfirmed] = useState(false);
-  const [dblAck, setDblAck] = useState(false);
+  const [classes, setClasses] = useState(() => clone(DEFAULTS.classes));
+  const [basis, setBasis] = useState(DEFAULTS.basis);
+  const [committedSeats, setCommittedSeats] = useState(DEFAULTS.committedSeats);
+  const [commitBasis, setCommitBasis] = useState(DEFAULTS.commitBasis);
+  const [commitRate, setCommitRate] = useState(DEFAULTS.commitRate);
+  const [uplift, setUplift] = useState(DEFAULTS.uplift);
+  const [seats18mo, setSeats18mo] = useState(DEFAULTS.seats18mo);
+  const [evidence, setEvidence] = useState(DEFAULTS.evidence);
+  const [confirmed, setConfirmed] = useState(DEFAULTS.confirmed);
+  const [dblAck, setDblAck] = useState(DEFAULTS.dblAck);
   const [pulled, setPulled] = useState({});
-  const [sending, setSending] = useState(false); const [sent, setSent] = useState(false);
-  const [modules, setModules] = useState(() => {
-    const m = {}; MODULES.forEach(mod => { m[mod.id] = { need: mod.core ? "yes" : "no", status: mod.dStatus, cost: mod.typical, scope: mod.dScope }; }); return m;
-  });
-  const [usage, setUsage] = useState(() => { const u = {}; USAGE_TYPES.forEach(t => { u[t.id] = 0; }); return u; });
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  const [fromLink, setFromLink] = useState(false);
+  const [modules, setModules] = useState(() => clone(DEFAULTS.modules));
+  const [usage, setUsage] = useState(() => clone(DEFAULTS.usage));
+
   useEffect(() => {
+    window.scrollTo(0, 0);
+
+    // A scenario link is a deliberate act. It outranks the ambient cross-tool
+    // pull, so we rehydrate and return rather than letting getPrimitive
+    // overwrite the seat count the user explicitly shared.
+    const s = readScenario(TOOL_ID, DEFAULTS);
+    if (s) {
+      setClasses(s.classes); setBasis(s.basis); setCommittedSeats(s.committedSeats);
+      setCommitBasis(s.commitBasis); setCommitRate(s.commitRate); setUplift(s.uplift);
+      setSeats18mo(s.seats18mo); setEvidence(s.evidence); setConfirmed(s.confirmed);
+      setDblAck(s.dblAck); setModules(s.modules); setUsage(s.usage);
+      setFromLink(true);
+      clearScenarioParam();
+      return;
+    }
+
     const ag = getPrimitive("agents");
     if (ag != null && !isNaN(ag)) { setClasses(c => c.map(x => x.id === "agent" ? { ...x, count: Math.round(ag) } : x)); setPulled({ agents: true }); }
   }, []);
@@ -237,14 +273,14 @@ export default function LicenseBundleGapChecker() {
     }, { sourceTool: "license-gap" }).clean); /* eslint-disable-next-line */
   }, [classes, modules, usage, committedSeats, commitBasis, commitRate, uplift, seats18mo, evidence, confirmed]);
 
-  const sendResults = () => {
-    setSending(true);
-    const b = new FormData();
-    b.append("_subject", "License Bundle Gap (v4), Center of CX"); b.append("source", "License Bundle Gap Checker");
-    b.append("quoted_seat", "$" + quotedSeat.toFixed(0)); b.append("eff_license_seat", "$" + effLicenseSeat.toFixed(0)); b.append("eff_platform_seat_eq", "$" + effPlatformSeat.toFixed(0));
-    b.append("gap_pct", gapPct.toFixed(0) + "%"); b.append("hidden_annual", fmtK(hiddenAnnual)); b.append("confidence", confidence); b.append("evidence", evidence);
-    fetch("https://formspree.io/f/maqlvwne", { method: "POST", body: b, headers: { Accept: "application/json" } })
-      .then(r => { if (r.ok) setSent(true); setSending(false); }).catch(() => setSending(false));
+  /* The exact input set the scenario link carries. Numeric scalars are coerced
+     because NumField commits raw strings while typing, and "0" would otherwise
+     diff against a default of 0 and ride in the URL for no reason. */
+  const scenario = {
+    classes, basis,
+    committedSeats: n(committedSeats), commitBasis, commitRate: n(commitRate),
+    uplift: n(uplift), seats18mo: n(seats18mo),
+    evidence, confirmed, dblAck, modules, usage,
   };
 
   const card = { background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 14px", textAlign: "center" };
@@ -491,8 +527,30 @@ export default function LicenseBundleGapChecker() {
             {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
           </div>
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <ReportExport toolName="License Bundle Gap Analysis" subtitle={`Quoted vs effective platform seat · ${confidence}`} userName="" userEmail="" sections={[
+          <ReportActions
+            toolId={TOOL_ID}
+            toolName="License Bundle Gap Analysis"
+            subtitle={`Quoted vs effective platform seat · ${confidence}`}
+            routePath={ROUTE}
+            state={scenario}
+            defaults={DEFAULTS}
+            confidence={confidence}
+            summary={[
+              { label: "Quoted seat", value: "$" + quotedSeat.toFixed(0) },
+              { label: "Effective license seat", value: "$" + effLicenseSeat.toFixed(0) },
+              { label: "Platform seat-equivalent", value: "$" + effPlatformSeat.toFixed(0) },
+              { label: "Bundle gap", value: gapPct.toFixed(0) + "%" },
+              { label: "Hidden annual", value: fmtK(hiddenAnnual) },
+            ]}
+            signals={{
+              evidence,
+              billable_seats: billable,
+              shelfware_modules: shelfware.length,
+              integrity_flags: flags.length,
+              commit_exposure_seats: commitExpSeats,
+              from_scenario_link: fromLink ? "yes" : "no",
+            }}
+            sections={[
               { title: "Confidence & Evidence", type: "text", content: confLine },
               { title: "Seat Economics", type: "metrics", items: [
                 { label: "Quoted Seat", value: "$" + quotedSeat.toFixed(0), color: ELECTRIC, sub: "vendor headline" },
@@ -526,8 +584,10 @@ export default function LicenseBundleGapChecker() {
                 { tool: "TCO Calculator", reason: "Roll the platform seat-equivalent and usage fees into full cost of ownership", href: "/tools/tco-calculator" },
                 { tool: "Vendor Match", reason: "Compare effective platform economics, not quoted seats, across vendors", href: "/tools/vendor-match" },
               ]},
-            ]} />
-            <button onClick={sendResults} disabled={sending} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: sending ? "wait" : "pointer" }}>{sent ? "Sent ✓" : sending ? "Sending..." : "Send Results & Request Review"}</button>
+            ]}
+          />
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 20 }}>
             <a href="/tools/contract-risk" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Contract Risk Scanner →</a>
           </div>
         </div>
