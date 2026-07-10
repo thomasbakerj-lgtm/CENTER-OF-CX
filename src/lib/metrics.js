@@ -55,7 +55,14 @@ export const metricRegistry = {
   // could honestly be a fraction rather than a mis-published percent.
   fcr: rate(1, "First contact resolution"),
   targetFCR: rate(1, "Target FCR"),
+  // Share of TOTAL contact volume the bot removes. The headline deflection number.
   realisticDeflectionRate: rate(1, "Realistic deflection rate"),
+  // Share of BOT-ROUTED volume that resolves in the bot. NOT the same number, and not
+  // interchangeable with the one above. Channel Shift sizes its human pool from this one.
+  // Publishing realisticDeflectionRate into a resolution-rate field understates bot
+  // performance by a factor of the gross deflection rate. Register it so the rail can
+  // enforce the unit, because an unregistered rate is a rate nobody is guarding.
+  botResolutionRate: rate(1, "Bot resolution rate (of bot-routed contacts)"),
   repeatContactShare: rate(1, "Repeat contact share of volume"),
   containmentRate: rate(1, "Self-service containment"),
   transferRate: rate(1, "Transfer rate"),
