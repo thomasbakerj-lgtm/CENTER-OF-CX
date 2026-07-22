@@ -325,6 +325,43 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("recon2: headline is Finance-grade", tied.headlineConf === "Finance-grade");
 }
 
+
+/* ---- 16. Reconciliation run 3, PDF of 22 July 2026. Exercises the 0.75 capacity
+   action, an 8-month ramp, and the realization-weaker confidence branch. Together with
+   blocks 14 and 15 this pins three independent input sets and all three axis states. ---- */
+{
+  const K75 = MECH_ORDER.filter(k => MECH[k].f === 0.75)[0];
+  A("a 0.75 capacity action exists in mech.js", !!K75);
+  const R3 = { M:300000, cpc:4.21, marg:2.53, eligibleRate:72, mech:K75, rampOn:true, rampMonths:8,
+    evidence:"pilot", costBasisOwned:true, apparentResolutionRate:71, repeatLeakRate:12,
+    escalationPenalty:32, implOneTime:75000, botPlatformCost:7500, qaCost:1700,
+    tuningHours:80, tuningRate:45, knowledgeMaintHours:32, knowledgeRate:65 };
+  const r = engine(R3);
+  A("recon3: net monthly savings is 175588", Math.round(r.netSavings) === 175588);
+  A("recon3: vendor claim is 896730", Math.round(r.vendorClaim) === 896730);
+  A("recon3: operating cost is 14880", Math.round(r.opexMonthly) === 14880);
+  A("recon3: year 1 net over an 8-month ramp is 1365418", Math.round(r.year1) === 1365418);
+  A("recon3: steady annual is 2107055", Math.round(r.steadyAnnual) === 2107055);
+  A("recon3: payback is month 3", r.payback === 3);
+  A("recon3: upside case is 278548", Math.round(r.bestNet) === 278548);
+  A("recon3: escalation swing is 131225", Math.round(r.escSwing) === 131225);
+  A("recon3: net automation is 45.0 percent", r.netAutomationRate.toFixed(1) === "45.0");
+  A("recon3: bot resolution is 62.5 percent", r.botResolutionRate.toFixed(1) === "62.5");
+  A("recon3: break-even resolution is 36.9 percent", r.beResPct.toFixed(1) === "36.9");
+  A("recon3: headline is Planning-grade, realization is the weaker axis",
+    r.headlineConf === "Planning-grade" && r.costConf === "Finance-grade" && r.realConf === "Planning-grade");
+  A("recon3: confidence sentence names realization as weaker", /which is realization at Planning-grade/.test(r.confSentence));
+  A("recon3: waterfall closes", Math.abs(r.waterfallSum - r.netSavings) < 1e-6);
+
+  /* Scenario labels must reproduce their own math on this input set too. */
+  let ok = true;
+  for (const x of buildScenarios(R3)) {
+    const re = engine({ ...R3, eligibleRate:x.eligibleRate, apparentResolutionRate:x.apparentResolutionRate, repeatLeakRate:x.repeatLeakRate });
+    if (Math.abs(re.netSavings - x.netSavings) > 1e-6) ok = false;
+  }
+  A("recon3: scenario labels reproduce their own net savings", ok);
+}
+
 const r = engine(DEF);
 console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f*100) + "%");
 console.log("\n  default readout");
