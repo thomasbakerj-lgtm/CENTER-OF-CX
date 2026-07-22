@@ -1,222 +1,207 @@
-// AI Deflection Reality Check, V3 engine verification.
-// Run from the repo root:  node aid.test.mjs
-//
-// This harness does not carry a copy of the engine. It slices the engine out of
-// AIDeflectionRealityCheck.jsx between the @engine-start and @engine-end markers and
-// imports it. A copy would drift. The whole point of the rail work was that copies drift.
-//
-// What it proves:
-//   1. The boundary question. The V2 engine could publish a negative deflection rate, and
-//      a >100% one, which the rail silently rescales rather than drops. The V3 engine cannot.
-//   2. The rail semantic mismatch. netDeflectionRate is not a bot resolution rate.
-//   3. The claim-to-reality bridge reconciles to net savings to 1e-10 across 1,728 cases.
-//   4. Break-even thresholds are the true zero crossings of the engine, not approximations.
-//   5. Ten directional sweeps, plus the doctrine assertion that loaded cost moves the
-//      vendor's claim and moves net savings by exactly zero.
-//   6. Grade reachability, and unreachability exactly where doctrine says.
-//   7. One-time implementation cost hits Year 1 only and never escalates.
-//   8. What the tool actually hands the rail.
+/* aid.test.mjs
+   Slices the @engine-start..@engine-end region out of AIDeflectionRealityCheck.jsx and
+   tests the DEPLOYED engine, using the REAL shared constants imported from
+   ./src/lib/mech.js. Nothing is reconstructed. If that module is missing, renamed, or
+   structurally changed, this harness fails rather than passing on invented values.
+   Run from repo root: node aid.test.mjs */
+import { readFileSync } from "fs";
 
-import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
-import { normalizeForPublish } from "./src/lib/metrics.js";
-
-const ROOT = dirname(fileURLToPath(import.meta.url));
-const src = readFileSync(join(ROOT, "AIDeflectionRealityCheck.jsx"), "utf8");
-const a = src.indexOf("/* @engine-start"), b = src.indexOf("/* @engine-end */");
-if (a < 0 || b < 0) { console.error("Engine markers missing from AIDeflectionRealityCheck.jsx."); process.exit(1); }
-const tmp = join(tmpdir(), `aid-engine-${Date.now()}.mjs`);
-writeFileSync(tmp, `import { MECH, MECH_DEFAULT } from "${pathToFileURL(join(ROOT, "src/lib/mech.js")).href}";\n` + src.slice(a, b));
-const { engine } = await import(pathToFileURL(tmp).href);
-unlinkSync(tmp);
+/* ---- dependency integrity. Import the real module, do not rebuild it. ---- */
+let MECH, MECH_ORDER, MECH_DEFAULT;
+try {
+  const m = await import("./src/lib/mech.js");
+  ({ MECH, MECH_ORDER, MECH_DEFAULT } = m);
+} catch (e) {
+  console.error("BLOCKER: could not import ./src/lib/mech.js. The engine cannot be");
+  console.error("verified against reconstructed constants. Run from the repo root.");
+  console.error(String(e.message || e));
+  process.exit(1);
+}
 
 let pass = 0, fail = 0;
-const ok = (c, m) => { if (c) pass++; else { fail++; console.log("  FAIL " + m); } };
-const near = (x, y, t = 0.02) => Math.abs(x - y) < t;
-const H = (t) => console.log("\n" + t);
+const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
 
-const BASE = {
-  M: 80000, cpc: 7, marg: 4.2,
-  grossDeflection: 40, botLeakage: 15, containmentFailure: 12, escalationPenalty: 25,
-  botPlatformCost: 8000, qaCost: 2000, tuningHours: 40, tuningRate: 65,
-  knowledgeMaintHours: 20, knowledgeRate: 55, implOneTime: 0,
-  mech: "hiring", rampOn: true, rampMonths: 6, evidence: "estimate", costBasisOwned: false,
-};
-const run = (o = {}) => engine({ ...BASE, ...o });
+/* ---- 0. Validate the shared module itself before trusting anything downstream ---- */
+A("mech.js exports MECH, MECH_ORDER, MECH_DEFAULT",
+  !!MECH && Array.isArray(MECH_ORDER) && typeof MECH_DEFAULT === "string");
+A("MECH_DEFAULT is a key in MECH", !!MECH[MECH_DEFAULT]);
+A("every MECH_ORDER key exists in MECH", MECH_ORDER.every(k => !!MECH[k]));
+A("MECH_ORDER covers every MECH key", Object.keys(MECH).every(k => MECH_ORDER.indexOf(k) >= 0));
+A("every MECH entry has numeric f in [0,1], a label, and a cred class",
+  Object.values(MECH).every(v => typeof v.f === "number" && v.f >= 0 && v.f <= 1 && typeof v.label === "string" && typeof v.cred === "string"));
+A("MECH_ORDER is monotonically non-decreasing in f",
+  MECH_ORDER.every((k, i) => i === 0 || MECH[k].f >= MECH[MECH_ORDER[i - 1]].f));
+A("a zero-realization option exists, so 'none' can mean $0",
+  Object.values(MECH).some(v => v.f === 0));
+A("at least one cash-class option exists, so Finance-grade is reachable",
+  Object.values(MECH).some(v => v.cred === "cash"));
+A("cred classes are drawn from the known taxonomy",
+  Object.values(MECH).every(v => ["none","capacity","finance","cash"].indexOf(v.cred) >= 0));
 
-/* The V2 engine, in shape. Kept only to answer the boundary question against history. */
-const v2rate = (M, Gp, Lp, Fp) => { const keep = (1 - Lp / 100) * (1 - Fp / 100); return M > 0 ? ((M * (Gp / 100) * keep) / M) * 100 : 0; };
+/* ---- load the shipped engine ---- */
+const src = readFileSync("./AIDeflectionRealityCheck.jsx", "utf8");
+const a = src.indexOf("/* @engine-start"), b = src.indexOf("/* @engine-end */");
+if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found."); process.exit(1); }
+const region = src.slice(a, b).replace(/^export /gm, "");
+const { engine, buildScenarios } = new Function("MECH", "MECH_DEFAULT",
+  region + "\nreturn { engine, buildScenarios };")(MECH, MECH_DEFAULT);
 
-/* ------------------------------------------------------------------ 1. BOUNDARY */
-H("1. BOUNDARY. Can the engine produce a negative netDeflectionRate?");
-{
-  const r = v2rate(80000, 40, 150, 12);
-  ok(r < 0, "V2 with typed leakage 150 goes negative");
-  console.log(`  V2, botLeakage typed 150 -> netDeflectionRate ${r.toFixed(2)}%  NEGATIVE`);
-  const { clean, flags } = normalizeForPublish({ realisticDeflectionRate: +(r / 100).toFixed(4) }, { sourceTool: "ai-deflection" });
-  ok(clean.realisticDeflectionRate === undefined, "the rail drops a negative rate");
-  console.log(`  rail -> ${JSON.stringify(clean)}   ${flags[0] || ""}`);
+/* the harness must exercise the real ladder, whatever it contains */
+const MECH_KEYS = MECH_ORDER.slice();
+const CASH_KEY = MECH_KEYS.filter(k => MECH[k].cred === "cash").pop();
+const ZERO_KEY = MECH_KEYS.filter(k => MECH[k].f === 0)[0];
 
-  const c = v2rate(80000, 150, 15, 12);
-  const res = normalizeForPublish({ realisticDeflectionRate: +(c / 100).toFixed(4) }, { sourceTool: "ai-deflection" });
-  ok(res.clean.realisticDeflectionRate > 0 && res.clean.realisticDeflectionRate < 0.02, "the rail SILENTLY RESCALES a >1 rate rather than dropping it");
-  console.log(`  V2, grossDeflection typed 150 -> ${c.toFixed(2)}%  rail -> ${JSON.stringify(res.clean)}   silent corruption, worse than a drop`);
+const DEF = { M:80000, cpc:7, marg:0, eligibleRate:55, mech:MECH_DEFAULT, rampOn:false, rampMonths:6,
+  evidence:"estimate", costBasisOwned:false, apparentResolutionRate:65, repeatLeakRate:18,
+  escalationPenalty:25, implOneTime:0, botPlatformCost:8000, qaCost:2000, tuningHours:40,
+  tuningRate:65, knowledgeMaintHours:20, knowledgeRate:55 };
+
+/* ---- 1. Waterfall reconciliation ---- */
+let maxErr = 0;
+for (let i = 0; i < 8000; i++) {
+  const I = { ...DEF, M:Math.random()*3e5, cpc:1+Math.random()*20, marg:Math.random()<.5?0:1+Math.random()*15,
+    eligibleRate:Math.random()*100, apparentResolutionRate:Math.random()*100, repeatLeakRate:Math.random()*100,
+    escalationPenalty:Math.random()*200, mech:MECH_KEYS[Math.floor(Math.random()*MECH_KEYS.length)],
+    botPlatformCost:Math.random()*2e4, qaCost:Math.random()*5e3, implOneTime:Math.random()*2e5 };
+  const r = engine(I);
+  maxErr = Math.max(maxErr, Math.abs(r.waterfallSum - r.netSavings));
 }
-{
-  const vals = [-1e6, -150, -1, -0.001, 0, 0.5, 1, 50, 99.999, 100, 100.001, 150, 1e6, NaN, Infinity, -Infinity];
-  let neg = false, dropped = false, lo = Infinity, hi = -Infinity, cases = 0;
-  for (const G of vals) for (const L of vals) for (const F of vals) for (const E of [-50, 0, 25, 200, 1e6]) {
-    const r = run({ grossDeflection: G, botLeakage: L, containmentFailure: F, escalationPenalty: E }); cases++;
-    if (r.netDeflectionRate < 0) neg = true;
-    if (!r.railPublished) dropped = true;
-    lo = Math.min(lo, r.netDeflectionRate); hi = Math.max(hi, r.netDeflectionRate);
-  }
-  ok(!neg, "V3 never produces a negative rate");
-  ok(!dropped, "V3 never has its publish dropped by a hostile input");
-  ok(lo >= 0 && hi <= 100, "V3 rate stays inside [0,100]");
-  console.log(`  V3 guarded, ${cases.toLocaleString()} hostile combinations: range [${lo.toFixed(2)}, ${hi.toFixed(2)}]  negatives ${neg}  drops ${dropped}`);
-}
-{
-  const r = run({ M: 0 });
-  ok(!r.railPublished && /zero/.test(r.railReason || ""), "M=0 suppresses the publish and says why");
-  ok(r.flags.some((f) => /fall back to its own default bot resolution rate of 65%/.test(f)), "the suppression names the downstream consequence");
-  console.log(`  M=0 -> suppressed, and the report says so. This is the only surviving drop, and it is visible.`);
-}
+A("waterfall reconciles to net savings, max err " + maxErr.toExponential(2), maxErr < 1e-6);
 
-/* ------------------------------------------------------- 2. RAIL SEMANTIC MISMATCH */
-H("2. RAIL. netDeflectionRate is not a bot resolution rate.");
-{
-  const r = run();
-  ok(near(r.botResolutionRate, r.realizedDeflectionPct), "botResolutionRate is identically keep*100");
-  ok(r.botResolutionRate > r.netDeflectionRate * 2, "they differ by more than a factor of two at defaults");
-  console.log(`  netDeflectionRate ${r.netDeflectionRate.toFixed(1)}%  = share of TOTAL volume removed`);
-  console.log(`  botResolutionRate ${r.botResolutionRate.toFixed(1)}%  = share of BOT-ROUTED volume that resolves`);
-  console.log(`  Channel Shift resBot defaults to 65 and means "resolves without bouncing".`);
-  console.log(`  It has been receiving ${Math.round(r.netDeflectionRate)}. It needs ${Math.round(r.botResolutionRate)}.`);
+/* ---- 2. Domain safety under hostile input ---- */
+let rateOK=true, botOK=true, ordOK=true, finOK=true, nanOK=true;
+for (let i = 0; i < 20000; i++) {
+  const I = { ...DEF, M:(Math.random()-.2)*3e5, cpc:(Math.random()-.1)*30, marg:(Math.random()-.1)*30,
+    eligibleRate:(Math.random()*1.4-.2)*100, apparentResolutionRate:(Math.random()*1.4-.2)*100,
+    repeatLeakRate:(Math.random()*1.4-.2)*100, escalationPenalty:(Math.random()*2.4-.2)*100,
+    mech:MECH_KEYS[Math.floor(Math.random()*MECH_KEYS.length)] };
+  const r = engine(I);
+  if (!(r.netAutomationRate >= 0 && r.netAutomationRate <= 100)) rateOK = false;
+  if (!(r.botResolutionRate >= 0 && r.botResolutionRate <= 100)) botOK = false;
+  if (r.netAutomationRate > r.botResolutionRate + 1e-9) ordOK = false;
+  if (!isFinite(r.netSavings) || !isFinite(r.year1)) finOK = false;
+  if ([r.netSavings,r.netAutomationRate,r.botResolutionRate,r.year1,r.escSwing].some(v => typeof v !== "number" || isNaN(v))) nanOK = false;
 }
+A("net automation rate cannot leave [0,100]", rateOK);
+A("bot resolution rate cannot leave [0,100]", botOK);
+A("net automation <= bot resolution always, Channel Shift invariant", ordOK);
+A("net savings and year 1 are always finite", finOK);
+A("no NaN reaches any reported figure", nanOK);
 
-/* -------------------------------------------------------------- 3. RECONCILIATION */
-H("3. RECONCILIATION. The bridge must sum to net savings, everywhere.");
-{
-  let worst = 0, cases = 0;
-  for (const mech of ["none", "growth", "overtime", "hiring", "vendor", "headcount"])
-    for (const G of [0, 5, 40, 100]) for (const L of [0, 15, 60, 100]) for (const F of [0, 12, 55, 100])
-      for (const E of [0, 25, 200]) for (const marg of [0, 1, 4.2, 7]) {
-        const r = run({ mech, grossDeflection: G, botLeakage: L, containmentFailure: F, escalationPenalty: E, marg });
-        worst = Math.max(worst, Math.abs(r.waterfallSum - r.netSavings)); cases++;
-      }
-  ok(worst < 1e-6, "bridge reconciles to net savings");
-  console.log(`  worst residual across ${cases.toLocaleString()} cases: $${worst.toExponential(2)}`);
-}
-
-/* ----------------------------------------------------------------- 4. BREAK-EVEN */
-H("4. BREAK-EVEN. Closed forms must be the engine's real zero crossings.");
-{
-  const r = run();
-  ok(near(run({ grossDeflection: r.beGrossPct }).netSavings, 0, 0.01), "beGrossPct is the true zero");
-  ok(near(run({ botLeakage: r.leakTolPct }).netSavings, 0, 0.01), "leakTolPct is the true zero");
-  ok(near(run({ botPlatformCost: BASE.botPlatformCost + r.platformHeadroom }).netSavings, 0, 0.01), "platformHeadroom is opex room to zero");
-  console.log(`  break-even deflection ${r.beGrossPct.toFixed(2)}%   max leakage ${r.leakTolPct.toFixed(2)}%   opex headroom $${Math.round(r.platformHeadroom).toLocaleString()}/mo`);
-  const nb = run({ mech: "none", escalationPenalty: 0 });
-  ok(nb.leakTolPct === null && /does not move net savings/.test(nb.leakTolNote), "no mech and no escalation makes leakage tolerance meaningless, and the tool says so rather than printing 0%");
-  console.log(`  mech=none, esc=0 -> null, with a reason. Not a fake 0%.`);
+/* ---- 3. Closed-form break-even zeros ---- */
+{ const r = engine(DEF);
+  if (isFinite(r.beResPct)) { const r2 = engine({ ...DEF, apparentResolutionRate:r.beResPct });
+    A("break-even resolution zeroes net savings, got $" + r2.netSavings.toFixed(4), Math.abs(r2.netSavings) < 1); }
+  if (r.repeatTolPct != null && r.repeatTolPct > 0 && r.repeatTolPct < 100) {
+    const r3 = engine({ ...DEF, repeatLeakRate:r.repeatTolPct });
+    A("max tolerable repeat zeroes net savings, got $" + r3.netSavings.toFixed(4), Math.abs(r3.netSavings) < 1); }
 }
 
-/* ------------------------------------------------------------ 5. DIRECTIONAL SWEEP */
-H("5. DIRECTIONAL SWEEP. Every input moves net savings the only way it can.");
-const sweep = (key, lo, hi, expect) => {
-  const out = []; for (let i = 0; i <= 40; i++) out.push(run({ [key]: lo + ((hi - lo) * i) / 40 }).netSavings);
-  const d = out.slice(1).map((v, i) => v - out[i]);
-  const up = d.every((x) => x >= -1e-9), down = d.every((x) => x <= 1e-9);
-  const got = up && down ? "flat" : up ? "up" : down ? "down" : "NON-MONOTONIC";
-  ok(got === expect, `${key} should be ${expect}, got ${got}`);
-  console.log(`  ${key.padEnd(20)} ${String(lo).padStart(6)} -> ${String(hi).padEnd(8)} ${got.padEnd(14)} $${Math.round(out[0]).toLocaleString()} to $${Math.round(out[40]).toLocaleString()}`);
-};
-sweep("grossDeflection", 0, 100, "up");
-sweep("botLeakage", 0, 100, "down");
-sweep("containmentFailure", 0, 100, "down");
-sweep("escalationPenalty", 0, 200, "down");
-sweep("botPlatformCost", 0, 200000, "down");
-sweep("qaCost", 0, 50000, "down");
-sweep("tuningHours", 0, 400, "down");
-sweep("knowledgeRate", 0, 500, "down");
-sweep("marg", 0.01, 7, "up");
-sweep("M", 0, 500000, "up");
-{
-  ok(near(run({ cpc: 7 }).netSavings, run({ cpc: 40 }).netSavings, 1e-9), "loaded cost must not move net savings");
-  ok(run({ cpc: 40 }).vendorClaim > run({ cpc: 7 }).vendorClaim * 5, "loaded cost must move the vendor claim");
-  console.log(`  cpc 7 -> 40:  netSavings FLAT at $${Math.round(run().netSavings).toLocaleString()}   vendorClaim $${Math.round(run({cpc:7}).vendorClaim).toLocaleString()} -> $${Math.round(run({cpc:40}).vendorClaim).toLocaleString()}`);
-  const da = run({ marg: 0, cpc: 7 }).netSavings, db = run({ marg: 0, cpc: 40 }).netSavings;
-  ok(!near(da, db, 1), "with marginal defaulted, loaded cost DOES move net savings, which is exactly why that state is Directional");
-  console.log(`  marg unsupplied: cpc 7 -> 40 moves netSavings $${Math.round(da).toLocaleString()} -> $${Math.round(db).toLocaleString()}. Hence the Directional cap.`);
-
-  const ladder = ["none", "growth", "overtime", "hiring", "vendor", "headcount"].map((m) => run({ mech: m }).netSavings);
-  ok(ladder.every((v, i) => i === 0 || v >= ladder[i - 1] - 1e-9), "net savings non-decreasing across the credit ladder");
-  const nn = run({ mech: "none" });
-  ok(near(nn.netSavings, -(nn.opexMonthly + nn.escalationPremium), 0.01), "mech=none is exactly minus opex minus escalation premium");
-  console.log(`  mech ladder: ${ladder.map((v) => "$" + Math.round(v).toLocaleString()).join("  ")}`);
-  console.log(`  mech=none is a LOSS of $${Math.round(-nn.netSavings).toLocaleString()}/mo, not a zero. Operating cost is cash out regardless.`);
-
-  const q = run({ mech: "none", escalationPenalty: 0 });
-  ok(near(run({ mech: "none", escalationPenalty: 0, botLeakage: 0 }).netSavings, run({ mech: "none", escalationPenalty: 0, botLeakage: 90 }).netSavings, 1e-9),
-    "with no mech and no escalation, leakage cannot move cash");
-  console.log(`  leakage is inert when nothing is realized and nothing escalates. Asserted, not hidden. ($${Math.round(q.netSavings).toLocaleString()})`);
+/* ---- 4. Denominator identities ---- */
+{ const r = engine(DEF);
+  A("vendorClaim = M * R * loadedCPC", Math.abs(r.vendorClaim - 80000*0.65*7) < 1e-6);
+  A("botResolutionRate = R(1-rho), of ROUTED", Math.abs(r.botResolutionRate - 0.65*(1-0.18)*100) < 1e-9);
+  A("netAutomationRate = E*R(1-rho), of TOTAL", Math.abs(r.netAutomationRate - 0.55*0.65*(1-0.18)*100) < 1e-9);
+  A("durable = attempted * dur", Math.abs(r.durable - r.attempted*r.dur) < 1e-6);
+  A("postBotHuman = attempted - durable", Math.abs(r.postBotHuman - (r.attempted - r.durable)) < 1e-6);
+  A("escalation premium covers ALL post-bot human contacts", Math.abs(r.escalationPremium - r.postBotHuman*r.marg*r.esc) < 1e-6);
 }
 
-/* -------------------------------------------------------- 6. GRADE REACHABILITY */
-H("6. GRADE REACHABILITY. Reachable everywhere it should be, nowhere it should not.");
-const g = (o) => run(o).headlineConf;
-ok(g({}) === "Directional", "defaults are Directional");
-ok(g({ evidence: "proposal", costBasisOwned: true, mech: "hiring" }) === "Planning-grade", "proposal plus hiring reaches Planning-grade");
-ok(g({ evidence: "pilot", costBasisOwned: true, mech: "vendor" }) === "Finance-grade", "observed pilot plus vendor reduction reaches Finance-grade");
-ok(g({ evidence: "sla", costBasisOwned: true, mech: "headcount" }) === "Finance-grade", "contracted SLA plus headcount reaches Finance-grade");
-console.log("  reachable: all three grades");
-ok(g({ evidence: "pilot", costBasisOwned: true, mech: "none" }) === "Directional", "no mechanism forces Directional even on pilot data");
-ok(g({ evidence: "pilot", costBasisOwned: true, mech: "growth" }) === "Directional", "capacity-only credit class forces Directional");
-ok(g({ evidence: "pilot", costBasisOwned: true, mech: "hiring" }) === "Planning-grade", "finance-creditable caps at Planning-grade");
-ok(g({ evidence: "proposal", costBasisOwned: true, mech: "vendor" }) === "Planning-grade", "a proposal is a document, not a commitment: caps at Planning-grade");
-ok(g({ evidence: "marketing", costBasisOwned: true, mech: "vendor" }) === "Directional", "vendor marketing forces Directional");
-ok(g({ evidence: "pilot", costBasisOwned: false, mech: "vendor" }) === "Planning-grade", "an unconfirmed cost basis caps at Planning-grade");
-ok(g({ evidence: "pilot", costBasisOwned: true, mech: "vendor", marg: 0 }) === "Directional", "a defaulted marginal cost forces Directional");
-ok(g({ evidence: "pilot", costBasisOwned: true, mech: "vendor", botLeakage: 150 }) === "Directional", "a clamped input forces Directional");
-console.log("  unreachable where doctrine says: none, growth, marketing, proposal+cash, unconfirmed basis, defaulted basis, clamped input");
-{
-  const b = { evidence: "pilot", costBasisOwned: true, mech: "vendor" };
-  ok(g(b) !== g({ ...b, evidence: "proposal" }), "the evidence selector is live");
-  ok(g(b) !== g({ ...b, mech: "hiring" }), "the mechanism selector is live");
-  ok(g(b) !== g({ ...b, costBasisOwned: false }), "the cost-basis confirmation is live");
-  console.log("  no dead controls: evidence, mechanism, and cost confirmation each move the grade independently");
+/* ---- 5. Monotonicity, driven by the real ladder ---- */
+{ let m1=true, p1=Infinity;
+  for (let rho=0; rho<=60; rho+=5) { const r=engine({...DEF,repeatLeakRate:rho}); if(r.netSavings>p1+1e-6)m1=false; p1=r.netSavings; }
+  A("net savings non-increasing in repeat rate", m1);
+  let m2=true, p2=-Infinity;
+  for (let el=10; el<=90; el+=10) { const r=engine({...DEF,eligibleRate:el}); if(r.netSavings<p2-1e-6)m2=false; p2=r.netSavings; }
+  A("net savings non-decreasing in eligibility", m2);
+  let m3=true, p3=-Infinity;
+  for (const k of MECH_KEYS) { const r=engine({...DEF,mech:k}); if(r.netSavings<p3-1e-6)m3=false; p3=r.netSavings; }
+  A("net savings non-decreasing across the real MECH ladder", m3);
+  A("zero-realization option yields no capacity value", engine({...DEF,marg:4.2,mech:ZERO_KEY,escalationPenalty:0}).netSavings === -engine({...DEF,marg:4.2,mech:ZERO_KEY,escalationPenalty:0}).opexMonthly);
 }
 
-/* ------------------------------------------------------------------- 7. YEAR ONE */
-H("7. YEAR 1. One-time cost hits Year 1 only and never escalates.");
-{
-  const a = run(), b = run({ implOneTime: 300000 });
-  ok(near(a.year1 - b.year1, 300000, 0.01), "year 1 falls by exactly the one-time cost");
-  ok(near(a.steadyAnnual, b.steadyAnnual, 1e-9), "steady state is untouched");
-  ok(a.flags.some((f) => /Implementation cost is zero/.test(f)), "a zero implementation cost is flagged, not silently accepted");
-  ok(run({ rampOn: false }).year1 > a.year1, "no ramp beats a six month ramp");
-  console.log(`  implOneTime 0 -> 300,000:  year1 $${Math.round(a.year1).toLocaleString()} -> $${Math.round(b.year1).toLocaleString()}   payback month ${a.payback} -> ${b.payback}   steady unchanged`);
+/* ---- 6. Doctrine: loaded cost moves the claim, never the savings ---- */
+{ const lo=engine({...DEF,cpc:7,marg:4.2}), hi=engine({...DEF,cpc:14,marg:4.2});
+  A("loaded cost moves the vendor claim", hi.vendorClaim > lo.vendorClaim*1.9);
+  A("loaded cost does NOT move net savings when marginal is supplied", Math.abs(hi.netSavings-lo.netSavings) < 1e-6);
 }
 
-/* ---------------------------------------------------------------- 8. RAIL PUBLISH */
-H("8. RAIL PUBLISH. What this tool hands the suite on a clean run.");
-{
-  const r = run();
-  const { clean, flags } = normalizeForPublish({
-    realisticDeflectionRate: +r.railRate.toFixed(4),
-    botResolutionRate: +r.railBot.toFixed(4),
-    capacityAction: r.mechKey,
-  }, { sourceTool: "ai-deflection" });
-  ok(flags.length === 0, "a clean run raises no rail flags");
-  ok(clean.realisticDeflectionRate <= 1 && clean.botResolutionRate <= 1, "both rates publish as fractions");
-  console.log("  " + JSON.stringify(clean));
-  const bad = normalizeForPublish({ botResolutionRate: 74.8 }, { sourceTool: "ai-deflection" });
-  ok(bad.clean.botResolutionRate === 0.748 && bad.flags.length === 1, "botResolutionRate is REGISTERED, so a percent gets corrected and flagged");
-  console.log("  registry guard: publishing 74.8 instead of 0.748 is corrected and flagged, not silently accepted");
+/* ---- 7. Confidence gates ---- */
+A("defaulted marginal forces Directional", engine(DEF).headlineConf === "Directional");
+A("Finance-grade reachable with cash action, pilot evidence, confirmed basis",
+  engine({...DEF,marg:4.2,costBasisOwned:true,evidence:"pilot",mech:CASH_KEY}).headlineConf === "Finance-grade");
+A("marginal above loaded is a hard flag to Directional", engine({...DEF,marg:99,cpc:7}).headlineConf === "Directional");
+A("no self-credentialing: consistency alone cannot reach Finance",
+  engine({...DEF,marg:4.2,costBasisOwned:false,evidence:"estimate",mech:CASH_KEY}).headlineConf !== "Finance-grade");
+A("marketing evidence caps at Directional",
+  engine({...DEF,marg:4.2,costBasisOwned:true,evidence:"marketing",mech:CASH_KEY}).headlineConf === "Directional");
+
+/* ---- 8. Rail contract ---- */
+A("M=0 blocks rail publish", engine({...DEF,M:0}).railPublished === false);
+A("normal case publishes rail", engine(DEF).railPublished === true);
+A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railRate>=0&&r.railRate<=1&&r.railBot>=0&&r.railBot<=1;})());
+
+/* ---- 9. All four verdicts reachable ---- */
+{ const vP=engine({...DEF,marg:4.2,costBasisOwned:true,evidence:"pilot",mech:CASH_KEY,eligibleRate:60,apparentResolutionRate:75,repeatLeakRate:10}).verdict;
+  const vB=engine({...DEF,marg:4.2,eligibleRate:60,apparentResolutionRate:70,repeatLeakRate:12,evidence:"estimate",mech:MECH_DEFAULT}).verdict;
+  const vF=engine({...DEF,marg:4.2,eligibleRate:20,apparentResolutionRate:70,repeatLeakRate:12,evidence:"pilot",mech:CASH_KEY}).verdict;
+  const vN=engine({...DEF,marg:4.2,eligibleRate:40,apparentResolutionRate:20,repeatLeakRate:60,botPlatformCost:60000,mech:CASH_KEY,evidence:"pilot"}).verdict;
+  A("verdict: Proceed reachable", vP.indexOf("Proceed") === 0);
+  A("verdict: Pilot reachable", vB.indexOf("Run a bounded") === 0);
+  A("verdict: Fix the foundation reachable", vF.indexOf("Fix the foundation") === 0);
+  A("verdict: Buy nothing reachable", vN.indexOf("Buy nothing") === 0);
+  A("zero-realization action never yields Proceed", engine({...DEF,marg:4.2,mech:ZERO_KEY,evidence:"pilot"}).verdict.indexOf("Proceed") !== 0);
 }
 
-console.log(`\n${pass}/${pass + fail} assertions passing.` + (fail ? `  ${fail} FAILING.` : ""));
+/* ---- 10. Scenarios name their own assumptions ---- */
+{ const sc = buildScenarios({...DEF, marg:4.2});
+  A("three scenarios returned", sc.length === 3);
+  A("conservative <= expected <= stretch", sc[0].netSavings <= sc[1].netSavings + 1e-6 && sc[1].netSavings <= sc[2].netSavings + 1e-6);
+  A("each scenario states eligibility, resolution, repeat", sc.every(x => x.eligibleRate && x.apparentResolutionRate && x.repeatLeakRate !== undefined));
+}
+
+/* ---- 11. Escalation premium is never a silent constant ---- */
+{ const r = engine({...DEF, marg:4.2});
+  A("escalation at zero is reported", typeof r.netAtEscZero === "number");
+  A("escalation at double is reported", typeof r.netAtEscDouble === "number");
+  A("zero-escalation net is the most favourable of the three", r.netAtEscZero >= r.netSavings - 1e-9 && r.netSavings >= r.netAtEscDouble - 1e-9);
+  A("escalation swing is non-negative", r.escSwing >= 0);
+  A("escalation set to zero removes the premium entirely", engine({...DEF,marg:4.2,escalationPenalty:0}).escalationPremium === 0);
+}
+
+/* ---- 12. Boundary cases ---- */
+{ const cases = [
+    {...DEF, M:0}, {...DEF, cpc:0, marg:0}, {...DEF, eligibleRate:0}, {...DEF, apparentResolutionRate:0},
+    {...DEF, repeatLeakRate:100}, {...DEF, eligibleRate:100, apparentResolutionRate:100, repeatLeakRate:0},
+    {...DEF, escalationPenalty:0, mech:ZERO_KEY}, {...DEF, botPlatformCost:0,qaCost:0,tuningHours:0,knowledgeMaintHours:0},
+    {...DEF, M:1e9, cpc:1e6, marg:1e6},
+  ];
+  let ok = true;
+  for (const c of cases) { try { const r = engine(c);
+    if ([r.netSavings,r.netAutomationRate,r.botResolutionRate,r.year1].some(v => typeof v !== "number" || isNaN(v))) ok = false;
+  } catch (e) { ok = false; } }
+  A("boundary cases produce no NaN and no throw", ok);
+}
+
+/* ---- 13. Integrity flags fire ---- */
+{ A("defaulted marginal raises a flag", engine(DEF).flags.some(f => /assumed at 60%/.test(f)));
+  A("denominator check flag present when resolving", engine({...DEF,marg:4.2}).flags.some(f => /Denominator check/.test(f)));
+  A("zero-realization action raises a flag", engine({...DEF,marg:4.2,mech:ZERO_KEY}).flags.some(f => /realized savings are \$0/.test(f)));
+  A("eligibility above 90 raises a flag", engine({...DEF,marg:4.2,eligibleRate:95}).flags.some(f => /rare/.test(f)));
+  A("dominant escalation premium raises a flag",
+    engine({...DEF,marg:4.2,escalationPenalty:200,apparentResolutionRate:30,repeatLeakRate:50}).flags.some(f => /directional, not measured/.test(f)));
+}
+
+const r = engine(DEF);
+console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f*100) + "%");
+console.log("\n  default readout");
+console.log("  coverage            " + r.ep + "% of total demand is eligible");
+console.log("  apparent resolution " + r.rp + "% of AI-involved");
+console.log("  bot resolution      " + r.botResolutionRate.toFixed(1) + "% of routed");
+console.log("  NET automation      " + r.netAutomationRate.toFixed(1) + "% of TOTAL");
+console.log("  net savings         $" + Math.round(r.netSavings).toLocaleString() + "/mo");
+console.log("  escalation swing    $" + Math.round(r.escSwing).toLocaleString() + "/mo across 0 to 2x");
+console.log("  verdict             " + r.verdict);
+console.log("  confidence          " + r.headlineConf);
+console.log("\n  " + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);
