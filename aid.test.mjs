@@ -243,6 +243,88 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
     !r.flags.some(f => /the (first|second|third|fourth) denominator|responds to the (first|second|third|fourth)/.test(f)));
 }
 
+
+/* ---- 15. Second PDF reconciliation, 22 July 2026, and confidence-sentence grammar ---- */
+{
+  const KEY_90b = MECH_ORDER.filter(k => MECH[k].f === 0.9 && MECH[k].cred === "cash")[0];
+  const R2 = { M:300000, cpc:4.32, marg:2.59, eligibleRate:71, mech:KEY_90b, rampOn:true, rampMonths:7,
+    evidence:"pilot", costBasisOwned:true, apparentResolutionRate:74, repeatLeakRate:12,
+    escalationPenalty:33, implOneTime:75000, botPlatformCost:7500, qaCost:1700,
+    tuningHours:80, tuningRate:55, knowledgeMaintHours:17, knowledgeRate:75 };
+  const r2 = engine(R2);
+  A("recon2: net monthly savings is 244948", Math.round(r2.netSavings) === 244948);
+  A("recon2: vendor claim is 959040", Math.round(r2.vendorClaim) === 959040);
+  A("recon2: year 1 net is 2084910", Math.round(r2.year1) === 2084910);
+  A("recon2: steady annual is 2939380", Math.round(r2.steadyAnnual) === 2939380);
+  A("recon2: payback is month 2", r2.payback === 2);
+  A("recon2: upside case is 369477", Math.round(r2.bestNet) === 369477);
+  A("recon2: escalation swing is 126999", Math.round(r2.escSwing) === 126999);
+  A("recon2: net automation is 46.2 percent", r2.netAutomationRate.toFixed(1) === "46.2");
+  A("recon2: bot resolution is 65.1 percent", r2.botResolutionRate.toFixed(1) === "65.1");
+  A("recon2: break-even resolution is 33.0 percent", r2.beResPct.toFixed(1) === "33.0");
+  A("recon2: both axes reach Finance-grade", r2.costConf === "Finance-grade" && r2.realConf === "Finance-grade" && r2.headlineConf === "Finance-grade");
+
+  /* When the axes are tied, no axis may be described as the weaker one. */
+  A("tied axes are reported as tied, not as one being weaker",
+    r2.axesTied === true && !/weaker axis, which is/.test(r2.confSentence) && /neither is the weaker one/.test(r2.confSentence));
+
+  /* confSentence must stand alone in the export: capitalised, terminated, no stutter. */
+  const sentenceOK = (x) => /^[A-Z]/.test(x) && /[.]$/.test(x) && !/ axis[.,]? .*weaker axis/.test(x);
+  let allOK = true;
+  for (const ev of ["estimate","marketing","proposal","sla","pilot"])
+    for (const k of MECH_ORDER)
+      for (const marg of [0, 2.59])
+        for (const owned of [true,false]) {
+          const t = engine({ ...R2, evidence:ev, mech:k, marg, costBasisOwned:owned });
+          if (!sentenceOK(t.confSentence)) allOK = false;
+          if (/because .*because/.test("It is " + t.headlineConf + " because " + t.confReason)) allOK = false;
+        }
+  A("confidence sentence is standalone and stutter-free across every gate combination", allOK);
+}
+
+
+/* ---- 15. Confidence sentence, all three axis states. Regression from PDF run 2,
+   where both axes reached Finance-grade and the report still claimed one was weaker,
+   and rendered the clause as a lowercase fragment after a full stop. ---- */
+{
+  const BASE = { M:300000, cpc:4.32, marg:2.59, eligibleRate:71, rampOn:true, rampMonths:7,
+    costBasisOwned:true, apparentResolutionRate:74, repeatLeakRate:12, escalationPenalty:33,
+    implOneTime:75000, botPlatformCost:7500, qaCost:1700, tuningHours:80, tuningRate:55,
+    knowledgeMaintHours:17, knowledgeRate:75 };
+  const K90 = MECH_ORDER.filter(k => MECH[k].f === 0.9 && MECH[k].cred === "cash")[0];
+
+  const tied  = engine({ ...BASE, evidence:"pilot",    mech:K90 });          // Finance / Finance
+  const evLow = engine({ ...BASE, evidence:"proposal", mech:K90 });          // Planning / Finance
+  const rlLow = engine({ ...BASE, evidence:"pilot",    mech:MECH_DEFAULT }); // Finance / Planning
+
+  A("tied case is detected", tied.axesTied === true && tied.costConf === tied.realConf);
+  A("tied case never claims one axis IS the weaker one", !/is the weaker axis|which is (realization|evidence) at/.test(tied.confSentence));
+  A("tied case says neither axis is weaker", /neither is the weaker/.test(tied.confSentence));
+  A("evidence-weaker case names evidence", /evidence/.test(evLow.confSentence) && evLow.axesTied === false);
+  A("realization-weaker case names realization", /realization/.test(rlLow.confSentence) && rlLow.axesTied === false);
+
+  /* confSentence stands alone in the report's Why row, so it must be a real sentence. */
+  for (const [nm, r] of [["tied",tied],["evidence-weaker",evLow],["realization-weaker",rlLow]]) {
+    A(nm + ": confSentence starts capitalised", /^[A-Z]/.test(r.confSentence));
+    A(nm + ": confSentence ends with a full stop", /\.$/.test(r.confSentence));
+    A(nm + ": confSentence has no double-because stutter", (r.confSentence.match(/ because /g) || []).length <= 1);
+  }
+
+  /* The headline must still be the weaker of the two axes, tie or not. */
+  const idx = (c) => ["Directional","Planning-grade","Finance-grade"].indexOf(c);
+  for (const r of [tied, evLow, rlLow])
+    A("headline equals the weaker axis", idx(r.headlineConf) === Math.min(idx(r.costConf), idx(r.realConf)));
+
+  /* Reconciliation, PDF run 2 of 22 July 2026. */
+  A("recon2: net monthly savings is 244948", Math.round(tied.netSavings) === 244948);
+  A("recon2: year 1 net is 2084910", Math.round(tied.year1) === 2084910);
+  A("recon2: payback is month 2", tied.payback === 2);
+  A("recon2: escalation swing is 126999", Math.round(tied.escSwing) === 126999);
+  A("recon2: net automation is 46.2 percent", tied.netAutomationRate.toFixed(1) === "46.2");
+  A("recon2: bot resolution is 65.1 percent", tied.botResolutionRate.toFixed(1) === "65.1");
+  A("recon2: headline is Finance-grade", tied.headlineConf === "Finance-grade");
+}
+
 const r = engine(DEF);
 console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f*100) + "%");
 console.log("\n  default readout");

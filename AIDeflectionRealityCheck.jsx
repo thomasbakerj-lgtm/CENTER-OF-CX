@@ -217,12 +217,31 @@ export function engine(I) {
     sla: "the resolution rate is a contracted floor with a remedy attached",
     pilot: "the resolution rate was observed in your own environment",
   };
-  const weakerIsReal = ORDER.indexOf(realConf) <= ORDER.indexOf(costConf);
-  let confReason;
-  if (hardFlag) confReason = "an input is physically impossible or had to be clamped, so the result is blocked at Directional.";
-  else if (margWasDefaulted) confReason = "the marginal cost basis is an assumed 60% of loaded cost, not a figure you supplied.";
-  else if (weakerIsReal) confReason = "realization is the weaker axis and " + MECH_REASON[mechKey] + ".";
-  else confReason = "evidence is the weaker axis and " + EV_REASON[I.evidence || "estimate"] + ".";
+  /* One sentence, built once, rendered verbatim in the UI and the export. Two things this
+     has to get right. It must not claim an axis is "weaker" when the two are tied, because
+     that is a comparison the result does not support. And it must read as a complete
+     sentence in the report, where no "It is X because" preamble precedes it. */
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const axesTied = costConf === realConf;
+  const weakerIsReal = ORDER.indexOf(realConf) < ORDER.indexOf(costConf);
+  const evReason = EV_REASON[I.evidence || "estimate"];
+  let confReason, confSentence;
+  if (hardFlag) {
+    confReason = "an input is physically impossible or had to be clamped, so the result is blocked at Directional.";
+    confSentence = "An input is physically impossible or had to be clamped, so the result is blocked at Directional regardless of evidence or capacity action.";
+  } else if (margWasDefaulted) {
+    confReason = "the marginal cost basis is an assumed 60% of loaded cost, not a figure you supplied.";
+    confSentence = "The marginal cost basis is an assumed 60% of loaded cost rather than a figure you supplied, which holds the result at Directional.";
+  } else if (axesTied) {
+    confReason = "both axes land at " + costConf + ".";
+    confSentence = "Both axes land at " + costConf + ", so neither is the weaker one. " + cap(evReason) + ", and " + MECH_REASON[mechKey] + ".";
+  } else if (weakerIsReal) {
+    confReason = "realization is the weaker axis and " + MECH_REASON[mechKey] + ".";
+    confSentence = "The headline reports the weaker axis, which is realization at " + realConf + ", because " + MECH_REASON[mechKey] + ".";
+  } else {
+    confReason = "evidence is the weaker axis and " + evReason + ".";
+    confSentence = "The headline reports the weaker axis, which is evidence at " + costConf + ", because " + evReason + ".";
+  }
 
   const band = { estimate: 0.25, marketing: 0.25, proposal: 0.15, sla: 0.10, pilot: 0.10 }[I.evidence || "estimate"];
 
@@ -262,7 +281,7 @@ export function engine(I) {
     netAtEscZero, netAtEscDouble, escSwing, escShareOfResult,
     realizedDollarsPct, realizedDeflectionPct, beResPct, beNote, repeatTolPct, repeatNote,
     monthly, year1, payback, waterfall, waterfallSum, railRate, railBot, railPublished, railReason,
-    bestNet, flags, hardFlag, costConf, realConf, headlineConf, confReason, band, evidenceLabel: ev.label,
+    bestNet, flags, hardFlag, costConf, realConf, headlineConf, confReason, confSentence, axesTied, band, evidenceLabel: ev.label,
     verdict, verdictWhy, verdictRoute, verdictRouteLabel, verdictTone,
   };
 }
@@ -485,7 +504,7 @@ export default function AIDeflectionRealityCheck() {
       ["Headline confidence", R.headlineConf],
       ["Evidence axis", R.costConf + " (" + R.evidenceLabel + ")"],
       ["Realization axis", R.realConf + " (" + MECH[R.mechKey].label + ")"],
-      ["Why", "The headline reports the weaker axis. " + R.confReason],
+      ["Why", R.confSentence],
       ["Sensitivity band", "+/- " + Math.round(R.band * 100) + "% on net savings, " + fmtK(sensLow) + " to " + fmtK(sensHigh) + " per month"],
       ["Open issues", R.flags.length === 0 ? "none" : R.flags.length + (R.flags.length === 1 ? " issue, listed below" : " issues, listed below")],
       ["Cross-tool consistency", consistent ? "Volume and both cost figures arrived from other tools this session. Consistency, not evidence." : "Inputs were entered here or defaulted."],
@@ -671,7 +690,7 @@ export default function AIDeflectionRealityCheck() {
                 <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>{MECH[R.mechKey].label}</div>
               </div>
             </div>
-            <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>The headline reports the weaker axis. It is {R.headlineConf} because {R.confReason} Net savings carry a plus or minus {Math.round(R.band * 100)}% band at this evidence level, {fmtK(sensLow)} to {fmtK(sensHigh)} per month.</p>
+            <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{R.confSentence} Net savings carry a plus or minus {Math.round(R.band * 100)}% band at this evidence level, {fmtK(sensLow)} to {fmtK(sensHigh)} per month.</p>
             <div style={{ background: WARM, borderRadius: 8, padding: "10px 13px", fontSize: 11.5, color: MUTED, lineHeight: 1.55 }}>
               This grade is self-declared. It reflects what you have told this tool about your sources, not anything this tool has inspected. No document, payroll file, or pilot dataset has been reviewed here. Independent validation of the underlying inputs is a separate exercise.
             </div>
