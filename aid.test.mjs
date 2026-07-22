@@ -192,6 +192,57 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
     engine({...DEF,marg:4.2,escalationPenalty:200,apparentResolutionRate:30,repeatLeakRate:50}).flags.some(f => /directional, not measured/.test(f)));
 }
 
+
+/* ---- 14. PDF reconciliation defects, regression-locked ---- */
+{
+  /* The PDF was produced with the 90% cash-class action. Select it by FACTOR, not by
+     label or by position, because the deployed module's labels differ from any local
+     copy and a label match would be a false positive. */
+  const KEY_90 = MECH_ORDER.filter(k => MECH[k].f === 0.9 && MECH[k].cred === "cash")[0];
+  A("a 0.9 cash-class capacity action exists in mech.js", !!KEY_90);
+  const RECON = { M:200000, cpc:4.5, marg:2.7, eligibleRate:65, mech:KEY_90, rampOn:true, rampMonths:7,
+    evidence:"proposal", costBasisOwned:true, apparentResolutionRate:67, repeatLeakRate:15,
+    escalationPenalty:35, implOneTime:50000, botPlatformCost:5500, qaCost:2750,
+    tuningHours:80, tuningRate:55, knowledgeMaintHours:20, knowledgeRate:55 };
+  const r = engine(RECON);
+
+  /* Figures verified line by line against the exported PDF of 22 July 2026. */
+  A("recon: net monthly savings is 113268", Math.round(r.netSavings) === 113268);
+  A("recon: vendor claim is 603000", Math.round(r.vendorClaim) === 603000);
+  A("recon: year 1 net is 928163", Math.round(r.year1) === 928163);
+  A("recon: steady annual is 1359218", Math.round(r.steadyAnnual) === 1359218);
+  A("recon: payback is month 3", r.payback === 3);
+  A("recon: upside case is 189698", Math.round(r.bestNet) === 189698);
+  A("recon: escalation swing is 105774", Math.round(r.escSwing) === 105774);
+  A("recon: net automation is 37.0 percent", r.netAutomationRate.toFixed(1) === "37.0");
+  A("recon: bot resolution is 57.0 percent", r.botResolutionRate.toFixed(1) === "57.0");
+  A("recon: break-even resolution is 36.6 percent", r.beResPct.toFixed(1) === "36.6");
+  A("recon: exactly one integrity flag fires", r.flags.length === 1);
+  A("recon: headline is Planning-grade, weaker axis wins", r.headlineConf === "Planning-grade" && r.realConf === "Finance-grade");
+
+  /* Defect 1. The rendered sentence is "It is {conf} because {confReason}".
+     confReason must not itself open with a "... because" clause or the copy stutters. */
+  A("no double-because stutter in confidence reason", !/^(evidence|realization) is (Directional|Planning-grade|Finance-grade) because/.test(r.confReason));
+  const rendered = "It is " + r.headlineConf + " because " + r.confReason;
+  A("rendered confidence sentence contains one 'because'", (rendered.match(/ because /g) || []).length === 1);
+
+  /* Defect 2. A scenario label a reader recomputes from must be the value the engine used. */
+  const sc = buildScenarios(RECON);
+  let labelsMatch = true;
+  for (const x of sc) {
+    const re = engine({ ...RECON, eligibleRate:x.eligibleRate, apparentResolutionRate:x.apparentResolutionRate, repeatLeakRate:x.repeatLeakRate });
+    if (Math.abs(re.netSavings - x.netSavings) > 1e-6) labelsMatch = false;
+    if (Math.abs(re.netAutomationRate - x.netAutomationRate) > 1e-9) labelsMatch = false;
+  }
+  A("scenario labels reproduce their own net savings exactly", labelsMatch);
+  A("scenario labels are integers, not rounded display strings",
+    sc.every(x => Number.isInteger(x.eligibleRate) && Number.isInteger(x.apparentResolutionRate) && Number.isInteger(x.repeatLeakRate)));
+
+  /* Defect 3. Rates are named, never referred to by position. */
+  A("integrity flags never refer to a rate by ordinal position",
+    !r.flags.some(f => /the (first|second|third|fourth) denominator|responds to the (first|second|third|fourth)/.test(f)));
+}
+
 const r = engine(DEF);
 console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f*100) + "%");
 console.log("\n  default readout");

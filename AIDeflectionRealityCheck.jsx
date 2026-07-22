@@ -71,7 +71,7 @@ const DEFS = {
   confidence: { title: "Confidence, two axes", text: "Evidence asks what attests to the resolution rate and the cost basis. Realization asks whether finance can book the savings given your capacity action. The headline reports the weaker of the two. Any clamped or impossible input forces Directional regardless of the rest. Read the grade carefully: it describes what you have told this tool, not anything this tool has checked. Nobody here has seen your quote, your payroll file, or your pilot data. The grade is a self-declared evidence level, and Finance-grade means your inputs are document-backed by your own account, not that they have been independently validated." },
   rail: { title: "Rail handoff", text: "This tool is the only producer of the realistic deflection rate the rest of the suite consumes. It publishes two different numbers, net automation of total demand and durable resolution of bot-routed traffic, because downstream tools need different denominators. If it published nothing, it says so." },
   durable: { title: "Durable resolution, and its limits", text: "A durable resolution is an interaction that achieved the intended customer outcome without avoidable human escalation, attributable repeat contact, channel switching, or material correction inside your chosen measurement window. Two honest caveats. A repeat contact is not always a failure, because a customer may return with an unrelated issue, and the absence of a repeat does not prove success, because a customer may simply give up. Unless you are supplying observed, intent-matched repeat data, the durable figure here is an estimate of your leakage, not a measured outcome." },
-  funnel: { title: "The three rates", text: "Coverage is how much demand is automatable, out of total. Resolution is how much of the bot's traffic it handles, out of AI-involved. Net automation is how much of your total volume durably goes away, out of total. They are not interchangeable, and the gap between the second and the third is where most overstatement in AI business cases originates." },
+  funnel: { title: "The three rates", text: "Coverage is how much demand is automatable, out of total. Resolution is how much of the bot's traffic it handles, out of AI-involved. Net automation is how much of your total volume durably goes away, out of total. They are not interchangeable, and the gap between apparent resolution and net automation is where most overstatement in AI business cases originates." },
   verdict: { title: "The decision", text: "This tool exists to protect one expensive decision: approving an automation business case or committing to a resolution target. The verdict reads in four states. Proceed when the economics are real and evidenced. Pilot when they are positive but unproven. Fix the foundation first when eligibility is the constraint rather than the vendor. Buy nothing when even the upside is a net cost." },
 };
 
@@ -191,7 +191,7 @@ export function engine(I) {
   else if (margIn > 0 && cpc > 0 && margIn >= 0.85 * cpc) flags.push("Marginal cost is within 15% of loaded cost. You may have entered loaded cost twice. Marginal cost is mostly wage and benefits and usually runs 50% to 75% of loaded.");
   if (ep >= 90) flags.push(`AI-eligible demand is set to ${ep}%, meaning almost all of your volume is automatable. That is rare. Most operations have a large tail of complex, emotional, or exception traffic that no bot resolves. Confirm this against your actual intent mix before trusting the headline.`);
   if (rp >= 80) flags.push(`Apparent resolution is set to ${rp}% of AI-involved conversations. Rates above 80% are uncommon outside narrow FAQ or password-reset scopes. Confirm the denominator: this is a share of the traffic the bot touches, not a share of your total volume.`);
-  if (rp > 0 && netAutomationRate > 0) flags.push(`Denominator check. The bot resolves ${rp}% of the conversations it is involved in, but that is ${netAutomationRate.toFixed(1)}% of your total demand, because only ${ep}% of demand is eligible and ${(RHO * 100).toFixed(0)}% of apparent resolutions recur. If a ${rp}% figure is quoted, it describes the first denominator while your budget responds to the third. Confirm which denominator the quoted rate uses before you rely on it.`);
+  if (rp > 0 && netAutomationRate > 0) flags.push(`Denominator check. The bot resolves ${rp}% of the conversations it is involved in, but that is ${netAutomationRate.toFixed(1)}% of your total demand, because only ${ep}% of demand is eligible and ${(RHO * 100).toFixed(0)}% of apparent resolutions recur. A quoted ${rp}% describes resolution of AI-involved conversations. Your budget responds to net automation of total demand. Confirm which denominator the quoted rate uses before you rely on it.`);
   if (escP > 0 && Math.abs(netSavings) > 0 && escalationPremium > Math.abs(netSavings) * 0.5) flags.push(`The escalation premium of ${escP}% is moving ${fmt(escalationPremium)} a month, which is more than half the size of the net result. That constant is directional, not measured. Replace it with your own post-escalation handle time compared against normal handle time before this figure carries any weight.`);
   if (implOneTime === 0) flags.push("Implementation cost is zero. If the vendor is charging a one-time build, integration, or professional services fee, the Year 1 figure is optimistic by exactly that amount, and payback is earlier than it will be.");
   if (mechKey === "none") flags.push("No capacity action is selected, so realized savings are $0. Operating cost and escalation premium are still cash out the door, which is why the result is a loss rather than a zero.");
@@ -221,8 +221,8 @@ export function engine(I) {
   let confReason;
   if (hardFlag) confReason = "an input is physically impossible or had to be clamped, so the result is blocked at Directional.";
   else if (margWasDefaulted) confReason = "the marginal cost basis is an assumed 60% of loaded cost, not a figure you supplied.";
-  else if (weakerIsReal) confReason = "realization is " + realConf + " because " + MECH_REASON[mechKey] + ".";
-  else confReason = "evidence is " + costConf + " because " + EV_REASON[I.evidence || "estimate"] + ".";
+  else if (weakerIsReal) confReason = "realization is the weaker axis and " + MECH_REASON[mechKey] + ".";
+  else confReason = "evidence is the weaker axis and " + EV_REASON[I.evidence || "estimate"] + ".";
 
   const band = { estimate: 0.25, marketing: 0.25, proposal: 0.15, sla: 0.10, pilot: 0.10 }[I.evidence || "estimate"];
 
@@ -278,16 +278,19 @@ function buildScenarios(I) {
       m: { eligibleRate: 1.1, apparentResolutionRate: 1.15, repeatLeakRate: 0.5 } },
   ];
   return specs.map((s) => {
+    /* Round the scenario inputs BEFORE the engine consumes them. The label a reader
+       recomputes from must be the exact figure the model used, or the scenario block
+       quietly fails the same reconciliation standard the bridge is held to. */
     const inp = {
       ...I,
-      eligibleRate: Math.min(100, n(I.eligibleRate) * s.m.eligibleRate),
-      apparentResolutionRate: Math.min(100, n(I.apparentResolutionRate) * s.m.apparentResolutionRate),
-      repeatLeakRate: Math.min(100, n(I.repeatLeakRate) * s.m.repeatLeakRate),
+      eligibleRate: Math.round(Math.min(100, n(I.eligibleRate) * s.m.eligibleRate)),
+      apparentResolutionRate: Math.round(Math.min(100, n(I.apparentResolutionRate) * s.m.apparentResolutionRate)),
+      repeatLeakRate: Math.round(Math.min(100, n(I.repeatLeakRate) * s.m.repeatLeakRate)),
     };
     const r = engine(inp);
     return {
       label: s.label, note: s.note, netSavings: r.netSavings, netAutomationRate: r.netAutomationRate,
-      eligibleRate: inp.eligibleRate.toFixed(0), apparentResolutionRate: inp.apparentResolutionRate.toFixed(0), repeatLeakRate: inp.repeatLeakRate.toFixed(0),
+      eligibleRate: inp.eligibleRate, apparentResolutionRate: inp.apparentResolutionRate, repeatLeakRate: inp.repeatLeakRate,
     };
   });
 }
@@ -306,8 +309,8 @@ function buildAnalystRead(R) {
   if (isFinite(R.beResPct)) {
     const headroom = R.rp - R.beResPct;
     out.push(headroom > 20
-      ? `The program breaks even at ${R.beResPct.toFixed(0)}% resolution against your ${R.rp}% figure, which is wide headroom. The risk is not whether it pays back. The risk is whether anyone captures the freed capacity as cash, and whether the ${R.ep}% eligibility holds once the easy intents are exhausted.`
-      : `Break-even sits at ${R.beResPct.toFixed(0)}% resolution against your ${R.rp}% figure. That is a thin margin. If real resolution lands below ${R.beResPct.toFixed(0)}% of involved traffic this is a net cost, not a saving. Get the vendor to commit to a resolution floor in the contract, with a remedy.`);
+      ? `The program breaks even at ${R.beResPct.toFixed(1)}% resolution of AI-involved traffic against your ${R.rp}% figure, which is wide headroom. The risk is not whether it pays back. The risk is whether anyone captures the freed capacity as cash, and whether the ${R.ep}% eligibility holds once the easy intents are exhausted.`
+      : `Break-even sits at ${R.beResPct.toFixed(1)}% resolution of AI-involved traffic against your ${R.rp}% figure. That is a thin margin. If real resolution lands below ${R.beResPct.toFixed(1)}% of involved traffic this is a net cost, not a saving. Get the vendor to commit to a resolution floor in the contract, with a remedy.`);
   } else {
     out.push(`At these assumptions the program never breaks even. Operating cost and escalation premium exceed the realistic savings at any resolution rate. Either the platform cost is too high for this volume, or eligibility and repeat leakage are too severe to overcome.`);
   }
@@ -476,7 +479,7 @@ export default function AIDeflectionRealityCheck() {
       ["Apparent resolution", R.rp + "% of AI-involved conversations, the vendor's headline"],
       ["Durable resolution of routed", R.botResolutionRate.toFixed(1) + "% of bot-routed traffic"],
       ["Net automation of total", R.netAutomationRate.toFixed(1) + "% of your total demand"],
-      ["Note", "These are not interchangeable. Quoted rates usually describe the second. Your budget responds to the fourth."],
+      ["Note", "These are not interchangeable. Quoted rates usually describe apparent resolution. Your budget responds to net automation of total demand."],
     ]},
     { title: "Confidence and Evidence", type: "table", rows: [
       ["Headline confidence", R.headlineConf],
@@ -536,7 +539,7 @@ export default function AIDeflectionRealityCheck() {
           <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 10 }}>Cost and Economics · Diagnose before you buy</div>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 42, fontWeight: 400, color: "#fff", margin: "0 0 12px", lineHeight: 1.1 }}>AI Deflection Reality Check</h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", maxWidth: 680, lineHeight: 1.65, margin: 0 }}>
-            A 65% AI resolution rate does not mean 65% of total customer demand disappeared. The denominator determines the truth. This tool separates coverage, resolution, and durable automation into three honest rates, then values what is left at the cost that actually leaves your budget. Run it before you approve an automation business case or commit to a resolution target. Sometimes the answer is that the program pays. Sometimes it is that the slide is inflated and the move is to renegotiate, fix the foundation first, or buy nothing.
+            A 70% AI resolution rate does not mean 70% of total customer demand disappeared. The denominator determines the truth. This tool separates coverage, resolution, and durable automation into three honest rates, then values what is left at the cost that actually leaves your budget. Run it before you approve an automation business case or commit to a resolution target. Sometimes the answer is that the program pays. Sometimes it is that the slide is inflated and the move is to renegotiate, fix the foundation first, or buy nothing.
           </p>
           {fromLink && <div style={{ marginTop: 18, display: "inline-block", background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", borderRadius: 6, padding: "8px 14px", fontSize: 12.5, color: LIGHT }}>Loaded from a scenario link. These are the sender's inputs, not this session's.</div>}
         </div>
@@ -548,7 +551,7 @@ export default function AIDeflectionRealityCheck() {
           {/* environment */}
           <div style={cardStyle}>
             <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Your environment</h3>
-            <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 16px", lineHeight: 1.6 }}>This tool is strongest after Cost per Contact, which supplies the cost basis. Eligibility is a property of your demand, not of the vendor, so it is shared across both vendors below. Marginal cost is the savings basis for everything on this page.</p>
+            <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 16px", lineHeight: 1.6 }}>This tool is strongest after Cost per Contact, which supplies the cost basis. Eligibility is a property of your demand, not of the vendor, so it is shared across both assumption sets below. Marginal cost is the savings basis for everything on this page.</p>
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12 }} className="env">
               <NumField label="Monthly contacts" value={s.M} onChange={(v) => set("M", v)} step={1000} min={0} pulled={pulled.M} />
               <NumField label="Loaded cost per contact" value={s.cpc} onChange={(v) => set("cpc", v)} prefix="$" step={0.25} min={0} pulled={pulled.cpc} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} />
@@ -614,7 +617,7 @@ export default function AIDeflectionRealityCheck() {
           {/* the three rates */}
           <div style={cardStyle}>
             <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>Coverage, resolution, and net automation<InfoDot text={DEFS.funnel.text} title={DEFS.funnel.title} /></h3>
-            <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 18px" }}>Three different rates with three different denominators. The vendor's headline sits at the third bar. Your budget responds to the fourth. Starting values are illustrative benchmarks, not a claim about your operation or any particular vendor. Replace them with your own figures.</p>
+            <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 18px" }}>Three different rates with three different denominators. The vendor's headline is apparent resolution. Your budget responds to durable net automation. Starting values are illustrative benchmarks, not a claim about your operation or any particular vendor. Replace them with your own figures.</p>
             {funnelRows.map((f, i) => (
               <div key={i} style={{ marginBottom: i === funnelRows.length - 1 ? 0 : 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
