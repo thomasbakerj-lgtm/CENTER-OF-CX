@@ -274,8 +274,11 @@ export default function ChannelShiftModel() {
     else if (ac != null && !isNaN(ac)) { next.monthlyContacts = Math.round(ac / 12); got.monthlyContacts = true; }
     const ah = getPrimitive("agentHourly");
     if (ah != null && !isNaN(ah)) { next.hourlyRate = ah; got.hourlyRate = true; }
-    const defl = getPrimitive("realisticDeflectionRate");
-    if (defl != null && !isNaN(defl)) { next.resBot = Math.round(defl <= 1 ? defl * 100 : defl); got.resBot = true; }
+    // resBot is the share of BOT-ROUTED volume that resolves. That is botResolutionRate,
+    // not realisticDeflectionRate (which is a share of TOTAL demand and is always lower).
+    // Feeding the total-demand rate here under-credited every shift. Fixed 22 Jul 2026.
+    const botRes = getPrimitive("botResolutionRate");
+    if (botRes != null && !isNaN(botRes)) { next.resBot = Math.round(botRes <= 1 ? botRes * 100 : botRes); got.resBot = true; }
     if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
