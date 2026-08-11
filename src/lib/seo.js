@@ -2,7 +2,7 @@
 // Imported by App.jsx at runtime and by prerender.mjs at build time.
 // Must stay free of JSX and browser globals so Node can import it directly.
 
-export const BASE = "https://contactcentercx.com";
+export const BASE = "https://www.contactcentercx.com";
 export const SITE = "The Center of CX";
 
 export const SEO_MAP = {
