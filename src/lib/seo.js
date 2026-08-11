@@ -349,3 +349,66 @@ export function resolveSeo(rawPath) {
 
   return seo;
 }
+
+/* ------------------------------------------------------------------ AEO ----
+   Structured data for answer engines and AI assistants. Emitted into raw HTML
+   at build time by prerender.mjs, so engines that never execute JavaScript
+   still receive it. Two graphs per tool route: SoftwareApplication describes
+   what the tool is, FAQPage answers the methodology questions buyers actually
+   ask. The FAQ answers are deliberately the contrarian, checkable ones. An
+   answer engine has no reason to cite a page that repeats the consensus.
+   ------------------------------------------------------------------------ */
+
+export const TOOL_FAQ = {
+  "/tools/tco-calculator": [
+    ["What does a contact center actually cost per agent per month?",
+     "Fully loaded, most operations land between $4,500 and $7,500 per agent per month once labor, technology, and overhead are counted together. Labor is normally 70 to 85 percent of the total, which is why trimming software rarely moves the number."],
+    ["Should savings be valued at cost per contact or marginal cost?",
+     "Marginal cost. Deflecting one contact frees the agent handle time for that contact, it does not remove a share of fixed technology, facilities, or supervision. Valuing deflection at fully loaded cost per contact overstates savings by a wide margin and is the single most common error in vendor ROI models."],
+    ["How is cost per resolution calculated?",
+     "Cost per contact multiplied by (2 minus FCR), the standard one-plus-repeat model. Dividing cost per contact by FCR is a frequent shortcut and it overstates the figure, because a 70 percent FCR means about 1.3 contacts per resolution, not 1.43."],
+    ["Does a 3-year TCO need one escalator or two?",
+     "Two. Labor and contracted software escalate at different rates, roughly 3.5 percent for wages against 6 percent for enterprise license renewals. A single blended rate misstates a cost base that is mostly labor, and finance teams notice."],
+    ["Does the one-time implementation cost belong in annual TCO?",
+     "No. Annual TCO is recurring run-rate. Implementation is a one-time cost that belongs in Year 1 cash and in the 3-year total, added once and never escalated. Folding it into the annual figure inflates every year of the projection."],
+    ["Do FCR, occupancy, and shrinkage change current cost?",
+     "No. They size the opportunity, they do not move today's total. Cost is driven by headcount, wages, contracted prices, and volume. A tool that shows your TCO falling when you improve FCR is modeling a future state, not your current cost."],
+  ],
+};
+
+const APP_ROUTES = /^\/tools\//;
+
+export function structuredData(pathname, seo) {
+  const url = pathname === "/" ? `${BASE}/` : `${BASE}${pathname}`;
+  const graphs = [];
+
+  if (APP_ROUTES.test(pathname)) {
+    graphs.push({
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: seo.title.split(" | ")[0],
+      description: seo.desc,
+      url,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Any modern browser",
+      isAccessibleForFree: true,
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      publisher: { "@type": "Organization", name: SITE, url: BASE },
+    });
+  }
+
+  const faq = TOOL_FAQ[pathname];
+  if (faq) {
+    graphs.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faq.map(([q, a]) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
+    });
+  }
+
+  return graphs;
+}
