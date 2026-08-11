@@ -124,6 +124,26 @@ const DEFS = {
   implementation: "A one-time upfront cost added once to the 3-year total and never escalated. Set it to zero when modeling a steady-state operation with the build already behind you.",
 };
 
+// Largest-remainder allocation. Rounds each part to whole units and pushes the residual
+// onto the parts with the largest fractional remainder, so the displayed line items always
+// sum to the displayed total. A CFO reading a reconciliation table adds the column; if it
+// does not tie to the stated total, the whole document loses authority. The adjustment is
+// never more than one unit per line and always lands on the lines that were closest to
+// rounding up anyway.
+function reconcile(values, total) {
+  const target = Math.round(total);
+  const floors = values.map(v => Math.floor(v));
+  let residual = target - floors.reduce((a, b) => a + b, 0);
+  const order = values
+    .map((v, i) => ({ i, frac: v - Math.floor(v) }))
+    .sort((a, b) => b.frac - a.frac);
+  const out = floors.slice();
+  let k = 0;
+  while (residual > 0 && order.length) { out[order[k % order.length].i] += 1; residual--; k++; }
+  while (residual < 0 && order.length) { out[order[order.length - 1 - (k % order.length)].i] -= 1; residual++; k++; }
+  return out;
+}
+
 function computeTCO(d, stanceKey = "expected") {
   const HRS = 173; // paid hours per agent per month = 2080 annual / 12
   const productiveHours = HRS * (1 - n(d.shrinkage)); // paid hours net of shrinkage
@@ -858,27 +878,49 @@ function Calculator() {
                             { label: "Cost per Resolution", value: "$" + r.costPerResolution.toFixed(2), color: r.costPerResolution > r.costPerContact * 1.25 ? RED : AMBER },
                             { label: "Marginal per Contact", value: "$" + r.marginalPerContact.toFixed(2), color: MUTED, sub: "variable cost" },
                           ]},
-                          { title: "3-Year Projection", type: "table", rows: [
-                            ["Annual run-rate (Year 1)", fmtK(r.y1)], ["Year 2", fmtK(r.y2)], ["Year 3", fmtK(r.y3)],
-                            ["Escalators", escLabel + ", usage and facilities flat"],
-                            ...(n(d.implementationOneTime) > 0 ? [["One-time implementation", fmtK(n(d.implementationOneTime))], ["Year 1 cash (run-rate + implementation)", fmtK(r.y1 + n(d.implementationOneTime))]] : []),
-                            ["3-Year Total", fmtK(r.threeYear)],
-                          ]},
-                          { title: "Cost Reconciliation", type: "table", rows: [
-                            ["Labor, agents", fmt(r.breakdown.agentLabor)],
-                            ["Labor, supervisors QA WFM trainers IT", fmt(r.breakdown.supLabor + r.breakdown.qaLabor + r.breakdown.wfmLabor + r.breakdown.trainerLabor + r.breakdown.itLabor)],
-                            ["Technology, " + r.breakdown.seats + " seats (CCaaS WEM CRM)", fmt(r.breakdown.ccaas + r.breakdown.wem + r.breakdown.crm)],
-                            ["Technology, AI usage analytics iPaaS recording knowledge security", fmt(r.breakdown.aiUsage + r.breakdown.analytics + r.breakdown.ipaas + r.breakdown.recording + r.breakdown.knowledge + r.breakdown.security)],
-                            ["Technology, telephony (" + Math.round(r.voiceMinutes).toLocaleString() + " min)", fmt(r.breakdown.telephony)],
-                            ["Overhead, cloud prof-services facilities", fmt(r.breakdown.cloudInfra + r.breakdown.psAmortized + r.breakdown.facilities)],
-                            ["Overhead, attrition (" + r.monthlyHires + " hires x " + fmt(r.perHire) + ")", fmt(r.breakdown.attritionCost)],
-                            ["Total monthly", fmt(r.monthly)],
-                          ]},
-                          { title: "Cost Distribution", type: "table", rows: [
-                            ["Labor", fmtK(r.labor) + "/mo (" + pct(r.laborPct) + ")"],
-                            ["Technology", fmtK(r.tech) + "/mo (" + pct(r.techPct) + ")"],
-                            ["Overhead", fmtK(r.overhead) + "/mo (" + pct(r.overheadPct) + ")"],
-                          ]},
+                          { title: "3-Year Projection", type: "table", rows: (() => {
+                            const impl = n(d.implementationOneTime);
+                            const yr = reconcile([r.y1, r.y2, r.y3, impl], r.threeYear);
+                            return [
+                              ["Annual run-rate (Year 1)", fmt(yr[0])], ["Year 2", fmt(yr[1])], ["Year 3", fmt(yr[2])],
+                              ["Escalators", escLabel + ", usage and facilities flat"],
+                              ...(impl > 0 ? [["One-time implementation", fmt(yr[3])], ["Year 1 cash (run-rate + implementation)", fmt(yr[0] + yr[3])]] : []),
+                              ["3-Year Total", fmt(Math.round(r.threeYear))],
+                            ];
+                          })()},
+                          { title: "Cost Reconciliation", type: "table", rows: (() => {
+                            const b = r.breakdown;
+                            const parts = [
+                              b.agentLabor,
+                              b.supLabor + b.qaLabor + b.wfmLabor + b.trainerLabor + b.itLabor,
+                              b.ccaas + b.wem + b.crm,
+                              b.aiUsage + b.analytics + b.ipaas + b.recording + b.knowledge + b.security,
+                              b.telephony,
+                              b.cloudInfra + b.psAmortized + n(d.facilitiesCost),
+                              b.attritionCost,
+                            ];
+                            const v = reconcile(parts, r.monthly);
+                            return [
+                              ["Labor, agents", fmt(v[0])],
+                              ["Labor, supervisors QA WFM trainers IT", fmt(v[1])],
+                              ["Technology, " + b.seats + " seats (CCaaS WEM CRM)", fmt(v[2])],
+                              ["Technology, AI usage analytics iPaaS recording knowledge security", fmt(v[3])],
+                              ["Technology, telephony (" + Math.round(r.voiceMinutes).toLocaleString() + " min)", fmt(v[4])],
+                              ["Overhead, cloud prof-services facilities", fmt(v[5])],
+                              ["Overhead, attrition (" + r.monthlyHires + " hires x " + fmt(r.perHire) + ")", fmt(v[6])],
+                              ["Total monthly", fmt(Math.round(r.monthly))],
+                            ];
+                          })()},
+                          { title: "Cost Distribution", type: "table", rows: (() => {
+                            const sh = reconcile([r.laborPct * 1000, r.techPct * 1000, r.overheadPct * 1000], 1000);
+                            const p = (x) => (x / 10).toFixed(1) + "%";
+                            const amt = reconcile([r.labor, r.tech, r.overhead], r.monthly);
+                            return [
+                              ["Labor", fmt(amt[0]) + "/mo (" + p(sh[0]) + ")"],
+                              ["Technology", fmt(amt[1]) + "/mo (" + p(sh[1]) + ")"],
+                              ["Overhead", fmt(amt[2]) + "/mo (" + p(sh[2]) + ")"],
+                            ];
+                          })()},
                           { title: "Analyst Read", type: "findings", items: analyst },
                           { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: i === 0 ? "high" : i === 1 ? "medium" : undefined })) },
                           { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on 173 paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage 3.5 percent and license 6 percent); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by a ${STANCE[stance].label} confidence stance, so totals are defensible rather than inflated. ${BENCHMARK_SOURCES}` },

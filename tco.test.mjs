@@ -18,16 +18,16 @@ function slice(startMarker, endMarker) {
 
 const helpers = slice("const n = (v) =>", "function LogoMark");
 const consts = slice("const INDUSTRY = {", "// InfoDot definition strings");
-const engine = slice("function computeTCO(", "function buildAnalystRead");
+const engine = slice("function reconcile(", "function buildAnalystRead");
 
 const BENCH = { occupancy: { cautionMax: 0.87 } };
 
 const mod = new Function(
   "BENCH",
-  `${helpers}\n${consts}\n${engine}\nreturn { computeTCO, buildOptimizations, BASE, INDUSTRY, STANCE, n };`
+  `${helpers}\n${consts}\n${engine}\nreturn { computeTCO, buildOptimizations, reconcile, BASE, INDUSTRY, STANCE, n };`
 )(BENCH);
 
-const { computeTCO, buildOptimizations, BASE, INDUSTRY, STANCE } = mod;
+const { computeTCO, buildOptimizations, reconcile, BASE, INDUSTRY, STANCE } = mod;
 
 let pass = 0, fail = 0;
 const near = (a, b, tol = 0.01) => Math.abs(a - b) <= tol;
@@ -270,6 +270,53 @@ section("Default target coherence");
     ok(`${key} containment target is an improvement`, d.targetContainment > d.containment);
     ok(`${key} FCR target is an improvement`, d.targetFcr > d.fcr);
     ok(`${key} attrition target is an improvement`, d.targetAttrition < d.attrition);
+  }
+}
+
+
+/* ------------------------------------------------- PDF reconciliation ---- */
+section("PDF reconciliation");
+{
+  // The allocator itself.
+  ok("reconcile preserves the rounded total", reconcile([1.4, 1.4, 1.4], 4.2).reduce((a, b) => a + b, 0) === 4);
+  ok("reconcile handles an exact split", reconcile([50, 30, 20], 100).join(",") === "50,30,20");
+  ok("reconcile never moves a part by more than one unit",
+    reconcile([10.9, 10.9, 10.9], 32.7).every(v => Math.abs(v - 10.9) < 1.5));
+  ok("reconcile handles a zero part", reconcile([100.5, 0, 0.5], 101).reduce((a, b) => a + b, 0) === 101);
+  ok("reconcile absorbs a negative residual", reconcile([1.9, 1.9], 3).reduce((a, b) => a + b, 0) === 3);
+}
+{
+  // Every PDF table must tie to its own stated total, on every preset, at every stance.
+  for (const key of Object.keys(INDUSTRY)) {
+    const d = { ...BASE, ...INDUSTRY[key], industry: key };
+    const r = computeTCO(d, "expected");
+    const b = r.breakdown;
+
+    const parts = [
+      b.agentLabor,
+      b.supLabor + b.qaLabor + b.wfmLabor + b.trainerLabor + b.itLabor,
+      b.ccaas + b.wem + b.crm,
+      b.aiUsage + b.analytics + b.ipaas + b.recording + b.knowledge + b.security,
+      b.telephony,
+      b.cloudInfra + b.psAmortized + d.facilitiesCost,
+      b.attritionCost,
+    ];
+    ok(`${key} cost reconciliation rows tie to the monthly total`,
+      reconcile(parts, r.monthly).reduce((a, x) => a + x, 0) === Math.round(r.monthly));
+
+    const shares = reconcile([r.laborPct * 1000, r.techPct * 1000, r.overheadPct * 1000], 1000);
+    ok(`${key} cost distribution shares tie to 100.0%`, shares.reduce((a, x) => a + x, 0) === 1000);
+
+    ok(`${key} cost distribution amounts tie to the monthly total`,
+      reconcile([r.labor, r.tech, r.overhead], r.monthly).reduce((a, x) => a + x, 0) === Math.round(r.monthly));
+
+    for (const impl of [0, 250000, 1]) {
+      const dd = { ...d, implementationOneTime: impl };
+      const rr = computeTCO(dd, "expected");
+      const yr = reconcile([rr.y1, rr.y2, rr.y3, impl], rr.threeYear);
+      ok(`${key} three-year rows tie to the total at implementation ${impl}`,
+        yr.reduce((a, x) => a + x, 0) === Math.round(rr.threeYear));
+    }
   }
 }
 
