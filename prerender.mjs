@@ -11,7 +11,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { BASE, resolveSeo } from "./src/lib/seo.js";
+import { BASE, resolveSeo, structuredData } from "./src/lib/seo.js";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DIST = join(ROOT, "dist");
@@ -67,6 +67,9 @@ function buildHead(seo) {
     `    <meta name="twitter:site" content="@centerofcx" />`,
     `    <meta name="twitter:title" content="${t}" />`,
     `    <meta name="twitter:description" content="${d}" />`,
+    ...structuredData(seo.path, seo).map(
+      (g) => `    <script type="application/ld+json">${JSON.stringify(g).replace(/</g, "\\u003c")}</script>`
+    ),
     `    ${END}`,
   ].join("\n");
 }

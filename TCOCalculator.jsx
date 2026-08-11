@@ -3,7 +3,7 @@ import ReportExport from "./ReportExport";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS, BENCH } from "./src/lib/benchmarks";
-import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenarioFromUrl, copyShareUrl } from "./src/lib/scenario";
@@ -13,6 +13,7 @@ const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
+const capInput = { width: "100%", padding: "10px 12px", fontSize: 13, color: "#fff", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6, outline: "none", fontFamily: "'DM Sans', sans-serif" };
 
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const fmt = (v) => "$" + Math.round(n(v)).toLocaleString();
@@ -76,13 +77,13 @@ function Nav() {
 }
 
 const INDUSTRY = {
-  general: { label: "Cross-Industry Average", agents: 200, agentHourly: 19, monthlyContacts: 120000, aht: 390, fcr: 0.70, containment: 0.28, occupancy: 0.82, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 4.1, nps: 32, transferRate: 0.15, acw: 45, ccaasSeat: 150 },
-  financial: { label: "Financial Services", agents: 350, agentHourly: 22, monthlyContacts: 180000, aht: 360, fcr: 0.74, containment: 0.25, occupancy: 0.80, shrinkage: 0.28, attrition: 0.30, absenteeism: 0.07, channelMixVoice: 0.50, channelMixChat: 0.28, channelMixEmail: 0.14, channelMixSocial: 0.04, channelMixSelfServe: 0.04, csat: 4.0, nps: 35, transferRate: 0.12, acw: 60, ccaasSeat: 175 },
-  healthcare: { label: "Healthcare", agents: 250, agentHourly: 20, monthlyContacts: 140000, aht: 450, fcr: 0.71, containment: 0.18, occupancy: 0.78, shrinkage: 0.32, attrition: 0.33, absenteeism: 0.09, channelMixVoice: 0.62, channelMixChat: 0.20, channelMixEmail: 0.12, channelMixSocial: 0.03, channelMixSelfServe: 0.03, csat: 3.9, nps: 28, transferRate: 0.18, acw: 75, ccaasSeat: 165 },
-  retail: { label: "Retail & eCommerce", agents: 180, agentHourly: 16, monthlyContacts: 150000, aht: 300, fcr: 0.78, containment: 0.32, occupancy: 0.84, shrinkage: 0.32, attrition: 0.45, absenteeism: 0.10, channelMixVoice: 0.40, channelMixChat: 0.32, channelMixEmail: 0.15, channelMixSocial: 0.08, channelMixSelfServe: 0.05, csat: 4.2, nps: 38, transferRate: 0.14, acw: 40, ccaasSeat: 135 },
-  telecom: { label: "Telecommunications", agents: 400, agentHourly: 19, monthlyContacts: 250000, aht: 510, fcr: 0.66, containment: 0.25, occupancy: 0.85, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.52, channelMixChat: 0.26, channelMixEmail: 0.12, channelMixSocial: 0.06, channelMixSelfServe: 0.04, csat: 3.8, nps: 22, transferRate: 0.20, acw: 60, ccaasSeat: 155 },
-  insurance: { label: "Insurance", agents: 300, agentHourly: 21, monthlyContacts: 100000, aht: 510, fcr: 0.70, containment: 0.16, occupancy: 0.78, shrinkage: 0.28, attrition: 0.27, absenteeism: 0.06, channelMixVoice: 0.60, channelMixChat: 0.22, channelMixEmail: 0.13, channelMixSocial: 0.03, channelMixSelfServe: 0.02, csat: 4.0, nps: 30, transferRate: 0.16, acw: 75, ccaasSeat: 170 },
-  bpo: { label: "BPO / Outsourcer", agents: 500, agentHourly: 15, monthlyContacts: 300000, aht: 390, fcr: 0.68, containment: 0.28, occupancy: 0.86, shrinkage: 0.34, attrition: 0.55, absenteeism: 0.12, channelMixVoice: 0.58, channelMixChat: 0.24, channelMixEmail: 0.10, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 3.9, nps: 25, transferRate: 0.17, acw: 50, ccaasSeat: 120 },
+  general: { label: "Cross-Industry Average", agents: 200, agentHourly: 19, monthlyContacts: 120000, aht: 390, fcr: 0.70, containment: 0.28, occupancy: 0.82, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 4.1, nps: 32, transferRate: 0.15, acw: 45, ccaasSeat: 150, targetAht: 345, targetFcr: 0.76, targetContainment: 0.36, targetAttrition: 0.32 },
+  financial: { label: "Financial Services", agents: 350, agentHourly: 22, monthlyContacts: 180000, aht: 360, fcr: 0.74, containment: 0.25, occupancy: 0.80, shrinkage: 0.28, attrition: 0.30, absenteeism: 0.07, channelMixVoice: 0.50, channelMixChat: 0.28, channelMixEmail: 0.14, channelMixSocial: 0.04, channelMixSelfServe: 0.04, csat: 4.0, nps: 35, transferRate: 0.12, acw: 60, ccaasSeat: 175, targetAht: 315, targetFcr: 0.8, targetContainment: 0.33, targetAttrition: 0.22 },
+  healthcare: { label: "Healthcare", agents: 250, agentHourly: 20, monthlyContacts: 140000, aht: 450, fcr: 0.71, containment: 0.18, occupancy: 0.78, shrinkage: 0.32, attrition: 0.33, absenteeism: 0.09, channelMixVoice: 0.62, channelMixChat: 0.20, channelMixEmail: 0.12, channelMixSocial: 0.03, channelMixSelfServe: 0.03, csat: 3.9, nps: 28, transferRate: 0.18, acw: 75, ccaasSeat: 165, targetAht: 395, targetFcr: 0.77, targetContainment: 0.26, targetAttrition: 0.25 },
+  retail: { label: "Retail & eCommerce", agents: 180, agentHourly: 16, monthlyContacts: 150000, aht: 300, fcr: 0.78, containment: 0.32, occupancy: 0.84, shrinkage: 0.32, attrition: 0.45, absenteeism: 0.10, channelMixVoice: 0.40, channelMixChat: 0.32, channelMixEmail: 0.15, channelMixSocial: 0.08, channelMixSelfServe: 0.05, csat: 4.2, nps: 38, transferRate: 0.14, acw: 40, ccaasSeat: 135, targetAht: 265, targetFcr: 0.84, targetContainment: 0.4, targetAttrition: 0.37 },
+  telecom: { label: "Telecommunications", agents: 400, agentHourly: 19, monthlyContacts: 250000, aht: 510, fcr: 0.66, containment: 0.25, occupancy: 0.85, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.52, channelMixChat: 0.26, channelMixEmail: 0.12, channelMixSocial: 0.06, channelMixSelfServe: 0.04, csat: 3.8, nps: 22, transferRate: 0.20, acw: 60, ccaasSeat: 155, targetAht: 450, targetFcr: 0.72, targetContainment: 0.33, targetAttrition: 0.32 },
+  insurance: { label: "Insurance", agents: 300, agentHourly: 21, monthlyContacts: 100000, aht: 510, fcr: 0.70, containment: 0.16, occupancy: 0.78, shrinkage: 0.28, attrition: 0.27, absenteeism: 0.06, channelMixVoice: 0.60, channelMixChat: 0.22, channelMixEmail: 0.13, channelMixSocial: 0.03, channelMixSelfServe: 0.02, csat: 4.0, nps: 30, transferRate: 0.16, acw: 75, ccaasSeat: 170, targetAht: 450, targetFcr: 0.76, targetContainment: 0.24, targetAttrition: 0.19 },
+  bpo: { label: "BPO / Outsourcer", agents: 500, agentHourly: 15, monthlyContacts: 300000, aht: 390, fcr: 0.68, containment: 0.28, occupancy: 0.86, shrinkage: 0.34, attrition: 0.55, absenteeism: 0.12, channelMixVoice: 0.58, channelMixChat: 0.24, channelMixEmail: 0.10, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 3.9, nps: 25, transferRate: 0.17, acw: 50, ccaasSeat: 120, targetAht: 345, targetFcr: 0.74, targetContainment: 0.36, targetAttrition: 0.47 },
 };
 
 // Shown in-tool and in the report so the "benchmarked" claim is backed by named, dated sources.
@@ -337,6 +338,10 @@ function Calculator() {
   const [stance, setStance] = useState("expected");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [capName, setCapName] = useState("");
+  const [capCompany, setCapCompany] = useState("");
+  const [capEmail, setCapEmail] = useState("");
+  const [capError, setCapError] = useState("");
   const [pulled, setPulled] = useState({});
   const [copied, setCopied] = useState(false);
   const completedRef = useRef(false);
@@ -351,13 +356,13 @@ function Calculator() {
     const next = {}; const got = {};
     const map = { aht: "aht", shrinkage: "shrinkage", occupancy: "occupancy", agents: "agents", attrition: "attrition" };
     for (const [field, key] of Object.entries(map)) {
-      const v = getPrimitive(key);
+      const v = getExternalPrimitive(key, "tco-calculator");
       if (v != null && !isNaN(v)) { next[field] = v; got[field] = true; }
     }
-    const annual = getPrimitive("annualContacts");
+    const annual = getExternalPrimitive("annualContacts", "tco-calculator");
     if (annual != null && !isNaN(annual)) { next.monthlyContacts = Math.round(annual / 12); got.monthlyContacts = true; }
-    const licImpl = getPrimitive("licenseImplementationOneTime");
-    const bcImpl = getPrimitive("implementationCost");
+    const licImpl = getExternalPrimitive("licenseImplementationOneTime", "tco-calculator");
+    const bcImpl = getExternalPrimitive("implementationCost", "tco-calculator");
     const impl = (licImpl != null && !isNaN(licImpl)) ? licImpl : (bcImpl != null && !isNaN(bcImpl)) ? bcImpl : null;
     if (impl != null) { next.implementationOneTime = impl; got.implementationOneTime = true; }
     const scn = readScenarioFromUrl();
@@ -414,11 +419,17 @@ function Calculator() {
   };
 
   const sendResults = () => {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(capEmail.trim())) { setCapError("Enter a work email so we can send the read back."); return; }
     trackTool.expertRead("tco-calculator");
+    setCapError("");
     setSending(true);
     const body = new FormData();
-    body.append("_subject", "TCO Calculator Results, Center of CX");
+    body.append("_subject", `TCO REVIEW REQUEST: ${capCompany || capName || capEmail.trim()}`);
     body.append("source", "TCO Calculator");
+    body.append("email", capEmail.trim());
+    body.append("_replyto", capEmail.trim());
+    body.append("name", capName.trim());
+    body.append("company", capCompany.trim());
     body.append("annual_tco", fmtK(r.annual));
     body.append("three_year_tco", fmtK(r.threeYear));
     body.append("per_agent_month", fmt(r.monthly / r.agents));
@@ -429,7 +440,8 @@ function Calculator() {
     body.append("agents", String(r.agents));
     body.append("industry", d.industry);
     fetch("https://formspree.io/f/maqlvwne", { method: "POST", body, headers: { Accept: "application/json" } })
-      .then(res => { if (res.ok) setSent(true); setSending(false); }).catch(() => setSending(false));
+      .then(res => { if (res.ok) { setSent(true); } else { setCapError("That did not send. Email hello@contactcentercx.com and we will pick it up."); } setSending(false); })
+      .catch(() => { setCapError("That did not send. Email hello@contactcentercx.com and we will pick it up."); setSending(false); });
   };
 
   const shareScenario = async () => {
@@ -818,7 +830,7 @@ function Calculator() {
                   {sent ? (
                     <div>
                       <div style={{ fontSize: 22, color: LIGHT, marginBottom: 8 }}>Sent</div>
-                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: "#fff", margin: "0 0 8px" }}>Results sent. We will be in touch.</h3>
+                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: "#fff", margin: "0 0 8px" }}>Results sent. A human will reply to that address within one business day.</h3>
                       <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Your full TCO breakdown is with our advisory team.</p>
                     </div>
                   ) : (
@@ -879,6 +891,16 @@ function Calculator() {
                         </span>
                         <button onClick={shareScenario} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>{copied ? "Link copied" : "Share scenario link"}</button>
                         <button onClick={sendResults} disabled={sending} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: sending ? "wait" : "pointer" }}>{sending ? "Sending..." : "Send for a free expert read"}</button>
+                      </div>
+                      <div style={{ maxWidth: 520, margin: "18px auto 0", textAlign: "left" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                          <input placeholder="Name" value={capName} onChange={e => setCapName(e.target.value)} style={capInput} />
+                          <input placeholder="Company" value={capCompany} onChange={e => setCapCompany(e.target.value)} style={capInput} />
+                        </div>
+                        <input type="email" placeholder="Work email, required for the reply" value={capEmail} onChange={e => { setCapEmail(e.target.value); if (capError) setCapError(""); }} style={capInput} />
+                        <div style={{ fontSize: 11, color: capError ? "#FF6B6B" : "rgba(255,255,255,0.45)", marginTop: 8, lineHeight: 1.6 }}>
+                          {capError || "Required only for the expert read, because we have to reply somewhere. The download and the scenario link need nothing. No list, no sequence, no sharing with vendors."}
+                        </div>
                       </div>
                       <a href="/contact" style={{ display: "inline-block", marginTop: 14, color: "rgba(255,255,255,0.5)", fontSize: 12 }}>Prefer the full contact form?</a>
                     </div>
