@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://contactcentercx.com/sitemap.xml
+Sitemap: https://www.contactcentercx.com/sitemap.xml
