@@ -13,8 +13,8 @@ function slice(a, b) {
   return SRC.slice(i, j);
 }
 const engine = slice("function erlangB(", "function buildInsights(");
-const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, abandonmentCheck, modelValidity };`)();
-const { erlangB, erlangC, calc, abandonmentCheck, modelValidity } = mod;
+const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair };`)();
+const { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair } = mod;
 
 let pass = 0, fail = 0;
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
@@ -207,6 +207,54 @@ section("Erlang C validity guard");
   ok("all seven presets are valid at a 30 minute interval",
     presetAht.every(a => modelValidity(a, 30).ok), presetAht.filter(a => !modelValidity(a, 30).ok).join(","));
   ok("insurance preset at a 15 minute interval correctly warns", !modelValidity(480, 15).ok);
+}
+
+
+/* --------------------------------------------------- sustainable pair ---- */
+section("Sustainable staffing pair");
+{
+  const P = [
+    ["general", 400, 360, 0.80, 20, 0.30], ["financial", 500, 320, 0.80, 20, 0.28],
+    ["healthcare", 350, 420, 0.80, 30, 0.32], ["retail", 600, 280, 0.80, 20, 0.32],
+    ["telecom", 550, 440, 0.80, 20, 0.30], ["insurance", 300, 480, 0.80, 30, 0.28],
+    ["bpo", 700, 340, 0.80, 20, 0.34],
+  ];
+  for (const [n, v, a, t, sec, sh] of P) {
+    const p = sustainablePair(v, a, 30, t, sec, sh, 0.87);
+    ok(`${n} pair produces a sustainable alternative`, p.sustainable !== null);
+    ok(`${n} sustainable option actually holds the ceiling`, p.sustainable.occ <= 0.87 + 1e-9,
+      `${(p.sustainable.occ * 100).toFixed(1)}%`);
+    ok(`${n} sustainable option still meets service level`, p.sustainable.sl >= t - 1e-9);
+    ok(`${n} delta is positive and equals the FTE difference`,
+      p.deltaFte > 0 && p.deltaFte === p.sustainable.sched - p.sla.sched);
+  }
+}
+{
+  // When the SLA answer already sits under the ceiling there is no trade-off to sell.
+  const p = sustainablePair(20, 180, 30, 0.80, 20, 0.30, 0.87);
+  ok("no pair offered when occupancy already sits under the ceiling",
+    p.sla.occ > 0.87 ? p.sustainable !== null : p.sustainable === null);
+  const low = sustainablePair(5, 120, 30, 0.80, 20, 0.30, 0.87);
+  ok("small queue returns no sustainable alternative", low.sustainable === null && low.deltaFte === 0);
+  ok("ceiling is echoed back for display", low.ceiling === 0.87);
+}
+{
+  // The custom run from the reviewed PDF.
+  const p = sustainablePair(650, 512, 32, 0.75, 15, 0.32, 0.87);
+  ok("reviewed custom run: SLA answer is 271 FTE", p.sla.sched === 271, `${p.sla.sched}`);
+  ok("reviewed custom run: sustainable answer is 295 FTE", p.sustainable.sched === 295, `${p.sustainable.sched}`);
+  ok("reviewed custom run: recovery time costs 24 FTE", p.deltaFte === 24, `${p.deltaFte}`);
+  ok("reviewed custom run: ceiling actually held", p.sustainable.occ <= 0.87);
+}
+{
+  // Monotonic: a tighter ceiling never costs less.
+  let bad = 0;
+  for (const c of [0.95, 0.90, 0.87, 0.85, 0.80]) {
+    const p = sustainablePair(400, 360, 30, 0.80, 20, 0.30, c);
+    const prev = sustainablePair(400, 360, 30, 0.80, 20, 0.30, Math.min(c + 0.05, 0.99));
+    if (p.sustainable && prev.sustainable && p.sustainable.sched < prev.sustainable.sched) bad++;
+  }
+  ok("a tighter ceiling never costs fewer FTE", bad === 0, `${bad}`);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
