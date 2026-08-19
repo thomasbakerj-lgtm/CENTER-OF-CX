@@ -18,16 +18,16 @@ function slice(startMarker, endMarker) {
 
 const helpers = slice("const n = (v) =>", "function LogoMark");
 const consts = slice("const INDUSTRY = {", "// InfoDot definition strings");
-const engine = slice("function reconcile(", "function buildAnalystRead");
+const engine = slice("function reconcile(", "function Calculator");
 
 const BENCH = { occupancy: { cautionMax: 0.87 } };
 
 const mod = new Function(
   "BENCH",
-  `${helpers}\n${consts}\n${engine}\nreturn { computeTCO, buildOptimizations, reconcile, BASE, INDUSTRY, STANCE, n };`
+  `${helpers}\n${consts}\n${engine}\nreturn { computeTCO, buildOptimizations, buildAnalystRead, reconcile, BASE, INDUSTRY, STANCE, n };`
 )(BENCH);
 
-const { computeTCO, buildOptimizations, reconcile, BASE, INDUSTRY, STANCE } = mod;
+const { computeTCO, buildOptimizations, buildAnalystRead, reconcile, BASE, INDUSTRY, STANCE } = mod;
 
 let pass = 0, fail = 0;
 const near = (a, b, tol = 0.01) => Math.abs(a - b) <= tol;
@@ -317,6 +317,58 @@ section("PDF reconciliation");
       ok(`${key} three-year rows tie to the total at implementation ${impl}`,
         yr.reduce((a, x) => a + x, 0) === Math.round(rr.threeYear));
     }
+  }
+}
+
+
+/* ------------------------------------------- cross-table consistency ---- */
+section("Cross-table consistency");
+{
+  // Every rendered figure must come from ONE allocation. Two independent
+  // allocators over the same total printed the same quantity a dollar apart.
+  const cases = [];
+  for (const key of Object.keys(INDUSTRY)) {
+    for (const over of [{}, { facilitiesCost: 25500 }, { agents: 240, monthlyContacts: 174000, aht: 550 }, { agents: 1 }, { monthlyContacts: 1 }]) {
+      cases.push({ ...BASE, ...INDUSTRY[key], industry: key, ...over });
+    }
+  }
+  let bad = 0;
+  for (const d of cases) {
+    const r = computeTCO(d, "expected");
+    const p = r.disp;
+    if (p.rows.reduce((a, x) => a + x, 0) !== p.total) bad++;
+    if (p.rows[0] + p.rows[1] !== p.labor) bad++;
+    if (p.rows[2] + p.rows[3] + p.rows[4] !== p.tech) bad++;
+    if (p.rows[5] + p.rows[6] !== p.overhead) bad++;
+    if (p.labor + p.tech + p.overhead !== p.total) bad++;
+    if (p.total !== Math.round(r.monthly)) bad++;
+    const shares = [p.laborPctStr, p.techPctStr, p.overheadPctStr].map(x => parseFloat(x));
+    if (+(shares[0] + shares[1] + shares[2]).toFixed(1) !== 100) bad++;
+  }
+  ok(`all ${cases.length} input cases keep every table tied to one allocation`, bad === 0, `${bad} violations`);
+}
+{
+  // The analyst read quotes the same labor share the distribution table prints.
+  for (const key of Object.keys(INDUSTRY)) {
+    const d = { ...BASE, ...INDUSTRY[key], industry: key };
+    const r = computeTCO(d, "expected");
+    const opt = buildOptimizations(d, r, "expected");
+    const prose = buildAnalystRead(d, r, opt, "expected").join(" ");
+    const quoted = prose.match(/Labor is ([\d.]+%) of TCO/);
+    ok(`${key} analyst read quotes the printed labor share`,
+      !quoted || quoted[1] === r.disp.laborPctStr, `${quoted && quoted[1]} vs ${r.disp.laborPctStr}`);
+  }
+}
+{
+  // Priority is rank-based: exactly one high, one medium, regardless of spread.
+  for (const over of [{ aht: 550, targetAht: 345 }, {}, { containment: 0.28, targetContainment: 0.60 }]) {
+    const d = { ...BASE, ...INDUSTRY.general, industry: "general", ...over };
+    const opt = buildOptimizations(d, computeTCO(d), "expected");
+    if (opt.items.length < 2) continue;
+    const ranked = [...opt.items].sort((a, b) => b.net - a.net);
+    ok("highest-value lever ranks first", ranked[0].net >= ranked[1].net);
+    ok("ranking is by money, not pipeline order",
+      ranked[0].net === Math.max(...opt.items.map(x => x.net)));
   }
 }
 
