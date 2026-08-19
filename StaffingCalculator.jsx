@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import ReportExport from "./ReportExport";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage } from "./src/lib/benchmarks";
 import { publishToolResult } from "./src/lib/toolData";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -9,6 +10,11 @@ const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 
 const CAPTURE_ENDPOINT = "https://formspree.io/f/maqlvwne";
+const TOOL_ID = "staffing-calculator";
+
+/* Scenario defaults. Only fields that differ travel in the link, so the URL stays short.
+   No contact detail is ever encoded: the shape below is the whole payload. */
+const DEFAULTS = { vol: 400, aht: 360, slT: 80, slS: 20, shrink: 30, intv: 30, patience: 0, capOn: false, capPct: 85, preset: "general" };
 
 function LogoMark({ size = 34, light = true }) { const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC; return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>; }
 
@@ -41,6 +47,25 @@ function calc(volume, ahtSec, intMin, slT, slSec, shrink, occCap) {
   return { raw: agents, sched: Math.ceil(agents / (1 - shrink)), pw, sl, asa, occ, A, capped };
 }
 
+/* Erlang C is a steady-state model. It assumes the queue reaches equilibrium inside
+   the interval being measured. When handle time approaches interval length, contacts
+   spill across interval boundaries and the steady-state assumption fails: the model
+   silently understates staffing on long-handle-time work. The accepted planning
+   floor is an interval at least three times AHT. Below that we say so rather than
+   return a confident number, because a back-office or complex-case queue is exactly
+   the user who would enter these inputs and exactly the one who would be misled. */
+function modelValidity(ahtSec, intMin) {
+  const ratio = (intMin * 60) / (ahtSec || 1);
+  if (ratio >= 3) return { ok: true, ratio };
+  const needMin = Math.ceil((ahtSec * 3) / 60);
+  return {
+    ok: false,
+    ratio,
+    severity: ratio < 1.5 ? "critical" : "caution",
+    msg: `Your interval is ${ratio.toFixed(1)} times AHT. Erlang C assumes the queue settles within the interval, which needs roughly 3 times AHT or more. Below that, contacts carry across interval boundaries and this number understates what you need. Lengthen the interval to at least ${needMin} minutes, or treat long-handle work with a capacity model rather than Erlang C.`,
+  };
+}
+
 /* Optional Erlang A reality-check (abandonment). */
 function abandonmentCheck(N, A, ahtSec, patienceSec) {
   if (!patienceSec || patienceSec <= 0 || N <= A) return null;
@@ -52,7 +77,7 @@ function abandonmentCheck(N, A, ahtSec, patienceSec) {
 }
 
 /* The insight layer: turn the raw metrics into the one or two things an operator
-   actually needs to read — the tension between SLA aggressiveness, occupancy, and
+   actually needs to read: the tension between SLA aggressiveness, occupancy, and
    over/under-service. Priority-ordered; the UI takes the top two. This is the
    "synthesis, not metric-dump" pattern other tools adopt where their data supports it. */
 function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct) {
@@ -63,29 +88,29 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct) {
   const band = `${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}%`;
 
   if (capOn && r.capped)
-    out.push(`Your ${capPct}% occupancy cap — not the service-level target — is setting headcount here, adding agents beyond what the SLA alone required to hold occupancy at ${occPct.toFixed(1)}%.`);
+    out.push(`Your ${capPct}% occupancy cap, not the service-level target, is setting headcount here, adding agents beyond what the SLA alone required to hold occupancy at ${occPct.toFixed(1)}%.`);
 
   if (occInfo.band === "critical")
-    out.push(`Service level is met, but occupancy at ${occPct.toFixed(1)}% is critical — efficient on paper, fragile in practice. One forecast miss or absence spike and quality drops.${!capOn ? " Turn on the occupancy cap to hold a ceiling." : ""}`);
+    out.push(`Service level is met, but occupancy at ${occPct.toFixed(1)}% is critical. Efficient on paper, fragile in practice. One forecast miss or absence spike and quality drops.${!capOn ? " Turn on the occupancy cap to hold a ceiling." : ""}`);
 
   if (overBy >= 3) {
-    let t = `You're delivering ${slPct.toFixed(1)}% against your ${targetPct.toFixed(0)}% target — ${r.raw} agents is the fewest whole number that clears the SLA, so you're over-serving by ${Math.round(overBy)} points.`;
+    let t = `You're delivering ${slPct.toFixed(1)}% against your ${targetPct.toFixed(0)}% target. ${r.raw} agents is the fewest whole number that clears the SLA, so you're over-serving by ${Math.round(overBy)} points.`;
     if (looseOcc) t += ` Occupancy is ${occPct.toFixed(1)}%, below the ${band} efficiency band, confirming you're staffed ahead of your own SLA.`;
     t += ` If ${targetPct.toFixed(0)}% is firm this is correct; if it's aspirational, a slightly looser target or threshold frees capacity.`;
     out.push(t);
   }
 
   if (occInfo.band === "caution")
-    out.push(`Occupancy at ${occPct.toFixed(1)}% is in the caution band — workable but tight. Aim for the ${band} target so a bad week doesn't break adherence.`);
+    out.push(`Occupancy at ${occPct.toFixed(1)}% is in the caution band, workable but tight. Aim for the ${band} target so a bad week doesn't break adherence.`);
 
   if (looseOcc && occInfo.band === "healthy" && overBy < 3)
-    out.push(`Occupancy at ${occPct.toFixed(1)}% sits below the ${band} efficiency band while service level is met — you have headroom to absorb growth, or could run leaner if cost is the priority.`);
+    out.push(`Occupancy at ${occPct.toFixed(1)}% sits below the ${band} efficiency band while service level is met. You have headroom to absorb growth, or could run leaner if cost is the priority.`);
 
   if (aggressive)
-    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service (ASA ${Math.round(r.asa)}s, only ${(r.pw * 100).toFixed(0)}% of callers wait) — fast, but you carry agents to buy that speed. Most centers run 80% in 20–30s.`);
+    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service (ASA ${Math.round(r.asa)}s, only ${(r.pw * 100).toFixed(0)}% of callers wait). Fast, but you carry agents to buy that speed. Most centers run 80% in 20–30s.`);
 
   if (out.length === 0)
-    out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${slPct.toFixed(1)}% are both in healthy ranges — a balanced plan with room to flex.`);
+    out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${slPct.toFixed(1)}% are both in healthy ranges. A balanced plan with room to flex.`);
 
   return out;
 }
@@ -137,10 +162,21 @@ export default function StaffingCalculator() {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
+  /* A scenario link is a deliberate act and outranks the stored preset. */
+  useEffect(() => {
+    const sc = readScenario(TOOL_ID, DEFAULTS);
+    if (!sc) return;
+    setVol(sc.vol); setAht(sc.aht); setSlT(sc.slT); setSlS(sc.slS);
+    setShrink(sc.shrink); setIntv(sc.intv); setPatience(sc.patience);
+    setCapOn(sc.capOn); setCapPct(sc.capPct); setPreset(sc.preset);
+    clearScenarioParam();
+  }, []);
+
   const apply = (k) => { const p = PRESETS[k]; setPreset(k); setVol(p.volume); setAht(p.aht); setSlT(Math.round(p.slT * 100)); setSlS(p.slS); setShrink(Math.round(p.shrink * 100)); };
 
   const occCap = capOn ? capPct / 100 : null;
   const r = calc(vol, aht, intv, slT / 100, slS, shrink / 100, occCap);
+  const valid = modelValidity(aht, intv);
   const occInfo = classifyOccupancy(r.occ);
   const shrinkInfo = classifyShrinkage(shrink / 100);
   const asaD = r.asa < 1 ? "< 1s" : r.asa > 999 ? "> 15m" : `${Math.round(r.asa)}s`;
@@ -171,6 +207,7 @@ export default function StaffingCalculator() {
       occupancyCap: occCap || undefined, occupancyCapped: r.capped || undefined,
       patienceSec: patience || undefined,
       estAbandonment: abandMeaningful ? +(aband.estAband).toFixed(4) : undefined,
+      modelValid: valid.ok, intervalToAhtRatio: +valid.ratio.toFixed(2),
       analystRead: insights[0],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,10 +217,11 @@ export default function StaffingCalculator() {
     if (!capEmail.includes("@") || capState === "sending") return;
     setCapState("sending");
     try {
-      await fetch(CAPTURE_ENDPOINT, {
+      const res = await fetch(CAPTURE_ENDPOINT, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: capEmail, name: capName, company: capCompany, tool: "Staffing Calculator", result: `FTE ${r.sched}, base ${r.raw}, occ ${(r.occ * 100).toFixed(1)}%`, _subject: "Staffing Calculator — send my analysis" }),
+        body: JSON.stringify({ email: capEmail, _replyto: capEmail, name: capName, company: capCompany, tool: "Staffing Calculator", result: `FTE ${r.sched}, base ${r.raw}, occ ${(r.occ * 100).toFixed(1)}%`, _subject: `STAFFING: ${capCompany || capName || capEmail}` }),
       });
+      if (!res.ok) throw new Error("submit failed " + res.status);
       setCapState("sent");
     } catch { setCapState("error"); }
   };
@@ -209,13 +247,13 @@ export default function StaffingCalculator() {
             </select>
           </div>
         </div>
-        <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, marginBottom: 26, maxWidth: 640 }}>Volume, AHT, service level, and shrinkage to required FTE — live, no sign-up. Adjust any input and the results below update instantly.</p>
+        <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, marginBottom: 26, maxWidth: 640 }}>Volume, AHT, service level, and shrinkage to required FTE. Live, no sign-up. Adjust any input and the results below update instantly. Erlang C models one contact per agent at a time, so this is a voice model.</p>
 
         <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24, alignItems: "start" }} className="calc-grid">
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "22px 18px" }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 14 }}>Inputs</h3>
-            <F label="Contacts per interval" value={vol} onChange={setVol} hint="Inbound contacts arriving in one interval" min={1} />
-            <F label="Average Handle Time" value={aht} onChange={setAht} hint={`${fmtMS(aht)} — talk + hold + ACW`} suffix="sec" min={1} />
+            <F label="Voice contacts per interval" value={vol} onChange={setVol} hint="Inbound calls arriving in one interval. Voice only, see note below." min={1} />
+            <F label="Average Handle Time" value={aht} onChange={setAht} hint={`${fmtMS(aht)}, talk plus hold plus ACW`} suffix="sec" min={1} />
             <F label="Interval length" value={intv} onChange={setIntv} suffix="min" min={15} max={60} step={15} />
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
             <F label="Service Level Target" value={slT} onChange={setSlT} suffix="%" min={1} max={100} />
@@ -240,6 +278,12 @@ export default function StaffingCalculator() {
           </div>
 
           <div>
+            {!valid.ok && (
+              <div style={{ background: valid.severity === "critical" ? "#FEF2F2" : "#FFFBEB", border: `1px solid ${valid.severity === "critical" ? RED : AMBER}`, borderRadius: 12, padding: "14px 18px", marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: valid.severity === "critical" ? RED : AMBER, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>Model validity warning</div>
+                <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: 0 }}>{valid.msg}</p>
+              </div>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }} className="stat-grid">
               <S label="Base Agents" value={r.raw} sub={r.capped ? "Cap-constrained, before shrinkage" : "On the phones, before shrinkage"} color={ELECTRIC} />
               <S label="Scheduled FTE" value={r.sched} sub={`With ${shrink}% shrinkage`} color={NAVY} />
@@ -266,14 +310,14 @@ export default function StaffingCalculator() {
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, color: MUTED }}>
                 <span>0%</span><span style={{ color: GREEN }}>&lt;{Math.round(BENCH.occupancy.healthyMax * 100)}% healthy</span><span style={{ color: AMBER }}>{Math.round(BENCH.occupancy.healthyMax * 100)}–{Math.round(BENCH.occupancy.cautionMax * 100)}% caution</span><span style={{ color: RED }}>&gt;{Math.round(BENCH.occupancy.cautionMax * 100)}% critical</span>
               </div>
-              <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: "10px 0 0" }}>Occupancy steps down each time another agent is required — so it rises then drops as volume grows. Small teams swing more than large ones. {!capOn && "Turn on the occupancy cap to hold it under a ceiling."}</p>
+              <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: "10px 0 0" }}>Occupancy steps down each time another agent is required, so it rises then drops as volume grows. Small teams swing more than large ones. {!capOn && "Turn on the occupancy cap to hold it under a ceiling."}</p>
             </div>
 
             {abandMeaningful && (
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px", marginBottom: 12 }}>
                 <h3 style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>Abandonment Reality-Check <span style={{ color: MUTED, fontWeight: 600 }}>· Erlang A estimate</span></h3>
                 <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>
-                  Erlang C assumes no one ever hangs up, so it over-staffs when callers abandon. At an average patience of {patience}s, roughly <strong style={{ color: NAVY }}>{(aband.estAband * 100).toFixed(1)}%</strong> of contacts would abandon under this staffing. Accounting for that, an estimated <strong style={{ color: NAVY }}>{adjR.raw} base agents</strong> ({adjR.sched} FTE) could hold target — about {r.raw - adjR.raw} fewer than Erlang C.
+                  Erlang C assumes no one ever hangs up, so it over-staffs when callers abandon. At an average patience of {patience}s, roughly <strong style={{ color: NAVY }}>{(aband.estAband * 100).toFixed(1)}%</strong> of contacts would abandon under this staffing. Accounting for that, an estimated <strong style={{ color: NAVY }}>{adjR.raw} base agents</strong> ({adjR.sched} FTE) could hold target, about {r.raw - adjR.raw} fewer than Erlang C.
                 </p>
                 <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: 0 }}>This is a planning estimate, not a guarantee. Keep the Erlang C number ({r.raw}) as the conservative baseline; treat the adjusted figure as the floor abandonment makes possible.</p>
               </div>
@@ -320,19 +364,19 @@ export default function StaffingCalculator() {
                       ))}
                     </tbody>
                   </table>
-                  <p style={{ fontSize: 10.5, color: MUTED, lineHeight: 1.5, margin: "8px 0 0" }}>*Per-agent capacity at 85% occupancy = 0.85 × 3600 ÷ AHT. Starting points from our presets — your own data may differ by call complexity, training, and tooling.</p>
+                  <p style={{ fontSize: 10.5, color: MUTED, lineHeight: 1.5, margin: "8px 0 0" }}>*Per-agent capacity at 85% occupancy = 0.85 × 3600 ÷ AHT. Starting points from our presets. Your own data may differ by call complexity, training, and tooling.</p>
                 </div>
               )}
             </div>
 
             <div style={{ background: WARM, borderRadius: 10, padding: "14px 16px", marginTop: 12, borderLeft: `3px solid ${ELECTRIC}` }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Methodology</div>
-              <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, margin: 0 }}>Erlang C — the industry-standard staffing model — solved via the numerically stable Erlang B recursion (accurate from a handful of agents to several thousand). It assumes random Poisson arrivals, exponential handle times, and infinite caller patience (no abandonment), so it tends to over-staff — enter an average patience to see the abandonment-adjusted estimate. The optional occupancy cap staffs to the greater of "meets service level" and "occupancy at or below your ceiling." Shrinkage is applied after the agent calculation to convert base agents to scheduled FTE.</p>
+              <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, margin: 0 }}>Erlang C, the industry-standard staffing model, solved via the numerically stable Erlang B recursion (accurate from a handful of agents to several thousand). It assumes random Poisson arrivals, exponential handle times, and infinite caller patience (no abandonment), so it tends to over-staff. Enter an average patience to see the abandonment-adjusted estimate. The optional occupancy cap staffs to the greater of "meets service level" and "occupancy at or below your ceiling." Shrinkage is applied after the agent calculation to convert base agents to scheduled FTE. Erlang C models one contact per agent at a time, so it does not describe chat, messaging, or email, where agents run concurrent sessions. Applying these numbers to a digital queue overstates headcount, often by half or more.</p>
             </div>
 
             <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "16px 18px", marginTop: 14 }}>
               {capState === "sent" ? (
-                <div style={{ fontSize: 13, color: GREEN, fontWeight: 600 }}>✓ On its way — check your inbox for this analysis.</div>
+                <div style={{ fontSize: 13, color: GREEN, fontWeight: 600 }}>✓ On its way. Check your inbox for this analysis.</div>
               ) : !capOpen ? (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 13, color: SLATE }}>Want this analysis sent to you?</span>
@@ -348,7 +392,7 @@ export default function StaffingCalculator() {
                     <input type="email" placeholder="you@company.com" value={capEmail} onChange={e => setCapEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && submitCapture()} style={{ flex: "1 1 200px", padding: "10px 12px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none" }} />
                     <button onClick={submitCapture} disabled={!capEmail.includes("@") || capState === "sending"} style={{ fontSize: 13, fontWeight: 700, color: "#fff", background: capEmail.includes("@") ? ELECTRIC : MUTED, border: "none", borderRadius: 6, padding: "10px 18px", cursor: "pointer" }}>{capState === "sending" ? "Sending…" : "Send"}</button>
                   </div>
-                  {capState === "error" && <div style={{ fontSize: 12, color: RED, marginTop: 6 }}>Couldn't send — please try again.</div>}
+                  {capState === "error" && <div style={{ fontSize: 12, color: RED, marginTop: 6 }}>Couldn't send. Please try again.</div>}
                   <div style={{ fontSize: 11, color: MUTED, marginTop: 6 }}>Optional. We send this analysis once. No list, no spam.</div>
                 </div>
               )}
@@ -381,6 +425,7 @@ export default function StaffingCalculator() {
                     { label: "Probability of Wait", value: `${(r.pw * 100).toFixed(1)}%`, color: MUTED },
                   ]},
                   { title: "Key Findings", type: "findings", items: [
+                    ...(!valid.ok ? [valid.msg] : []),
                     `At ${vol} contacts per ${intv}-minute interval with ${fmtMS(aht)} AHT, you need ${r.raw} agents on the phones to meet ${slT}/${slS} service level${r.capped ? ` while holding occupancy under your ${capPct}% cap` : ""}.`,
                     `After applying ${shrink}% shrinkage, that becomes ${r.sched} scheduled FTE.`,
                     ...insights.slice(0, 2),
@@ -390,7 +435,7 @@ export default function StaffingCalculator() {
                   ]},
                   { title: "Recommended Actions", type: "actions", items: [
                     ...(occInfo.band === "critical" ? [{ action: "Address occupancy risk immediately", detail: `At ${(r.occ * 100).toFixed(0)}%, agents have insufficient recovery time. Turn on the occupancy cap or target the ${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}% band by adding agents or reducing volume through AI deflection.`, priority: "high" }]
-                      : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band — workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
+                      : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band, workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
                     ...(shrinkInfo.elevated ? [{ action: "Decompose shrinkage", detail: `${shrink}% is above the typical ${Math.round(BENCH.shrinkage.typicalLow * 100)}–${Math.round(BENCH.shrinkage.typicalHigh * 100)}% range. Use the Shrinkage Planner to see which categories drive the gap before adding heads.`, priority: "medium" }] : []),
                     { action: "Model AHT reduction", detail: `A 10% AHT cut (${aht}s → ${Math.round(aht * 0.9)}s) lowers base staffing from ${r.raw} to ${ahtDown.raw} agents. Use AHT Decomposition to find reducible components without hurting quality.`, priority: "medium" },
                     { action: "Build spike contingency", detail: `Plan for +20% volume. Identify ${spike.sched - r.sched} agents activatable via overtime, cross-training, or BPO overflow.` },
@@ -401,7 +446,7 @@ export default function StaffingCalculator() {
                     { tool: "Occupancy Risk Simulator", reason: "Stress-test how fragile this plan is to a forecast miss", href: "/tools/occupancy-risk" },
                     { tool: "Attrition Cost Calculator", reason: "Quantify the cost if occupancy-driven burnout raises turnover", href: "/tools/attrition-cost" },
                   ]},
-                  { title: "Methodology", type: "text", content: "Erlang C via the numerically stable Erlang B recursion. Assumes random Poisson arrivals and exponential handle times. Erlang C assumes infinite patience (no abandonment) and tends to over-staff; the optional patience input estimates abandonment and an Erlang A-adjusted requirement. The optional occupancy cap staffs to the greater of meeting service level and holding occupancy at or below the ceiling. Shrinkage is applied post-calculation to convert base agents to scheduled FTE." },
+                  { title: "Methodology", type: "text", content: "Erlang C via the numerically stable Erlang B recursion. Assumes random Poisson arrivals and exponential handle times. It models one contact per agent at a time, so it applies to voice and not to concurrent digital channels. Erlang C assumes infinite patience (no abandonment) and tends to over-staff; the optional patience input estimates abandonment and an Erlang A-adjusted requirement. The optional occupancy cap staffs to the greater of meeting service level and holding occupancy at or below the ceiling. Shrinkage is applied post-calculation to convert base agents to scheduled FTE." },
                 ]}
               />
               <a href="/vendors" style={{ background: ELECTRIC, color: "#fff", fontSize: 13, fontWeight: 600, padding: "11px 20px", borderRadius: 7 }}>Explore WFM Vendors</a>
