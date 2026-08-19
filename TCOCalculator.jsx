@@ -144,6 +144,39 @@ function reconcile(values, total) {
   return out;
 }
 
+// Single display allocation for every rendered figure. The seven reconciliation
+// rows group exactly onto the three cost buckets, so buckets are derived from
+// rows rather than allocated separately. That is what keeps the reconciliation
+// table, the distribution table, the stacked bar, and the analyst read from
+// printing the same quantity two different ways. Percentages are derived from
+// the same reconciled amounts and allocated to tenths so they read 100.0.
+function buildDisplay(b, monthly) {
+  const rows = reconcile([
+    b.agentLabor,
+    b.supLabor + b.qaLabor + b.wfmLabor + b.trainerLabor + b.itLabor,
+    b.ccaas + b.wem + b.crm,
+    b.aiUsage + b.analytics + b.ipaas + b.recording + b.knowledge + b.security,
+    b.telephony,
+    b.cloudInfra + b.psAmortized + b.facilities,
+    b.attritionCost,
+  ], monthly);
+  const total = rows.reduce((a, x) => a + x, 0);
+  const labor = rows[0] + rows[1];
+  const tech = rows[2] + rows[3] + rows[4];
+  const overhead = rows[5] + rows[6];
+  const tenths = reconcile(
+    [labor, tech, overhead].map((v) => (v / (total || 1)) * 1000),
+    1000
+  );
+  return {
+    rows, total, labor, tech, overhead,
+    laborPct: tenths[0] / 1000, techPct: tenths[1] / 1000, overheadPct: tenths[2] / 1000,
+    laborPctStr: (tenths[0] / 10).toFixed(1) + "%",
+    techPctStr: (tenths[1] / 10).toFixed(1) + "%",
+    overheadPctStr: (tenths[2] / 10).toFixed(1) + "%",
+  };
+}
+
 function computeTCO(d, stanceKey = "expected") {
   const HRS = 173; // paid hours per agent per month = 2080 annual / 12
   const productiveHours = HRS * (1 - n(d.shrinkage)); // paid hours net of shrinkage
@@ -253,21 +286,24 @@ function computeTCO(d, stanceKey = "expected") {
   else if (basisRank >= 1) confidence = "Planning-grade"; // a CONFIRM flag caps here, not Directional
   else confidence = "Directional";
 
+  const breakdown = {
+      seats,
+      agentLabor, supLabor, qaLabor, wfmLabor, trainerLabor, itLabor,
+      ccaas, wem, crm, aiUsage, analytics: n(d.analyticsMonthly), ipaas: n(d.ipaasMonthly), recording: n(d.recordingMonthly), knowledge: n(d.knowledgeMgmt), security: n(d.securityCompliance), telephony,
+      cloudInfra: n(d.cloudInfra), psAmortized: n(d.psAmortized), facilities: n(d.facilitiesCost), attritionCost,
+    };
+
   return {
     loaded, labor, tech, overhead, monthly, annual, agents, contacts,
     costPerContact, costPerResolution, costPerHuman, marginalPerContact, humanContacts,
     monthlyHires, attritionCost, voiceMinutes, perHire,
     laborPct: labor / (monthly || 1), techPct: tech / (monthly || 1), overheadPct: overhead / (monthly || 1),
+    disp: buildDisplay(breakdown, monthly),
     techPerAgent: tech / agents, y1, y2, y3, threeYear,
     wageMonthly, licenseMonthly, flatMonthly, wEff, lEff, single,
     perAgentMonth, productiveHours, flags, hasBlock, hasFlag, domKey, domShare, confidence, sensitivity, openIssues, itemsToConfirm,
     agentHandled: contacts * (1 - n(d.containment)),
-    breakdown: {
-      seats,
-      agentLabor, supLabor, qaLabor, wfmLabor, trainerLabor, itLabor,
-      ccaas, wem, crm, aiUsage, analytics: n(d.analyticsMonthly), ipaas: n(d.ipaasMonthly), recording: n(d.recordingMonthly), knowledge: n(d.knowledgeMgmt), security: n(d.securityCompliance), telephony,
-      cloudInfra: n(d.cloudInfra), psAmortized: n(d.psAmortized), facilities: n(d.facilitiesCost), attritionCost,
-    },
+    breakdown,
   };
 }
 
@@ -333,12 +369,12 @@ function buildAnalystRead(d, r, opt, stanceKey) {
     out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) is ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}), a small gap at ${pct(d.fcr)} FCR, so rework is not a major cost driver here. The cost story is volume and labor.`);
 
   if (r.laborPct > 0.80)
-    out.push(`Labor is ${pct(r.laborPct)} of TCO, so this is a people-cost operation. The highest-leverage moves are deflection and AHT, which free agent capacity, rather than trimming the ${pct(r.techPct)} tech line. Cutting tech here barely moves the total.`);
+    out.push(`Labor is ${r.disp.laborPctStr} of TCO, so this is a people-cost operation. The highest-leverage moves are deflection and AHT, which free agent capacity, rather than trimming the ${r.disp.techPctStr} tech line. Cutting tech here barely moves the total.`);
   else
-    out.push(`Labor is ${pct(r.laborPct)} of TCO with tech at ${pct(r.techPct)}, an unusually tech-heavy structure. Worth auditing platform overlap in the License Gap Checker before adding more tooling.`);
+    out.push(`Labor is ${r.disp.laborPctStr} of TCO with tech at ${r.disp.techPctStr}, an unusually tech-heavy structure. Worth auditing platform overlap in the License Gap Checker before adding more tooling.`);
 
   if (!r.single && r.laborPct > 0.60)
-    out.push(`The 3-year view escalates labor at ${pctD(r.wEff)} and contracted license at ${pctD(r.lEff)}, with usage and facilities held flat. A single blended rate would misstate a base that is ${pct(r.laborPct)} labor, which is why the two rates are separated.`);
+    out.push(`The 3-year view escalates labor at ${pctD(r.wEff)} and contracted license at ${pctD(r.lEff)}, with usage and facilities held flat. A single blended rate would misstate a base that is ${r.disp.laborPctStr} labor, which is why the two rates are separated.`);
 
   if (stanceKey === "none")
     out.push(`The None stance books $0 realized. The freed capacity above is real, but nothing converts to cash until you commit to a mechanism, so the honest number today is zero.`);
@@ -515,7 +551,7 @@ function Calculator() {
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>3-yr {fmtK(r.threeYear)}</div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {[{ l: "Agent/Mo", v: fmt(r.monthly / r.agents) }, { l: "Per Contact", v: "$" + r.costPerContact.toFixed(2) }, { l: "Per Resolution", v: "$" + r.costPerResolution.toFixed(2) }, { l: "Labor %", v: pct(r.laborPct) }].map((item, i) => (
+                  {[{ l: "Agent/Mo", v: fmt(r.monthly / r.agents) }, { l: "Per Contact", v: "$" + r.costPerContact.toFixed(2) }, { l: "Per Resolution", v: "$" + r.costPerResolution.toFixed(2) }, { l: "Labor %", v: r.disp.laborPctStr }].map((item, i) => (
                     <div key={i}><div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{item.l}</div><div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{item.v}</div></div>
                   ))}
                 </div>
@@ -761,9 +797,9 @@ function Calculator() {
                   <div style={{ marginBottom: 8 }}>
                     <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>Cost Distribution</div>
                     <div style={{ display: "flex", height: 24, borderRadius: 6, overflow: "hidden" }}>
-                      <div style={{ width: pct(r.laborPct), background: ELECTRIC, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: "#fff" }}>{pct(r.laborPct)}</span></div>
-                      <div style={{ width: pct(r.techPct), background: LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: NAVY }}>{pct(r.techPct)}</span></div>
-                      <div style={{ width: pct(r.overheadPct), background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: "#fff" }}>{pct(r.overheadPct)}</span></div>
+                      <div style={{ width: r.disp.laborPctStr, background: ELECTRIC, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: "#fff" }}>{r.disp.laborPctStr}</span></div>
+                      <div style={{ width: r.disp.techPctStr, background: LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: NAVY }}>{r.disp.techPctStr}</span></div>
+                      <div style={{ width: r.disp.overheadPctStr, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: "#fff" }}>{r.disp.overheadPctStr}</span></div>
                     </div>
                     <div style={{ display: "flex", gap: 16, marginTop: 6, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Labor {fmtK(r.labor)}/mo</span>
@@ -890,40 +926,25 @@ function Calculator() {
                             ];
                           })()},
                           { title: "Cost Reconciliation", type: "table", rows: (() => {
-                            const b = r.breakdown;
-                            const parts = [
-                              b.agentLabor,
-                              b.supLabor + b.qaLabor + b.wfmLabor + b.trainerLabor + b.itLabor,
-                              b.ccaas + b.wem + b.crm,
-                              b.aiUsage + b.analytics + b.ipaas + b.recording + b.knowledge + b.security,
-                              b.telephony,
-                              b.cloudInfra + b.psAmortized + n(d.facilitiesCost),
-                              b.attritionCost,
-                            ];
-                            const v = reconcile(parts, r.monthly);
+                            const v = r.disp.rows;
                             return [
                               ["Labor, agents", fmt(v[0])],
                               ["Labor, supervisors QA WFM trainers IT", fmt(v[1])],
-                              ["Technology, " + b.seats + " seats (CCaaS WEM CRM)", fmt(v[2])],
+                              ["Technology, " + r.breakdown.seats + " seats (CCaaS WEM CRM)", fmt(v[2])],
                               ["Technology, AI usage analytics iPaaS recording knowledge security", fmt(v[3])],
                               ["Technology, telephony (" + Math.round(r.voiceMinutes).toLocaleString() + " min)", fmt(v[4])],
                               ["Overhead, cloud prof-services facilities", fmt(v[5])],
                               ["Overhead, attrition (" + r.monthlyHires + " hires at " + fmt(r.perHire) + " loaded cost per hire)", fmt(v[6])],
-                              ["Total monthly", fmt(Math.round(r.monthly))],
+                              ["Total monthly", fmt(r.disp.total)],
                             ];
                           })()},
-                          { title: "Cost Distribution", type: "table", rows: (() => {
-                            const sh = reconcile([r.laborPct * 1000, r.techPct * 1000, r.overheadPct * 1000], 1000);
-                            const p = (x) => (x / 10).toFixed(1) + "%";
-                            const amt = reconcile([r.labor, r.tech, r.overhead], r.monthly);
-                            return [
-                              ["Labor", fmt(amt[0]) + "/mo (" + p(sh[0]) + ")"],
-                              ["Technology", fmt(amt[1]) + "/mo (" + p(sh[1]) + ")"],
-                              ["Overhead", fmt(amt[2]) + "/mo (" + p(sh[2]) + ")"],
-                            ];
-                          })()},
+                          { title: "Cost Distribution", type: "table", rows: [
+                            ["Labor", fmt(r.disp.labor) + "/mo (" + r.disp.laborPctStr + ")"],
+                            ["Technology", fmt(r.disp.tech) + "/mo (" + r.disp.techPctStr + ")"],
+                            ["Overhead", fmt(r.disp.overhead) + "/mo (" + r.disp.overheadPctStr + ")"],
+                          ]},
                           { title: "Analyst Read", type: "findings", items: analyst },
-                          { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: o.net === Math.max(...opt.items.map(x => x.net)) ? "high" : o.net >= Math.max(...opt.items.map(x => x.net)) * 0.5 ? "medium" : undefined })) },
+                          { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: (() => { const rank = [...opt.items].sort((a, b) => b.net - a.net).findIndex(x => x === o); return rank === 0 ? "high" : rank === 1 ? "medium" : undefined; })() })) },
                           { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on 173 paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage 3.5 percent and license 6 percent); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by the ${STANCE[stance].label.toLowerCase()} realization stance, so totals are defensible rather than inflated. ${BENCHMARK_SOURCES}` },
                           { title: "Next Steps", type: "next", items: [
                             { tool: "License Bundle Gap Checker", reason: "Audit whether your seat price covers what you actually need", href: "/tools/license-gap" },
