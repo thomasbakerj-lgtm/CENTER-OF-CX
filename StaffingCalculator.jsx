@@ -66,6 +66,19 @@ function modelValidity(ahtSec, intMin) {
   };
 }
 
+function sustainablePair(volume, ahtSec, intMin, slT, slSec, shrink, ceiling) {
+  const sla = calc(volume, ahtSec, intMin, slT, slSec, shrink, 0);
+  if (sla.occ <= ceiling) return { sla, sustainable: null, deltaFte: 0, deltaAgents: 0, ceiling };
+  const sustainable = calc(volume, ahtSec, intMin, slT, slSec, shrink, ceiling);
+  return {
+    sla,
+    sustainable,
+    deltaFte: sustainable.sched - sla.sched,
+    deltaAgents: sustainable.raw - sla.raw,
+    ceiling,
+  };
+}
+
 /* Optional Erlang A reality-check (abandonment). */
 function abandonmentCheck(N, A, ahtSec, patienceSec) {
   if (!patienceSec || patienceSec <= 0 || N <= A) return null;
@@ -80,34 +93,40 @@ function abandonmentCheck(N, A, ahtSec, patienceSec) {
    actually needs to read: the tension between SLA aggressiveness, occupancy, and
    over/under-service. Priority-ordered; the UI takes the top two. This is the
    "synthesis, not metric-dump" pattern other tools adopt where their data supports it. */
-function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct) {
+function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, valid) {
   const out = [];
   const slPct = r.sl * 100, targetPct = slTargetFrac * 100, overBy = slPct - targetPct, occPct = r.occ * 100;
   const looseOcc = r.occ < BENCH.occupancy.targetLow;
   const aggressive = slTargetFrac >= 0.88 || slSec <= 10;
-  const band = `${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}%`;
+  const band = `${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}%`;
 
+  /* Model validity outranks every reading, because if the model does not apply
+     nothing below it is worth saying. */
+  if (valid && !valid.ok) out.push(valid.msg);
+
+  /* The cap is doing the work: that is specific and the user chose it. */
   if (capOn && r.capped)
-    out.push(`Your ${capPct}% occupancy cap, not the service-level target, is setting headcount here, adding agents beyond what the SLA alone required to hold occupancy at ${occPct.toFixed(1)}%.`);
+    out.push(`Your ${capPct}% occupancy ceiling, not the service-level target, is setting headcount here. The SLA alone would have cleared at fewer agents; the extra capacity is buying recovery time.`);
 
-  if (occInfo.band === "critical")
-    out.push(`Service level is met, but occupancy at ${occPct.toFixed(1)}% is critical. Efficient on paper, fragile in practice. One forecast miss or absence spike and quality drops.${!capOn ? " Turn on the occupancy cap to hold a ceiling." : ""}`);
-
+  /* Situation-specific readings rank ahead of the structural one. */
   if (overBy >= 3) {
-    let t = `You're delivering ${slPct.toFixed(1)}% against your ${targetPct.toFixed(0)}% target. ${r.raw} agents is the fewest whole number that clears the SLA, so you're over-serving by ${Math.round(overBy)} points.`;
-    if (looseOcc) t += ` Occupancy is ${occPct.toFixed(1)}%, below the ${band} efficiency band, confirming you're staffed ahead of your own SLA.`;
-    t += ` If ${targetPct.toFixed(0)}% is firm this is correct; if it's aspirational, a slightly looser target or threshold frees capacity.`;
+    let t = `You are delivering ${slPct.toFixed(1)}% against your ${targetPct.toFixed(0)}% target. ${r.raw} agents is the fewest whole number that clears the SLA, so you are over-serving by ${Math.round(overBy)} points.`;
+    if (looseOcc) t += ` Occupancy is ${occPct.toFixed(1)}%, below the ${band} band, confirming you are staffed ahead of your own SLA.`;
+    t += ` If ${targetPct.toFixed(0)}% is firm this is correct. If it is aspirational, a slightly looser target or threshold frees capacity.`;
     out.push(t);
   }
 
-  if (occInfo.band === "caution")
-    out.push(`Occupancy at ${occPct.toFixed(1)}% is in the caution band, workable but tight. Aim for the ${band} target so a bad week doesn't break adherence.`);
-
-  if (looseOcc && occInfo.band === "healthy" && overBy < 3)
-    out.push(`Occupancy at ${occPct.toFixed(1)}% sits below the ${band} efficiency band while service level is met. You have headroom to absorb growth, or could run leaner if cost is the priority.`);
-
   if (aggressive)
-    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service (ASA ${Math.round(r.asa)}s, only ${(r.pw * 100).toFixed(0)}% of callers wait). Fast, but you carry agents to buy that speed. Most centers run 80% in 20–30s.`);
+    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service (ASA ${Math.round(r.asa)}s, only ${(r.pw * 100).toFixed(0)}% of callers wait). Fast, but you carry agents to buy that speed. Most centres run 80% in 20 to 30s.`);
+
+  if (looseOcc && overBy < 3)
+    out.push(`Occupancy at ${occPct.toFixed(1)}% sits below the ${band} band while service level is met. You have headroom to absorb growth, or could run leaner if cost is the priority.`);
+
+  /* The structural fact, stated once and priced rather than alarmed. Erlang C
+     staffed to service level lands above the sustainable band at almost any real
+     volume, so the useful output is the size of the trade-off, not a warning. */
+  if (!capOn && pair && pair.sustainable)
+    out.push(`Staffing to your service level alone puts occupancy at ${occPct.toFixed(1)}%, above the ${band} band. That is normal for Erlang C at this volume, not a mistake in your inputs: the SLA is not the binding constraint here, occupancy is. Holding a ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE rather than ${r.sched}. The ${pair.deltaFte} FTE difference is what agent recovery time costs.`);
 
   if (out.length === 0)
     out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${slPct.toFixed(1)}% are both in healthy ranges. A balanced plan with room to flex.`);
@@ -192,7 +211,8 @@ export default function StaffingCalculator() {
   // either material abandonment (>=5%) or a 2+ agent saving. Hides trivial 1-agent/1% cases.
   const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
 
-  const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct);
+  const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
+  const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid);
 
   const spike = calc(Math.round(vol * 1.2), aht, intv, slT / 100, slS, shrink / 100, occCap);
   const ahtUp = calc(vol, Math.round(aht * 1.1), intv, slT / 100, slS, shrink / 100, occCap);
@@ -207,6 +227,9 @@ export default function StaffingCalculator() {
       occupancyCap: occCap || undefined, occupancyCapped: r.capped || undefined,
       patienceSec: patience || undefined,
       estAbandonment: abandMeaningful ? +(aband.estAband).toFixed(4) : undefined,
+      sustainableFte: pair.sustainable ? pair.sustainable.sched : undefined,
+      sustainableCeiling: pair.sustainable ? pair.ceiling : undefined,
+      recoveryTimeFteCost: pair.sustainable ? pair.deltaFte : undefined,
       modelValid: valid.ok, intervalToAhtRatio: +valid.ratio.toFixed(2),
       analystRead: insights[0],
     });
@@ -310,7 +333,26 @@ export default function StaffingCalculator() {
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, color: MUTED }}>
                 <span>0%</span><span style={{ color: GREEN }}>&lt;{Math.round(BENCH.occupancy.healthyMax * 100)}% healthy</span><span style={{ color: AMBER }}>{Math.round(BENCH.occupancy.healthyMax * 100)}–{Math.round(BENCH.occupancy.cautionMax * 100)}% caution</span><span style={{ color: RED }}>&gt;{Math.round(BENCH.occupancy.cautionMax * 100)}% critical</span>
               </div>
-              <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: "10px 0 0" }}>Occupancy steps down each time another agent is required, so it rises then drops as volume grows. Small teams swing more than large ones. {!capOn && "Turn on the occupancy cap to hold it under a ceiling."}</p>
+              <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: "10px 0 0" }}>Occupancy steps down each time another agent is required, so it rises then drops as volume grows. Small teams swing more than large ones.</p>
+              {!capOn && pair.sustainable && (
+                <div style={{ display: "flex", gap: 0, marginTop: 14, border: `1px solid ${BORDER}`, borderRadius: 8, overflow: "hidden" }}>
+                  <div style={{ flex: 1, padding: "12px 14px", background: WARM }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Staffed to service level</div>
+                    <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, color: NAVY, marginTop: 2 }}>{r.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
+                    <div style={{ fontSize: 11, color: occInfo.color, fontWeight: 600 }}>{(r.occ * 100).toFixed(1)}% occupancy</div>
+                  </div>
+                  <div style={{ flex: 1, padding: "12px 14px", background: "#fff", borderLeft: `1px solid ${BORDER}` }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Staffed to a {Math.round(pair.ceiling * 100)}% ceiling</div>
+                    <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, color: NAVY, marginTop: 2 }}>{pair.sustainable.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
+                    <div style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>{(pair.sustainable.occ * 100).toFixed(1)}% occupancy</div>
+                  </div>
+                  <div style={{ flex: "0 0 128px", padding: "12px 14px", background: WARM, borderLeft: `1px solid ${BORDER}` }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Difference</div>
+                    <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, color: ELECTRIC, marginTop: 2 }}>+{pair.deltaFte} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
+                    <div style={{ fontSize: 11, color: MUTED }}>cost of recovery time</div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {abandMeaningful && (
@@ -406,7 +448,7 @@ export default function StaffingCalculator() {
                 userEmail={capEmail}
                 sections={[
                   { title: "Input Parameters", type: "table", rows: [
-                    ["Contacts per Interval", vol.toString()],
+                    ["Voice Contacts per Interval", vol.toString()],
                     ["Interval Length", `${intv} minutes`],
                     ["Average Handle Time", `${fmtMS(aht)} (${aht}s)`],
                     ["Service Level Target", `${slT}% in ${slS} seconds`],
@@ -428,13 +470,15 @@ export default function StaffingCalculator() {
                     ...(!valid.ok ? [valid.msg] : []),
                     `At ${vol} contacts per ${intv}-minute interval with ${fmtMS(aht)} AHT, you need ${r.raw} agents on the phones to meet ${slT}/${slS} service level${r.capped ? ` while holding occupancy under your ${capPct}% cap` : ""}.`,
                     `After applying ${shrink}% shrinkage, that becomes ${r.sched} scheduled FTE.`,
-                    ...insights.slice(0, 2),
-                    shrinkInfo.message,
+                    ...insights.slice(0, 3),
+                    ...(shrinkInfo.elevated ? [shrinkInfo.message] : []),
                     ...(abandMeaningful ? [`With ${patience}s average patience, an estimated ${(aband.estAband * 100).toFixed(1)}% of contacts would abandon; the abandonment-adjusted estimate is ${adjR.raw} base agents versus the Erlang C ${r.raw}.`] : []),
                     `A 20% volume spike would require ${spike.sched} FTE (${spike.sched - r.sched >= 0 ? "+" : ""}${spike.sched - r.sched} agents).`,
                   ]},
                   { title: "Recommended Actions", type: "actions", items: [
-                    ...(occInfo.band === "critical" ? [{ action: "Address occupancy risk immediately", detail: `At ${(r.occ * 100).toFixed(0)}%, agents have insufficient recovery time. Turn on the occupancy cap or target the ${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}% band by adding agents or reducing volume through AI deflection.`, priority: "high" }]
+                    ...(occInfo.band === "critical" ? [{ action: "Decide whether to buy recovery time", detail: pair.sustainable
+                        ? `Staffing to your service level alone lands at ${(r.occ * 100).toFixed(1)}% occupancy. Holding a ${Math.round(pair.ceiling * 100)}% ceiling instead takes ${pair.sustainable.sched} FTE rather than ${r.sched}, a difference of ${pair.deltaFte} FTE. That figure is the price of agent recovery time, and it is a decision rather than a setting. Reducing volume through deflection or cutting AHT lowers both numbers.`
+                        : `At ${(r.occ * 100).toFixed(1)}%, agents have insufficient recovery time. Target the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% band by adding agents or reducing volume.`, priority: "high" }]
                       : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band, workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
                     ...(shrinkInfo.elevated ? [{ action: "Decompose shrinkage", detail: `${shrink}% is above the typical ${Math.round(BENCH.shrinkage.typicalLow * 100)}–${Math.round(BENCH.shrinkage.typicalHigh * 100)}% range. Use the Shrinkage Planner to see which categories drive the gap before adding heads.`, priority: "medium" }] : []),
                     { action: "Model AHT reduction", detail: `A 10% AHT cut (${aht}s → ${Math.round(aht * 0.9)}s) lowers base staffing from ${r.raw} to ${ahtDown.raw} agents. Use AHT Decomposition to find reducible components without hurting quality.`, priority: "medium" },
