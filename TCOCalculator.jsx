@@ -343,7 +343,7 @@ function buildAnalystRead(d, r, opt, stanceKey) {
   if (stanceKey === "none")
     out.push(`The None stance books $0 realized. The freed capacity above is real, but nothing converts to cash until you commit to a mechanism, so the honest number today is zero.`);
   else if (opt.items.length)
-    out.push(`The ${stanceKey} stance values realistic savings at ${fmtK(opt.netTotal)} per month (${fmtK(opt.netTotal * 12)} per year) against a theoretical ${fmtK(opt.grossTotal)} per month. Levers are de-overlapped, each acting on what the prior one leaves, so the total is defensible rather than a sum of every lever at full loaded cost.`);
+    out.push(`The ${stanceKey} stance values savings at ${fmtK(opt.netTotal)} per month (${fmtK(opt.netTotal * 12)} per year)${Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", the full theoretical capacity value with no haircut applied" : ", haircut from a theoretical " + fmtK(opt.grossTotal) + " per month"}. Levers are de-overlapped, each acting on what the prior one leaves, so the total is defensible rather than a sum of every lever at full loaded cost.`);
 
   out.push(`Savings are valued at marginal cost ($${r.marginalPerContact.toFixed(2)} per contact), not fully loaded ($${r.costPerContact.toFixed(2)}). Deflecting contacts frees agent time but not fixed tech and facilities, so capturing it as cash requires reducing or redeploying FTE. That is the conversation to have, not assume.`);
 
@@ -727,15 +727,6 @@ function Calculator() {
                   </div>
                 </div>
 
-                {/* Stance selector */}
-                <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 22px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-                  <div><div style={{ fontSize: 13, fontWeight: 700, color: NAVY, display: "flex", alignItems: "center", gap: 6 }}>Savings stance <InfoDot title="Realization stance" text={DEFS.stance} /></div><div style={{ fontSize: 12, color: MUTED }}>{STANCE[stance].note}</div></div>
-                  <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8, flexWrap: "wrap" }}>
-                    {Object.entries(STANCE).map(([k, v]) => (
-                      <button key={k} onClick={() => setStance(k)} style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer", background: stance === k ? ELECTRIC : "transparent", color: stance === k ? "#fff" : SLATE }}>{v.label}</button>
-                    ))}
-                  </div>
-                </div>
 
                 <div style={{ background: NAVY, borderRadius: 14, padding: "32px 28px", color: "#fff", marginBottom: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
@@ -805,11 +796,21 @@ function Calculator() {
                   {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
                 </div>
 
+                {/* Stance selector */}
+                <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 22px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                  <div><div style={{ fontSize: 13, fontWeight: 700, color: NAVY, display: "flex", alignItems: "center", gap: 6 }}>Savings stance <InfoDot title="Realization stance" text={DEFS.stance} /></div><div style={{ fontSize: 12, color: MUTED }}>{STANCE[stance].note}</div></div>
+                  <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8, flexWrap: "wrap" }}>
+                    {Object.entries(STANCE).map(([k, v]) => (
+                      <button key={k} onClick={() => setStance(k)} style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer", background: stance === k ? ELECTRIC : "transparent", color: stance === k ? "#fff" : SLATE }}>{v.label}</button>
+                    ))}
+                  </div>
+                </div>
+
                 {opt.items.length > 0 && (
                   <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px", marginBottom: 20 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
                       <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: 0 }}>Optimization Opportunities</h3>
-                      <div style={{ fontSize: 12, color: MUTED }}>Realistic <strong style={{ color: GREEN }}>{fmtK(opt.netTotal)}/mo</strong> ({fmtK(opt.netTotal * 12)}/yr) vs theoretical {fmtK(opt.grossTotal)}/mo</div>
+                      <div style={{ fontSize: 12, color: MUTED }}>{Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? "Booked at full theoretical value" : "Booked"} <strong style={{ color: GREEN }}>{fmtK(opt.netTotal)}/mo</strong> ({fmtK(opt.netTotal * 12)}/yr){Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", no haircut applied" : `, haircut from ${fmtK(opt.grossTotal)}/mo theoretical`}</div>
                     </div>
                     <p style={{ fontSize: 11, color: MUTED, margin: "0 0 12px", lineHeight: 1.5 }}>De-overlapped: each lever acts on the volume the prior leaves, valued at marginal cost, then scaled by the {STANCE[stance].label.toLowerCase()} stance. They do not double-count.</p>
                     {opt.items.map((o, i) => (
@@ -820,7 +821,7 @@ function Calculator() {
                         </div>
                         <div style={{ textAlign: "right", flexShrink: 0 }}>
                           <div style={{ background: `${GREEN}15`, color: GREEN, fontSize: 13, fontWeight: 700, padding: "5px 10px", borderRadius: 6 }}>{fmtK(o.net)}/mo</div>
-                          <div style={{ fontSize: 10, color: MUTED, marginTop: 2 }}>gross {fmtK(o.gross)}</div>
+                          {o.net !== o.gross && <div style={{ fontSize: 10, color: MUTED, marginTop: 2 }}>gross {fmtK(o.gross)}</div>}
                         </div>
                       </div>
                     ))}
@@ -907,7 +908,7 @@ function Calculator() {
                               ["Technology, AI usage analytics iPaaS recording knowledge security", fmt(v[3])],
                               ["Technology, telephony (" + Math.round(r.voiceMinutes).toLocaleString() + " min)", fmt(v[4])],
                               ["Overhead, cloud prof-services facilities", fmt(v[5])],
-                              ["Overhead, attrition (" + r.monthlyHires + " hires x " + fmt(r.perHire) + ")", fmt(v[6])],
+                              ["Overhead, attrition (" + r.monthlyHires + " hires at " + fmt(r.perHire) + " loaded cost per hire)", fmt(v[6])],
                               ["Total monthly", fmt(Math.round(r.monthly))],
                             ];
                           })()},
@@ -922,8 +923,8 @@ function Calculator() {
                             ];
                           })()},
                           { title: "Analyst Read", type: "findings", items: analyst },
-                          { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: i === 0 ? "high" : i === 1 ? "medium" : undefined })) },
-                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on 173 paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage 3.5 percent and license 6 percent); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by a ${STANCE[stance].label} confidence stance, so totals are defensible rather than inflated. ${BENCHMARK_SOURCES}` },
+                          { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: o.net === Math.max(...opt.items.map(x => x.net)) ? "high" : o.net >= Math.max(...opt.items.map(x => x.net)) * 0.5 ? "medium" : undefined })) },
+                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on 173 paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage 3.5 percent and license 6 percent); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by the ${STANCE[stance].label.toLowerCase()} realization stance, so totals are defensible rather than inflated. ${BENCHMARK_SOURCES}` },
                           { title: "Next Steps", type: "next", items: [
                             { tool: "License Bundle Gap Checker", reason: "Audit whether your seat price covers what you actually need", href: "/tools/license-gap" },
                             { tool: "AI Deflection Reality Check", reason: "Pressure-test the containment savings above", href: "/tools/ai-deflection" },
