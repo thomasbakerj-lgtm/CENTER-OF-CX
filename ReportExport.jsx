@@ -139,14 +139,15 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
 <meta charset="utf-8">
 <title>${toolName}, Report</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@400;600&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   @page { margin: 0.6in 0.7in; size: letter; }
 
   body {
-    font-family: 'DM Sans', -apple-system, sans-serif;
+    font-family: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-variant-numeric: tabular-nums;
     color: ${NAVY};
     font-size: 10pt;
     line-height: 1.5;
@@ -166,9 +167,10 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
   .cover-left { flex: 1; }
   .cover-right { text-align: right; }
   .cover h1 {
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-size: 22pt;
-    font-weight: 400;
+    font-family: 'Archivo', -apple-system, sans-serif;
+    letter-spacing: -0.7px;
+    font-size: 21pt;
+    font-weight: 600;
     color: ${NAVY};
     line-height: 1.15;
     margin-bottom: 4px;
@@ -245,7 +247,10 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
     overflow: hidden;
   }
   .metric-value {
-    font-family: 'Instrument Serif', Georgia, serif;
+    font-family: 'Archivo', -apple-system, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    font-variant-numeric: tabular-nums;
     line-height: 1.12;
     overflow-wrap: anywhere;
     word-break: normal;
@@ -366,7 +371,7 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Archivo', sans-serif;
   }
   @media print {
     .print-bar { display: none !important; }
@@ -430,7 +435,7 @@ ${sections.map((s, i) => renderSection(s, i)).join("\n")}
         <div style={{ position: "fixed", inset: 0, background: "rgba(6,19,37,0.7)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
           <div style={{ background: "#fff", borderRadius: 14, width: "100%", maxWidth: 480, padding: "32px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>Generate Your Report</h3>
+            <h3 style={{ fontFamily: "'Archivo', -apple-system, sans-serif", fontSize: 21, fontWeight: 600, letterSpacing: "-0.4px", color: NAVY, margin: "0 0 4px" }}>Generate Your Report</h3>
             <p style={{ fontSize: 13, color: MUTED, marginBottom: 24 }}>Add your branding. We will format everything into a clean, presentation-ready document.</p>
 
             {/* Logo upload */}
