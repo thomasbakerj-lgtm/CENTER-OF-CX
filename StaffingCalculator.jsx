@@ -3,6 +3,7 @@ import ReportExport from "./ReportExport";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage } from "./src/lib/benchmarks";
 import { publishToolResult } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import NumField from "./src/lib/NumField";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -126,7 +127,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
      staffed to service level lands above the sustainable band at almost any real
      volume, so the useful output is the size of the trade-off, not a warning. */
   if (!capOn && pair && pair.sustainable)
-    out.push(`Staffing to your service level alone puts occupancy at ${occPct.toFixed(1)}%, above the ${band} band. That is normal for Erlang C at this volume, not a mistake in your inputs: the SLA is not the binding constraint here, occupancy is. Holding a ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE rather than ${r.sched}. The ${pair.deltaFte} FTE difference is what agent recovery time costs.`);
+    out.push(`Staffing to your service level alone puts occupancy at ${occPct.toFixed(1)}%, above the ${band} band. That is normal for Erlang C at this volume, not a mistake in your inputs: the SLA is not the binding constraint here, occupancy is. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE rather than ${r.sched}. The ${pair.deltaFte} FTE difference is what agent recovery time costs.`);
 
   if (out.length === 0)
     out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${slPct.toFixed(1)}% are both in healthy ranges. A balanced plan with room to flex.`);
@@ -145,19 +146,6 @@ const PRESETS = {
 };
 
 const fmtMS = (s) => `${Math.floor(s / 60)}m ${s % 60}s`;
-
-const F = ({ label, value, onChange, hint, suffix, min, max, step, placeholder }) => (
-  <div style={{ marginBottom: 12 }}>
-    <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>{label}</label>
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <input type="number" value={value} placeholder={placeholder} min={min} max={max} step={step || 1} onChange={e => onChange(e.target.value === "" ? 0 : parseFloat(e.target.value) || 0)}
-        style={{ flex: 1, padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none", fontFamily: "'DM Sans',sans-serif", color: NAVY }}
-        onFocus={e => e.target.style.borderColor = ELECTRIC} onBlur={e => e.target.style.borderColor = BORDER} />
-      {suffix && <span style={{ fontSize: 13, color: MUTED, minWidth: 30 }}>{suffix}</span>}
-    </div>
-    {hint && <span style={{ fontSize: 11, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
-  </div>
-);
 
 const S = ({ label, value, sub, color }) => (
   <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 18px" }}>
@@ -275,24 +263,24 @@ export default function StaffingCalculator() {
         <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24, alignItems: "start" }} className="calc-grid">
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "22px 18px" }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 14 }}>Inputs</h3>
-            <F label="Voice contacts per interval" value={vol} onChange={setVol} hint="Inbound calls arriving in one interval. Voice only, see note below." min={1} />
-            <F label="Average Handle Time" value={aht} onChange={setAht} hint={`${fmtMS(aht)}, talk plus hold plus ACW`} suffix="sec" min={1} />
-            <F label="Interval length" value={intv} onChange={setIntv} suffix="min" min={15} max={60} step={15} />
+            <NumField label="Voice contacts per interval" value={vol} onChange={setVol} hint="Inbound calls arriving in one interval. Voice only, see note below." min={1} />
+            <NumField label="Average Handle Time" value={aht} onChange={setAht} hint={`${fmtMS(aht)}, talk plus hold plus ACW`} suffix="sec" min={1} />
+            <NumField label="Interval length" value={intv} onChange={setIntv} suffix="min" min={5} max={240} step={5} hint="Erlang C needs an interval of roughly three times AHT or more." />
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
-            <F label="Service Level Target" value={slT} onChange={setSlT} suffix="%" min={1} max={100} />
-            <F label="Answer Threshold" value={slS} onChange={setSlS} suffix="sec" min={1} />
+            <NumField label="Service Level Target" value={slT} onChange={setSlT} suffix="%" min={1} max={100} />
+            <NumField label="Answer Threshold" value={slS} onChange={setSlS} suffix="sec" min={1} />
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
-            <F label="Total Shrinkage" value={shrink} onChange={setShrink} hint="Breaks, training, PTO, absenteeism" suffix="%" min={0} max={70} />
+            <NumField label="Total Shrinkage" value={shrink} onChange={setShrink} hint="Breaks, training, PTO, absenteeism" suffix="%" min={0} max={70} />
 
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
             <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginBottom: capOn ? 8 : 0 }}>
               <input type="checkbox" checked={capOn} onChange={e => setCapOn(e.target.checked)} style={{ width: 15, height: 15, accentColor: ELECTRIC, cursor: "pointer" }} />
               <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Cap maximum occupancy</span>
             </label>
-            {capOn && <F label="Occupancy ceiling" value={capPct} onChange={setCapPct} hint="Adds agents so occupancy never exceeds this" suffix="%" min={50} max={100} />}
+            {capOn && <NumField label="Occupancy ceiling" value={capPct} onChange={setCapPct} hint="Adds agents so occupancy never exceeds this" suffix="%" min={50} max={100} />}
 
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
-            <F label="Avg caller patience (optional)" value={patience || ""} onChange={setPatience} placeholder="0 = off" hint="Seconds before a caller abandons. Enables the abandonment reality-check." suffix="sec" min={0} max={600} />
+            <NumField label="Avg caller patience (optional)" value={patience} onChange={setPatience} hint="Seconds before a caller abandons. Zero turns the abandonment reality-check off." suffix="sec" min={0} max={600} />
 
             <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px", marginTop: 14 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>Traffic Intensity</div>
@@ -372,7 +360,9 @@ export default function StaffingCalculator() {
                   { label: "+20% volume spike", r2: spike, c: AMBER },
                   { label: "+10% AHT increase", r2: ahtUp, c: AMBER },
                   { label: "+5pt shrinkage", r2: calc(vol, aht, intv, slT / 100, slS, Math.min((shrink + 5) / 100, 0.70), occCap), c: RED },
-                  { label: "Raise SL to 90%", r2: calc(vol, aht, intv, 0.90, slS, shrink / 100, occCap), c: ELECTRIC },
+                  { label: slT >= 95 ? `Ease SL to ${slT - 5}%` : `Raise SL to ${Math.min(slT + 5, 99)}%`,
+                    r2: calc(vol, aht, intv, (slT >= 95 ? slT - 5 : Math.min(slT + 5, 99)) / 100, slS, shrink / 100, occCap),
+                    c: ELECTRIC },
                 ].map((s, i) => (
                   <div key={i} style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: s.c, letterSpacing: 1, textTransform: "uppercase" }}>{s.label}</div>
@@ -477,7 +467,7 @@ export default function StaffingCalculator() {
                   ]},
                   { title: "Recommended Actions", type: "actions", items: [
                     ...(occInfo.band === "critical" ? [{ action: "Decide whether to buy recovery time", detail: pair.sustainable
-                        ? `Staffing to your service level alone lands at ${(r.occ * 100).toFixed(1)}% occupancy. Holding a ${Math.round(pair.ceiling * 100)}% ceiling instead takes ${pair.sustainable.sched} FTE rather than ${r.sched}, a difference of ${pair.deltaFte} FTE. That figure is the price of agent recovery time, and it is a decision rather than a setting. Reducing volume through deflection or cutting AHT lowers both numbers.`
+                        ? `Staffing to your service level alone lands at ${(r.occ * 100).toFixed(1)}% occupancy. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead takes ${pair.sustainable.sched} FTE rather than ${r.sched}, a difference of ${pair.deltaFte} FTE. That figure is the price of agent recovery time, and it is a decision rather than a setting. Reducing volume through deflection or cutting AHT lowers both numbers.`
                         : `At ${(r.occ * 100).toFixed(1)}%, agents have insufficient recovery time. Target the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% band by adding agents or reducing volume.`, priority: "high" }]
                       : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band, workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
                     ...(shrinkInfo.elevated ? [{ action: "Decompose shrinkage", detail: `${shrink}% is above the typical ${Math.round(BENCH.shrinkage.typicalLow * 100)}–${Math.round(BENCH.shrinkage.typicalHigh * 100)}% range. Use the Shrinkage Planner to see which categories drive the gap before adding heads.`, priority: "medium" }] : []),
