@@ -13,8 +13,8 @@ function slice(a, b) {
   return SRC.slice(i, j);
 }
 const engine = slice("function erlangB(", "function buildInsights(");
-const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair, staffingCost, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)();
-const { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair, staffingCost, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
+const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)();
+const { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
 
 let pass = 0, fail = 0;
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
@@ -299,6 +299,62 @@ section("Cost engine");
     ok(`${n} recovery cost equals delta FTE times the per-agent rate`,
       Math.abs(delta - p.deltaFte * base.perAgentMonth * 12) < 1, `${Math.round(delta)}`);
   }
+}
+
+
+/* ------------------------------------------------------ pooling penalty ---- */
+section("Queue fragmentation");
+{
+  ok("one queue is not a penalty", poolingPenalty(400, 360, 30, 0.8, 20, 0.3, 0, 1) === null);
+  ok("zero or missing queue count returns nothing", poolingPenalty(400, 360, 30, 0.8, 20, 0.3, 0, 0) === null);
+  ok("zero volume returns nothing", poolingPenalty(0, 360, 30, 0.8, 20, 0.3, 0, 4) === null);
+
+  const p = poolingPenalty(400, 360, 30, 0.8, 20, 0.3, 0, 4);
+  ok("four queues cost more than one", p.deltaFte > 0);
+  ok("split FTE equals per-queue FTE times queue count", p.splitFte === p.per.sched * p.queues);
+  ok("delta equals split minus pooled", p.deltaFte === p.splitFte - p.pooled.sched);
+  ok("percentage penalty matches the FTE figures",
+    Math.abs(p.pctPenalty - ((p.splitFte / p.pooled.sched) - 1)) < 1e-9);
+
+  // The property that makes the diagnostic true: penalty grows with fragmentation.
+  let prev = 0, bad = 0;
+  for (const q of [2, 3, 4, 6, 8, 12]) {
+    const r = poolingPenalty(400, 360, 30, 0.8, 20, 0.3, 0, q);
+    if (r.deltaFte < prev) bad++;
+    prev = r.deltaFte;
+  }
+  ok("penalty is monotonic in queue count", bad === 0, `${bad} inversions`);
+
+  // Each split queue must still meet the service level, or the comparison is unfair.
+  for (const q of [2, 4, 8]) {
+    const r = poolingPenalty(400, 360, 30, 0.8, 20, 0.3, 0, q);
+    ok(`each of ${q} split queues still meets the target`, r.per.sl >= 0.8 - 1e-9);
+  }
+
+  // Splitting lowers occupancy. The card says so; assert it stays true.
+  const f = poolingPenalty(400, 360, 30, 0.8, 20, 0.3, 0, 6);
+  ok("splitting lowers occupancy", f.splitOcc < f.pooledOcc, `${f.splitOcc} vs ${f.pooledOcc}`);
+
+  // Small operations suffer proportionally more, which is the real-world claim.
+  const small = poolingPenalty(60, 360, 30, 0.8, 20, 0.3, 0, 4);
+  const large = poolingPenalty(2000, 360, 30, 0.8, 20, 0.3, 0, 4);
+  ok("fragmentation hurts small queues proportionally more",
+    small.pctPenalty > large.pctPenalty, `${small.pctPenalty.toFixed(3)} vs ${large.pctPenalty.toFixed(3)}`);
+
+  // Never claim a saving from splitting.
+  let neg = 0;
+  for (const v of [30, 60, 120, 400, 900, 2000])
+    for (const q of [2, 3, 5, 9]) {
+      const r = poolingPenalty(v, 360, 30, 0.8, 20, 0.3, 0, q);
+      if (r && r.deltaFte <= 0) neg++;
+    }
+  ok("pooling is never presented as costing more than splitting", neg === 0, `${neg}`);
+
+  // The cost figure the card prints must equal delta FTE at the per-agent rate.
+  const c = poolingPenalty(400, 360, 30, 0.8, 20, 0.3, 0, 6);
+  const annual = staffingCost(c.splitFte, 0, 0).annual - staffingCost(c.pooled.sched, 0, 0).annual;
+  ok("fragmentation cost equals delta FTE times the per-agent rate",
+    Math.abs(annual - c.deltaFte * staffingCost(1, 0, 0).perAgentMonth * 12) < 1, `${Math.round(annual)}`);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
