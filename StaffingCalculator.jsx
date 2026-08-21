@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ReportExport from "./ReportExport";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage } from "./src/lib/benchmarks";
-import { publishToolResult } from "./src/lib/toolData";
+import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import NumField from "./src/lib/NumField";
 
@@ -80,6 +80,51 @@ function sustainablePair(volume, ahtSec, intMin, slT, slSec, shrink, ceiling) {
   };
 }
 
+/* ------------------------------------------------------------------- cost --
+   Every Erlang calculator on the internet outputs FTE and stops. FTE is not a
+   decision; a dollar figure is. This turns the staffing answer into annual cost
+   and, more importantly, prices the trade-off the tool already surfaces.
+
+   Provenance matters here. A wage that arrived over the rail from the user's own
+   TCO run is their number; the benchmark fallback is ours. Those two are not the
+   same claim, so the label follows the source and the tool never presents a
+   benchmark median as if the user had supplied it. `getExternalPrimitive` blocks
+   Staffing from reading back anything it published itself.
+
+   Fully loaded cost is wage plus benefits, taxes, facilities, supervision, and
+   technology. A common planning multiplier on base wage is 1.3 for benefits and
+   payroll burden, and roughly 1.9 to 2.1 once the rest is included. We use 1.95
+   on base wage when only a wage is known, and prefer a real per-agent TCO figure
+   whenever the rail carries one, because that is measured rather than assumed. */
+const BENCHMARK_HOURLY = 19;      // BLS and Indeed median, US contact centre agent
+const FULL_LOAD_MULTIPLE = 1.95;  // wage to fully loaded, when no TCO figure exists
+const PAID_HOURS_MONTH = 173;     // 2080 annual hours / 12
+
+function staffingCost(fte, railPerAgentMonth, railHourly) {
+  let perAgentMonth, basis, sourced;
+  if (railPerAgentMonth > 0) {
+    perAgentMonth = railPerAgentMonth;
+    basis = "your TCO run, fully loaded per agent per month";
+    sourced = true;
+  } else if (railHourly > 0) {
+    perAgentMonth = railHourly * FULL_LOAD_MULTIPLE * PAID_HOURS_MONTH;
+    basis = `your TCO wage of $${railHourly.toFixed(2)} per hour, loaded at ${FULL_LOAD_MULTIPLE}x`;
+    sourced = true;
+  } else {
+    perAgentMonth = BENCHMARK_HOURLY * FULL_LOAD_MULTIPLE * PAID_HOURS_MONTH;
+    basis = `a benchmark median of $${BENCHMARK_HOURLY} per hour loaded at ${FULL_LOAD_MULTIPLE}x, not your own figures`;
+    sourced = false;
+  }
+  return {
+    perAgentMonth,
+    annual: fte * perAgentMonth * 12,
+    monthly: fte * perAgentMonth,
+    basis,
+    sourced,
+    confidence: sourced ? "Planning-grade" : "Directional",
+  };
+}
+
 /* Optional Erlang A reality-check (abandonment). */
 function abandonmentCheck(N, A, ahtSec, patienceSec) {
   if (!patienceSec || patienceSec <= 0 || N <= A) return null;
@@ -94,7 +139,7 @@ function abandonmentCheck(N, A, ahtSec, patienceSec) {
    actually needs to read: the tension between SLA aggressiveness, occupancy, and
    over/under-service. Priority-ordered; the UI takes the top two. This is the
    "synthesis, not metric-dump" pattern other tools adopt where their data supports it. */
-function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, valid) {
+function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost) {
   const out = [];
   const slPct = r.sl * 100, targetPct = slTargetFrac * 100, overBy = slPct - targetPct, occPct = r.occ * 100;
   const looseOcc = r.occ < BENCH.occupancy.targetLow;
@@ -127,7 +172,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
      staffed to service level lands above the sustainable band at almost any real
      volume, so the useful output is the size of the trade-off, not a warning. */
   if (!capOn && pair && pair.sustainable)
-    out.push(`Staffing to your service level alone puts occupancy at ${occPct.toFixed(1)}%, above the ${band} band. That is normal for Erlang C at this volume, not a mistake in your inputs: the SLA is not the binding constraint here, occupancy is. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE rather than ${r.sched}. The ${pair.deltaFte} FTE difference is what agent recovery time costs.`);
+    out.push(`Staffing to your service level alone puts occupancy at ${occPct.toFixed(1)}%, above the ${band} band. That is normal for Erlang C at this volume, not a mistake in your inputs: the SLA is not the binding constraint here, occupancy is. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE rather than ${r.sched}. The ${pair.deltaFte} FTE difference is what agent recovery time costs, about ${fmtMoney(recoveryAnnual)} a year on ${cost.sourced ? "your own cost base" : "benchmark wages"}.`);
 
   if (out.length === 0)
     out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${slPct.toFixed(1)}% are both in healthy ranges. A balanced plan with room to flex.`);
@@ -145,6 +190,12 @@ const PRESETS = {
   bpo: { label: "BPO / Outsourcer", volume: 700, aht: 340, slT: 0.80, slS: 20, shrink: 0.34 },
 };
 
+const fmtMoney = (v) => {
+  const a = Math.abs(v);
+  if (a >= 1e6) return `$${(v / 1e6).toFixed(1)}M`;
+  if (a >= 1e3) return `$${Math.round(v / 1e3)}K`;
+  return `$${Math.round(v).toLocaleString()}`;
+};
 const fmtMS = (s) => `${Math.floor(s / 60)}m ${s % 60}s`;
 
 const S = ({ label, value, sub, color }) => (
@@ -183,6 +234,8 @@ export default function StaffingCalculator() {
 
   const occCap = capOn ? capPct / 100 : null;
   const r = calc(vol, aht, intv, slT / 100, slS, shrink / 100, occCap);
+  const railPerAgent = getExternalPrimitive("tcoPerAgentMonth", "staffing-calculator") || 0;
+  const railHourly = getExternalPrimitive("agentHourly", "staffing-calculator") || 0;
   const valid = modelValidity(aht, intv);
   const occInfo = classifyOccupancy(r.occ);
   const shrinkInfo = classifyShrinkage(shrink / 100);
@@ -200,7 +253,10 @@ export default function StaffingCalculator() {
   const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
 
   const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
-  const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid);
+  const cost = staffingCost(r.sched, railPerAgent, railHourly);
+  const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
+  const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
+  const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost);
 
   const spike = calc(Math.round(vol * 1.2), aht, intv, slT / 100, slS, shrink / 100, occCap);
   const ahtUp = calc(vol, Math.round(aht * 1.1), intv, slT / 100, slS, shrink / 100, occCap);
@@ -215,6 +271,9 @@ export default function StaffingCalculator() {
       occupancyCap: occCap || undefined, occupancyCapped: r.capped || undefined,
       patienceSec: patience || undefined,
       estAbandonment: abandMeaningful ? +(aband.estAband).toFixed(4) : undefined,
+      annualStaffingCost: Math.round(cost.annual),
+      staffingCostBasisSourced: cost.sourced,
+      recoveryTimeAnnualCost: costCeiling ? Math.round(recoveryAnnual) : undefined,
       sustainableFte: pair.sustainable ? pair.sustainable.sched : undefined,
       sustainableCeiling: pair.sustainable ? pair.ceiling : undefined,
       recoveryTimeFteCost: pair.sustainable ? pair.deltaFte : undefined,
@@ -306,6 +365,19 @@ export default function StaffingCalculator() {
               <S label="Prob. of Wait" value={`${(r.pw * 100).toFixed(1)}%`} sub="Chance a caller waits" />
             </div>
 
+            <div style={{ background: DEEP, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 1, textTransform: "uppercase" }}>Annual cost of this plan</div>
+                  <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 30, color: "#fff", marginTop: 2 }}>{fmtMoney(cost.annual)}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>{r.sched} FTE at {fmtMoney(cost.perAgentMonth)} per agent per month</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: cost.sourced ? LIGHT : AMBER, background: "rgba(255,255,255,0.08)", padding: "3px 8px", borderRadius: 5, letterSpacing: 0.5, textTransform: "uppercase" }}>{cost.confidence}</span>
+                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", maxWidth: 230, lineHeight: 1.5, marginTop: 5 }}>Based on {cost.basis}.{!cost.sourced && " Run the TCO Calculator to price this on your own cost base."}</div>
+                </div>
+              </div>
+            </div>
             <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Analyst Read</div>
               {insights.slice(0, 2).map((t, i) => (
@@ -337,7 +409,8 @@ export default function StaffingCalculator() {
                   <div style={{ flex: "0 0 128px", padding: "12px 14px", background: WARM, borderLeft: `1px solid ${BORDER}` }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Difference</div>
                     <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, color: ELECTRIC, marginTop: 2 }}>+{pair.deltaFte} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
-                    <div style={{ fontSize: 11, color: MUTED }}>cost of recovery time</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, marginTop: 1 }}>{fmtMoney(recoveryAnnual)}/yr</div>
+                    <div style={{ fontSize: 10, color: MUTED, lineHeight: 1.35, marginTop: 2 }}>cost of recovery time</div>
                   </div>
                 </div>
               )}
@@ -446,6 +519,7 @@ export default function StaffingCalculator() {
                     ...(capOn ? [["Max Occupancy Cap", `${capPct}%`]] : []),
                     ...(patience ? [["Avg Caller Patience", `${patience}s (Erlang A check on)`]] : []),
                     ["Traffic Intensity", `${r.A.toFixed(1)} Erlangs`],
+                    ["Cost basis", cost.basis.charAt(0).toUpperCase() + cost.basis.slice(1)],
                     ["Industry Preset", presetLabel],
                   ]},
                   { title: "Staffing Results", type: "metrics", items: [
@@ -455,11 +529,12 @@ export default function StaffingCalculator() {
                     { label: "Service Level", value: `${(r.sl * 100).toFixed(1)}%`, color: r.sl >= slT / 100 ? GREEN : RED },
                     { label: "Avg Speed of Answer", value: asaD, color: ELECTRIC },
                     { label: "Probability of Wait", value: `${(r.pw * 100).toFixed(1)}%`, color: MUTED },
+                    { label: "Annual Cost of This Plan", value: fmtMoney(cost.annual), color: NAVY, sub: cost.confidence },
                   ]},
                   { title: "Key Findings", type: "findings", items: [
                     ...(!valid.ok ? [valid.msg] : []),
                     `At ${vol} contacts per ${intv}-minute interval with ${fmtMS(aht)} AHT, you need ${r.raw} agents on the phones to meet ${slT}/${slS} service level${r.capped ? ` while holding occupancy under your ${capPct}% cap` : ""}.`,
-                    `After applying ${shrink}% shrinkage, that becomes ${r.sched} scheduled FTE.`,
+                    `After applying ${shrink}% shrinkage, that becomes ${r.sched} scheduled FTE, about ${fmtMoney(cost.annual)} a year at ${fmtMoney(cost.perAgentMonth)} per agent per month. That figure is based on ${cost.basis}.`,
                     ...insights.slice(0, 3),
                     ...(shrinkInfo.elevated ? [shrinkInfo.message] : []),
                     ...(abandMeaningful ? [`With ${patience}s average patience, an estimated ${(aband.estAband * 100).toFixed(1)}% of contacts would abandon; the abandonment-adjusted estimate is ${adjR.raw} base agents versus the Erlang C ${r.raw}.`] : []),
@@ -467,7 +542,7 @@ export default function StaffingCalculator() {
                   ]},
                   { title: "Recommended Actions", type: "actions", items: [
                     ...(occInfo.band === "critical" ? [{ action: "Decide whether to buy recovery time", detail: pair.sustainable
-                        ? `Staffing to your service level alone lands at ${(r.occ * 100).toFixed(1)}% occupancy. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead takes ${pair.sustainable.sched} FTE rather than ${r.sched}, a difference of ${pair.deltaFte} FTE. That figure is the price of agent recovery time, and it is a decision rather than a setting. Reducing volume through deflection or cutting AHT lowers both numbers.`
+                        ? `Staffing to your service level alone lands at ${(r.occ * 100).toFixed(1)}% occupancy. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead takes ${pair.sustainable.sched} FTE rather than ${r.sched}, a difference of ${pair.deltaFte} FTE, about ${fmtMoney(recoveryAnnual)} a year. That figure is the price of agent recovery time, and it is a decision rather than a setting. Reducing volume through deflection or cutting AHT lowers both numbers.`
                         : `At ${(r.occ * 100).toFixed(1)}%, agents have insufficient recovery time. Target the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% band by adding agents or reducing volume.`, priority: "high" }]
                       : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band, workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
                     ...(shrinkInfo.elevated ? [{ action: "Decompose shrinkage", detail: `${shrink}% is above the typical ${Math.round(BENCH.shrinkage.typicalLow * 100)}–${Math.round(BENCH.shrinkage.typicalHigh * 100)}% range. Use the Shrinkage Planner to see which categories drive the gap before adding heads.`, priority: "medium" }] : []),
