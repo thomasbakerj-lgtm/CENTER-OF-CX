@@ -4,6 +4,7 @@ import { COLORS, BENCH, classifyOccupancy, classifyShrinkage } from "./src/lib/b
 import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import NumField from "./src/lib/NumField";
+import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -201,7 +202,7 @@ const fmtMS = (s) => `${Math.floor(s / 60)}m ${s % 60}s`;
 const S = ({ label, value, sub, color }) => (
   <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 18px" }}>
     <div style={{ fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
-    <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: color || ELECTRIC, lineHeight: 1.1 }}>{value}</div>
+    <div style={{ ...TYPE.statValue, fontSize: 28, color: color || ELECTRIC }}>{value}</div>
     {sub && <div style={{ fontSize: 11, color: MUTED, marginTop: 4, lineHeight: 1.4 }}>{sub}</div>}
   </div>
 );
@@ -299,8 +300,8 @@ export default function StaffingCalculator() {
   const occSub = r.capped ? `Held under your ${capPct}% cap. ${occInfo.message}` : occInfo.message;
 
   return (
-    <div style={{ fontFamily: "'DM Sans',sans-serif", minHeight: "100vh", background: WARM }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}input[type=number]::-webkit-inner-spin-button{opacity:1}@media(max-width:700px){.calc-grid{grid-template-columns:1fr!important}.stat-grid{grid-template-columns:1fr 1fr!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: WARM }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}input[type=number]::-webkit-inner-spin-button{opacity:1}@media(max-width:700px){.calc-grid{grid-template-columns:1fr!important}.stat-grid{grid-template-columns:1fr 1fr!important}}`}</style>
 
       <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>
 
@@ -308,7 +309,7 @@ export default function StaffingCalculator() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
           <div>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Erlang C Staffing Model</span>
-            <h1 style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 26, fontWeight: 400, color: NAVY, margin: "4px 0 0" }}>Staffing Requirement Calculator</h1>
+            <h1 style={{ ...TYPE.h1, fontSize: 25, color: NAVY, margin: "5px 0 0" }}>Staffing Requirement Calculator</h1>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isCustom && <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, background: "#E6F4FB", padding: "4px 8px", borderRadius: 5, letterSpacing: 0.5, textTransform: "uppercase" }}>Custom</span>}
@@ -343,7 +344,7 @@ export default function StaffingCalculator() {
 
             <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px", marginTop: 14 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>Traffic Intensity</div>
-              <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 22, color: ELECTRIC }}>{r.A.toFixed(1)} <span style={{ fontSize: 12, color: MUTED }}>Erlangs</span></div>
+              <div style={{ ...TYPE.statValue, fontSize: 21, color: ELECTRIC }}>{r.A.toFixed(1)} <span style={{ fontSize: 12, color: MUTED }}>Erlangs</span></div>
             </div>
           </div>
 
@@ -369,7 +370,7 @@ export default function StaffingCalculator() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
                 <div>
                   <div style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 1, textTransform: "uppercase" }}>Annual cost of this plan</div>
-                  <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 30, color: "#fff", marginTop: 2 }}>{fmtMoney(cost.annual)}</div>
+                  <div style={{ ...TYPE.statValueLg, fontSize: 29, color: "#fff", marginTop: 3 }}>{fmtMoney(cost.annual)}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>{r.sched} FTE at {fmtMoney(cost.perAgentMonth)} per agent per month</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
@@ -398,18 +399,18 @@ export default function StaffingCalculator() {
                 <div style={{ display: "flex", gap: 0, marginTop: 14, border: `1px solid ${BORDER}`, borderRadius: 8, overflow: "hidden" }}>
                   <div style={{ flex: 1, padding: "12px 14px", background: WARM }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Staffed to service level</div>
-                    <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, color: NAVY, marginTop: 2 }}>{r.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
-                    <div style={{ fontSize: 11, color: occInfo.color, fontWeight: 600 }}>{(r.occ * 100).toFixed(1)}% occupancy</div>
+                    <div style={{ ...TYPE.statValue, fontSize: 23, color: NAVY, marginTop: 2 }}>{r.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
+                    <div style={{ fontSize: 11, color: occInfo.color, fontWeight: 600, ...NUM }}>{(r.occ * 100).toFixed(1)}% occupancy</div>
                   </div>
                   <div style={{ flex: 1, padding: "12px 14px", background: "#fff", borderLeft: `1px solid ${BORDER}` }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Staffed to a {Math.round(pair.ceiling * 100)}% ceiling</div>
-                    <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, color: NAVY, marginTop: 2 }}>{pair.sustainable.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
-                    <div style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>{(pair.sustainable.occ * 100).toFixed(1)}% occupancy</div>
+                    <div style={{ ...TYPE.statValue, fontSize: 23, color: NAVY, marginTop: 2 }}>{pair.sustainable.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
+                    <div style={{ fontSize: 11, color: GREEN, fontWeight: 600, ...NUM }}>{(pair.sustainable.occ * 100).toFixed(1)}% occupancy</div>
                   </div>
                   <div style={{ flex: "0 0 128px", padding: "12px 14px", background: WARM, borderLeft: `1px solid ${BORDER}` }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Difference</div>
-                    <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, color: ELECTRIC, marginTop: 2 }}>+{pair.deltaFte} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, marginTop: 1 }}>{fmtMoney(recoveryAnnual)}/yr</div>
+                    <div style={{ ...TYPE.statValue, fontSize: 23, color: ELECTRIC, marginTop: 2 }}>+{pair.deltaFte} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, marginTop: 1, ...NUM }}>{fmtMoney(recoveryAnnual)}/yr</div>
                     <div style={{ fontSize: 10, color: MUTED, lineHeight: 1.35, marginTop: 2 }}>cost of recovery time</div>
                   </div>
                 </div>
@@ -439,8 +440,8 @@ export default function StaffingCalculator() {
                 ].map((s, i) => (
                   <div key={i} style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: s.c, letterSpacing: 1, textTransform: "uppercase" }}>{s.label}</div>
-                    <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 22, color: NAVY, marginTop: 2 }}>{s.r2.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
-                    <div style={{ fontSize: 11, color: MUTED }}>{s.r2.sched - r.sched >= 0 ? "+" : ""}{s.r2.sched - r.sched} agents | Occ: {(s.r2.occ * 100).toFixed(0)}%</div>
+                    <div style={{ ...TYPE.statValue, fontSize: 21, color: NAVY, marginTop: 2 }}>{s.r2.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
+                    <div style={{ fontSize: 11, color: MUTED, ...NUM }}>{s.r2.sched - r.sched >= 0 ? "+" : ""}{s.r2.sched - r.sched} agents | Occ: {(s.r2.occ * 100).toFixed(0)}%</div>
                   </div>
                 ))}
               </div>
@@ -453,7 +454,7 @@ export default function StaffingCalculator() {
               </button>
               {showBench && (
                 <div style={{ marginTop: 12, overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, ...NUM }}>
                     <thead><tr style={{ textAlign: "left", color: MUTED, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>
                       <th style={{ padding: "6px 8px 6px 0" }}>Industry</th><th style={{ padding: 6 }}>AHT</th><th style={{ padding: 6 }}>Shrinkage</th><th style={{ padding: 6 }}>SL Target</th><th style={{ padding: 6 }}>Calls/agent/hr*</th>
                     </tr></thead>
@@ -464,7 +465,7 @@ export default function StaffingCalculator() {
                           <td style={{ padding: 8 }}>{fmtMS(pp.aht)}</td>
                           <td style={{ padding: 8 }}>{Math.round(pp.shrink * 100)}%</td>
                           <td style={{ padding: 8 }}>{Math.round(pp.slT * 100)}% / {pp.slS}s</td>
-                          <td style={{ padding: 8 }}>{(0.85 * 3600 / pp.aht).toFixed(1)}</td>
+                          <td style={{ padding: 8, ...NUM }}>{(0.85 * 3600 / pp.aht).toFixed(1)}</td>
                         </tr>
                       ))}
                     </tbody>
