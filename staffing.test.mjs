@@ -13,8 +13,8 @@ function slice(a, b) {
   return SRC.slice(i, j);
 }
 const engine = slice("function erlangB(", "function buildInsights(");
-const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair };`)();
-const { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair } = mod;
+const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair, staffingCost, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)();
+const { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair, staffingCost, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
 
 let pass = 0, fail = 0;
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
@@ -255,6 +255,50 @@ section("Sustainable staffing pair");
     if (p.sustainable && prev.sustainable && p.sustainable.sched < prev.sustainable.sched) bad++;
   }
   ok("a tighter ceiling never costs fewer FTE", bad === 0, `${bad}`);
+}
+
+
+/* -------------------------------------------------------- economic layer ---- */
+section("Cost engine");
+{
+  const bench = staffingCost(100, 0, 0);
+  ok("no rail data falls back to the benchmark",
+    Math.abs(bench.perAgentMonth - BENCHMARK_HOURLY * FULL_LOAD_MULTIPLE * PAID_HOURS_MONTH) < 1e-6);
+  ok("benchmark fallback is Directional, not Planning-grade", bench.confidence === "Directional" && bench.sourced === false);
+  ok("benchmark basis says plainly it is not the user's figures", /not your own figures/.test(bench.basis));
+
+  const wage = staffingCost(100, 0, 24);
+  ok("a rail wage is used over the benchmark",
+    Math.abs(wage.perAgentMonth - 24 * FULL_LOAD_MULTIPLE * PAID_HOURS_MONTH) < 1e-6);
+  ok("a rail wage earns Planning-grade", wage.confidence === "Planning-grade" && wage.sourced === true);
+
+  const tco = staffingCost(100, 6372, 24);
+  ok("a measured per-agent TCO figure outranks a wage", tco.perAgentMonth === 6372);
+  ok("per-agent basis names the TCO run", /TCO run/.test(tco.basis));
+  ok("per-agent basis is Planning-grade", tco.confidence === "Planning-grade");
+
+  ok("annual is monthly times twelve", Math.abs(tco.annual - tco.monthly * 12) < 1e-6);
+  ok("annual scales linearly with FTE",
+    Math.abs(staffingCost(200, 6372, 0).annual - 2 * staffingCost(100, 6372, 0).annual) < 1e-6);
+  ok("zero FTE costs zero", staffingCost(0, 6372, 0).annual === 0);
+  ok("negative or absent rail values do not poison the basis",
+    staffingCost(100, -5, 0).sourced === false && staffingCost(100, 0, -5).sourced === false);
+  ok("loaded cost lands in a defensible per-agent range",
+    bench.perAgentMonth > 4000 && bench.perAgentMonth < 8000, `${Math.round(bench.perAgentMonth)}`);
+}
+{
+  // The number the tool leads with: what recovery time costs, in dollars.
+  const P = [["general", 400, 360, 0.80, 20, 0.30], ["bpo", 700, 340, 0.80, 20, 0.34],
+             ["telecom", 550, 440, 0.80, 20, 0.30]];
+  for (const [n, v, a, t, sec, sh] of P) {
+    const p = sustainablePair(v, a, 30, t, sec, sh, 0.87);
+    const base = staffingCost(p.sla.sched, 0, 0);
+    const ceil = staffingCost(p.sustainable.sched, 0, 0);
+    const delta = ceil.annual - base.annual;
+    ok(`${n} recovery-time cost is positive`, delta > 0);
+    ok(`${n} recovery cost equals delta FTE times the per-agent rate`,
+      Math.abs(delta - p.deltaFte * base.perAgentMonth * 12) < 1, `${Math.round(delta)}`);
+  }
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
