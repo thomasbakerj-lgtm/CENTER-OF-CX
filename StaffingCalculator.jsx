@@ -17,7 +17,7 @@ const METHODOLOGY_VERSION = "staffing-v3.2026.08";
 
 /* Scenario defaults. Only fields that differ travel in the link, so the URL stays short.
    No contact detail is ever encoded: the shape below is the whole payload. */
-const DEFAULTS = { vol: 400, aht: 360, slT: 80, slS: 20, shrink: 30, intv: 30, patience: 0, capOn: false, capPct: 85, preset: "general" };
+const DEFAULTS = { vol: 400, aht: 360, slT: 80, slS: 20, shrink: 30, intv: 30, patience: 0, capOn: false, capPct: 85, queues: 1, preset: "general" };
 
 function LogoMark({ size = 34, light = true }) { const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC; return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>; }
 
@@ -127,6 +127,50 @@ function staffingCost(fte, railPerAgentMonth, railHourly) {
   };
 }
 
+/* ---------------------------------------------------------------- pooling --
+   Erlang C is non-linear in scale, so one pooled queue always needs fewer agents
+   than the same volume split across several. Over-skilling and queue proliferation
+   are among the most common real defects in contact centres and almost nobody
+   prices them, because the cost never appears as a line item: it shows up as
+   headcount that seems necessary.
+
+   Two honesty constraints govern the output.
+
+   First, this is an UPPER BOUND. The calculation assumes fully independent queues
+   with no overflow, no universal agents, and no cross-training. Real routing has
+   overflow rules that recover part of the loss, so the true penalty is lower. We
+   say so rather than sell the ceiling as the number.
+
+   Second, splitting also LOWERS occupancy, because each small queue carries more
+   idle time. That is not a free benefit and it is not a hidden win: it is the same
+   capacity counted twice. If a user is already staffing to an occupancy ceiling,
+   part of the pooling penalty is capacity they were going to add anyway. The
+   comparison therefore reports occupancy on both sides so the reader can see it.
+
+   Consolidation is a routing problem, which is why this is the one place the tool
+   points at a technology category rather than another diagnostic. */
+function poolingPenalty(volume, ahtSec, intMin, slT, slSec, shrink, occCap, queues) {
+  const q = Math.round(queues);
+  if (!q || q < 2 || !volume) return null;
+  const pooled = calc(volume, ahtSec, intMin, slT, slSec, shrink, occCap);
+  const per = calc(volume / q, ahtSec, intMin, slT, slSec, shrink, occCap);
+  const splitAgents = per.raw * q;
+  const splitFte = per.sched * q;
+  if (splitFte <= pooled.sched) return null;
+  return {
+    queues: q,
+    pooled,
+    per,
+    splitAgents,
+    splitFte,
+    deltaAgents: splitAgents - pooled.raw,
+    deltaFte: splitFte - pooled.sched,
+    pooledOcc: pooled.occ,
+    splitOcc: per.occ,
+    pctPenalty: (splitFte / pooled.sched) - 1,
+  };
+}
+
 /* Optional Erlang A reality-check (abandonment). */
 function abandonmentCheck(N, A, ahtSec, patienceSec) {
   if (!patienceSec || patienceSec <= 0 || N <= A) return null;
@@ -141,7 +185,7 @@ function abandonmentCheck(N, A, ahtSec, patienceSec) {
    actually needs to read: the tension between SLA aggressiveness, occupancy, and
    over/under-service. Priority-ordered; the UI takes the top two. This is the
    "synthesis, not metric-dump" pattern other tools adopt where their data supports it. */
-function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost) {
+function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost, pool) {
   const out = [];
   const slPct = r.sl * 100, targetPct = slTargetFrac * 100, overBy = slPct - targetPct, occPct = r.occ * 100;
   const looseOcc = r.occ < BENCH.occupancy.targetLow;
@@ -175,6 +219,9 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
      volume, so the useful output is the size of the trade-off, not a warning. */
   if (!capOn && pair && pair.sustainable)
     out.push(`Staffing to your service level alone puts occupancy at ${occPct.toFixed(1)}%, above the ${band} band. That is normal for Erlang C at this volume, not a mistake in your inputs: the SLA is not the binding constraint here, occupancy is. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE rather than ${r.sched}. The ${pair.deltaFte} FTE difference is what agent recovery time costs, about ${fmtMoney(recoveryAnnual)} a year on ${cost.sourced ? "your own cost base" : "benchmark wages"}.`);
+
+  if (pool && pool.pctPenalty >= 0.05)
+    out.push(`This volume splits across ${pool.queues} queues, which costs ${pool.deltaFte} more FTE than pooling it would, roughly ${Math.round(pool.pctPenalty * 100)}% more headcount for identical volume and identical service. That is a routing problem rather than a staffing one, and it is an upper bound: overflow rules and cross-trained agents recover part of it.`);
 
   if (out.length === 0)
     out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${slPct.toFixed(1)}% are both in healthy ranges. A balanced plan with room to flex.`);
@@ -213,6 +260,7 @@ export default function StaffingCalculator() {
   const [vol, setVol] = useState(400), [aht, setAht] = useState(360), [slT, setSlT] = useState(80);
   const [slS, setSlS] = useState(20), [shrink, setShrink] = useState(30), [intv, setIntv] = useState(30);
   const [patience, setPatience] = useState(0);
+  const [queues, setQueues] = useState(1);
   const [capOn, setCapOn] = useState(false), [capPct, setCapPct] = useState(85);
   const [showBench, setShowBench] = useState(false);
 
@@ -225,7 +273,7 @@ export default function StaffingCalculator() {
     if (!sc) return;
     setVol(sc.vol); setAht(sc.aht); setSlT(sc.slT); setSlS(sc.slS);
     setShrink(sc.shrink); setIntv(sc.intv); setPatience(sc.patience);
-    setCapOn(sc.capOn); setCapPct(sc.capPct); setPreset(sc.preset);
+    setCapOn(sc.capOn); setCapPct(sc.capPct); setQueues(sc.queues); setPreset(sc.preset);
     clearScenarioParam();
   }, []);
 
@@ -253,12 +301,14 @@ export default function StaffingCalculator() {
 
   const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
   /* One object, matching DEFAULTS key for key, so scenarioLink diffs cleanly. */
-  const st = { vol, aht, slT, slS, shrink, intv, patience, capOn, capPct, preset };
+  const st = { vol, aht, slT, slS, shrink, intv, patience, capOn, capPct, queues, preset };
 
+  const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
   const cost = staffingCost(r.sched, railPerAgent, railHourly);
   const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
   const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
-  const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost);
+  const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
+  const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost, pool);
 
   const spike = calc(Math.round(vol * 1.2), aht, intv, slT / 100, slS, shrink / 100, occCap);
   const ahtUp = calc(vol, Math.round(aht * 1.1), intv, slT / 100, slS, shrink / 100, occCap);
@@ -273,6 +323,9 @@ export default function StaffingCalculator() {
       occupancyCap: occCap || undefined, occupancyCapped: r.capped || undefined,
       patienceSec: patience || undefined,
       estAbandonment: abandMeaningful ? +(aband.estAband).toFixed(4) : undefined,
+      queues,
+      poolingPenaltyFte: pool ? pool.deltaFte : undefined,
+      poolingPenaltyAnnual: pool ? Math.round(poolAnnual) : undefined,
       annualStaffingCost: Math.round(cost.annual),
       staffingCostBasisSourced: cost.sourced,
       recoveryTimeAnnualCost: costCeiling ? Math.round(recoveryAnnual) : undefined,
@@ -329,6 +382,9 @@ export default function StaffingCalculator() {
             {capOn && <NumField label="Occupancy ceiling" value={capPct} onChange={setCapPct} hint="Adds agents so occupancy never exceeds this" suffix="%" min={50} max={100} />}
 
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
+            <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
+            <NumField label="Queues or skills this volume splits across" value={queues} onChange={setQueues} hint="One pooled queue is the cheapest possible answer. Enter how many separate queues actually carry this volume." min={1} max={40} />
+
             <NumField label="Avg caller patience (optional)" value={patience} onChange={setPatience} hint="Seconds before a caller abandons. Zero turns the abandonment reality-check off." suffix="sec" min={0} max={600} />
 
             <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px", marginTop: 14 }}>
@@ -405,6 +461,18 @@ export default function StaffingCalculator() {
                 </div>
               )}
             </div>
+
+            {pool && (
+              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px", marginBottom: 12 }}>
+                <h3 style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>Queue Fragmentation Cost <span style={{ color: MUTED, fontWeight: 600 }}>· upper bound</span></h3>
+                <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>
+                  Erlang C is non-linear in scale, so one pooled queue always needs fewer agents than the same volume split up. Across {pool.queues} queues this volume needs <strong style={{ color: NAVY, ...NUM }}>{pool.splitFte} FTE</strong> against <strong style={{ color: NAVY, ...NUM }}>{pool.pooled.sched} FTE</strong> pooled, a difference of {pool.deltaFte} FTE{poolAnnual > 0 ? <> or about <strong style={{ color: NAVY, ...NUM }}>{fmtMoney(poolAnnual)} a year</strong></> : null}. The fix is routing, not headcount.
+                </p>
+                <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: 0 }}>
+                  Treat this as a ceiling, not a promise. It assumes fully independent queues with no overflow and no cross-trained agents; real routing recovers part of the loss. Note also that splitting drops occupancy from {(pool.pooledOcc * 100).toFixed(1)}% to {(pool.splitOcc * 100).toFixed(1)}%, so if you were already staffing to a ceiling, some of this capacity is spend you had planned anyway.
+                </p>
+              </div>
+            )}
 
             {abandMeaningful && (
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px", marginBottom: 12 }}>
@@ -502,6 +570,8 @@ export default function StaffingCalculator() {
                   priced_recovery_tradeoff: !!pair.sustainable,
                   ran_abandonment_check: !!abandMeaningful,
                   set_occupancy_ceiling: capOn,
+                  fragmented_routing: !!pool,
+                  queue_count_band: queues >= 8 ? "high" : queues >= 3 ? "mid" : "low",
                   overrode_defaults: isCustom,
                   occupancy_band: occInfo.band,
                   shrinkage_elevated: shrinkInfo.elevated,
@@ -521,6 +591,7 @@ export default function StaffingCalculator() {
                     ...(patience ? [["Avg Caller Patience", `${patience}s (Erlang A check on)`]] : []),
                     ["Traffic Intensity", `${r.A.toFixed(1)} Erlangs`],
                     ["Cost basis", cost.basis.charAt(0).toUpperCase() + cost.basis.slice(1)],
+                    ["Queues this volume splits across", String(queues)],
                     ["Industry Preset", presetLabel],
                   ]},
                   { title: "Staffing Results", type: "metrics", items: [
