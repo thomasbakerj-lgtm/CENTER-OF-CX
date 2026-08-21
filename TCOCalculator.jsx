@@ -1,19 +1,23 @@
 import { useState, useEffect, useRef } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS, BENCH } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
-import { readScenarioFromUrl, copyShareUrl } from "./src/lib/scenario";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-const capInput = { width: "100%", padding: "10px 12px", fontSize: 13, color: "#fff", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: 6, outline: "none", fontFamily: "'DM Sans', sans-serif" };
+const TOOL_ID = "tco-calculator";
+const ROUTE = "/tools/tco-calculator";
+const METHODOLOGY_VERSION = "tco-v3.2026.08";
+
 
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const fmt = (v) => "$" + Math.round(n(v)).toLocaleString();
@@ -50,10 +54,10 @@ function Nav() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
+        ${FONT_IMPORT_CSS}
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { font-family: 'DM Sans', sans-serif; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
+        body { font-family: ${FONT}; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         input:focus, select:focus { outline: none; border-color: ${ELECTRIC} !important; box-shadow: 0 0 0 3px rgba(0,136,221,0.1); }
         input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -99,6 +103,10 @@ const STANCE = {
   expected: { label: "Expected", f: 0.70, note: "Realistic conversion of freed capacity to cash. The defensible default." },
   aggressive: { label: "Aggressive", f: 1.00, note: "Full theoretical capacity value, no haircut. Matches vendor ROI tools." },
 };
+/* Scenario defaults. Only fields that differ from these travel in the link, so a
+   shared URL stays short. The industry preset is part of the state, so a link
+   carries the vertical the sender was modelling, not just the raw numbers. */
+const SCENARIO_DEFAULTS = { ...BASE, ...INDUSTRY.general, industry: "general" };
 
 // InfoDot definition strings. Two sentences each: what it is, and why the tool uses it.
 // This map is the future glossary content for the TCO tool.
@@ -392,14 +400,7 @@ function Calculator() {
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
   const [activeSection, setActiveSection] = useState(0);
   const [stance, setStance] = useState("expected");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [capName, setCapName] = useState("");
-  const [capCompany, setCapCompany] = useState("");
-  const [capEmail, setCapEmail] = useState("");
-  const [capError, setCapError] = useState("");
   const [pulled, setPulled] = useState({});
-  const [copied, setCopied] = useState(false);
   const completedRef = useRef(false);
 
   const loadIndustry = (key) => setD(prev => ({ ...prev, ...BASE, ...INDUSTRY[key], industry: key }));
@@ -421,8 +422,8 @@ function Calculator() {
     const bcImpl = getExternalPrimitive("implementationCost", "tco-calculator");
     const impl = (licImpl != null && !isNaN(licImpl)) ? licImpl : (bcImpl != null && !isNaN(bcImpl)) ? bcImpl : null;
     if (impl != null) { next.implementationOneTime = impl; got.implementationOneTime = true; }
-    const scn = readScenarioFromUrl();
-    if (scn && typeof scn === "object") { Object.assign(next, scn); trackTool.scenarioLoad("tco-calculator"); }
+    const scn = readScenario(TOOL_ID, SCENARIO_DEFAULTS);
+    if (scn && typeof scn === "object") { Object.assign(next, scn); trackTool.scenarioLoad("tco-calculator"); clearScenarioParam(); }
     if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -474,36 +475,7 @@ function Calculator() {
     return val >= high ? GREEN : val <= low ? RED : AMBER;
   };
 
-  const sendResults = () => {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(capEmail.trim())) { setCapError("Enter a work email so we can send the read back."); return; }
-    trackTool.expertRead("tco-calculator");
-    setCapError("");
-    setSending(true);
-    const body = new FormData();
-    body.append("_subject", `TCO REVIEW REQUEST: ${capCompany || capName || capEmail.trim()}`);
-    body.append("source", "TCO Calculator");
-    body.append("email", capEmail.trim());
-    body.append("_replyto", capEmail.trim());
-    body.append("name", capName.trim());
-    body.append("company", capCompany.trim());
-    body.append("annual_tco", fmtK(r.annual));
-    body.append("three_year_tco", fmtK(r.threeYear));
-    body.append("per_agent_month", fmt(r.monthly / r.agents));
-    body.append("cost_per_contact", "$" + r.costPerContact.toFixed(2));
-    body.append("optimization_net_monthly", fmtK(opt.netTotal));
-    body.append("confidence", r.confidence);
-    body.append("stance", stance);
-    body.append("agents", String(r.agents));
-    body.append("industry", d.industry);
-    fetch("https://formspree.io/f/maqlvwne", { method: "POST", body, headers: { Accept: "application/json" } })
-      .then(res => { if (res.ok) { setSent(true); } else { setCapError("That did not send. Email hello@contactcentercx.com and we will pick it up."); } setSending(false); })
-      .catch(() => { setCapError("That did not send. Email hello@contactcentercx.com and we will pick it up."); setSending(false); });
-  };
 
-  const shareScenario = async () => {
-    const ok = await copyShareUrl("/tools/tco-calculator", d);
-    if (ok) { setCopied(true); trackTool.scenarioShare("tco-calculator"); setTimeout(() => setCopied(false), 2200); }
-  };
 
   const goNext = (toTool, href) => { trackTool.nextStep("tco-calculator", toTool); window.location.href = href; };
 
@@ -525,7 +497,7 @@ function Calculator() {
             <a href="/how-to-choose" style={{ color: MUTED, fontSize: 13 }}>Tools</a><span style={{ color: BORDER, fontSize: 13 }}>/</span>
             <span style={{ color: ELECTRIC, fontSize: 13, fontWeight: 600 }}>TCO Calculator</span>
           </div>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 3.5vw, 40px)", fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Contact Center TCO Calculator</h1>
+          <h1 style={{ ...TYPE.display, fontSize: "clamp(26px, 3.3vw, 37px)", color: NAVY, margin: "0 0 8px" }}>Contact Center TCO Calculator</h1>
           <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.6, maxWidth: 700 }}>Total cost of ownership across labor, technology, 17 operational KPIs, and overhead, as a current-state X-ray and a 3-year projection. Every number is transparent, benchmarked, and valued at marginal cost so savings are realistic rather than inflated.</p>
           {Object.keys(pulled).length > 0 && (
             <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 8, background: ICE, border: `1px solid ${ELECTRIC}30`, borderRadius: 8, padding: "8px 14px" }}>
@@ -547,7 +519,7 @@ function Calculator() {
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: LIGHT, marginBottom: 14 }}>Live TCO</div>
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Annual</div>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: LIGHT }}>{fmtK(r.annual)}</div>
+                  <div style={{ ...TYPE.statValue, fontSize: 25, color: LIGHT }}>{fmtK(r.annual)}</div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>3-yr {fmtK(r.threeYear)}</div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -566,7 +538,7 @@ function Calculator() {
           <div>
             {activeSection === 0 && (
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Organization Profile</h2>
+                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Organization Profile</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
                   <NumField label="Total Agents (FTE)" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} hint="Full-time and FTE-equivalent" pulled={pulled.agents} />
                   <NumField label="Supervisors" value={d.supervisors} onChange={v => set("supervisors", v)} min={0} />
@@ -591,7 +563,7 @@ function Calculator() {
 
             {activeSection === 1 && (
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Labor Costs</h2>
+                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Labor Costs</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
                   <NumField label="Agent Hourly Rate" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" step={0.5} min={0} />
                   <NumField label="Benefits & Burden" value={d.agentBenefitsPct} onChange={v => set("agentBenefitsPct", v)} suffix="%" factor={100} min={0} max={100} hint="Typically 25 to 35%" info={DEFS.loaded} infoTitle="Loaded rate" />
@@ -607,8 +579,8 @@ function Calculator() {
                   <NumField label="Recruiting Cost/Hire" value={d.recruitingCostPerHire} onChange={v => set("recruitingCostPerHire", v)} prefix="$" step={100} min={0} />
                 </div>
                 <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "14px 18px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div><div style={{ fontSize: 11, color: MUTED }}>Monthly Labor</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY }}>{fmtK(r.labor)}</div></div>
-                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: MUTED }}>Attrition Cost/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY }}>{fmtK(r.attritionCost)}</div><div style={{ fontSize: 11, color: MUTED }}>{r.monthlyHires} hires/mo</div></div>
+                  <div><div style={{ fontSize: 11, color: MUTED }}>Monthly Labor</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.labor)}</div></div>
+                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: MUTED }}>Attrition Cost/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.attritionCost)}</div><div style={{ fontSize: 11, color: MUTED }}>{r.monthlyHires} hires/mo</div></div>
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(0, "Back", false)}{navBtn(2, "Next: KPIs", true)}</div>
               </div>
@@ -616,7 +588,7 @@ function Calculator() {
 
             {activeSection === 2 && (
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Operational KPIs</h2>
+                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Operational KPIs</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
                   <NumField label="AHT (seconds)" value={d.aht} onChange={v => set("aht", v)} info={DEFS.aht} infoTitle="AHT" step={5} min={1} pulled={pulled.aht} hint={<span style={{ color: getBench(n(d.aht), 300, 600, true) }}>{mmss(d.aht)}, full handle time. Bench 5:00 to 7:00</span>} />
                   <NumField label="ACW (seconds)" value={d.acw} onChange={v => set("acw", v)} info={DEFS.acw} infoTitle="ACW" step={5} min={0} hint="After-call work (within AHT, line closed)" />
@@ -643,7 +615,7 @@ function Calculator() {
 
             {activeSection === 3 && (
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Channel Mix</h2>
+                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Channel Mix</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
                   <NumField label="Voice" value={d.channelMixVoice} onChange={v => set("channelMixVoice", v)} suffix="%" factor={100} min={0} max={100} />
                   <NumField label="Chat / Messaging" value={d.channelMixChat} onChange={v => set("channelMixChat", v)} suffix="%" factor={100} min={0} max={100} />
@@ -652,7 +624,7 @@ function Calculator() {
                   <NumField label="Self-Service" value={d.channelMixSelfServe} onChange={v => set("channelMixSelfServe", v)} suffix="%" factor={100} min={0} max={100} />
                   <div style={{ background: channelOK ? ICE : "#FEF2F2", borderRadius: 6, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", border: channelOK ? "none" : `1px solid ${RED}40` }}>
                     <div style={{ fontSize: 11, color: MUTED }}>Total</div>
-                    <div style={{ fontSize: 18, fontWeight: 600, color: channelOK ? GREEN : RED }}>{pct(channelTotal)}</div>
+                    <div style={{ fontSize: 18, fontWeight: 600, color: channelOK ? GREEN : RED , ...NUM }}>{pct(channelTotal)}</div>
                     <div style={{ fontSize: 11, color: channelOK ? MUTED : RED }}>{channelOK ? "Balanced" : "Must equal 100%"}</div>
                   </div>
                 </div>
@@ -678,7 +650,7 @@ function Calculator() {
 
             {activeSection === 4 && (
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Technology Costs <span style={{ fontSize: 13, fontWeight: 400, color: MUTED }}>(monthly)</span></h2>
+                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Technology Costs <span style={{ fontSize: 13, fontWeight: 400, color: MUTED }}>(monthly)</span></h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
                   <NumField label="CCaaS Per Seat" value={d.ccaasSeat} onChange={v => set("ccaasSeat", v)} info={DEFS.seatBasis} infoTitle="Per-seat basis" prefix="$" step={5} min={0} />
                   <NumField label="WEM Per Seat" value={d.wemSeat} onChange={v => set("wemSeat", v)} prefix="$" step={5} min={0} />
@@ -694,8 +666,8 @@ function Calculator() {
                   <NumField label="Security & Compliance" value={d.securityCompliance} onChange={v => set("securityCompliance", v)} prefix="$" step={500} min={0} />
                 </div>
                 <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "14px 18px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div><div style={{ fontSize: 11, color: MUTED }}>Monthly Tech Cost</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY }}>{fmtK(r.tech)}</div></div>
-                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: MUTED }}>Tech Per Agent/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY }}>{fmt(r.techPerAgent)}</div></div>
+                  <div><div style={{ fontSize: 11, color: MUTED }}>Monthly Tech Cost</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.tech)}</div></div>
+                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: MUTED }}>Tech Per Agent/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmt(r.techPerAgent)}</div></div>
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(3, "Back", false)}{navBtn(5, "Next: Results", true)}</div>
               </div>
@@ -704,7 +676,7 @@ function Calculator() {
             {activeSection === 5 && (
               <div>
                 <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px", marginBottom: 20 }}>
-                  <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Overhead, Facilities & 3-Year Inputs</h2>
+                  <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Overhead, Facilities & 3-Year Inputs</h2>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
                     <NumField label="Cloud Infrastructure (mo)" value={d.cloudInfra} onChange={v => set("cloudInfra", v)} prefix="$" step={500} min={0} />
                     <NumField label="Prof. Services Amortized (mo)" value={d.psAmortized} onChange={v => set("psAmortized", v)} info={DEFS.psAmortized} infoTitle="Amortized PS" prefix="$" step={500} min={0} hint="Recurring managed service" />
@@ -775,17 +747,17 @@ function Calculator() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }} className="kpi-grid">
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Annual TCO</div>
-                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: LIGHT }}>{fmtK(r.annual)}</div>
+                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: LIGHT }}>{fmtK(r.annual)}</div>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Range {fmtK(r.sensitivity.annualLow)} to {fmtK(r.sensitivity.annualHigh)}</div>
                     </div>
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>3-Year TCO</div>
-                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: "#fff" }}>{fmtK(r.threeYear)}</div>
+                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: "#fff" }}>{fmtK(r.threeYear)}</div>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{n(d.implementationOneTime) > 0 ? fmtK(n(d.implementationOneTime)) + " impl + " : ""}{escLabel}</div>
                     </div>
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Per Agent/Month</div>
-                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: getBench(r.monthly / r.agents, 4500, 7500, true) }}>{fmt(r.monthly / r.agents)}</div>
+                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: getBench(r.monthly / r.agents, 4500, 7500, true) }}>{fmt(r.monthly / r.agents)}</div>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Industry: $4.5K to $7.5K loaded</div>
                     </div>
                   </div>
@@ -845,7 +817,7 @@ function Calculator() {
                 {opt.items.length > 0 && (
                   <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px", marginBottom: 20 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
-                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: 0 }}>Optimization Opportunities</h3>
+                      <h3 style={{ ...TYPE.h2, fontSize: 19, color: NAVY, margin: 0 }}>Optimization Opportunities</h3>
                       <div style={{ fontSize: 12, color: MUTED }}>{Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? "Booked at full theoretical value" : "Booked"} <strong style={{ color: GREEN }}>{fmtK(opt.netTotal)}/mo</strong> ({fmtK(opt.netTotal * 12)}/yr){Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", no haircut applied" : `, haircut from ${fmtK(opt.grossTotal)}/mo theoretical`}</div>
                     </div>
                     <p style={{ fontSize: 11, color: MUTED, margin: "0 0 12px", lineHeight: 1.5 }}>De-overlapped: each lever acts on the volume the prior leaves, valued at marginal cost, then scaled by the {STANCE[stance].label.toLowerCase()} stance. They do not double-count.</p>
@@ -867,7 +839,7 @@ function Calculator() {
 
                 {/* Live journey CTAs */}
                 <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "22px 24px", marginBottom: 20 }}>
-                  <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>What to test next</h3>
+                  <h3 style={{ ...TYPE.h2, fontSize: 17, color: NAVY, margin: "0 0 4px" }}>What to test next</h3>
                   <p style={{ fontSize: 12, color: MUTED, margin: "0 0 14px" }}>Take the drivers above into the tool that pressure-tests them. Your inputs carry across.</p>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="input-row">
                     {[
@@ -884,19 +856,53 @@ function Calculator() {
                 </div>
 
                 <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "28px 24px", textAlign: "center" }}>
-                  {sent ? (
                     <div>
-                      <div style={{ fontSize: 22, color: LIGHT, marginBottom: 8 }}>Sent</div>
-                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: "#fff", margin: "0 0 8px" }}>Results sent. A human will reply to that address within one business day.</h3>
-                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Your full TCO breakdown is with our advisory team.</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: "#fff", margin: "0 0 8px" }}>Take this to your team</h3>
+                      <h3 style={{ ...TYPE.h2, fontSize: 19, color: "#fff", margin: "0 0 8px" }}>Take this to your team</h3>
                       <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 20px" }}>Download the board-ready breakdown, share the exact scenario as a link, or send it to our advisory team for a free expert read of the highest-impact levers.</p>
                       <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                         <span onClick={() => trackTool.pdf("tco-calculator")} style={{ display: "inline-flex" }}>
-                        <ReportExport toolName="Total Cost of Ownership Analysis" subtitle={r.agents + " agents, " + (INDUSTRY[d.industry]?.label || d.industry) + ", " + STANCE[stance].label + " stance, " + r.confidence} userName="" userEmail="" sections={[
+<ReportActions
+                          toolId={TOOL_ID}
+                          toolName="Total Cost of Ownership Analysis"
+                          subtitle={r.agents + " agents, " + (INDUSTRY[d.industry]?.label || d.industry) + ", " + STANCE[stance].label + " stance, " + r.confidence}
+                          routePath={ROUTE}
+                          state={d}
+                          defaults={SCENARIO_DEFAULTS}
+                          confidence={r.confidence}
+                          summary={[
+                            { label: "Annual TCO", value: fmtK(r.annual) },
+                            { label: "Three-year TCO", value: fmtK(r.threeYear) },
+                            { label: "Cost per agent per month", value: fmt(r.perAgentMonth) },
+                            { label: "Cost per contact", value: "$" + r.costPerContact.toFixed(2) },
+                            { label: "Cost per resolution", value: "$" + r.costPerResolution.toFixed(2) },
+                            { label: "Marginal cost per contact", value: "$" + r.marginalPerContact.toFixed(2) },
+                            { label: "Labor share of TCO", value: r.disp.laborPctStr },
+                            { label: "Realization stance", value: STANCE[stance].label },
+                            { label: "Optimization booked monthly", value: fmtK(opt.netTotal) },
+                            { label: "Optimization theoretical monthly", value: fmtK(opt.grossTotal) },
+                          ]}
+                          signals={{
+                            /* Derived signals only. No wage, seat price, vendor name, contact
+                               volume, or company detail leaves this block. Bands and booleans
+                               carry the commercial meaning; the raw cost base stays in the
+                               browser and in the report the user downloads. */
+                            methodology_version: METHODOLOGY_VERSION,
+                            severity: r.hasBlock ? "high" : r.flags.some(f => f.level === "flag") ? "elevated" : "normal",
+                            confidence_class: r.confidence,
+                            cost_basis: d.costBasis,
+                            has_document_evidence: d.costBasis === "invoiced",
+                            stance_class: stance,
+                            booked_at_full_theoretical: Math.round(opt.netTotal) === Math.round(opt.grossTotal),
+                            has_optimization_levers: opt.items.length > 0,
+                            modelling_implementation: n(d.implementationOneTime) > 0,
+                            overrode_industry_default: d.industry !== "general",
+                            pulled_from_upstream_tool: Object.keys(pulled).length > 0,
+                            labor_dominant: r.laborPct >= 0.75,
+                            scale_band: r.agents >= 1000 ? "very_large" : r.agents >= 300 ? "large" : r.agents >= 75 ? "mid" : "small",
+                            spend_band: r.annual >= 5e7 ? "very_high" : r.annual >= 1e7 ? "high" : r.annual >= 2e6 ? "mid" : "low",
+                            decision_ready_signal: d.costBasis === "invoiced" && !r.hasBlock && opt.items.length > 0,
+                          }}
+                          sections={[
                           { title: "Confidence & Evidence", type: "findings", items: [
                             `Export confidence: ${r.confidence}. Cost basis is ${d.costBasis}, which vouches for the cost inputs (wages and seat prices), not the operational KPIs or org structure. Headline sensitivity is plus or minus ${pct0(r.sensitivity.pct)} (annual ${fmtK(r.sensitivity.annualLow)} to ${fmtK(r.sensitivity.annualHigh)}).`,
                             ...(r.openIssues.length ? r.openIssues : ["No blocking issues on the confidence checks."]),
@@ -951,24 +957,12 @@ function Calculator() {
                             { tool: "AI Deflection Reality Check", reason: "Pressure-test the containment savings above", href: "/tools/ai-deflection" },
                             { tool: "Business Case Builder", reason: "Turn these savings into a board-ready ROI case", href: "/tools/business-case" },
                           ]},
-                        ]} />
+                        ]}
+                        />
                         </span>
-                        <button onClick={shareScenario} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>{copied ? "Link copied" : "Share scenario link"}</button>
-                        <button onClick={sendResults} disabled={sending} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: sending ? "wait" : "pointer" }}>{sending ? "Sending..." : "Send for a free expert read"}</button>
-                      </div>
-                      <div style={{ maxWidth: 520, margin: "18px auto 0", textAlign: "left" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
-                          <input placeholder="Name" value={capName} onChange={e => setCapName(e.target.value)} style={capInput} />
-                          <input placeholder="Company" value={capCompany} onChange={e => setCapCompany(e.target.value)} style={capInput} />
-                        </div>
-                        <input type="email" placeholder="Work email, required for the reply" value={capEmail} onChange={e => { setCapEmail(e.target.value); if (capError) setCapError(""); }} style={capInput} />
-                        <div style={{ fontSize: 11, color: capError ? "#FF6B6B" : "rgba(255,255,255,0.45)", marginTop: 8, lineHeight: 1.6 }}>
-                          {capError || "Required only for the expert read, because we have to reply somewhere. The download and the scenario link need nothing. No list, no sequence, no sharing with vendors."}
-                        </div>
                       </div>
                       <a href="/contact" style={{ display: "inline-block", marginTop: 14, color: "rgba(255,255,255,0.5)", fontSize: 12 }}>Prefer the full contact form?</a>
                     </div>
-                  )}
                 </div>
               </div>
             )}
