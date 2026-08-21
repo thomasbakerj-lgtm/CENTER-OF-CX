@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
@@ -11,8 +11,9 @@ const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 
-const CAPTURE_ENDPOINT = "https://formspree.io/f/maqlvwne";
 const TOOL_ID = "staffing-calculator";
+const ROUTE = "/tools/staffing-calculator";
+const METHODOLOGY_VERSION = "staffing-v3.2026.08";
 
 /* Scenario defaults. Only fields that differ travel in the link, so the URL stays short.
    No contact detail is ever encoded: the shape below is the whole payload. */
@@ -215,9 +216,6 @@ export default function StaffingCalculator() {
   const [capOn, setCapOn] = useState(false), [capPct, setCapPct] = useState(85);
   const [showBench, setShowBench] = useState(false);
 
-  const [capOpen, setCapOpen] = useState(false);
-  const [capName, setCapName] = useState(""), [capCompany, setCapCompany] = useState(""), [capEmail, setCapEmail] = useState("");
-  const [capState, setCapState] = useState("idle");
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -254,6 +252,9 @@ export default function StaffingCalculator() {
   const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
 
   const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
+  /* One object, matching DEFAULTS key for key, so scenarioLink diffs cleanly. */
+  const st = { vol, aht, slT, slS, shrink, intv, patience, capOn, capPct, preset };
+
   const cost = staffingCost(r.sched, railPerAgent, railHourly);
   const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
   const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
@@ -284,18 +285,6 @@ export default function StaffingCalculator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vol, intv, aht, shrink, slT, slS, patience, capOn, capPct]);
 
-  const submitCapture = async () => {
-    if (!capEmail.includes("@") || capState === "sending") return;
-    setCapState("sending");
-    try {
-      const res = await fetch(CAPTURE_ENDPOINT, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: capEmail, _replyto: capEmail, name: capName, company: capCompany, tool: "Staffing Calculator", result: `FTE ${r.sched}, base ${r.raw}, occ ${(r.occ * 100).toFixed(1)}%`, _subject: `STAFFING: ${capCompany || capName || capEmail}` }),
-      });
-      if (!res.ok) throw new Error("submit failed " + res.status);
-      setCapState("sent");
-    } catch { setCapState("error"); }
-  };
 
   const occSub = r.capped ? `Held under your ${capPct}% cap. ${occInfo.message}` : occInfo.message;
 
@@ -480,36 +469,47 @@ export default function StaffingCalculator() {
               <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, margin: 0 }}>Erlang C, the industry-standard staffing model, solved via the numerically stable Erlang B recursion (accurate from a handful of agents to several thousand). It assumes random Poisson arrivals, exponential handle times, and infinite caller patience (no abandonment), so it tends to over-staff. Enter an average patience to see the abandonment-adjusted estimate. The optional occupancy cap staffs to the greater of "meets service level" and "occupancy at or below your ceiling." Shrinkage is applied after the agent calculation to convert base agents to scheduled FTE. Erlang C models one contact per agent at a time, so it does not describe chat, messaging, or email, where agents run concurrent sessions. Applying these numbers to a digital queue overstates headcount, often by half or more.</p>
             </div>
 
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "16px 18px", marginTop: 14 }}>
-              {capState === "sent" ? (
-                <div style={{ fontSize: 13, color: GREEN, fontWeight: 600 }}>✓ On its way. Check your inbox for this analysis.</div>
-              ) : !capOpen ? (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 13, color: SLATE }}>Want this analysis sent to you?</span>
-                  <button onClick={() => setCapOpen(true)} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: "transparent", border: `1px solid ${ELECTRIC}`, borderRadius: 7, padding: "9px 16px", cursor: "pointer" }}>Email me this analysis</button>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }} className="stat-grid">
-                    <input placeholder="Name" value={capName} onChange={e => setCapName(e.target.value)} style={{ padding: "10px 12px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none" }} />
-                    <input placeholder="Company" value={capCompany} onChange={e => setCapCompany(e.target.value)} style={{ padding: "10px 12px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none" }} />
-                  </div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <input type="email" placeholder="you@company.com" value={capEmail} onChange={e => setCapEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && submitCapture()} style={{ flex: "1 1 200px", padding: "10px 12px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none" }} />
-                    <button onClick={submitCapture} disabled={!capEmail.includes("@") || capState === "sending"} style={{ fontSize: 13, fontWeight: 700, color: "#fff", background: capEmail.includes("@") ? ELECTRIC : MUTED, border: "none", borderRadius: 6, padding: "10px 18px", cursor: "pointer" }}>{capState === "sending" ? "Sending…" : "Send"}</button>
-                  </div>
-                  {capState === "error" && <div style={{ fontSize: 12, color: RED, marginTop: 6 }}>Couldn't send. Please try again.</div>}
-                  <div style={{ fontSize: 11, color: MUTED, marginTop: 6 }}>Optional. We send this analysis once. No list, no spam.</div>
-                </div>
-              )}
-            </div>
-
             <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap", alignItems: "center" }}>
-              <ReportExport
+              <ReportActions
+                toolId={TOOL_ID}
                 toolName="Staffing Requirement Calculator"
-                subtitle="Erlang C Staffing Analysis"
-                userName={capName}
-                userEmail={capEmail}
+                subtitle={`${r.sched} FTE at ${(r.occ * 100).toFixed(1)}% occupancy, ${fmtMoney(cost.annual)} a year, ${cost.confidence}`}
+                routePath={ROUTE}
+                state={st}
+                defaults={DEFAULTS}
+                confidence={cost.confidence}
+                summary={[
+                  { label: "Base agents required", value: r.raw },
+                  { label: "Scheduled FTE", value: r.sched },
+                  { label: "Occupancy", value: `${(r.occ * 100).toFixed(1)}%` },
+                  { label: "Service level achieved", value: `${(r.sl * 100).toFixed(1)}% vs ${slT}% in ${slS}s target` },
+                  { label: "Annual cost of this plan", value: fmtMoney(cost.annual) },
+                  { label: "Cost basis", value: cost.sourced ? "user figures via rail" : "benchmark median" },
+                  ...(pair.sustainable ? [
+                    { label: "FTE at a sustainable ceiling", value: pair.sustainable.sched },
+                    { label: "Cost of recovery time", value: `${pair.deltaFte} FTE, ${fmtMoney(recoveryAnnual)} a year` },
+                  ] : []),
+                  ...(abandMeaningful ? [{ label: "Estimated abandonment", value: `${(aband.estAband * 100).toFixed(1)}%` }] : []),
+                ]}
+                signals={{
+                  /* Derived signals only. No contact volume, AHT, wage, or company detail
+                     leaves this block. Bands and booleans carry the commercial meaning;
+                     the raw operating data stays in the browser and in the downloaded report. */
+                  methodology_version: METHODOLOGY_VERSION,
+                  severity: !valid.ok ? "high" : occInfo.band === "critical" ? "elevated" : "normal",
+                  model_valid: valid.ok,
+                  has_real_cost_basis: cost.sourced,
+                  priced_recovery_tradeoff: !!pair.sustainable,
+                  ran_abandonment_check: !!abandMeaningful,
+                  set_occupancy_ceiling: capOn,
+                  overrode_defaults: isCustom,
+                  occupancy_band: occInfo.band,
+                  shrinkage_elevated: shrinkInfo.elevated,
+                  premium_service_target: slT >= 88 || slS <= 10,
+                  scale_band: r.sched >= 400 ? "very_large" : r.sched >= 150 ? "large" : r.sched >= 40 ? "mid" : "small",
+                  confidence_class: cost.confidence,
+                  decision_ready_signal: cost.sourced && valid.ok && !!pair.sustainable,
+                }}
                 sections={[
                   { title: "Input Parameters", type: "table", rows: [
                     ["Voice Contacts per Interval", vol.toString()],
