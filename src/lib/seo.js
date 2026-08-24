@@ -271,7 +271,9 @@ export const SEO_MAP = {
     desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and connect with a consultant.",
   },
 };
-const CAT_NAMES = {
+import { CATEGORIES, VERTICALS, hasScoredVerticalFit } from "./verticals.js";
+
+const LEGACY_CAT_NAMES = {
   ccaas: "CCaaS Platforms",
   iva: "IVA + Conversational AI",
   "agent-assist": "Agent Assist",
@@ -282,7 +284,7 @@ const CAT_NAMES = {
   payments: "Payments + Identity",
 };
 
-const VERT_NAMES = {
+const LEGACY_VERT_NAMES = {
   "financial-services": "Financial Services",
   healthcare: "Healthcare",
   retail: "Retail + eCommerce",
@@ -294,6 +296,14 @@ const VERT_NAMES = {
   manufacturing: "Manufacturing",
   education: "Education",
 };
+
+/* Names come from the shared vertical module so they cannot drift from the pages
+   themselves. The legacy maps remain only as a fallback for slugs that predate it. */
+const CAT_NAMES = Object.fromEntries(Object.entries(CATEGORIES).map(([k, v]) => [k, v.name]));
+const VERT_NAMES = Object.fromEntries(Object.entries(VERTICALS).map(([k, v]) => [k, v.name]));
+
+const catName = (s) => CAT_NAMES[s] || LEGACY_CAT_NAMES[s];
+const vertName = (s) => VERT_NAMES[s] || LEGACY_VERT_NAMES[s];
 
 const titleCase = (slug) =>
   slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
@@ -316,22 +326,22 @@ export function resolveSeo(rawPath) {
   if (pathname.startsWith("/vendors/")) {
     const parts = pathname.replace("/vendors/", "").split("/");
     if (parts.length === 2) {
-      const catName = CAT_NAMES[parts[0]] || titleCase(parts[0]);
-      const vertName = VERT_NAMES[parts[1]] || titleCase(parts[1]);
+      const cName = catName(parts[0]) || titleCase(parts[0]);
+      const vName = vertName(parts[1]) || titleCase(parts[1]);
       /* Only CCaaS carries per-vendor vertical fit scoring, so only the ten CCaaS
          pages contain analysis that differs by category. The other seventy render
          the same vertical context under a different heading, which is a doorway
          pattern. They stay reachable and crawlable but noindex until real
          per-category scoring exists. Removing them from the sitemap is not enough:
          internal links will surface them regardless. */
-      const scored = parts[0] === "ccaas" && VERT_NAMES[parts[1]];
+      const scored = hasScoredVerticalFit(parts[0]) && !!vertName(parts[1]);
       seo.known = !!scored;
       seo.title = scored
-        ? `${catName} for ${vertName} | Scored Vendors + Vertical Fit | ${SITE}`
-        : `${catName} for ${vertName} | ${SITE}`;
+        ? `${cName} for ${vName} | Scored Vendors + Vertical Fit | ${SITE}`
+        : `${cName} for ${vName} | ${SITE}`;
       seo.desc = scored
-        ? `${catName} vendors scored for ${vertName}. Vertical fit rankings, compliance requirements, key integration systems, and evaluation guidance specific to ${vertName} contact centers.`
-        : `${vertName} compliance requirements, key integration systems, and evaluation considerations relevant to ${catName}.`;
+        ? `${cName} vendors scored for ${vName}. Vertical fit rankings, compliance requirements, key integration systems, and evaluation guidance specific to ${vName} contact centers.`
+        : `${vName} compliance requirements, key integration systems, and evaluation considerations relevant to ${cName}.`;
     } else {
       const vendorName = titleCase(parts[0]);
       seo.title = `${vendorName} | Vendor Profile | ${SITE}`;
@@ -344,11 +354,11 @@ export function resolveSeo(rawPath) {
   if (pathname.startsWith("/industries/")) {
     const parts = pathname.replace("/industries/", "").split("/");
     if (parts.length === 2) {
-      const vertName = VERT_NAMES[parts[0]] || titleCase(parts[0]);
+      const vName = vertName(parts[0]) || titleCase(parts[0]);
       const subName = titleCase(parts[1]);
-      seo.title = `${subName} CX Intelligence | ${vertName} | ${SITE}`;
+      seo.title = `${subName} CX Intelligence | ${vName} | ${SITE}`;
       seo.known = true;
-      seo.desc = `CX technology intelligence for ${subName} within ${vertName}. Benchmarks, stack mapping, failure modes, and vendor guidance specific to ${subName} operations.`;
+      seo.desc = `CX technology intelligence for ${subName} within ${vName}. Benchmarks, stack mapping, failure modes, and vendor guidance specific to ${subName} operations.`;
     } else {
       const name = titleCase(parts[0]);
       seo.title = `${name} CX Intelligence | ${SITE}`;
