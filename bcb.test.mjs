@@ -17,13 +17,13 @@ function slice(startMarker, endMarker) {
   return SRC.slice(a, b);
 }
 
-const helpers = slice("const n = (v) =>", "function LogoMark");
+const helpers = slice("const STATUS = {", "function LogoMark");
 const consts  = slice("const STANCE = {", "/* De-overlapped model");
 const engine  = slice("function computeCase(", "export default function");
 
 const mod = new Function(
   `${helpers}\n${consts}\n${engine}\n` +
-  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, n, fmtK, fmt2, fmtFull };`
+  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
 )();
 
 const { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE } = mod;
@@ -329,8 +329,9 @@ section("11. confidenceOf, every branch");
   const rNo = computeCase(noPay, "expected", true);
   ok("payback 0 forces Directional regardless of evidence",
      confidenceOf(noPay, rNo, "expected").grade === "Directional");
-  ok("payback 0 raises an open item",
-     confidenceOf(noPay, rNo, "expected").open.some(s => s.includes("does not pay back")));
+  ok("payback 0 raises a horizon-correct open item",
+     confidenceOf(noPay, rNo, "expected").open.some(s =>
+       /does not break even within the three-year evaluation horizon|does not break even at any horizon/.test(s)));
 
   // Boundary exactness on target thresholds.
   const at25 = { ...clean, evidence: "proposal", containment: 25 };
@@ -417,6 +418,135 @@ section("12. Provenance, self-credentialing and marginal staleness");
      rT2.marginalStale === false, `gap ${(rT2.marginalGap * 100).toFixed(1)}%`);
   ok("REGRESSION test 2: Finance-grade is still reachable",
      confidenceOf(t2, rT2, "expected").grade === "Finance-grade");
+}
+
+section("12b. Semantic status, headroom and horizon language");
+{
+  const { roiStatus, paybackStatus } = mod;
+  const T3 = { agents: 387, avgHourly: 20, benefitsPct: 27, monthlyContacts: 250000,
+    currentAHT: 325, currentACW: 54, currentFCR: 69, currentAttrition: 32, costPerContact: 6.25,
+    marginalPerContact: 0, recruitCostPerHire: 3100, trainingDays: 25, htReduction: 13,
+    acwReduction: 22, fcrImprovement: 10, attritionReduction: 25, containment: 14,
+    implementationCost: 521000, newPlatformPerAgentMo: 187, migrationMonths: 12, rampMonths: 7,
+    evidence: "proposal" };
+
+  // Reconciled against the three live test 3 artifacts, to the dollar.
+  // Deterministic spread covering healthy, thin, horizon-failure and never-pays cases.
+  const LOCAL_SET = [T3, D(), { ...T3, implementationCost: 1161000 }, { ...T3, implementationCost: 4000000 },
+    D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 }),
+    { ...T3, containment: 0, htReduction: 0, acwReduction: 0, fcrImprovement: 0, attritionReduction: 0 }];
+
+  const ART = { aggressive: [2665504, 26, 49], expected: [2228325, 30, 25], conservative: [1871377, 35, 5] };
+  for (const [st, [net, pay, roi]] of Object.entries(ART)) {
+    const r = computeCase(T3, st, true);
+    ok(`ARTIFACT ${st}: net reconciles`, Math.round(r.net) === net, `${Math.round(r.net)} vs ${net}`);
+    ok(`ARTIFACT ${st}: payback reconciles`, r.payback === pay, `${r.payback} vs ${pay}`);
+    ok(`ARTIFACT ${st}: ROI reconciles`, Math.round(r.roi3) === roi, `${Math.round(r.roi3)} vs ${roi}`);
+  }
+  const rB = computeCase(T3, "conservative", true);
+  const BK = { containment: 963083, handleTime: 857559, fcr: 591608, attrition: 253253 };
+  for (const [k, v] of Object.entries(BK))
+    ok(`ARTIFACT bucket ${k}`, Math.round(rB.buckets[k]) === v, `${Math.round(rB.buckets[k])} vs ${v}`);
+
+  // Status is one shared reading, asserted as meaning rather than colour.
+  ok("5% three-year ROI reads weak", roiStatus(rB) === "weak", roiStatus(rB));
+  ok("25% three-year ROI reads caution", roiStatus(computeCase(T3, "expected", true)) === "caution");
+  ok("122% three-year ROI reads positive",
+     roiStatus(computeCase(D({ implementationCost: 152677, newPlatformPerAgentMo: 145, migrationMonths: 16, rampMonths: 9, agents: 178, avgHourly: 22.5, benefitsPct: 26.5, monthlyContacts: 95000, currentAHT: 542, currentACW: 50, currentFCR: 68, currentAttrition: 42, costPerContact: 12, recruitCostPerHire: 2700, trainingDays: 30, htReduction: 15, acwReduction: 32.05, fcrImprovement: 10, attritionReduction: 23, containment: 19 }), "expected", true)) === "positive");
+  ok("a negative-ROI case reads fail",
+     roiStatus(computeCase(D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 }), "conservative", true)) === "fail");
+  ok("payback 35 on a 12-month build reads weak", paybackStatus(rB, true) === "weak");
+  ok("payback 30 on a 12-month build reads caution",
+     paybackStatus(computeCase(T3, "expected", true), true) === "caution");
+  ok("no break-even reads fail",
+     paybackStatus(computeCase(D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 }), "expected", true), true) === "fail");
+  ok("the build window never drives the payback status on its own", (() => {
+    const short = computeCase({ ...T3, migrationMonths: 1, rampMonths: 7 }, "conservative", true);
+    const long = computeCase({ ...T3, migrationMonths: 12, rampMonths: 7 }, "conservative", true);
+    return paybackStatus(short, true) === paybackStatus(long, true) ||
+           (long.payback - long.M) !== (short.payback - short.M);
+  })());
+
+  // Headroom is exact, not searched.
+  ok("break-even implementation is savings3 minus three years of platform cost",
+     near(rB.breakEvenImpl, rB.savings3 - rB.recurring * 3, 0.5));
+  ok("headroom per agent reproduces the artifact", Math.round(rB.implHeadroomPerAgent) === 384,
+     String(Math.round(rB.implHeadroomPerAgent)));
+  ok("break-even implementation per agent reproduces the artifact",
+     Math.round(rB.breakEvenImplPerAgent) === 1730, String(Math.round(rB.breakEvenImplPerAgent)));
+  ok("at break-even implementation the three-year value is exactly zero", (() => {
+    const r = computeCase({ ...T3, implementationCost: rB.breakEvenImpl }, "conservative", true);
+    return near(r.netValue3, 0, 1);
+  })());
+  ok("one dollar above break-even implementation turns value negative", (() => {
+    const r = computeCase({ ...T3, implementationCost: rB.breakEvenImpl + 1000 }, "conservative", true);
+    return r.netValue3 < 0 && r.payback === 0;
+  })());
+  ok("headroom collapses as the stance tightens", (() => {
+    const a = computeCase(T3, "aggressive", true).breakEvenImplPerAgent;
+    const e = computeCase(T3, "expected", true).breakEvenImplPerAgent;
+    return a > e && e > rB.breakEvenImplPerAgent;
+  })());
+
+  // Horizon language. "No payback in 36 months" is not "never pays back".
+  ok("a case that clears platform cost still names a true break-even month",
+     rB.postMonthly > 0 && computeCase({ ...T3, implementationCost: 1161000 }, "conservative", true).trueBreakevenMonth === 42,
+     String(computeCase({ ...T3, implementationCost: 1161000 }, "conservative", true).trueBreakevenMonth));
+  ok("a case that never clears platform cost reports no break-even at any horizon", (() => {
+    const r = computeCase(D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), "conservative", true);
+    return r.postMonthly <= 0 && r.trueBreakevenMonth === 0;
+  })());
+  ok("the failure copy distinguishes horizon failure from economic failure", (() => {
+    const horizon = computeCase({ ...T3, implementationCost: 1161000 }, "conservative", true);
+    const never = computeCase(D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), "conservative", true);
+    const hTxt = caseInsights(horizon, { ...T3, implementationCost: 1161000 }, "conservative", confidenceOf({ ...T3, implementationCost: 1161000 }, horizon, "conservative")).join(" ");
+    const nTxt = caseInsights(never, D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), "conservative", confidenceOf(D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), never, "conservative")).join(" ");
+    return /within the three-year evaluation horizon/.test(hTxt) && /at any horizon/.test(nTxt);
+  })());
+  ok("no output ever claims a case simply does not pay back", (() => {
+    for (const d of LOCAL_SET) for (const st of ["aggressive", "expected", "conservative"]) {
+      const r = computeCase(d, st, true), c = confidenceOf(d, r, st);
+      const all = [...c.open, ...caseInsights(r, d, st, c)].join(" ");
+      if (/does not pay back/.test(all)) return false;
+    }
+    return true;
+  })());
+
+  // The implementation warning must price its own advice, never assert an outcome.
+  ok("the implementation warning no longer claims it survives diligence", (() => {
+    for (const d of LOCAL_SET) for (const st of ["aggressive", "expected", "conservative"]) {
+      const r = computeCase(d, st, true), c = confidenceOf(d, r, st);
+      if (/survives diligence/.test(caseInsights(r, d, st, c).join(" "))) return false;
+    }
+    return true;
+  })());
+  ok("the implementation warning reproduces the typical-cost outcome", (() => {
+    const c = confidenceOf(T3, rB, "conservative");
+    const line = caseInsights(rB, T3, "conservative", c).find(t => /Correcting it is the right call/.test(t));
+    return line && line.includes(`${Math.round(rB.typicalRoi3)}%`) && line.includes(`month ${rB.typicalBreakeven}`);
+  })());
+  ok("the typical-cost counterfactual is arithmetically exact", (() => {
+    const alt = computeCase({ ...T3, implementationCost: rB.typicalImpl }, "conservative", true);
+    return near(alt.roi3, rB.typicalRoi3, 0.01) && near(alt.netValue3, rB.typicalValue3, 1);
+  })());
+
+  // Stance-conditional copy. An undiscounted document must not call itself discounted.
+  ok("aggressive never claims savings were discounted for attribution risk", (() => {
+    const r = computeCase(T3, "aggressive", true), c = confidenceOf(T3, r, "aggressive");
+    return !/discounted for attribution/.test(caseInsights(r, T3, "aggressive", c).join(" "));
+  })());
+  ok("the aggressive open item names itself as a stance withholding, not a costing defect", (() => {
+    const c = confidenceOf(T3, computeCase(T3, "aggressive", true), "aggressive");
+    return c.open.some(t => /cost inputs are not the issue/.test(t));
+  })());
+  ok("the aggressive confidence line flags the crossed domain", (() => {
+    const r = computeCase(T3, "aggressive", true), c = confidenceOf(T3, r, "aggressive");
+    return /One of those items is the stance/.test(caseInsights(r, T3, "aggressive", c).join(" "));
+  })());
+  ok("non-aggressive stances carry no stance-withholding item", (() => {
+    const c = confidenceOf(T3, computeCase(T3, "expected", true), "expected");
+    return !c.open.some(t => /withheld/.test(t));
+  })());
 }
 
 /* -------------------------------------------- single-driver dominance ----- */
