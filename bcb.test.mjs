@@ -1,0 +1,703 @@
+// bcb.test.mjs
+// Slices the Business Case Builder engine out of BusinessCaseBuilder.jsx at runtime and
+// tests it directly, so the verified engine and the deployed engine cannot drift apart.
+// Run: node bcb.test.mjs
+//
+// Engine region = helpers, STANCE/EVIDENCE, computeCase, confidenceOf, caseInsights, DEFAULTS.
+
+import { readFileSync } from "node:fs";
+
+const SRC = readFileSync(new URL("./BusinessCaseBuilder.jsx", import.meta.url), "utf8");
+
+function slice(startMarker, endMarker) {
+  const a = SRC.indexOf(startMarker);
+  if (a < 0) throw new Error("engine slice failed, missing: " + startMarker);
+  const b = SRC.indexOf(endMarker, a);
+  if (b < 0) throw new Error("engine slice failed, missing end: " + endMarker);
+  return SRC.slice(a, b);
+}
+
+const helpers = slice("const n = (v) =>", "function LogoMark");
+const consts  = slice("const STANCE = {", "/* De-overlapped model");
+const engine  = slice("function computeCase(", "export default function");
+
+const mod = new Function(
+  `${helpers}\n${consts}\n${engine}\n` +
+  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, n, fmtK, fmt2, fmtFull };`
+)();
+
+const { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE } = mod;
+
+let pass = 0, fail = 0;
+const FAILS = [];
+const near = (a, b, tol = 0.01) => Math.abs(a - b) <= tol;
+function ok(name, cond, detail = "") {
+  if (cond) pass++;
+  else { fail++; FAILS.push(name); console.log(`  FAIL  ${name}${detail ? "  ::  " + detail : ""}`); }
+}
+function section(t) { console.log(`\n${t}`); }
+
+const D = (over = {}) => ({ ...DEFAULTS, ...over });
+
+/* ------------------------------------------------------- reconciliation --- */
+section("1. Reconciliation, default input set");
+{
+  const d = D(), r = computeCase(d, "expected", true);
+  const b = r.buckets;
+  ok("buckets sum to gross", near(b.containment + b.handleTime + b.fcr + b.attrition, r.gross, 0.5),
+     `${b.containment + b.handleTime + b.fcr + b.attrition} vs ${r.gross}`);
+  const cf = STANCE.expected;
+  ok("net = per-lever weighted sum",
+     near(b.containment * cf.c + b.handleTime * cf.h + b.fcr * cf.f + b.attrition * cf.a, r.net, 0.5));
+  ok("haircut = gross - net", near(r.haircut, r.gross - r.net, 0.5));
+  ok("net <= gross for non-aggressive", r.net <= r.gross + 0.5);
+  ok("annual = monthly x 12", near(r.annual, DEFAULTS.monthlyContacts * 12, 0.5));
+  ok("handled + deflected = annual", near(r.handled + r.deflected, r.annual, 0.5));
+  ok("tco3 = impl + recurring x 3", near(r.tco3, d.implementationCost + r.recurring * 3, 0.5));
+  ok("recurring = perAgentMo x agents x 12",
+     near(r.recurring, d.newPlatformPerAgentMo * d.agents * 12, 0.5));
+  ok("netValue3 = savings3 - tco3", near(r.netValue3, r.savings3 - r.tco3, 0.5));
+  ok("roi3 = (savings3 - tco3)/tco3 x 100", near(r.roi3, (r.savings3 - r.tco3) / r.tco3 * 100, 0.01));
+  ok("cumFlow length = 37 (t0..t36)", r.cumFlow.length === 37, String(r.cumFlow.length));
+  ok("cumFlow[0] = -impl", near(r.cumFlow[0], -d.implementationCost, 0.5));
+  ok("year1 <= savings3", r.year1 <= r.savings3 + 0.5);
+}
+
+section("2. Reconciliation, second input set (different shape)");
+{
+  const d = D({ agents: 45, avgHourly: 26, benefitsPct: 22, monthlyContacts: 18500,
+    currentAHT: 610, currentACW: 95, currentFCR: 61, currentAttrition: 48,
+    costPerContact: 11.4, marginalPerContact: 0, recruitCostPerHire: 5200, trainingDays: 30,
+    htReduction: 9, acwReduction: 22, fcrImprovement: 5, attritionReduction: 18, containment: 11,
+    implementationCost: 210000, newPlatformPerAgentMo: 168, migrationMonths: 5, rampMonths: 4 });
+  const r = computeCase(d, "conservative", true);
+  const b = r.buckets;
+  ok("set2 buckets sum to gross", near(b.containment + b.handleTime + b.fcr + b.attrition, r.gross, 0.5));
+  const cf = STANCE.conservative;
+  ok("set2 net = weighted sum",
+     near(b.containment * cf.c + b.handleTime * cf.h + b.fcr * cf.f + b.attrition * cf.a, r.net, 0.5));
+  ok("set2 tco3 identity", near(r.tco3, d.implementationCost + r.recurring * 3, 0.5));
+  ok("set2 netValue3 identity", near(r.netValue3, r.savings3 - r.tco3, 0.5));
+  ok("set2 handled + deflected = annual", near(r.handled + r.deflected, r.annual, 0.5));
+  const manualSavings3 = r.cumFlow[36] + d.implementationCost + r.monthlyPlatform * 36;
+  ok("savings3 reconciles to cumFlow tail", near(manualSavings3, r.savings3, 0.5),
+     `${manualSavings3} vs ${r.savings3}`);
+}
+
+/* ------------------------------------------------------ marginal basis ---- */
+section("3. Marginal provenance, pulled vs derived");
+{
+  const dDerived = D({ marginalPerContact: 0 });
+  const rD = computeCase(dDerived, "expected", true);
+  ok("derived marginal flag is false", rD.marginalPulled === false);
+  ok("derived marginal = AHT/3600 x loaded",
+     near(rD.marginal, (dDerived.currentAHT / 3600) * (dDerived.avgHourly * 1.3), 0.001));
+
+  const dPulled = D({ marginalPerContact: 4.28 });
+  const rP = computeCase(dPulled, "expected", true);
+  ok("pulled marginal flag is true", rP.marginalPulled === true);
+  ok("pulled marginal used verbatim", near(rP.marginal, 4.28, 0.001));
+  ok("derivedMarginal still exposed alongside pulled",
+     near(rP.derivedMarginal, (dPulled.currentAHT / 3600) * (dPulled.avgHourly * 1.3), 0.001));
+  ok("pulled and derived are not silently interchanged", !near(rP.marginal, rP.derivedMarginal, 0.01));
+
+  const dZero = D({ marginalPerContact: 0.0 });
+  ok("marginal 0 falls back to derived", computeCase(dZero, "expected", true).marginalPulled === false);
+  const dNeg = D({ marginalPerContact: -3 });
+  ok("negative marginal falls back to derived, never used",
+     computeCase(dNeg, "expected", true).marginalPulled === false &&
+     computeCase(dNeg, "expected", true).marginal > 0);
+
+  // Savings basis must be marginal, never loaded CPC.
+  const dHiLoaded = D({ costPerContact: 99 });
+  const rHi = computeCase(dHiLoaded, "expected", true);
+  const rBase = computeCase(D(), "expected", true);
+  ok("loaded costPerContact does not touch any bucket", near(rHi.gross, rBase.gross, 0.5));
+}
+
+/* --------------------------------------------------------- ACW clamping --- */
+section("4. ACW clamp and double-count prevention");
+{
+  const d = D({ currentAHT: 300, currentACW: 900, htReduction: 50, acwReduction: 50 });
+  const r = computeCase(d, "expected", true);
+  ok("ACW > AHT cannot produce negative handle-time savings", r.buckets.handleTime >= 0,
+     String(r.buckets.handleTime));
+  const secSaved = (r.buckets.handleTime / r.handled) * 3600 / r.loaded;
+  ok("saved seconds never exceed AHT", secSaved <= d.currentAHT + 0.001, `${secSaved} vs ${d.currentAHT}`);
+
+  const dFull = D({ currentAHT: 420, currentACW: 45, htReduction: 100, acwReduction: 100 });
+  const rF = computeCase(dFull, "expected", true);
+  const secF = (rF.buckets.handleTime / rF.handled) * 3600 / rF.loaded;
+  ok("100/100 reduction saves exactly AHT, not more", near(secF, 420, 0.001), String(secF));
+
+  const dACWonly = D({ currentAHT: 420, currentACW: 45, htReduction: 0, acwReduction: 100 });
+  const rA = computeCase(dACWonly, "expected", true);
+  const secA = (rA.buckets.handleTime / rA.handled) * 3600 / rA.loaded;
+  ok("ACW slice is disjoint from talk-hold", near(secA, 45, 0.001), String(secA));
+
+  const dHTonly = D({ currentAHT: 420, currentACW: 45, htReduction: 100, acwReduction: 0 });
+  const rH = computeCase(dHTonly, "expected", true);
+  const secH = (rH.buckets.handleTime / rH.handled) * 3600 / rH.loaded;
+  ok("talk-hold slice excludes ACW", near(secH, 375, 0.001), String(secH));
+  ok("disjoint slices sum to full AHT", near(secA + secH, 420, 0.001));
+}
+
+/* --------------------------------------------------------- FCR clamping --- */
+section("5. FCR clamp and repeat avoidance");
+{
+  const d = D({ currentFCR: 95, fcrImprovement: 40 });
+  const r = computeCase(d, "expected", true);
+  ok("FCR above 100 is clamped, avoided repeats capped at old repeat pool",
+     near(r.avoidedRepeats, r.handled * 0.05, 0.5), String(r.avoidedRepeats));
+  const d100 = D({ currentFCR: 100, fcrImprovement: 10 });
+  ok("FCR already 100 yields zero avoided repeats",
+     near(computeCase(d100, "expected", true).avoidedRepeats, 0, 0.001));
+  const dNegImp = D({ fcrImprovement: -10 });
+  ok("negative FCR improvement cannot create negative savings",
+     computeCase(dNegImp, "expected", true).buckets.fcr >= 0);
+  const dF = D();
+  const rF = computeCase(dF, "expected", true);
+  ok("FCR valued at marginal, not loaded", near(rF.buckets.fcr, rF.avoidedRepeats * rF.marginal, 0.5));
+  ok("repeats computed on handled pool, not annual",
+     rF.avoidedRepeats < rF.annual * (dF.fcrImprovement / 100) + 0.001);
+}
+
+/* --------------------------------------------------------- containment ---- */
+section("6. Containment and pool integrity");
+{
+  const d100 = D({ containment: 100 });
+  const r = computeCase(d100, "expected", true);
+  ok("100% containment leaves zero handled pool", near(r.handled, 0, 0.001));
+  ok("100% containment zeroes handle-time savings", near(r.buckets.handleTime, 0, 0.001));
+  ok("100% containment zeroes FCR savings", near(r.buckets.fcr, 0, 0.001));
+  ok("100% containment still books deflection", r.buckets.containment > 0);
+  const dOver = D({ containment: 140 });
+  const rO = computeCase(dOver, "expected", true);
+  ok("containment above 100 cannot produce negative handled pool", rO.handled >= 0);
+  const d0 = D({ containment: 0 });
+  ok("0% containment leaves full pool handled",
+     near(computeCase(d0, "expected", true).handled, d0.monthlyContacts * 12, 0.5));
+  ok("containment valued at marginal", near(r.buckets.containment, r.deflected * r.marginal, 0.5));
+}
+
+/* ----------------------------------------------------------- attrition ---- */
+section("7. Attrition lever");
+{
+  const d = D();
+  const r = computeCase(d, "expected", true);
+  const expTurnover = d.agents * (d.currentAttrition - d.currentAttrition * (1 - d.attritionReduction / 100)) / 100;
+  ok("avoided turnover math", near(r.avoidedTurnover, expTurnover, 0.001));
+  const perHire = d.recruitCostPerHire + d.trainingDays * 8 * r.loaded;
+  ok("attrition = avoided turnover x per-hire cost", near(r.buckets.attrition, expTurnover * perHire, 0.5));
+  ok("zero attrition reduction zeroes the lever",
+     near(computeCase(D({ attritionReduction: 0 }), "expected", true).buckets.attrition, 0, 0.001));
+  ok("attrition lever is independent of contact volume",
+     near(computeCase(D({ monthlyContacts: 1 }), "expected", true).buckets.attrition,
+          r.buckets.attrition, 0.5));
+}
+
+/* ------------------------------------------------------------- ramp ------- */
+section("8. Savings phasing and payback");
+{
+  const d = D({ migrationMonths: 9, rampMonths: 6 });
+  const r = computeCase(d, "expected", true);
+  const monthly = r.net / 12;
+  // Reconstruct the factor curve from the flow.
+  const flows = [];
+  for (let t = 1; t <= 36; t++) flows.push(r.cumFlow[t] - r.cumFlow[t - 1] + r.monthlyPlatform);
+  ok("months 1..M earn zero savings", flows.slice(0, 9).every(v => near(v, 0, 0.001)));
+  ok("month M+1 earns 1/R of full", near(flows[9], monthly / 6, 0.01));
+  ok("month M+R earns full", near(flows[14], monthly, 0.01));
+  ok("months after M+R stay full", flows.slice(15).every(v => near(v, monthly, 0.01)));
+  ok("ramp factor is monotonic non-decreasing",
+     flows.every((v, i) => i === 0 || v >= flows[i - 1] - 0.001));
+
+  const rOff = computeCase(d, "expected", false);
+  ok("rampOn=false collapses to 3 x net", near(rOff.savings3, r.net * 3, 0.5));
+  ok("rampOn=false year1 = net", near(rOff.year1, r.net, 0.5));
+  ok("phasing always lengthens or holds payback",
+     rOff.payback === 0 || r.payback === 0 || r.payback >= rOff.payback);
+  ok("phasing reduces 3yr savings vs instant", r.savings3 < rOff.savings3);
+
+  ok("payback is first month cum >= 0",
+     r.payback === 0 || (r.cumFlow[r.payback] >= 0 && r.cumFlow[r.payback - 1] < 0));
+
+  const dNoPay = D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 });
+  const rNo = computeCase(dNoPay, "conservative", true);
+  ok("no payback within 36 months returns 0 sentinel", rNo.payback === 0);
+  ok("no-payback case has negative netValue3", rNo.netValue3 < 0);
+
+  const dM36 = D({ migrationMonths: 60 });
+  ok("migrationMonths clamped to 36", computeCase(dM36, "expected", true).M === 36);
+  const dR0 = D({ rampMonths: 0 });
+  ok("rampMonths floored at 1", computeCase(dR0, "expected", true).R === 1);
+  const dMneg = D({ migrationMonths: -5 });
+  ok("negative migrationMonths floored at 0", computeCase(dMneg, "expected", true).M === 0);
+}
+
+/* ------------------------------------------------------- boundary cases --- */
+section("9. Boundaries and degenerate inputs");
+{
+  const dZeroAgents = D({ agents: 0 });
+  const r0 = computeCase(dZeroAgents, "expected", true);
+  ok("zero agents does not throw", Number.isFinite(r0.gross));
+  ok("zero agents zeroes attrition lever", near(r0.buckets.attrition, 0, 0.001));
+  ok("zero agents zeroes recurring platform cost", near(r0.recurring, 0, 0.001));
+
+  const dZeroVol = D({ monthlyContacts: 0 });
+  const rV = computeCase(dZeroVol, "expected", true);
+  ok("zero volume zeroes all contact levers",
+     near(rV.buckets.containment + rV.buckets.handleTime + rV.buckets.fcr, 0, 0.001));
+  ok("zero volume still books attrition", rV.buckets.attrition > 0);
+
+  const dEmpty = { ...DEFAULTS, agents: "", monthlyContacts: "", currentAHT: "", implementationCost: "" };
+  const rE = computeCase(dEmpty, "expected", true);
+  ok("empty strings coerce to 0 without NaN",
+     Number.isFinite(rE.gross) && Number.isFinite(rE.net) && Number.isFinite(rE.roi3));
+
+  const dNoTco = D({ implementationCost: 0, newPlatformPerAgentMo: 0 });
+  const rT = computeCase(dNoTco, "expected", true);
+  ok("zero TCO does not divide by zero in roi3", Number.isFinite(rT.roi3) && rT.roi3 === 0);
+
+  ok("no bucket is ever negative on default input",
+     Object.values(computeCase(D(), "expected", true).buckets).every(v => v >= 0));
+
+  const wild = D({ currentAHT: 1, currentACW: 1, currentFCR: 0, currentAttrition: 0,
+    htReduction: 0, acwReduction: 0, fcrImprovement: 0, attritionReduction: 0, containment: 0 });
+  const rW = computeCase(wild, "expected", true);
+  ok("all-zero levers produce zero gross", near(rW.gross, 0, 0.001));
+  ok("all-zero levers produce zero net", near(rW.net, 0, 0.001));
+  ok("all-zero levers cannot pay back", rW.payback === 0);
+}
+
+/* ------------------------------------------------------------- stance ----- */
+section("10. Stance monotonicity");
+{
+  const d = D();
+  const a = computeCase(d, "aggressive", true);
+  const e = computeCase(d, "expected", true);
+  const c = computeCase(d, "conservative", true);
+  ok("gross is stance-invariant", near(a.gross, e.gross, 0.5) && near(e.gross, c.gross, 0.5));
+  ok("net decreases aggressive > expected > conservative", a.net > e.net && e.net > c.net);
+  ok("aggressive haircut is zero", near(a.haircut, 0, 0.5));
+  ok("payback lengthens as stance tightens",
+     (c.payback === 0 ? 99 : c.payback) >= (e.payback === 0 ? 99 : e.payback) &&
+     (e.payback === 0 ? 99 : e.payback) >= (a.payback === 0 ? 99 : a.payback));
+  ok("ROI decreases as stance tightens", a.roi3 > e.roi3 && e.roi3 > c.roi3);
+}
+
+/* -------------------------------------------------------- confidence ------ */
+section("11. confidenceOf, every branch");
+{
+  const clean = D({ containment: 15, htReduction: 12, attritionReduction: 20,
+    implementationCost: 750000, agents: 200 }); // per-agent impl = 3750
+  const rc = computeCase(clean, "expected", true);
+
+  ok("proposal + expected + clean targets + impl>=2000 = Finance-grade",
+     confidenceOf({ ...clean, evidence: "proposal" }, rc, "expected").grade === "Finance-grade");
+  ok("quote = Planning-grade",
+     confidenceOf({ ...clean, evidence: "quote" }, rc, "expected").grade === "Planning-grade");
+  ok("estimate = Directional",
+     confidenceOf({ ...clean, evidence: "estimate" }, rc, "expected").grade === "Directional");
+  ok("missing evidence defaults to estimate/Directional",
+     confidenceOf({ ...clean, evidence: undefined }, rc, "expected").grade === "Directional");
+  ok("proposal + aggressive stance downgrades to Planning-grade",
+     confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive").grade === "Planning-grade");
+
+  const aggC = { ...clean, evidence: "proposal", containment: 30 };
+  ok("proposal + aggressive containment target downgrades",
+     confidenceOf(aggC, computeCase(aggC, "expected", true), "expected").grade === "Planning-grade");
+  const aggH = { ...clean, evidence: "proposal", htReduction: 20 };
+  ok("proposal + aggressive HT target downgrades",
+     confidenceOf(aggH, computeCase(aggH, "expected", true), "expected").grade === "Planning-grade");
+  const aggA = { ...clean, evidence: "proposal", attritionReduction: 30 };
+  ok("proposal + aggressive attrition target downgrades",
+     confidenceOf(aggA, computeCase(aggA, "expected", true), "expected").grade === "Planning-grade");
+
+  const thinImpl = { ...clean, evidence: "proposal", implementationCost: 300000 }; // 1500/agent
+  ok("proposal + understated impl downgrades to Planning-grade",
+     confidenceOf(thinImpl, computeCase(thinImpl, "expected", true), "expected").grade === "Planning-grade");
+  const edgeImpl = { ...clean, evidence: "proposal", implementationCost: 400000 }; // exactly 2000
+  ok("per-agent impl exactly 2000 still qualifies",
+     confidenceOf(edgeImpl, computeCase(edgeImpl, "expected", true), "expected").grade === "Finance-grade");
+
+  // Impossible-output block.
+  const noPay = D({ evidence: "proposal", newPlatformPerAgentMo: 5000, implementationCost: 5000000 });
+  const rNo = computeCase(noPay, "expected", true);
+  ok("payback 0 forces Directional regardless of evidence",
+     confidenceOf(noPay, rNo, "expected").grade === "Directional");
+  ok("payback 0 raises an open item",
+     confidenceOf(noPay, rNo, "expected").open.some(s => s.includes("does not pay back")));
+
+  // Boundary exactness on target thresholds.
+  const at25 = { ...clean, evidence: "proposal", containment: 25 };
+  ok("containment exactly 25 is not aggressive",
+     confidenceOf(at25, computeCase(at25, "expected", true), "expected").grade === "Finance-grade");
+  const at15 = { ...clean, evidence: "proposal", htReduction: 15 };
+  ok("htReduction exactly 15 is not aggressive",
+     confidenceOf(at15, computeCase(at15, "expected", true), "expected").grade === "Finance-grade");
+  const at25a = { ...clean, evidence: "proposal", attritionReduction: 25 };
+  ok("attritionReduction exactly 25 is not aggressive",
+     confidenceOf(at25a, computeCase(at25a, "expected", true), "expected").grade === "Finance-grade");
+
+  ok("aggressive stance always raises an open item",
+     confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive").open
+       .some(s => s.includes("Aggressive stance")));
+  ok("clean proposal case has zero open items",
+     confidenceOf({ ...clean, evidence: "proposal" }, rc, "expected").open.length === 0);
+
+  // Zero-agent divide guard in perAgentImpl.
+  const za = D({ agents: 0, evidence: "proposal" });
+  ok("zero agents does not throw in confidenceOf",
+     typeof confidenceOf(za, computeCase(za, "expected", true), "expected").grade === "string");
+}
+
+/* --------------------------------------- self-credentialing / provenance -- */
+section("12. Self-credentialing and provenance");
+{
+  const clean = D({ evidence: "proposal", marginalPerContact: 0 });
+  const rDerived = computeCase(clean, "expected", true);
+  const gDerived = confidenceOf(clean, rDerived, "expected").grade;
+
+  const pulledCase = { ...clean, marginalPerContact: 4.28 };
+  const rPulled = computeCase(pulledCase, "expected", true);
+  const gPulled = confidenceOf(pulledCase, rPulled, "expected").grade;
+
+  ok("DOCUMENTED: confidenceOf never reads marginal provenance", gDerived === gPulled,
+     `derived=${gDerived} pulled=${gPulled}`);
+  ok("DOCUMENTED: a pulled marginal changes the headline savings number",
+     !near(rDerived.net, rPulled.net, 1), `${rDerived.net} vs ${rPulled.net}`);
+
+  // The republish loop: BCB publishes marginalPerContact, which it can then pull back.
+  const republished = +rDerived.marginal.toFixed(2);
+  const rLoop = computeCase({ ...clean, marginalPerContact: republished }, "expected", true);
+  ok("DEFECT: BCB's own published marginal re-enters as marginalPulled=true",
+     rLoop.marginalPulled === true);
+  ok("DEFECT: the loop value equals its own derived value, so the tool labels self-sourced data as inherited",
+     near(rLoop.marginal, rDerived.derivedMarginal, 0.01));
+}
+
+/* -------------------------------------------- single-driver dominance ----- */
+section("13. Single-driver dominance");
+{
+  const d = D();
+  const base = computeCase(d, "expected", true);
+  const drivers = [
+    ["containment", "containment", 15, 30],
+    ["htReduction", "handleTime", 12, 24],
+    ["fcrImprovement", "fcr", 8, 16],
+    ["attritionReduction", "attrition", 20, 40],
+  ];
+  for (const [field, bucket, lo, hi] of drivers) {
+    const rHi = computeCase(D({ [field]: hi }), "expected", true);
+    ok(`doubling ${field} increases only its own bucket materially`,
+       rHi.buckets[bucket] > base.buckets[bucket],
+       `${rHi.buckets[bucket]} vs ${base.buckets[bucket]}`);
+  }
+  // Containment is the one driver with legitimate cross-effects (it shrinks the handled pool).
+  const rC = computeCase(D({ containment: 30 }), "expected", true);
+  ok("raising containment shrinks handle-time and FCR buckets, as designed",
+     rC.buckets.handleTime < base.buckets.handleTime && rC.buckets.fcr < base.buckets.fcr);
+  ok("raising htReduction does not move containment bucket",
+     near(computeCase(D({ htReduction: 24 }), "expected", true).buckets.containment,
+          base.buckets.containment, 0.5));
+  ok("raising attritionReduction does not move any contact bucket",
+     near(computeCase(D({ attritionReduction: 40 }), "expected", true).buckets.fcr, base.buckets.fcr, 0.5));
+}
+
+/* ----------------------------------------------- insights self-consistency */
+section("14. caseInsights self-consistency");
+{
+  const d = D();
+  const r = computeCase(d, "expected", true);
+  const conf = confidenceOf(d, r, "expected");
+  const out = caseInsights(r, d, "expected", conf);
+  ok("insights returns a non-empty array of strings",
+     Array.isArray(out) && out.length > 0 && out.every(s => typeof s === "string"));
+  ok("insights contain zero em-dashes", out.every(s => !s.includes(String.fromCharCode(0x2014))));
+
+  const topShareLine = out.find(s => /% of your case rests on/.test(s));
+  const m = topShareLine && topShareLine.match(/^(\d+)% of your case rests on/);
+  const sorted = Object.entries(r.buckets).sort((a, b) => b[1] - a[1]);
+  ok("stated top-driver share reproduces its own arithmetic",
+     m && Number(m[1]) === Math.round(sorted[0][1] / r.gross * 100),
+     m ? `${m[1]} vs ${Math.round(sorted[0][1] / r.gross * 100)}` : "line not found");
+
+  const marginalLine = out.find(s => /marginal cost of/.test(s));
+  ok("marginal line reproduces r.marginal", marginalLine && marginalLine.includes(mod.fmt2(r.marginal)));
+  ok("marginal line reproduces the loaded CPC it contrasts against",
+     marginalLine && marginalLine.includes(mod.fmt2(d.costPerContact)));
+
+  const haircutLine = out.find(s => /haircut to gross savings/.test(s));
+  ok("haircut line reproduces gross, net and haircut",
+     haircutLine && haircutLine.includes(mod.fmtK(r.haircut)) &&
+     haircutLine.includes(mod.fmtK(r.gross)) && haircutLine.includes(mod.fmtK(r.net)));
+
+  // Zero-gross guard: top-share arithmetic divides by gross.
+  const zero = D({ containment: 0, htReduction: 0, acwReduction: 0, fcrImprovement: 0, attritionReduction: 0 });
+  const rZ = computeCase(zero, "expected", true);
+  const outZ = caseInsights(rZ, zero, "expected", confidenceOf(zero, rZ, "expected"));
+  ok("zero-gross case does not print NaN",
+     outZ.every(s => !/NaN/.test(s)), outZ.filter(s => /NaN/.test(s)).join(" | "));
+  ok("zero-gross case does not print Infinity",
+     outZ.every(s => !/Infinity/.test(s)));
+
+  // Ramp insight arithmetic.
+  const rR = computeCase(D(), "expected", true);
+  const outR = caseInsights(rR, D(), "expected", confidenceOf(D(), rR, "expected"));
+  const rampLine = outR.find(s => /idealized \d+ months to a realistic/.test(s));
+  if (rampLine) {
+    const mm = rampLine.match(/idealized (\d+) months to a realistic (\d+)/);
+    const instMonthly = rR.monthlyFull - rR.monthlyPlatform;
+    const instPay = instMonthly > 0 ? Math.ceil(DEFAULTS.implementationCost / instMonthly) : 0;
+    ok("ramp insight reproduces its own idealized payback", Number(mm[1]) === instPay, `${mm[1]} vs ${instPay}`);
+    ok("ramp insight reproduces the real payback", Number(mm[2]) === rR.payback, `${mm[2]} vs ${rR.payback}`);
+  } else { ok("ramp insight present on default input", false, "line missing"); }
+
+  const flagged = D({ containment: 40, htReduction: 25, attritionReduction: 35 });
+  const rF = computeCase(flagged, "expected", true);
+  const outF = caseInsights(rF, flagged, "expected", confidenceOf(flagged, rF, "expected"));
+  ok("flags are capped at two even when three fire", outF.filter(s =>
+     /above the 10 to 25%|is aggressive\.|attrition reduction is optimistic/.test(s)).length <= 2);
+}
+
+/* ------------------------------------------------ publish contract -------- */
+section("15. Suite publish contract");
+{
+  const d = D(), r = computeCase(d, "expected", true);
+  const conf = confidenceOf(d, r, "expected");
+  const published = {
+    agents: d.agents, annualContacts: r.annual, monthlyContacts: d.monthlyContacts,
+    grossSavings: Math.round(r.gross), netSavings: Math.round(r.net),
+    marginalPerContact: +r.marginal.toFixed(2), stance: "expected",
+    paybackMonths: r.payback, threeYearROI: Math.round(r.roi3),
+    implementationCost: d.implementationCost, year1Savings: Math.round(r.year1),
+    rampOn: true, migrationMonths: r.M, rampMonths: r.R,
+    confidence: conf.grade, analystRead: caseInsights(r, d, "expected", conf)[0],
+  };
+  const registered = ["agents", "annualContacts", "monthlyContacts", "marginalPerContact",
+    "confidence", "analystRead"];
+  const unregistered = Object.keys(published).filter(k => !registered.includes(k));
+  ok("annualContacts published is monthly x 12", near(published.annualContacts, d.monthlyContacts * 12, 0.5));
+  ok("marginalPerContact published matches engine", near(published.marginalPerContact, r.marginal, 0.005));
+  ok("DOCUMENTED: unregistered publish keys exist", unregistered.length > 0, unregistered.join(", "));
+  ok("no rate metric is published as a percent",
+     published.marginalPerContact < 1000);
+  ok("DEFECT: containment target is not published as containmentRate",
+     published.containmentRate === undefined);
+}
+
+
+/* ---- pass two scaffolding: display-layer reconciliation and adversarial sweep ---- */
+const parseK = (s) => {
+  if (s.endsWith("M")) return parseFloat(s.slice(1, -1)) * 1e6;
+  if (s.endsWith("K")) return parseFloat(s.slice(1, -1)) * 1e3;
+  return parseFloat(s.slice(1).replace(/,/g, ""));
+};
+const parseFull = (s) => parseFloat(s.slice(1).replace(/,/g, ""));
+const { fmtK, fmtFull } = mod;
+let seed = 20260824;
+const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+const pick = (lo, hi) => lo + rnd() * (hi - lo);
+function randomCase() {
+  return {
+    agents: Math.round(pick(5, 3000)),
+    avgHourly: +pick(11, 45).toFixed(2),
+    benefitsPct: +pick(0, 55).toFixed(1),
+    monthlyContacts: Math.round(pick(500, 2500000)),
+    currentAHT: Math.round(pick(90, 1500)),
+    currentACW: Math.round(pick(0, 400)),
+    currentFCR: +pick(35, 95).toFixed(1),
+    currentAttrition: +pick(5, 190).toFixed(1),
+    costPerContact: +pick(2, 40).toFixed(2),
+    marginalPerContact: rnd() > 0.5 ? +pick(0.5, 25).toFixed(2) : 0,
+    recruitCostPerHire: Math.round(pick(500, 15000)),
+    trainingDays: Math.round(pick(1, 90)),
+    htReduction: +pick(0, 45).toFixed(1),
+    acwReduction: +pick(0, 80).toFixed(1),
+    fcrImprovement: +pick(0, 35).toFixed(1),
+    attritionReduction: +pick(0, 60).toFixed(1),
+    containment: +pick(0, 70).toFixed(1),
+    implementationCost: Math.round(pick(0, 12000000)),
+    newPlatformPerAgentMo: +pick(0, 600).toFixed(2),
+    migrationMonths: Math.round(pick(0, 24)),
+    rampMonths: Math.round(pick(1, 18)),
+    evidence: ["estimate", "quote", "proposal"][Math.floor(rnd() * 3)],
+  };
+}
+
+const STANCES = ["aggressive", "expected", "conservative"];
+const N = 3000;
+const cases = [];
+for (let i = 0; i < N; i++) cases.push([randomCase(), STANCES[Math.floor(rnd() * 3)], rnd() > 0.25]);
+
+/* ------------------------------------------------------------------------ */
+section(`A. Engine invariants across ${N} randomized cases`);
+{
+  let negBucket = 0, nanOut = 0, bucketSumDrift = 0, netGtGross = 0,
+      poolDrift = 0, tcoDrift = 0, roiDrift = 0, secOverAHT = 0, paybackBad = 0,
+      infOut = 0, savings3Drift = 0;
+  for (const [d, st, ramp] of cases) {
+    const r = computeCase(d, st, ramp);
+    const b = r.buckets;
+    if (Object.values(b).some(v => v < -0.001)) negBucket++;
+    if (Object.values(b).some(v => !Number.isFinite(v)) || !Number.isFinite(r.net) || !Number.isFinite(r.roi3)) nanOut++;
+    if (!Number.isFinite(r.savings3) || !Number.isFinite(r.netValue3)) infOut++;
+    if (Math.abs(b.containment + b.handleTime + b.fcr + b.attrition - r.gross) > 0.5) bucketSumDrift++;
+    if (st !== "aggressive" && r.net > r.gross + 0.5) netGtGross++;
+    if (Math.abs(r.handled + r.deflected - r.annual) > 0.5) poolDrift++;
+    if (Math.abs(r.tco3 - (d.implementationCost + r.recurring * 3)) > 0.5) tcoDrift++;
+    if (r.tco3 > 0 && Math.abs(r.roi3 - (r.savings3 - r.tco3) / r.tco3 * 100) > 0.01) roiDrift++;
+    if (r.handled > 0) {
+      const sec = (b.handleTime / r.handled) * 3600 / r.loaded;
+      if (sec > d.currentAHT + 0.01) secOverAHT++;
+    }
+    if (r.payback > 0 && !(r.cumFlow[r.payback] >= 0 && r.cumFlow[r.payback - 1] < 0)) paybackBad++;
+    const s3 = r.cumFlow[36] + d.implementationCost + r.monthlyPlatform * 36;
+    if (Math.abs(s3 - r.savings3) > 0.5) savings3Drift++;
+  }
+  ok("no negative bucket in any case", negBucket === 0, `${negBucket} cases`);
+  ok("no NaN in any output", nanOut === 0, `${nanOut} cases`);
+  ok("no non-finite savings3 or netValue3", infOut === 0, `${infOut} cases`);
+  ok("buckets always sum to gross", bucketSumDrift === 0, `${bucketSumDrift} cases`);
+  ok("net never exceeds gross off aggressive", netGtGross === 0, `${netGtGross} cases`);
+  ok("handled + deflected always equals annual", poolDrift === 0, `${poolDrift} cases`);
+  ok("tco3 identity always holds", tcoDrift === 0, `${tcoDrift} cases`);
+  ok("roi3 identity always holds", roiDrift === 0, `${roiDrift} cases`);
+  ok("saved seconds never exceed AHT", secOverAHT === 0, `${secOverAHT} cases`);
+  ok("payback is always the true first crossing", paybackBad === 0, `${paybackBad} cases`);
+  ok("savings3 always reconciles to the cash flow", savings3Drift === 0, `${savings3Drift} cases`);
+}
+
+/* ------------------------------------------------------------------------ */
+section("B. Display rounding, UI bucket strip vs stated gross");
+{
+  let kDrift = 0, worst = 0, worstCase = null, pctDrift = 0, worstPct = 0;
+  for (const [d, st, ramp] of cases) {
+    const r = computeCase(d, st, ramp);
+    if (r.gross <= 0) continue;
+    const rows = Object.values(r.buckets);
+    const shownSum = rows.reduce((a, v) => a + parseK(fmtK(v)), 0);
+    const shownGross = parseK(fmtK(r.gross));
+    const drift = Math.abs(shownSum - shownGross);
+    const relative = drift / Math.max(1, shownGross);
+    if (relative > 0.005) { kDrift++; if (relative > worst) { worst = relative; worstCase = { rows: rows.map(fmtK), gross: fmtK(r.gross), shownSum, shownGross }; } }
+    const pcts = rows.map(v => Math.round(v / r.gross * 100)).reduce((a, b) => a + b, 0);
+    if (pcts !== 100) { pctDrift++; worstPct = Math.max(worstPct, Math.abs(pcts - 100)); }
+  }
+  ok("DEFECT SCAN: rounded bucket strip sums to stated gross within 0.5%", kDrift === 0,
+     `${kDrift}/${cases.length} cases drift, worst ${(worst * 100).toFixed(2)}%` +
+     (worstCase ? ` :: rows ${worstCase.rows.join(" + ")} shown against gross ${worstCase.gross}` : ""));
+  ok("DEFECT SCAN: displayed bucket percentages sum to 100", pctDrift === 0,
+     `${pctDrift}/${cases.length} cases off, worst by ${worstPct} points`);
+}
+
+section("C. Display rounding, PDF savings table vs executive summary");
+{
+  let drift = 0, worst = 0, sample = null, pctDrift = 0;
+  for (const [d, st, ramp] of cases) {
+    const r = computeCase(d, st, ramp);
+    if (r.gross <= 0) continue;
+    const rowVals = Object.values(r.buckets).map(v => parseFull(fmtFull(v)));
+    const sum = rowVals.reduce((a, b) => a + b, 0);
+    const dd = Math.abs(sum - r.gross);
+    if (dd > 2.5) { drift++; if (dd > worst) { worst = dd; sample = { rowVals, gross: r.gross }; } }
+    const pcts = Object.values(r.buckets).map(v => Math.round(v / r.gross * 100)).reduce((a, b) => a + b, 0);
+    if (pcts !== 100) pctDrift++;
+  }
+  ok("PDF full-dollar rows sum to gross within rounding", drift === 0,
+     `${drift} cases, worst $${worst.toFixed(2)}` + (sample ? ` :: ${sample.rowVals.join("+")} vs ${sample.gross}` : ""));
+  ok("PDF percent-of-gross column sums to 100", pctDrift === 0, `${pctDrift}/${cases.length} cases`);
+}
+
+/* ------------------------------------------------------------------------ */
+section("D. Insight text reproduces its own arithmetic, swept");
+{
+  let nanLine = 0, infLine = 0, shareMismatch = 0, rampMismatch = 0, emDash = 0;
+  const nanSamples = [];
+  for (const [d, st, ramp] of cases) {
+    const r = computeCase(d, st, ramp);
+    const conf = confidenceOf(d, r, st);
+    const out = caseInsights(r, d, st, conf);
+    for (const s of out) {
+      if (/NaN/.test(s)) { nanLine++; if (nanSamples.length < 2) nanSamples.push(s.slice(0, 90)); }
+      if (/Infinity/.test(s)) infLine++;
+      if (s.includes(String.fromCharCode(0x2014))) emDash++;
+    }
+    const share = out.find(s => /% of your case rests on/.test(s));
+    if (share && r.gross > 0) {
+      const m = share.match(/^(\d+)% of your case rests on/);
+      const sorted = Object.entries(r.buckets).sort((a, b) => b[1] - a[1]);
+      if (!m || Number(m[1]) !== Math.round(sorted[0][1] / r.gross * 100)) shareMismatch++;
+    }
+    const rampLine = out.find(s => /idealized (\d+) months to a realistic (\d+)/.test(s));
+    if (rampLine) {
+      const mm = rampLine.match(/idealized (\d+) months to a realistic (\d+)/);
+      const instMonthly = r.monthlyFull - r.monthlyPlatform;
+      const instPay = instMonthly > 0 ? Math.ceil(mod.n(d.implementationCost) / instMonthly) : 0;
+      if (Number(mm[1]) !== instPay || Number(mm[2]) !== r.payback) rampMismatch++;
+    }
+  }
+  ok("DEFECT SCAN: no insight line ever prints NaN", nanLine === 0,
+     `${nanLine} lines. e.g. ${nanSamples.join(" | ")}`);
+  ok("no insight line ever prints Infinity", infLine === 0, `${infLine} lines`);
+  ok("top-driver share always reproduces its own arithmetic", shareMismatch === 0, `${shareMismatch} cases`);
+  ok("ramp insight always reproduces both paybacks", rampMismatch === 0, `${rampMismatch} cases`);
+  ok("no em-dash generated at runtime", emDash === 0, `${emDash} lines`);
+}
+
+/* ------------------------------------------------------------------------ */
+section("E. Impossible outputs and grade sanity, swept");
+{
+  let financeNoPay = 0, financeAggressive = 0, financeThinImpl = 0,
+      zeroSavingsPayback = 0, gradeUndefined = 0, negRoiFinance = 0;
+  const zeroSamples = [];
+  for (const [d, st, ramp] of cases) {
+    const r = computeCase(d, st, ramp);
+    const c = confidenceOf(d, r, st);
+    if (!["Directional", "Planning-grade", "Finance-grade"].includes(c.grade)) gradeUndefined++;
+    if (c.grade === "Finance-grade" && r.payback === 0) financeNoPay++;
+    if (c.grade === "Finance-grade" && st === "aggressive") financeAggressive++;
+    const pai = d.agents > 0 ? d.implementationCost / d.agents : 0;
+    if (c.grade === "Finance-grade" && pai < 2000) financeThinImpl++;
+    if (c.grade === "Finance-grade" && r.netValue3 < 0) negRoiFinance++;
+    if (r.gross <= 0.01 && r.payback > 0) {
+      zeroSavingsPayback++;
+      if (zeroSamples.length < 3) zeroSamples.push(
+        `payback=${r.payback} impl=${d.implementationCost} platMo=${d.newPlatformPerAgentMo} agents=${d.agents} grade=${c.grade}`);
+    }
+  }
+  ok("grade is always one of three values", gradeUndefined === 0, `${gradeUndefined} cases`);
+  ok("Finance-grade never coexists with no payback", financeNoPay === 0, `${financeNoPay} cases`);
+  ok("Finance-grade never coexists with aggressive stance", financeAggressive === 0, `${financeAggressive} cases`);
+  ok("Finance-grade never coexists with understated implementation", financeThinImpl === 0, `${financeThinImpl} cases`);
+  ok("DEFECT SCAN: Finance-grade never coexists with negative 3-year value", negRoiFinance === 0,
+     `${negRoiFinance} cases`);
+  ok("DEFECT SCAN: a case with zero savings never reports a payback", zeroSavingsPayback === 0,
+     `${zeroSavingsPayback} cases. e.g. ${zeroSamples.join(" || ")}`);
+}
+
+/* ------------------------------------------------------------------------ */
+section("F. Targeted zero-cost and zero-savings edges");
+{
+  const free = { ...DEFAULTS, implementationCost: 0, newPlatformPerAgentMo: 0,
+    containment: 0, htReduction: 0, acwReduction: 0, fcrImprovement: 0, attritionReduction: 0,
+    evidence: "proposal" };
+  const rF = computeCase(free, "expected", true);
+  const cF = confidenceOf(free, rF, "expected");
+  ok("zero investment + zero savings: gross is zero", Math.abs(rF.gross) < 0.001);
+  ok("DEFECT: zero investment + zero savings reports payback month 1", rF.payback !== 1,
+     `payback=${rF.payback}`);
+  ok("DEFECT: that empty case is not awarded Finance-grade", cF.grade !== "Finance-grade",
+     `grade=${cF.grade}, roi3=${rF.roi3}, netValue3=${rF.netValue3}`);
+
+  const freeInf = { ...DEFAULTS, implementationCost: 0, newPlatformPerAgentMo: 0, evidence: "proposal" };
+  const rI = computeCase(freeInf, "expected", true);
+  ok("DEFECT: real savings at zero cost report 0% ROI rather than unbounded",
+     !(rI.savings3 > 0 && rI.roi3 === 0), `savings3=${Math.round(rI.savings3)} roi3=${rI.roi3}`);
+  ok("netValue3 still tells the truth when tco3 is zero", rI.netValue3 > 0);
+}
+
+console.log(`\n${"=".repeat(64)}`);
+console.log(`PASS ${pass}   FAIL ${fail}   TOTAL ${pass + fail}`);
+if (FAILS.length) console.log("\nFailures:\n" + FAILS.map(f => "  - " + f).join("\n"));
