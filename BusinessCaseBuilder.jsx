@@ -26,6 +26,28 @@ const TOOL_LABELS = {
 };
 const toolLabel = (id) => TOOL_LABELS[id] || (id ? String(id).replace(/-/g, " ") : "another tool");
 
+// ONE status vocabulary, consumed by the UI cards, the PDF metric tiles and the analyst
+// copy. Three independent readings of the same number is how a 5% three-year ROI came to
+// print amber on screen and green in the document. Tests assert the state, never a colour.
+const STATUS = { positive: "positive", caution: "caution", weak: "weak", fail: "fail" };
+// 100% over three years is roughly 26% a year. 50% is roughly 15%, near a common hurdle.
+// Below 15% total the case is barely clearing its own cost of capital; below zero it destroys value.
+function roiStatus(r) {
+  if (!r.roiDefined) return STATUS.caution;
+  if (r.roi3 < 0) return STATUS.fail;
+  if (r.roi3 < 15) return STATUS.weak;
+  if (r.roi3 < 50) return STATUS.caution;
+  return STATUS.positive;
+}
+// Payback is judged on the months the business waits AFTER go-live. The build window is a
+// stated cost, not an alarm, so a 12-month migration must not make every honest answer red.
+function paybackStatus(r, rampOn) {
+  if (r.payback === 0) return STATUS.fail;
+  const post = r.payback - (rampOn ? r.M : 0);
+  return post <= 12 ? STATUS.positive : post <= 18 ? STATUS.caution : STATUS.weak;
+}
+const STATUS_COLOR = (st, C) => st === "positive" ? C.green : st === "caution" ? C.amber : C.red;
+
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const fmtK = (v) => v >= 1000000 ? "$" + (v / 1000000).toFixed(2) + "M" : v >= 1000 ? "$" + (v / 1000).toFixed(0) + "K" : "$" + Math.round(v).toLocaleString();
 const fmtFull = (v) => "$" + Math.round(v).toLocaleString();
@@ -169,7 +191,38 @@ function computeCase(d, stanceKey, rampOn) {
   const roi3 = roiDefined ? ((savings3 - tco3) / tco3 * 100) : 0;
   const netValue3 = savings3 - tco3;
 
-  return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal, annual, handled, deflected, buckets, pct, gross, net, haircut: gross - net, recurring, tco3, roi3, roiDefined, payback, netValue3, avoidedTurnover, avoidedRepeats, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, rampOn };
+  // How much implementation cost this case can absorb before three-year value turns negative.
+  // savings3 does not depend on implementation, so this is exact rather than a search.
+  // Cumulative cash at month 36 IS netValue3, so break-even-by-36 and zero-three-year-value
+  // are the same threshold; there is no second definition to keep in sync.
+  const postMonthly = monthlyFull - monthlyPlatform;
+  const breakEvenImpl = Math.max(0, savings3 - recurring * 3);
+  const agentsN = n(d.agents);
+  const breakEvenImplPerAgent = agentsN > 0 ? breakEvenImpl / agentsN : 0;
+  const implHeadroom = breakEvenImpl - impl;
+  const implHeadroomPerAgent = agentsN > 0 ? implHeadroom / agentsN : 0;
+
+  // The month cumulative cash actually turns positive, which may sit beyond the evaluation
+  // horizon. "No payback in 36 months" and "never pays back" are different investment
+  // conclusions and the tool must not collapse them.
+  const monthsBeyond = postMonthly > 0 ? Math.ceil(-netValue3 / postMonthly) : 0;
+  const trueBreakevenMonth = payback > 0 ? payback : (postMonthly > 0 ? 36 + monthsBeyond : 0);
+
+  // The same case priced at the bottom of the range this tool calls typical ($3K per agent).
+  // Lets the implementation warning state its own consequence instead of asserting one.
+  const TYPICAL_PER_AGENT = 3000;
+  const typicalImpl = TYPICAL_PER_AGENT * agentsN;
+  const typicalTco3 = typicalImpl + recurring * 3;
+  const typicalValue3 = savings3 - typicalTco3;
+  const typicalRoi3 = typicalTco3 > 0 ? typicalValue3 / typicalTco3 * 100 : 0;
+  let typicalPayback = 0;
+  for (let t = 1; t <= 36; t++) { if (cumFlow[t] + impl - typicalImpl >= 0) { typicalPayback = t; break; } }
+  const typicalBreakeven = typicalPayback > 0 ? typicalPayback
+    : (postMonthly > 0 ? 36 + Math.ceil(-typicalValue3 / postMonthly) : 0);
+
+  return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal, annual, handled, deflected, buckets, pct, gross, net, haircut: gross - net, recurring, tco3, roi3, roiDefined, payback, netValue3, avoidedTurnover, avoidedRepeats, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, postMonthly, rampOn,
+    breakEvenImpl, breakEvenImplPerAgent, implHeadroom, implHeadroomPerAgent,
+    trueBreakevenMonth, TYPICAL_PER_AGENT, typicalImpl, typicalValue3, typicalRoi3, typicalPayback, typicalBreakeven };
 }
 
 // Evidence-confidence: how bookable the cost and target inputs are, degraded by
@@ -184,9 +237,15 @@ function confidenceOf(d, r, stanceKey) {
   if (n(d.htReduction) > 15) { open.push(`Handle-time reduction of ${n(d.htReduction)}% is above the 8 to 15% typical range.`); aggressiveTargets = true; }
   if (n(d.attritionReduction) > 25) { open.push(`Attrition reduction of ${n(d.attritionReduction)}% is optimistic and hard to attribute to a platform.`); aggressiveTargets = true; }
   if (perAgentImpl > 0 && perAgentImpl < 2000) open.push(`Implementation of ${fmtFull(perAgentImpl)} per agent looks understated for a platform transformation.`);
-  if (r.payback === 0) open.push("The case does not pay back within three years as modeled.");
+  if (r.payback === 0) open.push(r.trueBreakevenMonth > 0
+    ? `The case does not break even within the three-year evaluation horizon. On the same assumptions cumulative cash turns positive in month ${r.trueBreakevenMonth}.`
+    : "Modeled savings never exceed the monthly platform cost, so the case does not break even at any horizon.");
+  if (r.breakEvenImplPerAgent > 0 && r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT)
+    open.push(`Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent of implementation, which is below the ${fmtFull(r.TYPICAL_PER_AGENT)} floor of a typical platform transformation.`);
   if (r.marginalStale) open.push(`The inherited marginal cost of ${fmt2(r.marginal)} per contact is ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage entered here. One of the two is describing a different operation.`);
-  if (stanceKey === "aggressive") open.push("Aggressive stance books full modeled savings with no attribution haircut.");
+  // The aggressive stance is not a cost defect, and this list is scoped to cost inputs. It
+  // still withholds the badge, so say that plainly rather than filing it as a costing problem.
+  if (stanceKey === "aggressive") open.push("Finance-grade is withheld because the Aggressive stance presents savings with no attribution haircut. The cost inputs are not the issue; the badge is not awarded to a document whose savings side is undiscounted.");
 
   let grade;
   if (r.payback === 0) grade = "Directional";
@@ -203,13 +262,32 @@ function caseInsights(r, d, stanceKey, conf) {
   if (n(d.htReduction) > 15) flags.push(`A ${n(d.htReduction)}% handle-time reduction is aggressive. 8 to 15% is typical even with AI assist, so treat anything above 15% as upside, not base case.`);
   if (n(d.attritionReduction) > 25) flags.push(`${n(d.attritionReduction)}% attrition reduction is optimistic (15 to 25% is realistic) and the hardest lever to attribute to a platform. Discount it heavily or footnote it.`);
   const perAgentImpl = n(d.agents) > 0 ? n(d.implementationCost) / n(d.agents) : 0;
-  if (perAgentImpl > 0 && perAgentImpl < 2000) flags.push(`Implementation of ${fmtFull(n(d.implementationCost))} for ${n(d.agents)} agents is about ${fmtFull(perAgentImpl)} per agent, low for a platform transformation (typical $3 to 8K per agent). An understated investment is the fastest way to lose board trust. A complete figure lengthens payback but survives diligence.`);
-  if (r.payback === 0) flags.push(`At this platform cost, monthly savings never exceed monthly platform spend within three years, so the case does not pay back as modeled. Revisit platform cost, targets, or stance before presenting.`);
+  if (perAgentImpl > 0 && perAgentImpl < 2000) {
+    // Never assert that a corrected figure "survives diligence". The model can check that,
+    // and on a thin case a complete figure does not lengthen payback, it removes it.
+    const atTypical = r.typicalBreakeven === 0
+      ? `the case would not break even at any horizon`
+      : r.typicalPayback > 0
+        ? `this case still returns ${Math.round(r.typicalRoi3)}% over three years with a ${r.typicalPayback}-month payback`
+        : `this case returns ${Math.round(r.typicalRoi3)}% over three years and does not break even until month ${r.typicalBreakeven}, outside the horizon`;
+    flags.push(`Implementation of ${fmtFull(n(d.implementationCost))} for ${n(d.agents)} agents is about ${fmtFull(perAgentImpl)} per agent, low for a platform transformation (typical $3 to 8K per agent). Correcting it is the right call, and this is what it costs: at ${fmtFull(r.TYPICAL_PER_AGENT)} per agent, ${atTypical}.`);
+  }
+  if (r.payback === 0) flags.push(r.postMonthly <= 0
+    ? `At full run-rate, monthly savings of ${fmtFull(r.monthlyFull)} do not cover the ${fmtFull(r.monthlyPlatform)} monthly platform cost, so this case does not break even at any horizon, not merely within three years. Revisit platform cost, targets, or stance before presenting.`
+    : `The case does not break even within the three-year evaluation horizon. Run-rate savings do exceed platform cost by ${fmtFull(r.postMonthly)} a month, so cumulative cash turns positive in month ${r.trueBreakevenMonth}. Present it as a longer-horizon investment or reduce the implementation figure, but do not present it as a three-year payback.`);
   else if (r.payback > 0 && r.payback < 3) flags.push(`A ${r.payback}-month payback reads as too good to be true and invites scrutiny. Confirm the investment captures professional services, change management, and internal time before you present it.`);
 
   if (r.marginalStale) flags.unshift(`Your savings basis of ${fmt2(r.marginal)} per contact came from another tool, but the AHT and wage on this page imply ${fmt2(r.derivedMarginal)}, a gap of ${Math.round(r.marginalGap * 100)}%. Every deflection and FCR dollar in this case is priced at the inherited figure. Reconcile the two before you present, because a reviewer who divides your savings by your contact volume will find the discrepancy.`);
 
+  // Headroom to failure. More useful than any generic fragility threshold, because it names
+  // how fragile, to what, and exactly where the cliff sits.
+  const headroomLine = r.breakEvenImplPerAgent > 0 && r.payback > 0
+    ? `This case carries ${fmtFull(r.implHeadroomPerAgent)} per agent of implementation headroom. Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent against the ${fmtFull(n(d.implementationCost) / Math.max(1, n(d.agents)))} you entered.${r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT ? ` That cliff sits below the ${fmtFull(r.TYPICAL_PER_AGENT)} per agent that is the floor of a typical platform transformation, so this case cannot absorb a normal implementation cost on the ${stanceKey} stance.` : ""}`
+    : null;
+  if (headroomLine && r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT) flags.unshift(headroomLine);
+
   const out = [...flags.slice(0, 2)];
+  if (headroomLine && !out.includes(headroomLine)) out.push(headroomLine);
 
   // The differentiator, stated plainly so a blind user understands why the number is smaller than a vendor's.
   out.push(`Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the labor that actually disappears, not the fully loaded ${fmt2(n(d.costPerContact))}. That is the same basis the TCO Calculator uses, so the two tools agree on the same contact and a finance reviewer cannot pit one against the other.`);
@@ -234,7 +312,7 @@ function caseInsights(r, d, stanceKey, conf) {
   else
     out.push(`The ${stanceKey} stance applies a ${fmtK(r.haircut)} haircut to gross savings. Presenting gross ${fmtK(r.gross)} and net ${fmtK(r.net)} side by side signals you have already stress-tested your own numbers.`);
 
-  if (conf) out.push(`Cost-input confidence reads ${conf.grade}${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} to close before you call the investment side final` : ""}. That badge rates how bookable the cost inputs are, not whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
+  if (conf) out.push(`Cost-input confidence reads ${conf.grade}${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} to close before you call the investment side final` : ""}. That badge rates how bookable the cost inputs are, not whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.${stanceKey === "aggressive" ? " One of those items is the stance, not a costing problem: the badge is withheld from a document whose savings side carries no haircut." : ""}`);
 
   return out;
 }
@@ -321,8 +399,11 @@ export default function BusinessCaseBuilder() {
   // migration makes any payback under 16 impossible, so absolute 12/18 thresholds painted the
   // honest phased answer red while the ROI tile beside it read green on the same case. The
   // build window is a stated cost, not an alarm; the wait after go-live is the signal.
-  const postGoLive = r.payback > 0 ? r.payback - (rampOn ? r.M : 0) : null;
-  const paybackColor = postGoLive === null ? RED : postGoLive <= 12 ? GREEN : postGoLive <= 18 ? AMBER : RED;
+  const C = { green: GREEN, amber: AMBER, red: RED };
+  const stPayback = paybackStatus(r, rampOn);
+  const stRoi = roiStatus(r);
+  const paybackColor = STATUS_COLOR(stPayback, C);
+  const roiColor = r.roiDefined ? STATUS_COLOR(stRoi, C) : MUTED;
 
   // Publish through the shared normalizer so units and provenance are canonical on the rail.
   useEffect(() => {
@@ -509,7 +590,7 @@ export default function BusinessCaseBuilder() {
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{rampOn ? `phased: ${r.M}mo build + ${r.R}mo ramp` : "idealized, phasing off"}</div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: !r.roiDefined ? MUTED : r.roi3 > 100 ? GREEN : r.roi3 > 0 ? AMBER : RED }}>{r.roiDefined ? Math.round(r.roi3) + "%" : "n/a"}</div>
+                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: roiColor }}>{r.roiDefined ? Math.round(r.roi3) + "%" : "n/a"}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>3-Year ROI</div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} 3-yr TCO` : "no investment entered"}</div>
               </div>
@@ -604,15 +685,15 @@ export default function BusinessCaseBuilder() {
                 userName={capName}
                 userEmail={capEmail}
                 sections={[
-                  { title: "Confidence & Evidence", type: "text", content: `Cost-input confidence: ${conf.grade} (evidence basis: ${EVIDENCE[conf.evidence].label}). This rates how bookable the cost and investment inputs are, and does not certify that the organization can deliver the operational targets. ${conf.open.length ? `Open items before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."} Savings believability is governed separately by the ${STANCE[stance].label} stance below.` },
-                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in net annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? `${Math.round(r.roi3)}% three-year ROI on ${fmtK(r.tco3)} total cost of ownership` : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the labor that actually disappears, not the fully loaded ${fmt2(n(d.costPerContact))}. Savings are de-overlapped and discounted for attribution risk, so the figures are presented to survive financial scrutiny rather than to maximize a headline.` },
+                  { title: "Confidence & Evidence", type: "text", content: `Cost-input confidence: ${conf.grade} (evidence basis: ${EVIDENCE[conf.evidence].label}). This rates how bookable the cost and investment inputs are, and does not certify that the organization can deliver the operational targets. ${conf.open.length ? `Open items before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."} Savings believability is governed separately by the ${STANCE[stance].label} stance, which weights each lever for attribution risk. The badge is withheld from a document whose savings side carries no haircut, because the two sides are not independently presentable.` },
+                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in net annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? `${Math.round(r.roi3)}% three-year ROI on ${fmtK(r.tco3)} total cost of ownership` : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the labor that actually disappears, not the fully loaded ${fmt2(n(d.costPerContact))}. ${stance === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings of the kind a vendor ROI tool produces. Switch to the Expected stance for a figure built to survive financial scrutiny.` : `Savings are de-overlapped and discounted for attribution risk, so the figures are presented to survive financial scrutiny rather than to maximize a headline.`}` },
                   { title: "Financial Summary", type: "metrics", items: [
                     { label: "Net Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[stance].label} · run-rate` },
                     { label: rampOn ? "Year 1 (ramped)" : "Gross (pre-haircut)", value: rampOn ? fmtFull(r.year1) : fmtFull(r.gross), color: rampOn ? ELECTRIC : MUTED, sub: rampOn ? `${r.M}mo build + ${r.R}mo ramp` : `Haircut ${fmtFull(r.haircut)}` },
                     { label: "One-time Investment", value: fmtFull(n(d.implementationCost)), color: RED },
                     { label: "Annual Platform Cost", value: fmtFull(r.recurring), color: AMBER },
-                    { label: "Payback Period", value: r.payback > 0 ? `${r.payback} months` : ">36 months", color: ELECTRIC, sub: rampOn ? "phased" : "idealized" },
-                    { label: "3-Year ROI", value: `${Math.round(r.roi3)}%`, color: GREEN, sub: `on ${fmtFull(r.tco3)} TCO` },
+                    { label: "Payback Period", value: r.payback > 0 ? `${r.payback} months` : ">36 months", color: paybackColor, sub: r.payback > 0 ? (rampOn ? "phased" : "idealized") : (r.trueBreakevenMonth > 0 ? `breaks even month ${r.trueBreakevenMonth}, outside the horizon` : "no break-even at any horizon") },
+                    { label: "3-Year ROI", value: r.roiDefined ? `${Math.round(r.roi3)}%` : "n/a", color: roiColor, sub: r.roiDefined ? `on ${fmtFull(r.tco3)} TCO` : "no investment entered" },
                   ]},
                   { title: "Savings Breakdown", type: "table", rows: bucketRows.map(b => [b.label, fmtFull(b.val) + ` (${r.pct[b.key]}% of gross)`]) },
                   { title: "Analyst Read", type: "findings", items: insights },
@@ -635,7 +716,7 @@ export default function BusinessCaseBuilder() {
                     { tool: "Transformation Readiness", reason: "Confirm the organization can actually deliver these targets", href: "/tools/transformation-readiness" },
                     { tool: "Contract Risk Scanner", reason: "Pressure-test vendor pricing before it enters the case", href: "/tools/contract-risk" },
                   ]},
-                  { title: "Methodology", type: "text", content: "Deflected and repeat-avoided contacts are valued at marginal cost, the handle-time labor that actually disappears when a contact goes away, not the fully loaded cost per contact, because fixed tech, facilities, and supervision do not fall when one contact is removed. This is the same basis the TCO Calculator uses, so the two tools never disagree on the value of the same contact. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance) to produce net savings. Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one. ROI is calculated against three-year total cost of ownership (one-time implementation plus recurring platform cost). This is deliberately conservative: the goal is a number a CFO will approve, not the largest possible headline." },
+                  { title: "Methodology", type: "text", content: "Deflected and repeat-avoided contacts are valued at marginal cost, the handle-time labor that actually disappears when a contact goes away, not the fully loaded cost per contact, because fixed tech, facilities, and supervision do not fall when one contact is removed. This is the same basis the TCO Calculator uses, so the two tools never disagree on the value of the same contact. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance) to produce net savings. Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one. ROI is calculated against three-year total cost of ownership (one-time implementation plus recurring platform cost)." + (stance === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance the method is deliberately conservative: the goal is a number a CFO will approve, not the largest possible headline.") },
                 ]}
               />
             </span>
