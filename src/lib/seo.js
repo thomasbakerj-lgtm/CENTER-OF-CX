@@ -318,9 +318,20 @@ export function resolveSeo(rawPath) {
     if (parts.length === 2) {
       const catName = CAT_NAMES[parts[0]] || titleCase(parts[0]);
       const vertName = VERT_NAMES[parts[1]] || titleCase(parts[1]);
-      seo.title = `${catName} for ${vertName} | Scored Vendors + Vertical Fit | ${SITE}`;
-      seo.known = true;
-      seo.desc = `${catName} vendors scored for ${vertName}. Vertical fit rankings, compliance requirements, key integration systems, and evaluation guidance specific to ${vertName} contact centers.`;
+      /* Only CCaaS carries per-vendor vertical fit scoring, so only the ten CCaaS
+         pages contain analysis that differs by category. The other seventy render
+         the same vertical context under a different heading, which is a doorway
+         pattern. They stay reachable and crawlable but noindex until real
+         per-category scoring exists. Removing them from the sitemap is not enough:
+         internal links will surface them regardless. */
+      const scored = parts[0] === "ccaas" && VERT_NAMES[parts[1]];
+      seo.known = !!scored;
+      seo.title = scored
+        ? `${catName} for ${vertName} | Scored Vendors + Vertical Fit | ${SITE}`
+        : `${catName} for ${vertName} | ${SITE}`;
+      seo.desc = scored
+        ? `${catName} vendors scored for ${vertName}. Vertical fit rankings, compliance requirements, key integration systems, and evaluation guidance specific to ${vertName} contact centers.`
+        : `${vertName} compliance requirements, key integration systems, and evaluation considerations relevant to ${catName}.`;
     } else {
       const vendorName = titleCase(parts[0]);
       seo.title = `${vendorName} | Vendor Profile | ${SITE}`;
