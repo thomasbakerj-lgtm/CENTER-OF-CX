@@ -1376,4 +1376,44 @@
     <loc>https://www.contactcentercx.com/vendors</loc>
     <priority>0.9</priority>
   </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/financial-services</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/healthcare</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/retail</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/telecom</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/insurance</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/travel</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/government</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/utilities</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/manufacturing</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/ccaas/education</loc>
+    <priority>0.7</priority>
+  </url>
 </urlset>
