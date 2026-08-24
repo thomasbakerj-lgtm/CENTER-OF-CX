@@ -3,7 +3,7 @@ import ReportExport from "./ReportExport";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS } from "./src/lib/benchmarks";
-import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { publishToolResult, getExternalPrimitive, getPrimitiveWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenarioFromUrl, copyShareUrl } from "./src/lib/scenario";
@@ -13,6 +13,18 @@ const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 const WRAP = { maxWidth: 880, margin: "0 auto", padding: "0 28px" };
 const CAPTURE_ENDPOINT = "https://formspree.io/f/mjgjwzwz";
+
+// Display names for rail producers. A pulled value must name the tool that actually
+// produced it. Hardcoding "TCO Calculator" was printing a false provenance claim in a
+// document a buyer hands a CFO. Unknown ids fall back to a readable form of the id.
+const TOOL_LABELS = {
+  "tco-calculator": "TCO Calculator", "cost-per-contact": "Cost per Contact",
+  "fcr-leakage": "FCR Leakage Diagnostic", "staffing-calculator": "Staffing Calculator",
+  "attrition-cost": "Attrition Cost Calculator", "channel-shift": "Channel Shift Model",
+  "ai-deflection": "AI Deflection Reality Check", "license-gap": "License Bundle Gap Checker",
+  "business-case-builder": "Business Case Builder",
+};
+const toolLabel = (id) => TOOL_LABELS[id] || (id ? String(id).replace(/-/g, " ") : "another tool");
 
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const fmtK = (v) => v >= 1000000 ? "$" + (v / 1000000).toFixed(2) + "M" : v >= 1000 ? "$" + (v / 1000).toFixed(0) + "K" : "$" + Math.round(v).toLocaleString();
@@ -62,12 +74,21 @@ const EVIDENCE = {
    same contact. Confidence weighting then turns gross into a stance-adjusted net. */
 function computeCase(d, stanceKey, rampOn) {
   const loaded = n(d.avgHourly) * (1 + n(d.benefitsPct) / 100);
-  // Marginal cost per contact: use the value inherited from TCO when present,
+  // Marginal cost per contact: use a value inherited from another tool when present,
   // otherwise derive the labor-marginal (handle-time at the loaded wage). This is
   // what actually disappears when a contact is deflected, not the fully loaded CPC.
   const derivedMarginal = (n(d.currentAHT) / 3600) * loaded;
   const marginal = n(d.marginalPerContact) > 0 ? n(d.marginalPerContact) : derivedMarginal;
   const marginalPulled = n(d.marginalPerContact) > 0;
+  // An inherited marginal goes stale the moment AHT or wage is edited here, and a marginal
+  // measured on a different operation is not this operation's marginal. Measure the gap so
+  // the tool can state it rather than silently preferring the inherited figure.
+  const marginalGap = marginalPulled && derivedMarginal > 0
+    ? Math.abs(marginal - derivedMarginal) / derivedMarginal : 0;
+  // Trigger on the SAME rounded percentage the tool prints. A raw > 0.10 test would flag a
+  // 10.4% gap while the sentence beside it said "10%", so the stated arithmetic would not
+  // reproduce its own trigger.
+  const marginalStale = Math.round(marginalGap * 100) > 10;
 
   const annual = n(d.monthlyContacts) * 12;
   const deflected = annual * (n(d.containment) / 100);
@@ -95,6 +116,24 @@ function computeCase(d, stanceKey, rampOn) {
   const cf = STANCE[stanceKey];
   const net = containment * cf.c + handleTime * cf.h + fcr * cf.f + attrition * cf.a;
 
+  // ONE percent allocation, consumed by the UI strip, the PDF table and the analyst read.
+  // Largest remainder, so the printed column always sums to exactly 100. Returns all zeros
+  // when gross is zero, which is what stops a no-improvement case printing NaN.
+  const pct = (() => {
+    const keys = Object.keys(buckets);
+    const zero = {};
+    for (const k of keys) zero[k] = 0;
+    if (!(gross > 0)) return zero;
+    const raw = keys.map(k => buckets[k] / gross * 100);
+    const alloc = raw.map(Math.floor);
+    let rem = 100 - alloc.reduce((a, b) => a + b, 0);
+    const order = raw.map((v, i) => [i, v - alloc[i]]).sort((a, b) => b[1] - a[1]);
+    for (let j = 0; j < order.length && rem > 0; j++) { alloc[order[j][0]]++; rem--; }
+    const out = {};
+    keys.forEach((k, i) => { out[k] = alloc[i]; });
+    return out;
+  })();
+
   const recurring = n(d.newPlatformPerAgentMo) * n(d.agents) * 12;
   const impl = n(d.implementationCost);
   const tco3 = impl + recurring * 3;
@@ -121,12 +160,16 @@ function computeCase(d, stanceKey, rampOn) {
     if (t <= 12) year1 += s;
     cum += s - monthlyPlatform;
     cumFlow.push(cum);
-    if (payback === 0 && cum >= 0) payback = t;
+    // A zero-cost, zero-savings case satisfies cum >= 0 at t=1. Payback requires savings.
+    if (payback === 0 && cum >= 0 && savings3 > 0) payback = t;
   }
-  const roi3 = tco3 > 0 ? ((savings3 - tco3) / tco3 * 100) : 0;
+  // With no investment there is no denominator, so ROI is undefined rather than 0%.
+  // netValue3 still carries the truth. The UI and PDF print "n/a" on roiDefined=false.
+  const roiDefined = tco3 > 0;
+  const roi3 = roiDefined ? ((savings3 - tco3) / tco3 * 100) : 0;
   const netValue3 = savings3 - tco3;
 
-  return { loaded, marginal, marginalPulled, derivedMarginal, annual, handled, deflected, buckets, gross, net, haircut: gross - net, recurring, tco3, roi3, payback, netValue3, avoidedTurnover, avoidedRepeats, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, rampOn };
+  return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal, annual, handled, deflected, buckets, pct, gross, net, haircut: gross - net, recurring, tco3, roi3, roiDefined, payback, netValue3, avoidedTurnover, avoidedRepeats, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, rampOn };
 }
 
 // Evidence-confidence: how bookable the cost and target inputs are, degraded by
@@ -142,11 +185,12 @@ function confidenceOf(d, r, stanceKey) {
   if (n(d.attritionReduction) > 25) { open.push(`Attrition reduction of ${n(d.attritionReduction)}% is optimistic and hard to attribute to a platform.`); aggressiveTargets = true; }
   if (perAgentImpl > 0 && perAgentImpl < 2000) open.push(`Implementation of ${fmtFull(perAgentImpl)} per agent looks understated for a platform transformation.`);
   if (r.payback === 0) open.push("The case does not pay back within three years as modeled.");
+  if (r.marginalStale) open.push(`The inherited marginal cost of ${fmt2(r.marginal)} per contact is ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage entered here. One of the two is describing a different operation.`);
   if (stanceKey === "aggressive") open.push("Aggressive stance books full modeled savings with no attribution haircut.");
 
   let grade;
   if (r.payback === 0) grade = "Directional";
-  else if (evidence === "proposal" && stanceKey !== "aggressive" && !aggressiveTargets && perAgentImpl >= 2000) grade = "Finance-grade";
+  else if (evidence === "proposal" && stanceKey !== "aggressive" && !aggressiveTargets && perAgentImpl >= 2000 && !r.marginalStale) grade = "Finance-grade";
   else if (evidence === "quote" || evidence === "proposal") grade = "Planning-grade";
   else grade = "Directional";
   return { grade, open, evidence };
@@ -155,13 +199,15 @@ function confidenceOf(d, r, stanceKey) {
 function caseInsights(r, d, stanceKey, conf) {
   const flags = [];
   // Input plausibility, the assumptions a CFO rejects on sight. These lead the read.
-  if (n(d.containment) > 25) flags.push(`Your ${n(d.containment)}% self-service containment is above the 10 to 25% most centers actually achieve. Without a pilot proving it, model 15 to 20% as the defensible case. It is ${Math.round(r.buckets.containment / r.gross * 100)}% of your savings, so the board challenges it first.`);
+  if (n(d.containment) > 25) flags.push(`Your ${n(d.containment)}% self-service containment is above the 10 to 25% most centers actually achieve. Without a pilot proving it, model 15 to 20% as the defensible case. It is ${r.pct.containment}% of your savings, so the board challenges it first.`);
   if (n(d.htReduction) > 15) flags.push(`A ${n(d.htReduction)}% handle-time reduction is aggressive. 8 to 15% is typical even with AI assist, so treat anything above 15% as upside, not base case.`);
   if (n(d.attritionReduction) > 25) flags.push(`${n(d.attritionReduction)}% attrition reduction is optimistic (15 to 25% is realistic) and the hardest lever to attribute to a platform. Discount it heavily or footnote it.`);
   const perAgentImpl = n(d.agents) > 0 ? n(d.implementationCost) / n(d.agents) : 0;
   if (perAgentImpl > 0 && perAgentImpl < 2000) flags.push(`Implementation of ${fmtFull(n(d.implementationCost))} for ${n(d.agents)} agents is about ${fmtFull(perAgentImpl)} per agent, low for a platform transformation (typical $3 to 8K per agent). An understated investment is the fastest way to lose board trust. A complete figure lengthens payback but survives diligence.`);
   if (r.payback === 0) flags.push(`At this platform cost, monthly savings never exceed monthly platform spend within three years, so the case does not pay back as modeled. Revisit platform cost, targets, or stance before presenting.`);
   else if (r.payback > 0 && r.payback < 3) flags.push(`A ${r.payback}-month payback reads as too good to be true and invites scrutiny. Confirm the investment captures professional services, change management, and internal time before you present it.`);
+
+  if (r.marginalStale) flags.unshift(`Your savings basis of ${fmt2(r.marginal)} per contact came from another tool, but the AHT and wage on this page imply ${fmt2(r.derivedMarginal)}, a gap of ${Math.round(r.marginalGap * 100)}%. Every deflection and FCR dollar in this case is priced at the inherited figure. Reconcile the two before you present, because a reviewer who divides your savings by your contact volume will find the discrepancy.`);
 
   const out = [...flags.slice(0, 2)];
 
@@ -171,19 +217,22 @@ function caseInsights(r, d, stanceKey, conf) {
   const sorted = Object.entries(r.buckets).sort((a, b) => b[1] - a[1]);
   const [topName, topVal] = sorted[0];
   const labelMap = { containment: "self-service containment", handleTime: "handle-time reduction", fcr: "FCR improvement", attrition: "attrition reduction" };
-  const topShare = Math.round(topVal / r.gross * 100);
+  const topShare = r.pct[topName];
   out.push(`${topShare}% of your case rests on ${labelMap[topName]}. ${topName === "containment" ? "A board probes deflection hardest, so bring a pilot result or vendor benchmark." : topName === "attrition" ? "That is the softest, least attributable lever, so expect the most pushback there." : "It is a relatively defensible lever, which strengthens the case."}`);
 
   if (r.rampOn && r.payback > 0) {
     const instMonthly = r.monthlyFull - r.monthlyPlatform;
     const instPay = instMonthly > 0 ? Math.ceil(n(d.implementationCost) / instMonthly) : 0;
     if (instPay > 0 && r.payback > instPay)
-      out.push(`Phasing savings over your ${r.M}-month migration and ${r.R}-month ramp moves payback from an idealized ${instPay} months to a realistic ${r.payback}. The phased figure is the one a CFO will trust, so lead with it.`);
+      out.push(`Phasing savings over your ${r.M}-month migration and ${r.R}-month ramp moves payback from an idealized ${instPay} month${instPay === 1 ? "" : "s"} to a realistic ${r.payback}. The phased figure is the one a CFO will trust, so lead with it.`);
   } else if (!r.rampOn) {
     out.push(`Savings phasing is off, so this assumes 100% of savings land on day one, an idealized payback. Turn on phasing for the board-defensible number that accounts for migration and ramp.`);
   }
 
-  out.push(`The ${stanceKey} stance applies a ${fmtK(r.haircut)} haircut to gross savings. Presenting gross ${fmtK(r.gross)} and net ${fmtK(r.net)} side by side signals you have already stress-tested your own numbers.`);
+  if (stanceKey === "aggressive")
+    out.push(`The aggressive stance applies no haircut, so gross and net are the same ${fmtK(r.gross)}. That is the vendor-ROI presentation, and a finance reviewer will read an undiscounted number as one nobody has stress-tested. Switch to Expected before you present, or state on the slide that these are unattributed modeled savings.`);
+  else
+    out.push(`The ${stanceKey} stance applies a ${fmtK(r.haircut)} haircut to gross savings. Presenting gross ${fmtK(r.gross)} and net ${fmtK(r.net)} side by side signals you have already stress-tested your own numbers.`);
 
   if (conf) out.push(`Cost-input confidence reads ${conf.grade}${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} to close before you call the investment side final` : ""}. That badge rates how bookable the cost inputs are, not whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
 
@@ -202,6 +251,7 @@ export default function BusinessCaseBuilder() {
   const [stance, setStance] = useState("expected");
   const [rampOn, setRampOn] = useState(true);
   const [pulled, setPulled] = useState({});
+  const [sources, setSources] = useState({});
   const [copied, setCopied] = useState(false);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
 
@@ -216,10 +266,18 @@ export default function BusinessCaseBuilder() {
   useEffect(() => {
     window.scrollTo(0, 0);
     trackTool.view("business-case-builder");
-    const next = {}, got = {};
+    const next = {}, got = {}, src = {};
+    // EXTERNAL ONLY. getPrimitive would return this tool's own last publish, which is how a
+    // marginal derived here came back one session later labelled as inherited from TCO and
+    // priced a different contact center's savings. A value you published is not a value you
+    // sourced. The cost of external-only is that revisiting the tool no longer restores your
+    // own last run; the scenario link is the supported way to carry a scenario forward.
     const take = (field, key, xf = (x) => x) => {
-      const v = getPrimitive(key);
-      if (v != null && !isNaN(v)) { next[field] = xf(v); got[field] = true; }
+      const v = getExternalPrimitive(key, "business-case-builder");
+      if (v != null && !isNaN(v)) {
+        next[field] = xf(v); got[field] = true;
+        src[field] = getPrimitiveWithSource(key).sourceTool;
+      }
     };
     take("agents", "agents");
     take("avgHourly", "agentHourly");
@@ -228,12 +286,20 @@ export default function BusinessCaseBuilder() {
     take("currentAttrition", "attritionRate", (x) => Math.round(x * 1000) / 10);
     take("costPerContact", "costPerContact");                          // loaded, context only
     take("marginalPerContact", "marginalPerContact");                  // savings basis
-    const annual = getPrimitive("annualContacts");
-    if (annual != null && !isNaN(annual)) { next.monthlyContacts = Math.round(annual / 12); got.monthlyContacts = true; }
-    else { const mc = getPrimitive("monthlyContacts"); if (mc != null && !isNaN(mc)) { next.monthlyContacts = Math.round(mc); got.monthlyContacts = true; } }
+    const annual = getExternalPrimitive("annualContacts", "business-case-builder");
+    if (annual != null && !isNaN(annual)) {
+      next.monthlyContacts = Math.round(annual / 12); got.monthlyContacts = true;
+      src.monthlyContacts = getPrimitiveWithSource("annualContacts").sourceTool;
+    } else {
+      const mc = getExternalPrimitive("monthlyContacts", "business-case-builder");
+      if (mc != null && !isNaN(mc)) {
+        next.monthlyContacts = Math.round(mc); got.monthlyContacts = true;
+        src.monthlyContacts = getPrimitiveWithSource("monthlyContacts").sourceTool;
+      }
+    }
     const scn = readScenarioFromUrl();
     if (scn && typeof scn === "object") { Object.assign(next, scn); trackTool.scenarioLoad("business-case-builder"); }
-    if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); }
+    if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); setSources(src); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -251,12 +317,21 @@ export default function BusinessCaseBuilder() {
     return { W, H, pts, y0: y(0), pbx: r.payback > 0 ? x(r.payback) : null, end: arr[arr.length - 1] };
   })();
   const paybackLabel = r.payback > 0 ? `${r.payback} mo` : ">36 mo";
+  // Colour the months the business actually waits AFTER go-live. With phasing on, a 16-month
+  // migration makes any payback under 16 impossible, so absolute 12/18 thresholds painted the
+  // honest phased answer red while the ROI tile beside it read green on the same case. The
+  // build window is a stated cost, not an alarm; the wait after go-live is the signal.
+  const postGoLive = r.payback > 0 ? r.payback - (rampOn ? r.M : 0) : null;
+  const paybackColor = postGoLive === null ? RED : postGoLive <= 12 ? GREEN : postGoLive <= 18 ? AMBER : RED;
 
   // Publish through the shared normalizer so units and provenance are canonical on the rail.
   useEffect(() => {
     const primitives = {
       agents: n(d.agents), annualContacts: r.annual, monthlyContacts: n(d.monthlyContacts),
-      grossSavings: Math.round(r.gross), netSavings: Math.round(r.net), marginalPerContact: +r.marginal.toFixed(2),
+      grossSavings: Math.round(r.gross), netSavings: Math.round(r.net),
+      // marginalPerContact is deliberately NOT published. This tool derives it from AHT and
+      // wage; it does not measure it. Publishing a derived figure put it on the rail for
+      // every other tool to inherit as though it had been sourced. TCO remains the producer.
       stance, paybackMonths: r.payback, threeYearROI: Math.round(r.roi3), implementationCost: n(d.implementationCost),
       year1Savings: Math.round(r.year1), rampOn, migrationMonths: r.M, rampMonths: r.R,
       confidence: conf.grade, analystRead: insights[0],
@@ -298,6 +373,13 @@ export default function BusinessCaseBuilder() {
     { label: "Attrition reduction", key: "attrition", val: r.buckets.attrition },
   ].sort((a, b) => b.val - a.val);
 
+  // Name the tools that actually supplied the baseline. Never assert a tool the user did not run.
+  const sourceNames = [...new Set(Object.values(sources).filter(Boolean))].map(toolLabel);
+  const sourceSummary = sourceNames.length === 0 ? "an earlier tool run"
+    : sourceNames.length === 1 ? `your ${sourceNames[0]} run`
+    : `your ${sourceNames.slice(0, -1).join(", ")} and ${sourceNames[sourceNames.length - 1]} runs`;
+  const marginalSource = sources.marginalPerContact ? toolLabel(sources.marginalPerContact) : null;
+
   const gradeColor = conf.grade === "Finance-grade" ? GREEN : conf.grade === "Planning-grade" ? AMBER : MUTED;
 
   return (
@@ -325,7 +407,7 @@ export default function BusinessCaseBuilder() {
 
           {Object.keys(pulled).length > 0 && (
             <div style={{ background: ICE, border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "10px 14px", marginBottom: 18, fontSize: 12.5, color: NAVY }}>
-              Baseline inherited from your TCO Calculator run. Fields marked <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: "#fff", padding: "1px 5px", borderRadius: 4 }}>PULLED</span> carried over as shared facts and stay editable. Target improvements were left for you to author, because the transformation is the argument, not an inherited assumption.
+              Baseline inherited from {sourceSummary}. Fields marked <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: "#fff", padding: "1px 5px", borderRadius: 4 }}>PULLED</span> carried over as shared facts and stay editable. Target improvements were left for you to author, because the transformation is the argument, not an inherited assumption.
             </div>
           )}
 
@@ -350,7 +432,10 @@ export default function BusinessCaseBuilder() {
               <span style={{ fontSize: 12, color: SLATE }}>avoided contacts valued at</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: ELECTRIC }}>{fmt2(r.marginal)}</span>
               {r.marginalPulled
-                ? <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: "#fff", padding: "1px 5px", borderRadius: 4 }}>PULLED</span>
+                ? <>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: "#fff", background: r.marginalStale ? AMBER : ELECTRIC, padding: "1px 5px", borderRadius: 4 }}>{marginalSource ? `FROM ${marginalSource.toUpperCase()}` : "PULLED"}</span>
+                    {r.marginalStale && <span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>AHT and wage here imply {fmt2(r.derivedMarginal)}, a {Math.round(r.marginalGap * 100)}% gap</span>}
+                  </>
                 : <span style={{ fontSize: 11, color: MUTED }}>derived from AHT and loaded wage</span>}
               <span style={{ fontSize: 11, color: MUTED }}>vs {fmt2(n(d.costPerContact))} fully loaded</span>
             </div>
@@ -419,19 +504,20 @@ export default function BusinessCaseBuilder() {
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{rampOn ? `year 1 ${fmtK(r.year1)} after ramp` : `gross ${fmtK(r.gross)} less ${fmtK(r.haircut)} haircut`}</div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: r.payback && r.payback <= 12 ? GREEN : (r.payback && r.payback <= 18) ? AMBER : RED }}>{paybackLabel}</div>
+                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: paybackColor }}>{paybackLabel}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Payback Period</div>
                 <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{rampOn ? `phased: ${r.M}mo build + ${r.R}mo ramp` : "idealized, phasing off"}</div>
               </div>
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: r.roi3 > 100 ? GREEN : r.roi3 > 0 ? AMBER : RED }}>{Math.round(r.roi3)}%</div>
+                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: !r.roiDefined ? MUTED : r.roi3 > 100 ? GREEN : r.roi3 > 0 ? AMBER : RED }}>{r.roiDefined ? Math.round(r.roi3) + "%" : "n/a"}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>3-Year ROI</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>on {fmtK(r.tco3)} 3-yr TCO</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} 3-yr TCO` : "no investment entered"}</div>
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {bucketRows.map((item, i) => {
                 const pctv = r.gross > 0 ? item.val / r.gross * 100 : 0;
+                const pctLabel = r.pct[item.key];
                 return (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", flex: 1 }}>{item.label}</span>
@@ -439,7 +525,7 @@ export default function BusinessCaseBuilder() {
                     <div style={{ width: 80, height: 6, background: "rgba(255,255,255,0.1)", borderRadius: 3, overflow: "hidden" }}>
                       <div style={{ width: `${pctv}%`, height: "100%", background: GREEN, borderRadius: 3 }} />
                     </div>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", minWidth: 30 }}>{Math.round(pctv)}%</span>
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", minWidth: 30 }}>{pctLabel}%</span>
                   </div>
                 );
               })}
@@ -519,7 +605,7 @@ export default function BusinessCaseBuilder() {
                 userEmail={capEmail}
                 sections={[
                   { title: "Confidence & Evidence", type: "text", content: `Cost-input confidence: ${conf.grade} (evidence basis: ${EVIDENCE[conf.evidence].label}). This rates how bookable the cost and investment inputs are, and does not certify that the organization can deliver the operational targets. ${conf.open.length ? `Open items before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."} Savings believability is governed separately by the ${STANCE[stance].label} stance below.` },
-                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in net annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${Math.round(r.roi3)}% three-year ROI on ${fmtK(r.tco3)} total cost of ownership. Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the labor that actually disappears, not the fully loaded ${fmt2(n(d.costPerContact))}. Savings are de-overlapped and discounted for attribution risk, so the figures are presented to survive financial scrutiny rather than to maximize a headline.` },
+                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in net annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? `${Math.round(r.roi3)}% three-year ROI on ${fmtK(r.tco3)} total cost of ownership` : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the labor that actually disappears, not the fully loaded ${fmt2(n(d.costPerContact))}. Savings are de-overlapped and discounted for attribution risk, so the figures are presented to survive financial scrutiny rather than to maximize a headline.` },
                   { title: "Financial Summary", type: "metrics", items: [
                     { label: "Net Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[stance].label} · run-rate` },
                     { label: rampOn ? "Year 1 (ramped)" : "Gross (pre-haircut)", value: rampOn ? fmtFull(r.year1) : fmtFull(r.gross), color: rampOn ? ELECTRIC : MUTED, sub: rampOn ? `${r.M}mo build + ${r.R}mo ramp` : `Haircut ${fmtFull(r.haircut)}` },
@@ -528,11 +614,11 @@ export default function BusinessCaseBuilder() {
                     { label: "Payback Period", value: r.payback > 0 ? `${r.payback} months` : ">36 months", color: ELECTRIC, sub: rampOn ? "phased" : "idealized" },
                     { label: "3-Year ROI", value: `${Math.round(r.roi3)}%`, color: GREEN, sub: `on ${fmtFull(r.tco3)} TCO` },
                   ]},
-                  { title: "Savings Breakdown", type: "table", rows: bucketRows.map(b => [b.label, fmtFull(b.val) + ` (${Math.round(r.gross > 0 ? b.val / r.gross * 100 : 0)}% of gross)`]) },
+                  { title: "Savings Breakdown", type: "table", rows: bucketRows.map(b => [b.label, fmtFull(b.val) + ` (${r.pct[b.key]}% of gross)`]) },
                   { title: "Analyst Read", type: "findings", items: insights },
                   { title: "Key Assumptions", type: "table", rows: [
                     ["Loaded hourly rate", fmtFull(r.loaded) + ` per hr (${n(d.avgHourly)} plus ${n(d.benefitsPct)}% burden)`],
-                    ["Marginal cost per contact (savings basis)", fmt2(r.marginal) + (r.marginalPulled ? " (inherited from TCO)" : " (derived from AHT and loaded wage)")],
+                    ["Marginal cost per contact (savings basis)", fmt2(r.marginal) + (r.marginalPulled ? ` (inherited from ${marginalSource || "an earlier tool run"}${r.marginalStale ? `, ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage on this case` : ""})` : " (derived from AHT and loaded wage)")],
                     ["Fully loaded cost per contact (context)", fmt2(n(d.costPerContact))],
                     ["Annual contacts", (r.annual).toLocaleString()],
                     ["Contacts deflected (containment)", Math.round(r.deflected).toLocaleString() + ` (${n(d.containment)}%)`],
