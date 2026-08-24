@@ -259,6 +259,9 @@ section("9. Boundaries and degenerate inputs");
   const rT = computeCase(dNoTco, "expected", true);
   ok("zero TCO does not divide by zero in roi3", Number.isFinite(rT.roi3) && rT.roi3 === 0);
 
+  ok("zero gross yields an all-zero percent allocation, never NaN",
+     Object.values(computeCase(D({ containment: 0, htReduction: 0, acwReduction: 0, fcrImprovement: 0, attritionReduction: 0 }), "expected", true).pct)
+       .every(v => v === 0));
   ok("no bucket is ever negative on default input",
      Object.values(computeCase(D(), "expected", true).buckets).every(v => v >= 0));
 
@@ -353,28 +356,67 @@ section("11. confidenceOf, every branch");
 }
 
 /* --------------------------------------- self-credentialing / provenance -- */
-section("12. Self-credentialing and provenance");
+section("12. Provenance, self-credentialing and marginal staleness");
 {
   const clean = D({ evidence: "proposal", marginalPerContact: 0 });
   const rDerived = computeCase(clean, "expected", true);
   const gDerived = confidenceOf(clean, rDerived, "expected").grade;
+  ok("locally derived marginal can reach Finance-grade", gDerived === "Finance-grade");
+  ok("locally derived marginal is never flagged stale", rDerived.marginalStale === false);
+  ok("locally derived marginal reports a zero gap", rDerived.marginalGap === 0);
 
-  const pulledCase = { ...clean, marginalPerContact: 4.28 };
-  const rPulled = computeCase(pulledCase, "expected", true);
-  const gPulled = confidenceOf(pulledCase, rPulled, "expected").grade;
+  // A marginal from a different operation. DEFAULTS derive about $2.73; $4.28 is 57% away.
+  const foreign = { ...clean, marginalPerContact: 4.28 };
+  const rF = computeCase(foreign, "expected", true);
+  const cF = confidenceOf(foreign, rF, "expected");
+  ok("a foreign marginal is detected as stale", rF.marginalStale === true,
+     `gap ${(rF.marginalGap * 100).toFixed(1)}%`);
+  ok("a stale marginal blocks Finance-grade", cF.grade === "Planning-grade", cF.grade);
+  ok("a stale marginal raises an open item",
+     cF.open.some(t => /away from the/.test(t)));
+  ok("a stale marginal leads the analyst read",
+     /savings basis of/.test(caseInsights(rF, foreign, "expected", cF)[0]));
+  ok("the stale line reproduces both figures and the gap", (() => {
+    const line = caseInsights(rF, foreign, "expected", cF)[0];
+    return line.includes(mod.fmt2(rF.marginal)) && line.includes(mod.fmt2(rF.derivedMarginal))
+      && line.includes(`${Math.round(rF.marginalGap * 100)}%`);
+  })());
 
-  ok("DOCUMENTED: confidenceOf never reads marginal provenance", gDerived === gPulled,
-     `derived=${gDerived} pulled=${gPulled}`);
-  ok("DOCUMENTED: a pulled marginal changes the headline savings number",
-     !near(rDerived.net, rPulled.net, 1), `${rDerived.net} vs ${rPulled.net}`);
+  // Within tolerance: an inherited value that agrees with the local operation is fine.
+  const close = { ...clean, marginalPerContact: +(rDerived.derivedMarginal * 1.05).toFixed(2) };
+  const rC = computeCase(close, "expected", true);
+  ok("an inherited marginal within 10% is not flagged", rC.marginalStale === false,
+     `gap ${(rC.marginalGap * 100).toFixed(1)}%`);
+  ok("an inherited marginal within 10% still reaches Finance-grade",
+     confidenceOf(close, rC, "expected").grade === "Finance-grade");
+  ok("a gap that rounds to 10% is not stale", (() => {
+    const at10 = { ...clean, marginalPerContact: rDerived.derivedMarginal * 1.104 };
+    return computeCase(at10, "expected", true).marginalStale === false;
+  })());
+  ok("a gap that rounds to 11% is stale", (() => {
+    const at11 = { ...clean, marginalPerContact: rDerived.derivedMarginal * 1.106 };
+    return computeCase(at11, "expected", true).marginalStale === true;
+  })());
+  ok("the printed gap and the stale trigger never disagree", (() => {
+    for (let g = 0; g <= 0.4; g += 0.001) {
+      const r = computeCase({ ...clean, marginalPerContact: rDerived.derivedMarginal * (1 + g) }, "expected", true);
+      if (r.marginalPulled && r.marginalStale !== (Math.round(r.marginalGap * 100) > 10)) return false;
+    }
+    return true;
+  })());
 
-  // The republish loop: BCB publishes marginalPerContact, which it can then pull back.
-  const republished = +rDerived.marginal.toFixed(2);
-  const rLoop = computeCase({ ...clean, marginalPerContact: republished }, "expected", true);
-  ok("DEFECT: BCB's own published marginal re-enters as marginalPulled=true",
-     rLoop.marginalPulled === true);
-  ok("DEFECT: the loop value equals its own derived value, so the tool labels self-sourced data as inherited",
-     near(rLoop.marginal, rDerived.derivedMarginal, 0.01));
+  // Test 2 in the wild: 62-agent set inheriting the 178-agent set's $4.29.
+  const t2 = D({ agents: 62, avgHourly: 31, benefitsPct: 34, monthlyContacts: 41000,
+    currentAHT: 388, currentACW: 72, currentFCR: 81, currentAttrition: 19, costPerContact: 8.75,
+    recruitCostPerHire: 6400, trainingDays: 12, htReduction: 9, acwReduction: 18,
+    fcrImprovement: 4, attritionReduction: 12, containment: 22, implementationCost: 310000,
+    newPlatformPerAgentMo: 210, migrationMonths: 6, rampMonths: 4, evidence: "proposal",
+    marginalPerContact: 4.29 });
+  const rT2 = computeCase(t2, "expected", true);
+  ok("REGRESSION test 2: the inherited 4.29 is within tolerance of the local 4.48",
+     rT2.marginalStale === false, `gap ${(rT2.marginalGap * 100).toFixed(1)}%`);
+  ok("REGRESSION test 2: Finance-grade is still reachable",
+     confidenceOf(t2, rT2, "expected").grade === "Finance-grade");
 }
 
 /* -------------------------------------------- single-driver dominance ----- */
@@ -419,9 +461,9 @@ section("14. caseInsights self-consistency");
   const topShareLine = out.find(s => /% of your case rests on/.test(s));
   const m = topShareLine && topShareLine.match(/^(\d+)% of your case rests on/);
   const sorted = Object.entries(r.buckets).sort((a, b) => b[1] - a[1]);
-  ok("stated top-driver share reproduces its own arithmetic",
-     m && Number(m[1]) === Math.round(sorted[0][1] / r.gross * 100),
-     m ? `${m[1]} vs ${Math.round(sorted[0][1] / r.gross * 100)}` : "line not found");
+  ok("stated top-driver share reproduces the shared allocation",
+     m && Number(m[1]) === r.pct[sorted[0][0]],
+     m ? `${m[1]} vs ${r.pct[sorted[0][0]]}` : "line not found");
 
   const marginalLine = out.find(s => /marginal cost of/.test(s));
   ok("marginal line reproduces r.marginal", marginalLine && marginalLine.includes(mod.fmt2(r.marginal)));
@@ -547,7 +589,7 @@ section(`A. Engine invariants across ${N} randomized cases`);
     if (st !== "aggressive" && r.net > r.gross + 0.5) netGtGross++;
     if (Math.abs(r.handled + r.deflected - r.annual) > 0.5) poolDrift++;
     if (Math.abs(r.tco3 - (d.implementationCost + r.recurring * 3)) > 0.5) tcoDrift++;
-    if (r.tco3 > 0 && Math.abs(r.roi3 - (r.savings3 - r.tco3) / r.tco3 * 100) > 0.01) roiDrift++;
+    if (r.roiDefined && Math.abs(r.roi3 - (r.savings3 - r.tco3) / r.tco3 * 100) > 0.01) roiDrift++;
     if (r.handled > 0) {
       const sec = (b.handleTime / r.handled) * 3600 / r.loaded;
       if (sec > d.currentAHT + 0.01) secOverAHT++;
@@ -582,13 +624,13 @@ section("B. Display rounding, UI bucket strip vs stated gross");
     const drift = Math.abs(shownSum - shownGross);
     const relative = drift / Math.max(1, shownGross);
     if (relative > 0.005) { kDrift++; if (relative > worst) { worst = relative; worstCase = { rows: rows.map(fmtK), gross: fmtK(r.gross), shownSum, shownGross }; } }
-    const pcts = rows.map(v => Math.round(v / r.gross * 100)).reduce((a, b) => a + b, 0);
+    const pcts = Object.values(r.pct).reduce((a, b) => a + b, 0);
     if (pcts !== 100) { pctDrift++; worstPct = Math.max(worstPct, Math.abs(pcts - 100)); }
   }
-  ok("DEFECT SCAN: rounded bucket strip sums to stated gross within 0.5%", kDrift === 0,
+  ok("rounded bucket strip sums to stated gross within 0.5%", kDrift === 0,
      `${kDrift}/${cases.length} cases drift, worst ${(worst * 100).toFixed(2)}%` +
      (worstCase ? ` :: rows ${worstCase.rows.join(" + ")} shown against gross ${worstCase.gross}` : ""));
-  ok("DEFECT SCAN: displayed bucket percentages sum to 100", pctDrift === 0,
+  ok("displayed bucket percentages sum to 100", pctDrift === 0,
      `${pctDrift}/${cases.length} cases off, worst by ${worstPct} points`);
 }
 
@@ -602,7 +644,7 @@ section("C. Display rounding, PDF savings table vs executive summary");
     const sum = rowVals.reduce((a, b) => a + b, 0);
     const dd = Math.abs(sum - r.gross);
     if (dd > 2.5) { drift++; if (dd > worst) { worst = dd; sample = { rowVals, gross: r.gross }; } }
-    const pcts = Object.values(r.buckets).map(v => Math.round(v / r.gross * 100)).reduce((a, b) => a + b, 0);
+    const pcts = Object.values(r.pct).reduce((a, b) => a + b, 0);
     if (pcts !== 100) pctDrift++;
   }
   ok("PDF full-dollar rows sum to gross within rounding", drift === 0,
@@ -628,7 +670,7 @@ section("D. Insight text reproduces its own arithmetic, swept");
     if (share && r.gross > 0) {
       const m = share.match(/^(\d+)% of your case rests on/);
       const sorted = Object.entries(r.buckets).sort((a, b) => b[1] - a[1]);
-      if (!m || Number(m[1]) !== Math.round(sorted[0][1] / r.gross * 100)) shareMismatch++;
+      if (!m || Number(m[1]) !== r.pct[sorted[0][0]]) shareMismatch++;
     }
     const rampLine = out.find(s => /idealized (\d+) months to a realistic (\d+)/.test(s));
     if (rampLine) {
@@ -638,7 +680,7 @@ section("D. Insight text reproduces its own arithmetic, swept");
       if (Number(mm[1]) !== instPay || Number(mm[2]) !== r.payback) rampMismatch++;
     }
   }
-  ok("DEFECT SCAN: no insight line ever prints NaN", nanLine === 0,
+  ok("no insight line ever prints NaN", nanLine === 0,
      `${nanLine} lines. e.g. ${nanSamples.join(" | ")}`);
   ok("no insight line ever prints Infinity", infLine === 0, `${infLine} lines`);
   ok("top-driver share always reproduces its own arithmetic", shareMismatch === 0, `${shareMismatch} cases`);
@@ -673,7 +715,7 @@ section("E. Impossible outputs and grade sanity, swept");
   ok("Finance-grade never coexists with understated implementation", financeThinImpl === 0, `${financeThinImpl} cases`);
   ok("DEFECT SCAN: Finance-grade never coexists with negative 3-year value", negRoiFinance === 0,
      `${negRoiFinance} cases`);
-  ok("DEFECT SCAN: a case with zero savings never reports a payback", zeroSavingsPayback === 0,
+  ok("a case with zero savings never reports a payback", zeroSavingsPayback === 0,
      `${zeroSavingsPayback} cases. e.g. ${zeroSamples.join(" || ")}`);
 }
 
@@ -686,15 +728,15 @@ section("F. Targeted zero-cost and zero-savings edges");
   const rF = computeCase(free, "expected", true);
   const cF = confidenceOf(free, rF, "expected");
   ok("zero investment + zero savings: gross is zero", Math.abs(rF.gross) < 0.001);
-  ok("DEFECT: zero investment + zero savings reports payback month 1", rF.payback !== 1,
+  ok("zero investment + zero savings never reports a payback", rF.payback === 0,
      `payback=${rF.payback}`);
-  ok("DEFECT: that empty case is not awarded Finance-grade", cF.grade !== "Finance-grade",
+  ok("that empty case is not awarded Finance-grade", cF.grade !== "Finance-grade",
      `grade=${cF.grade}, roi3=${rF.roi3}, netValue3=${rF.netValue3}`);
 
   const freeInf = { ...DEFAULTS, implementationCost: 0, newPlatformPerAgentMo: 0, evidence: "proposal" };
   const rI = computeCase(freeInf, "expected", true);
-  ok("DEFECT: real savings at zero cost report 0% ROI rather than unbounded",
-     !(rI.savings3 > 0 && rI.roi3 === 0), `savings3=${Math.round(rI.savings3)} roi3=${rI.roi3}`);
+  ok("real savings at zero cost report ROI as undefined, not 0%",
+     rI.roiDefined === false, `savings3=${Math.round(rI.savings3)} roi3=${rI.roi3}`);
   ok("netValue3 still tells the truth when tco3 is zero", rI.netValue3 > 0);
 }
 
