@@ -684,7 +684,10 @@ section("12z. Rendered narrative, asserted on the SOURCE");
   ok("SOURCE exec summary labels the output a conditional forecast",
      exec.includes("conditional forecast under the stated assumptions, not a measured outcome"));
 
-  const meth = between('title: "Methodology"', 3400);
+  // Window widened from 3400 when the BAU counterfactual disclosure was added. Every pattern
+  // asserted below was confirmed absent from the text following this entry, so the wider slice
+  // cannot pass on a match that lives outside the methodology paragraph.
+  const meth = between('title: "Methodology"', 5000);
   ok("SOURCE methodology names the second adjustment", meth.includes("separate and independent adjustment"));
   ok("SOURCE methodology scales freed labor by the capacity action", meth.includes("capacity action at"));
   ok("SOURCE methodology exempts cash-releasing spend", meth.includes("cash-releasing and is never scaled"));
@@ -1381,6 +1384,254 @@ section("F. Targeted zero-cost and zero-savings edges");
   ok("real savings at zero cost report ROI as undefined, not 0%",
      rI.roiDefined === false, `savings3=${Math.round(rI.savings3)} roi3=${rI.roi3}`);
   ok("netValue3 still tells the truth when tco3 is zero", rI.netValue3 > 0);
+}
+
+/* ------------------------------------------------------------------------ */
+section("G. BAU counterfactual");
+{
+  // Reference set from the session handoff, reconciled exactly against the pre-BAU engine.
+  const REF = D({ agents: 235, avgHourly: 20.50, benefitsPct: 28, monthlyContacts: 151000,
+    currentAHT: 360, currentACW: 60, currentFCR: 78, repeatShare: 2, currentAttrition: 33,
+    costPerContact: 10.00, recruitCostPerHire: 3700, trainingDays: 18,
+    htReduction: 15, acwReduction: 33, fcrImprovement: 10, attritionReduction: 25, containment: 19,
+    implementationCost: 1500000, newPlatformPerAgentMo: 155, migrationMonths: 12, rampMonths: 7,
+    evidence: "proposal" });
+
+  /* ---- G1. Change attribution. All-zero BAU must reproduce the pre-BAU engine. ---- */
+  const base = computeCase(REF, "expected", true, "hiring");
+  const baseNone = computeCase(REF, "expected", true, "none");
+  ok("G1 all-zero BAU: denominator is unchanged at 2,811,300", base.tco3 === 2811300, `${base.tco3}`);
+  ok("G1 all-zero BAU: realizable savings unchanged at 1,147,191",
+     Math.round(base.net) === 1147191, `${Math.round(base.net)}`);
+  ok("G1 all-zero BAU: mech=none realizable savings unchanged at 46,627",
+     Math.round(baseNone.net) === 46627, `${Math.round(baseNone.net)}`);
+  ok("G1 all-zero BAU: three-year ROI unchanged at -29%", Math.round(base.roi3) === -29, `${base.roi3}`);
+  ok("G1 all-zero BAU: bauEntered is false", base.bauEntered === false);
+  ok("G1 all-zero BAU: displacement credit is exactly zero", base.displacement3 === 0);
+  ok("G1 all-zero BAU: benefit3 collapses to savings3", near(base.benefit3, base.savings3, 0.001));
+  ok("G1 all-zero BAU: cash flow opens at minus implementation, not a wider bucket",
+     near(base.cumFlow[0], -REF.implementationCost, 0.001), `${base.cumFlow[0]}`);
+
+  /* ---- G2. The beyond-horizon distinction survives. This was the V3 achievement. ---- */
+  ok("G2 all-zero BAU reproduces lifetime break-even at month 50 exactly",
+     base.trueBreakevenMonth === 50, `${base.trueBreakevenMonth}`);
+  ok("G2 all-zero BAU: no payback inside the horizon", base.payback === 0);
+  ok("G2 mech=none still never breaks even at any horizon",
+     baseNone.trueBreakevenMonth === 0 && baseNone.payback === 0, `${baseNone.trueBreakevenMonth}`);
+  ok("G2 outside-the-horizon and never-breaks-even remain different conclusions",
+     base.trueBreakevenMonth > 36 && baseNone.trueBreakevenMonth === 0);
+
+  const b300 = computeCase(D({ ...REF, bauEliminatedAnnual: 300000 }), "expected", true, "hiring");
+  ok("G2 displacement pulls lifetime break-even from month 50 to month 39",
+     b300.trueBreakevenMonth === 39, `${b300.trueBreakevenMonth}`);
+
+  /* ---- G3. Month-36 cash IS three-year net value. Every headroom stat depends on it. ---- */
+  const cases = [
+    ["control", {}], ["300K assumed overlap", { bauEliminatedAnnual: 300000 }],
+    ["300K + exit + backfill", { bauEliminatedAnnual: 300000, bauExitCost: 150000, bauBackfillCash: 200000 }],
+    ["600K 12mo", { bauEliminatedAnnual: 600000, bauOverlapMonths: 12 }],
+    ["900K 6mo", { bauEliminatedAnnual: 900000, bauOverlapMonths: 6 }],
+    ["900K 48mo tail", { bauEliminatedAnnual: 900000, bauOverlapMonths: 48 }],
+    ["900K 0% share", { bauEliminatedAnnual: 900000, bauOverlapMonths: 12, bauOverlapShare: 0 }],
+    ["absorbed hours only", { bauAbsorbedHours: 4200 }],
+  ];
+  for (const [label, over] of cases) {
+    for (const m of ["none", "hiring", "headcount"]) {
+      const r = computeCase(D({ ...REF, ...over }), "expected", true, m);
+      ok(`G3 month-36 cash equals three-year net value (${label}, ${m})`,
+         near(r.cumFlow[36], r.netValue3, 0.5), `${r.cumFlow[36]} vs ${r.netValue3}`);
+      ok(`G3 benefit3 is operational plus displacement and nothing else (${label}, ${m})`,
+         near(r.savings3 + r.displacement3, r.benefit3, 0.001));
+      ok(`G3 ROI reconciles to its own denominator (${label}, ${m})`,
+         !r.roiDefined || near((r.benefit3 - r.tco3) / r.tco3 * 100, r.roi3, 0.001));
+    }
+  }
+
+  /* ---- G4. Displacement is credited, never netted out of the denominator. ---- */
+  const d900 = computeCase(D({ ...REF, bauEliminatedAnnual: 900000, bauOverlapMonths: 6 }), "expected", true, "hiring");
+  ok("G4 denominator does not shrink when displaced spend rises",
+     d900.tco3 === base.tco3, `${d900.tco3} vs ${base.tco3}`);
+  ok("G4 denominator stays positive under heavy displacement", d900.tco3 > 0);
+  ok("G4 heavy displacement produces a stable ratio, not an exploding one",
+     Math.round(d900.roi3) === 51, `${d900.roi3}`);
+  ok("G4 displacement moves net value by exactly the credit",
+     near(d900.netValue3 - base.netValue3, d900.displacement3, 0.5));
+  const dHuge = computeCase(D({ ...REF, bauEliminatedAnnual: 5000000, bauOverlapMonths: 0 }), "expected", true, "hiring");
+  ok("G4 displacement far above new platform cost never inverts the ratio",
+     dHuge.tco3 > 0 && dHuge.roi3 > d900.roi3, `tco3=${dHuge.tco3} roi=${dHuge.roi3}`);
+
+  /* ---- G5. Overlap. Real duration preserved, only the 3-year slice is clamped. ---- */
+  const tail48 = computeCase(D({ ...REF, bauEliminatedAnnual: 900000, bauOverlapMonths: 48 }), "expected", true, "hiring");
+  ok("G5 a 48-month tail is not clamped to the horizon", tail48.OL === 48, `${tail48.OL}`);
+  ok("G5 a tail beyond the horizon yields zero displacement inside three years",
+     near(tail48.displacement3, 0, 0.001), `${tail48.displacement3}`);
+  ok("G5 three-year figures are identical to the no-BAU case under a full-horizon tail",
+     near(tail48.netValue3, base.netValue3, 0.5) && Math.round(tail48.roi3) === Math.round(base.roi3));
+  ok("G5 the tail still improves lifetime break-even, which a clamp would have deleted",
+     tail48.trueBreakevenMonth === 49 && tail48.trueBreakevenMonth < base.trueBreakevenMonth,
+     `${tail48.trueBreakevenMonth} vs ${base.trueBreakevenMonth}`);
+  ok("G5 an unstated overlap is assumed equal to migration and says so",
+     b300.overlapAssumed === true && b300.OL === b300.M, `OL=${b300.OL} M=${b300.M}`);
+  ok("G5 a stated overlap is never overwritten by the assumption",
+     computeCase(D({ ...REF, bauEliminatedAnnual: 300000, bauOverlapMonths: 3 }), "expected", true, "hiring").overlapAssumed === false);
+  ok("G5 overlap longer than migration is flagged, not clamped or rejected",
+     tail48.overlapGtMigration === true && tail48.OL > tail48.M);
+  const share0 = computeCase(D({ ...REF, bauEliminatedAnnual: 900000, bauOverlapMonths: 12, bauOverlapShare: 0 }), "expected", true, "hiring");
+  ok("G5 a zero share expresses a true day-one cutover with no credit withheld",
+     near(share0.overlapWithheld, 0, 0.001) && near(share0.displacement3, 900000 * 3, 1));
+  ok("G5 withheld credit reconciles to the gap between full and modeled displacement",
+     near(d900.overlapWithheld, (d900.bauMo * 36) - d900.displacement3, 0.5));
+
+  /* ---- G6. Displacement is not ramped and not weighted. ---- */
+  const rampOff = computeCase(D({ ...REF, bauEliminatedAnnual: 600000, bauOverlapMonths: 12 }), "expected", false, "hiring");
+  const rampOn2 = computeCase(D({ ...REF, bauEliminatedAnnual: 600000, bauOverlapMonths: 12 }), "expected", true, "hiring");
+  ok("G6 displacement is identical with phasing on and off, so the ramp never touches it",
+     near(rampOff.displacement3, rampOn2.displacement3, 0.001));
+  const agg = computeCase(D({ ...REF, bauEliminatedAnnual: 600000, bauOverlapMonths: 12 }), "aggressive", true, "hiring");
+  ok("G6 the stance does not weight displacement", near(agg.displacement3, rampOn2.displacement3, 0.001));
+  const mechs = ["none", "growth", "overtime", "hiring", "vendor", "headcount"]
+    .map(m => computeCase(D({ ...REF, bauEliminatedAnnual: 600000, bauOverlapMonths: 12 }), "expected", true, m).displacement3);
+  ok("G6 the capacity action does not scale displacement", mechs.every(v => near(v, mechs[0], 0.001)));
+  ok("G6 year-one displacement is zero while the dual run covers year one",
+     near(rampOn2.year1Disp, 0, 0.001), `${rampOn2.year1Disp}`);
+
+  /* ---- G7. Absorbed internal labor is disclosed, never costed. ---- */
+  const abs = computeCase(D({ ...REF, bauAbsorbedHours: 4200 }), "expected", true, "hiring");
+  ok("G7 absorbed hours never enter the cash denominator", abs.tco3 === base.tco3);
+  ok("G7 absorbed hours never enter the cash flow", near(abs.cumFlow[36], base.cumFlow[36], 0.5));
+  ok("G7 absorbed hours are still valued and disclosed",
+     abs.absorbedHours === 4200 && abs.absorbedValue > 0 && near(abs.absorbedValue, 4200 * abs.loaded, 0.01));
+  ok("G7 absorbed hours alone still mark the case as having a counterfactual", abs.bauEntered === true);
+  const bf = computeCase(D({ ...REF, bauBackfillCash: 200000 }), "expected", true, "hiring");
+  ok("G7 incremental cash labor DOES enter the denominator", bf.tco3 === base.tco3 + 200000);
+  ok("G7 exit cost enters the denominator and the month-0 outflow", (() => {
+    const e = computeCase(D({ ...REF, bauExitCost: 150000 }), "expected", true, "hiring");
+    return e.tco3 === base.tco3 + 150000 && near(e.cumFlow[0], -(REF.implementationCost + 150000), 0.001);
+  })());
+
+  /* ---- G8. Max implementation: correct bucket, and a negative value survives. ---- */
+  ok("G8 max implementation excludes exit and backfill so it stays about implementation", (() => {
+    const e = computeCase(D({ ...REF, bauExitCost: 150000, bauBackfillCash: 200000 }), "expected", true, "hiring");
+    return near(e.breakEvenImpl, base.breakEvenImpl - 350000, 0.5);
+  })());
+  ok("G8 a negative maximum implementation is preserved, not clamped to zero",
+     baseNone.breakEvenImpl < 0, `${baseNone.breakEvenImpl}`);
+  ok("G8 zeroing implementation at a negative maximum still fails to break even", (() => {
+    const z = computeCase(D({ ...REF, implementationCost: 0 }), "expected", true, "none");
+    return z.netValue3 < 0;
+  })());
+  ok("G8 max implementation is the exact threshold where three-year value turns negative", (() => {
+    const at = computeCase(D({ ...REF, implementationCost: Math.round(base.breakEvenImpl) }), "expected", true, "hiring");
+    return Math.abs(at.netValue3) < 2;
+  })());
+  ok("G8 headroom is the maximum less the implementation actually entered",
+     near(base.implHeadroom, base.breakEvenImpl - REF.implementationCost, 0.5));
+
+  /* ---- G9. Payback on displacement alone is legitimate, and is labelled. ---- */
+  // Day-one cutover on a month-to-month contract, so the credit starts immediately and the
+  // case can actually reach break-even inside the horizon on displacement with no operational
+  // benefit at all. The point of the assertion is that the payback guard permits it.
+  const noOps = computeCase(D({ ...REF, containment: 0, htReduction: 0, acwReduction: 0,
+    fcrImprovement: 0, attritionReduction: 0, bauEliminatedAnnual: 1200000, bauOverlapShare: 0 }), "expected", true, "none");
+  ok("G9 a case with zero operational benefit can pay back on displacement alone",
+     noOps.payback > 0 && near(noOps.savings3, 0, 0.001),
+     `payback=${noOps.payback} savings3=${Math.round(noOps.savings3)}`);
+  ok("G9 that case is 100% displacement and says so", near(noOps.displacementShare, 1, 0.001));
+  ok("G9 a case with no benefit at all still reports no payback", (() => {
+    const dead = computeCase(D({ ...REF, containment: 0, htReduction: 0, acwReduction: 0,
+      fcrImprovement: 0, attritionReduction: 0 }), "expected", true, "none");
+    return dead.payback === 0;
+  })());
+  ok("G9 displacement share is bounded in [0,1] across the sweep", (() => {
+    for (const spend of [0, 50000, 300000, 900000, 5000000])
+      for (const ol of [0, 6, 12, 36, 48])
+        for (const sh of [0, 50, 100]) {
+          const r = computeCase(D({ ...REF, bauEliminatedAnnual: spend, bauOverlapMonths: ol, bauOverlapShare: sh }), "expected", true, "hiring");
+          if (!(r.displacementShare >= 0 && r.displacementShare <= 1)) return false;
+          if (!near(r.cumFlow[36], r.netValue3, 0.5)) return false;
+        }
+    return true;
+  })());
+
+  /* ---- G10. The displacement evidence gate. ---- */
+  // Clean set: no repeat-share conflict and a signed proposal, so the gate is observable.
+  const CLEAN = D({ agents: 300, avgHourly: 22, benefitsPct: 28, monthlyContacts: 180000,
+    currentAHT: 400, currentACW: 50, currentFCR: 75, repeatShare: 0, currentAttrition: 30,
+    costPerContact: 9, recruitCostPerHire: 3500, trainingDays: 18, htReduction: 10, acwReduction: 20,
+    fcrImprovement: 6, attritionReduction: 15, containment: 15, implementationCost: 900000,
+    newPlatformPerAgentMo: 120, migrationMonths: 9, rampMonths: 6, evidence: "proposal" });
+  const grade = (over) => {
+    const d = D({ ...CLEAN, ...over }), r = computeCase(d, "expected", true, "headcount");
+    return { c: confidenceOf(d, r, "expected"), r };
+  };
+  ok("G10 the clean control reaches Finance-grade with no BAU entered",
+     grade({}).c.costGrade === "Finance-grade");
+  ok("G10 a small displacement share does not move the cost axis",
+     grade({ bauEliminatedAnnual: 120000, bauOverlapMonths: 6 }).c.costGrade === "Finance-grade");
+  ok("G10 displacement above a quarter of benefit on estimated evidence caps the cost axis",
+     grade({ bauEliminatedAnnual: 800000, bauOverlapMonths: 6 }).c.costGrade === "Planning-grade");
+  ok("G10 a budget line is still not a reviewed contract",
+     grade({ bauEliminatedAnnual: 800000, bauOverlapMonths: 6, bauEvidence: "budgeted" }).c.costGrade === "Planning-grade");
+  ok("G10 a reviewed contract restores Finance-grade",
+     grade({ bauEliminatedAnnual: 800000, bauOverlapMonths: 6, bauEvidence: "reviewed" }).c.costGrade === "Finance-grade");
+  ok("G10 a served notice restores Finance-grade",
+     grade({ bauEliminatedAnnual: 800000, bauOverlapMonths: 6, bauEvidence: "served" }).c.costGrade === "Finance-grade");
+  ok("G10 the gate registers as a cost-input open item, not a withheld cap", (() => {
+    const g = grade({ bauEliminatedAnnual: 800000, bauOverlapMonths: 6 });
+    return g.c.open.length === 1 && g.c.open[0].includes("technology-cost displacement");
+  })());
+  ok("G10 the open item reproduces its own percentage", (() => {
+    const g = grade({ bauEliminatedAnnual: 800000, bauOverlapMonths: 6 });
+    return g.c.open[0].includes(`${Math.round(g.r.displacementShare * 100)}% of modeled three-year benefit`);
+  })());
+  ok("G10 an unknown evidence key falls back to the weakest rather than throwing",
+     grade({ bauEliminatedAnnual: 800000, bauOverlapMonths: 6, bauEvidence: "nonsense" }).c.bauEvidence === "estimated");
+
+  /* ---- G11. Narrative surfaces. JSX strings are invisible to engine assertions. ---- */
+  const ins = (over, m = "hiring") => {
+    const d = D({ ...REF, ...over }), r = computeCase(d, "expected", true, m);
+    return caseInsights(r, d, "expected", confidenceOf(d, r, "expected")).join(" ");
+  };
+  ok("G11 no BAU entered leaves the read free of counterfactual language",
+     !ins({}).includes("technology-cost displacement"));
+  ok("G11 the benefit mix is stated whenever spend is eliminated",
+     ins({ bauEliminatedAnnual: 300000 }).includes("operational improvement and 23% technology-cost displacement"));
+  ok("G11 a majority-displacement case is described neutrally, without a verdict", (() => {
+    const t = ins({ bauEliminatedAnnual: 900000, bauOverlapMonths: 6 });
+    return t.includes("more sensitive to commercial pricing") && !t.includes("renegotiation");
+  })());
+  ok("G11 the assumed dual-run length is disclosed as an assumption",
+     ins({ bauEliminatedAnnual: 300000 }).includes("was not stated, so it is assumed to equal"));
+  ok("G11 a stated dual-run length carries no assumption language",
+     !ins({ bauEliminatedAnnual: 300000, bauOverlapMonths: 4 }).includes("was not stated, so it is assumed"));
+  ok("G11 an overlap past go-live is flagged without being called invalid",
+     ins({ bauEliminatedAnnual: 900000, bauOverlapMonths: 48 }).includes("past go-live"));
+  ok("G11 a full-horizon tail states that three-year displacement is nil",
+     ins({ bauEliminatedAnnual: 900000, bauOverlapMonths: 48 }).includes("no displacement benefit within three years"));
+  ok("G11 absorbed labor is named as excluded from the cash return",
+     ins({ bauAbsorbedHours: 4200 }).includes("excluded from the cash return"));
+  ok("G11 the read states the denominator is not netted",
+     ins({ bauEliminatedAnnual: 300000, bauExitCost: 150000 }).includes("rather than netted out of that denominator"));
+
+  const has = (s) => SRC.includes(s);
+  ok("G11 SOURCE the methodology branches on whether a counterfactual was entered",
+     has("r.bauEntered") && has("no business-as-usual counterfactual has been entered for this case"));
+  ok("G11 SOURCE the methodology states why displacement is not netted out",
+     has("Netting it out would drive the denominator toward zero"));
+  ok("G11 SOURCE the methodology states displacement is unweighted and unramped",
+     has("not weighted by the stance or by the capacity action") && has("steps at the end of the dual-run period"));
+  ok("G11 SOURCE the methodology still discloses what the model leaves out",
+     has("growth in volume or wages over the horizon"));
+  ok("G11 SOURCE the ROI tile names its denominator under both bases",
+     has("gross transformation cash") && has("modeled 3-yr cost"));
+  ok("G11 SOURCE the PDF carries a counterfactual section",
+     has('title: "Business-as-Usual Counterfactual"') && has("Gross transformation cash (ROI denominator)"));
+  ok("G11 SOURCE the input helper scopes the field to spend that actually ends",
+     has("Only include costs that end because of this program"));
+  ok("G11 SOURCE the rail publishes the displacement share as a fraction, not a percent",
+     has("r.displacementShare * 1000) / 1000"));
+  ok("G11 SOURCE threeYearROI is not republished under a changed basis",
+     has("threeYearROI: Math.round(r.roi3)") && !has("threeYearIncrementalROI"));
 }
 
 console.log(`\n${"=".repeat(64)}`);
