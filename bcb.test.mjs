@@ -1632,6 +1632,67 @@ section("G. BAU counterfactual");
      has("r.displacementShare * 1000) / 1000"));
   ok("G11 SOURCE threeYearROI is not republished under a changed basis",
      has("threeYearROI: Math.round(r.roi3)") && !has("threeYearIncrementalROI"));
+  /* ---- G12. Defects caught by reconciling a live PDF against the engine. ---- */
+  // Live set: tool defaults with AHT 360, mech none, and a dual run SHORTER than migration.
+  const LIVE = D({ currentAHT: 360, bauEliminatedAnnual: 30000, bauOverlapMonths: 3,
+    bauOverlapShare: 100, bauExitCost: 40000, bauBackfillCash: 45000, bauAbsorbedHours: 100 });
+  const rL = computeCase(LIVE, "expected", true, "none");
+  const tL = caseInsights(rL, LIVE, "expected", confidenceOf(LIVE, rL, "expected")).join(" ");
+  ok("G12 the live PDF set reconciles to the engine", (() => (
+    Math.round(rL.net) === 31850 && rL.tco3 === 1807000 && Math.round(rL.roi3) === -92 &&
+    Math.round(rL.displacement3) === 82500 && Math.round(rL.benefit3) === 147527 &&
+    Math.round(rL.breakEvenImpl) === -909473 && Math.round(rL.overlapWithheld) === 7500))(),
+    `net=${Math.round(rL.net)} tco3=${rL.tco3} roi=${Math.round(rL.roi3)}`);
+
+  // Defect 1: a dual run ending before go-live banks avoided spend on a platform still in use.
+  ok("G12 credit banked before go-live is detected and quantified",
+     rL.preGoLiveMonths === 6 && Math.round(rL.preGoLiveCredit) === 15000,
+     `${rL.preGoLiveMonths}mo ${rL.preGoLiveCredit}`);
+  ok("G12 that exposure leads the read rather than sitting at the bottom",
+     tL.indexOf("still the only one running") >= 0 &&
+     tL.indexOf("still the only one running") < tL.indexOf("Modeled three-year benefit splits"));
+  ok("G12 the flag names the wave-cutover condition under which it is legitimate",
+     tL.includes("licences retire in tranches"));
+  ok("G12 a dual run covering the migration raises no such flag",
+     computeCase(D({ ...LIVE, bauOverlapMonths: 9 }), "expected", true, "none").preGoLiveCredit === 0);
+  ok("G12 a zero share cannot bank pre-go-live credit it never claimed",
+     computeCase(D({ ...LIVE, bauOverlapShare: 0 }), "expected", true, "none").preGoLiveCredit === 0);
+  ok("G12 pre-go-live credit never exceeds the displacement actually credited", (() => {
+    for (const ol of [0, 1, 3, 6, 9, 12]) for (const mig of [6, 9, 12, 18]) {
+      const r = computeCase(D({ ...LIVE, bauOverlapMonths: ol, migrationMonths: mig }), "expected", true, "hiring");
+      if (r.preGoLiveCredit > r.displacement3 + 0.5) return false;
+    }
+    return true;
+  })());
+
+  // Defect 2: the run-rate sentence attributed displaced spend to operational savings.
+  ok("G12 the never-breaks-even line names displacement separately",
+     tL.includes("plus $2,500 a month of displaced technology spend"));
+  ok("G12 the beyond-horizon line separates contribution from operational saving", (() => {
+    const d = D({ currentAHT: 360, bauEliminatedAnnual: 400000, bauOverlapMonths: 9 });
+    const r = computeCase(d, "expected", true, "none");
+    const t = caseInsights(r, d, "expected", confidenceOf(d, r, "expected")).join(" ");
+    return r.postMonthly > 0 && r.monthlyFull < r.monthlyPlatform &&
+      t.includes("Run-rate contribution does exceed") &&
+      t.includes("is displaced technology spend rather than operational saving") &&
+      !t.includes("Run-rate savings do exceed");
+  })());
+  ok("G12 with no BAU the run-rate lines are unchanged", (() => {
+    const d = D({ currentAHT: 360 });
+    const r = computeCase(d, "expected", true, "none");
+    const t = caseInsights(r, d, "expected", confidenceOf(d, r, "expected")).join(" ");
+    return t.includes("do not exceed the") && !t.includes("displaced technology spend");
+  })());
+
+  // Defect 3: negative currency rendered as $-909,473 in the PDF.
+  ok("G12 negative currency puts the sign outside the symbol", fmtFull(-909473) === "-$909,473");
+  ok("G12 positive and zero currency are unchanged", fmtFull(1500) === "$1,500" && fmtFull(0) === "$0");
+  ok("G12 the max-implementation row reads as a negative dollar figure",
+     fmtFull(rL.breakEvenImpl) === "-$909,473");
+
+  // Defect 4: absorbed labor read $2K in prose against $2,340 in the table.
+  ok("G12 absorbed labor is stated exactly, not rounded to the nearest thousand",
+     tL.includes("worth $2,340 at the loaded wage") && !tL.includes("worth $2K"));
 }
 
 console.log(`\n${"=".repeat(64)}`);
