@@ -79,7 +79,7 @@ const DEFS = {
   loadedCPC: "Your fully loaded cost per contact, carrying labor plus a share of fixed tech, facilities, and supervision. The tool shows it for context but never values savings on it, because deflecting one contact does not remove those fixed costs.",
   stance: "A per-lever haircut on modeled savings, set higher for levers a board trusts and lower for levers that are hard to attribute to a platform. It exists because deflection, handle-time, FCR, and attrition are not equally believable, so a single blanket discount would either overstate the soft levers or understate the hard ones.",
   phasing: "Spreads savings across the migration build and the post-go-live ramp instead of assuming they arrive on day one. It exists because a transformation earns nothing while it is being built, so an instant-payback number is the fastest way to lose CFO trust.",
-  confidence: "Rates how bookable the cost and investment inputs are, from estimate to signed proposal, kept separate from how believable the savings are. It exists so a case built on guesses cannot present with the same authority as one built on a real quote.",
+  confidence: "Two independent axes, and the badge shows the weaker. COST BASIS rates how bookable the investment inputs are, from estimate to signed proposal. REALIZATION rates whether the modeled savings can be booked at all, which depends on the capacity action: freed labor with no conversion action is planning value, not money. Both are kept separate from how believable the savings are, which is the stance, and from whether the organization can deliver the targets, which is a separate tool. It exists so a case built on guesses, or one whose benefit is unbanked capacity, cannot present with the same authority as one built on a signed proposal and a committed action.",
   containment: "The share of contacts the transformation fully handles in self-service with no agent. It is the lever a board probes first, so the tool sizes it on the handled pool and flags targets above what most centers actually reach.",
   ht: "The percent cut in talk-and-hold time, applied to AHT after after-call work is removed. Much of AHT is not compressible, so double-digit cuts should be read as upside rather than base case.",
   acw: "After-call work, the wrap time that sits inside AHT. The tool treats it as a separate slice so a handle-time cut and an ACW cut can never claim the same saved minute twice.",
@@ -138,21 +138,46 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   // so multiplying total handled volume by an FCR improvement counts contacts that were never
   // going to exist. Prefer a measured repeat share; fall back to deriving issues from FCR and
   // label that derivation a proxy, because it assumes one repeat per unresolved issue.
+  // FCR economics act on the REPEAT POPULATION, and can never remove more repeats than exist.
+  // The old formula applied the FCR point lift to the issue count, which on a measured repeat
+  // share of 2% claimed to avoid 4.9x more repeats than the operation actually has. Instead:
+  // improving FCR shrinks the unresolved pool PROPORTIONALLY, and that ratio is applied to the
+  // repeat population. On the proxy path this is algebraically identical to the old formula, so
+  // proxy cases are unchanged; only a measured repeat share behaves differently, and correctly.
   const fcrFrac = n(d.currentFCR) / 100;
+  const oldFail = Math.max(0, 1 - fcrFrac);
+  const newFail = Math.max(0, 1 - Math.min(1, fcrFrac + n(d.fcrImprovement) / 100));
+  const fcrReductionRatio = oldFail > 0 ? Math.max(0, Math.min(1, (oldFail - newFail) / oldFail)) : 0;
   const measuredRepeatShare = n(d.repeatShare) > 0 ? Math.min(0.95, n(d.repeatShare) / 100) : 0;
   const repeatBasis = measuredRepeatShare > 0 ? "measured" : "fcr-proxy";
-  const issues = measuredRepeatShare > 0
-    ? handled * (1 - measuredRepeatShare)
-    : (2 - fcrFrac > 0 ? handled / (2 - fcrFrac) : 0);
-  const impliedRepeatShare = handled > 0 ? (handled - issues) / handled : 0;
+  // One repeat per unresolved issue is the proxy assumption, and it fixes the derived population.
+  const proxyRepeatShare = (2 - fcrFrac) > 0 ? oldFail / (2 - fcrFrac) : 0;
+  const repeatPopulation = handled * (measuredRepeatShare > 0 ? measuredRepeatShare : proxyRepeatShare);
+  const issues = handled - repeatPopulation;
+  const impliedRepeatShare = handled > 0 ? repeatPopulation / handled : 0;
   const fcrLift = Math.max(0, Math.min(100, n(d.currentFCR) + n(d.fcrImprovement)) - n(d.currentFCR)) / 100;
-  const avoidedRepeats = issues * fcrLift;
+  const avoidedRepeats = Math.min(repeatPopulation, repeatPopulation * fcrReductionRatio);
+  // A measured repeat share implies its own FCR. If that disagrees with the FCR entered, the two
+  // inputs are measuring different things and the tool must say so rather than blend them.
+  const fcrImpliedByRepeats = measuredRepeatShare > 0 && measuredRepeatShare < 0.5
+    ? (1 - 2 * measuredRepeatShare) / (1 - measuredRepeatShare) : null;
+  const fcrInputConflict = fcrImpliedByRepeats != null
+    && Math.abs(fcrImpliedByRepeats - fcrFrac) > 0.05;
   const fcr = avoidedRepeats * marginal;                 // marginal basis, not loaded CPC
 
   const newAtt = n(d.currentAttrition) * (1 - n(d.attritionReduction) / 100);
   const avoidedTurnover = n(d.agents) * (n(d.currentAttrition) - newAtt) / 100;
-  const perHire = n(d.recruitCostPerHire) + n(d.trainingDays) * 8 * loaded;
+  // Attrition avoidance is NOT uniformly cash. Recruiting spend genuinely disappears when a hire
+  // is avoided. Trainee wages do not: had the incumbent stayed you would have paid them anyway,
+  // so what is actually avoided is the lost production during ramp, which is capacity like any
+  // other freed hour and must be scaled by the same realization factor.
+  const perHireCash = n(d.recruitCostPerHire);
+  const perHireCapacity = n(d.trainingDays) * 8 * loaded;
+  const perHire = perHireCash + perHireCapacity;
   const attrition = avoidedTurnover * perHire;
+  const attritionCash = avoidedTurnover * perHireCash;
+  const attritionCapacity = avoidedTurnover * perHireCapacity;
+  const hoursAttrition = avoidedTurnover * n(d.trainingDays) * 8;
 
   const buckets = { containment, handleTime, fcr, attrition };
   const gross = containment + handleTime + fcr + attrition;
@@ -170,10 +195,10 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   const mech = MECH[mechKey] || MECH[MECH_DEFAULT];
   const mf = mech.f;
 
-  const capacityGross = containment + handleTime + fcr;
-  const cashGross = attrition;
-  const capacityNet = containment * cf.c + handleTime * cf.h + fcr * cf.f;   // attribution only
-  const cashNet = attrition * cf.a;                                          // attribution only
+  const capacityGross = containment + handleTime + fcr + attritionCapacity;
+  const cashGross = attritionCash;
+  const capacityNet = containment * cf.c + handleTime * cf.h + fcr * cf.f + attritionCapacity * cf.a;
+  const cashNet = attritionCash * cf.a;                                      // attribution only
   const capacityRealized = capacityNet * mf;                                 // realization applied
   const unrealizedCapacity = capacityNet - capacityRealized;
   const net = capacityRealized + cashNet;
@@ -185,8 +210,8 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   const hoursContainment = deflected * (n(d.currentAHT) / 3600);
   const hoursHandleTime = handled * secSaved / 3600;
   const hoursFcr = avoidedRepeats * (n(d.currentAHT) / 3600);
-  const freedHoursGross = hoursContainment + hoursHandleTime + hoursFcr;
-  const freedHoursAttributed = hoursContainment * cf.c + hoursHandleTime * cf.h + hoursFcr * cf.f;
+  const freedHoursGross = hoursContainment + hoursHandleTime + hoursFcr + hoursAttrition;
+  const freedHoursAttributed = hoursContainment * cf.c + hoursHandleTime * cf.h + hoursFcr * cf.f + hoursAttrition * cf.a;
   const freedHoursRealized = freedHoursAttributed * mf;
 
   // ONE percent allocation, consumed by the UI strip, the PDF table and the analyst read.
@@ -274,9 +299,11 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal,
     mechKey: MECH[mechKey] ? mechKey : MECH_DEFAULT, mf, mechLabel: mech.label, cred: mech.cred,
     capacityGross, cashGross, capacityNet, cashNet, capacityRealized, unrealizedCapacity,
+    attritionCash, attritionCapacity, perHireCash, perHireCapacity,
     attributionHaircut, realizationHaircut,
     freedHoursGross, freedHoursAttributed, freedHoursRealized,
-    issues, avoidedRepeats, repeatBasis, impliedRepeatShare, measuredRepeatShare, annual, handled, deflected, buckets, pct, gross, net, haircut: gross - net, recurring, tco3, roi3, roiDefined, payback, netValue3, avoidedTurnover, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, postMonthly, rampOn,
+    issues, avoidedRepeats, repeatBasis, impliedRepeatShare, measuredRepeatShare,
+    repeatPopulation, fcrReductionRatio, fcrImpliedByRepeats, fcrInputConflict, annual, handled, deflected, buckets, pct, gross, net, haircut: gross - net, recurring, tco3, roi3, roiDefined, payback, netValue3, avoidedTurnover, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, postMonthly, rampOn,
     breakEvenImpl, breakEvenImplPerAgent, implHeadroom, implHeadroomPerAgent,
     trueBreakevenMonth, TYPICAL_PER_AGENT, typicalImpl, typicalValue3, typicalRoi3, typicalPayback, typicalBreakeven };
 }
@@ -290,49 +317,56 @@ const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 }
 const CRED_GRADE = { none: "Directional", capacity: "Directional", finance: "Planning-grade", cash: "Finance-grade" };
 
 function confidenceOf(d, r, stanceKey) {
-  const open = [];
   const evidence = d.evidence || "estimate";
   const perAgentImpl = n(d.agents) > 0 ? n(d.implementationCost) / n(d.agents) : 0;
-  let aggressiveTargets = false;
-  if (n(d.containment) > 25) { open.push(`Containment target of ${n(d.containment)}% is above the 10 to 25% most centers reach without a proven pilot.`); aggressiveTargets = true; }
-  if (n(d.htReduction) > 15) { open.push(`Handle-time reduction of ${n(d.htReduction)}% is above the 8 to 15% typical range.`); aggressiveTargets = true; }
-  if (n(d.attritionReduction) > 25) { open.push(`Attrition reduction of ${n(d.attritionReduction)}% is optimistic and hard to attribute to a platform.`); aggressiveTargets = true; }
-  if (perAgentImpl > 0 && perAgentImpl < 2000 && r.postMonthly > 0) open.push(`Implementation of ${fmtFull(perAgentImpl)} per agent is below our internal planning benchmark of $3 to 8K per agent for a full transformation.`);
-  // WITHHELD is not the same list as OPEN. Open items are defects in the cost inputs. Withheld
-  // items are reasons the badge is capped that say nothing about whether the costs are bookable.
-  // Merging them let a return-on-investment problem increment a cost-confidence counter.
-  const withheld = [];
-  if (r.payback === 0) withheld.push(r.trueBreakevenMonth > 0
-    ? `The case does not break even within the three-year evaluation horizon, and on the same assumptions cumulative cash turns positive in month ${r.trueBreakevenMonth}. This caps the badge on the strength of the return, not on the bookability of the costs.`
-    : "Modeled savings never exceed the monthly platform cost, so the case does not break even at any horizon. This caps the badge on the strength of the return, not on the bookability of the costs.");
-  if (r.breakEvenImplPerAgent > 0 && r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT && r.postMonthly > 0)
-    open.push(`Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent of implementation, which is below the ${fmtFull(r.TYPICAL_PER_AGENT)} floor of a typical platform transformation.`);
+
+  // THREE CONCEPTS, THREE PLACES, and none of them may move another.
+  //   open  : defects in the COST INPUTS themselves. Only these move the cost-basis axis.
+  //   caps  : reasons the HEADLINE is capped that are not cost-input defects, each carrying
+  //           its own ceiling and naming its own domain.
+  //   flags : plausibility observations that inform the reader and move nothing.
+  const open = [], caps = [], flags = [];
+
+  // ---- COST BASIS. One question: how bookable are the investment inputs? ----
   if (r.marginalStale) open.push(`The inherited marginal cost of ${fmt2(r.marginal)} per contact is ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage entered here. One of the two is describing a different operation.`);
-  // The aggressive stance is not a cost defect, and this list is scoped to cost inputs. It
-  // still withholds the badge, so say that plainly rather than filing it as a costing problem.
-  if (stanceKey === "aggressive") withheld.push("The Aggressive stance presents savings with no attribution haircut. This is a benefit-attribution concern rather than a cost-input one, and it is listed here precisely so it does not get counted as a costing defect. The badge is not awarded to a document whose savings side is undiscounted.");
+  if (r.fcrInputConflict) open.push(`The measured repeat share of ${Math.round(r.measuredRepeatShare * 100)}% implies a first-contact resolution rate near ${Math.round(r.fcrImpliedByRepeats * 100)}%, against the ${n(d.currentFCR)}% entered. The two are measuring different things, and the repeat population governs the economics.`);
+  let costGrade;
+  if (evidence === "proposal" && !r.marginalStale && !r.fcrInputConflict) costGrade = "Finance-grade";
+  else if (evidence === "quote" || evidence === "proposal") costGrade = "Planning-grade";
+  else costGrade = "Directional";
 
-  let grade;
-  if (r.payback === 0) grade = "Directional";
-  else if (evidence === "proposal" && stanceKey !== "aggressive" && !aggressiveTargets && perAgentImpl >= 2000 && !r.marginalStale) grade = "Finance-grade";
-  else if (evidence === "quote" || evidence === "proposal") grade = "Planning-grade";
-  else grade = "Directional";
-  // AXIS TWO. Cost basis asks whether the investment inputs are bookable. Realization asks
-  // whether the savings can be booked at all. These are independent questions, so they are
-  // graded independently and the artifact headlines the weaker of the two.
+  // ---- REALIZATION. One question: can the modeled savings be booked at all? ----
   const realizationGrade = CRED_GRADE[r.cred] || "Directional";
-  const capacityShare = (r.capacityNet + r.cashNet) > 0 ? r.capacityNet / (r.capacityNet + r.cashNet) : 0;
   if (r.mechKey === "none")
-    withheld.push("No capacity action is selected, so freed agent time realizes zero cash. The savings in this case are released capacity only until an action is chosen.");
-  else if (GRADE_RANK[realizationGrade] < GRADE_RANK[grade])
-    withheld.push(`The ${r.mechLabel} capacity action converts freed labor into ${r.cred === "capacity" ? "planning value rather than cash" : "finance-creditable value rather than cash out the door"}, so realization caps this case at ${realizationGrade}. This is a benefit-realization concern, not a cost-input one.`);
+    caps.push(["Directional", "No capacity action is committed, so freed agent time realizes zero cash. Until an action is chosen this case is released capacity, not a saving. This is a benefit-realization question and says nothing about the cost inputs."]);
+  else if (GRADE_RANK[realizationGrade] < GRADE_RANK[costGrade])
+    caps.push([realizationGrade, `The ${r.mechLabel} capacity action converts freed labor into ${r.cred === "capacity" ? "planning value rather than cash" : "finance-creditable value rather than cash out the door"}, so realization caps this case at ${realizationGrade}. This is a benefit-realization concern, not a cost-input one.`]);
 
-  const overall = GRADE_RANK[realizationGrade] < GRADE_RANK[grade] ? realizationGrade : grade;
-  return { grade: overall, costGrade: grade, realizationGrade, capacityShare, open, withheld, evidence };
+  // ---- RETURN. Whether the case pays is not evidence about anything. ----
+  if (r.payback === 0) caps.push(["Directional", r.trueBreakevenMonth > 0
+    ? `The case does not break even within the three-year evaluation horizon, and on the same assumptions cumulative cash turns positive in month ${r.trueBreakevenMonth}. This caps the badge on the strength of the return, not on the bookability of the costs.`
+    : "Modeled savings never exceed the monthly platform cost, so the case does not break even at any horizon. This caps the badge on the strength of the return, not on the bookability of the costs."]);
+  if (r.breakEvenImplPerAgent > 0 && r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT && r.postMonthly > 0)
+    caps.push(["Planning-grade", `Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent of implementation, below the ${fmtFull(r.TYPICAL_PER_AGENT)} internal planning floor. This is a fragility observation about the return, not a defect in the cost evidence.`]);
+
+  // ---- ATTRIBUTION. Stance and target ambition are savings questions. ----
+  if (stanceKey === "aggressive") caps.push(["Planning-grade", "The Aggressive stance presents savings with no attribution haircut. This is a benefit-attribution concern rather than a cost-input one, and it is listed here precisely so it does not get counted as a costing defect."]);
+  if (n(d.containment) > 25) flags.push(`Containment target of ${n(d.containment)}% is above the 10 to 25% range most centers reach without a proven pilot.`);
+  if (n(d.htReduction) > 15) flags.push(`Handle-time reduction of ${n(d.htReduction)}% is above the 8 to 15% range we use for planning.`);
+  if (n(d.attritionReduction) > 25) flags.push(`Attrition reduction of ${n(d.attritionReduction)}% is optimistic and hard to attribute to a platform.`);
+  if (flags.length) caps.push(["Planning-grade", `${flags.length} improvement target${flags.length > 1 ? "s sit" : " sits"} above the internal planning range: ${flags.join(" ")} This is a target-plausibility concern, not a cost-input one.`]);
+
+  // ---- PRICE PLAUSIBILITY is not evidence quality. A signed proposal stays contracted. ----
+  if (perAgentImpl > 0 && perAgentImpl < 2000 && r.postMonthly > 0)
+    flags.push(`Implementation of ${fmtFull(perAgentImpl)} per agent is below our internal planning benchmark of $3 to 8K per agent for a full transformation, which is a heuristic rather than a sourced market figure. Evidence quality is unchanged by this: a signed proposal is still contracted.`);
+
+  const headline = [costGrade, realizationGrade, ...caps.map(c => c[0])]
+    .reduce((a, b) => GRADE_RANK[b] < GRADE_RANK[a] ? b : a, "Finance-grade");
+  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), flags, evidence };
 }
 
 function caseInsights(r, d, stanceKey, conf) {
-  const flags = [];
+  const flags = [], leadFlags = [];
   // Input plausibility, the assumptions a CFO rejects on sight. These lead the read.
   if (n(d.containment) > 25) flags.push(`Your ${n(d.containment)}% self-service containment is above the 10 to 25% most centers actually achieve. Without a pilot proving it, model 15 to 20% as the defensible case. It is ${r.pct.containment}% of your savings, so the board challenges it first.`);
   if (n(d.htReduction) > 15) flags.push(`A ${n(d.htReduction)}% handle-time reduction is aggressive. 8 to 15% is typical even with AI assist, so treat anything above 15% as upside, not base case.`);
@@ -369,40 +403,44 @@ function caseInsights(r, d, stanceKey, conf) {
   // The sentence that separates released capacity from money. This is the headline finding on
   // any case whose savings are mostly freed labor, which is most cases.
   const capacityLine = r.capacityNet > 0
-    ? `This case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year, worth ${fmtK(r.capacityNet)} of labor-equivalent capacity after attribution. Freed time is not money until somebody acts on it. Your stated action, ${r.mechLabel.toLowerCase()}, converts ${Math.round(r.mf * 100)}% of that into ${fmtK(r.capacityRealized)}${r.mf < 1 ? `, leaving ${fmtK(r.unrealizedCapacity)} as released capacity that is excluded from the cash case` : ""}. ${fmtK(r.cashNet)} of avoided recruiting and training spend is cash-releasing regardless of the action taken.`
+    ? `This case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year, worth ${fmtK(r.capacityNet)} of labor-equivalent capacity after attribution. Freed time is not money until somebody acts on it. Your stated action, ${r.mechLabel.toLowerCase()}, converts ${Math.round(r.mf * 100)}% of that into ${fmtK(r.capacityRealized)}${r.mf < 1 ? `, leaving ${fmtK(r.unrealizedCapacity)} as released capacity that is excluded from the cash case` : ""}. ${fmtK(r.cashNet)} of avoided recruiting spend is cash-releasing, because a hire not made is money not spent. Trainee wages are treated as capacity, not cash, because had the incumbent stayed you would have paid a wage anyway; what is avoided is the lost production during ramp.`
     : null;
   if (capacityLine && (r.mechKey === "none" || r.cred === "capacity")) flags.unshift(capacityLine);
+  if (r.fcrInputConflict) leadFlags.push(`Two inputs disagree about the same thing. A measured repeat share of ${Math.round(r.measuredRepeatShare * 100)}% implies first-contact resolution near ${Math.round(r.fcrImpliedByRepeats * 100)}%, but ${n(d.currentFCR)}% was entered. The economics run on the measured repeat population of ${Math.round(r.repeatPopulation).toLocaleString()} contacts, so improving FCR by ${n(d.fcrImprovement)} points removes ${Math.round(r.fcrReductionRatio * 100)}% of them, or ${Math.round(r.avoidedRepeats).toLocaleString()} contacts. Reconcile the two definitions before presenting, because they are almost certainly measuring different windows or different scopes.`);
+  flags.unshift(...leadFlags);
 
-  const out = [...flags.slice(0, 2)];
+  const out = [...flags.slice(0, 2 + leadFlags.length)];
   if (capacityLine && !out.includes(capacityLine)) out.push(capacityLine);
+  if (r.repeatBasis === "measured" && !r.fcrInputConflict && r.avoidedRepeats > 0)
+    out.push(`Avoided repeats run on your measured repeat population of ${Math.round(r.repeatPopulation).toLocaleString()} contacts. Improving first-contact resolution by ${n(d.fcrImprovement)} points shrinks the unresolved pool by ${Math.round(r.fcrReductionRatio * 100)}%, which removes ${Math.round(r.avoidedRepeats).toLocaleString()} contacts. The model can never remove more repeats than you measure.`);
   if (r.repeatBasis === "fcr-proxy" && r.avoidedRepeats > 0)
-    out.push(`Repeat-contact volume was not supplied, so FCR is being used as a proxy. Annual volume already contains repeats, so avoided repeats are computed on the ${Math.round(r.issues).toLocaleString()} underlying issues rather than on all ${Math.round(r.handled).toLocaleString()} handled contacts, which implies a ${Math.round(r.impliedRepeatShare * 100)}% repeat share. That derivation assumes one repeat per unresolved issue. Supplying measured same-reason repeat volume replaces the assumption with a fact.`);
+    out.push(`Repeat-contact volume was not supplied, so FCR is being used as a proxy. Annual volume already contains repeats, so the model derives a repeat population of ${Math.round(r.repeatPopulation).toLocaleString()} contacts from your ${n(d.currentFCR)}% FCR, assuming one repeat per unresolved issue, then removes ${Math.round(r.fcrReductionRatio * 100)}% of it. Supplying measured same-reason repeat volume replaces that assumption with a measurement.`);
   if (headroomLine && !out.includes(headroomLine)) out.push(headroomLine);
 
   // The differentiator, stated plainly so a blind user understands why the number is smaller than a vendor's.
-  out.push(`Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the labor that actually disappears, not the fully loaded ${fmt2(n(d.costPerContact))}. That is the same basis the TCO Calculator uses, so the two tools agree on the same contact and a finance reviewer cannot pit one against the other.`);
+  out.push(`Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the marginal labor content of a contact, not the fully loaded ${fmt2(n(d.costPerContact))}. That valuation is shared with the TCO Calculator, which makes the two tools consistent on the same contact. Consistency is a shared definition, not evidence that the capacity is cash-releasing: that depends entirely on the realization action.`);
 
   const sorted = Object.entries(r.buckets).sort((a, b) => b[1] - a[1]);
   const [topName, topVal] = sorted[0];
   const labelMap = { containment: "self-service containment", handleTime: "handle-time reduction", fcr: "FCR improvement", attrition: "attrition reduction" };
   const topShare = r.pct[topName];
-  out.push(`${topShare}% of your case rests on ${labelMap[topName]}. ${topName === "containment" ? "A board probes deflection hardest, so bring a pilot result or vendor benchmark." : topName === "attrition" ? "That is the softest, least attributable lever, so expect the most pushback there." : "It is a relatively defensible lever, which strengthens the case."}`);
+  out.push(`${topShare}% of your case rests on ${labelMap[topName]}. ${topName === "containment" ? "Deflection is the assumption most often wrong after go-live, so this is where a pilot result changes the conclusion most." : topName === "attrition" ? "That is the softest, least attributable lever, so expect the most pushback there." : "It is a relatively defensible lever, which strengthens the case."}`);
 
   if (r.rampOn && r.payback > 0) {
     const instMonthly = r.monthlyFull - r.monthlyPlatform;
     const instPay = instMonthly > 0 ? Math.ceil(n(d.implementationCost) / instMonthly) : 0;
     if (instPay > 0 && r.payback > instPay)
-      out.push(`Phasing savings over your ${r.M}-month migration and ${r.R}-month ramp moves payback from an idealized ${instPay} month${instPay === 1 ? "" : "s"} to a realistic ${r.payback}. The phased figure is the one a CFO will trust, so lead with it.`);
+      out.push(`Phasing savings over your ${r.M}-month migration and ${r.R}-month ramp moves payback from an idealized ${instPay} month${instPay === 1 ? "" : "s"} to a realistic ${r.payback}. The phased figure is the one that reflects when cash actually arrives.`);
   } else if (!r.rampOn) {
     out.push(`Savings phasing is off, so this assumes 100% of savings land on day one, an idealized payback. Turn on phasing for the board-defensible number that accounts for migration and ramp.`);
   }
 
   if (stanceKey === "aggressive")
-    out.push(`The aggressive stance applies no attribution haircut, so gross and attributed savings are the same ${fmtK(r.gross)}. That is the vendor-ROI presentation, and a finance reviewer will read an undiscounted number as one nobody has stress-tested. Switch to Expected before you present, or state on the slide that these are unattributed modeled savings.`);
+    out.push(`The aggressive stance applies no attribution haircut, so gross and attributed savings are the same ${fmtK(r.gross)}. That is the vendor-ROI presentation, and a finance reviewer will read an undiscounted number as one nobody has stress-tested. Expected applies attribution weighting; this stance does not.`);
   else
     out.push(`Two separate adjustments run on this case. The ${stanceKey} stance takes ${fmtK(r.attributionHaircut)} off gross savings for attribution, asking how much of the improvement this intervention actually causes. Realization then takes a further ${fmtK(r.realizationHaircut)} off freed labor, asking what converts capacity into money. Presenting gross ${fmtK(r.gross)} and realizable ${fmtK(r.net)} side by side, with both adjustments named, signals you have already stress-tested your own numbers.`);
 
-  if (conf) out.push(`Cost-input confidence reads ${conf.grade}${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} on the cost inputs to close before you call the investment side final` : ", with no open items on the cost inputs"}.${conf.withheld && conf.withheld.length ? ` The grade is additionally capped by ${conf.withheld.length} item${conf.withheld.length > 1 ? "s" : ""} that ${conf.withheld.length > 1 ? "are" : "is"} not a costing defect, counted separately so a return problem never reads as a bookability problem.` : ""} That badge rates how bookable the cost inputs are, not whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
+  if (conf) out.push(`Case confidence reads ${conf.grade}, the weaker of a ${conf.costGrade} cost basis and a ${conf.realizationGrade} realization axis${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} on the cost inputs to close before you call the investment side final` : ", with no open items on the cost inputs"}.${conf.withheld && conf.withheld.length ? ` The grade is additionally capped by ${conf.withheld.length} item${conf.withheld.length > 1 ? "s" : ""} that ${conf.withheld.length > 1 ? "are" : "is"} not a costing defect, counted separately so a return problem never reads as a bookability problem.` : ""} Neither axis rates whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
 
   return out;
 }
@@ -418,7 +456,9 @@ export default function BusinessCaseBuilder() {
   const [d, setD] = useState(DEFAULTS);
   const [stance, setStance] = useState("expected");
   const [rampOn, setRampOn] = useState(true);
-  const [mech, setMech] = useState(MECH_DEFAULT);
+  // Deliberately NOT MECH_DEFAULT. Preselecting a 75% conversion supplies a management
+  // commitment the user never made, which is the tool manufacturing financial value.
+  const [mech, setMech] = useState("none");
   const [pulled, setPulled] = useState({});
   const [sources, setSources] = useState({});
   const [copied, setCopied] = useState(false);
@@ -574,7 +614,7 @@ export default function BusinessCaseBuilder() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: NAVY, margin: "6px 0 6px" }}>Business Case Builder</h2>
           <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, marginBottom: 10, maxWidth: 680 }}>Model the ROI of a CX transformation on your real numbers, live and with no sign-up. This tool is built to survive a CFO, so it does four things most ROI calculators do not.</p>
           <ul style={{ fontSize: 13, color: SLATE, lineHeight: 1.7, marginBottom: 20, maxWidth: 680, paddingLeft: 18 }}>
-            <li><b>Values savings at marginal cost.</b> Deflected and repeat-avoided contacts are counted at the labor that actually disappears, not the fully loaded cost per contact, which keeps the number honest and consistent with the TCO Calculator.</li>
+            <li><b>Separates released capacity from cash.</b> Avoided contacts release agent labor capacity valued at marginal cost, not at fully loaded cost per contact. Whether that capacity becomes financial benefit depends on the realization action you select, and until one is selected it converts to nothing.</li>
             <li><b>De-overlaps every lever.</b> Deflection, handle-time, FCR, and attrition never claim the same minute or contact twice.</li>
             <li><b>Weights each lever separately.</b> A stance discounts soft levers harder than defensible ones, so the case is not a single blanket haircut.</li>
             <li><b>Phases savings over a real J-curve.</b> Nothing is earned during the build, so payback reflects migration and ramp instead of landing on day one.</li>
@@ -591,7 +631,7 @@ export default function BusinessCaseBuilder() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="bc-grid">
               <NumField label="Agent Count" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} pulled={pulled.agents} />
               <NumField label="Avg Agent Hourly Rate" value={d.avgHourly} onChange={v => set("avgHourly", v)} prefix="$" step={0.5} min={0} pulled={pulled.avgHourly} />
-              <NumField label="Benefits & Burden" value={d.benefitsPct} onChange={v => set("benefitsPct", v)} suffix="%" hint="Typically 25 to 35%" min={0} max={100} />
+              <NumField label="Benefits & Burden" value={d.benefitsPct} onChange={v => set("benefitsPct", v)} suffix="%" hint="Internal planning range 25 to 35%, adjust to your evidence" min={0} max={100} />
               <NumField label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
               <NumField label="Current AHT (sec)" value={d.currentAHT} onChange={v => set("currentAHT", v)} step={5} min={1} hint={`${(n(d.currentAHT) / 60).toFixed(1)} min total`} pulled={pulled.currentAHT} />
               <NumField label="Current ACW (sec)" value={d.currentACW} onChange={v => set("currentACW", v)} step={5} min={0} info={DEFS.acw} infoTitle="After-call work" hint="Part of AHT" />
@@ -622,9 +662,9 @@ export default function BusinessCaseBuilder() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="bc-grid">
               <NumField label="Handle-time Reduction" value={d.htReduction} onChange={v => set("htReduction", v)} suffix="%" min={0} max={100} info={DEFS.ht} infoTitle="Handle-time reduction" hint="Applied to AHT minus ACW" />
               <NumField label="ACW Reduction" value={d.acwReduction} onChange={v => set("acwReduction", v)} suffix="%" min={0} max={100} hint="Applied to ACW only" />
-              <NumField label="FCR Improvement" value={d.fcrImprovement} onChange={v => set("fcrImprovement", v)} suffix="pts" min={0} max={100} info={DEFS.fcr} infoTitle="FCR improvement" hint="Industry: 5 to 10 pt lift" />
-              <NumField label="Attrition Reduction" value={d.attritionReduction} onChange={v => set("attritionReduction", v)} suffix="%" min={0} max={100} info={DEFS.attrition} infoTitle="Attrition reduction" hint="Industry: 15 to 25%" />
-              <NumField label="Self-Service Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" min={0} max={100} info={DEFS.containment} infoTitle="Self-service containment" hint="Industry: 10 to 25%" />
+              <NumField label="FCR Improvement" value={d.fcrImprovement} onChange={v => set("fcrImprovement", v)} suffix="pts" min={0} max={100} info={DEFS.fcr} infoTitle="FCR improvement" hint="Internal planning range 5 to 10 pts, adjust to your evidence" />
+              <NumField label="Attrition Reduction" value={d.attritionReduction} onChange={v => set("attritionReduction", v)} suffix="%" min={0} max={100} info={DEFS.attrition} infoTitle="Attrition reduction" hint="Internal planning range 15 to 25%, adjust to your evidence" />
+              <NumField label="Self-Service Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" min={0} max={100} info={DEFS.containment} infoTitle="Self-service containment" hint="Internal planning range 10 to 25%, adjust to your evidence" />
             </div>
             <p style={{ fontSize: 11, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>ACW is modeled as a slice of AHT, so handle-time and ACW reductions never double-count the same minutes. Containment removes contacts from the handled pool before any per-contact saving is applied.</p>
           </Card>
@@ -639,7 +679,7 @@ export default function BusinessCaseBuilder() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Evidence basis</span>
-              <InfoDot text={DEFS.confidence} title="Cost-input confidence" />
+              <InfoDot text={DEFS.confidence} title="Case confidence" />
               <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8 }}>
                 {Object.entries(EVIDENCE).map(([k, v]) => (
                   <button key={k} onClick={() => set("evidence", k)} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: d.evidence === k ? ELECTRIC : "transparent", color: d.evidence === k ? "#fff" : SLATE }}>{v.label}</button>
@@ -684,7 +724,7 @@ export default function BusinessCaseBuilder() {
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "32px 28px", marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
               <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase" }}>Business Case Summary <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>· {STANCE[stance].label} stance</span></h3>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: gradeColor, padding: "4px 10px", borderRadius: 20 }}>Cost-input confidence: {conf.grade}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: gradeColor, padding: "4px 10px", borderRadius: 20 }}>Case confidence: {conf.grade}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 22 }} className="bc-sum">
               <div style={{ textAlign: "center" }}>
@@ -699,8 +739,8 @@ export default function BusinessCaseBuilder() {
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: roiColor }}>{r.roiDefined ? Math.round(r.roi3) + "%" : "n/a"}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>3-Year ROI{r.roiDefined ? <span style={{ opacity: 0.75 }}> · {STATUS_LABEL[stRoi]}</span> : null}</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} 3-yr TCO` : "no investment entered"}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>3-Year Return{r.roiDefined ? <span style={{ opacity: 0.75 }}> · {STATUS_LABEL[stRoi]}</span> : null}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} modeled 3-yr cost` : "no investment entered"}</div>
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -719,6 +759,7 @@ export default function BusinessCaseBuilder() {
                 );
               })}
             </div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.32)", marginTop: 8, letterSpacing: 0.3 }}>Gross modeled benefit before attribution and realization. These four do not sum to the headline.</div>
 
             <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.10)", display: "flex", gap: 26, flexWrap: "wrap" }}>
               <div>
@@ -739,7 +780,7 @@ export default function BusinessCaseBuilder() {
               <div>
                 <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.33)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Cash-releasing</div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: GREEN }}>{fmtK(r.cashNet)}</div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>recruiting and training avoided</div>
+                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>recruiting spend avoided</div>
               </div>
             </div>
 
@@ -766,19 +807,25 @@ export default function BusinessCaseBuilder() {
 
           {/* Confidence & open issues */}
           <div style={{ background: "#fff", border: `1px solid ${gradeColor}55`, borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: gradeColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Cost-input confidence: {conf.grade} · {EVIDENCE[conf.evidence].label}</div>
-            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: conf.open.length ? 8 : 0 }}>This rates how bookable the cost and investment inputs are. It does not certify that the organization can deliver the targets, which the Transformation Readiness tool assesses separately.</p>
+            <div style={{ fontSize: 10, fontWeight: 700, color: gradeColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Case confidence: {conf.grade} · cost basis {conf.costGrade} · realization {conf.realizationGrade} · {EVIDENCE[conf.evidence].label}</div>
+            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: (conf.open.length || conf.withheld.length) ? 8 : 0 }}>Two independent axes, and the badge shows the weaker. Cost basis rates how bookable the cost and investment inputs are. Realization rates whether the modeled savings can be booked at all. Neither certifies that the organization can deliver the targets, which the Transformation Readiness tool assesses separately.</p>
+            {conf.withheld.length > 0 && (
+              <div style={{ marginBottom: conf.open.length ? 10 : 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Capping the grade, and not a cost-input defect:</div>
+                {conf.withheld.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: AMBER }}>&rsaquo;</span>{o}</div>)}
+              </div>
+            )}
             {conf.open.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Open items before the investment side is final:</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Open items on the cost inputs, before the investment side is final:</div>
                 {conf.open.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: gradeColor }}>›</span>{o}</div>)}
               </div>
             )}
           </div>
 
-          {/* Analyst Read */}
+          {/* Decision Read */}
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "18px 20px", marginBottom: 16 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · how this survives the boardroom</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Decision Read · what could change the conclusion</div>
             {insights.map((t, i) => (
               <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>
             ))}
@@ -790,7 +837,7 @@ export default function BusinessCaseBuilder() {
               <div style={{ fontSize: 13, color: GREEN, fontWeight: 600 }}>Sent. The full business case is on its way to your inbox.</div>
             ) : !capOpen ? (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 13, color: SLATE }}>Want this business case emailed to you?</span>
+                <span style={{ fontSize: 13, color: SLATE }}>Want this case emailed to you? <span style={{ color: MUTED, fontSize: 11.5 }}>Your address is used to send this report and to reply if you ask a question. Nothing you entered leaves your browser unless you submit it here, and the download above never asks for it.</span></span>
                 <button onClick={() => setCapOpen(true)} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: "transparent", border: `1px solid ${ELECTRIC}`, borderRadius: 7, padding: "9px 16px", cursor: "pointer" }}>Email me this case</button>
               </div>
             ) : (
@@ -812,19 +859,19 @@ export default function BusinessCaseBuilder() {
             <span onClick={() => trackTool.pdf("business-case-builder")} style={{ display: "inline-flex" }}>
               <ReportExport
                 toolName="Business Case"
-                subtitle={`CX Transformation ROI · ${STANCE[stance].label} stance · cost-input confidence ${conf.grade}`}
+                subtitle={`CX Transformation ROI · ${STANCE[stance].label} stance · ${r.mechLabel} · case confidence ${conf.grade}`}
                 userName={capName}
                 userEmail={capEmail}
                 sections={[
-                  { title: "Confidence & Evidence", type: "text", content: `Cost-input confidence: ${conf.grade} (evidence basis: ${EVIDENCE[conf.evidence].label}). This rates how bookable the cost and investment inputs are, and does not certify that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[stance].label} stance, which weights each lever for attribution risk.` },
-                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in net annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? `${Math.round(r.roi3)}% three-year ROI on ${fmtK(r.tco3)} total cost of ownership` : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the labor that actually disappears, not the fully loaded ${fmt2(n(d.costPerContact))}. ${stance === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings of the kind a vendor ROI tool produces. Switch to the Expected stance for a figure built to survive financial scrutiny.` : `Savings are de-overlapped and discounted for attribution risk, so the figures are presented to survive financial scrutiny rather than to maximize a headline.`}` },
+                  { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[stance].label} stance, which weights each lever for attribution risk.` },
+                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in net annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because it carries no business-as-usual counterfactual` : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(d.costPerContact))}. ${stance === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
                   { title: "Financial Summary", type: "metrics", items: [
                     { label: "Realizable Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[stance].label} stance · ${r.mechLabel} · run-rate` },
                     { label: rampOn ? "Year 1 (ramped)" : "Gross (pre-haircut)", value: rampOn ? fmtFull(r.year1) : fmtFull(r.gross), color: rampOn ? ELECTRIC : MUTED, sub: rampOn ? `${r.M}mo build + ${r.R}mo ramp` : `Haircut ${fmtFull(r.haircut)}` },
                     { label: "One-time Investment", value: fmtFull(n(d.implementationCost)), color: RED },
                     { label: "Annual Platform Cost", value: fmtFull(r.recurring), color: AMBER },
                     { label: "Payback Period", value: r.payback > 0 ? `${r.payback} months` : ">36 months", color: paybackColor, sub: (r.payback > 0 ? (rampOn ? "phased" : "idealized") : (r.trueBreakevenMonth > 0 ? `breaks even month ${r.trueBreakevenMonth}, outside the horizon` : "no break-even at any horizon")) + ` · ${STATUS_LABEL[stPayback]}` },
-                    { label: "3-Year ROI", value: r.roiDefined ? `${Math.round(r.roi3)}%` : "n/a", color: roiColor, sub: r.roiDefined ? `on ${fmtFull(r.tco3)} TCO · ${STATUS_LABEL[stRoi]}` : "no investment entered" },
+                    { label: "3-Year Return", value: r.roiDefined ? `${Math.round(r.roi3)}%` : "n/a", color: roiColor, sub: r.roiDefined ? `on ${fmtFull(r.tco3)} modeled 3-yr investment cost · ${STATUS_LABEL[stRoi]}` : "no investment entered" },
                   ]},
                   { title: "Savings Breakdown", type: "table", rows: bucketRows.map(b => [b.label + (b.key === "attrition" ? " (cash-releasing)" : " (freed labor)"), fmtFull(b.val) + ` (${r.pct[b.key]}% of gross)`]) },
                   { title: "Capacity and Cash", type: "table", rows: [
@@ -833,10 +880,11 @@ export default function BusinessCaseBuilder() {
                     ["Capacity action selected", `${r.mechLabel} (${Math.round(r.mf * 100)}% conversion, credit class ${r.cred})`],
                     ["Capacity converted to value", fmtFull(r.capacityRealized)],
                     ["Capacity NOT converted, excluded from the cash case", fmtFull(r.unrealizedCapacity)],
-                    ["Cash-releasing savings (recruiting and training avoided)", fmtFull(r.cashNet)],
+                    ["Cash-releasing savings (recruiting spend avoided)", fmtFull(r.cashNet)],
+                    ["Trainee ramp time, treated as capacity not cash", fmtFull(r.attritionCapacity)],
                     ["Realizable annual savings", fmtFull(r.net)],
                   ]},
-                  { title: "Analyst Read", type: "findings", items: insights },
+                  { title: "Decision Read", type: "findings", items: insights },
                   { title: "Key Assumptions", type: "table", rows: [
                     ["Loaded hourly rate", fmtFull(r.loaded) + ` per hr (${n(d.avgHourly)} plus ${n(d.benefitsPct)}% burden)`],
                     ["Marginal cost per contact (savings basis)", fmt2(r.marginal) + (r.marginalPulled ? ` (inherited from ${marginalSource || "an earlier tool run"}${r.marginalStale ? `, ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage on this case` : ""})` : " (derived from AHT and loaded wage)")],
@@ -859,7 +907,7 @@ export default function BusinessCaseBuilder() {
                     { tool: "Transformation Readiness", reason: "Confirm the organization can actually deliver these targets", href: "/tools/transformation-readiness" },
                     { tool: "Contract Risk Scanner", reason: "Pressure-test vendor pricing before it enters the case", href: "/tools/contract-risk" },
                   ]},
-                  { title: "Methodology", type: "text", content: "Deflected and repeat-avoided contacts are valued at marginal cost, the handle-time labor that actually disappears when a contact goes away, not the fully loaded cost per contact, because fixed tech, facilities, and supervision do not fall when one contact is removed. This is the same basis the TCO Calculator uses, so the two tools never disagree on the value of the same contact. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance) to produce net savings." + (rampOn ? " Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one." : " Savings phasing was turned OFF for this case, so the model assumes full run-rate savings from month one. Payback and ROI here are idealized figures that ignore the migration build and the post-go-live ramp, and they will be shorter and higher than the phased case a CFO should be shown.") + " ROI is calculated against three-year total cost of ownership (one-time implementation plus recurring platform cost)." + (stance === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance the method is deliberately conservative: the goal is a number a CFO will approve, not the largest possible headline.") },
+                  { title: "Methodology", type: "text", content: "Avoided contacts release agent labor capacity valued at marginal cost, the handle-time labor content of a contact, not the fully loaded cost per contact, because fixed tech, facilities and supervision do not fall when one contact is removed. This valuation is shared with the TCO Calculator, so the two tools are consistent on the value of the same contact. Consistency establishes a shared definition, not that the released capacity is cash-releasing. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance). Attribution is then followed by a separate and independent adjustment: freed agent labor is released capacity, not cash, and converts to money only through a named action, so containment, handle-time and FCR savings are scaled by the " + r.mechLabel + " capacity action at " + Math.round(r.mf * 100) + "%. Avoided recruiting and training spend is cash-releasing and is never scaled. Platform and implementation costs are real cash out and are never scaled by either adjustment. " + (r.repeatBasis === "fcr-proxy" ? "Repeat-contact volume was not supplied, so avoided repeats are derived from FCR on the underlying issue count rather than on total handled contacts, which assumes one repeat per unresolved issue and is a proxy rather than a measurement." : "Avoided repeats are computed on measured same-reason repeat volume.") + (rampOn ? " Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one." : " Savings phasing was turned OFF for this case, so the model assumes full run-rate savings from month one. Payback and ROI here are idealized figures that ignore the migration build and the post-go-live ramp, and they will be shorter and higher than the phased case a CFO should be shown.") + " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: it contains no business-as-usual counterfactual, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. A full incremental comparison would move this figure in both directions." + (stance === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") },
                 ]}
               />
             </span>
@@ -867,6 +915,7 @@ export default function BusinessCaseBuilder() {
             <a href="/contact" onClick={() => trackTool.nextStep("business-case-builder", "contact")} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8 }}>Connect with a Consultant</a>
             <button onClick={() => goNext("tco-calculator", "/tools/tco-calculator")} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8, cursor: "pointer" }}>TCO Calculator</button>
           </div>
+          <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginTop: 10, maxWidth: 760 }}>Your results do not determine whether the consultant option appears, and nothing you entered is shared with anyone unless you ask us to. If a commercial relationship exists with any specialist we introduce, it is disclosed before an introduction is made. No vendor pays to appear here and this tool recommends no vendor.</div>
         </div>
       </section>
 
