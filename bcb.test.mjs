@@ -737,8 +737,17 @@ section("12z. Rendered narrative, asserted on the SOURCE");
   ok("SOURCE the consultant path discloses the commercial rule at the point of consent",
      SRC.includes("Your results do not determine whether the consultant option appears")
      && SRC.includes("it is disclosed before an introduction is made"));
+  // Capture moved out of this tool and into the shared ReportActions component, so the
+  // disclosure it protects must be asserted where it now lives. Deleting the assertion
+  // because the string left this file would have silently dropped a consent disclosure.
+  const RA = readFileSync(new URL("./ReportActions.jsx", import.meta.url), "utf8");
   ok("SOURCE the email capture states what the address is used for",
-     SRC.includes("used to send this report and to reply if you ask a question"));
+     RA.includes("used to send this report and to reply if you ask a question"));
+  ok("SOURCE the shared capture checks the response status", RA.includes("if (!r.ok) throw"));
+  ok("SOURCE this tool no longer carries a private capture endpoint",
+     !SRC.includes("formspree") && !SRC.includes("CAPTURE_ENDPOINT"));
+  ok("SOURCE the shared capture uses the one shared endpoint",
+     (RA.match(/formspree\.io\/f\//g) || []).length === 1);
   ok("SOURCE trainee ramp time is disclosed as capacity, not cash",
      SRC.includes("Trainee ramp time, treated as capacity not cash"));
   ok("SOURCE nothing claims recruiting and training are cash regardless of action",
@@ -1693,6 +1702,101 @@ section("G. BAU counterfactual");
   // Defect 4: absorbed labor read $2K in prose against $2,340 in the table.
   ok("G12 absorbed labor is stated exactly, not rounded to the nearest thousand",
      tL.includes("worth $2,340 at the loaded wage") && !tL.includes("worth $2K"));
+}
+
+/* ------------------------------------------------------------------------ */
+section("H. Scenario link round trip");
+{
+  // The codec is pure, so it can be exercised directly. b64url needs btoa/atob, which
+  // Node has as globals, and TextEncoder/TextDecoder, which it also has.
+  const { encodeScenario, decodeScenario } = await import("./src/lib/scenarioUrl.js");
+  const SD = { d: DEFAULTS, stance: "expected", rampOn: true, mech: "none" };
+  const trip = (sc) => {
+    const enc = encodeScenario("business-case-builder", sc, SD);
+    if (enc === null) return null;
+    return decodeScenario("?s=" + enc, "business-case-builder", SD);
+  };
+
+  ok("H untouched state round-trips to itself", (() => {
+    const back = trip(SD);
+    return back && JSON.stringify(back) === JSON.stringify(SD);
+  })());
+
+  // Every BAU key, individually, so a codec that drops one is caught by name.
+  const BAU_KEYS = ["bauEliminatedAnnual", "bauOverlapMonths", "bauOverlapShare",
+    "bauExitCost", "bauBackfillCash", "bauAbsorbedHours", "bauEvidence"];
+  const sample = { bauEliminatedAnnual: 300000, bauOverlapMonths: 3, bauOverlapShare: 40,
+    bauExitCost: 150000, bauBackfillCash: 200000, bauAbsorbedHours: 4200, bauEvidence: "served" };
+  for (const k of BAU_KEYS) {
+    const sc = { ...SD, d: { ...DEFAULTS, [k]: sample[k] } };
+    const back = trip(sc);
+    ok(`H ${k} survives the round trip`, back && back.d[k] === sample[k],
+       `sent ${sample[k]} got ${back && back.d[k]}`);
+  }
+  ok("H every BAU key survives together", (() => {
+    const back = trip({ ...SD, d: { ...DEFAULTS, ...sample } });
+    return back && BAU_KEYS.every(k => back.d[k] === sample[k]);
+  })());
+  ok("H bauEvidence survives as a string, not coerced to a number",
+     (() => { const b = trip({ ...SD, d: { ...DEFAULTS, bauEvidence: "reviewed" } }); return b && b.d.bauEvidence === "reviewed"; })());
+
+  // Composite state. Losing any of these hands the recipient a different conclusion.
+  ok("H stance survives the round trip",
+     (() => { const b = trip({ ...SD, stance: "aggressive" }); return b && b.stance === "aggressive"; })());
+  ok("H phasing survives the round trip, including false",
+     (() => { const b = trip({ ...SD, rampOn: false }); return b && b.rampOn === false; })());
+  ok("H the capacity action survives the round trip",
+     (() => { const b = trip({ ...SD, mech: "headcount" }); return b && b.mech === "headcount"; })());
+  ok("H a link never supplies a capacity action the sender did not choose",
+     (() => { const b = trip(SD); return b && b.mech === "none"; })());
+
+  // The pre-go-live flag is DERIVED from two fields, so both must arrive or a lead flag
+  // silently vanishes and the recipient reads a cleaner case than the sender sent.
+  ok("H the pre-go-live exposure reproduces on the receiving side", (() => {
+    const sent = { ...SD, d: { ...DEFAULTS, currentAHT: 360, migrationMonths: 9,
+      bauEliminatedAnnual: 30000, bauOverlapMonths: 3 }, mech: "none" };
+    const back = trip(sent);
+    if (!back) return false;
+    const a = computeCase(sent.d, sent.stance, sent.rampOn, sent.mech);
+    const b = computeCase(back.d, back.stance, back.rampOn, back.mech);
+    return a.preGoLiveCredit > 0 && b.preGoLiveCredit === a.preGoLiveCredit &&
+           b.preGoLiveMonths === a.preGoLiveMonths;
+  })());
+
+  // The whole point: the recipient must see the sender's conclusion, not a different one.
+  ok("H the decoded scenario reproduces every headline figure", (() => {
+    const sent = { d: { ...DEFAULTS, currentAHT: 360, agents: 235, monthlyContacts: 151000,
+      implementationCost: 1500000, newPlatformPerAgentMo: 155, evidence: "proposal",
+      bauEliminatedAnnual: 600000, bauOverlapMonths: 12, bauEvidence: "reviewed" },
+      stance: "conservative", rampOn: false, mech: "vendor" };
+    const back = trip(sent);
+    if (!back) return false;
+    const a = computeCase(sent.d, sent.stance, sent.rampOn, sent.mech);
+    const b = computeCase(back.d, back.stance, back.rampOn, back.mech);
+    return ["net", "gross", "tco3", "roi3", "payback", "trueBreakevenMonth", "savings3",
+            "displacement3", "benefit3", "breakEvenImpl", "netValue3", "preGoLiveCredit"]
+      .every(k => Object.is(a[k], b[k]));
+  })());
+
+  ok("H a link built for another tool is refused rather than misapplied", (() => {
+    const enc = encodeScenario("channel-shift", { ...SD, mech: "headcount" }, SD);
+    return decodeScenario("?s=" + enc, "business-case-builder", SD) === null;
+  })());
+  ok("H a full scenario still fits inside the URL budget",
+     encodeScenario("business-case-builder", { ...SD, d: { ...DEFAULTS, ...sample, agents: 1200,
+       monthlyContacts: 990000, implementationCost: 9500000 }, stance: "aggressive",
+       rampOn: false, mech: "headcount" }, SD) !== null);
+
+  ok("H SOURCE the tool round-trips the composite state, not just the inputs",
+     SRC.includes("const scenario = { d, stance, rampOn, mech }") &&
+     SRC.includes("SCENARIO_DEFAULTS = { d: DEFAULTS, stance:"));
+  ok("H SOURCE the legacy scenario module is gone",
+     !SRC.includes("readScenarioFromUrl") && !SRC.includes("copyShareUrl") &&
+     !SRC.includes('from "./src/lib/scenario"'));
+  ok("H SOURCE the scenario param is cleared after rehydration",
+     SRC.includes("clearScenarioParam()"));
+  ok("H SOURCE ReportExport is fully replaced by ReportActions",
+     !SRC.includes("ReportExport") && SRC.includes('import ReportActions from "./ReportActions"'));
 }
 
 console.log(`\n${"=".repeat(64)}`);
