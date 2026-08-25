@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS } from "./src/lib/benchmarks";
@@ -7,13 +7,14 @@ import { publishToolResult, getExternalPrimitive, getPrimitiveWithSource } from 
 import { MECH, MECH_ORDER, MECH_DEFAULT } from "./src/lib/mech";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
-import { readScenarioFromUrl, copyShareUrl } from "./src/lib/scenario";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED", ICE = "#E8F4FD";
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 const WRAP = { maxWidth: 880, margin: "0 auto", padding: "0 28px" };
-const CAPTURE_ENDPOINT = "https://formspree.io/f/mjgjwzwz";
+const TOOL_ID = "business-case-builder";
+const ROUTE = "/tools/business-case-builder";
 
 // Display names for rail producers. A pulled value must name the tool that actually
 // produced it. Hardcoding "TCO Calculator" was printing a false provenance claim in a
@@ -592,6 +593,13 @@ const DEFAULTS = {
   bauBackfillCash: 0, bauAbsorbedHours: 0, bauEvidence: "estimated",
 };
 
+// A shared link must reproduce the case the sender saw. Stance, phasing and the capacity
+// action are not decoration: mech alone moves the reference case between $47K and $1.15M.
+// Round-tripping only the input object would hand the recipient a different conclusion under
+// the same URL, which is worse than not sharing at all. mech defaults to "none" here, matching
+// the deliberate exception to MECH_DEFAULT, so a link never supplies a commitment nobody made.
+const SCENARIO_DEFAULTS = { d: DEFAULTS, stance: "expected", rampOn: true, mech: "none" };
+
 export default function BusinessCaseBuilder() {
   const [d, setD] = useState(DEFAULTS);
   const [stance, setStance] = useState("expected");
@@ -601,12 +609,8 @@ export default function BusinessCaseBuilder() {
   const [mech, setMech] = useState("none");
   const [pulled, setPulled] = useState({});
   const [sources, setSources] = useState({});
-  const [copied, setCopied] = useState(false);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
 
-  const [capOpen, setCapOpen] = useState(false);
-  const [capName, setCapName] = useState(""), [capCompany, setCapCompany] = useState(""), [capEmail, setCapEmail] = useState("");
-  const [capState, setCapState] = useState("idle");
   const completedRef = useRef(false);
 
   // Mount: report the view, inherit the BASELINE from upstream tools (facts both tools
@@ -646,8 +650,19 @@ export default function BusinessCaseBuilder() {
         src.monthlyContacts = getPrimitiveWithSource("monthlyContacts").sourceTool;
       }
     }
-    const scn = readScenarioFromUrl();
-    if (scn && typeof scn === "object") { Object.assign(next, scn); trackTool.scenarioLoad("business-case-builder"); }
+    // A scenario link is a deliberate act and outranks the ambient cross-tool pull, so it
+    // returns early rather than merging with pulled primitives. Clearing the param afterwards
+    // stops a stale link being mistaken for live state once the user edits an input.
+    const sc = readScenario(TOOL_ID, SCENARIO_DEFAULTS);
+    if (sc && sc.d) {
+      setD(sc.d);
+      if (typeof sc.stance === "string") setStance(sc.stance);
+      if (typeof sc.rampOn === "boolean") setRampOn(sc.rampOn);
+      if (typeof sc.mech === "string") setMech(sc.mech);
+      trackTool.scenarioLoad(TOOL_ID);
+      clearScenarioParam();
+      return;
+    }
     if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); setSources(src); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -711,23 +726,8 @@ export default function BusinessCaseBuilder() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, pulled]);
 
-  const submitCapture = async () => {
-    if (!capEmail.includes("@") || capState === "sending") return;
-    setCapState("sending");
-    try {
-      await fetch(CAPTURE_ENDPOINT, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: capEmail, name: capName, company: capCompany, tool: "Business Case Builder", stance, net: fmtK(r.net), gross: fmtK(r.gross), payback: r.payback + "mo", roi: Math.round(r.roi3) + "%", confidence: conf.grade, _subject: `Business Case (${stance}): ${fmtK(r.net)} net for ${capCompany || capName || capEmail}` }),
-      });
-      setCapState("sent");
-    } catch { setCapState("error"); }
-  };
-
-  const shareScenario = async () => {
-    const ok = await copyShareUrl("/tools/business-case-builder", d);
-    if (ok) { setCopied(true); trackTool.scenarioShare("business-case-builder"); setTimeout(() => setCopied(false), 2200); }
-  };
-  const goNext = (toTool, href) => { trackTool.nextStep("business-case-builder", toTool); window.location.href = href; };
+  const scenario = { d, stance, rampOn, mech };
+  const goNext = (toTool, href) => { trackTool.nextStep(TOOL_ID, toTool); window.location.href = href; };
 
   const bucketRows = [
     { label: "Self-service containment", key: "containment", val: r.buckets.containment },
@@ -1010,37 +1010,48 @@ export default function BusinessCaseBuilder() {
             ))}
           </div>
 
-          {/* Optional capture */}
-          <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
-            {capState === "sent" ? (
-              <div style={{ fontSize: 13, color: GREEN, fontWeight: 600 }}>Sent. The full business case is on its way to your inbox.</div>
-            ) : !capOpen ? (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 13, color: SLATE }}>Want this case emailed to you? <span style={{ color: MUTED, fontSize: 11.5 }}>Your address is used to send this report and to reply if you ask a question. Nothing you entered leaves your browser unless you submit it here, and the download above never asks for it.</span></span>
-                <button onClick={() => setCapOpen(true)} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: "transparent", border: `1px solid ${ELECTRIC}`, borderRadius: 7, padding: "9px 16px", cursor: "pointer" }}>Email me this case</button>
-              </div>
-            ) : (
-              <div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
-                  <input placeholder="Name" value={capName} onChange={e => setCapName(e.target.value)} style={{ padding: "10px 12px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none" }} />
-                  <input placeholder="Company" value={capCompany} onChange={e => setCapCompany(e.target.value)} style={{ padding: "10px 12px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none" }} />
-                </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <input type="email" placeholder="you@company.com" value={capEmail} onChange={e => setCapEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && submitCapture()} style={{ flex: "1 1 200px", padding: "10px 12px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none" }} />
-                  <button onClick={submitCapture} disabled={!capEmail.includes("@") || capState === "sending"} style={{ fontSize: 13, fontWeight: 700, color: "#fff", background: capEmail.includes("@") ? ELECTRIC : MUTED, border: "none", borderRadius: 6, padding: "10px 18px", cursor: "pointer" }}>{capState === "sending" ? "Sending" : "Send"}</button>
-                </div>
-                <div style={{ fontSize: 11, color: MUTED, marginTop: 6 }}>Optional. We send this case once. No list, no spam.</div>
-              </div>
-            )}
-          </div>
-
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <span onClick={() => trackTool.pdf("business-case-builder")} style={{ display: "inline-flex" }}>
-              <ReportExport
+              <ReportActions
+                toolId={TOOL_ID}
                 toolName="Business Case"
                 subtitle={`CX Transformation ROI · ${STANCE[stance].label} stance · ${r.mechLabel} · case confidence ${conf.grade}`}
-                userName={capName}
-                userEmail={capEmail}
+                routePath={ROUTE}
+                state={scenario}
+                defaults={SCENARIO_DEFAULTS}
+                confidence={conf.grade}
+                summary={[
+                  { label: "Realizable annual savings", value: fmtK(r.net) },
+                  { label: "Payback", value: r.payback > 0 ? `${r.payback} months` : (r.trueBreakevenMonth > 0 ? `month ${r.trueBreakevenMonth}, beyond horizon` : "no break-even at any horizon") },
+                  { label: "Three-year return", value: r.roiDefined ? `${Math.round(r.roi3)}%` : "n/a" },
+                  { label: r.bauEntered ? "Gross transformation cash" : "Modeled 3-yr cost", value: fmtK(r.tco3) },
+                  { label: "Capacity action", value: r.mechLabel },
+                  { label: "Case confidence", value: `${conf.grade} (cost ${conf.costGrade}, realization ${conf.realizationGrade})` },
+                  ...(r.bauEntered ? [{ label: "Benefit mix", value: `${Math.round((1 - r.displacementShare) * 100)}% operational, ${Math.round(r.displacementShare * 100)}% displacement` }] : []),
+                ]}
+                signals={{
+                  /* Derived signals only. No wage, platform price, contact volume, vendor name
+                     or company detail leaves this block. Bands and booleans carry the meaning;
+                     the cost base stays in the browser and in the report the user downloads. */
+                  stance_class: stance,
+                  capacity_action: r.mechKey,
+                  credit_class: r.cred,
+                  confidence_class: conf.grade,
+                  cost_basis_class: conf.costGrade,
+                  realization_class: conf.realizationGrade,
+                  evidence_basis: conf.evidence,
+                  phasing_on: rampOn,
+                  returns_in_horizon: r.payback > 0,
+                  breaks_even_ever: r.trueBreakevenMonth > 0,
+                  open_cost_items: conf.open.length,
+                  withheld_caps: conf.withheld.length,
+                  bau_entered: r.bauEntered,
+                  bau_evidence: conf.bauEvidence,
+                  displacement_led: r.displacementShare >= 0.5,
+                  credit_before_go_live: r.preGoLiveCredit > 0,
+                  negative_max_implementation: r.breakEvenImpl < 0,
+                  severity: severityBucket(r.payback > 0 ? Math.min(1, r.payback / 36) : 1),
+                }}
                 sections={[
                   { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[stance].label} stance, which weights each lever for attribution risk.` },
                   { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(d.costPerContact))}. ${stance === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
@@ -1107,8 +1118,7 @@ export default function BusinessCaseBuilder() {
                 ]}
               />
             </span>
-            <button onClick={shareScenario} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8, cursor: "pointer" }}>{copied ? "Link copied" : "Share scenario link"}</button>
-            <a href="/contact" onClick={() => trackTool.nextStep("business-case-builder", "contact")} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8 }}>Connect with a Consultant</a>
+            <a href="/contact" onClick={() => trackTool.nextStep(TOOL_ID, "contact")} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8 }}>Connect with a Consultant</a>
             <button onClick={() => goNext("tco-calculator", "/tools/tco-calculator")} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8, cursor: "pointer" }}>TCO Calculator</button>
           </div>
           <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginTop: 10, maxWidth: 760 }}>Your results do not determine whether the consultant option appears, and nothing you entered is shared with anyone unless you ask us to. If a commercial relationship exists with any specialist we introduce, it is disclosed before an introduction is made. No vendor pays to appear here and this tool recommends no vendor.</div>
