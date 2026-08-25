@@ -329,9 +329,12 @@ section("11. confidenceOf, every branch");
   const rNo = computeCase(noPay, "expected", true);
   ok("payback 0 forces Directional regardless of evidence",
      confidenceOf(noPay, rNo, "expected").grade === "Directional");
-  ok("payback 0 raises a horizon-correct open item",
-     confidenceOf(noPay, rNo, "expected").open.some(s =>
-       /does not break even within the three-year evaluation horizon|does not break even at any horizon/.test(s)));
+  ok("payback 0 is a WITHHELD item, never a cost-input open item", (() => {
+    const c = confidenceOf(noPay, rNo, "expected");
+    return c.withheld.some(t => /does not break even/.test(t)) && !c.open.some(t => /does not break even/.test(t));
+  })());
+  ok("the withheld item says it caps on return, not on bookability",
+     confidenceOf(noPay, rNo, "expected").withheld.some(t => /not on the bookability of the costs/.test(t)));
 
   // Boundary exactness on target thresholds.
   const at25 = { ...clean, evidence: "proposal", containment: 25 };
@@ -344,9 +347,10 @@ section("11. confidenceOf, every branch");
   ok("attritionReduction exactly 25 is not aggressive",
      confidenceOf(at25a, computeCase(at25a, "expected", true), "expected").grade === "Finance-grade");
 
-  ok("aggressive stance always raises an open item",
-     confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive").open
-       .some(s => s.includes("Aggressive stance")));
+  ok("aggressive stance raises a WITHHELD item, not a cost-input open item", (() => {
+    const c = confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive");
+    return c.withheld.some(t => /Aggressive stance/.test(t)) && !c.open.some(t => /Aggressive stance/.test(t));
+  })());
   ok("clean proposal case has zero open items",
      confidenceOf({ ...clean, evidence: "proposal" }, rc, "expected").open.length === 0);
 
@@ -431,6 +435,17 @@ section("12b. Semantic status, headroom and horizon language");
     evidence: "proposal" };
 
   // Reconciled against the three live test 3 artifacts, to the dollar.
+  ok("a case that never breaks even leads the analyst read", (() => {
+    const d = { ...T3, newPlatformPerAgentMo: 500 };
+    const r = computeCase(d, "conservative", true);
+    return /at any horizon/.test(caseInsights(r, d, "conservative", confidenceOf(d, r, "conservative"))[0]);
+  })());
+  ok("a case that misses only the horizon also leads the analyst read", (() => {
+    const d = { ...T3, implementationCost: 4000000 };
+    const r = computeCase(d, "conservative", true);
+    return /does not break even within the three-year/.test(caseInsights(r, d, "conservative", confidenceOf(d, r, "conservative"))[0]);
+  })());
+
   // Deterministic spread covering healthy, thin, horizon-failure and never-pays cases.
   const LOCAL_SET = [T3, D(), { ...T3, implementationCost: 1161000 }, { ...T3, implementationCost: 4000000 },
     D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 }),
@@ -535,17 +550,96 @@ section("12b. Semantic status, headroom and horizon language");
     const r = computeCase(T3, "aggressive", true), c = confidenceOf(T3, r, "aggressive");
     return !/discounted for attribution/.test(caseInsights(r, T3, "aggressive", c).join(" "));
   })());
-  ok("the aggressive open item names itself as a stance withholding, not a costing defect", (() => {
+  ok("the aggressive item is framed as benefit attribution, never as costs being fine", (() => {
     const c = confidenceOf(T3, computeCase(T3, "aggressive", true), "aggressive");
-    return c.open.some(t => /cost inputs are not the issue/.test(t));
+    return c.withheld.some(t => /benefit-attribution concern rather than a cost-input one/.test(t))
+      && !JSON.stringify(c).includes("cost inputs are not the issue");
   })());
-  ok("the aggressive confidence line flags the crossed domain", (() => {
+  ok("the implementation concern and the stance concern never share a counter", (() => {
+    const c = confidenceOf(T3, computeCase(T3, "aggressive", true), "aggressive");
+    return c.open.length === 1 && /planning benchmark/.test(c.open[0]) && c.withheld.length === 1;
+  })());
+  ok("the confidence line reports the two counters separately", (() => {
     const r = computeCase(T3, "aggressive", true), c = confidenceOf(T3, r, "aggressive");
-    return /One of those items is the stance/.test(caseInsights(r, T3, "aggressive", c).join(" "));
+    return /additionally capped by 1 item that is not a costing defect/.test(caseInsights(r, T3, "aggressive", c).join(" "));
   })());
-  ok("non-aggressive stances carry no stance-withholding item", (() => {
-    const c = confidenceOf(T3, computeCase(T3, "expected", true), "expected");
-    return !c.open.some(t => /withheld/.test(t));
+  ok("non-aggressive, paying-back cases carry no withheld items",
+     confidenceOf(T3, computeCase(T3, "expected", true), "expected").withheld.length === 0);
+  // Reviewer's month-500 case: "never" must come from steady-state economics, not a search limit.
+  ok("a huge implementation with positive contribution reports a far-future break-even", (() => {
+    const r = computeCase({ ...T3, implementationCost: 40000000 }, "conservative", true);
+    return r.payback === 0 && r.postMonthly > 0 && r.trueBreakevenMonth > 100;
+  })(), String(computeCase({ ...T3, implementationCost: 40000000 }, "conservative", true).trueBreakevenMonth));
+  ok("that far-future case says outside the horizon, never at any horizon", (() => {
+    const d = { ...T3, implementationCost: 40000000 };
+    const r = computeCase(d, "conservative", true);
+    const txt = [...confidenceOf(d, r, "conservative").withheld, ...caseInsights(r, d, "conservative", confidenceOf(d, r, "conservative"))].join(" ");
+    return /within the three-year evaluation horizon/.test(txt) && !/at any horizon/.test(txt);
+  })());
+  ok("savings exactly equal to platform cost never break even", (() => {
+    // Solve the per-agent platform price that makes postMonthly exactly zero.
+    const base = computeCase(T3, "conservative", true);
+    const perAgentMo = base.net / 12 / T3.agents;
+    const r = computeCase({ ...T3, newPlatformPerAgentMo: perAgentMo }, "conservative", true);
+    return near(r.postMonthly, 0, 0.01) && r.payback === 0 && r.trueBreakevenMonth === 0;
+  })());
+  ok("structurally failed cases suppress implementation commentary entirely", (() => {
+    const d = { ...T3, newPlatformPerAgentMo: 500 };
+    const r = computeCase(d, "conservative", true), c = confidenceOf(d, r, "conservative");
+    const all = [...c.open, ...caseInsights(r, d, "conservative", c)].join(" ");
+    return r.postMonthly <= 0 && !/planning benchmark/.test(all);
+  })());
+  ok("horizon-failed cases that still contribute keep implementation commentary", (() => {
+    const d = { ...T3, implementationCost: 700000 };
+    const r = computeCase(d, "conservative", true);
+    return r.postMonthly > 0;
+  })());
+
+  // Status boundaries, asserted on the DISPLAYED figure.
+  const roiAt = (pct) => ({ roiDefined: true, roi3: pct });
+  ok("ROI displaying 0% reads weak, not fail", mod.roiStatus(roiAt(0.4)) === "weak");
+  ok("ROI displaying -1% reads fail", mod.roiStatus(roiAt(-0.6)) === "fail");
+  ok("ROI displaying 14% reads weak", mod.roiStatus(roiAt(14.4)) === "weak");
+  ok("ROI displaying 15% reads caution", mod.roiStatus(roiAt(14.6)) === "caution");
+  ok("ROI displaying 49% reads caution", mod.roiStatus(roiAt(49.4)) === "caution");
+  ok("ROI displaying 50% reads positive", mod.roiStatus(roiAt(49.6)) === "positive");
+  ok("a raw value and its displayed value never disagree", (() => {
+    for (let v = -5; v <= 120; v += 0.1) {
+      const shown = Math.round(v);
+      const st = mod.roiStatus(roiAt(v));
+      const expected = shown < 0 ? "fail" : shown < 15 ? "weak" : shown < 50 ? "caution" : "positive";
+      if (st !== expected) return false;
+    }
+    return true;
+  })());
+  ok("payback exactly 12 months post-go-live reads positive",
+     mod.paybackStatus({ payback: 24, M: 12 }, true) === "positive");
+  ok("payback 13 months post-go-live reads caution",
+     mod.paybackStatus({ payback: 25, M: 12 }, true) === "caution");
+  ok("payback 18 months post-go-live reads caution",
+     mod.paybackStatus({ payback: 30, M: 12 }, true) === "caution");
+  ok("payback 19 months post-go-live reads weak",
+     mod.paybackStatus({ payback: 31, M: 12 }, true) === "weak");
+
+  // Ramp-off narrative must not survive from the phased case.
+  ok("phasing off never claims a J-curve or a phased year one", (() => {
+    const r = computeCase(T3, "conservative", false);
+    const c = confidenceOf(T3, r, "conservative");
+    const txt = caseInsights(r, T3, "conservative", c).join(" ");
+    return /phasing is off/i.test(txt) && !/real J-curve/.test(txt) && near(r.year1, r.net, 0.5);
+  })());
+  // The PDF narrative lives in JSX, so assert on the source that no phasing claim is
+  // unconditional. This is the exact residue class the peer review predicted.
+  ok("every J-curve and phased-narrative claim in the PDF sits inside a rampOn branch", (() => {
+    const meth = SRC.slice(SRC.indexOf('title: "Methodology"'), SRC.indexOf('title: "Methodology"') + 2600);
+    const hasJ = meth.includes("real J-curve");
+    const guarded = meth.includes('(rampOn ?') && meth.indexOf('(rampOn ?') < meth.indexOf("real J-curve");
+    const offBranch = /phasing was turned OFF/i.test(meth);
+    return hasJ && guarded && offBranch;
+  })());
+  ok("the phasing-off methodology branch warns the figures are idealized", (() => {
+    const meth = SRC.slice(SRC.indexOf('title: "Methodology"'), SRC.indexOf('title: "Methodology"') + 2600);
+    return /idealized figures/.test(meth) && /shorter and higher/.test(meth);
   })());
 }
 
