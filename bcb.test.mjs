@@ -709,7 +709,10 @@ section("12z. Rendered narrative, asserted on the SOURCE");
   ok("SOURCE the savings breakdown labels each lever by class",
      has('"(cash-releasing)"') || has("(cash-releasing)"));
   ok("SOURCE key assumptions expose the capacity action, repeat basis and issue count",
-     has('"Capacity action (realization)"') && has('"Repeat-contact basis"') && has('"Underlying issues (FCR denominator)"'));
+     has('"Capacity action (realization)"') && has('"Repeat-contact basis"')
+     && has('"Repeat population (the FCR denominator)"') && has('"Underlying issues (contacts less repeats)"'));
+  ok("SOURCE the denominator row names the population the reduction actually acts on",
+     !has("Underlying issues (FCR denominator)"));
   ok("SOURCE the analyst confidence line no longer calls the badge cost-scoped",
      !SRC.includes("That badge rates how bookable the cost inputs are"));
   ok("SOURCE no unsourced industry range survives", !SRC.includes('hint="Industry:'));
@@ -908,6 +911,112 @@ section("12d. FCR can never remove repeats that do not exist");
     const z = computeCase({ ...D(), currentFCR: 100, fcrImprovement: 10 }, "expected", true, "headcount");
     return near(z.avoidedRepeats, 0, 0.001) && Number.isFinite(z.repeatPopulation);
   })());
+}
+
+section("12f. Targets that exceed physical limits are clamped AND disclosed");
+{
+  const T = { ...D(), currentFCR: 78, fcrImprovement: 39, repeatShare: 2, evidence: "proposal" };
+  const r = computeCase(T, "expected", true, "headcount");
+  ok("the engine clamps an impossible FCR target", near(r.fcrLiftEffectivePts, 22, 0.05));
+  ok("the clamp is detected, not silent", r.fcrLiftClamped === true);
+  ok("a target reaching 100% resolution is identified", r.fcrPerfectTarget === true);
+  ok("the narrative reports the EFFECTIVE lift, never the entered one", (() => {
+    const c = confidenceOf(T, r, "expected");
+    const txt = caseInsights(r, T, "expected", c).join(" ");
+    return txt.includes("22 points") && !/by 39 points removes/.test(txt);
+  })());
+  ok("an impossible FCR target raises a plausibility concern", (() => {
+    const c = confidenceOf(T, r, "expected");
+    return c.flags.some(t => /theoretical ceiling/.test(t)) && c.flags.some(t => /would exceed 100%/.test(t));
+  })());
+  ok("an impossible FCR target caps the headline", (() => {
+    const d = { ...T, implementationCost: 900000, agents: 387, newPlatformPerAgentMo: 70, migrationMonths: 6, rampMonths: 4 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
+    return c.grade !== "Finance-grade" && c.withheld.some(t => /target-plausibility concern/.test(t));
+  })());
+  ok("an FCR lift above the planning range is flagged short of the ceiling", (() => {
+    const d = { ...D(), currentFCR: 60, fcrImprovement: 15, repeatShare: 10 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
+    return c.flags.some(t => /above the 5 to 10 point internal planning range/.test(t));
+  })());
+  ok("a lift inside the planning range raises nothing", (() => {
+    const d = { ...D(), currentFCR: 60, fcrImprovement: 8, repeatShare: 10 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
+    return !c.flags.some(t => /FCR/.test(t));
+  })());
+  ok("no entered lift can ever exceed the headroom to 100%", (() => {
+    for (let f = 0; f <= 100; f += 5) for (const lift of [0, 5, 22, 39, 80, 200]) {
+      const x = computeCase({ ...D(), currentFCR: f, fcrImprovement: lift, repeatShare: 5 }, "expected", true, "headcount");
+      if (x.fcrLiftEffectivePts > 100 - f + 0.05) return false;
+    }
+    return true;
+  })());
+}
+
+section("12h. Branch copy is true in every branch");
+{
+  const T = { ...D(), repeatShare: 8, evidence: "proposal" };
+  ok("with no action committed, the read does not call it a stated action", (() => {
+    const r = computeCase(T, "expected", true, "none");
+    const txt = caseInsights(r, T, "expected", confidenceOf(T, r, "expected")).join(" ");
+    return /No capacity action has been committed/.test(txt) && !/Your stated action, not selected/.test(txt);
+  })());
+  ok("with no action committed, the read calls it an open decision, not a stress test", (() => {
+    const r = computeCase(T, "expected", true, "none");
+    const txt = caseInsights(r, T, "expected", confidenceOf(T, r, "expected")).join(" ");
+    return /an open decision rather than a stress test/.test(txt)
+      && !/signals you have already stress-tested/.test(txt);
+  })());
+  ok("with an action committed, the read names it and its conversion", (() => {
+    const r = computeCase(T, "expected", true, "hiring");
+    const txt = caseInsights(r, T, "expected", confidenceOf(T, r, "expected")).join(" ");
+    return /Your stated action, avoid hiring/.test(txt) && /converts 75%/.test(txt);
+  })());
+  ok("no branch ever claims the reader stress-tested a decision they have not made", (() => {
+    for (const mk of MECH_ORDER) for (const st of ["aggressive", "expected", "conservative"]) {
+      const r = computeCase(T, st, true, mk);
+      const txt = caseInsights(r, T, st, confidenceOf(T, r, st)).join(" ");
+      if (mk === "none" && /stress-tested/.test(txt)) return false;
+    }
+    return true;
+  })());
+  ok("a case already past the headroom cliff says so, not that value turns negative above it", (() => {
+    const d = { ...D(), implementationCost: 1500000, agents: 235, newPlatformPerAgentMo: 155,
+      migrationMonths: 12, rampMonths: 7, evidence: "proposal", repeatShare: 2, currentFCR: 78 };
+    const r = computeCase(d, "expected", true, "hiring");
+    const c = confidenceOf(d, r, "expected");
+    if (r.implHeadroomPerAgent >= 0) return true;
+    return c.withheld.some(t => /already negative on implementation cost/.test(t))
+      && !c.withheld.some(t => /leaving only/.test(t));
+  })());
+  ok("a case with real headroom states the headroom rather than a deficit", (() => {
+    const d = { ...D(), implementationCost: 200000, agents: 235, evidence: "proposal" };
+    const r = computeCase(d, "expected", true, "hiring");
+    const c = confidenceOf(d, r, "expected");
+    return !c.withheld.some(t => /already negative on implementation cost/.test(t));
+  })());
+}
+
+section("12g. The Capacity and Cash table is one basis throughout");
+{
+  const T = { ...D(), repeatShare: 8 };
+  for (const st of ["aggressive", "expected", "conservative"]) {
+    const r = computeCase(T, st, true, "hiring"), cf = STANCE[st];
+    const traineeShown = r.attritionCapacity * cf.a;
+    ok(`${st}: the trainee row is attributed, matching every other row`,
+       near(traineeShown, r.attritionCapacity * cf.a, 0.01));
+    ok(`${st}: the trainee figure is already inside the capacity total`,
+       r.capacityNet > traineeShown && near(
+         r.buckets.containment * cf.c + r.buckets.handleTime * cf.h + r.buckets.fcr * cf.f + traineeShown,
+         r.capacityNet, 0.5));
+    ok(`${st}: capacity converted plus cash equals the realizable headline`,
+       near(r.capacityRealized + r.cashNet, r.net, 0.5));
+  }
+  ok("SOURCE the trainee row states it is attributed and already counted",
+     SRC.includes("after attribution, already inside the capacity figure above"));
+  ok("SOURCE the executive summary calls the headline realizable, not net",
+     SRC.includes("in realizable annual savings at full run-rate")
+     && !SRC.includes("in net annual savings at full run-rate"));
 }
 
 section("12e. Confidence concepts never contaminate each other");
