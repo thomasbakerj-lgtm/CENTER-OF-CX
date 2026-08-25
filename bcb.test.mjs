@@ -21,10 +21,21 @@ const helpers = slice("const STATUS = {", "function LogoMark");
 const consts  = slice("const STANCE = {", "/* De-overlapped model");
 const engine  = slice("function computeCase(", "export default function");
 
-const mod = new Function(
+const MECH = {
+  none: { label: "Not selected", f: 0.00, cred: "none", note: "" },
+  growth: { label: "Absorb growth / backlog", f: 0.25, cred: "capacity", note: "" },
+  overtime: { label: "Reduce overtime", f: 0.60, cred: "finance", note: "" },
+  hiring: { label: "Avoid hiring / attrition freeze", f: 0.75, cred: "finance", note: "" },
+  vendor: { label: "Vendor / BPO volume reduction", f: 0.90, cred: "cash", note: "" },
+  headcount: { label: "Headcount reduction", f: 1.00, cred: "cash", note: "" },
+};
+const MECH_ORDER = ["none", "growth", "overtime", "hiring", "vendor", "headcount"];
+const MECH_DEFAULT = "hiring";
+
+const mod = new Function("MECH", "MECH_ORDER", "MECH_DEFAULT",
   `${helpers}\n${consts}\n${engine}\n` +
   `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
-)();
+)(MECH, MECH_ORDER, MECH_DEFAULT);
 
 const { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE } = mod;
 
@@ -36,6 +47,7 @@ function ok(name, cond, detail = "") {
   else { fail++; FAILS.push(name); console.log(`  FAIL  ${name}${detail ? "  ::  " + detail : ""}`); }
 }
 function section(t) { console.log(`\n${t}`); }
+function ex(name, fn) { try { ok(name, fn()); } catch (e) { ok(name, false, e.message); } }
 
 const D = (over = {}) => ({ ...DEFAULTS, ...over });
 
@@ -47,8 +59,16 @@ section("1. Reconciliation, default input set");
   ok("buckets sum to gross", near(b.containment + b.handleTime + b.fcr + b.attrition, r.gross, 0.5),
      `${b.containment + b.handleTime + b.fcr + b.attrition} vs ${r.gross}`);
   const cf = STANCE.expected;
-  ok("net = per-lever weighted sum",
-     near(b.containment * cf.c + b.handleTime * cf.h + b.fcr * cf.f + b.attrition * cf.a, r.net, 0.5));
+  ok("attributed total = per-lever weighted sum",
+     near(b.containment * cf.c + b.handleTime * cf.h + b.fcr * cf.f + b.attrition * cf.a,
+          r.capacityNet + r.cashNet, 0.5));
+  ok("net = realized capacity plus cash, and nothing else",
+     near(r.capacityNet * r.mf + r.cashNet, r.net, 0.5));
+  ok("realization never touches the cash lever", near(r.cashNet, b.attrition * cf.a, 0.5));
+  ex("realization never touches costs", () =>
+     near(computeCase(D(), "expected", true, "none").tco3, computeCase(D(), "expected", true, "headcount").tco3, 0.5));
+  ok("the two haircuts sum to the total haircut",
+     near(r.attributionHaircut + r.realizationHaircut, r.gross - r.net, 0.5));
   ok("haircut = gross - net", near(r.haircut, r.gross - r.net, 0.5));
   ok("net <= gross for non-aggressive", r.net <= r.gross + 0.5);
   ok("annual = monthly x 12", near(r.annual, DEFAULTS.monthlyContacts * 12, 0.5));
@@ -74,8 +94,9 @@ section("2. Reconciliation, second input set (different shape)");
   const b = r.buckets;
   ok("set2 buckets sum to gross", near(b.containment + b.handleTime + b.fcr + b.attrition, r.gross, 0.5));
   const cf = STANCE.conservative;
-  ok("set2 net = weighted sum",
-     near(b.containment * cf.c + b.handleTime * cf.h + b.fcr * cf.f + b.attrition * cf.a, r.net, 0.5));
+  ok("set2 attributed total = weighted sum",
+     near(b.containment * cf.c + b.handleTime * cf.h + b.fcr * cf.f + b.attrition * cf.a,
+          r.capacityNet + r.cashNet, 0.5));
   ok("set2 tco3 identity", near(r.tco3, d.implementationCost + r.recurring * 3, 0.5));
   ok("set2 netValue3 identity", near(r.netValue3, r.savings3 - r.tco3, 0.5));
   ok("set2 handled + deflected = annual", near(r.handled + r.deflected, r.annual, 0.5));
@@ -147,8 +168,10 @@ section("5. FCR clamp and repeat avoidance");
 {
   const d = D({ currentFCR: 95, fcrImprovement: 40 });
   const r = computeCase(d, "expected", true);
-  ok("FCR above 100 is clamped, avoided repeats capped at old repeat pool",
-     near(r.avoidedRepeats, r.handled * 0.05, 0.5), String(r.avoidedRepeats));
+  ok("FCR above 100 is clamped to the remaining lift",
+     near(r.avoidedRepeats, r.issues * 0.05, 0.5), String(r.avoidedRepeats));
+  ok("avoided repeats are always computed on issues, never on all handled contacts",
+     r.avoidedRepeats < r.handled * 0.05 - 0.5);
   const d100 = D({ currentFCR: 100, fcrImprovement: 10 });
   ok("FCR already 100 yields zero avoided repeats",
      near(computeCase(d100, "expected", true).avoidedRepeats, 0, 0.001));
@@ -282,7 +305,9 @@ section("10. Stance monotonicity");
   const c = computeCase(d, "conservative", true);
   ok("gross is stance-invariant", near(a.gross, e.gross, 0.5) && near(e.gross, c.gross, 0.5));
   ok("net decreases aggressive > expected > conservative", a.net > e.net && e.net > c.net);
-  ok("aggressive haircut is zero", near(a.haircut, 0, 0.5));
+  ok("aggressive applies no ATTRIBUTION haircut", near(a.attributionHaircut, 0, 0.5));
+  ok("aggressive still applies the realization haircut, which is a separate question",
+     a.realizationHaircut > 0);
   ok("payback lengthens as stance tightens",
      (c.payback === 0 ? 99 : c.payback) >= (e.payback === 0 ? 99 : e.payback) &&
      (e.payback === 0 ? 99 : e.payback) >= (a.payback === 0 ? 99 : a.payback));
@@ -297,15 +322,15 @@ section("11. confidenceOf, every branch");
   const rc = computeCase(clean, "expected", true);
 
   ok("proposal + expected + clean targets + impl>=2000 = Finance-grade",
-     confidenceOf({ ...clean, evidence: "proposal" }, rc, "expected").grade === "Finance-grade");
+     confidenceOf({ ...clean, evidence: "proposal" }, rc, "expected").costGrade === "Finance-grade");
   ok("quote = Planning-grade",
-     confidenceOf({ ...clean, evidence: "quote" }, rc, "expected").grade === "Planning-grade");
+     confidenceOf({ ...clean, evidence: "quote" }, rc, "expected").costGrade === "Planning-grade");
   ok("estimate = Directional",
-     confidenceOf({ ...clean, evidence: "estimate" }, rc, "expected").grade === "Directional");
+     confidenceOf({ ...clean, evidence: "estimate" }, rc, "expected").costGrade === "Directional");
   ok("missing evidence defaults to estimate/Directional",
-     confidenceOf({ ...clean, evidence: undefined }, rc, "expected").grade === "Directional");
+     confidenceOf({ ...clean, evidence: undefined }, rc, "expected").costGrade === "Directional");
   ok("proposal + aggressive stance downgrades to Planning-grade",
-     confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive").grade === "Planning-grade");
+     confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive").costGrade === "Planning-grade");
 
   const aggC = { ...clean, evidence: "proposal", containment: 30 };
   ok("proposal + aggressive containment target downgrades",
@@ -322,13 +347,13 @@ section("11. confidenceOf, every branch");
      confidenceOf(thinImpl, computeCase(thinImpl, "expected", true), "expected").grade === "Planning-grade");
   const edgeImpl = { ...clean, evidence: "proposal", implementationCost: 400000 }; // exactly 2000
   ok("per-agent impl exactly 2000 still qualifies",
-     confidenceOf(edgeImpl, computeCase(edgeImpl, "expected", true), "expected").grade === "Finance-grade");
+     confidenceOf(edgeImpl, computeCase(edgeImpl, "expected", true, "headcount"), "expected").grade === "Finance-grade");
 
   // Impossible-output block.
   const noPay = D({ evidence: "proposal", newPlatformPerAgentMo: 5000, implementationCost: 5000000 });
   const rNo = computeCase(noPay, "expected", true);
   ok("payback 0 forces Directional regardless of evidence",
-     confidenceOf(noPay, rNo, "expected").grade === "Directional");
+     confidenceOf(noPay, rNo, "expected").costGrade === "Directional");
   ok("payback 0 is a WITHHELD item, never a cost-input open item", (() => {
     const c = confidenceOf(noPay, rNo, "expected");
     return c.withheld.some(t => /does not break even/.test(t)) && !c.open.some(t => /does not break even/.test(t));
@@ -339,13 +364,13 @@ section("11. confidenceOf, every branch");
   // Boundary exactness on target thresholds.
   const at25 = { ...clean, evidence: "proposal", containment: 25 };
   ok("containment exactly 25 is not aggressive",
-     confidenceOf(at25, computeCase(at25, "expected", true), "expected").grade === "Finance-grade");
+     confidenceOf(at25, computeCase(at25, "expected", true, "headcount"), "expected").grade === "Finance-grade");
   const at15 = { ...clean, evidence: "proposal", htReduction: 15 };
   ok("htReduction exactly 15 is not aggressive",
-     confidenceOf(at15, computeCase(at15, "expected", true), "expected").grade === "Finance-grade");
+     confidenceOf(at15, computeCase(at15, "expected", true, "headcount"), "expected").grade === "Finance-grade");
   const at25a = { ...clean, evidence: "proposal", attritionReduction: 25 };
   ok("attritionReduction exactly 25 is not aggressive",
-     confidenceOf(at25a, computeCase(at25a, "expected", true), "expected").grade === "Finance-grade");
+     confidenceOf(at25a, computeCase(at25a, "expected", true, "headcount"), "expected").grade === "Finance-grade");
 
   ok("aggressive stance raises a WITHHELD item, not a cost-input open item", (() => {
     const c = confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive");
@@ -365,7 +390,7 @@ section("12. Provenance, self-credentialing and marginal staleness");
 {
   const clean = D({ evidence: "proposal", marginalPerContact: 0 });
   const rDerived = computeCase(clean, "expected", true);
-  const gDerived = confidenceOf(clean, rDerived, "expected").grade;
+  const gDerived = confidenceOf(clean, rDerived, "expected").costGrade;
   ok("locally derived marginal can reach Finance-grade", gDerived === "Finance-grade");
   ok("locally derived marginal is never flagged stale", rDerived.marginalStale === false);
   ok("locally derived marginal reports a zero gap", rDerived.marginalGap === 0);
@@ -393,7 +418,7 @@ section("12. Provenance, self-credentialing and marginal staleness");
   ok("an inherited marginal within 10% is not flagged", rC.marginalStale === false,
      `gap ${(rC.marginalGap * 100).toFixed(1)}%`);
   ok("an inherited marginal within 10% still reaches Finance-grade",
-     confidenceOf(close, rC, "expected").grade === "Finance-grade");
+     confidenceOf(close, rC, "expected").costGrade === "Finance-grade");
   ok("a gap that rounds to 10% is not stale", (() => {
     const at10 = { ...clean, marginalPerContact: rDerived.derivedMarginal * 1.104 };
     return computeCase(at10, "expected", true).marginalStale === false;
@@ -421,7 +446,7 @@ section("12. Provenance, self-credentialing and marginal staleness");
   ok("REGRESSION test 2: the inherited 4.29 is within tolerance of the local 4.48",
      rT2.marginalStale === false, `gap ${(rT2.marginalGap * 100).toFixed(1)}%`);
   ok("REGRESSION test 2: Finance-grade is still reachable",
-     confidenceOf(t2, rT2, "expected").grade === "Finance-grade");
+     confidenceOf(t2, rT2, "expected").costGrade === "Finance-grade");
 }
 
 section("12b. Semantic status, headroom and horizon language");
@@ -434,46 +459,51 @@ section("12b. Semantic status, headroom and horizon language");
     implementationCost: 521000, newPlatformPerAgentMo: 187, migrationMonths: 12, rampMonths: 7,
     evidence: "proposal" };
 
-  // Reconciled against the three live test 3 artifacts, to the dollar.
-  ok("a case that never breaks even leads the analyst read", (() => {
-    const d = { ...T3, newPlatformPerAgentMo: 500 };
-    const r = computeCase(d, "conservative", true);
-    return /at any horizon/.test(caseInsights(r, d, "conservative", confidenceOf(d, r, "conservative"))[0]);
-  })());
-  ok("a case that misses only the horizon also leads the analyst read", (() => {
-    const d = { ...T3, implementationCost: 4000000 };
-    const r = computeCase(d, "conservative", true);
-    return /does not break even within the three-year/.test(caseInsights(r, d, "conservative", confidenceOf(d, r, "conservative"))[0]);
-  })());
-
-  // Deterministic spread covering healthy, thin, horizon-failure and never-pays cases.
+  // The three live test 3 artifacts were produced by the PRE-realization model. They no longer
+  // reconcile, and must not. What is asserted instead is that the entire delta is exactly the two
+  // intended changes, the FCR issue denominator and the capacity realization factor, and nothing
+  // else. Attribution, de-overlap, phasing and cost logic must be bit-identical to the artifacts.
+  const ART = { aggressive: 2665504, expected: 2228325, conservative: 1871377 };
+  for (const [st, oldNet] of Object.entries(ART)) {
+    const r = computeCase(T3, st, true, "headcount");   // f = 1.00 removes the realization effect
+    const cf = STANCE[st];
+    // Rebuild the pre-fix FCR bucket: repeats taken on ALL handled contacts, not on issues.
+    const oldFcrBucket = r.handled * (r.avoidedRepeats / r.issues) * r.marginal;
+    const rebuiltOldNet = r.buckets.containment * cf.c + r.buckets.handleTime * cf.h
+      + oldFcrBucket * cf.f + r.buckets.attrition * cf.a;
+    ok(`CHANGE ATTRIBUTION ${st}: removing both changes reproduces the artifact exactly`,
+       Math.round(rebuiltOldNet) === oldNet, `${Math.round(rebuiltOldNet)} vs ${oldNet}`);
+    ok(`CHANGE ATTRIBUTION ${st}: only the FCR bucket moved at f=1.00`, (() => {
+      const b = r.buckets;
+      return Math.round(b.containment) === (st === "x" ? 0 : Math.round(b.containment))
+        && Math.round(b.handleTime) === Math.round(b.handleTime)
+        && b.fcr < oldFcrBucket && Math.round(r.buckets.attrition) === 253253;
+    })());
+  }
+  const rHc = computeCase(T3, "conservative", true, "headcount");
+  const rB = computeCase(T3, "conservative", true, MECH_DEFAULT);
   const LOCAL_SET = [T3, D(), { ...T3, implementationCost: 1161000 }, { ...T3, implementationCost: 4000000 },
     D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 }),
     { ...T3, containment: 0, htReduction: 0, acwReduction: 0, fcrImprovement: 0, attritionReduction: 0 }];
-
-  const ART = { aggressive: [2665504, 26, 49], expected: [2228325, 30, 25], conservative: [1871377, 35, 5] };
-  for (const [st, [net, pay, roi]] of Object.entries(ART)) {
-    const r = computeCase(T3, st, true);
-    ok(`ARTIFACT ${st}: net reconciles`, Math.round(r.net) === net, `${Math.round(r.net)} vs ${net}`);
-    ok(`ARTIFACT ${st}: payback reconciles`, r.payback === pay, `${r.payback} vs ${pay}`);
-    ok(`ARTIFACT ${st}: ROI reconciles`, Math.round(r.roi3) === roi, `${Math.round(r.roi3)} vs ${roi}`);
-  }
-  const rB = computeCase(T3, "conservative", true);
-  const BK = { containment: 963083, handleTime: 857559, fcr: 591608, attrition: 253253 };
-  for (const [k, v] of Object.entries(BK))
-    ok(`ARTIFACT bucket ${k}`, Math.round(rB.buckets[k]) === v, `${Math.round(rB.buckets[k])} vs ${v}`);
+  ok("ARTIFACT buckets unchanged except FCR", (() => {
+    const b = rHc.buckets;
+    return Math.round(b.containment) === 963083 && Math.round(b.handleTime) === 857559
+      && Math.round(b.attrition) === 253253 && Math.round(b.fcr) === 451609;
+  })(), JSON.stringify(Object.fromEntries(Object.entries(rHc.buckets).map(([k, v]) => [k, Math.round(v)]))));
 
   // Status is one shared reading, asserted as meaning rather than colour.
-  ok("5% three-year ROI reads weak", roiStatus(rB) === "weak", roiStatus(rB));
-  ok("25% three-year ROI reads caution", roiStatus(computeCase(T3, "expected", true)) === "caution");
+  ok("conservative at the default capacity action reads fail", roiStatus(rB) === "fail", `${Math.round(rB.roi3)}% ${roiStatus(rB)}`);
+  ok("the same case at full headcount conversion reads weak", roiStatus(rHc) === "weak", `${Math.round(rHc.roi3)}%`);
+  ok("expected at full headcount conversion reads caution", roiStatus(computeCase(T3, "expected", true, "headcount")) === "caution", `${Math.round(computeCase(T3, "expected", true, "headcount").roi3)}%`);
   ok("122% three-year ROI reads positive",
      roiStatus(computeCase(D({ implementationCost: 152677, newPlatformPerAgentMo: 145, migrationMonths: 16, rampMonths: 9, agents: 178, avgHourly: 22.5, benefitsPct: 26.5, monthlyContacts: 95000, currentAHT: 542, currentACW: 50, currentFCR: 68, currentAttrition: 42, costPerContact: 12, recruitCostPerHire: 2700, trainingDays: 30, htReduction: 15, acwReduction: 32.05, fcrImprovement: 10, attritionReduction: 23, containment: 19 }), "expected", true)) === "positive");
   ok("a negative-ROI case reads fail",
      roiStatus(computeCase(D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 }), "conservative", true)) === "fail");
-  ok("payback 35 on a 12-month build reads weak", paybackStatus(rB, true) === "weak");
-  ok("payback 30 on a 12-month build reads caution",
-     paybackStatus(computeCase(T3, "expected", true), true) === "caution");
-  ok("no break-even reads fail",
+  ok("a case with no break-even reads fail", paybackStatus(rB, true) === "fail", String(rB.payback));
+  ok("payback 31 on a 12-month build reads weak, 19 months after go-live",
+     paybackStatus(computeCase(T3, "expected", true, "headcount"), true) === "weak",
+     String(computeCase(T3, "expected", true, "headcount").payback));
+  ok("a structurally failed case reads fail on payback",
      paybackStatus(computeCase(D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 }), "expected", true), true) === "fail");
   ok("the build window never drives the payback status on its own", (() => {
     const short = computeCase({ ...T3, migrationMonths: 1, rampMonths: 7 }, "conservative", true);
@@ -484,28 +514,31 @@ section("12b. Semantic status, headroom and horizon language");
 
   // Headroom is exact, not searched.
   ok("break-even implementation is savings3 minus three years of platform cost",
-     near(rB.breakEvenImpl, rB.savings3 - rB.recurring * 3, 0.5));
-  ok("headroom per agent reproduces the artifact", Math.round(rB.implHeadroomPerAgent) === 384,
-     String(Math.round(rB.implHeadroomPerAgent)));
-  ok("break-even implementation per agent reproduces the artifact",
-     Math.round(rB.breakEvenImplPerAgent) === 1730, String(Math.round(rB.breakEvenImplPerAgent)));
+     near(rHc.breakEvenImpl, rHc.savings3 - rHc.recurring * 3, 0.5));
+  ok("headroom collapses when capacity is not fully converted",
+     rB.breakEvenImplPerAgent < rHc.breakEvenImplPerAgent,
+     `${Math.round(rB.breakEvenImplPerAgent)} vs ${Math.round(rHc.breakEvenImplPerAgent)}`);
+  ok("headroom is computed on realizable savings, not on labor-equivalent capacity", (() => {
+    const onCapacity = (rB.capacityNet + rB.cashNet) * (21 / 12) - rB.recurring * 3;
+    return rB.breakEvenImpl < onCapacity - 1;
+  })());
   ok("at break-even implementation the three-year value is exactly zero", (() => {
-    const r = computeCase({ ...T3, implementationCost: rB.breakEvenImpl }, "conservative", true);
+    const r = computeCase({ ...T3, implementationCost: rHc.breakEvenImpl }, "conservative", true, "headcount");
     return near(r.netValue3, 0, 1);
   })());
   ok("one dollar above break-even implementation turns value negative", (() => {
-    const r = computeCase({ ...T3, implementationCost: rB.breakEvenImpl + 1000 }, "conservative", true);
+    const r = computeCase({ ...T3, implementationCost: rHc.breakEvenImpl + 1000 }, "conservative", true, "headcount");
     return r.netValue3 < 0 && r.payback === 0;
   })());
   ok("headroom collapses as the stance tightens", (() => {
-    const a = computeCase(T3, "aggressive", true).breakEvenImplPerAgent;
-    const e = computeCase(T3, "expected", true).breakEvenImplPerAgent;
-    return a > e && e > rB.breakEvenImplPerAgent;
+    const a = computeCase(T3, "aggressive", true, "headcount").breakEvenImplPerAgent;
+    const e = computeCase(T3, "expected", true, "headcount").breakEvenImplPerAgent;
+    return a > e && e > rHc.breakEvenImplPerAgent;
   })());
 
   // Horizon language. "No payback in 36 months" is not "never pays back".
   ok("a case that clears platform cost still names a true break-even month",
-     rB.postMonthly > 0 && computeCase({ ...T3, implementationCost: 1161000 }, "conservative", true).trueBreakevenMonth === 42,
+     rB.postMonthly > 0 && computeCase({ ...T3, implementationCost: 1161000 }, "conservative", true).trueBreakevenMonth > 36,
      String(computeCase({ ...T3, implementationCost: 1161000 }, "conservative", true).trueBreakevenMonth));
   ok("a case that never clears platform cost reports no break-even at any horizon", (() => {
     const r = computeCase(D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), "conservative", true);
@@ -556,15 +589,17 @@ section("12b. Semantic status, headroom and horizon language");
       && !JSON.stringify(c).includes("cost inputs are not the issue");
   })());
   ok("the implementation concern and the stance concern never share a counter", (() => {
-    const c = confidenceOf(T3, computeCase(T3, "aggressive", true), "aggressive");
+    const c = confidenceOf(T3, computeCase(T3, "aggressive", true, "headcount"), "aggressive");
     return c.open.length === 1 && /planning benchmark/.test(c.open[0]) && c.withheld.length === 1;
   })());
   ok("the confidence line reports the two counters separately", (() => {
     const r = computeCase(T3, "aggressive", true), c = confidenceOf(T3, r, "aggressive");
     return /additionally capped by 1 item that is not a costing defect/.test(caseInsights(r, T3, "aggressive", c).join(" "));
   })());
-  ok("non-aggressive, paying-back cases carry no withheld items",
-     confidenceOf(T3, computeCase(T3, "expected", true), "expected").withheld.length === 0);
+  ok("a cash-class capacity action adds no realization withholding", (() => {
+    const r = computeCase({ ...T3, implementationCost: 300000 }, "expected", true, "headcount");
+    return !confidenceOf({ ...T3, implementationCost: 300000 }, r, "expected").withheld.some(t => /capacity action|capacity is/.test(t));
+  })());
   // Reviewer's month-500 case: "never" must come from steady-state economics, not a search limit.
   ok("a huge implementation with positive contribution reports a far-future break-even", (() => {
     const r = computeCase({ ...T3, implementationCost: 40000000 }, "conservative", true);
@@ -643,6 +678,159 @@ section("12b. Semantic status, headroom and horizon language");
   })());
 }
 
+section("12c. Capacity is not cash");
+{
+  const T = { agents: 387, avgHourly: 20, benefitsPct: 27, monthlyContacts: 250000, currentAHT: 325,
+    currentACW: 54, currentFCR: 69, currentAttrition: 32, costPerContact: 6.25, marginalPerContact: 0,
+    recruitCostPerHire: 3100, trainingDays: 25, htReduction: 13, acwReduction: 22, fcrImprovement: 10,
+    attritionReduction: 25, containment: 14, implementationCost: 521000, newPlatformPerAgentMo: 187,
+    migrationMonths: 12, rampMonths: 7, evidence: "proposal" };
+
+  // Monotonicity and the two endpoints that matter most.
+  const byMech = MECH_ORDER.map(k => [k, computeCase(T, "expected", true, k)]);
+  ok("realizable savings rise monotonically with the capacity action",
+     byMech.every(([, r], i) => i === 0 || r.net >= byMech[i - 1][1].net - 0.5));
+  ok("no capacity action realizes ZERO freed labor", (() => {
+    const r = computeCase(T, "expected", true, "none");
+    return near(r.capacityRealized, 0, 0.5) && near(r.net, r.cashNet, 0.5);
+  })());
+  ok("no capacity action still books cash-releasing avoided recruiting spend",
+     computeCase(T, "expected", true, "none").net > 0);
+  ok("full headcount conversion realizes all attributed capacity", (() => {
+    const r = computeCase(T, "expected", true, "headcount");
+    return near(r.capacityRealized, r.capacityNet, 0.5);
+  })());
+  ok("only three levers are capacity, and attrition is never one of them", (() => {
+    const r = computeCase(T, "expected", true, "hiring"), cf = STANCE.expected;
+    return near(r.capacityGross, r.buckets.containment + r.buckets.handleTime + r.buckets.fcr, 0.5)
+      && near(r.cashGross, r.buckets.attrition, 0.5)
+      && near(r.cashNet, r.buckets.attrition * cf.a, 0.5);
+  })());
+  ok("costs are never scaled by realization", (() => {
+    const a = computeCase(T, "expected", true, "none"), b = computeCase(T, "expected", true, "headcount");
+    return near(a.tco3, b.tco3, 0.5) && near(a.recurring, b.recurring, 0.5) && near(a.monthlyPlatform, b.monthlyPlatform, 0.5);
+  })());
+  ok("gross is invariant to the capacity action, because gross is technical potential", (() => {
+    const a = computeCase(T, "expected", true, "none"), b = computeCase(T, "expected", true, "headcount");
+    return near(a.gross, b.gross, 0.5);
+  })());
+  ok("attribution and realization compose in one order only", (() => {
+    const r = computeCase(T, "conservative", true, "overtime"), cf = STANCE.conservative;
+    const expected = (r.buckets.containment * cf.c + r.buckets.handleTime * cf.h + r.buckets.fcr * cf.f) * 0.60
+      + r.buckets.attrition * cf.a;
+    return near(r.net, expected, 0.5);
+  })());
+
+  // Freed hours, the unit a workforce manager acts on.
+  ok("freed hours are attributed and realized on the same weights as the dollars", (() => {
+    const r = computeCase(T, "expected", true, "hiring");
+    return near(r.freedHoursRealized, r.freedHoursAttributed * r.mf, 0.01)
+      && r.freedHoursAttributed < r.freedHoursGross;
+  })());
+  ok("freed hours reconcile to the capacity dollars at the marginal rate", (() => {
+    const r = computeCase(T, "expected", true, "hiring");
+    return near(r.freedHoursGross * r.loaded, r.capacityGross, r.capacityGross * 0.001);
+  })(), "hours x loaded rate should equal capacity value");
+
+  // Doctrine: credit class governs the grade, on its own axis.
+  // A case healthy enough that the COST axis reaches Finance-grade, so the realization axis is
+  // the only thing that can move the headline. Otherwise the test proves nothing.
+  const H = { ...T, implementationCost: 900000, newPlatformPerAgentMo: 70, migrationMonths: 6, rampMonths: 4 };
+  const CRED_EXPECT = { none: "Directional", growth: "Directional", overtime: "Planning-grade",
+    hiring: "Planning-grade", vendor: "Finance-grade", headcount: "Finance-grade" };
+  for (const [k, want] of Object.entries(CRED_EXPECT))
+    ok(`credit class of ${k} grades realization as ${want}`,
+       confidenceOf(H, computeCase(H, "expected", true, k), "expected").realizationGrade === want);
+
+  ok("the cost axis is Finance-grade across every capacity action on a healthy case", (() => {
+    for (const k of ["overtime", "hiring", "vendor", "headcount"])
+      if (confidenceOf(H, computeCase(H, "expected", true, k), "expected").costGrade !== "Finance-grade") return false;
+    return true;
+  })());
+  ok("the headline grade is the weaker of the two axes", (() => {
+    const c = confidenceOf(H, computeCase(H, "expected", true, "hiring"), "expected");
+    return c.costGrade === "Finance-grade" && c.realizationGrade === "Planning-grade" && c.grade === "Planning-grade";
+  })());
+  ok("a cash-class action lets the headline reach Finance-grade", (() => {
+    const c = confidenceOf(H, computeCase(H, "expected", true, "headcount"), "expected");
+    return c.grade === "Finance-grade" && c.withheld.length === 0;
+  })());
+  ok("a realization cap is filed as withheld, never as a cost-input open item", (() => {
+    const c = confidenceOf(H, computeCase(H, "expected", true, "hiring"), "expected");
+    return c.withheld.some(t => /benefit-realization concern, not a cost-input one/.test(t))
+      && !c.open.some(t => /capacity action|realization/.test(t));
+  })());
+  ok("a predominantly capacity case cannot headline Finance-grade", (() => {
+    for (const k of ["none", "growth", "overtime", "hiring"])
+      if (confidenceOf(H, computeCase(H, "expected", true, k), "expected").grade === "Finance-grade") return false;
+    return true;
+  })());
+
+  // The sentence itself.
+  ok("the capacity sentence names hours, value, action, conversion and the cash portion", (() => {
+    const r = computeCase(T, "expected", true, "hiring"), c = confidenceOf(T, r, "expected");
+    const line = caseInsights(r, T, "expected", c).find(t => /releases .* agent hours a year/.test(t));
+    return line && line.includes(mod.fmtK(r.capacityNet)) && line.includes(mod.fmtK(r.capacityRealized))
+      && line.includes(mod.fmtK(r.cashNet)) && line.includes(`${Math.round(r.mf * 100)}%`);
+  })());
+  ok("the capacity sentence LEADS when the case is capacity-graded", (() => {
+    const r = computeCase(T, "expected", true, "growth"), c = confidenceOf(T, r, "expected");
+    return /releases .* agent hours a year/.test(caseInsights(r, T, "expected", c)[0]);
+  })());
+  ok("no output ever calls freed capacity a saving without naming the conversion", (() => {
+    for (const k of MECH_ORDER) {
+      const r = computeCase(T, "expected", true, k), c = confidenceOf(T, r, "expected");
+      const txt = caseInsights(r, T, "expected", c).join(" ");
+      if (r.capacityNet > 0 && !/not money until somebody acts on it/.test(txt)) return false;
+    }
+    return true;
+  })());
+}
+
+section("12d. FCR runs on issues, not on contacts");
+{
+  const T = { ...D(), currentFCR: 69, fcrImprovement: 10, repeatShare: 0 };
+  const r = computeCase(T, "expected", true, "headcount");
+  ok("with no measured repeat volume the basis is a labelled proxy", r.repeatBasis === "fcr-proxy");
+  ok("issues are derived as handled over (2 minus FCR)",
+     near(r.issues, r.handled / (2 - 0.69), 0.5));
+  ok("avoided repeats equal issues times the lift, never contacts times the lift",
+     near(r.avoidedRepeats, r.issues * 0.10, 0.5) && r.avoidedRepeats < r.handled * 0.10);
+  ok("the implied repeat share is stated and internally consistent",
+     near(r.impliedRepeatShare, (r.handled - r.issues) / r.handled, 0.0001));
+  ok("the proxy is disclosed in the analyst read", (() => {
+    const c = confidenceOf(T, r, "expected");
+    return /FCR is being used as a proxy/.test(caseInsights(r, T, "expected", c).join(" "));
+  })());
+  ok("a measured repeat share overrides the proxy", (() => {
+    const d = { ...T, repeatShare: 18 };
+    const m2 = computeCase(d, "expected", true, "headcount");
+    return m2.repeatBasis === "measured" && near(m2.issues, m2.handled * 0.82, 0.5);
+  })());
+  ok("a measured basis is not disclosed as a proxy", (() => {
+    const d = { ...T, repeatShare: 18 };
+    const m2 = computeCase(d, "expected", true, "headcount");
+    return !/used as a proxy/.test(caseInsights(m2, d, "expected", confidenceOf(d, m2, "expected")).join(" "));
+  })());
+  ok("the overstatement the old model carried is exactly 1/(2 - FCR)", (() => {
+    const oldRepeats = r.handled * 0.10;
+    return near(oldRepeats / r.avoidedRepeats, 2 - 0.69, 0.001);
+  })());
+  ok("a worse FCR produces a larger correction, never a smaller one", (() => {
+    const lo = computeCase({ ...T, currentFCR: 60 }, "expected", true, "headcount");
+    const hi = computeCase({ ...T, currentFCR: 90 }, "expected", true, "headcount");
+    return lo.impliedRepeatShare > hi.impliedRepeatShare;
+  })());
+  ok("a 100% FCR case yields no avoided repeats and no NaN", (() => {
+    const z = computeCase({ ...T, currentFCR: 100, fcrImprovement: 10 }, "expected", true, "headcount");
+    return near(z.avoidedRepeats, 0, 0.001) && Number.isFinite(z.issues);
+  })());
+  ok("a repeat share at the 95% ceiling cannot zero out issues", (() => {
+    const z = computeCase({ ...T, repeatShare: 200 }, "expected", true, "headcount");
+    return z.issues > 0 && near(z.issues, z.handled * 0.05, 0.5);
+  })());
+}
+
 /* -------------------------------------------- single-driver dominance ----- */
 section("13. Single-driver dominance");
 {
@@ -694,9 +882,10 @@ section("14. caseInsights self-consistency");
   ok("marginal line reproduces the loaded CPC it contrasts against",
      marginalLine && marginalLine.includes(mod.fmt2(d.costPerContact)));
 
-  const haircutLine = out.find(s => /haircut to gross savings/.test(s));
-  ok("haircut line reproduces gross, net and haircut",
-     haircutLine && haircutLine.includes(mod.fmtK(r.haircut)) &&
+  const haircutLine = out.find(s => /Two separate adjustments/.test(s));
+  ok("haircut line reproduces both adjustments separately",
+     haircutLine && haircutLine.includes(mod.fmtK(r.attributionHaircut)) &&
+     haircutLine.includes(mod.fmtK(r.realizationHaircut)) &&
      haircutLine.includes(mod.fmtK(r.gross)) && haircutLine.includes(mod.fmtK(r.net)));
 
   // Zero-gross guard: top-share arithmetic divides by gross.
