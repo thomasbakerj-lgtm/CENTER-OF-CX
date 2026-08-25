@@ -300,6 +300,9 @@ export default function ReportActions({
               </div>
               <p style={{ fontSize: 11.5, color: MUTED, marginTop: 7, lineHeight: 1.5 }}>
                 A person sends this, not a robot. Expect it within one business day.
+                Your address is used to send this report and to reply if you ask a question.
+                Nothing you entered leaves your browser unless you send it here, and the
+                download never asks for it.
               </p>
               {copyState === "error" && (
                 <p style={{ fontSize: 12, color: RED, marginTop: 6 }}>
