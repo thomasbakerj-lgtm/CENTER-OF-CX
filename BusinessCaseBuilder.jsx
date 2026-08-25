@@ -58,7 +58,7 @@ const STATUS_LABEL = { positive: "strong", caution: "acceptable", weak: "thin", 
 
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const fmtK = (v) => v >= 1000000 ? "$" + (v / 1000000).toFixed(2) + "M" : v >= 1000 ? "$" + (v / 1000).toFixed(0) + "K" : "$" + Math.round(v).toLocaleString();
-const fmtFull = (v) => "$" + Math.round(v).toLocaleString();
+const fmtFull = (v) => (Math.round(v) < 0 ? "-$" + Math.abs(Math.round(v)).toLocaleString() : "$" + Math.round(v).toLocaleString());
 const fmt2 = (v) => "$" + Number(v).toFixed(2);
 
 function LogoMark({ size = 34, light = true }) { const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC; return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>; }
@@ -291,6 +291,13 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   const bauMo = bauAnnual / 12;
   const overlapWithin3 = Math.min(OL, 36);
   const overlapWithheld = bauMo * overlapWithin3 * overlapShare;
+  // A dual run that ENDS BEFORE go-live credits avoided spend for months in which the old
+  // stack is the only thing still running. Under a single cutover that is not merely optimistic,
+  // it is impossible. It is legitimate only under a wave cutover where licences retire in
+  // tranches, which this binary share model cannot express, so the tool quantifies the exposed
+  // credit and states it rather than silently banking it.
+  const preGoLiveMonths = bauAnnual > 0 && overlapShare > 0 ? Math.max(0, Math.min(M, 36) - OL) : 0;
+  const preGoLiveCredit = preGoLiveMonths * bauMo;
   // During overlap the old stack is still being paid, so only the share that has already
   // stopped is credited. After overlap the whole annual spend is avoided.
   const dispAt = (t) => (t > OL ? bauMo : bauMo * (1 - overlapShare));
@@ -396,6 +403,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
     repeatPopulation, fcrReductionRatio, fcrImpliedByRepeats, fcrInputConflict,
     fcrLiftEffectivePts, fcrLiftClamped, fcrPerfectTarget, annual, handled, deflected, buckets, pct, gross, net, haircut: gross - net, recurring, tco3, roi3, roiDefined, payback, netValue3, avoidedTurnover, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, postMonthly, rampOn,
     bauEntered, bauAnnual, bauMo, OL, overlapShare, overlapAssumed, overlapGtMigration, overlapWithin3, overlapWithheld,
+    preGoLiveMonths, preGoLiveCredit,
     exitCost, backfillCash, absorbedHours, absorbedValue, grossOneTime, displacement3, year1Disp, benefit3, displacementShare,
     breakEvenImpl, breakEvenImplPerAgent, implHeadroom, implHeadroomPerAgent,
     trueBreakevenMonth, TYPICAL_PER_AGENT, typicalImpl, typicalValue3, typicalRoi3, typicalPayback, typicalBreakeven };
@@ -500,8 +508,8 @@ function caseInsights(r, d, stanceKey, conf) {
   // A case that cannot break even leads the read. An implementation nuance must never sit
   // above the finding that the investment does not return.
   if (r.payback === 0) flags.unshift(r.postMonthly <= 0
-    ? `At full run-rate, monthly savings of ${fmtFull(r.monthlyFull)} do not exceed the ${fmtFull(r.monthlyPlatform)} monthly platform cost, so this case does not break even at any horizon, not merely within three years. Revisit platform cost, targets, or stance before presenting.`
-    : `The case does not break even within the three-year evaluation horizon. Run-rate savings do exceed platform cost by ${fmtFull(r.postMonthly)} a month, so cumulative cash turns positive in month ${r.trueBreakevenMonth}. Present it as a longer-horizon investment or reduce the implementation figure, but do not present it as a three-year payback.`);
+    ? `At full run-rate, monthly savings of ${fmtFull(r.monthlyFull)}${r.bauMo > 0 ? ` plus ${fmtFull(r.bauMo)} a month of displaced technology spend` : ""} do not exceed the ${fmtFull(r.monthlyPlatform)} monthly platform cost, so this case does not break even at any horizon, not merely within three years. Revisit platform cost, targets, or stance before presenting.`
+    : `The case does not break even within the three-year evaluation horizon. Run-rate contribution does exceed platform cost by ${fmtFull(r.postMonthly)} a month, so cumulative cash turns positive in month ${r.trueBreakevenMonth}.${r.bauMo > 0 ? ` Of that monthly contribution, ${fmtFull(r.bauMo)} is displaced technology spend rather than operational saving, so the timing depends on the current contract actually ending.` : ""} Present it as a longer-horizon investment or reduce the implementation figure, but do not present it as a three-year payback.`);
   else if (r.payback > 0 && r.payback < 3) flags.push(`A ${r.payback}-month payback reads as too good to be true and invites scrutiny. Confirm the investment captures professional services, change management, and internal time before you present it.`);
 
   if (r.marginalStale) flags.unshift(`Your savings basis of ${fmt2(r.marginal)} per contact came from another tool, but the AHT and wage on this page imply ${fmt2(r.derivedMarginal)}, a gap of ${Math.round(r.marginalGap * 100)}%. Every deflection and FCR dollar in this case is priced at the inherited figure. Reconcile the two before you present, because a reviewer who divides your savings by your contact volume will find the discrepancy.`);
@@ -520,6 +528,7 @@ function caseInsights(r, d, stanceKey, conf) {
     : null;
   if (capacityLine && (r.mechKey === "none" || r.cred === "capacity")) flags.unshift(capacityLine);
   if (r.fcrInputConflict) leadFlags.push(`Two inputs disagree about the same thing. A measured repeat share of ${Math.round(r.measuredRepeatShare * 100)}% implies first-contact resolution near ${Math.round(r.fcrImpliedByRepeats * 100)}%, but ${n(d.currentFCR)}% was entered. The economics run on the measured repeat population of ${Math.round(r.repeatPopulation).toLocaleString()} contacts, so improving FCR by the ${r.fcrLiftEffectivePts} points of headroom that exist removes ${Math.round(r.fcrReductionRatio * 100)}% of them, or ${Math.round(r.avoidedRepeats).toLocaleString()} contacts. Reconcile the two definitions before presenting, because they are almost certainly measuring different windows or different scopes.`);
+  if (r.preGoLiveCredit > 0) leadFlags.push(`The dual-run period ends in month ${r.OL} but go-live is month ${r.M}, so ${r.preGoLiveMonths} month${r.preGoLiveMonths === 1 ? "" : "s"} of displaced spend, ${fmtFull(r.preGoLiveCredit)}, is credited while the current platform is still the only one running. That is ${Math.round(r.preGoLiveCredit / Math.max(1, r.benefit3) * 100)}% of modeled three-year benefit. It holds only if licences retire in tranches during the migration. Under a single cutover, extend the dual run to at least ${r.M} months and the benefit falls by that amount.`);
   flags.unshift(...leadFlags);
 
   const out = [...flags.slice(0, 2 + leadFlags.length)];
@@ -557,7 +566,7 @@ function caseInsights(r, d, stanceKey, conf) {
       out.push(`${fmtFull(r.bauAnnual)} a year of current technology spend is modeled as eliminated. ${r.OL > 0 && r.overlapShare > 0 ? `A ${r.OL}-month dual-run period withholds ${fmtFull(r.overlapWithheld)} of that credit inside the three-year window${r.OL >= 36 ? `, which is the entire window, so this case shows no displacement benefit within three years even though lifetime break-even improves` : ""}.` : `No dual-run period is modeled, so the credit starts in month one.`}${r.overlapAssumed ? ` The dual-run length was not stated, so it is assumed to equal the ${r.M}-month migration. Change it if your contract or decommission plan differs.` : ""}${r.overlapGtMigration ? ` The dual-run period runs ${r.OL - r.M} month${r.OL - r.M === 1 ? "" : "s"} past go-live, which is normal where a legacy contract, a retained channel or a compliance archive outlives the migration, but confirm it is deliberate.` : ""}`);
     }
     if (r.absorbedHours > 0)
-      out.push(`Internal delivery burden of ${Math.round(r.absorbedHours).toLocaleString()} hours, worth ${fmtK(r.absorbedValue)} at the loaded wage, is disclosed and deliberately excluded from the cash return. That team is paid whether or not this program runs, so the hours are an opportunity cost and a capacity constraint rather than cash leaving the business. Treat it as a delivery-risk question, not a costing one.`);
+      out.push(`Internal delivery burden of ${Math.round(r.absorbedHours).toLocaleString()} hours, worth ${fmtFull(r.absorbedValue)} at the loaded wage, is disclosed and deliberately excluded from the cash return. That team is paid whether or not this program runs, so the hours are an opportunity cost and a capacity constraint rather than cash leaving the business. Treat it as a delivery-risk question, not a costing one.`);
     if (r.exitCost > 0 || r.backfillCash > 0)
       out.push(`One-time cash includes ${fmtFull(n(d.implementationCost))} of implementation${r.exitCost > 0 ? `, ${fmtFull(r.exitCost)} of exit and decommissioning` : ""}${r.backfillCash > 0 ? `, and ${fmtFull(r.backfillCash)} of incremental cash labor such as contractors, overtime or backfill` : ""}. Return is measured against gross transformation cash of ${fmtK(r.tco3)}, with displaced spend credited on the benefit side rather than netted out of that denominator.`);
   }
@@ -1058,6 +1067,7 @@ export default function BusinessCaseBuilder() {
                     ["Current annual technology spend eliminated", fmtFull(r.bauAnnual) + ` (evidence: ${BAU_EVIDENCE[conf.bauEvidence].label})`],
                     ["Dual-run period", r.bauAnnual > 0 ? `${r.OL} months at ${Math.round(r.overlapShare * 100)}% of current spend still paid${r.overlapAssumed ? ", assumed equal to the migration because none was stated" : ""}` : "n/a, no spend entered as eliminated"],
                     ["Displacement credit withheld during dual run", fmtFull(r.overlapWithheld) + (r.OL >= 36 ? ", which is the entire three-year window" : "")],
+                    ...(r.preGoLiveCredit > 0 ? [["Credit banked before go-live", fmtFull(r.preGoLiveCredit) + ` over ${r.preGoLiveMonths} months, valid only under a wave cutover`]] : []),
                     ["Three-year displacement credit", fmtFull(r.displacement3)],
                     ["Three-year operational benefit", fmtFull(r.savings3)],
                     ["Three-year total modeled benefit", fmtFull(r.benefit3) + ` (${Math.round((1 - r.displacementShare) * 100)}% operational, ${Math.round(r.displacementShare * 100)}% displacement)`],
