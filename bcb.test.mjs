@@ -1799,6 +1799,53 @@ section("H. Scenario link round trip");
      !SRC.includes("ReportExport") && SRC.includes('import ReportActions from "./ReportActions"'));
 }
 
+/* ------------------------------------------------------------------------ */
+section("I. Archivo type system");
+{
+  const RA2 = readFileSync(new URL("./ReportActions.jsx", import.meta.url), "utf8");
+
+  ok("I neither retired typeface survives in the tool",
+     !SRC.includes("Instrument Serif") && !SRC.includes("DM Sans"));
+  ok("I neither retired typeface survives in the shared report panel",
+     !RA2.includes("Instrument Serif") && !RA2.includes("DM Sans"));
+  ok("I the tool imports the type system rather than hand-writing a stack",
+     SRC.includes('import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type"'));
+  ok("I the shared report panel imports it too",
+     RA2.includes('from "./src/lib/type"'));
+  ok("I the tool ships no hand-written font-family literal", (() => {
+    // Every fontFamily must resolve to a token. A quoted family name here is drift.
+    const hits = SRC.match(/fontFamily:\s*"'[^"]+"/g) || [];
+    return hits.length === 0;
+  })(), (SRC.match(/fontFamily:\s*"'[^"]+"/g) || []).join(" | "));
+  ok("I the stylesheet is generated from the shared import, not pasted",
+     SRC.includes("${FONT_IMPORT_CSS}") && !SRC.includes("fonts.googleapis.com"));
+
+  ok("I the three headline tiles use the tabular stat token", (() => {
+    const n = (SRC.match(/\.\.\.TYPE\.statValueLg, fontSize: 30/g) || []).length;
+    return n === 3;
+  })());
+  ok("I the page title uses the display token", SRC.includes("...TYPE.display"));
+  ok("I alignment-critical numeric columns carry tabular figures", (() => {
+    // Savings-breakdown value column plus the four capacity-and-cash values.
+    const n = (SRC.match(/\.\.\.NUM \}/g) || []).length;
+    return n >= 5;
+  })(), String((SRC.match(/\.\.\.NUM \}/g) || []).length));
+
+  ok("I the PDF already runs on the same family and needs no change", (() => {
+    const RE = readFileSync(new URL("./ReportExport.jsx", import.meta.url), "utf8");
+    return RE.includes("family=Archivo") && RE.includes("tabular-nums")
+      && !RE.includes("Instrument Serif") && !RE.includes("DM Sans");
+  })());
+
+  ok("I typography moved no numbers", (() => {
+    const LIVE = D({ currentAHT: 360, bauEliminatedAnnual: 30000, bauOverlapMonths: 3,
+      bauExitCost: 40000, bauBackfillCash: 45000, bauAbsorbedHours: 100 });
+    const r = computeCase(LIVE, "expected", true, "none");
+    return Math.round(r.net) === 31850 && r.tco3 === 1807000 && Math.round(r.roi3) === -92
+      && Math.round(r.benefit3) === 147527 && Math.round(r.preGoLiveCredit) === 15000;
+  })());
+}
+
 console.log(`\n${"=".repeat(64)}`);
 console.log(`PASS ${pass}   FAIL ${fail}   TOTAL ${pass + fail}`);
 if (FAILS.length) console.log("\nFailures:\n" + FAILS.map(f => "  - " + f).join("\n"));
