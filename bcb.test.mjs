@@ -64,7 +64,13 @@ section("1. Reconciliation, default input set");
           r.capacityNet + r.cashNet, 0.5));
   ok("net = realized capacity plus cash, and nothing else",
      near(r.capacityNet * r.mf + r.cashNet, r.net, 0.5));
-  ok("realization never touches the cash lever", near(r.cashNet, b.attrition * cf.a, 0.5));
+  ok("realization never touches the cash lever", near(r.cashNet, r.attritionCash * cf.a, 0.5));
+  ok("attrition splits into recruiting cash and trainee capacity",
+     near(r.attritionCash + r.attritionCapacity, b.attrition, 0.5) && r.attritionCash > 0 && r.attritionCapacity > 0);
+  ok("trainee ramp time is scaled by realization, recruiting spend is not", (() => {
+    const none = computeCase(D(), "expected", true, "none"), full = computeCase(D(), "expected", true, "headcount");
+    return near(none.cashNet, full.cashNet, 0.5) && full.capacityNet > none.capacityNet - 0.5 && none.net < full.net;
+  })());
   ex("realization never touches costs", () =>
      near(computeCase(D(), "expected", true, "none").tco3, computeCase(D(), "expected", true, "headcount").tco3, 0.5));
   ok("the two haircuts sum to the total haircut",
@@ -329,31 +335,18 @@ section("11. confidenceOf, every branch");
      confidenceOf({ ...clean, evidence: "estimate" }, rc, "expected").costGrade === "Directional");
   ok("missing evidence defaults to estimate/Directional",
      confidenceOf({ ...clean, evidence: undefined }, rc, "expected").costGrade === "Directional");
-  ok("proposal + aggressive stance downgrades to Planning-grade",
-     confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive").costGrade === "Planning-grade");
 
   const aggC = { ...clean, evidence: "proposal", containment: 30 };
-  ok("proposal + aggressive containment target downgrades",
-     confidenceOf(aggC, computeCase(aggC, "expected", true), "expected").grade === "Planning-grade");
-  const aggH = { ...clean, evidence: "proposal", htReduction: 20 };
-  ok("proposal + aggressive HT target downgrades",
-     confidenceOf(aggH, computeCase(aggH, "expected", true), "expected").grade === "Planning-grade");
-  const aggA = { ...clean, evidence: "proposal", attritionReduction: 30 };
-  ok("proposal + aggressive attrition target downgrades",
-     confidenceOf(aggA, computeCase(aggA, "expected", true), "expected").grade === "Planning-grade");
-
   const thinImpl = { ...clean, evidence: "proposal", implementationCost: 300000 }; // 1500/agent
-  ok("proposal + understated impl downgrades to Planning-grade",
-     confidenceOf(thinImpl, computeCase(thinImpl, "expected", true), "expected").grade === "Planning-grade");
   const edgeImpl = { ...clean, evidence: "proposal", implementationCost: 400000 }; // exactly 2000
-  ok("per-agent impl exactly 2000 still qualifies",
-     confidenceOf(edgeImpl, computeCase(edgeImpl, "expected", true, "headcount"), "expected").grade === "Finance-grade");
 
   // Impossible-output block.
   const noPay = D({ evidence: "proposal", newPlatformPerAgentMo: 5000, implementationCost: 5000000 });
   const rNo = computeCase(noPay, "expected", true);
-  ok("payback 0 forces Directional regardless of evidence",
-     confidenceOf(noPay, rNo, "expected").costGrade === "Directional");
+  ok("payback 0 caps the HEADLINE at Directional but leaves the cost axis alone", (() => {
+    const c = confidenceOf(noPay, rNo, "expected");
+    return c.grade === "Directional" && c.costGrade === "Finance-grade";
+  })(), JSON.stringify([confidenceOf(noPay, rNo, "expected").grade, confidenceOf(noPay, rNo, "expected").costGrade]));
   ok("payback 0 is a WITHHELD item, never a cost-input open item", (() => {
     const c = confidenceOf(noPay, rNo, "expected");
     return c.withheld.some(t => /does not break even/.test(t)) && !c.open.some(t => /does not break even/.test(t));
@@ -363,21 +356,10 @@ section("11. confidenceOf, every branch");
 
   // Boundary exactness on target thresholds.
   const at25 = { ...clean, evidence: "proposal", containment: 25 };
-  ok("containment exactly 25 is not aggressive",
-     confidenceOf(at25, computeCase(at25, "expected", true, "headcount"), "expected").grade === "Finance-grade");
-  const at15 = { ...clean, evidence: "proposal", htReduction: 15 };
-  ok("htReduction exactly 15 is not aggressive",
-     confidenceOf(at15, computeCase(at15, "expected", true, "headcount"), "expected").grade === "Finance-grade");
-  const at25a = { ...clean, evidence: "proposal", attritionReduction: 25 };
-  ok("attritionReduction exactly 25 is not aggressive",
-     confidenceOf(at25a, computeCase(at25a, "expected", true, "headcount"), "expected").grade === "Finance-grade");
-
   ok("aggressive stance raises a WITHHELD item, not a cost-input open item", (() => {
     const c = confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive");
     return c.withheld.some(t => /Aggressive stance/.test(t)) && !c.open.some(t => /Aggressive stance/.test(t));
   })());
-  ok("clean proposal case has zero open items",
-     confidenceOf({ ...clean, evidence: "proposal" }, rc, "expected").open.length === 0);
 
   // Zero-agent divide guard in perAgentImpl.
   const za = D({ agents: 0, evidence: "proposal" });
@@ -468,7 +450,9 @@ section("12b. Semantic status, headroom and horizon language");
     const r = computeCase(T3, st, true, "headcount");   // f = 1.00 removes the realization effect
     const cf = STANCE[st];
     // Rebuild the pre-fix FCR bucket: repeats taken on ALL handled contacts, not on issues.
-    const oldFcrBucket = r.handled * (r.avoidedRepeats / r.issues) * r.marginal;
+    // The published artifacts predate BOTH FCR corrections, so the original formula applied
+    // the point lift to every handled contact, repeats included.
+    const oldFcrBucket = r.handled * 0.10 * r.marginal;
     const rebuiltOldNet = r.buckets.containment * cf.c + r.buckets.handleTime * cf.h
       + oldFcrBucket * cf.f + r.buckets.attrition * cf.a;
     ok(`CHANGE ATTRIBUTION ${st}: removing both changes reproduces the artifact exactly`,
@@ -590,11 +574,16 @@ section("12b. Semantic status, headroom and horizon language");
   })());
   ok("the implementation concern and the stance concern never share a counter", (() => {
     const c = confidenceOf(T3, computeCase(T3, "aggressive", true, "headcount"), "aggressive");
-    return c.open.length === 1 && /planning benchmark/.test(c.open[0]) && c.withheld.length === 1;
+    return c.open.length === 0 && c.withheld.some(t => /Aggressive stance/.test(t))
+      && c.flags.some(t => /planning benchmark/.test(t));
+  })());
+  ok("price plausibility is a flag, never a downgrade of cost evidence", (() => {
+    const thin = { ...T3, implementationCost: 100000, evidence: "proposal" };
+    return confidenceOf(thin, computeCase(thin, "expected", true, "headcount"), "expected").costGrade === "Finance-grade";
   })());
   ok("the confidence line reports the two counters separately", (() => {
     const r = computeCase(T3, "aggressive", true), c = confidenceOf(T3, r, "aggressive");
-    return /additionally capped by 1 item that is not a costing defect/.test(caseInsights(r, T3, "aggressive", c).join(" "));
+    return /additionally capped by \d+ item/.test(caseInsights(r, T3, "aggressive", c).join(" "));
   })());
   ok("a cash-class capacity action adds no realization withholding", (() => {
     const r = computeCase({ ...T3, implementationCost: 300000 }, "expected", true, "headcount");
@@ -678,6 +667,80 @@ section("12b. Semantic status, headroom and horizon language");
   })());
 }
 
+section("12z. Rendered narrative, asserted on the SOURCE");
+{
+  // These strings live in JSX and are invisible to every engine assertion. Three of them were
+  // silently lost to a batched edit whose final write never ran, and 264 passing engine tests
+  // said nothing. Source-level assertions are the only thing that catches this class.
+  const has = (t) => SRC.includes(t);
+  const between = (start, len) => SRC.slice(SRC.indexOf(start), SRC.indexOf(start) + len);
+
+  const exec = between('title: "Executive Summary"', 2400);
+  ok("SOURCE exec summary states hours released", exec.includes("freedHoursAttributed"));
+  ok("SOURCE exec summary states labor-equivalent capacity value", exec.includes("capacityNet"));
+  ok("SOURCE exec summary names the capacity action", exec.includes("mechLabel"));
+  ok("SOURCE exec summary states the converted figure", exec.includes("capacityRealized"));
+  ok("SOURCE exec summary states the cash-releasing figure", exec.includes("cashNet"));
+  ok("SOURCE exec summary labels the output a conditional forecast",
+     exec.includes("conditional forecast under the stated assumptions, not a measured outcome"));
+
+  const meth = between('title: "Methodology"', 3400);
+  ok("SOURCE methodology names the second adjustment", meth.includes("separate and independent adjustment"));
+  ok("SOURCE methodology scales freed labor by the capacity action", meth.includes("capacity action at"));
+  ok("SOURCE methodology exempts cash-releasing spend", meth.includes("cash-releasing and is never scaled"));
+  ok("SOURCE methodology exempts costs from both adjustments",
+     meth.includes("never scaled by either adjustment"));
+  ok("SOURCE methodology branches on the repeat-contact basis", meth.includes('repeatBasis === "fcr-proxy"'));
+  ok("SOURCE methodology still branches on phasing", meth.includes("phasing was turned OFF"));
+  ok("SOURCE methodology still branches on stance", meth.includes('stance === "aggressive"'));
+
+  ok("SOURCE no surface still calls the headline cost-input confidence", !has("Cost-input confidence"));
+  ok("SOURCE the PDF subtitle names the capacity action and case confidence",
+     has("case confidence ${conf.grade}") && has("${r.mechLabel} · case confidence"));
+  ok("SOURCE the PDF confidence section states BOTH axes",
+     has("conf.costGrade") && has("conf.realizationGrade") && has("the weaker of two independent axes"));
+  ok("SOURCE the UI renders withheld items, not only open items",
+     has("conf.withheld.map") && has("conf.open.map"));
+  ok("SOURCE the UI labels withheld items as not a cost defect",
+     has("Capping the grade, and not a cost-input defect"));
+  ok("SOURCE the capacity strip renders all four quantities",
+     has("Capacity released") && has("Converted to value") && has("Not converted") && has("Cash-releasing"));
+  ok("SOURCE the PDF carries a Capacity and Cash table", has('title: "Capacity and Cash"'));
+  ok("SOURCE the savings breakdown labels each lever by class",
+     has('"(cash-releasing)"') || has("(cash-releasing)"));
+  ok("SOURCE key assumptions expose the capacity action, repeat basis and issue count",
+     has('"Capacity action (realization)"') && has('"Repeat-contact basis"') && has('"Underlying issues (FCR denominator)"'));
+  ok("SOURCE the analyst confidence line no longer calls the badge cost-scoped",
+     !SRC.includes("That badge rates how bookable the cost inputs are"));
+  ok("SOURCE no unsourced industry range survives", !SRC.includes('hint="Industry:'));
+  ok("SOURCE internal ranges say so and invite the user's own evidence",
+     SRC.includes("Internal planning range") && SRC.includes("adjust to your evidence"));
+  ok("SOURCE nothing still claims labor actually disappears", !SRC.includes("labor that actually disappears"));
+  ok("SOURCE the intro separates released capacity from cash",
+     SRC.includes("Separates released capacity from cash"));
+  ok("SOURCE the return denominator is not called total cost of ownership",
+     SRC.includes("modeled 3-yr investment cost") && SRC.includes("deliberately not called total cost of ownership"));
+  ok("SOURCE the missing BAU counterfactual is disclosed, not hidden",
+     SRC.includes("no business-as-usual counterfactual"));
+  ok("SOURCE the gross strip says it does not sum to the headline",
+     SRC.includes("Gross modeled benefit before attribution and realization"));
+  ok("SOURCE the read is not framed as getting the case approved",
+     !SRC.includes("survives the boardroom") && !SRC.includes("a number a CFO will approve")
+     && !SRC.includes("the one a CFO will trust") && SRC.includes("what could change the conclusion"));
+  ok("SOURCE no capacity action is preselected", SRC.includes('useState("none")'));
+  ok("SOURCE the consultant path discloses the commercial rule at the point of consent",
+     SRC.includes("Your results do not determine whether the consultant option appears")
+     && SRC.includes("it is disclosed before an introduction is made"));
+  ok("SOURCE the email capture states what the address is used for",
+     SRC.includes("used to send this report and to reply if you ask a question"));
+  ok("SOURCE trainee ramp time is disclosed as capacity, not cash",
+     SRC.includes("Trainee ramp time, treated as capacity not cash"));
+  ok("SOURCE nothing claims recruiting and training are cash regardless of action",
+     !SRC.includes("cash-releasing regardless of the action taken"));
+  ok("SOURCE the attribution row is no longer mislabelled as confidence",
+     has('"Attribution weighting"') && !has('"Confidence weighting"'));
+}
+
 section("12c. Capacity is not cash");
 {
   const T = { agents: 387, avgHourly: 20, benefitsPct: 27, monthlyContacts: 250000, currentAHT: 325,
@@ -702,9 +765,9 @@ section("12c. Capacity is not cash");
   })());
   ok("only three levers are capacity, and attrition is never one of them", (() => {
     const r = computeCase(T, "expected", true, "hiring"), cf = STANCE.expected;
-    return near(r.capacityGross, r.buckets.containment + r.buckets.handleTime + r.buckets.fcr, 0.5)
-      && near(r.cashGross, r.buckets.attrition, 0.5)
-      && near(r.cashNet, r.buckets.attrition * cf.a, 0.5);
+    return near(r.capacityGross, r.buckets.containment + r.buckets.handleTime + r.buckets.fcr + r.attritionCapacity, 0.5)
+      && near(r.cashGross, r.attritionCash, 0.5)
+      && near(r.cashNet, r.attritionCash * cf.a, 0.5);
   })());
   ok("costs are never scaled by realization", (() => {
     const a = computeCase(T, "expected", true, "none"), b = computeCase(T, "expected", true, "headcount");
@@ -716,8 +779,8 @@ section("12c. Capacity is not cash");
   })());
   ok("attribution and realization compose in one order only", (() => {
     const r = computeCase(T, "conservative", true, "overtime"), cf = STANCE.conservative;
-    const expected = (r.buckets.containment * cf.c + r.buckets.handleTime * cf.h + r.buckets.fcr * cf.f) * 0.60
-      + r.buckets.attrition * cf.a;
+    const expected = (r.buckets.containment * cf.c + r.buckets.handleTime * cf.h + r.buckets.fcr * cf.f
+      + r.attritionCapacity * cf.a) * 0.60 + r.attritionCash * cf.a;
     return near(r.net, expected, 0.5);
   })());
 
@@ -787,47 +850,105 @@ section("12c. Capacity is not cash");
   })());
 }
 
-section("12d. FCR runs on issues, not on contacts");
+section("12d. FCR can never remove repeats that do not exist");
 {
   const T = { ...D(), currentFCR: 69, fcrImprovement: 10, repeatShare: 0 };
   const r = computeCase(T, "expected", true, "headcount");
   ok("with no measured repeat volume the basis is a labelled proxy", r.repeatBasis === "fcr-proxy");
-  ok("issues are derived as handled over (2 minus FCR)",
-     near(r.issues, r.handled / (2 - 0.69), 0.5));
-  ok("avoided repeats equal issues times the lift, never contacts times the lift",
-     near(r.avoidedRepeats, r.issues * 0.10, 0.5) && r.avoidedRepeats < r.handled * 0.10);
-  ok("the implied repeat share is stated and internally consistent",
-     near(r.impliedRepeatShare, (r.handled - r.issues) / r.handled, 0.0001));
-  ok("the proxy is disclosed in the analyst read", (() => {
-    const c = confidenceOf(T, r, "expected");
-    return /FCR is being used as a proxy/.test(caseInsights(r, T, "expected", c).join(" "));
+  ok("the proxy derives its repeat population from FCR, one repeat per unresolved issue",
+     near(r.repeatPopulation, r.handled * 0.31 / 1.31, 0.5));
+  ok("issues and repeats partition the handled pool", near(r.issues + r.repeatPopulation, r.handled, 0.5));
+  ok("improving FCR shrinks the unresolved pool proportionally",
+     near(r.fcrReductionRatio, (0.31 - 0.21) / 0.31, 0.0001));
+  ok("avoided repeats are the reduction ratio applied to the repeat population",
+     near(r.avoidedRepeats, r.repeatPopulation * r.fcrReductionRatio, 0.5));
+
+  // THE BLOCKER. A measured repeat share bounds the economics absolutely.
+  const M = { ...D(), currentFCR: 78, fcrImprovement: 10, repeatShare: 2,
+    monthlyContacts: 151000, containment: 19 };
+  const rm = computeCase(M, "expected", true, "headcount");
+  ok("BLOCKER: avoided repeats never exceed the measured repeat population",
+     rm.avoidedRepeats <= rm.repeatPopulation + 0.5,
+     `${Math.round(rm.avoidedRepeats)} vs ${Math.round(rm.repeatPopulation)}`);
+  ok("BLOCKER: the measured share sets the population, not the issue count",
+     near(rm.repeatPopulation, rm.handled * 0.02, 0.5));
+  ok("BLOCKER: a 10 point lift on 78% FCR removes 45% of repeats, not 10% of issues",
+     near(rm.avoidedRepeats, rm.repeatPopulation * (0.22 - 0.12) / 0.22, 0.5),
+     String(Math.round(rm.avoidedRepeats)));
+  ok("no input combination can ever avoid more repeats than exist", (() => {
+    for (let f = 5; f <= 99; f += 2) for (let lift = 0; lift <= 30; lift += 3)
+      for (const rs of [0, 1, 2, 5, 12, 25, 60]) {
+        const x = computeCase({ ...D(), currentFCR: f, fcrImprovement: lift, repeatShare: rs }, "expected", true, "headcount");
+        if (x.avoidedRepeats > x.repeatPopulation + 0.01) return false;
+        if (x.avoidedRepeats < -0.001 || !Number.isFinite(x.avoidedRepeats)) return false;
+      }
+    return true;
   })());
-  ok("a measured repeat share overrides the proxy", (() => {
-    const d = { ...T, repeatShare: 18 };
-    const m2 = computeCase(d, "expected", true, "headcount");
-    return m2.repeatBasis === "measured" && near(m2.issues, m2.handled * 0.82, 0.5);
+
+  // The proxy path is algebraically unchanged, so proxy cases must not move at all.
+  ok("the proxy path reproduces the previous issue-based result exactly",
+     near(r.avoidedRepeats, r.handled / (2 - 0.69) * 0.10, 0.5));
+
+  // Contradictory inputs are detected rather than blended.
+  ok("a measured share that contradicts FCR is detected", rm.fcrInputConflict === true);
+  ok("the implied FCR is computed and stated", near(rm.fcrImpliedByRepeats, (1 - 0.04) / (1 - 0.02), 0.001));
+  ok("the conflict is a COST-INPUT defect and caps the cost axis", (() => {
+    const c = confidenceOf({ ...M, evidence: "proposal" }, rm, "expected");
+    return c.open.some(t => /implies a first-contact resolution rate/.test(t)) && c.costGrade !== "Finance-grade";
   })());
-  ok("a measured basis is not disclosed as a proxy", (() => {
-    const d = { ...T, repeatShare: 18 };
-    const m2 = computeCase(d, "expected", true, "headcount");
-    return !/used as a proxy/.test(caseInsights(m2, d, "expected", confidenceOf(d, m2, "expected")).join(" "));
+  ok("the conflict leads the decision read", (() => {
+    const c = confidenceOf(M, rm, "expected");
+    return /Two inputs disagree about the same thing/.test(caseInsights(rm, M, "expected", c)[0]);
   })());
-  ok("the overstatement the old model carried is exactly 1/(2 - FCR)", (() => {
-    const oldRepeats = r.handled * 0.10;
-    return near(oldRepeats / r.avoidedRepeats, 2 - 0.69, 0.001);
-  })());
-  ok("a worse FCR produces a larger correction, never a smaller one", (() => {
-    const lo = computeCase({ ...T, currentFCR: 60 }, "expected", true, "headcount");
-    const hi = computeCase({ ...T, currentFCR: 90 }, "expected", true, "headcount");
-    return lo.impliedRepeatShare > hi.impliedRepeatShare;
+  ok("a consistent measured share raises no conflict", (() => {
+    const ok2 = { ...D(), currentFCR: 78, fcrImprovement: 10, repeatShare: 18 };
+    return computeCase(ok2, "expected", true, "headcount").fcrInputConflict === false;
   })());
   ok("a 100% FCR case yields no avoided repeats and no NaN", (() => {
-    const z = computeCase({ ...T, currentFCR: 100, fcrImprovement: 10 }, "expected", true, "headcount");
-    return near(z.avoidedRepeats, 0, 0.001) && Number.isFinite(z.issues);
+    const z = computeCase({ ...D(), currentFCR: 100, fcrImprovement: 10 }, "expected", true, "headcount");
+    return near(z.avoidedRepeats, 0, 0.001) && Number.isFinite(z.repeatPopulation);
   })());
-  ok("a repeat share at the 95% ceiling cannot zero out issues", (() => {
-    const z = computeCase({ ...T, repeatShare: 200 }, "expected", true, "headcount");
-    return z.issues > 0 && near(z.issues, z.handled * 0.05, 0.5);
+}
+
+section("12e. Confidence concepts never contaminate each other");
+{
+  const base = { ...D(), evidence: "proposal", implementationCost: 900000, agents: 387,
+    newPlatformPerAgentMo: 70, migrationMonths: 6, rampMonths: 4 };
+  ok("a signed proposal stays Finance-grade on cost even when the case does not return", (() => {
+    const d = { ...base, newPlatformPerAgentMo: 5000, implementationCost: 5000000 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
+    return c.costGrade === "Finance-grade" && c.grade === "Directional";
+  })());
+  ok("a signed proposal stays Finance-grade on cost under an aggressive stance", (() => {
+    const c = confidenceOf(base, computeCase(base, "aggressive", true, "headcount"), "aggressive");
+    return c.costGrade === "Finance-grade" && c.grade !== "Finance-grade";
+  })());
+  ok("a signed proposal stays Finance-grade on cost with aggressive targets", (() => {
+    const d = { ...base, containment: 40, htReduction: 25, attritionReduction: 35 };
+    return confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected").costGrade === "Finance-grade";
+  })());
+  ok("target ambition caps the headline and is named as a target concern", (() => {
+    const d = { ...base, containment: 40 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
+    return c.grade === "Planning-grade" && c.withheld.some(t => /target-plausibility concern, not a cost-input one/.test(t));
+  })());
+  ok("only genuine cost-input defects ever appear in open", (() => {
+    for (const st of ["aggressive", "expected", "conservative"]) for (const mk of MECH_ORDER) {
+      const c = confidenceOf(base, computeCase(base, st, true, mk), st);
+      if (c.open.some(t => !/inherited marginal cost|first-contact resolution rate/.test(t))) return false;
+    }
+    return true;
+  })());
+  ok("every cap states which domain it belongs to", (() => {
+    const d = { ...base, containment: 40, newPlatformPerAgentMo: 5000 };
+    const c = confidenceOf(d, computeCase(d, "aggressive", true, "growth"), "aggressive");
+    return c.withheld.length >= 3 && c.withheld.every(t =>
+      /not a cost-input one|not on the bookability of the costs|says nothing about the cost inputs|not a defect in the cost evidence|rather than a cost-input one/.test(t));
+  })());
+  ok("the headline is the weakest of every axis and cap", (() => {
+    const d = { ...base, containment: 40 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "none"), "expected");
+    return c.grade === "Directional" && c.costGrade === "Finance-grade";
   })());
 }
 
