@@ -99,6 +99,17 @@ const EVIDENCE = {
   proposal: { label: "Signed proposal", note: "Investment from a signed proposal or order form." },
 };
 
+// Displaced spend is credited as avoided cash, so it needs evidence of the same kind as the
+// costs it offsets. Without this axis the BAU field is a free-text box that manufactures
+// benefit, which is the exact failure mode the rest of the tool exists to prevent.
+const BAU_EVIDENCE = {
+  estimated: { label: "Estimated", note: "Believed current spend, not reconciled." },
+  budgeted: { label: "Budget line", note: "Reconciled to a budget or GL line." },
+  reviewed: { label: "Contract reviewed", note: "Contract read, end date and exit terms known." },
+  served: { label: "Notice served", note: "Termination or non-renewal notice already given." },
+};
+const BAU_RANK = { estimated: 0, budgeted: 1, reviewed: 2, served: 3 };
+
 /* De-overlapped model: every contact-based saving runs on the HANDLED pool
    (post-deflection); ACW is a disjoint slice of AHT; FCR repeats are on handled
    volume. Avoided contacts (deflection + FCR) are valued at MARGINAL cost, the
@@ -239,7 +250,6 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
 
   const recurring = n(d.newPlatformPerAgentMo) * n(d.agents) * 12;
   const impl = n(d.implementationCost);
-  const tco3 = impl + recurring * 3;
 
   // Monthly cash flow with a savings ramp. During the migration window savings are
   // ~0 while the new platform is already being paid; after go-live they phase up
@@ -247,6 +257,49 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   // an honest J-curve. With rampOn=false it collapses to the old instant model.
   const M = Math.max(0, Math.min(36, n(d.migrationMonths)));
   const R = Math.max(1, n(d.rampMonths));
+
+  /* ---- BAU counterfactual ----------------------------------------------------------
+     Every field defaults to zero, so a case with no BAU entered reproduces the pre-BAU
+     engine to the dollar. That is the change-attribution test.
+
+     Displaced spend is credited as an avoided-cost BENEFIT and is never netted out of the
+     ROI denominator. Netting drives the denominator toward zero and then negative while the
+     underlying case is improving, so the ratio explodes and then inverts exactly where the
+     economics are strongest. Gross transformation cash stays the denominator, which also
+     means threeYearROI keeps the meaning it already publishes to the rail. */
+  const bauAnnual = Math.max(0, n(d.bauEliminatedAnnual));
+  const exitCost = Math.max(0, n(d.bauExitCost));
+  const backfillCash = Math.max(0, n(d.bauBackfillCash));
+  const absorbedHours = Math.max(0, n(d.bauAbsorbedHours));
+  // Absorbed internal labor is existing salaried capacity. It is disclosed as a delivery
+  // burden and deliberately kept out of cash, on the same principle that unconverted freed
+  // agent capacity is kept out of the benefit. It is NOT run through mech: the benefit-side
+  // question is whether freed labor became money, the cost-side question is whether using
+  // existing capacity caused cash to leave. Adjacent concepts, different mechanisms.
+  const absorbedValue = absorbedHours * loaded;
+  const bauEntered = bauAnnual > 0 || exitCost > 0 || backfillCash > 0 || absorbedHours > 0;
+  const overlapShare = Math.min(1, Math.max(0, n(d.bauOverlapShare) / 100));
+  // Overlap is NOT clamped to the evaluation horizon. A 48-month contractual tail is real,
+  // contributes nothing inside three years, and still moves lifetime break-even. Clamping to
+  // 36 would silently delete that. Only the three-year slice is clamped, at the point of use.
+  // An unstated overlap is ASSUMED to run the migration rather than treated as an instant
+  // cutover, because instant cutover is the optimistic reading. A genuine day-one cutover is
+  // expressed by setting the share to 0, which keeps the assumption visible either way.
+  const overlapAssumed = bauAnnual > 0 && n(d.bauOverlapMonths) <= 0;
+  const OL = Math.max(0, Math.min(120, overlapAssumed ? M : n(d.bauOverlapMonths)));
+  const overlapGtMigration = bauAnnual > 0 && OL > M;
+  const bauMo = bauAnnual / 12;
+  const overlapWithin3 = Math.min(OL, 36);
+  const overlapWithheld = bauMo * overlapWithin3 * overlapShare;
+  // During overlap the old stack is still being paid, so only the share that has already
+  // stopped is credited. After overlap the whole annual spend is avoided.
+  const dispAt = (t) => (t > OL ? bauMo : bauMo * (1 - overlapShare));
+
+  // Gross transformation cash: what actually leaves the business to do this. Implementation,
+  // contractual exit, and incremental cash labor. Absorbed internal time is not in here.
+  const grossOneTime = impl + exitCost + backfillCash;
+  const tco3 = grossOneTime + recurring * 3;
+
   const monthlyFull = net / 12;
   const monthlyPlatform = recurring / 12;
   const factor = (t) => {
@@ -255,29 +308,46 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
     if (t <= M + R) return (t - M) / R;
     return 1;
   };
-  const cumFlow = [-impl];
-  let cum = -impl, savings3 = 0, year1 = 0, payback = 0;
+  // Displacement is deliberately NOT ramped. The savings ramp models operational benefit
+  // accruing after go-live; displacement steps at the overlap boundary. Two different timing
+  // curves inside one numerator, and multiplying the whole numerator by the ramp would be
+  // wrong in a way that looks entirely correct on the chart.
+  const cumFlow = [-grossOneTime];
+  let cum = -grossOneTime, savings3 = 0, year1 = 0, payback = 0, displacement3 = 0, year1Disp = 0;
   for (let t = 1; t <= 36; t++) {
     const s = factor(t) * monthlyFull;
+    const dsp = dispAt(t);
     savings3 += s;
-    if (t <= 12) year1 += s;
-    cum += s - monthlyPlatform;
+    displacement3 += dsp;
+    if (t <= 12) { year1 += s; year1Disp += dsp; }
+    cum += s + dsp - monthlyPlatform;
     cumFlow.push(cum);
-    // A zero-cost, zero-savings case satisfies cum >= 0 at t=1. Payback requires savings.
-    if (payback === 0 && cum >= 0 && savings3 > 0) payback = t;
+    // A zero-cost, zero-benefit case satisfies cum >= 0 at t=1. Payback requires benefit.
+    // Displacement counts: a case can legitimately pay back on cost displacement alone, and
+    // the tool says so separately rather than refusing to recognize it.
+    if (payback === 0 && cum >= 0 && (savings3 + displacement3) > 0) payback = t;
   }
+  const benefit3 = savings3 + displacement3;
+  const displacementShare = benefit3 > 0 ? displacement3 / benefit3 : 0;
   // With no investment there is no denominator, so ROI is undefined rather than 0%.
   // netValue3 still carries the truth. The UI and PDF print "n/a" on roiDefined=false.
   const roiDefined = tco3 > 0;
-  const roi3 = roiDefined ? ((savings3 - tco3) / tco3 * 100) : 0;
-  const netValue3 = savings3 - tco3;
+  const roi3 = roiDefined ? ((benefit3 - tco3) / tco3 * 100) : 0;
+  const netValue3 = benefit3 - tco3;
 
   // How much implementation cost this case can absorb before three-year value turns negative.
   // savings3 does not depend on implementation, so this is exact rather than a search.
   // Cumulative cash at month 36 IS netValue3, so break-even-by-36 and zero-three-year-value
   // are the same threshold; there is no second definition to keep in sync.
-  const postMonthly = monthlyFull - monthlyPlatform;
-  const breakEvenImpl = Math.max(0, savings3 - recurring * 3);
+  // Steady state is measured AFTER the overlap ends, because that is the run-rate the
+  // question "does this ever pay back" is actually about.
+  const postMonthly = monthlyFull + bauMo - monthlyPlatform;
+  // The maximum implementation this case can carry before three-year value turns negative.
+  // Exit cost and cash backfill sit in the same one-time bucket, so they come out first or
+  // the statistic stops being about implementation. Deliberately NOT clamped at zero: a
+  // negative maximum is the finding that the case does not return even if implementation
+  // were free, and the old clamp destroyed that signal by rendering it as no signal at all.
+  const breakEvenImpl = benefit3 - recurring * 3 - exitCost - backfillCash;
   const agentsN = n(d.agents);
   const breakEvenImplPerAgent = agentsN > 0 ? breakEvenImpl / agentsN : 0;
   const implHeadroom = breakEvenImpl - impl;
@@ -286,15 +356,30 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   // The month cumulative cash actually turns positive, which may sit beyond the evaluation
   // horizon. "No payback in 36 months" and "never pays back" are different investment
   // conclusions and the tool must not collapse them.
-  const monthsBeyond = postMonthly > 0 ? Math.ceil(-netValue3 / postMonthly) : 0;
-  const trueBreakevenMonth = payback > 0 ? payback : (postMonthly > 0 ? 36 + monthsBeyond : 0);
+  // Searched rather than solved, because the overlap boundary makes monthly contribution
+  // piecewise. The old closed form was correct only while contribution stayed constant past
+  // month 36, which stops being true the moment a contractual tail runs past the horizon.
+  let trueBreakevenMonth = payback;
+  if (payback === 0) {
+    let lc = -grossOneTime, ben = 0, found = 0;
+    for (let t = 1; t <= 600; t++) {
+      const s = factor(t) * monthlyFull, dsp = dispAt(t);
+      ben += s + dsp;
+      lc += s + dsp - monthlyPlatform;
+      if (lc >= 0 && ben > 0) { found = t; break; }
+    }
+    // Past the search window contribution is constant, so the remaining tail is closed-form.
+    trueBreakevenMonth = found > 0 ? found : (postMonthly > 0 ? 600 + Math.ceil(-lc / postMonthly) : 0);
+  }
 
   // The same case priced at the bottom of the range this tool calls typical ($3K per agent).
   // Lets the implementation warning state its own consequence instead of asserting one.
   const TYPICAL_PER_AGENT = 3000;
   const typicalImpl = TYPICAL_PER_AGENT * agentsN;
-  const typicalTco3 = typicalImpl + recurring * 3;
-  const typicalValue3 = savings3 - typicalTco3;
+  // Same one-time bucket and same benefit basis as the headline, or the comparison silently
+  // runs on different arithmetic than the figure it is being compared against.
+  const typicalTco3 = typicalImpl + exitCost + backfillCash + recurring * 3;
+  const typicalValue3 = benefit3 - typicalTco3;
   const typicalRoi3 = typicalTco3 > 0 ? typicalValue3 / typicalTco3 * 100 : 0;
   let typicalPayback = 0;
   for (let t = 1; t <= 36; t++) { if (cumFlow[t] + impl - typicalImpl >= 0) { typicalPayback = t; break; } }
@@ -310,6 +395,8 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
     issues, avoidedRepeats, repeatBasis, impliedRepeatShare, measuredRepeatShare,
     repeatPopulation, fcrReductionRatio, fcrImpliedByRepeats, fcrInputConflict,
     fcrLiftEffectivePts, fcrLiftClamped, fcrPerfectTarget, annual, handled, deflected, buckets, pct, gross, net, haircut: gross - net, recurring, tco3, roi3, roiDefined, payback, netValue3, avoidedTurnover, cumFlow, savings3, year1, M, R, monthlyFull, monthlyPlatform, postMonthly, rampOn,
+    bauEntered, bauAnnual, bauMo, OL, overlapShare, overlapAssumed, overlapGtMigration, overlapWithin3, overlapWithheld,
+    exitCost, backfillCash, absorbedHours, absorbedValue, grossOneTime, displacement3, year1Disp, benefit3, displacementShare,
     breakEvenImpl, breakEvenImplPerAgent, implHeadroom, implHeadroomPerAgent,
     trueBreakevenMonth, TYPICAL_PER_AGENT, typicalImpl, typicalValue3, typicalRoi3, typicalPayback, typicalBreakeven };
 }
@@ -341,6 +428,16 @@ function confidenceOf(d, r, stanceKey) {
   else if (evidence === "quote" || evidence === "proposal") costGrade = "Planning-grade";
   else costGrade = "Directional";
 
+  // Displaced spend is credited as avoided cash, so its bookability is a cost-axis question
+  // of exactly the same kind as the investment inputs: is this a cash flow that actually
+  // stops? Once it carries a quarter of the modeled benefit, an unreviewed contract is a
+  // defect in the cost evidence, not a plausibility observation.
+  const bauEvidence = BAU_EVIDENCE[d.bauEvidence] ? d.bauEvidence : "estimated";
+  if (r.displacementShare > 0.25 && BAU_RANK[bauEvidence] < BAU_RANK.reviewed) {
+    open.push(`${Math.round(r.displacementShare * 100)}% of modeled three-year benefit is technology-cost displacement, and the ${fmtFull(r.bauAnnual)} of eliminated annual spend rests on evidence rated ${BAU_EVIDENCE[bauEvidence].label} rather than a reviewed contract. Displacement is credited as avoided cash, so it carries the same evidence burden as the spend it offsets.`);
+    if (GRADE_RANK[costGrade] > GRADE_RANK["Planning-grade"]) costGrade = "Planning-grade";
+  }
+
   // ---- REALIZATION. One question: can the modeled savings be booked at all? ----
   const realizationGrade = CRED_GRADE[r.cred] || "Directional";
   if (r.mechKey === "none")
@@ -352,6 +449,11 @@ function confidenceOf(d, r, stanceKey) {
   if (r.payback === 0) caps.push(["Directional", r.trueBreakevenMonth > 0
     ? `The case does not break even within the three-year evaluation horizon, and on the same assumptions cumulative cash turns positive in month ${r.trueBreakevenMonth}. This caps the badge on the strength of the return, not on the bookability of the costs.`
     : "Modeled savings never exceed the monthly platform cost, so the case does not break even at any horizon. This caps the badge on the strength of the return, not on the bookability of the costs."]);
+  // A negative maximum implementation is a finding, not an absence of one: the case does not
+  // reach three-year break-even even if the implementation were free. Gated on postMonthly so
+  // it never duplicates the never-breaks-even cap above.
+  if (r.breakEvenImpl < 0 && r.postMonthly > 0)
+    caps.push(["Planning-grade", `Three-year value stays negative even at zero implementation cost. Modeled benefit falls ${fmtFull(-r.breakEvenImpl)} short of three years of platform cost${(r.exitCost + r.backfillCash) > 0 ? " plus exit and backfill" : ""}, so no reduction in implementation makes this case return inside the horizon. This is an observation about the return, not a defect in the cost evidence.`]);
   if (r.breakEvenImplPerAgent > 0 && r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT && r.postMonthly > 0)
     caps.push(["Planning-grade", r.implHeadroomPerAgent >= 0
       ? `Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent of implementation, leaving only ${fmtFull(r.implHeadroomPerAgent)} per agent of headroom, and that cliff sits below the ${fmtFull(r.TYPICAL_PER_AGENT)} internal planning floor. This is a fragility observation about the return, not a defect in the cost evidence.`
@@ -373,7 +475,7 @@ function confidenceOf(d, r, stanceKey) {
 
   const headline = [costGrade, realizationGrade, ...caps.map(c => c[0])]
     .reduce((a, b) => GRADE_RANK[b] < GRADE_RANK[a] ? b : a, "Finance-grade");
-  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), flags, evidence };
+  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), flags, evidence, bauEvidence };
 }
 
 function caseInsights(r, d, stanceKey, conf) {
@@ -446,6 +548,20 @@ function caseInsights(r, d, stanceKey, conf) {
     out.push(`Savings phasing is off, so this assumes 100% of savings land on day one, an idealized payback. Turn on phasing for the board-defensible number that accounts for migration and ramp.`);
   }
 
+  // ---- BAU counterfactual. Stated whenever any BAU field is entered. ----
+  if (r.bauEntered) {
+    if (r.bauAnnual > 0) {
+      const opPct = Math.round((1 - r.displacementShare) * 100);
+      const dispPct = Math.round(r.displacementShare * 100);
+      out.push(`Modeled three-year benefit splits ${opPct}% operational improvement and ${dispPct}% technology-cost displacement. ${dispPct >= 50 ? `The majority of this case comes from no longer paying for the current stack rather than from operating differently, so the conclusion is more sensitive to commercial pricing and to the current contract actually being retired than to any of the operating targets.` : `Displacement is credited as avoided cash and is not weighted by the stance or by the capacity action, because it is a contractual outcome rather than an attribution question.`}`);
+      out.push(`${fmtFull(r.bauAnnual)} a year of current technology spend is modeled as eliminated. ${r.OL > 0 && r.overlapShare > 0 ? `A ${r.OL}-month dual-run period withholds ${fmtFull(r.overlapWithheld)} of that credit inside the three-year window${r.OL >= 36 ? `, which is the entire window, so this case shows no displacement benefit within three years even though lifetime break-even improves` : ""}.` : `No dual-run period is modeled, so the credit starts in month one.`}${r.overlapAssumed ? ` The dual-run length was not stated, so it is assumed to equal the ${r.M}-month migration. Change it if your contract or decommission plan differs.` : ""}${r.overlapGtMigration ? ` The dual-run period runs ${r.OL - r.M} month${r.OL - r.M === 1 ? "" : "s"} past go-live, which is normal where a legacy contract, a retained channel or a compliance archive outlives the migration, but confirm it is deliberate.` : ""}`);
+    }
+    if (r.absorbedHours > 0)
+      out.push(`Internal delivery burden of ${Math.round(r.absorbedHours).toLocaleString()} hours, worth ${fmtK(r.absorbedValue)} at the loaded wage, is disclosed and deliberately excluded from the cash return. That team is paid whether or not this program runs, so the hours are an opportunity cost and a capacity constraint rather than cash leaving the business. Treat it as a delivery-risk question, not a costing one.`);
+    if (r.exitCost > 0 || r.backfillCash > 0)
+      out.push(`One-time cash includes ${fmtFull(n(d.implementationCost))} of implementation${r.exitCost > 0 ? `, ${fmtFull(r.exitCost)} of exit and decommissioning` : ""}${r.backfillCash > 0 ? `, and ${fmtFull(r.backfillCash)} of incremental cash labor such as contractors, overtime or backfill` : ""}. Return is measured against gross transformation cash of ${fmtK(r.tco3)}, with displaced spend credited on the benefit side rather than netted out of that denominator.`);
+  }
+
   if (stanceKey === "aggressive")
     out.push(`The aggressive stance applies no attribution haircut, so gross and attributed savings are the same ${fmtK(r.gross)}. That is the vendor-ROI presentation, and an undiscounted number carries no attribution risk adjustment at all. Expected applies attribution weighting to each lever; this stance does not.`);
   else
@@ -461,6 +577,10 @@ const DEFAULTS = {
   currentFCR: 72, repeatShare: 0, currentAttrition: 35, costPerContact: 7, marginalPerContact: 0, recruitCostPerHire: 3500, trainingDays: 21,
   htReduction: 12, acwReduction: 30, fcrImprovement: 8, attritionReduction: 20, containment: 15,
   implementationCost: 750000, newPlatformPerAgentMo: 135, migrationMonths: 9, rampMonths: 6, evidence: "estimate",
+  // BAU counterfactual. All zero by default, so an untouched case reproduces the pre-BAU
+  // engine exactly. bauOverlapShare is a percentage and only bites when spend is entered.
+  bauEliminatedAnnual: 0, bauOverlapMonths: 0, bauOverlapShare: 100, bauExitCost: 0,
+  bauBackfillCash: 0, bauAbsorbedHours: 0, bauEvidence: "estimated",
 };
 
 export default function BusinessCaseBuilder() {
@@ -558,7 +678,15 @@ export default function BusinessCaseBuilder() {
       // marginalPerContact is deliberately NOT published. This tool derives it from AHT and
       // wage; it does not measure it. Publishing a derived figure put it on the rail for
       // every other tool to inherit as though it had been sourced. TCO remains the producer.
+      // threeYearROI keeps its existing basis: gross transformation cash in the denominator,
+      // displacement credited on the benefit side. Silently changing the meaning of a key
+      // already on the rail is the provenance failure this suite exists to prevent.
       stance, paybackMonths: r.payback, threeYearROI: Math.round(r.roi3), implementationCost: n(d.implementationCost),
+      bauEliminatedAnnual: Math.round(r.bauAnnual), threeYearDisplacementCredit: Math.round(r.displacement3),
+      // Published as a FRACTION, not a percent. Every registered *Share key on the rail is
+      // canonically a fraction, and shipping 36 where the contract means 0.36 is the same
+      // class of defect as the annualized-attrition case the ceilings were added to catch.
+      displacementBenefitShare: Math.round(r.displacementShare * 1000) / 1000, bauEvidence: conf.bauEvidence,
       year1Savings: Math.round(r.year1), rampOn, migrationMonths: r.M, rampMonths: r.R,
       confidence: conf.grade, analystRead: insights[0],
     };
@@ -716,6 +844,37 @@ export default function BusinessCaseBuilder() {
             </div>
           </Card>
 
+          <Card accent={ELECTRIC}>
+            <H color={ELECTRIC}>Business-as-Usual Counterfactual <span style={{ fontWeight: 500, color: MUTED, letterSpacing: 0, textTransform: "none" }}>optional, all zero by default</span></H>
+            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: 14 }}>
+              Without this, the whole new platform is treated as incremental cost. It usually is not. Displaced spend is credited as avoided cash on the benefit side, never netted out of the return denominator, so the ratio stays stable as the displaced figure grows. Leave every field at zero and the case is unchanged.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }} className="bc-grid">
+              <NumField label="Current Annual Spend This Eliminates" value={d.bauEliminatedAnnual} onChange={v => set("bauEliminatedAnnual", v)} prefix="$" step={10000} min={0} hint="Only spend that ENDS because of this program" />
+              <NumField label="Dual-Run Period" value={d.bauOverlapMonths} onChange={v => set("bauOverlapMonths", v)} suffix="mo" min={0} max={120} hint={`Blank assumes ${r.M}mo, the migration length`} />
+              <NumField label="Current Spend Still Paid in Dual Run" value={d.bauOverlapShare} onChange={v => set("bauOverlapShare", v)} suffix="%" min={0} max={100} hint="Set 0% for a true day-one cutover" />
+              <NumField label="Exit and Decommissioning (one-time)" value={d.bauExitCost} onChange={v => set("bauExitCost", v)} prefix="$" step={5000} min={0} hint="Termination fees, data extraction" />
+              <NumField label="Incremental Cash Labor (one-time)" value={d.bauBackfillCash} onChange={v => set("bauBackfillCash", v)} prefix="$" step={5000} min={0} hint="Contractors, overtime, temporary backfill" />
+              <NumField label="Absorbed Internal Labor" value={d.bauAbsorbedHours} onChange={v => set("bauAbsorbedHours", v)} suffix="hrs" step={100} min={0} hint="Existing team time, disclosed not costed" />
+            </div>
+            <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.55, marginBottom: 14, maxWidth: 720 }}>
+              Only include costs that end because of this program. Exclude retained carrier, CRM, WEM, storage, network, support or any other service that continues. Entering a whole current stack when only part of it retires creates displacement that will not happen. Absorbed internal labor is existing salaried capacity, so it is shown as an hours burden and kept out of the cash return, on the same principle that unconverted freed agent capacity is kept out of the benefit.
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Displaced spend evidence</span>
+              <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8, flexWrap: "wrap" }}>
+                {Object.entries(BAU_EVIDENCE).map(([k, v]) => (
+                  <button key={k} onClick={() => set("bauEvidence", k)} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: d.bauEvidence === k ? ELECTRIC : "transparent", color: d.bauEvidence === k ? "#fff" : SLATE }}>{v.label}</button>
+                ))}
+              </div>
+            </div>
+            {r.bauAnnual > 0 && (
+              <div style={{ marginTop: 14, padding: "10px 14px", background: WARM, borderRadius: 8, fontSize: 12, color: SLATE, lineHeight: 1.55 }}>
+                Three-year benefit runs {Math.round((1 - r.displacementShare) * 100)}% operational improvement and <b style={{ color: r.displacementShare >= 0.5 ? AMBER : NAVY }}>{Math.round(r.displacementShare * 100)}% technology-cost displacement</b>. Displacement credit inside the horizon is {fmtK(r.displacement3)}, after {fmtK(r.overlapWithheld)} withheld during a {r.OL}-month dual run.
+              </div>
+            )}
+          </Card>
+
           {/* Stance selector */}
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 22px", marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
@@ -751,7 +910,7 @@ export default function BusinessCaseBuilder() {
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: roiColor }}>{r.roiDefined ? Math.round(r.roi3) + "%" : "n/a"}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>3-Year Return{r.roiDefined ? <span style={{ opacity: 0.75 }}> · {STATUS_LABEL[stRoi]}</span> : null}</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} modeled 3-yr cost` : "no investment entered"}</div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} ${r.bauEntered ? "gross transformation cash" : "modeled 3-yr cost"}` : "no investment entered"}</div>
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -875,14 +1034,14 @@ export default function BusinessCaseBuilder() {
                 userEmail={capEmail}
                 sections={[
                   { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[stance].label} stance, which weights each lever for attribution risk.` },
-                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because it carries no business-as-usual counterfactual` : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(d.costPerContact))}. ${stance === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
+                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(d.costPerContact))}. ${stance === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
                   { title: "Financial Summary", type: "metrics", items: [
                     { label: "Realizable Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[stance].label} stance · ${r.mechLabel} · run-rate` },
                     { label: rampOn ? "Year 1 (ramped)" : "Gross (pre-haircut)", value: rampOn ? fmtFull(r.year1) : fmtFull(r.gross), color: rampOn ? ELECTRIC : MUTED, sub: rampOn ? `${r.M}mo build + ${r.R}mo ramp` : `Haircut ${fmtFull(r.haircut)}` },
                     { label: "One-time Investment", value: fmtFull(n(d.implementationCost)), color: RED },
                     { label: "Annual Platform Cost", value: fmtFull(r.recurring), color: AMBER },
                     { label: "Payback Period", value: r.payback > 0 ? `${r.payback} months` : ">36 months", color: paybackColor, sub: (r.payback > 0 ? (rampOn ? "phased" : "idealized") : (r.trueBreakevenMonth > 0 ? `breaks even month ${r.trueBreakevenMonth}, outside the horizon` : "no break-even at any horizon")) + ` · ${STATUS_LABEL[stPayback]}` },
-                    { label: "3-Year Return", value: r.roiDefined ? `${Math.round(r.roi3)}%` : "n/a", color: roiColor, sub: r.roiDefined ? `on ${fmtFull(r.tco3)} modeled 3-yr investment cost · ${STATUS_LABEL[stRoi]}` : "no investment entered" },
+                    { label: "3-Year Return", value: r.roiDefined ? `${Math.round(r.roi3)}%` : "n/a", color: roiColor, sub: r.roiDefined ? `on ${fmtFull(r.tco3)} ${r.bauEntered ? "gross transformation cash" : "modeled 3-yr investment cost"} · ${STATUS_LABEL[stRoi]}` : "no investment entered" },
                   ]},
                   { title: "Savings Breakdown", type: "table", rows: bucketRows.map(b => [b.label + (b.key === "attrition" ? " (cash-releasing)" : " (freed labor)"), fmtFull(b.val) + ` (${r.pct[b.key]}% of gross)`]) },
                   { title: "Capacity and Cash", type: "table", rows: [
@@ -895,6 +1054,19 @@ export default function BusinessCaseBuilder() {
                     ["Trainee ramp time, treated as capacity not cash", fmtFull(r.attritionCapacity * STANCE[stance].a) + " after attribution, already inside the capacity figure above"],
                     ["Realizable annual savings", fmtFull(r.net)],
                   ]},
+                  ...(r.bauEntered ? [{ title: "Business-as-Usual Counterfactual", type: "table", rows: [
+                    ["Current annual technology spend eliminated", fmtFull(r.bauAnnual) + ` (evidence: ${BAU_EVIDENCE[conf.bauEvidence].label})`],
+                    ["Dual-run period", r.bauAnnual > 0 ? `${r.OL} months at ${Math.round(r.overlapShare * 100)}% of current spend still paid${r.overlapAssumed ? ", assumed equal to the migration because none was stated" : ""}` : "n/a, no spend entered as eliminated"],
+                    ["Displacement credit withheld during dual run", fmtFull(r.overlapWithheld) + (r.OL >= 36 ? ", which is the entire three-year window" : "")],
+                    ["Three-year displacement credit", fmtFull(r.displacement3)],
+                    ["Three-year operational benefit", fmtFull(r.savings3)],
+                    ["Three-year total modeled benefit", fmtFull(r.benefit3) + ` (${Math.round((1 - r.displacementShare) * 100)}% operational, ${Math.round(r.displacementShare * 100)}% displacement)`],
+                    ["One-time exit and decommissioning", fmtFull(r.exitCost)],
+                    ["Incremental cash labor (contractor, overtime, backfill)", fmtFull(r.backfillCash)],
+                    ["Absorbed internal labor", r.absorbedHours > 0 ? `${Math.round(r.absorbedHours).toLocaleString()} hrs, ${fmtFull(r.absorbedValue)} at the loaded wage, EXCLUDED from the cash return` : "None entered"],
+                    ["Gross transformation cash (ROI denominator)", fmtFull(r.tco3)],
+                    ["Maximum implementation before 3-yr value turns negative", fmtFull(r.breakEvenImpl) + (r.breakEvenImpl < 0 ? ", meaning this case does not return even at zero implementation cost" : "")],
+                  ]}] : []),
                   { title: "Decision Read", type: "findings", items: insights },
                   { title: "Key Assumptions", type: "table", rows: [
                     ["Loaded hourly rate", fmtFull(r.loaded) + ` per hr (${n(d.avgHourly)} plus ${n(d.benefitsPct)}% burden)`],
@@ -919,7 +1091,9 @@ export default function BusinessCaseBuilder() {
                     { tool: "Transformation Readiness", reason: "Confirm the organization can actually deliver these targets", href: "/tools/transformation-readiness" },
                     { tool: "Contract Risk Scanner", reason: "Pressure-test vendor pricing before it enters the case", href: "/tools/contract-risk" },
                   ]},
-                  { title: "Methodology", type: "text", content: "Avoided contacts release agent labor capacity valued at marginal cost, the handle-time labor content of a contact, not the fully loaded cost per contact, because fixed tech, facilities and supervision do not fall when one contact is removed. This valuation is shared with the TCO Calculator, so the two tools are consistent on the value of the same contact. Consistency establishes a shared definition, not that the released capacity is cash-releasing. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance). Attribution is then followed by a separate and independent adjustment: freed agent labor is released capacity, not cash, and converts to money only through a named action, so containment, handle-time and FCR savings are scaled by the " + r.mechLabel + " capacity action at " + Math.round(r.mf * 100) + "%. Avoided recruiting and training spend is cash-releasing and is never scaled. Platform and implementation costs are real cash out and are never scaled by either adjustment. " + (r.repeatBasis === "fcr-proxy" ? "Repeat-contact volume was not supplied, so avoided repeats are derived from FCR on the underlying issue count rather than on total handled contacts, which assumes one repeat per unresolved issue and is a proxy rather than a measurement." : "Avoided repeats are computed on measured same-reason repeat volume.") + (rampOn ? " Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one." : " Savings phasing was turned OFF for this case, so the model assumes full run-rate savings from month one. Payback and ROI here are idealized figures that ignore the migration build and the post-go-live ramp, and they will be shorter and higher than the phased case a CFO should be shown.") + " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: it contains no business-as-usual counterfactual, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. A full incremental comparison would move this figure in both directions." + (stance === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") },
+                  { title: "Methodology", type: "text", content: "Avoided contacts release agent labor capacity valued at marginal cost, the handle-time labor content of a contact, not the fully loaded cost per contact, because fixed tech, facilities and supervision do not fall when one contact is removed. This valuation is shared with the TCO Calculator, so the two tools are consistent on the value of the same contact. Consistency establishes a shared definition, not that the released capacity is cash-releasing. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance). Attribution is then followed by a separate and independent adjustment: freed agent labor is released capacity, not cash, and converts to money only through a named action, so containment, handle-time and FCR savings are scaled by the " + r.mechLabel + " capacity action at " + Math.round(r.mf * 100) + "%. Avoided recruiting and training spend is cash-releasing and is never scaled. Platform and implementation costs are real cash out and are never scaled by either adjustment. " + (r.repeatBasis === "fcr-proxy" ? "Repeat-contact volume was not supplied, so avoided repeats are derived from FCR on the underlying issue count rather than on total handled contacts, which assumes one repeat per unresolved issue and is a proxy rather than a measurement." : "Avoided repeats are computed on measured same-reason repeat volume.") + (rampOn ? " Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one." : " Savings phasing was turned OFF for this case, so the model assumes full run-rate savings from month one. Payback and ROI here are idealized figures that ignore the migration build and the post-go-live ramp, and they will be shorter and higher than the phased case a CFO should be shown.") + (r.bauEntered
+                    ? " Return is calculated against gross transformation cash, meaning one-time implementation plus contractual exit and incremental cash labor, plus three years of the new platform fee. A business-as-usual counterfactual has been entered, and displaced current spend is credited on the BENEFIT side as avoided cash rather than netted out of that denominator. Netting it out would drive the denominator toward zero and then negative as the displaced figure grows, so the ratio would become unstable exactly where the economics are strongest. Displaced spend is not weighted by the stance or by the capacity action, because retiring a contract is a contractual outcome rather than an attribution or realization question, and it is not phased over the savings ramp: it steps at the end of the dual-run period instead. Absorbed internal project labor is disclosed as an hours burden and excluded from the cash return on the same principle that unconverted freed agent capacity is excluded from the benefit. This still excludes usage-based charges and any growth in volume or wages over the horizon, which are a forward counterfactual this version does not model."
+                    : " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: no business-as-usual counterfactual has been entered for this case, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. The tool models all of those, and they are all zero here. A full incremental comparison would move this figure in both directions.") + (stance === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") },
                 ]}
               />
             </span>
