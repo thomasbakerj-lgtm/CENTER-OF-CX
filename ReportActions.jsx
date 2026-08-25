@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
 import { scenarioLink } from "./src/lib/scenarioUrl";
+import { FONT, TYPE } from "./src/lib/type";
 
 /**
  * ReportActions, the shared end-of-tool action block.
@@ -100,7 +101,7 @@ const labelStyle = { fontSize: 12, fontWeight: 600, color: NAVY, display: "block
 const inputStyle = (bad) => ({
   width: "100%", padding: "10px 12px", fontSize: 14, color: NAVY,
   border: `1px solid ${bad ? RED : BORDER}`, borderRadius: 6, outline: "none",
-  fontFamily: "'DM Sans', sans-serif", background: "#fff",
+  fontFamily: FONT, background: "#fff",
 });
 
 function Field({ label, value, onChange, placeholder, type = "text", required, bad, autoComplete }) {
@@ -213,26 +214,25 @@ export default function ReportActions({
     background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12,
     padding: "22px 22px 20px", flex: 1, minWidth: 300,
   };
-  const h3 = {
-    fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400,
-    color: NAVY, margin: "0 0 6px",
-  };
+  // Archivo is a single-family system, so panel hierarchy comes from size and weight
+  // rather than from a second typeface. This heading was the last serif in the app shell.
+  const h3 = { ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 6px" };
   const sub = { fontSize: 13, color: MUTED, lineHeight: 1.6, margin: "0 0 18px" };
   const ghostBtn = {
     display: "inline-flex", alignItems: "center", gap: 7, padding: "12px 20px",
     fontSize: 14, fontWeight: 600, color: NAVY, background: WARM,
     border: `1px solid ${BORDER}`, borderRadius: 8, cursor: "pointer",
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: FONT,
   };
   const primaryBtn = (disabled) => ({
     width: "100%", padding: "13px", fontSize: 14, fontWeight: 600, color: "#fff",
     background: disabled ? SLATE : ELECTRIC, border: "none", borderRadius: 8,
     cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.55 : 1,
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: FONT,
   });
 
   return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 18, marginTop: 32, fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 18, marginTop: 32, fontFamily: FONT }}>
 
       {/* -------------------------------------------------- take it with you */}
       <div style={card}>
@@ -293,7 +293,7 @@ export default function ReportActions({
                     background: validEmail(copyEmail) ? NAVY : SLATE, border: "none", borderRadius: 6,
                     cursor: validEmail(copyEmail) ? "pointer" : "not-allowed",
                     opacity: validEmail(copyEmail) ? 1 : 0.5, whiteSpace: "nowrap",
-                    fontFamily: "'DM Sans', sans-serif",
+                    fontFamily: FONT,
                   }}>
                   {copyState === "sending" ? "Sending" : "Send"}
                 </button>
