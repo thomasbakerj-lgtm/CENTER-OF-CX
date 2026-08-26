@@ -5,6 +5,7 @@ import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { MECH, MECH_ORDER } from "./src/lib/mech";
+import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
 const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, muted: MUTED } = COLORS;
 const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const BORDER = "#D8E3ED";
@@ -13,9 +14,7 @@ const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 const money = (n) => { const v = Math.round(n); return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString(); };
 const money2 = (n) => "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtX = (x) => (Math.round(Number(x) * 100) / 100).toString();
-const pct = (n, d = 1) => (n * 100).toFixed(d) + "%";
 const num = (v) => { const x = parseFloat(String(v).replace(/[^0-9.\-]/g, "")); return isNaN(x) ? 0 : x; };
-const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 
 // DEFS is the future glossary content: write once, lift later.
 const DEFS = {
@@ -99,13 +98,49 @@ const DIMS = [
     test: { move: "Map the top 10 workflows end-to-end and flag callback-by-design steps", lead: "Manual re-entry steps and system error rate", lag: "Repeat contact rate on system-driven intents", stop: "Do not scale a workaround that hides the integration gap" } },
 ];
 
+/* @engine-start
+   Everything between these markers is the FCR leakage engine and the only
+   things it closes over. fcr.test.mjs slices this exact region out of this
+   exact file at runtime and evaluates it, so the tested engine and the shipped
+   engine cannot drift apart. MECH and MECH_ORDER are injected from the real
+   src/lib/mech.js, never reconstructed.
+
+   clamp, pct, MECH_ALIAS, normMech and CRED_RANK were relocated here from
+   elsewhere in the file. They are engine dependencies, so they belong inside
+   the tested region rather than being rebuilt inside the harness. Nothing
+   between their old and new positions evaluated them at module load, so the
+   move is behaviour-neutral. */
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const pct = (n, d = 1) => (n * 100).toFixed(d) + "%";
+
+/* The mechanism list lived below as a fourth divergent copy, keyed "absorb" where
+   the shared module says "growth". It now comes from src/lib/mech.js. Any scenario
+   link minted before this change still carries the old key, so normalize on read. */
+const MECH_ALIAS = { absorb: "growth" };
+const normMech = (m) => (MECH[m] ? m : MECH[MECH_ALIAS[m]] ? MECH_ALIAS[m] : "hiring");
+
+/* Realization confidence follows the credit class, not the mechanism name.
+   Capacity-only is Directional. Finance-creditable is Planning-grade. Cash out
+   the door is Finance-grade. This replaced a rubric in which Finance-grade
+   realization was reachable only through headcount reduction, the one mechanism
+   the suite explicitly tells people not to default to. */
+const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
+
 // Pure engine. UI and export both read this object. No separate aggregation.
 function engine(I) {
-  const { M, fcr: fcrIn, mCPC, lCPC, repeatModel, measuredRate, measuredTargetRate, pathModel, repeatMult, dScore, askTarget, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays } = I;
+  let { M, mCPC, lCPC, repeatMult } = I;
+  const { fcr: fcrIn, repeatModel, measuredRate, measuredTargetRate, pathModel, dScore, askTarget, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays } = I;
   let fcr = fcrIn, fcrWasPercent = false;
   if (fcr > 1 && fcr <= 100) { fcr = fcr / 100; fcrWasPercent = true; }
   const fcrImpossible = !(fcr > 0 && fcr < 1);
   if (fcrImpossible) fcr = clamp(fcr, 0.01, 0.99);
+  // Volume, cost and multiplier cannot be negative. The number fields clamp at
+  // zero, but a scenario link is decoded straight from a URL with no clamp, so a
+  // hand-edited link could drive a negative marginal cost through the whole
+  // model and produce a negative annual burden and negative savings with no
+  // flag raised. Block it here, where every path has to pass.
+  const negImpossible = M < 0 || mCPC < 0 || lCPC < 0 || repeatMult < 0;
+  M = Math.max(0, M); mCPC = Math.max(0, mCPC); lCPC = Math.max(0, lCPC); repeatMult = Math.max(0, repeatMult);
   const opportunity = (s) => clamp(0.15 + (5 - s) / 4 * 0.65, 0.15, 0.80);
   const capture = (s) => clamp(0.25 + (s - 1) / 4 * 0.65, 0.25, 0.90);
   const shareOne = (f) => (1 - f) / (2 - f);
@@ -131,12 +166,23 @@ function engine(I) {
   const overCeiling = askTarget > ceilingFCR + 1e-9;
   const target = clamp(askTarget, fcr, ceilingFCR);
 
+  // A measured baseline has to be improved on its own base. The one-callback and
+  // geometric paths compute the TARGET share from a model whose baseline the user
+  // has just overridden with measured data, which is a base switch rather than an
+  // improvement. It produced savings out of nothing: a measured 30% repeat share
+  // at 72% FCR, targeting 72% FCR, meaning no improvement at all, reported
+  // $237,656 a year of realizable savings, the entire figure being the gap
+  // between the user's measured rate and the model's rate at the same FCR. The
+  // mirror case is worse because it is quiet: a measured 12% baseline targeting a
+  // real 8-point FCR gain reported $0, because the modeled target share sat above
+  // the measured baseline. Proportional scaling is the only base-consistent path,
+  // so it is now the only path. `pathModel` is still read from legacy scenario
+  // links and flagged, so a reader holding an older PDF learns why it moved.
   let repeatShareT;
+  const measuredPathOverridden = repeatModel === "measured" && (measuredTargetRate == null || measuredTargetRate <= 0) && pathModel && pathModel !== "proportional";
   if (repeatModel === "measured") {
     if (measuredTargetRate != null && measuredTargetRate > 0) repeatShareT = measuredTargetRate;
-    else if (pathModel === "geometric") repeatShareT = shareGeo(target);
-    else if (pathModel === "proportional") repeatShareT = (1 - fcr) > 0 ? repeatShare * ((1 - target) / (1 - fcr)) : 0;
-    else repeatShareT = shareOne(target);
+    else repeatShareT = (1 - fcr) > 0 ? repeatShare * ((1 - target) / (1 - fcr)) : repeatShare;
   } else if (repeatModel === "geometric") repeatShareT = shareGeo(target);
   else repeatShareT = shareOne(target);
   const repeatsT = M * repeatShareT;
@@ -187,6 +233,7 @@ function engine(I) {
   if (fcrPulledDirty) flags.push("Current FCR was pulled from another tool as a whole number and normalized to " + pct(fcr) + ". Confidence is capped until you confirm it. The upstream tool is publishing FCR in the wrong unit, which is a suite-contract issue worth fixing at the source.");
   if (fcrWasPercent) flags.push("Current FCR arrived as a whole number and was read as " + pct(fcr) + ". Confirm the upstream tool publishes FCR as a fraction, not a percentage.");
   if (fcrImpossible) flags.push("Current FCR was outside 0 to 100% and had to be clamped. The result is unreliable until the input is corrected.");
+  if (negImpossible) flags.push("A negative volume, cost, or multiplier reached the model, which is impossible, and was clamped to zero. This can only arrive through an edited scenario link. Re-enter the inputs directly before using any figure on this page.");
   if (repeats > M + 1) flags.push("Repeat contacts exceed total contacts, which is impossible. The inputs are inconsistent.");
   if (repeatModel === "measured" && (measuredRate < 0 || measuredRate > 0.6)) flags.push("Measured repeat share is outside the plausible 0 to 60% range. Recheck the figure.");
   if (method === "internal" && windowDays < 7) flags.push("Callback window of " + windowDays + " days is short. Internal FCR measured on a short window captures fewer return contacts and tends to run high, so the true repeat burden is likely larger than shown. This matters most for cross-channel and enterprise scope, where customers often return days later.");
@@ -196,13 +243,14 @@ function engine(I) {
   if (repeatMult < 1) flags.push("Repeat complexity multiplier below 1.0 implies repeats are cheaper than first contacts, which is implausible.");
   else if (lCPC && mCPC >= 0.85 * lCPC) flags.push("Marginal cost is close to loaded cost. You may have entered loaded cost. The savings basis must be marginal.");
   else if (lCPC && mCPC > 0 && mCPC <= 0.35 * lCPC) flags.push("Marginal cost is " + Math.round((mCPC / lCPC) * 100) + "% of loaded cost. Marginal cost is mostly agent wage and benefits, so it usually runs 50% to 75% of loaded. A ratio this low means either an unusually fixed cost base or a wrong input, and burden scales directly with it. Confirm the figure before presenting, especially if it was pulled from another tool.");
+  if (measuredPathOverridden) flags.push("This scenario carried a modeled improvement path against a measured repeat rate. That path computes the target share from a model whose baseline your measured figure replaces, so it books the gap between the two as savings. The improvement is now scaled proportionally on your own measured base, which is the only base-consistent reading. Figures here will not match a report generated from this link before that change.");
   if (!defDeclared) flags.push("FCR definition not declared. The result is not comparable across centers until you state how you measure it.");
   if (target <= fcr + 1e-9) flags.push("Target FCR is not above current. There is no improvement to value.");
   if (overCeiling) flags.push("Target was capped at " + pct(ceilingFCR) + ", the most your diagnostic says you can capture.");
   if (mech === "none" && sourcing !== "bpo") flags.push("No mechanism and in-house sourcing. Realizable savings are $0 until you commit to one.");
   if (mechApplies && mechKey === "vendor") flags.push("You selected in-house sourcing and a mechanism that reduces outsourcer volume. Those only hold together if you route overflow or seasonal volume to a per-contact vendor. If you do not, there is no invoice to reduce, the savings are capacity rather than cash, and this should be modeled as avoid hiring instead. This is the only path to Finance-grade realization that does not reduce headcount, so it will be the first assumption a CFO tests.");
   if (!mechApplies) flags.push("Outsourced per-contact sourcing converts volume reduction to cash at 100%, and the realization mechanism does not apply. This assumes billing tracks actual volume with no minimum commitment. If your contract carries a volume floor, nothing is saved until you drop below it. Confirm the commitment terms in Contract Risk Scanner before presenting these savings.");
-  const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped/.test(f));
+  const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped|clamped to zero/.test(f));
 
   let costConf = costBasis === "finance" ? "Finance-grade" : costBasis === "ops" ? "Planning-grade" : "Directional";
   let realConf = realizationRank >= 3 ? "Finance-grade" : realizationRank >= 2 ? "Planning-grade" : "Directional";
@@ -229,22 +277,12 @@ function engine(I) {
   else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + ".";
   else confReason = "cost basis is " + costConf + " because " + (costBasis === "estimate" ? "cost inputs are estimates, not validated data" : costBasis === "ops" ? "cost inputs are operations data, not finance-confirmed" : "cost inputs are finance-confirmed") + ".";
 
-  return { mechKey, repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag };
+  return { mechKey, repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag, repeatShareT, measuredPathOverridden, negImpossible, fcrImpossible };
 }
+/* @engine-end */
 
-/* The mechanism list lived here as a fourth divergent copy, keyed "absorb" where
-   the shared module says "growth". It now comes from src/lib/mech.js. Any scenario
-   link minted before this change still carries the old key, so normalize on read. */
-const MECH_ALIAS = { absorb: "growth" };
-const normMech = (m) => (MECH[m] ? m : MECH[MECH_ALIAS[m]] ? MECH_ALIAS[m] : "hiring");
 const MECH_OPTS = MECH_ORDER.map((k) => ({ v: k, l: MECH[k].label + (k === "none" ? " ($0)" : `  (${Math.round(MECH[k].f * 100)}%)`) }));
 
-/* Realization confidence follows the credit class, not the mechanism name.
-   Capacity-only is Directional. Finance-creditable is Planning-grade. Cash out
-   the door is Finance-grade. This replaced a rubric in which Finance-grade
-   realization was reachable only through headcount reduction, the one mechanism
-   the suite explicitly tells people not to default to. */
-const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
 const LABELS = ["", "Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
 const GAMING = ["Reopen / repeat-contact rate", "Transfer rate", "Escalation rate", "AHT drift (chasing FCR by lengthening calls)", "Confirmed bot containment, not raw containment", "CSAT / CES", "QA resolution accuracy", "Complaint rate"];
 
@@ -349,15 +387,15 @@ export default function FCRLeakageDiagnostic() {
   const h3 = { fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 16, letterSpacing: 0.3 };
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh", background: "#fff", color: NAVY }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}select{font-family:inherit}@media(max-width:700px){.g2{grid-template-columns:1fr!important}.g3{grid-template-columns:1fr!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff", color: NAVY }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}select{font-family:inherit}@media(max-width:700px){.g2{grid-template-columns:1fr!important}.g3{grid-template-columns:1fr!important}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}><LogoMark /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, textDecoration: "none" }}>← Back to Tools</a></div></nav>
 
       {phase === "setup" && (
         <section style={{ padding: "44px 28px 60px" }}>
           <div style={{ ...WRAP, maxWidth: 760 }}>
             <span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Performance + Quality</span>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 34, fontWeight: 400, lineHeight: 1.12, margin: "10px 0 10px" }}>FCR Leakage Diagnostic</h1>
+            <h1 style={{ ...TYPE.display, margin: "10px 0 10px" }}>FCR Leakage Diagnostic</h1>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.6, marginBottom: 12, maxWidth: 620 }}>Repeat contacts are the leakage. This tool separates the burden you carry, the portion that is realistically controllable, and the part that converts to actual cash. It will tell you when a project does not pay back.</p>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 26, fontSize: 11, color: MUTED }}><span>1. Burden</span><span>2. Controllable opportunity</span><span>3. Realizable cash</span><span>4. Confidence</span><span>5. Next operating test</span></div>
 
@@ -390,7 +428,10 @@ export default function FCRLeakageDiagnostic() {
                 <NumField label="Repeat complexity multiplier" value={repeatMult} onChange={setRepeatMult} suffix="x" step={0.1} min={0.5} max={3} info={DEFS.repeatMult.text} infoTitle={DEFS.repeatMult.title} align="right" />
                 {repeatModel === "measured" && <NumField label="Measured current repeat share" value={measuredPct} onChange={setMeasuredPct} suffix="%" step={1} min={0} max={60} />}
                 {repeatModel === "measured" && <NumField label="Measured target repeat share (0 = model it)" value={measuredTargetPct} onChange={setMeasuredTargetPct} suffix="%" step={1} min={0} max={60} align="right" />}
-                {repeatModel === "measured" && measuredTargetPct === 0 && <Sel label="Improvement path model" value={pathModel} onChange={setPathModel} options={[{ v: "one", l: "One-callback path" }, { v: "geometric", l: "Geometric path" }, { v: "proportional", l: "Proportional to failure reduction" }]} />}
+                {/* The improvement-path selector was removed. Two of its three options
+                    switched bases against a measured baseline and invented savings.
+                    `pathModel` stays in the scenario contract so legacy links still
+                    decode, and the engine flags them. */}
                 <NumField label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} align="right" />
               </div>
               {repeatMult > 2.5 ? <p style={{ fontSize: 12, color: RED, marginTop: 12, lineHeight: 1.5 }}>High assumption at {fmtX(repeatMult)}x. This is above most published estimates. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.</p> : repeatMult > 2.0 ? <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Elevated at {fmtX(repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.</p> : null}
@@ -420,7 +461,7 @@ export default function FCRLeakageDiagnostic() {
             </div>
             {(() => { const d = DIMS[currentDim]; return (
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}><span style={{ fontSize: 22 }}>{d.icon}</span><h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 23, fontWeight: 400, margin: 0 }}>{d.name}</h2><Tag text={d.ownerClass} color={SLATE} /></div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}><span style={{ fontSize: 22 }}>{d.icon}</span><h2 style={{ ...TYPE.h1, margin: 0 }}>{d.name}</h2><Tag text={d.ownerClass} color={SLATE} /></div>
                 <p style={{ fontSize: 13, color: MUTED, marginBottom: 22, maxWidth: 560, lineHeight: 1.5 }}>{d.desc}</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {d.qs.map((q, qi) => (
@@ -466,12 +507,12 @@ export default function FCRLeakageDiagnostic() {
             <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
               <div style={{ background: `${RED}06`, border: `1px solid ${RED}22`, borderRadius: 12, padding: "22px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Annual repeat burden</span><Tag text={R.shareBasis} color={RED} /><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 40, color: RED }}>{money(R.burdenYr)}</div>
+                <div style={{ ...TYPE.statValueLg, color: RED }}>{money(R.burdenYr)}</div>
                 <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{Math.round(R.repeats).toLocaleString()} repeats/mo at {pct(R.repeatShare)} of volume ({R.shareSource}), valued at {money2(R.repeatCPC)} repeat-adjusted marginal cost ({money2(mCPC)} base times {fmtX(repeatMult)}x complexity). Burden ceiling, not recoverable. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
               </div>
               <div style={{ background: `${GREEN}06`, border: `1px solid ${GREEN}22`, borderRadius: 12, padding: "22px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Year-1 net</span><Tag text="Assumed" color={GREEN} /><InfoDot text={DEFS.invest.text} title={DEFS.invest.title} /></div>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 40, color: R.year1Net >= 0 ? GREEN : RED }}>{money(R.year1Net)}</div>
+                <div style={{ ...TYPE.statValueLg, color: R.year1Net >= 0 ? GREEN : RED }}>{money(R.year1Net)}</div>
                 <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{money(R.realizableYr)}/yr realizable at steady state. Payback {R.paybackLabel}. Year-2 net {money(R.year2Net)}, two-year cumulative {money(R.cum2Yr)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
               </div>
             </div>
@@ -500,9 +541,9 @@ export default function FCRLeakageDiagnostic() {
               <h3 style={{ fontSize: 13, fontWeight: 700, color: RED, marginBottom: 10 }}>Top leakage sources (lowest scores)</h3>
               {sorted.slice(0, 3).map((d, i) => (
                 <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < 2 ? `1px solid ${RED}15` : "none" }}>
-                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: RED, width: 22 }}>{i + 1}</span>
+                  <span style={{ ...TYPE.h2, ...NUM, color: RED, width: 22 }}>{i + 1}</span>
                   <div style={{ flex: 1 }}><span style={{ fontSize: 13, fontWeight: 600 }}>{d.icon} {d.name}</span><div style={{ fontSize: 11, color: MUTED }}>Owner: {d.owner}</div></div>
-                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: RED }}>{dimScore(d.id).toFixed(1)}</span>
+                  <span style={{ ...TYPE.h2, ...NUM, color: RED }}>{dimScore(d.id).toFixed(1)}</span>
                 </div>
               ))}
             </div>
@@ -542,7 +583,7 @@ export default function FCRLeakageDiagnostic() {
                   <span style={{ fontSize: 12.5, fontWeight: row.cur ? 700 : 600, color: row.cur ? ELECTRIC : NAVY, width: 120 }}>{row.k}</span>
                   <span style={{ fontSize: 11.5, color: MUTED, flex: 1 }}>{row.d}</span>
                   <span style={{ fontSize: 12, color: SLATE }}>burden {money(row.r.burdenYr)}</span>
-                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 17, color: row.r.year1Net >= 0 ? GREEN : RED, width: 110, textAlign: "right" }}>{money(row.r.year1Net)}</span>
+                  <span style={{ ...TYPE.h3, ...NUM, fontWeight: W.semibold, color: row.r.year1Net >= 0 ? GREEN : RED, width: 110, textAlign: "right" }}>{money(row.r.year1Net)}</span>
                 </div>
               ))}
               <p style={{ fontSize: 10.5, color: MUTED, marginTop: 8 }}>Rightmost column is year-one net. If the sign flips across these rows, your repeat-cost assumption is the deciding factor and is worth measuring before you commit.</p>
@@ -569,7 +610,14 @@ export default function FCRLeakageDiagnostic() {
                 cost_basis_confidence: R.costConf,
                 realization_confidence: R.realConf,
                 current_fcr: fcrPct + "%",
-                target_fcr: targetPct + "%",
+                // The APPLIED target, not the ask. These diverge whenever the
+                // diagnostic caps the target, which is most of the time: the
+                // signal read 78% while the model had run 76.9%, and anything
+                // consuming this block downstream was reading a number the
+                // engine never used. `requested_fcr` keeps the ask visible.
+                target_fcr: pct(R.target),
+                requested_fcr: targetPct + "%",
+                target_capped: R.overCeiling ? "yes" : "no",
                 capacity_action: R.mechApplies ? MECH[R.mechKey].label : "not applicable (bpo)",
                 credit_class: R.mechApplies ? MECH[R.mechKey].cred : "billing",
                 realization_factor: R.realFactor,
