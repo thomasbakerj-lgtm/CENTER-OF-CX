@@ -1,5 +1,5 @@
-// IVA + Conversational AI Intelligence — Phase 1 + Phase 2 Combined
-// 7 market categories | 58 vendors scored | 16 use case fit matrix | 100-point scoring model
+// IVA + Conversational AI Intelligence: Phase 1 + Phase 2 Combined
+// 7 market categories | 50 vendors | 16 use case fit matrix | 100-point scoring model
 // Sources: Phase 1 Market Framework + Phase 2 Sprint 1-7 Research
 
 // ═══════════════════════════════════════════════════════
@@ -185,8 +185,8 @@ export const ivaVendors = {
     useCaseFit: { omnichannel: 4, voice: 3, digital: 4, helpdesk: 4, salesforce: 4, servicenow: 3, ecommerce: 4, financial: 3, healthcare: 3, publicsector: 2, bpo: 2, agentassist: 3, qa: 2, developer: 3, employee: 3, ccaas: 2 },
   },
 
-  "sprinklr": {
-    name: "Sprinklr", slug: "sprinklr", category: "enterprise",
+  "sprinklr-iva": {
+    name: "Sprinklr", slug: "sprinklr-iva", category: "enterprise",
     product: 79, enterprise: 80, bpo: 73, confidence: 3.9,
     modality: "Voice & Digital", origin: "Proprietary + LLM",
     summary: "Strong digital service and social engagement capabilities. Unified platform spanning marketing, service, and engagement.",
@@ -601,7 +601,7 @@ export const ivaVendors = {
 export const USE_CASE_SHORTLISTS = {
   omnichannel: ["kore-ai", "nice-cognigy", "ada", "google-dialogflow", "microsoft-copilot", "ibm-watsonx", "boost-ai"],
   voice: ["nice-cognigy", "omilia", "amelia-soundhound", "kore-ai", "amazon-lex", "teneo-ai", "onereach-ai"],
-  digital: ["ada", "kore-ai", "boost-ai", "sprinklr", "yellow-ai", "zendesk-ai", "intercom-fin", "liveperson"],
+  digital: ["ada", "kore-ai", "boost-ai", "sprinklr-iva", "yellow-ai", "zendesk-ai", "intercom-fin", "liveperson"],
   helpdesk: ["zendesk-ai", "intercom-fin", "freshworks-freddy", "gorgias", "kustomer"],
   salesforce: ["kore-ai", "nice-cognigy", "ada", "google-dialogflow", "decagon", "egain"],
   servicenow: ["moveworks-servicenow", "aisera", "microsoft-copilot", "ibm-watsonx", "egain"],
