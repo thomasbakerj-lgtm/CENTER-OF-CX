@@ -225,3 +225,65 @@ export function resetRail() {
   orphanPulls.clear();
   if (hasStorage()) { try { window.sessionStorage.removeItem(KEY); } catch { /* noop */ } }
 }
+
+/* ---------------------------------------------------------------- console hook */
+/**
+ * Browser console hook.
+ *
+ * Attached in production as well as dev, deliberately. The lock gate is
+ * `railReport().orphanPulls` being empty, and that has to be checkable on the
+ * deployed site. There is no local dev server in this workflow, so a dev-only
+ * hook would never be reachable at the moment it is needed.
+ *
+ * Everything exposed is read-only diagnostics over sessionStorage data the user
+ * entered themselves in this tab. No network, no persistence, no PII, and no
+ * write path other than the explicit reset.
+ *
+ *   __railReport()      contract report, prints the lock verdict, returns the object
+ *   __coc.current()     every published primitive, flat
+ *   __coc.toolsRun()    which tools have run this session
+ *   __coc.primitive(k)  read one key the way a tool would
+ *   __coc.source(k)     read one key with the tool that published it
+ *   __coc.tool(id)      one tool's last published payload
+ *   __coc.debug(on)     flip orphan-pull warnings on or off
+ *   __coc.reset()       clear the rail and the orphan record
+ *
+ * The report reads the flat snapshot rather than calling getPrimitive per key.
+ * getPrimitive records an orphan on a miss, so reporting through it would let
+ * the diagnostic alter the number it is reporting.
+ */
+if (typeof window !== "undefined" && !window.__railReport) {
+  const report = () => {
+    const r = railReport();
+    const snapshot = getCurrent();
+    const gate = r.orphanPulls.length === 0;
+    try {
+      console.log(
+        `%c rail ${gate ? "PASS" : "FAIL"} %c ${r.toolsRun.length} tool(s) run, ${r.published.length} key(s) published, ${r.orphanPulls.length} orphan pull(s)`,
+        `background:${gate ? "#0A7B55" : "#C0392B"};color:#fff;font-weight:600;padding:2px 7px;border-radius:3px`,
+        "color:inherit"
+      );
+      if (r.published.length && console.table) {
+        console.table(
+          r.published.map((k) => ({ key: k, value: snapshot[k], source: r.sources[k] || "unknown" }))
+        );
+      }
+      if (!gate) console.warn("orphan pulls. These block a tool lock:", r.orphanPulls);
+      if (r.flags.length) console.warn("rail flags:", r.flags);
+      if (!r.toolsRun.length) console.info("Rail is empty. Run a tool, then call __railReport() again.");
+    } catch { /* console shape varies by browser. Never break on logging. */ }
+    return r;
+  };
+
+  window.__railReport = report;
+  window.__coc = {
+    report,
+    current: getCurrent,
+    toolsRun: getToolsRun,
+    primitive: getPrimitive,
+    source: getPrimitiveWithSource,
+    tool: getToolResult,
+    reset: resetRail,
+    debug: (on = true) => { globalThis.__COC_RAIL_DEBUG__ = !!on; return !!on; },
+  };
+}
