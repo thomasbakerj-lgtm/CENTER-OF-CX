@@ -1,20 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS } from "./src/lib/benchmarks";
-import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { publishToolResult, getPrimitiveWithSource, sourcedExternally } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
 import { MECH, MECH_ORDER } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 const WRAP = { maxWidth: 960, margin: "0 auto", padding: "0 28px" };
-
-const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
-const money = (v) => { const x = n(v); return (x < 0 ? "-$" : "$") + Math.abs(x).toFixed(2); };
-const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x); return s + (a >= 1000000 ? "$" + (a / 1000000).toFixed(2) + "M" : a >= 1000 ? "$" + (a / 1000).toFixed(0) + "K" : "$" + Math.round(a)); };
 
 function LogoMark({ size = 30, light = true }) {
   const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC;
@@ -31,6 +28,25 @@ const VBENCH = [
   { vert: "Retail & eCommerce", cpc: "$5–$8", cpr: "$6–$10", fcr: "78%" },
 ];
 
+/* @engine-start
+   Everything between these markers is the Cost per Contact engine and the only
+   things it closes over. cpc.test.mjs and cpc.report.mjs slice this exact region
+   out of this exact file at runtime and evaluate it, so the tested engine and the
+   shipped engine cannot drift apart.
+
+   n, money and fmtK were relocated here from the top of the file. They are engine
+   dependencies (compute and buildAnalystRead both call them, and every figure the
+   report prints is formatted by them), so they belong inside the tested region
+   rather than being rebuilt inside a harness where they could drift. Nothing
+   between their old and new positions evaluated them at module load, so the move
+   is behaviour-neutral.
+
+   MECH is injected from the real src/lib/mech.js and ELECTRIC, GREEN and AMBER
+   from the real src/lib/benchmarks.js. Neither is reconstructed. */
+const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
+const money = (v) => { const x = n(v); return (x < 0 ? "-$" : "$") + Math.abs(x).toFixed(2); };
+const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x); return s + (a >= 1000000 ? "$" + (a / 1000000).toFixed(2) + "M" : a >= 1000 ? "$" + (a / 1000).toFixed(0) + "K" : "$" + Math.round(a)); };
+
 const BASE = {
   monthlyContacts: 50000, denominator: "handled", fcrRate: 72, contactsPerUnresolved: 2.4,
   loadedCPC: 7, marginalCPC: 4.2, validated: false,
@@ -46,10 +62,41 @@ const ROUTE = "/tools/cost-per-contact";
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const DEFAULTS = { d: BASE, mech: "hiring" };
 
+/* The credit-class ladder, identical to the one in FCR Leakage and AI Deflection.
+   Cost per Contact referenced MECH[].cred zero times, so its confidence gate
+   disagreed with two sibling locked tools about the same mechanism: FCR Leakage
+   caps "avoid hiring" at Planning-grade because it is finance-creditable rather
+   than cash, and this tool was awarding it Finance-grade. One doctrine. */
+const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
+const RANK_GRADE = (rank) => rank >= 3 ? "Finance-grade" : rank >= 2 ? "Planning-grade" : "Directional";
+const GRADE_RANK = { "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 };
+
 function compute(d, mechKey) {
-  const fcr = Math.min(1, n(d.fcrRate) / 100), Mu = Math.max(1, n(d.contactsPerUnresolved));
-  const loaded = n(d.loadedCPC), marg = n(d.marginalCPC) > 0 ? n(d.marginalCPC) : loaded * 0.6;
+  /* Input integrity. Every one of these was silently accepted before, and a
+     scenario link decodes straight into this function with no field validation
+     in between: an edited URL could print a clean, flag-free report off a
+     negative volume or a 150% FCR. Clamping alone is not enough. A value the
+     engine had to change is a value the report must disclose, or the document
+     shows a number the engine never ran. `used` carries what was computed;
+     `entered` carries what was asked for; they are printed side by side. */
+  const guards = [];
+  const guard = (label, raw, min, max, unit) => {
+    const v = n(raw);
+    const c = Math.max(min, max === null ? v : Math.min(max, v));
+    if (c !== v) guards.push({ label, entered: v, used: c, unit: unit || "" });
+    return c;
+  };
+
+  const fcrPct = guard("First contact resolution", d.fcrRate, 0, 100, "%");
+  const fcr = fcrPct / 100;
+  const Mu = guard("Contacts per unresolved issue (M)", d.contactsPerUnresolved, 1, null, "");
+  const loaded = guard("Loaded cost per contact", d.loadedCPC, 0, null, "$");
+  const margEntered = n(d.marginalCPC);
+  const margGuarded = guard("Marginal cost per contact", d.marginalCPC, 0, null, "$");
+  const margDerived = margGuarded <= 0;
+  const marg = margDerived ? loaded * 0.6 : margGuarded;
   const mf = MECH[mechKey].f;
+  const credRank = CRED_RANK[MECH[mechKey].cred];
 
   const C = fcr * 1 + (1 - fcr) * Mu;        // total contacts per resolved issue
   const gapPct = (C - 1) * 100;
@@ -57,7 +104,7 @@ function compute(d, mechKey) {
 
   // Volume denominator: handled contacts (default) or resolved issues. The repeat
   // math differs, so the basis must be explicit. Another place a tool can lie by accident.
-  const vol = n(d.monthlyContacts);
+  const vol = guard(d.denominator === "issues" ? "Monthly resolved issues" : "Monthly handled contacts", d.monthlyContacts, 0, null, "");
   let handled, resolutions, repeatContacts;
   if (d.denominator === "issues") { resolutions = vol; handled = vol * C; repeatContacts = vol * (C - 1); }
   else { handled = vol; resolutions = vol / C; repeatContacts = vol - resolutions; }
@@ -70,18 +117,29 @@ function compute(d, mechKey) {
   const burdenLoaded = repeatContacts * loaded;   // accounting view
 
   // Channel handle economics (labor only) + blended effective minutes for FTE math.
-  const laborLoadedPerMin = n(d.agentHourly) * n(d.overheadMultiplier) / 60;
+  const agentHourly = guard("Agent hourly rate", d.agentHourly, 0, null, "$");
+  const overheadMult = guard("Overhead multiplier", d.overheadMultiplier, 1, null, "x");
+  const laborLoadedPerMin = agentHourly * overheadMult / 60;
   const chDefs = [
-    { name: "Voice", pct: n(d.voicePct), aht: n(d.voiceAHT), conc: Math.max(0.1, n(d.voiceConcurrency)), color: ELECTRIC },
-    { name: "Chat", pct: n(d.chatPct), aht: n(d.chatAHT), conc: Math.max(0.1, n(d.chatConcurrency)), color: GREEN },
-    { name: "Email", pct: n(d.emailPct), aht: n(d.emailAHT), conc: Math.max(0.1, n(d.emailConcurrency)), color: AMBER },
+    { name: "Voice", pct: guard("Voice mix", d.voicePct, 0, 100, "%"), aht: guard("Voice AHT", d.voiceAHT, 0, null, "m"), conc: Math.max(0.1, n(d.voiceConcurrency)), color: ELECTRIC },
+    { name: "Chat", pct: guard("Chat mix", d.chatPct, 0, 100, "%"), aht: guard("Chat AHT", d.chatAHT, 0, null, "m"), conc: Math.max(0.1, n(d.chatConcurrency)), color: GREEN },
+    { name: "Email", pct: guard("Email mix", d.emailPct, 0, 100, "%"), aht: guard("Email AHT", d.emailAHT, 0, null, "m"), conc: Math.max(0.1, n(d.emailConcurrency)), color: AMBER },
   ];
   const channels = chDefs.map(ch => { const effAHT = ch.aht / ch.conc; return { ...ch, effAHT, handleCPC: laborLoadedPerMin * effAHT, volume: Math.round(handled * ch.pct / 100), spend: handled * (ch.pct / 100) * laborLoadedPerMin * effAHT }; });
-  const chPctTotal = channels.reduce((s, c) => s + c.pct, 0) || 100;
-  const blendedHandle = channels.reduce((s, c) => s + (c.pct / chPctTotal) * c.handleCPC, 0);
-  const blendedEffMin = channels.reduce((s, c) => s + (c.pct / chPctTotal) * c.effAHT, 0) || 5.5;
+  /* `|| 100` used to run BEFORE the mix flag read this value, so a 0% mix became
+     100 and the guard that exists to catch exactly that never fired: blended handle
+     cost printed $0.00 with integrity checks passed. Keep the real total for the
+     flag and use the divisor only for the division. */
+  const chPctTotal = channels.reduce((s, c) => s + c.pct, 0);
+  const chDivisor = chPctTotal > 0 ? chPctTotal : 100;
+  const blendedHandle = channels.reduce((s, c) => s + (c.pct / chDivisor) * c.handleCPC, 0);
+  const blendedEffMinRaw = channels.reduce((s, c) => s + (c.pct / chDivisor) * c.effAHT, 0);
+  const blendedEffMinFallback = !(blendedEffMinRaw > 0);
+  const blendedEffMin = blendedEffMinFallback ? 5.5 : blendedEffMinRaw;
 
-  const pHrs = Math.max(1, n(d.productiveHoursPerFTE) || 140);
+  const pHrsRaw = n(d.productiveHoursPerFTE);
+  if (!(pHrsRaw > 0)) guards.push({ label: "Productive hours per FTE", entered: pHrsRaw, used: 140, unit: "h" });
+  const pHrs = pHrsRaw > 0 ? pHrsRaw : 140;
   const fteBurden = (repeatContacts * blendedEffMin / 60) / pHrs;
 
   // FCR dividend: capacity RELEASED is scenario-incremental; realizable applies the mechanism.
@@ -94,14 +152,19 @@ function compute(d, mechKey) {
   });
 
   const flags = [];
+  /* Guard disclosure comes FIRST. If the engine had to change an input, that is the
+     most important thing on the page: every figure below it was computed from a
+     number the user did not enter. */
+  for (const g of guards) flags.push({ sev: "warn", t: `${g.label}: you entered ${g.unit === "$" ? "$" : ""}${g.entered}${g.unit !== "$" ? g.unit : ""}, which is outside the possible range. Every figure in this report was computed at ${g.unit === "$" ? "$" : ""}${g.used}${g.unit !== "$" ? g.unit : ""}. Correct the input or treat the output as void.` });
+  if (margDerived) flags.push({ sev: "info", t: `No usable marginal cost was entered, so marginal was derived at 60% of loaded (${money(marg)}). Marginal cost drives the repeat-demand burden and every released figure. Enter your real variable cost before presenting any of them.` });
   if (loaded > 0 && marg >= loaded) flags.push({ sev: "warn", t: "Marginal cost is not below loaded. Marginal must be the lower, variable cost. Eliminating a contact can't recover the fixed platform and facilities in the loaded figure. Check the cost basis." });
-  if (chPctTotal !== 100) flags.push({ sev: "warn", t: `Channel mix sums to ${chPctTotal}%, not 100%. Channel spend is scaled to volume, but blended handle cost reads true only at 100%.` });
+  if (chPctTotal !== 100) flags.push({ sev: "warn", t: chPctTotal === 0 ? "Channel mix sums to 0%. Blended handle cost and the FTE burden below are not computed from your mix; effective handle time falls back to 5.5 minutes. Set the mix before reading either." : `Channel mix sums to ${chPctTotal}%, not 100%. Channel spend is scaled to volume, but blended handle cost reads true only at 100%.` });
   if (repeatShare > 0.25) flags.push({ sev: "info", t: `Repeat demand is ${(repeatShare * 100).toFixed(0)}% of all contacts, a resolution problem, not a price problem. Cutting contact cost won't fix it; raising FCR will.` });
   if (fcr < 0.70 && Mu < 1.3) flags.push({ sev: "warn", t: `Low FCR (${n(d.fcrRate)}%) paired with shallow non-FCR depth (M=${Mu}) likely understates the repeat burden. Validate reopened cases, callbacks, transfers, and follow-ups. Real M is usually higher than 1.3.` });
   if (mechKey === "none") flags.push({ sev: "warn", t: "No capacity action selected: realizable savings are $0. Pick a mechanism (overtime, hiring avoidance, vendor reduction, or headcount) before presenting any savings number." });
   if (mechKey === "headcount") flags.push({ sev: "info", t: "Headcount reduction is fully cashable but carries the highest change and CSAT risk. Confirm the FCR gain is durable before committing to it." });
 
-  return { C, gapPct, cprLoaded, loaded, marg, mf, handled: Math.round(handled), resolutions: Math.round(resolutions), repeatContacts: Math.round(repeatContacts), repeatShare, burden, burdenLoaded, channels, blendedHandle, blendedEffMin, chPctTotal, fteBurden, dividend, flags };
+  return { C, gapPct, cprLoaded, loaded, marg, margDerived, margEntered, mf, credRank, cred: MECH[mechKey].cred, ceilingGrade: RANK_GRADE(credRank), fcrPct, Mu, vol, agentHourly, overheadMult, pHrs, guards, blocked: guards.length > 0, handled: Math.round(handled), resolutions: Math.round(resolutions), repeatContacts: Math.round(repeatContacts), repeatShare, burden, burdenLoaded, channels, blendedHandle, blendedEffMin, blendedEffMinFallback, chPctTotal, fteBurden, dividend, flags };
 }
 
 function buildAnalystRead(d, r, mechKey) {
@@ -118,6 +181,8 @@ function buildAnalystRead(d, r, mechKey) {
   return out;
 }
 
+/* @engine-end */
+
 function Nav() {
   return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
 }
@@ -125,6 +190,8 @@ export default function CostPerContactCalculator() {
   const [d, setD] = useState(() => clone(DEFAULTS.d));
   const [mech, setMech] = useState(DEFAULTS.mech);
   const [pulled, setPulled] = useState({});
+  const [pullSources, setPullSources] = useState([]);
+  const [extSourced, setExtSourced] = useState(false);
   const [showMath, setShowMath] = useState(false);
   const [fromLink, setFromLink] = useState(false);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
@@ -135,19 +202,38 @@ export default function CostPerContactCalculator() {
     const s = readScenario(TOOL_ID, DEFAULTS);
     if (s) { setD(s.d); setMech(s.mech); setFromLink(true); clearScenarioParam(); return; }
 
-    const next = {}, got = {};
-    const mc = getPrimitive("monthlyContacts"), ac = getPrimitive("annualContacts");
-    if (mc != null && !isNaN(mc)) { next.monthlyContacts = Math.round(mc); got.monthlyContacts = true; }
-    else if (ac != null && !isNaN(ac)) { next.monthlyContacts = Math.round(ac / 12); got.monthlyContacts = true; }
-    const fcr = getPrimitive("fcr");
-    if (fcr != null && !isNaN(fcr)) { next.fcrRate = fcr <= 1 ? Math.round(fcr * 100) : Math.round(fcr); got.fcrRate = true; }
-    const cpc = getPrimitive("costPerContact");
-    if (cpc != null && !isNaN(cpc)) { next.loadedCPC = +cpc.toFixed(2); got.loadedCPC = true; }
-    const marg = getPrimitive("marginalPerContact");
-    if (marg != null && !isNaN(marg)) { next.marginalCPC = +marg.toFixed(2); got.marginalCPC = true; }
-    const ah = getPrimitive("agentHourly");
-    if (ah != null && !isNaN(ah)) { next.agentHourly = ah; got.agentHourly = true; }
-    if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); }
+    /* Prefill and credentialing are two different things and this tool used to
+       conflate them. Prefill may read anything on the rail, including this tool's
+       own prior run: pre-populating a field from your last visit is a convenience.
+       The confidence gate may only read values ANOTHER tool produced, because
+       Cost per Contact is the sole publisher of costPerContact and
+       marginalPerContact, and reading its own defaults back was letting it
+       credential itself to Finance-grade from numbers it invented one navigation
+       earlier. `got` records only externally sourced keys and drives both the
+       badge and the grade. `next` records everything and drives the fields. */
+    const next = {}, got = {}, srcOf = {};
+    /* Keys stay as string literals at the call site. rail-audit.mjs finds pulls by
+       matching a literal argument against the accessor name; hiding the key behind
+       a variable would remove this tool from the static audit without failing it. */
+    const take = (res, field, xform) => {
+      if (res.value == null || isNaN(res.value)) return false;
+      next[field] = xform(res.value);
+      if (res.sourceTool && res.sourceTool !== TOOL_ID) { got[field] = true; srcOf[field] = res.sourceTool; }
+      return true;
+    };
+    if (!take(getPrimitiveWithSource("monthlyContacts"), "monthlyContacts", (v) => Math.round(v)))
+      take(getPrimitiveWithSource("annualContacts"), "monthlyContacts", (v) => Math.round(v / 12));
+    take(getPrimitiveWithSource("fcr"), "fcrRate", (v) => (v <= 1 ? Math.round(v * 100) : Math.round(v)));
+    take(getPrimitiveWithSource("costPerContact"), "loadedCPC", (v) => +v.toFixed(2));
+    take(getPrimitiveWithSource("marginalPerContact"), "marginalCPC", (v) => +v.toFixed(2));
+    take(getPrimitiveWithSource("agentHourly"), "agentHourly", (v) => v);
+    if (Object.keys(next).length) setD(prev => ({ ...prev, ...next }));
+    if (Object.keys(got).length) { setPulled(got); setPullSources([...new Set(Object.values(srcOf))]); }
+
+    /* Captured once, at mount, BEFORE this tool publishes. Calling
+       sourcedExternally at render time would always be false, because by then
+       this tool's own publish has stamped itself as the source of every key. */
+    setExtSourced(sourcedExternally(["monthlyContacts", "costPerContact", "marginalPerContact"], TOOL_ID));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -155,16 +241,35 @@ export default function CostPerContactCalculator() {
   const analyst = buildAnalystRead(d, r, mech);
 
   // Finance-grade requires sourced cost basis AND a capacity mechanism AND a data attestation.
-  const sourced = ["monthlyContacts", "loadedCPC", "marginalCPC"].filter(k => pulled[k]).length === 3;
+  /* Externality is captured at mount, not recomputed here. A value you published is not a value you sourced. */
+  const sourced = extSourced;
   const mechSelected = mech !== "none";
-  const grade = (sourced && mechSelected && d.validated) ? "Finance-grade" : (sourced || mechSelected) ? "Planning-grade" : "Directional";
+  /* Two independent ceilings, and the report takes the lower.
+
+     EVIDENCE is what the inputs support. The old ladder gave Planning-grade for
+     `mechSelected` alone, and the mechanism defaults to "avoid hiring" on first
+     paint, so an untouched tool full of invented defaults presented as
+     Planning-grade and the Directional tier was unreachable in practice.
+     Selecting the default is not rigor. Evidence now requires an externally
+     sourced cost basis or an explicit data attestation.
+
+     CREDIT CLASS is what finance will actually credit, and it comes from
+     mech.js, not from here. Absorbing growth is capacity, not cash, and cannot
+     produce a Finance-grade document however well sourced the inputs are. */
+  const evidenceGrade = (sourced && d.validated) ? "Finance-grade" : (sourced || d.validated) ? "Planning-grade" : "Directional";
+  const grade = GRADE_RANK[evidenceGrade] <= GRADE_RANK[r.ceilingGrade] ? evidenceGrade : r.ceilingGrade;
+  const boundBy = GRADE_RANK[evidenceGrade] <= GRADE_RANK[r.ceilingGrade] ? "evidence" : "credit class";
   const gradeColor = grade === "Finance-grade" ? GREEN : grade === "Planning-grade" ? AMBER : MUTED;
-  const gradeWhy = grade === "Finance-grade" ? "cost basis sourced, mechanism set, data validated" : grade === "Planning-grade" ? "partial rigor. For Finance-grade: source the cost basis, select a mechanism, validate FCR/M" : "default inputs: set your numbers";
+  const gradeWhy = boundBy === "credit class"
+    ? `capped by capacity action: ${MECH[mech].label} is credited as ${r.cred}, not cash`
+    : grade === "Finance-grade" ? "cost basis sourced externally, data validated, action is cash-creditable"
+    : grade === "Planning-grade" ? (sourced ? "cost basis sourced externally, data not yet validated" : "data validated, cost basis not sourced externally")
+    : (mechSelected ? "default inputs: source the cost basis or validate your FCR and M" : "no capacity action selected");
 
 useEffect(() => {
     publishToolResult("cost-per-contact", normalizeForPublish({
       costPerContact: +r.loaded.toFixed(2), costPerResolution: +r.cprLoaded.toFixed(2),
-      contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: n(d.fcrRate) / 100,
+      contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: r.fcrPct / 100,
       repeatContactsMonthly: r.repeatContacts, repeatDemandBurdenMonthly: Math.round(r.burden), fteBurden: +r.fteBurden.toFixed(1),
       capacityAction: mech, capacityRealizationPct: Math.round(r.mf * 100), grade, analystRead: analyst[0],
     }, { sourceTool: "cost-per-contact" }).clean);
@@ -181,19 +286,19 @@ useEffect(() => {
   const mathRow = (label, val) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "5px 0", borderBottom: `1px solid ${BORDER}`, fontSize: 12 }}><span style={{ color: SLATE, fontFamily: "monospace" }}>{label}</span><span style={{ color: NAVY, fontWeight: 600, textAlign: "right" }}>{val}</span></div>;
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:760px){.cg{grid-template-columns:1fr 1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}select,input,button{font-family:inherit}@media(max-width:760px){.cg{grid-template-columns:1fr 1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}}`}</style>
       <Nav />
 
       <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "52px 28px 32px" }}>
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>Cost per Contact vs Cost per Resolution</h1>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "0 0 12px" }}>Cost per Contact vs Cost per Resolution</h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 680 }}>A $7 call that takes three contacts to resolve is a $21 resolution. This separates handle cost from resolution cost and keeps four things distinct that most ROI decks blur: cost reported, repeat-demand burden, capacity released, and savings realized.</p>
           <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             {Object.keys(pulled).length > 0 && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}>
-                <span style={{ fontSize: 12, color: "#fff", fontWeight: 600 }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from your TCO run.</span>
+                <span style={{ ...TYPE.caption, fontSize: 12, color: "#fff", fontWeight: W.semibold }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from {pullSources.length ? pullSources.join(", ") : "a previous tool"}.</span>
                 <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Editable.</span>
               </div>
             )}
@@ -256,22 +361,22 @@ useEffect(() => {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 12 }} className="s4">
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Contact</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: ELECTRIC }}>{money(r.loaded)}</div>
+              <div style={{ ...TYPE.statValue, color: ELECTRIC }}>{money(r.loaded)}</div>
               <div style={{ fontSize: 10.5, color: MUTED }}>fully-loaded</div>
             </div>
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: cprColor, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Resolution</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: "#fff" }}>{money(r.cprLoaded)}</div>
+              <div style={{ ...TYPE.statValue, color: "#fff" }}>{money(r.cprLoaded)}</div>
               <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)" }}>{r.C.toFixed(2)} contacts/issue · +{r.gapPct.toFixed(0)}%</div>
             </div>
             <div style={{ background: WARM, border: `1px solid ${AMBER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Repeat Demand Share</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: AMBER }}>{(r.repeatShare * 100).toFixed(0)}%</div>
+              <div style={{ ...TYPE.statValue, color: AMBER }}>{(r.repeatShare * 100).toFixed(0)}%</div>
               <div style={{ fontSize: 10.5, color: MUTED }}>{r.repeatContacts.toLocaleString()} repeats/mo</div>
             </div>
             <div style={{ background: WARM, border: `1px solid ${RED}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
               <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Repeat-Demand Burden</div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, color: RED }}>{fmtK(r.burden)}<span style={{ fontSize: 13, color: MUTED }}>/mo</span></div>
+              <div style={{ ...TYPE.statValue, color: RED }}>{fmtK(r.burden)}<span style={{ fontSize: 13, color: MUTED }}>/mo</span></div>
               <div style={{ fontSize: 10.5, color: MUTED }}>marginal ceiling · {r.fteBurden.toFixed(1)} FTE</div>
             </div>
           </div>
@@ -302,9 +407,9 @@ useEffect(() => {
                   <span style={{ fontSize: 9, fontWeight: 700, color: tierColor(s.tier), background: `${tierColor(s.tier)}15`, padding: "2px 6px", borderRadius: 4 }}>{s.tier}</span>
                 </div>
                 <div style={{ fontSize: 11, color: MUTED }}>Released</div>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: SLATE }}>{fmtK(s.released * 12)}/yr</div>
+                <div style={{ ...TYPE.h2, ...NUM, color: SLATE }}>{fmtK(s.released * 12)}/yr</div>
                 <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Realizable ({Math.round(r.mf * 100)}%)</div>
-                <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: GREEN }}>{fmtK(s.realizable * 12)}/yr</div>
+                <div style={{ ...TYPE.statValue, fontSize: 22, color: GREEN }}>{fmtK(s.realizable * 12)}/yr</div>
                 <div style={{ fontSize: 10.5, color: MUTED, marginTop: 3 }}>{Math.round(s.avoided).toLocaleString()} avoided/mo · {s.fte.toFixed(1)} FTE</div>
               </div>
             ))}
@@ -370,7 +475,7 @@ useEffect(() => {
                 </div>
               ))}
             </div>
-            {n(d.fcrRate) < 78 && <a href="/tools/fcr-leakage" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)", display: "inline-block" }}>→ Run FCR Leakage Diagnostic to find why resolution fails</a>}
+            {r.fcrPct < 78 && <a href="/tools/fcr-leakage" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)", display: "inline-block" }}>→ Run FCR Leakage Diagnostic to find why resolution fails</a>}
           </div>
 
           <ReportActions
@@ -389,7 +494,9 @@ useEffect(() => {
             ]}
             signals={{
               capacity_action: MECH[mech].label,
-              fcr_rate: n(d.fcrRate) + "%",
+              fcr_rate: r.fcrPct + "%",
+              ...(r.fcrPct !== n(d.fcrRate) ? { fcr_rate_entered: n(d.fcrRate) + "%" } : {}),
+              inputs_corrected: r.guards.length,
               volume_basis: d.denominator,
               cost_validated: d.validated ? "yes" : "no",
               integrity_flags: r.flags.length,
@@ -409,9 +516,10 @@ useEffect(() => {
                 ["Burden, loaded (accounting only, not savings)", fmtK(r.burdenLoaded) + "/mo"],
               ]},
               { title: "FCR Dividend: Released → Realizable", type: "table", rows: r.dividend.map(s => ["FCR +" + s.p + " → " + s.newFCR.toFixed(0) + "% (" + s.tier + ")", "released " + fmtK(s.released * 12) + "/yr · realizable " + fmtK(s.realizable * 12) + "/yr"]) },
+              ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(g => `${g.label}: entered ${g.entered}${g.unit}, computed at ${g.used}${g.unit}.`) }] : []),
               ...(r.flags.length ? [{ title: "Integrity Checks", type: "findings", items: r.flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mech].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. Report grade: ${grade}, ${gradeWhy}.` },
+              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mech].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${g.entered}${g.unit}, computed at ${g.used}${g.unit}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at 60% of loaded (${money(r.marg)}).` : ""}` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "FCR Leakage Diagnostic", reason: "Decompose repeat demand by root cause and friction type", href: "/tools/fcr-leakage" },
                 { tool: "Channel Shift Economics", reason: "Move resolvable volume to cheaper channels by issue type", href: "/tools/channel-shift" },
