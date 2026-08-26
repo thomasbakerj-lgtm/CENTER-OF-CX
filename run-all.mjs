@@ -49,16 +49,23 @@ const NO_AUDIT = argv.includes("--no-audit");
  * When a harness is built, fill in the filename here. Do not remove the row.
  */
 const REGISTRY = [
-  { tool: "BusinessCaseBuilder.jsx",      harness: "bcb.test.mjs",      claimed: "V3, Aug 2026" },
-  { tool: "TCOCalculator.jsx",            harness: "tco.test.mjs",      claimed: "V3, Aug 2026" },
-  { tool: "StaffingCalculator.jsx",       harness: "staffing.test.mjs", claimed: "V3, Aug 2026" },
-  { tool: "AIDeflectionRealityCheck.jsx", harness: "aid.test.mjs",      claimed: "V3, Jul 2026" },
-  { tool: "FCRLeakageDiagnostic.jsx",     harness: "fcr.test.mjs",      claimed: "V3, Aug 2026" },
-  { tool: "CostPerContactCalculator.jsx", harness: null,                claimed: "V3, Jul 2026" },
-  { tool: "ChannelShiftModel.jsx",        harness: null,                claimed: "V3, Jul 2026" },
-  { tool: "LicenseBundleGapChecker.jsx",  harness: null,                claimed: "V3, Jul 2026" },
-  { tool: "AttritionCostCalculator.jsx",  harness: null,                claimed: "V3, Jun 2026" },
+  { tool: "BusinessCaseBuilder.jsx",      harness: "bcb.test.mjs",      report: null,              claimed: "V3, Aug 2026" },
+  { tool: "TCOCalculator.jsx",            harness: "tco.test.mjs",      report: null,              claimed: "V3, Aug 2026" },
+  { tool: "StaffingCalculator.jsx",       harness: "staffing.test.mjs", report: null,              claimed: "V3, Aug 2026" },
+  { tool: "AIDeflectionRealityCheck.jsx", harness: "aid.test.mjs",      report: null,              claimed: "V3, Jul 2026" },
+  { tool: "FCRLeakageDiagnostic.jsx",     harness: "fcr.test.mjs",      report: "fcr.report.mjs",  claimed: "V3, Aug 2026" },
+  { tool: "CostPerContactCalculator.jsx", harness: "cpc.test.mjs",      report: "cpc.report.mjs",  claimed: "V3, Aug 2026" },
+  { tool: "ChannelShiftModel.jsx",        harness: null,                report: null,              claimed: "V3, Jul 2026" },
+  { tool: "LicenseBundleGapChecker.jsx",  harness: null,                report: null,              claimed: "V3, Jul 2026" },
+  { tool: "AttritionCostCalculator.jsx",  harness: null,                report: null,              claimed: "V3, Jun 2026" },
 ];
+
+/*
+ * Rendered-output reconciliation is V3 criterion two, and until now it lived
+ * outside this runner entirely: fcr.report.mjs existed on disk and nothing ran it.
+ * A gate nobody executes is a gate that has already stopped working. Report
+ * harnesses now run alongside their engine harness and are counted with it.
+ */
 
 /* Harnesses that verify shared infrastructure rather than one tool. */
 const INFRA = [{ name: "rail.test.mjs", covers: "src/lib rail contract" }];
@@ -132,6 +139,12 @@ for (const row of REGISTRY) {
   const r = runHarness(row.harness);
   results.push({ label: row.harness, subject: row.tool, kind: "tool", claimed: row.claimed, ...r });
   if (!QUIET && r.out && r.status !== "pass") console.log(r.out.trimEnd() + "\n");
+
+  if (row.report) {
+    const rr = runHarness(row.report);
+    results.push({ label: row.report, subject: row.tool + " (rendered)", kind: "report", claimed: row.claimed, ...rr });
+    if (!QUIET && rr.out && rr.status !== "pass") console.log(rr.out.trimEnd() + "\n");
+  }
 }
 
 /* ------------------------------------------------------------------- table */
