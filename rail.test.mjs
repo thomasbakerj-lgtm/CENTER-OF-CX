@@ -1,4 +1,4 @@
-// Rail contract verification. Run: node test/rail.test.mjs
+// Rail contract verification. Run from repo root: node rail.test.mjs
 // Shim sessionStorage so the real module runs unmodified.
 const mem = new Map();
 globalThis.window = {
@@ -11,8 +11,8 @@ globalThis.window = {
 globalThis.__COC_RAIL_DEBUG__ = false; // keep console clean; flip to true to see warnings
 
 const { publishToolResult, getPrimitive, getPrimitiveWithSource, railReport, resetRail } =
-  await import("../src/lib/toolData.js");
-const { normalizeForPublish, resolveKey } = await import("../src/lib/metrics.js");
+  await import("./src/lib/toolData.js");
+const { normalizeForPublish, resolveKey } = await import("./src/lib/metrics.js");
 
 let pass = 0, fail = 0;
 const eq = (name, got, want) => {
@@ -106,7 +106,7 @@ publishToolResult("cost-per-contact", { capacityAction: "overtime" });
 publishToolResult("channel-shift", { capacityAction: "hiring" });
 eq("F1  last writer wins on a colliding key (unchanged behavior)", getPrimitive("capacityAction"), "hiring");
 eq("F2  but the puller can now name who wrote it", getPrimitiveWithSource("capacityAction").sourceTool, "channel-shift");
-eq("F3  and can still read a specific tool's own record", (await import("../src/lib/toolData.js")).getToolResult("cost-per-contact").capacityAction, "overtime");
+eq("F3  and can still read a specific tool's own record", (await import("./src/lib/toolData.js")).getToolResult("cost-per-contact").capacityAction, "overtime");
 
 // ---------------------------------------------------------------- 9. Orphan pull detection
 resetRail();
@@ -138,7 +138,7 @@ truthy("I5  Channel Shift's annualContacts fallback is now live via derivation",
 truthy("I6  zero orphan pulls across the CPC -> AI Deflection -> Channel Shift chain", railReport().orphanPulls.length === 0);
 
 // ---------------------------------------------------------------- 12. Self-credentialing
-const { getExternalPrimitive, sourcedExternally, getToolResult } = await import("../src/lib/toolData.js");
+const { getExternalPrimitive, sourcedExternally, getToolResult } = await import("./src/lib/toolData.js");
 resetRail();
 publishToolResult("cost-per-contact", { costPerContact: 7.0, marginalPerContact: 4.2, monthlyContacts: 250000 });
 eq("J1  CPC re-reads its own costPerContact via getPrimitive (auto-fill: fine)", getPrimitive("costPerContact"), 7.0);
