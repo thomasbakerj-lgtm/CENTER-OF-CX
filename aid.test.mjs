@@ -362,6 +362,29 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("recon3: scenario labels reproduce their own net savings", ok);
 }
 
+/* ---- 12. Typography invariance and type-system compliance ----------------
+   A type change must move zero numbers. These assertions pin the headline
+   figures of the default input set so any future styling pass that touches
+   this file has to prove it changed nothing computational, and they refuse
+   the hand-written font stacks that type.js exists to eliminate. */
+{
+  const T = engine(DEF);
+  A("type: default net savings is exactly 38,598", Math.round(T.netSavings) === 38598);
+  A("type: default net automation is 29.3 percent", T.netAutomationRate.toFixed(1) === "29.3");
+  A("type: default bot resolution is 53.3 percent", T.botResolutionRate.toFixed(1) === "53.3");
+  A("type: default escalation swing is exactly 43,151", Math.round(T.escSwing) === 43151);
+  A("type: default verdict is 'Run a bounded pilot'", T.verdict === "Run a bounded pilot");
+  A("type: default headline confidence is Directional", T.headlineConf === "Directional");
+  A("type: default waterfall still closes to net", Math.abs(T.waterfallSum - T.netSavings) < 1e-6);
+
+  A("type: file imports the shared type system", /from\s+"\.\/src\/lib\/type"/.test(src));
+  A("type: no hand-written font stack survives", src.indexOf('fontFamily: "') < 0);
+  A("type: Instrument Serif is gone", src.indexOf("Instrument Serif") < 0);
+  A("type: DM Sans is gone", src.indexOf("DM Sans") < 0);
+  A("type: the Archivo import is loaded on the page", src.indexOf("FONT_IMPORT_CSS") >= 0);
+  A("type: zero em-dashes", src.indexOf(String.fromCharCode(0x2014)) < 0);
+}
+
 const r = engine(DEF);
 console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f*100) + "%");
 console.log("\n  default readout");
