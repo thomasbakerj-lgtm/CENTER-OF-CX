@@ -3,6 +3,7 @@ import ReportActions from "./ReportActions";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS } from "./src/lib/benchmarks";
+import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import { publishToolResult, getPrimitive, getExternalPrimitive, sourcedExternally } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { MECH, MECH_ORDER, MECH_DEFAULT } from "./src/lib/mech";
@@ -368,7 +369,7 @@ function Nav() {
   return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, textDecoration: "none" }}>Back to Tools</a></div></nav>;
 }
 
-const sel = { width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, fontFamily: "'DM Sans', sans-serif" };
+const sel = { width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, fontFamily: FONT };
 const lbl = { fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 };
 const cardStyle = { background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "20px 22px", marginBottom: 20 };
 
@@ -473,7 +474,7 @@ export default function AIDeflectionRealityCheck() {
   const card = (label, value, sub, color, dark) => (
     <div style={{ background: dark ? `linear-gradient(135deg, ${NAVY}, ${DEEP})` : WARM, border: dark ? "none" : `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
       <div style={{ fontSize: 10.5, fontWeight: 700, color: dark ? color : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: dark ? "#fff" : color }}>{value}</div>
+      <div style={{ ...TYPE.statValue, fontSize: 28, color: dark ? "#fff" : color }}>{value}</div>
       <div style={{ fontSize: 10.5, color: dark ? "rgba(255,255,255,0.4)" : MUTED }}>{sub}</div>
     </div>
   );
@@ -549,14 +550,14 @@ export default function AIDeflectionRealityCheck() {
   ];
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", background: WARM, minHeight: "100vh" }}>
-      <style>{`@media(max-width:720px){.cg{grid-template-columns:1fr 1fr !important}.s4{grid-template-columns:1fr 1fr !important}.s3{grid-template-columns:1fr !important}.env{grid-template-columns:1fr !important}}`}</style>
+    <div style={{ fontFamily: FONT, background: WARM, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}body{font-family:${FONT};-webkit-font-smoothing:antialiased}@media(max-width:720px){.cg{grid-template-columns:1fr 1fr !important}.s4{grid-template-columns:1fr 1fr !important}.s3{grid-template-columns:1fr !important}.env{grid-template-columns:1fr !important}}`}</style>
       <Nav />
 
       <section style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, padding: "48px 0 40px" }}>
         <div style={WRAP}>
           <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 10 }}>Cost and Economics · Diagnose before you buy</div>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 42, fontWeight: 400, color: "#fff", margin: "0 0 12px", lineHeight: 1.1 }}>AI Deflection Reality Check</h1>
+          <h1 style={{ ...TYPE.display, fontSize: "clamp(26px, 3.3vw, 37px)", color: "#fff", margin: "0 0 12px" }}>AI Deflection Reality Check</h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", maxWidth: 680, lineHeight: 1.65, margin: 0 }}>
             A 70% AI resolution rate does not mean 70% of total customer demand disappeared. The denominator determines the truth. This tool separates coverage, resolution, and durable automation into three honest rates, then values what is left at the cost that actually leaves your budget. Run it before you approve an automation business case or commit to a resolution target. Sometimes the answer is that the program pays. Sometimes it is that the slide is inflated and the move is to renegotiate, fix the foundation first, or buy nothing.
           </p>
@@ -569,7 +570,7 @@ export default function AIDeflectionRealityCheck() {
 
           {/* environment */}
           <div style={cardStyle}>
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Your environment</h3>
+            <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Your environment</h3>
             <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 16px", lineHeight: 1.6 }}>This tool is strongest after Cost per Contact, which supplies the cost basis. Eligibility is a property of your demand, not of the vendor, so it is shared across both assumption sets below. Marginal cost is the savings basis for everything on this page.</p>
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12 }} className="env">
               <NumField label="Monthly contacts" value={s.M} onChange={(v) => set("M", v)} step={1000} min={0} pulled={pulled.M} />
@@ -611,7 +612,7 @@ export default function AIDeflectionRealityCheck() {
           {/* vendors */}
           <div style={cardStyle}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
-              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: 0 }}>{s.compareMode ? "Assumption set A" : "The claim being tested"}</h3>
+              <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: 0 }}>{s.compareMode ? "Assumption set A" : "The claim being tested"}</h3>
               <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12.5, color: SLATE, cursor: "pointer" }}>
                 <input type="checkbox" checked={s.compareMode} onChange={(e) => set("compareMode", e.target.checked)} />
                 Compare two assumption sets
@@ -620,7 +621,7 @@ export default function AIDeflectionRealityCheck() {
             <VendorInputs v={s.vA} onChange={setVA} compact={s.compareMode} />
             {s.compareMode && (
               <div style={{ marginTop: 22, paddingTop: 20, borderTop: `1px solid ${BORDER}` }}>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: "0 0 14px" }}>Assumption set B</h3>
+                <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 14px" }}>Assumption set B</h3>
                 <VendorInputs v={s.vB} onChange={setVB} compact />
               </div>
             )}
@@ -635,13 +636,13 @@ export default function AIDeflectionRealityCheck() {
 
           {/* the three rates */}
           <div style={cardStyle}>
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>Coverage, resolution, and net automation<InfoDot text={DEFS.funnel.text} title={DEFS.funnel.title} /></h3>
+            <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>Coverage, resolution, and net automation<InfoDot text={DEFS.funnel.text} title={DEFS.funnel.title} /></h3>
             <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 18px" }}>Three different rates with three different denominators. The vendor's headline is apparent resolution. Your budget responds to durable net automation. Starting values are illustrative benchmarks, not a claim about your operation or any particular vendor. Replace them with your own figures.</p>
             {funnelRows.map((f, i) => (
               <div key={i} style={{ marginBottom: i === funnelRows.length - 1 ? 0 : 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: NAVY }}>{f.label}</span>
-                  <span style={{ fontSize: 11.5, color: MUTED, textAlign: "right" }}>{Math.round(f.val).toLocaleString()} / mo · {f.of}</span>
+                  <span style={{ fontSize: 11.5, color: MUTED, textAlign: "right", ...NUM }}>{Math.round(f.val).toLocaleString()} / mo · {f.of}</span>
                 </div>
                 <div style={{ height: 22, background: WARM, borderRadius: 5, overflow: "hidden", border: `1px solid ${BORDER}` }}>
                   <div style={{ width: Math.max(1, Math.min(100, f.pct)) + "%", height: "100%", background: f.color, opacity: i === 0 ? 0.35 : 0.85 }} />
@@ -664,7 +665,7 @@ export default function AIDeflectionRealityCheck() {
           {/* decision */}
           <div style={{ ...cardStyle, borderLeft: `4px solid ${toneColor(R.verdictTone)}` }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>The decision this protects<InfoDot text={DEFS.verdict.text} title={DEFS.verdict.title} /></div>
-            <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: toneColor(R.verdictTone), margin: "0 0 8px" }}>{R.verdict}</div>
+            <div style={{ ...TYPE.h1, fontSize: 26, color: toneColor(R.verdictTone), margin: "0 0 8px" }}>{R.verdict}</div>
             <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.65, margin: "0 0 10px" }}>{R.verdictWhy}</p>
             <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginBottom: 14, background: WARM, borderRadius: 8, padding: "10px 13px" }}>
               What selected this: net {fmt(R.netSavings)}/mo, upside case {fmt(R.bestNet)}/mo, eligibility {R.ep}%, evidence {R.evidenceLabel.toLowerCase()}, capacity action {MECH[R.mechKey].label.toLowerCase()}. Change any of those and the verdict can change.
@@ -676,7 +677,7 @@ export default function AIDeflectionRealityCheck() {
           <div style={{ ...cardStyle, borderLeft: `3px solid ${confColor(R.headlineConf)}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 10 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>Confidence<InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></div>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: confColor(R.headlineConf) }}>{R.headlineConf}</div>
+              <div style={{ ...TYPE.h1, fontSize: 22, color: confColor(R.headlineConf) }}>{R.headlineConf}</div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12, margin: "14px 0" }} className="env">
               <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
@@ -737,17 +738,17 @@ export default function AIDeflectionRealityCheck() {
 
           {/* bridge */}
           <div style={cardStyle}>
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Vendor claim to reality</h3>
+            <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Vendor claim to reality</h3>
             <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 16px" }}>Every subtraction, in order, starting from the resolution rate applied to all volume at loaded cost. This reconciles exactly to net monthly savings.</p>
             {R.waterfall.map((w, i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "9px 0", borderBottom: `1px solid ${BORDER}` }}>
                 <span style={{ fontSize: 12.5, color: i === 0 ? NAVY : SLATE, fontWeight: i === 0 ? 600 : 400 }}>{w.label}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: w.value >= 0 ? NAVY : RED, whiteSpace: "nowrap" }}>{(w.value >= 0 ? "+" : "") + fmt(w.value)}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: w.value >= 0 ? NAVY : RED, whiteSpace: "nowrap", ...NUM }}>{(w.value >= 0 ? "+" : "") + fmt(w.value)}</span>
               </div>
             ))}
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "14px 0 0" }}>
               <span style={{ fontSize: 14, fontWeight: 700, color: NAVY }}>Net monthly savings</span>
-              <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: R.netSavings >= 0 ? GREEN : RED }}>{fmt(R.netSavings)}</span>
+              <span style={{ ...TYPE.statValue, fontSize: 23, color: R.netSavings >= 0 ? GREEN : RED }}>{fmt(R.netSavings)}</span>
             </div>
             <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BORDER}`, fontSize: 11.5, color: MUTED, lineHeight: 1.6 }}>
               The escalation premium is a directional constant, not a measured figure. At 0% it would be {fmt(R.netAtEscZero)} a month. At {R.escP * 2}%, double what you entered, it would be {fmt(R.netAtEscDouble)}. That is a {fmt(R.escSwing)} swing across the plausible range, so measure your own post-escalation handle time before leaning on this line.
@@ -756,11 +757,11 @@ export default function AIDeflectionRealityCheck() {
 
           {/* year one */}
           <div style={cardStyle}>
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: "0 0 16px" }}>Year one, month by month</h3>
+            <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 16px" }}>Year one, month by month</h3>
             <div style={{ display: "flex", gap: 24, alignItems: "flex-end", flexWrap: "wrap" }}>
-              <div><div style={{ fontSize: 11, color: MUTED }}>Year 1 {s.rampOn ? "(ramped " + s.rampMonths + "mo)" : "(full)"}</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: R.year1 >= 0 ? GREEN : RED }}>{fmtK(R.year1)}</div></div>
-              <div><div style={{ fontSize: 11, color: MUTED }}>Steady-state annual</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: NAVY }}>{fmtK(R.steadyAnnual)}</div></div>
-              <div><div style={{ fontSize: 11, color: MUTED }}>Payback</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: R.payback ? NAVY : RED }}>{R.payback ? "Mo " + R.payback : "None"}</div></div>
+              <div><div style={{ fontSize: 11, color: MUTED }}>Year 1 {s.rampOn ? "(ramped " + s.rampMonths + "mo)" : "(full)"}</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.year1 >= 0 ? GREEN : RED }}>{fmtK(R.year1)}</div></div>
+              <div><div style={{ fontSize: 11, color: MUTED }}>Steady-state annual</div><div style={{ ...TYPE.statValue, fontSize: 24, color: NAVY }}>{fmtK(R.steadyAnnual)}</div></div>
+              <div><div style={{ fontSize: 11, color: MUTED }}>Payback</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.payback ? NAVY : RED }}>{R.payback ? "Mo " + R.payback : "None"}</div></div>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 48 }}>
                   {R.monthly.map((m, i) => { const mx = Math.max(...R.monthly.map(Math.abs), 1); return <div key={i} title={"Mo " + (i + 1) + ": " + fmtK(m)} style={{ flex: 1, height: Math.max(4, (Math.abs(m) / mx) * 100) + "%", background: m >= 0 ? GREEN : RED, opacity: 0.35 + 0.65 * (i / 11), borderRadius: 2 }} />; })}
@@ -783,7 +784,7 @@ export default function AIDeflectionRealityCheck() {
               {scenarios.map((x, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "13px 15px", border: `1px solid ${i === 1 ? "rgba(0,170,255,0.4)" : "rgba(255,255,255,0.06)"}` }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.6 }}>{x.label}</div>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: x.netSavings >= 0 ? "#fff" : RED }}>{fmtK(x.netSavings)}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>/mo</span></div>
+                  <div style={{ ...TYPE.statValue, fontSize: 21, color: x.netSavings >= 0 ? "#fff" : RED }}>{fmtK(x.netSavings)}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>/mo</span></div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>{x.netAutomationRate.toFixed(1)}% net automation of total</div>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>eligible {x.eligibleRate}% · resolution {x.apparentResolutionRate}% · repeat {x.repeatLeakRate}%</div>
                 </div>
@@ -799,13 +800,13 @@ export default function AIDeflectionRealityCheck() {
           {/* compare */}
           {s.compareMode && (
             <div style={cardStyle}>
-              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Assumption set A vs B</h3>
+              <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Assumption set A vs B</h3>
               <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 14px" }}>Same volume, same cost basis, same eligibility and capacity action. Only the performance assumptions differ. This compares assumptions, not commercial proposals: pricing structures, committed volumes, overage terms, and contract exposure belong in Contract Risk Scanner.</p>
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12 }} className="env">
                 {[["A", R], ["B", RB]].map(([k, r]) => (
                   <div key={k} style={{ background: winner === k ? ICE : WARM, border: `1px solid ${winner === k ? ELECTRIC : BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase" }}>Set {k} {winner === k && <span style={{ color: ELECTRIC }}>· higher net</span>}</div>
-                    <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: r.netSavings >= 0 ? GREEN : RED, margin: "4px 0" }}>{fmtK(r.netSavings)}<span style={{ fontSize: 12, color: MUTED }}>/mo</span></div>
+                    <div style={{ ...TYPE.statValue, fontSize: 24, color: r.netSavings >= 0 ? GREEN : RED, margin: "4px 0" }}>{fmtK(r.netSavings)}<span style={{ fontSize: 12, color: MUTED }}>/mo</span></div>
                     <div style={{ fontSize: 11.5, color: SLATE, lineHeight: 1.55 }}>Resolves {r.rp}% of involved, which is {r.netAutomationRate.toFixed(1)}% of total demand. Operating cost {fmtK(r.opexMonthly)}/mo. Verdict: {r.verdict}.</div>
                   </div>
                 ))}
