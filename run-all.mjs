@@ -53,7 +53,7 @@ const REGISTRY = [
   { tool: "TCOCalculator.jsx",            harness: "tco.test.mjs",      claimed: "V3, Aug 2026" },
   { tool: "StaffingCalculator.jsx",       harness: "staffing.test.mjs", claimed: "V3, Aug 2026" },
   { tool: "AIDeflectionRealityCheck.jsx", harness: "aid.test.mjs",      claimed: "V3, Jul 2026" },
-  { tool: "FCRLeakageDiagnostic.jsx",     harness: null,                claimed: "V3, Jul 2026" },
+  { tool: "FCRLeakageDiagnostic.jsx",     harness: "fcr.test.mjs",      claimed: "V3, Aug 2026" },
   { tool: "CostPerContactCalculator.jsx", harness: null,                claimed: "V3, Jul 2026" },
   { tool: "ChannelShiftModel.jsx",        harness: null,                claimed: "V3, Jul 2026" },
   { tool: "LicenseBundleGapChecker.jsx",  harness: null,                claimed: "V3, Jul 2026" },
