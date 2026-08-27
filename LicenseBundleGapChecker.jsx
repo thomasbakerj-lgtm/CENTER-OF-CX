@@ -1,19 +1,49 @@
 import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS } from "./src/lib/benchmarks";
-import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS, TYPE, W } from "./src/lib/type";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, TEAL = "#0EA5A5";
 const WRAP = { maxWidth: 1000, margin: "0 auto", padding: "0 28px" };
 
+
+/* @engine-start
+   Everything between these markers is the License Bundle Gap engine and the
+   only things it closes over. licensegap.test.mjs and licensegap.report.mjs
+   slice this exact region out of this exact file at runtime and evaluate it,
+   so the tested engine and the shipped engine cannot drift apart.
+
+   Before this extraction the arithmetic sat inline in the component body and
+   closed over fifteen useState variables, so it could not be evaluated outside
+   React at all. n, fmtK, the module and usage tables, the classifier sets and
+   DEFAULTS were relocated here unchanged: they are engine dependencies, and
+   rebuilding them inside a harness is how a harness starts testing a copy.
+   Nothing between their old and new positions evaluated at module load, so the
+   move is behaviour-neutral. COLORS is injected from the real benchmarks.js
+   and is not reconstructed. */
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x); return s + (a >= 1000000 ? "$" + (a / 1000000).toFixed(2) + "M" : a >= 1000 ? "$" + (a / 1000).toFixed(0) + "K" : "$" + Math.round(a)); };
+
+/* Guard and disclose, ported from Channel Shift unchanged.
+
+   This tool had four Math.max calls in 597 lines and none of them recorded what
+   they changed. Every seat count, price, module cost, usage fee and percentage
+   was unclamped, and a scenario link decodes straight into the arithmetic. A
+   negative module cost produced a -$9,839 effective seat and a -$17.9M hidden
+   annual, and still exported Planning-grade, because both implausibility checks
+   only looked upward. Clamping alone is not the fix: a value the engine had to
+   change is a value the report must disclose, or the document shows a number the
+   engine never ran. `used` carries what was computed, `entered` what was asked. */
+const guardVal = (g, which) => g.unit === "$" ? "$" + g[which] : `${g[which]}${g.unit}`;
+
+const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
 
 const MODULES = [
   { id: "wem", name: "WEM / WFM", typical: 25, desc: "Forecasting, scheduling, adherence", core: true, dStatus: "addon", dScope: "agentsup" },
@@ -77,6 +107,204 @@ const DEFAULTS = {
   usage: (() => { const u = {}; USAGE_TYPES.forEach(t => { u[t.id] = 0; }); return u; })(),
 };
 
+export function compute(d) {
+  const { classes, committedSeats, commitBasis, commitRate, uplift, seats18mo, evidence, confirmed, dblAck, modules, usage } = d;
+  const guards = [];
+  const guard = (label, raw, min, max, unit) => {
+    const v = n(raw);
+    const c = Math.max(min, max === null ? v : Math.min(max, v));
+    if (c !== v) guards.push({ label, entered: v, used: c, unit: unit || "" });
+    return c;
+  };
+
+  /* Every input is guarded at the point it is consumed rather than in one block
+     at the top, so an unused module with a junk cost does not raise a correction
+     the reader cannot act on. Guarded values are cached because three separate
+     passes read the same module cost and they must agree. */
+  const cls = {}, gCost = {}, gUse = {};
+  classes.forEach(c => { cls[c.id] = guard(`${c.name} seat count`, c.count, 0, null, ""); });
+  const billable = classes.reduce((sum, c) => sum + cls[c.id], 0);
+  const baseMonthly = classes.reduce((sum, c) => sum + cls[c.id] * guard(`${c.name} seat price`, c.price, 0, null, "$"), 0);
+  const scopeSeats = (sc) => sc === "all" ? billable : sc === "agentsup" ? (cls.agent + cls.sup) : sc === "agent" ? cls.agent : sc === "sup" ? cls.sup : sc === "admin" ? cls.admin : sc === "analyst" ? cls.analyst : billable;
+  let addOnMonthly = 0, tierMonthly = 0, oneTimeTotal = 0;
+  const unknowns = [], limiteds = [], tiers = [], usageFlagged = [], doubles = [];
+  MODULES.forEach(mod => {
+    const m = modules[mod.id]; if (m.need !== "yes") return;
+    const appl = scopeSeats(m.scope || "all");
+    gCost[mod.id] = (m.status === "onetime" || COST_STATUS.has(m.status)) ? guard(`${mod.name} cost`, m.cost, 0, null, "$") : n(m.cost);
+    if (m.status === "onetime") oneTimeTotal += gCost[mod.id];
+    else if (m.status === "addon") addOnMonthly += appl * gCost[mod.id];
+    else if (m.status === "tier") { tierMonthly += appl * gCost[mod.id]; tiers.push(mod.name); }
+    else if (m.status === "unknown") unknowns.push(mod.name);
+    else if (m.status === "limited") limiteds.push(mod.name);
+    else if (m.status === "usage") usageFlagged.push(mod.name);
+  });
+  USAGE_TYPES.forEach(t => { gUse[t.id] = guard(`${t.name} usage fee`, usage[t.id], 0, null, "$"); });
+  MODULES.forEach(mod => {
+    const m = modules[mod.id]; if (m.need !== "yes") return;
+    const ut = DBL_MAP[mod.id];
+    if (ut && COST_STATUS.has(m.status) && gUse[ut] > 0) doubles.push(mod.id);
+  });
+  const usageMonthly = USAGE_TYPES.reduce((sum, t) => sum + gUse[t.id], 0);
+  const licenseMonthly = baseMonthly + addOnMonthly + tierMonthly;
+  const platformMonthly = licenseMonthly + usageMonthly;
+  const quotedSeat = billable > 0 ? baseMonthly / billable : 0;
+  const effLicenseSeat = billable > 0 ? licenseMonthly / billable : 0;
+  const effPlatformSeat = billable > 0 ? platformMonthly / billable : 0;
+  const gapPct = quotedSeat > 0 ? (effPlatformSeat - quotedSeat) / quotedSeat * 100 : 0;
+  const hiddenAnnual = (platformMonthly - baseMonthly) * 12;
+  const decomp = { addOns: addOnMonthly * 12, tier: tierMonthly * 12, usage: usageMonthly * 12 };
+  const annualPlatform = platformMonthly * 12;
+  const gCommitted = guard("Committed seats", committedSeats, 0, null, "");
+  /* A renewal uplift above 100 percent per year is a repricing, not a renewal, and it
+     compounds twice into the year-three seat. Left unclamped, 900 percent turned a $185
+     seat into $18,500 with no flag anywhere. Negative uplift was worse: it modelled a
+     renewal that cuts price, and because the "no uplift entered" notice tests for exactly
+     zero, a negative value silenced its own warning. */
+  const gUplift = guard("Renewal uplift", uplift, 0, 100, "%");
+  const gSeats18 = guard("Seats added within 18 months", seats18mo, 0, null, "");
+  const commitBasisPrice = commitBasis === "quoted" ? quotedSeat : commitBasis === "custom" ? guard("Custom commit rate", commitRate, 0, null, "$") : effLicenseSeat;
+  const commitExpSeats = Math.max(0, gCommitted - billable);
+  const commitExpAnnual = commitExpSeats * commitBasisPrice * 12;
+  const usagePerSeat = billable > 0 ? usageMonthly / billable : 0;
+  const year3LicenseSeat = effLicenseSeat * Math.pow(1 + gUplift / 100, 2);
+  const year3Seat = year3LicenseSeat + usagePerSeat; // uplift applies to contracted license rates; usage held flat (volume-driven, not seat-priced)
+  const exp18Annual = gSeats18 * effPlatformSeat * 12;
+  const gapColor = gapPct > 80 ? RED : gapPct > 40 ? AMBER : GREEN;
+
+  const shelfware = MODULES.filter(mod => { const m = modules[mod.id]; return m.need === "no" && (m.status === "included" || m.status === "limited"); });
+  const anyUnsure = MODULES.some(mod => modules[mod.id].need === "unsure");
+  const needPriced = MODULES.filter(mod => modules[mod.id].need === "yes" && COST_STATUS.has(modules[mod.id].status));
+
+  // SELF-AUDIT: rank recurring cost drivers, detect category errors before they reach a board deck
+  const drivers = [];
+  MODULES.forEach(mod => { const m = modules[mod.id]; if (m.need !== "yes") return; const appl = scopeSeats(m.scope || "all"); if (m.status === "addon" || m.status === "tier") drivers.push({ name: mod.name, annual: appl * gCost[mod.id] * 12, usage: false }); });
+  if (usageMonthly > 0) drivers.push({ name: "Usage fees (metered)", annual: usageMonthly * 12, usage: true });
+  drivers.sort((a, b) => b.annual - a.annual);
+  const topDriver = drivers[0] || { name: "none", annual: 0 };
+  const dominanceShare = hiddenAnnual > 0 ? topDriver.annual / hiddenAnnual : 0;
+  // Miscategorization risk is a per-seat or tier line dominating the RECURRING LICENSE cost. Usage can legitimately dominate the hidden annual in AI-heavy contracts, so it is treated separately and never as a category error.
+  const recurringAnnual = decomp.addOns + decomp.tier;
+  const recurDrivers = drivers.filter(d => !d.usage);
+  const topRecur = recurDrivers[0] || { name: "none", annual: 0 };
+  const recurDominance = recurringAnnual > 0 ? topRecur.annual / recurringAnnual : 0;
+  const singleDriverDominant = recurDrivers.length >= 2 && recurDominance > 0.8;
+  const usageDominant = hiddenAnnual > 0 && (usageMonthly * 12) / hiddenAnnual > 0.8;
+  const gapImplausible = gapPct > 500;
+  const seatImplausible = quotedSeat > 0 && effLicenseSeat > quotedSeat * 5;
+  const hardDoubt = gapImplausible || seatImplausible;
+  const doubtWhy = [];
+  if (gapImplausible) doubtWhy.push(`bundle gap of ${gapPct.toFixed(0)}% exceeds the plausible ceiling of 500%`);
+  if (seatImplausible) doubtWhy.push(`effective license seat is ${(effLicenseSeat / Math.max(1, quotedSeat)).toFixed(1)}x the quoted seat`);
+
+  /* IMPOSSIBLE-OUTPUT BLOCKING.
+
+     Add-ons, tier upgrades and usage fees are all non-negative once guarded, so
+     quoted <= effective license <= platform seat-equivalent must hold, and none of
+     the annual figures can fall below zero. These are not warnings about unlikely
+     inputs. If one fails, the arithmetic contradicts itself and no figure in the
+     document can be trusted, so the report is voided rather than graded down. */
+  const invariants = [];
+  if (effLicenseSeat < quotedSeat - 1e-9) invariants.push("effective license seat is below the quoted seat");
+  if (effPlatformSeat < effLicenseSeat - 1e-9) invariants.push("platform seat-equivalent is below the effective license seat");
+  if (hiddenAnnual < -1e-9) invariants.push("hidden annual is below zero");
+  if (commitExpAnnual < -1e-9) invariants.push("commit exposure is below zero");
+  if (year3Seat < effPlatformSeat - 1e-9) invariants.push("year-three seat is below the year-one seat");
+  if (exp18Annual < -1e-9) invariants.push("18-month expansion is below zero");
+  if (![quotedSeat, effLicenseSeat, effPlatformSeat, gapPct, hiddenAnnual, year3Seat].every(Number.isFinite)) invariants.push("an output is not a finite number");
+
+  /* CONFIDENCE. Two named axes, lower of the two, and the report says which bound it.
+
+     There is deliberately no MECH import and no credit-class ceiling here. This tool
+     prices contract cost, which is cash out the door, not freed capacity. There is no
+     capacity action to select, so CRED_RANK has nothing to rank. Bolting a capacity
+     taxonomy onto a cost model to make it match its siblings would be decoration.
+     What replaces it is model completeness: whether the cost picture is whole. */
+  const evLabel = EVIDENCE_OPTS.find(e => e.v === evidence)?.l || evidence;
+  const docEv = DOC_EVIDENCE.has(evidence);
+  const evidenceGrade = (docEv && confirmed) ? "Finance-grade" : (docEv || evidence === "email") ? "Planning-grade" : "Directional";
+
+  const modelBlockers = [];
+  if (invariants.length) modelBlockers.push(`output failed an internal consistency check (${invariants.join("; ")})`);
+  if (guards.length) modelBlockers.push(`${guards.length} input${guards.length > 1 ? "s were" : " was"} outside the possible range and had to be corrected`);
+  if (billable <= 0) modelBlockers.push("no billable seats entered");
+  if (quotedSeat <= 0) modelBlockers.push("no quoted seat price entered");
+  if (unknowns.length) modelBlockers.push(`${unknowns.length} needed module${unknowns.length > 1 ? "s have" : " has"} unknown inclusion`);
+  if (anyUnsure) modelBlockers.push("modules still marked Unsure");
+  if (doubtWhy.length) modelBlockers.push(doubtWhy.join("; "));
+
+  const modelGaps = [];
+  if (gCommitted <= 0) modelGaps.push("committed seats not entered");
+  if (gUplift <= 0) modelGaps.push("renewal uplift not entered");
+  if (usageFlagged.length && usageMonthly === 0) modelGaps.push("usage-based modules priced at zero");
+  if (doubles.length && !dblAck) modelGaps.push("possible double counts not confirmed as separate charges");
+  if (singleDriverDominant) modelGaps.push("one recurring line dominates and its periodicity is unconfirmed");
+
+  const completenessCeiling = modelBlockers.length ? "Directional" : modelGaps.length ? "Planning-grade" : "Finance-grade";
+  const confidence = GRADE_RANK[evidenceGrade] <= GRADE_RANK[completenessCeiling] ? evidenceGrade : completenessCeiling;
+  const boundBy = evidenceGrade === completenessCeiling ? (confidence === "Finance-grade" ? "neither" : "both")
+    : GRADE_RANK[evidenceGrade] < GRADE_RANK[completenessCeiling] ? "evidence" : "model completeness";
+  const evidenceWhy = `evidence source is ${evLabel}${docEv && !confirmed ? ", not yet confirmed in writing" : ""}`;
+  const modelWhy = (modelBlockers.length ? modelBlockers : modelGaps).join("; ");
+  const gradeWhy = boundBy === "neither" ? `document evidence (${evLabel}) confirmed in writing, and the cost model is complete`
+    : boundBy === "evidence" ? `bound by evidence: ${evidenceWhy}`
+    : boundBy === "model completeness" ? `bound by model completeness: ${modelWhy}`
+    : `bound by both: ${evidenceWhy}; and ${modelWhy}`;
+  const voided = invariants.length > 0;
+  const confColor = voided ? RED : confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? ELECTRIC : AMBER;
+
+  // INTEGRITY FLAGS
+  const flags = [];
+  if (voided) flags.push({ sev: "warn", t: `Output void: ${invariants.join("; ")}. Add-ons, tier upgrades and usage fees cannot be negative, so this result contradicts itself. Do not use any figure in this report until the inputs are corrected.` });
+  for (const g of guards) flags.push({ sev: "warn", t: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the possible range. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.` });
+  doubles.forEach(id => flags.push(dblAck
+    ? { sev: "info", t: `Double count reviewed: ${DBL_LABEL[id]} confirmed as separate charges.` }
+    : { sev: "warn", t: `Possible double count: ${DBL_LABEL[id]} are both entered. Confirm these are separate charges, not one already including the other.` }));
+  if (unknowns.length) flags.push({ sev: "warn", t: `Unknown inclusion: ${unknowns.join(", ")} needed but bundle status unconfirmed. Get it in writing. This caps confidence at Directional.` });
+  if (limiteds.length) flags.push({ sev: "warn", t: `Limited inclusion: ${limiteds.join(", ")} included but capped. Confirm the limit against real volume; overage is where the next surprise hides.` });
+  if (tiers.length) flags.push({ sev: "warn", t: `Tier upgrade: ${tiers.join(", ")} force an edition jump ($${tierMonthly > 0 ? Math.round(tierMonthly / Math.max(1, billable)) : 0}/seat blended). Vendor may require all seats on the higher edition. Confirm upgrade scope in writing.` });
+  if (usageFlagged.length && usageMonthly === 0) flags.push({ sev: "warn", t: `Usage fee missing: ${usageFlagged.join(", ")} usage-based, but no usage cost entered. The platform equivalent is understated until you add it.` });
+  if (commitExpSeats > 0) flags.push({ sev: "warn", t: `Commit exposure: ${gCommitted} committed vs ${billable} active, ${commitExpSeats} idle seats at the ${commitBasis === "quoted" ? "quoted" : commitBasis === "custom" ? "custom" : "license"} basis ($${commitBasisPrice.toFixed(0)}) = ${fmtK(commitExpAnnual)}/yr. Leverage and real cost, not waste.` });
+  if (gUplift === 0) flags.push({ sev: "info", t: `Renewal exposure: no annual uplift entered. Ask for the renewal cap and enter it. Year one rarely tells the year-three story.` });
+  if (shelfware.length) flags.push({ sev: "info", t: `Shelfware leverage: ${shelfware.map(m => m.name).join(", ")} bundled but unused. Leverage for a lower tier or credits, not recoverable savings.` });
+  if (usageMonthly > 0) flags.push({ sev: "info", t: `Normalized, not seat costs: ${fmtK(usageMonthly)}/mo of usage fees are spread across seats for comparison only. They scale with volume, not seats. The platform equivalent is not a vendor seat price.` });
+  needPriced.forEach(mod => { if (gCost[mod.id] === 0) flags.push({ sev: "info", t: `${mod.name} is needed and priced, but its cost is $0. Pull the real figure from the quote or the gap is understated.` }); });
+  if (singleDriverDominant) flags.push({ sev: "warn", t: `${topRecur.name} drives ${(recurDominance * 100).toFixed(0)}% of the recurring license cost. A single per-seat or tier line that dominates is the classic sign of a one-time or total fee miscoded as recurring. Confirm its pricing behavior before using these figures; confidence is held below Finance-grade until you do.` });
+  if (usageDominant) flags.push({ sev: "info", t: `Usage fees are ${Math.round((usageMonthly * 12 / hiddenAnnual) * 100)}% of the hidden annual. That is a usage-heavy contract, not a miscategorization, but the platform seat-equivalent will swing with volume. Confirm the volume assumptions and cap or commit these fees.` });
+  if (gapImplausible) flags.push({ sev: "warn", t: `Bundle gap of ${gapPct.toFixed(0)}% is implausibly high, which caps confidence at Directional. Recheck for a one-time or usage cost coded as recurring per-seat.` });
+  if (seatImplausible) flags.push({ sev: "warn", t: `Effective seat $${effLicenseSeat.toFixed(0)} is over ${Math.round(effLicenseSeat / Math.max(1, quotedSeat))}x the quoted $${quotedSeat.toFixed(0)}, which caps confidence at Directional. A gap this size almost always means a line item is miscategorized.` });
+
+  // ANALYST READ (reviewer wording)
+  const analyst = [];
+  analyst.push(`The quoted seat price is not the production-ready license cost. This model separates the vendor's headline seat from required add-ons, tier upgrades, usage-based charges, support packages, commit exposure, and renewal uplift. Across ${billable} billable seats the ${"$" + quotedSeat.toFixed(0)} quote becomes ${"$" + effLicenseSeat.toFixed(0)} once required per-seat modules and edition upgrades are added, and ${"$" + effPlatformSeat.toFixed(0)} per-seat-equivalent once usage fees are normalized in, a ${gapPct.toFixed(0)}% premium worth ${fmtK(hiddenAnnual)}/yr. The hidden annual amount is not automatically waste; it is the portion of platform cost the quote did not make obvious.`);
+  if (decomp.addOns + decomp.tier + decomp.usage > 0) analyst.push(`That hidden annual breaks down as ${fmtK(decomp.addOns)} required add-ons, ${fmtK(decomp.tier)} tier upgrades, and ${fmtK(decomp.usage)} usage fees. Each is a different negotiation: add-ons get co-termed and rate-locked, edition upgrades get scope-confirmed, usage fees get capped or committed. Treating them as one number hides the levers.`);
+  if (tiers.length) analyst.push(`${tiers.join(" and ")} ${tiers.length > 1 ? "are" : "is"} a tier upgrade, not a line item. Getting ${tiers.length > 1 ? "them" : "it"} can force every seat to a higher edition, not just the users of the feature. Confirm the upgrade scope in writing before you model it.`);
+  if (usageMonthly > 0) analyst.push(`${fmtK(usageMonthly)}/mo runs through usage meters and is normalized across seats for comparison only. It is not a seat fee. These scale with volume, so cap or commit them deliberately rather than leaving them open-ended.`);
+  if (commitExpSeats > 0) analyst.push(`You're committed to ${gCommitted} seats but staff ${billable}. That ${commitExpSeats}-seat gap, priced at the ${commitBasis === "quoted" ? "quoted base" : commitBasis === "custom" ? "custom commit" : "license"} seat, is ${fmtK(commitExpAnnual)}/yr of commit exposure. Use it to negotiate the minimum down or win ramp flexibility, but budget it until the contract says otherwise.`);
+  if (gUplift > 0) analyst.push(`At ${gUplift}% annual uplift, the license component rises while usage fees are held flat: the license seat moves from ${"$" + effLicenseSeat.toFixed(0)} to ${"$" + year3LicenseSeat.toFixed(0)}, putting the year-three platform seat-equivalent at ${"$" + year3Seat.toFixed(0)}, assuming no usage-volume growth. Negotiate the renewal cap now, while you hold the leverage.`);
+  if (oneTimeTotal > 0) analyst.push(`Implementation is a one-time cost of ${fmtK(oneTimeTotal)}, deliberately excluded from the recurring seat economics and the hidden annual, which are monthly and per-seat. Budget it once and negotiate it as an upfront concession or waiver; it is not part of the per-seat premium.`);
+  if (shelfware.length) analyst.push(`Bundled-but-unused capability is leverage, not recoverable savings. Use ${shelfware.map(m => m.name).join(", ")} to challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Do not count it as cash unless the vendor confirms a price reduction in writing.`);
+  analyst.push(`Use this to budget the real platform baseline and negotiate the terms before signature: price every required module and edition delta in writing, co-term add-ons to the master agreement, cap usage fees, and rate-lock the ${gSeats18 > 0 ? gSeats18 + " seats" : "seats"} you'll need within eighteen months. The quote is the opening move, not the price.`);
+
+  const caveats = [];
+  if (doubles.length > 0 && !dblAck) caveats.push(`possible double count not yet confirmed as separate charges (${doubles.map(id => DBL_LABEL[id]).join("; ")})`);
+  if (unknowns.length) caveats.push(`${unknowns.length} required module${unknowns.length > 1 ? "s" : ""} with unknown inclusion`);
+  if (anyUnsure) caveats.push(`needs marked Unsure`);
+  if (usageFlagged.length && usageMonthly === 0) caveats.push(`usage-based module${usageFlagged.length > 1 ? "s" : ""} with no usage cost entered`);
+  const confLine = `Confidence: ${confidence}, ${gradeWhy}. Evidence grade ${evidenceGrade} against a model-completeness ceiling of ${completenessCeiling}. ` + (caveats.length ? `Open issues: ${caveats.join("; ")}. ` : doubles.length > 0 && dblAck ? `Commercial overlap: module and usage fees confirmed as separate charges. ` : `No unresolved commercial caveats. `) + (guards.length ? `INPUTS CORRECTED: ${guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}.` : "");
+
+  return { cls, billable, baseMonthly, addOnMonthly, tierMonthly, oneTimeTotal,
+    unknowns, limiteds, tiers, usageFlagged, doubles, usageMonthly, licenseMonthly, platformMonthly,
+    quotedSeat, effLicenseSeat, effPlatformSeat, gapPct, hiddenAnnual, decomp, annualPlatform,
+    commitBasisPrice, commitExpSeats, commitExpAnnual, usagePerSeat, year3LicenseSeat, year3Seat,
+    exp18Annual, gapColor, gCommitted, gUplift, gSeats18, gCost, gUse, shelfware, anyUnsure, needPriced, drivers, topDriver, dominanceShare,
+    recurringAnnual, recurDrivers, topRecur, recurDominance, singleDriverDominant, usageDominant,
+    gapImplausible, seatImplausible, hardDoubt, doubtWhy, invariants, voided, guards,
+    evidenceGrade, completenessCeiling, modelBlockers, modelGaps, boundBy, gradeWhy,
+    confidence, confColor, flags, analyst, evLabel, caveats, confLine };
+}
+/* @engine-end */
+
 const DEFS = {
   baseSeat: "The advertised per-agent price the vendor leads with. It typically covers core voice, routing, and basic reporting only. Most everything else is priced separately.",
   effLicenseSeat: "The seat price plus the per-seat modules and edition upgrades you require. Still a true per-seat number: what one production-ready license actually costs.",
@@ -95,7 +323,7 @@ const DEFS = {
   uplift: "The annual percentage your rates rise at renewal. A quote that looks fine in year one can look very different in year three; this projects the seat forward so you negotiate the uplift now.",
   seats18mo: "Seats you expect to add within eighteen months, priced at today's rate. It shows the exposure to rate-lock before signing, while you still have leverage.",
   shelfware: "Modules bundled into your tier that you don't use. Leverage to negotiate a lower tier or credits, but usually not a line you can drop on its own, so it is flagged, never counted as recoverable savings.",
-  confidence: "How much weight this output can carry. Finance-grade is deliberately hard: it requires a real document as the evidence source, committed seats, usage fees, renewal uplift, license basis, and terms confirmed in writing.",
+  confidence: "How much weight this output can carry, on two axes with the lower one winning. Evidence grades what the numbers rest on: a document confirmed in writing is Finance-grade, a document or vendor email alone is Planning-grade, an estimate is Directional. Model completeness grades whether the cost picture is whole: unknown inclusion, unresolved Unsure flags, a corrected input, or an implausible magnitude cap it at Directional. The report always names which axis bound the result.",
   evidence: "What the numbers rest on. An estimate is a guess; a vendor email beats a guess; a proposal or order form is what finance will trust. Finance-grade requires a document, not a checkbox.",
 };
 
@@ -119,159 +347,58 @@ function Nav() {
 }
 
 export default function LicenseBundleGapChecker() {
-  const [classes, setClasses] = useState(() => clone(DEFAULTS.classes));
-  const [basis, setBasis] = useState(DEFAULTS.basis);
-  const [committedSeats, setCommittedSeats] = useState(DEFAULTS.committedSeats);
-  const [commitBasis, setCommitBasis] = useState(DEFAULTS.commitBasis);
-  const [commitRate, setCommitRate] = useState(DEFAULTS.commitRate);
-  const [uplift, setUplift] = useState(DEFAULTS.uplift);
-  const [seats18mo, setSeats18mo] = useState(DEFAULTS.seats18mo);
-  const [evidence, setEvidence] = useState(DEFAULTS.evidence);
-  const [confirmed, setConfirmed] = useState(DEFAULTS.confirmed);
-  const [dblAck, setDblAck] = useState(DEFAULTS.dblAck);
+  /* One input object rather than twelve useState slots. DEFAULTS already carried
+     the whole shape, so the scenario contract is unchanged; only the component
+     state is. The engine now receives that object and closes over nothing. */
+  const [d, setD] = useState(() => clone(DEFAULTS));
+  const set = (k, v) => setD(p => ({ ...p, [k]: v }));
   const [pulled, setPulled] = useState({});
   const [fromLink, setFromLink] = useState(false);
-  const [modules, setModules] = useState(() => clone(DEFAULTS.modules));
-  const [usage, setUsage] = useState(() => clone(DEFAULTS.usage));
+  const { classes, basis, committedSeats, commitBasis, commitRate, uplift, seats18mo, evidence, confirmed, dblAck, modules, usage } = d;
 
   useEffect(() => {
     window.scrollTo(0, 0);
 
     // A scenario link is a deliberate act. It outranks the ambient cross-tool
-    // pull, so we rehydrate and return rather than letting getPrimitive
-    // overwrite the seat count the user explicitly shared.
+    // pull, so we rehydrate and return rather than letting the rail overwrite
+    // the seat count the user explicitly shared.
     const s = readScenario(TOOL_ID, DEFAULTS);
-    if (s) {
-      setClasses(s.classes); setBasis(s.basis); setCommittedSeats(s.committedSeats);
-      setCommitBasis(s.commitBasis); setCommitRate(s.commitRate); setUplift(s.uplift);
-      setSeats18mo(s.seats18mo); setEvidence(s.evidence); setConfirmed(s.confirmed);
-      setDblAck(s.dblAck); setModules(s.modules); setUsage(s.usage);
-      setFromLink(true);
-      clearScenarioParam();
-      return;
-    }
+    if (s) { setD(s); setFromLink(true); clearScenarioParam(); return; }
 
-    const ag = getPrimitive("agents");
-    if (ag != null && !isNaN(ag)) { setClasses(c => c.map(x => x.id === "agent" ? { ...x, count: Math.round(ag) } : x)); setPulled({ agents: true }); }
+    /* This tool publishes `agents: billable`. Read back with getPrimitive, a remount
+       returned its own number and the badge told the user it came from another tool.
+       A value you published is not a value you sourced, so the badge is raised only
+       when the rail names a different producer, and it names that producer. Auto-fill
+       from your own last run stays: convenience is not evidence, but it is convenient. */
+    const ag = getPrimitiveWithSource("agents");
+    if (ag.value != null && !isNaN(ag.value)) {
+      setD(p => ({ ...p, classes: p.classes.map(x => x.id === "agent" ? { ...x, count: Math.round(ag.value) } : x) }));
+      if (ag.sourceTool && ag.sourceTool !== TOOL_ID) setPulled({ agents: true, from: ag.sourceTool });
+    }
   }, []);
 
-  const setClass = (id, k, v) => setClasses(prev => prev.map(c => c.id === id ? { ...c, [k]: n(v) } : c));
-  const setMod = (id, k, v) => setModules(prev => ({ ...prev, [id]: { ...prev[id], [k]: k === "cost" ? n(v) : v } }));
-  const setUse = (id, v) => setUsage(prev => ({ ...prev, [id]: n(v) }));
+  const setClass = (id, k, v) => setD(p => ({ ...p, classes: p.classes.map(c => c.id === id ? { ...c, [k]: n(v) } : c) }));
+  const setMod = (id, k, v) => setD(p => ({ ...p, modules: { ...p.modules, [id]: { ...p.modules[id], [k]: k === "cost" ? n(v) : v } } }));
+  const setUse = (id, v) => setD(p => ({ ...p, usage: { ...p.usage, [id]: n(v) } }));
 
-  // ENGINE (node-verified v4)
-  const cls = {}; classes.forEach(c => cls[c.id] = n(c.count));
-  const billable = classes.reduce((s, c) => s + n(c.count), 0);
-  const baseMonthly = classes.reduce((s, c) => s + n(c.count) * n(c.price), 0);
-  const scopeSeats = (sc) => sc === "all" ? billable : sc === "agentsup" ? (cls.agent + cls.sup) : sc === "agent" ? cls.agent : sc === "sup" ? cls.sup : sc === "admin" ? cls.admin : sc === "analyst" ? cls.analyst : billable;
-  let addOnMonthly = 0, tierMonthly = 0, oneTimeTotal = 0;
-  const unknowns = [], limiteds = [], tiers = [], usageFlagged = [], doubles = [];
-  MODULES.forEach(mod => {
-    const m = modules[mod.id]; if (m.need !== "yes") return;
-    const appl = scopeSeats(m.scope || "all");
-    if (m.status === "onetime") oneTimeTotal += n(m.cost);
-    else if (m.status === "addon") addOnMonthly += appl * n(m.cost);
-    else if (m.status === "tier") { tierMonthly += appl * n(m.cost); tiers.push(mod.name); }
-    else if (m.status === "unknown") unknowns.push(mod.name);
-    else if (m.status === "limited") limiteds.push(mod.name);
-    else if (m.status === "usage") usageFlagged.push(mod.name);
-    const ut = DBL_MAP[mod.id];
-    if (ut && (COST_STATUS.has(m.status)) && n(usage[ut]) > 0) doubles.push(mod.id);
-  });
-  const usageMonthly = USAGE_TYPES.reduce((s, t) => s + n(usage[t.id]), 0);
-  const licenseMonthly = baseMonthly + addOnMonthly + tierMonthly;
-  const platformMonthly = licenseMonthly + usageMonthly;
-  const quotedSeat = billable > 0 ? baseMonthly / billable : 0;
-  const effLicenseSeat = billable > 0 ? licenseMonthly / billable : 0;
-  const effPlatformSeat = billable > 0 ? platformMonthly / billable : 0;
-  const gapPct = quotedSeat > 0 ? (effPlatformSeat - quotedSeat) / quotedSeat * 100 : 0;
-  const hiddenAnnual = (platformMonthly - baseMonthly) * 12;
-  const decomp = { addOns: addOnMonthly * 12, tier: tierMonthly * 12, usage: usageMonthly * 12 };
-  const annualPlatform = platformMonthly * 12;
-  const commitBasisPrice = commitBasis === "quoted" ? quotedSeat : commitBasis === "custom" ? n(commitRate) : effLicenseSeat;
-  const commitExpSeats = Math.max(0, n(committedSeats) - billable);
-  const commitExpAnnual = commitExpSeats * commitBasisPrice * 12;
-  const usagePerSeat = billable > 0 ? usageMonthly / billable : 0;
-  const year3LicenseSeat = effLicenseSeat * Math.pow(1 + n(uplift) / 100, 2);
-  const year3Seat = year3LicenseSeat + usagePerSeat; // uplift applies to contracted license rates; usage held flat (volume-driven, not seat-priced)
-  const exp18Annual = n(seats18mo) * effPlatformSeat * 12;
-  const gapColor = gapPct > 80 ? RED : gapPct > 40 ? AMBER : GREEN;
-
-  const shelfware = MODULES.filter(mod => { const m = modules[mod.id]; return m.need === "no" && (m.status === "included" || m.status === "limited"); });
-  const anyUnsure = MODULES.some(mod => modules[mod.id].need === "unsure");
-  const needPriced = MODULES.filter(mod => modules[mod.id].need === "yes" && COST_STATUS.has(modules[mod.id].status));
-
-  // SELF-AUDIT: rank recurring cost drivers, detect category errors before they reach a board deck
-  const drivers = [];
-  MODULES.forEach(mod => { const m = modules[mod.id]; if (m.need !== "yes") return; const appl = scopeSeats(m.scope || "all"); if (m.status === "addon" || m.status === "tier") drivers.push({ name: mod.name, annual: appl * n(m.cost) * 12, usage: false }); });
-  if (usageMonthly > 0) drivers.push({ name: "Usage fees (metered)", annual: usageMonthly * 12, usage: true });
-  drivers.sort((a, b) => b.annual - a.annual);
-  const topDriver = drivers[0] || { name: "none", annual: 0 };
-  const dominanceShare = hiddenAnnual > 0 ? topDriver.annual / hiddenAnnual : 0;
-  // Miscategorization risk is a per-seat or tier line dominating the RECURRING LICENSE cost. Usage can legitimately dominate the hidden annual in AI-heavy contracts, so it is treated separately and never as a category error.
-  const recurringAnnual = decomp.addOns + decomp.tier;
-  const recurDrivers = drivers.filter(d => !d.usage);
-  const topRecur = recurDrivers[0] || { name: "none", annual: 0 };
-  const recurDominance = recurringAnnual > 0 ? topRecur.annual / recurringAnnual : 0;
-  const singleDriverDominant = recurDrivers.length >= 2 && recurDominance > 0.8;
-  const usageDominant = hiddenAnnual > 0 && (usageMonthly * 12) / hiddenAnnual > 0.8;
-  const gapImplausible = gapPct > 500;
-  const seatImplausible = quotedSeat > 0 && effLicenseSeat > quotedSeat * 5;
-  const hardDoubt = gapImplausible || seatImplausible;
-
-  // CONFIDENCE (category doubt caps it: an impossible magnitude cannot export Finance-grade)
-  const planningOK = billable > 0 && quotedSeat > 0 && unknowns.length === 0 && !anyUnsure && !hardDoubt;
-  const financeOK = planningOK && DOC_EVIDENCE.has(evidence) && n(committedSeats) > 0 && n(uplift) > 0 && (usageFlagged.length === 0 || usageMonthly > 0) && (doubles.length === 0 || dblAck) && confirmed && !singleDriverDominant;
-  const confidence = financeOK ? "Finance-grade" : planningOK ? "Planning-grade" : "Directional";
-  const confColor = confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? ELECTRIC : AMBER;
-
-  // INTEGRITY FLAGS
-  const flags = [];
-  doubles.forEach(id => flags.push(dblAck
-    ? { sev: "info", t: `Double count reviewed: ${DBL_LABEL[id]} confirmed as separate charges.` }
-    : { sev: "warn", t: `Possible double count: ${DBL_LABEL[id]} are both entered. Confirm these are separate charges, not one already including the other.` }));
-  if (unknowns.length) flags.push({ sev: "warn", t: `Unknown inclusion: ${unknowns.join(", ")} needed but bundle status unconfirmed. Get it in writing. This caps confidence at Directional.` });
-  if (limiteds.length) flags.push({ sev: "warn", t: `Limited inclusion: ${limiteds.join(", ")} included but capped. Confirm the limit against real volume; overage is where the next surprise hides.` });
-  if (tiers.length) flags.push({ sev: "warn", t: `Tier upgrade: ${tiers.join(", ")} force an edition jump ($${tierMonthly > 0 ? Math.round(tierMonthly / Math.max(1, billable)) : 0}/seat blended). Vendor may require all seats on the higher edition. Confirm upgrade scope in writing.` });
-  if (usageFlagged.length && usageMonthly === 0) flags.push({ sev: "warn", t: `Usage fee missing: ${usageFlagged.join(", ")} usage-based, but no usage cost entered. The platform equivalent is understated until you add it.` });
-  if (commitExpSeats > 0) flags.push({ sev: "warn", t: `Commit exposure: ${n(committedSeats)} committed vs ${billable} active, ${commitExpSeats} idle seats at the ${commitBasis === "quoted" ? "quoted" : commitBasis === "custom" ? "custom" : "license"} basis ($${commitBasisPrice.toFixed(0)}) = ${fmtK(commitExpAnnual)}/yr. Leverage and real cost, not waste.` });
-  if (n(uplift) === 0) flags.push({ sev: "info", t: `Renewal exposure: no annual uplift entered. Ask for the renewal cap and enter it. Year one rarely tells the year-three story.` });
-  if (shelfware.length) flags.push({ sev: "info", t: `Shelfware leverage: ${shelfware.map(m => m.name).join(", ")} bundled but unused. Leverage for a lower tier or credits, not recoverable savings.` });
-  if (usageMonthly > 0) flags.push({ sev: "info", t: `Normalized, not seat costs: ${fmtK(usageMonthly)}/mo of usage fees are spread across seats for comparison only. They scale with volume, not seats. The platform equivalent is not a vendor seat price.` });
-  needPriced.forEach(mod => { if (n(modules[mod.id].cost) === 0) flags.push({ sev: "info", t: `${mod.name} is needed and priced, but its cost is $0. Pull the real figure from the quote or the gap is understated.` }); });
-  if (singleDriverDominant) flags.push({ sev: "warn", t: `${topRecur.name} drives ${(recurDominance * 100).toFixed(0)}% of the recurring license cost. A single per-seat or tier line that dominates is the classic sign of a one-time or total fee miscoded as recurring. Confirm its pricing behavior before using these figures; confidence is held below Finance-grade until you do.` });
-  if (usageDominant) flags.push({ sev: "info", t: `Usage fees are ${Math.round((usageMonthly * 12 / hiddenAnnual) * 100)}% of the hidden annual. That is a usage-heavy contract, not a miscategorization, but the platform seat-equivalent will swing with volume. Confirm the volume assumptions and cap or commit these fees.` });
-  if (gapImplausible) flags.push({ sev: "warn", t: `Bundle gap of ${gapPct.toFixed(0)}% is implausibly high, which caps confidence at Directional. Recheck for a one-time or usage cost coded as recurring per-seat.` });
-  if (seatImplausible) flags.push({ sev: "warn", t: `Effective seat $${effLicenseSeat.toFixed(0)} is over ${Math.round(effLicenseSeat / Math.max(1, quotedSeat))}x the quoted $${quotedSeat.toFixed(0)}, which caps confidence at Directional. A gap this size almost always means a line item is miscategorized.` });
-
-  // ANALYST READ (reviewer wording)
-  const analyst = [];
-  analyst.push(`The quoted seat price is not the production-ready license cost. This model separates the vendor's headline seat from required add-ons, tier upgrades, usage-based charges, support packages, commit exposure, and renewal uplift. Across ${billable} billable seats the ${"$" + quotedSeat.toFixed(0)} quote becomes ${"$" + effLicenseSeat.toFixed(0)} once required per-seat modules and edition upgrades are added, and ${"$" + effPlatformSeat.toFixed(0)} per-seat-equivalent once usage fees are normalized in, a ${gapPct.toFixed(0)}% premium worth ${fmtK(hiddenAnnual)}/yr. The hidden annual amount is not automatically waste; it is the portion of platform cost the quote did not make obvious.`);
-  if (decomp.addOns + decomp.tier + decomp.usage > 0) analyst.push(`That hidden annual breaks down as ${fmtK(decomp.addOns)} required add-ons, ${fmtK(decomp.tier)} tier upgrades, and ${fmtK(decomp.usage)} usage fees. Each is a different negotiation: add-ons get co-termed and rate-locked, edition upgrades get scope-confirmed, usage fees get capped or committed. Treating them as one number hides the levers.`);
-  if (tiers.length) analyst.push(`${tiers.join(" and ")} ${tiers.length > 1 ? "are" : "is"} a tier upgrade, not a line item. Getting ${tiers.length > 1 ? "them" : "it"} can force every seat to a higher edition, not just the users of the feature. Confirm the upgrade scope in writing before you model it.`);
-  if (usageMonthly > 0) analyst.push(`${fmtK(usageMonthly)}/mo runs through usage meters and is normalized across seats for comparison only. It is not a seat fee. These scale with volume, so cap or commit them deliberately rather than leaving them open-ended.`);
-  if (commitExpSeats > 0) analyst.push(`You're committed to ${n(committedSeats)} seats but staff ${billable}. That ${commitExpSeats}-seat gap, priced at the ${commitBasis === "quoted" ? "quoted base" : commitBasis === "custom" ? "custom commit" : "license"} seat, is ${fmtK(commitExpAnnual)}/yr of commit exposure. Use it to negotiate the minimum down or win ramp flexibility, but budget it until the contract says otherwise.`);
-  if (n(uplift) > 0) analyst.push(`At ${n(uplift)}% annual uplift, the license component rises while usage fees are held flat: the license seat moves from ${"$" + effLicenseSeat.toFixed(0)} to ${"$" + year3LicenseSeat.toFixed(0)}, putting the year-three platform seat-equivalent at ${"$" + year3Seat.toFixed(0)}, assuming no usage-volume growth. Negotiate the renewal cap now, while you hold the leverage.`);
-  if (oneTimeTotal > 0) analyst.push(`Implementation is a one-time cost of ${fmtK(oneTimeTotal)}, deliberately excluded from the recurring seat economics and the hidden annual, which are monthly and per-seat. Budget it once and negotiate it as an upfront concession or waiver; it is not part of the per-seat premium.`);
-  if (shelfware.length) analyst.push(`Bundled-but-unused capability is leverage, not recoverable savings. Use ${shelfware.map(m => m.name).join(", ")} to challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Do not count it as cash unless the vendor confirms a price reduction in writing.`);
-  analyst.push(`Use this to budget the real platform baseline and negotiate the terms before signature: price every required module and edition delta in writing, co-term add-ons to the master agreement, cap usage fees, and rate-lock the ${n(seats18mo) > 0 ? n(seats18mo) + " seats" : "seats"} you'll need within eighteen months. The quote is the opening move, not the price.`);
-
-  const evLabel = EVIDENCE_OPTS.find(e => e.v === evidence)?.l || evidence;
-  const caveats = [];
-  if (doubles.length > 0 && !dblAck) caveats.push(`possible double count not yet confirmed as separate charges (${doubles.map(id => DBL_LABEL[id]).join("; ")})`);
-  if (unknowns.length) caveats.push(`${unknowns.length} required module${unknowns.length > 1 ? "s" : ""} with unknown inclusion`);
-  if (anyUnsure) caveats.push(`needs marked Unsure`);
-  if (usageFlagged.length && usageMonthly === 0) caveats.push(`usage-based module${usageFlagged.length > 1 ? "s" : ""} with no usage cost entered`);
-  const confLine = `Confidence: ${confidence}. Evidence source: ${evLabel}. ` + (caveats.length ? `Open issues: ${caveats.join("; ")}.` : doubles.length > 0 && dblAck ? `Commercial overlap: module and usage fees confirmed as separate charges.` : `No unresolved commercial caveats.`);
+  const r = compute(d);
+  const { billable, addOnMonthly, tierMonthly, oneTimeTotal, unknowns, doubles, usageMonthly,
+    quotedSeat, effLicenseSeat, effPlatformSeat, gapPct, hiddenAnnual, decomp, annualPlatform,
+    commitExpSeats, commitExpAnnual, year3LicenseSeat, year3Seat, exp18Annual, gapColor,
+    shelfware, drivers, topRecur, singleDriverDominant, confidence, confColor, flags, analyst, confLine,
+    guards, invariants, voided, evidenceGrade, completenessCeiling, gradeWhy, doubtWhy, gCommitted, gUplift, gSeats18, gCost } = r;
 
   useEffect(() => {
+    /* A voided result fails its own consistency checks. Publishing it would hand a
+       sibling tool a negative seat price as a baseline fact, so nothing goes out. */
+    if (voided) return;
     publishToolResult("license-gap", normalizeForPublish({
       licenseQuotedSeat: +quotedSeat.toFixed(2), licenseEffectiveLicenseSeat: +effLicenseSeat.toFixed(2), licenseEffectivePlatformSeat: +effPlatformSeat.toFixed(2),
       licenseBundleGapPct: +gapPct.toFixed(1), licenseAddOnAnnual: Math.round(decomp.addOns), licenseTierAnnual: Math.round(decomp.tier), licenseUsageMonthly: Math.round(usageMonthly),
       licenseHiddenAnnual: Math.round(hiddenAnnual), licenseImplementationOneTime: Math.round(oneTimeTotal), licenseAnnualPlatform: Math.round(annualPlatform), licenseYear3Seat: +year3Seat.toFixed(2),
       licenseCommitExposureAnnual: Math.round(commitExpAnnual), agents: billable, licenseConfidence: confidence, analystRead: analyst[0],
     }, { sourceTool: "license-gap" }).clean); /* eslint-disable-next-line */
-  }, [classes, modules, usage, committedSeats, commitBasis, commitRate, uplift, seats18mo, evidence, confirmed]);
+  }, [d]);
 
   /* The exact input set the scenario link carries. Numeric scalars are coerced
      because NumField commits raw strings while typing, and "0" would otherwise
@@ -285,20 +412,20 @@ export default function LicenseBundleGapChecker() {
 
   const card = { background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 14px", textAlign: "center" };
   const lab = { fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, display: "flex", justifyContent: "center", alignItems: "center", gap: 4, lineHeight: 1.25 };
-  const big = { fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28 };
-  const h3 = { fontSize: 12, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 8px", display: "flex", alignItems: "center", gap: 6 };
+  const big = { ...TYPE.statValue, fontSize: 28 };
+  const h3 = { ...TYPE.h3, fontSize: 12, fontWeight: W.bold, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 8px", display: "flex", alignItems: "center", gap: 6 };
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:780px){.cg2{grid-template-columns:1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}.modrow{grid-template-columns:1fr 72px 104px 104px 64px!important}.moddesc{display:none!important}.clsrow{grid-template-columns:1fr 64px 76px!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:780px){.cg2{grid-template-columns:1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}.modrow{grid-template-columns:1fr 72px 104px 104px 64px!important}.moddesc{display:none!important}.clsrow{grid-template-columns:1fr 64px 76px!important}}`}</style>
       <Nav />
 
       <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "52px 28px 30px" }}>
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>License Bundle Gap Checker</h1>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "0 0 12px" }}>License Bundle Gap Checker</h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 720 }}>The advertised seat price is not the license cost. This reconciles the quote against what you actually pay: base seats by class, required add-ons and edition upgrades scoped to the seats they touch, usage fees normalized for comparison, minimum commits, and renewal uplift, plus the shelfware you can use as leverage. It hands TCO and Contract Risk better numbers; it does not replace them.</p>
-          {pulled.agents && <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}><span style={{ fontSize: 12, color: "#fff", fontWeight: 600 }}>Agent count pulled from your TCO run. Editable below.</span></div>}
+          {pulled.agents && <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}><span style={{ fontSize: 12, color: "#fff", fontWeight: W.semibold }}>Agent count pulled from your {pulled.from} run. Editable below.</span></div>}
         </div>
       </section>
 
@@ -331,7 +458,7 @@ export default function LicenseBundleGapChecker() {
                 <label style={{ fontSize: 11, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>License basis<InfoDot text={DEFS.basis} title="License basis" /></label>
                 <div style={{ display: "flex", gap: 6 }}>
                   {[["named", "Named"], ["concurrent", "Concurrent"], ["blended", "Blended"]].map(([v, l]) => (
-                    <button key={v} onClick={() => setBasis(v)} style={{ flex: 1, padding: "7px", fontSize: 11.5, fontWeight: 600, borderRadius: 6, border: `1px solid ${basis === v ? ELECTRIC : BORDER}`, background: basis === v ? ELECTRIC : "#fff", color: basis === v ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
+                    <button key={v} onClick={() => set("basis", v)} style={{ flex: 1, padding: "7px", fontSize: 11.5, fontWeight: 600, borderRadius: 6, border: `1px solid ${basis === v ? ELECTRIC : BORDER}`, background: basis === v ? ELECTRIC : "#fff", color: basis === v ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
                   ))}
                 </div>
                 <span style={{ fontSize: 10.5, color: MUTED, marginTop: 4, display: "block" }}>{basis === "concurrent" ? "Count peak simultaneous logins, not headcount." : basis === "blended" ? "Each class priced on its own edition or rate." : "Every assigned user needs a license, active or not."}</span>
@@ -340,19 +467,19 @@ export default function LicenseBundleGapChecker() {
             <div>
               <h3 style={h3}>Commitment + renewal</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                <NumField label="Committed / minimum seats" value={committedSeats} onChange={setCommittedSeats} step={5} min={0} hint="The floor you pay for, even if you staff fewer" info={DEFS.committed} infoTitle="Committed seats" />
+                <NumField label="Committed / minimum seats" value={committedSeats} onChange={v => set("committedSeats", v)} step={5} min={0} hint="The floor you pay for, even if you staff fewer" info={DEFS.committed} infoTitle="Committed seats" />
                 <div>
                   <label style={{ fontSize: 11, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Commit priced at<InfoDot text={DEFS.commitBasis} title="Commit basis" /></label>
                   <div style={{ display: "flex", gap: 6 }}>
                     {[["license", "License seat"], ["quoted", "Quoted base"], ["custom", "Custom"]].map(([v, l]) => (
-                      <button key={v} onClick={() => setCommitBasis(v)} style={{ flex: 1, padding: "6px", fontSize: 11, fontWeight: 600, borderRadius: 6, border: `1px solid ${commitBasis === v ? ELECTRIC : BORDER}`, background: commitBasis === v ? ELECTRIC : "#fff", color: commitBasis === v ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
+                      <button key={v} onClick={() => set("commitBasis", v)} style={{ flex: 1, padding: "6px", fontSize: 11, fontWeight: 600, borderRadius: 6, border: `1px solid ${commitBasis === v ? ELECTRIC : BORDER}`, background: commitBasis === v ? ELECTRIC : "#fff", color: commitBasis === v ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
                     ))}
                   </div>
-                  {commitBasis === "custom" && <div style={{ marginTop: 6 }}><Cell value={commitRate} onChange={setCommitRate} prefix="$" /></div>}
+                  {commitBasis === "custom" && <div style={{ marginTop: 6 }}><Cell value={commitRate} onChange={v => set("commitRate", v)} prefix="$" /></div>}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  <NumField label="Renewal uplift" value={uplift} onChange={setUplift} suffix="%" step={1} min={0} hint="Rate rise / year" info={DEFS.uplift} infoTitle="Renewal uplift" />
-                  <NumField label="Seats +18 mo" value={seats18mo} onChange={setSeats18mo} step={5} min={0} hint="Expansion to lock" info={DEFS.seats18mo} infoTitle="18-month expansion" />
+                  <NumField label="Renewal uplift" value={uplift} onChange={v => set("uplift", v)} suffix="%" step={1} min={0} hint="Rate rise / year" info={DEFS.uplift} infoTitle="Renewal uplift" />
+                  <NumField label="Seats +18 mo" value={seats18mo} onChange={v => set("seats18mo", v)} step={5} min={0} hint="Expansion to lock" info={DEFS.seats18mo} infoTitle="18-month expansion" />
                 </div>
               </div>
             </div>
@@ -429,7 +556,7 @@ export default function LicenseBundleGapChecker() {
           <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 18px", marginBottom: 18 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>Hidden annual above quoted baseline</span>
-              <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: AMBER }}>{fmtK(hiddenAnnual)}</span>
+              <span style={{ ...TYPE.statValue, fontSize: 24, color: AMBER }}>{fmtK(hiddenAnnual)}</span>
             </div>
             <div style={{ display: "flex", height: 14, borderRadius: 4, overflow: "hidden", marginBottom: 8, background: BORDER }}>
               {[["Add-ons", decomp.addOns, AMBER], ["Tier upgrades", decomp.tier, "#D97706"], ["Usage fees", decomp.usage, TEAL]].map(([l, v, c]) => {
@@ -447,11 +574,11 @@ export default function LicenseBundleGapChecker() {
           {drivers.length > 0 && (
             <div style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px", marginBottom: 18 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 8 }}>Top recurring cost drivers</div>
-              {drivers.slice(0, 4).map((d, i) => { const share = hiddenAnnual > 0 ? d.annual / hiddenAnnual : 0; const hot = !d.usage && d.name === topRecur.name && singleDriverDominant; return (
-                <div key={d.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 0", borderBottom: i < Math.min(3, drivers.length - 1) ? `1px solid ${BORDER}` : "none" }}>
+              {drivers.slice(0, 4).map((dr, i) => { const share = hiddenAnnual > 0 ? dr.annual / hiddenAnnual : 0; const hot = !dr.usage && dr.name === topRecur.name && singleDriverDominant; return (
+                <div key={dr.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "5px 0", borderBottom: i < Math.min(3, drivers.length - 1) ? `1px solid ${BORDER}` : "none" }}>
                   <span style={{ fontSize: 12, color: MUTED, width: 16 }}>{i + 1}</span>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: hot ? RED : NAVY, flex: 1 }}>{d.name}{hot ? " (confirm periodicity)" : ""}</span>
-                  <span style={{ fontSize: 12, color: SLATE }}>{fmtK(d.annual)}/yr</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: hot ? RED : NAVY, flex: 1 }}>{dr.name}{hot ? " (confirm periodicity)" : ""}</span>
+                  <span style={{ fontSize: 12, color: SLATE }}>{fmtK(dr.annual)}/yr</span>
                   <span style={{ fontSize: 11, color: hot ? RED : MUTED, width: 44, textAlign: "right" }}>{(share * 100).toFixed(0)}%</span>
                 </div>
               ); })}
@@ -466,11 +593,11 @@ export default function LicenseBundleGapChecker() {
           )}
 
           {/* Commercial traps */}
-          {(commitExpSeats > 0 || n(uplift) > 0 || n(seats18mo) > 0) && (
+          {(commitExpSeats > 0 || gUplift > 0 || gSeats18 > 0) && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 18 }} className="s3">
-              <div style={{ ...card, textAlign: "left", opacity: commitExpSeats > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Commit Exposure</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 21, color: commitExpSeats > 0 ? AMBER : MUTED }}>{commitExpSeats > 0 ? `${commitExpSeats} seats` : "none"}</div><div style={{ fontSize: 10, color: MUTED }}>{commitExpSeats > 0 ? `vs ${billable} active · ${fmtK(commitExpAnnual)}/yr at ${commitBasis} basis` : "committed ≤ active"}</div></div>
-              <div style={{ ...card, textAlign: "left", opacity: n(uplift) > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Year-3 Seat-Eq</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 21, color: n(uplift) > 0 ? RED : MUTED }}>${year3Seat.toFixed(0)}</div><div style={{ fontSize: 10, color: MUTED }}>{n(uplift) > 0 ? `license $${effLicenseSeat.toFixed(0)}→$${year3LicenseSeat.toFixed(0)} at ${n(uplift)}%, usage flat` : "enter uplift to project"}</div></div>
-              <div style={{ ...card, textAlign: "left", opacity: n(seats18mo) > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>18-mo Expansion</div><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 21, color: n(seats18mo) > 0 ? SLATE : MUTED }}>{fmtK(exp18Annual)}</div><div style={{ fontSize: 10, color: MUTED }}>{n(seats18mo) > 0 ? `${n(seats18mo)} seats · rate-lock now` : "enter expansion seats"}</div></div>
+              <div style={{ ...card, textAlign: "left", opacity: commitExpSeats > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Commit Exposure</div><div style={{ ...TYPE.statValue, fontSize: 21, color: commitExpSeats > 0 ? AMBER : MUTED }}>{commitExpSeats > 0 ? `${commitExpSeats} seats` : "none"}</div><div style={{ fontSize: 10, color: MUTED }}>{commitExpSeats > 0 ? `vs ${billable} active · ${fmtK(commitExpAnnual)}/yr at ${commitBasis} basis` : "committed ≤ active"}</div></div>
+              <div style={{ ...card, textAlign: "left", opacity: gUplift > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Year-3 Seat-Eq</div><div style={{ ...TYPE.statValue, fontSize: 21, color: gUplift > 0 ? RED : MUTED }}>${year3Seat.toFixed(0)}</div><div style={{ fontSize: 10, color: MUTED }}>{gUplift > 0 ? `license $${effLicenseSeat.toFixed(0)}→$${year3LicenseSeat.toFixed(0)} at ${gUplift}%, usage flat` : "enter uplift to project"}</div></div>
+              <div style={{ ...card, textAlign: "left", opacity: gSeats18 > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>18-mo Expansion</div><div style={{ ...TYPE.statValue, fontSize: 21, color: gSeats18 > 0 ? SLATE : MUTED }}>{fmtK(exp18Annual)}</div><div style={{ fontSize: 10, color: MUTED }}>{gSeats18 > 0 ? `${gSeats18} seats · rate-lock now` : "enter expansion seats"}</div></div>
             </div>
           )}
 
@@ -478,28 +605,28 @@ export default function LicenseBundleGapChecker() {
           <div style={{ border: `1px solid ${confColor}`, background: `${confColor}0A`, borderRadius: 10, padding: "12px 16px", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ fontSize: 10.5, fontWeight: 700, color: confColor, letterSpacing: 1, textTransform: "uppercase" }}>Export confidence</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: confColor }}>{confidence}</span>
+              <span style={{ fontSize: 13, fontWeight: W.bold, color: confColor }}>{voided ? "Void" : confidence}</span>
               <InfoDot text={DEFS.confidence} title="Export confidence" />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span style={{ fontSize: 11, color: SLATE, fontWeight: 600 }}>Evidence</span>
-                <div style={{ minWidth: 130 }}><Select value={evidence} onChange={setEvidence} options={EVIDENCE_OPTS} color={DOC_EVIDENCE.has(evidence) ? GREEN : MUTED} /></div>
+                <div style={{ minWidth: 130 }}><Select value={evidence} onChange={v => set("evidence", v)} options={EVIDENCE_OPTS} color={DOC_EVIDENCE.has(evidence) ? GREEN : MUTED} /></div>
                 <InfoDot text={DEFS.evidence} title="Evidence source" align="right" />
               </div>
               <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }}>
-                <input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} style={{ width: 15, height: 15, accentColor: GREEN }} />
+                <input type="checkbox" checked={confirmed} onChange={e => set("confirmed", e.target.checked)} style={{ width: 15, height: 15, accentColor: GREEN }} />
                 <span style={{ fontSize: 12, color: SLATE, fontWeight: 600 }}>Confirmed in writing</span>
               </label>
             </div>
           </div>
           {doubles.length > 0 && (
             <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", border: `1px solid ${dblAck ? GREEN : AMBER}`, background: `${dblAck ? GREEN : AMBER}0A`, borderRadius: 8, padding: "9px 14px", marginBottom: 8 }}>
-              <input type="checkbox" checked={dblAck} onChange={e => setDblAck(e.target.checked)} style={{ width: 15, height: 15, accentColor: GREEN }} />
+              <input type="checkbox" checked={dblAck} onChange={e => set("dblAck", e.target.checked)} style={{ width: 15, height: 15, accentColor: GREEN }} />
               <span style={{ fontSize: 12, color: SLATE, fontWeight: 600 }}>Possible double counts confirmed as separate charges{!dblAck && <span style={{ color: AMBER, fontWeight: 700 }}>, required for Finance-grade</span>}</span>
             </label>
           )}
-          {confidence !== "Finance-grade" && <p style={{ fontSize: 11.5, color: MUTED, margin: "0 0 18px" }}>{confidence === "Directional" ? "Directional until needed modules have known inclusion and pricing. Resolve every Unknown and Unsure to reach Planning-grade." : `Planning-grade. Finance-grade needs a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, renewal uplift, priced usage${doubles.length > 0 && !dblAck ? ", possible double counts confirmed separate" : ""}, and confirmation in writing.`}</p>}
+          <p style={{ fontSize: 11.5, color: voided ? RED : MUTED, margin: "0 0 18px" }}>{voided ? `Output void: ${invariants.join("; ")}. Correct the inputs before using any figure above.` : `Evidence ${evidenceGrade}, model completeness ${completenessCeiling}, ${gradeWhy}.`}</p>
 
           {/* Shelfware */}
           {shelfware.length > 0 && (
@@ -544,13 +671,22 @@ export default function LicenseBundleGapChecker() {
             ]}
             signals={{
               evidence,
+              evidence_grade: evidenceGrade,
+              completeness_ceiling: completenessCeiling,
+              grade_bound_by: gradeWhy,
               billable_seats: billable,
               shelfware_modules: shelfware.length,
               integrity_flags: flags.length,
+              inputs_corrected: guards.length,
+              output_void: voided ? "yes" : "no",
+              magnitude_doubt: doubtWhy.length ? doubtWhy.join("; ") : "none",
               commit_exposure_seats: commitExpSeats,
+              agents_pulled_from: pulled.from || "none",
               from_scenario_link: fromLink ? "yes" : "no",
             }}
             sections={[
+              ...(voided ? [{ title: "\u26A0 Output Void", type: "findings", items: invariants.map(t => `${t}. This report contradicts itself and no figure in it can be used.`) }] : []),
+              ...(guards.length ? [{ title: "\u26A0 Inputs Corrected Before Calculation", type: "findings", items: guards.map(g => `${g.label}: entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}.`) }] : []),
               { title: "Confidence & Evidence", type: "text", content: confLine },
               { title: "Seat Economics", type: "metrics", items: [
                 { label: "Quoted Seat", value: "$" + quotedSeat.toFixed(0), color: ELECTRIC, sub: "vendor headline" },
@@ -567,18 +703,18 @@ export default function LicenseBundleGapChecker() {
               { title: "Module Coverage", type: "table", rows: MODULES.filter(m => modules[m.id].need !== "no" || modules[m.id].status === "included" || modules[m.id].status === "limited").map(m => {
                 const x = modules[m.id]; const st = STATUS_OPTS.find(s => s.v === x.status)?.l || x.status;
                 const sc = COST_STATUS.has(x.status) ? " · " + (SCOPE_OPTS.find(s => s.v === x.scope)?.l || x.scope) : "";
-                const tag = x.need === "no" && (x.status === "included" || x.status === "limited") ? "Shelfware" : x.need === "unsure" ? "Unsure" : st + (COST_STATUS.has(x.status) ? " $" + n(x.cost) + sc : "");
+                const tag = x.need === "no" && (x.status === "included" || x.status === "limited") ? "Shelfware" : x.need === "unsure" ? "Unsure" : st + (COST_STATUS.has(x.status) ? " $" + gCost[m.id] + sc : "");
                 return [m.name, tag];
               }) },
-              ...(commitExpSeats > 0 || n(uplift) > 0 ? [{ title: "Commercial Exposure", type: "metrics", items: [
+              ...(commitExpSeats > 0 || gUplift > 0 ? [{ title: "Commercial Exposure", type: "metrics", items: [
                 ...(commitExpSeats > 0 ? [{ label: "Commit Exposure", value: commitExpSeats + " seats", color: AMBER, sub: fmtK(commitExpAnnual) + "/yr · " + commitBasis + " basis" }] : []),
-                ...(n(uplift) > 0 ? [{ label: "Year-3 Seat-Eq", value: "$" + year3Seat.toFixed(0), color: RED, sub: n(uplift) + "% uplift" }] : []),
-                ...(n(seats18mo) > 0 ? [{ label: "18-mo Expansion", value: fmtK(exp18Annual), color: SLATE }] : []),
+                ...(gUplift > 0 ? [{ label: "Year-3 Seat-Eq", value: "$" + year3Seat.toFixed(0), color: RED, sub: gUplift + "% uplift" }] : []),
+                ...(gSeats18 > 0 ? [{ label: "18-mo Expansion", value: fmtK(exp18Annual), color: SLATE }] : []),
               ] }] : []),
               ...(shelfware.length ? [{ title: "Shelfware (leverage, not savings)", type: "text", content: `${shelfware.length} module${shelfware.length > 1 ? "s" : ""} bundled but unused: ${shelfware.map(m => m.name).join(", ")}. Challenge tier fit, request credits, secure implementation concessions, or negotiate future module access. Not recoverable unless the vendor confirms a reduction in writing.` }] : []),
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Three figures, deliberately distinct. Quoted seat = base monthly across seat classes / billable seats. Effective license seat adds required per-seat add-ons and edition (tier) upgrades, each priced only on the seats in its scope, then divided by billable seats. Still a true per-seat figure. Effective platform seat-equivalent adds usage-based fees and normalizes across billable seats for comparison only; it is not a vendor seat price, because usage scales with volume, not seats. Hidden annual is the platform total over the quoted baseline, decomposed into add-ons, tier upgrades, and usage. Tier upgrades may force the whole base onto a higher edition. Confirm scope in writing. Commit exposure prices idle committed seats at the chosen basis (license seat by default, not the usage-loaded equivalent, to avoid overstating). The year-three projection applies the renewal uplift to the contracted license rates only and holds usage flat, because usage scales with volume rather than the contract. Modules are classified by pricing behavior (per-seat add-on, tier upgrade, usage-based, or one-time), not by commercial source, because behavior is what determines the math. Implementation and other one-time costs are shown separately and excluded from the recurring seat economics and hidden annual, because those are monthly and per-seat. Shelfware is leverage only, never recoverable savings. Confidence is ${confidence}; Finance-grade requires a document as evidence (proposal, order form, SKU schedule, or MSA), committed seats, usage treatment, renewal uplift, license basis, and written confirmation. Evidence source: ${EVIDENCE_OPTS.find(e => e.v === evidence)?.l}.` },
+              { title: "Methodology", type: "text", content: `Three figures, deliberately distinct. Quoted seat = base monthly across seat classes / billable seats. Effective license seat adds required per-seat add-ons and edition (tier) upgrades, each priced only on the seats in its scope, then divided by billable seats. Still a true per-seat figure. Effective platform seat-equivalent adds usage-based fees and normalizes across billable seats for comparison only; it is not a vendor seat price, because usage scales with volume, not seats. Hidden annual is the platform total over the quoted baseline, decomposed into add-ons, tier upgrades, and usage. Tier upgrades may force the whole base onto a higher edition. Confirm scope in writing. Commit exposure prices idle committed seats at the chosen basis (license seat by default, not the usage-loaded equivalent, to avoid overstating). The year-three projection applies the renewal uplift to the contracted license rates only and holds usage flat, because usage scales with volume rather than the contract. Modules are classified by pricing behavior (per-seat add-on, tier upgrade, usage-based, or one-time), not by commercial source, because behavior is what determines the math. Implementation and other one-time costs are shown separately and excluded from the recurring seat economics and hidden annual, because those are monthly and per-seat. Shelfware is leverage only, never recoverable savings. Confidence runs on two axes and takes the lower. The evidence axis grades what the numbers rest on: a document (proposal, order form, SKU schedule, or MSA) confirmed in writing reaches Finance-grade, a document or vendor email alone reaches Planning-grade, an estimate is Directional. The model-completeness axis grades whether the cost picture is whole: unknown inclusion, unresolved Unsure flags, corrected inputs, or an implausible magnitude cap it at Directional, and missing committed seats, missing uplift, unpriced usage, unconfirmed double counts, or an unconfirmed dominant line cap it at Planning-grade. There is deliberately no capacity credit class here, because this prices contract cost, which is cash out the door, not freed capacity. Result: ${confidence}, ${gradeWhy}. Evidence source: ${evLabel}.${guards.length ? ` INPUTS CORRECTED: ${guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${voided ? ` OUTPUT VOID: ${invariants.join("; ")}.` : ""}` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "Contract Risk Scanner", reason: "Rate-locks, co-term, promo expiration, upgrade scope, and minimum-commit terms behind these numbers", href: "/tools/contract-risk" },
                 { tool: "TCO Calculator", reason: "Roll the platform seat-equivalent and usage fees into full cost of ownership", href: "/tools/tco-calculator" },
