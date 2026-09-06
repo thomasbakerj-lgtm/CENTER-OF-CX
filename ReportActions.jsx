@@ -34,10 +34,21 @@ import { FONT, TYPE } from "./src/lib/type";
  *     state={liveState}
  *     defaults={DEFAULTS}
  *     confidence={confidence}
+ *     grades={{ evidence, realization, completeness, naReason, boundBy, why, reasons }}
  *     summary={[{ label: "Effective license seat", value: "$148" }]}
  *     signals={{ severity: "high", mechanism: "avoid hiring" }}
  *     sections={reportSections}
  *   />
+ *
+ * `grades` is OPTIONAL and backwards compatible: a tool that omits it renders and
+ * exports exactly as before. It carries the three named confidence axes of doctrine
+ * v1.1 section 5.1. When present, this component renders the axis strip beside the
+ * download and injects one standard Confidence section at the front of the PDF, so
+ * the nine tools cannot each invent their own wording for the same idea. An axis is
+ * null only where it does not apply to the tool, and `naReason` must then say why.
+ * `boundBy` names the axis holding the headline; `why` is the one-line rationale.
+ * `reasons` is an optional per-axis map: the tool supplies the sentence, this file
+ * decides where it goes, so the same explanation cannot appear twice in one PDF.
  */
 
 const NAVY = "#0B1D3A";
@@ -120,11 +131,57 @@ function Field({ label, value, onChange, placeholder, type = "text", required, b
   );
 }
 
+/* ------------------------------------------------------ confidence axes ---- */
+/*
+ * One renderer for the three-axis grade, so a retrofit cannot drift. The axis
+ * order is fixed: evidence, then realization, then completeness. A null axis is
+ * N/A and must carry a reason, because an axis that silently disappears reads as
+ * a passing axis.
+ */
+const AXIS_ORDER = ["evidence", "realization", "completeness"];
+const AXIS_LABEL = { evidence: "Evidence", realization: "Realization", completeness: "Completeness" };
+const AXIS_COLOR = (g) => g === "Finance-grade" ? GREEN : g === "Planning-grade" ? ELECTRIC : g == null ? MUTED : "#F59E0B";
+
+function AxisStrip({ grades, confidence }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      {AXIS_ORDER.map((a) => (
+        <span key={a} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ ...TYPE.eyebrow, fontSize: 9.5, letterSpacing: "0.5px", color: MUTED }}>{AXIS_LABEL[a]}</span>
+          <span style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.8px", color: AXIS_COLOR(grades[a]), background: `${AXIS_COLOR(grades[a])}1a`, padding: "2px 7px", borderRadius: 4 }}>
+            {grades[a] == null ? "N/A" : grades[a]}
+          </span>
+        </span>
+      ))}
+      {confidence && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <span style={{ ...TYPE.eyebrow, fontSize: 9.5, letterSpacing: "0.5px", color: MUTED }}>Headline</span>
+          <span style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.8px", color: "#fff", background: confidence === "Void" ? RED : AXIS_COLOR(confidence), padding: "2px 7px", borderRadius: 4 }}>{confidence}</span>
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** The one Confidence section every grades-carrying tool exports, built here not there. */
+function confidenceSection(grades, confidence) {
+  const items = [`Headline: ${confidence || "not stated"}${grades.boundBy ? `, bound by ${grades.boundBy}` : ""}.`];
+  for (const a of AXIS_ORDER) {
+    const reason = grades.reasons && grades.reasons[a];
+    items.push(grades[a] == null
+      ? `${AXIS_LABEL[a]} axis: not applicable. ${grades.naReason || "No reason was given, which is itself a defect."}`
+      : `${AXIS_LABEL[a]} axis: ${grades[a]}.${reason ? " " + reason : ""}`);
+  }
+  if (grades.why && !grades.reasons) items.push(grades.why);
+  items.push("The headline grade is the weakest of the applicable axes. Evidence is where the inputs came from, Realization is whether the modelled benefit converts to cash, and Completeness is whether the model is whole and internally consistent.");
+  return { title: "Confidence", type: "findings", items };
+}
+
 /* --------------------------------------------------------------- main ---- */
 
 export default function ReportActions({
   toolId, toolName, subtitle, routePath,
-  state, defaults, confidence, summary = [], signals = {}, sections = [],
+  state, defaults, confidence, grades = null, summary = [], signals = {}, sections = [],
 }) {
   const saved = useRef(readContact()).current;
 
@@ -151,6 +208,10 @@ export default function ReportActions({
 
   const persist = () => writeContact({ email, first, last, company, role, mobile });
 
+  /* Prepended, not appended: a reader who stops after page one has still been told
+     what the number is worth. Absent `grades`, the section list is untouched. */
+  const exportSections = grades ? [confidenceSection(grades, confidence), ...sections] : sections;
+
   const basePayload = (intent) => {
     const b = new FormData();
     b.append("_subject", `${intent === "review" ? "REVIEW REQUEST" : "Report copy"}: ${toolName}`);
@@ -158,6 +219,10 @@ export default function ReportActions({
     b.append("tool", toolName);
     b.append("tool_id", toolId);
     if (confidence) b.append("confidence", confidence);
+    if (grades) {
+      for (const a of AXIS_ORDER) b.append(`axis_${a}`, grades[a] == null ? `N/A (${grades.naReason || "no reason given"})` : grades[a]);
+      if (grades.boundBy) b.append("axis_bound_by", grades.boundBy);
+    }
     Object.entries(signals || {}).forEach(([k, v]) => b.append(`signal_${k}`, String(v)));
     (summary || []).forEach((s) => b.append(s.label, String(s.value)));
     b.append("scenario_link", link || "TOO LARGE TO ENCODE");
@@ -237,6 +302,7 @@ export default function ReportActions({
       {/* -------------------------------------------------- take it with you */}
       <div style={card}>
         <h3 style={h3}>Take this with you</h3>
+        {grades && <AxisStrip grades={grades} confidence={confidence} />}
         <p style={sub}>
           The report downloads immediately. No email required, no wall.
         </p>
@@ -247,7 +313,7 @@ export default function ReportActions({
             subtitle={subtitle}
             userName={[first, last].filter(Boolean).join(" ")}
             userEmail={email || copyEmail}
-            sections={sections}
+            sections={exportSections}
           />
 
           {link ? (
