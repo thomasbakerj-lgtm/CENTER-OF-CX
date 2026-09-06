@@ -57,7 +57,7 @@ const REGISTRY = [
   { tool: "CostPerContactCalculator.jsx", harness: "cpc.test.mjs",      report: "cpc.report.mjs",  claimed: "V3, Aug 2026" },
   { tool: "ChannelShiftModel.jsx",        harness: "channel.test.mjs",  report: "channel.report.mjs", claimed: "V3, Aug 2026" },
   { tool: "LicenseBundleGapChecker.jsx",  harness: "licensegap.test.mjs", report: "licensegap.report.mjs", claimed: "V3, Aug 2026" },
-  { tool: "AttritionCostCalculator.jsx",  harness: null,                report: null,              claimed: "V3, Jun 2026" },
+  { tool: "AttritionCostCalculator.jsx",  harness: "attrition.test.mjs", report: "attrition.report.mjs", claimed: "V3, Aug 2026" },
 ];
 
 /*
