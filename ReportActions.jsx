@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
 import { scenarioLink } from "./src/lib/scenarioUrl";
 import { FONT, TYPE } from "./src/lib/type";
+import { trackTool, track, EV } from "./src/lib/track";
 
 /**
  * ReportActions, the shared end-of-tool action block.
@@ -66,17 +67,11 @@ const CONTACT_KEY = "coc:contact";
 /** Deliberately permissive. We reject obvious typos, not unusual addresses. */
 const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v).trim());
 
-/**
- * Vercel custom events are a Pro feature. On Hobby these calls are inert.
- * They cost nothing to leave in and light up the day the plan changes.
- */
-function track(name, props) {
-  try {
-    if (typeof window !== "undefined" && typeof window.va === "function") {
-      window.va("event", { name, data: props || {} });
-    }
-  } catch { /* analytics must never break a tool */ }
-}
+/* The private window.va tracker that used to live here has been removed.
+   Measured 8 Sep 2026: Vercel custom events are a Pro and Enterprise feature,
+   so on the current plan every one of those four calls was accepted and
+   dropped. They are now routed through src/lib/track.js, which posts to a
+   transport that actually collects on a free tier. */
 
 const readContact = () => {
   try {
@@ -185,6 +180,32 @@ export default function ReportActions({
 }) {
   const saved = useRef(readContact()).current;
 
+  /* tool_complete fires here, once, and nowhere else.
+     ReportActions renders only when a tool has produced a result, and it is
+     rendered by exactly the nine rail-publishing tools, so this is the single
+     place the fact "a result was seen" is known without nine copies of the same
+     gate drifting apart. It carries the confidence grade, which separates a
+     serious user from a tourist, and the severity band the tool published into
+     signals, which separates curiosity from economic pain.
+
+     `real` is computed from state against defaults rather than trusted: a
+     reader who changed nothing is looking at our numbers, not theirs, and that
+     distinction is the whole difference between a demo view and a diagnosis.
+     No input value is read, only whether each field still equals its default. */
+  const firedRef = useRef(false);
+  useEffect(() => {
+    if (firedRef.current) return;
+    firedRef.current = true;
+    let real = false;
+    try {
+      const d = defaults || {};
+      const st = state || {};
+      real = Object.keys(d).some((k) => st[k] !== undefined && st[k] !== d[k]);
+    } catch { real = false; }
+    trackTool.complete(toolId, { real, grade: confidence, severity: signals && signals.severity });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [email, setEmail] = useState(saved.email || "");
   const [first, setFirst] = useState(saved.first || "");
   const [last, setLast] = useState(saved.last || "");
@@ -245,7 +266,7 @@ export default function ReportActions({
       await post(b);
       writeContact({ ...readContact(), email: copyEmail.trim() });
       setCopyState("sent");
-      track("report_copy_requested", { tool: toolId, confidence: confidence || "n/a" });
+      trackTool.copy(toolId, { grade: confidence });
     } catch { setCopyState("error"); }
   };
 
@@ -265,14 +286,14 @@ export default function ReportActions({
       await post(b);
       persist();
       setReviewState("sent");
-      track("review_requested", { tool: toolId, confidence: confidence || "n/a" });
+      trackTool.expertRead(toolId, { grade: confidence });
     } catch { setReviewState("error"); }
   };
 
   const onCopyLink = async () => {
     if (!link) return;
     const ok = await copyText(link);
-    if (ok) { setLinkCopied(true); track("scenario_link_copied", { tool: toolId }); setTimeout(() => setLinkCopied(false), 2400); }
+    if (ok) { setLinkCopied(true); trackTool.scenarioShare(toolId); setTimeout(() => setLinkCopied(false), 2400); }
   };
 
   const card = {
@@ -309,6 +330,8 @@ export default function ReportActions({
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18 }}>
           <ReportExport
+            toolId={toolId}
+            grade={confidence}
             toolName={toolName}
             subtitle={subtitle}
             userName={[first, last].filter(Boolean).join(" ")}
@@ -399,7 +422,7 @@ export default function ReportActions({
           </div>
         ) : !reviewOpen ? (
           <button
-            onClick={() => { setReviewOpen(true); track("review_form_opened", { tool: toolId }); }}
+            onClick={() => { setReviewOpen(true); trackTool.reviewOpened(toolId); }}
             style={primaryBtn(false)}>
             Send results and request a review
           </button>
