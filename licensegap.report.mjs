@@ -20,7 +20,12 @@
 import { readFileSync } from "fs";
 
 const SRC = readFileSync("./LicenseBundleGapChecker.jsx", "utf8");
+const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { COLORS } = await import("./src/lib/benchmarks.js");
+/* The real boundary guard and the real bucket, never reconstructed. The tool
+   publishes signals.severity through severityBucket, and sanitizeProps is what
+   decides whether that value reaches the wire or is silently dropped. */
+const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -149,9 +154,9 @@ function render(S) {
       sections: ${sectionsExpr},
     };`;
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
-    "BORDER", "GREEN", "AMBER", "RED", "TEAL", "MUT", "FROM_LINK", "PULLED_FROM", "TOOL_NAME", preamble);
+    "BORDER", "GREEN", "AMBER", "RED", "TEAL", "severityBucket", "MUT", "FROM_LINK", "PULLED_FROM", "TOOL_NAME", preamble);
   return fn(COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#E8F4FD", "#F8FAFB", "#3A4F6A",
-    COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, "#0EA5A5",
+    COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, "#0EA5A5", severityBucket,
     S.mut, S.fromLink, S.pulledFrom, toolNameM[1]);
 }
 
@@ -378,6 +383,60 @@ A("the corrections section is placed before the confidence section, so it cannot
   sectionsExpr.indexOf("Inputs Corrected") < sectionsExpr.indexOf("Confidence & Evidence"));
 A("the void section is placed first of all", sectionsExpr.indexOf("Output Void") < sectionsExpr.indexOf("Inputs Corrected"));
 A("every set produced a document", Object.keys(results).length === 4);
+
+/* ---- severity band ---- */
+/* rail-audit counts publishers with a regex, which proves the key was typed and
+   nothing else. Severity here is the hidden premium as a share of the quoted
+   seat, so the band must move with the gap, agree with the colour the same page
+   prints, survive the boundary validator, and reach the review payload. */
+console.log("\nseverity band");
+const sevDoc = (label, mut) => render({ label, mut, fromLink: false, pulledFrom: null });
+const SEV = {
+  none: sevDoc("nothing needed beyond the quote", (d) => { Object.keys(d.modules).forEach(k => { d.modules[k].need = "no"; }); }),
+  benign: sevDoc("expensive quote, small premium", (d) => { d.classes[0].price = 400; }),
+  mid: sevDoc("shipped defaults", () => {}),
+  bad: sevDoc("thin quote, same add-ons", (d) => { d.classes[0].price = 90; }),
+  severe: sevDoc("priced usage on top of the add-ons", (d) => { d.usage.ai = 4000; d.usage.transcription = 3000; }),
+};
+A("a quote with nothing hidden behind it publishes none", SEV.none.signals.severity === "none");
+A("a 15% premium publishes low", SEV.benign.signals.severity === "low");
+A("the shipped defaults publish moderate at a 48% premium", SEV.mid.signals.severity === "moderate");
+A("a 67% premium publishes high", SEV.bad.signals.severity === "high");
+A("an 85% premium publishes severe", SEV.severe.signals.severity === "severe");
+A("the band discriminates: five scenarios produce five distinct bands",
+  new Set(Object.values(SEV).map(x => x.signals.severity)).size === 5);
+
+/* The band and the gap colour the same document prints come from one ratio, so
+   they cannot say different things. Amber above 40% is moderate or worse; red
+   above 80% is severe. */
+for (const k of Object.keys(SEV)) {
+  const doc = SEV[k];
+  const r = doc.r;
+  A(k + ": a red gap colour publishes severe", !(r.gapPct > 80) || doc.signals.severity === "severe");
+  A(k + ": an amber or red gap colour never publishes below moderate",
+    !(r.gapPct > 40) || ["moderate", "high", "severe"].includes(doc.signals.severity));
+  A(k + ": a green gap colour never publishes severe", r.gapPct > 40 || doc.signals.severity !== "severe");
+}
+
+for (const [k, doc] of Object.entries({ ...results, ...SEV })) {
+  const v = doc.signals.severity;
+  if (v === undefined) { A(k + ": severity is omitted only where the export is void or there is no quote", doc.r.voided || doc.r.billable <= 0 || doc.r.quotedSeat <= 0); continue; }
+  A(k + ": the published band is in the canonical vocabulary", SEVERITY_BANDS.includes(v));
+  A(k + ": the published band survives sanitizeProps and lands on the payload", sanitizeProps({ severity: v }).severity === v);
+  A(k + ": severity reaches the manual review submission as signal_severity",
+    Object.keys(doc.signals).map(x => "signal_" + x).includes("signal_severity"));
+}
+
+/* No billable seats means there is no quote to price a premium against. gapPct
+   is a structural zero there, not a clean result, so the key is dropped. */
+const sevEmpty = sevDoc("no seats", (d) => { d.classes.forEach(c => { c.count = 0; }); });
+A("a model with no billable seats publishes no severity at all", !("severity" in sevEmpty.signals));
+A("a model with no billable seats carries no signal_severity into the review payload",
+  !Object.keys(sevEmpty.signals).map(x => "signal_" + x).includes("signal_severity"));
+
+/* The second consumer. ReportActions appends every signal to the Formspree
+   review payload, so adding severity changed the manual-handling form too. */
+A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
