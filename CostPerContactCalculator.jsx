@@ -6,6 +6,7 @@ import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
 import { MECH, MECH_ORDER } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { severityBucket } from "./src/lib/track";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -493,6 +494,23 @@ useEffect(() => {
               { label: "Repeat burden", value: fmtK(r.burden) + "/mo" },
             ]}
             signals={{
+              /* Severity is the share of handled contacts that are repeats, the
+                 exact quantity this tool exists to expose. The denominator is
+                 handled volume, so the ratio is bounded by construction and
+                 needs no anchor. It spans the whole scale on real inputs: 1% of
+                 contacts at 95% FCR and M 1.2, 28% at the shipped defaults, 50%
+                 at 50% FCR and M 3, 80% at 20% FCR and M 6.
+
+                 The 0.25 boundary is not chosen here. The engine already raises
+                 a flag above a 25% repeat share saying this is a resolution
+                 problem rather than a price problem, and 0.25 is exactly where
+                 the shared bucket turns moderate, so the published band and the
+                 flag on the page agree by construction rather than by luck.
+
+                 With no volume nothing was measured. repeatShare would compute
+                 to a clean zero and publish "none", which asserts a healthy
+                 center on an empty model, so the key is omitted instead. */
+              ...(r.handled > 0 ? { severity: severityBucket(r.repeatShare) } : {}),
               capacity_action: MECH[mech].label,
               fcr_rate: r.fcrPct + "%",
               ...(r.fcrPct !== n(d.fcrRate) ? { fcr_rate_entered: n(d.fcrRate) + "%" } : {}),
