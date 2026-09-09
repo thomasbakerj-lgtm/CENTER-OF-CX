@@ -165,11 +165,22 @@ function normalise(key, value) {
   const v = value.trim().toLowerCase();
   if (key === "grade") return v.split(/[^a-z]+/)[0] || v;
   /* Tools already publish a severity into `signals`, and they do not all use
-     the same words: TCOCalculator says normal / elevated / high, others use the
-     severityBucket bands. That text is also rendered into the downloaded report
-     and asserted by the reconciliation harnesses, so it is mapped here rather
-     than rewritten there. An unrecognised word fails the validator and the
-     property is dropped, which reads as "not published" and never as "none". */
+     the same words: TCOCalculator, StaffingCalculator and AIDeflection hand-write
+     normal / elevated / high, the other six route through severityBucket. The
+     synonyms are mapped here rather than rewritten in those three, because the
+     same value is also appended to the manual review submission ReportActions
+     builds from `signals`, and rewording it at the tool would change what a
+     human reviewer reads as well as what the wire carries.
+
+     Note the three hand-writers can only ever reach low, moderate and high.
+     `none` and `severe` are unreachable for them, which is the doctrine pattern
+     of a band unreachable in practice. That is a retrofit, not a rename, and it
+     is tracked as its own item.
+
+     An unrecognised word fails the validator and the property is dropped, which
+     reads as "not published" and never as "none". rail-audit fails the suite on
+     any literal severity value outside this allowlist, because a drop here is
+     otherwise completely silent. */
   if (key === "severity") return SEVERITY_SYNONYMS[v] || v;
   if (key === "tool" || key === "from" || key === "to") {
     return v.replace(/[^a-z0-9_-]+/g, "-").replace(/^-+/, "").replace(/-+$/, "");
