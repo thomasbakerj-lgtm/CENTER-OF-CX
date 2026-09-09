@@ -8,6 +8,7 @@ import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { TYPE, FONT, FONT_IMPORT_CSS, NUM, t } from "./src/lib/type";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { severityBucket } from "./src/lib/track";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, MUTED = COLORS.muted;
 const DEEP = "#061325", LIGHT = "#00AAFF", WARM = "#F8FAFB", SLATE = "#3A4F6A", BORDER = "#D8E3ED";
@@ -663,6 +664,26 @@ export default function AttritionCostCalculator() {
               { label: "Early-washout waste", value: fmt$(r.earlyWaste) },
             ]}
             signals={{
+              /* Severity is the annual separation rate read against a full
+                 turnover of the frontline: 35% lands moderate, 50 to 70% high,
+                 75% and above severe. The denominator is 100% of headcount, a
+                 real quantity rather than a chosen anchor.
+
+                 The dollar burden was measured as the numerator first and
+                 rejected. Annual replacement burden over loaded frontline
+                 payroll runs 0.027 at 8% attrition and 0.317 at 95%, so it never
+                 leaves the bottom two bands: a center replacing its whole staff
+                 twice a year would publish the same word as a healthy one, and
+                 three of five bands would be unreachable in practice. It also
+                 reads exactly zero at 0% backfill, which is the case where the
+                 center is emptying fastest and this model deliberately routes
+                 the cost to Staffing rather than pricing it. A band that goes
+                 quiet there would be worse than no band.
+
+                 A void export has produced an impossible figure, not a mild one,
+                 so the key is omitted rather than published as a confident
+                 reading of a model that failed its own invariant. */
+              ...(r.voided ? {} : { severity: severityBucket(r.attritionRate / 100) }),
               headline_confidence: r.voided ? "void" : r.confidence,
               evidence_axis: r.grades.evidence,
               realization_axis: r.grades.realization,
