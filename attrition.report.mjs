@@ -28,6 +28,10 @@ const SRC = readFileSync("./AttritionCostCalculator.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { COLORS } = await import("./src/lib/benchmarks.js");
 const { MECH, MECH_ORDER } = await import("./src/lib/mech.js");
+/* The real boundary guard and the real bucket, never reconstructed. The tool
+   publishes signals.severity through severityBucket, and sanitizeProps is what
+   decides whether that value reaches the wire or is silently dropped. */
+const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -155,8 +159,8 @@ function render(S) {
     const confidence = r.voided ? "Void" : r.confidence;
     return { d, r, subtitle, grades, summary, signals, sections, confidence, corrections };
   `;
-  const out = new Function("COLORS", "MECH", "MECH_ORDER", "ELECTRIC", "AMBER", "RED", "GREEN", "MUT", "FROM_LINK", body)(
-    COLORS, MECH, MECH_ORDER, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, S.mut, S.fromLink);
+  const out = new Function("COLORS", "MECH", "MECH_ORDER", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", body)(
+    COLORS, MECH, MECH_ORDER, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink);
   out.sections = [confidenceSection(out.grades, out.confidence), ...out.sections];
   return out;
 }
@@ -384,6 +388,48 @@ for (const [k, doc] of Object.entries(DOCS)) {
   A(`${k}: the rail line and the document agree on the backfill rate`, doc.r.voided || doc.r.railRead.includes(`${doc.r.backfillRate}% backfill`));
   A(`${k}: the rail line and the document agree on the un-backfilled count`, doc.r.voided || doc.r.railRead.includes(`${doc.r.unbackfilled} seats/yr`));
 }
+
+/* ---- 10. severity band ---- */
+/* rail-audit counts severity publishers with a regex, which proves the key was
+   typed, not that it means anything. A band that reads the same word for a
+   healthy centre and a collapsing one discriminates nothing, and a band that
+   fails the boundary validator is dropped in silence and never reaches the
+   wire at all. Both failures pass a presence check, so both are asserted here
+   against the shipped expression rather than a reconstruction. */
+console.log("\n10. severity band");
+const sevDoc = (rate, extra = {}) => render({ label: `attrition ${rate}%`, fromLink: false, mut: () => ({ attritionRate: rate, ...extra }) });
+const SEV = { none: sevDoc(0), benign: sevDoc(8), mid: sevDoc(40), bad: sevDoc(60), severe: sevDoc(90) };
+
+A("a centre with no separations publishes none, a measurement rather than an absence", SEV.none.signals.severity === "none");
+A("8% attrition publishes low", SEV.benign.signals.severity === "low");
+A("40% attrition publishes moderate", SEV.mid.signals.severity === "moderate");
+A("60% attrition publishes high", SEV.bad.signals.severity === "high");
+A("90% attrition publishes severe", SEV.severe.signals.severity === "severe");
+A("the band discriminates: five scenarios produce five distinct bands",
+  new Set(Object.values(SEV).map(x => x.signals.severity)).size === 5);
+A("the shipped default publishes moderate", DOCS.A.signals.severity === "moderate");
+
+for (const [k, doc] of Object.entries({ ...DOCS, ...SEV })) {
+  const v = doc.signals.severity;
+  if (v === undefined) { A(`${k}: severity is omitted only where the export is void`, doc.r.voided); continue; }
+  A(`${k}: the published band is in the canonical vocabulary`, SEVERITY_BANDS.includes(v));
+  A(`${k}: the published band survives sanitizeProps and lands on the payload`, sanitizeProps({ severity: v }).severity === v);
+  A(`${k}: severity reaches the manual review submission as signal_severity`,
+    Object.keys(doc.signals).map(x => `signal_${x}`).includes("signal_severity"));
+}
+
+/* A void export produced an impossible figure. Publishing a confident band off it
+   would report a reading the model never earned, which is the same defect as
+   reporting none for an unknown. */
+const sevVoid = render({ label: "voided export", fromLink: true, mut: () => ({ trainingWeeks: 1e308 }) });
+A("the overflow set voids the export", sevVoid.r.voided);
+A("a void export publishes no severity at all rather than a confident band", !("severity" in sevVoid.signals));
+A("a void export therefore carries no signal_severity into the review payload",
+  !Object.keys(sevVoid.signals).map(x => `signal_${x}`).includes("signal_severity"));
+
+/* The second consumer. ReportActions appends every signal to the Formspree
+   review payload, so adding severity changed the manual-handling form too. */
+A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
