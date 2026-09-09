@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { trackTool, toolIdFromPath } from "./src/lib/track"
 import { BASE, SITE, resolveSeo } from './src/lib/seo.js'
 import { useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/react'
@@ -193,10 +194,33 @@ function SEOManager() {
   return null;
 }
 
+/* Journey
+ *
+ * tool_view for every tool route, from one call site instead of thirty. The
+ * router already knows the path; a per-tool useEffect in every tool file would
+ * be thirty copies of the same three lines, each free to drift.
+ *
+ * This is also where session depth is counted, which is what makes a second
+ * tool entered in one visit distinguishable from two unrelated single-tool
+ * visits. That distinction is the strongest available proxy for active
+ * investigation, and it needs no cross-visit identifier to produce.
+ *
+ * Non-tool routes are deliberately not tracked here. Pageviews for those are
+ * already collected by <Analytics />, which works on the current plan. */
+function Journey() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const id = toolIdFromPath(pathname);
+    if (id) trackTool.view(id);
+  }, [pathname]);
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <SEOManager />
+      <Journey />
       <Analytics />
       <Routes>
         <Route path="/" element={<Homepage />} />
