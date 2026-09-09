@@ -6,6 +6,7 @@ import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { severityBucket } from "./src/lib/track";
 import { FONT, FONT_IMPORT_CSS, TYPE, W } from "./src/lib/type";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -670,6 +671,30 @@ export default function LicenseBundleGapChecker() {
               { label: "Hidden annual", value: fmtK(hiddenAnnual) },
             ]}
             signals={{
+              /* Severity is the hidden premium as a share of the seat price the
+                 vendor quoted: platform seat-equivalent over quoted seat, minus
+                 one. The denominator is the number the vendor printed on the page,
+                 which is the only figure a buyer arrives holding, so the band
+                 answers the question the tool is for: how far off is the quote.
+
+                 The colour thresholds already in the engine agree with the
+                 bands rather than competing with them. Amber at a 40% gap lands in
+                 moderate and red at 80% lands in severe, so the page and the
+                 published band cannot say different things. Measured: 15% on a
+                 high quote with few add-ons reads low, the shipped defaults read
+                 moderate at 48%, and usage fees or a thin quote push past 96%
+                 into severe.
+
+                 Uncapped on purpose. A 200% gap is not the same finding as an
+                 80% gap, but both are severe and the bucket saturates there
+                 anyway, so clamping would only hide that the ratio is a real
+                 quantity rather than a score.
+
+                 With no billable seats there is no quote to price a premium
+                 against and gapPct is a structural zero, not a clean result, so
+                 the key is omitted. A void export is omitted for the same reason
+                 it is void: the model contradicts itself. */
+              ...(voided || billable <= 0 || quotedSeat <= 0 ? {} : { severity: severityBucket(gapPct / 100) }),
               evidence,
               evidence_grade: evidenceGrade,
               completeness_ceiling: completenessCeiling,
