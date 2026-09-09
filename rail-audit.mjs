@@ -288,6 +288,45 @@ if (sevPublishers.length < toolFileCount) {
   for (const f of TOOL_FILES.filter((x) => !sevPublishers.includes(x))) line(`      missing  ${f}`);
 }
 
+/* A presence check is not a correctness check. Six of the nine publishers route
+   through severityBucket, which cannot emit a word outside the canonical bands.
+   Three hand-write the value, and a hand-written word that is neither a band nor
+   a known synonym is dropped by sanitizeProps with no error and no warning: the
+   tool publishes severity, passes the regex above, and sends nothing. That
+   failure is invisible everywhere else and the three hand-writers have no
+   rendered-output harness to catch it at runtime, so it is caught statically.
+
+   Comparison operands are stripped before scanning. TCOCalculator tests
+   `f.level === "flag"` inside its own severity expression, and counting that as
+   an emitted band would report a defect that does not exist. A check that cries
+   wolf gets ignored, which is the same outcome as no check.
+
+   A rail-active tool whose severity expression cannot be sliced is reported as
+   unchecked rather than passed over. Silently skipping the file is the failure
+   mode this whole section exists to remove. */
+const BANDS = new Set(["none", "low", "moderate", "high", "severe"]);
+const SYNONYMS = new Set(["normal", "elevated", "critical", "blocked", "clear"]);
+const badBands = [], uncheckable = [];
+let sevChecked = 0;
+for (const f of sevPublishers) {
+  const src = files.get(f) || "";
+  const at = src.indexOf("signals={{");
+  const sev = at < 0 ? -1 : src.indexOf("severity", at);
+  if (sev < 0) { uncheckable.push(f); continue; }
+  const expr = src.slice(sev, src.indexOf("\n", src.indexOf(",\n", sev)) + 1)
+    .replace(/[!=]==?\s*["'][a-z]+["']/g, "");
+  sevChecked++;
+  for (const lit of expr.match(/"([a-z]+)"|'([a-z]+)'/g) || []) {
+    const w = lit.slice(1, -1);
+    if (!BANDS.has(w) && !SYNONYMS.has(w)) badBands.push({ file: f, word: w });
+  }
+}
+line("\n---  SEVERITY VOCABULARY  (literal bands against the wire allowlist)  ---");
+line(`  ${sevChecked} of ${sevPublishers.length} severity expressions read.`);
+if (uncheckable.length) for (const f of uncheckable) line(`      UNCHECKED  ${f}  (severity expression could not be sliced)`);
+if (badBands.length === 0) line("  clean. every literal severity value is a canonical band or a mapped synonym.");
+else for (const b of badBands) line(`  ${b.file} publishes "${b.word}", which sanitizeProps drops in silence.`);
+
 line("\n---  DEAD FILE REFERENCES  ---");
 if (deadRefs.length === 0) line("  none of the flagged dead files are referenced.");
 else for (const d of deadRefs) line(`  ${d.file} references ${d.dead}`);
@@ -314,6 +353,12 @@ line("\n===========================================================");
 line(orphans.length === 0
   ? "RESULT: rail is clean. no orphan pulls."
   : `RESULT: ${orphans.length} orphan pull(s). these must be resolved before any affected tool locks.`);
+/* A severity word outside the allowlist is dropped in silence, so it can only be
+   caught by a gate that fails. Printing it and exiting zero would put the defect
+   in a log nobody reads, which is how it got this far. An unreadable severity
+   expression counts the same: an unchecked file is not a clean one. */
+const sevBroken = badBands.length + uncheckable.length;
+if (sevBroken) line(`RESULT: ${badBands.length} severity value(s) outside the wire allowlist, ${uncheckable.length} unchecked.`);
 line("");
 
-process.exit(orphans.length);
+process.exit(orphans.length + sevBroken);
