@@ -22,7 +22,7 @@
  * Run: node track.test.mjs
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import {
   EV, CONFIG, isConfigured, buildPayload, sanitizeProps, severityBucket,
   SEVERITY_BANDS, SEVERITY_SYNONYMS, ALLOWED_PROP_KEYS, toolIdFromPath,
@@ -213,6 +213,18 @@ ok("G3  ReportExport imports the shared transport", exp.includes('from "./src/li
 ok("G4  App imports the shared transport", app.includes('from "./src/lib/track"'));
 ok("G5  the report export fires an event", exp.includes("trackTool.pdf("));
 ok("G6  the tool view fires an event", app.includes("trackTool.view("));
+
+/* G6a exists because G7 did not. tool_complete was locked to a single source and
+   tool_view was not, so TCOCalculator and BusinessCaseBuilder each kept a mount
+   call of their own after Journey took over centrally. Both fired. Every view of
+   the two most commercially important tools on the platform was counted twice,
+   which halves the completion rate that decides which tools survive triage.
+   Journey in App.jsx is the only permitted source. */
+const viewCallers = readdirSync(".")
+  .filter((f) => f.endsWith(".jsx"))
+  .filter((f) => /trackTool\.view\(/.test(readFileSync(f, "utf8")));
+eq("G6a tool_view has exactly one source file", viewCallers.length, 1);
+ok("G6b that source is App.jsx, not a tool", viewCallers[0] === "App.jsx");
 ok("G7  tool_complete has exactly one source", (actions.match(/trackTool\.complete\(/g) || []).length === 1);
 
 /* The one endpoint, named once. */
