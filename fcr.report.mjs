@@ -20,7 +20,12 @@
 import { readFileSync } from "fs";
 
 const SRC = readFileSync("./FCRLeakageDiagnostic.jsx", "utf8");
+const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH, MECH_ORDER } = await import("./src/lib/mech.js");
+/* The real boundary guard and the real bucket, never reconstructed. The tool
+   publishes signals.severity through severityBucket, and sanitizeProps is what
+   decides whether that value reaches the wire or is silently dropped. */
+const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -155,13 +160,13 @@ function render(S) {
     };
   `;
 
-  const argNames = ["MECH", "MECH_ORDER", "SCORES", "COLORS", "M", "fcrPct", "mCPC", "lCPC", "scope", "method",
+  const argNames = ["MECH", "MECH_ORDER", "severityBucket", "SCORES", "COLORS", "M", "fcrPct", "mCPC", "lCPC", "scope", "method",
     "windowDays", "repeatModel", "measuredPct", "measuredTargetPct", "pathModel", "repeatMult", "targetPct",
     "sourcing", "mech", "investOneTime", "investRecurring", "costBasis", "fcrPulledDirty", "fromLink"];
   const C = { GREEN: "g", AMBER: "a", RED: "r", ELECTRIC: "e", NAVY: "n", MUTED: "m", SLATE: "s" };
   const body = "const { GREEN, AMBER, RED, ELECTRIC, NAVY, MUTED, SLATE } = COLORS;" + preamble;
   const fn = new Function(...argNames, body);
-  return fn(MECH, MECH_ORDER, scores, C, S.M, S.fcrPct, S.mCPC, S.lCPC, S.scope, S.method, S.windowDays,
+  return fn(MECH, MECH_ORDER, severityBucket, scores, C, S.M, S.fcrPct, S.mCPC, S.lCPC, S.scope, S.method, S.windowDays,
     S.repeatModel, S.measuredPct, S.measuredTargetPct, S.pathModel, S.repeatMult, S.targetPct, S.sourcing,
     S.mech, S.investOneTime, S.investRecurring, S.costBasis, S.fcrPulledDirty, S.fromLink);
 }
@@ -340,6 +345,54 @@ const repB = auditSet("B");
 /* ---- cross-set: the two reports must not be accidentally identical ---- */
 A("the two input sets produce materially different reports",
   Math.abs(repA.R.burdenYr - repB.R.burdenYr) > 1000 && repA.R.headlineConf !== repB.R.headlineConf);
+
+/* ---- severity band ---- */
+/* rail-audit counts publishers with a regex, which proves the key was typed and
+   nothing else. Severity here is the share of the achievable resolution
+   frontier the centre is not getting, so the band must move with FCR, survive
+   the boundary validator, and reach the manual review payload. Scope cc pins
+   the denominator at the engine practical maximum of 0.90. */
+console.log("\nseverity band");
+const sevDoc = (fcrPct) => render({ ...SETS.A, label: "FCR " + fcrPct + "%", fcrPct, targetPct: Math.max(fcrPct + 1, 78) });
+const SEV = { none: sevDoc(90), benign: sevDoc(82), mid: sevDoc(60), bad: sevDoc(45), severe: sevDoc(15) };
+A("a centre already at the practical ceiling publishes none", SEV.none.signals.severity === "none");
+A("82% FCR against a 0.90 ceiling publishes low", SEV.benign.signals.severity === "low");
+A("60% FCR against a 0.90 ceiling publishes moderate", SEV.mid.signals.severity === "moderate");
+A("45% FCR against a 0.90 ceiling publishes high", SEV.bad.signals.severity === "high");
+A("15% FCR against a 0.90 ceiling publishes severe", SEV.severe.signals.severity === "severe");
+A("the band discriminates: five scenarios produce five distinct bands",
+  new Set(Object.values(SEV).map(x => x.signals.severity)).size === 5);
+
+/* The denominator is the engine practical maximum, not the diagnostic-adjusted
+   ceiling. A centre that scores badly on the diagnostic has a lower ceilingFCR
+   and therefore a smaller gap against it, which would report a weaker band for
+   being less able to fix the problem. This asserts the published band is read
+   against the frontier and not against that moving ceiling. */
+const weakDiag = render({ ...SETS.A, label: "45% FCR, weak diagnostic", fcrPct: 45, targetPct: 78,
+  scoresBy: { policy: 1, handoff: 1, channel: 1, knowledge: 1, skill: 1, workflow: 1 } });
+A("a weak diagnostic lowers the achievable ceiling", weakDiag.R.ceilingFCR < SEV.bad.R.ceilingFCR);
+A("a weak diagnostic does not soften the published band", weakDiag.signals.severity === SEV.bad.signals.severity);
+
+for (const [k, doc] of Object.entries({ A: repA, B: repB, ...SEV })) {
+  const v = doc.signals.severity;
+  if (v === undefined) { A(k + ": severity is omitted only where the result is blocked", doc.R.hardFlag || doc.R.fcrImpossible); continue; }
+  A(k + ": the published band is in the canonical vocabulary", SEVERITY_BANDS.includes(v));
+  A(k + ": the published band survives sanitizeProps and lands on the payload", sanitizeProps({ severity: v }).severity === v);
+  A(k + ": severity reaches the manual review submission as signal_severity",
+    Object.keys(doc.signals).map(x => "signal_" + x).includes("signal_severity"));
+}
+
+/* An impossible FCR is clamped before the model runs. Publishing a band off the
+   clamped value would report a reading of a number nobody entered. */
+const sevBlocked = render({ ...SETS.A, label: "impossible FCR", fcrPct: 0, targetPct: 78 });
+A("an impossible FCR blocks the result", sevBlocked.R.fcrImpossible);
+A("a blocked result publishes no severity at all", !("severity" in sevBlocked.signals));
+A("a blocked result carries no signal_severity into the review payload",
+  !Object.keys(sevBlocked.signals).map(x => "signal_" + x).includes("signal_severity"));
+
+/* The second consumer. ReportActions appends every signal to the Formspree
+   review payload, so adding severity changed the manual-handling form too. */
+A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
 
 console.log("\n" + "=".repeat(78));
 console.log("  " + pass + " passed, " + fail + " failed");
