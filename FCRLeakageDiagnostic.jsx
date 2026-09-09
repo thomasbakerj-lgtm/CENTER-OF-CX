@@ -4,6 +4,7 @@ import InfoDot from "./src/lib/InfoDot";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { severityBucket } from "./src/lib/track";
 import { MECH, MECH_ORDER } from "./src/lib/mech";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
@@ -607,6 +608,33 @@ export default function FCRLeakageDiagnostic() {
                 { label: "Payback", value: R.neverPaysBack ? "never at current scope" : R.payback ? "month " + R.payback : "beyond 48 months" },
               ]}
               signals={{
+                /* Severity is the share of the achievable resolution frontier
+                   this center is not getting: practical max minus current FCR,
+                   over practical max. The denominator is the ceiling the engine
+                   itself publishes by definition scope, 0.88 to 0.93, stated
+                   openly as a judgment value in the engine rather than invented
+                   at the publish site. 72% FCR reads low, 60% moderate, 45% and
+                   30% high, 15% and below severe.
+
+                   Two other numerators were measured and rejected. Repeat share
+                   is the obvious candidate and it is wrong here: under the
+                   default one-callback model it is (1-f)/(2-f), which cannot
+                   exceed 0.5 at any FCR, so severe would be structurally
+                   unreachable on the default path and the same center would
+                   publish a different band purely for picking the geometric
+                   model. The gap against ceilingFCR rather than practicalMax
+                   folds the diagnostic capture factor into the denominator, and
+                   it compressed a center at 30% FCR to moderate, because a low
+                   diagnostic score lowers the ceiling and therefore shrinks the
+                   gap it is measured against. Being unable to fix the problem is
+                   not the same as not having it.
+
+                   A hard flag or an impossible FCR means an input is physically
+                   invalid and the result is blocked, so the key is omitted
+                   rather than published off a clamped number. */
+                ...(R.hardFlag || R.fcrImpossible || !(R.practicalMax > 0) ? {} : {
+                  severity: severityBucket(Math.max(0, R.practicalMax - fcrPct / 100) / R.practicalMax),
+                }),
                 cost_basis_confidence: R.costConf,
                 realization_confidence: R.realConf,
                 current_fcr: fcrPct + "%",
