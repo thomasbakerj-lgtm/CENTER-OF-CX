@@ -68,7 +68,10 @@ const REGISTRY = [
  */
 
 /* Harnesses that verify shared infrastructure rather than one tool. */
-const INFRA = [{ name: "rail.test.mjs", covers: "src/lib rail contract" }];
+const INFRA = [
+  { name: "rail.test.mjs", covers: "src/lib rail contract" },
+  { name: "seo.test.mjs", covers: "reachability: titles, counts, slugs" },
+];
 
 /* ---------------------------------------------------------------- utilities */
 
