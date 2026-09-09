@@ -723,7 +723,9 @@ export default function BusinessCaseBuilder() {
   useEffect(() => {
     if (completedRef.current) return;
     const real = n(d.agents) !== DEFAULTS.agents || n(d.monthlyContacts) !== DEFAULTS.monthlyContacts || n(d.implementationCost) !== DEFAULTS.implementationCost || Object.keys(pulled).length > 0;
-    if (real) { completedRef.current = true; trackTool.complete("business-case-builder", { real: true, severity: severityBucket(r.payback > 0 ? Math.min(1, r.payback / 36) : 1) }); }
+    /* tool_complete is fired once by ReportActions, the single source. Severity
+       reaches it through the signals prop below. */
+    if (real) { completedRef.current = true; }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, pulled]);
 
