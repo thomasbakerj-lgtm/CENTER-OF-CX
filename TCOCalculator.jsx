@@ -6,7 +6,7 @@ import InfoDot from "./src/lib/InfoDot";
 import { COLORS, BENCH } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
-import { trackTool, severityBucket } from "./src/lib/track";
+import { trackTool } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -438,7 +438,8 @@ function Calculator() {
     if (activeSection === 5 && !completedRef.current) {
       completedRef.current = true;
       const real = n(d.agents) !== 200 || n(d.monthlyContacts) !== 120000 || n(d.agentHourly) !== 19;
-      trackTool.complete("tco-calculator", { real, severity: severityBucket(r.laborPct) });
+      /* tool_complete is fired once by ReportActions, the single source. Severity
+         reaches it through the signals prop below. */
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSection]);
