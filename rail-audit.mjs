@@ -199,6 +199,7 @@ const publishersOf = new Map(); // resolvedKey -> [file]
 const pullersOf = new Map();    // resolvedKey -> [{file, raw}]
 const perFile = [];             // hygiene + id
 let emTotal = 0, trackAdopters = 0, toolFileCount = 0;
+const TOOL_FILES = [];          // rail-active tool files, for the severity audit
 const deadRefs = [];
 
 for (const [path, src] of files) {
@@ -215,7 +216,7 @@ for (const [path, src] of files) {
 
   const usesTrack = /from\s+["'`][^"'`]*track["'`]|import\s+.*\btrack\b/.test(src) || /\btrack\s*\(/.test(src);
   const publishes = pubs.size > 0;
-  if (isTool && (publishes || pulls.size > 0)) { toolFileCount++; if (usesTrack) trackAdopters++; }
+  if (isTool && (publishes || pulls.size > 0)) { toolFileCount++; TOOL_FILES.push(path); if (usesTrack) trackAdopters++; }
 
   for (const d of DEAD_FILES) {
     const re = new RegExp(`from\\s+["'\`]\\./${d}["'\`]|\\b${d}\\b`);
@@ -272,9 +273,20 @@ const smartFiles = perFile.filter((f) => f.smart > 0);
 if (enFiles.length) line(`  note: en-dashes (U+2013) in ${enFiles.map((f) => f.path).join(", ")}`);
 if (smartFiles.length) line(`  note: smart quotes in ${smartFiles.map((f) => f.path).join(", ")}`);
 
-line("\n---  INSTRUMENTATION ADOPTION  (track.js)  ---");
-line(`  ${trackAdopters} of ${toolFileCount} rail-active tools reference track. ` +
-  (trackAdopters < toolFileCount ? `${toolFileCount - trackAdopters} do not.` : "full adoption."));
+/* This used to count tools that import track.js directly, and that count is no
+   longer the question. tool_view fires once from the router and tool_complete
+   fires once from ReportActions, so all nine rail tools are instrumented
+   whether or not they name the module. What is still missing per tool is the
+   severity band: it travels on the `signals` prop, and a tool that publishes no
+   severity leaves the funnel unable to tell curiosity from economic pain. That
+   is the real adoption gap, so that is what is measured. */
+const sevPublishers = TOOL_FILES.filter((f) => /signals=\{\{[\s\S]{0,4000}?severity\s*:/.test(files.get(f) || ""));
+line("\n---  SEVERITY PUBLICATION  (signals.severity)  ---");
+line(`  ${sevPublishers.length} of ${toolFileCount} rail-active tools publish a severity band. ` +
+  (sevPublishers.length < toolFileCount ? `${toolFileCount - sevPublishers.length} do not.` : "full adoption."));
+if (sevPublishers.length < toolFileCount) {
+  for (const f of TOOL_FILES.filter((x) => !sevPublishers.includes(x))) line(`      missing  ${f}`);
+}
 
 line("\n---  DEAD FILE REFERENCES  ---");
 if (deadRefs.length === 0) line("  none of the flagged dead files are referenced.");
