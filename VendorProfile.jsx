@@ -128,7 +128,7 @@ function VendorNotFound() {
       <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "180px 28px 80px", textAlign: "center" }}>
         <div style={WRAP}>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 36, color: "#fff", margin: "0 0 16px" }}>Vendor profile coming soon.</h1>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", maxWidth: 480, margin: "0 auto 32px" }}>We're building out individual vendor assessments across all nine categories. This profile will be available shortly.</p>
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", maxWidth: 480, margin: "0 auto 32px" }}>We're building out individual vendor assessments across all eight categories. This profile will be available shortly.</p>
           <a href="/vendors" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>← Back to Vendors</a>
         </div>
       </section>
