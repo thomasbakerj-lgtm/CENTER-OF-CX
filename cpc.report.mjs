@@ -21,8 +21,13 @@
 import { readFileSync } from "fs";
 
 const SRC = readFileSync("./CostPerContactCalculator.jsx", "utf8");
+const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH } = await import("./src/lib/mech.js");
 const { COLORS } = await import("./src/lib/benchmarks.js");
+/* The real boundary guard and the real bucket, never reconstructed. The tool
+   publishes signals.severity through severityBucket, and sanitizeProps is what
+   decides whether that value reaches the wire or is silently dropped. */
+const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -184,8 +189,8 @@ function render(S) {
     .replace(/\bSOURCED\b/g, JSON.stringify(!!S.pulledExternally));
 
   try {
-    return new Function("MECH", "ELECTRIC", "GREEN", "AMBER", "RED", "MUTED", preamble)(
-      MECH, COLORS.electric, COLORS.green, COLORS.amber, COLORS.red, COLORS.muted
+    return new Function("MECH", "ELECTRIC", "GREEN", "AMBER", "RED", "MUTED", "severityBucket", preamble)(
+      MECH, COLORS.electric, COLORS.green, COLORS.amber, COLORS.red, COLORS.muted, severityBucket
     );
   } catch (e) {
     console.error("BLOCKER: the ReportActions payload did not evaluate for set:", S.label);
@@ -388,6 +393,59 @@ A("the issues-basis document reports a higher cost per resolution than the defau
   R.B.r.cprLoaded > R.A.r.cprLoaded);
 A("a capacity-class mechanism realizes less cash than a cash-class one on identical released capacity",
   R.D.r.dividend[1].realizable < R.B.r.dividend[1].realizable);
+
+/* ---- severity band ---- */
+/* rail-audit counts severity publishers with a regex, which proves the key was
+   typed, not that it means anything. A band that reads the same word at 95% FCR
+   and at 20% discriminates nothing, and a band that fails the boundary
+   validator is dropped in silence and never reaches the wire. Both failures
+   pass a presence check, so both are asserted here on the shipped expression. */
+console.log("\nseverity band");
+const sevDoc = (label, d) => render({ label, d, mech: "hiring", validated: false, fromLink: false, pulledExternally: false });
+const SEV = {
+  none: sevDoc("perfect resolution", { fcrRate: 100, contactsPerUnresolved: 2.4 }),
+  benign: sevDoc("95% FCR, shallow repeats", { fcrRate: 95, contactsPerUnresolved: 1.2 }),
+  mid: sevDoc("shipped defaults", null),
+  bad: sevDoc("50% FCR, M 3", { fcrRate: 50, contactsPerUnresolved: 3 }),
+  severe: sevDoc("20% FCR, M 6", { fcrRate: 20, contactsPerUnresolved: 6 }),
+};
+A("100% FCR publishes none, a measurement rather than an absence", SEV.none.signals.severity === "none");
+A("a 1% repeat share publishes low", SEV.benign.signals.severity === "low");
+A("the shipped defaults publish moderate at a 28% repeat share", SEV.mid.signals.severity === "moderate");
+A("a 50% repeat share publishes high", SEV.bad.signals.severity === "high");
+A("an 80% repeat share publishes severe", SEV.severe.signals.severity === "severe");
+A("the band discriminates: five scenarios produce five distinct bands",
+  new Set(Object.values(SEV).map(x => x.signals.severity)).size === 5);
+
+/* The band and the flag on the same page must not disagree. The engine raises a
+   resolution-problem flag above a 25% repeat share, and 0.25 is exactly where
+   the shared bucket turns moderate, so the two are the same threshold. */
+for (const k of ["none", "benign", "mid", "bad", "severe"]) {
+  const doc = SEV[k];
+  const flagged = doc.r.flags.some(f => /resolution problem, not a price problem/.test(f.t));
+  const banded = ["moderate", "high", "severe"].includes(doc.signals.severity);
+  A(`${k}: the published band and the resolution-problem flag agree on the 25% threshold`, flagged === banded);
+}
+
+for (const [k, doc] of Object.entries({ ...R, ...SEV })) {
+  const v = doc.signals.severity;
+  if (v === undefined) { A(`${k}: severity is omitted only where no volume was handled`, !(doc.r.handled > 0)); continue; }
+  A(`${k}: the published band is in the canonical vocabulary`, SEVERITY_BANDS.includes(v));
+  A(`${k}: the published band survives sanitizeProps and lands on the payload`, sanitizeProps({ severity: v }).severity === v);
+  A(`${k}: severity reaches the manual review submission as signal_severity`,
+    Object.keys(doc.signals).map(x => `signal_${x}`).includes("signal_severity"));
+}
+
+/* Zero volume is not a healthy centre, it is an unrun model. repeatShare would
+   compute to a clean zero and publish none, so the key is dropped instead. */
+const sevEmpty = sevDoc("no volume", { monthlyContacts: 0 });
+A("a model with no handled volume publishes no severity at all", !("severity" in sevEmpty.signals));
+A("a model with no handled volume carries no signal_severity into the review payload",
+  !Object.keys(sevEmpty.signals).map(x => `signal_${x}`).includes("signal_severity"));
+
+/* The second consumer. ReportActions appends every signal to the Formspree
+   review payload, so adding severity changed the manual-handling form too. */
+A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
