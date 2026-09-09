@@ -30,9 +30,9 @@
  */
 
 import { readFileSync } from "node:fs";
-import { resolveSeo, vendorDisplayName, SITE } from "./src/lib/seo.js";
+import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE } from "./src/lib/seo.js";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals.js";
-import { collectVendorNames, findCollisions } from "./gen-seo-names.mjs";
+import { collectVendorNames, findCollisions, FILE_CATEGORY } from "./gen-seo-names.mjs";
 
 import { vendors } from "./VendorData.js";
 import { ivaVendors } from "./IVAData.js";
@@ -73,6 +73,15 @@ console.log(`     ${rows.length} entries across 8 data files`);
 for (const r of rows) {
   eq(`A1  ${r.file} ${r.slug}: map carries the data file's display name`,
      vendorDisplayName(r.slug), r.name);
+  eq(`A1b ${r.file} ${r.slug}: map carries the category label for that data file`,
+     vendorCategoryLabel(r.slug), CATEGORIES[r.cat].name);
+}
+
+/* The category key is stored, the label is resolved. A key with no CATEGORIES
+   entry resolves to an empty label and silently drops the discriminator that
+   keeps the title unique. */
+for (const r of rows) {
+  ok(`A1c ${r.slug}: category key ${r.cat} exists in CATEGORIES`, !!CATEGORIES[r.cat]);
 }
 
 /* The reverse direction. An entry left in the map after a vendor is deleted
@@ -230,6 +239,53 @@ eq("G1  sitemap profile count equals data file entry count", sitemapProfiles.siz
 for (const r of rows) ok(`G2  ${r.slug} appears in the sitemap`, sitemapProfiles.has(r.slug));
 for (const s of sitemapProfiles) ok(`G3  sitemap route /vendors/${s} has a data entry`, dataSlugs.has(s));
 for (const c of catKeys) ok(`G4  category page /vendors/${c} is in the sitemap`, locs.includes(`/vendors/${c}`));
+
+/* --------------------------------------------------- H. title uniqueness */
+/* The assertion whose absence let the last regression ship. Resolving the
+   display name was correct and still collapsed 96 vendor routes onto 38
+   duplicate titles and 38 duplicate descriptions, because the same vendor
+   holds a profile in up to five categories under five suffixed slugs. Five9,
+   Talkdesk and Amazon Connect each rendered five byte-identical titles.
+   Duplicate titles across a page class are the textbook doorway signal, and
+   every section above passed while it was live.
+
+   Uniqueness is asserted globally, across every route in the sitemap rather
+   than only across vendor routes, because a vendor title can equally collide
+   with a category, tool or industry title. */
+section("H. Every route in the sitemap has a unique title and description");
+
+const uniqueLocs = [...new Set(locs)];
+eq("H0  sitemap itself lists no route twice", uniqueLocs.length, locs.length);
+
+const titleOwners = new Map();
+const descOwners = new Map();
+for (const p of uniqueLocs) {
+  const r = resolveSeo(p);
+  if (!titleOwners.has(r.title)) titleOwners.set(r.title, []);
+  titleOwners.get(r.title).push(p);
+  if (!descOwners.has(r.desc)) descOwners.set(r.desc, []);
+  descOwners.get(r.desc).push(p);
+}
+
+eq("H1  distinct titles equals route count", titleOwners.size, uniqueLocs.length);
+eq("H2  distinct descriptions equals route count", descOwners.size, uniqueLocs.length);
+
+for (const [t, owners] of titleOwners) {
+  ok(`H3  title unique: "${t}" claimed by ${owners.join(", ")}`, owners.length === 1);
+}
+for (const [, owners] of descOwners) {
+  ok(`H4  description unique: claimed by ${owners.join(", ")}`, owners.length === 1);
+}
+
+/* A route with no description hands the SERP snippet to the crawler. */
+for (const p of uniqueLocs) {
+  const r = resolveSeo(p);
+  ok(`H5  ${p}: has a substantive description`, typeof r.desc === "string" && r.desc.length > 40);
+  ok(`H6  ${p}: description carries no em-dash`,
+     (r.desc || "").indexOf(String.fromCharCode(0x2014)) === -1);
+  ok(`H7  ${p}: title carries no em-dash`,
+     (r.title || "").indexOf(String.fromCharCode(0x2014)) === -1);
+}
 
 /* ------------------------------------------------------------------ report */
 
