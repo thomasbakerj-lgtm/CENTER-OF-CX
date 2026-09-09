@@ -7,6 +7,7 @@ import InfoDot from "./src/lib/InfoDot";
 import NumField from "./src/lib/NumField";
 import { MECH, MECH_ORDER } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { severityBucket } from "./src/lib/track";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
 /* UI-only palette. The engine's colours live inside the engine region below,
@@ -636,6 +637,34 @@ export default function ChannelShiftModel() {
               { label: "Break-even", value: verdict.be != null ? verdict.be.toFixed(0) + "%" : "n/a" },
             ]}
             signals={{
+              /* This tool does not measure a standing operational burden, it
+                 judges a proposed plan, so severity is decision risk rather than
+                 pain: how far the plan sits below its own break-even resolution
+                 rate. The denominator is the break-even the engine solves for on
+                 these exact inputs, not an anchor chosen here, which is why the
+                 band moves when bot fees, displacement or the return factor
+                 move even though the resolution rate has not.
+
+                 Measured: the shipped defaults clear the bar and read none, 40%
+                 chat resolution against a 74% break-even reads moderate, 20%
+                 reads high, and a plan that never breaks even inside 0 to 100
+                 while netting negative reads severe.
+
+                 A break-even at or below zero is the case the verdict already
+                 warns is built on too-generous cost assumptions. It is not a
+                 clean result, but it is also not a measured shortfall, so it
+                 falls back to the sign of the net rather than dividing by it.
+
+                 With nothing shifted there is no plan to judge. Publishing none
+                 would report a clean decision where no decision was modeled, so
+                 the key is omitted. */
+              ...(verdict.pt == null || r.shifted === 0 ? {} : {
+                severity: severityBucket(
+                  verdict.be == null || verdict.be <= 0
+                    ? (r.netRealizable < 0 ? 1 : 0)
+                    : Math.max(0, Math.min(1, (verdict.be - verdict.curRes) / verdict.be))
+                ),
+              }),
               capacity_action: MECH[mech].label,
               eligibility_pct: r.eligPct + "%",
               inputs_corrected: r.guards.length,
