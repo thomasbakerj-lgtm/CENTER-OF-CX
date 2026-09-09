@@ -72,6 +72,7 @@ const INFRA = [
   { name: "rail.test.mjs", covers: "src/lib rail contract" },
   { name: "seo.test.mjs", covers: "reachability: titles, counts, slugs" },
   { name: "track.test.mjs", covers: "instrumentation: event contract, no PII" },
+  { name: "chunk.test.mjs", covers: "delivery: entry chunk ceiling, lazy routes" },
 ];
 
 /* ---------------------------------------------------------------- utilities */
