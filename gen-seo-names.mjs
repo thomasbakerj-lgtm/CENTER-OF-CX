@@ -1,8 +1,17 @@
 /* gen-seo-names.mjs
  *
- * Writes the slug-to-display-name map into src/lib/seo.js, between the
- * VENDOR_NAMES markers. Run from the repo ROOT after adding or renaming any
- * vendor: node gen-seo-names.mjs
+ * Writes the slug to [display name, category key] map into src/lib/seo.js,
+ * between the VENDOR_NAMES markers. Run from the repo ROOT after adding or
+ * renaming any vendor: node gen-seo-names.mjs
+ *
+ * WHY THE CATEGORY IS IN THE MAP
+ *
+ * Resolving the display name alone fixed one defect and created another. The
+ * same vendor holds a profile in up to five categories under five suffixed
+ * slugs, so name-only titles collapsed 96 routes onto 38 duplicate titles,
+ * with Five9, Talkdesk and Amazon Connect each rendering five byte-identical
+ * ones. The category is the discriminator. Only its key is stored; the human
+ * label is resolved in seo.js from CATEGORIES, so it cannot drift.
  *
  * WHY A GENERATED MAP AND NOT AN IMPORT
  *
@@ -49,9 +58,27 @@ const END = "/* VENDOR_NAMES_END */";
 /* Single source of truth for how each data file is walked and which field
    carries the display name. seo.test.mjs imports this to rebuild the expected
    map, so the harness and the generator can never disagree about shape. */
+/* Which category page each data file backs. Names alone do not identify a
+   route: 96 of 282 vendor routes render a vendor that also holds a profile in
+   another category, and Five9, Talkdesk and Amazon Connect each hold five. The
+   category is what makes the title unique. Keys match CATEGORIES in
+   src/lib/verticals.js, which is where seo.js resolves the human label, so the
+   label itself is never copied here and cannot drift out of agreement. */
+export const FILE_CATEGORY = {
+  "VendorData.js": "ccaas",
+  "IVAData.js": "iva",
+  "AgentAssistData.js": "agent-assist",
+  "WEMData.js": "wem-qm",
+  "AnalyticsData.js": "analytics",
+  "ACDRoutingData.js": "acd-routing",
+  "DigitalEngagementData.js": "digital-engagement",
+  "PaymentData.js": "payments",
+};
+
 export function collectVendorNames() {
   const out = [];
-  const push = (file, slug, name) => out.push({ file, slug, name });
+  const push = (file, slug, name) =>
+    out.push({ file, slug, name, cat: FILE_CATEGORY[file] });
 
   for (const [slug, v] of Object.entries(vendors)) push("VendorData.js", slug, v.name);
   for (const [slug, v] of Object.entries(ivaVendors)) push("IVAData.js", slug, v.name);
@@ -97,9 +124,19 @@ function main() {
     process.exit(1);
   }
 
+  /* A data file added without a FILE_CATEGORY entry would emit a null category
+     and collapse its routes back onto duplicate titles. Refuse rather than
+     ship the regression this map exists to prevent. */
+  const uncategorised = rows.filter((r) => !r.cat);
+  if (uncategorised.length) {
+    console.error("gen-seo-names: entries with no category, refusing to generate:");
+    for (const r of uncategorised) console.error(`  ${r.file}  ${r.slug}`);
+    process.exit(1);
+  }
+
   const sorted = [...rows].sort((a, b) => a.slug.localeCompare(b.slug));
   const body = sorted
-    .map((r) => `  ${JSON.stringify(r.slug)}: ${JSON.stringify(r.name)},`)
+    .map((r) => `  ${JSON.stringify(r.slug)}: [${JSON.stringify(r.name)}, ${JSON.stringify(r.cat)}],`)
     .join("\n");
 
   const block = [
