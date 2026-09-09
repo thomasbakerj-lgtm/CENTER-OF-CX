@@ -21,8 +21,13 @@
 import { readFileSync } from "fs";
 
 const SRC = readFileSync("./ChannelShiftModel.jsx", "utf8");
+const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH } = await import("./src/lib/mech.js");
 const { COLORS } = await import("./src/lib/benchmarks.js");
+/* The real boundary guard and the real bucket, never reconstructed. The tool
+   publishes signals.severity through severityBucket, and sanitizeProps is what
+   decides whether that value reaches the wire or is silently dropped. */
+const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -185,7 +190,7 @@ function render(S) {
     .replace(/\bSOURCED\b/g, JSON.stringify(!!S.pulledExternally));
 
   try {
-    return new Function("MECH", "COLORS", preamble)(MECH, COLORS);
+    return new Function("MECH", "COLORS", "severityBucket", preamble)(MECH, COLORS, severityBucket);
   } catch (e) {
     console.error("BLOCKER: the report payload did not evaluate for set " + S.label + ".");
     console.error(String(e.message || e));
@@ -442,6 +447,56 @@ for (const k of Object.keys(SETS)) {
 
 /* ------------------------------------------------------- print the documents */
 for (const k of Object.keys(SETS)) printDoc(k, OUT[k], SETS[k]);
+
+/* ---- severity band ---- */
+/* This tool judges a proposed plan rather than measuring a standing burden, so
+   severity is the shortfall against the break-even resolution rate the engine
+   solves for on these exact inputs. rail-audit only proves the key was typed.
+   These assertions prove the band moves with the decision, survives the
+   boundary validator, and reaches the manual review payload. */
+console.log("\nseverity band");
+const sevDoc = (label, d) => render({ label, d, mech: "hiring", fromLink: false, pulledExternally: false });
+const SEV = {
+  none: sevDoc("clears its own break-even", null),
+  benign: sevDoc("60% chat resolution, just short", { resChat: 60 }),
+  mid: sevDoc("40% chat resolution", { resChat: 40 }),
+  bad: sevDoc("20% chat resolution", { resChat: 20 }),
+  severe: sevDoc("10% resolution, bot fee 2.50, never breaks even", { resChat: 10, botCost: 2.5 }),
+};
+A("a plan that clears its break-even publishes none", SEV.none.signals.severity === "none");
+A("a plan just short of break-even publishes low", SEV.benign.signals.severity === "low");
+A("40% against a 74% break-even publishes moderate", SEV.mid.signals.severity === "moderate");
+A("20% against a 74% break-even publishes high", SEV.bad.signals.severity === "high");
+A("a plan that never breaks even and nets negative publishes severe", SEV.severe.signals.severity === "severe");
+A("the band discriminates: five scenarios produce five distinct bands",
+  new Set(Object.values(SEV).map(x => x.signals.severity)).size === 5);
+
+/* The band and the verdict on the same page must not contradict each other. */
+A("the severe case is the case the verdict refuses to approve", SEV.severe.verdict.label === "Do not approve yet");
+A("the severe case never breaks even inside the range", SEV.severe.verdict.be === null);
+A("the severe case nets negative", SEV.severe.r.netRealizable < 0);
+A("the none case clears its break-even on the page as well as in the band",
+  SEV.none.verdict.be !== null && SEV.none.verdict.curRes >= SEV.none.verdict.be);
+
+for (const [k, doc] of Object.entries({ ...OUT, ...SEV })) {
+  const v = doc.signals.severity;
+  if (v === undefined) { A(`${k}: severity is omitted only where no shift was modeled`, doc.r.shifted === 0); continue; }
+  A(`${k}: the published band is in the canonical vocabulary`, SEVERITY_BANDS.includes(v));
+  A(`${k}: the published band survives sanitizeProps and lands on the payload`, sanitizeProps({ severity: v }).severity === v);
+  A(`${k}: severity reaches the manual review submission as signal_severity`,
+    Object.keys(doc.signals).map(x => `signal_${x}`).includes("signal_severity"));
+}
+
+/* With nothing shifted there is no plan to judge. Publishing none would report a
+   clean decision where no decision was modeled. */
+const sevNoShift = sevDoc("nothing shifted", { shiftToChat: 0, shiftToBot: 0, shiftToEmail: 0 });
+A("no shift modeled publishes no severity at all", !("severity" in sevNoShift.signals));
+A("no shift modeled carries no signal_severity into the review payload",
+  !Object.keys(sevNoShift.signals).map(x => `signal_${x}`).includes("signal_severity"));
+
+/* The second consumer. ReportActions appends every signal to the Formspree
+   review payload, so adding severity changed the manual-handling form too. */
+A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
