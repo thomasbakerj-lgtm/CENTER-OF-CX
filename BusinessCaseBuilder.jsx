@@ -614,12 +614,11 @@ export default function BusinessCaseBuilder() {
 
   const completedRef = useRef(false);
 
-  // Mount: report the view, inherit the BASELINE from upstream tools (facts both tools
+  // Mount: inherit the BASELINE from upstream tools (facts both tools
   // share), and honor a shared scenario URL. Targets are NOT inherited: the transformation
   // is authored here, so the target fields keep their defaults for the user to own.
   useEffect(() => {
     window.scrollTo(0, 0);
-    trackTool.view("business-case-builder");
     const next = {}, got = {}, src = {};
     // EXTERNAL ONLY. getPrimitive would return this tool's own last publish, which is how a
     // marginal derived here came back one session later labelled as inherited from TCO and
