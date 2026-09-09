@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { trackTool, toolIdFromPath } from "./src/lib/track";
 
 const NAVY = "#0B1D3A";
 const ELECTRIC = "#0088DD";
@@ -31,7 +32,7 @@ const SLATE = "#3A4F6A";
  * clickable link (absolute URL, so it works in the popup preview and the saved PDF).
  */
 
-export default function ReportExport({ toolName, subtitle, userName, userEmail, sections = [] }) {
+export default function ReportExport({ toolId, grade, toolName, subtitle, userName, userEmail, sections = [] }) {
   const [showModal, setShowModal] = useState(false);
   const [logo, setLogo] = useState(null);
   const [reportName, setReportName] = useState(userName || "");
@@ -49,6 +50,19 @@ export default function ReportExport({ toolName, subtitle, userName, userEmail, 
   const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   const generateReport = () => {
+    /* The single highest-intent action on the platform. A reader who downloads
+       a completed diagnostic with their own numbers in it is not browsing. This
+       was the most valuable uninstrumented event on the site.
+
+       Fired before the popup opens, because the popup can steal focus and the
+       beacon transport is what survives that. The tool id falls back to the
+       route slug, so the twenty-two tools that render this component directly
+       and pass no id are covered without touching twenty-two files. */
+    trackTool.pdf(
+      toolId || toolIdFromPath(typeof window !== "undefined" && window.location ? window.location.pathname : ""),
+      { grade }
+    );
+
     const win = window.open("", "_blank");
     if (!win) { alert("Please allow pop-ups to download your report."); return; }
 
