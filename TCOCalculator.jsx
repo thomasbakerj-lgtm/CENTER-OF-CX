@@ -405,11 +405,12 @@ function Calculator() {
 
   const loadIndustry = (key) => setD(prev => ({ ...prev, ...BASE, ...INDUSTRY[key], industry: key }));
 
-  // Mount: report the view, auto-fill from upstream tools, and honor a shared scenario URL.
+  // Mount: auto-fill from upstream tools, and honor a shared scenario URL.
+  // tool_view is fired centrally by Journey in App.jsx. A second call here double counted
+  // every view of this tool for as long as both existed.
   // Implementation pull uses precedence (licenseImplementationOneTime first, then
   // implementationCost) and never sums the two. A shared ?s= scenario wins over pulls.
   useEffect(() => {
-    trackTool.view("tco-calculator");
     const next = {}; const got = {};
     const map = { aht: "aht", shrinkage: "shrinkage", occupancy: "occupancy", agents: "agents", attrition: "attrition" };
     for (const [field, key] of Object.entries(map)) {
