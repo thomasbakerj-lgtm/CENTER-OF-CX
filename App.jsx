@@ -1,84 +1,84 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { trackTool, toolIdFromPath } from "./src/lib/track"
 import { BASE, SITE, resolveSeo } from './src/lib/seo.js'
-import { useEffect } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import { Analytics } from '@vercel/analytics/react'
-import Homepage from './Homepage'
-import PlatformsTech from './PlatformsTech'
-import About from './About'
-import Advisory from './Advisory'
-import Contact from './Contact'
-import Subscribe from './Subscribe'
-import HowToChoose from './HowToChoose'
-import Research from './Research'
-import Vendors from './Vendors'
-import Industries from './Industries'
-import TCOCalculator from './TCOCalculator'
-import VendorProfile from './VendorProfile'
-import CCaaSCategory from './CCaaSCategory'
-import IVACategory from './IVACategory'
-import ACDRoutingCategory from './ACDRoutingCategory'
-import AnalyticsCategory from './AnalyticsCategory'
-import PaymentCategory from './PaymentCategory'
-import DigitalEngagementCategory from './DigitalEngagementCategory'
-import AgentAssistCategory from './AgentAssistCategory'
-import CXEcosystem from './CXEcosystem'
-import FinancialServicesVertical from './FinancialServicesVertical'
-import HealthcareVertical from './HealthcareVertical'
-import RetailVertical from './RetailVertical'
-import FSSubVerticalPage from './FSSubVerticalPage'
-import HCSubVerticalPage from './HCSubVerticalPage'
-import RetailSubVerticalPage from './RetailSubVerticalPage'
-import TelecomVertical from './TelecomVertical'
-import TelecomSubVerticalPage from './TelecomSubVerticalPage'
-import TravelVertical from './TravelVertical'
-import TravelSubVerticalPage from './TravelSubVerticalPage'
-import InsuranceVertical from './InsuranceVertical'
-import InsuranceSubVerticalPage from './InsuranceSubVerticalPage'
-import UtilitiesVertical from './UtilitiesVertical'
-import UtilitiesSubVerticalPage from './UtilitiesSubVerticalPage'
-import GovernmentVertical from './GovernmentVertical'
-import GovernmentSubVerticalPage from './GovernmentSubVerticalPage'
-import ManufacturingVertical from './ManufacturingVertical'
-import ManufacturingSubVerticalPage from './ManufacturingSubVerticalPage'
-import EducationVertical from './EducationVertical'
-import EducationSubVerticalPage from './EducationSubVerticalPage'
-import WEMCategory from './WEMCategory'
-import GatedReport from './GatedReport'
-import HumanPremium from './HumanPremium'
-import ArticleCCaaSCosts from './ArticleCCaaSCosts'
-import StaffingCalculator from './StaffingCalculator'
-import ShrinkagePlanner from './ShrinkagePlanner'
-import OccupancyRiskSimulator from './OccupancyRiskSimulator'
-import ForecastAccuracyTracker from './ForecastAccuracyTracker'
-import ScheduleAdherenceCalculator from './ScheduleAdherenceCalculator'
-import AttritionCostCalculator from './AttritionCostCalculator'
-import CostPerContactCalculator from './CostPerContactCalculator'
-import AIDeflectionRealityCheck from './AIDeflectionRealityCheck'
-import ChannelShiftModel from './ChannelShiftModel'
-import LicenseBundleGapChecker from './LicenseBundleGapChecker'
-import AHTDecomposition from './AHTDecomposition'
-import AgentExperienceDiagnostic from './AgentExperienceDiagnostic'
-import QAScorecardBuilder from './QAScorecardBuilder'
-import FCRLeakageDiagnostic from './FCRLeakageDiagnostic'
-import CalibrationDriftChecker from './CalibrationDriftChecker'
-import VendorMatchEngine from './VendorMatchEngine'
-import PlatformDecisionMatrix from './PlatformDecisionMatrix'
-import ContractRiskScanner from './ContractRiskScanner'
-import TransformationReadiness from './TransformationReadiness'
-import CategoryVerticalPage from './CategoryVerticalPage'
-import RFPRequirementBuilder from './RFPRequirementBuilder'
-import PrivacyPolicy from './PrivacyPolicy'
-import TermsOfService from './TermsOfService'
-import CXMaturity from './CXMaturity'
-import AIReadiness from './AIReadiness'
-import ExperienceScorecard from './ExperienceScorecard'
-import CXITAlignment from './CXITAlignment'
-import GovernanceModel from './GovernanceModel'
-import ServiceDesign from './ServiceDesign'
-import RoadmapBuilder from './RoadmapBuilder'
-import IntegrationPlanner from './IntegrationPlanner'
-import BusinessCaseBuilder from './BusinessCaseBuilder'
+const Homepage = lazy(() => import('./Homepage'))
+const PlatformsTech = lazy(() => import('./PlatformsTech'))
+const About = lazy(() => import('./About'))
+const Advisory = lazy(() => import('./Advisory'))
+const Contact = lazy(() => import('./Contact'))
+const Subscribe = lazy(() => import('./Subscribe'))
+const HowToChoose = lazy(() => import('./HowToChoose'))
+const Research = lazy(() => import('./Research'))
+const Vendors = lazy(() => import('./Vendors'))
+const Industries = lazy(() => import('./Industries'))
+const TCOCalculator = lazy(() => import('./TCOCalculator'))
+const VendorProfile = lazy(() => import('./VendorProfile'))
+const CCaaSCategory = lazy(() => import('./CCaaSCategory'))
+const IVACategory = lazy(() => import('./IVACategory'))
+const ACDRoutingCategory = lazy(() => import('./ACDRoutingCategory'))
+const AnalyticsCategory = lazy(() => import('./AnalyticsCategory'))
+const PaymentCategory = lazy(() => import('./PaymentCategory'))
+const DigitalEngagementCategory = lazy(() => import('./DigitalEngagementCategory'))
+const AgentAssistCategory = lazy(() => import('./AgentAssistCategory'))
+const CXEcosystem = lazy(() => import('./CXEcosystem'))
+const FinancialServicesVertical = lazy(() => import('./FinancialServicesVertical'))
+const HealthcareVertical = lazy(() => import('./HealthcareVertical'))
+const RetailVertical = lazy(() => import('./RetailVertical'))
+const FSSubVerticalPage = lazy(() => import('./FSSubVerticalPage'))
+const HCSubVerticalPage = lazy(() => import('./HCSubVerticalPage'))
+const RetailSubVerticalPage = lazy(() => import('./RetailSubVerticalPage'))
+const TelecomVertical = lazy(() => import('./TelecomVertical'))
+const TelecomSubVerticalPage = lazy(() => import('./TelecomSubVerticalPage'))
+const TravelVertical = lazy(() => import('./TravelVertical'))
+const TravelSubVerticalPage = lazy(() => import('./TravelSubVerticalPage'))
+const InsuranceVertical = lazy(() => import('./InsuranceVertical'))
+const InsuranceSubVerticalPage = lazy(() => import('./InsuranceSubVerticalPage'))
+const UtilitiesVertical = lazy(() => import('./UtilitiesVertical'))
+const UtilitiesSubVerticalPage = lazy(() => import('./UtilitiesSubVerticalPage'))
+const GovernmentVertical = lazy(() => import('./GovernmentVertical'))
+const GovernmentSubVerticalPage = lazy(() => import('./GovernmentSubVerticalPage'))
+const ManufacturingVertical = lazy(() => import('./ManufacturingVertical'))
+const ManufacturingSubVerticalPage = lazy(() => import('./ManufacturingSubVerticalPage'))
+const EducationVertical = lazy(() => import('./EducationVertical'))
+const EducationSubVerticalPage = lazy(() => import('./EducationSubVerticalPage'))
+const WEMCategory = lazy(() => import('./WEMCategory'))
+const GatedReport = lazy(() => import('./GatedReport'))
+const HumanPremium = lazy(() => import('./HumanPremium'))
+const ArticleCCaaSCosts = lazy(() => import('./ArticleCCaaSCosts'))
+const StaffingCalculator = lazy(() => import('./StaffingCalculator'))
+const ShrinkagePlanner = lazy(() => import('./ShrinkagePlanner'))
+const OccupancyRiskSimulator = lazy(() => import('./OccupancyRiskSimulator'))
+const ForecastAccuracyTracker = lazy(() => import('./ForecastAccuracyTracker'))
+const ScheduleAdherenceCalculator = lazy(() => import('./ScheduleAdherenceCalculator'))
+const AttritionCostCalculator = lazy(() => import('./AttritionCostCalculator'))
+const CostPerContactCalculator = lazy(() => import('./CostPerContactCalculator'))
+const AIDeflectionRealityCheck = lazy(() => import('./AIDeflectionRealityCheck'))
+const ChannelShiftModel = lazy(() => import('./ChannelShiftModel'))
+const LicenseBundleGapChecker = lazy(() => import('./LicenseBundleGapChecker'))
+const AHTDecomposition = lazy(() => import('./AHTDecomposition'))
+const AgentExperienceDiagnostic = lazy(() => import('./AgentExperienceDiagnostic'))
+const QAScorecardBuilder = lazy(() => import('./QAScorecardBuilder'))
+const FCRLeakageDiagnostic = lazy(() => import('./FCRLeakageDiagnostic'))
+const CalibrationDriftChecker = lazy(() => import('./CalibrationDriftChecker'))
+const VendorMatchEngine = lazy(() => import('./VendorMatchEngine'))
+const PlatformDecisionMatrix = lazy(() => import('./PlatformDecisionMatrix'))
+const ContractRiskScanner = lazy(() => import('./ContractRiskScanner'))
+const TransformationReadiness = lazy(() => import('./TransformationReadiness'))
+const CategoryVerticalPage = lazy(() => import('./CategoryVerticalPage'))
+const RFPRequirementBuilder = lazy(() => import('./RFPRequirementBuilder'))
+const PrivacyPolicy = lazy(() => import('./PrivacyPolicy'))
+const TermsOfService = lazy(() => import('./TermsOfService'))
+const CXMaturity = lazy(() => import('./CXMaturity'))
+const AIReadiness = lazy(() => import('./AIReadiness'))
+const ExperienceScorecard = lazy(() => import('./ExperienceScorecard'))
+const CXITAlignment = lazy(() => import('./CXITAlignment'))
+const GovernanceModel = lazy(() => import('./GovernanceModel'))
+const ServiceDesign = lazy(() => import('./ServiceDesign'))
+const RoadmapBuilder = lazy(() => import('./RoadmapBuilder'))
+const IntegrationPlanner = lazy(() => import('./IntegrationPlanner'))
+const BusinessCaseBuilder = lazy(() => import('./BusinessCaseBuilder'))
 
 
 function NotFound() {
@@ -216,12 +216,42 @@ function Journey() {
   return null;
 }
 
+/* RouteFallback
+ *
+ * Every route is now behind a lazy boundary, so there is a gap between the
+ * router matching a path and the chunk arriving. On a warm cache or a fast
+ * connection that gap is a few milliseconds, and painting a spinner into it
+ * produces a flash that reads as a bug.
+ *
+ * So the fallback renders nothing for the first 300ms and only then admits it
+ * is waiting. 300ms is the point at which a delay stops being perceived as
+ * instant response and starts being perceived as an unexplained stall. Below
+ * it a spinner costs more than it buys. Above it, silence is worse.
+ *
+ * minHeight holds the scroll position steady so the footer does not jump up
+ * and then back down when the chunk lands. */
+function RouteFallback() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShow(true), 300);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "160px 28px 80px" }}>
+      {show ? (
+        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7F99", margin: 0 }}>Loading.</p>
+      ) : null}
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <SEOManager />
       <Journey />
       <Analytics />
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/platforms-and-tech" element={<PlatformsTech />} />
@@ -302,6 +332,7 @@ export default function App() {
         <Route path="/tco-calculator" element={<LegacyRedirect to="/tools/tco-calculator" />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }
