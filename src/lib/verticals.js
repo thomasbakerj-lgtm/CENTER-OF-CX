@@ -19,12 +19,12 @@
 export const CATEGORIES = {
   ccaas: { name: "CCaaS Platforms", full: "Core CX Platforms (CCaaS)", page: "/vendors/ccaas", vendorCount: 24 },
   iva: { name: "IVA + Conversational AI", full: "Customer Automation", page: "/vendors/iva", vendorCount: 50 },
-  "agent-assist": { name: "Agent Assist + Knowledge", full: "Agent Assist + Knowledge AI", page: "/vendors/agent-assist", vendorCount: 38 },
-  "wem-qm": { name: "WEM + Quality Management", full: "Workforce + Quality Management", page: "/vendors/wem-qm", vendorCount: 32 },
-  analytics: { name: "CX Analytics", full: "Experience Analytics", page: "/vendors/analytics", vendorCount: 45 },
-  "acd-routing": { name: "ACD + Routing", full: "Routing + Orchestration", page: "/vendors/acd-routing", vendorCount: 28 },
-  "digital-engagement": { name: "Digital Engagement", full: "Digital Engagement", page: "/vendors/digital-engagement", vendorCount: 36 },
-  payments: { name: "Payments + Identity", full: "Payments + Identity", page: "/vendors/payments", vendorCount: 30 },
+  "agent-assist": { name: "Agent Assist + Knowledge", full: "Agent Assist + Knowledge AI", page: "/vendors/agent-assist", vendorCount: 15 },
+  "wem-qm": { name: "WEM + Quality Management", full: "Workforce + Quality Management", page: "/vendors/wem-qm", vendorCount: 25 },
+  analytics: { name: "CX Analytics", full: "Experience Analytics", page: "/vendors/analytics", vendorCount: 41 },
+  "acd-routing": { name: "ACD + Routing", full: "Routing + Orchestration", page: "/vendors/acd-routing", vendorCount: 44 },
+  "digital-engagement": { name: "Digital Engagement", full: "Digital Engagement", page: "/vendors/digital-engagement", vendorCount: 46 },
+  payments: { name: "Payments + Identity", full: "Payments + Identity", page: "/vendors/payments", vendorCount: 33 },
 };
 
 export const VERTICALS = {
