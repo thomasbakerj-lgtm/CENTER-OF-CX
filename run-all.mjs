@@ -50,9 +50,9 @@ const NO_AUDIT = argv.includes("--no-audit");
  */
 const REGISTRY = [
   { tool: "BusinessCaseBuilder.jsx",      harness: "bcb.test.mjs",      report: "bcb.report.mjs",  claimed: "V3, Aug 2026" },
-  { tool: "TCOCalculator.jsx",            harness: "tco.test.mjs",      report: null,              claimed: "V3, Aug 2026" },
-  { tool: "StaffingCalculator.jsx",       harness: "staffing.test.mjs", report: null,              claimed: "V3, Aug 2026" },
-  { tool: "AIDeflectionRealityCheck.jsx", harness: "aid.test.mjs",      report: null,              claimed: "V3, Jul 2026" },
+  { tool: "TCOCalculator.jsx",            harness: "tco.test.mjs",      report: "tco.report.mjs",   claimed: "V3, Aug 2026" },
+  { tool: "StaffingCalculator.jsx",       harness: "staffing.test.mjs", report: "staffing.report.mjs", claimed: "V3, Aug 2026" },
+  { tool: "AIDeflectionRealityCheck.jsx", harness: "aid.test.mjs",      report: "aid.report.mjs",   claimed: "V3, Jul 2026" },
   { tool: "FCRLeakageDiagnostic.jsx",     harness: "fcr.test.mjs",      report: "fcr.report.mjs",  claimed: "V3, Aug 2026" },
   { tool: "CostPerContactCalculator.jsx", harness: "cpc.test.mjs",      report: "cpc.report.mjs",  claimed: "V3, Aug 2026" },
   { tool: "ChannelShiftModel.jsx",        harness: "channel.test.mjs",  report: "channel.report.mjs", claimed: "V3, Aug 2026" },
