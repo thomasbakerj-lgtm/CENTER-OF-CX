@@ -1,3 +1,4 @@
+[TAXONOMY.md](https://github.com/user-attachments/files/32030967/TAXONOMY.md)
 # EVENT TAXONOMY, FROZEN
 
 **Frozen 9 September 2026.** Capture went live the same day.
