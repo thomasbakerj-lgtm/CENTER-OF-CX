@@ -1961,6 +1961,154 @@ section("I. Archivo type system");
   })());
 }
 
+section("J. 1-14 fragility, the thin return that used to pass in silence");
+{
+  /* The engine flagged a payback under three months as too good and blocked on no payback
+     at all, and had nothing between them. A case breaking even in month 34 of a 36 month
+     window passed without comment, and so did a case paying back in month 7 on a margin a
+     normal input error erases. This section is the gate on both. */
+  const thin = D({ evidence: "proposal", implementationCost: 600000, newPlatformPerAgentMo: 330 });
+  const healthy = D({ evidence: "proposal", implementationCost: 600000, newPlatformPerAgentMo: 200 });
+  const rThin = computeCase(thin, "expected", false, "headcount");
+  const rHealthy = computeCase(healthy, "expected", false, "headcount");
+
+  ok("J1  a thin paying case is fragile", rThin.fragile === true,
+     `payback ${rThin.payback} slack ${(rThin.benefitSlack * 100).toFixed(2)}`);
+  ok("J2  the same case with a healthy margin is not fragile", rHealthy.fragile === false,
+     `payback ${rHealthy.payback} slack ${(rHealthy.benefitSlack * 100).toFixed(2)}`);
+  ok("J3  both cases return inside the horizon, so margin is the only difference",
+     rThin.payback > 0 && rHealthy.payback > 0);
+
+  /* Verdict strength is never a confidence axis, doctrine 5.1. Thin and healthy differ only
+     in the platform fee, so any grade difference between them is the 1-12 defect returning
+     through a new door. */
+  const cThin = confidenceOf(thin, rThin, "expected"), cHealthy = confidenceOf(healthy, rHealthy, "expected");
+  ok("J4  fragility moves no headline grade", cThin.grade === cHealthy.grade, `${cThin.grade} vs ${cHealthy.grade}`);
+  ok("J5  fragility moves no cost axis", cThin.costGrade === cHealthy.costGrade);
+  ok("J6  fragility moves no realization axis", cThin.realizationGrade === cHealthy.realizationGrade);
+  ok("J7  fragility opens no cost item", cThin.open.length === cHealthy.open.length);
+  ok("J8  fragility caps nothing", cThin.withheld.length === cHealthy.withheld.length);
+  ok("J9  a Finance-grade case can be fragile", cThin.grade === "Finance-grade");
+
+  ok("J10 the fragile case carries a return finding and the control does not",
+     cThin.findings.length === 1 && cHealthy.findings.length === 0,
+     `${cThin.findings.length} vs ${cHealthy.findings.length}`);
+  ok("J11 the finding names the shortfall and disclaims the axes",
+     /shortfall of \d+% in benefit removes the return/.test(cThin.findings[0])
+     && /moves no confidence axis/.test(cThin.findings[0]));
+
+  /* Fragility is gated on a payback that exists, so it can never double up with the
+     stronger finding that the case does not return at all. */
+  const noReturn = computeCase(D({ implementationCost: 6000000 }), "expected", true, "headcount");
+  ok("J12 a case that does not return is never also flagged fragile",
+     noReturn.payback === 0 && noReturn.fragile === false);
+  ok("J13 fragility requires positive slack, never a negative return",
+     [thin, healthy, D({ implementationCost: 6000000 })].every(x => {
+       const r = computeCase(x, "expected", true, "headcount");
+       return !r.fragile || r.benefitSlack > 0;
+     }));
+
+  /* roi3 is the same statistic reparameterised. This is the assertion behind the recorded
+     rejection of a 15% ROI trigger: it is not a different test, it is the same test at a
+     13.0% slack cut. If this identity ever breaks, the rejection has to be revisited. */
+  ex("J14 roi3 equals slack over one minus slack, so ROI and slack are one trigger", () => {
+    const cases = [thin, healthy, D({ implementationCost: 400000 }), D({ implementationCost: 900000 })];
+    return cases.every(x => {
+      const r = computeCase(x, "expected", true, "headcount");
+      if (r.tco3 <= 0 || r.benefit3 <= 0) return true;
+      const fromSlack = r.benefitSlack / (1 - r.benefitSlack) * 100;
+      return near(fromSlack, r.roi3, 0.001);
+    });
+  });
+
+  /* The recorded rejection of payback proximity, proved in both directions rather than
+     asserted. Swept across implementation and platform fee, phasing on and off. */
+  const grid = [];
+  for (const impl of [100000, 300000, 600000, 900000, 1200000, 1800000])
+    for (const mo of [100, 135, 200, 260, 300, 330, 360, 400])
+      for (const ramp of [true, false])
+        grid.push(computeCase(D({ implementationCost: impl, newPlatformPerAgentMo: mo }), "expected", ramp, "headcount"));
+  const lateAndComfortable = grid.filter(r => r.payback >= 33 && !r.fragile);
+  ok("J15 no case paying back in month 33 or later clears the fragility threshold",
+     lateAndComfortable.length === 0,
+     lateAndComfortable.map(r => `pay ${r.payback} slack ${(r.benefitSlack * 100).toFixed(1)}`).join(" | "));
+  const earlyAndFragile = grid.filter(r => r.payback > 0 && r.payback < 10 && r.fragile);
+  ok("J16 a case paying back in single digit months can still be fragile, which timing would miss",
+     earlyAndFragile.length > 0,
+     earlyAndFragile.length ? `pay ${earlyAndFragile[0].payback} slack ${(earlyAndFragile[0].benefitSlack * 100).toFixed(1)}` : "none found");
+
+  /* Threshold placement. Measured, not asserted: the Expected to Conservative step is what
+     the 15% is calibrated against, so the step has to remain larger than the threshold. */
+  ex("J17 the Expected to Conservative step removes more benefit than the threshold tolerates", () => {
+    const base = D({ implementationCost: 600000 });
+    const e = computeCase(base, "expected", true, "headcount");
+    const c = computeCase(base, "conservative", true, "headcount");
+    const drop = 1 - c.benefit3 / e.benefit3;
+    return drop > e.FRAGILE_SLACK && drop < 0.25;
+  });
+  ok("J18 the threshold is exported so the report and the read cannot diverge from it",
+     rThin.FRAGILE_SLACK === 0.15);
+
+  /* Pricing. The lever shortfall is the slack divided by the lever share, so multiplying
+     back has to reproduce the slack. A wrong lever here misprices every fragile document. */
+  ex("J19 lever shortfall times lever share reproduces the slack", () => {
+    return near(rThin.leverShortfallToZero * (rThin.topLeverShare / 100), rThin.benefitSlack, 0.005);
+  });
+  ex("J20 the dominant lever is the largest bucket, swept", () => {
+    const cases = [D(), thin, healthy, D({ containment: 0, htReduction: 0 }), D({ attritionReduction: 40, containment: 2 })];
+    return cases.every(x => {
+      const r = computeCase(x, "expected", true, "headcount");
+      const max = Object.entries(r.buckets).sort((a, b) => b[1] - a[1])[0][0];
+      return r.topLeverKey === max;
+    });
+  });
+
+  /* The read. Rank 1, and it survives the window that dropped a finding under 1-16. */
+  const readThin = caseInsights(rThin, thin, "expected", cThin);
+  ok("J21 the fragility line leads the read", /takes the whole return with it/.test(readThin[0]), readThin[0].slice(0, 90));
+  ok("J22 the fragility line prices the dominant lever",
+     /% of the case rests on/.test(readThin[0]) && /under-delivering by \d+%/.test(readThin[0]));
+  ok("J23 the read tells the user not to present it as a payback",
+     new RegExp(`not as a ${rThin.payback}-month payback`).test(readThin[0]));
+  const readHealthy = caseInsights(rHealthy, healthy, "expected", cHealthy);
+  ok("J24 the healthy control carries no fragility line",
+     !readHealthy.some(t => /takes the whole return with it/.test(t)));
+
+  /* Floored, not rounded. Rounding 14.8 up to 15 prints the figure the threshold excludes,
+     which reads as a contradiction to anyone checking the rule against the sentence. */
+  ex("J25 the printed shortfall never reaches the threshold percentage", () => {
+    return grid.filter(r => r.fragile).every(r => Math.floor(r.benefitSlack * 100) < 15);
+  });
+
+  /* A displacement led case can carry no operational lever at all. The lever clause has no
+     referent there, and printing a zero share was a live defect in the concentration line. */
+  ex("J26 a case with no operational lever prints no zero-percent lever claim", () => {
+    const z = D({ containment: 0, htReduction: 0, acwReduction: 0, fcrImprovement: 0, attritionReduction: 0,
+      implementationCost: 300000, newPlatformPerAgentMo: 40, bauEliminatedAnnual: 400000,
+      bauOverlapMonths: 6, bauEvidence: "reviewed", evidence: "proposal" });
+    const r = computeCase(z, "expected", true, "headcount");
+    if (r.topLeverShare !== 0) return true;
+    const text = caseInsights(r, z, "expected", confidenceOf(z, r, "expected")).join(" ");
+    // A bare zero, not the tail of 100% or 30%, which is why this carries a boundary.
+    return !/(^|[^\d])0% of/.test(text);
+  });
+
+  /* Fixture regression. The 1-12 reference sets must be untouched by this item, or the
+     recorded expectations in the tracker stop describing the shipped tool. */
+  ex("J27 Set B is unchanged: Finance-grade, one finding, no payback, break-even month 103", () => {
+    const d = D({ evidence: "proposal", bauEvidence: "reviewed", implementationCost: 6000000 });
+    const r = computeCase(d, "expected", true, "headcount"), c = confidenceOf(d, r, "expected");
+    return c.grade === "Finance-grade" && c.costGrade === "Finance-grade" && c.realizationGrade === "Finance-grade"
+      && c.open.length === 0 && c.withheld.length === 0 && c.findings.length === 1
+      && r.payback === 0 && r.trueBreakevenMonth === 103 && r.fragile === false;
+  });
+  ex("J28 Set C is unchanged: same grade, no findings", () => {
+    const d = D({ evidence: "proposal", bauEvidence: "reviewed", implementationCost: 400000 });
+    const r = computeCase(d, "expected", true, "headcount"), c = confidenceOf(d, r, "expected");
+    return c.grade === "Finance-grade" && c.findings.length === 0 && r.fragile === false;
+  });
+}
+
 console.log(`\n${"=".repeat(64)}`);
 console.log(`PASS ${pass}   FAIL ${fail}   TOTAL ${pass + fail}`);
 if (FAILS.length) console.log("\nFailures:\n" + FAILS.map(f => "  - " + f).join("\n"));
