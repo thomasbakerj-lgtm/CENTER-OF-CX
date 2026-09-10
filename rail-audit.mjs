@@ -288,18 +288,21 @@ if (sevPublishers.length < toolFileCount) {
   for (const f of TOOL_FILES.filter((x) => !sevPublishers.includes(x))) line(`      missing  ${f}`);
 }
 
-/* A presence check is not a correctness check. Six of the nine publishers route
-   through severityBucket, which cannot emit a word outside the canonical bands.
-   Three hand-write the value, and a hand-written word that is neither a band nor
-   a known synonym is dropped by sanitizeProps with no error and no warning: the
-   tool publishes severity, passes the regex above, and sends nothing. That
-   failure is invisible everywhere else and the three hand-writers have no
-   rendered-output harness to catch it at runtime, so it is caught statically.
+/* A presence check is not a correctness check. As of tracker 1-15 all nine
+   publishers route through severityBucket, which cannot emit a word outside the
+   canonical bands, and all nine now carry a rendered-output harness that gates the
+   published band against the argued ratio at runtime. This static check is kept
+   anyway: a hand-written word that is neither a band nor a known synonym is dropped
+   by sanitizeProps with no error and no warning, so the tool publishes severity,
+   passes the regex above, and sends nothing. That failure is invisible everywhere
+   else, and a check that costs nothing to keep is worth more than the argument for
+   removing it.
 
-   Comparison operands are stripped before scanning. TCOCalculator tests
-   `f.level === "flag"` inside its own severity expression, and counting that as
-   an emitted band would report a defect that does not exist. A check that cries
-   wolf gets ignored, which is the same outcome as no check.
+   Comparison operands are stripped before scanning. TCOCalculator used to test
+   `f.level === "flag"` inside its own severity expression, and counting that as an
+   emitted band would have reported a defect that did not exist. That expression is
+   gone, but the strip stays, because the next tool to write one should not have to
+   rediscover why the check cried wolf.
 
    A rail-active tool whose severity expression cannot be sliced is reported as
    unchecked rather than passed over. Silently skipping the file is the failure
