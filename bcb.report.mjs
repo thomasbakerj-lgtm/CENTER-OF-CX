@@ -122,6 +122,18 @@ A("the report payload contains no em-dash",
  * Set E is a full BAU counterfactual with an exit cost heavy enough to push maximum
  * implementation negative while run rate contribution stays positive, which is the
  * only path to the second and third return findings.
+ *
+ * Set F is the 1-14 case. Every axis is Finance grade, the case pays back in month 20,
+ * implementation sits exactly on the internal planning floor so no cost observation
+ * fires, and the three year return is still thinner than the gap between two attribution
+ * stances. Fragility is the only return finding, which is what makes it a clean gate. It
+ * is also the case that proximity to the 36 month horizon would never catch, which is why
+ * the trigger is denominated in benefit rather than in months. The document must lead the
+ * read with it.
+ *
+ * Set G is Set F with the platform fee cut so the margin is healthy, and nothing else
+ * changed. Any difference in confidence between F and G is verdict strength moving an
+ * axis, exactly as with B and C.
  */
 const SETS = {
   A: {
@@ -152,6 +164,16 @@ const SETS = {
     stance: "expected", rampOn: true, mech: "hiring", pulled: {}, sources: {},
     mut: () => ({ evidence: "proposal", bauEvidence: "reviewed", bauEliminatedAnnual: 240000,
       bauOverlapMonths: 4, bauExitCost: 2200000, bauBackfillCash: 60000, bauAbsorbedHours: 400 }),
+  },
+  F: {
+    label: "1-14 case: signed proposal, pays back in month 20, and the three-year return is fragile",
+    stance: "expected", rampOn: false, mech: "headcount", pulled: {}, sources: {},
+    mut: () => ({ evidence: "proposal", implementationCost: 600000, newPlatformPerAgentMo: 330 }),
+  },
+  G: {
+    label: "Set F exactly, platform fee cut so the margin is healthy: the fragility control",
+    stance: "expected", rampOn: false, mech: "headcount", pulled: {}, sources: {},
+    mut: () => ({ evidence: "proposal", implementationCost: 600000, newPlatformPerAgentMo: 200 }),
   },
 };
 
@@ -404,6 +426,71 @@ console.log(`\n${"=".repeat(78)}\n1-12 GATE: a confident negative result\n${"=".
       B.conf.findings.length !== C.conf.findings.length);
     A("the severity band does move between B and C, because severity is where verdict strength lives",
       B.signals.severity !== C.signals.severity, `${B.signals.severity} vs ${C.signals.severity}`);
+  }
+}
+
+/* ------------------------------------- the 1-14 gate, stated as one test */
+
+console.log(`\n${"=".repeat(78)}\n1-14 GATE: a confident case on a return too thin to survive\n${"=".repeat(78)}`);
+{
+  const F = results.F, G = results.G;
+  if (!F || !G) {
+    A("the 1-14 gate sets rendered", false);
+  } else {
+    A("F: every axis is Finance-grade", F.conf.costGrade === "Finance-grade" && F.conf.realizationGrade === "Finance-grade",
+      `${F.conf.costGrade} / ${F.conf.realizationGrade}`);
+    A("F: the model is complete, with no open cost items and no caps",
+      F.conf.open.length === 0 && F.conf.withheld.length === 0);
+    A("F: the case genuinely returns inside the horizon", F.r.payback > 0 && F.r.payback < 33,
+      `payback ${F.r.payback}`);
+    A("F: and it is fragile, which timing proximity to month 36 would never have caught",
+      F.r.fragile === true, `payback ${F.r.payback} slack ${(F.r.benefitSlack * 100).toFixed(1)}`);
+
+    /* The summary a buyer reads first says payback, return and Finance-grade. Before this
+       item that was the entire message on a case a normal input error erases. */
+    A("F: the summary reports a payback in months, so the document reads as a win",
+      /\d+ months/.test(sumOf(F, "Payback") || ""), sumOf(F, "Payback"));
+    A("F: the fragility line reaches the rendered document",
+      /takes the whole return with it/.test(doc(F)));
+    A("F: the fragility line leads the read", /takes the whole return with it/.test(F.insights[0] || ""),
+      (F.insights[0] || "").slice(0, 70));
+    A("F: the read prices the fragility against the dominant lever",
+      /% of the case rests on/.test(F.insights[0] || "") && /under-delivering by \d+%/.test(F.insights[0] || ""));
+    A("F: the read names the benefit shortfall that erases the return",
+      /shortfall of \d+% in benefit/.test(F.insights[0] || ""));
+    A("F: the read tells the reader not to present it as a payback",
+      new RegExp(`not as a ${F.r.payback}-month payback`).test(F.insights[0] || ""));
+
+    /* Same three channels as 1-12. Fragility is a finding, never a cap and never an axis. */
+    A("F: the finding reaches the confidence section of the document",
+      /shortfall of \d+% in benefit removes the return entirely/.test(doc(F)));
+    A("F: the document says in words that the finding moves no axis",
+      /fragility observation about the return/.test(doc(F)) && /moves no confidence axis/.test(doc(F)));
+    A("F: fragility is the only return finding on this set, so the gate is unambiguous",
+      F.conf.findings.length === 1, String(F.conf.findings.length));
+    A("F: the signal reports the thin return as a band, never as the slack figure",
+      F.signals.thin_return === true && !Object.values(F.signals).some(v => typeof v === "number" && v > 1 && v < 100 && v === Math.floor(F.r.benefitSlack * 100)));
+
+    /* The control. Only the platform fee moved between F and G, so any grade difference is
+       verdict strength moving an axis, which is the 1-12 defect arriving through a new door. */
+    A("F and G differ on the margin", F.r.fragile !== G.r.fragile);
+    A("F and G carry identical evidence quality",
+      F.conf.costGrade === G.conf.costGrade && F.conf.realizationGrade === G.conf.realizationGrade);
+    A("F and G therefore export the identical confidence grade", F.conf.grade === G.conf.grade,
+      `${F.conf.grade} vs ${G.conf.grade}`);
+    A("F and G differ in the findings channel, which is where the return belongs",
+      F.conf.findings.length !== G.conf.findings.length);
+    A("G: the healthy control prints no fragility line anywhere in the document",
+      !/takes the whole return with it/.test(doc(G)));
+    A("G: the healthy control reports no thin return signal", G.signals.thin_return === false);
+
+    /* Floored rather than rounded, so the printed figure never states the value the rule
+       excludes. Checked against the engine, not against a reconstruction of it. */
+    A("F: the printed shortfall matches the engine, floored",
+      doc(F).indexOf(`shortfall of ${Math.floor(F.r.benefitSlack * 100)}% in benefit`) >= 0,
+      `engine ${(F.r.benefitSlack * 100).toFixed(2)}`);
+    A("F: the printed shortfall never reaches the threshold percentage",
+      Math.floor(F.r.benefitSlack * 100) < Math.round(F.r.FRAGILE_SLACK * 100));
   }
 }
 
