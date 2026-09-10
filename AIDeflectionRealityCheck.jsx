@@ -7,6 +7,7 @@ import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import { publishToolResult, getPrimitive, getExternalPrimitive, sourcedExternally } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { MECH, MECH_ORDER, MECH_DEFAULT } from "./src/lib/mech";
+import { severityBucket } from "./src/lib/track";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -142,6 +143,20 @@ export function engine(I) {
     else if (rStar > 1) { beResPct = Infinity; beNote = "No resolution rate breaks even at this eligibility, cost, and operating spend."; }
     else beResPct = 0;
   } else if (!(sf + esc > 0)) beNote = "With no capacity action and no escalation premium, only operating cost moves.";
+
+  /* Tracker 1-15. The band ratio, computed here rather than in the JSX so it is
+     testable by the engine harness. Break-even resolution over claimed resolution:
+     the share of the claimed rate consumed simply paying for the program. Argued in
+     full at the severity line of the signals block. Unreachable break-even is 1.
+     A break-even of zero is 0, which also covers a zero claim against zero cost.
+     A positive break-even against a zero claim is 1, because the claim is below any
+     rate that pays. Null when no eligible volume is routed, since neither figure
+     means anything then. */
+  const severityRatio = attempted <= 0 ? null
+    : !isFinite(beResPct) ? 1
+    : beResPct <= 0 ? 0
+    : rp > 0 ? Math.max(0, Math.min(1, beResPct / rp))
+    : 1;
 
   let repeatTolPct = null, repeatNote = null;
   if (!(marg * M * E * R > 0)) repeatNote = "No durable volume to tolerate repeats against.";
@@ -280,7 +295,7 @@ export function engine(I) {
     attempted, durable, returnedFalse, immediateEsc, postBotHuman, botResolutionRate, netAutomationRate,
     impliedGrossOfTotal, opexMonthly, implOneTime, escalationPremium, vendorClaim, K, netSavings, steadyAnnual,
     netAtEscZero, netAtEscDouble, escSwing, escShareOfResult,
-    realizedDollarsPct, realizedDeflectionPct, beResPct, beNote, repeatTolPct, repeatNote,
+    realizedDollarsPct, realizedDeflectionPct, beResPct, beNote, severityRatio, repeatTolPct, repeatNote,
     monthly, year1, payback, waterfall, waterfallSum, railRate, railBot, railPublished, railReason,
     bestNet, flags, hardFlag, costConf, realConf, headlineConf, confReason, confSentence, axesTied, band, evidenceLabel: ev.label,
     verdict, verdictWhy, verdictRoute, verdictRouteLabel, verdictTone,
@@ -846,9 +861,40 @@ export default function AIDeflectionRealityCheck() {
               /* Derived signals only. No vendor name, contact volume, agent cost, quote
                  amount, implementation budget, or contract date leaves this block. Bands
                  and booleans carry the commercial meaning; the raw operating data stays
-                 in the user's browser and in the report they download. */
+                 in the browser and in the report the user downloads. */
               methodology_version: METHODOLOGY_VERSION,
-              severity: R.netSavings <= 0 ? "high" : R.realizedDollarsPct < 20 ? "elevated" : "normal",
+              /* Tracker 1-15. Ratio is beResPct over rp: the resolution rate this deal must
+                 clear to break even, over the resolution rate the vendor claims. It measures
+                 how much of the claimed rate is consumed simply paying for the program.
+                 Both figures sit on the same scale, apparent resolution of routed volume,
+                 because rStar is converted back through the repeat leak before it is
+                 reported. A deal whose break-even sits above its claim reads 1.0, and so
+                 does a deal with no break-even at any resolution rate.
+                 Rejected: realizedDollarsPct, the prior basis. Measured across 40,000 cases
+                 over plausible operating ranges it returns only the top two bands, because
+                 vendorClaim is deliberately the naive slide, resolution rate on all volume
+                 at loaded cost, which this entire tool exists to discredit. It rated the
+                 default case severe while that same case nets 38,598 a month.
+                 Rejected: the sign of netSavings alone, which is two bands wearing five.
+                 Rejected: rescaling so that only a loss can reach severe. A program
+                 consuming 80% of its claimed rate to break even is severe on the same
+                 reading the Business Case Builder applies when it rates a 50-month payback
+                 severe while that case still pays. This band rates the strength of the
+                 answer, not its sign.
+                 Rejected: withholding the band when the marginal cost was defaulted. The
+                 default is a disclosed 60% of loaded cost, not an unknown, confidence is
+                 already held at Directional for it, and withholding would silence the
+                 signal on the majority of sessions.
+                 Rejected: withholding the band when the claimed rate is zero. Break-even
+                 does not depend on the rate claimed, so a zero claim against a positive
+                 break-even is not unknown, it is a claim sitting below any rate that pays.
+                 The rendered harness caught that as Set F. The band is withheld only when
+                 no eligible volume is routed, since neither figure means anything then.
+                 Declared unreachable: nothing. none is reached when operating cost and the
+                 escalation premium are both zero, low at a strong claim against light cost,
+                 severe at or beyond break-even. The ratio itself is computed in the engine
+                 as severityRatio so the engine harness can test it directly. */
+              severity: severityBucket(R.severityRatio),
               verdict_class: R.verdict,
               has_real_cost_basis: !R.margWasDefaulted,
               has_document_evidence: ["proposal", "sla", "pilot"].indexOf(s.evidence) >= 0,
