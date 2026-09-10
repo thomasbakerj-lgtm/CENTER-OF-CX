@@ -229,7 +229,16 @@ for (const [nm, mut, field, expect] of GUARDED) {
   A(`${nm}: no published figure is negative or non-finite after correction`, r.invariants.length === 0 && r.voided === false);
   if (field) A(`${nm}: the engine computed at the corrected value`, near(r[field], expect));
 }
-A("a guard renders money with a currency mark", guardVal({ entered: -5, used: 0, unit: "$" }, "entered") === "$-5");
+/* This assertion used to pin "$-5", which codified the defect rather than the rule.
+   The sign leads the symbol everywhere else money is printed in this platform, so a
+   guard that renders it the other way puts two spellings of the same figure in one
+   document. Found while fixing the same helper in Cost per Contact. */
+A("a guard renders money with a currency mark", guardVal({ entered: 5, used: 0, unit: "$" }, "entered") === "$5");
+A("a guard renders negative money with the sign in front of the symbol", guardVal({ entered: -5, used: 0, unit: "$" }, "entered") === "-$5");
+A("a guard money rendering agrees with the house money format on sign placement",
+  guardVal({ entered: -5, used: 0, unit: "$" }, "entered").indexOf("-") === 0 && fmt$(-5).indexOf("-") === 0);
+A("a guard renders a non-money unit as a suffix", guardVal({ entered: 42, used: 0, unit: "%" }, "entered") === "42%");
+A("a guard renders a unitless value bare", guardVal({ entered: 3, used: 1, unit: "" }, "entered") === "3");
 A("a guard renders a percentage with its unit", guardVal({ entered: 300, used: 100, unit: "%" }, "used") === "100%");
 A("a guard renders a bare count with no unit", guardVal({ entered: -2, used: 0, unit: "" }, "used") === "0");
 const cs0 = compute(m({ classSize: 0 }));
