@@ -6,7 +6,7 @@ import InfoDot from "./src/lib/InfoDot";
 import { COLORS, BENCH } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
-import { trackTool } from "./src/lib/track";
+import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -889,7 +889,42 @@ function Calculator() {
                                carry the commercial meaning; the raw cost base stays in the
                                browser and in the report the user downloads. */
                             methodology_version: METHODOLOGY_VERSION,
-                            severity: r.hasBlock ? "high" : r.flags.some(f => f.level === "flag") ? "elevated" : "normal",
+                            /* Tracker 1-15. Ratio is the recoverable share of the cost base:
+                               twelve months of de-overlapped gross optimization value over
+                               annual TCO. It answers the question this tool exists to answer,
+                               which is how much of what you spend the model can identify as
+                               recoverable.
+                               Numerator is grossTotal, not netTotal, deliberately. netTotal is
+                               scaled by the stance factor and the None stance sets that factor
+                               to zero, so a netTotal basis published none on a default case
+                               carrying 71,000 a month of identified leak. A stance is an
+                               attribution position on how much of the leak you dare book. It
+                               is not a statement that the leak is absent.
+                               Denominator is annual TCO, the headline this tool produces.
+                               Rejected: labor, or agent labor, as a narrower addressable base.
+                               Every lever here acts on labor, so a narrower denominator is
+                               arguably more precise, but it raises the reported band for a
+                               labor-light operation without a dollar more leaking, which is
+                               the opposite of what a cost tool should report.
+                               Rejected: cost per contact against a benchmark, which is the
+                               natural reading for a cost-only tool. No cost benchmark exists
+                               in benchmarks.js and inventing one would be an unsourced
+                               constant.
+                               Rejected: hasBlock and hasFlag, the prior basis. Those are input
+                               hygiene, they are already published in full by confidence_class
+                               on this same block, and reading them here meant this property
+                               carried no information the wire did not already have.
+                               Clamped at 1.0. Measured across 30,000 operations at maximal
+                               targets, gross reaches 3.3 times annual TCO, which means the
+                               targets entered are not physically achievable. severe is the
+                               correct reading there.
+                               Declared unreachable: nothing. none is reached when no lever
+                               fires, which happens whenever every target equals current.
+                               Most real operations sit in low, because a modelled operation
+                               leaks single digit percentages of its base. That is the honest
+                               distribution, and the outlier is what this band exists to find.
+                               Nothing is published when annual TCO is zero. */
+                            severity: severityBucket(r.annual > 0 ? Math.max(0, Math.min(1, (opt.grossTotal * 12) / r.annual)) : null),
                             confidence_class: r.confidence,
                             cost_basis: d.costBasis,
                             has_document_evidence: d.costBasis === "invoiced",
