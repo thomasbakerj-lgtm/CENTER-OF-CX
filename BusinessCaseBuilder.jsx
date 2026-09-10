@@ -395,6 +395,40 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   const typicalBreakeven = typicalPayback > 0 ? typicalPayback
     : (postMonthly > 0 ? 36 + Math.ceil(-typicalValue3 / postMonthly) : 0);
 
+  // ---- FRAGILITY, tracker 1-14. How much of the modelled benefit can fail to arrive
+  // before the three-year return is gone. Denominated in benefit, not in cost, because the
+  // question is whether the benefit shows up, so the denominator has to be the thing at risk.
+  // Note that roi3 is the same statistic reparameterised: tco3 equals benefit3 minus
+  // netValue3, so roi equals slack over one minus slack. A 15% ROI trigger is arithmetically
+  // a 13.0% slack trigger. Benefit is chosen because it is the denominator the sentence can
+  // be written in.
+  const benefitSlack = benefit3 > 0 ? netValue3 / benefit3 : 0;
+  // FRAGILE_SLACK is versioned with the methodology stamp. Provenance is internal and
+  // measured rather than imported: stepping this tool from the Expected stance to the
+  // Conservative stance removes 15.8% of modelled benefit on a savings-led case, and 12.6%
+  // where displaced spend carries part of it, because displacement is never stance-weighted.
+  // A return that a smaller shortfall than that erases is a return smaller than the gap
+  // between two attribution stances this tool presents as equally defensible. The threshold
+  // moves if and only if the stance factors move.
+  // Rejected: payback proximity to the 36-month horizon, proposed in review. Measured as a
+  // strict subset. A case paying back in month 33 or later cannot accumulate enough
+  // contribution by month 36 to clear 15% slack, so it adds nothing, while the converse
+  // fails badly: a case with a small one-time cost and a heavy platform fee pays back in
+  // month 7 carrying 14.0% slack and timing would never flag it.
+  // Rejected: severity. Severity is trueBreakevenMonth over 60 and correctly reports a thin
+  // paying case as low severity, because it does pay. Fragility asks whether the answer
+  // survives a normal input error, which is a different question, and folding it into
+  // severity would reverse the 1-12c decision.
+  const FRAGILE_SLACK = 0.15;
+  const fragile = payback > 0 && benefitSlack > 0 && benefitSlack < FRAGILE_SLACK;
+  // The dominant lever, derived once here rather than twice, so the read and the fragility
+  // pricing cannot disagree about which lever carries the case.
+  const leverRank = Object.entries(buckets).sort((a, b) => b[1] - a[1]);
+  const topLeverKey = leverRank[0][0];
+  const topLeverShare = pct[topLeverKey];
+  // What the dominant lever alone has to miss by, to take the whole three-year return with it.
+  const leverShortfallToZero = topLeverShare > 0 ? benefitSlack / (topLeverShare / 100) : 0;
+
   return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal,
     mechKey: MECH[mechKey] ? mechKey : MECH_DEFAULT, mf, mechLabel: mech.label, cred: mech.cred,
     capacityGross, cashGross, capacityNet, cashNet, capacityRealized, unrealizedCapacity,
@@ -408,7 +442,8 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
     preGoLiveMonths, preGoLiveCredit,
     exitCost, backfillCash, absorbedHours, absorbedValue, grossOneTime, displacement3, year1Disp, benefit3, displacementShare,
     breakEvenImpl, breakEvenImplPerAgent, implHeadroom, implHeadroomPerAgent,
-    trueBreakevenMonth, TYPICAL_PER_AGENT, typicalImpl, typicalValue3, typicalRoi3, typicalPayback, typicalBreakeven };
+    trueBreakevenMonth, TYPICAL_PER_AGENT, typicalImpl, typicalValue3, typicalRoi3, typicalPayback, typicalBreakeven,
+    benefitSlack, FRAGILE_SLACK, fragile, topLeverKey, topLeverShare, leverShortfallToZero };
 }
 
 // Evidence-confidence: how bookable the cost and target inputs are, degraded by
@@ -474,6 +509,15 @@ function confidenceOf(d, r, stanceKey) {
       ? `Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent of implementation, leaving only ${fmtFull(r.implHeadroomPerAgent)} per agent of headroom, and that cliff sits below the ${fmtFull(r.TYPICAL_PER_AGENT)} internal planning floor. This is a fragility observation about the return, not a defect in the cost evidence, so it moves no confidence axis.`
       : `Three-year value is already negative on implementation cost. It would turn positive only below ${fmtFull(r.breakEvenImplPerAgent)} per agent, and ${fmtFull(perAgentImpl)} per agent was entered, so the case is ${fmtFull(-r.implHeadroomPerAgent)} per agent past the point where it returns. This is an observation about the return, not a defect in the cost evidence, so it moves no confidence axis.`);
 
+  // Tracker 1-14. A case can clear every gate above, pay back inside the horizon, and still
+  // be carrying a return so thin that a normal input error removes it. The engine flagged a
+  // payback under three months as too good and blocked on no payback at all, and had nothing
+  // between them, so a case breaking even in month 34 of a 36-month window passed in silence.
+  // This is an observation about the return and it moves no axis, for the same reason the
+  // findings above move none.
+  if (r.fragile)
+    findings.push(`Three-year value is ${fmtFull(r.netValue3)} against ${fmtFull(r.benefit3)} of modelled benefit, so a shortfall of ${Math.floor(r.benefitSlack * 100)}% in benefit removes the return entirely. That is a smaller move than the step from the Expected stance to the Conservative stance, which this tool offers as an equally defensible attribution choice. This is a fragility observation about the return, not a defect in the cost evidence, so it moves no confidence axis.`);
+
   // ---- ATTRIBUTION. Stance and target ambition are savings questions. ----
   // Tracker 1-12b, both calls argued and recorded rather than swept with the return caps.
   // STANCE STAYS A CAP. Stance governs how the savings figure was derived, not whether the
@@ -505,6 +549,10 @@ function confidenceOf(d, r, stanceKey) {
     .reduce((a, b) => GRADE_RANK[b] < GRADE_RANK[a] ? b : a, "Finance-grade");
   return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence };
 }
+
+// One vocabulary for the four savings levers, shared by the fragility pricing and the
+// concentration line below, so the two cannot name the same lever differently.
+const LEVER_LABEL = { containment: "self-service containment", handleTime: "handle-time reduction", fcr: "FCR improvement", attrition: "attrition reduction" };
 
 function caseInsights(r, d, stanceKey, conf) {
   const flags = [], leadFlags = [];
@@ -541,6 +589,26 @@ function caseInsights(r, d, stanceKey, conf) {
     : null;
   if (headroomLine && r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT) flags.unshift(headroomLine);
 
+  // Tracker 1-14. Fragility on the benefit side, priced. The headroom line above prices the
+  // same question against a cost error. This one prices it against the benefit not arriving,
+  // which is the error the rest of this read spends its time warning about, and it names the
+  // lever that would have to miss for it to happen. Fires only on a case that does return,
+  // because a case that does not return is a stronger finding and already leads.
+  // Floored rather than rounded, in both places this number is printed. A tolerable shortfall
+  // reported low is conservative in the direction the warning runs, and rounding 14.8 up to 15
+  // would print the figure the threshold excludes.
+  const slackPct = Math.floor(r.benefitSlack * 100);
+  // The lever clause has no referent on a case carrying no operational levers at all, which is
+  // reachable: a displacement-led case can pay back on retired spend with every improvement
+  // target at zero. Dropped rather than printed as a zero.
+  const leverClause = r.topLeverShare > 0
+    ? ` ${r.topLeverShare}% of the case rests on ${LEVER_LABEL[r.topLeverKey]}, so that lever alone under-delivering by ${Math.floor(r.leverShortfallToZero * 100)}% is enough on its own.`
+    : ` The benefit here is displaced technology spend rather than operational improvement, so the exposure is to the current contract actually ending, not to an operating target being missed.`;
+  const fragilityLine = r.fragile
+    ? `This case returns ${fmtFull(r.netValue3)} over three years on ${fmtFull(r.benefit3)} of modelled benefit, so a shortfall of ${slackPct}% in benefit takes the whole return with it.${leverClause} For scale, moving from the Expected stance to the Conservative stance removes about 16% of modelled benefit, so this return is thinner than the difference between two attribution choices this tool presents as equally defensible. Present it as a range with the downside priced, not as a ${r.payback}-month payback.`
+    : null;
+  if (fragilityLine) flags.unshift(fragilityLine);
+
   // The sentence that separates released capacity from money. This is the headline finding on
   // any case whose savings are mostly freed labor, which is most cases.
   const capacityLine = r.capacityNet > 0
@@ -557,15 +625,25 @@ function caseInsights(r, d, stanceKey, conf) {
      inherited marginal, the window closed before the finding that the investment does not
      return, so the document simply never said it. A document that omits that finding is not
      a shorter document, it is a different conclusion. Rank it once, here.
-       Rank 1: the case does not return.
+       Rank 1: the verdict line. That is the line saying the case does not return, or under
+       tracker 1-14 the line saying the return is too thin to survive a normal input error.
+       Same rank, because they answer the same question at different severity, and only one of
+       them can exist on a given case: fragility is gated on a payback that exists.
        Exception, and only one: where the savings are released capacity rather than cash, the
        capacity sentence is the cause and the failure to return is the symptom. That is the
        standing decision recorded at the capacity unshift above, and this ranking preserves it
        rather than quietly reversing it. The lever leads and the symptom follows it immediately.
        The exception is matched to that unshift condition exactly, and it lapses the moment a
-       lead flag exists, because a contradicted input outranks both. */
-  if (r.payback === 0) {
-    const at = flags.findIndex(t => /does not break even/.test(t));
+       lead flag exists, because a contradicted input outranks both.
+       The window itself is deliberately NOT widened for the verdict line. Sizing a read window
+       off a flag count is the 1-16 defect, and a second sizing rule would reintroduce it. The
+       verdict line takes rank 1 and therefore cannot be the line that drops, and the capacity
+       and headroom lines are re-appended below if the window closed on them. */
+  const verdictLine = r.payback === 0
+    ? flags.find(t => /does not break even/.test(t))
+    : fragilityLine;
+  if (verdictLine) {
+    const at = flags.indexOf(verdictLine);
     if (at >= 0) {
       const [line] = flags.splice(at, 1);
       const capacityLeads = !!capacityLine && (r.mechKey === "none" || r.cred === "capacity") && leadFlags.length === 0;
@@ -584,11 +662,13 @@ function caseInsights(r, d, stanceKey, conf) {
   // The differentiator, stated plainly so a blind user understands why the number is smaller than a vendor's.
   out.push(`Deflected and repeat-avoided contacts are valued at the marginal cost of ${fmt2(r.marginal)} each, the marginal labor content of a contact, not the fully loaded ${fmt2(n(d.costPerContact))}. That valuation is shared with the TCO Calculator, which makes the two tools consistent on the same contact. Consistency is a shared definition, not evidence that the capacity is cash-releasing: that depends entirely on the realization action.`);
 
-  const sorted = Object.entries(r.buckets).sort((a, b) => b[1] - a[1]);
-  const [topName, topVal] = sorted[0];
-  const labelMap = { containment: "self-service containment", handleTime: "handle-time reduction", fcr: "FCR improvement", attrition: "attrition reduction" };
-  const topShare = r.pct[topName];
-  out.push(`${topShare}% of your case rests on ${labelMap[topName]}. ${topName === "containment" ? "Deflection is the assumption most often wrong after go-live, so this is where a pilot result changes the conclusion most." : topName === "attrition" ? "That is the softest, least attributable lever, so expect the most pushback there." : "It is a relatively defensible lever, which strengthens the case."}`);
+  // Derived in the engine, not here, so the fragility pricing above and this line cannot
+  // disagree about which lever carries the case.
+  const topName = r.topLeverKey;
+  const topShare = r.topLeverShare;
+  // Suppressed where no operational lever carries any of the case. The sentence asserts a
+  // concentration that does not exist, and on a displacement-led case it printed a zero.
+  if (topShare > 0) out.push(`${topShare}% of your case rests on ${LEVER_LABEL[topName]}. ${topName === "containment" ? "Deflection is the assumption most often wrong after go-live, so this is where a pilot result changes the conclusion most." : topName === "attrition" ? "That is the softest, least attributable lever, so expect the most pushback there." : "It is a relatively defensible lever, which strengthens the case."}`);
 
   if (r.rampOn && r.payback > 0) {
     const instMonthly = r.monthlyFull - r.monthlyPlatform;
@@ -1099,6 +1179,11 @@ export default function BusinessCaseBuilder() {
                   displacement_led: r.displacementShare >= 0.5,
                   credit_before_go_live: r.preGoLiveCredit > 0,
                   negative_max_implementation: r.breakEvenImpl < 0,
+                  /* Tracker 1-14. A case that returns inside the horizon on a margin thinner
+                     than the gap between two attribution stances. Reported as a boolean band,
+                     never as the slack figure itself, which would carry the cost base out of
+                     the browser by arithmetic. */
+                  thin_return: r.fragile,
                   /* Severity measures how long the business waits for its money back, and it is
                      the correct home for verdict strength: the confidence axes rate the case, this
                      rates the answer. Tracker 1-12c, denominator argued and rejections recorded.
