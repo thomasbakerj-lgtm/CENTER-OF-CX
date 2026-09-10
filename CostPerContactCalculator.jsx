@@ -24,9 +24,9 @@ function LogoMark({ size = 30, light = true }) {
 // mechanism; "none" credits nothing. Each carries an honest cashability ceiling.
 
 const VBENCH = [
-  { vert: "Financial Services", cpc: "$8.50–$12", cpr: "$11–$16", fcr: "72%" },
-  { vert: "Healthcare", cpc: "$9–$14", cpr: "$13–$20", fcr: "71%" },
-  { vert: "Retail & eCommerce", cpc: "$5–$8", cpr: "$6–$10", fcr: "78%" },
+  { vert: "Financial Services", cpc: "$8.50 to $12", cpr: "$11 to $16", fcr: "72%" },
+  { vert: "Healthcare", cpc: "$9 to $14", cpr: "$13 to $20", fcr: "71%" },
+  { vert: "Retail & eCommerce", cpc: "$5 to $8", cpr: "$6 to $10", fcr: "78%" },
 ];
 
 /* @engine-start
@@ -47,6 +47,21 @@ const VBENCH = [
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const money = (v) => { const x = n(v); return (x < 0 ? "-$" : "$") + Math.abs(x).toFixed(2); };
 const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x); return s + (a >= 1000000 ? "$" + (a / 1000000).toFixed(2) + "M" : a >= 1000 ? "$" + (a / 1000).toFixed(0) + "K" : "$" + Math.round(a)); };
+
+/* One renderer for a guarded value, used by every path that discloses a correction.
+   Three paths printed these before: the on-page flag, the Inputs Corrected section of
+   the downloaded report, and the methodology paragraph. The flag put the dollar sign
+   in front and the other two put it behind, so the same correction read as $-12 on
+   screen and -12$ in the PDF. That is the split-rendering defect class, one quantity
+   derived twice, and it is why this is a function rather than three template literals.
+   The sign leads the symbol, matching money and fmtK above and every other money
+   format in the platform. */
+const guardVal = (g, which) => {
+  const v = g[which];
+  if (g.unit !== "$") return `${v}${g.unit}`;
+  return (v < 0 ? "-$" : "$") + Math.abs(v);
+};
+const guardLine = (g) => `${g.label}: entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}.`;
 
 const BASE = {
   monthlyContacts: 50000, denominator: "handled", fcrRate: 72, contactsPerUnresolved: 2.4,
@@ -156,7 +171,7 @@ function compute(d, mechKey) {
   /* Guard disclosure comes FIRST. If the engine had to change an input, that is the
      most important thing on the page: every figure below it was computed from a
      number the user did not enter. */
-  for (const g of guards) flags.push({ sev: "warn", t: `${g.label}: you entered ${g.unit === "$" ? "$" : ""}${g.entered}${g.unit !== "$" ? g.unit : ""}, which is outside the possible range. Every figure in this report was computed at ${g.unit === "$" ? "$" : ""}${g.used}${g.unit !== "$" ? g.unit : ""}. Correct the input or treat the output as void.` });
+  for (const g of guards) flags.push({ sev: "warn", t: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the possible range. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.` });
   if (margDerived) flags.push({ sev: "info", t: `No usable marginal cost was entered, so marginal was derived at 60% of loaded (${money(marg)}). Marginal cost drives the repeat-demand burden and every released figure. Enter your real variable cost before presenting any of them.` });
   if (loaded > 0 && marg >= loaded) flags.push({ sev: "warn", t: "Marginal cost is not below loaded. Marginal must be the lower, variable cost. Eliminating a contact can't recover the fixed platform and facilities in the loaded figure. Check the cost basis." });
   if (chPctTotal !== 100) flags.push({ sev: "warn", t: chPctTotal === 0 ? "Channel mix sums to 0%. Blended handle cost and the FTE burden below are not computed from your mix; effective handle time falls back to 5.5 minutes. Set the mix before reading either." : `Channel mix sums to ${chPctTotal}%, not 100%. Channel spend is scaled to volume, but blended handle cost reads true only at 100%.` });
@@ -534,10 +549,10 @@ useEffect(() => {
                 ["Burden, loaded (accounting only, not savings)", fmtK(r.burdenLoaded) + "/mo"],
               ]},
               { title: "FCR Dividend: Released → Realizable", type: "table", rows: r.dividend.map(s => ["FCR +" + s.p + " → " + s.newFCR.toFixed(0) + "% (" + s.tier + ")", "released " + fmtK(s.released * 12) + "/yr · realizable " + fmtK(s.realizable * 12) + "/yr"]) },
-              ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(g => `${g.label}: entered ${g.entered}${g.unit}, computed at ${g.used}${g.unit}.`) }] : []),
+              ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
               ...(r.flags.length ? [{ title: "Integrity Checks", type: "findings", items: r.flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mech].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${g.entered}${g.unit}, computed at ${g.used}${g.unit}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at 60% of loaded (${money(r.marg)}).` : ""}` },
+              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mech].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at 60% of loaded (${money(r.marg)}).` : ""}` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "FCR Leakage Diagnostic", reason: "Decompose repeat demand by root cause and friction type", href: "/tools/fcr-leakage" },
                 { tool: "Channel Shift Economics", reason: "Move resolvable volume to cheaper channels by issue type", href: "/tools/channel-shift" },
