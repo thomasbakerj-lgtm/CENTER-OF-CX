@@ -67,7 +67,14 @@ const fmt$ = (v) => { const x = n(v), s = x < 0 ? "-" : ""; return s + "$" + Mat
    the same document. Clamping alone is not the fix: a value the engine had to
    change is a value the report must disclose, or the document shows a number the
    engine never ran. `used` carries what was computed, `entered` what was asked. */
-const guardVal = (g, which) => g.unit === "$" ? "$" + g[which] : `${g[which]}${g.unit}`;
+/* The sign leads the symbol, matching fmt$ above and every other money format in the
+   platform. This printed $-200 on a negative entry until the Cost per Contact split-
+   rendering fix, which is the same divergence in the same helper. */
+const guardVal = (g, which) => {
+  const v = g[which];
+  if (g.unit !== "$") return `${v}${g.unit}`;
+  return (v < 0 ? "-$" : "$") + Math.abs(v);
+};
 
 const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
 const AXES = ["evidence", "realization", "completeness"];
