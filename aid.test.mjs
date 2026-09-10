@@ -385,6 +385,72 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("type: zero em-dashes", src.indexOf(String.fromCharCode(0x2014)) < 0);
 }
 
+/* ---- Tracker 1-15: the band ratio, in the engine where it can be tested ---- */
+/*
+ * severityRatio is break-even resolution over claimed resolution: the share of the
+ * claimed rate consumed simply paying for the program. It is computed in the engine
+ * rather than in the JSX so these assertions can reach it. The rendered gate in
+ * aid.report.mjs then proves the band the document publishes comes from this figure.
+ */
+{
+  const CASH = MECH_KEYS.filter(k => MECH[k].cred === "cash").pop();
+  const inDomain = (x) => x === null || (typeof x === "number" && x >= 0 && x <= 1);
+
+  A("ratio is in domain on the shipped default", inDomain(engine(DEF).severityRatio));
+
+  let domainOK = true, monoOK = true;
+  for (let i = 0; i < 20000; i++) {
+    const I = { ...DEF, M:(Math.random()-.2)*3e5, cpc:(Math.random()-.1)*30, marg:(Math.random()-.1)*30,
+      eligibleRate:(Math.random()*1.4-.2)*100, apparentResolutionRate:(Math.random()*1.4-.2)*100,
+      repeatLeakRate:(Math.random()*1.4-.2)*100, escalationPenalty:(Math.random()*2.4-.2)*100,
+      mech:MECH_KEYS[Math.floor(Math.random()*MECH_KEYS.length)],
+      botPlatformCost:Math.random()*2e4, qaCost:Math.random()*5e3 };
+    const x = engine(I);
+    if (!inDomain(x.severityRatio)) domainOK = false;
+    /* A program that does not break even at any rate is the top of the scale, always. */
+    if (x.attempted > 0 && !isFinite(x.beResPct) && x.severityRatio !== 1) monoOK = false;
+  }
+  A("ratio stays in domain under hostile input across 20,000 cases", domainOK);
+  A("an unreachable break-even is always the top of the scale", monoOK);
+
+  /* Both ends of the scale are reachable, which is the whole point of the retrofit. */
+  const free = engine({ ...DEF, marg:4.2, mech:CASH, escalationPenalty:0, botPlatformCost:0,
+    qaCost:0, tuningHours:0, knowledgeMaintHours:0 });
+  A("bottom of the scale is reachable: a program with no operating cost", free.severityRatio === 0);
+  const dead = engine({ ...DEF, marg:4.2, mech:ZERO_KEY });
+  A("top of the scale is reachable: no capacity action converts freed time", dead.severityRatio === 1);
+
+  /* A zero claim against a positive break-even is not unknown. It is a claim sitting
+     below any rate that pays. The first cut withheld the band here. */
+  const noClaim = engine({ ...DEF, marg:4.2, mech:CASH, apparentResolutionRate:0 });
+  A("a zero claim against a positive break-even is the top of the scale", noClaim.severityRatio === 1);
+  A("that case does have a finite break-even, so it is not the unreachable case", isFinite(noClaim.beResPct));
+
+  /* Withheld only when there is no eligible volume routed at all. */
+  const empty = engine({ ...DEF, marg:4.2, mech:CASH, eligibleRate:0 });
+  A("no eligible volume routed withholds the ratio rather than reporting a band", empty.severityRatio === null);
+
+  /* The ratio moves with cost, holding the claim fixed. More operating spend means more
+     of the claimed rate is consumed paying for it. */
+  const cheap = engine({ ...DEF, marg:4.2, mech:CASH, botPlatformCost:2000 });
+  const dear  = engine({ ...DEF, marg:4.2, mech:CASH, botPlatformCost:20000 });
+  A("the ratio rises with operating cost at a fixed claim", dear.severityRatio > cheap.severityRatio);
+
+  /* And falls as the claim rises, holding cost fixed. */
+  const weakClaim   = engine({ ...DEF, marg:4.2, mech:CASH, apparentResolutionRate:45 });
+  const strongClaim = engine({ ...DEF, marg:4.2, mech:CASH, apparentResolutionRate:90 });
+  A("the ratio falls as the claimed rate rises at a fixed cost", strongClaim.severityRatio < weakClaim.severityRatio);
+
+  /* The rejected basis, asserted so the rejection cannot be quietly reversed.
+     realizedDollarsPct rates the shipped default at the top of the scale while that
+     same case nets money, because vendorClaim is the naive slide. */
+  const d0 = engine(DEF);
+  A("the rejected basis would put the shipped default at the top of the scale",
+    Math.max(0, Math.min(1, 1 - d0.realizedDollarsPct / 100)) >= 0.75);
+  A("the shipped default nevertheless nets money", d0.netSavings > 0);
+  A("the argued basis does not put it at the top of the scale", d0.severityRatio < 0.75);
+}
+
 const r = engine(DEF);
 console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f*100) + "%");
 console.log("\n  default readout");
