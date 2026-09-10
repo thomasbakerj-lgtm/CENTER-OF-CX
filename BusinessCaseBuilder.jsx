@@ -423,12 +423,17 @@ function confidenceOf(d, r, stanceKey) {
   const evidence = d.evidence || "estimate";
   const perAgentImpl = n(d.agents) > 0 ? n(d.implementationCost) / n(d.agents) : 0;
 
-  // THREE CONCEPTS, THREE PLACES, and none of them may move another.
-  //   open  : defects in the COST INPUTS themselves. Only these move the cost-basis axis.
-  //   caps  : reasons the HEADLINE is capped that are not cost-input defects, each carrying
-  //           its own ceiling and naming its own domain.
-  //   flags : plausibility observations that inform the reader and move nothing.
-  const open = [], caps = [], flags = [];
+  // FOUR CONCEPTS, FOUR PLACES, and none of them may move another.
+  //   open     : defects in the COST INPUTS themselves. Only these move the cost-basis axis.
+  //   caps     : reasons the HEADLINE is capped that are not cost-input defects, each carrying
+  //              its own ceiling and naming its own domain. Every entry here must be a question
+  //              about the inputs or the derivation, never about the answer.
+  //   findings : observations about the RETURN. They reach the reader in full and move no axis.
+  //              Doctrine v1.1 section 5.1: the strength of a verdict is never a confidence axis,
+  //              because a well evidenced, complete, cash creditable case that does not pay is a
+  //              confident negative result, and grading it down reports certainty as doubt.
+  //   flags    : target plausibility observations, the input to the single target cap below.
+  const open = [], caps = [], findings = [], flags = [];
 
   // ---- COST BASIS. One question: how bookable are the investment inputs? ----
   if (r.marginalStale) open.push(`The inherited marginal cost of ${fmt2(r.marginal)} per contact is ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage entered here. One of the two is describing a different operation.`);
@@ -455,21 +460,32 @@ function confidenceOf(d, r, stanceKey) {
   else if (GRADE_RANK[realizationGrade] < GRADE_RANK[costGrade])
     caps.push([realizationGrade, `The ${r.mechLabel} capacity action converts freed labor into ${r.cred === "capacity" ? "planning value rather than cash" : "finance-creditable value rather than cash out the door"}, so realization caps this case at ${realizationGrade}. This is a benefit-realization concern, not a cost-input one.`]);
 
-  // ---- RETURN. Whether the case pays is not evidence about anything. ----
-  if (r.payback === 0) caps.push(["Directional", r.trueBreakevenMonth > 0
-    ? `The case does not break even within the three-year evaluation horizon, and on the same assumptions cumulative cash turns positive in month ${r.trueBreakevenMonth}. This caps the badge on the strength of the return, not on the bookability of the costs.`
-    : "Modeled savings never exceed the monthly platform cost, so the case does not break even at any horizon. This caps the badge on the strength of the return, not on the bookability of the costs."]);
+  // ---- RETURN. Whether the case pays is not evidence about anything, so it moves no axis. ----
+  if (r.payback === 0) findings.push(r.trueBreakevenMonth > 0
+    ? `The case does not break even within the three-year evaluation horizon, and on the same assumptions cumulative cash turns positive in month ${r.trueBreakevenMonth}. This is a finding about the return. It does not lower the confidence grade, because the grade rates how well the case is evidenced and how complete it is, not whether the answer is favourable.`
+    : "Modeled savings never exceed the monthly platform cost, so the case does not break even at any horizon. This is a finding about the return. It does not lower the confidence grade, because the grade rates how well the case is evidenced and how complete it is, not whether the answer is favourable.");
   // A negative maximum implementation is a finding, not an absence of one: the case does not
   // reach three-year break-even even if the implementation were free. Gated on postMonthly so
-  // it never duplicates the never-breaks-even cap above.
+  // it never duplicates the never-breaks-even finding above.
   if (r.breakEvenImpl < 0 && r.postMonthly > 0)
-    caps.push(["Planning-grade", `Three-year value stays negative even at zero implementation cost. Modeled benefit falls ${fmtFull(-r.breakEvenImpl)} short of three years of platform cost${(r.exitCost + r.backfillCash) > 0 ? " plus exit and backfill" : ""}, so no reduction in implementation makes this case return inside the horizon. This is an observation about the return, not a defect in the cost evidence.`]);
+    findings.push(`Three-year value stays negative even at zero implementation cost. Modeled benefit falls ${fmtFull(-r.breakEvenImpl)} short of three years of platform cost${(r.exitCost + r.backfillCash) > 0 ? " plus exit and backfill" : ""}, so no reduction in implementation makes this case return inside the horizon. This is an observation about the return, not a defect in the cost evidence, so it moves no confidence axis.`);
   if (r.breakEvenImplPerAgent > 0 && r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT && r.postMonthly > 0)
-    caps.push(["Planning-grade", r.implHeadroomPerAgent >= 0
-      ? `Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent of implementation, leaving only ${fmtFull(r.implHeadroomPerAgent)} per agent of headroom, and that cliff sits below the ${fmtFull(r.TYPICAL_PER_AGENT)} internal planning floor. This is a fragility observation about the return, not a defect in the cost evidence.`
-      : `Three-year value is already negative on implementation cost. It would turn positive only below ${fmtFull(r.breakEvenImplPerAgent)} per agent, and ${fmtFull(perAgentImpl)} per agent was entered, so the case is ${fmtFull(-r.implHeadroomPerAgent)} per agent past the point where it returns. This is an observation about the return, not a defect in the cost evidence.`]);
+    findings.push(r.implHeadroomPerAgent >= 0
+      ? `Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent of implementation, leaving only ${fmtFull(r.implHeadroomPerAgent)} per agent of headroom, and that cliff sits below the ${fmtFull(r.TYPICAL_PER_AGENT)} internal planning floor. This is a fragility observation about the return, not a defect in the cost evidence, so it moves no confidence axis.`
+      : `Three-year value is already negative on implementation cost. It would turn positive only below ${fmtFull(r.breakEvenImplPerAgent)} per agent, and ${fmtFull(perAgentImpl)} per agent was entered, so the case is ${fmtFull(-r.implHeadroomPerAgent)} per agent past the point where it returns. This is an observation about the return, not a defect in the cost evidence, so it moves no confidence axis.`);
 
   // ---- ATTRIBUTION. Stance and target ambition are savings questions. ----
+  // Tracker 1-12b, both calls argued and recorded rather than swept with the return caps.
+  // STANCE STAYS A CAP. Stance governs how the savings figure was derived, not whether the
+  // figure is good news. Aggressive means no attribution haircut was applied, so the reader
+  // is being shown a number built on a weaker derivation. That is a statement about the
+  // input side, and it would still hold on a case that pays back in four months.
+  // TARGET AMBITION STAYS A CAP. An improvement target is an input, not an output. A 40%
+  // containment assumption with no pilot behind it is a weakly evidenced input in exactly
+  // the sense the evidence axis names. Verdict strength is a property of the answer; target
+  // ambition is a property of the question, and the two are not the same test. Rejected
+  // alternative: treating it as completeness. Completeness asks whether the model is whole
+  // and internally consistent, and an ambitious target leaves it both.
   if (stanceKey === "aggressive") caps.push(["Planning-grade", "The Aggressive stance presents savings with no attribution haircut. This is a benefit-attribution concern rather than a cost-input one, and it is listed here precisely so it does not get counted as a costing defect."]);
   if (n(d.containment) > 25) flags.push(`Containment target of ${n(d.containment)}% is above the 10 to 25% range most centers reach without a proven pilot.`);
   if (n(d.htReduction) > 15) flags.push(`Handle-time reduction of ${n(d.htReduction)}% is above the 8 to 15% range we use for planning.`);
@@ -480,12 +496,14 @@ function confidenceOf(d, r, stanceKey) {
   if (flags.length) caps.push(["Planning-grade", `${flags.length} improvement target${flags.length > 1 ? "s sit" : " sits"} above the internal planning range: ${flags.join(" ")} This is a target-plausibility concern, not a cost-input one.`]);
 
   // ---- PRICE PLAUSIBILITY is not evidence quality. A signed proposal stays contracted. ----
+  // Moved from flags to findings under 1-12. It moved no axis before and moves none now, but
+  // flags had no rendered channel, so this observation reached the export and no reader.
   if (perAgentImpl > 0 && perAgentImpl < 2000 && r.postMonthly > 0)
-    flags.push(`Implementation of ${fmtFull(perAgentImpl)} per agent is below our internal planning benchmark of $3 to 8K per agent for a full transformation, which is a heuristic rather than a sourced market figure. Evidence quality is unchanged by this: a signed proposal is still contracted.`);
+    findings.push(`Implementation of ${fmtFull(perAgentImpl)} per agent is below our internal planning benchmark of $3 to 8K per agent for a full transformation, which is a heuristic rather than a sourced market figure. Evidence quality is unchanged by this: a signed proposal is still contracted.`);
 
   const headline = [costGrade, realizationGrade, ...caps.map(c => c[0])]
     .reduce((a, b) => GRADE_RANK[b] < GRADE_RANK[a] ? b : a, "Finance-grade");
-  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), flags, evidence, bauEvidence };
+  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence };
 }
 
 function caseInsights(r, d, stanceKey, conf) {
@@ -533,6 +551,28 @@ function caseInsights(r, d, stanceKey, conf) {
   if (r.preGoLiveCredit > 0) leadFlags.push(`The dual-run period ends in month ${r.OL} but go-live is month ${r.M}, so ${r.preGoLiveMonths} month${r.preGoLiveMonths === 1 ? "" : "s"} of displaced spend, ${fmtFull(r.preGoLiveCredit)}, is credited while the current platform is still the only one running. That is ${Math.round(r.preGoLiveCredit / Math.max(1, r.benefit3) * 100)}% of modeled three-year benefit. It holds only if licences retire in tranches during the migration. Under a single cutover, extend the dual run to at least ${r.M} months and the benefit falls by that amount.`);
   flags.unshift(...leadFlags);
 
+  /* ORDERING IS A DECISION, and until now it was being made by the order the unshift calls
+     happen to appear in this file, then truncated by a window sized off leadFlags alone.
+     Caught by bcb.report.mjs: on a case carrying two lead flags, a capacity line and a stale
+     inherited marginal, the window closed before the finding that the investment does not
+     return, so the document simply never said it. A document that omits that finding is not
+     a shorter document, it is a different conclusion. Rank it once, here.
+       Rank 1: the case does not return.
+       Exception, and only one: where the savings are released capacity rather than cash, the
+       capacity sentence is the cause and the failure to return is the symptom. That is the
+       standing decision recorded at the capacity unshift above, and this ranking preserves it
+       rather than quietly reversing it. The lever leads and the symptom follows it immediately.
+       The exception is matched to that unshift condition exactly, and it lapses the moment a
+       lead flag exists, because a contradicted input outranks both. */
+  if (r.payback === 0) {
+    const at = flags.findIndex(t => /does not break even/.test(t));
+    if (at >= 0) {
+      const [line] = flags.splice(at, 1);
+      const capacityLeads = !!capacityLine && (r.mechKey === "none" || r.cred === "capacity") && leadFlags.length === 0;
+      flags.splice(capacityLeads ? 1 : 0, 0, line);
+    }
+  }
+
   const out = [...flags.slice(0, 2 + leadFlags.length)];
   if (capacityLine && !out.includes(capacityLine)) out.push(capacityLine);
   if (r.repeatBasis === "measured" && !r.fcrInputConflict && r.avoidedRepeats > 0)
@@ -578,7 +618,7 @@ function caseInsights(r, d, stanceKey, conf) {
   else
     out.push(`Two separate adjustments run on this case. The ${stanceKey} stance takes ${fmtK(r.attributionHaircut)} off gross savings for attribution, asking how much of the improvement this intervention actually causes. Realization then takes a further ${fmtK(r.realizationHaircut)} off freed labor, asking what converts capacity into money. ${r.mechKey === "none" ? `The realization figure is that large only because no action has been chosen, which is an open decision rather than a stress test. Choose the action you can actually commit to before comparing gross ${fmtK(r.gross)} against realizable ${fmtK(r.net)}.` : `Presenting gross ${fmtK(r.gross)} and realizable ${fmtK(r.net)} side by side, with both adjustments named, shows a reader exactly which assumptions the figure depends on.`}`);
 
-  if (conf) out.push(`Case confidence reads ${conf.grade}, the weaker of a ${conf.costGrade} cost basis and a ${conf.realizationGrade} realization axis${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} on the cost inputs to close before you call the investment side final` : ", with no open items on the cost inputs"}.${conf.withheld && conf.withheld.length ? ` The grade is additionally capped by ${conf.withheld.length} item${conf.withheld.length > 1 ? "s" : ""} that ${conf.withheld.length > 1 ? "are" : "is"} not a costing defect, counted separately so a return problem never reads as a bookability problem.` : ""} Neither axis rates whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
+  if (conf) out.push(`Case confidence reads ${conf.grade}, the weaker of a ${conf.costGrade} cost basis and a ${conf.realizationGrade} realization axis${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} on the cost inputs to close before you call the investment side final` : ", with no open items on the cost inputs"}.${conf.withheld && conf.withheld.length ? ` The grade is additionally capped by ${conf.withheld.length} item${conf.withheld.length > 1 ? "s" : ""} that ${conf.withheld.length > 1 ? "are" : "is"} not a costing defect, counted separately so a derivation problem never reads as a bookability problem.` : ""}${conf.findings && conf.findings.length ? ` ${conf.findings.length} finding${conf.findings.length > 1 ? "s are" : " is"} reported on the return itself, and ${conf.findings.length > 1 ? "none of them move" : "it does not move"} the grade, because a well evidenced case that does not pay is a confident negative answer.` : ""} Neither axis rates whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
 
   return out;
 }
@@ -989,11 +1029,17 @@ export default function BusinessCaseBuilder() {
           {/* Confidence & open issues */}
           <div style={{ background: "#fff", border: `1px solid ${gradeColor}55`, borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: gradeColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Case confidence: {conf.grade} · cost basis {conf.costGrade} · realization {conf.realizationGrade} · {EVIDENCE[conf.evidence].label}</div>
-            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: (conf.open.length || conf.withheld.length) ? 8 : 0 }}>Two independent axes, and the badge shows the weaker. Cost basis rates how bookable the cost and investment inputs are. Realization rates whether the modeled savings can be booked at all. Neither certifies that the organization can deliver the targets, which the Transformation Readiness tool assesses separately.</p>
+            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: (conf.open.length || conf.withheld.length || conf.findings.length) ? 8 : 0 }}>Two independent axes, and the badge shows the weaker. Cost basis rates how bookable the cost and investment inputs are. Realization rates whether the modeled savings can be booked at all. Neither certifies that the organization can deliver the targets, which the Transformation Readiness tool assesses separately. Whether the case pays is a separate question again, and it is reported below without moving the grade: a well evidenced case that does not return is a confident negative answer, not an uncertain one.</p>
             {conf.withheld.length > 0 && (
-              <div style={{ marginBottom: conf.open.length ? 10 : 0 }}>
+              <div style={{ marginBottom: (conf.findings.length || conf.open.length) ? 10 : 0 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Capping the grade, and not a cost-input defect:</div>
                 {conf.withheld.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: AMBER }}>&rsaquo;</span>{o}</div>)}
+              </div>
+            )}
+            {conf.findings.length > 0 && (
+              <div style={{ marginBottom: conf.open.length ? 10 : 0 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Findings on the return, which do not move the grade:</div>
+                {conf.findings.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: ELECTRIC }}>&rsaquo;</span>{o}</div>)}
               </div>
             )}
             {conf.open.length > 0 && (
@@ -1047,15 +1093,32 @@ export default function BusinessCaseBuilder() {
                   breaks_even_ever: r.trueBreakevenMonth > 0,
                   open_cost_items: conf.open.length,
                   withheld_caps: conf.withheld.length,
+                  return_findings: conf.findings.length,
                   bau_entered: r.bauEntered,
                   bau_evidence: conf.bauEvidence,
                   displacement_led: r.displacementShare >= 0.5,
                   credit_before_go_live: r.preGoLiveCredit > 0,
                   negative_max_implementation: r.breakEvenImpl < 0,
-                  severity: severityBucket(r.payback > 0 ? Math.min(1, r.payback / 36) : 1),
+                  /* Severity measures how long the business waits for its money back, and it is
+                     the correct home for verdict strength: the confidence axes rate the case, this
+                     rates the answer. Tracker 1-12c, denominator argued and rejections recorded.
+                     Denominator is 60 months, the outer edge of a five-year platform commitment,
+                     which is the longest horizon a CX platform decision is normally underwritten
+                     against. Scored on trueBreakevenMonth, which is the month cumulative cash
+                     actually turns positive under phasing, so a case that returns in month 43 is
+                     separated from one that never returns, exactly as every other surface in this
+                     tool separates them. Never returning is the only 1.0.
+                     Rejected: the 36-month evaluation horizon as the denominator, which put a
+                     27-month payback and a case that never pays in the same severe band and made
+                     four of five bands unreachable. Rejected: r.payback alone, which is 0 for both
+                     beyond-horizon and never, discarding a distinction the engine already computes.
+                     Rejected: an absolute month ladder, which would not move with the horizon.
+                     Declared unreachable: none. Every modelled transformation waits at least one
+                     month for its return, so a zero-severity business case has no referent here. */
+                  severity: severityBucket(r.trueBreakevenMonth > 0 ? Math.min(0.99, r.trueBreakevenMonth / 60) : 1),
                 }}
                 sections={[
-                  { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[stance].label} stance, which weights each lever for attribution risk.` },
+                  { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""}${conf.findings.length ? ` Findings on the return, reported in full and deliberately excluded from every confidence axis, because the strength of an answer is not evidence about it: ${conf.findings.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[stance].label} stance, which weights each lever for attribution risk.` },
                   { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(d.costPerContact))}. ${stance === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
                   { title: "Financial Summary", type: "metrics", items: [
                     { label: "Realizable Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[stance].label} stance · ${r.mechLabel} · run-rate` },
