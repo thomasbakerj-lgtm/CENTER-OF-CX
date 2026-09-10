@@ -164,18 +164,19 @@ function normalise(key, value) {
   if (typeof value !== "string") return value;
   const v = value.trim().toLowerCase();
   if (key === "grade") return v.split(/[^a-z]+/)[0] || v;
-  /* Tools already publish a severity into `signals`, and they do not all use
-     the same words: TCOCalculator, StaffingCalculator and AIDeflection hand-write
-     normal / elevated / high, the other six route through severityBucket. The
-     synonyms are mapped here rather than rewritten in those three, because the
-     same value is also appended to the manual review submission ReportActions
-     builds from `signals`, and rewording it at the tool would change what a
-     human reviewer reads as well as what the wire carries.
+  /* Every rail-active tool now routes its severity through severityBucket, so
+     nothing reaches this point that is not already a canonical band. Tracker
+     1-15 closed the last three: TCOCalculator, StaffingCalculator and
+     AIDeflection hand-wrote normal / elevated / high, which capped them at
+     three of the five bands and, in two of the three, duplicated a signal the
+     same block already published. Each now carries an argued ratio and its
+     recorded rejections at the `severity:` line in the tool.
 
-     Note the three hand-writers can only ever reach low, moderate and high.
-     `none` and `severe` are unreachable for them, which is the doctrine pattern
-     of a band unreachable in practice. That is a retrofit, not a rename, and it
-     is tracked as its own item.
+     The synonym map is retained rather than removed. It is a boundary guard on
+     a shared vocabulary, not a shim for three specific callers, and the same
+     value is appended to the manual review submission ReportActions builds
+     from `signals`, so a word arriving here in an older shape should still be
+     read rather than dropped in front of a human reviewer.
 
      An unrecognised word fails the validator and the property is dropped, which
      reads as "not published" and never as "none". rail-audit fails the suite on
