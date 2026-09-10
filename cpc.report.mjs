@@ -156,6 +156,11 @@ const SETS = {
     label: "Set B inputs exactly, absorb-growth mechanism: the credit-class ceiling",
     d: null, mech: "growth", validated: true, fromLink: false, pulledExternally: true,
   },
+  E: {
+    label: "Negative money through a scenario link: the money-guard rendering path",
+    d: { loadedCPC: -12, marginalCPC: -4, agentHourly: -30, fcrRate: 150 },
+    mech: "none", validated: false, fromLink: true, pulledExternally: false,
+  },
 };
 /* D reuses B's inputs verbatim. The ONLY difference is the capacity action, so any
    difference in grade between B and D is attributable to the credit class alone. */
@@ -177,7 +182,7 @@ function render(S) {
     ${compRegion}
     /* TOOL_ID and ROUTE already come out of the engine region: do not shadow them. */
     return {
-      d, mech, r, analyst, grade, gradeWhy, evidenceGrade, boundBy,
+      d, mech, r, analyst, grade, gradeWhy, evidenceGrade, boundBy, guardVal, guardLine,
       subtitle: \`${subtitleExpr.replace(/^`|`$/g, "")}\`,
       summary: ${summaryExpr},
       signals: ${signalsExpr},
@@ -320,8 +325,26 @@ for (const [key, S] of Object.entries(SETS)) {
   const corrected = find(P.sections, "⚠ Inputs Corrected");
   if (r.guards.length) {
     A(`${key}: corrected inputs are disclosed in the document`, !!corrected);
-    A(`${key}: every correction names the entered value and the computed value`,
-      corrected.items.length === r.guards.length && r.guards.every((g, i) => corrected.items[i].includes(String(g.entered)) && corrected.items[i].includes(String(g.used))));
+    /* Assert against the shipped renderer, not against raw string containment. The
+       containment form passed while the document printed -12$ and the on-page flag
+       printed $-12, because "-12" is a substring of both. Three paths derived the same
+       correction and only one of them was checked, which is the split-rendering defect
+       class. Every path now goes through guardVal, and this asserts that. */
+    A(`${key}: every correction line is exactly what the shipped renderer produces`,
+      corrected.items.length === r.guards.length && r.guards.every((g, i) => corrected.items[i] === P.guardLine(g)));
+    A(`${key}: every correction still names the field and both values`,
+      r.guards.every((g, i) => corrected.items[i].indexOf(g.label) === 0
+        && corrected.items[i].includes(P.guardVal(g, "entered")) && corrected.items[i].includes(P.guardVal(g, "used"))));
+    /* The on-page flag and the report section must be the same sentence about the same
+       correction, since a reader can hold both at once. */
+    A(`${key}: the on-page flag renders the same values as the report section`,
+      r.guards.every(g => r.flags.some(f => f.t.includes(P.guardVal(g, "entered")) && f.t.includes(P.guardVal(g, "used")))));
+    /* Money leads with the sign, matching money() and fmtK() and every other money
+       format in the platform. $-12 is a broken magnitude, not a negative. */
+    A(`${key}: no correction prints money with the sign behind the symbol`,
+      corrected.items.every(t => t.indexOf("$-") < 0));
+    A(`${key}: no money correction prints its unit as a suffix`,
+      r.guards.filter(g => g.unit === "$").every((g, i) => !/\d\$/.test(P.guardLine(g))));
     A(`${key}: the correction is repeated in methodology so the prose cannot contradict it`, /INPUTS CORRECTED/.test(meth));
     A(`${key}: the corrections section is ordered ahead of the analyst read`,
       P.sections.findIndex(s => s.title.indexOf("⚠ Inputs Corrected") === 0) < P.sections.findIndex(s => s.title === "Analyst Read"));
