@@ -343,16 +343,23 @@ section("11. confidenceOf, every branch");
   // Impossible-output block.
   const noPay = D({ evidence: "proposal", newPlatformPerAgentMo: 5000, implementationCost: 5000000 });
   const rNo = computeCase(noPay, "expected", true);
-  ok("payback 0 caps the HEADLINE at Directional but leaves the cost axis alone", (() => {
+  // 1-12. Doctrine v1.1 section 5.1: the strength of a verdict is never a confidence axis.
+  // The headline is the minimum of the applicable axes and nothing else. A case that does not
+  // return must land exactly where its evidence and realization put it.
+  ok("payback 0 moves no confidence axis, so the headline is still the minimum of the axes", (() => {
     const c = confidenceOf(noPay, rNo, "expected");
-    return c.grade === "Directional" && c.costGrade === "Finance-grade";
-  })(), JSON.stringify([confidenceOf(noPay, rNo, "expected").grade, confidenceOf(noPay, rNo, "expected").costGrade]));
-  ok("payback 0 is a WITHHELD item, never a cost-input open item", (() => {
+    const rank = { "Finance-grade": 3, "Planning-grade": 2, "Directional": 1 };
+    return c.grade === (rank[c.costGrade] <= rank[c.realizationGrade] ? c.costGrade : c.realizationGrade)
+      && c.costGrade === "Finance-grade";
+  })(), JSON.stringify([confidenceOf(noPay, rNo, "expected").grade, confidenceOf(noPay, rNo, "expected").costGrade, confidenceOf(noPay, rNo, "expected").realizationGrade]));
+  ok("payback 0 is a RETURN FINDING, never a cap and never a cost-input open item", (() => {
     const c = confidenceOf(noPay, rNo, "expected");
-    return c.withheld.some(t => /does not break even/.test(t)) && !c.open.some(t => /does not break even/.test(t));
+    return c.findings.some(t => /does not break even/.test(t))
+      && !c.withheld.some(t => /does not break even/.test(t))
+      && !c.open.some(t => /does not break even/.test(t));
   })());
-  ok("the withheld item says it caps on return, not on bookability",
-     confidenceOf(noPay, rNo, "expected").withheld.some(t => /not on the bookability of the costs/.test(t)));
+  ok("the return finding tells the reader in words that it does not lower the grade",
+     confidenceOf(noPay, rNo, "expected").findings.some(t => /does not lower the confidence grade/.test(t)));
 
   // Boundary exactness on target thresholds.
   const at25 = { ...clean, evidence: "proposal", containment: 25 };
@@ -575,7 +582,7 @@ section("12b. Semantic status, headroom and horizon language");
   ok("the implementation concern and the stance concern never share a counter", (() => {
     const c = confidenceOf(T3, computeCase(T3, "aggressive", true, "headcount"), "aggressive");
     return c.open.length === 0 && c.withheld.some(t => /Aggressive stance/.test(t))
-      && c.flags.some(t => /planning benchmark/.test(t));
+      && c.findings.some(t => /planning benchmark/.test(t));
   })());
   ok("price plausibility is a flag, never a downgrade of cost evidence", (() => {
     const thin = { ...T3, implementationCost: 100000, evidence: "proposal" };
@@ -998,8 +1005,8 @@ section("12h. Branch copy is true in every branch");
     const r = computeCase(d, "expected", true, "hiring");
     const c = confidenceOf(d, r, "expected");
     if (r.implHeadroomPerAgent >= 0) return true;
-    return c.withheld.some(t => /already negative on implementation cost/.test(t))
-      && !c.withheld.some(t => /leaving only/.test(t));
+    return c.findings.some(t => /already negative on implementation cost/.test(t))
+      && !c.findings.some(t => /leaving only/.test(t));
   })());
   ok("a case with real headroom states the headroom rather than a deficit", (() => {
     const d = { ...D(), implementationCost: 200000, agents: 235, evidence: "proposal" };
@@ -1035,10 +1042,15 @@ section("12e. Confidence concepts never contaminate each other");
 {
   const base = { ...D(), evidence: "proposal", implementationCost: 900000, agents: 387,
     newPlatformPerAgentMo: 70, migrationMonths: 6, rampMonths: 4 };
-  ok("a signed proposal stays Finance-grade on cost even when the case does not return", (() => {
+  // 1-12 definition of done, the flagship case. Finance-grade evidence, complete model,
+  // cash-creditable capacity action, and the case does not pay. That is a confident negative
+  // result and it must export Finance-grade with the negative finding intact.
+  ok("a Finance-grade, complete, cash-creditable case that does not pay still exports Finance-grade", (() => {
     const d = { ...base, newPlatformPerAgentMo: 5000, implementationCost: 5000000 };
     const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
-    return c.costGrade === "Finance-grade" && c.grade === "Directional";
+    return c.costGrade === "Finance-grade" && c.realizationGrade === "Finance-grade"
+      && c.grade === "Finance-grade" && c.open.length === 0 && c.withheld.length === 0
+      && c.findings.some(t => /does not break even/.test(t));
   })());
   ok("a signed proposal stays Finance-grade on cost under an aggressive stance", (() => {
     const c = confidenceOf(base, computeCase(base, "aggressive", true, "headcount"), "aggressive");
@@ -1071,6 +1083,109 @@ section("12e. Confidence concepts never contaminate each other");
     const c = confidenceOf(d, computeCase(d, "expected", true, "none"), "expected");
     return c.grade === "Directional" && c.costGrade === "Finance-grade";
   })());
+}
+
+/* ------------------------------------------- 12f. verdict strength, 1-12 --- */
+/*
+ * The structural gate, not a case gate. Holding evidence, targets, stance and capacity
+ * action fixed, the confidence grade must be invariant to how well the case returns.
+ * Anything that moves an axis when only the answer moves is the defect 1-12 removed,
+ * and this sweep is what stops it coming back one cap at a time.
+ */
+section("12f. Verdict strength is never a confidence axis");
+{
+  const RANK = { "Finance-grade": 3, "Planning-grade": 2, "Directional": 1 };
+  const fixed = { ...D(), evidence: "proposal", bauEvidence: "reviewed", agents: 200 };
+
+  // One evidence profile, eleven return profiles, driven only by investment and platform price.
+  const returns = [
+    { implementationCost: 150000 }, { implementationCost: 400000 }, { implementationCost: 750000 },
+    { implementationCost: 1500000 }, { implementationCost: 3000000 }, { implementationCost: 6000000 },
+    { newPlatformPerAgentMo: 60 }, { newPlatformPerAgentMo: 300 }, { newPlatformPerAgentMo: 900 },
+    { bauEliminatedAnnual: 1, bauExitCost: 1100000 }, { bauEliminatedAnnual: 1, bauExitCost: 2200000 },
+  ];
+
+  let spanning = 0;
+  for (const st of ["conservative", "expected", "aggressive"]) {
+    for (const mk of MECH_ORDER) {
+      const grades = new Set(), heads = new Set();
+      let sawNoReturn = false, sawReturn = false;
+      for (const over of returns) {
+        const d = { ...fixed, ...over };
+        const r = computeCase(d, st, true, mk);
+        const c = confidenceOf(d, r, st);
+        grades.add(c.costGrade + "|" + c.realizationGrade);
+        heads.add(c.grade);
+        if (r.payback === 0) sawNoReturn = true; else sawReturn = true;
+      }
+      ok(`${st}/${mk}: the two axes are identical across every return profile`, grades.size === 1,
+         JSON.stringify([...grades]));
+      ok(`${st}/${mk}: the headline is identical across every return profile`, heads.size === 1,
+         JSON.stringify([...heads]));
+      // Not every capacity action can produce a return at all: on "none" and "growth" the
+      // realized benefit is too small for any of these investment profiles to pay back, so
+      // those rows are legitimately all non-returning. What must hold everywhere is that the
+      // sweep is not vacuous, and that enough rows do span both for the invariant to bite.
+      ok(`${st}/${mk}: the sweep produced at least one non-returning case`, sawNoReturn);
+      if (sawNoReturn && sawReturn) spanning++;
+    }
+  }
+  ok("the sweep spans returning and non-returning cases on most capacity actions", spanning >= 12,
+     String(spanning));
+
+  // The headline is exactly the minimum of the applicable axes and the caps, and the caps
+  // themselves may never mention the return.
+  ok("no cap anywhere in the sweep argues from the return", (() => {
+    for (const st of ["conservative", "expected", "aggressive"]) for (const mk of MECH_ORDER) for (const over of returns) {
+      const d = { ...fixed, ...over };
+      const c = confidenceOf(d, computeCase(d, st, true, mk), st);
+      if (c.withheld.some(t => /break even|breaks even|turns negative above|zero implementation cost|past the point where it returns/.test(t))) return false;
+    }
+    return true;
+  })());
+
+  ok("the headline never falls below the minimum of the two axes either", (() => {
+    for (const st of ["conservative", "expected", "aggressive"]) for (const mk of MECH_ORDER) for (const over of returns) {
+      const d = { ...fixed, ...over };
+      const c = confidenceOf(d, computeCase(d, st, true, mk), st);
+      const floor = Math.min(RANK[c.costGrade], RANK[c.realizationGrade]);
+      const capped = c.withheld.length > 0;
+      if (!capped && RANK[c.grade] !== floor) return false;
+      if (RANK[c.grade] > floor) return false;
+    }
+    return true;
+  })());
+
+  // Every finding must reach the reader through the findings channel, and the channel must
+  // say so. A finding that silently moves an axis is the defect; a finding nobody renders is
+  // the other half of it.
+  ok("every return finding is exported and none of them appear as caps", (() => {
+    const d = { ...fixed, implementationCost: 6000000 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
+    return c.findings.length > 0 && c.withheld.length === 0;
+  })());
+
+  ok("the price-plausibility observation is a finding, not a flag and not a cap", (() => {
+    const d = { ...fixed, implementationCost: 200000 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
+    return c.findings.some(t => /planning benchmark/.test(t))
+      && !c.flags.some(t => /planning benchmark/.test(t))
+      && !c.withheld.some(t => /planning benchmark/.test(t))
+      && c.costGrade === "Finance-grade";
+  })());
+
+  // The two argued keeps, 1-12b. Both must still cap, and both must still name their domain.
+  ok("the aggressive stance still caps the headline, argued as a derivation question", (() => {
+    const c = confidenceOf(fixed, computeCase(fixed, "aggressive", true, "headcount"), "aggressive");
+    return c.withheld.some(t => /Aggressive stance/.test(t)) && c.grade === "Planning-grade";
+  })());
+  ok("target ambition still caps the headline, argued as an input question", (() => {
+    const d = { ...fixed, containment: 40 };
+    const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
+    return c.withheld.some(t => /target-plausibility concern/.test(t)) && c.grade === "Planning-grade";
+  })());
+  ok("SOURCE both argued keeps are recorded in the file, not only in a chat log",
+     SRC.includes("STANCE STAYS A CAP") && SRC.includes("TARGET AMBITION STAYS A CAP"));
 }
 
 /* -------------------------------------------- single-driver dominance ----- */
@@ -1849,3 +1964,6 @@ section("I. Archivo type system");
 console.log(`\n${"=".repeat(64)}`);
 console.log(`PASS ${pass}   FAIL ${fail}   TOTAL ${pass + fail}`);
 if (FAILS.length) console.log("\nFailures:\n" + FAILS.map(f => "  - " + f).join("\n"));
+/* bcb.test.mjs was the only engine harness that printed its failures and then exited 0,
+   so CI read a failing flagship gate as green. Every peer harness exits non-zero. */
+process.exit(fail ? 1 : 0);
