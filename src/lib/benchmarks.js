@@ -1,12 +1,12 @@
 /**
- * benchmarks.js — single source of truth for CX/CC benchmarks.
+ * benchmarks.js. Single source of truth for CX/CC benchmarks.
  * Every tool imports these classifiers so thresholds can never drift
  * between the color logic, the labels, the findings, and the actions.
  *
  * CANON (ratified for Tool Upgrades 2.0):
- *   Occupancy  — healthy < 85% · caution 85–90% · critical > 90% · target band 83–87%
- *   Shrinkage  — typical 28–35% · investigate above 35%
- *   Service    — default target 80% answered within 20s
+ *   Occupancy. healthy < 85% · caution 85 to 90% · critical > 90% · target band 83 to 87%
+ *   Shrinkage. typical 28 to 35% · investigate above 35%
+ *   Service.   default target 80% answered within 20s
  */
 
 export const COLORS = {
@@ -34,14 +34,14 @@ export function classifyOccupancy(occ) {
       band: "critical",
       color: COLORS.red,
       label: "Critical",
-      message: `Above ${pctStr(cautionMax)}, recovery time between contacts collapses. Burnout and attrition risk is high — add capacity or reduce load.`,
+      message: `Above ${pctStr(cautionMax)}, recovery time between contacts collapses. Burnout and attrition risk is high. Add capacity or reduce load.`,
     };
   if (occ > healthyMax)
     return {
       band: "caution",
       color: COLORS.amber,
       label: "Caution",
-      message: `Sustained occupancy above ${pctStr(healthyMax)} correlates with attrition and quality loss. Target the ${pctStr(targetLow)}–${pctStr(targetHigh)} band.`,
+      message: `Sustained occupancy above ${pctStr(healthyMax)} correlates with attrition and quality loss. Target the ${pctStr(targetLow)} to ${pctStr(targetHigh)} band.`,
     };
   return {
     band: "healthy",
@@ -57,10 +57,10 @@ export function classifyShrinkage(sh) {
   if (sh > typicalHigh)
     return {
       elevated: true,
-      message: `${pctStr(sh)} is above the typical ${pctStr(typicalLow)}–${pctStr(typicalHigh)} range. Worth decomposing before you treat it as fixed.`,
+      message: `${pctStr(sh)} is above the typical ${pctStr(typicalLow)} to ${pctStr(typicalHigh)} range. Worth decomposing before you treat it as fixed.`,
     };
   return {
     elevated: false,
-    message: `${pctStr(sh)} sits within the typical ${pctStr(typicalLow)}–${pctStr(typicalHigh)} range.`,
+    message: `${pctStr(sh)} sits within the typical ${pctStr(typicalLow)} to ${pctStr(typicalHigh)} range.`,
   };
 }
