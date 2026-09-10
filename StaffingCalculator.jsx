@@ -5,6 +5,7 @@ import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import NumField from "./src/lib/NumField";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
+import { severityBucket } from "./src/lib/track";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -25,7 +26,7 @@ function LogoMark({ size = 34, light = true }) { const a = light ? "#fff" : NAVY
 function erlangB(N, A) { let B = 1; for (let n = 1; n <= N; n++) B = (A * B) / (n + A * B); return B; }
 function erlangC(N, A) { if (N <= A) return 1; const B = erlangB(N, A); const rho = A / N; return B / (1 - rho * (1 - B)); }
 
-/* calc now accepts an optional occupancy cap (occCap, 0–1). When set, agents are
+/* calc now accepts an optional occupancy cap (occCap, 0 to 1). When set, agents are
    staffed to the GREATER of "meets service level" and "occupancy <= cap", since
    occupancy = A/N means N must be >= A/cap. Verified to reproduce Nextiva's
    published result (400/257s/80-20/85% cap -> 68 base, 98 FTE, 84.0% occ). */
@@ -432,12 +433,12 @@ export default function StaffingCalculator() {
             </div>
 
             <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px 18px 14px", marginBottom: 12 }}>
-              <h3 style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>Occupancy Risk · target {Math.round(BENCH.occupancy.targetLow * 100)}–{Math.round(BENCH.occupancy.targetHigh * 100)}%</h3>
+              <h3 style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>Occupancy Risk · target {Math.round(BENCH.occupancy.targetLow * 100)} to {Math.round(BENCH.occupancy.targetHigh * 100)}%</h3>
               <div style={{ position: "relative", height: 20, borderRadius: 10, overflow: "hidden", background: `linear-gradient(90deg, ${GREEN} 0%, ${GREEN} ${BENCH.occupancy.healthyMax * 100}%, ${AMBER} ${BENCH.occupancy.healthyMax * 100}%, ${AMBER} ${BENCH.occupancy.cautionMax * 100}%, ${RED} ${BENCH.occupancy.cautionMax * 100}%, ${RED} 100%)` }}>
                 <div style={{ position: "absolute", left: `${Math.min(r.occ * 100, 98)}%`, top: -1, width: 3, height: 22, background: NAVY, borderRadius: 2, transition: "left 0.3s" }} />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, color: MUTED }}>
-                <span>0%</span><span style={{ color: GREEN }}>&lt;{Math.round(BENCH.occupancy.healthyMax * 100)}% healthy</span><span style={{ color: AMBER }}>{Math.round(BENCH.occupancy.healthyMax * 100)}–{Math.round(BENCH.occupancy.cautionMax * 100)}% caution</span><span style={{ color: RED }}>&gt;{Math.round(BENCH.occupancy.cautionMax * 100)}% critical</span>
+                <span>0%</span><span style={{ color: GREEN }}>&lt;{Math.round(BENCH.occupancy.healthyMax * 100)}% healthy</span><span style={{ color: AMBER }}>{Math.round(BENCH.occupancy.healthyMax * 100)} to {Math.round(BENCH.occupancy.cautionMax * 100)}% caution</span><span style={{ color: RED }}>&gt;{Math.round(BENCH.occupancy.cautionMax * 100)}% critical</span>
               </div>
               <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: "10px 0 0" }}>Occupancy steps down each time another agent is required, so it rises then drops as volume grows. Small teams swing more than large ones.</p>
               {!capOn && pair.sustainable && (
@@ -507,7 +508,7 @@ export default function StaffingCalculator() {
             <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "16px 18px", marginTop: 12 }}>
               <button onClick={() => setShowBench(v => !v)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase" }}>Industry Benchmarks <span style={{ color: MUTED, fontWeight: 600 }}>· what each preset assumes</span></span>
-                <span style={{ fontSize: 16, color: MUTED }}>{showBench ? "–" : "+"}</span>
+                <span style={{ fontSize: 16, color: MUTED }}>{showBench ? "-" : "+"}</span>
               </button>
               {showBench && (
                 <div style={{ marginTop: 12, overflowX: "auto" }}>
@@ -564,7 +565,34 @@ export default function StaffingCalculator() {
                      leaves this block. Bands and booleans carry the commercial meaning;
                      the raw operating data stays in the browser and in the downloaded report. */
                   methodology_version: METHODOLOGY_VERSION,
-                  severity: !valid.ok ? "high" : occInfo.band === "critical" ? "elevated" : "normal",
+                  /* Tracker 1-15. Ratio is occupancy pressure above the sustainable band:
+                     the unmanaged occupancy less the 87% top of the ratified target band,
+                     over the distance from that top to physical saturation at 100%. Both
+                     ends of the span are given rather than chosen. 87% is canon in
+                     benchmarks.js and 100% is the ceiling occupancy cannot pass.
+                     Read from pair.sla.occ, the occupancy this operation would run at with
+                     no cap applied, and not from r.occ. Setting an occupancy cap holds the
+                     reported figure under the cap and moves the pressure into required
+                     headcount, so an r.occ basis would fall when the user chose to buy the
+                     pressure down rather than when the pressure eased.
+                     Rejected: valid.ok, the prior basis. Erlang C model validity is input
+                     hygiene, it is already published in full as model_valid on this same
+                     block, and reading it here meant this property carried no information
+                     the wire did not already have.
+                     Rejected: occInfo.band, also already published as occupancy_band, and
+                     three-valued, so it cannot fill five bands without inventing two.
+                     Rejected: pair.deltaFte, the agents needed to buy the pressure down. It
+                     is unbounded above and scales with the operation, so a 2,000 agent and
+                     a 30 agent operation under identical pressure would land in different
+                     bands.
+                     Rejected: cautionMax at 90% as the floor of the span, which would let
+                     none swallow the caution band this tool already calls workable but
+                     fragile.
+                     Declared unreachable: nothing. Measured across 40,000 queues, small
+                     queues and premium service targets reach none, large efficient queues
+                     reach severe, and all five bands are populated. Nothing is published
+                     when unmanaged occupancy is zero. */
+                  severity: severityBucket(pair.sla.occ > 0 ? Math.max(0, Math.min(1, (pair.sla.occ - BENCH.occupancy.targetHigh) / (1 - BENCH.occupancy.targetHigh))) : null),
                   model_valid: valid.ok,
                   has_real_cost_basis: cost.sourced,
                   priced_recovery_tradeoff: !!pair.sustainable,
@@ -616,8 +644,8 @@ export default function StaffingCalculator() {
                     ...(occInfo.band === "critical" ? [{ action: "Decide whether to buy recovery time", detail: pair.sustainable
                         ? `Staffing to your service level alone lands at ${(r.occ * 100).toFixed(1)}% occupancy. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead takes ${pair.sustainable.sched} FTE rather than ${r.sched}, a difference of ${pair.deltaFte} FTE, about ${fmtMoney(recoveryAnnual)} a year. That figure is the price of agent recovery time, and it is a decision rather than a setting. Reducing volume through deflection or cutting AHT lowers both numbers.`
                         : `At ${(r.occ * 100).toFixed(1)}%, agents have insufficient recovery time. Target the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% band by adding agents or reducing volume.`, priority: "high" }]
-                      : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band, workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)}–${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
-                    ...(shrinkInfo.elevated ? [{ action: "Decompose shrinkage", detail: `${shrink}% is above the typical ${Math.round(BENCH.shrinkage.typicalLow * 100)}–${Math.round(BENCH.shrinkage.typicalHigh * 100)}% range. Use the Shrinkage Planner to see which categories drive the gap before adding heads.`, priority: "medium" }] : []),
+                      : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band, workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
+                    ...(shrinkInfo.elevated ? [{ action: "Decompose shrinkage", detail: `${shrink}% is above the typical ${Math.round(BENCH.shrinkage.typicalLow * 100)} to ${Math.round(BENCH.shrinkage.typicalHigh * 100)}% range. Use the Shrinkage Planner to see which categories drive the gap before adding heads.`, priority: "medium" }] : []),
                     { action: "Model AHT reduction", detail: `A 10% AHT cut (${aht}s → ${Math.round(aht * 0.9)}s) lowers base staffing from ${r.raw} to ${ahtDown.raw} agents. Use AHT Decomposition to find reducible components without hurting quality.`, priority: "medium" },
                     { action: "Build spike contingency", detail: `Plan for +20% volume. Identify ${spike.sched - r.sched} agents activatable via overtime, cross-training, or BPO overflow.` },
                   ]},
