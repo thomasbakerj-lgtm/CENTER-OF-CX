@@ -17,10 +17,11 @@
  */
 import { readFileSync } from "fs";
 
-let COLORS, MECH, MECH_ORDER;
+let COLORS, MECH, MECH_ORDER, createGuards, guardVal;
 try {
   ({ COLORS } = await import("./src/lib/benchmarks.js"));
   ({ MECH, MECH_ORDER } = await import("./src/lib/mech.js"));
+  ({ createGuards, guardVal } = await import("./src/lib/guards.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib. Run from the repo root.");
   console.error(String(e.message || e));
@@ -39,13 +40,13 @@ if (a0 < 0 || b0 < 0) { console.error("BLOCKER: engine markers not found in Attr
 const region = SRC.slice(a0, b0).replace(/^export /gm, "");
 
 let compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS,
-  EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, guardVal, n, fmtK, fmt$, clone, TOOL_ID, ROUTE;
+  EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, n, fmtK, fmt$, clone, TOOL_ID, ROUTE;
 try {
   ({ compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS,
-    EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, guardVal, n, fmtK, fmt$, clone, TOOL_ID, ROUTE } = new Function(
-    "COLORS", "MECH", "MECH_ORDER",
-    region + "\nreturn { compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS, EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, guardVal, n, fmtK, fmt$, clone, TOOL_ID, ROUTE };"
-  )(COLORS, MECH, MECH_ORDER));
+    EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, n, fmtK, fmt$, clone, TOOL_ID, ROUTE } = new Function(
+    "COLORS", "MECH", "MECH_ORDER", "createGuards", "guardVal",
+    region + "\nreturn { compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS, EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, n, fmtK, fmt$, clone, TOOL_ID, ROUTE };"
+  )(COLORS, MECH, MECH_ORDER, createGuards, guardVal));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -55,7 +56,7 @@ try {
 
 A("engine region slices and evaluates", typeof compute === "function");
 A("engine region carries its own formatters", typeof n === "function" && typeof fmtK === "function" && typeof fmt$ === "function");
-A("engine region carries the corrected-value renderer", typeof guardVal === "function");
+A("the shared guard module supplies the corrected-value renderer", typeof guardVal === "function" && typeof createGuards === "function");
 A("engine region carries the grade ladder", GRADE_RANK && GRADE_RANK["Directional"] === 0 && GRADE_RANK["Planning-grade"] === 1 && GRADE_RANK["Finance-grade"] === 2);
 A("engine region names exactly three confidence axes", Array.isArray(AXES) && AXES.length === 3);
 A("the three axes are evidence, realization and completeness", AXES.join(",") === "evidence,realization,completeness");
