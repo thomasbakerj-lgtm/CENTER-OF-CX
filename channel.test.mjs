@@ -187,6 +187,48 @@ const guarded = (r, label) => r.guards.some(g => g.label === label);
         Number.isFinite(r.netRealizable) && shape(r) === shape(Z));
     }
   }
+  /* The capacity action indexed MECH raw. An unknown key threw on .f, and a
+     prototype name computed NaN with zero corrections and still returned an
+     Approve verdict. Every hostile key must resolve to none, realize $0, and
+     disclose exactly one correction. none, never the hiring default: a broken link
+     must not credit a realization nobody chose. */
+  {
+    const M = (k) => compute(BASE, k);
+    const NONE = M("none");
+    const shape = (r) => JSON.stringify({ ...r, guards: r.guards.map(g => ({ ...g, entered: g.label === "Capacity action" ? "<KEY>" : g.entered })) });
+    const bare = (r) => JSON.stringify({ ...r, guards: [], blocked: false });
+    /* An unguarded engine throws on the first unknown key. Fail as an assertion
+       rather than crash, so the rest of the harness still reports. */
+    let Z = null;
+    try { Z = M("zzz"); } catch (e) { Z = null; }
+    A("an unknown capacity action computes without throwing", Z !== null);
+    if (Z !== null) for (const k of MECH_ORDER) {
+      const r = M(k);
+      A(`capacity action ${k} runs as entered with no correction`, r.mechKey === k && r.guards.length === 0);
+    }
+    const hostile = ["bogus", "", "HIRING", " hiring", undefined, ...Object.getOwnPropertyNames(Object.prototype)];
+    if (Z !== null) for (const k of hostile) {
+      const tag = JSON.stringify(k === undefined ? "undefined" : k);
+      let r, v, a, threw = null;
+      try { r = M(k); v = buildVerdict(BASE, r, k); a = buildAnalystRead(BASE, r, k, v); } catch (e) { threw = e; }
+      A(`capacity action ${tag} computes without throwing`, threw === null);
+      if (threw) continue;
+      const cg = r.guards.filter(g => g.label === "Capacity action");
+      A(`capacity action ${tag} resolves to none with one disclosed correction`,
+        r.mechKey === "none" && cg.length === 1 && cg[0].entered === String(k) && cg[0].used === "none" && r.guards.length === 1 && r.blocked === true);
+      A(`capacity action ${tag} realizes $0 and stays finite`, r.laborCash === 0 && r.mf === 0 && Number.isFinite(r.netRealizable));
+      A(`capacity action ${tag} carries the none credit class and ceiling`, r.cred === "none" && r.ceilingGrade === "Directional");
+      A(`capacity action ${tag} matches an unknown key apart from the entered text`, shape(r) === shape(Z));
+      A(`capacity action ${tag} runs the same arithmetic as none`, bare(r) === bare(NONE));
+      A(`capacity action ${tag} reaches the same verdict and read as none`,
+        JSON.stringify(v) === JSON.stringify(buildVerdict(BASE, NONE, "none")) && JSON.stringify(a) === JSON.stringify(buildAnalystRead(BASE, NONE, "none", buildVerdict(BASE, NONE, "none"))));
+    }
+    if (Z !== null) {
+      A("a hostile key never inherits the shipped hiring default", M("bogus").mechKey !== DEFAULTS.mech);
+      A("a hostile capacity action and a hostile curve disclose two corrections, in engine order",
+        JSON.stringify(compute({ ...BASE, adverseCurve: "toString" }, "toString").guards.map(g => g.label)) === JSON.stringify(["Capacity action", "Residual complexity curve"]));
+    }
+  }
   A("a correction records both what was entered and what was used",
     G({ resChat: 150 }).guards.some(g => g.entered === 150 && g.used === 100));
   A("a legal input set records nothing", G({}).guards.length === 0);
@@ -423,6 +465,15 @@ console.log("\n14. two-ceiling confidence");
   A("the complexity curve resolves through the shared own-key pick",
     /pick\("Residual complexity curve", d\.adverseCurve, CURVE, "moderate"\)/.test(SRC));
   A("no truthy CURVE lookup on an entered value remains", !/CURVE\[d\.adverseCurve\]\s*(\?|\|\|)/.test(SRC));
+  A("the capacity action resolves through the shared own-key pick with a none fallback",
+    /const mechKey = pick\("Capacity action", mechIn, MECH, "none"\);/.test(SRC));
+  A("compute takes the entered action under a name that cannot index MECH by accident",
+    /function compute\(d, mechIn\)/.test(SRC) && !/MECH\[mechIn\]/.test(SRC));
+  A("compute returns the resolved capacity action on r", /mechKey, cred: MECH\[mechKey\]\.cred/.test(region));
+  A("the verdict solves break-even on the resolved key", /solveBreakEven\(d, r\.mechKey, pt\)/.test(region));
+  A("the analyst read names the resolved key", /MECH\[r\.mechKey\]\.label/.test(region) && !/MECH\[mechKey\]\.label/.test(region.slice(region.indexOf("function buildAnalystRead"))));
+  A("no MECH lookup on the entered capacity action remains in the component", !/MECH\[mech\]/.test(SRC));
+  A("the signals record the curve the engine ran, not the entered text", /adverse_curve: r\.curveKey/.test(SRC) && !/adverse_curve: d\.adverseCurve/.test(SRC));
   A("no local guard list, clamp or renderer remains",
     !/const guards = \[\]/.test(SRC) && !/const guard = \(/.test(SRC) && !/const guardVal = /.test(SRC) && !/const guardLine = /.test(SRC));
   A("no disclosure path hand-renders money from a guard record", !/"\$" \+ g[.\[]/.test(SRC));
