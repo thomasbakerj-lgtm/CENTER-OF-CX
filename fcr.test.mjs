@@ -9,12 +9,13 @@
 import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real module, do not rebuild it. ---- */
-let MECH, MECH_ORDER, MECH_DEFAULT;
+let MECH, MECH_ORDER, MECH_DEFAULT, createGuards;
 try {
   const m = await import("./src/lib/mech.js");
   ({ MECH, MECH_ORDER, MECH_DEFAULT } = m);
+  ({ createGuards } = await import("./src/lib/guards.js"));
 } catch (e) {
-  console.error("BLOCKER: could not import ./src/lib/mech.js. The engine cannot be");
+  console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js. The engine cannot be");
   console.error("verified against reconstructed constants. Run from the repo root.");
   console.error(String(e.message || e));
   process.exit(1);
@@ -43,10 +44,10 @@ const src = readFileSync("./FCRLeakageDiagnostic.jsx", "utf8");
 const a = src.indexOf("/* @engine-start"), b = src.indexOf("/* @engine-end */");
 if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found in FCRLeakageDiagnostic.jsx."); process.exit(1); }
 const region = src.slice(a, b).replace(/^export /gm, "");
-let engine, normMech, CRED_RANK;
+let engine, CRED_RANK, SCOPE, MECH_ALIAS;
 try {
-  ({ engine, normMech, CRED_RANK } = new Function("MECH", "MECH_ORDER",
-    region + "\nreturn { engine, normMech, CRED_RANK };")(MECH, MECH_ORDER));
+  ({ engine, CRED_RANK, SCOPE, MECH_ALIAS } = new Function("MECH", "MECH_ORDER", "createGuards",
+    region + "\nreturn { engine, CRED_RANK, SCOPE, MECH_ALIAS };")(MECH, MECH_ORDER, createGuards));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -54,7 +55,8 @@ try {
   process.exit(1);
 }
 A("engine region slices and evaluates", typeof engine === "function");
-A("engine region carries its own mechanism normalizer", typeof normMech === "function");
+A("engine region carries the legacy mechanism alias map", !!MECH_ALIAS && MECH_ALIAS.absorb === "growth");
+A("engine region carries the single scope ceiling table", !!SCOPE && Object.keys(SCOPE).length === 4);
 A("engine region carries the credit-class ranking", !!CRED_RANK && CRED_RANK.cash > CRED_RANK.finance);
 A("marker region contains no JSX", !/<[A-Za-z][A-Za-z0-9]*[\s/>]/.test(region));
 A("engine region does not silently reconstruct the mechanism ladder",
@@ -229,10 +231,79 @@ const hard = (r) => r.flags.some(f => /impossible|outside the plausible|outside 
   A("realization factor stays inside [0,1]", factorOK);
   A("a legacy 'absorb' mechanism key normalizes rather than crashing",
     engine({ ...DECL, mech: "absorb" }).mechKey === "growth");
-  A("an unknown mechanism key falls back to the defensible default",
-    engine({ ...DECL, mech: "nonsense" }).mechKey === "hiring");
-  A("an unknown scope falls back to the cross-channel ceiling",
-    engine({ ...DECL, scope: "nonsense" }).practicalMax === 0.90);
+  /* These two assertions previously codified the defect. An unknown mechanism
+     resolved to the 75% hiring default and carried the document to Planning-grade
+     realization with no correction, and an unknown scope silently took the
+     cross-channel ceiling. Both fallbacks now realize the least and disclose. */
+  A("an unknown mechanism key falls back to none, not to a credited default",
+    engine({ ...DECL, mech: "nonsense" }).mechKey === "none");
+  A("an unknown mechanism key realizes zero rather than crediting 75%",
+    engine({ ...DECL, mech: "nonsense" }).realizableYr === 0);
+  A("an unknown mechanism key is disclosed and blocks the result at Directional",
+    (() => { const r = engine({ ...DECL, mech: "nonsense" });
+      return r.hardFlag === true && r.headlineConf === "Directional" &&
+        r.flags.some(f => f.indexOf('Realization mechanism was "nonsense"') === 0 && /was held at Not selected\.$/.test(f)); })());
+  A("an unknown scope falls back to the strictest ceiling, never a more generous one",
+    engine({ ...DECL, scope: "nonsense" }).practicalMax === 0.88);
+  A("an unknown scope is disclosed and blocks the result at Directional",
+    (() => { const r = engine({ ...DECL, scope: "nonsense" });
+      return r.hardFlag === true && r.headlineConf === "Directional" &&
+        r.flags.some(f => f.indexOf('Resolution scope was "nonsense"') === 0); })());
+  A("an undeclared scope is a real starting state, not a correction",
+    (() => { const r = engine({ ...DEF, scope: "", method: "" });
+      return r.scopeKey === "" && r.practicalMax === 0.90 &&
+        !r.flags.some(f => f.indexOf("Resolution scope was") === 0); })());
+  /* The truthy check admitted every inherited name. MECH["toString"] is a function,
+     so mechKey passed through raw and MECH[mechKey].f read undefined, printing NaN
+     across every dollar figure. Same shape on the scope ceiling table. */
+  A("inherited property names never resolve as a mechanism",
+    ["toString", "constructor", "valueOf", "hasOwnProperty", "__proto__"]
+      .every(k => engine({ ...DECL, mech: k }).mechKey === "none"));
+  A("inherited property names never resolve as a scope",
+    ["toString", "constructor", "valueOf", "hasOwnProperty", "__proto__"]
+      .every(k => engine({ ...DECL, scope: k }).practicalMax === 0.88));
+  A("no inherited enum name produces NaN in any reported figure",
+    ["toString", "constructor", "valueOf", "__proto__"].every(k =>
+      [engine({ ...DECL, mech: k }), engine({ ...DECL, scope: k })].every(r =>
+        Object.values(r).every(v => typeof v !== "number" || !isNaN(v)))));
+  A("a missing mechanism key falls back to none rather than crediting a default",
+    [undefined, null, 0, ""].every(k => engine({ ...DECL, mech: k }).mechKey === "none"));
+  A("a substituted mechanism raises the no-mechanism flag on the resolved key",
+    engine({ ...DECL, mech: "nonsense", sourcing: "inhouse" }).flags
+      .some(f => f.indexOf("No mechanism and in-house sourcing") === 0));
+  A("a legacy 'absorb' link is aliased, not corrected",
+    (() => { const r = engine({ ...DECL, mech: "absorb" });
+      return r.mechKey === "growth" && !r.flags.some(f => f.indexOf("Realization mechanism was") === 0); })());
+  A("every valid mechanism and scope key passes through with no correction",
+    MECH_ORDER.every(k => !engine({ ...DECL, mech: k }).flags.some(f => f.indexOf("Realization mechanism was") === 0)) &&
+    SCOPES.every(k => !engine({ ...DECL, scope: k }).flags.some(f => f.indexOf("Resolution scope was") === 0)));
+  A("corrections do not leak across engine calls",
+    (() => { engine({ ...DECL, mech: "nonsense" });
+      return engine({ ...DECL, mech: "hiring" }).flags.every(f => f.indexOf("Realization mechanism was") !== 0); })());
+
+  /* Source gates. The destructure pin keeps pick bound. The negative gates keep the
+     raw truthy lookups from returning, in the engine and on the component path. */
+  A("the tool imports createGuards from the shared module", /import \{ createGuards \} from "\.\/src\/lib\/guards";/.test(src));
+  A("the engine binds pick through createGuards", /const \{ guards: picks, pick \} = createGuards\(\);/.test(region));
+  A("the mechanism resolves through pick with a none fallback",
+    /const mechKey = resolve\("Realization mechanism", own\(MECH_ALIAS, mech\) \? MECH_ALIAS\[mech\] : mech, MECH, "none"\);/.test(region));
+  A("the scope resolves through pick with an enterprise fallback",
+    /resolve\("Resolution scope", scope, SCOPE, "enterprise"\)/.test(region));
+  A("the resolved correction carries the phrase that blocks the grade",
+    /which is not an option this tool offers, and was held at \$\{table\[k\]\.label\}/.test(region));
+  A("the hard-flag test recognises a substituted enum", /was held at/.test(region.split("const hardFlag")[1].split("\n")[0]));
+  A("the truthy mechanism lookup is gone from the file", !/MECH\[m\] \?/.test(src) && !/MECH\[MECH_ALIAS\[m\]\]/.test(src));
+  A("the inline scope ceiling table is gone from the file",
+    !/\{ voice: 0\.93, cc: 0\.90, digital: 0\.89, enterprise: 0\.88 \}/.test(src));
+  A("the component no longer normalizes the mechanism on scenario load",
+    !/normMech/.test(src) && /setMech\(sc\.mech\);/.test(src));
+  A("both selectors display the resolved key, not the entered one",
+    /<Sel label="Resolution scope" value=\{R\.scopeKey\}/.test(src) && /<Sel label="Realization mechanism" value=\{R\.mechKey\}/.test(src));
+  A("the report label reads the resolved scope key through the shared resolver",
+    /scopeLabelFor\(R\.scopeKey\)/.test(src) && /const scopeLabelFor = \(k\) =>/.test(region));
+  A("the no-mechanism flag reads the resolved key, never the entered one",
+    /if \(mechKey === "none" && sourcing !== "bpo"\)/.test(region) && !/mech === "none"/.test(src));
+  A("the engine returns the resolved scope key", /return \{ mechKey, scopeKey,/.test(region));
 }
 
 /* ---- 7. Ceiling, capture and target clamping ---- */
