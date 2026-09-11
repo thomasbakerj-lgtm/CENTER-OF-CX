@@ -6,6 +6,7 @@ import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { MECH, MECH_ORDER } from "./src/lib/mech";
+import { createGuards } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
 const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, muted: MUTED } = COLORS;
@@ -106,7 +107,7 @@ const DIMS = [
    engine cannot drift apart. MECH and MECH_ORDER are injected from the real
    src/lib/mech.js, never reconstructed.
 
-   clamp, pct, MECH_ALIAS, normMech and CRED_RANK were relocated here from
+   clamp, pct, MECH_ALIAS, SCOPE and CRED_RANK were relocated here from
    elsewhere in the file. They are engine dependencies, so they belong inside
    the tested region rather than being rebuilt inside the harness. Nothing
    between their old and new positions evaluated them at module load, so the
@@ -118,7 +119,33 @@ const pct = (n, d = 1) => (n * 100).toFixed(d) + "%";
    the shared module says "growth". It now comes from src/lib/mech.js. Any scenario
    link minted before this change still carries the old key, so normalize on read. */
 const MECH_ALIAS = { absorb: "growth" };
-const normMech = (m) => (MECH[m] ? m : MECH[MECH_ALIAS[m]] ? MECH_ALIAS[m] : "hiring");
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+/* Own-key only, and the fallback is none. The shipped truthy check admitted every
+   inherited name: mech="toString" passed `MECH[m]`, then MECH[mechKey].f read
+   undefined and every dollar figure on the page rendered NaN. An unknown key such
+   as mech="bogus" was worse because it was quiet, silently crediting the 75%
+   hiring default and carrying the document to Planning-grade realization. A broken
+   or hand-edited link must never credit a realization the user did not choose, so
+   the fallback realizes $0 and the substitution is disclosed. */
+
+/* Practical FCR ceiling by definition strictness, and the display label, defined
+   once. The component read a second copy of the label map. Broader scope means
+   more ways for a contact to count as unresolved, so the achievable ceiling falls.
+   "digital" previously duplicated "cc" at 0.90, which made two scope options
+   produce identical output. It sits between cc and enterprise because it adds
+   self-service to the resolution set. These are judgment values, stated openly.
+   The fallback is enterprise, the strictest ceiling and therefore the lowest
+   uplift, so a substituted scope can never inflate the savings it discloses. */
+const SCOPE = {
+  voice: { f: 0.93, label: "Assisted voice only" },
+  cc: { f: 0.90, label: "Contact center, cross-channel" },
+  digital: { f: 0.89, label: "Digital plus assisted" },
+  enterprise: { f: 0.88, label: "Enterprise one-contact (strictest)" },
+};
+const SCOPE_UNDECLARED = 0.90;
+/* Label resolution lives beside the table so the document and the engine can never
+   name different scopes. It takes the resolved key, never the entered string. */
+const scopeLabelFor = (k) => (k === "" || k == null ? "not declared" : SCOPE[k].label);
 
 /* Realization confidence follows the credit class, not the mechanism name.
    Capacity-only is Directional. Finance-creditable is Planning-grade. Cash out
@@ -131,6 +158,19 @@ const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
 function engine(I) {
   let { M, mCPC, lCPC, repeatMult } = I;
   const { fcr: fcrIn, repeatModel, measuredRate, measuredTargetRate, pathModel, dScore, askTarget, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays } = I;
+  /* Enum inputs resolve through the shared own-key pick, the rule Cost per Contact,
+     Channel Shift and AI Deflection already run. Raw indexing let an inherited name
+     through the truthy check and computed NaN, and let an unknown key silently take
+     a shipped default. A substituted key is disclosed in this tool's own sentence,
+     which carries "was held at" and so blocks the result at Directional. */
+  const { guards: picks, pick } = createGuards();
+  const enumCorrections = [];
+  const resolve = (label, raw, table, fallback) => {
+    const k = pick(label, raw, table, fallback);
+    if (picks.length) enumCorrections.push(`${label} was "${picks.pop().entered}", which is not an option this tool offers, and was held at ${table[k].label}.`);
+    return k;
+  };
+
   let fcr = fcrIn, fcrWasPercent = false;
   if (fcr > 1 && fcr <= 100) { fcr = fcr / 100; fcrWasPercent = true; }
   const fcrImpossible = !(fcr > 0 && fcr < 1);
@@ -156,12 +196,12 @@ function engine(I) {
   const burdenYr = repeats * repeatCPC * 12;
 
   const opp = opportunity(dScore), cap = capture(dScore);
-  // Practical FCR ceiling by definition strictness. Broader scope means more ways
-  // for a contact to count as unresolved, so the achievable ceiling falls.
-  // "digital" previously duplicated "cc" at 0.90, which made two scope options
-  // produce identical output. It sits between cc and enterprise because it adds
-  // self-service to the resolution set. These are judgment values, stated openly.
-  const practicalMax = { voice: 0.93, cc: 0.90, digital: 0.89, enterprise: 0.88 }[scope] || 0.90;
+  // An undeclared scope is a real state the wizard starts in, so it is not a
+  // correction. Anything else must be an own key of SCOPE or it is substituted
+  // and disclosed. The shipped `|| 0.90` read inherited names as a ceiling and
+  // drove practicalMax, ceilingFCR, target and every dollar figure to NaN.
+  const scopeKey = scope === "" || scope == null ? "" : resolve("Resolution scope", scope, SCOPE, "enterprise");
+  const practicalMax = scopeKey === "" ? SCOPE_UNDECLARED : SCOPE[scopeKey].f;
   const maxUplift = Math.max(0, practicalMax - fcr) * opp * cap;
   const ceilingFCR = clamp(fcr + maxUplift, fcr, practicalMax);
   const overCeiling = askTarget > ceilingFCR + 1e-9;
@@ -193,7 +233,7 @@ function engine(I) {
   const controllableBurdenYr = burdenYr * opp;
   const nonControllableBurdenYr = burdenYr - controllableBurdenYr;
 
-  const mechKey = normMech(mech);
+  const mechKey = resolve("Realization mechanism", own(MECH_ALIAS, mech) ? MECH_ALIAS[mech] : mech, MECH, "none");
   const MECHVAL = MECH[mechKey].f;
   // On a per-contact outsourced contract the invoice falls with volume, so no
   // capacity mechanism is needed and none is applied. The mechanism selector is
@@ -231,6 +271,9 @@ function engine(I) {
   let realizationRank = mechApplies ? CRED_RANK[MECH[mechKey].cred] : 2;
 
   const flags = [];
+  // Substituted enum inputs lead the list. They describe what the engine actually
+  // ran, so a reader never reconciles a figure against an input that was not used.
+  for (const c of enumCorrections) flags.push(c);
   if (fcrPulledDirty) flags.push("Current FCR was pulled from another tool as a whole number and normalized to " + pct(fcr) + ". Confidence is capped until you confirm it. The upstream tool is publishing FCR in the wrong unit, which is a suite-contract issue worth fixing at the source.");
   if (fcrWasPercent) flags.push("Current FCR arrived as a whole number and was read as " + pct(fcr) + ". Confirm the upstream tool publishes FCR as a fraction, not a percentage.");
   if (fcrImpossible) flags.push("Current FCR was outside 0 to 100% and had to be clamped. The result is unreliable until the input is corrected.");
@@ -248,10 +291,10 @@ function engine(I) {
   if (!defDeclared) flags.push("FCR definition not declared. The result is not comparable across centers until you state how you measure it.");
   if (target <= fcr + 1e-9) flags.push("Target FCR is not above current. There is no improvement to value.");
   if (overCeiling) flags.push("Target was capped at " + pct(ceilingFCR) + ", the most your diagnostic says you can capture.");
-  if (mech === "none" && sourcing !== "bpo") flags.push("No mechanism and in-house sourcing. Realizable savings are $0 until you commit to one.");
+  if (mechKey === "none" && sourcing !== "bpo") flags.push("No mechanism and in-house sourcing. Realizable savings are $0 until you commit to one.");
   if (mechApplies && mechKey === "vendor") flags.push("You selected in-house sourcing and a mechanism that reduces outsourcer volume. Those only hold together if you route overflow or seasonal volume to a per-contact vendor. If you do not, there is no invoice to reduce, the savings are capacity rather than cash, and this should be modeled as avoid hiring instead. This is the only path to Finance-grade realization that does not reduce headcount, so it will be the first assumption a CFO tests.");
   if (!mechApplies) flags.push("Outsourced per-contact sourcing converts volume reduction to cash at 100%, and the realization mechanism does not apply. This assumes billing tracks actual volume with no minimum commitment. If your contract carries a volume floor, nothing is saved until you drop below it. Confirm the commitment terms in Contract Risk Scanner before presenting these savings.");
-  const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped|clamped to zero/.test(f));
+  const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped|clamped to zero|was held at/.test(f));
 
   let costConf = costBasis === "finance" ? "Finance-grade" : costBasis === "ops" ? "Planning-grade" : "Directional";
   let realConf = realizationRank >= 3 ? "Finance-grade" : realizationRank >= 2 ? "Planning-grade" : "Directional";
@@ -278,7 +321,7 @@ function engine(I) {
   else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + ".";
   else confReason = "cost basis is " + costConf + " because " + (costBasis === "estimate" ? "cost inputs are estimates, not validated data" : costBasis === "ops" ? "cost inputs are operations data, not finance-confirmed" : "cost inputs are finance-confirmed") + ".";
 
-  return { mechKey, repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag, repeatShareT, measuredPathOverridden, negImpossible, fcrImpossible };
+  return { mechKey, scopeKey, repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag, repeatShareT, measuredPathOverridden, negImpossible, fcrImpossible };
 }
 /* @engine-end */
 
@@ -334,7 +377,12 @@ export default function FCRLeakageDiagnostic() {
     setRepeatModel(sc.repeatModel); setMeasuredPct(sc.measuredPct);
     setMeasuredTargetPct(sc.measuredTargetPct); setPathModel(sc.pathModel);
     setRepeatMult(sc.repeatMult); setTargetPct(sc.targetPct);
-    setSourcing(sc.sourcing); setMech(normMech(sc.mech));  // legacy links keyed "absorb"
+    /* Raw, deliberately. Normalizing here re-created the silent substitution the
+       engine now discloses: a hand-edited link resolved to a default before the
+       engine ever saw it, so the document showed a mechanism the sender never
+       chose and no correction. The engine resolves and discloses, the selectors
+       below display the resolved key, and legacy "absorb" links still alias. */
+    setSourcing(sc.sourcing); setMech(sc.mech);
     setInvestOneTime(sc.investOneTime); setInvestRecurring(sc.investRecurring);
     setCostBasis(sc.costBasis); setFcrConfirmed(sc.fcrConfirmed);
     setScores(sc.scores); setPhase(sc.phase);
@@ -372,7 +420,6 @@ export default function FCRLeakageDiagnostic() {
   const sorted = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id));
   const top = sorted[0];
   const confColor = (c) => c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : MUTED;
-  const scopeLabel = { voice: "Assisted voice only", cc: "Contact center, cross-channel", digital: "Digital plus assisted", enterprise: "Enterprise one-contact (strictest)" }[scope] || "not declared";
   const methodLabel = method === "survey" ? "external post-call survey" : method === "internal" ? "internal callback window of " + windowDays + " days" : "not declared";
 
   useEffect(() => {
@@ -414,7 +461,7 @@ export default function FCRLeakageDiagnostic() {
               <h3 style={{ ...h3, marginBottom: 6 }}>Declare your FCR definition</h3>
               <p style={{ fontSize: 12, color: MUTED, marginBottom: 16, lineHeight: 1.5 }}>FCR has no industry standard. Until you declare scope and method, the result stays Directional and is not comparable across centers.</p>
               <div className="g3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                <Sel label="Resolution scope" value={scope} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Voice only" }, { v: "cc", l: "CC cross-channel" }, { v: "digital", l: "Digital + assisted" }, { v: "enterprise", l: "Enterprise OCR" }]} />
+                <Sel label="Resolution scope" value={R.scopeKey} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Voice only" }, { v: "cc", l: "CC cross-channel" }, { v: "digital", l: "Digital + assisted" }, { v: "enterprise", l: "Enterprise OCR" }]} />
                 <Sel label="Measurement method" value={method} onChange={setMethod} options={[{ v: "", l: "Select..." }, { v: "survey", l: "External post-call survey" }, { v: "internal", l: "Internal callback window" }]} />
                 {method === "internal" ? <NumField label="Callback window" value={windowDays} onChange={setWindowDays} suffix=" days" step={1} min={1} max={30} /> : <div />}
               </div>
@@ -442,7 +489,7 @@ export default function FCRLeakageDiagnostic() {
               <h3 style={h3}>Realization + Investment</h3>
               <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <Sel label="Sourcing model" value={sourcing} onChange={setSourcing} info={DEFS.sourcing.text} infoTitle={DEFS.sourcing.title} options={[{ v: "inhouse", l: "In-house (capacity, needs mechanism)" }, { v: "bpo", l: "Outsourced per-contact (direct cash)" }]} />
-                <Sel label="Realization mechanism" value={mech} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} disabled={sourcing === "bpo"} note={sourcing === "bpo" ? "Not used. On a per-contact contract the invoice falls with volume, so savings convert at 100% without a capacity mechanism. Switch to in-house sourcing to apply one." : null} />
+                <Sel label="Realization mechanism" value={R.mechKey} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} disabled={sourcing === "bpo"} note={sourcing === "bpo" ? "Not used. On a per-contact contract the invoice falls with volume, so savings convert at 100% without a capacity mechanism. Switch to in-house sourcing to apply one." : null} />
                 <NumField label="One-time cost to achieve" value={investOneTime} onChange={setInvestOneTime} prefix="$" step={10000} info={DEFS.invest.text} infoTitle={DEFS.invest.title} />
                 <NumField label="Recurring annual cost" value={investRecurring} onChange={setInvestRecurring} prefix="$" step={5000} align="right" />
                 <Sel label="Cost basis" value={costBasis} onChange={setCostBasis} info={DEFS.confidence.text} infoTitle={DEFS.confidence.title} options={[{ v: "estimate", l: "Estimate (±25%)" }, { v: "ops", l: "Operations data (±15%)" }, { v: "finance", l: "Finance-confirmed (±10%)" }]} />
@@ -657,7 +704,7 @@ export default function FCRLeakageDiagnostic() {
               sections={[
                 { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.neverPaysBack ? "never at current scope" : R.payback ? "in month " + R.payback : "beyond 48 months"}. Confidence is ${R.headlineConf}.` },
                 { title: "Definitions and Scope Used", type: "findings", items: [
-                  `FCR definition: ${scopeLabel}, ${methodLabel}.`,
+                  `FCR definition: ${scopeLabelFor(R.scopeKey)}, ${methodLabel}.`,
                   `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${fmtX(repeatMult)}x.`,
                   `Sourcing: ${sourcing === "bpo" ? "outsourced per-contact. Volume reduction converts to cash at 100% through billing. No capacity mechanism applies, and none was used." : "in-house. Freed capacity is gated by a mechanism. Mechanism applied: " + MECH[R.mechKey].label + " (" + Math.round(MECH[R.mechKey].f * 100) + "%), credited as " + MECH[R.mechKey].cred + "."}`,
                   `Cost basis: ${{estimate:"Estimate marginal cost (±25%)",ops:"Operations-data marginal cost (±15%)",finance:"Finance-confirmed marginal cost (±10%)"}[costBasis]}. Target capped by diagnostic: ${R.overCeiling ? "yes, at " + pct(R.ceilingFCR) : "no"}.`,
