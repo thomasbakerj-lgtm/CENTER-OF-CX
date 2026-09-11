@@ -83,7 +83,7 @@ const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
 const RANK_GRADE = (rank) => rank >= 3 ? "Finance-grade" : rank >= 2 ? "Planning-grade" : "Directional";
 const GRADE_RANK = { "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 };
 
-function compute(d, mechKey) {
+function compute(d, mechIn) {
   /* Input integrity. Every one of these was silently accepted before, and a
      scenario link decodes straight into this function with no field validation
      in between: an edited URL could print a clean, flag-free report off a
@@ -91,7 +91,7 @@ function compute(d, mechKey) {
      engine had to change is a value the report must disclose, or the document
      shows a number the engine never ran. `used` carries what was computed;
      `entered` carries what was asked for; they are printed side by side. */
-  const { guards, guard } = createGuards();
+  const { guards, guard, pick } = createGuards();
 
   const fcrPct = guard("First contact resolution", d.fcrRate, 0, 100, "%");
   const fcr = fcrPct / 100;
@@ -101,6 +101,13 @@ function compute(d, mechKey) {
   const margGuarded = guard("Marginal cost per contact", d.marginalCPC, 0, null, "$");
   const margDerived = margGuarded <= 0;
   const marg = margDerived ? loaded * 0.6 : margGuarded;
+  /* Own-key lookup through pick, the same resolution Channel Shift runs. The raw key
+     used to index MECH directly: an unknown value threw on .f and crashed the page,
+     and a prototype name (MECH["toString"] is a function) computed NaN with zero
+     corrections under a Directional ceiling. The fallback is none, which realizes $0.
+     A broken link must never credit a realization the user did not choose, so it does
+     not fall back to the hiring default. */
+  const mechKey = pick("Capacity action", mechIn, MECH, "none");
   const mf = MECH[mechKey].f;
   const credRank = CRED_RANK[MECH[mechKey].cred];
 
@@ -170,7 +177,7 @@ function compute(d, mechKey) {
   if (mechKey === "none") flags.push({ sev: "warn", t: "No capacity action selected: realizable savings are $0. Pick a mechanism (overtime, hiring avoidance, vendor reduction, or headcount) before presenting any savings number." });
   if (mechKey === "headcount") flags.push({ sev: "info", t: "Headcount reduction is fully cashable but carries the highest change and CSAT risk. Confirm the FCR gain is durable before committing to it." });
 
-  return { C, gapPct, cprLoaded, loaded, marg, margDerived, margEntered, mf, credRank, cred: MECH[mechKey].cred, ceilingGrade: RANK_GRADE(credRank), fcrPct, Mu, vol, agentHourly, overheadMult, pHrs, guards, blocked: guards.length > 0, handled: Math.round(handled), resolutions: Math.round(resolutions), repeatContacts: Math.round(repeatContacts), repeatShare, burden, burdenLoaded, channels, blendedHandle, blendedEffMin, blendedEffMinFallback, chPctTotal, fteBurden, dividend, flags };
+  return { C, gapPct, cprLoaded, loaded, marg, margDerived, margEntered, mf, credRank, mechKey, cred: MECH[mechKey].cred, ceilingGrade: RANK_GRADE(credRank), fcrPct, Mu, vol, agentHourly, overheadMult, pHrs, guards, blocked: guards.length > 0, handled: Math.round(handled), resolutions: Math.round(resolutions), repeatContacts: Math.round(repeatContacts), repeatShare, burden, burdenLoaded, channels, blendedHandle, blendedEffMin, blendedEffMinFallback, chPctTotal, fteBurden, dividend, flags };
 }
 
 function buildAnalystRead(d, r, mechKey) {
@@ -181,7 +188,7 @@ function buildAnalystRead(d, r, mechKey) {
   out.push(`Your repeat-demand capacity burden is ${fmtK(r.burden)}/mo (${r.fteBurden.toFixed(1)} FTE of handling), the marginal cost of all repeat contacts. Read it as a ceiling, not a savings figure: you can't release all of it, because FCR never reaches 100%. The realistic releases come from the FCR improvements below.`);
 
   const d10 = r.dividend.find(x => x.p === 10);
-  if (d10) out.push(`Lifting FCR 10 points to ${d10.newFCR.toFixed(0)}% releases ${fmtK(d10.released)}/mo of that burden (capacity released, not yet cash). At your selected action, ${MECH[mechKey].label}${mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}, ${fmtK(d10.realizable)}/mo is realizable this cycle. ${mechKey === "none" ? "Right now that's $0 because no capacity action is selected." : "Realization depends entirely on that action. Change it and the number changes."} A +10 point FCR move is root-cause work, not a quick toggle; treat +15 as a transformation case, not a base case.`);
+  if (d10) out.push(`Lifting FCR 10 points to ${d10.newFCR.toFixed(0)}% releases ${fmtK(d10.released)}/mo of that burden (capacity released, not yet cash). At your selected action, ${MECH[r.mechKey].label}${r.mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}, ${fmtK(d10.realizable)}/mo is realizable this cycle. ${r.mechKey === "none" ? "Right now that's $0 because no capacity action is selected." : "Realization depends entirely on that action. Change it and the number changes."} A +10 point FCR move is root-cause work, not a quick toggle; treat +15 as a transformation case, not a base case.`);
 
   out.push(`Reported cost-per-contact and cost-per-resolution are full loaded cost, correct for unit-cost metrics. Capacity burden and released figures are marginal. Realizable is marginal scaled by the capacity action. Those are four different numbers and the report keeps them separate on purpose. Most CX ROI decks blur them, which is how bad automation gets justified.`);
   return out;
@@ -244,12 +251,16 @@ export default function CostPerContactCalculator() {
   }, []);
 
   const r = compute(d, mech);
-  const analyst = buildAnalystRead(d, r, mech);
+  /* mech is what the page or a scenario link supplied. mechKey is what compute
+     resolved and ran. Everything below reads mechKey; only the selector's setter,
+     the effect dependencies and the shareable scenario keep the entered value. */
+  const mechKey = r.mechKey;
+  const analyst = buildAnalystRead(d, r, mechKey);
 
   // Finance-grade requires sourced cost basis AND a capacity mechanism AND a data attestation.
   /* Externality is captured at mount, not recomputed here. A value you published is not a value you sourced. */
   const sourced = extSourced;
-  const mechSelected = mech !== "none";
+  const mechSelected = mechKey !== "none";
   /* Two independent ceilings, and the report takes the lower.
 
      EVIDENCE is what the inputs support. The old ladder gave Planning-grade for
@@ -267,7 +278,7 @@ export default function CostPerContactCalculator() {
   const boundBy = GRADE_RANK[evidenceGrade] <= GRADE_RANK[r.ceilingGrade] ? "evidence" : "credit class";
   const gradeColor = grade === "Finance-grade" ? GREEN : grade === "Planning-grade" ? AMBER : MUTED;
   const gradeWhy = boundBy === "credit class"
-    ? `capped by capacity action: ${MECH[mech].label} is credited as ${r.cred}, not cash`
+    ? `capped by capacity action: ${MECH[mechKey].label} is credited as ${r.cred}, not cash`
     : grade === "Finance-grade" ? "cost basis sourced externally, data validated, action is cash-creditable"
     : grade === "Planning-grade" ? (sourced ? "cost basis sourced externally, data not yet validated" : "data validated, cost basis not sourced externally")
     : (mechSelected ? "default inputs: source the cost basis or validate your FCR and M" : "no capacity action selected");
@@ -277,7 +288,7 @@ useEffect(() => {
       costPerContact: +r.loaded.toFixed(2), costPerResolution: +r.cprLoaded.toFixed(2),
       contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: r.fcrPct / 100,
       repeatContactsMonthly: r.repeatContacts, repeatDemandBurdenMonthly: Math.round(r.burden), fteBurden: +r.fteBurden.toFixed(1),
-      capacityAction: mech, capacityRealizationPct: Math.round(r.mf * 100), grade, analystRead: analyst[0],
+      capacityAction: mechKey, capacityRealizationPct: Math.round(r.mf * 100), grade, analystRead: analyst[0],
     }, { sourceTool: "cost-per-contact" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
@@ -347,13 +358,13 @@ useEffect(() => {
       <section style={{ background: "#fff", padding: "32px 28px" }}>
         <div style={WRAP}>
           {/* Capacity action */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14, marginBottom: 24, background: WARM, border: `1px solid ${mech === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14, marginBottom: 24, background: WARM, border: `1px solid ${mechKey === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
             <div style={{ flex: "1 1 300px" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Capacity action <span style={{ fontWeight: 400, color: MUTED }}>· how freed time becomes value</span></div>
-              <div style={{ fontSize: 12, color: mech === "none" ? AMBER : MUTED }}>{MECH[mech].note}</div>
+              <div style={{ fontSize: 12, color: mechKey === "none" ? AMBER : MUTED }}>{MECH[mechKey].note}</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <select value={mech} onChange={e => setMech(e.target.value)} style={{ fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
+              <select value={mechKey} onChange={e => setMech(e.target.value)} style={{ fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
                 {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
               </select>
               <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
@@ -404,7 +415,7 @@ useEffect(() => {
 
           {/* FCR dividend: released vs realizable */}
           <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>FCR Improvement: Capacity Released → Realizable</h3>
-          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Released is incremental capacity at marginal cost ({money(r.marg)}). Realizable applies your capacity action ({MECH[mech].label}{mech !== "none" ? `, ${Math.round(r.mf * 100)}%` : ""}).</p>
+          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Released is incremental capacity at marginal cost ({money(r.marg)}). Realizable applies your capacity action ({MECH[mechKey].label}{mechKey !== "none" ? `, ${Math.round(r.mf * 100)}%` : ""}).</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 28 }} className="s3">
             {r.dividend.map((s, i) => (
               <div key={i} style={{ background: `${GREEN}0A`, border: `1px solid ${GREEN}30`, borderRadius: 10, padding: "16px" }}>
@@ -461,7 +472,7 @@ useEffect(() => {
                 {mathRow("Cost per resolution = loaded × C", `${money(r.loaded)} × ${r.C.toFixed(3)} = ${money(r.cprLoaded)}`)}
                 {mathRow("Repeat-demand burden = repeats × marginal", `${r.repeatContacts.toLocaleString()} × ${money(r.marg)} = ${fmtK(r.burden)}/mo (ceiling)`)}
                 {mathRow("Released (+10 FCR) = issues × (C − C₁) × marginal", `${fmtK((r.dividend.find(x => x.p === 10) || {}).released)}/mo`)}
-                {mathRow(`Realizable = released × ${Math.round(r.mf * 100)}% (${MECH[mech].label})`, `${fmtK((r.dividend.find(x => x.p === 10) || {}).realizable)}/mo`)}
+                {mathRow(`Realizable = released × ${Math.round(r.mf * 100)}% (${MECH[mechKey].label})`, `${fmtK((r.dividend.find(x => x.p === 10) || {}).realizable)}/mo`)}
                 {mathRow("FTE burden = repeats × blended eff. min / 60 / prod hrs", `${r.fteBurden.toFixed(1)}`)}
                 <p style={{ fontSize: 11, color: MUTED, marginTop: 10, lineHeight: 1.5 }}>M = total contacts an unresolved issue takes (incl. the first). Reported CPC/CPR are loaded; burden and released are marginal; realizable applies the capacity action. FTE is a capacity equivalent, not a headcount cut.</p>
               </div>
@@ -487,7 +498,7 @@ useEffect(() => {
           <ReportActions
             toolId={TOOL_ID}
             toolName="Cost per Contact / Resolution"
-            subtitle={`Handle vs resolution cost · ${grade} · action: ${MECH[mech].label}`}
+            subtitle={`Handle vs resolution cost · ${grade} · action: ${MECH[mechKey].label}`}
             routePath={ROUTE}
             state={scenario}
             defaults={DEFAULTS}
@@ -516,7 +527,7 @@ useEffect(() => {
                  to a clean zero and publish "none", which asserts a healthy
                  center on an empty model, so the key is omitted instead. */
               ...(r.handled > 0 ? { severity: severityBucket(r.repeatShare) } : {}),
-              capacity_action: MECH[mech].label,
+              capacity_action: MECH[mechKey].label,
               fcr_rate: r.fcrPct + "%",
               ...(r.fcrPct !== n(d.fcrRate) ? { fcr_rate_entered: n(d.fcrRate) + "%" } : {}),
               inputs_corrected: r.guards.length,
@@ -535,14 +546,14 @@ useEffect(() => {
               { title: "Three Value Layers (don't conflate)", type: "table", rows: [
                 ["Repeat-demand burden (baseline ceiling, marginal)", fmtK(r.burden) + "/mo"],
                 ["Capacity released: FCR +10pts (incremental, marginal)", fmtK((r.dividend.find(x => x.p === 10) || {}).released) + "/mo"],
-                [`Realizable this cycle (${MECH[mech].label}, ${Math.round(r.mf * 100)}%)`, fmtK((r.dividend.find(x => x.p === 10) || {}).realizable) + "/mo"],
+                [`Realizable this cycle (${MECH[mechKey].label}, ${Math.round(r.mf * 100)}%)`, fmtK((r.dividend.find(x => x.p === 10) || {}).realizable) + "/mo"],
                 ["Burden, loaded (accounting only, not savings)", fmtK(r.burdenLoaded) + "/mo"],
               ]},
               { title: "FCR Dividend: Released → Realizable", type: "table", rows: r.dividend.map(s => ["FCR +" + s.p + " → " + s.newFCR.toFixed(0) + "% (" + s.tier + ")", "released " + fmtK(s.released * 12) + "/yr · realizable " + fmtK(s.realizable * 12) + "/yr"]) },
               ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
               ...(r.flags.length ? [{ title: "Integrity Checks", type: "findings", items: r.flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mech].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at 60% of loaded (${money(r.marg)}).` : ""}` },
+              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mechKey].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at 60% of loaded (${money(r.marg)}).` : ""}` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "FCR Leakage Diagnostic", reason: "Decompose repeat demand by root cause and friction type", href: "/tools/fcr-leakage" },
                 { tool: "Channel Shift Economics", reason: "Move resolvable volume to cheaper channels by issue type", href: "/tools/channel-shift" },
