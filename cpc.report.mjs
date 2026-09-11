@@ -116,6 +116,18 @@ A("the report is named", !!toolNameM);
 A("the component-scope derivations slice out", compRegion.split("\n").every(Boolean));
 A("the multi-line grade ladder slices out whole, not first-branch-only", (constStatement("grade") || "").indexOf("ceilingGrade") > 0);
 A("the confidence prop is the same grade the page displays", /confidence=\{grade\}/.test(SRC));
+/* The render preamble retypes the lines between compute and the grade ladder.
+   These gates hold the retyped copy to the shipped one, so the harness cannot
+   certify a document built on a key the page never resolved. */
+A("the component resolves the capacity action from compute before anything reads it",
+  /const r = compute\(d, mech\);\n(?:\s*\/\*[\s\S]*?\*\/\n)?\s*const mechKey = r\.mechKey;\n\s*const analyst = buildAnalystRead\(d, r, mechKey\);/.test(SRC));
+A("the component tests selection on the resolved key", /const mechSelected = mechKey !== "none";/.test(SRC));
+A("no MECH lookup on the entered capacity action remains in the component", !/MECH\[mech\]/.test(SRC));
+A("no none test on the entered capacity action remains in the component", !/\bmech (===|!==) "none"/.test(SRC));
+A("the rail publishes the capacity action the engine ran", /capacityAction: mechKey,/.test(SRC) && !/capacityAction: mech,/.test(SRC));
+A("the selector shows the capacity action the engine ran", /<select value=\{mechKey\}/.test(SRC));
+A("the setter, the effect deps and the scenario keep the entered value",
+  /onChange=\{e => setMech\(e\.target\.value\)\}/.test(SRC) && /\}, \[d, mech\]\);/.test(SRC) && /const scenario = \{ d, mech \};/.test(SRC));
 
 /* ------------------------------------------------------------ input sets */
 /*
@@ -175,16 +187,17 @@ function render(S) {
     const mech = MECH_KEY;
     const fromLink = FROM_LINK;
     const r = compute(d, mech);
-    const analyst = buildAnalystRead(d, r, mech);
+    const mechKey = r.mechKey;
+    const analyst = buildAnalystRead(d, r, mechKey);
     const sourced = SOURCED;
-    const mechSelected = mech !== "none";
+    const mechSelected = mechKey !== "none";
     ${constStatement("evidenceGrade")}
     ${constStatement("grade")}
     ${constStatement("boundBy")}
     ${compRegion}
     /* TOOL_ID and ROUTE already come out of the engine region: do not shadow them. */
     return {
-      d, mech, r, analyst, grade, gradeWhy, evidenceGrade, boundBy, guardVal, guardLine,
+      d, mech, mechKey, r, analyst, grade, gradeWhy, evidenceGrade, boundBy, guardVal, guardLine,
       subtitle: \`${subtitleExpr.replace(/^`|`$/g, "")}\`,
       summary: ${summaryExpr},
       signals: ${signalsExpr},
@@ -467,6 +480,68 @@ const sevEmpty = sevDoc("no volume", { monthlyContacts: 0 });
 A("a model with no handled volume publishes no severity at all", !("severity" in sevEmpty.signals));
 A("a model with no handled volume carries no signal_severity into the review payload",
   !Object.keys(sevEmpty.signals).map(x => `signal_${x}`).includes("signal_severity"));
+
+/* --------------------------------------------- hostile capacity action */
+/* A scenario link carrying mech=bogus crashed the page on MECH[mech].note, and
+   mech=toString printed NaN with nothing disclosed. Rendered outside SETS so Sets
+   A to E stay byte-identical. The entered text prints in three fragments: the
+   corrections sentence, the engine flag (on the page and again in Integrity
+   Checks) and the methodology. Replacing whole fragments, rather than splitting on
+   the key, keeps "" and names like toLocaleString testable. */
+console.log("\nhostile capacity action");
+{
+  const hasNaN = (v) => typeof v === "number" ? Number.isNaN(v)
+    : typeof v === "string" ? /NaN/.test(v)
+    : Array.isArray(v) ? v.some(hasNaN)
+    : v && typeof v === "object" ? Object.values(v).some(hasNaN) : false;
+  const mechDoc = (label, mech) => render({ label, d: null, mech, validated: false, fromLink: true, pulledExternally: false });
+  const frags = (k) => [`Capacity action: entered ${k},`, `Capacity action: you entered ${k},`, `Capacity action entered ${k},`];
+  const doc = (o) => ({ subtitle: o.subtitle, grade: o.grade, gradeWhy: o.gradeWhy, summary: o.summary, sections: o.sections, signals: o.signals, flags: o.r.flags });
+  const face = (o, k) => {
+    let s = JSON.stringify(doc(o));
+    frags(k).forEach((a, i) => { s = s.split(JSON.stringify(a).slice(1, -1)).join(frags("<KEY>")[i]); });
+    return s;
+  };
+  /* The same document with the one capacity-action correction taken back out. On
+     the shipped defaults it is the only correction, so what remains must be the
+     none document exactly. */
+  const strip = (o, k) => {
+    const x = JSON.parse(JSON.stringify(doc(o)));
+    const line = guardLine({ label: "Capacity action", entered: String(k), used: "none", unit: "" });
+    x.sections = x.sections
+      .filter(s => !(s.title.indexOf("\u26a0 Inputs Corrected") === 0 && s.items.length === 1 && s.items[0] === line))
+      .map(s => s.title === "Integrity Checks" ? { ...s, items: s.items.filter(t => t.indexOf(`Capacity action: you entered ${k},`) !== 0) } : s)
+      .map(s => s.title === "Methodology" ? { ...s, content: s.content.split(` INPUTS CORRECTED: Capacity action entered ${k}, computed at none. Every figure above was computed on the corrected values.`).join("") } : s);
+    x.flags = x.flags.filter(f => f.t.indexOf(`Capacity action: you entered ${k},`) !== 0);
+    x.signals = { ...x.signals, inputs_corrected: x.signals.inputs_corrected - 1, integrity_flags: x.signals.integrity_flags - 1 };
+    return JSON.stringify(x);
+  };
+  const Z = mechDoc("unrecognised capacity action", "zzz");
+  const NONE = mechDoc("no capacity action", "none");
+  const hits = (v, f) => JSON.stringify(v).split(f).length - 1;
+  A("the unknown-key document prints each entered-text fragment once per surface",
+    hits(Z.sections, "Capacity action: entered zzz,") === 1 && hits(Z.sections, "Capacity action: you entered zzz,") === 1
+    && hits(Z.sections, "Capacity action entered zzz,") === 1 && hits(Z.r.flags, "Capacity action: you entered zzz,") === 1);
+  A("the none document carries no correction, so strip() has one thing to remove", NONE.r.guards.length === 0);
+  for (const k of ["bogus", "", undefined, ...Object.getOwnPropertyNames(Object.prototype)]) {
+    const tag = JSON.stringify(k === undefined ? "undefined" : k);
+    let o = null, threw = null;
+    try { o = mechDoc(`capacity action ${tag}`, k); } catch (e) { threw = e; }
+    A(`${tag}: the document renders without throwing`, threw === null);
+    if (threw) continue;
+    const cs = find(o.sections, "\u26a0 Inputs Corrected");
+    A(`${tag}: the document prints no NaN anywhere`, !hasNaN({ subtitle: o.subtitle, summary: o.summary, sections: o.sections, signals: o.signals }));
+    A(`${tag}: the corrections section discloses the action through the shipped sentence`,
+      !!cs && cs.items.length === 1 && cs.items[0] === guardLine({ label: "Capacity action", entered: String(k), used: "none", unit: "" }));
+    A(`${tag}: inputs_corrected counts exactly one correction`, o.signals.inputs_corrected === 1);
+    A(`${tag}: signals and subtitle name the action the engine ran`, o.signals.capacity_action === MECH.none.label && o.subtitle === NONE.subtitle);
+    A(`${tag}: the page flags that no capacity action is selected`, o.r.flags.some(f => /No capacity action selected/.test(f.t)));
+    A(`${tag}: realizable prints $0 under the none label`, rowVal(find(o.sections, "Three Value Layers"), `Realizable this cycle (${MECH.none.label}, 0%)`) === "$0/mo");
+    A(`${tag}: the grade and its rationale match the none document`, o.grade === NONE.grade && o.gradeWhy === NONE.gradeWhy);
+    A(`${tag}: the document matches the unknown-key document apart from the entered text`, face(o, String(k)) === face(Z, "zzz"));
+    A(`${tag}: the document is the none document plus the one disclosed correction`, strip(o, String(k)) === JSON.stringify(doc(NONE)));
+  }
+}
 
 /* The second consumer. ReportActions appends every signal to the Formspree
    review payload, so adding severity changed the manual-handling form too. */
