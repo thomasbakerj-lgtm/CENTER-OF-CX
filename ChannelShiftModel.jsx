@@ -111,7 +111,7 @@ const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
 const RANK_GRADE = (rank) => rank >= 3 ? "Finance-grade" : rank >= 2 ? "Planning-grade" : "Directional";
 const GRADE_RANK = { "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 };
 
-function compute(d, mechKey) {
+function compute(d, mechIn) {
   /* Input integrity. Every one of the values below was silently accepted before,
      and a scenario link decodes straight into this function with no field
      validation in between, so an edited URL could print a clean, flag-free
@@ -137,6 +137,13 @@ function compute(d, mechKey) {
   const loadedOH = guard("Loaded overhead", d.loadedOH, 1, null, "x");
   const marginalPerMin = hourly * marginalOH / 60;
   const loadedPerMin = hourly * loadedOH / 60;
+  /* Own-key lookup through pick, same as the complexity curve. The raw key used to
+     index MECH directly: an unknown value threw on .f and crashed the page, and a
+     prototype name (MECH["toString"] is a function) computed NaN with zero
+     corrections and still printed an Approve verdict. The fallback is none, which
+     realizes $0. A broken link must never credit a realization the user did not
+     choose, so it does not fall back to the hiring default. */
+  const mechKey = pick("Capacity action", mechIn, MECH, "none");
   const mf = MECH[mechKey].f;
   const credRank = CRED_RANK[MECH[mechKey].cred];
 
@@ -222,7 +229,7 @@ function compute(d, mechKey) {
   const transition = training + ramp;
   const payback = netRealizable > 0 ? transition / netRealizable : Infinity;
 
-  return { monthly, voiceVol, eligible, eligPct, voicePct, scaled, marginalPerMin, loadedPerMin, mf, credRank, cred: MECH[mechKey].cred, ceilingGrade: RANK_GRADE(credRank), shifted, Dtot, Etot, perTarget, shiftShare, residualUplift, baseEff, residualEff, deptEff, deptEffRaw, deptImpossible, deptImplausible, netMin, laborCash, botFee, botCost, erf, curveKey, netRealizable, gross, fteFreed, training, ramp, transition, payback, guards, blocked: guards.length > 0 };
+  return { monthly, voiceVol, eligible, eligPct, voicePct, scaled, marginalPerMin, loadedPerMin, mf, credRank, mechKey, cred: MECH[mechKey].cred, ceilingGrade: RANK_GRADE(credRank), shifted, Dtot, Etot, perTarget, shiftShare, residualUplift, baseEff, residualEff, deptEff, deptEffRaw, deptImpossible, deptImplausible, netMin, laborCash, botFee, botCost, erf, curveKey, netRealizable, gross, fteFreed, training, ramp, transition, payback, guards, blocked: guards.length > 0 };
 }
 
 
@@ -245,11 +252,14 @@ function primaryTarget(r) {
   return [...r.perTarget].filter(t => t.shiftPts > 0).sort((a, b) => b.shiftPts - a.shiftPts)[0] || null;
 }
 
+/* The verdict and the analyst read take the capacity action off r, which carries
+   the key compute resolved. The third argument stays for call-site stability and
+   is never used to index MECH. */
 function buildVerdict(d, r, mechKey) {
   const pt = primaryTarget(r);
   const riskAny = RISKS.some(x => d[x.k]);
   if (!pt || r.shifted === 0) return { label: "No shift modeled", color: MUTED, detail: "Add a shift to see the channel-shift economics.", be: null, pt: null };
-  const be = solveBreakEven(d, mechKey, pt);
+  const be = solveBreakEven(d, r.mechKey, pt);
   const curRes = pt.resPct;
   if (r.netRealizable < 0) {
     return { label: "Do not approve yet", color: RED, be, pt, curRes, detail: be == null ? `Net negative, and it never breaks even within range. Even perfect ${pt.key.toLowerCase()} resolution can't offset the bot fees, displacement loss, and transition. Rework the plan.` : `Breaks even at ${be.toFixed(0)}% ${pt.key.toLowerCase()} resolution; you're at ${curRes}% (${(be - curRes).toFixed(0)} pts short). Fix resolution before shifting.` };
@@ -267,7 +277,7 @@ function buildAnalystRead(d, r, mechKey, verdict) {
 
   if (verdict.be != null && verdict.pt) out.push(`Decision threshold: this shift breaks even at ${verdict.be.toFixed(0)}% ${verdict.pt.key.toLowerCase()} resolution. You're modeling ${verdict.curRes}%. ${verdict.curRes >= verdict.be ? "You clear it, but validate that resolution rate against real deflection data before committing." : "You're below it. Fixing resolution comes before shifting, not after."}`);
 
-  out.push(`Freed voice time is capacity, not cash. The realizable figure assumes ${MECH[mechKey].label}${mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}; bot platform fees (${fmtK(r.botFee)}/mo) are real cash and netted in full. Residual voice runs ${(r.residualUplift * 100).toFixed(1)}% harder under your ${CURVE[r.curveKey].label.toLowerCase()} complexity curve: the agents left on voice are working your hardest demand.`);
+  out.push(`Freed voice time is capacity, not cash. The realizable figure assumes ${MECH[r.mechKey].label}${r.mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}; bot platform fees (${fmtK(r.botFee)}/mo) are real cash and netted in full. Residual voice runs ${(r.residualUplift * 100).toFixed(1)}% harder under your ${CURVE[r.curveKey].label.toLowerCase()} complexity curve: the agents left on voice are working your hardest demand.`);
   if (r.Dtot > 0) out.push(`Check this assumption before you trust the number. Holding total voice minutes constant, a ${(r.residualUplift * 100).toFixed(1)}% residual uplift means the ${Math.round(r.Dtot).toLocaleString()} contacts you displace must average ${r.deptEff.toFixed(1)} minutes against your ${r.baseEff.toFixed(1)} minute voice baseline. If the volume you plan to shift is not meaningfully simpler than that, your complexity curve is set too high and this case is understated. If it is far simpler, the curve is set too low and the case is overstated.`);
 
   out.push(`This is the operating-capacity question only. It does not value what those interactions are worth to the business. That's Return per Contact. And the full investment case (ramp timing, phasing, approval packaging) belongs in Business Case Builder; this exports the headline.`);
@@ -323,10 +333,14 @@ export default function ChannelShiftModel() {
   }, []);
 
   const r = compute(d, mech);
-  const verdict = buildVerdict(d, r, mech);
+  /* mech is what the page or a scenario link supplied. mechKey is what compute
+     resolved and ran. Everything below reads mechKey; only the selector's setter,
+     the effect dependencies and the shareable scenario keep the entered value. */
+  const mechKey = r.mechKey;
+  const verdict = buildVerdict(d, r, mechKey);
   /* Guarded points, so the copy below cannot describe a shift the engine refused to run. */
   const shiftPts = r.perTarget.reduce((a, t) => a + t.shiftPts, 0);
-  const analyst = buildAnalystRead(d, r, mech, verdict);
+  const analyst = buildAnalystRead(d, r, mechKey, verdict);
 
   /* EVIDENCE is what the inputs earn. The old gate accepted `mechSelected` alone,
      and the mechanism defaults to "avoid hiring" on first paint, so an untouched
@@ -339,13 +353,13 @@ export default function ChannelShiftModel() {
 
      The report takes the LOWER of the two, and says which one bound it. */
   const sourced = extSourced;
-  const mechSelected = mech !== "none";
+  const mechSelected = mechKey !== "none";
   const evidenceGrade = (sourced && d.validated) ? "Finance-grade" : (sourced || d.validated) ? "Planning-grade" : "Directional";
   const grade = GRADE_RANK[evidenceGrade] <= GRADE_RANK[r.ceilingGrade] ? evidenceGrade : r.ceilingGrade;
   const boundBy = GRADE_RANK[evidenceGrade] <= GRADE_RANK[r.ceilingGrade] ? "evidence" : "credit class";
   const gradeColor = grade === "Finance-grade" ? GREEN : grade === "Planning-grade" ? AMBER : MUTED;
   const gradeWhy = boundBy === "credit class"
-    ? `capped by capacity action: ${MECH[mech].label} is credited as ${r.cred}, not cash`
+    ? `capped by capacity action: ${MECH[mechKey].label} is credited as ${r.cred}, not cash`
     : grade === "Finance-grade" ? "volume and rate basis sourced externally, eligibility and resolution validated, action is cash-creditable"
     : grade === "Planning-grade" ? (sourced ? "volume and rate basis sourced externally, assumptions not yet validated" : "assumptions validated, volume and rate basis not sourced externally")
     : (mechSelected ? "default inputs: source the volume and rate basis, or validate eligibility, displacement and resolution" : "no capacity action selected");
@@ -365,7 +379,7 @@ export default function ChannelShiftModel() {
   r.perTarget.forEach(t => { if (t.shiftPts > 0 && t.dispPct >= 100) flags.push({ sev: "info", t: `${t.key} displacement at 100% assumes every adopted contact replaces a voice call. Digital channels usually generate some new demand. 70-85% is more defensible.` }); });
   if (n(d.shiftToBot) > 0 && r.botCost <= 0.10) flags.push({ sev: "warn", t: `Bot cost is ${money(r.botCost)}, near-free. Real bots carry per-resolution or platform fees; a $0 bot makes any shift look costless and drives break-even toward 0%. Set a realistic per-contact cost.` });
   if (verdict.be != null && verdict.be < 1 && r.netRealizable > 0 && r.shifted > 0) flags.push({ sev: "warn", t: "Break-even resolves to ~0%. The shift looks profitable at any resolution. That usually means the bot cost or escalation return factor is too generous, not that the shift is risk-free. Sanity-check those before approving." });
-  if (mech === "none") flags.push({ sev: "warn", t: "No capacity action selected: freed-labor value is $0. Pick a mechanism before presenting any savings number." });
+  if (mechKey === "none") flags.push({ sev: "warn", t: "No capacity action selected: freed-labor value is $0. Pick a mechanism before presenting any savings number." });
   if (r.deptImpossible) flags.push({ sev: "warn", t: `Impossible assumption. A ${(r.residualUplift * 100).toFixed(1)}% residual uplift on this much displaced volume implies the departing calls took zero or negative time. Freed minutes were clamped to zero. Lower the complexity curve or reduce the shift.` });
   else if (r.deptImplausible) flags.push({ sev: "warn", t: `Your ${CURVE[r.curveKey].label.toLowerCase()} curve implies the displaced contacts average ${r.deptEffRaw.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute voice baseline. That is close to zero handle time. The curve is almost certainly too severe for the volume being moved.` });
   else if (r.Dtot > 0) flags.push({ sev: "info", t: `Implied assumption: the ${Math.round(r.Dtot).toLocaleString()} displaced contacts average ${r.deptEff.toFixed(1)} minutes against your ${r.baseEff.toFixed(1)} minute voice baseline, and the voice work left behind rises to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are unchanged. If the volume you are shifting is not that much simpler, lower the curve.` });
@@ -376,7 +390,7 @@ export default function ChannelShiftModel() {
       channelShiftGrossMonthly: Math.round(r.gross), channelShiftDisplacedVoice: Math.round(r.Dtot), channelShiftBouncedMonthly: Math.round(r.Etot),
       channelShiftFteFreed: +r.fteFreed.toFixed(1), channelShiftTransition: Math.round(r.transition),
       channelShiftPaybackMonths: isFinite(r.payback) ? +r.payback.toFixed(1) : null, channelShiftBreakEvenRes: verdict.be != null ? +verdict.be.toFixed(0) : null,
-      capacityAction: mech, grade, analystRead: analyst[0],
+      capacityAction: mechKey, grade, analystRead: analyst[0],
     }, { sourceTool: "channel-shift" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
@@ -528,10 +542,10 @@ export default function ChannelShiftModel() {
         <div style={WRAP}>
           {/* Capacity action + risk guardrails */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }} className="cg">
-            <div style={{ background: WARM, border: `1px solid ${mech === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
+            <div style={{ background: WARM, border: `1px solid ${mechKey === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>Capacity action<InfoDot text={DEFS.capacity} title="Capacity action" /></div>
-              <div style={{ fontSize: 12, color: mech === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[mech].note}</div>
-              <select value={mech} onChange={e => setMech(e.target.value)} style={{ width: "100%", fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
+              <div style={{ fontSize: 12, color: mechKey === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[mechKey].note}</div>
+              <select value={mechKey} onChange={e => setMech(e.target.value)} style={{ width: "100%", fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
                 {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
               </select>
             </div>
@@ -666,12 +680,12 @@ export default function ChannelShiftModel() {
                     : Math.max(0, Math.min(1, (verdict.be - verdict.curRes) / verdict.be))
                 ),
               }),
-              capacity_action: MECH[mech].label,
+              capacity_action: MECH[mechKey].label,
               eligibility_pct: r.eligPct + "%",
               inputs_corrected: r.guards.length,
               grade_bound_by: boundBy,
               cost_validated: d.validated ? "yes" : "no",
-              adverse_curve: d.adverseCurve,
+              adverse_curve: r.curveKey,
               from_scenario_link: fromLink ? "yes" : "no",
             }}
             sections={[
@@ -696,7 +710,7 @@ export default function ChannelShiftModel() {
               ]},
               { title: "Economics", type: "table", rows: [
                 ["Net agent-minutes freed/mo", Math.round(r.netMin).toLocaleString()],
-                [`Realized labor (${MECH[mech].label}, ${Math.round(r.mf * 100)}%)`, fmtK(r.laborCash) + "/mo"],
+                [`Realized labor (${MECH[mechKey].label}, ${Math.round(r.mf * 100)}%)`, fmtK(r.laborCash) + "/mo"],
                 ["Bot platform fees (real cash)", fmtK(-r.botFee) + "/mo"],
                 ["Net realizable", fmtK(r.netRealizable) + "/mo"],
                 ["Transition (one-time)", fmtK(r.transition)],
@@ -705,7 +719,7 @@ export default function ChannelShiftModel() {
               ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${r.eligPct}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${r.erf}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call. The rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mech].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Adverse selection is anchored on the residual: under the ${CURVE[r.curveKey].label} complexity curve, voice AHT for the calls left behind rises ${(r.residualUplift * 100).toFixed(1)}% to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are conserved, since shifting changes which calls remain, not how long any call takes. That conservation fixes the implied AHT of the displaced contacts at ${r.deptEff.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute baseline. The tool never sets both ends independently, because that would count the same effect twice and overstate freed capacity. Break-even is the target resolution rate at which net realizable crosses zero. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} This is an operating-capacity model, not a value or full-investment model.` },
+              { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${r.eligPct}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${r.erf}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call. The rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mechKey].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Adverse selection is anchored on the residual: under the ${CURVE[r.curveKey].label} complexity curve, voice AHT for the calls left behind rises ${(r.residualUplift * 100).toFixed(1)}% to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are conserved, since shifting changes which calls remain, not how long any call takes. That conservation fixes the implied AHT of the displaced contacts at ${r.deptEff.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute baseline. The tool never sets both ends independently, because that would count the same effect twice and overstate freed capacity. Break-even is the target resolution rate at which net realizable crosses zero. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} This is an operating-capacity model, not a value or full-investment model.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "AI Deflection Reality Check", reason: "Validate the bot resolution rate this decision rests on", href: "/tools/ai-deflection" },
                 { tool: "Business Case Builder", reason: "Build the full investment case: ramp, phasing, approval packaging", href: "/tools/business-case" },
