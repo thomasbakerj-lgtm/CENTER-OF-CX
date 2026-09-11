@@ -514,5 +514,28 @@ A("no shift modeled carries no signal_severity into the review payload",
    review payload, so adding severity changed the manual-handling form too. */
 A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
 
+/* ------------------------------------------ prototype-key complexity curve */
+/* A scenario link carrying adverseCurve=toString used to render a document on an
+   undefined coefficient: NaN on the page, zero corrections disclosed. Rendered
+   here outside SETS so Sets A to D stay byte-identical. */
+console.log("\nprototype-key curve");
+{
+  const hasNaN = (v) => typeof v === "number" ? Number.isNaN(v)
+    : typeof v === "string" ? /NaN/.test(v)
+    : Array.isArray(v) ? v.some(hasNaN)
+    : v && typeof v === "object" ? Object.values(v).some(hasNaN) : false;
+  const face = (o, k) => JSON.stringify({ subtitle: o.subtitle, grade: o.grade, gradeWhy: o.gradeWhy, summary: o.summary, sections: o.sections, signals: o.signals }).split(k).join("<KEY>");
+  const Z = sevDoc("unrecognised curve", { adverseCurve: "zzz" });
+  for (const k of ["toString", "constructor", "__proto__", "hasOwnProperty", "valueOf"]) {
+    const o = sevDoc(`prototype key ${k}`, { adverseCurve: k });
+    const cs = secStartingWith(o, "Inputs Corrected");
+    A(`${k}: the document prints no NaN anywhere`, !hasNaN({ subtitle: o.subtitle, summary: o.summary, sections: o.sections, signals: o.signals }));
+    A(`${k}: the corrections section discloses the curve through the shipped sentence`,
+      !!cs && cs.items.includes(guardLine({ label: "Residual complexity curve", entered: k, used: "moderate", unit: "" })));
+    A(`${k}: inputs_corrected counts exactly one correction`, o.signals.inputs_corrected === 1);
+    A(`${k}: the document matches the unknown-curve document apart from the entered text`, face(o, k) === face(Z, "zzz"));
+  }
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
