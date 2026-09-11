@@ -22,6 +22,9 @@ import { readFileSync } from "fs";
 const SRC = readFileSync("./FCRLeakageDiagnostic.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH, MECH_ORDER } = await import("./src/lib/mech.js");
+/* The real enum guard. The engine region now resolves the mechanism and the scope
+   through pick, so the rendered document cannot be reconciled without it. */
+const { createGuards } = await import("./src/lib/guards.js");
 /* The real boundary guard and the real bucket, never reconstructed. The tool
    publishes signals.severity through severityBucket, and sanitizeProps is what
    decides whether that value reaches the wire or is silently dropped. */
@@ -160,13 +163,13 @@ function render(S) {
     };
   `;
 
-  const argNames = ["MECH", "MECH_ORDER", "severityBucket", "SCORES", "COLORS", "M", "fcrPct", "mCPC", "lCPC", "scope", "method",
+  const argNames = ["MECH", "MECH_ORDER", "createGuards", "severityBucket", "SCORES", "COLORS", "M", "fcrPct", "mCPC", "lCPC", "scope", "method",
     "windowDays", "repeatModel", "measuredPct", "measuredTargetPct", "pathModel", "repeatMult", "targetPct",
     "sourcing", "mech", "investOneTime", "investRecurring", "costBasis", "fcrPulledDirty", "fromLink"];
   const C = { GREEN: "g", AMBER: "a", RED: "r", ELECTRIC: "e", NAVY: "n", MUTED: "m", SLATE: "s" };
   const body = "const { GREEN, AMBER, RED, ELECTRIC, NAVY, MUTED, SLATE } = COLORS;" + preamble;
   const fn = new Function(...argNames, body);
-  return fn(MECH, MECH_ORDER, severityBucket, scores, C, S.M, S.fcrPct, S.mCPC, S.lCPC, S.scope, S.method, S.windowDays,
+  return fn(MECH, MECH_ORDER, createGuards, severityBucket, scores, C, S.M, S.fcrPct, S.mCPC, S.lCPC, S.scope, S.method, S.windowDays,
     S.repeatModel, S.measuredPct, S.measuredTargetPct, S.pathModel, S.repeatMult, S.targetPct, S.sourcing,
     S.mech, S.investOneTime, S.investRecurring, S.costBasis, S.fcrPulledDirty, S.fromLink);
 }
@@ -389,6 +392,55 @@ A("an impossible FCR blocks the result", sevBlocked.R.fcrImpossible);
 A("a blocked result publishes no severity at all", !("severity" in sevBlocked.signals));
 A("a blocked result carries no signal_severity into the review payload",
   !Object.keys(sevBlocked.signals).map(x => "signal_" + x).includes("signal_severity"));
+
+/* --------------------------------------------------- substituted enum documents
+
+   A hand-edited scenario link can carry any string into the mechanism or the
+   scope. The document a reader holds must show the value the engine actually ran
+   and say so. Two failures were shipped: an unknown mechanism printed a full
+   Planning-grade case built on the 75% hiring default nobody chose, and an
+   inherited name such as "toString" printed NaN through every dollar figure.
+   The rendered document is compared against the fallback document, not merely
+   asserted, so a correction can never sit beside numbers from the entered key. */
+const asFallbackMech = render({ ...SETS.A, label: "mechanism none", mech: "none" });
+const hostileMech = render({ ...SETS.A, label: "mechanism nonsense", mech: "nonsense" });
+const protoMech = render({ ...SETS.A, label: "mechanism toString", mech: "toString" });
+const asFallbackScope = render({ ...SETS.A, label: "scope enterprise", scope: "enterprise" });
+const hostileScope = render({ ...SETS.A, label: "scope nonsense", scope: "nonsense" });
+
+const corrOf = (doc, lead) => doc.R.flags.filter(f => f.indexOf(lead) === 0);
+const docDollars = (doc) => JSON.stringify(doc.sections) + JSON.stringify(doc.summary);
+
+A("a substituted mechanism renders the none document, not the hiring default",
+  hostileMech.R.realizableYr === asFallbackMech.R.realizableYr && hostileMech.R.realFactor === 0);
+A("a substituted mechanism discloses exactly one correction",
+  corrOf(hostileMech, "Realization mechanism was").length === 1);
+A("the correction names the entered value and the value used",
+  /^Realization mechanism was "nonsense", .*was held at Not selected\.$/.test(corrOf(hostileMech, "Realization mechanism was")[0]));
+A("the substituted document carries exactly one more flag than the fallback document",
+  hostileMech.R.flags.length === asFallbackMech.R.flags.length + 1);
+A("an inherited property name renders the same none document, never NaN",
+  protoMech.R.mechKey === "none" && !/NaN/.test(docDollars(protoMech)));
+A("the mechanism sentence in the report names the resolved mechanism and its rate",
+  (() => { const line = JSON.stringify(hostileMech.sections).match(/Mechanism applied: [^"\\]*/);
+    return !!line && /^Mechanism applied: Not selected \(0%\), credited as none\.$/.test(line[0]); })());
+A("the entered string appears only inside the correction sentence",
+  (() => { const all = docDollars(hostileMech);
+    const scrubbed = all.split("Realization mechanism was").map((p, i) => i === 0 ? p : p.slice(p.indexOf("was held at"))).join("");
+    return /nonsense/.test(all) && !/nonsense/.test(scrubbed); })());
+A("a substituted scope renders the strictest-ceiling document",
+  hostileScope.R.practicalMax === asFallbackScope.R.practicalMax && hostileScope.R.ceilingFCR === asFallbackScope.R.ceilingFCR);
+A("a substituted scope discloses exactly one correction",
+  corrOf(hostileScope, "Resolution scope was").length === 1);
+A("the FCR definition line names the resolved scope, never the entered string",
+  /Enterprise one-contact/.test(docDollars(hostileScope)));
+A("both substituted documents block at Directional",
+  hostileMech.R.headlineConf === "Directional" && hostileScope.R.headlineConf === "Directional");
+A("no substituted document publishes a severity band",
+  !("severity" in hostileMech.signals) && !("severity" in hostileScope.signals));
+A("a clean document discloses no enum correction at all",
+  corrOf(render(SETS.A), "Realization mechanism was").length === 0 &&
+  corrOf(render(SETS.A), "Resolution scope was").length === 0);
 
 /* The second consumer. ReportActions appends every signal to the Formspree
    review payload, so adding severity changed the manual-handling form too. */
