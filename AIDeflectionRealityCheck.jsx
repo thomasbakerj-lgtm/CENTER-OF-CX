@@ -7,6 +7,7 @@ import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import { publishToolResult, getPrimitive, getExternalPrimitive, sourcedExternally } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { MECH, MECH_ORDER, MECH_DEFAULT } from "./src/lib/mech";
+import { createGuards } from "./src/lib/guards";
 import { severityBucket } from "./src/lib/track";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -84,6 +85,18 @@ export function engine(I) {
     if (c !== v) guards.push(`${what} was ${v}, outside the ${lo} to ${hi} range it can occupy, and was held at ${c}.`);
     return c;
   };
+  /* Enum inputs resolve through the shared own-key pick, the rule Cost per Contact and
+     Channel Shift run. Raw indexing let a prototype name through the truthy check and
+     compute NaN, let an unknown capacity action silently credit the hiring default at
+     Planning-grade, and let an unknown evidence source print an undefined band and crash
+     the page on its label. A substituted key is disclosed in this tool's own guard
+     sentence, which carries "was held at" and so blocks the result at Directional. */
+  const { guards: picks, pick } = createGuards();
+  const resolve = (label, raw, table, fallback) => {
+    const k = pick(label, raw, table, fallback);
+    if (picks.length) guards.push(`${label} was "${picks.pop().entered}", which is not an option this tool offers, and was held at ${table[k].label}.`);
+    return k;
+  };
 
   const M = gc(I.M, 0, 1e9, "Monthly contacts");
   const cpc = gc(I.cpc, 0, 1e6, "Loaded cost per contact");
@@ -99,7 +112,10 @@ export function engine(I) {
   const escP = gc(I.escalationPenalty, 0, 200, "Escalation premium");
   const E = ep / 100, R = rp / 100, RHO = rhop / 100, esc = escP / 100;
 
-  const mechKey = MECH[I.mech] ? I.mech : MECH_DEFAULT;
+  /* The fallback is none, which realizes $0. A broken link must never credit a
+     realization the user did not choose, so it does not fall back to the shipped hiring default. */
+  const mechKey = resolve("Capacity action", I.mech, MECH, "none");
+  const evKey = resolve("Evidence source", I.evidence, EVIDENCE, "estimate");
   const sf = MECH[mechKey].f;
 
   const dur = R * (1 - RHO);              // durable fraction OF ROUTED -> bot resolution rate
@@ -194,7 +210,7 @@ export function engine(I) {
   if (M <= 0) { railPublished = false; railReason = "Monthly contacts is zero, so there is no volume to express a rate against."; }
   else if (!(railRate >= 0 && railRate <= 1)) { railPublished = false; railReason = `Net automation resolved to ${netAutomationRate.toFixed(2)}%, outside 0 to 100%, and the rail refuses it.`; }
 
-  const ev = EVIDENCE[I.evidence] || EVIDENCE.estimate;
+  const ev = EVIDENCE[evKey];
   let costConf = ORDER[Math.min(2, ev.rank)];
   if (margWasDefaulted) costConf = "Directional";
   else if (!I.costBasisOwned && ORDER.indexOf(costConf) > 1) costConf = "Planning-grade";
@@ -240,7 +256,7 @@ export function engine(I) {
   const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   const axesTied = costConf === realConf;
   const weakerIsReal = ORDER.indexOf(realConf) < ORDER.indexOf(costConf);
-  const evReason = EV_REASON[I.evidence || "estimate"];
+  const evReason = EV_REASON[evKey];
   let confReason, confSentence;
   if (hardFlag) {
     confReason = "an input is physically impossible or had to be clamped, so the result is blocked at Directional.";
@@ -259,7 +275,7 @@ export function engine(I) {
     confSentence = "The headline reports the weaker axis, which is evidence at " + costConf + ", because " + evReason + ".";
   }
 
-  const band = { estimate: 0.25, marketing: 0.25, proposal: 0.15, sla: 0.10, pilot: 0.10 }[I.evidence || "estimate"];
+  const band = { estimate: 0.25, marketing: 0.25, proposal: 0.15, sla: 0.10, pilot: 0.10 }[evKey];
 
   /* Four-way decision. Economics and evidence drive it. Readiness detail routes out to
      the AI Readiness Diagnostic; this tool passes the eligibility fact, not a full audit. */
@@ -297,7 +313,7 @@ export function engine(I) {
     netAtEscZero, netAtEscDouble, escSwing, escShareOfResult,
     realizedDollarsPct, realizedDeflectionPct, beResPct, beNote, severityRatio, repeatTolPct, repeatNote,
     monthly, year1, payback, waterfall, waterfallSum, railRate, railBot, railPublished, railReason,
-    bestNet, flags, hardFlag, costConf, realConf, headlineConf, confReason, confSentence, axesTied, band, evidenceLabel: ev.label,
+    bestNet, flags, hardFlag, costConf, realConf, headlineConf, confReason, confSentence, axesTied, band, evidenceKey: evKey, evidenceLabel: ev.label,
     verdict, verdictWhy, verdictRoute, verdictRouteLabel, verdictTone,
   };
 }
@@ -897,9 +913,9 @@ export default function AIDeflectionRealityCheck() {
               severity: severityBucket(R.severityRatio),
               verdict_class: R.verdict,
               has_real_cost_basis: !R.margWasDefaulted,
-              has_document_evidence: ["proposal", "sla", "pilot"].indexOf(s.evidence) >= 0,
+              has_document_evidence: ["proposal", "sla", "pilot"].indexOf(R.evidenceKey) >= 0,
               has_cash_action: CRED_RANK[MECH[R.mechKey].cred] >= 3,
-              evaluating_active_proposal: ["proposal", "sla"].indexOf(s.evidence) >= 0,
+              evaluating_active_proposal: ["proposal", "sla"].indexOf(R.evidenceKey) >= 0,
               overrode_defaults: s.eligibleRate !== DEFAULTS.eligibleRate || s.vA.apparentResolutionRate !== V_A.apparentResolutionRate || s.vA.repeatLeakRate !== V_A.repeatLeakRate,
               compared_scenarios: !!s.compareMode,
               volume_band: R.M >= 500000 ? "very_high" : R.M >= 150000 ? "high" : R.M >= 40000 ? "mid" : "low",
@@ -910,7 +926,7 @@ export default function AIDeflectionRealityCheck() {
               /* Terminal intent signal, zero infrastructure. Real cost basis, a cash-creditable
                  action, and document-backed evidence together mean this person is evaluating a
                  live investment rather than browsing. Watchable in existing free analytics. */
-              decision_ready_signal: !R.margWasDefaulted && CRED_RANK[MECH[R.mechKey].cred] >= 3 && ["proposal", "sla", "pilot"].indexOf(s.evidence) >= 0,
+              decision_ready_signal: !R.margWasDefaulted && CRED_RANK[MECH[R.mechKey].cred] >= 3 && ["proposal", "sla", "pilot"].indexOf(R.evidenceKey) >= 0,
             }}
             sections={reportSections}
           />
