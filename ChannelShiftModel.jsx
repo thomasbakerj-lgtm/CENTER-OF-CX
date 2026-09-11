@@ -122,7 +122,7 @@ function compute(d, mechKey) {
      what was asked for, and they are printed side by side. */
   /* scaled is not taken from createGuards: this engine already names its own
      shift-scaling flag scaled, and the two must not collide. */
-  const { guards, guard } = createGuards();
+  const { guards, guard, pick } = createGuards();
   /* Concurrency divides, so it is the highest-leverage input in the file. A zero
      or negative value used to be swallowed by a bare Math.max(0.1, x), which turned
      a 7 minute voice AHT into 70 effective minutes and inflated net realizable from
@@ -150,8 +150,10 @@ function compute(d, mechKey) {
   const scaled = reqShift > eligible && reqShift > 0;
   const scale = scaled ? eligible / reqShift : 1;
 
-  const curveKey = CURVE[d.adverseCurve] ? d.adverseCurve : "moderate";
-  if (curveKey !== d.adverseCurve) guards.push({ label: "Residual complexity curve", entered: String(d.adverseCurve), used: "moderate", unit: "" });
+  /* Own-key lookup through pick. The old truthy check passed prototype keys:
+     CURVE["toString"] is truthy, so a scenario link printed a NaN document with
+     zero corrections disclosed. */
+  const curveKey = pick("Residual complexity curve", d.adverseCurve, CURVE, "moderate");
   const adverseCoef = CURVE[curveKey].c;
   // A failed deflection re-contact is never cheaper than the original call.
   const erf = guard("Escalation return factor", d.escReturnFactor, 1, null, "x");
