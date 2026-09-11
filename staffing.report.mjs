@@ -22,6 +22,8 @@ import { readFileSync } from "node:fs";
 const SRC = readFileSync("./StaffingCalculator.jsx", "utf8");
 const { BENCH, COLORS, classifyOccupancy, classifyShrinkage } = await import("./src/lib/benchmarks.js");
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
+/* The shared guard module the engine imports. Injected, never reconstructed. */
+const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -163,7 +165,19 @@ A("the band declares its unreachable set", /Declared unreachable/.test(SRC));
  * and model_valid must carry that on the wire independently of the band.
  *
  * Set F is deliberately hostile: a scenario link carrying a negative volume, a
- * negative AHT and a shrinkage beyond 100 percent.
+ * negative AHT and a shrinkage beyond 100 percent. Before the guard layer it printed
+ * minus 235 scheduled FTE at minus 18 million a year. See section 7.
+ *
+ * Set G is a negative volume alone. Set F looked like it left the Erlang core in
+ * domain, but only because its negative volume and negative AHT cancel inside the
+ * offered load. On its own a negative volume returned minus 51 base agents at 157
+ * percent occupancy. This set exists so that masking cannot hide the case again.
+ *
+ * Set H sits on the poles: shrinkage at exactly 100, an interval of zero, a service
+ * target of 150, zero queues and a negative patience.
+ *
+ * Set I switches the occupancy cap on at a ceiling of zero, which no offered load
+ * can meet.
  */
 const SETS = {
   A: { label: "Shipped defaults: 400 per 30-minute interval, 360s AHT, 80/20", mut: () => ({}) },
@@ -177,6 +191,12 @@ const SETS = {
     mut: () => ({ aht: 900, intv: 15 }) },
   F: { label: "Hostile scenario link: negative volume, negative AHT, shrinkage beyond 100",
     mut: () => ({ vol: -400, aht: -360, shrink: 140 }) },
+  G: { label: "Negative volume alone: the case the double negative in F masked",
+    mut: () => ({ vol: -400 }) },
+  H: { label: "On the poles: shrinkage 100, interval zero, target 150, zero queues",
+    mut: () => ({ shrink: 100, intv: 0, slT: 150, queues: 0, patience: -30 }) },
+  I: { label: "Occupancy cap switched on at a ceiling of zero",
+    mut: () => ({ capOn: true, capPct: 0 }) },
 };
 
 function render(S) {
@@ -185,7 +205,9 @@ function render(S) {
     ${engine}
     ${tail}
     const st = { ...DEFAULTS, ...MUT() };
-    const { vol, aht, slT, slS, shrink, intv, patience, capOn, capPct, queues, preset } = st;
+    const { st: stG, guards } = guardStaffing(st);
+    const { capOn, preset } = st;
+    const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;
     const occCap = capOn ? capPct / 100 : null;
     const r = calc(vol, aht, intv, slT / 100, slS, shrink / 100, occCap);
     /* Rail state. The harness renders the standalone document, the case with no
@@ -203,7 +225,7 @@ function render(S) {
     const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
     const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
     const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
-    const cost = staffingCost(r.sched, railPerAgent, railHourly);
+    const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards);
     const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
     const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
     const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
@@ -215,15 +237,15 @@ function render(S) {
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
     const sections = ${sectionsExpr};
-    return { st, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
+    return { st, stG, guards, STAFFING_DOMAIN, guardStaffing, capForCorrections, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
              subtitle, summary, signals, sections };
   `;
   return new Function("BENCH", "COLORS", "classifyOccupancy", "classifyShrinkage",
     "NAVY", "DEEP", "ELECTRIC", "LIGHT", "WARM", "SLATE", "MUTED", "BORDER", "GREEN", "AMBER", "RED",
-    "severityBucket", "MUT", body)(
+    "severityBucket", "MUT", "createGuards", "guardVal", "guardLine", body)(
     BENCH, COLORS, classifyOccupancy, classifyShrinkage,
     COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#F8FAFB", "#3A4F6A", COLORS.muted,
-    "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut);
+    "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, createGuards, guardVal, guardLine);
 }
 
 function allText(doc) {
@@ -275,11 +297,10 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: the document prints no [object Object]`, !/\[object Object\]/.test(text));
   A(`${k}: the document prints no em-dash`, text.indexOf(String.fromCharCode(0x2014)) < 0);
   A(`${k}: the document prints no en-dash`, text.indexOf(String.fromCharCode(0x2013)) < 0);
-  /* Set F is the documented exception and the reason: see section 7. */
-  if (k !== "F") A(`${k}: the document prints no negative agent count`, !/-\d+ (?:agents|FTE)/.test(text));
+  /* No set is exempt. The exclusion Set F carried existed only because the guard
+     layer did not. */
+  A(`${k}: the document prints no negative agent count`, !/-\d+ (?:agents|FTE)/.test(text));
 }
-A("F is the only set that prints a negative agent count, which is the open defect",
-  /-\d+ (?:agents|FTE)/.test(allText(DOCS.F)));
 
 /* ---- 3. the printed figures reconcile with the engine ---- */
 console.log("\n3. printed figures reconcile with the engine");
@@ -293,12 +314,10 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: the subtitle carries the same occupancy the summary carries`, doc.subtitle.indexOf(`${(r.occ * 100).toFixed(1)}%`) > 0);
   A(`${k}: the subtitle carries the same cost confidence the tool exports`, doc.subtitle.indexOf(cost.confidence) > 0);
   A(`${k}: the cost basis line matches the rail state`, summaryValue(doc, "Cost basis") === (cost.sourced ? "user figures via rail" : "benchmark median"));
-  /* Shrinkage converts base agents to scheduled FTE, so scheduled can never be the
-     smaller of the two on any non-negative shrinkage. */
   /* Shrinkage converts base agents to scheduled FTE, so scheduled can never be smaller
-     for any shrinkage inside its domain. Set F carries 140 percent, which is outside it
-     and unguarded: see section 7. */
-  if (k !== "F") A(`${k}: scheduled FTE is never below base agents`, r.sched >= r.raw);
+     for any shrinkage inside its domain, and the guard holds every set inside it. */
+  A(`${k}: scheduled FTE is never below base agents`, r.sched >= r.raw);
+  A(`${k}: every engine figure is finite`, [r.raw, r.sched, r.sl, r.occ, r.asa, r.pw, cost.annual].every(Number.isFinite));
   /* The Staffing Results metric block must not contradict the summary above it. */
   const metrics = sectionByTitle(doc, "Staffing Results");
   if (metrics && metrics.items) {
@@ -395,45 +414,119 @@ for (const k of Object.keys(DOCS)) {
   }
 }
 
-/* ---- 7. the unguarded path: OPEN DEFECT, recorded rather than blessed ---- */
+/* ---- 7. the guarded path: corrected at the boundary, disclosed in the document ---- */
 /*
- * This tool applies Object.assign to whatever a scenario link carries and validates no
- * field anywhere, exactly as TCOCalculator does. Set F carries a shrinkage of 140
- * percent, which is outside the domain of the shrinkage conversion: scheduled FTE is
- * base agents over one minus shrinkage, so at 140 percent the denominator goes negative
- * and the document prints minus 235 scheduled FTE and a cost of minus 18 million a year.
- *
- * This is the doctrine defect pattern of negative inputs producing physically impossible
- * results without a guard. It is the SECOND confirmation of it, after TCOCalculator, and
- * it is NOT fixed here. The fix is a guard and disclosure layer over every input,
- * matching the pattern Attrition and Cost per Contact already carry. That is its own
- * tracker item rather than a rider on the 1-15 band retrofit.
- *
- * What these assertions do is pin the defect so it cannot regress in silence and cannot
- * be lost from the record. They assert current behavior and say so. When the guard layer
- * lands, this section is rewritten to assert disclosure instead.
+ * Before the guard layer this section pinned an open defect: Staffing validated no
+ * scenario-link input, and Set F printed minus 235 scheduled FTE at minus 18 million a
+ * year. The guard now clamps every input at the engine boundary, and the document must
+ * disclose each correction in its own section and in the methodology, render every
+ * one through the shared guardVal, and hold the headline confidence at Directional.
  */
-console.log("\n7. the unguarded path: OPEN DEFECT, out-of-domain shrinkage is carried through");
+console.log("\n7. the guarded path: corrected at the boundary, disclosed in the document");
+const CORR = "\u26a0 Inputs Corrected Before Calculation";
 {
-  const F = DOCS.F;
-  console.log("      OPEN DEFECT: Staffing validates no scenario-link input. At " + F.st.shrink +
-    "% shrinkage the document prints " + F.r.sched + " scheduled FTE at " + Math.round(F.cost.annual).toLocaleString() + " a year.");
-  A("F: current behavior, shrinkage beyond 100 percent inverts the FTE conversion", F.r.sched < 0);
-  A("F: current behavior, the annual cost follows it negative", F.cost.annual < 0);
-  A("F: current behavior, nothing in the document discloses a correction",
-    itemsOf(F, "Key Findings").indexOf("shrinkage was") < 0);
-  /* What the engine does hold, and must keep holding. The Erlang core itself is sound;
-     it is the unvalidated conversion around it that is not. */
-  A("F: the Erlang core still returns a non-negative base agent count", F.r.raw >= 0);
+  const F = DOCS.F, fl = (l) => F.guards.find(g => g.label === l);
+  A("F: all three out-of-domain inputs are recorded, and nothing else is", F.guards.length === 3);
+  A("F: negative volume records and clamps to zero", !!fl("Voice contacts per interval") && fl("Voice contacts per interval").entered === -400 && F.stG.vol === 0);
+  A("F: negative handle time records and clamps to one second", !!fl("Average Handle Time") && fl("Average Handle Time").used === 1 && F.stG.aht === 1);
+  A("F: shrinkage beyond the pole records and clamps to 99", !!fl("Total Shrinkage") && fl("Total Shrinkage").entered === 140 && F.stG.shrink === 99);
+  A("F: scheduled FTE is positive", F.r.sched > 0);
+  A("F: the annual cost is positive", F.cost.annual > 0);
+  A("F: the share link still carries what was entered", F.st.vol === -400 && F.st.shrink === 140);
+  const sec = F.sections[0];
+  A("F: the corrected-inputs section leads the document", sec.title === CORR);
+  A("F: that section prints every correction through the shipped renderer",
+    sec.items.length === F.guards.length && F.guards.every((g, i) => sec.items[i] === guardLine(g)));
+  A("F: the entered negative prints with its sign", sec.items.join(" ").indexOf("entered -400,") >= 0);
+  const meth = (sectionByTitle(F, "Methodology") || {}).content || "";
+  A("F: the methodology states every correction through guardVal", meth.indexOf("INPUTS CORRECTED") >= 0
+    && F.guards.every(g => meth.indexOf(`${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`) >= 0));
+  A("F: a corrected input holds confidence at Directional", F.cost.confidence === "Directional" && F.subtitle.indexOf("Directional") > 0);
+  A("F: the signal block counts the corrections", F.signals.inputs_corrected === 3);
+  A("F: a corrected input is never decision ready", F.signals.decision_ready_signal === false);
+  /* The Erlang core, fed guarded inputs, stays in its physical domain. */
+  A("F: base agents are non-negative", F.r.raw >= 0);
   A("F: occupancy stays inside its physical domain", F.r.occ >= 0 && F.r.occ <= 1);
   A("F: the service level stays inside its physical domain", F.r.sl >= 0 && F.r.sl <= 1);
-  A("F: the tool still exports a cost confidence", typeof F.cost.confidence === "string" && F.cost.confidence.length > 0);
-  A("F: the document is still structurally whole", F.sections.length >= 4);
-  A("F: whatever the band reports, it is canonical or withheld",
-    F.signals.severity === "" || SEVERITY_BANDS.indexOf(F.signals.severity) >= 0);
-  /* The band reads occupancy, which the Erlang core keeps in domain, so the 1-15 retrofit
-     is not the thing carrying the bad number here. */
-  A("F: the band is unaffected by the broken conversion", F.signals.severity === severityBucket(Math.max(0, Math.min(1, (F.pair.sla.occ - TH) / (1 - TH)))));
+
+  const G = DOCS.G;
+  A("G: a negative volume alone is caught, which Set F used to mask", G.guards.length === 1 && G.stG.vol === 0);
+  A("G: base agents are non-negative", G.r.raw >= 0);
+  A("G: occupancy stays inside its physical domain", G.r.occ >= 0 && G.r.occ <= 1);
+  A("G: the document discloses it", G.sections[0].title === CORR);
+
+  const H = DOCS.H, hl = (l) => H.guards.find(g => g.label === l);
+  A("H: shrinkage on the pole clamps below it", !!hl("Total Shrinkage") && H.stG.shrink === 99);
+  A("H: an interval of zero clamps to one minute", !!hl("Interval length") && H.stG.intv === 1);
+  A("H: a service target above 100 clamps to 100", !!hl("Service Level Target") && H.stG.slT === 100);
+  A("H: zero queues clamps to one", !!hl("Queues or skills this volume splits across") && H.stG.queues === 1);
+  A("H: negative patience clamps to zero", !!hl("Avg caller patience (optional)") && H.stG.patience === 0);
+  A("H: exactly the five corrections", H.guards.length === 5);
+  A("H: scheduled FTE is finite", Number.isFinite(H.r.sched));
+
+  const I = DOCS.I;
+  A("I: a ceiling of zero with the cap on clamps to one", I.guards.length === 1 && I.stG.capPct === 1);
+  A("I: the disclosure names the field the reader sees", I.sections[0].items[0].indexOf("Occupancy ceiling: entered 0%, computed at 1%.") === 0);
+
+  /* Neutrality and scope. */
+  const guardStaffing = DOCS.A.guardStaffing;
+  const off = guardStaffing({ ...DOCS.A.st, capOn: false, capPct: -50 });
+  A("an unused ceiling raises no correction while the cap is off", off.guards.length === 0 && off.st.capPct === -50);
+  for (const k of ["A", "B", "C", "D", "E"])
+    A(`${k}: an in-domain set raises no correction and adds no section`, DOCS[k].guards.length === 0 && DOCS[k].sections[0].title !== CORR);
+  for (const k of ["A", "B", "C", "D", "E"])
+    A(`${k}: without corrections the confidence is the cost basis confidence`, DOCS[k].cost.confidence === (DOCS[k].cost.sourced ? "Planning-grade" : "Directional"));
+  /* The confidence cap, on the case the rendered sets cannot reach: this harness renders
+     with no rail, so every set is already Directional on its cost basis alone. */
+  const cap = DOCS.A.capForCorrections;
+  const sourced = { confidence: "Planning-grade", sourced: true, annual: 1 };
+  A("a sourced cost basis with a correction is held at Directional", cap(sourced, [{ label: "x" }]).confidence === "Directional");
+  A("a sourced cost basis with no correction keeps its grade and its identity", cap(sourced, []) === sourced);
+  /* This harness reconstructs the component lines that call the guard, so it pins them
+     to the shipped JSX. A bypass there would otherwise pass every assertion above. */
+  for (const line of [
+    "const { st: stG, guards } = guardStaffing(st);",
+    "const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;",
+    "const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards);",
+  ]) A(`the shipped component carries: ${line}`, SRC.split(line).length === 2);
+  A("the on-page banner renders both sides through guardVal",
+    /Inputs corrected before calculation[\s\S]{0,600}guardVal\(g, "entered"\)[\s\S]{0,200}guardVal\(g, "used"\)/.test(SRC));
+}
+
+/* ---- 7b. the guard never corrects a value the form accepts ---- */
+/*
+ * Every NumField in the shipped JSX is held against its row in STAFFING_DOMAIN: it
+ * must have one, the label must match so the disclosure names the field the reader
+ * sees, and the row may be wider than the form but never narrower.
+ */
+console.log("\n7b. the domain table covers the form and is never narrower");
+{
+  const FORM = [];
+  let at = 0;
+  while ((at = SRC.indexOf("<NumField", at)) >= 0) {
+    let i = at, depth = 0;
+    for (; i < SRC.length; i++) {
+      const c = SRC[i];
+      if (c === "{") depth++;
+      else if (c === "}") depth--;
+      else if (depth === 0 && SRC.startsWith("/>", i)) break;
+    }
+    const t = SRC.slice(at, i);
+    const num = (name) => { const m = t.match(new RegExp("\\b" + name + "=\\{(-?[\\d.]+)\\}")); return m ? Number(m[1]) : null; };
+    FORM.push({ key: (t.match(/value=\{(\w+)\}/) || [])[1], label: (t.match(/label="([^"]*)"/) || [])[1], min: num("min"), max: num("max") });
+    at = i;
+  }
+  const DOMAIN = DOCS.A.STAFFING_DOMAIN, ROWS = Object.fromEntries(DOMAIN.map(r => [r[0], r]));
+  A("the form carries numeric fields to check", FORM.length >= 9);
+  for (const f of FORM) {
+    const row = ROWS[f.key];
+    A(`${f.key}: has a domain row`, !!row);
+    if (!row) continue;
+    A(`${f.key}: the row names the field the reader sees`, row[1] === f.label);
+    A(`${f.key}: the floor is no higher than the form floor`, f.min === null || row[2] <= f.min);
+    A(`${f.key}: the ceiling is no lower than the form ceiling`, f.max === null || row[3] === null || row[3] >= f.max);
+  }
+  A("no domain row exists without a form field", DOMAIN.every(r => FORM.some(f => f.key === r[0])));
 }
 
 /* ---------------------------------------------------------------- result */
