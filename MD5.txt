@@ -1,0 +1,12 @@
+e9427849a2a532a0300210933da249c7  src/lib/guards.js
+555201112f59375104fbf882df30321e  AttritionCostCalculator.jsx
+317522eadd2aa44ec9dcd7e09621197d  CostPerContactCalculator.jsx
+8940116cf17d916d68d08c9f4ee62523  StaffingCalculator.jsx
+d49e27a6c03faa505b237ef4d86fae2e  TCOCalculator.jsx
+5ebcb483dcf4cc02af094709bc4205ee  attrition.report.mjs
+b77a1afea0f0897c6ec975e62ff2990f  attrition.test.mjs
+f80236f34878f77d057110d571a7331e  cpc.report.mjs
+aca51f599d398890ce9c74547b31785f  cpc.test.mjs
+e47432071268841b5262f0d071efe887  staffing.report.mjs
+369df7401de49df1ebc60b657d6371ac  tco.report.mjs
+8840ebd04627312109277c597836767b  tco.test.mjs
