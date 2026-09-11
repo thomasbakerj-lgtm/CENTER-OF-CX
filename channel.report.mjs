@@ -24,6 +24,9 @@ const SRC = readFileSync("./ChannelShiftModel.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH } = await import("./src/lib/mech.js");
 const { COLORS } = await import("./src/lib/benchmarks.js");
+/* The shared clamp and disclosure renderer. The component imports them, so the
+   report must be built on the same module, never on a retyped copy. */
+const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 /* The real boundary guard and the real bucket, never reconstructed. The tool
    publishes signals.severity through severityBucket, and sanitizeProps is what
    decides whether that value reaches the wire or is silently dropped. */
@@ -190,7 +193,7 @@ function render(S) {
     .replace(/\bSOURCED\b/g, JSON.stringify(!!S.pulledExternally));
 
   try {
-    return new Function("MECH", "COLORS", "severityBucket", preamble)(MECH, COLORS, severityBucket);
+    return new Function("MECH", "COLORS", "severityBucket", "createGuards", "guardVal", "guardLine", preamble)(MECH, COLORS, severityBucket, createGuards, guardVal, guardLine);
   } catch (e) {
     console.error("BLOCKER: the report payload did not evaluate for set " + S.label + ".");
     console.error(String(e.message || e));
@@ -352,11 +355,12 @@ console.log("\n4. guard disclosure in the document");
     c.sections.indexOf(cs) < c.sections.indexOf(sec(c, "Integrity Checks")));
   A("C: every engine correction reaches the document", cs.items.length === c.r.guards.length);
   A("C: each correction states both what was entered and what was used",
-    c.r.guards.every(g => {
-      const e = g.unit === "$" ? "$" + g.entered : `${g.entered}${g.unit}`;
-      const u = g.unit === "$" ? "$" + g.used : `${g.used}${g.unit}`;
-      return cs.items.some(i => i.indexOf(`entered ${e}`) >= 0 && i.indexOf(`computed at ${u}`) >= 0);
-    }));
+    c.r.guards.every(g =>
+      cs.items.some(i => i.indexOf(`entered ${guardVal(g, "entered")}`) >= 0 && i.indexOf(`computed at ${guardVal(g, "used")}`) >= 0)));
+  /* Assert against the shipped renderer. The old form rebuilt "$" + value by hand,
+     so the harness encoded the defect it was meant to catch: it required $-2. */
+  A("C: every correction line is exactly what the shipped renderer produces",
+    cs.items.length === c.r.guards.length && c.r.guards.every((g, i) => cs.items[i] === guardLine(g)));
   A("C: the 150% resolution is disclosed as having run at 100%",
     cs.items.some(i => /Chat resolution/.test(i) && /entered 150/.test(i) && /computed at 100/.test(i)));
   A("C: the 300% displacement is disclosed as having run at 100%",
@@ -364,14 +368,26 @@ console.log("\n4. guard disclosure in the document");
   A("C: the negative volume is disclosed as having run at zero",
     cs.items.some(i => /Monthly contacts/.test(i) && /computed at 0/.test(i)));
   A("C: the negative bot cost is disclosed as having run at zero",
-    cs.items.some(i => /Bot cost per contact/.test(i) && /entered \$-2/.test(i) && /computed at \$0/.test(i)));
+    cs.items.some(i => /Bot cost per contact/.test(i) && /entered -\$2,/.test(i) && /computed at \$0/.test(i)));
+  /* Money leads with the sign, matching money() and fmtK(). $-2 is a broken
+     magnitude. Every path that discloses the bot cost must print -$2. */
+  A("C: the bot cost correction prints -$2 in the corrections section",
+    cs.items.some(i => i === "Bot cost per contact: entered -$2, computed at $0."));
+  A("C: the bot cost correction prints -$2 in the integrity checks",
+    sec(c, "Integrity Checks").items.some(i => /^Bot cost per contact: you entered -\$2, /.test(i)));
+  A("C: the bot cost correction prints -$2 in the on-page flag",
+    c.flags.some(f => /^Bot cost per contact: you entered -\$2, /.test(f.t)));
+  A("C: the bot cost correction prints -$2 in the methodology",
+    sec(c, "Methodology").content.indexOf("Bot cost per contact entered -$2, computed at $0") >= 0);
+  A("C: no money anywhere in the document or the flags prints the sign behind the symbol",
+    JSON.stringify([c.subtitle, c.summary, c.sections, c.flags]).indexOf("$-") < 0);
   /* The corrections section and the integrity check print the same fact. They had
      drifted: one rendered $-2 and the other -2$. One renderer now serves both. */
   A("C: money corrections carry the symbol before the number in every place they appear",
     !/\d\$/.test(JSON.stringify(c.sections)));
   A("C: the corrections section and the integrity checks agree on every entered value",
     c.r.guards.every(g => {
-      const entered = g.unit === "$" ? "$" + g.entered : `${g.entered}${g.unit}`;
+      const entered = guardVal(g, "entered");
       return cs.items.some(i => i.indexOf("entered " + entered) >= 0)
         && sec(c, "Integrity Checks").items.some(i => i.indexOf("entered " + entered) >= 0);
     }));
