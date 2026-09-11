@@ -7,12 +7,13 @@
 import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real module, do not rebuild it. ---- */
-let MECH, MECH_ORDER, MECH_DEFAULT;
+let MECH, MECH_ORDER, MECH_DEFAULT, createGuards;
 try {
   const m = await import("./src/lib/mech.js");
   ({ MECH, MECH_ORDER, MECH_DEFAULT } = m);
+  ({ createGuards } = await import("./src/lib/guards.js"));
 } catch (e) {
-  console.error("BLOCKER: could not import ./src/lib/mech.js. The engine cannot be");
+  console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js. The engine cannot be");
   console.error("verified against reconstructed constants. Run from the repo root.");
   console.error(String(e.message || e));
   process.exit(1);
@@ -43,8 +44,8 @@ const src = readFileSync("./AIDeflectionRealityCheck.jsx", "utf8");
 const a = src.indexOf("/* @engine-start"), b = src.indexOf("/* @engine-end */");
 if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found."); process.exit(1); }
 const region = src.slice(a, b).replace(/^export /gm, "");
-const { engine, buildScenarios } = new Function("MECH", "MECH_DEFAULT",
-  region + "\nreturn { engine, buildScenarios };")(MECH, MECH_DEFAULT);
+const { engine, buildScenarios } = new Function("MECH", "MECH_DEFAULT", "createGuards",
+  region + "\nreturn { engine, buildScenarios };")(MECH, MECH_DEFAULT, createGuards);
 
 /* the harness must exercise the real ladder, whatever it contains */
 const MECH_KEYS = MECH_ORDER.slice();
@@ -449,6 +450,87 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
     Math.max(0, Math.min(1, 1 - d0.realizedDollarsPct / 100)) >= 0.75);
   A("the shipped default nevertheless nets money", d0.netSavings > 0);
   A("the argued basis does not put it at the top of the scale", d0.severityRatio < 0.75);
+}
+
+/* ---- 14. Enum inputs resolve through the shared own-key pick (9-11) ----
+   The engine indexed MECH and EVIDENCE with the raw link value. A prototype name
+   passed the truthy check and computed NaN. An unknown capacity action silently
+   credited the hiring default at Planning-grade. An unknown evidence source printed
+   an undefined band, and a prototype name left the label undefined, which crashes
+   the page on toLowerCase. Every hostile key must resolve to the fallback, disclose
+   exactly one correction, and block the grade at Directional. */
+console.log("\n14. enum inputs resolve through pick");
+{
+  const EV_KEYS = ["estimate", "marketing", "proposal", "sla", "pilot"];
+  const HOSTILE = ["bogus", "", "HIRING", " hiring", "Pilot", undefined, ...Object.getOwnPropertyNames(Object.prototype)];
+  const CLEAN = { ...DEF, marg:4.2, costBasisOwned:true, evidence:"pilot", mech:CASH_KEY };
+  const corr = (r) => r.flags.filter(f => /which is not an option this tool offers/.test(f));
+  const nums = (r) => [r.netSavings, r.K, r.steadyAnnual, r.year1, r.band, r.escalationPremium, r.waterfallSum, ...r.waterfall.map(w => w.value), ...r.monthly];
+  const allFinite = (r) => nums(r).every(Number.isFinite);
+
+  for (const k of MECH_KEYS) {
+    const r = engine({ ...CLEAN, mech:k });
+    A(`capacity action ${k} runs as entered with no correction`, r.mechKey === k && corr(r).length === 0);
+  }
+  for (const k of EV_KEYS) {
+    const r = engine({ ...CLEAN, evidence:k });
+    A(`evidence source ${k} runs as entered with no correction`, r.evidenceKey === k && corr(r).length === 0);
+  }
+
+  const NONE = engine({ ...CLEAN, mech:"none" });
+  for (const k of HOSTILE) {
+    let r = null, threw = false;
+    try { r = engine({ ...CLEAN, mech:k }); } catch { threw = true; }
+    A(`hostile capacity action ${String(k)} does not throw`, !threw);
+    if (!r) continue;
+    const c = corr(r);
+    A(`hostile capacity action ${String(k)} resolves to none with one disclosed correction`,
+      r.mechKey === "none" && c.length === 1 && c[0] === `Capacity action was "${String(k)}", which is not an option this tool offers, and was held at ${MECH.none.label}.`);
+    A(`hostile capacity action ${String(k)} computes every figure finite`, allFinite(r));
+    A(`hostile capacity action ${String(k)} computes exactly the none figures`, JSON.stringify(nums(r)) === JSON.stringify(nums(NONE)));
+    A(`hostile capacity action ${String(k)} blocks the grade at Directional`, r.hardFlag === true && r.headlineConf === "Directional");
+  }
+
+  const EST = engine({ ...CLEAN, evidence:"estimate" });
+  for (const k of HOSTILE) {
+    let r = null, threw = false;
+    try { r = engine({ ...CLEAN, evidence:k }); } catch { threw = true; }
+    A(`hostile evidence source ${String(k)} does not throw`, !threw);
+    if (!r) continue;
+    const c = corr(r);
+    A(`hostile evidence source ${String(k)} resolves to estimate with one disclosed correction`,
+      r.evidenceKey === "estimate" && c.length === 1 && c[0] === `Evidence source was "${String(k)}", which is not an option this tool offers, and was held at Internal estimate or benchmark.`);
+    A(`hostile evidence source ${String(k)} prints the estimate label and band`,
+      r.evidenceLabel === EST.evidenceLabel && r.band === EST.band && typeof r.band === "number");
+    A(`hostile evidence source ${String(k)} blocks the grade at Directional with a whole sentence`,
+      r.hardFlag === true && r.headlineConf === "Directional" && r.costConf === "Directional" && !/undefined/.test(r.confSentence));
+  }
+
+  A("a hostile capacity action never inherits the shipped hiring default", engine({ ...CLEAN, mech:"bogus" }).mechKey !== MECH_DEFAULT);
+  A("a hostile evidence source never credits a document", engine({ ...CLEAN, evidence:"bogus" }).evidenceKey === "estimate");
+  const both = engine({ ...CLEAN, M:-5, mech:"toString", evidence:"constructor", botPlatformCost:-1 });
+  A("hostile enums between hostile inputs disclose in engine order",
+    both.flags.slice(0, 4).map(f => f.split(" was ")[0]).join("|") === "Monthly contacts|Capacity action|Evidence source|Platform cost");
+  A("two hostile enums disclose two corrections, never more", corr(both).length === 2);
+  A("the scenario rows resolve too, so no scenario prints NaN",
+    buildScenarios({ ...CLEAN, mech:"valueOf", evidence:"hasOwnProperty" }).every(x => Number.isFinite(x.netSavings) && Number.isFinite(x.netAutomationRate)));
+
+  /* Source gates. The destructure pin keeps pick bound; the negative gates keep the
+     raw lookups from returning. */
+  A("the engine imports createGuards from the shared module", /import \{ createGuards \} from "\.\/src\/lib\/guards";/.test(src));
+  A("the engine binds pick through createGuards", /const \{ guards: picks, pick \} = createGuards\(\);/.test(region));
+  A("the capacity action resolves through pick with a none fallback", /const mechKey = resolve\("Capacity action", I\.mech, MECH, "none"\);/.test(region));
+  A("the evidence source resolves through pick with an estimate fallback", /const evKey = resolve\("Evidence source", I\.evidence, EVIDENCE, "estimate"\);/.test(region));
+  A("the resolved correction carries the phrase that blocks the grade", /which is not an option this tool offers, and was held at \$\{table\[k\]\.label\}/.test(region));
+  A("the engine region no longer reads MECH_DEFAULT", !/MECH_DEFAULT/.test(region));
+  A("no raw lookup on the entered capacity action remains", !/MECH\[I\.mech\]/.test(src) && !/MECH\[s\.mech\]/.test(src));
+  A("no raw lookup on the entered evidence source remains",
+    !/EVIDENCE\[I\.evidence\]/.test(src) && !/I\.evidence \|\|/.test(src) && (src.match(/I\.evidence/g) || []).length === 1);
+  A("the band, the reason and the label all read the resolved evidence key",
+    /EV_REASON\[evKey\]/.test(region) && /\}\[evKey\];/.test(region) && /const ev = EVIDENCE\[evKey\];/.test(region));
+  A("the engine returns the resolved evidence key", /evidenceKey: evKey,/.test(region));
+  A("the component signals read the resolved evidence key, never the entered one",
+    !/indexOf\(s\.evidence\)/.test(src) && (src.match(/indexOf\(R\.evidenceKey\)/g) || []).length === 3);
 }
 
 const r = engine(DEF);
