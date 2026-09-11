@@ -12,13 +12,14 @@
 import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real modules, do not rebuild them. ---- */
-let MECH, MECH_ORDER, MECH_DEFAULT, COLORS;
+let MECH, MECH_ORDER, MECH_DEFAULT, COLORS, createGuards, guardVal, guardLine;
 try {
   const m = await import("./src/lib/mech.js");
   ({ MECH, MECH_ORDER, MECH_DEFAULT } = m);
   ({ COLORS } = await import("./src/lib/benchmarks.js"));
+  ({ createGuards, guardVal, guardLine } = await import("./src/lib/guards.js"));
 } catch (e) {
-  console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/benchmarks.js.");
+  console.error("BLOCKER: could not import ./src/lib/mech.js, ./src/lib/benchmarks.js or ./src/lib/guards.js.");
   console.error("The engine cannot be verified against reconstructed constants. Run from the repo root.");
   console.error(String(e.message || e));
   process.exit(1);
@@ -56,9 +57,9 @@ let compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget,
 try {
   ({ compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget,
     BASE, DEFAULTS, CURVE, TARGETS, RISKS, CRED_RANK, RANK_GRADE, GRADE_RANK, money, fmtK, n, TOOL_ID, ROUTE } = new Function(
-    "MECH", "COLORS",
+    "MECH", "COLORS", "createGuards", "guardVal", "guardLine",
     region + "\nreturn { compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget, BASE, DEFAULTS, CURVE, TARGETS, RISKS, CRED_RANK, RANK_GRADE, GRADE_RANK, money, fmtK, n, TOOL_ID, ROUTE };"
-  )(MECH, COLORS));
+  )(MECH, COLORS, createGuards, guardVal, guardLine));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -396,6 +397,18 @@ console.log("\n14. two-ceiling confidence");
   A("corrected inputs are counted in the signals payload", /inputs_corrected: r\.guards\.length/.test(SRC));
   A("corrections are printed ahead of the analyst read", SRC.indexOf("Inputs Corrected Before Calculation") < SRC.indexOf('{ title: "Analyst Read"'));
   A("corrections are repeated in the methodology", /INPUTS CORRECTED/.test(SRC));
+  /* One clamp and one renderer, owned by src/lib/guards.js. A local copy is how
+     this file printed $-2: it fixed a drift between paths by agreeing on the wrong
+     form. Every money guard here floors at 0, so a hand-rendered "used" side is
+     invisible in output today and would break the moment a floor goes negative.
+     The source is gated so a local renderer cannot return unseen. */
+  A("the component imports the shared clamp and renderer",
+    /import \{ createGuards, guardVal, guardLine \} from "\.\/src\/lib\/guards"/.test(SRC));
+  A("the engine builds its guard list through createGuards", /const \{ guards, guard \} = createGuards\(\);/.test(SRC));
+  A("no local guard list, clamp or renderer remains",
+    !/const guards = \[\]/.test(SRC) && !/const guard = \(/.test(SRC) && !/const guardVal = /.test(SRC) && !/const guardLine = /.test(SRC));
+  A("no disclosure path hand-renders money from a guard record", !/"\$" \+ g[.\[]/.test(SRC));
+  A("the corrections section is the shared sentence", /items: r\.guards\.map\(guardLine\)/.test(SRC));
 }
 
 /* ---- 15. typography migration ---- */
