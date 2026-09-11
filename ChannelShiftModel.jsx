@@ -8,6 +8,7 @@ import NumField from "./src/lib/NumField";
 import { MECH, MECH_ORDER } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
+import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
 /* UI-only palette. The engine's colours live inside the engine region below,
@@ -45,9 +46,11 @@ const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x
 /* One renderer for a corrected value. The corrections section, the integrity
    checks and the methodology all print the same fact, and they had already
    drifted: the flag printed $-2 while the corrections section printed -2$.
-   A document that states the same correction two different ways, one of them
-   malformed money, undoes the point of disclosing it. */
-const guardVal = (g, which) => g.unit === "$" ? "$" + g[which] : `${g[which]}${g.unit}`;
+   The local fix unified the three paths on "$" + value, which made all three
+   print $-2, a broken magnitude. Cost per Contact had already fixed that form.
+   The renderer and the clamp now come from src/lib/guards.js, shared by every
+   guarded tool, so the sign leads the symbol here as it does in money and fmtK
+   and the rule cannot drift per tool again. */
 
 const CURVE = { mild: { label: "Mild", c: 0.08, note: "Easy volume leaves; residual voice AHT rises slightly." }, moderate: { label: "Moderate", c: 0.15, note: "Typical support environment." }, severe: { label: "Severe", c: 0.30, note: "Remaining voice work becomes materially harder." } };
 const RISKS = [
@@ -117,13 +120,9 @@ function compute(d, mechKey) {
      change is a value the report must disclose, or the document shows a number
      the engine never ran. `used` carries what was computed, `entered` carries
      what was asked for, and they are printed side by side. */
-  const guards = [];
-  const guard = (label, raw, min, max, unit) => {
-    const v = n(raw);
-    const c = Math.max(min, max === null ? v : Math.min(max, v));
-    if (c !== v) guards.push({ label, entered: v, used: c, unit: unit || "" });
-    return c;
-  };
+  /* scaled is not taken from createGuards: this engine already names its own
+     shift-scaling flag scaled, and the two must not collide. */
+  const { guards, guard } = createGuards();
   /* Concurrency divides, so it is the highest-leverage input in the file. A zero
      or negative value used to be swallowed by a bare Math.max(0.1, x), which turned
      a 7 minute voice AHT into 70 effective minutes and inflated net realizable from
@@ -701,7 +700,7 @@ export default function ChannelShiftModel() {
                 ["Transition (one-time)", fmtK(r.transition)],
                 ["Payback", isFinite(r.payback) ? r.payback.toFixed(1) + " months" : "Does not pay back"],
               ]},
-              ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(g => `${g.label}: entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}.`) }] : []),
+              ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
               { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${r.eligPct}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${r.erf}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call. The rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mech].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Adverse selection is anchored on the residual: under the ${CURVE[r.curveKey].label} complexity curve, voice AHT for the calls left behind rises ${(r.residualUplift * 100).toFixed(1)}% to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are conserved, since shifting changes which calls remain, not how long any call takes. That conservation fixes the implied AHT of the displaced contacts at ${r.deptEff.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute baseline. The tool never sets both ends independently, because that would count the same effect twice and overstate freed capacity. Break-even is the target resolution rate at which net realizable crosses zero. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} This is an operating-capacity model, not a value or full-investment model.` },
