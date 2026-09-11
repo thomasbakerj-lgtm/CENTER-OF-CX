@@ -8,6 +8,7 @@ import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -185,7 +186,113 @@ function buildDisplay(b, monthly) {
   };
 }
 
-function computeTCO(d, stanceKey = "expected") {
+/* Input domain. Tracker item: input guard and disclosure layer.
+   A scenario link and the cross-tool rail both write straight into state, so no
+   field can be trusted to hold a value the arithmetic can use. Every numeric field
+   the form offers has one row here: [key, form label, min, max, display unit,
+   display factor]. Bounds are in display units, so a share stored as 0.30 carries
+   0 to 100 with factor 100.
+   Rationale for the bounds, stated once. These are domain limits, not plausibility
+   ranges. Plausibility belongs to the flags below and never corrects an input.
+   Counts, times and money cannot be negative, so their floor is zero and they carry
+   no ceiling. Agents and monthly contacts floor at one, because the engine divides by
+   both and already substitutes one for zero. A guard at zero would print a corrected
+   value the engine never ran. Shares of a whole sit in 0 to 100. Occupancy carries 0 to 150 and
+   annual attrition 0 to 200 because metrics.js declares both ranges legitimate on
+   the rail. The form stops both at 100, and a guard narrower than the rail contract
+   would repeat the v1 rail defect that destroyed a true 120 percent attrition.
+   Escalators floor at minus 100, below which a later year cost turns negative.
+   CSAT is a 0 to 5 scale, where 0 already means not entered. NPS is minus 100 to 100.
+   Benefits carry no ceiling: a burden above 100 percent is implausible, not impossible.
+   The rendered gate asserts every form field has a row here and that no row is
+   narrower than the form, so the guard can never correct a value the form accepts. */
+const TCO_DOMAIN = [
+  ["agents", "Total Agents (FTE)", 1, null, "", 1],
+  ["supervisors", "Supervisors", 0, null, "", 1],
+  ["qaStaff", "QA Analysts", 0, null, "", 1],
+  ["wfmStaff", "WFM Staff", 0, null, "", 1],
+  ["trainers", "Trainers", 0, null, "", 1],
+  ["itSupport", "IT / Tech Support", 0, null, "", 1],
+  ["sites", "Sites", 0, null, "", 1],
+  ["monthlyContacts", "Monthly Contacts (gross demand)", 1, null, "", 1],
+  ["agentHourly", "Agent Hourly Rate", 0, null, "$", 1],
+  ["agentBenefitsPct", "Benefits & Burden", 0, null, "%", 100],
+  ["supHourly", "Supervisor Hourly", 0, null, "$", 1],
+  ["qaHourly", "QA Analyst Hourly", 0, null, "$", 1],
+  ["wfmHourly", "WFM Analyst Hourly", 0, null, "$", 1],
+  ["trainerHourly", "Trainer Hourly", 0, null, "$", 1],
+  ["itHourly", "IT Support Hourly", 0, null, "$", 1],
+  ["recruitingCostPerHire", "Recruiting Cost/Hire", 0, null, "$", 1],
+  ["aht", "AHT (seconds)", 0, null, "s", 1],
+  ["acw", "ACW (seconds)", 0, null, "s", 1],
+  ["avgHoldTime", "Hold Time (seconds)", 0, null, "s", 1],
+  ["fcr", "FCR", 0, 100, "%", 100],
+  ["containment", "Containment", 0, 100, "%", 100],
+  ["occupancy", "Occupancy", 0, 150, "%", 100],
+  ["shrinkage", "Shrinkage", 0, 100, "%", 100],
+  ["attrition", "Annual Attrition", 0, 200, "%", 100],
+  ["absenteeism", "Absenteeism", 0, 100, "%", 100],
+  ["scheduleAdherence", "Schedule Adherence", 0, 100, "%", 100],
+  ["avgSpeedAnswer", "ASA (seconds)", 0, null, "s", 1],
+  ["abandonRate", "Abandon Rate", 0, 100, "%", 100],
+  ["transferRate", "Transfer Rate", 0, 100, "%", 100],
+  ["qualityScore", "QA Score", 0, 100, "%", 100],
+  ["csat", "CSAT (1 to 5)", 0, 5, "", 1],
+  ["nps", "NPS (-100 to 100)", -100, 100, "", 1],
+  ["newHireTrainingDays", "New Hire Training (days)", 0, null, "", 1],
+  ["channelMixVoice", "Voice", 0, 100, "%", 100],
+  ["channelMixChat", "Chat / Messaging", 0, 100, "%", 100],
+  ["channelMixEmail", "Email", 0, 100, "%", 100],
+  ["channelMixSocial", "Social", 0, 100, "%", 100],
+  ["channelMixSelfServe", "Self-Service", 0, 100, "%", 100],
+  ["ccaasSeat", "CCaaS Per Seat", 0, null, "$", 1],
+  ["wemSeat", "WEM Per Seat", 0, null, "$", 1],
+  ["crmSeat", "CRM Per Seat", 0, null, "$", 1],
+  ["telephonyPerMin", "Telephony Per Min", 0, null, "$", 1],
+  ["ivaMonthly", "IVA / Bot Platform", 0, null, "$", 1],
+  ["agentAssistMonthly", "Agent Assist", 0, null, "$", 1],
+  ["rpaMonthly", "RPA / Automation", 0, null, "$", 1],
+  ["analyticsMonthly", "Analytics Platform", 0, null, "$", 1],
+  ["ipaasMonthly", "iPaaS / Integration", 0, null, "$", 1],
+  ["recordingMonthly", "Recording & Compliance", 0, null, "$", 1],
+  ["knowledgeMgmt", "Knowledge Mgmt", 0, null, "$", 1],
+  ["securityCompliance", "Security & Compliance", 0, null, "$", 1],
+  ["cloudInfra", "Cloud Infrastructure (mo)", 0, null, "$", 1],
+  ["psAmortized", "Prof. Services Amortized (mo)", 0, null, "$", 1],
+  ["facilitiesCost", "Facilities (mo)", 0, null, "$", 1],
+  ["implementationOneTime", "Implementation (one-time)", 0, null, "$", 1],
+  ["blendedEscalatorPct", "Blended Escalator", -100, null, "%", 100],
+  ["wageEscalatorPct", "Wage Growth (labor)", -100, null, "%", 100],
+  ["licenseEscalatorPct", "License Renewal Uplift", -100, null, "%", 100],
+  ["targetContainment", "Target Containment", 0, 100, "%", 100],
+  ["targetFcr", "Target FCR", 0, 100, "%", 100],
+  ["targetAht", "Target AHT (sec)", 0, null, "s", 1],
+  ["targetAttrition", "Target Attrition", 0, 200, "%", 100],
+];
+const COST_BASIS = { estimate: 1, quoted: 1, invoiced: 1 };
+
+/* Clamp at the engine boundary. A field that needed no correction keeps its raw
+   value, so a field mid-edit is never rewritten under the cursor, and when nothing
+   was corrected the same object comes back, so nothing downstream sees a new
+   identity. Every correction is recorded and printed; none is absorbed. */
+function guardTCO(dIn) {
+  const { guards, guard, scaled, pick } = createGuards();
+  const fix = {};
+  for (const [key, label, min, max, unit, factor] of TCO_DOMAIN) {
+    const before = guards.length;
+    const c = factor === 1 ? guard(label, dIn[key], min, max, unit) : scaled(label, dIn[key], min, max, unit, factor);
+    if (guards.length > before) fix[key] = c;
+  }
+  if (dIn.costBasis !== undefined) {
+    const before = guards.length;
+    const c = pick("Cost basis", dIn.costBasis, COST_BASIS, "estimate");
+    if (guards.length > before) fix.costBasis = c;
+  }
+  return { d: guards.length ? { ...dIn, ...fix } : dIn, guards };
+}
+
+function computeTCO(dIn, stanceKey = "expected") {
+  const { d, guards } = guardTCO(dIn);
   const HRS = 173; // paid hours per agent per month = 2080 annual / 12
   const productiveHours = HRS * (1 - n(d.shrinkage)); // paid hours net of shrinkage
   const loaded = n(d.agentHourly) * (1 + n(d.agentBenefitsPct));
@@ -259,6 +366,7 @@ function computeTCO(d, stanceKey = "expected") {
   const domShare = licenseMonthly > 0 ? domVal / licenseMonthly : 0;
 
   const flags = [];
+  for (const g of guards) flags.push({ level: "block", msg: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the range this model can compute. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.` });
   if (perAgentMonth > 25000) flags.push({ level: "block", msg: `Cost per agent per month is ${fmt(perAgentMonth)}, beyond any real operation (ceiling $25,000). Check the wage and seat inputs. Finance-grade is blocked until this is sane.` });
   if (domShare > 0.80 && domKey !== "AI usage") flags.push({ level: "flag", msg: `${domKey} is ${pct(domShare)} of the software bucket. One line dominating usually means a miscategorized or mis-scaled input. Confirm it before treating this as Finance-grade.` });
   if (domShare > 0.80 && domKey === "AI usage") flags.push({ level: "note", msg: `AI usage is ${pct(domShare)} of the software bucket. That is legitimate for a usage-heavy AI contract and is not penalized, but confirm it is genuinely usage-metered.` });
@@ -302,6 +410,7 @@ function computeTCO(d, stanceKey = "expected") {
     };
 
   return {
+    d, guards,
     loaded, labor, tech, overhead, monthly, annual, agents, contacts,
     costPerContact, costPerResolution, costPerHuman, marginalPerContact, humanContacts,
     monthlyHires, attritionCost, voiceMinutes, perHire,
@@ -396,7 +505,7 @@ function buildAnalystRead(d, r, opt, stanceKey) {
   return out;
 }
 function Calculator() {
-  const [d, setD] = useState({ ...BASE, ...INDUSTRY.general, industry: "general" });
+  const [dRaw, setD] = useState({ ...BASE, ...INDUSTRY.general, industry: "general" });
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
   const [activeSection, setActiveSection] = useState(0);
   const [stance, setStance] = useState("expected");
@@ -429,7 +538,11 @@ function Calculator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const r = computeTCO(d, stance);
+  /* The engine guards what was entered. Everything below reads the guarded set, so no
+     figure, field or report line shows a value the engine did not run. The share link
+     carries dRaw, what was entered, so a recipient sees the same corrections disclosed. */
+  const r = computeTCO(dRaw, stance);
+  const d = r.d;
   const opt = buildOptimizations(d, r, stance);
   const analyst = buildAnalystRead(d, r, opt, stance);
 
@@ -470,7 +583,7 @@ function Calculator() {
     };
     publishToolResult("tco-calculator", normalizeForPublish(primitives, { sourceTool: "tco-calculator" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [d, stance]);
+  }, [dRaw, stance]);
 
   const getBench = (val, low, high, inverse) => {
     if (inverse) return val <= low ? GREEN : val >= high ? RED : AMBER;
@@ -868,7 +981,7 @@ function Calculator() {
                           toolName="Total Cost of Ownership Analysis"
                           subtitle={r.agents + " agents, " + (INDUSTRY[d.industry]?.label || d.industry) + ", " + STANCE[stance].label + " stance, " + r.confidence}
                           routePath={ROUTE}
-                          state={d}
+                          state={dRaw}
                           defaults={SCENARIO_DEFAULTS}
                           confidence={r.confidence}
                           summary={[
@@ -926,6 +1039,7 @@ function Calculator() {
                                Nothing is published when annual TCO is zero. */
                             severity: severityBucket(r.annual > 0 ? Math.max(0, Math.min(1, (opt.grossTotal * 12) / r.annual)) : null),
                             confidence_class: r.confidence,
+                            inputs_corrected: r.guards.length,
                             cost_basis: d.costBasis,
                             has_document_evidence: d.costBasis === "invoiced",
                             stance_class: stance,
@@ -940,6 +1054,7 @@ function Calculator() {
                             decision_ready_signal: d.costBasis === "invoiced" && !r.hasBlock && opt.items.length > 0,
                           }}
                           sections={[
+                          ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
                           { title: "Confidence & Evidence", type: "findings", items: [
                             `Export confidence: ${r.confidence}. Cost basis is ${d.costBasis}, which vouches for the cost inputs (wages and seat prices), not the operational KPIs or org structure. Headline sensitivity is plus or minus ${pct0(r.sensitivity.pct)} (annual ${fmtK(r.sensitivity.annualLow)} to ${fmtK(r.sensitivity.annualHigh)}).`,
                             ...(r.openIssues.length ? r.openIssues : ["No blocking issues on the confidence checks."]),
@@ -988,7 +1103,7 @@ function Calculator() {
                           ]},
                           { title: "Analyst Read", type: "findings", items: analyst },
                           { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: (() => { const rank = [...opt.items].sort((a, b) => b.net - a.net).findIndex(x => x === o); return rank === 0 ? "high" : rank === 1 ? "medium" : undefined; })() })) },
-                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on 173 paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage 3.5 percent and license 6 percent); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by the ${STANCE[stance].label.toLowerCase()} realization stance, so totals are defensible rather than inflated. ${BENCHMARK_SOURCES}` },
+                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on 173 paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage 3.5 percent and license 6 percent); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by the ${STANCE[stance].label.toLowerCase()} realization stance, so totals are defensible rather than inflated.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} ${BENCHMARK_SOURCES}` },
                           { title: "Next Steps", type: "next", items: [
                             { tool: "License Bundle Gap Checker", reason: "Audit whether your seat price covers what you actually need", href: "/tools/license-gap" },
                             { tool: "AI Deflection Reality Check", reason: "Pressure-test the containment savings above", href: "/tools/ai-deflection" },
