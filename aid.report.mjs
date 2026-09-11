@@ -24,6 +24,7 @@ import { readFileSync } from "node:fs";
 const SRC = readFileSync("./AIDeflectionRealityCheck.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH, MECH_ORDER, MECH_DEFAULT } = await import("./src/lib/mech.js");
+const { createGuards } = await import("./src/lib/guards.js");
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 
 let pass = 0, fail = 0;
@@ -222,8 +223,8 @@ function render(S) {
     const sections = ${sectionsExpr};
     return { s, R, RB, subtitle, summary, signals, sections, analyst, scenarios };
   `;
-  return new Function("MECH", "MECH_ORDER", "MECH_DEFAULT", "severityBucket", "MUT", body)(
-    MECH, MECH_ORDER, MECH_DEFAULT, severityBucket, S.mut);
+  return new Function("MECH", "MECH_ORDER", "MECH_DEFAULT", "severityBucket", "createGuards", "MUT", body)(
+    MECH, MECH_ORDER, MECH_DEFAULT, severityBucket, createGuards, S.mut);
 }
 
 function allText(doc) {
@@ -371,7 +372,9 @@ console.log("\n7. the hostile scenario link is disclosed, not absorbed");
   A("C: the document is still whole under hostile input", C.sections.length >= 4);
   A("C: rates are clamped into their domain", C.R.netAutomationRate >= 0 && C.R.netAutomationRate <= 100);
   A("C: the apparent resolution rate never prints above 100", C.R.rp <= 100);
-  A("C: an unknown capacity action falls back to the default rather than crashing", MECH_ORDER.indexOf(C.R.mechKey) >= 0);
+  A("C: an unknown capacity action falls back to none, never the shipped default", C.R.mechKey === "none" && C.R.mechKey !== MECH_DEFAULT);
+  A("C: the document discloses the unknown capacity action it replaced",
+    sectionByTitle(C, "Integrity Flags (" + C.R.flags.length + ")").items.filter(t => t === `Capacity action was "not-a-mechanism", which is not an option this tool offers, and was held at ${MECH.none.label}.`).length === 1);
   A("C: the open issues count is a number the document can print", Number.isFinite(C.signals.open_issues));
   A("C: the tool still exports a confidence grade", typeof C.R.headlineConf === "string" && C.R.headlineConf.length > 0);
 }
@@ -385,6 +388,51 @@ console.log("\n8. the zero-realization case says so rather than printing a zero"
   A("D: the document prints the word never rather than a rate", summaryValue(D, "Break-even resolution") === "never");
   A("D: the band reports severe", D.signals.severity === "severe");
   A("D: the analyst read names the missing capacity action", D.analyst.join(" ").indexOf("no capacity action") >= 0);
+}
+
+/* ---- 9. hostile enum links render a whole document (9-11) ----
+   Rendered outside SETS so Sets A, B, D, E and F stay byte-identical. The entered text
+   prints in one fragment, the correction sentence, carried on the page and again in
+   the Integrity Flags section. Replacing that whole fragment, rather than splitting on
+   the key, keeps "" and names like toLocaleString testable. */
+console.log("\n9. hostile enum links render a whole document");
+{
+  const HOSTILE = ["bogus", "", "HIRING", "Pilot", ...Object.getOwnPropertyNames(Object.prototype)];
+  const CASH = MECH_ORDER.filter(k => MECH[k].cred === "cash").pop();
+  const frag = (label, k) => `${label} was "${k}",`;
+  const face = (doc, label, k) => JSON.stringify({ ...doc, s: null, R: { ...doc.R, flags: doc.R.flags.map(f => f.split(frag(label, k)).join(frag(label, "<KEY>"))) }, RB: { ...doc.RB, flags: doc.RB.flags.map(f => f.split(frag(label, k)).join(frag(label, "<KEY>"))) },
+    sections: doc.sections.map(sec => sec.items ? { ...sec, items: sec.items.map(t => typeof t === "string" ? t.split(frag(label, k)).join(frag(label, "<KEY>")) : t) } : sec) });
+  const scrub = (doc, label, k) => allText(doc).split(frag(label, k)).join("");
+  const docM = (k) => render({ mut: () => ({ marg: 4.2, evidence: "pilot", costConfirmed: true, mech: k }) });
+  const docE = (k) => render({ mut: () => ({ marg: 4.2, mech: CASH, costConfirmed: true, evidence: k }) });
+
+  const faceM = face(docM("bogus"), "Capacity action", "bogus"), faceE = face(docE("bogus"), "Evidence source", "bogus");
+  for (const k of HOSTILE) {
+    let dm = null, de = null;
+    try { dm = docM(k); } catch {}
+    try { de = docE(k); } catch {}
+    A(`capacity action ${k || '""'}: the document renders`, !!dm);
+    A(`evidence source ${k || '""'}: the document renders`, !!de);
+    if (dm) {
+      A(`capacity action ${k || '""'}: prints no NaN, Infinity, undefined or function`, !/NaN|Infinity|undefined|function|\[object/.test(scrub(dm, "Capacity action", k)));
+      A(`capacity action ${k || '""'}: the document is the bogus document with the key swapped`, face(dm, "Capacity action", k) === faceM);
+    }
+    if (de) {
+      A(`evidence source ${k || '""'}: prints no NaN, Infinity, undefined or function`, !/NaN|Infinity|undefined|function|\[object/.test(scrub(de, "Evidence source", k)));
+      A(`evidence source ${k || '""'}: the document is the bogus document with the key swapped`, face(de, "Evidence source", k) === faceE);
+    }
+  }
+  const M = docM("toString"), E = docE("constructor");
+  A("hostile action: the realization row names Not selected", JSON.stringify(M.sections).indexOf(JSON.stringify(["Realization axis", "Directional (" + MECH.none.label + ")"])) >= 0);
+  A("hostile action: the document grade is Directional", M.R.headlineConf === "Directional");
+  A("hostile action: no cash action travels in signals", M.signals.has_cash_action === false && M.signals.decision_ready_signal === false);
+  A("hostile action: the verdict is never Proceed", M.R.verdict.indexOf("Proceed") !== 0);
+  A("hostile evidence: the evidence row names the estimate label", JSON.stringify(E.sections).indexOf(JSON.stringify(["Evidence axis", "Directional (Internal estimate or benchmark)"])) >= 0);
+  A("hostile evidence: no document evidence travels in signals",
+    E.signals.has_document_evidence === false && E.signals.evaluating_active_proposal === false && E.signals.decision_ready_signal === false);
+  A("hostile evidence: the band prints as a whole percentage", Number.isFinite(E.R.band) && E.R.band === 0.25);
+  A("hostile evidence: the correction is listed once in Integrity Flags",
+    sectionByTitle(E, "Integrity Flags (" + E.R.flags.length + ")").items.filter(t => t.indexOf('Evidence source was "constructor",') === 0).length === 1);
 }
 
 /* ---------------------------------------------------------------- result */
