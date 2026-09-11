@@ -24,6 +24,8 @@ const SRC = readFileSync("./CostPerContactCalculator.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH } = await import("./src/lib/mech.js");
 const { COLORS } = await import("./src/lib/benchmarks.js");
+/* The shared guard module the engine imports. Injected, never reconstructed. */
+const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 /* The real boundary guard and the real bucket, never reconstructed. The tool
    publishes signals.severity through severityBucket, and sanitizeProps is what
    decides whether that value reaches the wire or is silently dropped. */
@@ -194,8 +196,8 @@ function render(S) {
     .replace(/\bSOURCED\b/g, JSON.stringify(!!S.pulledExternally));
 
   try {
-    return new Function("MECH", "ELECTRIC", "GREEN", "AMBER", "RED", "MUTED", "severityBucket", preamble)(
-      MECH, COLORS.electric, COLORS.green, COLORS.amber, COLORS.red, COLORS.muted, severityBucket
+    return new Function("MECH", "ELECTRIC", "GREEN", "AMBER", "RED", "MUTED", "severityBucket", "createGuards", "guardVal", "guardLine", preamble)(
+      MECH, COLORS.electric, COLORS.green, COLORS.amber, COLORS.red, COLORS.muted, severityBucket, createGuards, guardVal, guardLine
     );
   } catch (e) {
     console.error("BLOCKER: the ReportActions payload did not evaluate for set:", S.label);
