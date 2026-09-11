@@ -9,6 +9,7 @@ import InfoDot from "./src/lib/InfoDot";
 import { TYPE, FONT, FONT_IMPORT_CSS, NUM, t } from "./src/lib/type";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
+import { createGuards, guardVal } from "./src/lib/guards";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, MUTED = COLORS.muted;
 const DEEP = "#061325", LIGHT = "#00AAFF", WARM = "#F8FAFB", SLATE = "#3A4F6A", BORDER = "#D8E3ED";
@@ -69,12 +70,8 @@ const fmt$ = (v) => { const x = n(v), s = x < 0 ? "-" : ""; return s + "$" + Mat
    engine never ran. `used` carries what was computed, `entered` what was asked. */
 /* The sign leads the symbol, matching fmt$ above and every other money format in the
    platform. This printed $-200 on a negative entry until the Cost per Contact split-
-   rendering fix, which is the same divergence in the same helper. */
-const guardVal = (g, which) => {
-  const v = g[which];
-  if (g.unit !== "$") return `${v}${g.unit}`;
-  return (v < 0 ? "-$" : "$") + Math.abs(v);
-};
+   rendering fix, which is the same divergence in the same helper. The renderer and
+   the clamp now live in src/lib/guards.js, shared by every guarded tool. */
 
 const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
 const AXES = ["evidence", "realization", "completeness"];
@@ -128,18 +125,7 @@ const BASE = {
 const DEFAULTS = { d: BASE };
 
 export function compute(d) {
-  const guards = [];
-  const guard = (label, raw, min, max, unit) => {
-    const v = n(raw);
-    const c = Math.max(min, max === null ? v : Math.min(max, v));
-    if (c !== v) guards.push({ label, entered: v, used: c, unit: unit || "" });
-    return c;
-  };
-  const pick = (label, raw, table, fallback) => {
-    if (Object.prototype.hasOwnProperty.call(table, raw)) return raw;
-    guards.push({ label, entered: String(raw), used: fallback, unit: "" });
-    return fallback;
-  };
+  const { guards, guard, pick } = createGuards();
 
   /* Mechanism is the highest-leverage input in the file: it multiplies every
      capacity credit and it sets the realization axis. An out-of-range value used to
