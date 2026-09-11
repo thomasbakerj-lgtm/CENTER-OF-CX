@@ -7,6 +7,7 @@ import NumField from "./src/lib/NumField";
 import { MECH, MECH_ORDER } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
+import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -55,13 +56,8 @@ const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x
    screen and -12$ in the PDF. That is the split-rendering defect class, one quantity
    derived twice, and it is why this is a function rather than three template literals.
    The sign leads the symbol, matching money and fmtK above and every other money
-   format in the platform. */
-const guardVal = (g, which) => {
-  const v = g[which];
-  if (g.unit !== "$") return `${v}${g.unit}`;
-  return (v < 0 ? "-$" : "$") + Math.abs(v);
-};
-const guardLine = (g) => `${g.label}: entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}.`;
+   format in the platform. It now lives in src/lib/guards.js with the clamp that fills
+   it, shared by every guarded tool, so the rule cannot drift per tool again. */
 
 const BASE = {
   monthlyContacts: 50000, denominator: "handled", fcrRate: 72, contactsPerUnresolved: 2.4,
@@ -95,13 +91,7 @@ function compute(d, mechKey) {
      engine had to change is a value the report must disclose, or the document
      shows a number the engine never ran. `used` carries what was computed;
      `entered` carries what was asked for; they are printed side by side. */
-  const guards = [];
-  const guard = (label, raw, min, max, unit) => {
-    const v = n(raw);
-    const c = Math.max(min, max === null ? v : Math.min(max, v));
-    if (c !== v) guards.push({ label, entered: v, used: c, unit: unit || "" });
-    return c;
-  };
+  const { guards, guard } = createGuards();
 
   const fcrPct = guard("First contact resolution", d.fcrRate, 0, 100, "%");
   const fcr = fcrPct / 100;
