@@ -121,6 +121,14 @@ A("the multi-line grade ladder slices out whole, not first-branch-only", (constS
 A("the confidence prop is the same grade the page displays", /confidence=\{grade\}/.test(SRC));
 A("the scenario prop carries the exact input set", /state=\{scenario\}/.test(SRC));
 A("the defaults prop points at the shared DEFAULTS", /defaults=\{DEFAULTS\}/.test(SRC));
+/* The render preamble retypes the four lines between compute and the grade
+   ladder. These gates hold the retyped copy to the shipped one, so the harness
+   cannot resolve the capacity action where the page does not. */
+A("the component resolves the capacity action off r directly after compute",
+  /const r = compute\(d, mech\);\n(?:\s*\/\*[\s\S]*?\*\/\n)?\s*const mechKey = r\.mechKey;\n\s*const verdict = buildVerdict\(d, r, mechKey\);/.test(SRC));
+A("the component builds the analyst read on the resolved key", /const analyst = buildAnalystRead\(d, r, mechKey, verdict\);/.test(SRC));
+A("the component tests selection on the resolved key", /const mechSelected = mechKey !== "none";/.test(SRC));
+A("no MECH lookup on the entered capacity action remains in the component", !/MECH\[mech\]/.test(SRC));
 
 /* ------------------------------------------------------------ input sets */
 /*
@@ -168,11 +176,12 @@ function render(S) {
     const mech = MECH_KEY;
     const fromLink = FROM_LINK;
     const r = compute(d, mech);
-    const verdict = buildVerdict(d, r, mech);
+    const mechKey = r.mechKey;
+    const verdict = buildVerdict(d, r, mechKey);
     const shiftPts = r.perTarget.reduce((acc, t) => acc + t.shiftPts, 0);
-    const analyst = buildAnalystRead(d, r, mech, verdict);
+    const analyst = buildAnalystRead(d, r, mechKey, verdict);
     const sourced = SOURCED;
-    const mechSelected = mech !== "none";
+    const mechSelected = mechKey !== "none";
     ${constStatement("evidenceGrade")}
     ${constStatement("grade")}
     ${constStatement("boundBy")}
@@ -181,7 +190,7 @@ function render(S) {
     const scenario = { d, mech };
     /* TOOL_ID and ROUTE already come out of the engine region: do not shadow them. */
     return {
-      d, mech, r, verdict, analyst, flags, grade, gradeWhy, evidenceGrade, boundBy, shiftPts, mixTotal,
+      d, mech, mechKey, r, verdict, analyst, flags, grade, gradeWhy, evidenceGrade, boundBy, shiftPts, mixTotal,
       subtitle: \`${subtitleExpr.replace(/^`|`$/g, "")}\`,
       summary: ${summaryExpr},
       signals: ${signalsExpr},
@@ -533,7 +542,52 @@ console.log("\nprototype-key curve");
     A(`${k}: the corrections section discloses the curve through the shipped sentence`,
       !!cs && cs.items.includes(guardLine({ label: "Residual complexity curve", entered: k, used: "moderate", unit: "" })));
     A(`${k}: inputs_corrected counts exactly one correction`, o.signals.inputs_corrected === 1);
+    A(`${k}: signals record the curve the engine ran, not the entered text`, o.signals.adverse_curve === "moderate" && o.r.curveKey === "moderate");
     A(`${k}: the document matches the unknown-curve document apart from the entered text`, face(o, k) === face(Z, "zzz"));
+  }
+}
+
+/* --------------------------------------------- hostile capacity action */
+/* A scenario link carrying mech=bogus crashed the page on MECH[mech].note, and
+   mech=toString printed NaN under an Approve verdict with nothing disclosed.
+   Rendered outside SETS so Sets A to D stay byte-identical. The fragments below
+   are the three places the entered text is printed: the corrections sentence,
+   the integrity flag and the methodology. Replacing whole fragments, rather than
+   splitting on the key, keeps "" and names like toLocaleString testable. */
+console.log("\nhostile capacity action");
+{
+  const hasNaN = (v) => typeof v === "number" ? Number.isNaN(v)
+    : typeof v === "string" ? /NaN/.test(v)
+    : Array.isArray(v) ? v.some(hasNaN)
+    : v && typeof v === "object" ? Object.values(v).some(hasNaN) : false;
+  const mechDoc = (label, mech) => render({ label, d: null, mech, fromLink: true, pulledExternally: false });
+  const face = (o, k) => {
+    let s = JSON.stringify({ subtitle: o.subtitle, grade: o.grade, gradeWhy: o.gradeWhy, summary: o.summary, sections: o.sections, signals: o.signals, flags: o.flags });
+    for (const [a, b] of [[`Capacity action: entered ${k},`, "Capacity action: entered <KEY>,"], [`Capacity action: you entered ${k},`, "Capacity action: you entered <KEY>,"], [`Capacity action entered ${k},`, "Capacity action entered <KEY>,"]]) s = s.split(JSON.stringify(a).slice(1, -1)).join(b);
+    return s;
+  };
+  const Z = mechDoc("unrecognised capacity action", "zzz");
+  const NONE = mechDoc("no capacity action", "none");
+  /* The flag sentence prints twice by design: once on the page, once in the
+     Integrity Checks section of the document. Each fragment is counted where it
+     lives, so face() cannot pass by replacing nothing. */
+  const hits = (v, f) => JSON.stringify(v).split(f).length - 1;
+  A("the unknown-key document prints each entered-text fragment once per surface",
+    hits(Z.sections, "Capacity action: entered zzz,") === 1 && hits(Z.sections, "Capacity action: you entered zzz,") === 1
+    && hits(Z.sections, "Capacity action entered zzz,") === 1 && hits(Z.flags, "Capacity action: you entered zzz,") === 1);
+  for (const k of ["bogus", "", ...Object.getOwnPropertyNames(Object.prototype)]) {
+    const tag = JSON.stringify(k);
+    const o = mechDoc(`capacity action ${tag}`, k);
+    const cs = secStartingWith(o, "Inputs Corrected");
+    A(`${tag}: the document prints no NaN anywhere`, !hasNaN({ subtitle: o.subtitle, summary: o.summary, sections: o.sections, signals: o.signals }));
+    A(`${tag}: the corrections section discloses the action through the shipped sentence`,
+      !!cs && cs.items.includes(guardLine({ label: "Capacity action", entered: k, used: "none", unit: "" })));
+    A(`${tag}: inputs_corrected counts exactly one correction`, o.signals.inputs_corrected === 1);
+    A(`${tag}: signals name the action the engine ran`, o.signals.capacity_action === MECH.none.label);
+    A(`${tag}: the page flags that no capacity action is selected`, o.flags.some(f => /No capacity action selected/.test(f.t)));
+    A(`${tag}: realized labor prints $0 under the none label`, rowVal(sec(o, "Economics"), `Realized labor (${MECH.none.label}, 0%)`) === "$0/mo");
+    A(`${tag}: the verdict and grade match the none document`, o.verdict.label === NONE.verdict.label && o.grade === NONE.grade && o.gradeWhy === NONE.gradeWhy);
+    A(`${tag}: the document matches the unknown-key document apart from the entered text`, face(o, k) === face(Z, "zzz"));
   }
 }
 
