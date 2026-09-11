@@ -12,13 +12,14 @@
 import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real modules, do not rebuild them. ---- */
-let MECH, MECH_ORDER, MECH_DEFAULT, COLORS;
+let MECH, MECH_ORDER, MECH_DEFAULT, COLORS, createGuards, guardVal, guardLine;
 try {
   const m = await import("./src/lib/mech.js");
   ({ MECH, MECH_ORDER, MECH_DEFAULT } = m);
   ({ COLORS } = await import("./src/lib/benchmarks.js"));
+  ({ createGuards, guardVal, guardLine } = await import("./src/lib/guards.js"));
 } catch (e) {
-  console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/benchmarks.js.");
+  console.error("BLOCKER: could not import ./src/lib/mech.js, ./src/lib/benchmarks.js or ./src/lib/guards.js.");
   console.error("The engine cannot be verified against reconstructed constants. Run from the repo root.");
   console.error(String(e.message || e));
   process.exit(1);
@@ -55,9 +56,9 @@ const region = SRC.slice(a, b).replace(/^export /gm, "");
 let compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n;
 try {
   ({ compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n } = new Function(
-    "MECH", "ELECTRIC", "GREEN", "AMBER",
+    "MECH", "ELECTRIC", "GREEN", "AMBER", "createGuards", "guardVal", "guardLine",
     region + "\nreturn { compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n };"
-  )(MECH, COLORS.electric, COLORS.green, COLORS.amber));
+  )(MECH, COLORS.electric, COLORS.green, COLORS.amber, createGuards, guardVal, guardLine));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
