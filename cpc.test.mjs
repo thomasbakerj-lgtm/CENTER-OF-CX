@@ -255,6 +255,54 @@ console.log("\n6. input guards and impossible-output blocking");
   A("no result anywhere in the guard set is NaN",
     [neg, negC, negM, hi, lo, m0, ah, ph, ov].every(r =>
       [r.C, r.cprLoaded, r.burden, r.burdenLoaded, r.repeatShare, r.blendedHandle, r.fteBurden].every(v => isFinite(v))));
+
+  /* The capacity action indexed MECH raw. An unknown key threw on .f, and a
+     prototype name computed NaN with zero corrections. Every hostile key must
+     resolve to none, realize $0, and disclose exactly one correction. none, never
+     the hiring default: a broken link must not credit a realization nobody chose. */
+  {
+    const M = (k, over) => compute({ ...B(), ...(over || {}) }, k);
+    const NONE = M("none");
+    const shape = (r) => JSON.stringify({ ...r, guards: r.guards.map(g => ({ ...g, entered: g.label === "Capacity action" ? "<KEY>" : g.entered })),
+      flags: r.flags.map(f => ({ ...f, t: f.t.replace(/^Capacity action: you entered [\s\S]*?, which/, "Capacity action: you entered <KEY>, which") })) });
+    const bare = (r) => JSON.stringify({ ...r, guards: [], blocked: false, flags: r.flags.filter(f => f.t.indexOf("Capacity action: you entered") !== 0) });
+    /* An unguarded engine throws on the first unknown key. Fail as an assertion
+       rather than crash, so the rest of the harness still reports. */
+    let Z = null;
+    try { Z = M("zzz"); } catch (e) { Z = null; }
+    A("an unknown capacity action computes without throwing", Z !== null);
+    A("the capacity action flag is the shipped guard sentence, so shape() replaces something",
+      Z !== null && Z.flags.filter(f => f.t.indexOf("Capacity action: you entered zzz, which") === 0).length === 1);
+    if (Z !== null) for (const k of K) {
+      const r = M(k);
+      A(`capacity action ${k} runs as entered with no correction`, r.mechKey === k && r.guards.length === 0);
+    }
+    const hostile = ["bogus", "", "HIRING", " hiring", undefined, ...Object.getOwnPropertyNames(Object.prototype)];
+    if (Z !== null) for (const k of hostile) {
+      const tag = JSON.stringify(k === undefined ? "undefined" : k);
+      let r, a, threw = null;
+      try { r = M(k); a = buildAnalystRead(B(), r, k); } catch (e) { threw = e; }
+      A(`capacity action ${tag} computes without throwing`, threw === null);
+      if (threw) continue;
+      const cg = r.guards.filter(g => g.label === "Capacity action");
+      A(`capacity action ${tag} resolves to none with one disclosed correction`,
+        r.mechKey === "none" && cg.length === 1 && cg[0].entered === String(k) && cg[0].used === "none" && r.guards.length === 1 && r.blocked === true);
+      A(`capacity action ${tag} realizes $0 and stays finite`,
+        r.mf === 0 && r.dividend.every(s => s.realizable === 0 && Number.isFinite(s.released)));
+      A(`capacity action ${tag} carries the none credit class and ceiling`, r.cred === "none" && r.credRank === 0 && r.ceilingGrade === "Directional");
+      A(`capacity action ${tag} raises the no-action warning`, r.flags.some(f => /No capacity action selected/.test(f.t)));
+      A(`capacity action ${tag} matches an unknown key apart from the entered text`, shape(r) === shape(Z));
+      A(`capacity action ${tag} runs the same arithmetic as none`, bare(r) === bare(NONE));
+      A(`capacity action ${tag} writes the same analyst read as none`, JSON.stringify(a) === JSON.stringify(buildAnalystRead(B(), NONE, "none")));
+    }
+    if (Z !== null) {
+      A("a hostile key never inherits the shipped hiring default", M("bogus").mechKey !== DEFAULTS.mech);
+      A("the analyst read follows the resolved key, not the argument it is handed",
+        JSON.stringify(buildAnalystRead(B(), M("hiring"), "toString")) === JSON.stringify(buildAnalystRead(B(), M("hiring"), "hiring")));
+      A("a hostile action between hostile inputs discloses in engine order",
+        JSON.stringify(M("toString", { fcrRate: 150, monthlyContacts: -1 }).guards.map(g => g.label)) === JSON.stringify(["First contact resolution", "Capacity action", "Monthly handled contacts"]));
+    }
+  }
 }
 
 /* ---- 7. Channel mix ---- */
@@ -382,6 +430,17 @@ console.log("\n12. publish contract");
   A("the tool declares its source tool on publish, so the rail can attribute it",
     /sourceTool: "cost-per-contact"/.test(SRC));
   A("ReportActions is wired", /<ReportActions/.test(SRC));
+  /* Source gates pin pick in the destructure. Channel Shift's gate is the same
+     line; a destructure that drops pick would leave the resolution below unbound. */
+  A("the engine builds its guard list through createGuards with pick", /const \{ guards, guard, pick \} = createGuards\(\);/.test(SRC));
+  A("the capacity action resolves through the shared own-key pick with a none fallback",
+    /const mechKey = pick\("Capacity action", mechIn, MECH, "none"\);/.test(region));
+  A("compute takes the entered action under a name that cannot index MECH by accident",
+    /function compute\(d, mechIn\)/.test(region) && !/MECH\[mechIn\]/.test(SRC));
+  A("compute returns the resolved capacity action on r", /mechKey, cred: MECH\[mechKey\]\.cred/.test(region));
+  A("the analyst read names the resolved key",
+    /MECH\[r\.mechKey\]\.label/.test(region) && !/[^.]\bmechKey\b/.test(region.slice(region.indexOf("{", region.indexOf("function buildAnalystRead")))));
+  A("no MECH lookup on the entered capacity action remains in the component", !/MECH\[mech\]/.test(SRC));
   A("the scenario contract carries the exact engine input set", /const scenario = \{ d, mech \}/.test(SRC));
 }
 
