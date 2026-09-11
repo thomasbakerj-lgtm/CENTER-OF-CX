@@ -172,6 +172,21 @@ const guarded = (r, label) => r.guards.some(g => g.label === label);
   A("an unrecognised complexity curve falls back to moderate and discloses it",
     G({ adverseCurve: "zzz" }).curveKey === "moderate" && guarded(G({ adverseCurve: "zzz" }), "Residual complexity curve"));
   A("a recognised curve is not reported as corrected", !guarded(G({ adverseCurve: "severe" }), "Residual complexity curve"));
+  /* CURVE["toString"] is truthy. A truthy lookup passed every Object.prototype
+     name, computed on an undefined coefficient, and printed NaN with zero
+     corrections. Each name must resolve exactly like any other unknown curve. */
+  {
+    const Z = G({ adverseCurve: "zzz" });
+    const shape = (r) => JSON.stringify({ ...r, guards: r.guards.map(g => ({ ...g, entered: g.label === "Residual complexity curve" ? "<KEY>" : g.entered })) });
+    for (const k of Object.getOwnPropertyNames(Object.prototype)) {
+      const r = G({ adverseCurve: k });
+      const cg = r.guards.filter(g => g.label === "Residual complexity curve");
+      A(`prototype key ${k} computes at moderate with one disclosed correction`,
+        r.curveKey === "moderate" && cg.length === 1 && cg[0].entered === k && cg[0].used === "moderate" && r.guards.length === 1);
+      A(`prototype key ${k} yields a finite result identical to an unknown curve`,
+        Number.isFinite(r.netRealizable) && shape(r) === shape(Z));
+    }
+  }
   A("a correction records both what was entered and what was used",
     G({ resChat: 150 }).guards.some(g => g.entered === 150 && g.used === 100));
   A("a legal input set records nothing", G({}).guards.length === 0);
@@ -404,7 +419,10 @@ console.log("\n14. two-ceiling confidence");
      The source is gated so a local renderer cannot return unseen. */
   A("the component imports the shared clamp and renderer",
     /import \{ createGuards, guardVal, guardLine \} from "\.\/src\/lib\/guards"/.test(SRC));
-  A("the engine builds its guard list through createGuards", /const \{ guards, guard \} = createGuards\(\);/.test(SRC));
+  A("the engine builds its guard list through createGuards", /const \{ guards, guard, pick \} = createGuards\(\);/.test(SRC));
+  A("the complexity curve resolves through the shared own-key pick",
+    /pick\("Residual complexity curve", d\.adverseCurve, CURVE, "moderate"\)/.test(SRC));
+  A("no truthy CURVE lookup on an entered value remains", !/CURVE\[d\.adverseCurve\]\s*(\?|\|\|)/.test(SRC));
   A("no local guard list, clamp or renderer remains",
     !/const guards = \[\]/.test(SRC) && !/const guard = \(/.test(SRC) && !/const guardVal = /.test(SRC) && !/const guardLine = /.test(SRC));
   A("no disclosure path hand-renders money from a guard record", !/"\$" \+ g[.\[]/.test(SRC));
