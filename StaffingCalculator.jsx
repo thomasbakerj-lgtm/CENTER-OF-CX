@@ -6,6 +6,7 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import NumField from "./src/lib/NumField";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 import { severityBucket } from "./src/lib/track";
+import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -230,6 +231,56 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
   return out;
 }
 
+/* Input domain. Tracker item: input guard and disclosure layer.
+   A scenario link rehydrates straight into state and validates nothing, so no input
+   can be trusted to hold a value the Erlang arithmetic can use. Every numeric field
+   the form offers has one row: [key, form label, min, max, display unit].
+   Rationale for the bounds, stated once. These are domain limits, where the model
+   stops producing a physically possible answer. Plausibility belongs to the model
+   validity check and the shrinkage classification, which flag and never correct.
+   Volume, answer threshold and patience cannot be negative. Measured on the shipped
+   engine, a negative volume alone returned minus 51 base agents at 157 percent
+   occupancy, and a negative handle time returned a service level of 720,237 percent.
+   Handle time floors at one second: it divides the service level exponent, and at
+   zero with a zero answer threshold that exponent is undefined and prints NaN.
+   Interval floors at one minute: offered load divides by it, and an interval near zero
+   was measured at six seconds per Erlang solve, seven solves a render. Any interval
+   shorter than three times handle time is already declared void by modelValidity.
+   Service level target is 0 to 100. Shrinkage is 0 to 99: scheduled FTE divides by
+   one minus shrinkage, so 100 is a pole and anything above it inverts the sign.
+   The occupancy ceiling is 1 to 100 and is only read while the cap is on, because a
+   ceiling of zero cannot be met by any offered load. Queues floor at one.
+   The rendered gate asserts every form field has a row and that no row is narrower
+   than the form, so the guard can never correct a value the form accepts. */
+const STAFFING_DOMAIN = [
+  ["vol", "Voice contacts per interval", 0, null, ""],
+  ["aht", "Average Handle Time", 1, null, "s"],
+  ["intv", "Interval length", 1, null, "m"],
+  ["slT", "Service Level Target", 0, 100, "%"],
+  ["slS", "Answer Threshold", 0, null, "s"],
+  ["shrink", "Total Shrinkage", 0, 99, "%"],
+  ["capPct", "Occupancy ceiling", 1, 100, "%"],
+  ["queues", "Queues or skills this volume splits across", 1, null, ""],
+  ["patience", "Avg caller patience (optional)", 0, null, "s"],
+];
+
+/* Clamp at the engine boundary and record every correction. Nothing is absorbed. */
+function guardStaffing(stIn) {
+  const { guards, guard } = createGuards();
+  const st = { ...stIn };
+  for (const [key, label, min, max, unit] of STAFFING_DOMAIN) {
+    if (key === "capPct" && !stIn.capOn) continue;
+    st[key] = guard(label, stIn[key], min, max, unit);
+  }
+  return { st, guards };
+}
+
+/* A corrected input fails the completeness axis, so the headline confidence cannot
+   stand above Directional while one is present, whatever the cost basis says. */
+function capForCorrections(cost, guards) {
+  return guards.length ? { ...cost, confidence: "Directional" } : cost;
+}
+
 const PRESETS = {
   general: { label: "Cross-Industry", volume: 400, aht: 360, slT: 0.80, slS: 20, shrink: 0.30 },
   financial: { label: "Financial Services", volume: 500, aht: 320, slT: 0.80, slS: 20, shrink: 0.28 },
@@ -258,11 +309,11 @@ const S = ({ label, value, sub, color }) => (
 
 export default function StaffingCalculator() {
   const [preset, setPreset] = useState("general");
-  const [vol, setVol] = useState(400), [aht, setAht] = useState(360), [slT, setSlT] = useState(80);
-  const [slS, setSlS] = useState(20), [shrink, setShrink] = useState(30), [intv, setIntv] = useState(30);
-  const [patience, setPatience] = useState(0);
-  const [queues, setQueues] = useState(1);
-  const [capOn, setCapOn] = useState(false), [capPct, setCapPct] = useState(85);
+  const [volIn, setVol] = useState(400), [ahtIn, setAht] = useState(360), [slTIn, setSlT] = useState(80);
+  const [slSIn, setSlS] = useState(20), [shrinkIn, setShrink] = useState(30), [intvIn, setIntv] = useState(30);
+  const [patienceIn, setPatience] = useState(0);
+  const [queuesIn, setQueues] = useState(1);
+  const [capOn, setCapOn] = useState(false), [capPctIn, setCapPct] = useState(85);
   const [showBench, setShowBench] = useState(false);
 
 
@@ -279,6 +330,13 @@ export default function StaffingCalculator() {
   }, []);
 
   const apply = (k) => { const p = PRESETS[k]; setPreset(k); setVol(p.volume); setAht(p.aht); setSlT(Math.round(p.slT * 100)); setSlS(p.slS); setShrink(Math.round(p.shrink * 100)); };
+
+  /* One object, matching DEFAULTS key for key, so scenarioLink diffs cleanly. It holds
+     what was entered, so a shared link reproduces the same corrections disclosed. Every
+     figure below reads the guarded values. */
+  const st = { vol: volIn, aht: ahtIn, slT: slTIn, slS: slSIn, shrink: shrinkIn, intv: intvIn, patience: patienceIn, capOn, capPct: capPctIn, queues: queuesIn, preset };
+  const { st: stG, guards } = guardStaffing(st);
+  const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;
 
   const occCap = capOn ? capPct / 100 : null;
   const r = calc(vol, aht, intv, slT / 100, slS, shrink / 100, occCap);
@@ -301,11 +359,9 @@ export default function StaffingCalculator() {
   const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
 
   const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
-  /* One object, matching DEFAULTS key for key, so scenarioLink diffs cleanly. */
-  const st = { vol, aht, slT, slS, shrink, intv, patience, capOn, capPct, queues, preset };
 
   const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
-  const cost = staffingCost(r.sched, railPerAgent, railHourly);
+  const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards);
   const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
   const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
   const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
@@ -395,6 +451,14 @@ export default function StaffingCalculator() {
           </div>
 
           <div>
+            {guards.length > 0 && (
+              <div style={{ background: "#FEF2F2", border: `1px solid ${RED}`, borderRadius: 12, padding: "14px 18px", marginBottom: 12 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>Inputs corrected before calculation</div>
+                {guards.map((g, i) => (
+                  <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "4px 0 0" : 0 }}>{`${g.label}: you entered ${guardVal(g, "entered")}, which is outside the range this model can compute. Every figure below was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.`}</p>
+                ))}
+              </div>
+            )}
             {!valid.ok && (
               <div style={{ background: valid.severity === "critical" ? "#FEF2F2" : "#FFFBEB", border: `1px solid ${valid.severity === "critical" ? RED : AMBER}`, borderRadius: 12, padding: "14px 18px", marginBottom: 12 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: valid.severity === "critical" ? RED : AMBER, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>Model validity warning</div>
@@ -606,9 +670,11 @@ export default function StaffingCalculator() {
                   premium_service_target: slT >= 88 || slS <= 10,
                   scale_band: r.sched >= 400 ? "very_large" : r.sched >= 150 ? "large" : r.sched >= 40 ? "mid" : "small",
                   confidence_class: cost.confidence,
-                  decision_ready_signal: cost.sourced && valid.ok && !!pair.sustainable,
+                  inputs_corrected: guards.length,
+                  decision_ready_signal: cost.sourced && valid.ok && !!pair.sustainable && guards.length === 0,
                 }}
                 sections={[
+                  ...(guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: guards.map(guardLine) }] : []),
                   { title: "Input Parameters", type: "table", rows: [
                     ["Voice Contacts per Interval", vol.toString()],
                     ["Interval Length", `${intv} minutes`],
@@ -655,7 +721,7 @@ export default function StaffingCalculator() {
                     { tool: "Occupancy Risk Simulator", reason: "Stress-test how fragile this plan is to a forecast miss", href: "/tools/occupancy-risk" },
                     { tool: "Attrition Cost Calculator", reason: "Quantify the cost if occupancy-driven burnout raises turnover", href: "/tools/attrition-cost" },
                   ]},
-                  { title: "Methodology", type: "text", content: "Erlang C via the numerically stable Erlang B recursion. Assumes random Poisson arrivals and exponential handle times. It models one contact per agent at a time, so it applies to voice and not to concurrent digital channels. Erlang C assumes infinite patience (no abandonment) and tends to over-staff; the optional patience input estimates abandonment and an Erlang A-adjusted requirement. The optional occupancy cap staffs to the greater of meeting service level and holding occupancy at or below the ceiling. Shrinkage is applied post-calculation to convert base agents to scheduled FTE." },
+                  { title: "Methodology", type: "text", content: "Erlang C via the numerically stable Erlang B recursion. Assumes random Poisson arrivals and exponential handle times. It models one contact per agent at a time, so it applies to voice and not to concurrent digital channels. Erlang C assumes infinite patience (no abandonment) and tends to over-staff; the optional patience input estimates abandonment and an Erlang A-adjusted requirement. The optional occupancy cap staffs to the greater of meeting service level and holding occupancy at or below the ceiling. Shrinkage is applied post-calculation to convert base agents to scheduled FTE." + (guards.length ? ` INPUTS CORRECTED: ${guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : "") },
                 ]}
               />
               <a href="/vendors" style={{ background: ELECTRIC, color: "#fff", fontSize: 13, fontWeight: 600, padding: "11px 20px", borderRadius: 7 }}>Explore WFM Vendors</a>
