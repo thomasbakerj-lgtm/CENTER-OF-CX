@@ -5,6 +5,8 @@
 // Engine region = INDUSTRY through the end of buildOptimizations. Nothing here is JSX.
 
 import { readFileSync } from "node:fs";
+/* The shared guard module the engine imports. Injected, never reconstructed. */
+const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 
 const SRC = readFileSync(new URL("./TCOCalculator.jsx", import.meta.url), "utf8");
 
@@ -23,9 +25,9 @@ const engine = slice("function reconcile(", "function Calculator");
 const BENCH = { occupancy: { cautionMax: 0.87 } };
 
 const mod = new Function(
-  "BENCH",
+  "BENCH", "createGuards", "guardVal", "guardLine",
   `${helpers}\n${consts}\n${engine}\nreturn { computeTCO, buildOptimizations, buildAnalystRead, reconcile, BASE, INDUSTRY, STANCE, n };`
-)(BENCH);
+)(BENCH, createGuards, guardVal, guardLine);
 
 const { computeTCO, buildOptimizations, buildAnalystRead, reconcile, BASE, INDUSTRY, STANCE } = mod;
 
