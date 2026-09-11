@@ -23,6 +23,8 @@ import { readFileSync } from "node:fs";
 const SRC = readFileSync("./TCOCalculator.jsx", "utf8");
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 const { BENCH, COLORS } = await import("./src/lib/benchmarks.js");
+/* The shared guard module the engine imports. Injected, never reconstructed. */
+const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -118,7 +120,7 @@ A("the ReportActions summary payload slices out of the shipped JSX", !!summaryEx
 A("the ReportActions signals payload slices out of the shipped JSX", !!signalsExpr);
 A("the ReportActions sections payload slices out of the shipped JSX", !!sectionsExpr);
 A("the report is named", !!toolNameM);
-A("the scenario prop carries the live input set", /state=\{d\}/.test(SRC));
+A("the scenario prop carries the input set as entered", /state=\{dRaw\}/.test(SRC));
 A("the defaults prop points at the shared SCENARIO_DEFAULTS", /defaults=\{SCENARIO_DEFAULTS\}/.test(SRC));
 A("the route prop points at the shared ROUTE", /routePath=\{ROUTE\}/.test(SRC));
 
@@ -162,11 +164,16 @@ A("the band declares its unreachable set", /Declared unreachable/.test(SRC));
  * to Finance-grade.
  *
  * Set G carries a negative headcount and a negative contact volume through a
- * scenario link. This is the UNGUARDED path and it is the defect this gate found.
- * TCO applies Object.assign to whatever the scenario link carries, with no domain
- * validation anywhere, so the document prints a negative annual cost base. See
- * section 6b. Recorded as its own tracker item; it is a guard layer on every input,
- * not a change to the band, and it does not belong inside the 1-15 retrofit.
+ * scenario link. Before the guard layer this printed a negative annual cost base.
+ * It now proves the correction is made at the engine boundary AND disclosed in the
+ * document. See section 6b.
+ *
+ * Set I carries values the form refuses but the rail contract declares legitimate:
+ * occupancy of 120 percent and annual attrition of 150 percent. The guard must pass
+ * both untouched, or it repeats the v1 rail defect.
+ *
+ * Set J carries out-of-domain shares, a collapsing escalator and a forged cost basis,
+ * which exercises the scaled recorder and the enum substitution.
  *
  * Set H is heavy attrition against hard targets, which moves the band above the
  * bottom two so the rendered gate exercises the scale rather than one value.
@@ -182,10 +189,14 @@ const SETS = {
     mut: () => ({ targetContainment: 0.90, targetFcr: 0.97, targetAht: 120, targetAttrition: 0.02 }) },
   F: { label: "Invoiced cost basis, Expected stance, no flags", stance: "expected",
     mut: () => ({ costBasis: "invoiced" }) },
-  G: { label: "Negative headcount through a scenario link: the unguarded path", stance: "expected",
+  G: { label: "Negative headcount through a scenario link: corrected and disclosed", stance: "expected",
     mut: () => ({ agents: -400, monthlyContacts: -250000 }) },
   H: { label: "Heavy attrition against hard targets: the band moves up the scale", stance: "aggressive",
     mut: () => ({ attrition: 0.85, targetAttrition: 0.02, targetContainment: 0.90, targetFcr: 0.97, targetAht: 120 }) },
+  I: { label: "Rail-legitimate extremes the form refuses: must pass uncorrected", stance: "expected",
+    mut: () => ({ occupancy: 1.2, attrition: 1.5 }) },
+  J: { label: "Out-of-domain shares, a collapsing escalator and a forged cost basis", stance: "expected",
+    mut: () => ({ shrinkage: 1.4, fcr: -0.2, wageEscalatorPct: -3, costBasis: "forged" }) },
 };
 
 function render(S) {
@@ -195,9 +206,10 @@ function render(S) {
     ${consts}
     ${engine}
     const BASE_D = { ...BASE, ...INDUSTRY.general, industry: "general" };
-    const d = { ...BASE_D, ...MUT(BASE_D) };
+    const dRaw = { ...BASE_D, ...MUT(BASE_D) };
     const stance = STANCE_KEY;
-    const r = computeTCO(d, stance);
+    const r = computeTCO(dRaw, stance);
+    const d = r.d;
     const opt = buildOptimizations(d, r, stance);
     const analyst = buildAnalystRead(d, r, opt, stance);
     const escLabel = r.single ? pctD(r.wEff) + "/yr blended" : "wage " + pctD(r.wEff) + " / license " + pctD(r.lEff);
@@ -215,12 +227,14 @@ function render(S) {
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
     const sections = ${sectionsExpr};
-    return { d, r, opt, stance, analyst, escLabel, subtitle, summary, signals, sections, STANCE, INDUSTRY };
+    return { dRaw, d, r, opt, stance, analyst, escLabel, subtitle, summary, signals, sections, STANCE, INDUSTRY, TCO_DOMAIN, guardTCO, BASE };
   `;
   return new Function("BENCH", "COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "WARM", "SLATE",
-    "MUTED", "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MUT", "STANCE_KEY", body)(
+    "MUTED", "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MUT", "STANCE_KEY",
+    "createGuards", "guardVal", "guardLine", body)(
     BENCH, COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#F8FAFB", "#3A4F6A",
-    COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, S.stance);
+    COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, S.stance,
+    createGuards, guardVal, guardLine);
 }
 
 function allText(doc) {
@@ -272,11 +286,10 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: the document prints no en-dash`, text.indexOf(String.fromCharCode(0x2013)) < 0);
   A(`${k}: no percentage prints beyond a plausible domain`,
     (text.match(/(\d+(?:\.\d+)?)%/g) || []).every(m => parseFloat(m) <= 100000));
-  /* A money figure rendered as $-1,234 is a broken magnitude, not a negative. Set G is
-     the documented exception and the reason: see section 6b. */
-  if (k !== "G") A(`${k}: no money figure prints with a broken magnitude`, !/\$-/.test(text));
+  /* A money figure rendered as $-1,234 is a broken magnitude. No set is exempt: the
+     exclusion Set G carried existed only because the guard layer did not. */
+  A(`${k}: no money figure prints with a broken magnitude`, !/\$-/.test(text));
 }
-A("G is the only set that prints a broken money magnitude, which is the open defect", /\$-/.test(allText(DOCS.G)));
 
 /* ---- 3. the printed figures reconcile with the engine ---- */
 console.log("\n3. printed figures reconcile with the engine");
@@ -377,40 +390,116 @@ console.log("\n6. the guarded path: an impossible wage is disclosed, not absorbe
   A("D: the cost base stays positive, so the band is still published", D.r.annual > 0 && D.signals.severity !== "");
 }
 
-/* ---- 6b. the unguarded path: OPEN DEFECT, recorded rather than blessed ---- */
+/* ---- 6b. the guarded path: corrected at the boundary, disclosed in the document ---- */
 /*
- * TCO applies Object.assign to whatever a scenario link carries and validates no
- * field anywhere. Set G carries a negative headcount and a negative contact volume,
- * both reachable by hand-editing a shared link, and the engine carries them straight
- * through: the document prints a negative annual cost base of roughly minus 100
- * billion dollars while the same document offers a positive monthly savings figure
- * against it.
- *
- * This is the doctrine defect pattern of negative inputs producing physically
- * impossible results without a guard. It is NOT fixed here. The fix is a guard and
- * disclosure layer over every input, matching the pattern Attrition and Cost per
- * Contact already carry, and that is its own tracker item rather than a rider on the
- * 1-15 band retrofit.
- *
- * What these assertions do is pin the defect so it cannot regress in silence and
- * cannot be lost from the record. They assert current behavior and say so. When the
- * guard layer lands, this section is rewritten to assert disclosure instead.
+ * Set G carries a negative headcount and a negative contact volume through a scenario
+ * link. Before the guard layer the engine carried both straight through and the
+ * document printed an annual cost base of minus 19,605,275 beside a positive monthly
+ * savings figure. The guard clamps both at the engine boundary and the document must
+ * say so in three places: its own section, the open issues, and the methodology. Every
+ * disclosure renders through the shared guardVal, so this compares against the shipped
+ * renderer rather than a string this file invented.
  */
-console.log("\n6b. the unguarded path: OPEN DEFECT, negative inputs are carried through");
+console.log("\n6b. the guarded path: corrected at the boundary, disclosed in the document");
 {
   const G = DOCS.G;
-  console.log("      OPEN DEFECT: TCO validates no scenario-link input. Annual TCO prints as " +
-    Math.round(G.r.annual).toLocaleString() + " on a negative headcount.");
-  A("G: current behavior, a negative headcount produces a negative cost base", G.r.annual < 0);
-  A("G: current behavior, nothing in the engine clamps the headcount", G.r.agents < 0);
-  A("G: current behavior, the document offers no correction disclosure for it",
-    G.r.openIssues.join(" ").indexOf("headcount") < 0);
-  /* The one thing the 1-15 band does do here: a cost base that is not positive has no
-     recoverable share to report, so the band is withheld rather than reported as none.
-     That is the band behaving correctly on top of a broken input, not a fix for it. */
-  A("G: the band is withheld rather than reported as none on a non-positive cost base", G.signals.severity === "");
-  A("G: sanitizeProps drops it rather than coercing it to none", sanitizeProps({ severity: G.signals.severity }).severity === undefined);
-  A("G: the document is still structurally whole", G.sections.length >= 4);
+  const labels = G.r.guards.map(g => g.label);
+  A("G: both out-of-domain inputs are recorded, and nothing else is", G.r.guards.length === 2
+    && labels.indexOf("Total Agents (FTE)") >= 0 && labels.indexOf("Monthly Contacts (gross demand)") >= 0);
+  A("G: each record carries what was entered beside what was used",
+    G.r.guards.every(g => g.entered < 0 && g.used === 1));
+  A("G: the engine ran the corrected headcount", G.r.agents === 1 && G.d.agents === 1);
+  A("G: the engine ran the corrected volume", G.r.contacts === 1 && G.d.monthlyContacts === 1);
+  A("G: the annual cost base is positive", G.r.annual > 0);
+  A("G: the share link still carries what was entered", G.dRaw.agents === -400 && G.dRaw.monthlyContacts === -250000);
+  const sec = G.sections[0];
+  A("G: the corrected-inputs section leads the document", sec.title === "\u26a0 Inputs Corrected Before Calculation");
+  A("G: that section prints every correction through the shipped renderer",
+    sec.items.length === G.r.guards.length && G.r.guards.every((g, i) => sec.items[i] === guardLine(g)));
+  A("G: the entered negative prints with its sign", sec.items.join(" ").indexOf("entered -400,") >= 0);
+  const issues = G.r.openIssues.join(" ");
+  A("G: every correction is an open issue, rendered through guardVal",
+    G.r.guards.every(g => issues.indexOf(guardVal(g, "entered")) >= 0 && issues.indexOf(guardVal(g, "used")) >= 0));
+  const meth = (sectionByTitle(G, "Methodology") || {}).content || "";
+  A("G: the methodology states the corrections", meth.indexOf("INPUTS CORRECTED") >= 0 && G.r.guards.every(g => meth.indexOf(g.label) >= 0));
+  A("G: a corrected input holds confidence at Directional", G.r.confidence === "Directional" && G.subtitle.indexOf("Directional") >= 0);
+  A("G: a corrected input is never decision ready", G.signals.decision_ready_signal === false);
+  A("G: the signal block counts the corrections", G.signals.inputs_corrected === 2);
+  A("G: with a positive cost base the band is published and canonical", SEVERITY_BANDS.indexOf(G.signals.severity) >= 0);
+
+  const J = DOCS.J, jl = (l) => J.r.guards.find(g => g.label === l);
+  A("J: a share beyond 100 records in display units", !!jl("Shrinkage") && jl("Shrinkage").entered === 140 && jl("Shrinkage").used === 100 && jl("Shrinkage").unit === "%");
+  A("J: the engine ran the share as a fraction", J.d.shrinkage === 1);
+  A("J: a negative share records and clamps to zero", !!jl("FCR") && jl("FCR").entered === -20 && J.d.fcr === 0);
+  A("J: an escalator below minus 100 clamps to minus 100", !!jl("Wage Growth (labor)") && jl("Wage Growth (labor)").used === -100 && J.d.wageEscalatorPct === -1);
+  A("J: a forged cost basis is substituted and disclosed", !!jl("Cost basis") && jl("Cost basis").entered === "forged" && J.d.costBasis === "estimate");
+  A("J: exactly the four corrections, no collateral ones", J.r.guards.length === 4);
+  A("J: no later year of the projection is negative", J.r.y2 > 0 && J.r.y3 > 0);
+  A("J: the printed line reads as a percentage", J.sections[0].items.indexOf("Shrinkage: entered 140%, computed at 100%.") >= 0);
+
+  const I = DOCS.I;
+  A("I: occupancy of 120 percent passes uncorrected, per the rail contract", I.d.occupancy === 1.2);
+  A("I: attrition of 150 percent passes uncorrected, per the rail contract", I.d.attrition === 1.5);
+  A("I: no correction is recorded and no section is added", I.r.guards.length === 0 && I.sections[0].title !== "\u26a0 Inputs Corrected Before Calculation");
+
+  /* Neutrality. The guard must be invisible on every shipped starting point, and must
+     hand back the same object so nothing downstream sees a new identity. */
+  const guardTCO = DOCS.A.guardTCO, BASE = DOCS.A.BASE, INDUSTRY = DOCS.A.INDUSTRY;
+  for (const key of Object.keys(INDUSTRY)) {
+    const dd = { ...BASE, ...INDUSTRY[key], industry: key };
+    const g = guardTCO(dd);
+    A(`${key}: the preset raises no correction and keeps its identity`, g.guards.length === 0 && g.d === dd);
+  }
+  /* This harness reconstructs the component lines that feed the engine, so it pins them
+     to the shipped JSX. A bypass there would otherwise pass every assertion above. */
+  for (const line of [
+    "const [dRaw, setD] = useState(",
+    "const r = computeTCO(dRaw, stance);\n  const d = r.d;",
+  ]) A(`the shipped component carries: ${line.replace("\n", " ")}`, SRC.split(line).length === 2);
+  A("no second engine call reads the unguarded input", SRC.split("computeTCO(").length === 3);
+  for (const k of ["A", "B", "C", "D", "E", "F", "H"])
+    A(`${k}: an in-domain set raises no correction`, DOCS[k].r.guards.length === 0 && DOCS[k].d === DOCS[k].dRaw);
+}
+
+/* ---- 6c. the guard never corrects a value the form accepts ---- */
+/*
+ * The domain table and the form are two statements of the same inputs. They drift
+ * the moment a field is added to one and not the other. Every NumField in the shipped
+ * JSX is read here and held against its row: it must have one, the label must match
+ * so the disclosure names the field the reader sees, the display factor must match so
+ * the record is in the unit on screen, and the row may be wider than the form but
+ * never narrower.
+ */
+console.log("\n6c. the domain table covers the form and is never narrower");
+{
+  const FORM = [];
+  let at = 0;
+  while ((at = SRC.indexOf("<NumField", at)) >= 0) {
+    let i = at, depth = 0;
+    for (; i < SRC.length; i++) {
+      const c = SRC[i];
+      if (c === "{") depth++;
+      else if (c === "}") depth--;
+      else if (depth === 0 && SRC.startsWith("/>", i)) break;
+    }
+    const t = SRC.slice(at, i);
+    const num = (name) => { const m = t.match(new RegExp("\\b" + name + "=\\{(-?[\\d.]+)\\}")); return m ? Number(m[1]) : null; };
+    FORM.push({ key: (t.match(/value=\{d\.(\w+)\}/) || [])[1], label: (t.match(/label="([^"]*)"/) || [])[1], min: num("min"), max: num("max"), factor: num("factor") || 1 });
+    at = i;
+  }
+  const ROWS = Object.fromEntries(DOCS.A.TCO_DOMAIN.map(r => [r[0], r]));
+  A("the form carries numeric fields to check", FORM.length >= 60);
+  A("every form field binds to a named input", FORM.every(f => !!f.key));
+  for (const f of FORM) {
+    const row = ROWS[f.key];
+    A(`${f.key}: has a domain row`, !!row);
+    if (!row) continue;
+    A(`${f.key}: the row names the field the reader sees`, row[1] === f.label);
+    A(`${f.key}: the row records in the unit on screen`, row[5] === f.factor);
+    A(`${f.key}: the floor is no higher than the form floor`, f.min === null || row[2] <= f.min);
+    A(`${f.key}: the ceiling is no lower than the form ceiling`, f.max === null || row[3] === null || row[3] >= f.max);
+  }
+  A("no domain row exists without a form field", DOCS.A.TCO_DOMAIN.every(r => FORM.some(f => f.key === r[0])));
 }
 
 /* ---- 7. Finance-grade is reachable and is gated on documents ---- */
