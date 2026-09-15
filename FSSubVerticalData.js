@@ -561,5 +561,5 @@ export const fsSubVerticals = {
   },
 };
 
-export const getSubVertical = (slug) => fsSubVerticals[slug];
+export const getSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(fsSubVerticals, slug) ? fsSubVerticals[slug] : undefined);
 export const getAllSubVerticalSlugs = () => Object.keys(fsSubVerticals);
