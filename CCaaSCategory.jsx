@@ -286,7 +286,7 @@ export default function CCaaSCategory() {
             <div style={{ textAlign: "center", marginBottom: 48 }}>
               <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
               <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>27 dimensions. 6 category groups. Total weight: 100.</h2>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is scored 1–5 on every dimension. Scores are multiplied by dimension weight, summed, and normalized to a 100-point composite. Weights reflect operational importance — routing and QA carry more weight than marketplace breadth.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is scored 1 to 5 on every dimension. Scores are multiplied by dimension weight, summed, and normalized to a 100-point composite. Weights reflect operational importance. Routing and QA carry more weight than marketplace breadth.</p>
             </div>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }} className="method-grid">
@@ -309,7 +309,7 @@ export default function CCaaSCategory() {
           <FadeIn delay={0.3}>
             <div style={{ marginTop: 32, textAlign: "center" }}>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", maxWidth: 600, margin: "0 auto" }}>
-                Tier placement is analyst-assigned based on market position, platform substance, and enterprise credibility — not a formula. The weighted composite score provides a quantitative benchmark. 24 core vendors scored across 27 dimensions. 4 adjacent platforms tracked for CX stack influence.
+                Tier placement is analyst-assigned based on market position, platform substance, and enterprise credibility. The weighted composite score provides a quantitative benchmark. 24 core vendors scored across 27 dimensions. 4 adjacent platforms tracked for CX stack influence.
               </p>
             </div>
           </FadeIn>
