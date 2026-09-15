@@ -2,7 +2,7 @@ export const governmentSubVerticals = {
   "federal": {
     name: "Federal Government", parent: "Government & Public Sector",
     tagline: "Agency citizen services, benefits, immigration, tax, and veterans affairs.",
-    intro: "Federal contact centers operate at a scale and under constraints that no private sector operation faces. The IRS handles 200+ million calls per year. SSA serves 70 million beneficiaries. VA supports 9 million veterans. The CX challenge is delivering responsive, accessible, equitable service across massive populations with legacy technology, unionized workforces, and procurement cycles that take 12-18 months.",
+    intro: "Federal contact centers serve national populations under constraints private operators rarely face: FedRAMP authorization, Section 508 accessibility, Title VI language access, legacy systems of record, and procurement cycles measured in years. The operating challenge is delivering responsive, equitable service at that scale while modernization moves slower than demand.",
     kpis: [
       { metric: "AHT", avg: "10:00", note: "Long — complex eligibility, multi-system lookups, and interpretation services" },
       { metric: "FCR", avg: "50%", note: "Very low — inter-agency referrals and system limitations prevent resolution" },
