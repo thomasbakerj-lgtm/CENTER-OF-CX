@@ -6,6 +6,7 @@ import InfoDot from "./src/lib/InfoDot";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalPrimitive, getPrimitiveWithSource } from "./src/lib/toolData";
 import { MECH, MECH_ORDER, MECH_DEFAULT } from "./src/lib/mech";
+import { createGuards } from "./src/lib/guards";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
@@ -119,6 +120,25 @@ const BAU_RANK = { estimated: 0, budgeted: 1, reviewed: 2, served: 3 };
    same contact. Attribution (stance) then discounts each lever, and realization (mech.js)
    converts freed labor into money. Attribution and realization are separate questions. */
 function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
+  /* Enum inputs resolve through the shared own-key pick, the rule Cost per Contact,
+     Channel Shift, AI Deflection and FCR already run. Raw indexing let an inherited
+     name through the truthy check and computed NaN, and let an unknown key silently
+     take a shipped default. Stance was worse: it was not guarded at all, so a hostile
+     or mistyped scenario link threw before the first figure rendered. A substituted
+     key is disclosed in this tool's own sentence and caps the case at Directional. */
+  const { guards: picks, pick } = createGuards();
+  const corrections = [];
+  const resolve = (label, raw, table, fallback) => {
+    const k = pick(label, raw, table, fallback);
+    if (picks.length) corrections.push(`${label} was "${picks.pop().entered}", which is not an option this tool offers, and was held at ${table[k].label}.`);
+    return k;
+  };
+  // Both fall back to the reading that credits the case least: Conservative is the
+  // heaviest attribution haircut, "none" realizes zero freed capacity. A substitution
+  // can therefore never inflate a saving, only withhold one.
+  const stKey = resolve("Attribution stance", stanceKey, STANCE, "conservative");
+  const mKey = resolve("Capacity action", mechKey, MECH, "none");
+
   const loaded = n(d.avgHourly) * (1 + n(d.benefitsPct) / 100);
   // Marginal cost per contact: use a value inherited from another tool when present,
   // otherwise derive the labor-marginal (handle-time at the loaded wage). This is
@@ -199,7 +219,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
 
   const buckets = { containment, handleTime, fcr, attrition };
   const gross = containment + handleTime + fcr + attrition;
-  const cf = STANCE[stanceKey];
+  const cf = STANCE[stKey];
 
   // TWO SEPARATE ADJUSTMENTS, applied in order and never conflated.
   //
@@ -210,7 +230,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   // until somebody acts on it, and "no action" realizes zero. Attrition reduction is different:
   // it avoids recruiting spend and trainee wages, which is money that never leaves the building,
   // so it takes attribution but never a realization factor. Costs are never scaled by either.
-  const mech = MECH[mechKey] || MECH[MECH_DEFAULT];
+  const mech = MECH[mKey];
   const mf = mech.f;
 
   const capacityGross = containment + handleTime + fcr + attritionCapacity;
@@ -430,7 +450,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   const leverShortfallToZero = topLeverShare > 0 ? benefitSlack / (topLeverShare / 100) : 0;
 
   return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal,
-    mechKey: MECH[mechKey] ? mechKey : MECH_DEFAULT, mf, mechLabel: mech.label, cred: mech.cred,
+    mechKey: mKey, stanceKey: stKey, stanceLabel: cf.label, corrections, mf, mechLabel: mech.label, cred: mech.cred,
     capacityGross, cashGross, capacityNet, cashNet, capacityRealized, unrealizedCapacity,
     attritionCash, attritionCapacity, perHireCash, perHireCapacity,
     attributionHaircut, realizationHaircut,
@@ -455,7 +475,21 @@ const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 }
 const CRED_GRADE = { none: "Directional", capacity: "Directional", finance: "Planning-grade", cash: "Finance-grade" };
 
 function confidenceOf(d, r, stanceKey) {
-  const evidence = d.evidence || "estimate";
+  /* The stance the engine actually ran, not the string the caller passed. A scenario
+     link supplies both, and reading the raw one here reported an attribution haircut
+     the arithmetic never applied. */
+  const stKey = r.stanceKey;
+  /* Same own-key rule as the engine. The shipped `|| "estimate"` admitted any string,
+     which reached EVIDENCE[conf.evidence].label on the badge and in the PDF and threw
+     before a figure rendered. Fallback is the weakest evidence basis. */
+  const { guards: picks, pick } = createGuards();
+  const confCorrections = [];
+  const resolveC = (label, raw, table, fallback) => {
+    const k = pick(label, raw, table, fallback);
+    if (picks.length) confCorrections.push(`${label} was "${picks.pop().entered}", which is not an option this tool offers, and was held at ${table[k].label}.`);
+    return k;
+  };
+  const evidence = resolveC("Cost evidence basis", d.evidence == null || d.evidence === "" ? "estimate" : d.evidence, EVIDENCE, "estimate");
   const perAgentImpl = n(d.agents) > 0 ? n(d.implementationCost) / n(d.agents) : 0;
 
   // FOUR CONCEPTS, FOUR PLACES, and none of them may move another.
@@ -482,7 +516,7 @@ function confidenceOf(d, r, stanceKey) {
   // of exactly the same kind as the investment inputs: is this a cash flow that actually
   // stops? Once it carries a quarter of the modeled benefit, an unreviewed contract is a
   // defect in the cost evidence, not a plausibility observation.
-  const bauEvidence = BAU_EVIDENCE[d.bauEvidence] ? d.bauEvidence : "estimated";
+  const bauEvidence = resolveC("Displaced spend evidence", d.bauEvidence == null || d.bauEvidence === "" ? "estimated" : d.bauEvidence, BAU_EVIDENCE, "estimated");
   if (r.displacementShare > 0.25 && BAU_RANK[bauEvidence] < BAU_RANK.reviewed) {
     open.push(`${Math.round(r.displacementShare * 100)}% of modeled three-year benefit is technology-cost displacement, and the ${fmtFull(r.bauAnnual)} of eliminated annual spend rests on evidence rated ${BAU_EVIDENCE[bauEvidence].label} rather than a reviewed contract. Displacement is credited as avoided cash, so it carries the same evidence burden as the spend it offsets.`);
     if (GRADE_RANK[costGrade] > GRADE_RANK["Planning-grade"]) costGrade = "Planning-grade";
@@ -530,7 +564,7 @@ function confidenceOf(d, r, stanceKey) {
   // ambition is a property of the question, and the two are not the same test. Rejected
   // alternative: treating it as completeness. Completeness asks whether the model is whole
   // and internally consistent, and an ambitious target leaves it both.
-  if (stanceKey === "aggressive") caps.push(["Planning-grade", "The Aggressive stance presents savings with no attribution haircut. This is a benefit-attribution concern rather than a cost-input one, and it is listed here precisely so it does not get counted as a costing defect."]);
+  if (stKey === "aggressive") caps.push(["Planning-grade", "The Aggressive stance presents savings with no attribution haircut. This is a benefit-attribution concern rather than a cost-input one, and it is listed here precisely so it does not get counted as a costing defect."]);
   if (n(d.containment) > 25) flags.push(`Containment target of ${n(d.containment)}% is above the 10 to 25% range most centers reach without a proven pilot.`);
   if (n(d.htReduction) > 15) flags.push(`Handle-time reduction of ${n(d.htReduction)}% is above the 8 to 15% range we use for planning.`);
   if (r.fcrPerfectTarget) flags.push(`The FCR target reaches 100% first-contact resolution, which removes every repeat contact in the model. No contact center resolves every issue first time, so this lever sits at a theoretical ceiling rather than a plannable target.`);
@@ -545,9 +579,15 @@ function confidenceOf(d, r, stanceKey) {
   if (perAgentImpl > 0 && perAgentImpl < 2000 && r.postMonthly > 0)
     findings.push(`Implementation of ${fmtFull(perAgentImpl)} per agent is below our internal planning benchmark of $3 to 8K per agent for a full transformation, which is a heuristic rather than a sourced market figure. Evidence quality is unchanged by this: a signed proposal is still contracted.`);
 
+  // A substituted enum is not a defect in the COST INPUTS, so it opens nothing. It is a
+  // question about which case ran at all, which is the strictest form of incompleteness:
+  // the reader is not looking at the scenario they were handed. Directional, domain named.
+  const corrections = [...(r.corrections || []), ...confCorrections];
+  if (corrections.length) caps.push(["Directional", `${corrections.length} setting${corrections.length > 1 ? "s were" : " was"} not recognised and ${corrections.length > 1 ? "were" : "was"} substituted before this case was computed: ${corrections.join(" ")} The figures here describe the substituted case, not the one the link carried. This is a scenario-integrity concern and says nothing about the cost inputs.`]);
+
   const headline = [costGrade, realizationGrade, ...caps.map(c => c[0])]
     .reduce((a, b) => GRADE_RANK[b] < GRADE_RANK[a] ? b : a, "Finance-grade");
-  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence };
+  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence, corrections };
 }
 
 // One vocabulary for the four savings levers, shared by the fragility pricing and the
@@ -555,6 +595,10 @@ function confidenceOf(d, r, stanceKey) {
 const LEVER_LABEL = { containment: "self-service containment", handleTime: "handle-time reduction", fcr: "FCR improvement", attrition: "attrition reduction" };
 
 function caseInsights(r, d, stanceKey, conf) {
+  /* The stance the engine ran, not the raw argument. Two of the lines below print the
+     key as prose, so an unrecognised value reached the reader as the name of a stance
+     that does not exist and was never applied. */
+  const stKey = r.stanceKey;
   const flags = [], leadFlags = [];
   // Input plausibility, the assumptions a CFO rejects on sight. These lead the read.
   if (n(d.containment) > 25) flags.push(`Your ${n(d.containment)}% self-service containment is above the 10 to 25% most centers actually achieve. Without a pilot proving it, model 15 to 20% as the defensible case. It is ${r.pct.containment}% of your savings, so the board challenges it first.`);
@@ -585,7 +629,7 @@ function caseInsights(r, d, stanceKey, conf) {
   // Headroom to failure. More useful than any generic fragility threshold, because it names
   // how fragile, to what, and exactly where the cliff sits.
   const headroomLine = r.breakEvenImplPerAgent > 0 && r.payback > 0
-    ? `This case carries ${fmtFull(r.implHeadroomPerAgent)} per agent of implementation headroom. Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent against the ${fmtFull(n(d.implementationCost) / Math.max(1, n(d.agents)))} you entered.${r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT ? ` That cliff sits below the ${fmtFull(r.TYPICAL_PER_AGENT)} per agent that is the floor of a typical platform transformation, so this case cannot absorb a normal implementation cost on the ${stanceKey} stance.` : ""}`
+    ? `This case carries ${fmtFull(r.implHeadroomPerAgent)} per agent of implementation headroom. Three-year value turns negative above ${fmtFull(r.breakEvenImplPerAgent)} per agent against the ${fmtFull(n(d.implementationCost) / Math.max(1, n(d.agents)))} you entered.${r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT ? ` That cliff sits below the ${fmtFull(r.TYPICAL_PER_AGENT)} per agent that is the floor of a typical platform transformation, so this case cannot absorb a normal implementation cost on the ${stKey} stance.` : ""}`
     : null;
   if (headroomLine && r.breakEvenImplPerAgent < r.TYPICAL_PER_AGENT) flags.unshift(headroomLine);
 
@@ -693,10 +737,10 @@ function caseInsights(r, d, stanceKey, conf) {
       out.push(`One-time cash includes ${fmtFull(n(d.implementationCost))} of implementation${r.exitCost > 0 ? `, ${fmtFull(r.exitCost)} of exit and decommissioning` : ""}${r.backfillCash > 0 ? `, and ${fmtFull(r.backfillCash)} of incremental cash labor such as contractors, overtime or backfill` : ""}. Return is measured against gross transformation cash of ${fmtK(r.tco3)}, with displaced spend credited on the benefit side rather than netted out of that denominator.`);
   }
 
-  if (stanceKey === "aggressive")
+  if (stKey === "aggressive")
     out.push(`The aggressive stance applies no attribution haircut, so gross and attributed savings are the same ${fmtK(r.gross)}. That is the vendor-ROI presentation, and an undiscounted number carries no attribution risk adjustment at all. Expected applies attribution weighting to each lever; this stance does not.`);
   else
-    out.push(`Two separate adjustments run on this case. The ${stanceKey} stance takes ${fmtK(r.attributionHaircut)} off gross savings for attribution, asking how much of the improvement this intervention actually causes. Realization then takes a further ${fmtK(r.realizationHaircut)} off freed labor, asking what converts capacity into money. ${r.mechKey === "none" ? `The realization figure is that large only because no action has been chosen, which is an open decision rather than a stress test. Choose the action you can actually commit to before comparing gross ${fmtK(r.gross)} against realizable ${fmtK(r.net)}.` : `Presenting gross ${fmtK(r.gross)} and realizable ${fmtK(r.net)} side by side, with both adjustments named, shows a reader exactly which assumptions the figure depends on.`}`);
+    out.push(`Two separate adjustments run on this case. The ${stKey} stance takes ${fmtK(r.attributionHaircut)} off gross savings for attribution, asking how much of the improvement this intervention actually causes. Realization then takes a further ${fmtK(r.realizationHaircut)} off freed labor, asking what converts capacity into money. ${r.mechKey === "none" ? `The realization figure is that large only because no action has been chosen, which is an open decision rather than a stress test. Choose the action you can actually commit to before comparing gross ${fmtK(r.gross)} against realizable ${fmtK(r.net)}.` : `Presenting gross ${fmtK(r.gross)} and realizable ${fmtK(r.net)} side by side, with both adjustments named, shows a reader exactly which assumptions the figure depends on.`}`);
 
   if (conf) out.push(`Case confidence reads ${conf.grade}, the weaker of a ${conf.costGrade} cost basis and a ${conf.realizationGrade} realization axis${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} on the cost inputs to close before you call the investment side final` : ", with no open items on the cost inputs"}.${conf.withheld && conf.withheld.length ? ` The grade is additionally capped by ${conf.withheld.length} item${conf.withheld.length > 1 ? "s" : ""} that ${conf.withheld.length > 1 ? "are" : "is"} not a costing defect, counted separately so a derivation problem never reads as a bookability problem.` : ""}${conf.findings && conf.findings.length ? ` ${conf.findings.length} finding${conf.findings.length > 1 ? "s are" : " is"} reported on the return itself, and ${conf.findings.length > 1 ? "none of them move" : "it does not move"} the grade, because a well evidenced case that does not pay is a confident negative answer.` : ""} Neither axis rates whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
 
@@ -952,7 +996,7 @@ export default function BusinessCaseBuilder() {
               <InfoDot text={DEFS.confidence} title="Case confidence" />
               <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8 }}>
                 {Object.entries(EVIDENCE).map(([k, v]) => (
-                  <button key={k} onClick={() => set("evidence", k)} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: d.evidence === k ? ELECTRIC : "transparent", color: d.evidence === k ? "#fff" : SLATE }}>{v.label}</button>
+                  <button key={k} onClick={() => set("evidence", k)} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: conf.evidence === k ? ELECTRIC : "transparent", color: conf.evidence === k ? "#fff" : SLATE }}>{v.label}</button>
                 ))}
               </div>
             </div>
@@ -965,8 +1009,8 @@ export default function BusinessCaseBuilder() {
               <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
                 Capacity action <InfoDot text={DEFS.mech} title="Capacity action" />
               </div>
-              <div style={{ fontSize: 12, color: mech === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[mech].note}</div>
-              <select value={mech} onChange={e => setMech(e.target.value)} style={{ width: "100%", maxWidth: 420, padding: "10px 12px", fontSize: 13, fontWeight: 600, color: NAVY, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, cursor: "pointer" }}>
+              <div style={{ fontSize: 12, color: r.mechKey === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[r.mechKey].note}</div>
+              <select value={r.mechKey} onChange={e => setMech(e.target.value)} style={{ width: "100%", maxWidth: 420, padding: "10px 12px", fontSize: 13, fontWeight: 600, color: NAVY, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, cursor: "pointer" }}>
                 {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
               </select>
               <div style={{ fontSize: 11.5, color: MUTED, marginTop: 8, lineHeight: 1.55, maxWidth: 640 }}>
@@ -995,7 +1039,7 @@ export default function BusinessCaseBuilder() {
               <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Displaced spend evidence</span>
               <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8, flexWrap: "wrap" }}>
                 {Object.entries(BAU_EVIDENCE).map(([k, v]) => (
-                  <button key={k} onClick={() => set("bauEvidence", k)} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: d.bauEvidence === k ? ELECTRIC : "transparent", color: d.bauEvidence === k ? "#fff" : SLATE }}>{v.label}</button>
+                  <button key={k} onClick={() => set("bauEvidence", k)} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: conf.bauEvidence === k ? ELECTRIC : "transparent", color: conf.bauEvidence === k ? "#fff" : SLATE }}>{v.label}</button>
                 ))}
               </div>
             </div>
@@ -1011,11 +1055,11 @@ export default function BusinessCaseBuilder() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>Case stance <InfoDot text={DEFS.stance} title="Case stance" /></div>
-                <div style={{ fontSize: 12, color: MUTED }}>{STANCE[stance].note}</div>
+                <div style={{ fontSize: 12, color: MUTED }}>{STANCE[r.stanceKey].note}</div>
               </div>
               <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8 }}>
                 {Object.entries(STANCE).map(([k, v]) => (
-                  <button key={k} onClick={() => setStance(k)} style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer", background: stance === k ? ELECTRIC : "transparent", color: stance === k ? "#fff" : SLATE }}>{v.label}</button>
+                  <button key={k} onClick={() => setStance(k)} style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer", background: r.stanceKey === k ? ELECTRIC : "transparent", color: r.stanceKey === k ? "#fff" : SLATE }}>{v.label}</button>
                 ))}
               </div>
             </div>
@@ -1024,7 +1068,7 @@ export default function BusinessCaseBuilder() {
           {/* Summary */}
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "32px 28px", marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase" }}>Business Case Summary <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>· {STANCE[stance].label} stance</span></h3>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase" }}>Business Case Summary <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>· {STANCE[r.stanceKey].label} stance</span></h3>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: gradeColor, padding: "4px 10px", borderRadius: 20 }}>Case confidence: {conf.grade}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 22 }} className="bc-sum">
@@ -1143,7 +1187,7 @@ export default function BusinessCaseBuilder() {
               <ReportActions
                 toolId={TOOL_ID}
                 toolName="Business Case"
-                subtitle={`CX Transformation ROI · ${STANCE[stance].label} stance · ${r.mechLabel} · case confidence ${conf.grade}`}
+                subtitle={`CX Transformation ROI · ${STANCE[r.stanceKey].label} stance · ${r.mechLabel} · case confidence ${conf.grade}`}
                 routePath={ROUTE}
                 state={scenario}
                 defaults={SCENARIO_DEFAULTS}
@@ -1161,8 +1205,9 @@ export default function BusinessCaseBuilder() {
                   /* Derived signals only. No wage, platform price, contact volume, vendor name
                      or company detail leaves this block. Bands and booleans carry the meaning;
                      the cost base stays in the browser and in the report the user downloads. */
-                  stance_class: stance,
+                  stance_class: r.stanceKey,
                   capacity_action: r.mechKey,
+                  inputs_corrected: conf.corrections.length,
                   credit_class: r.cred,
                   confidence_class: conf.grade,
                   cost_basis_class: conf.costGrade,
@@ -1203,10 +1248,10 @@ export default function BusinessCaseBuilder() {
                   severity: severityBucket(r.trueBreakevenMonth > 0 ? Math.min(0.99, r.trueBreakevenMonth / 60) : 1),
                 }}
                 sections={[
-                  { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""}${conf.findings.length ? ` Findings on the return, reported in full and deliberately excluded from every confidence axis, because the strength of an answer is not evidence about it: ${conf.findings.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[stance].label} stance, which weights each lever for attribution risk.` },
-                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[stance].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(d.costPerContact))}. ${stance === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
+                  { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""}${conf.findings.length ? ` Findings on the return, reported in full and deliberately excluded from every confidence axis, because the strength of an answer is not evidence about it: ${conf.findings.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[r.stanceKey].label} stance, which weights each lever for attribution risk.` },
+                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[r.stanceKey].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(d.costPerContact))}. ${r.stanceKey === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
                   { title: "Financial Summary", type: "metrics", items: [
-                    { label: "Realizable Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[stance].label} stance · ${r.mechLabel} · run-rate` },
+                    { label: "Realizable Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[r.stanceKey].label} stance · ${r.mechLabel} · run-rate` },
                     { label: rampOn ? "Year 1 (ramped)" : "Gross (pre-haircut)", value: rampOn ? fmtFull(r.year1) : fmtFull(r.gross), color: rampOn ? ELECTRIC : MUTED, sub: rampOn ? `${r.M}mo build + ${r.R}mo ramp` : `Haircut ${fmtFull(r.haircut)}` },
                     { label: "One-time Investment", value: fmtFull(n(d.implementationCost)), color: RED },
                     { label: "Annual Platform Cost", value: fmtFull(r.recurring), color: AMBER },
@@ -1221,7 +1266,7 @@ export default function BusinessCaseBuilder() {
                     ["Capacity converted to value", fmtFull(r.capacityRealized)],
                     ["Capacity NOT converted, excluded from the cash case", fmtFull(r.unrealizedCapacity)],
                     ["Cash-releasing savings (recruiting spend avoided)", fmtFull(r.cashNet)],
-                    ["Trainee ramp time, treated as capacity not cash", fmtFull(r.attritionCapacity * STANCE[stance].a) + " after attribution, already inside the capacity figure above"],
+                    ["Trainee ramp time, treated as capacity not cash", fmtFull(r.attritionCapacity * STANCE[r.stanceKey].a) + " after attribution, already inside the capacity figure above"],
                     ["Realizable annual savings", fmtFull(r.net)],
                   ]},
                   ...(r.bauEntered ? [{ title: "Business-as-Usual Counterfactual", type: "table", rows: [
@@ -1255,7 +1300,7 @@ export default function BusinessCaseBuilder() {
                     ["Repeat-contact basis", r.repeatBasis === "measured" ? `measured, ${Math.round(r.measuredRepeatShare * 100)}% of volume` : `derived from FCR (proxy), implies ${Math.round(r.impliedRepeatShare * 100)}% repeat share`],
                     ["Repeat population (the FCR denominator)", Math.round(r.repeatPopulation).toLocaleString() + ` contacts, of which ${Math.round(r.fcrReductionRatio * 100)}% are removed by the ${r.fcrLiftEffectivePts} point lift`],
                     ["Underlying issues (contacts less repeats)", Math.round(r.issues).toLocaleString()],
-                    ["Attribution weighting", `containment ${Math.round(STANCE[stance].c * 100)}%, handle-time ${Math.round(STANCE[stance].h * 100)}%, FCR ${Math.round(STANCE[stance].f * 100)}%, attrition ${Math.round(STANCE[stance].a * 100)}%`],
+                    ["Attribution weighting", `containment ${Math.round(STANCE[r.stanceKey].c * 100)}%, handle-time ${Math.round(STANCE[r.stanceKey].h * 100)}%, FCR ${Math.round(STANCE[r.stanceKey].f * 100)}%, attrition ${Math.round(STANCE[r.stanceKey].a * 100)}%`],
                   ]},
                   { title: "Recommended Next Steps", type: "next", items: [
                     { tool: "TCO Calculator", reason: "Validate the platform cost assumptions behind this case", href: "/tools/tco-calculator" },
@@ -1264,7 +1309,7 @@ export default function BusinessCaseBuilder() {
                   ]},
                   { title: "Methodology", type: "text", content: "Avoided contacts release agent labor capacity valued at marginal cost, the handle-time labor content of a contact, not the fully loaded cost per contact, because fixed tech, facilities and supervision do not fall when one contact is removed. This valuation is shared with the TCO Calculator, so the two tools are consistent on the value of the same contact. Consistency establishes a shared definition, not that the released capacity is cash-releasing. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance). Attribution is then followed by a separate and independent adjustment: freed agent labor is released capacity, not cash, and converts to money only through a named action, so containment, handle-time and FCR savings are scaled by the " + r.mechLabel + " capacity action at " + Math.round(r.mf * 100) + "%. Avoided recruiting and training spend is cash-releasing and is never scaled. Platform and implementation costs are real cash out and are never scaled by either adjustment. " + (r.repeatBasis === "fcr-proxy" ? "Repeat-contact volume was not supplied, so avoided repeats are derived from FCR on the underlying issue count rather than on total handled contacts, which assumes one repeat per unresolved issue and is a proxy rather than a measurement." : "Avoided repeats are computed on measured same-reason repeat volume.") + (rampOn ? " Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one." : " Savings phasing was turned OFF for this case, so the model assumes full run-rate savings from month one. Payback and ROI here are idealized figures that ignore the migration build and the post-go-live ramp, and they will be shorter and higher than the phased case a CFO should be shown.") + (r.bauEntered
                     ? " Return is calculated against gross transformation cash, meaning one-time implementation plus contractual exit and incremental cash labor, plus three years of the new platform fee. A business-as-usual counterfactual has been entered, and displaced current spend is credited on the BENEFIT side as avoided cash rather than netted out of that denominator. Netting it out would drive the denominator toward zero and then negative as the displaced figure grows, so the ratio would become unstable exactly where the economics are strongest. Displaced spend is not weighted by the stance or by the capacity action, because retiring a contract is a contractual outcome rather than an attribution or realization question, and it is not phased over the savings ramp: it steps at the end of the dual-run period instead. Absorbed internal project labor is disclosed as an hours burden and excluded from the cash return on the same principle that unconverted freed agent capacity is excluded from the benefit. This still excludes usage-based charges and any growth in volume or wages over the horizon, which are a forward counterfactual this version does not model."
-                    : " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: no business-as-usual counterfactual has been entered for this case, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. The tool models all of those, and they are all zero here. A full incremental comparison would move this figure in both directions.") + (stance === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") },
+                    : " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: no business-as-usual counterfactual has been entered for this case, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. The tool models all of those, and they are all zero here. A full incremental comparison would move this figure in both directions.") + (r.stanceKey === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") },
                 ]}
               />
             </span>
