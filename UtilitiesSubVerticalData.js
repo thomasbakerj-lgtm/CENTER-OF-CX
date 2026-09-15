@@ -2,7 +2,7 @@ export const utilitiesSubVerticals = {
   "electric-iou": {
     name: "Electric Utilities (IOU)", parent: "Utilities & Energy",
     tagline: "Outage management, billing, service activation, energy efficiency, and storm response.",
-    intro: "Electric IOU contact centers face the most extreme volume variability in any industry. A sunny Tuesday generates 3,000 calls; a Category 3 hurricane generates 300,000 in 48 hours. The CX challenge is building for crisis while delivering on everyday service — billing inquiries, start/stop, and energy programs — with agents trained for both.",
+    intro: "Electric IOU contact centers run two operations on the same floor. Ordinary days bring billing questions, start and stop requests, and energy efficiency programs. Major storms can multiply volume many times over within hours. The operating challenge is staffing and routing for crisis without letting everyday service degrade, with agents trained for both.",
     kpis: [
       { metric: "AHT", avg: "7:30", note: "Moderate — billing explanations are long; outage reports are short" },
       { metric: "FCR", avg: "62%", note: "Below average — outages and field work require follow-up" },
