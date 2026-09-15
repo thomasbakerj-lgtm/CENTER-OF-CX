@@ -5,7 +5,7 @@ export const hcSubVerticals = {
   "health-systems": {
     name: "Health Systems & Hospitals", parent: "Healthcare",
     tagline: "Patient access, scheduling, billing, care coordination, and discharge follow-up.",
-    intro: "Health system contact centers are the front door to a complex clinical enterprise. They manage patient access (scheduling across dozens of specialties), billing inquiries (the most confusing bills in any industry), care coordination (referrals, test results, post-discharge follow-up), and urgent triage — all under HIPAA constraints that govern every word and every data transfer.",
+    intro: "Health system contact centers are the front door to the clinical enterprise. They schedule across dozens of specialties, explain some of the most confusing bills in any industry, coordinate referrals, results, and post-discharge follow-up, and triage urgent symptoms. HIPAA governs every word and every data transfer, which shapes what can be automated and how.",
     kpis: [
       { metric: "AHT", avg: "7:20", note: "Longer than average — scheduling requires provider matching, insurance verification, and prep instructions" },
       { metric: "FCR", avg: "48%", note: "Very low — scheduling changes, billing disputes, and multi-provider coordination require callbacks" },
