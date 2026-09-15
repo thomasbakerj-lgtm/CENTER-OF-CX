@@ -519,9 +519,11 @@ function Calculator() {
   // every view of this tool for as long as both existed.
   // Implementation pull uses precedence (licenseImplementationOneTime first, then
   // implementationCost) and never sums the two. A shared ?s= scenario wins over pulls.
+  // The attrition field pulls attritionRate. No tool publishes a key named attrition, so
+  // the old pull was dead on every visit and never prefilled from the Attrition Calculator.
   useEffect(() => {
     const next = {}; const got = {};
-    const map = { aht: "aht", shrinkage: "shrinkage", occupancy: "occupancy", agents: "agents", attrition: "attrition" };
+    const map = { aht: "aht", shrinkage: "shrinkage", occupancy: "occupancy", agents: "agents", attrition: "attritionRate" };
     for (const [field, key] of Object.entries(map)) {
       const v = getExternalPrimitive(key, "tco-calculator");
       if (v != null && !isNaN(v)) { next[field] = v; got[field] = true; }
