@@ -199,8 +199,10 @@ function buildDisplay(b, monthly) {
    both and already substitutes one for zero. A guard at zero would print a corrected
    value the engine never ran. Shares of a whole sit in 0 to 100. Occupancy carries 0 to 150 and
    annual attrition 0 to 200 because metrics.js declares both ranges legitimate on
-   the rail. The form stops both at 100, and a guard narrower than the rail contract
-   would repeat the v1 rail defect that destroyed a true 120 percent attrition.
+   the rail. The form carries the same ceilings, so a pulled 135 percent attrition
+   survives a keystroke, and a guard or form narrower than the rail contract would
+   repeat the v1 rail defect that destroyed a true 120 percent attrition. Target
+   attrition shares the 200 ceiling so a 150 percent operation can set a real target.
    Escalators floor at minus 100, below which a later year cost turns negative.
    CSAT is a 0 to 5 scale, where 0 already means not entered. NPS is minus 100 to 100.
    Benefits carry no ceiling: a burden above 100 percent is implausible, not impossible.
@@ -712,9 +714,9 @@ function Calculator() {
                   <NumField label="Hold Time (seconds)" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Within AHT (line open)" />
                   <NumField label="FCR" value={d.fcr} onChange={v => set("fcr", v)} info={DEFS.fcr} infoTitle="FCR" suffix="%" factor={100} min={0} max={100} hint={<span style={{ color: getBench(n(d.fcr), 0.65, 0.85) }}>Bench 65 to 85%</span>} />
                   <NumField label="Containment" value={d.containment} onChange={v => set("containment", v)} info={DEFS.containment} infoTitle="Containment" suffix="%" factor={100} min={0} max={100} hint={<span style={{ color: getBench(n(d.containment), 0.15, 0.45) }}>Bench 15 to 45%</span>} />
-                  <NumField label="Occupancy" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={100} pulled={pulled.occupancy} hint={<span style={{ color: n(d.occupancy) > BENCH.occupancy.cautionMax ? RED : n(d.occupancy) > BENCH.occupancy.healthyMax ? AMBER : GREEN }}>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above is burnout</span>} />
+                  <NumField label="Occupancy" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={150} pulled={pulled.occupancy} hint={<span style={{ color: n(d.occupancy) > BENCH.occupancy.cautionMax ? RED : n(d.occupancy) > BENCH.occupancy.healthyMax ? AMBER : GREEN }}>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above is burnout</span>} />
                   <NumField label="Shrinkage" value={d.shrinkage} onChange={v => set("shrinkage", v)} info={DEFS.shrinkage} infoTitle="Shrinkage" suffix="%" factor={100} min={0} max={100} pulled={pulled.shrinkage} hint="25 to 35%" />
-                  <NumField label="Annual Attrition" value={d.attrition} onChange={v => set("attrition", v)} info={DEFS.attrition} infoTitle="Attrition" suffix="%" factor={100} min={0} max={100} pulled={pulled.attrition} hint={<span style={{ color: getBench(n(d.attrition), 0.20, 0.55, true) }}>Bench 20 to 40%</span>} />
+                  <NumField label="Annual Attrition" value={d.attrition} onChange={v => set("attrition", v)} info={DEFS.attrition} infoTitle="Attrition" suffix="%" factor={100} min={0} max={200} pulled={pulled.attrition} hint={<span style={{ color: getBench(n(d.attrition), 0.20, 0.55, true) }}>Bench 20 to 40%</span>} />
                   <NumField label="Absenteeism" value={d.absenteeism} onChange={v => set("absenteeism", v)} suffix="%" factor={100} min={0} max={100} hint="5 to 10%" />
                   <NumField label="Schedule Adherence" value={d.scheduleAdherence} onChange={v => set("scheduleAdherence", v)} suffix="%" factor={100} min={0} max={100} hint="Target 88 to 95%" />
                   <NumField label="ASA (seconds)" value={d.avgSpeedAnswer} onChange={v => set("avgSpeedAnswer", v)} step={5} min={0} hint="Target under 30s" />
@@ -848,7 +850,7 @@ function Calculator() {
                     <NumField label="Target Containment" value={d.targetContainment} onChange={v => set("targetContainment", v)} suffix="%" factor={100} min={0} max={100} compact />
                     <NumField label="Target FCR" value={d.targetFcr} onChange={v => set("targetFcr", v)} suffix="%" factor={100} min={0} max={100} compact />
                     <NumField label="Target AHT (sec)" value={d.targetAht} onChange={v => set("targetAht", v)} step={5} min={0} compact hint={mmss(d.targetAht)} />
-                    <NumField label="Target Attrition" value={d.targetAttrition} onChange={v => set("targetAttrition", v)} suffix="%" factor={100} min={0} max={100} compact />
+                    <NumField label="Target Attrition" value={d.targetAttrition} onChange={v => set("targetAttrition", v)} suffix="%" factor={100} min={0} max={200} compact />
                   </div>
                 </div>
 
