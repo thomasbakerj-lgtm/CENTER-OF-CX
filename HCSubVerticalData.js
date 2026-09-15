@@ -368,5 +368,5 @@ export const hcSubVerticals = {
   },
 };
 
-export const getHCSubVertical = (slug) => hcSubVerticals[slug];
+export const getHCSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(hcSubVerticals, slug) ? hcSubVerticals[slug] : undefined);
 export const getAllHCSubVerticalSlugs = () => Object.keys(hcSubVerticals);
