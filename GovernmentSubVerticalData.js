@@ -252,5 +252,5 @@ export const governmentSubVerticals = {
   },
 };
 
-export const getGovernmentSubVertical = (slug) => governmentSubVerticals[slug];
+export const getGovernmentSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(governmentSubVerticals, slug) ? governmentSubVerticals[slug] : undefined);
 export const getAllGovernmentSubVerticalSlugs = () => Object.keys(governmentSubVerticals);
