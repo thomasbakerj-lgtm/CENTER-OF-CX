@@ -156,5 +156,75 @@ eq("K1  a derived annualContacts names the tool that published its source", getP
 eq("K2  and getExternalPrimitive respects derivation provenance", getExternalPrimitive("annualContacts", "fcr-leakage"), undefined);
 eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "tco-calculator"), 3600000);
 
+// ---------------------------------------------------------------- 14. TCO attrition feed
+/* TCOCalculator pulled `attrition` for its Annual Attrition field. No tool publishes that key,
+   so the field never prefilled. The Attrition Cost Calculator publishes attritionRate. */
+{
+  const { readFileSync } = await import("fs");
+  const { getExternalPrimitive: gx } = await import("./src/lib/toolData.js");
+  const tco = readFileSync("TCOCalculator.jsx", "utf8");
+  const mapLine = (tco.match(/const map = \{[^}]*\};/) || [""])[0];
+  truthy("L1  TCO pull map routes the attrition field to attritionRate", /attrition:\s*"attritionRate"/.test(mapLine));
+  truthy("L2  TCO pull map no longer names the unpublished key attrition", !/:\s*"attrition"/.test(mapLine));
+  resetRail();
+  publishToolResult("attrition-cost", normalizeForPublish({ agents: 180, attritionRate: 1.2 }, { sourceTool: "attrition-cost" }).clean);
+  eq("L3  a 120 percent attrition from the Attrition Calculator reaches TCO intact", gx("attritionRate", "tco-calculator"), 1.2);
+  eq("L4  the old key finds nothing", gx("attrition", "tco-calculator"), undefined);
+  truthy("L5  and the old key is recorded as an orphan", railReport().orphanPulls.includes("attrition"));
+  resetRail();
+  publishToolResult("tco-calculator", normalizeForPublish({ attritionRate: 0.4 }, { sourceTool: "tco-calculator" }).clean);
+  eq("L6  TCO cannot prefill attrition from its own prior publish", gx("attritionRate", "tco-calculator"), undefined);
+}
+
+// ---------------------------------------------------------------- 15. Audit dead-pull rules, mutation tested
+/* Each mutant runs the real rail-audit.mjs against a scratch copy of every file it scans.
+   A rule that cannot fail on its own defect is not a rule. */
+{
+  const fs = await import("fs");
+  const { join } = await import("path");
+  const { tmpdir } = await import("os");
+  const { spawnSync } = await import("child_process");
+  const AUDIT = fs.readFileSync("rail-audit.mjs", "utf8");
+  const base = new Map();
+  for (const f of fs.readdirSync(".")) if (f.endsWith(".jsx") || f === "index.html") base.set(f, fs.readFileSync(f, "utf8"));
+  for (const f of fs.readdirSync("src/lib")) if (f.endsWith(".js")) base.set(join("src/lib", f), fs.readFileSync(join("src/lib", f), "utf8"));
+  const run = (edits = {}, audit = AUDIT) => {
+    const dir = fs.mkdtempSync(join(tmpdir(), "railaudit-"));
+    fs.mkdirSync(join(dir, "src/lib"), { recursive: true });
+    try { for (const [p, src] of base) fs.writeFileSync(join(dir, p), p in edits ? edits[p](src) : src); }
+    catch (e) { fs.rmSync(dir, { recursive: true, force: true }); return { code: -1, out: String(e) }; }
+    fs.writeFileSync(join(dir, "rail-audit.mjs"), audit);
+    const r = spawnSync(process.execPath, ["rail-audit.mjs"], { cwd: dir, encoding: "utf8" });
+    fs.rmSync(dir, { recursive: true, force: true });
+    return { code: r.status, out: r.stdout || "" };
+  };
+  const sub = (a, b) => (src) => { if (src.split(a).length !== 2) throw new Error(`mutant anchor count != 1: ${a}`); return src.replace(a, b); };
+
+  const b0 = run();
+  eq("M1  baseline audit exits clean", b0.code, 0);
+  truthy("M2  TCO variable-map pulls enter the consumed contract", /attritionRate\s+pulled by 2/.test(b0.out) && /occupancy\s+pulled by 1/.test(b0.out));
+  truthy("M3  a shorthand publish (Staffing aht) is read as a publisher", /aht\s+pulled by \d+\s+<-\s+published by StaffingCalculator\.jsx/.test(b0.out));
+
+  const m1 = run({ "TCOCalculator.jsx": sub('attrition: "attritionRate" };', 'attrition: "attrition" };') });
+  truthy("M4  reverting TCO to the dead attrition key fails the audit", m1.code > 0);
+  truthy("M5  and names attrition as an orphan pulled by TCO", /\n  attrition\s+\[NOT IN REGISTRY[^\n]*\n\s+pulled by: TCOCalculator\.jsx/.test(m1.out));
+
+  const blind = AUDIT.replace("function variablePulls(src) {", "function variablePulls(src) { return { resolved: new Set(), unresolved: new Set(), external: new Set() };");
+  eq("M6  control: without variable-pull resolution the same defect passes silently", run({ "TCOCalculator.jsx": sub('attrition: "attritionRate" };', 'attrition: "attrition" };') }, blind).code, 0);
+
+  const m2 = run({ "TCOCalculator.jsx": sub('const v = getExternalPrimitive(key, "tco-calculator");', 'const v = getExternalPrimitive(pick(key), "tco-calculator");') });
+  truthy("M7  a getter keyed by an unreadable expression fails as unresolved", m2.code > 0 && /TCOCalculator\.jsx\s+getExternalPrimitive\(pick\(key\)\)/.test(m2.out));
+  const m3 = run({ "BusinessCaseBuilder.jsx": sub('take("currentAHT", "aht");', 'take("currentAHT", ahtKey);') });
+  truthy("M8  a wrapper call site with a non-literal key fails as unresolved", m3.code > 0 && /BusinessCaseBuilder\.jsx\s+getExternalPrimitive\(key\)/.test(m3.out));
+  const m4 = run({ "TCOCalculator.jsx": sub("const next = {}; const got = {};", "const next = {}; const got = {}; const lone = zed; getExternalPrimitive(lone, \"tco-calculator\");") });
+  truthy("M9  a bare variable pull with no map and no wrapper fails as unresolved", m4.code > 0 && /TCOCalculator\.jsx\s+getExternalPrimitive\(lone\)/.test(m4.out));
+
+  const m5 = run({ "StaffingCalculator.jsx": sub("volume: vol, intervalMin: intv, aht, shrinkage", "volume: vol, intervalMin: intv, shrinkage") });
+  truthy("M10 removing the only external aht publisher flags TCO as self-fed", m5.code > 0 && /aht\s+pulled by TCOCalculator\.jsx, which is its only publisher/.test(m5.out));
+  const noShort = AUDIT.replace("else if (d === 0 && c === \",\") { shorthand(seg, k); seg = k + 1; }", "else if (d === 0 && c === \",\") { seg = k + 1; }");
+  const m6 = run({}, noShort);
+  truthy("M11 without shorthand reading, Staffing's aht vanishes and the self-fed rule catches it", m6.code > 0 && /aht\s+pulled by TCOCalculator\.jsx, which is its only publisher/.test(m6.out));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
