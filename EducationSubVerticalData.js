@@ -2,7 +2,7 @@ export const educationSubVerticals = {
   "undergrad-admissions": {
     name: "Undergraduate Admissions & Enrollment", parent: "Education",
     tagline: "Inquiry management, application support, yield campaigns, and enrollment onboarding.",
-    intro: "Admissions contact centers are revenue engines — every inquiry is a prospective student worth $100K-$250K in lifetime tuition revenue. The CX challenge is converting inquiries to applicants to admitted students to enrolled students through a funnel where each transition loses 30-60% of the population. The contact center's responsiveness at each stage directly affects yield.",
+    intro: "Admissions contact centers sit inside the enrollment funnel. Every stage, from inquiry to application to admit to deposit, loses a share of prospects, and response speed at each handoff moves yield. The operating challenge is working that funnel as a revenue system: fast first response, clean handoffs to counselors, and outreach timed to the decisions students are actually making.",
     kpis: [
       { metric: "AHT", avg: "5:30", note: "Moderate — inquiry calls are quick; application help is longer" },
       { metric: "FCR", avg: "68%", note: "Above education average — admissions questions are self-contained" },
