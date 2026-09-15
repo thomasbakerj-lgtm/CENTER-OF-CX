@@ -177,16 +177,9 @@ const SETS = {
   },
 };
 
-const MECH = {
-  none: { label: "Not selected", f: 0.00, cred: "none", note: "" },
-  growth: { label: "Absorb growth / backlog", f: 0.25, cred: "capacity", note: "" },
-  overtime: { label: "Reduce overtime", f: 0.60, cred: "finance", note: "" },
-  hiring: { label: "Avoid hiring / attrition freeze", f: 0.75, cred: "finance", note: "" },
-  vendor: { label: "Vendor / BPO volume reduction", f: 0.90, cred: "cash", note: "" },
-  headcount: { label: "Headcount reduction", f: 1.00, cred: "cash", note: "" },
-};
-const MECH_ORDER = ["none", "growth", "overtime", "hiring", "vendor", "headcount"];
-const MECH_DEFAULT = "hiring";
+/* Dependency integrity. Import the real modules, do not rebuild them. */
+const { MECH, MECH_ORDER, MECH_DEFAULT } = await import("./src/lib/mech.js");
+const { createGuards } = await import("./src/lib/guards.js");
 
 /* Display names for rail producers, matching the shipped toolLabel map. Only the one
    entry the sets use is needed, and an unknown id must fall through to the id itself
@@ -230,11 +223,11 @@ function render(S) {
     };`;
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
     "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MECH", "MECH_ORDER", "MECH_DEFAULT",
-    "TOOL_LABELS", "MUT", "STANCE_KEY", "RAMP_ON", "MECH_KEY", "PULLED", "SOURCES", "TOOL_NAME",
+    "createGuards", "TOOL_LABELS", "MUT", "STANCE_KEY", "RAMP_ON", "MECH_KEY", "PULLED", "SOURCES", "TOOL_NAME",
     "trackTool", preamble);
   return fn(COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#E8F4FD", "#F8FAFB", "#3A4F6A",
     COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket,
-    MECH, MECH_ORDER, MECH_DEFAULT, TOOL_LABELS, S.mut, S.stance, S.rampOn, S.mech,
+    MECH, MECH_ORDER, MECH_DEFAULT, createGuards, TOOL_LABELS, S.mut, S.stance, S.rampOn, S.mech,
     S.pulled, S.sources, toolNameM[1], { nextStep: () => {}, pdf: () => {} });
 }
 
