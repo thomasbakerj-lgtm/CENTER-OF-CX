@@ -383,6 +383,38 @@ section("S. Industries routes are indexable only when the page exists");
   ok("S  source gate: no unconditional known:true in the industries branch", !/seo\.known = true;[\s\S]{0,40}CX technology intelligence for/.test(SEO_SRC) && !/CX Intelligence \| \$\{SITE\}`;\n\s+seo\.known = true;/.test(SEO_SRC));
 }
 
+section("P. Sub-vertical getters resolve prototype names as not found");
+{
+  const { readdirSync } = await import("node:fs");
+  const { pathToFileURL } = await import("node:url");
+  const PROTO = ["toString", "constructor", "__proto__", "hasOwnProperty", "valueOf", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "__defineGetter__", "__lookupGetter__"];
+  const files = readdirSync(".").filter((f) => f.endsWith("SubVerticalData.js")).sort();
+  eq("P  ten sub-vertical data files present", files.length, 10);
+  let pages = 0;
+  for (const f of files) {
+    const mod = await import(pathToFileURL(`./${f}`).href);
+    const getName = Object.keys(mod).find((k) => /^get\w*SubVertical$/.test(k));
+    const allName = Object.keys(mod).find((k) => /^getAll\w*SubVerticalSlugs$/.test(k));
+    ok(`P  ${f} exports a getter and a slug lister`, !!getName && !!allName);
+    if (!getName || !allName) continue;
+    const get = mod[getName];
+    const slugs = mod[allName]();
+    pages += slugs.length;
+    ok(`P  ${f} every live slug renders layers and kpis`, slugs.every((sl) => {
+      try { const sv = get(sl); return !!sv && Array.isArray(sv.layers) && Array.isArray(sv.kpis); } catch { return false; }
+    }));
+    for (const n of PROTO) {
+      let got;
+      try { got = get(n); } catch { got = "THREW"; }
+      eq(`P  ${getName}("${n}") is not found`, got, undefined);
+    }
+    const src = readFileSync(`./${f}`, "utf8");
+    ok(`P  source gate: ${f} has no bare [slug] lookup`, !/=>\s*\w+\[slug\]/.test(src));
+    ok(`P  source gate: ${f} getter is own-key`, /Object\.prototype\.hasOwnProperty\.call\(\w+, slug\)/.test(src));
+  }
+  eq("P  getter slugs match the generated sub-vertical count", pages, collectSubVerticalNames().length);
+}
+
 if (failures.length) {
   console.log("\nFAILURES");
   for (const f of failures.slice(0, 40)) console.log(`  ${f}`);
