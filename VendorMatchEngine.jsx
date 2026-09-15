@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { getVendor } from "./VendorData";
 import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
@@ -83,7 +84,7 @@ const VENDORS = [
     dims:{ai:70,cost:90,consolidation:80,digital:100,quality:60,wfm:60,selfservice:80,agentexp:80,vertical:73,global:80,analytics:70,integration:80},
     integrations:["Healthcare: Epic", "Healthcare: Oracle Health / Cerner", "Healthcare: athenahealth", "Insurance: Guidewire (ClaimCenter / PolicyCenter / BillingCenter)"],
     addOns:"Win themes: Vertical modernization fast business framing healthcare BFSI insurance travel | Watch: Can lose when packaging looks stronger than operating depth | Best for: Use in vertical-led modernization and experience transformation" },
-  { name:"Webex Contact Center",slug:"cisco-webex-cc",tier:"Upper Mid Core",
+  { name:"Webex Contact Center",slug:"cisco",tier:"Upper Mid Core",
     fit:{large:76,mid:60,small:76},
     strengths:["Security enterprise trust collaboration adjacency telecom/government relevance"],
     risks:["Gets cut in pure greenfield CX beauty contests with no Cisco estate advantage"],
@@ -115,7 +116,7 @@ const VENDORS = [
     dims:{ai:55,cost:80,consolidation:80,digital:80,quality:60,wfm:60,selfservice:60,agentexp:60,vertical:60,global:70,analytics:60,integration:70},
     integrations:["Healthcare: Epic", "Healthcare: Oracle Health / Cerner", "Healthcare: athenahealth", "Financial services / credit union: Jack Henry (Symitar / Quest / related products)"],
     addOns:"Win themes: Distributed service teams branch service UC consolidation | Watch: Can lose when buyer realizes complexity exceeds platform sweet spot | Best for: Use in distributed-service and simplification-led deals" },
-  { name:"Zoom Contact Center",slug:"zoom-contact-center",tier:"Mid Core",
+  { name:"Zoom Contact Center",slug:"zoom",tier:"Mid Core",
     fit:{large:57,mid:80,small:76},
     strengths:["Familiar brand easy expansion from Zoom estate strong user adoption"],
     risks:["Gets cut when enterprise workforce and compliance demands get serious"],
@@ -195,7 +196,7 @@ const VENDORS = [
     dims:{ai:40,cost:40,consolidation:50,digital:80,quality:60,wfm:60,selfservice:60,agentexp:60,vertical:59,global:70,analytics:50,integration:50},
     integrations:[],
     addOns:"Win themes: Incumbent transitions coexistence and gradual cloud movement | Watch: Can lose when portfolio complexity weakens narrative clarity | Best for: Use in installed-base and coexistence programs" },
-  { name:"Dialogue Cloud",slug:"anywherenow",tier:"Mid Core",
+  { name:"Dialogue Cloud",slug:"anywhere-now",tier:"Mid Core",
     fit:{large:57,mid:60,small:57},
     strengths:["Teams-native fit Microsoft estate alignment Azure relevance"],
     risks:["Gets cut when Microsoft centrality is weak"],
@@ -276,13 +277,16 @@ export default function VendorMatchEngine() {
       Object.entries(d.importance).forEach(([k,imp]) => { if(v.dims[k]) s+=(v.dims[k]-70)*(imp-3)*0.06; });
       if(d.budgetSensitivity==="high"&&v.dims.cost) s+=(v.dims.cost-70)*0.15;
       if(d.termLength==="1 year"&&v.name.includes("Amazon")) s+=8;
-      return {...v, score: Math.min(99,Math.max(25,Math.round(s)))};
+      /* Name and tier come from the profile the result links to, so the shortlist
+         can never contradict the category page or the vendor profile. */
+      const p = getVendor(v.slug);
+      return {...v, name: p ? p.name : v.name, tier: p ? p.tier : v.tier, score: Math.min(99,Math.max(25,Math.round(s)))};
     }).sort((a,b) => b.score-a.score);
   };
 
   const handleResults = async () => {
     const res = getResults();
-    try { await fetch("https://formspree.io/f/maqlvwne", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Vendor Match Engine",vertical:d.vertical,size:d.size,platform:d.currentPlatform,priorities:d.priorities.join(", "),top3:res.slice(0,3).map(r=>`${r.name}:${r.score}`).join(", "),_subject:`Vendor Match: ${d.vertical}|${d.size}|Top:${res[0]?.name} — ${company||name||email}`})}); } catch(e){}
+    try { await fetch("https://formspree.io/f/maqlvwne", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Vendor Match Engine",vertical:d.vertical,size:d.size,platform:d.currentPlatform,priorities:d.priorities.join(", "),top3:res.slice(0,3).map(r=>`${r.name}:${r.score}`).join(", "),_subject:`Vendor Match: ${d.vertical}|${d.size}|Top:${res[0]?.name} | ${company||name||email}`})}); } catch(e){}
     setPhase("results");
   };
 
@@ -416,7 +420,7 @@ export default function VendorMatchEngine() {
                     <div style={{height:4,background:BORDER,borderRadius:2,overflow:"hidden",width:60}}>
                       <div style={{height:"100%",width:`${v.dims[p.id]||50}%`,background:(v.dims[p.id]||50)>=80?GREEN:(v.dims[p.id]||50)>=65?AMBER:MUTED,borderRadius:2}}/>
                     </div>
-                    <div style={{fontSize:11,fontWeight:600,color:SLATE,marginTop:1}}>{v.dims[p.id]||"—"}</div>
+                    <div style={{fontSize:11,fontWeight:600,color:SLATE,marginTop:1}}>{v.dims[p.id]||"n/a"}</div>
                   </div>))}
                 </div>
                 <details style={{marginTop:10}}><summary style={{fontSize:12,fontWeight:600,color:ELECTRIC,cursor:"pointer"}}>Market intelligence + competitive positioning</summary>
@@ -456,7 +460,7 @@ export default function VendorMatchEngine() {
                 ["Billing Preference", d.billingPreference],
                 ["Contract Term", d.termLength],
               ]},
-              { title: "Vendor Shortlist — Top 5", type: "findings", items: results.slice(0, 5).map((v, i) => `#${i+1} ${v.name} (Fit Score: ${v.score}) — ${v.tier}. ${v.strengths[0] || ""}`) },
+              { title: "Vendor Shortlist: Top 5", type: "findings", items: results.slice(0, 5).map((v, i) => `#${i+1} ${v.name} (Fit Score: ${v.score}), ${v.tier}. ${v.strengths[0] || ""}`) },
               { title: "Fit Scores", type: "metrics", items: results.slice(0, 4).map(v => ({
                 label: v.name.split(" ")[0],
                 value: v.score.toString(),
