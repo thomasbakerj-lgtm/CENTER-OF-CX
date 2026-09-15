@@ -248,7 +248,7 @@ function render(S) {
     const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
     const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
     const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
-    const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards);
+    const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards, r.met);
     const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
     const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
     const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
@@ -260,7 +260,7 @@ function render(S) {
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
     const sections = ${sectionsExpr};
-    return { st, stG, guards, STAFFING_DOMAIN, guardStaffing, capForCorrections, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
+    return { st, stG, guards, STAFFING_DOMAIN, guardStaffing, capForCorrections, buildInsights, solveNotice, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
              subtitle, summary, signals, sections };
   `;
   return new Function("BENCH", "COLORS", "classifyOccupancy", "classifyShrinkage",
@@ -510,7 +510,8 @@ const CORR = "\u26a0 Inputs Corrected Before Calculation";
   for (const line of [
     "const { st: stG, guards } = guardStaffing(st);",
     "const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;",
-    "const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards);",
+    "const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards, r.met);",
+    "decision_ready_signal: cost.sourced && valid.ok && r.met !== false && !!pair.sustainable && guards.length === 0,",
   ]) A(`the shipped component carries: ${line}`, SRC.split(line).length === 2);
   A("the on-page banner renders both sides through guardVal",
     /Inputs corrected before calculation[\s\S]{0,600}guardVal\(g, "entered"\)[\s\S]{0,200}guardVal\(g, "used"\)/.test(SRC));
@@ -550,6 +551,32 @@ console.log("\n7b. the domain table covers the form and is never narrower");
     A(`${f.key}: the ceiling is no lower than the form ceiling`, f.max === null || row[3] === null || row[3] >= f.max);
   }
   A("no domain row exists without a form field", DOMAIN.every(r => FORM.some(f => f.key === r[0])));
+}
+
+/* ---- 7c. an unmet service level target is never silent ---- */
+/*
+ * The search budget scales with offered load and was measured unreachable, so the
+ * rendered sets all meet target. The unmet branch is driven directly: the read, the
+ * report line and the confidence grade each carry it.
+ */
+console.log("\n7c. an unmet target is disclosed in the read, the report and the grade");
+{
+  const D = DOCS.A;
+  for (const k of ["A", "B", "C", "D", "E"]) A(`${k}: the rendered solve met its target`, DOCS[k].r.met === true && DOCS[k].r.sl >= DOCS[k].st.slT / 100);
+  A("a met solve raises no notice", D.solveNotice(D.r, D.st.slT / 100) === null);
+  const unmet = { ...D.r, met: false, sl: 0.973 };
+  const msg = D.solveNotice(unmet, 0.99);
+  A("an unmet solve names the agents, the reached level and the target", !!msg && msg.includes(String(unmet.raw)) && msg.includes("97.3%") && msg.includes("99%"));
+  A("the notice carries no em or en dash", !!msg && !msg.includes(String.fromCharCode(0x2014)) && !msg.includes(String.fromCharCode(0x2013)));
+  const ins = D.buildInsights(unmet, 0.99, 0, D.occInfo, false, 85, D.pair, { ok: true }, 0, D.cost, null);
+  A("the unmet notice leads the read when the model is valid", ins[0] === msg);
+  const ins2 = D.buildInsights(unmet, 0.99, 0, D.occInfo, false, 85, D.pair, { ok: false, msg: "V" }, 0, D.cost, null);
+  A("model validity still outranks it", ins2[0] === "V" && ins2[1] === msg);
+  const sourced = { confidence: "Planning-grade", sourced: true, annual: 1 };
+  A("an unmet solve holds a sourced basis at Directional", D.capForCorrections(sourced, [], false).confidence === "Directional");
+  A("a met solve with no correction keeps the grade", D.capForCorrections(sourced, [], true) === sourced);
+  A("the shipped report lists the notice beside model validity",
+    SRC.includes("...(solveNotice(r, slT / 100) ? [solveNotice(r, slT / 100)] : []),"));
 }
 
 /* ---------------------------------------------------------------- result */
