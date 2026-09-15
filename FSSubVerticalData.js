@@ -5,7 +5,7 @@ export const fsSubVerticals = {
   "retail-banking": {
     name: "Retail Banking", parent: "Financial Services",
     tagline: "Account servicing, fraud alerts, card disputes, loan inquiries, and branch-to-digital migration.",
-    intro: "Retail banking contact centers handle the broadest channel mix and highest volume of any financial services sub-vertical. The CX challenge is balancing transactional speed (balance checks, card activations) with consultative depth (mortgage inquiries, wealth referrals) while maintaining compliance across every interaction.",
+    intro: "Retail banking contact centers carry the widest channel mix and some of the heaviest transactional volume in financial services. Balance checks and card activations reward speed. Mortgage questions and wealth referrals reward depth. The operating challenge is running both motions in one operation while every interaction stays inside authentication, disclosure, and recording requirements.",
     kpis: [
       { metric: "AHT", avg: "5:40", note: "Driven down by transactional volume; complex inquiries skew higher" },
       { metric: "FCR", avg: "72%", note: "Authentication and multi-system lookups reduce first-contact resolution" },
