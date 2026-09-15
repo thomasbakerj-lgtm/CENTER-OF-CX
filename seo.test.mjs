@@ -318,6 +318,33 @@ section("Z. Prototype names in route segments resolve as unknown");
   ok("Z  source gate: no bare bracket read on a name map", !/\b(CAT_NAMES|VERT_NAMES|LEGACY_CAT_NAMES|LEGACY_VERT_NAMES|VENDOR_NAMES|SEO_MAP)\[/.test(SEO_SRC));
 }
 
+
+/* ------------------------------------------------ V. Vendor Match roster */
+/* Vendor Match carries its own scoring roster. Three of its slugs pointed at
+   profiles that do not exist, so the shortlist linked a gated user to dead
+   pages, and its names and tiers used a different vocabulary from the category
+   page. Every roster slug must resolve, and the shortlist must read name and
+   tier from the profile it links to. */
+section("V. Vendor Match roster resolves to live CCaaS profiles");
+{
+  const VM = readFileSync("./VendorMatchEngine.jsx", "utf8");
+  const roster = [...VM.matchAll(/\{ name:"[^"]+",slug:"([^"]+)",tier:"/g)].map(m => m[1]);
+  const core = Object.values(vendors).filter(v => v.categorySlug === "ccaas").map(v => v.slug);
+  eq("V  roster size equals the CCaaS profile count", roster.length, core.length);
+  eq("V  roster has no duplicate slugs", new Set(roster).size, roster.length);
+  for (const slug of roster) {
+    ok(`V  ${slug} resolves to a profile`, Object.prototype.hasOwnProperty.call(vendors, slug));
+    ok(`V  ${slug} resolves to a CCaaS profile`, vendors[slug] && vendors[slug].categorySlug === "ccaas");
+  }
+  for (const slug of core) ok(`V  CCaaS profile ${slug} is in the Vendor Match roster`, roster.includes(slug));
+  ok("V  source gate: Vendor Match imports the profile reader", /import \{ getVendor \} from "\.\/VendorData"/.test(VM));
+  ok("V  source gate: shortlist name and tier come from the profile", /name: p \? p\.name : v\.name, tier: p \? p\.tier : v\.tier/.test(VM));
+  ok("V  Vendor Match contains no em-dash or en-dash", VM.indexOf(String.fromCharCode(0x2014)) < 0 && VM.indexOf(String.fromCharCode(0x2013)) < 0);
+  const CC = readFileSync("./CCaaSCategory.jsx", "utf8");
+  ok("V  CCaaS meta description states the same dimension count as the page", /27 weighted dimensions/.test(CC) && /24 CCaaS vendors scored across 27 weighted dimensions/.test(readFileSync("./src/lib/seo.js", "utf8")));
+  ok("V  CCaaS category page contains no em-dash or en-dash", CC.indexOf(String.fromCharCode(0x2014)) < 0 && CC.indexOf(String.fromCharCode(0x2013)) < 0);
+}
+
 if (failures.length) {
   console.log("\nFAILURES");
   for (const f of failures.slice(0, 40)) console.log(`  ${f}`);
