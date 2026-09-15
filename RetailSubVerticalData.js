@@ -377,5 +377,5 @@ export const retailSubVerticals = {
   },
 };
 
-export const getRetailSubVertical = (slug) => retailSubVerticals[slug];
+export const getRetailSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(retailSubVerticals, slug) ? retailSubVerticals[slug] : undefined);
 export const getAllRetailSubVerticalSlugs = () => Object.keys(retailSubVerticals);
