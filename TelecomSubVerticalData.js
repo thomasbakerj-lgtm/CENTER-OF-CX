@@ -289,5 +289,5 @@ export const telecomSubVerticals = {
   },
 };
 
-export const getTelecomSubVertical = (slug) => telecomSubVerticals[slug];
+export const getTelecomSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(telecomSubVerticals, slug) ? telecomSubVerticals[slug] : undefined);
 export const getAllTelecomSubVerticalSlugs = () => Object.keys(telecomSubVerticals);
