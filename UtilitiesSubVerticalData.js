@@ -263,5 +263,5 @@ export const utilitiesSubVerticals = {
   },
 };
 
-export const getUtilitiesSubVertical = (slug) => utilitiesSubVerticals[slug];
+export const getUtilitiesSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(utilitiesSubVerticals, slug) ? utilitiesSubVerticals[slug] : undefined);
 export const getAllUtilitiesSubVerticalSlugs = () => Object.keys(utilitiesSubVerticals);
