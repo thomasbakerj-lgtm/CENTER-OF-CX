@@ -32,24 +32,82 @@ const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm);
 
 /* ---------------------------------------------------------------- slicing */
 
+function skipQuoted(src, i) {
+  const q = src[i];
+  for (let j = i + 1; j < src.length; j++) {
+    if (src[j] === "\\") { j++; continue; }
+    if (src[j] === q) return j + 1;
+    if (src[j] === "\n" && q !== "`") return -1;
+  }
+  return -1;
+}
+function skipTemplate(src, i) {
+  for (let j = i + 1; j < src.length; j++) {
+    if (src[j] === "\\") { j++; continue; }
+    if (src[j] === "`") return j + 1;
+    if (src[j] === "$" && src[j + 1] === "{") {
+      const e = skipBraces(src, j + 1);
+      if (e < 0) return -1;
+      j = e - 1;
+    }
+  }
+  return -1;
+}
+function skipBraces(src, i) {
+  let d = 0, j = i;
+  while (j < src.length) {
+    const c = src[j];
+    if (c === "/" && src[j + 1] === "/") { const e = src.indexOf("\n", j); if (e < 0) return -1; j = e; continue; }
+    if (c === "/" && src[j + 1] === "*") { const e = src.indexOf("*/", j + 2); if (e < 0) return -1; j = e + 2; continue; }
+    if (c === '"' || c === "'") { const e = skipQuoted(src, j); if (e < 0) return -1; j = e; continue; }
+    if (c === "`") { const e = skipTemplate(src, j); if (e < 0) return -1; j = e; continue; }
+    if (c === "{") { d++; j++; continue; }
+    if (c === "}") { d--; j++; if (d === 0) return j; continue; }
+    j++;
+  }
+  return -1;
+}
+
 /** Slice a brace/bracket-balanced expression starting at the first `open` after `from`. */
 function balanced(src, from, open, close) {
   const start = src.indexOf(open, from);
   if (start < 0) return null;
-  let d = 0, inS = null, esc = false, tick = 0;
-  for (let i = start; i < src.length; i++) {
+  let d = 0, i = start;
+  while (i < src.length) {
     const c = src[i];
-    if (esc) { esc = false; continue; }
-    if (c === "\\") { esc = true; continue; }
-    if (inS) { if (c === inS) inS = null; continue; }
-    if (c === '"' || c === "'") { inS = c; continue; }
-    if (c === "`") { tick ^= 1; continue; }
-    if (tick) continue;
-    if (c === open) d++;
-    else if (c === close) { d--; if (d === 0) return { start, end: i + 1, text: src.slice(start, i + 1) }; }
+    if (c === "/" && src[i + 1] === "/") { const e = src.indexOf("\n", i); if (e < 0) return null; i = e; continue; }
+    if (c === "/" && src[i + 1] === "*") { const e = src.indexOf("*/", i + 2); if (e < 0) return null; i = e + 2; continue; }
+    if (c === '"' || c === "'") { const e = skipQuoted(src, i); if (e < 0) return null; i = e; continue; }
+    if (c === "`") { const e = skipTemplate(src, i); if (e < 0) return null; i = e; continue; }
+    if (c === open) { d++; i++; continue; }
+    if (c === close) { d--; i++; if (d === 0) return { start, end: i, text: src.slice(start, i) }; continue; }
+    i++;
   }
   return null;
 }
+
+/* The lexer is pinned directly. Without these fixtures a lexer regression survives
+   whenever the shipped JSX happens to contain no comment, quote or substitution
+   inside a sliced region, which is luck rather than proof. */
+console.log("\n0a. the slicer lexer");
+{
+  const t = (src, o = "{", c = "}") => { const b = balanced(src, 0, o, c); return b ? b.text : null; };
+  A("lexer: a brace inside a line comment does not close the slice", t("x { a // }\n b } y") === "{ a // }\n b }");
+  A("lexer: a brace inside a block comment does not close the slice", t("{ /* } */ b }") === "{ /* } */ b }");
+  A("lexer: an apostrophe inside a comment does not open a string", t("{ // vendor's\n b } '}'") === "{ // vendor's\n b }");
+  A("lexer: a brace inside a quoted string does not close the slice", t("{ a: \"}\" }") === "{ a: \"}\" }");
+  A("lexer: an escaped quote does not end the string", t("{ a: \"q\\\"}\" }") === "{ a: \"q\\\"}\" }");
+  A("lexer: a brace inside a template substitution is counted inside the template", t("{ `${ {k:1}.k }` }") === "{ `${ {k:1}.k }` }");
+  A("lexer: a quoted brace inside a template substitution is skipped", t("{ `${ \"}\" }` }") === "{ `${ \"}\" }` }");
+  A("lexer: a nested template inside a substitution does not end the outer template", t("{ `a ${ x ? `}` : 1 } b` }") === "{ `a ${ x ? `}` : 1 } b` }");
+  A("lexer: a quoted backtick inside a substitution does not open a template", t("{ `${ \"`\" }` }") === "{ `${ \"`\" }` }");
+  A("lexer: brackets balance with a quoted close inside", t("[ [1], \"]\" ] ]", "[", "]") === "[ [1], \"]\" ]");
+  A("lexer: an unterminated slice returns null", t("{ a { b }") === null);
+  A("lexer: a missing open returns null", t("no braces") === null);
+  const off = balanced("ab{c}d", 0, "{", "}");
+  A("lexer: start and end offsets bound the text exactly", !!off && off.start === 2 && off.end === 5 && off.text === "{c}");
+}
+
 
 /** Slice a named JSX prop expression: `name={ ... }`. */
 function prop(name) {
