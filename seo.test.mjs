@@ -32,7 +32,7 @@
 import { readFileSync } from "node:fs";
 import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE } from "./src/lib/seo.js";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals.js";
-import { collectVendorNames, findCollisions, FILE_CATEGORY } from "./gen-seo-names.mjs";
+import { collectVendorNames, findCollisions, FILE_CATEGORY, collectSubVerticalNames, SUBVERTICAL_FILES } from "./gen-seo-names.mjs";
 
 import { vendors } from "./VendorData.js";
 import { ivaVendors } from "./IVAData.js";
@@ -343,6 +343,44 @@ section("V. Vendor Match roster resolves to live CCaaS profiles");
   const CC = readFileSync("./CCaaSCategory.jsx", "utf8");
   ok("V  CCaaS meta description states the same dimension count as the page", /27 weighted dimensions/.test(CC) && /24 CCaaS vendors scored across 27 weighted dimensions/.test(readFileSync("./src/lib/seo.js", "utf8")));
   ok("V  CCaaS category page contains no em-dash or en-dash", CC.indexOf(String.fromCharCode(0x2014)) < 0 && CC.indexOf(String.fromCharCode(0x2013)) < 0);
+}
+
+
+/* ------------------------------------------------ S. industries soft 404 */
+/* Every /industries/<vertical>/<slug> path used to claim known:true with a
+   title built from the slug, so a typo told crawlers to index a page that
+   renders "Sub-vertical not found". Only real pages may be indexable, and real
+   sub-vertical pages carry the name their H1 renders. */
+section("S. Industries routes are indexable only when the page exists");
+{
+  const subs = collectSubVerticalNames();
+  const SEO_SRC = readFileSync("./src/lib/seo.js", "utf8");
+  ok("S  generator walks ten sub-vertical files", Object.keys(SUBVERTICAL_FILES).length === 10);
+  ok("S  every sub-vertical file keys a real vertical", Object.keys(SUBVERTICAL_FILES).every((k) => Object.prototype.hasOwnProperty.call(VERTICALS, k)));
+  ok("S  at least 60 sub-vertical pages", subs.length >= 60);
+  const m = SEO_SRC.match(/const SUBVERTICAL_NAMES = \{([\s\S]*?)\n\};/);
+  ok("S  generated sub-vertical map present", !!m);
+  const gen = m ? Object.fromEntries([...m[1].matchAll(/^\s+("[^"]+"): ("(?:[^"\\]|\\.)*"),$/gm)].map((x) => [JSON.parse(x[1]), JSON.parse(x[2])])) : {};
+  eq("S  generated map size equals live data", Object.keys(gen).length, subs.length);
+  const titles = new Set();
+  for (const { key, name } of subs) {
+    eq(`S  map entry ${key} matches live name`, gen[key], name);
+    const r = resolveSeo(`/industries/${key}`);
+    eq(`S  /industries/${key} is indexable`, r.known, true);
+    ok(`S  /industries/${key} title carries the page name`, r.title.startsWith(`${name} CX Intelligence | `));
+    ok(`S  /industries/${key} title is unique`, !titles.has(r.title));
+    titles.add(r.title);
+  }
+  for (const v of Object.keys(VERTICALS)) {
+    eq(`S  /industries/${v} is indexable`, resolveSeo(`/industries/${v}`).known, true);
+    eq(`S  /industries/${v}/not-a-page is not indexable`, resolveSeo(`/industries/${v}/not-a-page`).known, false);
+    eq(`S  /industries/${v}/a/b is not indexable`, resolveSeo(`/industries/${v}/a/b`).known, false);
+  }
+  for (const p of ["/industries/not-a-vertical", "/industries/not-a-vertical/x", "/industries/constructor", "/industries/healthcare/toString", "/industries/a/b/c", "/industries/retail/ecommerce"]) {
+    eq(`S  ${p} is not indexable`, resolveSeo(p).known, false);
+  }
+  ok("S  source gate: sub-vertical lookup is own-key", /own\(SUBVERTICAL_NAMES, /.test(SEO_SRC));
+  ok("S  source gate: no unconditional known:true in the industries branch", !/seo\.known = true;[\s\S]{0,40}CX technology intelligence for/.test(SEO_SRC) && !/CX Intelligence \| \$\{SITE\}`;\n\s+seo\.known = true;/.test(SEO_SRC));
 }
 
 if (failures.length) {
