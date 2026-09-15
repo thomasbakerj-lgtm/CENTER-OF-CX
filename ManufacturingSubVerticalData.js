@@ -2,7 +2,7 @@ export const manufacturingSubVerticals = {
   "automotive-oem": {
     name: "Automotive OEM", parent: "Manufacturing & Automotive",
     tagline: "Recalls, warranty, connected vehicle support, EV ownership, and brand loyalty.",
-    intro: "Automotive OEM contact centers manage the post-purchase relationship with millions of vehicle owners. Every recall, warranty claim, and service issue either reinforces or erodes the likelihood that the owner will buy the same brand next time. The CX challenge is managing massive recall surges, complex warranty adjudication, and an entirely new category of connected vehicle and EV support — all while the dealer remains the primary physical touchpoint.",
+    intro: "Automotive OEM contact centers own the post-purchase relationship with every owner, and each recall, warranty claim, and service issue shapes whether that owner buys the brand again. The operating challenge is absorbing recall surges, adjudicating warranty cleanly, and supporting connected vehicle and EV questions, all while the dealer remains the physical point of service.",
     kpis: [
       { metric: "AHT", avg: "9:00", note: "Long — VIN lookup, warranty verification, and recall coordination" },
       { metric: "FCR", avg: "55%", note: "Low — warranty decisions, dealer coordination, and parts availability require follow-up" },
