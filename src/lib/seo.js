@@ -302,8 +302,13 @@ const LEGACY_VERT_NAMES = {
 const CAT_NAMES = Object.fromEntries(Object.entries(CATEGORIES).map(([k, v]) => [k, v.name]));
 const VERT_NAMES = Object.fromEntries(Object.entries(VERTICALS).map(([k, v]) => [k, v.name]));
 
-const catName = (s) => CAT_NAMES[s] || LEGACY_CAT_NAMES[s];
-const vertName = (s) => VERT_NAMES[s] || LEGACY_VERT_NAMES[s];
+/* Own-key reads. Route segments come straight from the address bar, and a bare
+   bracket read resolves "toString" or "constructor" through the prototype, which
+   printed native code into the title and let /vendors/ccaas/toString claim the
+   scored, indexable branch. */
+const own = (o, k) => (Object.prototype.hasOwnProperty.call(o, k) ? o[k] : undefined);
+const catName = (s) => own(CAT_NAMES, s) || own(LEGACY_CAT_NAMES, s);
+const vertName = (s) => own(VERT_NAMES, s) || own(LEGACY_VERT_NAMES, s);
 
 const titleCase = (slug) =>
   slug.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
@@ -617,9 +622,9 @@ const VENDOR_NAMES = {
    route in the sitemap. The category label is resolved through catName rather
    than stored, so the generated map can never disagree with the category page
    a reader lands on. */
-export const vendorDisplayName = (slug) => (VENDOR_NAMES[slug] || [])[0] || titleCase(slug);
+export const vendorDisplayName = (slug) => (own(VENDOR_NAMES, slug) || [])[0] || titleCase(slug);
 export const vendorCategoryLabel = (slug) => {
-  const entry = VENDOR_NAMES[slug];
+  const entry = own(VENDOR_NAMES, slug);
   return entry ? catName(entry[1]) || "" : "";
 };
 
@@ -628,7 +633,7 @@ export function resolveSeo(rawPath) {
   let pathname = rawPath || "/";
   if (pathname.length > 1 && pathname.endsWith("/")) pathname = pathname.slice(0, -1);
 
-  const mapped = SEO_MAP[pathname];
+  const mapped = own(SEO_MAP, pathname);
   if (mapped) return { title: mapped.title, desc: mapped.desc, path: pathname, known: true };
 
   const seo = {
