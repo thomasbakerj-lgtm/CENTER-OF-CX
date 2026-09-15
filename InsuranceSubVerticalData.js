@@ -259,5 +259,5 @@ export const insuranceSubVerticals = {
   },
 };
 
-export const getInsuranceSubVertical = (slug) => insuranceSubVerticals[slug];
+export const getInsuranceSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(insuranceSubVerticals, slug) ? insuranceSubVerticals[slug] : undefined);
 export const getAllInsuranceSubVerticalSlugs = () => Object.keys(insuranceSubVerticals);
