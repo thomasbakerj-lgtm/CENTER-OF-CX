@@ -1,8 +1,8 @@
 export const insuranceSubVerticals = {
   "personal-lines": {
     name: "Personal Lines P&C", parent: "Insurance",
-    tagline: "Auto, home, renters, and umbrella — high-volume FNOL, CAT surges, and retention.",
-    intro: "Personal lines P&C contact centers handle the highest volume and most emotionally charged interactions in insurance. A homeowner whose roof was destroyed by a hailstorm and an auto policyholder involved in a collision are calling at the worst moments of their lives. The CX challenge is combining empathy with efficiency — collecting FNOL data accurately while making the policyholder feel heard.",
+    tagline: "Auto, home, renters, and umbrella. High-volume FNOL, CAT surges, and retention.",
+    intro: "Personal lines P&C contact centers take the highest-emotion calls in insurance. Policyholders reach out after a collision or a destroyed roof, often during a regional catastrophe that multiplies volume overnight. The operating challenge is capturing complete FNOL data on the first contact while the policyholder feels heard, then holding that standard when CAT surges hit.",
     kpis: [
       { metric: "AHT", avg: "8:30", note: "Long — FNOL intake and coverage verification are detailed" },
       { metric: "FCR", avg: "62%", note: "Low — claims require adjuster assignment and follow-up" },
