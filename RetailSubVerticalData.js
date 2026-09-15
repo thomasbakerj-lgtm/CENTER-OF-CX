@@ -5,7 +5,7 @@ export const retailSubVerticals = {
   "ecommerce-dtc": {
     name: "eCommerce / DTC", parent: "Retail & eCommerce",
     tagline: "Order status, returns, shipping issues, payment disputes, and cart abandonment recovery.",
-    intro: "DTC eCommerce contact centers live and die by speed. The customer who can't find their order, can't process a return, or has a payment question expects resolution in minutes — not hours. The CX challenge is handling massive transactional volume at low AHT while identifying and escalating the 10-15% of interactions that carry revenue or retention significance.",
+    intro: "DTC eCommerce contact centers compete on speed. Customers asking where an order is, how to return it, or why a payment failed expect answers in minutes. The operating challenge is clearing heavy transactional volume at low handle time while spotting and escalating the smaller share of contacts that carry real revenue or retention risk.",
     kpis: [
       { metric: "AHT", avg: "4:20", note: "Fast — most interactions are transactional (order status, returns)" },
       { metric: "FCR", avg: "78%", note: "High — simple product set and integrated OMS reduce handoffs" },
