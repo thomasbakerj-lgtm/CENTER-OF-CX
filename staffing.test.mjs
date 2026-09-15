@@ -13,8 +13,8 @@ function slice(a, b) {
   return SRC.slice(i, j);
 }
 const engine = slice("function erlangB(", "function buildInsights(");
-const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)();
-const { erlangB, erlangC, calc, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
+const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)();
+const { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
 
 let pass = 0, fail = 0;
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
@@ -355,6 +355,38 @@ section("Queue fragmentation");
   const annual = staffingCost(c.splitFte, 0, 0).annual - staffingCost(c.pooled.sched, 0, 0).annual;
   ok("fragmentation cost equals delta FTE times the per-agent rate",
     Math.abs(annual - c.deltaFte * staffingCost(1, 0, 0).perAgentMonth * 12) < 1, `${Math.round(annual)}`);
+}
+
+/* ------------------------------------------- volume at enterprise scale ---- */
+section("Volume at enterprise scale: the search meets target and stays fast");
+{
+  // Probed 1k, 50k, 500k and 5M contacts per interval. The prior fixed budget of 2,000
+  // steps returned 97.3% against a 99% target at 5M with no disclosure, in 13.5 seconds.
+  const B0 = (N, A) => { let B = 1; for (let n = 1; n <= N; n++) B = (A * B) / (n + A * B); return B; };
+  for (const vol of [1000, 50000, 500000, 5000000]) {
+    for (const [slT, slS] of [[0.8, 20], [0.95, 5], [0.99, 0]]) {
+      const t0 = Date.now();
+      const r = calc(vol, 360, 30, slT, slS, 0.3, 0);
+      const ms = Date.now() - t0;
+      ok(`${vol}/interval at ${slT * 100}/${slS}: target met`, r.met === true && r.sl >= slT, `${r.sl}`);
+      ok(`${vol}/interval at ${slT * 100}/${slS}: one fewer agent misses target`, (() => { const q = erlangC(r.raw - 1, r.A); return r.raw - 1 <= r.A || 1 - q * Math.exp(-(r.raw - 1 - r.A) * slS / 360) < slT; })());
+      ok(`${vol}/interval at ${slT * 100}/${slS}: solves in under 1.5s`, ms < 1500, `${ms}ms`);
+    }
+  }
+  // The incremental recursion is the recursion: identical to a restart at every step.
+  for (const [N, A] of [[12, 10], [230, 200], [10250, 10000]]) {
+    let B = B0(Math.ceil(A) + 1, A), same = true;
+    for (let n = Math.ceil(A) + 2; n <= N; n++) { B = (A * B) / (n + A * B); if (B !== B0(n, A)) { same = false; break; } }
+    ok(`incremental Erlang B is bit-identical to a restart to N=${N}`, same);
+  }
+  ok("no volume ceiling: the domain row for volume has no max", SRC.includes('["vol", "Voice contacts per interval", 0, null, ""],'));
+  // A target above 100% exhausts any budget: the engine must report met false, not a pass.
+  const never = calc(400, 360, 30, 1.01, 20, 0.3, 0);
+  ok("an exhausted budget returns met false", never.met === false, `${never.met}`);
+  ok("an exhausted budget still returns finite agents", Number.isFinite(never.raw) && never.raw > never.A);
+  ok("a met solve raises no notice", solveNotice({ met: true, raw: 1, sl: 1 }, 0.8) === null);
+  ok("an unmet solve raises a notice", /unreachable/.test(solveNotice({ met: false, raw: 1002000, sl: 0.973 }, 0.99) || ""));
+  ok("a legacy result without met raises no notice", solveNotice({ raw: 1, sl: 1 }, 0.8) === null);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
