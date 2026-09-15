@@ -280,5 +280,5 @@ export const educationSubVerticals = {
   },
 };
 
-export const getEducationSubVertical = (slug) => educationSubVerticals[slug];
+export const getEducationSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(educationSubVerticals, slug) ? educationSubVerticals[slug] : undefined);
 export const getAllEducationSubVerticalSlugs = () => Object.keys(educationSubVerticals);
