@@ -1293,40 +1293,284 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/industries/education/undergrad-admissions</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/education/graduate-programs</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/education/financial-aid</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/education/student-services</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/education/it-helpdesk</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/education/online-education</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/industries/financial-services</loc>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/financial-services/retail-banking</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/financial-services/credit-unions</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/financial-services/insurance</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/financial-services/wealth-management</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/financial-services/lending-mortgage</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/financial-services/fintech-neobanks</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/financial-services/payments-processing</loc>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/industries/government</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/industries/government/federal</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/government/state</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/government/local-municipal</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/government/courts-justice</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/government/public-safety</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/government/social-services</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/industries/healthcare</loc>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/healthcare/health-systems</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/healthcare/health-insurance</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/healthcare/provider-groups</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/healthcare/digital-health</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/healthcare/pharma-life-sciences</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/healthcare/home-health</loc>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/industries/insurance</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/industries/insurance/personal-lines</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/insurance/commercial-lines</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/insurance/life-annuities</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/insurance/workers-comp</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/insurance/specialty-lines</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/insurance/insurtech</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/industries/manufacturing</loc>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/manufacturing/automotive-oem</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/manufacturing/automotive-dealer</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/manufacturing/industrial-b2b</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/manufacturing/consumer-electronics</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/manufacturing/aerospace-defense</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/manufacturing/food-beverage</loc>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/industries/retail</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/industries/retail/ecommerce-dtc</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/retail/omnichannel-retail</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/retail/subscription-membership</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/retail/marketplace</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/retail/luxury-specialty</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/retail/grocery-delivery</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/industries/telecom</loc>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/telecom/mobile-wireless</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/telecom/broadband-isp</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/telecom/cable-tv</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/telecom/enterprise-comms</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/telecom/managed-services</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/telecom/fiber-infrastructure</loc>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/industries/travel</loc>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/industries/travel/airlines</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/travel/hotels-resorts</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/travel/otas</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/travel/car-rental</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/travel/cruise-lines</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/travel/tours-experiences</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/industries/utilities</loc>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/utilities/electric-iou</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/utilities/natural-gas</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/utilities/water</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/utilities/municipal-coop</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/utilities/renewable-der</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/industries/utilities/energy-retail</loc>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/research</loc>
