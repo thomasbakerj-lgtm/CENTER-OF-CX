@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import ReportActions from "./ReportActions";
 import InfoDot from "./src/lib/InfoDot";
+import NumField from "./src/lib/NumField";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
@@ -16,7 +17,6 @@ const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 const money = (n) => { const v = Math.round(n); return (v < 0 ? "-$" : "$") + Math.abs(v).toLocaleString(); };
 const money2 = (n) => "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtX = (x) => (Math.round(Number(x) * 100) / 100).toString();
-const num = (v) => { const x = parseFloat(String(v).replace(/[^0-9.\-]/g, "")); return isNaN(x) ? 0 : x; };
 
 // DEFS is the future glossary content: write once, lift later.
 const DEFS = {
@@ -34,34 +34,6 @@ const DEFS = {
   confidence: { title: "Confidence (two axes)", text: "Cost basis asks whether inputs are validated: estimate, operations data, or finance-confirmed. Realization asks whether the savings can be booked given your mechanism and sourcing. The headline reports the weaker of the two, and any impossible input or undeclared definition forces Directional." },
 };
 
-function NumField({ label, value, onChange, prefix, suffix, step = 1, min = 0, max = 1e12, pulled, info, infoTitle, align }) {
-  const valRef = useRef(value); const holdRef = useRef(null); const delayRef = useRef(280);
-  useEffect(() => { valRef.current = value; }, [value]);
-  const commit = (v) => { const c = clamp(Math.round(v * 10000) / 10000, min, max); valRef.current = c; onChange(c); };
-  const startHold = (dir) => {
-    commit(num(valRef.current) + dir * step); delayRef.current = 280;
-    const tick = () => { commit(num(valRef.current) + dir * step); delayRef.current = Math.max(45, delayRef.current - 30); holdRef.current = setTimeout(tick, delayRef.current); };
-    holdRef.current = setTimeout(tick, delayRef.current);
-  };
-  const stopHold = () => { if (holdRef.current) clearTimeout(holdRef.current); holdRef.current = null; };
-  return (
-    <div>
-      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: SLATE, marginBottom: 6 }}>
-        {label}{info && <InfoDot text={info} title={infoTitle} align={align} />}
-        {pulled && <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: `${ELECTRIC}14`, padding: "1px 6px", borderRadius: 4, letterSpacing: 0.5 }}>PULLED</span>}
-      </label>
-      <div style={{ display: "flex", alignItems: "stretch", border: `1px solid ${BORDER}`, borderRadius: 8, overflow: "hidden", background: "#fff" }}>
-        <button onMouseDown={() => startHold(-1)} onMouseUp={stopHold} onMouseLeave={stopHold} onTouchStart={(e) => { e.preventDefault(); startHold(-1); }} onTouchEnd={stopHold} style={{ width: 38, border: "none", borderRight: `1px solid ${BORDER}`, background: WARM, color: SLATE, fontSize: 18, cursor: "pointer" }}>−</button>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 10px", gap: 2 }}>
-          {prefix && <span style={{ color: MUTED, fontSize: 14 }}>{prefix}</span>}
-          <input value={value} onChange={(e) => commit(num(e.target.value))} inputMode="decimal" style={{ width: "100%", border: "none", outline: "none", fontSize: 15, fontWeight: 600, color: NAVY, textAlign: "center", background: "transparent" }} />
-          {suffix && <span style={{ color: MUTED, fontSize: 14 }}>{suffix}</span>}
-        </div>
-        <button onMouseDown={() => startHold(1)} onMouseUp={stopHold} onMouseLeave={stopHold} onTouchStart={(e) => { e.preventDefault(); startHold(1); }} onTouchEnd={stopHold} style={{ width: 38, border: "none", borderLeft: `1px solid ${BORDER}`, background: WARM, color: SLATE, fontSize: 18, cursor: "pointer" }}>+</button>
-      </div>
-    </div>
-  );
-}
 
 function Sel({ label, value, onChange, options, info, infoTitle, align, disabled, note }) {
   return (
@@ -450,10 +422,10 @@ export default function FCRLeakageDiagnostic() {
             <div style={card}>
               <h3 style={h3}>Volume + Economics</h3>
               <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <NumField label="Monthly contacts" value={M} onChange={setM} step={500} pulled={pulledM} />
+                <NumField label="Monthly contacts" value={M} onChange={setM} step={500} min={0} pulled={pulledM} />
                 <NumField label="Current FCR" value={fcrPct} onChange={onFcr} suffix="%" step={1} min={1} max={99} pulled={pulledFcr} info={DEFS.fcrDef.text} infoTitle={DEFS.fcrDef.title} />
-                <NumField label="Marginal cost / contact" value={mCPC} onChange={setMCPC} prefix="$" step={0.25} pulled={pulledMcpc} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
-                <NumField label="Loaded cost / contact" value={lCPC} onChange={setLCPC} prefix="$" step={0.25} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} align="right" />
+                <NumField label="Marginal cost / contact" value={mCPC} onChange={setMCPC} prefix="$" step={0.25} min={0} pulled={pulledMcpc} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
+                <NumField label="Loaded cost / contact" value={lCPC} onChange={setLCPC} prefix="$" step={0.25} min={0} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} infoAlign="right" />
               </div>
             </div>
 
@@ -473,14 +445,14 @@ export default function FCRLeakageDiagnostic() {
               <h3 style={h3}>Leakage Model</h3>
               <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <Sel label="Repeat-behavior model" value={repeatModel} onChange={setRepeatModel} info={DEFS.repeatModel.text} infoTitle={DEFS.repeatModel.title} options={[{ v: "one", l: "One callback then resolved" }, { v: "geometric", l: "Geometric (callbacks can fail)" }, { v: "measured", l: "I have my measured repeat rate" }]} />
-                <NumField label="Repeat complexity multiplier" value={repeatMult} onChange={setRepeatMult} suffix="x" step={0.1} min={0.5} max={3} info={DEFS.repeatMult.text} infoTitle={DEFS.repeatMult.title} align="right" />
+                <NumField label="Repeat complexity multiplier" value={repeatMult} onChange={setRepeatMult} suffix="x" step={0.1} min={0.5} max={3} info={DEFS.repeatMult.text} infoTitle={DEFS.repeatMult.title} infoAlign="right" />
                 {repeatModel === "measured" && <NumField label="Measured current repeat share" value={measuredPct} onChange={setMeasuredPct} suffix="%" step={1} min={0} max={60} />}
-                {repeatModel === "measured" && <NumField label="Measured target repeat share (0 = model it)" value={measuredTargetPct} onChange={setMeasuredTargetPct} suffix="%" step={1} min={0} max={60} align="right" />}
+                {repeatModel === "measured" && <NumField label="Measured target repeat share (0 = model it)" value={measuredTargetPct} onChange={setMeasuredTargetPct} suffix="%" step={1} min={0} max={60} infoAlign="right" />}
                 {/* The improvement-path selector was removed. Two of its three options
                     switched bases against a measured baseline and invented savings.
                     `pathModel` stays in the scenario contract so legacy links still
                     decode, and the engine flags them. */}
-                <NumField label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} align="right" />
+                <NumField label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} infoAlign="right" />
               </div>
               {repeatMult > 2.5 ? <p style={{ fontSize: 12, color: RED, marginTop: 12, lineHeight: 1.5 }}>High assumption at {fmtX(repeatMult)}x. This is above most published estimates. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.</p> : repeatMult > 2.0 ? <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Elevated at {fmtX(repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.</p> : null}
             </div>
@@ -490,8 +462,8 @@ export default function FCRLeakageDiagnostic() {
               <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <Sel label="Sourcing model" value={sourcing} onChange={setSourcing} info={DEFS.sourcing.text} infoTitle={DEFS.sourcing.title} options={[{ v: "inhouse", l: "In-house (capacity, needs mechanism)" }, { v: "bpo", l: "Outsourced per-contact (direct cash)" }]} />
                 <Sel label="Realization mechanism" value={R.mechKey} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} disabled={sourcing === "bpo"} note={sourcing === "bpo" ? "Not used. On a per-contact contract the invoice falls with volume, so savings convert at 100% without a capacity mechanism. Switch to in-house sourcing to apply one." : null} />
-                <NumField label="One-time cost to achieve" value={investOneTime} onChange={setInvestOneTime} prefix="$" step={10000} info={DEFS.invest.text} infoTitle={DEFS.invest.title} />
-                <NumField label="Recurring annual cost" value={investRecurring} onChange={setInvestRecurring} prefix="$" step={5000} align="right" />
+                <NumField label="One-time cost to achieve" value={investOneTime} onChange={setInvestOneTime} prefix="$" step={10000} min={0} info={DEFS.invest.text} infoTitle={DEFS.invest.title} />
+                <NumField label="Recurring annual cost" value={investRecurring} onChange={setInvestRecurring} prefix="$" step={5000} min={0} infoAlign="right" />
                 <Sel label="Cost basis" value={costBasis} onChange={setCostBasis} info={DEFS.confidence.text} infoTitle={DEFS.confidence.title} options={[{ v: "estimate", l: "Estimate (±25%)" }, { v: "ops", l: "Operations data (±15%)" }, { v: "finance", l: "Finance-confirmed (±10%)" }]} />
               </div>
             </div>
