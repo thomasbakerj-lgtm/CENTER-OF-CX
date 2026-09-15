@@ -294,5 +294,5 @@ export const travelSubVerticals = {
   },
 };
 
-export const getTravelSubVertical = (slug) => travelSubVerticals[slug];
+export const getTravelSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(travelSubVerticals, slug) ? travelSubVerticals[slug] : undefined);
 export const getAllTravelSubVerticalSlugs = () => Object.keys(travelSubVerticals);
