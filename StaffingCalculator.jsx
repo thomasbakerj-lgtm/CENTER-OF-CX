@@ -34,11 +34,22 @@ function erlangC(N, A) { if (N <= A) return 1; const B = erlangB(N, A); const rh
 function calc(volume, ahtSec, intMin, slT, slSec, shrink, occCap) {
   const A = (volume * ahtSec) / (intMin * 60);
   const minN = Math.ceil(A) + 1;
-  let agents = minN;
-  for (let n = minN; n < minN + 2000; n++) {
-    const pw = erlangC(n, A);
+  /* The search continues the Erlang B recursion one step per candidate instead of
+     restarting it from one agent, so each step is constant time and every value is
+     bit-identical to erlangB(n, A). Restarting cost 13.5 seconds for one solve at a
+     million Erlangs. The step budget scales with the square root of offered load,
+     because the agents a service target needs above load grow with that root. A
+     target the budget cannot reach returns met: false and is disclosed, never
+     reported as achieved. */
+  const budget = minN + Math.max(2000, Math.ceil(60 * Math.sqrt(A)));
+  let agents = minN, met = false;
+  let B = erlangB(minN, A);
+  for (let n = minN; n < budget; n++) {
+    if (n > minN) B = (A * B) / (n + A * B);
+    const rho = A / n;
+    const pw = B / (1 - rho * (1 - B));
     const sl = 1 - pw * Math.exp(-(n - A) * slSec / ahtSec);
-    if (sl >= slT) { agents = n; break; } agents = n;
+    if (sl >= slT) { agents = n; met = true; break; } agents = n;
   }
   let capped = false;
   if (occCap && occCap > 0 && occCap < 1) {
@@ -49,7 +60,7 @@ function calc(volume, ahtSec, intMin, slT, slSec, shrink, occCap) {
   const sl = 1 - pw * Math.exp(-(agents - A) * slSec / ahtSec);
   const asa = pw * ahtSec / (agents - A);
   const occ = A / agents;
-  return { raw: agents, sched: Math.ceil(agents / (1 - shrink)), pw, sl, asa, occ, A, capped };
+  return { raw: agents, sched: Math.ceil(agents / (1 - shrink)), pw, sl, asa, occ, A, capped, met };
 }
 
 /* Erlang C is a steady-state model. It assumes the queue reaches equilibrium inside
@@ -183,6 +194,15 @@ function abandonmentCheck(N, A, ahtSec, patienceSec) {
   return { estAband: C * pAbandonIfDelayed };
 }
 
+/* A solve that exhausted its step budget has not met the target. The figures it
+   returns sit below what the target needs, so the tool says so in the read, the
+   report and the confidence grade. Measured unreachable across 5,184 inputs and at
+   five million contacts per interval; the disclosure exists so it can never be silent. */
+function solveNotice(r, slTargetFrac) {
+  if (r.met !== false) return null;
+  return `Service level target unreachable within the search. It stopped at ${r.raw} base agents with service level at ${(r.sl * 100).toFixed(1)}% against a ${Math.round(slTargetFrac * 100)}% target. Every headcount and cost figure here is a floor below what this target needs.`;
+}
+
 /* The insight layer: turn the raw metrics into the one or two things an operator
    actually needs to read: the tension between SLA aggressiveness, occupancy, and
    over/under-service. Priority-ordered; the UI takes the top two. This is the
@@ -197,6 +217,8 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
   /* Model validity outranks every reading, because if the model does not apply
      nothing below it is worth saying. */
   if (valid && !valid.ok) out.push(valid.msg);
+  const unmet = solveNotice(r, slTargetFrac);
+  if (unmet) out.push(unmet);
 
   /* The cap is doing the work: that is specific and the user chose it. */
   if (capOn && r.capped)
@@ -277,8 +299,8 @@ function guardStaffing(stIn) {
 
 /* A corrected input fails the completeness axis, so the headline confidence cannot
    stand above Directional while one is present, whatever the cost basis says. */
-function capForCorrections(cost, guards) {
-  return guards.length ? { ...cost, confidence: "Directional" } : cost;
+function capForCorrections(cost, guards, met = true) {
+  return guards.length || met === false ? { ...cost, confidence: "Directional" } : cost;
 }
 
 const PRESETS = {
@@ -361,7 +383,7 @@ export default function StaffingCalculator() {
   const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
 
   const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
-  const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards);
+  const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards, r.met);
   const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
   const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
   const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
@@ -671,7 +693,7 @@ export default function StaffingCalculator() {
                   scale_band: r.sched >= 400 ? "very_large" : r.sched >= 150 ? "large" : r.sched >= 40 ? "mid" : "small",
                   confidence_class: cost.confidence,
                   inputs_corrected: guards.length,
-                  decision_ready_signal: cost.sourced && valid.ok && !!pair.sustainable && guards.length === 0,
+                  decision_ready_signal: cost.sourced && valid.ok && r.met !== false && !!pair.sustainable && guards.length === 0,
                 }}
                 sections={[
                   ...(guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: guards.map(guardLine) }] : []),
@@ -699,6 +721,7 @@ export default function StaffingCalculator() {
                   ]},
                   { title: "Key Findings", type: "findings", items: [
                     ...(!valid.ok ? [valid.msg] : []),
+                    ...(solveNotice(r, slT / 100) ? [solveNotice(r, slT / 100)] : []),
                     `At ${vol} contacts per ${intv}-minute interval with ${fmtMS(aht)} AHT, you need ${r.raw} agents on the phones to meet ${slT}/${slS} service level${r.capped ? ` while holding occupancy under your ${capPct}% cap` : ""}.`,
                     `After applying ${shrink}% shrinkage, that becomes ${r.sched} scheduled FTE, about ${fmtMoney(cost.annual)} a year at ${fmtMoney(cost.perAgentMonth)} per agent per month. That figure is based on ${cost.basis}.`,
                     ...insights.slice(0, 3),
