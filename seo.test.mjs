@@ -429,6 +429,58 @@ section("Q. Sitemap carries every sub-vertical page and nothing else under a ver
   }
 }
 
+section("H. Hand-written anchor sub-vertical descriptions");
+{
+  const { readdirSync } = await import("node:fs");
+  const SEO_SRC = readFileSync("./src/lib/seo.js", "utf8");
+  const DASH = (s) => s.indexOf(String.fromCharCode(0x2014)) >= 0 || s.indexOf(String.fromCharCode(0x2013)) >= 0;
+  const TEMPLATE = "CX technology intelligence for ";
+  const m = SEO_SRC.match(/const SUBVERTICAL_DESC = \{([\s\S]*?)\n\};/);
+  ok("H  hand-written description map present", !!m);
+  const hand = m ? Object.fromEntries([...m[1].matchAll(/^\s+("[^"]+"): ("(?:[^"\\]|\\.)*"),$/gm)].map((x) => [JSON.parse(x[1]), JSON.parse(x[2])])) : {};
+  eq("H  map holds exactly ten entries", Object.keys(hand).length, 10);
+  const subs = collectSubVerticalNames();
+  const realKeys = new Set(subs.map(({ key }) => key));
+  const files = readdirSync(".").filter((f) => f.endsWith("SubVerticalData.js")).sort();
+  const anchors = new Map();
+  let dashTotal = 0;
+  for (const f of files) {
+    const src = readFileSync(`./${f}`, "utf8");
+    for (const c of src) if (c === String.fromCharCode(0x2014) || c === String.fromCharCode(0x2013)) dashTotal++;
+  }
+  for (const [vert, obj] of Object.entries(SUBVERTICAL_FILES)) {
+    const slug = Object.keys(obj)[0];
+    anchors.set(`${vert}/${slug}`, obj[slug]);
+  }
+  ok("H  dash count in sub-vertical data never rises above 1049", dashTotal <= 1049);
+  const seen = new Set();
+  for (const [key, desc] of Object.entries(hand)) {
+    ok(`H  ${key} is a real sub-vertical page`, realKeys.has(key));
+    ok(`H  ${key} is the first entry of its data file`, anchors.has(key));
+    const r = resolveSeo(`/industries/${key}`);
+    eq(`H  ${key} resolves to its hand-written description`, r.desc, desc);
+    eq(`H  ${key} stays indexable`, r.known, true);
+    ok(`H  ${key} description is 110 to 160 characters`, desc.length >= 110 && desc.length <= 160);
+    ok(`H  ${key} description has no em-dash or en-dash`, !DASH(desc));
+    ok(`H  ${key} description is not the template`, !desc.startsWith(TEMPLATE));
+    ok(`H  ${key} description is unique`, !seen.has(desc));
+    seen.add(desc);
+    const a = anchors.get(key);
+    ok(`H  ${key} rendered intro has no em-dash or en-dash`, !!a && !DASH(a.intro));
+    ok(`H  ${key} tagline has no em-dash or en-dash`, !!a && !DASH(a.tagline));
+  }
+  eq("H  one hand-written description per vertical", new Set(Object.keys(hand).map((k) => k.split("/")[0])).size, 10);
+  eq("H  every anchor has a hand-written description", [...anchors.keys()].filter((k) => !hand[k]).length, 0);
+  for (const { key } of subs) {
+    if (hand[key]) continue;
+    ok(`H  ${key} keeps the template fallback`, resolveSeo(`/industries/${key}`).desc.startsWith(TEMPLATE));
+  }
+  for (const p of ["/industries/travel/constructor", "/industries/travel/__proto__", "/industries/retail/airlines", "/industries/travel/airlines/x"]) {
+    ok(`H  ${p} never receives a hand-written description`, !Object.values(hand).includes(resolveSeo(p).desc));
+  }
+  ok("H  source gate: lookup is own-key and gated on a real page", /\(realSub && own\(SUBVERTICAL_DESC, /.test(SEO_SRC));
+}
+
 if (failures.length) {
   console.log("\nFAILURES");
   for (const f of failures.slice(0, 40)) console.log(`  ${f}`);
