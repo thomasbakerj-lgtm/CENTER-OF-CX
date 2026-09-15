@@ -684,6 +684,23 @@ const SUBVERTICAL_NAMES = {
 };
 /* SUBVERTICAL_NAMES_END */
 
+/* Hand-written meta descriptions for the anchor sub-vertical of each vertical,
+   the first entry in each data file. The template below stays the fallback for
+   the other 51. Kept outside the generated block so gen-seo-names.mjs never
+   touches it; seo.test.mjs section H holds every key to a real page. */
+const SUBVERTICAL_DESC = {
+  "education/undergrad-admissions": "Admissions contact center intelligence. Speed to lead, yield benchmarks, funnel leakage, and the 7-layer CX stack that turns inquiries into enrolled students.",
+  "financial-services/retail-banking": "Retail banking contact center intelligence. AHT, FCR, and containment benchmarks, fraud and dispute routing, compliance controls, and a 7-layer CX stack map.",
+  "government/federal": "Federal contact center intelligence. FedRAMP constraints, Section 508 and language access, legacy system realities, benchmarks, and a 7-layer CX stack map.",
+  "healthcare/health-systems": "Health system contact center intelligence. Patient access, scheduling, billing, and care coordination benchmarks, HIPAA guardrails, and a 7-layer CX stack map.",
+  "insurance/personal-lines": "Personal lines P&C contact center intelligence. FNOL intake, CAT surge planning, claims and retention benchmarks, fraud controls, and a 7-layer CX stack map.",
+  "manufacturing/automotive-oem": "Automotive OEM contact center intelligence. Recall surges, warranty adjudication, connected vehicle and EV support, dealer handoffs, and a 7-layer CX stack map.",
+  "retail/ecommerce-dtc": "eCommerce and DTC contact center intelligence. Order status, returns, and payment dispute benchmarks, revenue escalation, and a 7-layer CX stack map.",
+  "telecom/mobile-wireless": "Wireless carrier contact center intelligence. Billing disputes, device support, churn and retention benchmarks, SIM swap fraud controls, and a 7-layer CX stack.",
+  "travel/airlines": "Airline contact center intelligence. IROP disruption surges, rebooking, EU261 and DOT compensation rules, loyalty routing, benchmarks, and a 7-layer CX stack.",
+  "utilities/electric-iou": "Electric utility contact center intelligence. Storm and outage surge response, billing and start or stop service, benchmarks, and a 7-layer CX stack map.",
+};
+
 /* Each entry is [display name, category key]. Falls back to the slug only for
    a slug with no data entry, which the harness proves cannot happen for any
    route in the sitemap. The category label is resolved through catName rather
@@ -759,7 +776,7 @@ export function resolveSeo(rawPath) {
       const subName = realSub || titleCase(parts[1]);
       seo.title = `${subName} CX Intelligence | ${vName} | ${SITE}`;
       seo.known = !!realSub && !!vertName(parts[0]);
-      seo.desc = `CX technology intelligence for ${subName} within ${vName}. Benchmarks, stack mapping, failure modes, and vendor guidance specific to ${subName} operations.`;
+      seo.desc = (realSub && own(SUBVERTICAL_DESC, `${parts[0]}/${parts[1]}`)) || `CX technology intelligence for ${subName} within ${vName}. Benchmarks, stack mapping, failure modes, and vendor guidance specific to ${subName} operations.`;
     } else {
       const name = titleCase(parts[0]);
       seo.title = `${name} CX Intelligence | ${SITE}`;
