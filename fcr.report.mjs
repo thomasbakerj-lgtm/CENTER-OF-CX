@@ -140,7 +140,8 @@ if (ea < 0 || eb < 0) { console.error("BLOCKER: engine markers not found."); pro
 const engineRegion = SRC.slice(ea, eb);
 
 /* the formatters and the dimension model, from the same file */
-const fmtRegion = [constLine("money"), constLine("money2"), constLine("fmtX"), constLine("num")].join("\n");
+/* num was the local reader of a local NumField copy; both are gone, the tool uses the shared input. */
+const fmtRegion = [constLine("money"), constLine("money2"), constLine("fmtX")].join("\n");
 const dimsRegion = "const DIMS = " + constLiteral("DIMS", "[", "]").replace(/^const DIMS = /, "") + ";";
 
 /* the component-scope derivations the payload closes over */
@@ -503,6 +504,15 @@ A("a clean document discloses no enum correction at all",
 /* The second consumer. ReportActions appends every signal to the Formspree
    review payload, so adding severity changed the manual-handling form too. */
 A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
+
+/* Silent substitution. The local NumField copy injected 0 on a cleared field and its
+   reader stripped letters, so "1e3" read as 13. The tool now uses the shared input. */
+A("FCR imports the shared NumField", /import NumField from "\.\/src\/lib\/NumField";/.test(SRC));
+A("FCR carries no local NumField copy", !/function NumField\(/.test(SRC));
+A("FCR carries no character-stripping reader", SRC.indexOf('replace(/[^0-9.\\-]/g') < 0 && !/const num = /.test(SRC));
+A("every FCR NumField states its floor", (SRC.match(/<NumField [^>]*\/>/g) || []).length === 11
+  && (SRC.match(/<NumField [^>]*\/>/g) || []).every(t => /\bmin=\{/.test(t)));
+A("no FCR NumField passes the retired align prop", (SRC.match(/<NumField [^>]*\/>/g) || []).every(t => !/ align=/.test(t)));
 
 console.log("\n" + "=".repeat(78));
 console.log("  " + pass + " passed, " + fail + " failed");
