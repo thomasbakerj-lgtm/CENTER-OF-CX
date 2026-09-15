@@ -258,5 +258,5 @@ export const manufacturingSubVerticals = {
   },
 };
 
-export const getManufacturingSubVertical = (slug) => manufacturingSubVerticals[slug];
+export const getManufacturingSubVertical = (slug) => (Object.prototype.hasOwnProperty.call(manufacturingSubVerticals, slug) ? manufacturingSubVerticals[slug] : undefined);
 export const getAllManufacturingSubVerticalSlugs = () => Object.keys(manufacturingSubVerticals);
