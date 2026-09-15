@@ -2,7 +2,7 @@ export const travelSubVerticals = {
   "airlines": {
     name: "Airlines", parent: "Travel & Hospitality",
     tagline: "Booking changes, cancellations, disruption management, loyalty, and baggage.",
-    intro: "Airline contact centers face the most extreme volume variability in any industry. A sunny Tuesday might generate 5,000 calls; a snowstorm hitting a hub airport generates 50,000. The CX challenge is building capacity and routing intelligence for disruption — because when things go right, travelers don't call; when things go wrong, everyone calls at once.",
+    intro: "Airline contact center volume is set by operations. A normal day is manageable. A storm at a hub strands thousands of passengers at once, and every one of them needs a rebooking. The operating challenge is building capacity, routing, and proactive rebooking for disruption days, because travelers rarely call when flights run on time.",
     kpis: [
       { metric: "AHT", avg: "9:30", note: "Long — rebooking, fare differences, and multi-leg itineraries are complex" },
       { metric: "FCR", avg: "52%", note: "Low — disruption rebooking often requires follow-up on waitlists and upgrades" },
