@@ -44,7 +44,7 @@ export const SEO_MAP = {
   },
   "/vendors/ccaas": {
     title: `CCaaS Platform Market Intelligence | 24 Vendors Scored | ${SITE}`,
-    desc: "24 CCaaS vendors scored across 7 weighted dimensions. Bell curve placement, scoring methodology, and honest assessments for enterprise buyers.",
+    desc: "24 CCaaS vendors scored across 27 weighted dimensions. Bell curve placement, scoring methodology, and honest assessments for enterprise buyers.",
   },
   "/vendors/iva": {
     title: `IVA + Conversational AI Market Intelligence: 50 Vendors Scored Across 7 Categories | ${SITE}`,
