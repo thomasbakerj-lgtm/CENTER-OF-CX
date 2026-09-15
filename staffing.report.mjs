@@ -29,10 +29,10 @@ let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
 
 /* ---------------------------------------------------------------- slicing */
-/* A real lexer, not the apostrophe-fragile slicer the older harnesses share. It
-   skips line comments, block comments, quoted strings and template literals, and
-   descends into every substitution inside a template. Introduced in aid.report.mjs
-   and carried here; the remaining five harnesses still use the fragile version. */
+/* A real lexer. It skips line comments, block comments, quoted strings and
+   template literals, and descends into every substitution inside a template.
+   Introduced in aid.report.mjs and shared by every rendered harness. Section 0a
+   pins each branch with fixtures. */
 function skipQuoted(src, i) {
   const q = src[i];
   for (let j = i + 1; j < src.length; j++) {
@@ -84,6 +84,29 @@ function balanced(src, from, open, close) {
   }
   return null;
 }
+
+/* The lexer is pinned directly. Without these fixtures a lexer regression survives
+   whenever the shipped JSX happens to contain no comment, quote or substitution
+   inside a sliced region, which is luck rather than proof. */
+console.log("\n0a. the slicer lexer");
+{
+  const t = (src, o = "{", c = "}") => { const b = balanced(src, 0, o, c); return b ? b.text : null; };
+  A("lexer: a brace inside a line comment does not close the slice", t("x { a // }\n b } y") === "{ a // }\n b }");
+  A("lexer: a brace inside a block comment does not close the slice", t("{ /* } */ b }") === "{ /* } */ b }");
+  A("lexer: an apostrophe inside a comment does not open a string", t("{ // vendor's\n b } '}'") === "{ // vendor's\n b }");
+  A("lexer: a brace inside a quoted string does not close the slice", t("{ a: \"}\" }") === "{ a: \"}\" }");
+  A("lexer: an escaped quote does not end the string", t("{ a: \"q\\\"}\" }") === "{ a: \"q\\\"}\" }");
+  A("lexer: a brace inside a template substitution is counted inside the template", t("{ `${ {k:1}.k }` }") === "{ `${ {k:1}.k }` }");
+  A("lexer: a quoted brace inside a template substitution is skipped", t("{ `${ \"}\" }` }") === "{ `${ \"}\" }` }");
+  A("lexer: a nested template inside a substitution does not end the outer template", t("{ `a ${ x ? `}` : 1 } b` }") === "{ `a ${ x ? `}` : 1 } b` }");
+  A("lexer: a quoted backtick inside a substitution does not open a template", t("{ `${ \"`\" }` }") === "{ `${ \"`\" }` }");
+  A("lexer: brackets balance with a quoted close inside", t("[ [1], \"]\" ] ]", "[", "]") === "[ [1], \"]\" ]");
+  A("lexer: an unterminated slice returns null", t("{ a { b }") === null);
+  A("lexer: a missing open returns null", t("no braces") === null);
+  const off = balanced("ab{c}d", 0, "{", "}");
+  A("lexer: start and end offsets bound the text exactly", !!off && off.start === 2 && off.end === 5 && off.text === "{c}");
+}
+
 
 function slice(a, b) {
   const i = SRC.indexOf(a);
