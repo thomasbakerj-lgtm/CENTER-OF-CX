@@ -202,7 +202,8 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
 
   const b0 = run();
   eq("M1  baseline audit exits clean", b0.code, 0);
-  truthy("M2  TCO variable-map pulls enter the consumed contract", /attritionRate\s+pulled by 2/.test(b0.out) && /occupancy\s+pulled by 1/.test(b0.out));
+  truthy("M2  TCO variable-map pulls enter the consumed contract", /attritionRate\s+pulled by 2/.test(b0.out) && /shrinkage\s+pulled by 1/.test(b0.out));
+  truthy("M2b occupancy is published by Staffing and pulled by no tool", !/\n\s+occupancy\s+pulled by/.test(b0.out));
   truthy("M3  a shorthand publish (Staffing aht) is read as a publisher", /aht\s+pulled by \d+\s+<-\s+published by StaffingCalculator\.jsx/.test(b0.out));
 
   const m1 = run({ "TCOCalculator.jsx": sub('attrition: "attritionRate" };', 'attrition: "attrition" };') });
