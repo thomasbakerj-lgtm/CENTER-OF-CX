@@ -131,7 +131,10 @@ export function compute(d) {
      capacity credit and it sets the realization axis. An out-of-range value used to
      pass straight into the arithmetic as a percentage. */
   let mechKey = d.mech;
-  if (!MECH[mechKey]) {
+  /* Own-key test, not truthiness: "constructor", "toString" and "__proto__" are truthy
+     on any object literal, skipped this branch, and threw at mechName.toLowerCase(),
+     white-screening the tool on a crafted scenario link. */
+  if (!Object.prototype.hasOwnProperty.call(MECH, mechKey)) {
     const legacy = LEGACY_MECH[n(d.mech)];
     if (legacy && String(n(d.mech)) === String(d.mech)) {
       guards.push({ label: "Capacity mechanism (legacy numeric link)", entered: String(d.mech), used: legacy, unit: "" });
