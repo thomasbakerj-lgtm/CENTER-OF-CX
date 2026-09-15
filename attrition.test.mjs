@@ -411,5 +411,38 @@ A("every option list is non-empty", [MECH_OPTS, BACKFILL_OPTS, INTENT_OPTS, VACA
 A("every evidence option maps to a grade", EVIDENCE_OPTS.every(o => !!EVIDENCE_GRADE[o.v]));
 A("every credit class maps to a grade", Object.values(MECH).every(x => !!CRED_GRADE[x.cred]));
 
+/* ---- K. mechanism key resolution ---- */
+console.log("\nK. mechanism key resolution");
+const PROTO = ["constructor", "toString", "__proto__", "hasOwnProperty", "valueOf", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString"];
+for (const k of PROTO) {
+  let r, threw = false;
+  try { r = compute(m({ mech: k })); } catch (e) { threw = true; }
+  A(`prototype name "${k}" does not throw`, !threw);
+  if (threw) continue;
+  A(`prototype name "${k}" resolves to none`, r.mechKey === "none" && r.mech === 0 && r.cred === MECH.none.cred);
+  A(`prototype name "${k}" prints a real label`, typeof r.mechName === "string" && r.mechName === MECH.none.label);
+  A(`prototype name "${k}" is disclosed`, r.guards.some(g => g.label === "Capacity mechanism" && g.entered === k && g.used === "none"));
+  A(`prototype name "${k}" leaves no NaN in numeric outputs`, Object.values(r).every(v => typeof v !== "number" || !Number.isNaN(v)));
+}
+for (const k of ["nonsense", undefined, null, ""]) {
+  const r = compute(m({ mech: k }));
+  A(`unknown mechanism ${JSON.stringify(k)} withholds credit and discloses`, r.mechKey === "none" && r.mech === 0 && r.guards.some(g => g.label === "Capacity mechanism"));
+}
+for (const k of MECH_ORDER) {
+  const r = compute(m({ mech: k }));
+  A(`own key "${k}" passes untouched`, r.mechKey === k && r.mech === MECH[k].f && !r.guards.some(g => /Capacity mechanism/.test(g.label)));
+}
+for (const [num, key] of Object.entries(LEGACY_MECH)) {
+  for (const raw of [num, Number(num)]) {
+    const r = compute(m({ mech: raw }));
+    A(`legacy ${typeof raw} ${raw} maps to ${key} with disclosure`, r.mechKey === key && r.guards.some(g => g.label === "Capacity mechanism (legacy numeric link)" && g.used === key));
+  }
+}
+A("a substituted mechanism never credits more than the least declared one", PROTO.every(k => { try { return compute(m({ mech: k })).mech <= Math.min(...MECH_ORDER.map(x => MECH[x].f)); } catch (e) { return false; } }));
+A("source gate: the mechanism lookup is an own-key test", /hasOwnProperty\.call\(MECH, mechKey\)/.test(region));
+A("source gate: no truthy mechanism lookup remains", !/!MECH\[mechKey\]/.test(region));
+A("source gate: the component has no second raw mechanism lookup", (SRC.match(/(?<![A-Z_])MECH\[(?!mechKey\]|k\])/g) || []).length === 0);
+A("source gate: the selector reads the engine-resolved key", /value=\{r\.mechKey\}/.test(SRC));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
