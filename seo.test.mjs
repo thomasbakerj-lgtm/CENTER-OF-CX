@@ -415,6 +415,20 @@ section("P. Sub-vertical getters resolve prototype names as not found");
   eq("P  getter slugs match the generated sub-vertical count", pages, collectSubVerticalNames().length);
 }
 
+section("Q. Sitemap carries every sub-vertical page and nothing else under a vertical");
+{
+  const subs = collectSubVerticalNames();
+  const want = new Set(subs.map(({ key }) => `/industries/${key}`));
+  const have = new Set(locs.filter((p) => /^\/industries\/[^/]+\/[^/]+$/.test(p)));
+  const APP_SRC = readFileSync("./App.jsx", "utf8");
+  eq("Q  sitemap sub-vertical count equals generated count", have.size, want.size);
+  for (const p of want) ok(`Q  ${p} is in the sitemap`, have.has(p));
+  for (const p of have) ok(`Q  sitemap ${p} has a data entry`, want.has(p));
+  for (const v of new Set(subs.map(({ key }) => key.split("/")[0]))) {
+    ok(`Q  App.jsx routes /industries/${v}/:slug`, APP_SRC.includes(`path="/industries/${v}/:slug"`));
+  }
+}
+
 if (failures.length) {
   console.log("\nFAILURES");
   for (const f of failures.slice(0, 40)) console.log(`  ${f}`);
