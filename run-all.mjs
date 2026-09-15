@@ -70,6 +70,7 @@ const REGISTRY = [
 /* Harnesses that verify shared infrastructure rather than one tool. */
 const INFRA = [
   { name: "rail.test.mjs", covers: "src/lib rail contract" },
+  { name: "guards.test.mjs", covers: "src/lib input guard: unclean entries disclosed" },
   { name: "seo.test.mjs", covers: "reachability: titles, counts, slugs" },
   { name: "track.test.mjs", covers: "instrumentation: event contract, no PII" },
   { name: "chunk.test.mjs", covers: "delivery: entry chunk ceiling, lazy routes" },
