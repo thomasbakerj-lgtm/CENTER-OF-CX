@@ -523,9 +523,14 @@ function Calculator() {
   // implementationCost) and never sums the two. A shared ?s= scenario wins over pulls.
   // The attrition field pulls attritionRate. No tool publishes a key named attrition, so
   // the old pull was dead on every visit and never prefilled from the Attrition Calculator.
+  // Occupancy is not pulled. Staffing publishes Erlang C occupancy for one design interval
+  // at required headcount, which rises with queue size alone: 67 percent at 40 contacts an
+  // interval, 98 percent at 3,000, both at an 80/20 target. This field is operating
+  // occupancy across logged-in time, and it drives the burnout and idle-capacity verdicts.
+  // Same key, different fact, so a prefill would hand TCO a verdict it did not earn.
   useEffect(() => {
     const next = {}; const got = {};
-    const map = { aht: "aht", shrinkage: "shrinkage", occupancy: "occupancy", agents: "agents", attrition: "attritionRate" };
+    const map = { aht: "aht", shrinkage: "shrinkage", agents: "agents", attrition: "attritionRate" };
     for (const [field, key] of Object.entries(map)) {
       const v = getExternalPrimitive(key, "tco-calculator");
       if (v != null && !isNaN(v)) { next[field] = v; got[field] = true; }
@@ -714,7 +719,7 @@ function Calculator() {
                   <NumField label="Hold Time (seconds)" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Within AHT (line open)" />
                   <NumField label="FCR" value={d.fcr} onChange={v => set("fcr", v)} info={DEFS.fcr} infoTitle="FCR" suffix="%" factor={100} min={0} max={100} hint={<span style={{ color: getBench(n(d.fcr), 0.65, 0.85) }}>Bench 65 to 85%</span>} />
                   <NumField label="Containment" value={d.containment} onChange={v => set("containment", v)} info={DEFS.containment} infoTitle="Containment" suffix="%" factor={100} min={0} max={100} hint={<span style={{ color: getBench(n(d.containment), 0.15, 0.45) }}>Bench 15 to 45%</span>} />
-                  <NumField label="Occupancy" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={150} pulled={pulled.occupancy} hint={<span style={{ color: n(d.occupancy) > BENCH.occupancy.cautionMax ? RED : n(d.occupancy) > BENCH.occupancy.healthyMax ? AMBER : GREEN }}>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above is burnout</span>} />
+                  <NumField label="Occupancy" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={150} hint={<span style={{ color: n(d.occupancy) > BENCH.occupancy.cautionMax ? RED : n(d.occupancy) > BENCH.occupancy.healthyMax ? AMBER : GREEN }}>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above is burnout</span>} />
                   <NumField label="Shrinkage" value={d.shrinkage} onChange={v => set("shrinkage", v)} info={DEFS.shrinkage} infoTitle="Shrinkage" suffix="%" factor={100} min={0} max={100} pulled={pulled.shrinkage} hint="25 to 35%" />
                   <NumField label="Annual Attrition" value={d.attrition} onChange={v => set("attrition", v)} info={DEFS.attrition} infoTitle="Attrition" suffix="%" factor={100} min={0} max={200} pulled={pulled.attrition} hint={<span style={{ color: getBench(n(d.attrition), 0.20, 0.55, true) }}>Bench 20 to 40%</span>} />
                   <NumField label="Absenteeism" value={d.absenteeism} onChange={v => set("absenteeism", v)} suffix="%" factor={100} min={0} max={100} hint="5 to 10%" />
