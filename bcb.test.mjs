@@ -21,23 +21,24 @@ const helpers = slice("const STATUS = {", "function LogoMark");
 const consts  = slice("const STANCE = {", "/* De-overlapped model");
 const engine  = slice("function computeCase(", "export default function");
 
-const MECH = {
-  none: { label: "Not selected", f: 0.00, cred: "none", note: "" },
-  growth: { label: "Absorb growth / backlog", f: 0.25, cred: "capacity", note: "" },
-  overtime: { label: "Reduce overtime", f: 0.60, cred: "finance", note: "" },
-  hiring: { label: "Avoid hiring / attrition freeze", f: 0.75, cred: "finance", note: "" },
-  vendor: { label: "Vendor / BPO volume reduction", f: 0.90, cred: "cash", note: "" },
-  headcount: { label: "Headcount reduction", f: 1.00, cred: "cash", note: "" },
-};
-const MECH_ORDER = ["none", "growth", "overtime", "hiring", "vendor", "headcount"];
-const MECH_DEFAULT = "hiring";
+/* Dependency integrity. Import the real modules, do not rebuild them. A local copy of
+   MECH drifts, and a local copy of pick would test a guard the tool does not run. */
+let MECH, MECH_ORDER, MECH_DEFAULT, createGuards;
+try {
+  ({ MECH, MECH_ORDER, MECH_DEFAULT } = await import("./src/lib/mech.js"));
+  ({ createGuards } = await import("./src/lib/guards.js"));
+} catch (e) {
+  console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js.");
+  console.error(String(e.message || e));
+  process.exit(1);
+}
 
-const mod = new Function("MECH", "MECH_ORDER", "MECH_DEFAULT",
+const mod = new Function("MECH", "MECH_ORDER", "MECH_DEFAULT", "createGuards",
   `${helpers}\n${consts}\n${engine}\n` +
-  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
-)(MECH, MECH_ORDER, MECH_DEFAULT);
+  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
+)(MECH, MECH_ORDER, MECH_DEFAULT, createGuards);
 
-const { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE } = mod;
+const { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE } = mod;
 
 let pass = 0, fail = 0;
 const FAILS = [];
@@ -363,9 +364,18 @@ section("11. confidenceOf, every branch");
 
   // Boundary exactness on target thresholds.
   const at25 = { ...clean, evidence: "proposal", containment: 25 };
+  /* The cap now keys off the stance the ENGINE ran, not the argument passed here. The old
+     form asserted that a third argument could raise an attribution cap over arithmetic that
+     had applied a different stance, which is the defect this session closed. */
   ok("aggressive stance raises a WITHHELD item, not a cost-input open item", (() => {
-    const c = confidenceOf({ ...clean, evidence: "proposal" }, rc, "aggressive");
+    const ra = computeCase({ ...clean, evidence: "proposal" }, "aggressive", true);
+    const c = confidenceOf({ ...clean, evidence: "proposal" }, ra, "aggressive");
     return c.withheld.some(t => /Aggressive stance/.test(t)) && !c.open.some(t => /Aggressive stance/.test(t));
+  })());
+  ok("the aggressive cap follows the engine stance, not the caller argument", (() => {
+    const re = computeCase({ ...clean, evidence: "proposal" }, "expected", true);
+    const c = confidenceOf({ ...clean, evidence: "proposal" }, re, "aggressive");
+    return !c.withheld.some(t => /Aggressive stance/.test(t));
   })());
 
   // Zero-agent divide guard in perAgentImpl.
@@ -702,7 +712,7 @@ section("12z. Rendered narrative, asserted on the SOURCE");
      meth.includes("never scaled by either adjustment"));
   ok("SOURCE methodology branches on the repeat-contact basis", meth.includes('repeatBasis === "fcr-proxy"'));
   ok("SOURCE methodology still branches on phasing", meth.includes("phasing was turned OFF"));
-  ok("SOURCE methodology still branches on stance", meth.includes('stance === "aggressive"'));
+  ok("SOURCE methodology still branches on the RESOLVED stance", meth.includes('r.stanceKey === "aggressive"'));
 
   ok("SOURCE no surface still calls the headline cost-input confidence", !has("Cost-input confidence"));
   ok("SOURCE the PDF subtitle names the capacity action and case confidence",
@@ -2107,6 +2117,193 @@ section("J. 1-14 fragility, the thin return that used to pass in silence");
     const r = computeCase(d, "expected", true, "headcount"), c = confidenceOf(d, r, "expected");
     return c.grade === "Finance-grade" && c.findings.length === 0 && r.fragile === false;
   });
+}
+
+/* ------------------------------------------------ K. enum resolution --- */
+/* Four enum inputs reach this engine from a scenario link: stance, capacity action,
+   cost evidence basis and displaced-spend evidence. Shipped, stance was not guarded at
+   all and threw before the first figure rendered; the other three used a truthy lookup,
+   which an inherited property name passes, so the engine computed on a function object
+   and printed NaN. Unknown keys took a shipped default in silence. Every fallback below
+   is the reading that credits the case LEAST, so a substitution can only withhold. */
+section("K. Enum resolution, substitution and disclosure");
+{
+  const PROTO = ["toString", "constructor", "__proto__", "valueOf", "hasOwnProperty", "isPrototypeOf"];
+  const EMPTYISH = ["nonsense", "", null, undefined, 0, 7, {}, []];
+  const allNums = (o) => Object.values(o).filter(v => typeof v === "number");
+  const noNaN = (o) => allNums(o).every(v => !isNaN(v));
+
+  // ---- stance ----
+  for (const h of [...PROTO, ...EMPTYISH]) {
+    ex(`K stance "${String(h)}" does not throw and prints no NaN`, () => {
+      const d = D(), r = computeCase(d, h, true, "hiring");
+      return noNaN(r) && !isNaN(r.net) && !isNaN(r.gross) && !isNaN(r.roi3);
+    });
+    ex(`K stance "${String(h)}" falls back to conservative, the heaviest haircut`, () => {
+      const r = computeCase(D(), h, true, "hiring");
+      return r.stanceKey === "conservative" && r.stanceLabel === STANCE.conservative.label;
+    });
+    ex(`K stance "${String(h)}" discloses exactly one correction`, () => {
+      const d = D(), r = computeCase(d, h, true, "hiring");
+      return r.corrections.length === 1 && /Attribution stance was/.test(r.corrections[0])
+        && /was held at Conservative\./.test(r.corrections[0]);
+    });
+    ex(`K stance "${String(h)}" caps the case at Directional`, () => {
+      const d = D({ evidence: "proposal" }), r = computeCase(d, h, true, "headcount");
+      return confidenceOf(d, r, h).grade === "Directional";
+    });
+  }
+  ex("K a substituted stance never credits more than the entered one could", () => {
+    const d = D();
+    return computeCase(d, "nonsense", true, "hiring").net <= computeCase(d, "aggressive", true, "hiring").net;
+  });
+
+  // ---- capacity action ----
+  /* undefined is excluded here and tested below: it is indistinguishable from an omitted
+     fourth argument, which legitimately takes the signature default rather than a
+     substitution. Reading it as hostile would make the default parameter untestable. */
+  const MECH_HOSTILE = [...PROTO, ...EMPTYISH.filter(v => v !== undefined)];
+  ex("K an omitted capacity action takes the signature default, not a correction", () => {
+    const r = computeCase(D(), "expected", true);
+    return r.mechKey === MECH_DEFAULT && r.corrections.length === 0;
+  });
+  for (const h of MECH_HOSTILE) {
+    ex(`K mech "${String(h)}" prints no NaN`, () => {
+      const r = computeCase(D(), "expected", true, h);
+      return noNaN(r) && !isNaN(r.net) && !isNaN(r.capacityRealized);
+    });
+    ex(`K mech "${String(h)}" falls back to none and realizes zero capacity`, () => {
+      const r = computeCase(D(), "expected", true, h);
+      return r.mechKey === "none" && r.mf === 0 && r.capacityRealized === 0 && r.cred === "none";
+    });
+    ex(`K mech "${String(h)}" discloses exactly one correction`, () => {
+      const r = computeCase(D(), "expected", true, h);
+      return r.corrections.length === 1 && /Capacity action was/.test(r.corrections[0])
+        && /was held at Not selected\./.test(r.corrections[0]);
+    });
+  }
+  ex("K the shipped silent default is gone: an unknown mech no longer credits hiring at 75%", () => {
+    const r = computeCase(D(), "expected", true, "nonsense");
+    return r.mf !== MECH.hiring.f && r.mechKey !== MECH_DEFAULT;
+  });
+
+  // ---- cost evidence basis ----
+  for (const h of PROTO.concat(["nonsense", 0, 7, {}])) {
+    ex(`K evidence "${String(h)}" resolves to a real EVIDENCE key`, () => {
+      const d = D({ evidence: h }), r = computeCase(d, "expected", true, "hiring");
+      const c = confidenceOf(d, r, "expected");
+      return Object.prototype.hasOwnProperty.call(EVIDENCE, c.evidence) && EVIDENCE[c.evidence].label === "Estimate";
+    });
+    ex(`K evidence "${String(h)}" discloses one correction and caps at Directional`, () => {
+      const d = D({ evidence: h }), r = computeCase(d, "expected", true, "headcount");
+      const c = confidenceOf(d, r, "expected");
+      return c.corrections.length === 1 && /Cost evidence basis was/.test(c.corrections[0]) && c.grade === "Directional";
+    });
+  }
+  ex("K an omitted evidence basis is a real starting state, not a correction", () => {
+    for (const v of [undefined, null, ""]) {
+      const d = D({ evidence: v }), r = computeCase(d, "expected", true, "hiring");
+      const c = confidenceOf(d, r, "expected");
+      if (c.evidence !== "estimate" || c.corrections.length !== 0) return false;
+    }
+    return true;
+  });
+  for (const k of ["estimate", "quote", "proposal"])
+    ex(`K evidence "${k}" is a shipped key and raises no correction`, () => {
+      const d = D({ evidence: k }), r = computeCase(d, "expected", true, "hiring");
+      const c = confidenceOf(d, r, "expected");
+      return c.evidence === k && c.corrections.length === 0;
+    });
+
+  // ---- displaced-spend evidence ----
+  const BAUD = { bauEliminatedAnnual: 2000000, evidence: "proposal" };
+  for (const h of PROTO.concat(["nonsense", 0, 7])) {
+    ex(`K bauEvidence "${String(h)}" resolves to a real BAU_EVIDENCE key`, () => {
+      const d = D({ ...BAUD, bauEvidence: h }), r = computeCase(d, "expected", true, "headcount");
+      const c = confidenceOf(d, r, "expected");
+      return Object.prototype.hasOwnProperty.call(BAU_EVIDENCE, c.bauEvidence) && c.bauEvidence === "estimated";
+    });
+    ex(`K bauEvidence "${String(h)}" still raises the displacement open item`, () => {
+      const d = D({ ...BAUD, bauEvidence: h }), r = computeCase(d, "expected", true, "headcount");
+      const c = confidenceOf(d, r, "expected");
+      return r.displacementShare > 0.25 && c.open.some(t => /technology-cost displacement/.test(t));
+    });
+    ex(`K bauEvidence "${String(h)}" no longer prints a Finance-grade cost basis`, () => {
+      const d = D({ ...BAUD, bauEvidence: h }), r = computeCase(d, "expected", true, "headcount");
+      return confidenceOf(d, r, "expected").costGrade !== "Finance-grade";
+    });
+  }
+  ex("K a reviewed contract still clears the displacement open item", () => {
+    const d = D({ ...BAUD, bauEvidence: "reviewed" }), r = computeCase(d, "expected", true, "headcount");
+    return !confidenceOf(d, r, "expected").open.some(t => /technology-cost displacement/.test(t));
+  });
+
+  // ---- disclosure channel ----
+  ex("K every correction reaches the reader through withheld, never through open", () => {
+    const d = D({ evidence: "nonsense", bauEvidence: "toString", bauEliminatedAnnual: 2000000 });
+    const r = computeCase(d, "__proto__", true, "valueOf");
+    const c = confidenceOf(d, r, "__proto__");
+    return c.corrections.length === 4
+      && c.withheld.some(t => /substituted before this case was computed/.test(t))
+      && !c.open.some(t => /substituted before this case was computed/.test(t));
+  });
+  ex("K four simultaneous substitutions are each named once", () => {
+    const d = D({ evidence: "nonsense", bauEvidence: "toString", bauEliminatedAnnual: 2000000 });
+    const c = confidenceOf(d, computeCase(d, "__proto__", true, "valueOf"), "__proto__");
+    return /Attribution stance was/.test(c.corrections.join(" ")) && /Capacity action was/.test(c.corrections.join(" "))
+      && /Cost evidence basis was/.test(c.corrections.join(" ")) && /Displaced spend evidence was/.test(c.corrections.join(" "));
+  });
+  ex("K a fully clean case raises no correction and is not capped by one", () => {
+    const d = D({ evidence: "proposal", bauEvidence: "reviewed" });
+    const r = computeCase(d, "expected", true, "headcount"), c = confidenceOf(d, r, "expected");
+    return r.corrections.length === 0 && c.corrections.length === 0
+      && !c.withheld.some(t => /substituted before this case was computed/.test(t));
+  });
+  ex("K the confidence axes read the stance the engine ran, not the caller argument", () => {
+    const d = D({ evidence: "proposal" });
+    const r = computeCase(d, "nonsense", true, "headcount");
+    return confidenceOf(d, r, "aggressive").withheld.every(t => !/Aggressive stance/.test(t));
+  });
+  ex("K caseInsights prints the resolved stance, never the entered string", () => {
+    const d = D({ implementationCost: 120000 });
+    const r = computeCase(d, "nonsense", true, "headcount"), c = confidenceOf(d, r, "nonsense");
+    return caseInsights(r, d, "nonsense", c).join(" ").indexOf("nonsense stance") === -1;
+  });
+
+  /* ---- source gates. The runtime blocks above pass against a local reimplementation of
+     the guard; these pin the shipped file to the shared module and to the resolved keys. */
+  const A = (name, cond) => ok("K SOURCE " + name, cond);
+  A("the tool imports createGuards from the shared module",
+    /import \{ createGuards \} from "\.\/src\/lib\/guards";/.test(SRC));
+  A("the engine binds pick through createGuards",
+    /const \{ guards: picks, pick \} = createGuards\(\);/.test(SRC));
+  A("the stance resolves through pick with a conservative fallback",
+    /const stKey = resolve\("Attribution stance", stanceKey, STANCE, "conservative"\);/.test(SRC));
+  A("the capacity action resolves through pick with a none fallback",
+    /const mKey = resolve\("Capacity action", mechKey, MECH, "none"\);/.test(SRC));
+  A("the cost evidence basis resolves through pick",
+    /resolveC\("Cost evidence basis", d\.evidence == null \|\| d\.evidence === "" \? "estimate" : d\.evidence, EVIDENCE, "estimate"\)/.test(SRC));
+  A("the displaced-spend evidence resolves through pick",
+    /resolveC\("Displaced spend evidence", d\.bauEvidence == null \|\| d\.bauEvidence === "" \? "estimated" : d\.bauEvidence, BAU_EVIDENCE, "estimated"\)/.test(SRC));
+  A("the correction sentence names the table label it was held at",
+    /which is not an option this tool offers, and was held at \$\{table\[k\]\.label\}/.test(SRC));
+  A("the raw stance index is gone from the engine", !/const cf = STANCE\[stanceKey\];/.test(SRC));
+  A("the raw truthy mech lookup is gone", !/MECH\[mechKey\] \|\| MECH\[MECH_DEFAULT\]/.test(SRC));
+  A("the raw truthy mechKey return is gone", !/MECH\[mechKey\] \? mechKey : MECH_DEFAULT/.test(SRC));
+  A("the raw evidence default is gone", !/const evidence = d\.evidence \|\| "estimate";/.test(SRC));
+  A("the raw truthy bauEvidence lookup is gone", !/BAU_EVIDENCE\[d\.bauEvidence\] \? d\.bauEvidence : "estimated"/.test(SRC));
+  A("no component-path read still indexes STANCE by raw state", !/STANCE\[stance\]/.test(SRC));
+  A("the component reads the resolved stance", (SRC.match(/STANCE\[r\.stanceKey\]/g) || []).length === 11);
+  A("the capacity-action note reads the resolved mech key", /\{MECH\[r\.mechKey\]\.note\}/.test(SRC));
+  A("the capacity-action selector displays the resolved mech key", /<select value=\{r\.mechKey\}/.test(SRC));
+  A("the stance selector displays the resolved stance key", /background: r\.stanceKey === k \? ELECTRIC/.test(SRC));
+  A("the evidence selector displays the resolved evidence key", /background: conf\.evidence === k \? ELECTRIC/.test(SRC));
+  A("the displaced-spend selector displays the resolved key", /background: conf\.bauEvidence === k \? ELECTRIC/.test(SRC));
+  A("telemetry reports the resolved stance and the correction count",
+    /stance_class: r\.stanceKey,/.test(SRC) && /inputs_corrected: conf\.corrections\.length,/.test(SRC));
+  A("the correction cap is Directional and names its own domain",
+    /caps\.push\(\["Directional", `\$\{corrections\.length\} setting/.test(SRC)
+    && /scenario-integrity concern and says nothing about the cost inputs/.test(SRC));
 }
 
 console.log(`\n${"=".repeat(64)}`);
