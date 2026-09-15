@@ -2,7 +2,7 @@ export const telecomSubVerticals = {
   "mobile-wireless": {
     name: "Mobile / Wireless Carriers", parent: "Telecommunications",
     tagline: "Plan changes, billing disputes, device support, network coverage, and retention.",
-    intro: "Wireless carrier contact centers handle the highest volume and highest churn of any CX operation. Millions of subscribers generate calls about billing (40%), device issues (20%), plan changes (15%), network complaints (10%), and retention (15%). Every interaction is either a churn risk or a revenue opportunity.",
+    intro: "Wireless carrier contact centers operate at subscriber scale in a high-churn market. Billing questions drive the largest share of contacts, followed by device support, plan changes, network complaints, and retention calls. Every interaction either raises churn risk or opens a revenue opportunity, and the operation is built around telling the two apart fast.",
     kpis: [
       { metric: "AHT", avg: "9:00", note: "Long — billing explanations and retention negotiations are complex" },
       { metric: "FCR", avg: "38%", note: "Lowest in CX — multi-system billing, network, and device issues rarely resolve in one call" },
