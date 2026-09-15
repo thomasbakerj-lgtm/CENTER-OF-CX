@@ -14,6 +14,7 @@
 import { useState, useEffect, useRef } from "react";
 import InfoDot from "./InfoDot";
 import { COLORS } from "./benchmarks";
+import { parseEntry, isCleanEntry } from "./guards";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, MUTED = COLORS.muted;
 const BORDER = "#D8E3ED", ICE = "#E8F4FD";
@@ -21,7 +22,10 @@ const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 
 export default function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, factor = 1, pulled, compact, info, infoTitle, infoAlign }) {
   const fac = factor || 1;
-  const toDisp = (v) => Math.round(n(v) * fac * 1000) / 1000;
+  // A value that is not a clean number (a bad scenario link, a stale state) shows as
+  // its raw text, the same text the engine discloses, so the field never shows a 0
+  // the user did not enter and the report does not disagree with the form.
+  const toDisp = (v) => isCleanEntry(v) ? Math.round(n(v) * fac * 1000) / 1000 : (v == null ? "" : String(v));
   const [local, setLocal] = useState(String(toDisp(value)));
   const focusedRef = useRef(false), holdRef = useRef(null), valRef = useRef(n(value)), pressingRef = useRef(false), stopRef = useRef(null);
   valRef.current = n(value);
@@ -33,16 +37,18 @@ export default function NumField({ label, value, onChange, hint, prefix, suffix,
   const clampN = (x) => { if (min != null && x < min) x = min; if (max != null && x > max) x = max; return Math.round(x * 1000) / 1000; };
 
   // Typing never fights the user and never injects a 0 on empty or partial input.
+  // parseEntry is strict: "1,200" reads as 1200, while "12abc" or "1e" send nothing
+  // rather than a truncated 12 or 1.
   const onType = (e) => {
     const raw = e.target.value;
     setLocal(raw);
     if (raw.trim() === "" || raw === "-" || raw === "." || raw === "-.") return;
-    const parsed = parseFloat(raw);
+    const parsed = parseEntry(raw);
     if (!isNaN(parsed)) onChange(parsed / fac);
   };
   const onBlurField = () => {
     focusedRef.current = false;
-    const parsed = parseFloat(local);
+    const parsed = parseEntry(local);
     const clean = isNaN(parsed) ? n(value) : clampN(parsed);
     onChange(clean / fac);
     setLocal(String(clean));
