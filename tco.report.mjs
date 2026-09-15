@@ -504,7 +504,8 @@ console.log("\n6c. the domain table covers the form and is never narrower");
 
 /*
  * 6d. A pulled rate must survive the form. The rail accepts attrition to 200 percent and
- * occupancy to 150. A NumField ceiling below that rewrites a true pulled value to the
+ * occupancy to 150. Occupancy is entered, never pulled: Staffing's interval Erlang figure
+ * is a different fact under the same key. A NumField ceiling below that rewrites a true pulled value to the
  * ceiling on the first keystroke or step, silently. Every rate the pull map reads is held
  * to its metrics.js ceiling on both the form and the domain row, paired targets carry
  * their baseline ceiling, and the shipped NumField clamp is run against the pulled edge.
@@ -523,7 +524,9 @@ console.log("\n6d. pulled rates survive the form at the rail ceiling");
   const mm = SRC.match(/const map = \{([^}]*)\}/);
   A("the pull map is readable", !!mm);
   const MAP = mm ? Object.fromEntries([...mm[1].matchAll(/(\w+):\s*"(\w+)"/g)].map(x => [x[1], x[2]])) : {};
-  A("the pull map carries attrition and occupancy", MAP.attrition === "attritionRate" && MAP.occupancy === "occupancy");
+  A("the pull map carries attrition", MAP.attrition === "attritionRate");
+  A("the pull map does not prefill occupancy from interval Erlang", !("occupancy" in MAP) && !Object.values(MAP).includes("occupancy"));
+  A("no occupancy pull exists anywhere in TCO", !/getExternalPrimitive\(\s*["']occupancy["']/.test(SRC) && !/pulled=\{pulled\.occupancy\}/.test(SRC));
   let rates = 0;
   for (const [f, key] of Object.entries(MAP)) {
     const spec = metricRegistry[key];
@@ -536,7 +539,7 @@ console.log("\n6d. pulled rates survive the form at the rail ceiling");
     A(`${f}: form ceiling ${ff.max} equals the rail ceiling ${ceil}`, ff.max === ceil);
     A(`${f}: domain ceiling equals the rail ceiling ${ceil}`, ROWS[f] && ROWS[f][3] === ceil);
   }
-  A("at least three pulled rates were checked", rates >= 3);
+  A("at least two pulled rates were checked", rates >= 2);
   for (const [t, b] of [["targetAttrition", "attrition"], ["targetFcr", "fcr"], ["targetContainment", "containment"]]) {
     A(`${t}: form ceiling matches ${b}`, field(t) && field(b) && field(t).max === field(b).max);
     A(`${t}: domain ceiling matches ${b}`, ROWS[t] && ROWS[b] && ROWS[t][3] === ROWS[b][3]);
