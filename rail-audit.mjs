@@ -105,13 +105,18 @@ function matchFrom(src, openIdx, open, close) {
 }
 function topLevelKeys(body) {
   const keys = new Set();
-  let d = 0, str = null;
-  for (let k = 0; k < body.length; k++) {
+  let d = 0, str = null, seg = 0;
+  /* A shorthand property ({ aht, vol }) has no colon. It still publishes. Missing it hid
+     StaffingCalculator as a publisher of aht. A segment that is a bare identifier is one. */
+  const shorthand = (a, b) => { const t = body.slice(a, b).trim(); if (/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(t)) keys.add(t); };
+  for (let k = 0; k <= body.length; k++) {
+    if (k === body.length) { if (!str && d === 0) shorthand(seg, k); break; }
     const c = body[k], p = body[k - 1];
     if (str) { if (c === str && p !== "\\") str = null; continue; }
     if (c === '"' || c === "'" || c === "`") { str = c; continue; }
     if (c === "{" || c === "[" || c === "(") d++;
     else if (c === "}" || c === "]" || c === ")") d--;
+    else if (d === 0 && c === ",") { shorthand(seg, k); seg = k + 1; }
     else if (d === 0 && c === ":") {
       let e = k - 1; while (e >= 0 && /\s/.test(body[e])) e--;
       let st = e; while (st >= 0 && /[A-Za-z0-9_$]/.test(body[st])) st--;
@@ -167,9 +172,111 @@ function publishKeys(src) {
   return keys;
 }
 
+/* Map every `const NAME = { ... }` to the string literal VALUES at its top level, so a key
+   map walked by Object.entries or Object.values can be resolved to the keys it pulls. */
+function constObjectValues(src) {
+  const map = new Map();
+  const re = /const\s+([A-Za-z0-9_$]+)\s*=\s*\{/g;
+  let m;
+  while ((m = re.exec(src))) {
+    const brace = src.indexOf("{", m.index);
+    const end = matchFrom(src, brace, "{", "}");
+    if (end === -1) continue;
+    const body = src.slice(brace + 1, end - 1);
+    const vals = [...body.matchAll(/:\s*["'`]([A-Za-z0-9_]+)["'`]\s*(?:,|$)/g)].map((x) => x[1]);
+    if (vals.length) map.set(m[1], vals);
+  }
+  return map;
+}
+
+/* A rail getter called with a variable instead of a string literal. The literal regex below
+   never saw these, so TCOCalculator pulled five keys the audit could not see, one of them
+   (attrition) published by nobody. A variable key is resolved when it is the loop variable of
+   Object.entries(MAP) or Object.values(MAP) over a const object literal. Anything else is
+   returned as unresolved, and unresolved fails the gate: an unread pull is not a clean one. */
+function wrapperLiterals(src, param) {
+  const defs = [...src.matchAll(/(?:const|let)\s+([A-Za-z0-9_$]+)\s*=\s*\(([^)]*)\)\s*=>|function\s+([A-Za-z0-9_$]+)\s*\(([^)]*)\)/g)];
+  const out = new Set();
+  let found = false;
+  for (const d of defs) {
+    const name = d[1] || d[3];
+    const params = (d[2] ?? d[4]).split(",").map((p) => p.trim().split("=")[0].trim());
+    const idx = params.indexOf(param);
+    if (idx < 0) continue;
+    let calls = 0;
+    for (const c of src.matchAll(new RegExp(`(?<![A-Za-z0-9_$.])${name}\\s*\\(`, "g"))) {
+      if (c.index === d.index + d[0].indexOf(name) && d[3]) continue; // the function declaration itself
+      const open = src.indexOf("(", c.index);
+      if (d[1] && src.slice(d.index, open + 1) === src.slice(c.index, open + 1)) continue;
+      const end = matchFrom(src, open, "(", ")");
+      if (end === -1) return null;
+      const args = []; let depth = 0, str = null, seg = open + 1;
+      for (let k = open + 1; k < end - 1; k++) {
+        const ch = src[k], p = src[k - 1];
+        if (str) { if (ch === str && p !== "\\") str = null; continue; }
+        if (ch === '"' || ch === "'" || ch === "`") { str = ch; continue; }
+        if ("([{".includes(ch)) depth++; else if (")]}".includes(ch)) depth--;
+        else if (ch === "," && depth === 0) { args.push(src.slice(seg, k).trim()); seg = k + 1; }
+      }
+      args.push(src.slice(seg, end - 1).trim());
+      const a = args[idx];
+      const lit = a && a.match(/^["'`]([A-Za-z0-9_]+)["'`]$/);
+      if (!lit) return null;
+      out.add(lit[1]); calls++;
+    }
+    if (calls) found = true;
+  }
+  return found ? out : null;
+}
+
+const PRIM_GETTERS = "getPrimitive|getPrimitiveWithSource|getExternalPrimitive";
+function variablePulls(src) {
+  const resolved = new Set(), unresolved = new Set(), external = new Set();
+  const vals = constObjectValues(src);
+  const re = new RegExp(`\\b(${PRIM_GETTERS})\\s*\\(\\s*(?![\\s"'\`)])`, "g");
+  let m;
+  while ((m = re.exec(src))) {
+    /* Read the whole first argument. A bare identifier may resolve; any other expression
+       (a call, a member, a ternary, a template) cannot be read statically and is unresolved. */
+    const open = src.indexOf("(", m.index);
+    const end = matchFrom(src, open, "(", ")");
+    let depth = 0, str = null, cut = end === -1 ? src.length : end - 1;
+    for (let k = open + 1; k < cut; k++) {
+      const ch = src[k], p = src[k - 1];
+      if (str) { if (ch === str && p !== "\\") str = null; continue; }
+      if (ch === '"' || ch === "'" || ch === "`") { str = ch; continue; }
+      if ("([{".includes(ch)) depth++; else if (")]}".includes(ch)) depth--;
+      else if (ch === "," && depth === 0) { cut = k; break; }
+    }
+    const arg = src.slice(open + 1, cut).trim();
+    if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(arg)) { unresolved.add(`${m[1]}(${arg})`); continue; }
+    const v = arg;
+    const ent = new RegExp(`for\\s*\\(\\s*(?:const|let|var)\\s*\\[[^\\]]*\\b${v}\\b[^\\]]*\\]\\s*of\\s*Object\\.entries\\(\\s*([A-Za-z0-9_$]+)\\s*\\)`).exec(src)
+      || new RegExp(`for\\s*\\(\\s*(?:const|let|var)\\s+${v}\\s+of\\s*Object\\.values\\(\\s*([A-Za-z0-9_$]+)\\s*\\)`).exec(src);
+    const add = (k) => { resolved.add(k); if (m[1] === "getExternalPrimitive") external.add(k); };
+    if (ent && vals.has(ent[1])) { for (const k of vals.get(ent[1])) add(k); continue; }
+    /* A local wrapper that forwards its parameter: const take = (field, key) => getter(key).
+       Resolved through every call site of the wrapper, reading the argument at that position.
+       A call site whose argument there is not a string literal leaves the pull unresolved. */
+    const lits = wrapperLiterals(src, v);
+    if (lits) for (const k of lits) add(k);
+    else unresolved.add(`${m[1]}(${v})`);
+  }
+  return { resolved, unresolved, external };
+}
+
+/* Keys this file reads through getExternalPrimitive, literal or resolved. That getter
+   returns undefined when the only producer is the caller, so a key fed by no OTHER file
+   is as dead as a key fed by nobody. */
+function externalPullKeys(src) {
+  const keys = new Set(variablePulls(src).external);
+  for (const m of src.matchAll(/\bgetExternalPrimitive\s*\(\s*["'`]([A-Za-z0-9_]+)["'`]/g)) keys.add(m[1]);
+  return keys;
+}
+
 /* Every rail read: the four getters plus the key array inside sourcedExternally. */
 function pullKeys(src) {
-  const keys = new Set();
+  const keys = new Set(variablePulls(src).resolved);
   const single = /\b(?:getPrimitive|getPrimitiveWithSource|getExternalPrimitive|getCurrent|getToolResult)\s*\(\s*["'`]([A-Za-z0-9_]+)["'`]/g;
   let m;
   while ((m = single.exec(src))) keys.add(m[1]);
@@ -201,6 +308,8 @@ const perFile = [];             // hygiene + id
 let emTotal = 0, trackAdopters = 0, toolFileCount = 0;
 const TOOL_FILES = [];          // rail-active tool files, for the severity audit
 const deadRefs = [];
+const unresolvedPulls = [];      // {file, call}
+const externalPulls = [];        // {file, key} read through getExternalPrimitive
 
 for (const [path, src] of files) {
   if (path === "src/lib/metrics.js" || path === "src/lib/toolData.js") { /* machinery, still hygiene-checked below */ }
@@ -209,6 +318,10 @@ for (const [path, src] of files) {
   const pulls = isTool ? pullKeys(src) : new Set();
   for (const k of pubs) { const r = resolve(k); if (!publishersOf.has(r)) publishersOf.set(r, []); publishersOf.get(r).push(path); }
   for (const k of pulls) { const r = resolve(k); if (!pullersOf.has(r)) pullersOf.set(r, []); pullersOf.get(r).push({ file: path, raw: k }); }
+  if (isTool) {
+    for (const call of variablePulls(src).unresolved) unresolvedPulls.push({ file: path, call });
+    for (const k of externalPullKeys(src)) externalPulls.push({ file: path, key: resolve(k) });
+  }
 
   const em = countChar(src, 0x2014), en = countChar(src, 0x2013);
   const smart = countChar(src, 0x2019) + countChar(src, 0x201C) + countChar(src, 0x201D);
@@ -243,6 +356,19 @@ for (const [key, callers] of pullersOf) {
   });
 }
 
+/* self-fed pulls: getExternalPrimitive of a key whose only publishers are the caller itself.
+   Skipped when the key is already an orphan, so one defect is reported once. */
+const orphanKeys = new Set(orphans.map((o) => o.key));
+const selfFed = [];
+for (const { file, key } of externalPulls) {
+  if (orphanKeys.has(key)) continue;
+  const others = (publishersOf.get(key) || []).filter((f) => f !== file);
+  if (others.length) continue;
+  const d = derivations[key];
+  if (d && (publishersOf.get(d.from) || []).some((f) => f !== file)) continue;
+  if (!selfFed.some((x) => x.file === file && x.key === key)) selfFed.push({ file, key });
+}
+
 /* published but pulled by nobody: informational, often export-only, not a defect */
 const unconsumed = [...publishersOf.keys()].filter((k) => !pullersOf.has(k));
 
@@ -262,6 +388,14 @@ else {
     line(`      pulled by: ${o.callers.join(", ")}`);
   }
 }
+
+line("\n---  UNRESOLVED PULLS  (getter called with a key the audit cannot read)  ---");
+if (unresolvedPulls.length === 0) line("  none. every rail read resolves to a named key.");
+else for (const u of unresolvedPulls) line(`  ${u.file}  ${u.call}`);
+
+line("\n---  SELF-FED PULLS  (getExternalPrimitive of a key only the caller publishes)  ---");
+if (selfFed.length === 0) line("  none. every external read has a producer other than its caller.");
+else for (const x of selfFed) line(`  ${x.key}   pulled by ${x.file}, which is its only publisher. getExternalPrimitive always returns undefined.`);
 
 line("\n---  EM-DASH SWEEP  (sitewide zero rule)  ---");
 const emFiles = perFile.filter((f) => f.em > 0);
@@ -361,7 +495,9 @@ line(orphans.length === 0
    in a log nobody reads, which is how it got this far. An unreadable severity
    expression counts the same: an unchecked file is not a clean one. */
 const sevBroken = badBands.length + uncheckable.length;
+const deadBroken = unresolvedPulls.length + selfFed.length;
+if (deadBroken) line(`RESULT: ${unresolvedPulls.length} unresolved pull(s), ${selfFed.length} self-fed pull(s). a pull that cannot be fed is dead.`);
 if (sevBroken) line(`RESULT: ${badBands.length} severity value(s) outside the wire allowlist, ${uncheckable.length} unchecked.`);
 line("");
 
-process.exit(orphans.length + sevBroken);
+process.exit(orphans.length + sevBroken + deadBroken);
