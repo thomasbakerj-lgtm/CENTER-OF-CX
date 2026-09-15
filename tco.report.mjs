@@ -502,6 +502,66 @@ console.log("\n6c. the domain table covers the form and is never narrower");
   A("no domain row exists without a form field", DOCS.A.TCO_DOMAIN.every(r => FORM.some(f => f.key === r[0])));
 }
 
+/*
+ * 6d. A pulled rate must survive the form. The rail accepts attrition to 200 percent and
+ * occupancy to 150. A NumField ceiling below that rewrites a true pulled value to the
+ * ceiling on the first keystroke or step, silently. Every rate the pull map reads is held
+ * to its metrics.js ceiling on both the form and the domain row, paired targets carry
+ * their baseline ceiling, and the shipped NumField clamp is run against the pulled edge.
+ */
+console.log("\n6d. pulled rates survive the form at the rail ceiling");
+{
+  const { metricRegistry } = await import("./src/lib/metrics.js");
+  const field = (key) => {
+    const at = SRC.indexOf(`<NumField label=`, SRC.indexOf(`value={d.${key}}`) - 200);
+    const end = SRC.indexOf("/>", SRC.indexOf(`value={d.${key}}`));
+    const t = SRC.slice(SRC.lastIndexOf("<NumField", SRC.indexOf(`value={d.${key}}`)), end);
+    const num = (nm) => { const m = t.match(new RegExp("\\b" + nm + "=\\{(-?[\\d.]+)\\}")); return m ? Number(m[1]) : null; };
+    return at < 0 ? null : { max: num("max"), min: num("min"), factor: num("factor") || 1 };
+  };
+  const ROWS = Object.fromEntries(DOCS.A.TCO_DOMAIN.map(r => [r[0], r]));
+  const mm = SRC.match(/const map = \{([^}]*)\}/);
+  A("the pull map is readable", !!mm);
+  const MAP = mm ? Object.fromEntries([...mm[1].matchAll(/(\w+):\s*"(\w+)"/g)].map(x => [x[1], x[2]])) : {};
+  A("the pull map carries attrition and occupancy", MAP.attrition === "attritionRate" && MAP.occupancy === "occupancy");
+  let rates = 0;
+  for (const [f, key] of Object.entries(MAP)) {
+    const spec = metricRegistry[key];
+    if (!spec || spec.fractionMax == null) continue;
+    rates++;
+    const ceil = spec.fractionMax * 100;
+    const ff = field(f);
+    A(`${f}: form field found`, !!ff);
+    if (!ff) continue;
+    A(`${f}: form ceiling ${ff.max} equals the rail ceiling ${ceil}`, ff.max === ceil);
+    A(`${f}: domain ceiling equals the rail ceiling ${ceil}`, ROWS[f] && ROWS[f][3] === ceil);
+  }
+  A("at least three pulled rates were checked", rates >= 3);
+  for (const [t, b] of [["targetAttrition", "attrition"], ["targetFcr", "fcr"], ["targetContainment", "containment"]]) {
+    A(`${t}: form ceiling matches ${b}`, field(t) && field(b) && field(t).max === field(b).max);
+    A(`${t}: domain ceiling matches ${b}`, ROWS[t] && ROWS[b] && ROWS[t][3] === ROWS[b][3]);
+  }
+  const NF = readFileSync("./src/lib/NumField.jsx", "utf8");
+  const cm = NF.match(/const clampN = \(x\) => \{([^\n]*)\};/);
+  A("the shipped NumField clamp is readable", !!cm);
+  if (cm) {
+    const clamp = (x, min, max) => new Function("x", "min", "max", cm[1])(x, min, max);
+    const att = field("attrition"), occ = field("occupancy"), tat = field("targetAttrition");
+    A("a pulled 135% attrition survives a retype", clamp(135, att.min, att.max) === 135);
+    A("a pulled 135% attrition survives a step up", clamp(136, att.min, att.max) === 136);
+    A("attrition at the rail edge 200 survives", clamp(200, att.min, att.max) === 200);
+    A("attrition above the rail edge stops at 200", clamp(250, att.min, att.max) === 200);
+    A("a pulled 118% occupancy survives a retype", clamp(118, occ.min, occ.max) === 118);
+    A("occupancy above the rail edge stops at 150", clamp(180, occ.min, occ.max) === 150);
+    A("a 150% operation can set a 120% target", clamp(120, tat.min, tat.max) === 120);
+    const g = DOCS.A.guardTCO ? DOCS.A.guardTCO({ ...DOCS.A.BASE, ...DOCS.A.dRaw, attrition: 1.35, occupancy: 1.18, targetAttrition: 1.2 }) : null;
+    const gd = g && (g.d || g.guarded || g);
+    A("the guard runs the form's 135% attrition uncorrected", gd && gd.attrition === 1.35);
+    A("the guard runs the form's 118% occupancy uncorrected", gd && gd.occupancy === 1.18);
+    A("the guard runs the form's 120% target uncorrected", gd && gd.targetAttrition === 1.2);
+  }
+}
+
 /* ---- 7. Finance-grade is reachable and is gated on documents ---- */
 console.log("\n7. Finance-grade is reachable and is gated on documents");
 {
