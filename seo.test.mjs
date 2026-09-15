@@ -289,6 +289,35 @@ for (const p of uniqueLocs) {
 
 /* ------------------------------------------------------------------ report */
 
+
+/* ------------------------------------------------------ Z. prototype keys */
+/* Route segments arrive from the address bar. A bare bracket read resolves
+   inherited names through Object.prototype, which printed native code into the
+   title and let /vendors/ccaas/toString claim the scored, indexable branch. */
+section("Z. Prototype names in route segments resolve as unknown");
+{
+  const PROTO = ["constructor", "toString", "__proto__", "hasOwnProperty", "valueOf", "isPrototypeOf", "toLocaleString"];
+  const native = (s) => /native code|function /.test(String(s));
+  for (const k of PROTO) {
+    for (const p of [`/vendors/${k}`, `/vendors/${k}/healthcare`, `/vendors/ccaas/${k}`, `/vendors/${k}/${k}`, `/industries/${k}`, `/industries/${k}/x`, `/industries/healthcare/${k}`, `/${k}`]) {
+      let r, threw = false;
+      try { r = resolveSeo(p); } catch (e) { threw = true; }
+      ok(`Z  ${p} does not throw`, !threw);
+      if (threw) continue;
+      ok(`Z  ${p} title carries no native code`, !native(r.title));
+      ok(`Z  ${p} description carries no native code`, !native(r.desc));
+    }
+    eq(`Z  /vendors/ccaas/${k} is not indexable`, resolveSeo(`/vendors/ccaas/${k}`).known, false);
+    ok(`Z  /vendors/ccaas/${k} does not claim scored fit`, !/Scored Vendors/.test(resolveSeo(`/vendors/ccaas/${k}`).title));
+    eq(`Z  /${k} does not match a mapped route`, resolveSeo(`/${k}`).known, false);
+    eq(`Z  vendorDisplayName("${k}") falls back to the slug`, vendorDisplayName(k), titleCase(k));
+    eq(`Z  vendorCategoryLabel("${k}") is empty`, vendorCategoryLabel(k), "");
+  }
+  const SEO_SRC = readFileSync("./src/lib/seo.js", "utf8");
+  ok("Z  source gate: seo.js defines an own-key reader", /const own = \(o, k\) => \(Object\.prototype\.hasOwnProperty\.call\(o, k\)/.test(SEO_SRC));
+  ok("Z  source gate: no bare bracket read on a name map", !/\b(CAT_NAMES|VERT_NAMES|LEGACY_CAT_NAMES|LEGACY_VERT_NAMES|VENDOR_NAMES|SEO_MAP)\[/.test(SEO_SRC));
+}
+
 if (failures.length) {
   console.log("\nFAILURES");
   for (const f of failures.slice(0, 40)) console.log(`  ${f}`);
