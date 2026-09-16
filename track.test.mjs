@@ -309,6 +309,150 @@ withWindow({ location: { pathname: "/tools/tco" } }, captureNav, () => {
 eq("H7  an unconfigured build sends nothing at all", sent.length, 0);
 CONFIG.key = key0;
 
+/* -------------------------------------- I. repeat is decided once per session */
+/* Each "page load" is a fresh module instance against persisted storage, which
+   is exactly what a reload or a second visit is. Transport is captured through
+   fetch so the body is readable; no sendBeacon on the stub navigator. */
+section("I. repeat is true only if the browser id predates this session");
+
+const mem = () => { const m = new Map(); return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), _m: m }; };
+const bodies = [];
+let loadN = 0;
+async function pageLoad() {
+  const mod = await import(`./src/lib/track.js?load=${++loadN}`);
+  mod.CONFIG.key = "phc_harness";
+  return mod;
+}
+function run(win, nav, fn) {
+  const rw = globalThis.window, rn = globalThis.navigator, rf = globalThis.fetch;
+  globalThis.window = win;
+  Object.defineProperty(globalThis, "navigator", { value: nav, configurable: true, writable: true });
+  globalThis.fetch = (u, o) => { bodies.push(JSON.parse(o.body)); return Promise.resolve(); };
+  try { fn(); } finally {
+    globalThis.window = rw; globalThis.fetch = rf;
+    Object.defineProperty(globalThis, "navigator", { value: rn, configurable: true, writable: true });
+  }
+}
+const repeats = () => bodies.map((b) => b.properties.repeat);
+const LOC = { pathname: "/tools/tco-calculator" };
+
+{
+  const ls = mem(), ss1 = mem();
+  let m = await pageLoad();
+  bodies.length = 0;
+  run({ localStorage: ls, sessionStorage: ss1, location: LOC }, {}, () => { m.track(EV.TOOL_VIEW, { tool: "tco" }); m.track(EV.TOOL_COMPLETE, { tool: "tco" }); m.track(EV.REPORT_EXPORT, { tool: "tco" }); });
+  eq("I1  first visit: every event in the session reports repeat false", repeats(), [false, false, false]);
+
+  m = await pageLoad(); bodies.length = 0;
+  run({ localStorage: ls, sessionStorage: ss1, location: LOC }, {}, () => { m.track(EV.TOOL_VIEW, { tool: "tco" }); m.track(EV.TOOL_VIEW, { tool: "tco" }); });
+  eq("I2  reload inside the first session still reports repeat false", repeats(), [false, false]);
+
+  const ss2 = mem();
+  m = await pageLoad(); bodies.length = 0;
+  run({ localStorage: ls, sessionStorage: ss2, location: LOC }, {}, () => { m.track(EV.TOOL_VIEW, { tool: "tco" }); m.track(EV.TOOL_COMPLETE, { tool: "tco" }); });
+  eq("I3  a new session on a known browser reports repeat true throughout", repeats(), [true, true]);
+  eq("I4  the distinct id is stable across sessions", new Set(bodies.map((b) => b.distinct_id)).size, 1);
+
+  const ssLegacy = mem(); ssLegacy.setItem("coc:sid", "legacysession01");
+  m = await pageLoad(); bodies.length = 0;
+  run({ localStorage: ls, sessionStorage: ssLegacy, location: LOC }, {}, () => m.track(EV.TOOL_VIEW, { tool: "tco" }));
+  eq("I5  a session with no pinned answer reports no repeat rather than a guess", repeats(), [undefined]);
+
+  m = await pageLoad(); bodies.length = 0;
+  run({ localStorage: throwingStorage, sessionStorage: mem(), location: LOC }, {}, () => m.track(EV.TOOL_VIEW, { tool: "tco" }));
+  eq("I6  localStorage denied: repeat is unknown, not false", repeats(), [undefined]);
+}
+
+/* ------------------------------------- J. real is normalised before comparing */
+section("J. inputsMoved normalises types before comparing to defaults");
+const { inputsMoved } = await import("./src/lib/scenarioUrl.js");
+const D = { agents: 50, wage: 18.5, ai: true, mix: [1, 2], name: "acme" };
+eq("J1  untouched defaults are not real", inputsMoved({ ...D }, D), false);
+eq("J2  numeric string equal to the default is not real", inputsMoved({ ...D, agents: "50" }, D), false);
+eq("J3  padded or comma string equal to the default is not real", inputsMoved({ ...D, agents: " 50 ", wage: "18.50" }, D), false);
+eq("J4  thousands separator equal to the default is not real", inputsMoved({ agents: "1,200" }, { agents: 1200 }), false);
+eq("J5  boolean string equal to the default is not real", inputsMoved({ ...D, ai: "true" }, D), false);
+eq("J6  a structurally equal copy of an array is not real", inputsMoved({ ...D, mix: [1, 2] }, D), false);
+eq("J7  a moved number is real", inputsMoved({ ...D, agents: 51 }, D), true);
+eq("J8  a moved numeric string is real", inputsMoved({ ...D, agents: "51" }, D), true);
+eq("J9  a flipped boolean is real", inputsMoved({ ...D, ai: false }, D), true);
+eq("J10 a changed array is real", inputsMoved({ ...D, mix: [2, 1] }, D), true);
+eq("J11 a cleared field is real", inputsMoved({ ...D, agents: "" }, D), true);
+eq("J12 a key absent from state is not a change", inputsMoved({}, D), false);
+eq("J13 hostile input never throws and reads false", inputsMoved(null, undefined), false);
+
+const ra = src("./ReportActions.jsx");
+const fcBody = (ra.match(/const fireComplete = \(\) => \{[\s\S]*?\n  \};/) || [""])[0];
+ok("J14 tool_complete is sent only from fireComplete", (ra.match(/trackTool\.complete\(/g) || []).length === 1 && /trackTool\.complete\(/.test(fcBody));
+ok("J15 real is computed inside fireComplete, at fire time", /inputsMoved\(state, defaults\)/.test(fcBody));
+ok("J16 no empty-deps effect fires tool_complete on mount", !/useEffect\(\(\) => \{[^}]*(fireComplete|trackTool\.complete)[\s\S]{0,400}?\}, \[\]\)/.test(ra));
+ok("J17 the mount pass records a snapshot and returns without firing",
+   /if \(mountSnapRef\.current === undefined\) \{ mountSnapRef\.current = stateSnap; return; \}/.test(ra));
+ok("J18 an input change after mount fires", /stateSnap !== mountSnapRef\.current\) fireComplete\(\)/.test(ra));
+for (const [name, re] of [
+  ["PDF export", /onClickCapture=\{fireComplete\}[^>]*><ReportExport/],
+  ["email a copy", /setCopyState\("sent"\);\s*fireComplete\(\);/],
+  ["review submit", /setReviewState\("sent"\);\s*fireComplete\(\);/],
+  ["copy scenario link", /setLinkCopied\(true\); fireComplete\(\);/],
+  ["review opened", /setReviewOpen\(true\); fireComplete\(\);/],
+]) ok(`J19 report action fires tool_complete: ${name}`, re.test(ra));
+
+/* ---------------------------------------- K. one tool_view per path per session */
+section("K. tool_view is deduplicated per pathname per session");
+{
+  const ss = mem();
+  let m = await pageLoad();
+  const res = [];
+  run({ sessionStorage: ss, location: LOC }, {}, () => {
+    res.push(m.claimView("/tools/tco-calculator"));
+    res.push(m.claimView("/tools/tco-calculator"));
+    res.push(m.claimView("/tools/TCO-Calculator/"));
+    res.push(m.claimView("/tools/staffing-calculator"));
+  });
+  eq("K1  first claim true, repeats and case or slash variants false, new path true", res, [true, false, false, true]);
+  m = await pageLoad(); const r2 = [];
+  run({ sessionStorage: ss, location: LOC }, {}, () => r2.push(m.claimView("/tools/tco-calculator")));
+  eq("K2  a reload inside the session does not re-claim the path", r2, [false]);
+  m = await pageLoad(); const r3 = [];
+  run({ sessionStorage: mem(), location: LOC }, {}, () => r3.push(m.claimView("/tools/tco-calculator")));
+  eq("K3  a new session claims the path again", r3, [true]);
+  m = await pageLoad(); const r4 = [];
+  run({ sessionStorage: throwingStorage, location: LOC }, {}, () => { r4.push(m.claimView("/tools/x")); r4.push(m.claimView("/tools/x")); });
+  eq("K4  storage denied: memory still dedupes within the page load", r4, [true, false]);
+}
+const journey = (src("./App.jsx").match(/function Journey\(\) \{[\s\S]*?\n\}/) || [""])[0];
+ok("K5  Journey claims the path before sending tool_view", /if \(id && claimView\(pathname\)\) trackTool\.view\(id\);/.test(journey));
+ok("K6  Journey has exactly one tool_view call site", (journey.match(/trackTool\.view\(/g) || []).length === 1);
+for (const f of ["./TCOCalculator.jsx", "./BusinessCaseBuilder.jsx"]) {
+  ok(`K7  ${f}: no wrapper double-fires report_export around ReportActions`, !/trackTool\.pdf\(/.test(src(f)));
+}
+
+/* ------------------------------------------------ L. bot and internal guard */
+section("L. automation and internal browsers never reach the wire");
+{
+  const m = await pageLoad();
+  eq("L1  webdriver blocks", m.captureBlocked({ webdriver: true }, {}), true);
+  eq("L2  cccx_internal=1 blocks", m.captureBlocked({}, { localStorage: { getItem: (k) => (k === "cccx_internal" ? "1" : null) } }), true);
+  eq("L3  cccx_internal=0 does not block", m.captureBlocked({}, { localStorage: { getItem: () => "0" } }), false);
+  eq("L4  webdriver false and no flag does not block", m.captureBlocked({ webdriver: false }, { localStorage: mem() }), false);
+  eq("L5  storage throwing does not block", m.captureBlocked({}, { localStorage: throwingStorage }), false);
+  eq("L6  webdriver blocks even when storage throws", m.captureBlocked({ webdriver: true }, { localStorage: throwingStorage }), true);
+  eq("L7  missing navigator and window do not throw or block", m.captureBlocked(undefined, undefined), false);
+
+  const ls = mem(), ss = mem();
+  bodies.length = 0;
+  run({ localStorage: ls, sessionStorage: ss, location: LOC }, { webdriver: true }, () => { m.track(EV.TOOL_VIEW, { tool: "tco" }); m.trackTool.pdf("tco"); });
+  eq("L8  a webdriver browser sends nothing", bodies.length, 0);
+  eq("L9  a webdriver browser is never issued an id", ls._m.has("coc:aid") || ss._m.has("coc:sid"), false);
+
+  const lsi = mem(); lsi.setItem("cccx_internal", "1");
+  run({ localStorage: lsi, sessionStorage: mem(), location: LOC }, {}, () => m.trackTool.view("tco"));
+  eq("L10 an internal browser sends nothing", bodies.length, 0);
+
+  run({ localStorage: mem(), sessionStorage: mem(), location: LOC }, {}, () => m.trackTool.view("tco"));
+  eq("L11 an ordinary browser still sends", bodies.length, 1);
+}
+
 /* ------------------------------------------------------------------ report */
 
 if (failures.length) {
