@@ -1183,7 +1183,7 @@ export default function BusinessCaseBuilder() {
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <span onClick={() => trackTool.pdf("business-case-builder")} style={{ display: "inline-flex" }}>
+            <span style={{ display: "inline-flex" }}>
               <ReportActions
                 toolId={TOOL_ID}
                 toolName="Business Case"
