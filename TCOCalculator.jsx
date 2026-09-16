@@ -984,7 +984,7 @@ function Calculator() {
                       <h3 style={{ ...TYPE.h2, fontSize: 19, color: "#fff", margin: "0 0 8px" }}>Take this to your team</h3>
                       <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 20px" }}>Download the board-ready breakdown, share the exact scenario as a link, or send it to our advisory team for a free expert read of the highest-impact levers.</p>
                       <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-                        <span onClick={() => trackTool.pdf("tco-calculator")} style={{ display: "inline-flex" }}>
+                        <span style={{ display: "inline-flex" }}>
 <ReportActions
                           toolId={TOOL_ID}
                           toolName="Total Cost of Ownership Analysis"
