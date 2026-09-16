@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReportExport from "./ReportExport";
-import { scenarioLink } from "./src/lib/scenarioUrl";
+import { scenarioLink, inputsMoved } from "./src/lib/scenarioUrl";
 import { FONT, TYPE } from "./src/lib/type";
 import { trackTool, track, EV } from "./src/lib/track";
 
@@ -193,18 +193,23 @@ export default function ReportActions({
      distinction is the whole difference between a demo view and a diagnosis.
      No input value is read, only whether each field still equals its default. */
   const firedRef = useRef(false);
-  useEffect(() => {
+  /* Fires on the first user input change or the first report action, never on
+     mount: a result painted with our defaults is a page view, not a completion.
+     `real` is computed at fire time, with types normalised in inputsMoved. */
+  const fireComplete = () => {
     if (firedRef.current) return;
     firedRef.current = true;
-    let real = false;
-    try {
-      const d = defaults || {};
-      const st = state || {};
-      real = Object.keys(d).some((k) => st[k] !== undefined && st[k] !== d[k]);
-    } catch { real = false; }
+    const real = inputsMoved(state, defaults);
     trackTool.complete(toolId, { real, grade: confidence, severity: signals && signals.severity });
+  };
+  let stateSnap = null;
+  try { stateSnap = JSON.stringify(state === undefined ? null : state); } catch { stateSnap = null; }
+  const mountSnapRef = useRef(undefined);
+  useEffect(() => {
+    if (mountSnapRef.current === undefined) { mountSnapRef.current = stateSnap; return; }
+    if (stateSnap !== null && stateSnap !== mountSnapRef.current) fireComplete();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [stateSnap]);
 
   const [email, setEmail] = useState(saved.email || "");
   const [first, setFirst] = useState(saved.first || "");
@@ -266,6 +271,7 @@ export default function ReportActions({
       await post(b);
       writeContact({ ...readContact(), email: copyEmail.trim() });
       setCopyState("sent");
+      fireComplete();
       trackTool.copy(toolId, { grade: confidence });
     } catch { setCopyState("error"); }
   };
@@ -286,6 +292,7 @@ export default function ReportActions({
       await post(b);
       persist();
       setReviewState("sent");
+      fireComplete();
       trackTool.expertRead(toolId, { grade: confidence });
     } catch { setReviewState("error"); }
   };
@@ -293,7 +300,7 @@ export default function ReportActions({
   const onCopyLink = async () => {
     if (!link) return;
     const ok = await copyText(link);
-    if (ok) { setLinkCopied(true); trackTool.scenarioShare(toolId); setTimeout(() => setLinkCopied(false), 2400); }
+    if (ok) { setLinkCopied(true); fireComplete(); trackTool.scenarioShare(toolId); setTimeout(() => setLinkCopied(false), 2400); }
   };
 
   const card = {
@@ -329,7 +336,7 @@ export default function ReportActions({
         </p>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18 }}>
-          <ReportExport
+          <span onClickCapture={fireComplete} style={{ display: "contents" }}><ReportExport
             toolId={toolId}
             grade={confidence}
             toolName={toolName}
@@ -337,7 +344,7 @@ export default function ReportActions({
             userName={[first, last].filter(Boolean).join(" ")}
             userEmail={email || copyEmail}
             sections={exportSections}
-          />
+          /></span>
 
           {link ? (
             <button onClick={onCopyLink} style={ghostBtn}
@@ -422,7 +429,7 @@ export default function ReportActions({
           </div>
         ) : !reviewOpen ? (
           <button
-            onClick={() => { setReviewOpen(true); trackTool.reviewOpened(toolId); }}
+            onClick={() => { setReviewOpen(true); fireComplete(); trackTool.reviewOpened(toolId); }}
             style={primaryBtn(false)}>
             Send results and request a review
           </button>
