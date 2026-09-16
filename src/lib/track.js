@@ -257,7 +257,10 @@ const rand = () => {
 
 let memAid = null;
 let memSid = null;
-let wasRepeat = false;
+/* undefined means not yet computed for this page load. null means unknown,
+   which sanitizeProps drops, so an unmeasured repeat is never reported false. */
+let memRepeat;
+const REP = "coc:rep";
 
 function stored(store, key) {
   try {
@@ -273,16 +276,30 @@ function stored(store, key) {
   }
 }
 
+/* repeat is decided once, at the moment this session's id is created: true
+   only if the browser id already existed before that moment. It is then pinned
+   in sessionStorage, so every later event in the session, and a reload inside
+   the session, reads the same answer. The old form set it on the second event
+   of a first visit, because by then this module had written the browser id
+   itself. A session that predates this rule has no pinned answer and reports
+   none, rather than guessing. */
 function identity() {
   const a = stored("localStorage", AID);
-  if (a) { memAid = a.id; if (!a.fresh) wasRepeat = true; }
+  if (a) memAid = a.id;
   else if (!memAid) memAid = rand();
 
   const s = stored("sessionStorage", SID);
   if (s) memSid = s.id;
   else if (!memSid) memSid = rand();
 
-  return { distinctId: memAid, sessionId: memSid, repeat: wasRepeat };
+  if (memRepeat === undefined) {
+    memRepeat = null;
+    if (a) try {
+      if (!s || s.fresh) { memRepeat = !a.fresh; if (s) window.sessionStorage.setItem(REP, +memRepeat); }
+      else { const v = window.sessionStorage.getItem(REP); memRepeat = v === "1" ? true : v === "0" ? false : null; }
+    } catch { /* pinned in memory only */ }
+  }
+  return { distinctId: memAid, sessionId: memSid, repeat: memRepeat };
 }
 
 /* ---------------------------------------------------------------- journey */
@@ -330,6 +347,37 @@ export function sessionDepth() {
   } catch { return 0; }
 }
 
+/* ------------------------------------------------------- real, dedupe, guard */
+
+/* One tool_view per pathname per session. React StrictMode runs effects twice
+   in development, and a remount of the router would do the same in production,
+   so the claim is recorded before the event is sent. Falls back to memory when
+   sessionStorage is unavailable. */
+const memViews = new Set();
+
+export function claimView(pathname) {
+  const p = String(pathname || "").toLowerCase().replace(/\/+$/, "") || "/";
+  if (memViews.has(p)) return false;
+  memViews.add(p);
+  try {
+    const s = window.sessionStorage, k = "coc:views";
+    const list = JSON.parse(s.getItem(k)) || [];
+    if (list.includes(p)) return false;
+    s.setItem(k, JSON.stringify(list.concat(p)));
+  } catch { /* storage denied: memory holds the claim for this page load */ }
+  return true;
+}
+
+/* Automation and internal traffic never reach the wire. navigator.webdriver is
+   set by Selenium, Playwright and Puppeteer. cccx_internal=1 in localStorage is
+   the manual opt-out for TB's own browsers. Checked before identity() so a
+   blocked browser is never issued an id at all. */
+
+export function captureBlocked(nav, win) {
+  try { return nav?.webdriver === true || win?.localStorage?.getItem("cccx_internal") === "1"; }
+  catch { return false; /* storage denied: not internal by any evidence we hold */ }
+}
+
 /* -------------------------------------------------------------- transport */
 
 /* Fire and forget. sendBeacon survives the page being closed, which matters
@@ -366,6 +414,7 @@ export function track(event, props = {}) {
   try {
     if (typeof window === "undefined") return;
     if (!isConfigured()) return;
+    if (captureBlocked(globalThis.navigator, window)) return;
     const id = identity();
     const payload = buildPayload(event, { repeat: id.repeat, ...props }, {
       distinctId: id.distinctId,
