@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { trackTool, toolIdFromPath } from "./src/lib/track"
+import { trackTool, toolIdFromPath, claimView } from "./src/lib/track"
 import { BASE, SITE, resolveSeo } from './src/lib/seo.js'
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { Analytics } from '@vercel/analytics/react'
@@ -211,7 +211,7 @@ function Journey() {
   const { pathname } = useLocation();
   useEffect(() => {
     const id = toolIdFromPath(pathname);
-    if (id) trackTool.view(id);
+    if (id && claimView(pathname)) trackTool.view(id);
   }, [pathname]);
   return null;
 }
