@@ -229,4 +229,32 @@ export function clearScenarioParam() {
   window.history.replaceState({}, "", u.pathname + (u.search || "") + u.hash);
 }
 
+/* Inputs moved off the defaults. Lives here, not in track.js, so it loads
+   only with the tools that render ReportActions and never enlarges the entry chunk. Types are normalised first, because a field
+   bound to an input element hands back "50" where the default is 50, and a
+   strict compare reads that as a change the reader never made. Numeric
+   strings become numbers, "true" and "false" become booleans, objects compare
+   by shape. No value leaves this function, only the boolean. */
+function normInput(v) {
+  if (typeof v === "string") {
+    const t = v.trim();
+    if (t === "true") return true;
+    if (t === "false") return false;
+    const n = Number(t.replace(/,/g, ""));
+    if (t !== "" && Number.isFinite(n)) return n;
+    return t;
+  }
+  if (typeof v === "number") return Number.isFinite(v) ? v : String(v);
+  if (v && typeof v === "object") { try { return JSON.stringify(v); } catch { return String(v); } }
+  return v;
+}
+
+export function inputsMoved(state, defaults) {
+  try {
+    const d = defaults && typeof defaults === "object" ? defaults : {};
+    const st = state && typeof state === "object" ? state : {};
+    return Object.keys(d).some((k) => st[k] !== undefined && normInput(st[k]) !== normInput(d[k]));
+  } catch { return false; }
+}
+
 export const _internals = { diff, patch, b64urlEncode, b64urlDecode, MAX_URL, VERSION };
