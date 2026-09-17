@@ -252,6 +252,7 @@ function render(S) {
     const d = { ...DEFAULTS, ...MUT() };
     const stance = STANCE_KEY, rampOn = RAMP_ON, mech = MECH_KEY;
     const r = computeCase(d, stance, rampOn, mech);
+    const g = r.dg;
     const conf = confidenceOf(d, r, stance);
     const insights = caseInsights(r, d, stance, conf);
     const pulled = PULLED, sources = SOURCES;
