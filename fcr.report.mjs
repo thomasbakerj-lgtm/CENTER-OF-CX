@@ -146,10 +146,12 @@ const dimsRegion = "const DIMS = " + constLiteral("DIMS", "[", "]").replace(/^co
 
 /* the component-scope derivations the payload closes over */
 const compRegion = [
-  constLine("dimScore"), constLine("defDeclared"), constLine("confColor"),
+  constLine("N"), constLine("dimScore"), constLine("defDeclared"), constLine("confColor"),
   constLine("scopeLabel"), constLine("methodLabel"), constLine("aggMult"),
 ].join("\n");
 
+const ENGINE_INPUT = constLine("engineInput");
+A("the shipped engineInput slices out of the JSX and reads sanitized numerics", !!ENGINE_INPUT && /N\.M\b/.test(ENGINE_INPUT) && /numericCorrections: N\.numericCorrections/.test(ENGINE_INPUT));
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
@@ -206,10 +208,10 @@ function render(S) {
     const scores = SCORES;
     ${compRegion}
     const dScoreRaw = DIMS.reduce((a, d) => a + dimScore(d.id), 0) / DIMS.length;
-    const engineInput = { M, fcr: fcrPct / 100, mCPC, lCPC, repeatModel, measuredRate: measuredPct / 100,
-      measuredTargetRate: measuredTargetPct > 0 ? measuredTargetPct / 100 : null, pathModel, repeatMult,
-      dScore: dScoreRaw || 3, askTarget: targetPct / 100, mech, sourcing, investOneTime, investRecurring,
-      costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays };
+    /* The shipped engineInput line, sliced rather than retyped. A retyped copy here
+       would have kept reading raw state after the tool moved to sanitized numerics. */
+    const dScore = dScoreRaw;
+    ${ENGINE_INPUT}
     const R = engine(engineInput);
     const sorted = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id));
     const top = sorted[0];
@@ -513,6 +515,25 @@ A("FCR carries no character-stripping reader", SRC.indexOf('replace(/[^0-9.\\-]/
 A("every FCR NumField states its floor", (SRC.match(/<NumField [^>]*\/>/g) || []).length === 11
   && (SRC.match(/<NumField [^>]*\/>/g) || []).every(t => /\bmin=\{/.test(t)));
 A("no FCR NumField passes the retired align prop", (SRC.match(/<NumField [^>]*\/>/g) || []).every(t => !/ align=/.test(t)));
+
+
+/* Numeric disclosure on the rendered document. A hand-edited link can carry junk
+   in any numeric field. The shipped payload must print no NaN or Infinity outside
+   the disclosure's own quote of what was entered, must carry the disclosure, must
+   block at Directional, and must count it in telemetry. */
+{
+  const JUNK = { M: "abc", mCPC: "Infinity", repeatMult: "12abc", investOneTime: null, targetPct: "$50", fcrPct: "1,200" };
+  const dirty = render({ ...SETS.A, ...JUNK });
+  const all = JSON.stringify({ subtitle: dirty.subtitle, summary: dirty.summary, signals: dirty.signals, sections: dirty.sections });
+  const scrubbed = all.replace(/entered as (\\"[^\\]*\\"|NaN|-?Infinity|blank)/g, "");
+  A("a junk-numeric link prints no NaN, Infinity or undefined anywhere in the document or signals", !/NaN|Infinity|undefined/.test(scrubbed));
+  A("a junk-numeric link discloses every junk field in the document", Object.keys(JUNK).length === 6 &&
+    ["Monthly contacts", "Marginal cost per contact", "Repeat complexity multiplier", "One-time cost", "Target FCR", "Current FCR"].every((l) => all.includes(l + " was entered as")));
+  A("a junk-numeric link blocks at Directional", dirty.R.headlineConf === "Directional");
+  A("telemetry counts the numeric corrections", dirty.signals.inputs_corrected === 6);
+  A("a clean document counts zero numeric corrections", render(SETS.A).signals.inputs_corrected === 0 && render(SETS.B).signals.inputs_corrected === 0);
+  A("every rendered figure is finite for a junk-numeric link", [dirty.R.burdenYr, dirty.R.realizableYr, dirty.R.year1Net, dirty.R.cum2Yr].every(Number.isFinite));
+}
 
 console.log("\n" + "=".repeat(78));
 console.log("  " + pass + " passed, " + fail + " failed");
