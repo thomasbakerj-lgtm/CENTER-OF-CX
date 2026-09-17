@@ -48,6 +48,71 @@ function ok(name, cond, detail = "") {
   else { fail++; FAILS.push(name); console.log(`  FAIL  ${name}${detail ? "  ::  " + detail : ""}`); }
 }
 function section(t) { console.log(`\n${t}`); }
+
+/* Brace-aware slicing, shared lexer with the report harness. The Methodology checks used a
+   fixed 2,600-character window, which silently stops covering the block once it grows. */
+function skipQuoted(src, i) {
+  const q = src[i];
+  for (let j = i + 1; j < src.length; j++) {
+    if (src[j] === "\\") { j++; continue; }
+    if (src[j] === q) return j + 1;
+    if (src[j] === "\n" && q !== "`") return -1;
+  }
+  return -1;
+}
+function skipTemplate(src, i) {
+  for (let j = i + 1; j < src.length; j++) {
+    if (src[j] === "\\") { j++; continue; }
+    if (src[j] === "`") return j + 1;
+    if (src[j] === "$" && src[j + 1] === "{") {
+      const e = skipBraces(src, j + 1);
+      if (e < 0) return -1;
+      j = e - 1;
+    }
+  }
+  return -1;
+}
+function skipBraces(src, i) {
+  let d = 0, j = i;
+  while (j < src.length) {
+    const c = src[j];
+    if (c === "/" && src[j + 1] === "/") { const e = src.indexOf("\n", j); if (e < 0) return -1; j = e; continue; }
+    if (c === "/" && src[j + 1] === "*") { const e = src.indexOf("*/", j + 2); if (e < 0) return -1; j = e + 2; continue; }
+    if (c === '"' || c === "'") { const e = skipQuoted(src, j); if (e < 0) return -1; j = e; continue; }
+    if (c === "`") { const e = skipTemplate(src, j); if (e < 0) return -1; j = e; continue; }
+    if (c === "{") { d++; j++; continue; }
+    if (c === "}") { d--; j++; if (d === 0) return j; continue; }
+    j++;
+  }
+  return -1;
+}
+
+/** Slice a brace/bracket-balanced expression starting at the first `open` after `from`. */
+function balanced(src, from, open, close) {
+  const start = src.indexOf(open, from);
+  if (start < 0) return null;
+  let d = 0, i = start;
+  while (i < src.length) {
+    const c = src[i];
+    if (c === "/" && src[i + 1] === "/") { const e = src.indexOf("\n", i); if (e < 0) return null; i = e; continue; }
+    if (c === "/" && src[i + 1] === "*") { const e = src.indexOf("*/", i + 2); if (e < 0) return null; i = e + 2; continue; }
+    if (c === '"' || c === "'") { const e = skipQuoted(src, i); if (e < 0) return null; i = e; continue; }
+    if (c === "`") { const e = skipTemplate(src, i); if (e < 0) return null; i = e; continue; }
+    if (c === open) { d++; i++; continue; }
+    if (c === close) { d--; i++; if (d === 0) return { start, end: i, text: src.slice(start, i) }; continue; }
+    i++;
+  }
+  return null;
+}
+
+/* The whole Methodology section object, balanced from its own opening brace. */
+function methodologyBlock() {
+  const at = SRC.indexOf('title: "Methodology"');
+  if (at < 0) throw new Error("Methodology section not found");
+  const b = balanced(SRC, SRC.lastIndexOf("{", at), "{", "}");
+  if (!b || !b.text.includes('title: "Methodology"')) throw new Error("Methodology section did not balance");
+  return b.text;
+}
 function ex(name, fn) { try { ok(name, fn()); } catch (e) { ok(name, false, e.message); } }
 
 const D = (over = {}) => ({ ...DEFAULTS, ...over });
@@ -672,14 +737,14 @@ section("12b. Semantic status, headroom and horizon language");
   // The PDF narrative lives in JSX, so assert on the source that no phasing claim is
   // unconditional. This is the exact residue class the peer review predicted.
   ok("every J-curve and phased-narrative claim in the PDF sits inside a rampOn branch", (() => {
-    const meth = SRC.slice(SRC.indexOf('title: "Methodology"'), SRC.indexOf('title: "Methodology"') + 2600);
+    const meth = methodologyBlock();
     const hasJ = meth.includes("real J-curve");
     const guarded = meth.includes('(rampOn ?') && meth.indexOf('(rampOn ?') < meth.indexOf("real J-curve");
     const offBranch = /phasing was turned OFF/i.test(meth);
     return hasJ && guarded && offBranch;
   })());
   ok("the phasing-off methodology branch warns the figures are idealized", (() => {
-    const meth = SRC.slice(SRC.indexOf('title: "Methodology"'), SRC.indexOf('title: "Methodology"') + 2600);
+    const meth = methodologyBlock();
     return /idealized figures/.test(meth) && /shorter and higher/.test(meth);
   })());
 }
@@ -2300,10 +2365,134 @@ section("K. Enum resolution, substitution and disclosure");
   A("the evidence selector displays the resolved evidence key", /background: conf\.evidence === k \? ELECTRIC/.test(SRC));
   A("the displaced-spend selector displays the resolved key", /background: conf\.bauEvidence === k \? ELECTRIC/.test(SRC));
   A("telemetry reports the resolved stance and the correction count",
-    /stance_class: r\.stanceKey,/.test(SRC) && /inputs_corrected: conf\.corrections\.length,/.test(SRC));
+    /stance_class: r\.stanceKey,/.test(SRC) && /inputs_corrected: conf\.corrections\.length \+ conf\.numericCorrections\.length,/.test(SRC));
   A("the correction cap is Directional and names its own domain",
     /caps\.push\(\["Directional", `\$\{corrections\.length\} setting/.test(SRC)
     && /scenario-integrity concern and says nothing about the cost inputs/.test(SRC));
+}
+
+section("L. Numeric disclosure, every numeric input");
+{
+  /* Every numeric field is probed with every unclean shape a link or the rail can carry.
+     Each non-exempt case must disclose exactly once, name the raw text and the value the
+     engine used, cap the case at Directional, and leave nothing non-finite in the engine
+     result or the printed text. The run is repeated against source mutants so the checks
+     are proven able to fail. */
+  const LABEL = { agents: "Agent count", avgHourly: "Average agent hourly rate", benefitsPct: "Benefits and burden",
+    monthlyContacts: "Monthly contact volume", currentAHT: "Current AHT", currentACW: "Current ACW",
+    currentFCR: "Current FCR", repeatShare: "Same-reason repeat contacts", currentAttrition: "Annual attrition",
+    costPerContact: "Loaded cost per contact", marginalPerContact: "Marginal cost per contact",
+    recruitCostPerHire: "Recruiting cost per hire", trainingDays: "New hire training days",
+    htReduction: "Handle-time reduction", acwReduction: "ACW reduction", fcrImprovement: "FCR improvement",
+    attritionReduction: "Attrition reduction", containment: "Self-service containment",
+    implementationCost: "Implementation cost", newPlatformPerAgentMo: "New platform cost per agent per month",
+    migrationMonths: "Migration timeline", rampMonths: "Ramp to full savings",
+    bauEliminatedAnnual: "Current annual spend eliminated", bauOverlapMonths: "Dual-run period",
+    bauOverlapShare: "Current spend still paid in dual run", bauExitCost: "Exit and decommissioning cost",
+    bauBackfillCash: "Incremental cash labor", bauAbsorbedHours: "Absorbed internal labor" };
+  const BLANK_OK = new Set(["repeatShare", "marginalPerContact", "bauEliminatedAnnual", "bauOverlapMonths",
+    "bauExitCost", "bauBackfillCash", "bauAbsorbedHours"]);
+  const UNCLEAN = ["", "abc", "12abc", "1,200", NaN, Infinity, null, "Infinity", "$50"];
+  const ENTERED = (v) => v == null || v === "" ? "blank" : typeof v === "string" ? `"${v}"` : String(v);
+  const HELD = (k, v) => { const p = parseFloat(v); const x = Number.isFinite(p) ? p : 0; return k === "rampMonths" ? Math.max(1, x) : x; };
+  const nonFinite = (r) => Object.entries(r).filter(([, v]) => typeof v === "number" && !Number.isFinite(v)).map(([k]) => k);
+  const printed = (c, ins) => (c.withheld.join(" ") + " " + c.findings.join(" ") + " " + ins.join(" "))
+    .replace(/was entered as [^,]*, which is not a number/g, "");
+
+  const checks = (M, record) => {
+    const T = (name, cond) => { if (record) ok("L " + name, cond); return !!cond; };
+    const res = [];
+    const numKeys = Object.keys(LABEL);
+    const BASE = { ...M.DEFAULTS, bauEliminatedAnnual: 240000 };
+    let matrix = true, leaks = true, grades = true, exempt = true, held = true;
+    for (const k of numKeys) for (const v of UNCLEAN) {
+      const d = { ...BASE, [k]: v };
+      let r, c, ins;
+      try { r = M.computeCase(d, "expected", true, "none"); c = M.confidenceOf(d, r, "expected"); ins = M.caseInsights(r, d, "expected", c); }
+      catch (e) { matrix = false; continue; }
+      const nc = r.numericCorrections || [];
+      if (nonFinite(r).length || /Infinity|NaN/.test(printed(c, ins))) leaks = false;
+      if (BLANK_OK.has(k) && ENTERED(v) === "blank") { if (nc.length !== 0) exempt = false; continue; }
+      const want = `${LABEL[k]} was entered as ${ENTERED(v)}, which is not a number, and was held at ${HELD(k, v)}.`;
+      if (nc.length !== 1) matrix = false;
+      else if (nc[0] !== want) held = false;
+      if (c.grade !== "Directional" || !c.withheld.some(w => w.includes(want))) grades = false;
+    }
+    res.push(T("every unclean non-exempt entry discloses exactly once", matrix));
+    res.push(T("each disclosure names the raw text and the value the engine used", held));
+    res.push(T("an unclean entry caps the case at Directional with the sentence in the withheld list", grades));
+    res.push(T("no non-finite value reaches the engine result or any printed line", leaks));
+    res.push(T("a blank that already means not supplied is not disclosed twice", exempt));
+
+    const one = (patch, ramp = true) => { const d = { ...M.DEFAULTS, ...patch }; const r = M.computeCase(d, "expected", ramp, "none"); return { r, c: M.confidenceOf(d, r, "expected") }; };
+    res.push(T("a thousands group is held at its truncated value, never read as 1200", one({ agents: "1,200" }).r.dg.agents === 1));
+    res.push(T("ramp Infinity runs at the floor of 1 and discloses 1", (() => { const { r } = one({ rampMonths: Infinity }); return r.R === 1 && /Ramp to full savings was entered as Infinity, which is not a number, and was held at 1\./.test(r.numericCorrections.join(" ")); })()));
+    res.push(T("ramp is not checked when phasing is off, and still cannot go non-finite", (() => { const { r } = one({ rampMonths: "abc" }, false); const q = one({ rampMonths: Infinity }, false).r; return r.numericCorrections.length === 0 && q.numericCorrections.length === 0 && Number.isFinite(q.R); })()));
+    res.push(T("dual-run terms are not checked when no BAU spend is entered", one({ bauOverlapMonths: "abc", bauOverlapShare: "abc" }).r.numericCorrections.length === 0));
+    res.push(T("dual-run share is checked once BAU spend is entered", one({ bauEliminatedAnnual: 100000, bauOverlapShare: "abc" }).r.numericCorrections.length === 1));
+    res.push(T("migration is not checked with phasing off and no BAU, and is checked once BAU is entered", one({ migrationMonths: "abc" }, false).r.numericCorrections.length === 0 && one({ migrationMonths: "abc", bauEliminatedAnnual: 100000 }, false).r.numericCorrections.length === 1));
+    res.push(T("a blank implementation cost and a blank platform fee are disclosed", one({ implementationCost: "" }).r.numericCorrections.length === 1 && one({ newPlatformPerAgentMo: null }).r.numericCorrections.length === 1));
+    res.push(T("a clean exponent and a clean numeric string are not disclosed", (() => { const { r, c } = one({ agents: "1e3", avgHourly: " 18.5 " }); return r.numericCorrections.length === 0 && r.dg.agents === 1000 && r.dg.avgHourly === 18.5 && c.grade !== undefined; })()));
+
+    /* Neutrality on clean input: nothing is recorded, the values the engine ran equal n(),
+       and confidence and insights read identically from the raw object and from the
+       values the engine ran. */
+    let seed = 1103; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+    let neutral = true;
+    for (let i = 0; i < 8000 && neutral; i++) {
+      const d = { ...M.DEFAULTS };
+      for (const k of numKeys) { const base = M.DEFAULTS[k] || 50, x = rnd();
+        const v = x < 0.08 ? 0 : x < 0.12 ? -Math.round(rnd() * base) : Math.round(rnd() * base * 3 * 100) / 100;
+        const f = rnd(); d[k] = f < 0.15 ? String(v) : f < 0.2 ? `${v}e0` : v; }
+      if (i % 2) d.bauEliminatedAnnual = 0;
+      const st = ["aggressive", "expected", "conservative"][i % 3], ramp = i % 5 !== 0, mech = MECH_ORDER[i % MECH_ORDER.length];
+      const r = M.computeCase(d, st, ramp, mech);
+      if (r.numericCorrections.length) { neutral = false; break; }
+      for (const k of numKeys) if (r.dg[k] !== M.n(d[k])) neutral = false;
+      const dn = { ...d, ...Object.fromEntries(numKeys.map(k => [k, r.dg[k]])) };
+      const c1 = M.confidenceOf(d, r, st), c2 = M.confidenceOf(dn, r, st);
+      if (JSON.stringify(c1) !== JSON.stringify(c2)) neutral = false;
+      if (M.caseInsights(r, d, st, c1).join("|") !== M.caseInsights(r, dn, st, c2).join("|")) neutral = false;
+    }
+    res.push(T("neutrality: 8,000 clean random cases record nothing and read exactly as n()", neutral));
+    return res;
+  };
+
+  const build = (eng, cons = consts) => new Function("MECH", "MECH_ORDER", "MECH_DEFAULT", "createGuards",
+    `${helpers}\n${cons}\n${eng}\nreturn { computeCase, confidenceOf, caseInsights, DEFAULTS, n };`)(MECH, MECH_ORDER, MECH_DEFAULT, createGuards);
+  checks(build(engine), true);
+
+  const MUTANTS = [
+    ["disclosure silenced", "if (check && bad !== null", "if (false && bad !== null"],
+    ["non-finite passed through", "const p = n(raw), v = Number.isFinite(p) ? p : 0;", "const p = n(raw), v = p;"],
+    ["engine reads raw input", "  d = dg;\n", "\n"],
+    ["ramp floor dropped from the sentence", 'gv("rampMonths", "Ramp to full savings", rampOn, false, 1);', 'gv("rampMonths", "Ramp to full savings", rampOn, false, 0);'],
+    ["every blank exempted", "].forEach(([k, what]) => gv(k, what));", "].forEach(([k, what]) => gv(k, what, true, true));"],
+    ["Directional cap removed", "if (numericCorrections.length) { const k", "if (false) { const k"],
+    ["confidence reads raw numbers", "     or Infinity. Settings such as evidence still come from the caller. */\n  d = saneNums(d);", "     or Infinity. Settings such as evidence still come from the caller. */"],
+    ["insights read raw numbers", "function caseInsights(r, d, stanceKey, conf) {\n  d = saneNums(d);", "function caseInsights(r, d, stanceKey, conf) {"],
+    ["dual-run checked without BAU", 'gv("bauOverlapShare", "Current spend still paid in dual run", bauOn);', 'gv("bauOverlapShare", "Current spend still paid in dual run", true);'],
+    ["ramp checked with phasing off", 'gv("rampMonths", "Ramp to full savings", rampOn, false, 1);', 'gv("rampMonths", "Ramp to full savings", true, false, 1);'],
+    ["migration always checked", 'gv("migrationMonths", "Migration timeline", rampOn || bauOn);', 'gv("migrationMonths", "Migration timeline", true);'],
+    ["thousands group read as 1200", "const p = n(raw), v", 'const p = n(typeof raw === "string" ? raw.replace(/,/g, "") : raw), v'],
+  ];
+  let killed = 0;
+  for (const [name, from, to] of MUTANTS) {
+    if (engine.split(from).length !== 2) { ok(`L mutant anchor is unique: ${name}`, false); continue; }
+    let M; try { M = build(engine.replace(from, to)); } catch { killed++; continue; }
+    let res; try { res = checks(M, false); } catch { killed++; continue; }
+    if (res.some(x => !x)) killed++; else console.log("  survivor: " + name);
+  }
+  ok(`L mutants killed ${killed} of ${MUTANTS.length}`, killed === MUTANTS.length);
+
+  const S = (name, cond) => ok("L SOURCE " + name, cond);
+  const gAt = SRC.indexOf("  const g = r.dg;");
+  S("the component binds the values the engine ran right after computing the case", gAt > 0 && SRC.indexOf("const r = computeCase(d, stance, rampOn, mech);") < gAt);
+  S("no component read after that point parses raw state with n()", !SRC.slice(gAt).includes("n(d."));
+  S("the rail publishes the values the engine ran", /agents: n\(g\.agents\), annualContacts: r\.annual, monthlyContacts: n\(g\.monthlyContacts\)/.test(SRC));
+  S("telemetry counts numeric corrections", /inputs_corrected: conf\.corrections\.length \+ conf\.numericCorrections\.length,/.test(SRC));
+  S("the numeric cap is Directional and names its own domain", /input-integrity concern and says nothing about the evidence behind the cost inputs/.test(SRC));
+  S("the probe runs with no bounds, so domains stay tool-owned", /rawProbe\(what, raw, -Infinity, null, ""\)/.test(SRC));
 }
 
 console.log(`\n${"=".repeat(64)}`);
