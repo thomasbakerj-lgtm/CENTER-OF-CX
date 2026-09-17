@@ -7,6 +7,7 @@ import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
+import { createGuards } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W } from "./src/lib/type";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -29,7 +30,9 @@ const WRAP = { maxWidth: 1000, margin: "0 auto", padding: "0 28px" };
    Nothing between their old and new positions evaluated at module load, so the
    move is behaviour-neutral. COLORS is injected from the real benchmarks.js
    and is not reconstructed. */
-const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
+/* Finite or zero. The isNaN test let Infinity through, so fmtK printed "$InfinityM"
+   and an Infinity seat price reached every figure. Identical for finite input. */
+const n = (v) => { const p = parseFloat(v); return Number.isFinite(p) ? p : 0; };
 const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x); return s + (a >= 1000000 ? "$" + (a / 1000000).toFixed(2) + "M" : a >= 1000 ? "$" + (a / 1000).toFixed(0) + "K" : "$" + Math.round(a)); };
 
 /* Guard and disclose, ported from Channel Shift unchanged.
@@ -42,7 +45,7 @@ const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x
    only looked upward. Clamping alone is not the fix: a value the engine had to
    change is a value the report must disclose, or the document shows a number the
    engine never ran. `used` carries what was computed, `entered` what was asked. */
-const guardVal = (g, which) => g.unit === "$" ? "$" + g[which] : `${g[which]}${g.unit}`;
+const guardVal = (g, which) => which === "entered" && g.invalid ? g.entered : g.unit === "$" ? "$" + g[which] : `${g[which]}${g.unit}`;
 
 const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
 
@@ -110,11 +113,23 @@ const DEFAULTS = {
 
 export function compute(d) {
   const { classes, committedSeats, commitBasis, commitRate, uplift, seats18mo, evidence, confirmed, dblAck, modules, usage } = d;
-  const guards = [];
+  /* The shared guard, not a local copy. It clamps exactly as the local one did for
+     every finite input, and it records an entry that is not a clean number ("",
+     "abc", "12abc", "1,200", null, "Infinity") with its raw text even when the bounds
+     did not move it. Before this, all 130 unclean probe cases were silent and 22
+     leaked a non-finite figure. "1,200" is held at 1, because a link must reproduce
+     the sender's case and that text is locale ambiguous. Typed entry never arrives
+     unclean, because NumField parses first.
+     One blank is exempt: renewal uplift, because this document already prints "no
+     annual uplift entered" whenever it is zero. Committed seats and 18-month seats
+     are not exempt, because their "not entered" wording appears only in some grade
+     paths and nowhere for 18-month seats. */
+  const { guards, guard: sharedGuard } = createGuards();
+  const BLANK_OK = new Set(["Renewal uplift"]);
   const guard = (label, raw, min, max, unit) => {
-    const v = n(raw);
-    const c = Math.max(min, max === null ? v : Math.min(max, v));
-    if (c !== v) guards.push({ label, entered: v, used: c, unit: unit || "" });
+    const c = sharedGuard(label, raw, min, max, unit);
+    const g = guards[guards.length - 1];
+    if (g && g.label === label && g.invalid && g.entered === "blank" && BLANK_OK.has(label)) guards.pop();
     return c;
   };
 
@@ -227,7 +242,9 @@ export function compute(d) {
 
   const modelBlockers = [];
   if (invariants.length) modelBlockers.push(`output failed an internal consistency check (${invariants.join("; ")})`);
-  if (guards.length) modelBlockers.push(`${guards.length} input${guards.length > 1 ? "s were" : " was"} outside the possible range and had to be corrected`);
+  const badNums = guards.filter(g => g.invalid).length, outOfRange = guards.length - badNums;
+  if (badNums) modelBlockers.push(`${badNums} input${badNums > 1 ? "s were" : " was"} not a clean number and ${badNums > 1 ? "were" : "was"} held at the value shown`);
+  if (outOfRange) modelBlockers.push(`${outOfRange} input${outOfRange > 1 ? "s were" : " was"} outside the possible range and had to be corrected`);
   if (billable <= 0) modelBlockers.push("no billable seats entered");
   if (quotedSeat <= 0) modelBlockers.push("no quoted seat price entered");
   if (unknowns.length) modelBlockers.push(`${unknowns.length} needed module${unknowns.length > 1 ? "s have" : " has"} unknown inclusion`);
@@ -257,7 +274,9 @@ export function compute(d) {
   // INTEGRITY FLAGS
   const flags = [];
   if (voided) flags.push({ sev: "warn", t: `Output void: ${invariants.join("; ")}. Add-ons, tier upgrades and usage fees cannot be negative, so this result contradicts itself. Do not use any figure in this report until the inputs are corrected.` });
-  for (const g of guards) flags.push({ sev: "warn", t: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the possible range. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.` });
+  for (const g of guards) flags.push(g.invalid
+    ? { sev: "warn", t: `${g.label} was entered as ${guardVal(g, "entered")}, which is not a number, and was held at ${guardVal(g, "used")}. Every figure in this report was computed at that value. Re-enter it as a plain number.` }
+    : { sev: "warn", t: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the possible range. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.` });
   doubles.forEach(id => flags.push(dblAck
     ? { sev: "info", t: `Double count reviewed: ${DBL_LABEL[id]} confirmed as separate charges.` }
     : { sev: "warn", t: `Possible double count: ${DBL_LABEL[id]} are both entered. Confirm these are separate charges, not one already including the other.` }));
