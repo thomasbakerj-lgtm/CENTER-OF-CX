@@ -1661,6 +1661,54 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/vendors/analytics/utilities</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/analytics/education</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/analytics/travel</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/analytics/financial-services</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/payments/healthcare</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/payments/telecom</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/digital-engagement/education</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/digital-engagement/retail</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/agent-assist/manufacturing</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/agent-assist/healthcare</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/iva/government</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/vendors/iva/insurance</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/vendors/ccaas/manufacturing</loc>
     <priority>0.7</priority>
   </url>
