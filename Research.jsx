@@ -154,9 +154,9 @@ function FeaturedArticles() {
       href: "/research/iva-buyer-guide",
     },
     {
-      tag: "Buyer's Guide", color: "#10B981", read: "18 pages",
+      tag: "Buyer's Guide", color: "#10B981", read: "19 pages",
       title: "CCaaS Platform Buyer's Guide 2026",
-      desc: "28 vendors scored across 7 dimensions. The definitive guide to evaluating CCaaS platforms — strengths, weaknesses, best-fit scenarios, red flags, and competitive context for every major platform.",
+      desc: "28 CCaaS platforms scored on 27 weighted dimensions. Tier placement, operating-model fit, migration risk, hidden costs, and the RFP questions most evaluations skip.",
       href: "/research/ccaas-buyer-guide",
     },
     {
