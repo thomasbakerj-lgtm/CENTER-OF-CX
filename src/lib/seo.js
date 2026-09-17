@@ -136,7 +136,7 @@ export const SEO_MAP = {
   },
   "/research/ccaas-buyer-guide": {
     title: `CCaaS Platform Buyer's Guide 2026 | ${SITE}`,
-    desc: "28 CCaaS platforms scored across 7 dimensions. Strengths, weaknesses, best-fit, and red flags for every major platform.",
+    desc: "28 CCaaS platforms scored on 27 weighted dimensions. Tiers, fit, and migration risk for every major platform.",
   },
   "/human-premium": {
     title: `The Human Premium: Why the Best CX Operations Invest More in People | ${SITE}`,
