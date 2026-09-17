@@ -1,6 +1,8 @@
 {
   "redirects": [
-    { "source": "/tco-calculator", "destination": "/tools/tco-calculator", "permanent": true }
+    { "source": "/tco-calculator", "destination": "/tools/tco-calculator", "permanent": true },
+    { "source": "/vendors/ccaas/travel-hospitality", "destination": "/vendors/ccaas/travel", "permanent": true },
+    { "source": "/vendors/ccaas/retail-ecommerce", "destination": "/vendors/ccaas/retail", "permanent": true }
   ],
   "rewrites": [
     { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
