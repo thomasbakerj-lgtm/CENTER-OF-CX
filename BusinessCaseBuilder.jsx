@@ -139,6 +139,59 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   const stKey = resolve("Attribution stance", stanceKey, STANCE, "conservative");
   const mKey = resolve("Capacity action", mechKey, MECH, "none");
 
+  /* NUMERIC DISCLOSURE. A scenario link or the rail can carry any value into any field.
+     A blank, a word, a partial number such as "12abc" or "1,200", a null, or a non-finite
+     value used to read through n() as 0 or as a truncated value with no record, and
+     Infinity reached arithmetic and printed "Infinity" into the case. The shared recorder
+     in guards.js decides what counts as a clean entry. It runs here as a probe only, with
+     no bounds, so this tool keeps its own domains and its own sentence. Every unclean entry
+     is disclosed with the value the engine used and holds the case at Directional.
+     Arithmetic for clean finite entries is unchanged. A non-finite value reads as 0, so
+     each domain's own floor then applies, which for ramp is 1.
+     "1,200" is held at 1, not read as 1200. A link must reproduce the sender's case, the
+     engine cannot know whether the text meant 1200 or 1.2, and typed input already
+     accepts thousands groups through NumField. The disclosure names the raw text.
+     BLANK means "not supplied" only where the tool already says so in the document:
+     repeat share (FCR proxy), marginal cost (derived), dual-run months (assumed equal to
+     migration), and the BAU fields whose default is zero. Every other blank is disclosed,
+     including implementation and platform fee, where a silent $0 would inflate return.
+     A field is checked only when it can move the case: ramp when phasing is on, migration
+     when phasing is on or BAU spend is entered, dual-run terms when BAU spend is entered.
+     Values are sanitized whether or not they are checked, so nothing non-finite reaches
+     arithmetic or the rail. */
+  const { guards: raws, guard: rawProbe } = createGuards();
+  const numericCorrections = [];
+  const dg = { ...d };
+  const gv = (k, what, check = true, blankOk = false, lo = 0) => {
+    const raw = d[k];
+    const p = n(raw), v = Number.isFinite(p) ? p : 0;
+    dg[k] = v;
+    rawProbe(what, raw, -Infinity, null, "");
+    const bad = raws.length ? raws.pop().entered : null;
+    if (check && bad !== null && !(blankOk && bad === "blank"))
+      numericCorrections.push(`${what} was entered as ${bad}, which is not a number, and was held at ${Math.max(lo, v)}.`);
+    return v;
+  };
+  [["agents", "Agent count"], ["avgHourly", "Average agent hourly rate"], ["benefitsPct", "Benefits and burden"],
+   ["monthlyContacts", "Monthly contact volume"], ["currentAHT", "Current AHT"], ["currentACW", "Current ACW"],
+   ["currentFCR", "Current FCR"], ["currentAttrition", "Annual attrition"], ["costPerContact", "Loaded cost per contact"],
+   ["recruitCostPerHire", "Recruiting cost per hire"], ["trainingDays", "New hire training days"],
+   ["htReduction", "Handle-time reduction"], ["acwReduction", "ACW reduction"], ["fcrImprovement", "FCR improvement"],
+   ["attritionReduction", "Attrition reduction"], ["containment", "Self-service containment"],
+   ["implementationCost", "Implementation cost"], ["newPlatformPerAgentMo", "New platform cost per agent per month"],
+  ].forEach(([k, what]) => gv(k, what));
+  gv("repeatShare", "Same-reason repeat contacts", true, true);
+  gv("marginalPerContact", "Marginal cost per contact", true, true);
+  const bauOn = gv("bauEliminatedAnnual", "Current annual spend eliminated", true, true) > 0;
+  gv("bauExitCost", "Exit and decommissioning cost", true, true);
+  gv("bauBackfillCash", "Incremental cash labor", true, true);
+  gv("bauAbsorbedHours", "Absorbed internal labor", true, true);
+  gv("bauOverlapMonths", "Dual-run period", bauOn, true);
+  gv("bauOverlapShare", "Current spend still paid in dual run", bauOn);
+  gv("migrationMonths", "Migration timeline", rampOn || bauOn);
+  gv("rampMonths", "Ramp to full savings", rampOn, false, 1);
+  d = dg;
+
   const loaded = n(d.avgHourly) * (1 + n(d.benefitsPct) / 100);
   // Marginal cost per contact: use a value inherited from another tool when present,
   // otherwise derive the labor-marginal (handle-time at the loaded wage). This is
@@ -450,7 +503,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
   const leverShortfallToZero = topLeverShare > 0 ? benefitSlack / (topLeverShare / 100) : 0;
 
   return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal,
-    mechKey: mKey, stanceKey: stKey, stanceLabel: cf.label, corrections, mf, mechLabel: mech.label, cred: mech.cred,
+    mechKey: mKey, stanceKey: stKey, stanceLabel: cf.label, corrections, numericCorrections, dg, mf, mechLabel: mech.label, cred: mech.cred,
     capacityGross, cashGross, capacityNet, cashNet, capacityRealized, unrealizedCapacity,
     attritionCash, attritionCapacity, perHireCash, perHireCapacity,
     attributionHaircut, realizationHaircut,
@@ -474,7 +527,24 @@ const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 }
 // finance-creditable earns Planning-grade, cash out the door earns Finance-grade.
 const CRED_GRADE = { none: "Directional", capacity: "Directional", finance: "Planning-grade", cash: "Finance-grade" };
 
+/* The engine's numeric read for every numeric field: n(), with a non-finite value read as 0.
+   Identical to n() for every finite entry. Used where no disclosure is recorded, because
+   computeCase already recorded it. */
+const NUM_KEYS = ["agents", "avgHourly", "benefitsPct", "monthlyContacts", "currentAHT", "currentACW", "currentFCR",
+  "repeatShare", "currentAttrition", "costPerContact", "marginalPerContact", "recruitCostPerHire", "trainingDays",
+  "htReduction", "acwReduction", "fcrImprovement", "attritionReduction", "containment", "implementationCost",
+  "newPlatformPerAgentMo", "migrationMonths", "rampMonths", "bauEliminatedAnnual", "bauOverlapMonths",
+  "bauOverlapShare", "bauExitCost", "bauBackfillCash", "bauAbsorbedHours"];
+function saneNums(d) {
+  const out = { ...d };
+  for (const k of NUM_KEYS) if (k in out) { const p = n(out[k]); out[k] = Number.isFinite(p) ? p : 0; }
+  return out;
+}
+
 function confidenceOf(d, r, stanceKey) {
+  /* Numbers are read the way the engine reads them, so raw text never prints as "abc"
+     or Infinity. Settings such as evidence still come from the caller. */
+  d = saneNums(d);
   /* The stance the engine actually ran, not the string the caller passed. A scenario
      link supplies both, and reading the raw one here reported an attribution haircut
      the arithmetic never applied. */
@@ -585,9 +655,15 @@ function confidenceOf(d, r, stanceKey) {
   const corrections = [...(r.corrections || []), ...confCorrections];
   if (corrections.length) caps.push(["Directional", `${corrections.length} setting${corrections.length > 1 ? "s were" : " was"} not recognised and ${corrections.length > 1 ? "were" : "was"} substituted before this case was computed: ${corrections.join(" ")} The figures here describe the substituted case, not the one the link carried. This is a scenario-integrity concern and says nothing about the cost inputs.`]);
 
+  // An unclean number is also a question about which case ran. It is disclosed in its own
+  // sentence, because a held number is an entry problem and a substituted setting is not.
+  const numericCorrections = r.numericCorrections || [];
+  if (numericCorrections.length) { const k = numericCorrections.length, many = k > 1;
+    caps.push(["Directional", `${k} numeric input${many ? "s were" : " was"} not a clean number and ${many ? "were" : "was"} held at the value shown before this case was computed: ${numericCorrections.join(" ")} The figures here describe the held values. Re-enter ${many ? "them" : "it"} as plain numbers to lift this cap. This is an input-integrity concern and says nothing about the evidence behind the cost inputs.`]); }
+
   const headline = [costGrade, realizationGrade, ...caps.map(c => c[0])]
     .reduce((a, b) => GRADE_RANK[b] < GRADE_RANK[a] ? b : a, "Finance-grade");
-  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence, corrections };
+  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence, corrections, numericCorrections };
 }
 
 // One vocabulary for the four savings levers, shared by the fragility pricing and the
@@ -595,6 +671,7 @@ function confidenceOf(d, r, stanceKey) {
 const LEVER_LABEL = { containment: "self-service containment", handleTime: "handle-time reduction", fcr: "FCR improvement", attrition: "attrition reduction" };
 
 function caseInsights(r, d, stanceKey, conf) {
+  d = saneNums(d);
   /* The stance the engine ran, not the raw argument. Two of the lines below print the
      key as prose, so an unrecognised value reached the reader as the name of a stance
      that does not exist and was never applied. */
@@ -832,6 +909,8 @@ export default function BusinessCaseBuilder() {
   }, []);
 
   const r = computeCase(d, stance, rampOn, mech);
+  // Every figure the page prints, publishes or exports reads the values the engine ran.
+  const g = r.dg;
   const conf = confidenceOf(d, r, stance);
   const insights = caseInsights(r, d, stance, conf);
 
@@ -858,7 +937,7 @@ export default function BusinessCaseBuilder() {
   // Publish through the shared normalizer so units and provenance are canonical on the rail.
   useEffect(() => {
     const primitives = {
-      agents: n(d.agents), annualContacts: r.annual, monthlyContacts: n(d.monthlyContacts),
+      agents: n(g.agents), annualContacts: r.annual, monthlyContacts: n(g.monthlyContacts),
       grossSavings: Math.round(r.gross), netSavings: Math.round(r.net),
       capacityReleased: Math.round(r.capacityNet), capacityRealized: Math.round(r.capacityRealized),
       cashReleasing: Math.round(r.cashNet), freedHours: Math.round(r.freedHoursAttributed),
@@ -869,7 +948,7 @@ export default function BusinessCaseBuilder() {
       // threeYearROI keeps its existing basis: gross transformation cash in the denominator,
       // displacement credited on the benefit side. Silently changing the meaning of a key
       // already on the rail is the provenance failure this suite exists to prevent.
-      stance, paybackMonths: r.payback, threeYearROI: Math.round(r.roi3), implementationCost: n(d.implementationCost),
+      stance, paybackMonths: r.payback, threeYearROI: Math.round(r.roi3), implementationCost: n(g.implementationCost),
       bauEliminatedAnnual: Math.round(r.bauAnnual), threeYearDisplacementCredit: Math.round(r.displacement3),
       // Published as a FRACTION, not a percent. Every registered *Share key on the rail is
       // canonically a fraction, and shipping 36 where the contract means 0.36 is the same
@@ -885,7 +964,7 @@ export default function BusinessCaseBuilder() {
   // Completion: fire once when the case has real inputs (not the untouched defaults).
   useEffect(() => {
     if (completedRef.current) return;
-    const real = n(d.agents) !== DEFAULTS.agents || n(d.monthlyContacts) !== DEFAULTS.monthlyContacts || n(d.implementationCost) !== DEFAULTS.implementationCost || Object.keys(pulled).length > 0;
+    const real = n(g.agents) !== DEFAULTS.agents || n(g.monthlyContacts) !== DEFAULTS.monthlyContacts || n(g.implementationCost) !== DEFAULTS.implementationCost || Object.keys(pulled).length > 0;
     /* tool_complete is fired once by ReportActions, the single source. Severity
        reaches it through the signals prop below. */
     if (real) { completedRef.current = true; }
@@ -947,7 +1026,7 @@ export default function BusinessCaseBuilder() {
               <NumField label="Avg Agent Hourly Rate" value={d.avgHourly} onChange={v => set("avgHourly", v)} prefix="$" step={0.5} min={0} pulled={pulled.avgHourly} />
               <NumField label="Benefits & Burden" value={d.benefitsPct} onChange={v => set("benefitsPct", v)} suffix="%" hint="Internal planning range 25 to 35%, adjust to your evidence" min={0} max={100} />
               <NumField label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
-              <NumField label="Current AHT (sec)" value={d.currentAHT} onChange={v => set("currentAHT", v)} step={5} min={1} hint={`${(n(d.currentAHT) / 60).toFixed(1)} min total`} pulled={pulled.currentAHT} />
+              <NumField label="Current AHT (sec)" value={d.currentAHT} onChange={v => set("currentAHT", v)} step={5} min={1} hint={`${(n(g.currentAHT) / 60).toFixed(1)} min total`} pulled={pulled.currentAHT} />
               <NumField label="Current ACW (sec)" value={d.currentACW} onChange={v => set("currentACW", v)} step={5} min={0} info={DEFS.acw} infoTitle="After-call work" hint="Part of AHT" />
               <NumField label="Current FCR" value={d.currentFCR} onChange={v => set("currentFCR", v)} suffix="%" min={0} max={100} pulled={pulled.currentFCR} />
               <NumField label="Same-Reason Repeat Contacts" value={d.repeatShare} onChange={v => set("repeatShare", v)} suffix="%" min={0} max={95} info={DEFS.repeatShare} infoTitle="Repeat-contact basis" hint="Optional. Blank derives it from FCR" />
@@ -967,7 +1046,7 @@ export default function BusinessCaseBuilder() {
                     {r.marginalStale && <span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>AHT and wage here imply {fmt2(r.derivedMarginal)}, a {Math.round(r.marginalGap * 100)}% gap</span>}
                   </>
                 : <span style={{ fontSize: 11, color: MUTED }}>derived from AHT and loaded wage</span>}
-              <span style={{ fontSize: 11, color: MUTED }}>vs {fmt2(n(d.costPerContact))} fully loaded</span>
+              <span style={{ fontSize: 11, color: MUTED }}>vs {fmt2(n(g.costPerContact))} fully loaded</span>
             </div>
           </Card>
 
@@ -1207,7 +1286,7 @@ export default function BusinessCaseBuilder() {
                      the cost base stays in the browser and in the report the user downloads. */
                   stance_class: r.stanceKey,
                   capacity_action: r.mechKey,
-                  inputs_corrected: conf.corrections.length,
+                  inputs_corrected: conf.corrections.length + conf.numericCorrections.length,
                   credit_class: r.cred,
                   confidence_class: conf.grade,
                   cost_basis_class: conf.costGrade,
@@ -1249,11 +1328,11 @@ export default function BusinessCaseBuilder() {
                 }}
                 sections={[
                   { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""}${conf.findings.length ? ` Findings on the return, reported in full and deliberately excluded from every confidence axis, because the strength of an answer is not evidence about it: ${conf.findings.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[r.stanceKey].label} stance, which weights each lever for attribution risk.` },
-                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(d.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[r.stanceKey].label} stance) against a ${fmtFull(n(d.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(d.costPerContact))}. ${r.stanceKey === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
+                  { title: "Executive Summary", type: "text", content: `Modeled on ${n(g.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[r.stanceKey].label} stance) against a ${fmtFull(n(g.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(g.costPerContact))}. ${r.stanceKey === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
                   { title: "Financial Summary", type: "metrics", items: [
                     { label: "Realizable Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[r.stanceKey].label} stance · ${r.mechLabel} · run-rate` },
                     { label: rampOn ? "Year 1 (ramped)" : "Gross (pre-haircut)", value: rampOn ? fmtFull(r.year1) : fmtFull(r.gross), color: rampOn ? ELECTRIC : MUTED, sub: rampOn ? `${r.M}mo build + ${r.R}mo ramp` : `Haircut ${fmtFull(r.haircut)}` },
-                    { label: "One-time Investment", value: fmtFull(n(d.implementationCost)), color: RED },
+                    { label: "One-time Investment", value: fmtFull(n(g.implementationCost)), color: RED },
                     { label: "Annual Platform Cost", value: fmtFull(r.recurring), color: AMBER },
                     { label: "Payback Period", value: r.payback > 0 ? `${r.payback} months` : ">36 months", color: paybackColor, sub: (r.payback > 0 ? (rampOn ? "phased" : "idealized") : (r.trueBreakevenMonth > 0 ? `breaks even month ${r.trueBreakevenMonth}, outside the horizon` : "no break-even at any horizon")) + ` · ${STATUS_LABEL[stPayback]}` },
                     { label: "3-Year Return", value: r.roiDefined ? `${Math.round(r.roi3)}%` : "n/a", color: roiColor, sub: r.roiDefined ? `on ${fmtFull(r.tco3)} ${r.bauEntered ? "gross transformation cash" : "modeled 3-yr investment cost"} · ${STATUS_LABEL[stRoi]}` : "no investment entered" },
@@ -1285,13 +1364,13 @@ export default function BusinessCaseBuilder() {
                   ]}] : []),
                   { title: "Decision Read", type: "findings", items: insights },
                   { title: "Key Assumptions", type: "table", rows: [
-                    ["Loaded hourly rate", fmtFull(r.loaded) + ` per hr (${n(d.avgHourly)} plus ${n(d.benefitsPct)}% burden)`],
+                    ["Loaded hourly rate", fmtFull(r.loaded) + ` per hr (${n(g.avgHourly)} plus ${n(g.benefitsPct)}% burden)`],
                     ["Marginal cost per contact (savings basis)", fmt2(r.marginal) + (r.marginalPulled ? ` (inherited from ${marginalSource || "an earlier tool run"}${r.marginalStale ? `, ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage on this case` : ""})` : " (derived from AHT and loaded wage)")],
-                    ["Fully loaded cost per contact (context)", fmt2(n(d.costPerContact))],
+                    ["Fully loaded cost per contact (context)", fmt2(n(g.costPerContact))],
                     ["Annual contacts", (r.annual).toLocaleString()],
-                    ["Contacts deflected (containment)", Math.round(r.deflected).toLocaleString() + ` (${n(d.containment)}%)`],
+                    ["Contacts deflected (containment)", Math.round(r.deflected).toLocaleString() + ` (${n(g.containment)}%)`],
                     ["Handled pool (post-deflection)", Math.round(r.handled).toLocaleString()],
-                    ["Handle-time saved per contact", `${(((n(d.currentAHT) - Math.min(n(d.currentACW), n(d.currentAHT))) * n(d.htReduction) / 100) + (Math.min(n(d.currentACW), n(d.currentAHT)) * n(d.acwReduction) / 100)).toFixed(0)}s`],
+                    ["Handle-time saved per contact", `${(((n(g.currentAHT) - Math.min(n(g.currentACW), n(g.currentAHT))) * n(g.htReduction) / 100) + (Math.min(n(g.currentACW), n(g.currentAHT)) * n(g.acwReduction) / 100)).toFixed(0)}s`],
                     ["Avoided repeat contacts (FCR)", Math.round(r.avoidedRepeats).toLocaleString()],
                     ["Avoided turnover (attrition)", `${r.avoidedTurnover.toFixed(1)} agents per yr`],
                     ["Savings phasing", rampOn ? `${r.M}-mo migration (0% savings) plus ${r.R}-mo linear ramp to full` : "Off, full savings assumed from day one"],
