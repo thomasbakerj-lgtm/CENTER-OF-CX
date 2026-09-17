@@ -22,6 +22,7 @@ import { readFileSync } from "fs";
 const SRC = readFileSync("./LicenseBundleGapChecker.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { COLORS } = await import("./src/lib/benchmarks.js");
+const { createGuards } = await import("./src/lib/guards.js");
 /* The real boundary guard and the real bucket, never reconstructed. The tool
    publishes signals.severity through severityBucket, and sanitizeProps is what
    decides whether that value reaches the wire or is silently dropped. */
@@ -212,9 +213,9 @@ function render(S) {
       sections: ${sectionsExpr},
     };`;
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
-    "BORDER", "GREEN", "AMBER", "RED", "TEAL", "severityBucket", "MUT", "FROM_LINK", "PULLED_FROM", "TOOL_NAME", preamble);
+    "BORDER", "GREEN", "AMBER", "RED", "TEAL", "severityBucket", "createGuards", "MUT", "FROM_LINK", "PULLED_FROM", "TOOL_NAME", preamble);
   return fn(COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#E8F4FD", "#F8FAFB", "#3A4F6A",
-    COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, "#0EA5A5", severityBucket,
+    COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, "#0EA5A5", severityBucket, createGuards,
     S.mut, S.fromLink, S.pulledFrom, toolNameM[1]);
 }
 
@@ -495,6 +496,22 @@ A("a model with no billable seats carries no signal_severity into the review pay
 /* The second consumer. ReportActions appends every signal to the Formspree
    review payload, so adding severity changed the manual-handling form too. */
 A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
+
+
+/* Numeric disclosure on the rendered document. Junk in a hand-edited link must
+   print no NaN or Infinity outside the disclosure's quote of what was entered,
+   must disclose, must block at Directional, and must count in telemetry. */
+{
+  const dirty = render({ label: "junk numerics", fromLink: true, pulledFrom: null, mut: (d) => {
+    d.classes[0].price = "Infinity"; d.committedSeats = "abc"; d.seats18mo = ""; d.usage.ai = "12abc"; d.modules.wem.cost = "$50"; d.uplift = null; } });
+  const all = JSON.stringify({ subtitle: dirty.subtitle, summary: dirty.summary, signals: dirty.signals, sections: dirty.sections });
+  const scrubbed = all.replace(/entered (as )?(\\"[^\\]*\\"|NaN|-?Infinity|blank)/g, "");
+  A("a junk-numeric link prints no NaN, Infinity or undefined in the document or signals", !/NaN|Infinity|undefined/.test(scrubbed));
+  A("a junk-numeric link discloses each consumed junk field and exempts the blank uplift",
+    ["Agent seat price", "Committed seats", "Seats added within 18 months", "AI assistant / copilot usage fee", "WEM / WFM cost"].every((l) => all.includes(l + " was entered as")) && !all.includes("Renewal uplift was entered as"));
+  A("a junk-numeric link blocks at Directional", dirty.r.confidence === "Directional");
+  A("telemetry counts the five disclosures", dirty.signals.inputs_corrected === 5);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
