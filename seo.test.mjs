@@ -516,6 +516,39 @@ section("I. server-side redirects and indexed demand URLs");
   }
 }
 
+/* ------------------------------------ J. buyer guide summary reconciles with PDF */
+/* The public summary layer restates the published guide. Every count it shows
+   must reconcile with the guide itself, or the page contradicts the PDF it links. */
+section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
+{
+  const gr = readFileSync("./GatedReport.jsx", "utf8");
+  const blk = (gr.match(/"ccaas-buyer-guide": \{[\s\S]*?\n  \},\n/) || [""])[0];
+  const pdf = readFileSync("./public/CCaaS-Platform-Buyer-Guide-2026.pdf", "latin1");
+  const pdfPages = Number((pdf.match(/\/Type\s*\/Pages[^>]*?\/Count\s+(\d+)/) || pdf.match(/\/Count\s+(\d+)/) || [])[1]);
+  ok("J1  config block found with a summary", /summary: \{/.test(blk));
+  ok("J2  page count matches the PDF", blk.includes(`pages: "${pdfPages} pages"`));
+  const weights = [...(blk.match(/domains: \[([\s\S]*?)\],\n\s*dimensions/) || ["", ""])[1].matchAll(/, (\d+)\]/g)].map((x) => +x[1]);
+  ok("J3  seven domains", weights.length === 7);
+  ok("J4  domain weights sum to 100", weights.reduce((a, b) => a + b, 0) === 100);
+  ok("J5  27 dimensions", /dimensions: 27,/.test(blk));
+  const tierVendors = [...blk.matchAll(/vendors: \[([^\]]*)\]/g)].map((x) => x[1].split(",").filter((v) => v.trim()).length);
+  const adjacent = ((blk.match(/adjacent: \[([^\]]*)\]/) || ["", ""])[1].split(",").filter((v) => v.trim())).length;
+  ok("J6  four tiers", tierVendors.length === 4);
+  ok("J7  tiers plus adjacent platforms total the 28 scored", tierVendors.reduce((a, b) => a + b, 0) + adjacent === 28);
+  ok("J8  tier bands are contiguous and cover 0 to 100", /band: "85 to 100"[\s\S]*band: "70 to 84"[\s\S]*band: "55 to 69"[\s\S]*band: "below 55"/.test(blk));
+  ok("J9  the PDF link resolves to a shipped file", blk.includes('pdf: "/CCaaS-Platform-Buyer-Guide-2026.pdf"'));
+  ok("J10 no stale 7-dimension claim in the guide config", !/\b7 (weighted )?dimensions/.test(blk));
+  const seoSrc = readFileSync("./src/lib/seo.js", "utf8");
+  const seoDesc = (seoSrc.match(/"\/research\/ccaas-buyer-guide": \{[\s\S]*?desc: "([^"]*)"/) || ["", ""])[1];
+  ok("J11 seo description states 27 dimensions", /27 weighted dimensions/.test(seoDesc));
+  ok("J12 Research card states the PDF page count", readFileSync("./Research.jsx", "utf8").includes(`read: "${pdfPages} pages",\n      title: "CCaaS Platform Buyer's Guide 2026"`));
+  ok("J13 Homepage card states the PDF page count", readFileSync("./Homepage.jsx", "utf8").includes(`p: "${pdfPages} pages", href: "/research/ccaas-buyer-guide"`));
+  ok("J14 open reports skip the unlock page", /if \(unlocked && !open\)/.test(gr));
+  ok("J15 the full guide opens with no form", /open \? \(<>[\s\S]*?href=\{report\.pdf\}/.test(gr));
+  ok("J16 the summary renders only for reports that carry one", /\{open && <Summary report=\{report\} onOpen=\{onOpen\} \/>\}/.test(gr));
+  ok("J17 no new dashes in the summary layer", !/[\u2013\u2014]/.test((gr.match(/function Summary\([\s\S]*?\n}\n/) || [""])[0] + blk));
+}
+
 if (failures.length) {
   console.log("\nFAILURES");
   for (const f of failures.slice(0, 40)) console.log(`  ${f}`);
