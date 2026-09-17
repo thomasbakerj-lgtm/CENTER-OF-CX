@@ -80,9 +80,25 @@ const DEFS = {
 
 export function engine(I) {
   const guards = [];
+  /* Numeric disclosure. A blank, a word, a null, or a partial number such as "12abc"
+     used to read through n() as 0 or as a truncated value, with no record whenever the
+     result sat inside bounds. The shared recorder in guards.js decides what counts as a
+     clean entry. It runs here as a probe only, with no bounds, so this tool keeps its
+     own domains and its own sentence. An unclean entry carries "was held at" and so
+     blocks the result at Directional. Arithmetic for clean finite entries is unchanged.
+     The one exception is a blank marginal cost: blank is how a user says "not supplied,"
+     and the 60 percent default flag already discloses it and holds Directional.
+     A domain with no ceiling reads a non-finite value at its floor, because no quantity
+     this tool models is infinite. */
+  const { guards: raws, guard: rawProbe } = createGuards();
   const gc = (raw, lo, hi, what) => {
-    const v = n(raw), c = clamp(v, lo, hi);
-    if (c !== v) guards.push(`${what} was ${v}, outside the ${lo} to ${hi} range it can occupy, and was held at ${c}.`);
+    const v0 = n(raw), v = Number.isFinite(v0) || hi !== Infinity ? v0 : lo, c = clamp(v, lo, hi);
+    rawProbe(what, raw, -Infinity, null, "");
+    const bad = raws.length ? raws.pop().entered : null;
+    if (bad !== null && !(what === "Marginal cost per contact" && bad === "blank"))
+      guards.push(`${what} was entered as ${bad}, which is not a number, and was held at ${c}.`);
+    else if (c !== v && hi === Infinity) guards.push(`${what} was ${v}, below the floor of ${lo}, and was held at ${c}.`);
+    else if (c !== v) guards.push(`${what} was ${v}, outside the ${lo} to ${hi} range it can occupy, and was held at ${c}.`);
     return c;
   };
   /* Enum inputs resolve through the shared own-key pick, the rule Cost per Contact and
@@ -185,13 +201,27 @@ export function engine(I) {
     else repeatTolPct = rhoStar * 100;
   }
 
+  /* Ramp months are validated only when the ramp is on, because only then do they move
+     a number. The floor is 1 month, since a shorter ramp is no ramp. There is no
+     ceiling: a long ramp is a real plan, and clipping it would hide the exact delay a
+     vendor slide leaves out. year1NoRamp is the same year at full run rate from month
+     one, so the cost of the ramp is shown as arithmetic, with no benchmark invented. */
+  const rampOn = !!I.rampOn;
+  const rampMonths = rampOn ? gc(I.rampMonths, 1, Infinity, "Ramp months") : null;
   const monthly = [];
-  let year1 = -implOneTime, cum = -implOneTime, payback = null;
+  let year1 = -implOneTime, cum = -implOneTime, payback = null, year1NoRamp = -implOneTime;
   for (let m = 1; m <= 12; m++) {
-    const ramp = I.rampOn ? Math.min(1, m / Math.max(1, I.rampMonths)) : 1;
+    const ramp = rampOn ? Math.min(1, m / rampMonths) : 1;
     const nm = K * ramp - opexMonthly;
-    monthly.push(nm); year1 += nm; cum += nm;
+    monthly.push(nm); year1 += nm; cum += nm; year1NoRamp += K - opexMonthly;
     if (payback === null && cum >= 0) payback = m;
+  }
+  let rampNote = null;
+  if (rampOn) {
+    const gap = year1NoRamp - year1;
+    rampNote = `Ramp sensitivity. Year 1 reads ${fmt(year1)} over a ${rampMonths} month ramp and ${fmt(year1NoRamp)} at full run rate from month one, a difference of ${fmt(Math.abs(gap))}.`
+      + (gap > 0 ? " A business case that books full run rate from month one is claiming that difference." : "")
+      + (rampMonths > 12 ? " At this ramp length the program never reaches steady state inside Year 1, so Year 1 understates run rate and payback is the figure to read." : "");
   }
 
   const waterfall = [
@@ -312,7 +342,7 @@ export function engine(I) {
     impliedGrossOfTotal, opexMonthly, implOneTime, escalationPremium, vendorClaim, K, netSavings, steadyAnnual,
     netAtEscZero, netAtEscDouble, escSwing, escShareOfResult,
     realizedDollarsPct, realizedDeflectionPct, beResPct, beNote, severityRatio, repeatTolPct, repeatNote,
-    monthly, year1, payback, waterfall, waterfallSum, railRate, railBot, railPublished, railReason,
+    monthly, year1, year1NoRamp, rampOn, rampMonths, rampNote, payback, waterfall, waterfallSum, railRate, railBot, railPublished, railReason,
     bestNet, flags, hardFlag, costConf, realConf, headlineConf, confReason, confSentence, axesTied, band, evidenceKey: evKey, evidenceLabel: ev.label,
     verdict, verdictWhy, verdictRoute, verdictRouteLabel, verdictTone,
   };
@@ -374,6 +404,8 @@ function buildAnalystRead(R) {
     out.push(`Year 1 net of ${fmt(R.year1)} carries no implementation cost, because you entered none. Bot programs are rarely free to stand up. Whatever the vendor is charging for integration, content build, and professional services comes straight off that figure and pushes payback later than ${R.payback ? "month " + R.payback : "shown"}.`);
   else
     out.push(`Year 1 net of ${fmt(R.year1)} absorbs ${fmt(R.implOneTime)} of one-time implementation cost, which never repeats. Steady state runs ${fmt(R.steadyAnnual)} a year. ${R.payback ? "Payback lands in month " + R.payback + "." : "The program does not pay back within twelve months."} Present both figures. A project can be strongly positive annualized and cash negative in its first year, and finance will find that out with or without you.`);
+
+  if (R.rampNote) out.push(R.rampNote);
 
   out.push(`Decision: ${R.verdict}. ${R.verdictWhy}`);
   return out;
@@ -558,7 +590,7 @@ export default function AIDeflectionRealityCheck() {
     { title: "Break-Even Thresholds", type: "table", rows: [
       ["Break-even resolution rate", isFinite(R.beResPct) ? R.beResPct.toFixed(1) + "% of involved against a " + R.rp + "% figure" : (R.beNote || "never breaks even at any resolution rate")],
       ["Maximum tolerable repeat rate", R.repeatTolPct != null ? R.repeatTolPct.toFixed(0) + "% against " + R.rhop + "% entered" : (R.repeatNote || "not computable")],
-      ["Year 1 net", fmt(R.year1) + (s.rampOn ? " (ramped over " + s.rampMonths + " months)" : " (no ramp)") + (R.implOneTime > 0 ? ", after " + fmt(R.implOneTime) + " one-time implementation" : ", no implementation cost entered")],
+      ["Year 1 net", fmt(R.year1) + (R.rampOn ? " (ramped over " + R.rampMonths + " months)" : " (no ramp)") + (R.implOneTime > 0 ? ", after " + fmt(R.implOneTime) + " one-time implementation" : ", no implementation cost entered")],
       ["Steady-state annual", fmt(R.steadyAnnual)],
       ["Payback", R.payback ? "month " + R.payback : "not within 12 months"],
     ]},
@@ -790,7 +822,7 @@ export default function AIDeflectionRealityCheck() {
           <div style={cardStyle}>
             <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 16px" }}>Year one, month by month</h3>
             <div style={{ display: "flex", gap: 24, alignItems: "flex-end", flexWrap: "wrap" }}>
-              <div><div style={{ fontSize: 11, color: MUTED }}>Year 1 {s.rampOn ? "(ramped " + s.rampMonths + "mo)" : "(full)"}</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.year1 >= 0 ? GREEN : RED }}>{fmtK(R.year1)}</div></div>
+              <div><div style={{ fontSize: 11, color: MUTED }}>Year 1 {R.rampOn ? "(ramped " + R.rampMonths + "mo)" : "(full)"}</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.year1 >= 0 ? GREEN : RED }}>{fmtK(R.year1)}</div></div>
               <div><div style={{ fontSize: 11, color: MUTED }}>Steady-state annual</div><div style={{ ...TYPE.statValue, fontSize: 24, color: NAVY }}>{fmtK(R.steadyAnnual)}</div></div>
               <div><div style={{ fontSize: 11, color: MUTED }}>Payback</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.payback ? NAVY : RED }}>{R.payback ? "Mo " + R.payback : "None"}</div></div>
               <div style={{ flex: 1, minWidth: 200 }}>
