@@ -1581,6 +1581,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/research/ccaas-buyer-guide</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/about</loc>
     <priority>0.5</priority>
   </url>
