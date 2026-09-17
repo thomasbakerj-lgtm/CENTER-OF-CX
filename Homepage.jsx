@@ -305,7 +305,7 @@ function VendorIntel() {
 // ─── BUYER GUIDES (COMPACT) ─────────────────────────
 function BuyerGuides() {
   const guides = [
-    { t: "CCaaS Buyer Guide", p: "18 pages", href: "/research/ccaas-buyer-guide", live: true },
+    { t: "CCaaS Buyer Guide", p: "19 pages", href: "/research/ccaas-buyer-guide", live: true },
     { t: "IVA + Conversational AI Guide", p: "25 pages", href: "/research/iva-buyer-guide", live: true },
     { t: "7-Layer Orchestration Framework", p: "11 pages", href: "/research/orchestration-framework", live: true },
     { t: "WEM + Quality Management Guide", p: "Q2 2026", live: false },
