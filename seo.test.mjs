@@ -496,6 +496,24 @@ section("I. server-side redirects and indexed demand URLs");
   ok("I5  /research/ccaas-buyer-guide is in the sitemap", smLocs.includes("https://www.contactcentercx.com/research/ccaas-buyer-guide"));
   ok("I6  sitemap has no duplicate URLs", new Set(smLocs).size === smLocs.length);
   ok("I7  every sitemap URL is on the www host", smLocs.every((u) => u.startsWith("https://www.contactcentercx.com")));
+  /* The 12 category-vertical pages Google indexed on its own, from the 16 Sep GSC
+     export. Each must be a real category and vertical pair, or it renders the
+     not-found message with a 200. */
+  const INDEXED_CV = ["analytics/utilities", "analytics/education", "analytics/travel", "analytics/financial-services",
+    "payments/healthcare", "payments/telecom", "digital-engagement/education", "digital-engagement/retail",
+    "agent-assist/manufacturing", "agent-assist/healthcare", "iva/government", "iva/insurance"];
+  for (const cv of INDEXED_CV) {
+    const [c, v] = cv.split("/");
+    ok(`I8  /vendors/${cv} is in the sitemap`, smLocs.includes(`https://www.contactcentercx.com/vendors/${cv}`));
+    ok(`I9  /vendors/${cv} is a valid category and vertical`, !!CATEGORIES[c] && !!VERTICALS[v]);
+  }
+  const cvLocs = smLocs.map((u) => u.replace("https://www.contactcentercx.com", "")).filter((p) => p.split("/").length === 4 && p.startsWith("/vendors/"));
+  ok("I10 no sitemap category-vertical URL renders the not-found message", cvLocs.every((p) => { const [, , c, v] = p.split("/"); return !!CATEGORIES[c] && !!VERTICALS[v]; }));
+  for (const [from, to] of [["/vendors/ccaas/travel-hospitality", "/vendors/ccaas/travel"], ["/vendors/ccaas/retail-ecommerce", "/vendors/ccaas/retail"]]) {
+    const rr = (vj.redirects || []).find((x) => x.source === from);
+    ok(`I11 legacy slug ${from} 308s to ${to}`, !!rr && rr.destination === to && rr.permanent === true);
+    ok(`I12 legacy slug ${from} is not in the sitemap`, !smLocs.some((u) => u.endsWith(from)));
+  }
 }
 
 if (failures.length) {
