@@ -533,6 +533,86 @@ console.log("\n14. enum inputs resolve through pick");
     !/indexOf\(s\.evidence\)/.test(src) && (src.match(/indexOf\(R\.evidenceKey\)/g) || []).length === 3);
 }
 
+/* ---- 17. Numeric entries disclose through the shared clean-entry probe ----
+   Local gc read every numeric field through n(). A blank, a word, or a partial number
+   became 0 or a truncated value with no record whenever the result sat inside bounds,
+   74 of 88 probed cases. Ramp months had no guard at all, and "abc" printed Year 1 as
+   NaN. Every unclean entry must disclose exactly once, block at Directional, and leave
+   every number finite. Clean entries keep their arithmetic. A blank marginal cost is
+   "not supplied" and discloses through its own default flag. Ramp months are validated
+   only while the ramp is on, floor at 1, and carry no ceiling. */
+console.log("\n17. numeric entries disclose");
+{
+  const LABELS = { M:"Monthly contacts", cpc:"Loaded cost per contact", marg:"Marginal cost per contact",
+    eligibleRate:"AI-eligible demand", apparentResolutionRate:"Apparent resolution rate", repeatLeakRate:"Repeat and false resolution",
+    escalationPenalty:"Escalation premium", botPlatformCost:"Platform cost", qaCost:"QA cost", tuningHours:"Tuning hours",
+    tuningRate:"Tuning rate", knowledgeMaintHours:"Knowledge hours", knowledgeRate:"Knowledge rate", implOneTime:"Implementation cost" };
+  const UNCLEAN = ["abc", "12abc", "1,200", "", null, NaN, Infinity, "Infinity", "$50"];
+  const text = (v) => v == null || (typeof v === "string" && v.trim() === "") ? "blank" : typeof v === "string" ? `"${v}"` : String(v);
+  const bad = (r) => r.flags.filter(f => /which is not a number, and was held at/.test(f));
+  const nums = (r) => [r.netSavings, r.K, r.steadyAnnual, r.year1, r.year1NoRamp, r.escalationPremium, r.waterfallSum, ...r.waterfall.map(w => w.value), ...r.monthly];
+  const BASE = { ...DEF, marg:4.2, costBasisOwned:true, evidence:"pilot", mech:CASH_KEY };
+  A("clean base discloses nothing", bad(engine(BASE)).length === 0 && !engine(BASE).hardFlag);
+  for (const k of Object.keys(LABELS)) for (const v of UNCLEAN) {
+    const r = engine({ ...BASE, [k]: v });
+    if (k === "marg" && text(v) === "blank") {
+      A(`marg ${text(v)}: no unclean sentence, the default flag discloses it`, bad(r).length === 0 && r.margWasDefaulted && r.headlineConf === "Directional");
+      continue;
+    }
+    const b = bad(r);
+    A(`${k} ${text(v)}: exactly one disclosure`, b.length === 1 && b[0].startsWith(`${LABELS[k]} was entered as ${text(v)}, which is not a number`));
+    A(`${k} ${text(v)}: blocks at Directional`, r.hardFlag && r.headlineConf === "Directional");
+    A(`${k} ${text(v)}: every number finite`, nums(r).every(Number.isFinite));
+  }
+  A("a clean string exponent is clean and equals its number", bad(engine({ ...BASE, M:"8e4" })).length === 0
+    && engine({ ...BASE, M:"8e4" }).netSavings === engine({ ...BASE, M:80000 }).netSavings);
+  A("a clean numeric string computes as its number", engine({ ...BASE, apparentResolutionRate:"65" }).year1 === engine({ ...BASE, apparentResolutionRate:65 }).year1);
+
+  /* ramp */
+  const ON = { ...BASE, rampOn:true };
+  for (const v of ["abc", "12abc", "", null, NaN, Infinity]) {
+    const r = engine({ ...ON, rampMonths:v });
+    A(`ramp on, ${text(v)}: held at the floor with one disclosure`, r.rampMonths === (v === "12abc" ? 12 : 1)
+      && bad(r).length === 1 && bad(r)[0].startsWith(`Ramp months was entered as ${text(v)}`));
+    A(`ramp on, ${text(v)}: Year 1 finite and Directional`, Number.isFinite(r.year1) && r.headlineConf === "Directional");
+  }
+  for (const v of [0, -5]) {
+    const r = engine({ ...ON, rampMonths:v });
+    A(`ramp on, ${v}: floor disclosure`, r.rampMonths === 1 && r.flags.includes(`Ramp months was ${v}, below the floor of 1, and was held at 1.`) && r.hardFlag);
+  }
+  const off = engine({ ...BASE, rampOn:false, rampMonths:"abc" });
+  A("ramp off: an unclean ramp value is not validated and moves nothing", bad(off).length === 0 && off.rampMonths === null && off.rampNote === null && !off.hardFlag);
+  A("ramp off: Year 1 equals Year 1 at full run rate", off.year1 === off.year1NoRamp);
+  const long = engine({ ...ON, rampMonths:48 });
+  A("ramp 48: no ceiling, no correction, grade not blocked", long.rampMonths === 48 && !long.hardFlag && bad(long).length === 0);
+  A("ramp 48: note says Year 1 never reaches steady state", /never reaches steady state inside Year 1/.test(long.rampNote));
+  const six = engine({ ...ON, rampMonths:6 });
+  A("ramp 6: note carries both figures and no steady-state line", six.rampNote.includes("over a 6 month ramp") && !/steady state/.test(six.rampNote));
+  A("ramp 12: boundary, no steady-state line", !/steady state/.test(engine({ ...ON, rampMonths:12 }).rampNote));
+  A("ramp 13: boundary, steady-state line present", /never reaches steady state/.test(engine({ ...ON, rampMonths:13 }).rampNote));
+  A("ramp note never uses a dash", !/[\u2013\u2014]/.test(six.rampNote + long.rampNote));
+  A("ramp note is not a hard flag and not an integrity flag", !six.flags.includes(six.rampNote) && !/impossible|refuses it|was held at/.test(six.rampNote));
+  let agree = true, claim = true;
+  for (let i = 0; i < 500; i++) {
+    const I = { ...ON, M:Math.round(Math.random()*400000)+1, implOneTime:Math.round(Math.random()*200000), rampMonths:Math.floor(Math.random()*30)+1,
+      apparentResolutionRate:Math.round(Math.random()*100), botPlatformCost:Math.round(Math.random()*30000) };
+    const r = engine(I), f = engine({ ...I, rampOn:false });
+    if (Math.abs(r.year1NoRamp - f.year1) > 1e-6) agree = false;
+    if (r.K > 0 && r.rampMonths > 1 && !/claiming that difference/.test(r.rampNote)) claim = false;
+    if (r.K <= 0 && /claiming that difference/.test(r.rampNote)) claim = false;
+  }
+  A("year1NoRamp equals Year 1 with the ramp off, 500 cases", agree);
+  A("the claiming line appears only when the ramp costs money", claim);
+
+  /* source pins */
+  A("gc runs the shared probe with no bounds", /rawProbe\(what, raw, -Infinity, null, ""\);/.test(region));
+  A("only a blank marginal cost is exempt", /!\(what === "Marginal cost per contact" && bad === "blank"\)/.test(region));
+  A("ramp months route through gc, floor 1, no ceiling, only when on", /const rampMonths = rampOn \? gc\(I\.rampMonths, 1, Infinity, "Ramp months"\) : null;/.test(region));
+  A("no raw ramp read remains in arithmetic", (src.match(/I\.rampMonths/g) || []).length === 1);
+  A("the analyst read carries the ramp note", /if \(R\.rampNote\) out\.push\(R\.rampNote\);/.test(src));
+  A("rendered ramp labels read the engine value", !/s\.rampMonths \+/.test(src) && (src.match(/R\.rampMonths \+/g) || []).length === 2);
+}
+
 const r = engine(DEF);
 console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f*100) + "%");
 console.log("\n  default readout");
