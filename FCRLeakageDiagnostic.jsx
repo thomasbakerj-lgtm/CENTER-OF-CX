@@ -126,6 +126,49 @@ const scopeLabelFor = (k) => (k === "" || k == null ? "not declared" : SCOPE[k].
    the suite explicitly tells people not to default to. */
 const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
 
+/* Numeric disclosure. A scenario link decodes straight into state with no type
+   check, so any numeric field can arrive as "", "abc", "12abc", "1,200", null or
+   "Infinity". Before this reader existed nothing parsed them at all: a string
+   volume concatenated in `repeats > M + 1`, string costs compared lexically so
+   "9" > "11" raised a false impossible-input flag, "Infinity" booked infinite
+   savings, and NaN reached the rail, the analyst read and the PDF. Every value is
+   now read through the shared guard with no bounds, so clean input is untouched
+   and bounds stay where the tool owns them. An unclean entry is held at the parsed
+   value (0 when nothing parses) and disclosed with its raw text. "1,200" is held
+   at 1: a link must reproduce the sender's case, and that text is locale
+   ambiguous. Typed entry never reaches here unclean, because NumField parses first.
+   A field that cannot move the case is sanitized but not disclosed: the callback
+   window outside the internal method, and both measured shares outside the
+   measured model. No blank is exempt, because this document never states that a
+   field was not supplied. Numerics only: the caller's settings pass through. */
+const FCR_NUM = [
+  ["M", "Monthly contacts"], ["fcrPct", "Current FCR"], ["mCPC", "Marginal cost per contact"],
+  ["lCPC", "Loaded cost per contact"], ["windowDays", "Callback window"], ["measuredPct", "Measured repeat share"],
+  ["measuredTargetPct", "Measured target repeat share"], ["repeatMult", "Repeat complexity multiplier"],
+  ["targetPct", "Target FCR"], ["investOneTime", "One-time cost"], ["investRecurring", "Recurring annual cost"],
+];
+function saneFcr(s) {
+  const { guards: raws, guard: rawProbe } = createGuards();
+  const numericCorrections = [];
+  const out = {};
+  const applies = (k) => k === "windowDays" ? s.method === "internal"
+    : (k === "measuredPct" || k === "measuredTargetPct") ? s.repeatModel === "measured" : true;
+  const read = (what, raw, check) => {
+    const v = rawProbe(what, raw, -Infinity, null, "");
+    const bad = raws.length ? raws.pop().entered : null;
+    if (check && bad !== null) numericCorrections.push(`${what} was entered as ${bad}, which is not a number, and was held at ${v}.`);
+    return v;
+  };
+  for (const [k, what] of FCR_NUM) out[k] = read(what, s[k], applies(k));
+  /* Diagnostic answers sum into the score. A string answer concatenated in that sum
+     ("0" + "4" + "5"), so a hand-edited link could move opportunity and capture. */
+  const sc = s.scores !== null && typeof s.scores === "object" && !Array.isArray(s.scores) ? s.scores : {};
+  if (sc !== s.scores && s.scores != null) numericCorrections.push(`Diagnostic answers were entered as ${typeof s.scores === "string" ? `"${s.scores}"` : String(s.scores)}, which is not a set of answers, and were held at unanswered.`);
+  out.scores = {};
+  for (const k of Object.keys(sc)) out.scores[k] = read(`Diagnostic answer ${k}`, sc[k], true);
+  return { ...out, numericCorrections };
+}
+
 // Pure engine. UI and export both read this object. No separate aggregation.
 function engine(I) {
   let { M, mCPC, lCPC, repeatMult } = I;
@@ -246,6 +289,7 @@ function engine(I) {
   // Substituted enum inputs lead the list. They describe what the engine actually
   // ran, so a reader never reconciles a figure against an input that was not used.
   for (const c of enumCorrections) flags.push(c);
+  for (const c of I.numericCorrections || []) flags.push(c);
   if (fcrPulledDirty) flags.push("Current FCR was pulled from another tool as a whole number and normalized to " + pct(fcr) + ". Confidence is capped until you confirm it. The upstream tool is publishing FCR in the wrong unit, which is a suite-contract issue worth fixing at the source.");
   if (fcrWasPercent) flags.push("Current FCR arrived as a whole number and was read as " + pct(fcr) + ". Confirm the upstream tool publishes FCR as a fraction, not a percentage.");
   if (fcrImpossible) flags.push("Current FCR was outside 0 to 100% and had to be clamped. The result is unreliable until the input is corrected.");
@@ -287,7 +331,8 @@ function engine(I) {
     : "per-contact billing falls directly with volume, so no capacity mechanism is required. It is held at Planning-grade rather than Finance-grade until a minimum volume commitment is ruled out";
   const weakerIsReal = order.indexOf(realConf) <= order.indexOf(costConf);
   let confReason;
-  if (hardFlag) confReason = "an input is physically impossible, so the result is blocked.";
+  if ((I.numericCorrections || []).length) confReason = "an input was not a clean number and was held at the value shown, so the result is blocked.";
+  else if (hardFlag) confReason = "an input is physically impossible, so the result is blocked.";
   else if (!defDeclared) confReason = "the FCR definition is not declared, so the result is not comparable across centers.";
   else if (fcrPulledDirty) confReason = "FCR was pulled from another tool in the wrong unit, so confidence is capped until you confirm the value.";
   else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + ".";
@@ -369,14 +414,17 @@ export default function FCRLeakageDiagnostic() {
   const pulledMcpc = !fromLink && (getPrimitive("marginalPerContact") || getPrimitive("marginalCPC")) != null;
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
 
+  /* Every figure below reads the sanitized numerics. Input fields keep the raw state
+     so the user sees exactly what the link carried beside its disclosure. */
+  const N = saneFcr({ M, fcrPct, mCPC, lCPC, windowDays, measuredPct, measuredTargetPct, repeatMult, targetPct, investOneTime, investRecurring, scores, method, repeatModel });
   const setScore = (dimId, qIdx, val) => setScores((p) => ({ ...p, [`${dimId}-${qIdx}`]: val }));
-  const dimScore = (dimId) => { const d = DIMS.find((x) => x.id === dimId); const vals = d.qs.map((_, i) => scores[`${dimId}-${i}`] || 0).filter((v) => v > 0); return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0; };
-  const dimComplete = (dimId) => DIMS.find((d) => d.id === dimId).qs.every((_, i) => scores[`${dimId}-${i}`] > 0);
+  const dimScore = (dimId) => { const d = DIMS.find((x) => x.id === dimId); const vals = d.qs.map((_, i) => N.scores[`${dimId}-${i}`] || 0).filter((v) => v > 0); return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0; };
+  const dimComplete = (dimId) => DIMS.find((d) => d.id === dimId).qs.every((_, i) => N.scores[`${dimId}-${i}`] > 0);
   const allComplete = DIMS.every((d) => dimComplete(d.id));
   const dScore = DIMS.reduce((a, d) => a + dimScore(d.id), 0) / DIMS.length;
   const defDeclared = scope !== "" && method !== "";
 
-  const engineInput = { M, fcr: fcrPct / 100, mCPC, lCPC, repeatModel, measuredRate: measuredPct / 100, measuredTargetRate: measuredTargetPct > 0 ? measuredTargetPct / 100 : null, pathModel, repeatMult, dScore: dScore || 3, askTarget: targetPct / 100, mech, sourcing, investOneTime, investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays };
+  const engineInput = { M: N.M, fcr: N.fcrPct / 100, mCPC: N.mCPC, lCPC: N.lCPC, repeatModel, measuredRate: N.measuredPct / 100, measuredTargetRate: N.measuredTargetPct > 0 ? N.measuredTargetPct / 100 : null, pathModel, repeatMult: N.repeatMult, dScore: dScore || 3, askTarget: N.targetPct / 100, mech, sourcing, investOneTime: N.investOneTime, investRecurring: N.investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays: N.windowDays, numericCorrections: N.numericCorrections };
   const R = engine(engineInput);
 
   /* Exact input set the scenario link carries. Phase rides along so a shared
@@ -386,18 +434,18 @@ export default function FCRLeakageDiagnostic() {
     measuredPct, measuredTargetPct, pathModel, repeatMult, targetPct,
     sourcing, mech, investOneTime, investRecurring, costBasis, fcrConfirmed, scores,
   };
-  const aggMult = Math.min(3.0, Math.max(1.5, repeatMult + 0.4));
+  const aggMult = Math.min(3.0, Math.max(1.5, N.repeatMult + 0.4));
   const sensLo = engine({ ...engineInput, repeatModel: "one", repeatMult: 1.0 });
   const sensHi = engine({ ...engineInput, repeatModel: "geometric", repeatMult: aggMult });
   const sorted = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id));
   const top = sorted[0];
   const confColor = (c) => c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : MUTED;
-  const methodLabel = method === "survey" ? "external post-call survey" : method === "internal" ? "internal callback window of " + windowDays + " days" : "not declared";
+  const methodLabel = method === "survey" ? "external post-call survey" : method === "internal" ? "internal callback window of " + N.windowDays + " days" : "not declared";
 
   useEffect(() => {
     if (phase === "results") publishToolResult("fcr-leakage", {
       repeatContactBurden: R.burdenYr, controllableRepeatBurden: R.controllableBurdenYr, cashRealizableSavings: R.realizableYr,
-      repeatContactShare: R.repeatShare, marginalPerContact: mCPC, targetFCR: R.target, fcr: fcrPct / 100, monthlyContacts: M,
+      repeatContactShare: R.repeatShare, marginalPerContact: N.mCPC, targetFCR: R.target, fcr: N.fcrPct / 100, monthlyContacts: N.M,
       fcrLeakageConfidence: R.headlineConf,
       analystRead: `Repeat burden ${money(R.burdenYr)}/yr (${money(R.controllableBurdenYr)} controllable). ${money(R.realizableYr)} realizable at ${pct(R.target)} FCR, payback ${R.paybackLabel}.`,
     });
@@ -438,7 +486,7 @@ export default function FCRLeakageDiagnostic() {
                 {method === "internal" ? <NumField label="Callback window" value={windowDays} onChange={setWindowDays} suffix=" days" step={1} min={1} max={30} /> : <div />}
               </div>
               {scope === "voice" && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Voice-only scope is the most generous definition. It usually inflates FCR and understates leakage, because a customer who failed in chat or a bot before calling is not counted.</p>}
-              {method === "internal" && windowDays < 7 && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>A {windowDays}-day callback window is short. It captures fewer return contacts, so internal FCR tends to read high and the true leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, since customers often return through another channel days later. Common practice is 7 to 30 days depending on issue type.</p>}
+              {method === "internal" && N.windowDays < 7 && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>A {N.windowDays}-day callback window is short. It captures fewer return contacts, so internal FCR tends to read high and the true leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, since customers often return through another channel days later. Common practice is 7 to 30 days depending on issue type.</p>}
             </div>
 
             <div style={card}>
@@ -454,7 +502,7 @@ export default function FCRLeakageDiagnostic() {
                     decode, and the engine flags them. */}
                 <NumField label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} infoAlign="right" />
               </div>
-              {repeatMult > 2.5 ? <p style={{ fontSize: 12, color: RED, marginTop: 12, lineHeight: 1.5 }}>High assumption at {fmtX(repeatMult)}x. This is above most published estimates. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.</p> : repeatMult > 2.0 ? <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Elevated at {fmtX(repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.</p> : null}
+              {N.repeatMult > 2.5 ? <p style={{ fontSize: 12, color: RED, marginTop: 12, lineHeight: 1.5 }}>High assumption at {fmtX(N.repeatMult)}x. This is above most published estimates. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.</p> : N.repeatMult > 2.0 ? <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Elevated at {fmtX(N.repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.</p> : null}
             </div>
 
             <div style={card}>
@@ -528,7 +576,7 @@ export default function FCRLeakageDiagnostic() {
               <div style={{ background: `${RED}06`, border: `1px solid ${RED}22`, borderRadius: 12, padding: "22px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Annual repeat burden</span><Tag text={R.shareBasis} color={RED} /><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
                 <div style={{ ...TYPE.statValueLg, color: RED }}>{money(R.burdenYr)}</div>
-                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{Math.round(R.repeats).toLocaleString()} repeats/mo at {pct(R.repeatShare)} of volume ({R.shareSource}), valued at {money2(R.repeatCPC)} repeat-adjusted marginal cost ({money2(mCPC)} base times {fmtX(repeatMult)}x complexity). Burden ceiling, not recoverable. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
+                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{Math.round(R.repeats).toLocaleString()} repeats/mo at {pct(R.repeatShare)} of volume ({R.shareSource}), valued at {money2(R.repeatCPC)} repeat-adjusted marginal cost ({money2(N.mCPC)} base times {fmtX(N.repeatMult)}x complexity). Burden ceiling, not recoverable. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
               </div>
               <div style={{ background: `${GREEN}06`, border: `1px solid ${GREEN}22`, borderRadius: 12, padding: "22px 24px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Year-1 net</span><Tag text="Assumed" color={GREEN} /><InfoDot text={DEFS.invest.text} title={DEFS.invest.title} /></div>
@@ -596,7 +644,7 @@ export default function FCRLeakageDiagnostic() {
               <p style={{ fontSize: 11.5, color: MUTED, marginBottom: 12, lineHeight: 1.5 }}>Same FCR, target, mechanism, and costs. Only the repeat-behavior model and cost premium change.</p>
               {[
                 { k: "Conservative", d: "one-callback, 1.0x cost", r: sensLo },
-                { k: "Current model", d: `${repeatModel === "geometric" ? "geometric" : repeatModel === "measured" ? "measured" : "one-callback"}, ${fmtX(repeatMult)}x cost`, r: R, cur: true },
+                { k: "Current model", d: `${repeatModel === "geometric" ? "geometric" : repeatModel === "measured" ? "measured" : "one-callback"}, ${fmtX(N.repeatMult)}x cost`, r: R, cur: true },
                 { k: "Aggressive", d: `geometric, ${fmtX(aggMult)}x cost`, r: sensHi },
               ].map((row, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < 2 ? `1px solid ${BORDER}` : "none", background: row.cur ? `${ELECTRIC}06` : "transparent" }}>
@@ -652,24 +700,25 @@ export default function FCRLeakageDiagnostic() {
                    invalid and the result is blocked, so the key is omitted
                    rather than published off a clamped number. */
                 ...(R.hardFlag || R.fcrImpossible || !(R.practicalMax > 0) ? {} : {
-                  severity: severityBucket(Math.max(0, R.practicalMax - fcrPct / 100) / R.practicalMax),
+                  severity: severityBucket(Math.max(0, R.practicalMax - N.fcrPct / 100) / R.practicalMax),
                 }),
                 cost_basis_confidence: R.costConf,
                 realization_confidence: R.realConf,
-                current_fcr: fcrPct + "%",
+                current_fcr: N.fcrPct + "%",
                 // The APPLIED target, not the ask. These diverge whenever the
                 // diagnostic caps the target, which is most of the time: the
                 // signal read 78% while the model had run 76.9%, and anything
                 // consuming this block downstream was reading a number the
                 // engine never used. `requested_fcr` keeps the ask visible.
                 target_fcr: pct(R.target),
-                requested_fcr: targetPct + "%",
+                requested_fcr: N.targetPct + "%",
                 target_capped: R.overCeiling ? "yes" : "no",
                 capacity_action: R.mechApplies ? MECH[R.mechKey].label : "not applicable (bpo)",
                 credit_class: R.mechApplies ? MECH[R.mechKey].cred : "billing",
                 realization_factor: R.realFactor,
                 sourcing,
                 hard_flag: R.hardFlag ? "yes" : "no",
+                inputs_corrected: N.numericCorrections.length,
                 integrity_flags: R.flags.length,
                 from_scenario_link: fromLink ? "yes" : "no",
               }}
@@ -677,13 +726,13 @@ export default function FCRLeakageDiagnostic() {
                 { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.neverPaysBack ? "never at current scope" : R.payback ? "in month " + R.payback : "beyond 48 months"}. Confidence is ${R.headlineConf}.` },
                 { title: "Definitions and Scope Used", type: "findings", items: [
                   `FCR definition: ${scopeLabelFor(R.scopeKey)}, ${methodLabel}.`,
-                  `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${fmtX(repeatMult)}x.`,
+                  `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${fmtX(N.repeatMult)}x.`,
                   `Sourcing: ${sourcing === "bpo" ? "outsourced per-contact. Volume reduction converts to cash at 100% through billing. No capacity mechanism applies, and none was used." : "in-house. Freed capacity is gated by a mechanism. Mechanism applied: " + MECH[R.mechKey].label + " (" + Math.round(MECH[R.mechKey].f * 100) + "%), credited as " + MECH[R.mechKey].cred + "."}`,
                   `Cost basis: ${{estimate:"Estimate marginal cost (±25%)",ops:"Operations-data marginal cost (±15%)",finance:"Finance-confirmed marginal cost (±10%)"}[costBasis]}. Target capped by diagnostic: ${R.overCeiling ? "yes, at " + pct(R.ceilingFCR) : "no"}.`,
                 ] },
                 { title: "Leakage Economics", type: "metrics", items: [
                   { label: "Repeat share of volume", value: pct(R.repeatShare), color: RED, sub: R.shareBasis },
-                  { label: "Effective repeat cost", value: money2(R.repeatCPC), color: SLATE, sub: money2(mCPC) + " base times " + fmtX(repeatMult) + "x" },
+                  { label: "Effective repeat cost", value: money2(R.repeatCPC), color: SLATE, sub: money2(N.mCPC) + " base times " + fmtX(N.repeatMult) + "x" },
                   { label: "Annual repeat burden (marginal)", value: money(R.burdenYr), color: RED },
                   { label: "Burden range (±" + (R.band * 100) + "%)", value: money(R.burdenYr * (1 - R.band)) + " to " + money(R.burdenYr * (1 + R.band)), color: SLATE },
                   { label: "Controllable leakage burden (not yet savings)", value: money(R.controllableBurdenYr), color: AMBER },
@@ -693,8 +742,8 @@ export default function FCRLeakageDiagnostic() {
                   { label: "Diagnostic ceiling FCR / applied target", value: pct(R.ceilingFCR) + " / " + pct(R.target), color: NAVY },
                   { label: sourcing === "bpo" ? "Gross volume reduction value" : "Gross capacity value", value: money(R.grossYr), color: SLATE },
                   { label: "Realizable via " + (sourcing === "bpo" ? "billing reduction" : "mechanism"), value: money(R.realizableYr), color: R.realizableYr > 0 ? GREEN : RED },
-                  { label: "One-time cost", value: money(investOneTime), color: SLATE },
-                  { label: "Recurring annual cost", value: money(investRecurring), color: SLATE },
+                  { label: "One-time cost", value: money(N.investOneTime), color: SLATE },
+                  { label: "Recurring annual cost", value: money(N.investRecurring), color: SLATE },
                   { label: "Payback", value: R.neverPaysBack ? "never" : R.payback ? "month " + R.payback : "48mo+", color: R.neverPaysBack ? RED : NAVY },
                   { label: "Year-1 net (after one-time cost)", value: money(R.year1Net), color: R.year1Net >= 0 ? GREEN : RED },
                   { label: "Year-2 net (standalone)", value: money(R.year2Net), color: R.year2Net >= 0 ? GREEN : RED },
