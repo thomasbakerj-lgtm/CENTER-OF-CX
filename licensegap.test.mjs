@@ -15,9 +15,10 @@
  */
 import { readFileSync } from "fs";
 
-let COLORS;
+let COLORS, createGuards;
 try {
   ({ COLORS } = await import("./src/lib/benchmarks.js"));
+  ({ createGuards } = await import("./src/lib/guards.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/benchmarks.js. Run from the repo root.");
   console.error(String(e.message || e));
@@ -40,9 +41,9 @@ let compute, DEFAULTS, MODULES, USAGE_TYPES, COST_STATUS, DOC_EVIDENCE, DBL_MAP,
 try {
   ({ compute, DEFAULTS, MODULES, USAGE_TYPES, COST_STATUS, DOC_EVIDENCE, DBL_MAP, DBL_LABEL,
     EVIDENCE_OPTS, GRADE_RANK, guardVal, n, fmtK, clone, TOOL_ID, ROUTE } = new Function(
-    "COLORS", "GREEN", "AMBER", "RED", "ELECTRIC",
+    "COLORS", "GREEN", "AMBER", "RED", "ELECTRIC", "createGuards",
     region + "\nreturn { compute, DEFAULTS, MODULES, USAGE_TYPES, COST_STATUS, DOC_EVIDENCE, DBL_MAP, DBL_LABEL, EVIDENCE_OPTS, GRADE_RANK, guardVal, n, fmtK, clone, TOOL_ID, ROUTE };"
-  )(COLORS, COLORS.green, COLORS.amber, COLORS.red, COLORS.electric));
+  )(COLORS, COLORS.green, COLORS.amber, COLORS.red, COLORS.electric, createGuards));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -525,6 +526,101 @@ A("compute does not mutate its input", (() => {
   return JSON.stringify(d) === before;
 })());
 A("compute is deterministic", JSON.stringify(compute(D()).flags) === JSON.stringify(compute(D()).flags));
+
+
+/* ---- N. Numeric disclosure ----
+   Before the shared guard, all 130 unclean probe cases were silent and 22 leaked a
+   non-finite figure. An unclean entry is now held at its parsed value (0 when
+   nothing parses) and disclosed with its raw text wherever it is consumed. Renewal
+   uplift is the one exempt blank, because the document already prints "no annual
+   uplift entered" whenever it is zero. */
+{
+  console.log("\nN. numeric disclosure");
+  const evalRegion = (rg) => new Function("COLORS", "GREEN", "AMBER", "RED", "ELECTRIC", "createGuards",
+    rg + "\nreturn { compute, DEFAULTS, MODULES, USAGE_TYPES, n, fmtK };")(COLORS, COLORS.green, COLORS.amber, COLORS.red, COLORS.electric, createGuards);
+  const cl = (o) => JSON.parse(JSON.stringify(o));
+  const VALS = ["", "abc", "12abc", "1,200", NaN, Infinity, null, "Infinity", "$50", "-Infinity"];
+  const held = (raw) => { const p = parseFloat(raw); return Number.isFinite(p) ? Math.max(0, p) : 0; };
+  const mkBase = (E) => { const b = cl(E.DEFAULTS); b.committedSeats = 160; b.uplift = 5; b.seats18mo = 10; b.commitBasis = "custom"; b.commitRate = 120; b.classes[1].count = 10; b.usage.ai = 500; return b; };
+  /* [label as disclosed, setter, consumed] */
+  const FIELDS = [
+    ["Agent seat count", (d, v) => { d.classes[0].count = v; }, true], ["Agent seat price", (d, v) => { d.classes[0].price = v; }, true],
+    ["Supervisor seat count", (d, v) => { d.classes[1].count = v; }, true], ["Committed seats", (d, v) => { d.committedSeats = v; }, true],
+    ["Custom commit rate", (d, v) => { d.commitRate = v; }, true], ["Renewal uplift", (d, v) => { d.uplift = v; }, true],
+    ["Seats added within 18 months", (d, v) => { d.seats18mo = v; }, true], ["WEM / WFM cost", (d, v) => { d.modules.wem.cost = v; }, true],
+    ["AI assistant / copilot usage fee", (d, v) => { d.usage.ai = v; }, true], ["SMS / WhatsApp usage fee", (d, v) => { d.usage.sms = v; }, true],
+    ["Call Recording cost", (d, v) => { d.modules.recording.cost = v; }, false], ["Professional Services cost", (d, v) => { d.modules.services.cost = v; }, false],
+  ];
+  const text = (r) => [...r.flags.map((f) => f.t), ...r.analyst, r.confLine].join(" ");
+  const scrub = (t) => t.replace(/entered (as )?("[^"]*"|NaN|-?Infinity|blank)/g, "");
+
+  function suite(E, neutralN) {
+    const bad = new Set(); const base = mkBase(E);
+    for (const [label, set, consumed] of FIELDS) for (const v of VALS) {
+      const d = cl(base); set(d, v); const r = E.compute(d); const t = text(r);
+      if (/NaN|Infinity|undefined/.test(scrub(t)) || ![r.hiddenAnnual, r.effPlatformSeat, r.year3Seat, r.commitExpAnnual, r.exp18Annual, r.gapPct, r.annualPlatform].every(Number.isFinite)) bad.add("matrix: no non-finite figure or text");
+      const mine = r.guards.filter((g) => g.label === label && g.invalid);
+      const exemptBlank = label === "Renewal uplift" && (v === "" || v === null);
+      if (!consumed || exemptBlank) { if (mine.length) bad.add(consumed ? "exemption: a blank uplift does not disclose" : "conditional: an unconsumed cost does not disclose"); if (exemptBlank && !/no annual uplift entered/.test(t)) bad.add("exemption: a blank uplift still prints its not-entered line"); continue; }
+      if (mine.length !== 1) { bad.add("matrix: a consumed unclean entry discloses exactly once"); continue; }
+      const want = `${label} was entered as ${mine[0].entered}, which is not a number, and was held at `;
+      if (!r.flags.some((f) => f.t.startsWith(want))) bad.add("matrix: the flag names the raw entry and says not a number");
+      if (r.flags.some((f) => f.t.startsWith(`${label}: you entered`))) bad.add("matrix: an unclean entry never gets the out-of-range sentence");
+      if (mine[0].used !== held(v)) bad.add("matrix: held value is the parsed value within bounds");
+      if (r.confidence !== "Directional") bad.add("matrix: a disclosure blocks at Directional");
+      if (!/not a clean number/.test(r.modelBlockers.join(" "))) bad.add("matrix: the blocker names input integrity");
+    }
+    { const d = cl(base); d.committedSeats = ""; if (!E.compute(d).guards.some((g) => g.label === "Committed seats" && g.entered === "blank")) bad.add("blank committed seats discloses"); }
+    { const d = cl(base); d.seats18mo = null; if (!E.compute(d).guards.some((g) => g.label === "Seats added within 18 months" && g.entered === "blank")) bad.add("blank 18-month seats discloses"); }
+    { const d = cl(base); d.uplift = "abc"; if (!E.compute(d).guards.some((g) => g.label === "Renewal uplift" && g.invalid)) bad.add("junk uplift still discloses"); }
+    { const d = cl(base); d.commitBasis = "license"; d.commitRate = "abc"; if (E.compute(d).guards.length) bad.add("conditional: an unused commit rate does not disclose"); }
+    { const d = cl(base); d.classes[0].price = -20; const r = E.compute(d); if (!r.flags.some((f) => f.t.startsWith("Agent seat price: you entered $-20, which is outside the possible range")) || !/outside the possible range/.test(r.modelBlockers.join(" "))) bad.add("an out-of-range entry keeps its own sentence"); }
+    { const d = cl(base); d.classes[0].count = "1,200"; const g = E.compute(d).guards.find((x) => x.label === "Agent seat count"); if (!g || g.used !== 1 || g.entered !== '"1,200"') bad.add("\"1,200\" is held at 1 and disclosed with its raw text"); }
+    if (E.fmtK(Infinity) !== "$0" || E.n("Infinity") !== 0 || E.n("12.5") !== 12.5) bad.add("the local reader is finite or zero");
+    let seed = 20260917; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; const pk = (a) => a[Math.floor(rnd() * a.length)];
+    const num = () => pk([0, Math.round(rnd() * 400), +(rnd() * 300 - 20).toFixed(2), Math.round(rnd() * 2000)]);
+    for (let i = 0; i < neutralN; i++) {
+      const d = cl(E.DEFAULTS);
+      d.classes.forEach((c) => { c.count = num(); c.price = num(); });
+      d.committedSeats = num(); d.commitRate = num(); d.uplift = pk([0, 5, +(rnd() * 150 - 10).toFixed(1)]); d.seats18mo = num();
+      d.commitBasis = pk(["license", "quoted", "custom"]); d.evidence = pk(["estimate", "email", "proposal", "msa"]); d.confirmed = rnd() < 0.5; d.dblAck = rnd() < 0.5;
+      E.MODULES.forEach((m) => { d.modules[m.id] = { need: pk(["yes", "no", "unsure"]), status: pk(["included", "limited", "addon", "tier", "usage", "onetime", "unknown"]), cost: num(), scope: pk(["all", "agent", "agentsup", "sup"]) }; });
+      E.USAGE_TYPES.forEach((t) => { d.usage[t.id] = num(); });
+      const r = E.compute(cl(d));
+      if (r.guards.some((g) => g.invalid)) { bad.add("neutrality: clean input never discloses"); break; }
+      const s = cl(d); s.classes.forEach((c) => { c.count = String(c.count); c.price = String(c.price); }); s.committedSeats = String(s.committedSeats); s.uplift = String(s.uplift); s.seats18mo = String(s.seats18mo); s.commitRate = String(s.commitRate);
+      E.MODULES.forEach((m) => { s.modules[m.id].cost = String(s.modules[m.id].cost); }); E.USAGE_TYPES.forEach((t) => { s.usage[t.id] = String(s.usage[t.id]); });
+      if (JSON.stringify(E.compute(s)) !== JSON.stringify(r)) { bad.add("neutrality: clean text reads identically to its number"); break; }
+    }
+    return bad;
+  }
+  const NAMES = ["matrix: no non-finite figure or text", "exemption: a blank uplift does not disclose", "conditional: an unconsumed cost does not disclose", "exemption: a blank uplift still prints its not-entered line", "matrix: a consumed unclean entry discloses exactly once", "matrix: the flag names the raw entry and says not a number", "matrix: an unclean entry never gets the out-of-range sentence", "matrix: held value is the parsed value within bounds", "matrix: a disclosure blocks at Directional", "matrix: the blocker names input integrity", "blank committed seats discloses", "blank 18-month seats discloses", "junk uplift still discloses", "conditional: an unused commit rate does not disclose", "an out-of-range entry keeps its own sentence", "\"1,200\" is held at 1 and disclosed with its raw text", "the local reader is finite or zero", "neutrality: clean input never discloses", "neutrality: clean text reads identically to its number"];
+  const real = suite(evalRegion(region), 8000);
+  for (const nm of NAMES) A("N " + nm, !real.has(nm));
+  A("N every failure name is registered", [...real].every((x) => NAMES.includes(x)));
+  A("N the engine uses the shared guard, not a local copy", /createGuards\(\)/.test(region) && !/const v = n\(raw\);/.test(region));
+  A("N the component imports the shared guard module", /import \{ createGuards \} from "\.\/src\/lib\/guards";/.test(SRC));
+  A("N the only exempt blank is renewal uplift", /const BLANK_OK = new Set\(\["Renewal uplift"\]\);/.test(region));
+  A("N telemetry counts every guard record", /inputs_corrected: guards\.length/.test(SRC));
+
+  const MUTANTS = [
+    ["every blank exempt", '&& BLANK_OK.has(label)) guards.pop();', ') guards.pop();'],
+    ["no blank exempt", 'const BLANK_OK = new Set(["Renewal uplift"]);', "const BLANK_OK = new Set([]);"],
+    ["unclean gets the range sentence", "for (const g of guards) flags.push(g.invalid", "for (const g of guards) flags.push(false"],
+    ["integrity blocker dropped", "  if (badNums) modelBlockers.push", "  if (false) modelBlockers.push"],
+    ["reader lets Infinity through", "return Number.isFinite(p) ? p : 0; };", "return isNaN(p) ? 0 : p; };"],
+    ["raw entry lost from the flag", 'which === "entered" && g.invalid ? g.entered :', ""],
+    ["local non-recording guard restored", "const c = sharedGuard(label, raw, min, max, unit);", "const v0 = n(raw); const c = Math.max(min, max === null ? v0 : Math.min(max, v0)); if (c !== v0) guards.push({ label, entered: v0, used: c, unit: unit || \"\" });"],
+    ["blocker counts all as out of range", "const badNums = guards.filter(g => g.invalid).length,", "const badNums = 0,"],
+  ];
+  let killed = 0;
+  for (const [nm, from, to] of MUTANTS) {
+    if (region.split(from).length !== 2) { A(`N mutant anchor is unique: ${nm}`, false); continue; }
+    let E; try { E = evalRegion(region.replace(from, to)); } catch { killed++; continue; }
+    if (suite(E, 300).size) killed++; else console.log("  survived:", nm);
+  }
+  A(`N mutants killed ${killed} of ${MUTANTS.length}`, killed === MUTANTS.length);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
