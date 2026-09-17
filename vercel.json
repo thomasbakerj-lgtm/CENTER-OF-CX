@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/tco-calculator", "destination": "/tools/tco-calculator", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
   ]
