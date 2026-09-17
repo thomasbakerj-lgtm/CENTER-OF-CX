@@ -540,7 +540,7 @@ const hard = (r) => r.flags.some(f => /impossible|outside the plausible|outside 
   A("publish block names the tool id 'fcr-leakage'", /publishToolResult\("fcr-leakage"/.test(src));
   const need = ["repeatContactBurden", "controllableRepeatBurden", "cashRealizableSavings", "repeatContactShare", "marginalPerContact", "targetFCR", "fcr", "monthlyContacts", "fcrLeakageConfidence"];
   A("every documented rail key is still published", need.every(k => src.indexOf(k + ":") >= 0));
-  A("FCR is published as a fraction, not a whole number", /fcr: fcrPct \/ 100/.test(src));
+  A("FCR is published as a fraction, not a whole number", /fcr: N\.fcrPct \/ 100/.test(src));
   A("the report signals publish the applied target, not the requested one",
     /target_fcr: pct\(R\.target\)/.test(src) && /requested_fcr:/.test(src));
   A("the report signals disclose whether the target was capped", /target_capped:/.test(src));
@@ -584,5 +584,100 @@ console.log("  two-year cumulative $" + Math.round(r.cum2Yr).toLocaleString());
 console.log("  payback             " + r.paybackLabel);
 console.log("  confidence          " + r.headlineConf + " (cost " + r.costConf + ", realization " + r.realConf + ")");
 console.log("  flags               " + r.flags.length);
+
+/* ---- N. Numeric disclosure ----
+   A scenario link decodes into state with no type check. Before saneFcr, all 330
+   unclean probe cases were silent and 144 leaked a non-finite figure. Every numeric
+   field is now read through the shared guard with no bounds, disclosed with its raw
+   text when it applies, and sanitized regardless. Clean input is untouched. */
+{
+  console.log("\nN. numeric disclosure");
+  const evalRegion = (rg) => new Function("MECH", "MECH_ORDER", "createGuards",
+    rg + "\nreturn { engine, saneFcr, FCR_NUM };")(MECH, MECH_ORDER, createGuards);
+  const BASE = { M: 50000, fcrPct: 72, mCPC: 6.5, lCPC: 11, windowDays: 7, measuredPct: 22, measuredTargetPct: 0, repeatMult: 1.2, targetPct: 80, investOneTime: 150000, investRecurring: 90000, scores: {}, scope: "cc", method: "internal", repeatModel: "one", pathModel: "one", mech: "hiring", sourcing: "inhouse", costBasis: "ops" };
+  /* Mirrors the shipped engineInput line, which section 11b of fcr.report slices and runs. */
+  const build = (s, N) => ({ M: N.M, fcr: N.fcrPct / 100, mCPC: N.mCPC, lCPC: N.lCPC, repeatModel: s.repeatModel, measuredRate: N.measuredPct / 100, measuredTargetRate: N.measuredTargetPct > 0 ? N.measuredTargetPct / 100 : null, pathModel: s.pathModel, repeatMult: N.repeatMult, dScore: 3, askTarget: N.targetPct / 100, mech: s.mech, sourcing: s.sourcing, investOneTime: N.investOneTime, investRecurring: N.investRecurring, costBasis: s.costBasis, defDeclared: true, fcrPulledDirty: false, scope: s.scope, method: s.method, windowDays: N.windowDays, numericCorrections: N.numericCorrections });
+  const VALS = ["", "abc", "12abc", "1,200", NaN, Infinity, null, "Infinity", "$50", "-Infinity"];
+  const CTX = [{}, { repeatModel: "measured" }, { method: "survey" }, { sourcing: "bpo", mech: "none" }];
+  const applies = (k, s) => k === "windowDays" ? s.method === "internal" : (k === "measuredPct" || k === "measuredTargetPct") ? s.repeatModel === "measured" : true;
+  const finiteAll = (r) => Object.values(r).every((v) => typeof v !== "number" || Number.isFinite(v));
+  const textClean = (r) => !/NaN|Infinity|undefined/.test(r.flags.join(" ").replace(/entered as ("[^"]*"|NaN|-?Infinity|blank)/g, "") + r.paybackLabel + r.confReason);
+  const held = (raw) => { const p = parseFloat(raw); return Number.isFinite(p) ? p : 0; };
+
+  function suite(E, neutralN) {
+    const bad = new Set();
+    for (const ctx of CTX) for (const [k, label] of E.FCR_NUM) for (const v of VALS) {
+      const s = { ...BASE, ...ctx, [k]: v }; const N = E.saneFcr(s); const r = E.engine(build(s, N));
+      if (!finiteAll(r) || !textClean(r)) bad.add("matrix: no non-finite figure or text");
+      if (typeof N[k] !== "number" || !Number.isFinite(N[k])) bad.add("matrix: every numeric is sanitized regardless");
+      if (N[k] !== held(v)) bad.add("matrix: held value is the parsed value, else 0");
+      if (applies(k, s)) {
+        const want = `${label} was entered as `;
+        if (N.numericCorrections.length !== 1 || !N.numericCorrections[0].startsWith(want)) bad.add("matrix: an applicable unclean entry discloses exactly once");
+        else if (!N.numericCorrections[0].endsWith(`was held at ${held(v)}.`)) bad.add("matrix: disclosure names the held value");
+        if (!r.flags.includes(N.numericCorrections[0])) bad.add("matrix: the disclosure reaches the document flags");
+        if (r.headlineConf !== "Directional" || !r.hardFlag) bad.add("matrix: a disclosure blocks the result at Directional");
+        if (!/not a clean number/.test(r.confReason)) bad.add("matrix: confidence reason names input integrity");
+      } else if (N.numericCorrections.length) bad.add("conditional: a field that cannot move the case does not disclose");
+    }
+    { const N = E.saneFcr({ ...BASE, M: "1,200" }); if (N.M !== 1 || !/"1,200"/.test(N.numericCorrections[0] || "")) bad.add("\"1,200\" is held at 1 and disclosed with its raw text"); }
+    { const N = E.saneFcr({ ...BASE, scores: { "policy-0": "4", "policy-1": 5 } }); if (N.numericCorrections.length || N.scores["policy-0"] !== 4) bad.add("scores: a clean string answer reads as its number, silently"); }
+    { const N = E.saneFcr({ ...BASE, scores: { "policy-0": "abc" } }); if (N.scores["policy-0"] !== 0 || !/Diagnostic answer policy-0 was entered as "abc"/.test(N.numericCorrections[0] || "")) bad.add("scores: an unclean answer is held unanswered and disclosed"); }
+    { const N = E.saneFcr({ ...BASE, scores: "junk" }); if (Object.keys(N.scores).length || !/not a set of answers/.test(N.numericCorrections[0] || "")) bad.add("scores: a non-object answer set is cleared and disclosed"); }
+    { const N = E.saneFcr({ ...BASE, scores: JSON.parse('{"__proto__": {"x": 1}, "skill-0": 3}') }); if (N.scores["skill-0"] !== 3 || ({}).x !== undefined) bad.add("scores: an own __proto__ key cannot pollute"); }
+    { const N = E.saneFcr(BASE); const extra = Object.keys(N).filter((k) => !E.FCR_NUM.some(([f]) => f === k) && k !== "scores" && k !== "numericCorrections"); if (extra.length) bad.add("numerics only: no caller setting is echoed or overwritten"); }
+    /* Neutrality: clean input, sanitized or raw, runs the identical engine. */
+    let seed = 20260917; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; const pk = (a) => a[Math.floor(rnd() * a.length)];
+    for (let i = 0; i < neutralN; i++) {
+      const s = { ...BASE, M: Math.round(rnd() * 300000) - 5000, fcrPct: +(rnd() * 110 - 5).toFixed(1), mCPC: +(rnd() * 20 - 1).toFixed(2), lCPC: +(rnd() * 30).toFixed(2), windowDays: Math.round(rnd() * 40), measuredPct: +(rnd() * 70).toFixed(1), measuredTargetPct: pk([0, +(rnd() * 40).toFixed(1)]), repeatMult: +(rnd() * 4 - 0.5).toFixed(2), targetPct: +(rnd() * 110).toFixed(1), investOneTime: Math.round(rnd() * 900000), investRecurring: Math.round(rnd() * 300000), repeatModel: pk(["one", "geometric", "measured"]), method: pk(["", "survey", "internal"]), sourcing: pk(["inhouse", "bpo"]), mech: pk(["none", "hiring", "headcount", "vendor", "growth"]), scope: pk(["", "voice", "cc", "enterprise"]), costBasis: pk(["estimate", "ops", "finance"]) };
+      const N = E.saneFcr(s);
+      if (N.numericCorrections.length) { bad.add("neutrality: clean input never discloses"); break; }
+      if (E.FCR_NUM.some(([k]) => N[k] !== s[k])) { bad.add("neutrality: clean input is returned unchanged"); break; }
+      if (JSON.stringify(E.engine(build(s, s))) !== JSON.stringify(E.engine({ ...build(s, N), numericCorrections: [] }))) { bad.add("neutrality: the engine result is identical"); break; }
+    }
+    return bad;
+  }
+
+  const real = suite(evalRegion(region), 8000);
+  const names = ["matrix: no non-finite figure or text", "matrix: every numeric is sanitized regardless", "matrix: held value is the parsed value, else 0", "matrix: an applicable unclean entry discloses exactly once", "matrix: disclosure names the held value", "matrix: the disclosure reaches the document flags", "matrix: a disclosure blocks the result at Directional", "matrix: confidence reason names input integrity", "conditional: a field that cannot move the case does not disclose", "\"1,200\" is held at 1 and disclosed with its raw text", "scores: a clean string answer reads as its number, silently", "scores: an unclean answer is held unanswered and disclosed", "scores: a non-object answer set is cleared and disclosed", "scores: an own __proto__ key cannot pollute", "numerics only: no caller setting is echoed or overwritten", "neutrality: clean input never discloses", "neutrality: clean input is returned unchanged", "neutrality: the engine result is identical"];
+  for (const nm of names) A("N " + nm, !real.has(nm));
+  A("N every failure name is registered", [...real].every((x) => names.includes(x)));
+
+  /* Source guards. The shipped component must read sanitized numerics everywhere a
+     figure is computed, and bounds must stay tool-owned. */
+  A("N saneFcr lives inside the tested engine region", /function saneFcr\(/.test(region));
+  A("N the reader carries no bounds: NumField min and max are not promoted", /rawProbe\(what, raw, -Infinity, null, ""\)/.test(region));
+  const EI = (src.match(/^\s*const engineInput = .*$/m) || [""])[0];
+  A("N engineInput reads every numeric through N", ["M", "mCPC", "lCPC", "repeatMult", "investOneTime", "investRecurring", "windowDays"].every((k) => new RegExp(`${k}: N\\.${k}\\b`).test(EI)) && /fcr: N\.fcrPct/.test(EI) && /askTarget: N\.targetPct/.test(EI) && /numericCorrections: N\.numericCorrections/.test(EI));
+  A("N the rail publishes sanitized numerics", /marginalPerContact: N\.mCPC/.test(src) && /monthlyContacts: N\.M\b/.test(src));
+  A("N the sensitivity band reads the sanitized multiplier", /Math\.max\(1\.5, N\.repeatMult \+ 0\.4\)/.test(src));
+  A("N the diagnostic score reads sanitized answers", /N\.scores\[`\$\{dimId\}-\$\{i\}`\] \|\| 0/.test(src));
+  A("N telemetry counts numeric corrections", /inputs_corrected: N\.numericCorrections\.length/.test(src));
+  A("N the document never prints a raw numeric field", !/money2\(mCPC\)|fmtX\(repeatMult\)|money\(investOneTime\)|money\(investRecurring\)|current_fcr: fcrPct|requested_fcr: targetPct/.test(src));
+
+  /* Mutants. Each breaks one rule; the suite must notice. */
+  const MUTANTS = [
+    ["flags drop the disclosures", "  for (const c of I.numericCorrections || []) flags.push(c);\n", ""],
+    ["disclosure never fires", "if (check && bad !== null)", "if (check && bad === \"never\")"],
+    ["window checked under every method", "k === \"windowDays\" ? s.method === \"internal\"", "k === \"windowDays\" ? true"],
+    ["measured shares checked under every model", ": (k === \"measuredPct\" || k === \"measuredTargetPct\") ? s.repeatModel === \"measured\" : true;", ": true;"],
+    ["confidence reason loses input integrity", "  if ((I.numericCorrections || []).length) confReason = \"an input was not a clean number and was held at the value shown, so the result is blocked.\";\n  else if (hardFlag)", "  if (hardFlag)"],
+    ["reader promotes a zero floor", "rawProbe(what, raw, -Infinity, null, \"\")", "rawProbe(what, raw, 0, null, \"\")"],
+    ["raw value passes through", "for (const [k, what] of FCR_NUM) out[k] = read(what, s[k], applies(k));", "for (const [k, what] of FCR_NUM) { read(what, s[k], applies(k)); out[k] = s[k]; }"],
+    ["held value misreported", "and was held at ${v}.`", "and was held at 0.`"],
+    ["answers pass through raw", "out.scores[k] = read(`Diagnostic answer ${k}`, sc[k], true);", "out.scores[k] = sc[k];"],
+    ["non-object answers go silent", "if (sc !== s.scores && s.scores != null) numericCorrections.push", "if (false) numericCorrections.push"],
+    ["held text drops the raw entry", "was entered as ${bad}", "was entered as a value"],
+    ["hard flag ignores held values", "|clamped to zero|was held at/", "|clamped to zero/"],
+  ];
+  let killed = 0;
+  for (const [nm, from, to] of MUTANTS) {
+    if (region.split(from).length !== 2) { A(`N mutant anchor is unique: ${nm}`, false); continue; }
+    let E; try { E = evalRegion(region.replace(from, to)); } catch { killed++; continue; }
+    if (suite(E, 400).size) killed++; else console.log("  survived:", nm);
+  }
+  A(`N mutants killed ${killed} of ${MUTANTS.length}`, killed === MUTANTS.length);
+}
+
 console.log("\n  " + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);
