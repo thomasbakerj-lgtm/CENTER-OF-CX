@@ -220,6 +220,12 @@ const SETS = {
     mut: () => ({ shrink: 100, intv: 0, slT: 150, queues: 0, patience: -30 }) },
   I: { label: "Occupancy cap switched on at a ceiling of zero",
     mut: () => ({ capOn: true, capPct: 0 }) },
+  /* Set J is the ordinary case that produced the certainty defect. Nothing here is
+     hostile: an operator holding a 60 percent occupancy ceiling on the shipped
+     defaults. Before the display floors the document read 100.0% service level,
+     0s speed of answer and 0.0% chance of waiting, none of which Erlang C can say. */
+  J: { label: "An ordinary 60 percent occupancy ceiling: the certainty case",
+    mut: () => ({ capOn: true, capPct: 60 }) },
 };
 
 function render(S) {
@@ -239,7 +245,7 @@ function render(S) {
     const valid = modelValidity(aht, intv);
     const occInfo = classifyOccupancy(r.occ);
     const shrinkInfo = classifyShrinkage(shrink / 100);
-    const asaD = r.asa < 1 ? "< 1s" : r.asa > 999 ? "> 15m" : Math.round(r.asa) + "s";
+    const asaD = fmtASA(r.asa);
     const p = PRESETS[preset];
     const isCustom = !p || vol !== p.volume || aht !== p.aht || slT !== Math.round(p.slT * 100) || slS !== p.slS || shrink !== Math.round(p.shrink * 100);
     const presetLabel = isCustom ? "Custom" : p.label;
@@ -260,7 +266,7 @@ function render(S) {
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
     const sections = ${sectionsExpr};
-    return { st, stG, guards, STAFFING_DOMAIN, guardStaffing, capForCorrections, buildInsights, solveNotice, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
+    return { st, stG, guards, STAFFING_DOMAIN, guardStaffing, capForCorrections, buildInsights, solveNotice, fmtSL, fmtASA, fmtPW, SL_CEILING, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
              subtitle, summary, signals, sections };
   `;
   return new Function("BENCH", "COLORS", "classifyOccupancy", "classifyShrinkage",
@@ -283,6 +289,12 @@ function allText(doc) {
   return parts.join("\n");
 }
 const summaryValue = (doc, label) => (doc.summary.find(x => x.label === label) || {}).value;
+/* The metric grid is a sections payload, so summaryValue cannot see it. Every printed
+   figure needs a reader or an assertion written against it is vacuous. */
+const itemValue = (doc, label) => {
+  for (const sec of doc.sections) for (const it of (sec.items || [])) if (it && it.label === label) return it.value;
+  return undefined;
+};
 const sectionByTitle = (doc, t) => doc.sections.find(sec => sec.title === t);
 const itemsOf = (doc, t) => ((sectionByTitle(doc, t) || {}).items || [])
   .map(i => typeof i === "string" ? i : `${i.action || i.label || i.tool || ""} ${i.detail || i.value || i.reason || ""}`).join(" | ");
@@ -323,6 +335,15 @@ for (const k of Object.keys(DOCS)) {
   /* No set is exempt. The exclusion Set F carried existed only because the guard
      layer did not. */
   A(`${k}: the document prints no negative agent count`, !/-\d+ (?:agents|FTE)/.test(text));
+  /* Certainty is the impossible figure this tool used to print. Erlang C leaves a
+     positive residual at every finite headcount, so a service level of 100 percent,
+     a zero wait and a zero chance of waiting are all claims the model cannot make.
+     Each was reachable: 100 percent through a service target of 100, the zeros
+     through an ordinary 60 percent occupancy ceiling. */
+  A(`${k}: the document claims no 100 percent service level`, !/\b100(\.0)?% (?:vs|service)/.test(text) && !/service level (?:at )?100(\.0)?%/.test(text));
+  A(`${k}: the document claims no zero wait`, !/ASA 0s/.test(text) && itemValue(DOCS[k], "Avg Speed of Answer") !== "0s");
+  A(`${k}: the document claims no zero chance of waiting in the grid`, itemValue(DOCS[k], "Probability of Wait") !== "0.0%");
+  A(`${k}: the document claims no zero chance of waiting`, !/only 0(\.0)?% of callers wait/.test(text));
 }
 
 /* ---- 3. the printed figures reconcile with the engine ---- */
@@ -332,7 +353,7 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: printed base agents equals the engine figure`, summaryValue(doc, "Base agents required") === r.raw);
   A(`${k}: printed scheduled FTE equals the engine figure`, summaryValue(doc, "Scheduled FTE") === r.sched);
   A(`${k}: printed occupancy equals the engine figure`, summaryValue(doc, "Occupancy") === `${(r.occ * 100).toFixed(1)}%`);
-  A(`${k}: printed service level equals the engine figure`, String(summaryValue(doc, "Service level achieved")).indexOf(`${(r.sl * 100).toFixed(1)}%`) === 0);
+  A(`${k}: printed service level equals the engine figure`, String(summaryValue(doc, "Service level achieved")).indexOf(doc.fmtSL(r.sl)) === 0);
   A(`${k}: the subtitle carries the same FTE the summary carries`, doc.subtitle.indexOf(String(r.sched)) === 0);
   A(`${k}: the subtitle carries the same occupancy the summary carries`, doc.subtitle.indexOf(`${(r.occ * 100).toFixed(1)}%`) > 0);
   A(`${k}: the subtitle carries the same cost confidence the tool exports`, doc.subtitle.indexOf(cost.confidence) > 0);
@@ -481,7 +502,7 @@ const CORR = "\u26a0 Inputs Corrected Before Calculation";
   const H = DOCS.H, hl = (l) => H.guards.find(g => g.label === l);
   A("H: shrinkage on the pole clamps below it", !!hl("Total Shrinkage") && H.stG.shrink === 99);
   A("H: an interval of zero clamps to one minute", !!hl("Interval length") && H.stG.intv === 1);
-  A("H: a service target above 100 clamps to 100", !!hl("Service Level Target") && H.stG.slT === 100);
+  A("H: a service target above the ceiling clamps to 99", !!hl("Service Level Target") && H.stG.slT === 99);
   A("H: zero queues clamps to one", !!hl("Queues or skills this volume splits across") && H.stG.queues === 1);
   A("H: negative patience clamps to zero", !!hl("Avg caller patience (optional)") && H.stG.patience === 0);
   A("H: exactly the five corrections", H.guards.length === 5);
