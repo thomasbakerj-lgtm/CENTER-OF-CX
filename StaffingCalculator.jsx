@@ -63,6 +63,21 @@ function calc(volume, ahtSec, intMin, slT, slSec, shrink, occCap) {
   return { raw: agents, sched: Math.ceil(agents / (1 - shrink)), pw, sl, asa, occ, A, capped, met };
 }
 
+/* Display floors. Erlang C never returns certainty. The residual
+   pw * exp(-(N - A) * slSec / aht) is positive at every finite headcount, so service
+   level is never 100 percent and speed of answer is never zero. Printed to one
+   decimal both collapse anyway: a 60 percent occupancy ceiling at 400 contacts
+   renders 100.0% and 0s, and at an exactly 50 percent ceiling the residual
+   underflows the double, so sl === 1 exactly and the comparison against a target is
+   decided by IEEE 754 rounding rather than by queueing. These print the true
+   statement, better than a stated bound, instead of a certainty the model cannot
+   support. One definition, read by the screen, the insights and the report, because
+   a retyped copy in the report harness is how the last drift started. */
+const SL_CEILING = 0.999;
+const fmtSL = (sl) => sl > SL_CEILING ? "> 99.9%" : `${(sl * 100).toFixed(1)}%`;
+const fmtASA = (asa) => asa < 1 ? "< 1s" : asa > 999 ? "> 15m" : `${Math.round(asa)}s`;
+const fmtPW = (pw) => pw < 0.001 ? "< 0.1%" : `${(pw * 100).toFixed(1)}%`;
+
 /* Erlang C is a steady-state model. It assumes the queue reaches equilibrium inside
    the interval being measured. When handle time approaches interval length, contacts
    spill across interval boundaries and the steady-state assumption fails: the model
@@ -200,7 +215,7 @@ function abandonmentCheck(N, A, ahtSec, patienceSec) {
    five million contacts per interval; the disclosure exists so it can never be silent. */
 function solveNotice(r, slTargetFrac) {
   if (r.met !== false) return null;
-  return `Service level target unreachable within the search. It stopped at ${r.raw} base agents with service level at ${(r.sl * 100).toFixed(1)}% against a ${Math.round(slTargetFrac * 100)}% target. Every headcount and cost figure here is a floor below what this target needs.`;
+  return `Service level target unreachable within the search. It stopped at ${r.raw} base agents with service level at ${fmtSL(r.sl)} against a ${Math.round(slTargetFrac * 100)}% target. Every headcount and cost figure here is a floor below what this target needs.`;
 }
 
 /* The insight layer: turn the raw metrics into the one or two things an operator
@@ -226,14 +241,14 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
 
   /* Situation-specific readings rank ahead of the structural one. */
   if (overBy >= 3) {
-    let t = `You are delivering ${slPct.toFixed(1)}% against your ${targetPct.toFixed(0)}% target. ${r.raw} agents is the fewest whole number that clears the SLA, so you are over-serving by ${Math.round(overBy)} points.`;
+    let t = `You are delivering ${fmtSL(r.sl)} against your ${targetPct.toFixed(0)}% target. ${r.raw} agents is the fewest whole number that clears the SLA, so you are over-serving by ${Math.round(overBy)} points.`;
     if (looseOcc) t += ` Occupancy is ${occPct.toFixed(1)}%, below the ${band} band, confirming you are staffed ahead of your own SLA.`;
     t += ` If ${targetPct.toFixed(0)}% is firm this is correct. If it is aspirational, a slightly looser target or threshold frees capacity.`;
     out.push(t);
   }
 
   if (aggressive)
-    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service (ASA ${Math.round(r.asa)}s, only ${(r.pw * 100).toFixed(0)}% of callers wait). Fast, but you carry agents to buy that speed. Most centres run 80% in 20 to 30s.`);
+    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service (ASA ${fmtASA(r.asa)}, only ${fmtPW(r.pw)} of callers wait). Fast, but you carry agents to buy that speed. Most centres run 80% in 20 to 30s.`);
 
   if (looseOcc && overBy < 3)
     out.push(`Occupancy at ${occPct.toFixed(1)}% sits below the ${band} band while service level is met. You have headroom to absorb growth, or could run leaner if cost is the priority.`);
@@ -248,7 +263,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
     out.push(`This volume splits across ${pool.queues} queues, which costs ${pool.deltaFte} more FTE than pooling it would, roughly ${Math.round(pool.pctPenalty * 100)}% more headcount for identical volume and identical service. That is a routing problem rather than a staffing one, and it is an upper bound: overflow rules and cross-trained agents recover part of it.`);
 
   if (out.length === 0)
-    out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${slPct.toFixed(1)}% are both in healthy ranges. A balanced plan with room to flex.`);
+    out.push(`Occupancy ${occPct.toFixed(1)}% and service level ${fmtSL(r.sl)} are both in healthy ranges. A balanced plan with room to flex.`);
 
   return out;
 }
@@ -268,7 +283,15 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
    Interval floors at one minute: offered load divides by it, and an interval near zero
    was measured at six seconds per Erlang solve, seven solves a render. Any interval
    shorter than three times handle time is already declared void by modelValidity.
-   Service level target is 0 to 100. Shrinkage is 0 to 99: scheduled FTE divides by
+   Service level target is 0 to 99. A target of 100 has no answer in this model:
+   the probability of wait is positive at every finite headcount, so service level
+   approaches 100 and never reaches it. The shipped engine returned one anyway. At
+   the default scenario the residual underflowed the double at 160 base agents, the
+   comparison sl >= 1 read true on rounding alone, met stayed true, no correction was
+   recorded, and the tool reported 229 FTE at full confidence against the 126 FTE an
+   80 percent target needs. That figure was set by IEEE 754, not by queueing theory.
+   99 is the ceiling, thirteen orders of magnitude clear of the underflow floor, and
+   the form carries the reason at the point of entry. Shrinkage is 0 to 99: scheduled FTE divides by
    one minus shrinkage, so 100 is a pole and anything above it inverts the sign.
    The occupancy ceiling is 1 to 100 and is only read while the cap is on, because a
    ceiling of zero cannot be met by any offered load. Queues floor at one.
@@ -278,7 +301,7 @@ const STAFFING_DOMAIN = [
   ["vol", "Voice contacts per interval", 0, null, ""],
   ["aht", "Average Handle Time", 1, null, "s"],
   ["intv", "Interval length", 1, null, "m"],
-  ["slT", "Service Level Target", 0, 100, "%"],
+  ["slT", "Service Level Target", 0, 99, "%"],
   ["slS", "Answer Threshold", 0, null, "s"],
   ["shrink", "Total Shrinkage", 0, 99, "%"],
   ["capPct", "Occupancy ceiling", 1, 100, "%"],
@@ -367,7 +390,7 @@ export default function StaffingCalculator() {
   const valid = modelValidity(aht, intv);
   const occInfo = classifyOccupancy(r.occ);
   const shrinkInfo = classifyShrinkage(shrink / 100);
-  const asaD = r.asa < 1 ? "< 1s" : r.asa > 999 ? "> 15m" : `${Math.round(r.asa)}s`;
+  const asaD = fmtASA(r.asa);
 
   // Does the live input set still match the selected preset? If not, label "Custom".
   const p = PRESETS[preset];
@@ -397,6 +420,10 @@ export default function StaffingCalculator() {
     publishToolResult("staffing-calculator", {
       volume: vol, intervalMin: intv, aht, shrinkage: shrink / 100,
       serviceLevelTarget: slT / 100, serviceLevel: r.sl, asa: r.asa,
+      /* A service level above the reporting ceiling is not certainty. The flag
+         travels with the figure so a consumer never reads 1 as "every caller
+         answered in time". Same contract as occupancyCapped and modelValid. */
+      serviceLevelFloored: r.sl > SL_CEILING || undefined,
       trafficIntensity: +r.A.toFixed(2), baseAgents: r.raw, fte: r.sched,
       occupancy: +r.occ.toFixed(4), probabilityOfWait: +r.pw.toFixed(4),
       occupancyCap: occCap || undefined, occupancyCapped: r.capped || undefined,
@@ -448,7 +475,7 @@ export default function StaffingCalculator() {
             <NumField label="Average Handle Time" value={aht} onChange={setAht} hint={`${fmtMS(aht)}, talk plus hold plus ACW`} suffix="sec" min={1} />
             <NumField label="Interval length" value={intv} onChange={setIntv} suffix="min" min={5} max={240} step={5} hint="Erlang C needs an interval of roughly three times AHT or more." />
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
-            <NumField label="Service Level Target" value={slT} onChange={setSlT} suffix="%" min={1} max={100} />
+            <NumField label="Service Level Target" value={slT} onChange={setSlT} hint="Ceiling is 99%. Erlang C has no answer at 100: some share of callers waits at every headcount." suffix="%" min={1} max={99} />
             <NumField label="Answer Threshold" value={slS} onChange={setSlS} suffix="sec" min={1} />
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
             <NumField label="Total Shrinkage" value={shrink} onChange={setShrink} hint="Breaks, training, PTO, absenteeism" suffix="%" min={0} max={70} />
@@ -493,9 +520,9 @@ export default function StaffingCalculator() {
               <S label="Occupancy" value={`${(r.occ * 100).toFixed(1)}%`} sub={occSub} color={occInfo.color} />
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }} className="stat-grid">
-              <S label="Service Level" value={`${(r.sl * 100).toFixed(1)}%`} sub={`Target: ${slT}% in ${slS}s`} color={r.sl >= slT / 100 ? GREEN : RED} />
+              <S label="Service Level" value={fmtSL(r.sl)} sub={`Target: ${slT}% in ${slS}s`} color={r.sl >= slT / 100 ? GREEN : RED} />
               <S label="Avg Speed of Answer" value={asaD} sub="Estimated wait time" />
-              <S label="Prob. of Wait" value={`${(r.pw * 100).toFixed(1)}%`} sub="Chance a caller waits" />
+              <S label="Prob. of Wait" value={fmtPW(r.pw)} sub="Chance a caller waits" />
             </div>
 
             <div style={{ background: DEEP, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
@@ -637,7 +664,7 @@ export default function StaffingCalculator() {
                   { label: "Base agents required", value: r.raw },
                   { label: "Scheduled FTE", value: r.sched },
                   { label: "Occupancy", value: `${(r.occ * 100).toFixed(1)}%` },
-                  { label: "Service level achieved", value: `${(r.sl * 100).toFixed(1)}% vs ${slT}% in ${slS}s target` },
+                  { label: "Service level achieved", value: `${fmtSL(r.sl)} vs ${slT}% in ${slS}s target` },
                   { label: "Annual cost of this plan", value: fmtMoney(cost.annual) },
                   { label: "Cost basis", value: cost.sourced ? "user figures via rail" : "benchmark median" },
                   ...(pair.sustainable ? [
@@ -714,9 +741,9 @@ export default function StaffingCalculator() {
                     { label: "Base Agents Required", value: r.raw.toString(), color: ELECTRIC, sub: r.capped ? "Cap-constrained" : "Before shrinkage" },
                     { label: "Scheduled FTE", value: r.sched.toString(), color: NAVY, sub: `With ${shrink}% shrinkage` },
                     { label: "Occupancy", value: `${(r.occ * 100).toFixed(1)}%`, color: occInfo.color, sub: r.capped ? `Held under ${capPct}% cap` : occInfo.label },
-                    { label: "Service Level", value: `${(r.sl * 100).toFixed(1)}%`, color: r.sl >= slT / 100 ? GREEN : RED },
+                    { label: "Service Level", value: fmtSL(r.sl), color: r.sl >= slT / 100 ? GREEN : RED },
                     { label: "Avg Speed of Answer", value: asaD, color: ELECTRIC },
-                    { label: "Probability of Wait", value: `${(r.pw * 100).toFixed(1)}%`, color: MUTED },
+                    { label: "Probability of Wait", value: fmtPW(r.pw), color: MUTED },
                     { label: "Annual Cost of This Plan", value: fmtMoney(cost.annual), color: NAVY, sub: cost.confidence },
                   ]},
                   { title: "Key Findings", type: "findings", items: [
