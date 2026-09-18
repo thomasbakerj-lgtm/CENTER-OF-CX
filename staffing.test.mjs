@@ -13,8 +13,8 @@ function slice(a, b) {
   return SRC.slice(i, j);
 }
 const engine = slice("function erlangB(", "function buildInsights(");
-const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)();
-const { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
+const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, fmtSL, fmtASA, fmtPW, SL_CEILING, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)();
+const { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, fmtSL, fmtASA, fmtPW, SL_CEILING, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
 
 let pass = 0, fail = 0;
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
@@ -387,6 +387,68 @@ section("Volume at enterprise scale: the search meets target and stays fast");
   ok("a met solve raises no notice", solveNotice({ met: true, raw: 1, sl: 1 }, 0.8) === null);
   ok("an unmet solve raises a notice", /unreachable/.test(solveNotice({ met: false, raw: 1002000, sl: 0.973 }, 0.99) || ""));
   ok("a legacy result without met raises no notice", solveNotice({ raw: 1, sl: 1 }, 0.8) === null);
+}
+
+/* ------------------------------------------- the certainty boundary ---- */
+section("The certainty boundary: what the model can never say");
+{
+  /* Erlang C leaves a positive residual, pw * exp(-(N - A) * slSec / aht), at every
+     finite headcount. Service level therefore approaches 100 percent and never
+     reaches it, and speed of answer approaches zero and never reaches it. The
+     shipped engine reported otherwise. This section pins both the arithmetic fact
+     and the two layers that now hold the line: the input domain and the display
+     floors. */
+
+  /* 1. The defect, stated as arithmetic rather than as history. A target of 100 is
+        cleared only because the residual falls under the double's resolution. */
+  const art = calc(400, 360, 30, 1.00, 20, 0.30, null);
+  ok("a target of 100 is cleared by rounding, not by queueing", art.met === true && art.sl === 1, `${art.sl}`);
+  ok("the rounding answer costs 60 more base agents than a 99 target",
+    art.raw - calc(400, 360, 30, 0.99, 20, 0.30, null).raw === 61, `${art.raw}`);
+  ok("the true residual at that headcount is positive, not zero",
+    erlangC(art.raw, art.A) * Math.exp(-(art.raw - art.A) * 20 / 360) > 0);
+
+  /* 2. The domain closes the input path. The form and the guard row move together
+        or the rendered gate fails, so both are asserted here against the shipped file. */
+  ok("the domain row for the service target stops at 99", SRC.includes('["slT", "Service Level Target", 0, 99, "%"],'));
+  ok("the form stops at 99", /label="Service Level Target"[^/]*max=\{99\}/.test(SRC));
+  ok("the form carries the reason at the point of entry", /Erlang C has no answer at 100/.test(SRC));
+
+  /* 3. Inside the domain nothing reaches certainty, at any scale or threshold. */
+  let clean = 0, checked = 0;
+  for (const vol of [10, 50, 200, 400, 1200, 5000, 40000]) {
+    for (const aht of [45, 180, 360, 900]) {
+      for (const slS of [0, 5, 20, 60, 300]) {
+        for (const slT of [0.50, 0.80, 0.95, 0.99]) {
+          const r = calc(vol, aht, 30, slT, slS, 0.30, null);
+          checked++;
+          if (r.sl < 1 && r.asa > 0 && r.pw > 0) clean++;
+        }
+      }
+    }
+  }
+  ok(`no solve inside the domain reaches certainty across ${checked} inputs`, clean === checked, `${clean} of ${checked}`);
+
+  /* 4. The occupancy ceiling is the second road to the same claim, and it is an
+        ordinary operator choice rather than a hostile input. The engine still
+        computes a residual under the double's resolution; the display floors are
+        what stop the document from printing certainty. */
+  const capped = calc(400, 360, 30, 0.80, 20, 0.30, 0.60);
+  ok("an ordinary 60 percent ceiling rounds the service level to 100.0 percent",
+    (capped.sl * 100).toFixed(1) === "100.0" && capped.sl < 1, `${capped.sl}`);
+  ok("an ordinary 60 percent ceiling rounds speed of answer to zero seconds",
+    Math.round(capped.asa) === 0 && capped.asa > 0, `${capped.asa}`);
+  ok("the service level floor prints a bound instead", fmtSL(capped.sl) === "> 99.9%", fmtSL(capped.sl));
+  ok("the speed of answer floor prints a bound instead", fmtASA(capped.asa) === "< 1s", fmtASA(capped.asa));
+  ok("the wait probability floor prints a bound instead", fmtPW(capped.pw) === "< 0.1%", fmtPW(capped.pw));
+
+  /* 5. The floors are floors, not replacements. Ordinary figures pass through. */
+  const plain = calc(400, 360, 30, 0.80, 20, 0.30, null);
+  ok("an ordinary service level prints its own figure", fmtSL(plain.sl) === `${(plain.sl * 100).toFixed(1)}%`, fmtSL(plain.sl));
+  ok("an ordinary speed of answer prints its own figure", fmtASA(plain.asa) === `${Math.round(plain.asa)}s`, fmtASA(plain.asa));
+  ok("an ordinary wait probability prints its own figure", fmtPW(plain.pw) === `${(plain.pw * 100).toFixed(1)}%`, fmtPW(plain.pw));
+  ok("the ceiling sits clear of the underflow floor", SL_CEILING === 0.999 && 1 - SL_CEILING > Number.EPSILON * 1e10);
+  ok("a very long wait still prints its own bound", fmtASA(4000) === "> 15m", fmtASA(4000));
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
