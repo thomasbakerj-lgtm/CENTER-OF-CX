@@ -23,7 +23,7 @@ import { readFileSync } from "node:fs";
 
 const SRC = readFileSync("./AIDeflectionRealityCheck.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
-const { MECH, MECH_ORDER, MECH_DEFAULT } = await import("./src/lib/mech.js");
+const { MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = await import("./src/lib/mech.js");
 const { createGuards } = await import("./src/lib/guards.js");
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 
@@ -246,8 +246,8 @@ function render(S) {
     const sections = ${sectionsExpr};
     return { s, R, RB, subtitle, summary, signals, sections, analyst, scenarios };
   `;
-  return new Function("MECH", "MECH_ORDER", "MECH_DEFAULT", "severityBucket", "createGuards", "MUT", body)(
-    MECH, MECH_ORDER, MECH_DEFAULT, severityBucket, createGuards, S.mut);
+  return new Function("MECH", "MECH_ORDER", "MECH_INITIAL", "severityBucket", "createGuards", "MUT", body)(
+    MECH, MECH_ORDER, MECH_INITIAL, severityBucket, createGuards, S.mut);
 }
 
 function allText(doc) {
@@ -395,7 +395,7 @@ console.log("\n7. the hostile scenario link is disclosed, not absorbed");
   A("C: the document is still whole under hostile input", C.sections.length >= 4);
   A("C: rates are clamped into their domain", C.R.netAutomationRate >= 0 && C.R.netAutomationRate <= 100);
   A("C: the apparent resolution rate never prints above 100", C.R.rp <= 100);
-  A("C: an unknown capacity action falls back to none, never the shipped default", C.R.mechKey === "none" && C.R.mechKey !== MECH_DEFAULT);
+  A("C: an unknown capacity action falls back to none, never the form initial", C.R.mechKey === MECH_FALLBACK && C.R.mechKey !== MECH_INITIAL);
   A("C: the document discloses the unknown capacity action it replaced",
     sectionByTitle(C, "Integrity Flags (" + C.R.flags.length + ")").items.filter(t => t === `Capacity action was "not-a-mechanism", which is not an option this tool offers, and was held at ${MECH.none.label}.`).length === 1);
   A("C: the open issues count is a number the document can print", Number.isFinite(C.signals.open_issues));
