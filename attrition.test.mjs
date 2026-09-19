@@ -17,10 +17,10 @@
  */
 import { readFileSync } from "fs";
 
-let COLORS, MECH, MECH_ORDER, createGuards, guardVal;
+let COLORS, MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards, guardVal;
 try {
   ({ COLORS } = await import("./src/lib/benchmarks.js"));
-  ({ MECH, MECH_ORDER } = await import("./src/lib/mech.js"));
+  ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = await import("./src/lib/mech.js"));
   ({ createGuards, guardVal } = await import("./src/lib/guards.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib. Run from the repo root.");
@@ -44,9 +44,9 @@ let compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS,
 try {
   ({ compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS,
     EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, n, fmtK, fmt$, clone, TOOL_ID, ROUTE } = new Function(
-    "COLORS", "MECH", "MECH_ORDER", "createGuards", "guardVal",
+    "COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "createGuards", "guardVal",
     region + "\nreturn { compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS, EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, n, fmtK, fmt$, clone, TOOL_ID, ROUTE };"
-  )(COLORS, MECH, MECH_ORDER, createGuards, guardVal));
+  )(COLORS, MECH, MECH_ORDER, MECH_INITIAL, createGuards, guardVal));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -443,6 +443,83 @@ A("source gate: the mechanism lookup is an own-key test", /hasOwnProperty\.call\
 A("source gate: no truthy mechanism lookup remains", !/!MECH\[mechKey\]/.test(region));
 A("source gate: the component has no second raw mechanism lookup", (SRC.match(/(?<![A-Z_])MECH\[(?!mechKey\]|k\])/g) || []).length === 0);
 A("source gate: the selector reads the engine-resolved key", /value=\{r\.mechKey\}/.test(SRC));
+
+/* ---- L. sign invariance of the grades, and the form initial ----
+
+   Section 5 of the doctrine grades the BASIS of a number, never the number.
+   A model built on finance-confirmed inputs with a cashable realization lever
+   is Finance-grade whether the answer comes back a saving or a loss. The
+   failure this section locks out is the one that feels natural to write and is
+   always wrong: quietly downgrading confidence when the result turns
+   unflattering, which converts the confidence strip into a verdict on the
+   outcome instead of a statement about the inputs.
+
+   Cost to achieve is the only sign carrier in this engine. It nets against the
+   gross scenario value without touching any driver of any axis, so sweeping it
+   drives net from positive through exactly zero to negative while the basis is
+   held fixed. Scenario total must stay flat across the same sweep: total is the
+   gross recovery, net is total less the spend, and a total that moves with cost
+   to achieve would mean the spend is being double counted.
+---- */
+console.log("\nL. sign invariance and the form initial");
+
+A("the shared module exports both mech constants", typeof MECH_FALLBACK === "string" && typeof MECH_INITIAL === "string");
+A("both mech constants are own keys in MECH",
+  Object.prototype.hasOwnProperty.call(MECH, MECH_FALLBACK) && Object.prototype.hasOwnProperty.call(MECH, MECH_INITIAL));
+A("the shipped defaults carry the shared form initial, not a hardcoded mechanism", BASE.mech === MECH_INITIAL);
+A("source gate: the default input set reads MECH_INITIAL rather than a string literal", /mech:\s*MECH_INITIAL/.test(region));
+A("source gate: the retired MECH_DEFAULT is gone from the component", !/MECH_DEFAULT/.test(SRC));
+
+const EV_KEYS = Object.keys(EVIDENCE_GRADE);
+let spanned = 0;
+for (const ev of EV_KEYS) {
+  for (const mk of MECH_ORDER) {
+    const fixed = { evidence: ev, mech: mk };
+    const ref = compute(m({ ...fixed, costPerPoint: 0 }));
+    const one = compute(m({ ...fixed, costPerPoint: 1 }));
+    const slope = one.scenarios[0].net - ref.scenarios[0].net;
+    A(`${ev}/${mk}: cost to achieve reduces net, so the sign can be driven`, slope < 0);
+    const zeroAt = ref.scenarios[0].net / (ref.scenarios[0].net - one.scenarios[0].net);
+    const SWEEP = [
+      ["positive", 0],
+      ["zero", zeroAt],
+      ["negative", zeroAt * 2],
+      ["deeply negative", zeroAt * 40],
+    ];
+    for (const [sign, cpp] of SWEEP) {
+      const r = compute(m({ ...fixed, costPerPoint: cpp }));
+      const tag = `${ev}/${mk} with net ${sign}`;
+      if (sign === "zero") A(`${tag}: the sweep lands on zero`, Math.abs(r.scenarios[0].net) < 1e-6);
+      if (sign === "positive") A(`${tag}: the sweep starts above zero`, r.scenarios[0].net > 0);
+      if (sign === "negative" || sign === "deeply negative") { A(`${tag}: the sweep is below zero`, r.scenarios[0].net < 0); spanned++; }
+      A(`${tag}: the evidence axis is unchanged`, r.grades.evidence === ref.grades.evidence);
+      A(`${tag}: the realization axis is unchanged`, r.grades.realization === ref.grades.realization);
+      A(`${tag}: the completeness axis is unchanged`, r.grades.completeness === ref.grades.completeness);
+      A(`${tag}: the headline is unchanged`, r.confidence === ref.confidence);
+      A(`${tag}: the binding axis is unchanged`, r.boundBy === ref.boundBy);
+      A(`${tag}: a negative net is not treated as an integrity failure`, r.voided === ref.voided && r.voided === false);
+      A(`${tag}: no invariant fires on the sign alone`, r.invariants.length === ref.invariants.length);
+      A(`${tag}: gross scenario value is untouched by cost to achieve`,
+        r.scenarios.every((sc, i) => near(sc.total, ref.scenarios[i].total)));
+      A(`${tag}: net is gross less the cost to achieve, on every scenario`,
+        r.scenarios.every((sc) => near(sc.net, sc.total - sc.achieveCost)));
+      A(`${tag}: the cost to achieve scales with the reduction points bought`,
+        r.scenarios.every((sc) => near(sc.achieveCost, sc.redPts * cpp)));
+    }
+  }
+}
+A("the sign sweep genuinely produced negative results across every basis", spanned === EV_KEYS.length * MECH_ORDER.length * 2);
+
+/* The same invariance stated the other way: a scenario set forced to all zeros
+   by a driver, rather than by the netting, must not move the axes either. */
+for (const ev of EV_KEYS) {
+  const ref = compute(m({ evidence: ev, mech: "vendor" }));
+  const flat = compute(m({ evidence: ev, mech: "vendor", attritionRate: 0 }));
+  A(`${ev}: zero attrition zeroes the scenarios`, flat.scenarios.every(sc => sc.total === 0));
+  A(`${ev}: zero attrition leaves the evidence axis alone`, flat.grades.evidence === ref.grades.evidence);
+  A(`${ev}: zero attrition leaves the realization axis alone`, flat.grades.realization === ref.grades.realization);
+  A(`${ev}: zero attrition does not void the export`, flat.voided === false);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
