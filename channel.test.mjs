@@ -12,10 +12,12 @@
 import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real modules, do not rebuild them. ---- */
-let MECH, MECH_ORDER, MECH_DEFAULT, COLORS, createGuards, guardVal, guardLine;
+let MECHMOD;
+let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, COLORS, createGuards, guardVal, guardLine;
 try {
-  const m = await import("./src/lib/mech.js");
-  ({ MECH, MECH_ORDER, MECH_DEFAULT } = m);
+  MECHMOD = await import("./src/lib/mech.js");
+  const m = MECHMOD;
+  ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = m);
   ({ COLORS } = await import("./src/lib/benchmarks.js"));
   ({ createGuards, guardVal, guardLine } = await import("./src/lib/guards.js"));
 } catch (e) {
@@ -31,10 +33,12 @@ const near = (a, b, tol = 1e-9) => Math.abs(a - b) <= tol * Math.max(1, Math.abs
 
 /* ---- 0. shared mechanism contract ---- */
 console.log("\n0. shared mechanism contract");
-A("mech.js exports MECH, MECH_ORDER, MECH_DEFAULT",
-  !!MECH && Array.isArray(MECH_ORDER) && typeof MECH_DEFAULT === "string");
-A("MECH_DEFAULT is a key in MECH", !!MECH[MECH_DEFAULT]);
-A("MECH_DEFAULT is not headcount reduction", MECH_DEFAULT !== "headcount");
+A("mech.js exports MECH, MECH_ORDER and both named mech constants",
+  !!MECH && Array.isArray(MECH_ORDER) && typeof MECH_FALLBACK === "string" && typeof MECH_INITIAL === "string");
+A("both mech constants are keys in MECH", !!MECH[MECH_FALLBACK] && !!MECH[MECH_INITIAL]);
+A("the resolver fallback realizes zero and credits nothing", MECH[MECH_FALLBACK].f === 0 && MECH[MECH_FALLBACK].cred === "none");
+A("the ambiguous MECH_DEFAULT name is retired from mech.js", !("MECH_DEFAULT" in MECHMOD));
+A("no mech constant is headcount reduction", MECH_FALLBACK !== "headcount" && MECH_INITIAL !== "headcount");
 A("every MECH_ORDER key exists in MECH", MECH_ORDER.every(k => !!MECH[k]));
 A("MECH_ORDER covers every MECH key", Object.keys(MECH).every(k => MECH_ORDER.indexOf(k) >= 0));
 A("every MECH entry has numeric f in [0,1], a label and a cred class",
