@@ -30,6 +30,9 @@ const { COLORS } = await import("./src/lib/benchmarks.js");
 const { MECH, MECH_ORDER, MECH_INITIAL } = await import("./src/lib/mech.js");
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal } = await import("./src/lib/guards.js");
+/* The shared grading layer the engine imports. Injected, never reconstructed, so
+   a headline the document prints is the headline the module computed. */
+const { gradeConfidence, emitGrades, voidResult, isVoid, isDual, AXIS_EXPLAINER, GRADE_RANK, AXES, CRED_GRADE } = await import("./src/lib/confidence.js");
 /* The real boundary guard and the real bucket, never reconstructed. The tool
    publishes signals.severity through severityBucket, and sanitizeProps is what
    decides whether that value reaches the wire or is silently dropped. */
@@ -156,19 +159,54 @@ A("the report payload contains no em-dash",
 console.log("\n0b. the shared confidence renderer");
 A("ReportActions accepts a grades prop", /grades = null/.test(RA));
 A("grades defaults to null, so a tool that omits it is unchanged", /grades = null,/.test(RA));
-A("the axis order is fixed in one place", /const AXIS_ORDER = \["evidence", "realization", "completeness"\]/.test(RA));
-A("the confidence section is prepended, not appended", /\[confidenceSection\(grades, confidence\), \.\.\.sections\]/.test(RA));
+A("the axis order is fixed in one place, and read from the shared module", /const AXIS_ORDER = AXES;/.test(RA));
+A("the renderer reads the grading layer rather than a local ladder", /from "\.\/src\/lib\/confidence"/.test(RA) && !/GRADE_RANK/.test(RA));
+A("the headline the component renders is the one the module computed", /const headline = voided \? null : \(derived \? derived\.headline/.test(RA));
+A("the binding axis reaches instrumentation as a token", /bound_axis: boundAxis/.test(RA));
+A("a void result reports as Void rather than as an absent grade", /const eventGrade = voided \? "Void" : headline;/.test(RA));
+A("a void submission carries the invariant instead of a grade", /b\.append\("void_invariant"/.test(RA) && /b\.append\("confidence", "VOID"\)/.test(RA));
+A("grade defects reach the human reviewer", /b\.append\("grade_defect", d\)/.test(RA));
+A("the confidence section is prepended, not appended", /\[confidenceSection\(grades, headline\), \.\.\.sections\]/.test(RA));
 A("a tool without grades exports the untouched section list", /grades \? \[confidenceSection[\s\S]{0,60}: sections/.test(RA));
 A("an N/A axis is forced to state a reason", /No reason was given, which is itself a defect/.test(RA));
 A("the axes are exported to the lead payload as well as the PDF", /axis_\$\{a\}/.test(RA));
 A("ReportActions carries no em-dash", RA.indexOf(String.fromCharCode(0x2014)) < 0);
 
-const cs = RA.slice(RA.indexOf("function confidenceSection"));
-const confidenceSection = new Function("AXIS_ORDER", "AXIS_LABEL",
-  cs.slice(0, balanced(cs, 0, "{", "}").end) + "\nreturn confidenceSection;")(
-  ["evidence", "realization", "completeness"],
-  { evidence: "Evidence", realization: "Realization", completeness: "Completeness" });
+/* The three renderer functions are sliced together and the grading layer is
+   injected, never reconstructed, so what this harness exercises is the code the
+   browser runs rather than a lookalike. */
+const cs = RA.slice(RA.indexOf("function gradeLines"));
+const hEnd = cs.indexOf("function headlineOf");
+const csRegion = cs.slice(0, hEnd + balanced(cs.slice(hEnd), 0, "{", "}").end);
+const { confidenceSection, gradeLines, headlineOf } = new Function(
+  "AXIS_ORDER", "AXIS_LABEL", "isVoid", "isDual", "AXIS_EXPLAINER", "gradeConfidence",
+  csRegion + "\nreturn { confidenceSection, gradeLines, headlineOf };")(
+  AXES, { evidence: "Evidence", realization: "Realization", completeness: "Completeness" },
+  isVoid, isDual, AXIS_EXPLAINER, gradeConfidence);
 A("the shared confidence section evaluates", typeof confidenceSection === "function");
+
+/* Void, and the Class C dual block, have no live consumer among the nine yet, so
+   they are exercised here directly. Shipping an unexercised branch is how the
+   split-rendering defect class got in last time. */
+const vObj = voidResult({ invariant: "Monetized capacity exceeds the capacity freed.", remedy: "Lower the realization factor." });
+const vSec = confidenceSection(vObj, null);
+A("a void section claims no grade", !JSON.stringify(vSec.items).includes("Headline:"));
+A("a void section states the failed invariant", vSec.items.some((i) => i.includes("exceeds the capacity freed")));
+A("a void section states the remedy", vSec.items.some((i) => i.startsWith("Remedy:")));
+A("a void section carries no axis explainer, because no axis applies", !vSec.items.some((i) => i.includes("weakest applicable axis")));
+
+const dCost = emitGrades({ evidence: "Finance-grade", realization: null, completeness: "Finance-grade", naReason: "Prices invoiced spend and converts no capacity.", reasons: { evidence: "Invoiced.", completeness: "Whole." } });
+const dBen = emitGrades({ evidence: "Planning-grade", realization: "Directional", completeness: "Planning-grade", reasons: { evidence: "Quoted.", realization: "No action committed.", completeness: "One driver unconfirmed." } });
+const dSec = confidenceSection({ dual: true, cost: dCost, benefit: dBen, costLabel: "Cost", benefitLabel: "Benefit" }, "Finance-grade");
+A("a Class C section grades the cost block", dSec.items.some((i) => i.startsWith("Cost. Headline: Finance-grade")));
+A("a Class C section grades the benefit block separately", dSec.items.some((i) => i.startsWith("Benefit. Headline: Directional")));
+A("a Class C section averages nothing", !dSec.items.some((i) => i.includes("Planning-grade, bound by")));
+A("a Class C section says the two are never merged", dSec.items.some((i) => i.includes("never averaged")));
+A("a headline is derived per block, not per document", headlineOf(dCost) === "Finance-grade" && headlineOf(dBen) === "Directional");
+
+const defObj = emitGrades({ evidence: "Finance-grade", realization: null, completeness: "Finance-grade" });
+A("a silent N/A surfaces as a rendered defect", confidenceSection(defObj, "Finance-grade").items.some((i) => i.startsWith("Defect in this grade:")));
+A("the standing axis explainer ships once, from the shared module", confidenceSection(dCost, "Finance-grade").items.filter((i) => i === AXIS_EXPLAINER).length === 1);
 
 /* ------------------------------------------------------------- input sets */
 /*
@@ -219,8 +257,8 @@ function render(S) {
     const confidence = r.voided ? "Void" : r.confidence;
     return { d, r, subtitle, grades, summary, signals, sections, confidence, corrections };
   `;
-  const out = new Function("COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", "createGuards", "guardVal", body)(
-    COLORS, MECH, MECH_ORDER, MECH_INITIAL, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink, createGuards, guardVal);
+  const out = new Function("COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", "createGuards", "guardVal", "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE", body)(
+    COLORS, MECH, MECH_ORDER, MECH_INITIAL, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink, createGuards, guardVal, gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE);
   out.sections = [confidenceSection(out.grades, out.confidence), ...out.sections];
   return out;
 }
