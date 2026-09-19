@@ -6,7 +6,7 @@ import { COLORS } from "./src/lib/benchmarks";
 import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import { publishToolResult, getPrimitive, getExternalPrimitive, sourcedExternally } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
-import { MECH, MECH_ORDER, MECH_DEFAULT } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { severityBucket } from "./src/lib/track";
 
@@ -419,7 +419,7 @@ const V_B = { apparentResolutionRate: 58, repeatLeakRate: 14, escalationPenalty:
 
 const DEFAULTS = {
   M: 80000, cpc: 7, marg: 0, eligibleRate: 55,
-  mech: MECH_DEFAULT, rampOn: true, rampMonths: 6, compareMode: false,
+  mech: MECH_INITIAL, rampOn: true, rampMonths: 6, compareMode: false,
   evidence: "estimate", costConfirmed: false,
   vA: { ...V_A }, vB: { ...V_B },
 };
