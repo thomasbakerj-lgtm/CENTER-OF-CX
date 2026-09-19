@@ -71,6 +71,7 @@ const REGISTRY = [
 const INFRA = [
   { name: "rail.test.mjs", covers: "src/lib rail contract" },
   { name: "guards.test.mjs", covers: "src/lib input guard: unclean entries disclosed" },
+  { name: "confidence.test.mjs", covers: "src/lib grading contract: no verdict reaches an axis" },
   { name: "seo.test.mjs", covers: "reachability: titles, counts, slugs" },
   { name: "track.test.mjs", covers: "instrumentation: event contract, no PII" },
   { name: "chunk.test.mjs", covers: "delivery: entry chunk ceiling, lazy routes" },
