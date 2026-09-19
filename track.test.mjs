@@ -102,7 +102,7 @@ eq("B5  a poisoned payload carries only framework properties",
 /* Every allowed key must actually be reachable, or the allowlist is lying. */
 const full = buildPayload(EV.TOOL_COMPLETE, {
   tool: "tco-calculator", from: "fcr-leakage", to: "business-case",
-  grade: "Directional", severity: "high", real: true, depth: 3,
+  grade: "Directional", bound_axis: "evidence+completeness", severity: "high", real: true, depth: 3,
   via_rail: true, repeat: true,
 }, CTX);
 for (const k of ALLOWED_PROP_KEYS) {
@@ -123,8 +123,17 @@ const cases = [
   ["tool", "a".repeat(200), undefined],
   ["tool", 42, undefined],
   ["grade", "Directional", "directional"],
-  ["grade", "Finance-grade", "finance"],
+  ["grade", "Finance-grade", "finance-grade"],
+  ["grade", "Planning-grade", "planning-grade"],
+  ["grade", "Void", "void"],
   ["grade", "Sparkling", undefined],
+  ["grade", "finance", undefined],
+  ["grade", "planning", undefined],
+  ["bound_axis", "evidence", "evidence"],
+  ["bound_axis", "realization+completeness", "realization+completeness"],
+  ["bound_axis", "evidence+realization+completeness", "evidence+realization+completeness"],
+  ["bound_axis", "completeness+evidence", undefined],
+  ["bound_axis", "vibes", undefined],
   ["severity", "Elevated", "moderate"],
   ["severity", "banana", undefined],
   ["real", "true", undefined],
