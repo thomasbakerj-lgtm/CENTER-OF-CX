@@ -7,10 +7,12 @@
 import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real module, do not rebuild it. ---- */
-let MECH, MECH_ORDER, MECH_DEFAULT, createGuards;
+let MECHMOD;
+let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards;
 try {
   const m = await import("./src/lib/mech.js");
-  ({ MECH, MECH_ORDER, MECH_DEFAULT } = m);
+  MECHMOD = m;
+  ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = m);
   ({ createGuards } = await import("./src/lib/guards.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js. The engine cannot be");
@@ -23,9 +25,11 @@ let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
 
 /* ---- 0. Validate the shared module itself before trusting anything downstream ---- */
-A("mech.js exports MECH, MECH_ORDER, MECH_DEFAULT",
-  !!MECH && Array.isArray(MECH_ORDER) && typeof MECH_DEFAULT === "string");
-A("MECH_DEFAULT is a key in MECH", !!MECH[MECH_DEFAULT]);
+A("mech.js exports MECH, MECH_ORDER and both named mech constants",
+  !!MECH && Array.isArray(MECH_ORDER) && typeof MECH_FALLBACK === "string" && typeof MECH_INITIAL === "string");
+A("both mech constants are keys in MECH", !!MECH[MECH_FALLBACK] && !!MECH[MECH_INITIAL]);
+A("the resolver fallback realizes zero and credits nothing", MECH[MECH_FALLBACK].f === 0 && MECH[MECH_FALLBACK].cred === "none");
+A("the ambiguous MECH_DEFAULT name is retired from mech.js", !("MECH_DEFAULT" in MECHMOD));
 A("every MECH_ORDER key exists in MECH", MECH_ORDER.every(k => !!MECH[k]));
 A("MECH_ORDER covers every MECH key", Object.keys(MECH).every(k => MECH_ORDER.indexOf(k) >= 0));
 A("every MECH entry has numeric f in [0,1], a label, and a cred class",
@@ -44,15 +48,15 @@ const src = readFileSync("./AIDeflectionRealityCheck.jsx", "utf8");
 const a = src.indexOf("/* @engine-start"), b = src.indexOf("/* @engine-end */");
 if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found."); process.exit(1); }
 const region = src.slice(a, b).replace(/^export /gm, "");
-const { engine, buildScenarios } = new Function("MECH", "MECH_DEFAULT", "createGuards",
-  region + "\nreturn { engine, buildScenarios };")(MECH, MECH_DEFAULT, createGuards);
+const { engine, buildScenarios } = new Function("MECH", "MECH_INITIAL", "createGuards",
+  region + "\nreturn { engine, buildScenarios };")(MECH, MECH_INITIAL, createGuards);
 
 /* the harness must exercise the real ladder, whatever it contains */
 const MECH_KEYS = MECH_ORDER.slice();
 const CASH_KEY = MECH_KEYS.filter(k => MECH[k].cred === "cash").pop();
 const ZERO_KEY = MECH_KEYS.filter(k => MECH[k].f === 0)[0];
 
-const DEF = { M:80000, cpc:7, marg:0, eligibleRate:55, mech:MECH_DEFAULT, rampOn:false, rampMonths:6,
+const DEF = { M:80000, cpc:7, marg:0, eligibleRate:55, mech:MECH_INITIAL, rampOn:false, rampMonths:6,
   evidence:"estimate", costBasisOwned:false, apparentResolutionRate:65, repeatLeakRate:18,
   escalationPenalty:25, implOneTime:0, botPlatformCost:8000, qaCost:2000, tuningHours:40,
   tuningRate:65, knowledgeMaintHours:20, knowledgeRate:55 };
@@ -144,7 +148,7 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
 
 /* ---- 9. All four verdicts reachable ---- */
 { const vP=engine({...DEF,marg:4.2,costBasisOwned:true,evidence:"pilot",mech:CASH_KEY,eligibleRate:60,apparentResolutionRate:75,repeatLeakRate:10}).verdict;
-  const vB=engine({...DEF,marg:4.2,eligibleRate:60,apparentResolutionRate:70,repeatLeakRate:12,evidence:"estimate",mech:MECH_DEFAULT}).verdict;
+  const vB=engine({...DEF,marg:4.2,eligibleRate:60,apparentResolutionRate:70,repeatLeakRate:12,evidence:"estimate",mech:MECH_INITIAL}).verdict;
   const vF=engine({...DEF,marg:4.2,eligibleRate:20,apparentResolutionRate:70,repeatLeakRate:12,evidence:"pilot",mech:CASH_KEY}).verdict;
   const vN=engine({...DEF,marg:4.2,eligibleRate:40,apparentResolutionRate:20,repeatLeakRate:60,botPlatformCost:60000,mech:CASH_KEY,evidence:"pilot"}).verdict;
   A("verdict: Proceed reachable", vP.indexOf("Proceed") === 0);
@@ -296,7 +300,7 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
 
   const tied  = engine({ ...BASE, evidence:"pilot",    mech:K90 });          // Finance / Finance
   const evLow = engine({ ...BASE, evidence:"proposal", mech:K90 });          // Planning / Finance
-  const rlLow = engine({ ...BASE, evidence:"pilot",    mech:MECH_DEFAULT }); // Finance / Planning
+  const rlLow = engine({ ...BASE, evidence:"pilot",    mech:MECH_INITIAL }); // Finance / Planning
 
   A("tied case is detected", tied.axesTied === true && tied.costConf === tied.realConf);
   A("tied case never claims one axis IS the weaker one", !/is the weaker axis|which is (realization|evidence) at/.test(tied.confSentence));
@@ -506,7 +510,8 @@ console.log("\n14. enum inputs resolve through pick");
       r.hardFlag === true && r.headlineConf === "Directional" && r.costConf === "Directional" && !/undefined/.test(r.confSentence));
   }
 
-  A("a hostile capacity action never inherits the shipped hiring default", engine({ ...CLEAN, mech:"bogus" }).mechKey !== MECH_DEFAULT);
+  A("a hostile capacity action resolves to the zero-credit fallback", engine({ ...CLEAN, mech:"bogus" }).mechKey === MECH_FALLBACK);
+  A("a hostile capacity action never inherits the form initial", engine({ ...CLEAN, mech:"bogus" }).mechKey !== MECH_INITIAL);
   A("a hostile evidence source never credits a document", engine({ ...CLEAN, evidence:"bogus" }).evidenceKey === "estimate");
   const both = engine({ ...CLEAN, M:-5, mech:"toString", evidence:"constructor", botPlatformCost:-1 });
   A("hostile enums between hostile inputs disclose in engine order",
@@ -522,7 +527,7 @@ console.log("\n14. enum inputs resolve through pick");
   A("the capacity action resolves through pick with a none fallback", /const mechKey = resolve\("Capacity action", I\.mech, MECH, "none"\);/.test(region));
   A("the evidence source resolves through pick with an estimate fallback", /const evKey = resolve\("Evidence source", I\.evidence, EVIDENCE, "estimate"\);/.test(region));
   A("the resolved correction carries the phrase that blocks the grade", /which is not an option this tool offers, and was held at \$\{table\[k\]\.label\}/.test(region));
-  A("the engine region no longer reads MECH_DEFAULT", !/MECH_DEFAULT/.test(region));
+  A("the engine region no longer reads either mech constant as a silent default", !/MECH_DEFAULT/.test(region) && !/MECH_FALLBACK/.test(region));
   A("no raw lookup on the entered capacity action remains", !/MECH\[I\.mech\]/.test(src) && !/MECH\[s\.mech\]/.test(src));
   A("no raw lookup on the entered evidence source remains",
     !/EVIDENCE\[I\.evidence\]/.test(src) && !/I\.evidence \|\|/.test(src) && (src.match(/I\.evidence/g) || []).length === 1);
@@ -614,7 +619,7 @@ console.log("\n17. numeric entries disclose");
 }
 
 const r = engine(DEF);
-console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f*100) + "%");
+console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, fallback '" + MECH_FALLBACK + "' at " + Math.round(MECH[MECH_FALLBACK].f*100) + "%, form initial '" + MECH_INITIAL + "' at " + Math.round(MECH[MECH_INITIAL].f*100) + "%");
 console.log("\n  default readout");
 console.log("  coverage            " + r.ep + "% of total demand is eligible");
 console.log("  apparent resolution " + r.rp + "% of AI-involved");
