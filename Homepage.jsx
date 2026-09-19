@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { TOOL_COUNT, CATEGORY_COUNT, VENDOR_PROFILE_COUNT } from "./src/lib/seo.js";
+import { CATEGORIES } from "./src/lib/verticals.js";
 
 const NAVY = "#0B1D3A";
 const DEEP_NAVY = "#061325";
@@ -118,7 +120,7 @@ function Hero() {
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 680, marginBottom: 36 }}>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 14px" }}>
-            30 free tools. 283 scored vendors.{" "}
+            {TOOL_COUNT} free tools. {VENDOR_PROFILE_COUNT} scored vendors.{" "}
             <span style={{ color: "rgba(255,255,255,0.35)" }}>Zero vendor sponsorship.</span>
           </h1>
           <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 520 }}>
@@ -126,11 +128,11 @@ function Hero() {
           </p>
         </div>
 
-        {/* Three paths — immediately visible */}
+        {/* Three paths, immediately visible */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="hero-paths">
           {[
-            { label: "Look up a vendor", sub: "283 profiles across 8 categories", href: "/vendors", icon: "◉" },
-            { label: "Run a calculator", sub: "30 tools — staffing, TCO, AHT, QA", href: "/how-to-choose", icon: "⚡" },
+            { label: "Look up a vendor", sub: `${VENDOR_PROFILE_COUNT} profiles across ${CATEGORY_COUNT} categories`, href: "/vendors", icon: "◉" },
+            { label: "Run a calculator", sub: `${TOOL_COUNT} tools: staffing, TCO, AHT, QA`, href: "/how-to-choose", icon: "⚡" },
             { label: "Read the research", sub: "Buyer guides, articles, frameworks", href: "/research", icon: "↓" },
           ].map((p, i) => (
             <a key={i} href={p.href} style={{ display: "block", padding: "20px 18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, transition: "all 0.2s", textDecoration: "none" }}
@@ -230,7 +232,7 @@ function RolePaths() {
 // ─── FEATURED TOOLS (SPOTLIGHT) ──────────────────────
 function FeaturedTools() {
   const featured = [
-    { name: "Vendor Match Engine", desc: "Tell us your environment, priorities, and constraints. Get a ranked shortlist from 24 scored CCaaS vendors with fit reasoning and integration data.", href: "/tools/vendor-match", accent: ELECTRIC, tag: "Most used" },
+    { name: "Vendor Match Engine", desc: `Tell us your environment, priorities, and constraints. Get a ranked shortlist from ${CATEGORIES.ccaas.vendorCount} scored CCaaS vendors with fit reasoning and integration data.`, href: "/tools/vendor-match", accent: ELECTRIC, tag: "Most used" },
     { name: "Staffing Calculator", desc: "Erlang C model. Volume, AHT, SLA target, and shrinkage to required FTE. Sensitivity analysis and industry presets included.", href: "/tools/staffing-calculator", accent: AMBER, tag: "Operations" },
     { name: "TCO Calculator", desc: "What your platform stack actually costs per agent, per contact, per resolved task. Including the costs your vendor quote left out.", href: "/tco-calculator", accent: RED, tag: "Economics" },
   ];
@@ -239,7 +241,7 @@ function FeaturedTools() {
       <div style={WRAP}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Featured tools</div>
-          <a href="/how-to-choose" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>All 30 tools →</a>
+          <a href="/how-to-choose" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>All {TOOL_COUNT} tools →</a>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="tools-grid">
           {featured.map((t, i) => (
@@ -262,16 +264,23 @@ function FeaturedTools() {
 
 // ─── VENDOR INTELLIGENCE (CONDENSED) ─────────────────
 function VendorIntel() {
+  /* Counts come from CATEGORIES so a tile cannot advertise a number the page
+     behind it contradicts. Six of these eight were hand-typed and wrong: Agent
+     Assist claimed 38 against 15, WEM 32 against 25, Analytics 45 against 41,
+     ACD 28 against 44, Digital 36 against 46, Payments 30 against 33. The
+     short tag and heading stay local because CATEGORIES carries no short form
+     and the kicker already renders the category abbreviation. seo.test.mjs
+     section E holds CATEGORIES to the live data files. */
   const cats = [
-    { s: "CCaaS", t: "Core CX Platforms", n: "24 vendors", h: "/vendors/ccaas" },
-    { s: "IVA", t: "Customer Automation", n: "50 vendors", h: "/vendors/iva" },
-    { s: "Agent Assist", t: "Agent Assist + Knowledge", n: "38 vendors", h: "/vendors/agent-assist" },
-    { s: "WEM + QM", t: "Workforce + Quality", n: "32 vendors", h: "/vendors/wem-qm" },
-    { s: "Analytics", t: "Experience Analytics", n: "45 vendors", h: "/vendors/analytics" },
-    { s: "ACD", t: "Routing + Orchestration", n: "28 vendors", h: "/vendors/acd-routing" },
-    { s: "Digital", t: "Digital Engagement", n: "36 vendors", h: "/vendors/digital-engagement" },
-    { s: "Payments", t: "Payments + Identity", n: "30 vendors", h: "/vendors/payments" },
-  ];
+    { k: "ccaas", s: "CCaaS", t: "Core CX Platforms" },
+    { k: "iva", s: "IVA", t: "Customer Automation" },
+    { k: "agent-assist", s: "Agent Assist", t: "Agent Assist + Knowledge" },
+    { k: "wem-qm", s: "WEM + QM", t: "Workforce + Quality" },
+    { k: "analytics", s: "Analytics", t: "Experience Analytics" },
+    { k: "acd-routing", s: "ACD", t: "Routing + Orchestration" },
+    { k: "digital-engagement", s: "Digital", t: "Digital Engagement" },
+    { k: "payments", s: "Payments", t: "Payments + Identity" },
+  ].map((c) => ({ ...c, n: `${CATEGORIES[c.k].vendorCount} vendors`, h: CATEGORIES[c.k].page }));
   return (
     <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
       <div style={WRAP}>
@@ -279,7 +288,7 @@ function VendorIntel() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
               <span style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Vendor intelligence</span>
-              <span style={{ fontSize: 12, color: "rgba(107,127,153,0.6)", marginLeft: 12 }}>283 vendors · 8 categories · scored independently</span>
+              <span style={{ fontSize: 12, color: "rgba(107,127,153,0.6)", marginLeft: 12 }}>{VENDOR_PROFILE_COUNT} vendors · {CATEGORY_COUNT} categories · scored independently</span>
             </div>
             <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Browse all vendors →</a>
           </div>
@@ -383,7 +392,7 @@ function Research() {
   const pieces = [
     { tag: "Reality Check", t: "Why Your CCaaS Migration Didn't Cut Costs", read: "8 min", href: "/research/ccaas-migration-costs" },
     { tag: "Market Map", t: "Agent Assist: Who's Real vs Who's Marketing", read: "12 min" },
-    { tag: "Operator Briefing", t: "What 50–70% Automation Actually Requires", read: "10 min" },
+    { tag: "Operator Briefing", t: "What 50 to 70% Automation Actually Requires", read: "10 min" },
   ];
   return (
     <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
@@ -416,7 +425,7 @@ function Research() {
   );
 }
 
-// ─── WHAT THIS IS (NOT "About Us" — just a line) ────
+// ─── WHAT THIS IS (NOT "About Us", just a line) ────
 function WhatThis() {
   return (
     <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
