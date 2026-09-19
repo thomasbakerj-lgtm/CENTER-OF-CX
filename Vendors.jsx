@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getAllSlugs } from "./VendorData";
+import { VENDOR_PROFILE_COUNT } from "./src/lib/seo.js";
+import { CATEGORIES } from "./src/lib/verticals.js";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -102,7 +104,7 @@ function Hero() {
           <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: 64, alignItems: "center" }} className="split-grid">
             <div>
               <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
-                350+ vendors.{" "}
+                {VENDOR_PROFILE_COUNT} vendors.{" "}
                 <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Scored, mapped, and evaluated.</span>
               </h1>
               <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 520, fontFamily: "'DM Sans', sans-serif" }}>
@@ -112,7 +114,7 @@ function Hero() {
             <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "28px 24px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 {[
-                  { n: "350+", l: "Vendors assessed" },
+                  { n: String(VENDOR_PROFILE_COUNT), l: "Vendors assessed" },
                   { n: "9", l: "Decision domains" },
                   { n: "7", l: "Orchestration layers" },
                   { n: "27", l: "Scoring dimensions" },
@@ -152,35 +154,39 @@ function BrowseByCategory() {
   const slugs = getAllSlugs();
   const toSlug = (name) => name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
+  /* count and href are derived from CATEGORIES, never typed. Four of these
+     eight were wrong: Analytics claimed 52 against 41, Digital 50 against 46,
+     Payments 51 against 33, and WEM rendered "25+" over a page headed 25.
+     Governance carries no key because it is not a scored category yet. */
   const categories = [
-    { title: "Core CX Platforms", sub: "CCaaS", count: "24", href: "/vendors/ccaas", vendors: [
+    { key: "ccaas", title: "Core CX Platforms", sub: "CCaaS", vendors: [
       { name: "Genesys", slug: "genesys" }, { name: "NICE CXone", slug: "nice-cxone" }, { name: "Five9", slug: "five9" },
       { name: "Amazon Connect", slug: "amazon-connect" }, { name: "Talkdesk", slug: "talkdesk" },
       { name: "8x8", slug: "8x8" }, { name: "Cisco Webex", slug: "cisco" }, { name: "Zoom", slug: "zoom" },
     ], desc: "The foundational platform for voice, digital, routing, and workforce management." },
-    { title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", count: "50", href: "/vendors/iva", vendors: [
+    { key: "iva", title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", vendors: [
       { name: "Kore.ai" }, { name: "Cognigy" }, { name: "Yellow.ai" }, { name: "LivePerson" }, { name: "PolyAI" }, { name: "Amelia" }, { name: "Nuance" },
     ], desc: "From legacy IVAs to LLM-native virtual assistants and autonomous AI workers." },
-    { title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", count: "15", href: "/vendors/agent-assist", vendors: [
+    { key: "agent-assist", title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", vendors: [
       { name: "Uniphore" }, { name: "Observe.AI" }, { name: "Cresta" }, { name: "Coveo" }, { name: "Shelf" }, { name: "Guru" }, { name: "Bloomfire" },
     ], desc: "Real-time guidance, knowledge retrieval, summarization, and next-best-action." },
-    { title: "Workforce & Quality Management", sub: "WEM · QM · WFM", count: "25+", href: "/vendors/wem-qm", vendors: [
+    { key: "wem-qm", title: "Workforce & Quality Management", sub: "WEM · QM · WFM", vendors: [
       { name: "NICE" }, { name: "Verint" }, { name: "Calabrio" }, { name: "Genesys WEM" }, { name: "Five9" }, { name: "Playvox" },
     ], desc: "Forecasting, scheduling, quality monitoring, coaching, and AI-powered QA." },
-    { title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", count: "52", href: "/vendors/analytics", vendors: [
+    { key: "analytics", title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", vendors: [
       { name: "CallMiner" }, { name: "Observe.AI" }, { name: "Qualtrics" }, { name: "Verint" }, { name: "Genesys" }, { name: "Clarabridge" },
     ], desc: "Sentiment, topic analysis, root cause detection, and cross-channel journey patterns." },
-    { title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", count: "44", href: "/vendors/acd-routing", vendors: [
+    { key: "acd-routing", title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", vendors: [
       { name: "MuleSoft" }, { name: "Workato" }, { name: "Camunda" }, { name: "Pega" }, { name: "UiPath" }, { name: "Genesys" }, { name: "NICE" },
     ], desc: "How interactions get routed, how systems share data, and how workflows execute." },
-    { title: "Digital Engagement", sub: "Chat · Messaging · Social", count: "50", href: "/vendors/digital-engagement", vendors: [
+    { key: "digital-engagement", title: "Digital Engagement", sub: "Chat · Messaging · Social", vendors: [
       { name: "Ada" }, { name: "Intercom" }, { name: "Sprinklr" }, { name: "Zendesk" }, { name: "Salesforce DE" }, { name: "Khoros" }, { name: "Gladly" },
     ], desc: "Multi-channel digital engagement platforms, CPaaS, and conversational messaging." },
-    { title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", count: "51", href: "/vendors/payments", vendors: [
+    { key: "payments", title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", vendors: [
       { name: "Stripe" }, { name: "Adyen" }, { name: "Worldpay" }, { name: "Forter" }, { name: "Sift" }, { name: "BioCatch" }, { name: "Checkout.com" },
     ], desc: "Payment processing, PCI compliance, authentication, and fraud prevention in CX." },
     { title: "CX & AI Governance", sub: "Compliance · Model Risk", count: "Emerging", vendors: [], desc: "Compliance, model evaluation, escalation design, and AI auditability. Governance tooling is still consolidating." },
-  ];
+  ].map((c) => (c.key ? { ...c, count: String(CATEGORIES[c.key].vendorCount), href: CATEGORIES[c.key].page } : c));
 
   const VendorLink = ({ v }) => {
     const s = v.slug || toSlug(v.name);
@@ -246,9 +252,9 @@ function HowWeEvaluate() {
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           {[
-            { t: "Architecture-level scoring", d: "We evaluate at the orchestration layer level. Routing dependencies, data fabric requirements, API maturity, event-driven capability, and governance overhead. Feature checklists miss what matters — we go deeper." },
-            { t: "Weighted dimension model", d: "Each category uses a custom rubric with up to 27 weighted scoring dimensions. CCaaS vendors, for example, are scored 1–5 across platform depth, workforce maturity, AI substance, architecture, and commercial fit — with weights reflecting operational importance." },
-            { t: "Maturity tiering", d: "Vendors are placed into four maturity tiers — Strategic Foundation, Strong Contender, Situational Specialist, and Limited Fit — based on weighted composite scores. Our bell curve distributions show exactly where the market clusters and where the gaps are." },
+            { t: "Architecture-level scoring", d: "We evaluate at the orchestration layer level. Routing dependencies, data fabric requirements, API maturity, event-driven capability, and governance overhead. Feature checklists miss what matters. We go deeper." },
+            { t: "Weighted dimension model", d: "Each category uses a custom rubric with up to 27 weighted scoring dimensions. CCaaS vendors, for example, are scored 1 to 5 across platform depth, workforce maturity, AI substance, architecture, and commercial fit, with weights reflecting operational importance." },
+            { t: "Maturity tiering", d: "Vendors are placed into four maturity tiers: Strategic Foundation, Strong Contender, Situational Specialist, and Limited Fit, based on weighted composite scores. Our bell curve distributions show exactly where the market clusters and where the gaps are." },
             { t: "Vertical and buyer context", d: "A vendor that's strong for retail may break in healthcare. Our evaluations include vertical fit signals, regulated-readiness indicators, and buyer-type alignment (enterprise vs mid-market vs SMB)." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.08}>
@@ -314,7 +320,7 @@ function CTA() {
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
             <Title>Need a shortlist tailored to your situation?</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px", fontFamily: "'DM Sans', sans-serif" }}>
-              Browsing 350+ vendors takes time. Tell us your operating model, vertical, and constraints — we'll deliver a scored shortlist of 3–5 vendors with honest assessments of each one.
+              Browsing {VENDOR_PROFILE_COUNT} vendors takes time. Tell us your operating model, vertical, and constraints. We deliver a scored shortlist of 3 to 5 vendors with honest assessments of each one.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Vendor Shortlist</a>
