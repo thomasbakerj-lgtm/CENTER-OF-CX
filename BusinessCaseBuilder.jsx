@@ -5,7 +5,7 @@ import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalPrimitive, getPrimitiveWithSource } from "./src/lib/toolData";
-import { MECH, MECH_ORDER, MECH_DEFAULT } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_FALLBACK } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
@@ -119,7 +119,10 @@ const BAU_RANK = { estimated: 0, budgeted: 1, reviewed: 2, served: 3 };
    same basis the TCO Calculator uses, so the two tools never disagree on the
    same contact. Attribution (stance) then discounts each lever, and realization (mech.js)
    converts freed labor into money. Attribution and realization are separate questions. */
-function computeCase(d, stanceKey, rampOn, mechKey = MECH_DEFAULT) {
+/* The fourth argument defaults to the resolver fallback, never to a form initial.
+   An omitted capacity action is an unmade decision, and an engine that fills it with
+   a 75% conversion manufactures financial value no caller asked for. */
+function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   /* Enum inputs resolve through the shared own-key pick, the rule Cost per Contact,
      Channel Shift, AI Deflection and FCR already run. Raw indexing let an inherited
      name through the truthy check and computed NaN, and let an unknown key silently
@@ -838,17 +841,18 @@ const DEFAULTS = {
 // A shared link must reproduce the case the sender saw. Stance, phasing and the capacity
 // action are not decoration: mech alone moves the reference case between $47K and $1.15M.
 // Round-tripping only the input object would hand the recipient a different conclusion under
-// the same URL, which is worse than not sharing at all. mech defaults to "none" here, matching
-// the deliberate exception to MECH_DEFAULT, so a link never supplies a commitment nobody made.
+// the same URL, which is worse than not sharing at all. mech carries "none", the resolver
+// fallback, so a link never supplies a commitment nobody made.
 const SCENARIO_DEFAULTS = { d: DEFAULTS, stance: "expected", rampOn: true, mech: "none" };
 
 export default function BusinessCaseBuilder() {
   const [d, setD] = useState(DEFAULTS);
   const [stance, setStance] = useState("expected");
   const [rampOn, setRampOn] = useState(true);
-  // Deliberately NOT MECH_DEFAULT. Preselecting a 75% conversion supplies a management
-  // commitment the user never made, which is the tool manufacturing financial value.
-  const [mech, setMech] = useState("none");
+  // Deliberately the fallback, never a form initial. Preselecting a 75% conversion supplies
+  // a management commitment the user never made, which is the tool manufacturing financial
+  // value. This is the state the other five tools move to under 1-08b.
+  const [mech, setMech] = useState(MECH_FALLBACK);
   const [pulled, setPulled] = useState({});
   const [sources, setSources] = useState({});
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
