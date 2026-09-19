@@ -89,8 +89,12 @@ function rejectForeignKeys(axes, fn) {
 /**
  * The one function that computes a headline. No tool computes one locally.
  *
+ * `boundAxes` is the machine-readable form of `boundBy`. Instrumentation and any
+ * other consumer takes the array rather than parsing the prose, and nothing
+ * recomputes the minimum locally.
+ *
  * @param {{evidence:string, realization?:string|null, completeness:string}} axes
- * @returns {{headline:string, boundBy:string, applicable:string[]}}
+ * @returns {{headline:string, boundBy:string, boundAxes:string[], applicable:string[]}}
  */
 export function gradeConfidence(axes) {
   if (!axes || typeof axes !== "object") {
@@ -122,7 +126,7 @@ export function gradeConfidence(axes) {
   const headline = GRADES[minRank];
   const binding = applicable.filter((a) => GRADE_RANK[axes[a]] === minRank);
 
-  return { headline, boundBy: nameAxes(binding), applicable };
+  return { headline, boundBy: nameAxes(binding), boundAxes: binding, applicable };
 }
 
 /** "evidence", "evidence and completeness", "evidence, realization and completeness". */
@@ -161,7 +165,7 @@ export function emitGrades(input) {
   }
 
   const { evidence, realization = null, completeness, naReason = "", reasons = {} } = input;
-  const { headline, boundBy, applicable } = gradeConfidence({ evidence, realization, completeness });
+  const { headline, boundBy, boundAxes, applicable } = gradeConfidence({ evidence, realization, completeness });
 
   const defects = [];
   const naDeclared = !isGrade(realization);
@@ -191,6 +195,7 @@ export function emitGrades(input) {
     naReason: naDeclared ? String(naReason || "") : "",
     headline,
     boundBy,
+    boundAxes,
     applicable,
     reasons: {
       evidence: reasons.evidence || "",
@@ -222,6 +227,7 @@ export function voidResult({ invariant, remedy }) {
     naReason: "",
     headline: null,
     boundBy: "",
+    boundAxes: [],
     applicable: [],
     reasons: { evidence: "", realization: "", completeness: "" },
     defects: [],
