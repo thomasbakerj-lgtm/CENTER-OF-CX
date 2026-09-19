@@ -140,14 +140,40 @@ const isOneOf = (set) => (v) => typeof v === "string" && set.has(v);
 
 /* Confidence grades are a closed vocabulary in the epistemic standard. Lower
    cased at the boundary so "Directional" and "directional" cannot split one
-   funnel into two. */
-const GRADES = new Set(["indicative", "directional", "supported", "validated", "finance", "none"]);
+   funnel into two.
+
+   THIS SET WAS WRONG AND THE DAMAGE WAS SILENT. It carried indicative,
+   directional, supported, validated, finance and none, a vocabulary retired when
+   doctrine section 5 fixed the three grades. normalise truncated a grade at the
+   first non-letter, so "Finance-grade" arrived as "finance" and passed, while
+   "Planning-grade" arrived as "planning" and failed, and a failed validator drops
+   the property. A drop reads downstream as "not published" rather than as a
+   grade. The middle grade, which is the one most results land on, was absent from
+   every tool_complete, report_export, report_copy and expert_read_submit event
+   this platform has ever sent. Void was dropped too, so a voided export looked
+   identical to an unpublished one.
+
+   Fixed on both sides. The truncation is gone, because a lossy transform on a
+   closed vocabulary can only ever lose, and the set now carries the doctrine
+   words in full. Void is a state rather than a grade and is carried here so a
+   voided export stays distinguishable. */
+const GRADES = new Set(["directional", "planning-grade", "finance-grade", "void"]);
+
+/* Which axis or axes hold the headline down, in fixed axis order. Closed set, so
+   the funnel can be cut by remedy rather than by grade alone: get a better
+   source, commit a harder lever, or finish the model. */
+const BOUND_AXES = new Set([
+  "evidence", "realization", "completeness",
+  "evidence+realization", "evidence+completeness", "realization+completeness",
+  "evidence+realization+completeness",
+]);
 
 export const ALLOWED_PROPS = {
   tool: isSlug,                               // tool id or route slug
   from: isSlug,                               // journey origin tool
   to: isSlug,                                 // journey destination tool
   grade: isOneOf(GRADES),                     // headline confidence grade
+  bound_axis: isOneOf(BOUND_AXES),            // which axis or axes hold the headline down
   severity: isOneOf(new Set(SEVERITY_BANDS)), // result intensity band
   real: isBool,                               // inputs moved off the defaults
   depth: isSmallCount,                        // how many tools deep in this session
@@ -163,7 +189,10 @@ export const ALLOWED_PROP_KEYS = Object.keys(ALLOWED_PROPS);
 function normalise(key, value) {
   if (typeof value !== "string") return value;
   const v = value.trim().toLowerCase();
-  if (key === "grade") return v.split(/[^a-z]+/)[0] || v;
+  /* No truncation. The three doctrine grades differ only after the hyphen, so
+     cutting there collapsed two of them and dropped the rest. Case and stray
+     whitespace are corrected; nothing else is. */
+  if (key === "grade") return v.replace(/\s+/g, "-");
   /* Every rail-active tool now routes its severity through severityBucket, so
      nothing reaches this point that is not already a canonical band. Tracker
      1-15 closed the last three: TCOCalculator, StaffingCalculator and
@@ -430,14 +459,14 @@ export const trackTool = {
     const { depth, viaRail } = noteTool(toolId);
     track(EV.TOOL_VIEW, { tool: toolId, depth, via_rail: viaRail });
   },
-  complete: (toolId, { real = true, grade, severity } = {}) =>
+  complete: (toolId, { real = true, grade, severity, bound_axis } = {}) =>
     track(EV.TOOL_COMPLETE, {
-      tool: toolId, real, depth: Math.max(1, sessionDepth()), grade, severity,
+      tool: toolId, real, depth: Math.max(1, sessionDepth()), grade, severity, bound_axis,
     }),
-  pdf: (toolId, { grade } = {}) => track(EV.REPORT_EXPORT, { tool: toolId, grade }),
-  copy: (toolId, { grade } = {}) => track(EV.REPORT_COPY, { tool: toolId, grade }),
+  pdf: (toolId, { grade, bound_axis } = {}) => track(EV.REPORT_EXPORT, { tool: toolId, grade, bound_axis }),
+  copy: (toolId, { grade, bound_axis } = {}) => track(EV.REPORT_COPY, { tool: toolId, grade, bound_axis }),
   reviewOpened: (toolId) => track(EV.REVIEW_OPENED, { tool: toolId }),
-  expertRead: (toolId, { grade } = {}) => track(EV.REVIEW_SUBMIT, { tool: toolId, grade }),
+  expertRead: (toolId, { grade, bound_axis } = {}) => track(EV.REVIEW_SUBMIT, { tool: toolId, grade, bound_axis }),
   nextStep: (fromTool, toTool) => track(EV.NEXT_STEP, { from: fromTool, to: toTool }),
   scenarioShare: (toolId) => track(EV.SCENARIO_SHARE, { tool: toolId }),
   scenarioLoad: (toolId) => track(EV.SCENARIO_LOAD, { tool: toolId }),
