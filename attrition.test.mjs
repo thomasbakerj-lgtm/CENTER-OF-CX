@@ -18,10 +18,12 @@
 import { readFileSync } from "fs";
 
 let COLORS, MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards, guardVal;
+let gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE;
 try {
   ({ COLORS } = await import("./src/lib/benchmarks.js"));
   ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = await import("./src/lib/mech.js"));
   ({ createGuards, guardVal } = await import("./src/lib/guards.js"));
+  ({ gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE } = await import("./src/lib/confidence.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib. Run from the repo root.");
   console.error(String(e.message || e));
@@ -40,13 +42,14 @@ if (a0 < 0 || b0 < 0) { console.error("BLOCKER: engine markers not found in Attr
 const region = SRC.slice(a0, b0).replace(/^export /gm, "");
 
 let compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS,
-  EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, n, fmtK, fmt$, clone, TOOL_ID, ROUTE;
+  EVIDENCE_OPTS, EVIDENCE_GRADE, n, fmtK, fmt$, clone, TOOL_ID, ROUTE;
 try {
   ({ compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS,
-    EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, n, fmtK, fmt$, clone, TOOL_ID, ROUTE } = new Function(
+    EVIDENCE_OPTS, EVIDENCE_GRADE, n, fmtK, fmt$, clone, TOOL_ID, ROUTE } = new Function(
     "COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "createGuards", "guardVal",
-    region + "\nreturn { compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS, EVIDENCE_OPTS, EVIDENCE_GRADE, CRED_GRADE, GRADE_RANK, AXES, n, fmtK, fmt$, clone, TOOL_ID, ROUTE };"
-  )(COLORS, MECH, MECH_ORDER, MECH_INITIAL, createGuards, guardVal));
+    "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE",
+    region + "\nreturn { compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS, EVIDENCE_OPTS, EVIDENCE_GRADE, n, fmtK, fmt$, clone, TOOL_ID, ROUTE };"
+  )(COLORS, MECH, MECH_ORDER, MECH_INITIAL, createGuards, guardVal, gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -405,7 +408,21 @@ A("the component refuses to badge a value it published itself", /sourceTool !== 
 A("the component normalizes at the publish site", /normalizeForPublish\(/.test(SRC));
 A("the component uses the shared NumField, not a local copy", /from "\.\/src\/lib\/NumField"/.test(SRC) && !/function NumField\(/.test(SRC));
 A("the component uses the shared type system, not a hand-written font stack", /from "\.\/src\/lib\/type"/.test(SRC) && !/Instrument Serif/.test(SRC) && !/DM Sans/.test(SRC));
-A("the component passes the three axes to the report", /grades=\{\{/.test(SRC));
+A("the component passes the emitted grade object to the report", /grades=\{r\.gradeObj\}/.test(SRC));
+A("the component computes no headline of its own", !/Object\.keys\(GRADE_RANK\)\.find/.test(SRC) && /gradeConfidence\(grades\)/.test(SRC));
+A("the component no longer passes a hand-built confidence word", !/confidence=\{r\.voided/.test(SRC));
+A("the shared grade tables are imported, not redeclared", /from "\.\/src\/lib\/confidence"/.test(SRC)
+  && !/const GRADE_RANK = \{ "Directional"/.test(SRC) && !/const CRED_GRADE = \{ none:/.test(SRC));
+
+/* The emitted object is the contract eight more tools will copy, so it is pinned
+   here rather than left to the report harness alone. */
+const gEv = compute(m({ evidence: "finance", mech: "reduce" }));
+A("a clean run emits the doctrine object", gEv.gradeObj && gEv.gradeObj.void === false);
+A("the emitted headline matches the engine headline", gEv.gradeObj.headline === gEv.confidence);
+A("the emitted binding axis matches the engine binding axis", gEv.gradeObj.boundBy === gEv.boundBy);
+A("the emitted object carries a reason on every axis", AXES.every((a) => (gEv.gradeObj.reasons[a] || "").length > 0));
+A("a clean run emits no grade defect", gEv.gradeObj.defects.length === 0);
+A("realization is never N/A on this tool, it models a benefit", gEv.gradeObj.realization !== null && gEv.gradeObj.naReason === "");
 A("the whole file contains no em-dash", SRC.indexOf(String.fromCharCode(0x2014)) < 0);
 A("every option list is non-empty", [MECH_OPTS, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS, EVIDENCE_OPTS].every(o => o.length > 1));
 A("every evidence option maps to a grade", EVIDENCE_OPTS.every(o => !!EVIDENCE_GRADE[o.v]));
