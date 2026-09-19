@@ -8,7 +8,8 @@ export const SITE = "The Center of CX";
 export const SEO_MAP = {
   "/": {
     title: `${SITE} | Independent CX + Contact Center Technology Intelligence`,
-desc: "282 vendors scored across 8 categories.  },
+    desc: "282 vendors scored across 8 categories. Buyer guides, interactive tools, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play.",
+  },
   "/platforms-and-tech": {
     title: `Platforms + Tech | ${SITE}`,
     desc: "Nine CX technology decision domains mapped to seven orchestration layers. Understand what you need, who owns it, and what breaks when you choose wrong.",
@@ -38,9 +39,11 @@ desc: "282 vendors scored across 8 categories.  },
     desc: "Original research, market analysis, and operator briefings on CX technology, AI in the contact center, and workforce transformation.",
   },
   "/vendors": {
-    title: `Vendor Intelligence | 283 Vendors Scored Across 8 Categories | ${SITE}`,
-title: `Vendor Intelligence | 282 Vendors Scored Across 8 Categories | ${SITE}`,  },
-desc: "282 vendors across 8 categories. CCaaS    title: `CCaaS Platform Market Intelligence | 24 Vendors Scored | ${SITE}`,
+    title: `Vendor Intelligence | 282 Vendors Scored Across 8 Categories | ${SITE}`,
+    desc: "282 vendors across 8 categories. CCaaS, IVA, Agent Assist, WEM, Analytics, ACD/Routing, Digital Engagement, and Payments. Independently scored with published methodologies.",
+  },
+  "/vendors/ccaas": {
+    title: `CCaaS Platform Market Intelligence | 24 Vendors Scored | ${SITE}`,
     desc: "24 CCaaS vendors scored across 27 weighted dimensions. Bell curve placement, scoring methodology, and honest assessments for enterprise buyers.",
   },
   "/vendors/iva": {
@@ -209,10 +212,11 @@ desc: "282 vendors across 8 categories. CCaaS    title: `CCaaS Platform Market I
   },
   "/tools/vendor-match": {
     title: `Vendor Match Engine | Ranked Shortlist for Your Environment | ${SITE}`,
-    desc: "Tell us your operation size, vertical, priorities, and constraints. Get a ranked vendor shortlist with fit scores from 283 independently scored profiles.",
+    desc: "Tell us your operation size, vertical, priorities, and constraints. Get a ranked vendor shortlist with fit scores from 282 independently scored profiles.",
   },
   "/tools/platform-decision": {
-fit scores from 282 independently scored profiles.    desc: "Assess your current platform across all 7 orchestration layers. Get a layer-by-layer recommendation: stay, extend, evaluate, or replace.",
+    title: `Platform Decision Matrix | Stay, Extend, or Replace by Layer | ${SITE}`,
+    desc: "Assess your current platform across all 7 orchestration layers. Get a layer-by-layer recommendation: stay, extend, evaluate, or replace.",
   },
   "/tools/contract-risk": {
     title: `Contract Risk Scanner | Find Red Flags Before You Sign | ${SITE}`,
@@ -269,10 +273,6 @@ fit scores from 282 independently scored profiles.    desc: "Assess your current
 };
 import { CATEGORIES, VERTICALS, hasScoredVerticalFit } from "./verticals.js";
 
-const LEGACY_CAT_NAMES = {
-  ccaas: "CCaaS Platforms",
-import { CATEGORIES, VERTICALS, hasScoredVerticalFit } from "./verticals.js";
-
 /* Derived counts. Every surface that states a tool or vendor count reads these
    rather than carrying its own literal, so a number on the homepage cannot
    drift from the data behind it. Homepage.jsx and Vendors.jsx both carried
@@ -288,7 +288,12 @@ export const TOOL_COUNT = Object.keys(SEO_MAP).filter((p) => p.startsWith("/tool
 export const CATEGORY_COUNT = Object.keys(CATEGORIES).length;
 export const ADJACENT_PROFILE_COUNT = 4;
 export const VENDOR_PROFILE_COUNT =
-  Object.values(CATEGORIES).reduce((a, c) => a + c.vendorCount, 0) + ADJACENT_PROFILE_COUNT;  "agent-assist": "Agent Assist",
+  Object.values(CATEGORIES).reduce((a, c) => a + c.vendorCount, 0) + ADJACENT_PROFILE_COUNT;
+
+const LEGACY_CAT_NAMES = {
+  ccaas: "CCaaS Platforms",
+  iva: "IVA + Conversational AI",
+  "agent-assist": "Agent Assist",
   "wem-qm": "WEM + Quality",
   analytics: "CX Analytics",
   "acd-routing": "ACD + Routing",
