@@ -104,6 +104,18 @@ A("nameAxes renders two", nameAxes(["evidence", "completeness"]) === "evidence a
 A("nameAxes renders three", nameAxes(AXES) === "evidence, realization and completeness");
 A("nameAxes renders none", nameAxes([]) === "");
 A("boundBy is never empty on a graded result", gradeConfidence({ evidence: D, realization: null, completeness: F }).boundBy.length > 0);
+A("boundAxes is the machine readable form of the same answer", gradeConfidence({ evidence: D, realization: F, completeness: D }).boundAxes.join(",") === "evidence,completeness");
+A("a single binding axis returns a one element array", gradeConfidence({ evidence: D, realization: F, completeness: F }).boundAxes.join(",") === "evidence");
+A("boundAxes and boundBy never disagree", (() => {
+  for (const e of GRADES) for (const rz of [...GRADES, null]) for (const c of GRADES) {
+    const g = gradeConfidence({ evidence: e, realization: rz, completeness: c });
+    if (g.boundBy !== nameAxes(g.boundAxes)) return false;
+    if (!g.boundAxes.every((a) => g.applicable.includes(a))) return false;
+  }
+  return true;
+})());
+A("boundAxes is carried into the emission object", emitGrades({ evidence: D, realization: F, completeness: F, reasons: { evidence: "x", realization: "y", completeness: "z" } }).boundAxes.join(",") === "evidence");
+A("a void result claims no binding axes", voidResult({ invariant: "x", remedy: "y" }).boundAxes.length === 0);
 
 /* ------------------------------------------------- 5 and 6. emission object */
 console.log("5. Emission contract");
