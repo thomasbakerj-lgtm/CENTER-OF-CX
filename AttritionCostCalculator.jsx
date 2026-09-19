@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { COLORS } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
-import { MECH, MECH_ORDER } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { TYPE, FONT, FONT_IMPORT_CSS, NUM, t } from "./src/lib/type";
@@ -120,7 +120,7 @@ const BASE = {
   rampMonths: 3, rampProductivity: 75,
   supervisorHoursPerNew: 10, supLoadedRate: 55,
   overtimePremium: 50, vacancyDays: 30, vacancyCoverageFraction: 60, vacancyMode: "incremental",
-  mech: "hiring", evidence: "estimate", costPerPoint: 0,
+  mech: MECH_INITIAL, evidence: "estimate", costPerPoint: 0,
 };
 const DEFAULTS = { d: BASE };
 
