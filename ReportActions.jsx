@@ -3,6 +3,7 @@ import ReportExport from "./ReportExport";
 import { scenarioLink, inputsMoved } from "./src/lib/scenarioUrl";
 import { FONT, TYPE } from "./src/lib/type";
 import { trackTool, track, EV } from "./src/lib/track";
+import { gradeConfidence, isVoid, isDual, AXES, AXIS_EXPLAINER } from "./src/lib/confidence";
 
 /**
  * ReportActions, the shared end-of-tool action block.
@@ -133,13 +134,14 @@ function Field({ label, value, onChange, placeholder, type = "text", required, b
  * N/A and must carry a reason, because an axis that silently disappears reads as
  * a passing axis.
  */
-const AXIS_ORDER = ["evidence", "realization", "completeness"];
+const AXIS_ORDER = AXES;
 const AXIS_LABEL = { evidence: "Evidence", realization: "Realization", completeness: "Completeness" };
 const AXIS_COLOR = (g) => g === "Finance-grade" ? GREEN : g === "Planning-grade" ? ELECTRIC : g == null ? MUTED : "#F59E0B";
 
-function AxisStrip({ grades, confidence }) {
+function AxisStrip({ grades, confidence, label }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      {label && <span style={{ ...TYPE.eyebrow, fontSize: 9.5, letterSpacing: "0.5px", color: NAVY, fontWeight: 700 }}>{label}</span>}
       {AXIS_ORDER.map((a) => (
         <span key={a} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <span style={{ ...TYPE.eyebrow, fontSize: 9.5, letterSpacing: "0.5px", color: MUTED }}>{AXIS_LABEL[a]}</span>
@@ -158,9 +160,26 @@ function AxisStrip({ grades, confidence }) {
   );
 }
 
-/** The one Confidence section every grades-carrying tool exports, built here not there. */
-function confidenceSection(grades, confidence) {
-  const items = [`Headline: ${confidence || "not stated"}${grades.boundBy ? `, bound by ${grades.boundBy}` : ""}.`];
+/*
+ * The one Confidence section every grades-carrying tool exports, built here not
+ * there. A void result claims no grade anywhere: not in the strip, not here, not
+ * in the submission. It states the failed invariant and the remedy instead,
+ * because a self-contradicting document has no confidence grade at all.
+ *
+ * A Class C result carries two graded blocks, cost and benefit. They are never
+ * averaged and neither is described in the other's language, so each gets its own
+ * lines under its own label.
+ */
+function gradeLines(grades, headline, label) {
+  const lead = label ? `${label}. ` : "";
+  if (isVoid(grades)) {
+    return [
+      `${lead}Export void. No confidence grade is claimed.`,
+      `Failed invariant: ${grades.invariant}`,
+      `Remedy: ${grades.remedy}`,
+    ];
+  }
+  const items = [`${lead}Headline: ${headline || "not stated"}${grades.boundBy ? `, bound by ${grades.boundBy}` : ""}.`];
   for (const a of AXIS_ORDER) {
     const reason = grades.reasons && grades.reasons[a];
     items.push(grades[a] == null
@@ -168,8 +187,27 @@ function confidenceSection(grades, confidence) {
       : `${AXIS_LABEL[a]} axis: ${grades[a]}.${reason ? " " + reason : ""}`);
   }
   if (grades.why && !grades.reasons) items.push(grades.why);
-  items.push("The headline grade is the weakest of the applicable axes. Evidence is where the inputs came from, Realization is whether the modelled benefit converts to cash, and Completeness is whether the model is whole and internally consistent.");
+  for (const d of grades.defects || []) items.push(`Defect in this grade: ${d}`);
+  return items;
+}
+
+function confidenceSection(grades, confidence) {
+  const items = isDual(grades)
+    ? [
+        ...gradeLines(grades.cost, headlineOf(grades.cost), grades.costLabel),
+        ...gradeLines(grades.benefit, headlineOf(grades.benefit), grades.benefitLabel),
+        "The cost result and the benefit result are graded separately and are never averaged. Neither is described in the other's language.",
+      ]
+    : gradeLines(grades, confidence, null);
+  if (!isVoid(grades)) items.push(AXIS_EXPLAINER);
   return { title: "Confidence", type: "findings", items };
+}
+
+/* One derivation, used by the component and by the section builder, so a headline
+   printed in the PDF can never disagree with the one shown on the page. */
+function headlineOf(grades) {
+  if (!grades || isVoid(grades)) return null;
+  return gradeConfidence({ evidence: grades.evidence, realization: grades.realization, completeness: grades.completeness }).headline;
 }
 
 /* --------------------------------------------------------------- main ---- */
@@ -179,6 +217,24 @@ export default function ReportActions({
   state, defaults, confidence, grades = null, summary = [], signals = {}, sections = [],
 }) {
   const saved = useRef(readContact()).current;
+
+  /* The headline and the binding axis are read from the shared grading layer and
+     never from the tool. A tool passes axes; this file decides what they mean, so
+     nine tools cannot drift into nine vocabularies again. The `confidence` prop is
+     still honoured for a tool that does not yet carry `grades`, which is what lets
+     the retrofit land one file at a time instead of in one unprovable jump.
+
+     A void result claims no grade. It is reported to instrumentation as "Void" so
+     a voided export stays distinguishable from an unpublished one, and it prints
+     its failed invariant and remedy in place of a grade everywhere else. */
+  const voided = isVoid(grades) || (isDual(grades) && isVoid(grades.cost));
+  const primary = isDual(grades) ? grades.cost : grades;
+  const derived = primary && !isVoid(primary)
+    ? gradeConfidence({ evidence: primary.evidence, realization: primary.realization, completeness: primary.completeness })
+    : null;
+  const headline = voided ? null : (derived ? derived.headline : (confidence || null));
+  const boundAxis = derived && derived.boundAxes.length ? derived.boundAxes.join("+") : undefined;
+  const eventGrade = voided ? "Void" : headline;
 
   /* tool_complete fires here, once, and nowhere else.
      ReportActions renders only when a tool has produced a result, and it is
@@ -200,7 +256,7 @@ export default function ReportActions({
     if (firedRef.current) return;
     firedRef.current = true;
     const real = inputsMoved(state, defaults);
-    trackTool.complete(toolId, { real, grade: confidence, severity: signals && signals.severity });
+    trackTool.complete(toolId, { real, grade: eventGrade, bound_axis: boundAxis, severity: signals && signals.severity });
   };
   let stateSnap = null;
   try { stateSnap = JSON.stringify(state === undefined ? null : state); } catch { stateSnap = null; }
@@ -236,7 +292,7 @@ export default function ReportActions({
 
   /* Prepended, not appended: a reader who stops after page one has still been told
      what the number is worth. Absent `grades`, the section list is untouched. */
-  const exportSections = grades ? [confidenceSection(grades, confidence), ...sections] : sections;
+  const exportSections = grades ? [confidenceSection(grades, headline), ...sections] : sections;
 
   const basePayload = (intent) => {
     const b = new FormData();
@@ -244,11 +300,28 @@ export default function ReportActions({
     b.append("intent", intent);
     b.append("tool", toolName);
     b.append("tool_id", toolId);
-    if (confidence) b.append("confidence", confidence);
-    if (grades) {
-      for (const a of AXIS_ORDER) b.append(`axis_${a}`, grades[a] == null ? `N/A (${grades.naReason || "no reason given"})` : grades[a]);
-      if (grades.boundBy) b.append("axis_bound_by", grades.boundBy);
+    /* A triage queue reads the weakest axis before it opens the PDF, so the axes
+       are appended per axis rather than as one word. A void submission carries the
+       failed invariant instead of a grade, because grading a self-contradicting
+       document is the thing doctrine forbids. */
+    if (voided) {
+      b.append("confidence", "VOID");
+      const v = isDual(grades) ? grades.cost : grades;
+      b.append("void_invariant", v.invariant || "not stated");
+      b.append("void_remedy", v.remedy || "not stated");
+    } else {
+      if (headline) b.append("confidence", headline);
+      if (primary) {
+        for (const a of AXIS_ORDER) b.append(`axis_${a}`, primary[a] == null ? `N/A (${primary.naReason || "no reason given"})` : primary[a]);
+        if (derived) b.append("axis_bound_by", derived.boundBy);
+      }
+      if (isDual(grades) && !isVoid(grades.benefit)) {
+        const bh = headlineOf(grades.benefit);
+        b.append("benefit_confidence", bh || "not stated");
+        for (const a of AXIS_ORDER) b.append(`benefit_axis_${a}`, grades.benefit[a] == null ? `N/A (${grades.benefit.naReason || "no reason given"})` : grades.benefit[a]);
+      }
     }
+    for (const d of (primary && primary.defects) || []) b.append("grade_defect", d);
     Object.entries(signals || {}).forEach(([k, v]) => b.append(`signal_${k}`, String(v)));
     (summary || []).forEach((s) => b.append(s.label, String(s.value)));
     b.append("scenario_link", link || "TOO LARGE TO ENCODE");
@@ -272,7 +345,7 @@ export default function ReportActions({
       writeContact({ ...readContact(), email: copyEmail.trim() });
       setCopyState("sent");
       fireComplete();
-      trackTool.copy(toolId, { grade: confidence });
+      trackTool.copy(toolId, { grade: eventGrade, bound_axis: boundAxis });
     } catch { setCopyState("error"); }
   };
 
@@ -293,7 +366,7 @@ export default function ReportActions({
       persist();
       setReviewState("sent");
       fireComplete();
-      trackTool.expertRead(toolId, { grade: confidence });
+      trackTool.expertRead(toolId, { grade: eventGrade, bound_axis: boundAxis });
     } catch { setReviewState("error"); }
   };
 
@@ -330,7 +403,22 @@ export default function ReportActions({
       {/* -------------------------------------------------- take it with you */}
       <div style={card}>
         <h3 style={h3}>Take this with you</h3>
-        {grades && <AxisStrip grades={grades} confidence={confidence} />}
+        {grades && voided && (
+          <div style={{ border: `1px solid ${RED}`, borderRadius: 6, padding: "10px 12px", marginBottom: 14, background: `${RED}0d` }}>
+            <div style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.8px", color: RED, marginBottom: 4 }}>EXPORT VOID, NO GRADE CLAIMED</div>
+            <div style={{ ...TYPE.caption, color: NAVY }}>{(isDual(grades) ? grades.cost : grades).invariant} <strong>Remedy:</strong> {(isDual(grades) ? grades.cost : grades).remedy}</div>
+          </div>
+        )}
+        {grades && !voided && isDual(grades) && (
+          <>
+            <AxisStrip grades={grades.cost} confidence={headline} label={grades.costLabel} />
+            <AxisStrip grades={grades.benefit} confidence={headlineOf(grades.benefit)} label={grades.benefitLabel} />
+          </>
+        )}
+        {grades && !voided && !isDual(grades) && <AxisStrip grades={grades} confidence={headline} />}
+        {grades && !voided && ((primary && primary.defects) || []).map((dfx, i) => (
+          <div key={i} style={{ ...TYPE.caption, color: RED, marginBottom: 8 }}>{dfx}</div>
+        ))}
         <p style={sub}>
           The report downloads immediately. No email required, no wall.
         </p>
@@ -338,7 +426,7 @@ export default function ReportActions({
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18 }}>
           <span onClickCapture={fireComplete} style={{ display: "contents" }}><ReportExport
             toolId={toolId}
-            grade={confidence}
+            grade={eventGrade}
             toolName={toolName}
             subtitle={subtitle}
             userName={[first, last].filter(Boolean).join(" ")}
