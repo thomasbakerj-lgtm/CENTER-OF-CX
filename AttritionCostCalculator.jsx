@@ -9,6 +9,7 @@ import InfoDot from "./src/lib/InfoDot";
 import { TYPE, FONT, FONT_IMPORT_CSS, NUM, t } from "./src/lib/type";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
+import { gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE } from "./src/lib/confidence";
 import { createGuards, guardVal } from "./src/lib/guards";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, MUTED = COLORS.muted;
@@ -73,12 +74,9 @@ const fmt$ = (v) => { const x = n(v), s = x < 0 ? "-" : ""; return s + "$" + Mat
    rendering fix, which is the same divergence in the same helper. The renderer and
    the clamp now live in src/lib/guards.js, shared by every guarded tool. */
 
-const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
-const AXES = ["evidence", "realization", "completeness"];
-
-/* Realization reads the shared credit class, never a numeric threshold.
-   none and capacity are planning value; finance is creditable; cash is bookable. */
-const CRED_GRADE = { none: "Directional", capacity: "Directional", finance: "Planning-grade", cash: "Finance-grade" };
+/* GRADE_RANK, AXES and CRED_GRADE now come from src/lib/confidence.js. They were
+   declared here and in eight other tools, which is how three vocabularies grew.
+   Realization reads the shared credit class, never a numeric threshold. */
 
 const MECH_OPTS = MECH_ORDER.map((k) => ({ v: k, label: MECH[k].label }));
 /* Scenario links published before this tool imported mech.js encoded the factor as
@@ -300,11 +298,13 @@ export function compute(d) {
   else if (!inBand) { completeness = "Planning-grade"; completenessNotes.push("cost basis is inside the plausible range but outside the published 40-60% frontline band"); }
   if (!hardFlag && vacancyMode === "gross" && GRADE_RANK[completeness] > GRADE_RANK["Planning-grade"]) { completeness = "Planning-grade"; completenessNotes.push("gross vacancy costing carries a known double-count risk"); }
 
+  /* The headline and the binding axis are computed by the shared grading layer and
+     never here. gradeConfidence accepts an axes object only, so no property of the
+     result can reach a grade. That is doctrine 5.5 enforced by construction rather
+     than by review, and it is why a zero payback can no longer cap a grade. */
   const grades = { evidence: evidenceGrade, realization, completeness };
-  const minRank = Math.min(...AXES.map((a) => GRADE_RANK[grades[a]]));
-  const confidence = Object.keys(GRADE_RANK).find((k) => GRADE_RANK[k] === minRank);
-  const boundAxes = AXES.filter((a) => GRADE_RANK[grades[a]] === minRank);
-  const boundBy = boundAxes.join(" and ");
+  const { headline: confidence, boundBy } = gradeConfidence(grades);
+  const boundAxes = AXES.filter((a) => GRADE_RANK[grades[a]] === GRADE_RANK[confidence]);
 
   const evidenceReason = evidence === "finance" ? "Finance-confirmed figures."
     : evidence === "hrdata" ? "Real HR figures, but not finance-confirmed."
@@ -319,6 +319,16 @@ export function compute(d) {
     : "Model is whole and internally consistent: every input inside its possible range, cost basis inside the published frontline band, and no value routed out of the model.";
   const AXIS_REASON = { evidence: evidenceReason, realization: realizationReason, completeness: completenessReason };
   const why = `${confidence}, bound by ${boundBy}. ${boundAxes.map((a) => AXIS_REASON[a]).join(" ")}`;
+
+  /* The object the report layer renders. A failed invariant voids the export and
+     claims no grade at all, rather than grading it down: a document that
+     contradicts itself is not a weakly evidenced document, it is not a document. */
+  const gradeObj = voided
+    ? voidResult({
+        invariant: invariants.join(" "),
+        remedy: "Correct the inputs named above and re-run before citing any figure on this page.",
+      })
+    : emitGrades({ evidence: evidenceGrade, realization, completeness, reasons: AXIS_REASON });
 
   const bookLabel = realization === "Finance-grade" ? "Bookable if committed" : realization === "Planning-grade" ? "Soft lever, tie to budget" : "Planning only";
 
@@ -365,7 +375,7 @@ export function compute(d) {
     uncPct, allInLow, allInHigh, annLow, annHigh,
     scenarios, compNames, topComp, trainShare, pctClaim, pctShort,
     bandLo, bandHi, inBand, guardrailOk, hardFlag,
-    grades, confidence, boundAxes, boundBy,
+    grades, gradeObj, confidence, boundAxes, boundBy,
     evidenceReason, realizationReason, completenessReason, completenessNotes, why,
     bookLabel, cashRows, capRows, unbackfillSentence, analystRead, railRead,
   };
@@ -650,9 +660,7 @@ export default function AttritionCostCalculator() {
             routePath={ROUTE}
             state={{ d }}
             defaults={DEFAULTS}
-            confidence={r.voided ? "Void" : r.confidence}
-            grades={{ ...r.grades, naReason: null, boundBy: r.boundBy, why: r.why,
-              reasons: { evidence: r.evidenceReason, realization: r.realizationReason, completeness: r.completenessReason } }}
+            grades={r.gradeObj}
             summary={[
               { label: "Cash per departure", value: fmt$(r.cashPerDeparture) },
               { label: "All-in per departure", value: fmt$(r.allInPerDeparture) },
