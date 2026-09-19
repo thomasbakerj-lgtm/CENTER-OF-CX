@@ -30,7 +30,8 @@
  */
 
 import { readFileSync } from "node:fs";
-import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE } from "./src/lib/seo.js";
+import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE,
+         TOOL_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, VENDOR_PROFILE_COUNT } from "./src/lib/seo.js";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals.js";
 import { collectVendorNames, findCollisions, FILE_CATEGORY, collectSubVerticalNames, SUBVERTICAL_FILES } from "./gen-seo-names.mjs";
 
@@ -192,6 +193,83 @@ const adjacent = Object.values(vendors).filter((v) => v.categorySlug === "adjace
 const categorised = Object.values(ACTUAL).reduce((a, b) => a + b, 0);
 eq("E5  every profile route is either categorised or adjacent, none stranded",
    categorised + adjacent, rows.length);
+
+/* ------------------------------------------------- E2. surfaced counts ----
+   Section E above proves the data, the registry and the category page title
+   agree. It said nothing about the two pages that send the most traffic into
+   them. Both carried hand-typed counts and both were wrong.
+
+   Homepage.jsx advertised 283 vendors and six of eight category tiles were
+   wrong: Agent Assist 38 against 15, WEM 32 against 25, Analytics 45 against
+   41, ACD 28 against 44, Digital 36 against 46, Payments 30 against 33.
+   Vendors.jsx was worse. Its H1 and hero stat both read "350+ vendors" over a
+   catalogue of 282, and four tiles disagreed with their own category pages.
+
+   A wrong count is not a cosmetic defect. It is a quantified claim a buyer
+   disproves in one click, on the two pages where independence is the whole
+   pitch, and an overclaim costs more trust than an underclaim. So the fix was
+   to delete the literals rather than correct them, and this section is what
+   keeps them deleted. E10 and E11 fail on any reintroduced literal, which is
+   the assertion whose absence let every number above drift in the first
+   place. */
+section("E2. Counts rendered on Homepage and Vendors derive from the registry");
+
+eq("E6  ADJACENT_PROFILE_COUNT matches the adjacent rows in VendorData",
+   ADJACENT_PROFILE_COUNT, adjacent);
+
+eq("E7  VENDOR_PROFILE_COUNT equals every profile route in the live data",
+   VENDOR_PROFILE_COUNT, rows.length);
+
+eq("E8  CATEGORY_COUNT equals the registry", CATEGORY_COUNT, Object.keys(CATEGORIES).length);
+
+/* App.jsx is the arbiter for tools. The 31st /tools/ reference there is the
+   LegacyRedirect target for /tco-calculator, not a route, which is why a raw
+   reference count reads one high and must not be used. */
+const appSrc = readFileSync("./App.jsx", "utf8");
+const toolRoutes = new Set(
+  [...appSrc.matchAll(/<Route\s+path="(\/tools\/[a-z0-9-]+)"/g)].map((m) => m[1])
+);
+eq("E9  TOOL_COUNT equals the distinct tool routes mounted in App.jsx",
+   TOOL_COUNT, toolRoutes.size);
+
+const sitemapTools = (readFileSync("./public/sitemap.xml", "utf8")
+  .match(/<loc>[^<]*\/tools\/[a-z0-9-]+<\/loc>/g) || []).length;
+eq("E9b every mounted tool route is in the sitemap", sitemapTools, toolRoutes.size);
+
+/* The literal detector. Two-to-four digit counts, and any N+ form, standing
+   next to vendor, tool, profile, platform or category language. Single digits
+   are excluded so "a shortlist of 3 to 5 vendors" does not fire, but the
+   category count is caught at any width because 8 is the real claim. Run
+   against the pre-fix files this flags 15 literals on the homepage and the
+   350+ pair on the vendor page. */
+const COUNT_LITERAL = [
+  /\b\d{2,4}\+?\s*(?:free\s+)?(?:vendors?|tools?|profiles?|platforms?)\b/gi,
+  /\b\d{1,4}\+?\s+categories\b/gi,
+  /\b\d{1,4}\+\s*(?:vendors?|tools?|profiles?|platforms?)\b/gi,
+];
+const countLiterals = (src) => COUNT_LITERAL.flatMap((r) => src.match(r) || []);
+
+const SURFACES = {
+  "Homepage.jsx": ["TOOL_COUNT", "CATEGORY_COUNT", "VENDOR_PROFILE_COUNT"],
+  "Vendors.jsx": ["VENDOR_PROFILE_COUNT"],
+};
+
+let li = 10;
+for (const [file, required] of Object.entries(SURFACES)) {
+  const src = readFileSync(`./${file}`, "utf8");
+  const found = countLiterals(src);
+  eq(`E${li}  ${file}: no hand-typed vendor, tool or category count [${found.join(", ")}]`,
+     found.length, 0);
+
+  ok(`E${li}b ${file}: reads the derived counts from seo.js`,
+     required.every((n) => new RegExp(`\\b${n}\\b`).test(src)));
+
+  /* A tile that links to a path the registry does not publish is a broken
+     journey even when its number is right. */
+  ok(`E${li}c ${file}: reads category hrefs from CATEGORIES rather than typing them`,
+     !/href:\s*"\/vendors\/(ccaas|iva|agent-assist|wem-qm|analytics|acd-routing|digital-engagement|payments)"/.test(src));
+  li++;
+}
 
 /* ------------------------------------------------------------ F. fallbacks */
 /* titleCase survives as a fallback for category, vertical and sub-vertical
