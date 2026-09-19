@@ -23,9 +23,9 @@ const engine  = slice("function computeCase(", "export default function");
 
 /* Dependency integrity. Import the real modules, do not rebuild them. A local copy of
    MECH drifts, and a local copy of pick would test a guard the tool does not run. */
-let MECH, MECH_ORDER, MECH_DEFAULT, createGuards;
+let MECH, MECH_ORDER, MECH_FALLBACK, createGuards;
 try {
-  ({ MECH, MECH_ORDER, MECH_DEFAULT } = await import("./src/lib/mech.js"));
+  ({ MECH, MECH_ORDER, MECH_FALLBACK } = await import("./src/lib/mech.js"));
   ({ createGuards } = await import("./src/lib/guards.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js.");
@@ -33,12 +33,23 @@ try {
   process.exit(1);
 }
 
-const mod = new Function("MECH", "MECH_ORDER", "MECH_DEFAULT", "createGuards",
+const mod = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards",
   `${helpers}\n${consts}\n${engine}\n` +
   `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
-)(MECH, MECH_ORDER, MECH_DEFAULT, createGuards);
+)(MECH, MECH_ORDER, MECH_FALLBACK, createGuards);
 
-const { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE } = mod;
+const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE } = mod;
+
+/* The harness scenario set was written against a capacity action of "hiring", which was
+   the silent signature default before 1-08 split the constant. The shipped UI has always
+   initialized to "none", so those assertions describe a case the app cannot produce on
+   first paint. Naming it here removes the silence without moving a single expected value:
+   every bare three-argument call below reads "hiring" out loud, in one greppable place.
+   Moving the set to "none" is tracker 1-08b, and it is blocked on 1-12, because several
+   of these fixtures land on the payback-zero defect the moment capacity realizes nothing.
+   Assertions that test the signature default itself call computeCaseRaw directly. */
+const HARNESS_MECH = "hiring";
+const computeCase = (d, stanceKey, rampOn, mechKey = HARNESS_MECH) => computeCaseRaw(d, stanceKey, rampOn, mechKey);
 
 let pass = 0, fail = 0;
 const FAILS = [];
@@ -547,7 +558,7 @@ section("12b. Semantic status, headroom and horizon language");
     })());
   }
   const rHc = computeCase(T3, "conservative", true, "headcount");
-  const rB = computeCase(T3, "conservative", true, MECH_DEFAULT);
+  const rB = computeCase(T3, "conservative", true, HARNESS_MECH);
   const LOCAL_SET = [T3, D(), { ...T3, implementationCost: 1161000 }, { ...T3, implementationCost: 4000000 },
     D({ newPlatformPerAgentMo: 5000, implementationCost: 100 }), D({ newPlatformPerAgentMo: 5000, implementationCost: 5000000 }),
     { ...T3, containment: 0, htReduction: 0, acwReduction: 0, fcrImprovement: 0, attritionReduction: 0 }];
@@ -815,7 +826,8 @@ section("12z. Rendered narrative, asserted on the SOURCE");
   ok("SOURCE the read is not framed as getting the case approved",
      !SRC.includes("survives the boardroom") && !SRC.includes("a number a CFO will approve")
      && !SRC.includes("the one a CFO will trust") && SRC.includes("what could change the conclusion"));
-  ok("SOURCE no capacity action is preselected", SRC.includes('useState("none")'));
+  ok("SOURCE no capacity action is preselected, and the preselection is the zero-credit fallback",
+     SRC.includes("useState(MECH_FALLBACK)") && MECH[MECH_FALLBACK].f === 0 && MECH[MECH_FALLBACK].cred === "none");
   ok("SOURCE the consultant path discloses the commercial rule at the point of consent",
      SRC.includes("Your results do not determine whether the consultant option appears")
      && SRC.includes("it is disclosed before an introduction is made"));
@@ -2228,9 +2240,13 @@ section("K. Enum resolution, substitution and disclosure");
      fourth argument, which legitimately takes the signature default rather than a
      substitution. Reading it as hostile would make the default parameter untestable. */
   const MECH_HOSTILE = [...PROTO, ...EMPTYISH.filter(v => v !== undefined)];
-  ex("K an omitted capacity action takes the signature default, not a correction", () => {
-    const r = computeCase(D(), "expected", true);
-    return r.mechKey === MECH_DEFAULT && r.corrections.length === 0;
+  ex("K an omitted capacity action takes the resolver fallback, not a correction", () => {
+    const r = computeCaseRaw(D(), "expected", true);
+    return r.mechKey === MECH_FALLBACK && r.mf === 0 && r.corrections.length === 0;
+  });
+  ex("K the signature default is the fallback, never a form initial that credits capacity", () => {
+    const r = computeCaseRaw(D(), "expected", true);
+    return MECH[r.mechKey].f === 0 && MECH[r.mechKey].cred === "none";
   });
   for (const h of MECH_HOSTILE) {
     ex(`K mech "${String(h)}" prints no NaN`, () => {
@@ -2247,9 +2263,9 @@ section("K. Enum resolution, substitution and disclosure");
         && /was held at Not selected\./.test(r.corrections[0]);
     });
   }
-  ex("K the shipped silent default is gone: an unknown mech no longer credits hiring at 75%", () => {
+  ex("K an unknown mech resolves to the fallback and credits nothing", () => {
     const r = computeCase(D(), "expected", true, "nonsense");
-    return r.mf !== MECH.hiring.f && r.mechKey !== MECH_DEFAULT;
+    return r.mf !== MECH.hiring.f && r.mechKey === MECH_FALLBACK && r.mf === 0;
   });
 
   // ---- cost evidence basis ----
@@ -2355,6 +2371,8 @@ section("K. Enum resolution, substitution and disclosure");
   A("the raw stance index is gone from the engine", !/const cf = STANCE\[stanceKey\];/.test(SRC));
   A("the raw truthy mech lookup is gone", !/MECH\[mechKey\] \|\| MECH\[MECH_DEFAULT\]/.test(SRC));
   A("the raw truthy mechKey return is gone", !/MECH\[mechKey\] \? mechKey : MECH_DEFAULT/.test(SRC));
+  A("the ambiguous MECH_DEFAULT name is retired from this tool", !/MECH_DEFAULT/.test(SRC));
+  A("the engine signature falls back rather than initializing", /mechKey = MECH_FALLBACK/.test(SRC));
   A("the raw evidence default is gone", !/const evidence = d\.evidence \|\| "estimate";/.test(SRC));
   A("the raw truthy bauEvidence lookup is gone", !/BAU_EVIDENCE\[d\.bauEvidence\] \? d\.bauEvidence : "estimated"/.test(SRC));
   A("no component-path read still indexes STANCE by raw state", !/STANCE\[stance\]/.test(SRC));
@@ -2458,8 +2476,8 @@ section("L. Numeric disclosure, every numeric input");
     return res;
   };
 
-  const build = (eng, cons = consts) => new Function("MECH", "MECH_ORDER", "MECH_DEFAULT", "createGuards",
-    `${helpers}\n${cons}\n${eng}\nreturn { computeCase, confidenceOf, caseInsights, DEFAULTS, n };`)(MECH, MECH_ORDER, MECH_DEFAULT, createGuards);
+  const build = (eng, cons = consts) => new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards",
+    `${helpers}\n${cons}\n${eng}\nreturn { computeCase, confidenceOf, caseInsights, DEFAULTS, n };`)(MECH, MECH_ORDER, MECH_FALLBACK, createGuards);
   checks(build(engine), true);
 
   const MUTANTS = [
