@@ -236,7 +236,7 @@ const SETS = {
 };
 
 /* Dependency integrity. Import the real modules, do not rebuild them. */
-const { MECH, MECH_ORDER, MECH_DEFAULT } = await import("./src/lib/mech.js");
+const { MECH, MECH_ORDER, MECH_FALLBACK } = await import("./src/lib/mech.js");
 const { createGuards } = await import("./src/lib/guards.js");
 
 /* Display names for rail producers, matching the shipped toolLabel map. Only the one
@@ -281,12 +281,12 @@ function render(S) {
       sections: ${sectionsExpr},
     };`;
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
-    "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MECH", "MECH_ORDER", "MECH_DEFAULT",
+    "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MECH", "MECH_ORDER", "MECH_FALLBACK",
     "createGuards", "TOOL_LABELS", "MUT", "STANCE_KEY", "RAMP_ON", "MECH_KEY", "PULLED", "SOURCES", "TOOL_NAME",
     "trackTool", preamble);
   return fn(COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#E8F4FD", "#F8FAFB", "#3A4F6A",
     COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket,
-    MECH, MECH_ORDER, MECH_DEFAULT, createGuards, TOOL_LABELS, S.mut, S.stance, S.rampOn, S.mech,
+    MECH, MECH_ORDER, MECH_FALLBACK, createGuards, TOOL_LABELS, S.mut, S.stance, S.rampOn, S.mech,
     S.pulled, S.sources, toolNameM[1], { nextStep: () => {}, pdf: () => {} });
 }
 
