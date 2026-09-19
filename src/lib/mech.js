@@ -28,7 +28,33 @@ export const MECH = {
 
 export const MECH_ORDER = ["none", "growth", "overtime", "hiring", "vendor", "headcount"];
 
-/** The defensible default. Never default a tool to headcount reduction. */
-export const MECH_DEFAULT = "hiring";
+/* One constant cannot serve two opposite jobs, and MECH_DEFAULT was serving both.
+   A resolver asks "what do I do when the value is unusable," and the only honest
+   answer is none: a tool may never credit an action the user did not choose. A form
+   asks "what does the user see before they choose," which is a different question
+   with a different answer. Holding both in one name is how BusinessCaseBuilder came
+   to ship "none" in the UI while its own engine signature fell back to "hiring," and
+   how a harness that omits the argument tests a scenario the app cannot produce.
+
+   Both are named now. Neither is called default. */
+
+/** Resolver fallback. An unresolvable, unknown or hostile value lands here and
+ *  realizes $0. Never raise this: a fallback that credits capacity is a tool
+ *  making a management commitment on the buyer's behalf. */
+export const MECH_FALLBACK = "none";
+
+/** Initial form state, before the user selects anything.
+ *
+ *  Held at "hiring" pending tracker 1-08b. "none" is the doctrine-correct value,
+ *  because under Section 5 the realization axis reads credit class directly, so
+ *  "hiring" presents a Planning-grade realization earned by a default nobody chose.
+ *  It does not flip as a one-line change: at "none" the cash-out-the-door costs are
+ *  unscaled while freed labor credits zero, so Channel Shift renders "Do not approve
+ *  yet" and AI Deflection renders a negative purchase verdict on first paint. Those
+ *  read as answers to a question nobody asked, which is the 1-12 defect class in
+ *  another costume. The flip ships with the unselected-state rendering, not before.
+ *
+ *  Never initialize a tool to headcount reduction. */
+export const MECH_INITIAL = "hiring";
 
 export default MECH;
