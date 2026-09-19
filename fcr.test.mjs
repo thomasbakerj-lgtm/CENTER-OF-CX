@@ -9,10 +9,12 @@
 import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real module, do not rebuild it. ---- */
-let MECH, MECH_ORDER, MECH_DEFAULT, createGuards;
+let MECHMOD;
+let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards;
 try {
-  const m = await import("./src/lib/mech.js");
-  ({ MECH, MECH_ORDER, MECH_DEFAULT } = m);
+  MECHMOD = await import("./src/lib/mech.js");
+  const m = MECHMOD;
+  ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = m);
   ({ createGuards } = await import("./src/lib/guards.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js. The engine cannot be");
@@ -25,9 +27,11 @@ let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
 
 /* ---- 0. Validate the shared module before trusting anything downstream ---- */
-A("mech.js exports MECH, MECH_ORDER, MECH_DEFAULT",
-  !!MECH && Array.isArray(MECH_ORDER) && typeof MECH_DEFAULT === "string");
-A("MECH_DEFAULT is a key in MECH", !!MECH[MECH_DEFAULT]);
+A("mech.js exports MECH, MECH_ORDER and both named mech constants",
+  !!MECH && Array.isArray(MECH_ORDER) && typeof MECH_FALLBACK === "string" && typeof MECH_INITIAL === "string");
+A("both mech constants are keys in MECH", !!MECH[MECH_FALLBACK] && !!MECH[MECH_INITIAL]);
+A("the resolver fallback realizes zero and credits nothing", MECH[MECH_FALLBACK].f === 0 && MECH[MECH_FALLBACK].cred === "none");
+A("the ambiguous MECH_DEFAULT name is retired from mech.js", !("MECH_DEFAULT" in MECHMOD));
 A("every MECH_ORDER key exists in MECH", MECH_ORDER.every(k => !!MECH[k]));
 A("MECH_ORDER covers every MECH key", Object.keys(MECH).every(k => MECH_ORDER.indexOf(k) >= 0));
 A("every MECH entry has numeric f in [0,1], a label, and a cred class",
@@ -570,7 +574,7 @@ const hard = (r) => r.flags.some(f => /impossible|outside the plausible|outside 
 }
 
 const r = engine(DEF);
-console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, default '" + MECH_DEFAULT + "' at " + Math.round(MECH[MECH_DEFAULT].f * 100) + "%");
+console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, fallback '" + MECH_FALLBACK + "' at " + Math.round(MECH[MECH_FALLBACK].f * 100) + "%, form initial '" + MECH_INITIAL + "' at " + Math.round(MECH[MECH_INITIAL].f * 100) + "%");
 console.log("\n  default readout");
 console.log("  repeat share        " + (r.repeatShare * 100).toFixed(1) + "% of contacts (" + r.shareBasis + ", " + r.shareSource + ")");
 console.log("  annual burden       $" + Math.round(r.burdenYr).toLocaleString());
