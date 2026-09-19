@@ -27,7 +27,7 @@ import { readFileSync } from "fs";
 const SRC = readFileSync("./AttritionCostCalculator.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { COLORS } = await import("./src/lib/benchmarks.js");
-const { MECH, MECH_ORDER } = await import("./src/lib/mech.js");
+const { MECH, MECH_ORDER, MECH_INITIAL } = await import("./src/lib/mech.js");
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal } = await import("./src/lib/guards.js");
 /* The real boundary guard and the real bucket, never reconstructed. The tool
@@ -219,8 +219,8 @@ function render(S) {
     const confidence = r.voided ? "Void" : r.confidence;
     return { d, r, subtitle, grades, summary, signals, sections, confidence, corrections };
   `;
-  const out = new Function("COLORS", "MECH", "MECH_ORDER", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", "createGuards", "guardVal", body)(
-    COLORS, MECH, MECH_ORDER, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink, createGuards, guardVal);
+  const out = new Function("COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", "createGuards", "guardVal", body)(
+    COLORS, MECH, MECH_ORDER, MECH_INITIAL, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink, createGuards, guardVal);
   out.sections = [confidenceSection(out.grades, out.confidence), ...out.sections];
   return out;
 }
