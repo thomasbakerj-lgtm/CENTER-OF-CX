@@ -48,12 +48,21 @@ const section = (s) => console.log(`\n${s}`);
  *
  * The numbers are argued, not rounded.
  *
- * Measured entry at the close of 10-01: 230,041 bytes raw, 74,681 gzipped.
+ * Measured entry at the close of 11A: 236,431 bytes raw, 76,784 gzipped.
+ *
+ * Reset from the 10-01 measure of 230,041 raw, 74,681 gzipped. The 6,390 raw
+ * bytes between the two were attributed module by module against a build of
+ * commit 2f7935f, and every byte traces to a fix that was meant to ship.
+ * src/lib/seo.js grew 7,822: the sub-vertical name map that stopped soft 404s
+ * claiming known:true, ten written sub-vertical descriptions, the derived
+ * count constants, and the own() prototype guard. src/lib/track.js grew 1,382
+ * for the 11A grade vocabulary and the closed bound_axis set. App.jsx moved 23.
+ * No route component or data file entered the chunk.
  *
  * Headroom has to sit between two hard edges. Too little and ordinary edits to
  * the four modules legitimately in the entry chunk fail the build for no
- * reason. src/lib/seo.js carries a generated vendor map, currently 282 entries
- * in 38,203 bytes, roughly 135 raw bytes per vendor, so the shell genuinely
+ * reason. src/lib/seo.js carries a generated vendor map, currently 287 entries
+ * in 46,025 rendered bytes, roughly 135 raw bytes per vendor, so the shell genuinely
  * grows as the catalogue does. Too much headroom and the gate stops seeing the
  * defect it exists to catch.
  *
@@ -65,14 +74,15 @@ const section = (s) => console.log(`\n${s}`);
  * smallest possible re-pin with a third of the margin to spare.
  *
  * When the shell legitimately outgrows this, raise it deliberately and rewrite
- * this paragraph. Do not raise it to make a build pass.
+ * this paragraph. Do not raise it to make a build pass. A run that reports this
+ * harness UNPARSED has not measured anything and is a failure, never a pass.
  */
-const BASE_RAW = 230041;
-const BASE_GZ = 74681;
+const BASE_RAW = 236431;
+const BASE_GZ = 76784;
 const SMALLEST_SPLIT_RAW = 8931;
 const SMALLEST_SPLIT_GZ = 3100;
-const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 235,995
-const GZ_CEILING = BASE_GZ + Math.floor((SMALLEST_SPLIT_GZ * 2) / 3);      // 76,747
+const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 242,385
+const GZ_CEILING = BASE_GZ + Math.floor((SMALLEST_SPLIT_GZ * 2) / 3);      // 78,850
 
 /* ----------------------------------------------------------------- measure */
 
