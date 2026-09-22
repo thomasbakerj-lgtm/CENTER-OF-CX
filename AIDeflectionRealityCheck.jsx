@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
-import { COLORS } from "./src/lib/benchmarks";
+import { COLORS, benchmark } from "./src/lib/benchmarks";
+import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
 import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
-import { publishToolResult, getPrimitive, getExternalPrimitive, sourcedExternally } from "./src/lib/toolData";
+import { publishToolResult, getPrimitiveWithSource, getExternalPrimitive, sourcedExternally } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
@@ -15,25 +16,24 @@ const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 const WRAP = { maxWidth: 980, margin: "0 auto", padding: "0 28px" };
 
-const TOOL_ID = "ai-deflection";
-const ROUTE = "/tools/ai-deflection";
-
 /* @engine-start  Everything between these markers is pure JS with no JSX and no React.
    aid.test.mjs slices this region out of THIS FILE at runtime and tests it directly, so
    the verified engine and the deployed engine cannot drift apart. Do not remove them.
    V3+ rebuild is denominator-honest: coverage, resolution, and net automation are three
    different rates with three different denominators, and none is ever shown as another. */
+const TOOL_ID = "ai-deflection";
+const ROUTE = "/tools/ai-deflection";
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const fmt = (v) => (v < 0 ? "-$" : "$") + Math.abs(Math.round(n(v))).toLocaleString();
 const fmt2 = (v) => "$" + Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x); return s + (a >= 1000000 ? "$" + (a / 1000000).toFixed(2) + "M" : a >= 1000 ? "$" + (a / 1000).toFixed(0) + "K" : "$" + Math.round(a)); };
 
-const ORDER = ["Directional", "Planning-grade", "Finance-grade"];
 const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
 
-/* Evidence axis. Finance-grade requires a document, exactly as it does in License
-   Bundle Gap. A resolution rate is the single most-inflated number in this market,
+/* Evidence source. The select names what backs the resolution rate. A document or
+   observed data lets an entered rate reach Planning-grade in gradeAID; nothing here
+   reaches Finance-grade, because no document is inspected. A resolution rate is the single most-inflated number in this market,
    so the source of that number is the first thing the report has to name. */
 const EVIDENCE = {
   estimate:  { rank: 0, label: "Internal estimate or benchmark" },
@@ -49,6 +49,24 @@ const EVIDENCE_ORDER = ["estimate", "marketing", "proposal", "sla", "pilot"];
 const METHODOLOGY_VERSION = "3.1";
 const BENCHMARK_VINTAGE = "2026-07";
 
+/* Registry. Every default and every constant that reaches a flag, a band or the
+   verdict reads from benchmarks.js by template id. Set A is the graded set; set B is
+   shown for comparison and never graded. Session 16, 11B. */
+const dflt = (f) => benchmark(`aid.default.${f}`);
+const VENDOR_FIELDS = ["apparentResolutionRate", "repeatLeakRate", "escalationPenalty", "implOneTime", "botPlatformCost", "qaCost", "tuningHours", "tuningRate", "knowledgeMaintHours", "knowledgeRate"];
+const vendorSet = (set) => Object.fromEntries(VENDOR_FIELDS.map((f) => [f, benchmark(`aid.${set}.${f}`)]));
+const V_A = vendorSet("vendorA");
+const V_B = vendorSet("vendorB");
+const BASE = { M: dflt("M"), cpc: dflt("cpc"), marg: dflt("marg"), eligibleRate: dflt("eligibleRate"), rampMonths: dflt("rampMonths"), ...V_A };
+const MARG_SHARE = benchmark("aid.derive.marginalShare");
+const MARG_NEAR = benchmark("aid.read.margNearLoaded");
+const ELIG_RARE = benchmark("aid.read.eligibleRare");
+const RES_RARE = benchmark("aid.read.resolutionRare");
+const FOUNDATION = benchmark("aid.read.foundationFloor");
+const BOT_NEAR_FREE = benchmark("aid.guard.botNearFree");
+const UP_RES = benchmark("aid.upside.resolutionLift"), UP_REP = benchmark("aid.upside.repeatCut");
+const BANDS = { estimate: benchmark("aid.band.estimate"), marketing: benchmark("aid.band.marketing"), proposal: benchmark("aid.band.proposal"), sla: benchmark("aid.band.sla"), pilot: benchmark("aid.band.pilot") };
+
 /* Benchmark governance. Every default is sourced, dated, and carries its denominator.
    The reviewer's non-negotiable, and the correct one: a rate without a denominator is
    not a benchmark, it is a rumor. These strings surface in the methodology block. */
@@ -63,15 +81,15 @@ const SOURCES = {
    field carries its denominator, because the denominator is the whole lesson. */
 const DEFS = {
   loadedCPC: { title: "Loaded cost per contact", text: "Fully burdened cost including facilities, licenses, supervision, and overhead. It is the right number to report upward as a unit metric. It is the wrong number to value savings with, because deflecting a contact does not refund a lease. Loaded cost moves the vendor's claim on this page. It does not move your net savings." },
-  marginalCPC: { title: "Marginal cost per contact", text: "The cost that actually disappears when one contact goes away: agent wage plus benefits for the handle time it consumed. Every savings figure on this page is valued here. If you leave it blank the tool assumes 60% of loaded cost and caps confidence at Directional, because an assumed savings basis is not a savings basis." },
+  marginalCPC: { title: "Marginal cost per contact", text: `The cost that actually disappears when one contact goes away: agent wage plus benefits for the handle time it consumed. Every savings figure on this page is valued here. If you leave it blank the tool assumes ${Math.round(MARG_SHARE * 100)}% of loaded cost and holds evidence at Directional, because an assumed savings basis is not a savings basis.` },
   eligible: { title: "AI-eligible demand", text: "The share of your total contact volume that is genuinely automatable, meaning the intent is in scope, the knowledge exists, and the bot can access the systems it needs. Denominator: total inbound demand. This is the number vendors quietly skip. A 70% resolution rate on 40% eligible demand is 28% of your volume, not 70%." },
   resolution: { title: "Apparent resolution rate", text: "Of the conversations the bot is involved in, the share it appears to resolve without a human. This is the vendor's headline number. Denominator: AI-involved conversations. It is measured on the traffic the bot touches, never on your total volume. Applying it to total volume is a denominator mismatch, and it is the most common source of overstatement in AI business cases, usually through inconsistent definitions rather than intent." },
   repeat: { title: "Repeat and false resolution", text: "Of the contacts the bot appears to resolve, the share that come back, usually to a human, because the issue was not actually solved. Durable resolution is apparent resolution minus these returns. A resolution that recurs was never a resolution. It was a deferral that looked like success on the vendor's dashboard." },
   escalation: { title: "Escalation premium", text: "Contacts that reach an agent after a bot cost more than contacts that reach an agent directly: longer handle time, context rebuilding, higher transfer rates. No single published figure exists, and the real number varies widely by channel and intent complexity, so treat the default as directional and replace it. The defensible way to measure it is your own handle time after AI escalation compared with your normal handle time. Set it to 0 to remove it from the model entirely and read the sensitivity line beneath the bridge to see what it is worth." },
   mech: { title: "Capacity action", text: "Freed agent handle time is capacity, not cash, until something converts it. Not selected realizes $0, which is the honest answer and the one most vendor business cases quietly skip. Operating cost and escalation premium are cash out regardless, which is why no action shows a loss rather than a zero." },
-  evidence: { title: "Evidence source", text: "What backs the resolution rate you entered. Marketing claims and internal estimates cannot exceed Directional confidence. A proposal is a document but not a commitment, so it reaches Planning-grade. Only a contracted floor with a remedy, or resolution you have observed in your own environment, can reach Finance-grade." },
+  evidence: { title: "Evidence source", text: "What backs the resolution rate you entered. Marketing claims and internal estimates cannot exceed Directional confidence. A proposal is a document but not a commitment, so it reaches Planning-grade. A contracted floor with a remedy, or resolution you have observed in your own environment, also reaches Planning-grade. None reaches Finance-grade, because this tool inspects no document: every source here is your own account." },
   implOneTime: { title: "One-time implementation cost", text: "Integration, content build, professional services, and the internal hours to stand the bot up. It hits Year 1 and never repeats, so it changes payback without touching steady-state economics. Leaving it at zero does not make it zero. It makes your Year 1 number optimistic by exactly the amount the vendor is charging." },
-  confidence: { title: "Confidence, two axes", text: "Evidence asks what attests to the resolution rate and the cost basis. Realization asks whether finance can book the savings given your capacity action. The headline reports the weaker of the two. Any clamped or impossible input forces Directional regardless of the rest. Read the grade carefully: it describes what you have told this tool, not anything this tool has checked. Nobody here has seen your quote, your payroll file, or your pilot data. The grade is a self-declared evidence level, and Finance-grade means your inputs are document-backed by your own account, not that they have been independently validated." },
+  confidence: { title: "Confidence, three axes", text: "Evidence asks what attests to the resolution rate and the cost basis. Realization asks whether finance can book the savings given your capacity action. Completeness asks whether the model is whole: any corrected, impossible or implausible input, a result the rail refuses, or a model that measures nothing holds it at Directional. The headline reports the weakest of the three. Read the grade carefully: it describes what you have told this tool, not anything this tool has checked. Nobody here has seen your quote, your payroll file, or your pilot data. The grade is a self-declared evidence level, which is why self-declared evidence stops at Planning-grade. Finance-grade needs independent validation this tool cannot perform." },
   rail: { title: "Rail handoff", text: "This tool is the only producer of the realistic deflection rate the rest of the suite consumes. It publishes two different numbers, net automation of total demand and durable resolution of bot-routed traffic, because downstream tools need different denominators. If it published nothing, it says so." },
   durable: { title: "Durable resolution, and its limits", text: "A durable resolution is an interaction that achieved the intended customer outcome without avoidable human escalation, attributable repeat contact, channel switching, or material correction inside your chosen measurement window. Two honest caveats. A repeat contact is not always a failure, because a customer may return with an unrelated issue, and the absence of a repeat does not prove success, because a customer may simply give up. Unless you are supplying observed, intent-matched repeat data, the durable figure here is an estimate of your leakage, not a measured outcome." },
   funnel: { title: "The three rates", text: "Coverage is how much demand is automatable, out of total. Resolution is how much of the bot's traffic it handles, out of AI-involved. Net automation is how much of your total volume durably goes away, out of total. They are not interchangeable, and the gap between apparent resolution and net automation is where most overstatement in AI business cases originates." },
@@ -117,7 +135,7 @@ export function engine(I) {
   const M = gc(I.M, 0, 1e9, "Monthly contacts");
   const cpc = gc(I.cpc, 0, 1e6, "Loaded cost per contact");
   const margIn = gc(I.marg, 0, 1e6, "Marginal cost per contact");
-  const marg = margIn > 0 ? margIn : cpc * 0.6;
+  const marg = margIn > 0 ? margIn : cpc * MARG_SHARE;
   const margWasDefaulted = !(margIn > 0);
 
   /* Three denominator-explicit rates. e is share of TOTAL demand the bot attempts.
@@ -241,18 +259,14 @@ export function engine(I) {
   else if (!(railRate >= 0 && railRate <= 1)) { railPublished = false; railReason = `Net automation resolved to ${netAutomationRate.toFixed(2)}%, outside 0 to 100%, and the rail refuses it.`; }
 
   const ev = EVIDENCE[evKey];
-  let costConf = ORDER[Math.min(2, ev.rank)];
-  if (margWasDefaulted) costConf = "Directional";
-  else if (!I.costBasisOwned && ORDER.indexOf(costConf) > 1) costConf = "Planning-grade";
   const cr = CRED_RANK[MECH[mechKey].cred];
-  let realConf = ORDER[cr === 3 ? 2 : cr === 2 ? 1 : 0];
 
   const flags = [...guards];
-  if (margWasDefaulted) flags.push(`Marginal cost was not supplied, so it was assumed at 60% of loaded cost, ${fmt2(cpc * 0.6)} per contact. That single assumption drives every savings figure on this page, and it is why confidence is held at Directional. Run Cost per Contact and return to replace it.`);
+  if (margWasDefaulted) flags.push(`Marginal cost was not supplied, so it was assumed at ${Math.round(MARG_SHARE * 100)}% of loaded cost, ${fmt2(cpc * MARG_SHARE)} per contact. That single assumption drives every savings figure on this page, and it is why confidence is held at Directional. Run Cost per Contact and return to replace it.`);
   if (margIn > 0 && cpc > 0 && margIn > cpc) flags.push("Marginal cost per contact exceeds loaded cost, which is impossible. It would mean fixed cost is negative. Correct the inputs.");
-  else if (margIn > 0 && cpc > 0 && margIn >= 0.85 * cpc) flags.push("Marginal cost is within 15% of loaded cost. You may have entered loaded cost twice. Marginal cost is mostly wage and benefits and usually runs 50% to 75% of loaded.");
-  if (ep >= 90) flags.push(`AI-eligible demand is set to ${ep}%, meaning almost all of your volume is automatable. That is rare. Most operations have a large tail of complex, emotional, or exception traffic that no bot resolves. Confirm this against your actual intent mix before trusting the headline.`);
-  if (rp >= 80) flags.push(`Apparent resolution is set to ${rp}% of AI-involved conversations. Rates above 80% are uncommon outside narrow FAQ or password-reset scopes. Confirm the denominator: this is a share of the traffic the bot touches, not a share of your total volume.`);
+  else if (margIn > 0 && cpc > 0 && margIn >= MARG_NEAR * cpc) flags.push(`Marginal cost is within ${Math.round((1 - MARG_NEAR) * 100)}% of loaded cost. You may have entered loaded cost twice. Marginal cost is mostly wage and benefits and usually runs 50% to 75% of loaded.`);
+  if (ep >= ELIG_RARE) flags.push(`AI-eligible demand is set to ${ep}%, meaning almost all of your volume is automatable. That is rare. Most operations have a large tail of complex, emotional, or exception traffic that no bot resolves. Confirm this against your actual intent mix before trusting the headline.`);
+  if (rp >= RES_RARE) flags.push(`Apparent resolution is set to ${rp}% of AI-involved conversations. Rates above ${RES_RARE}% are uncommon outside narrow FAQ or password-reset scopes. Confirm the denominator: this is a share of the traffic the bot touches, not a share of your total volume.`);
   if (rp > 0 && netAutomationRate > 0) flags.push(`Denominator check. The bot resolves ${rp}% of the conversations it is involved in, but that is ${netAutomationRate.toFixed(1)}% of your total demand, because only ${ep}% of demand is eligible and ${(RHO * 100).toFixed(0)}% of apparent resolutions recur. A quoted ${rp}% describes resolution of AI-involved conversations. Your budget responds to net automation of total demand. Confirm which denominator the quoted rate uses before you rely on it.`);
   if (escP > 0 && Math.abs(netSavings) > 0 && escalationPremium > Math.abs(netSavings) * 0.5) flags.push(`The escalation premium of ${escP}% is moving ${fmt(escalationPremium)} a month, which is more than half the size of the net result. That constant is directional, not measured. Replace it with your own post-escalation handle time compared against normal handle time before this figure carries any weight.`);
   if (implOneTime === 0) flags.push("Implementation cost is zero. If the vendor is charging a one-time build, integration, or professional services fee, the Year 1 figure is optimistic by exactly that amount, and payback is earlier than it will be.");
@@ -260,56 +274,15 @@ export function engine(I) {
   if (mechKey === "headcount") flags.push("Headcount reduction values freed capacity at 100%. This is the assumption almost every vendor ROI slide makes silently. It is defensible only if a named person has committed to removing the heads.");
   if (!isFinite(beResPct) && beNote) flags.push("This program never breaks even at any resolution rate. Operating cost and escalation premium exceed the realistic savings the bot can produce at this eligibility, volume, and marginal cost.");
 
+  /* Display only. It colours the open-issues card. Grading reads the guards and the
+     validity checks through gradeAID's completeness blockers, never this regex. */
   const hardFlag = flags.some((f) => /impossible|refuses it|was held at/.test(f));
-  if (hardFlag) { costConf = "Directional"; realConf = "Directional"; }
-  const headlineConf = ORDER[Math.min(ORDER.indexOf(costConf), ORDER.indexOf(realConf))];
 
-  const MECH_REASON = {
-    none: "no capacity action is selected, so freed handle time converts to no cash",
-    growth: "absorbing growth or backlog builds capacity, which finance does not credit as savings this cycle",
-    overtime: "reducing overtime stops a payment finance already makes, which is creditable, but it is not cash leaving the cost base",
-    hiring: "avoiding or slowing hiring is finance-creditable over the cycle, but it is not cash leaving the cost base",
-    vendor: "reducing outsourcer volume takes cash off the invoice",
-    headcount: "reducing headcount takes cash off the payroll",
-  };
-  const EV_REASON = {
-    estimate: "the resolution rate is an internal estimate rather than an attested figure",
-    marketing: "the resolution rate comes from vendor marketing, which is the least reliable source of a resolution number that exists",
-    proposal: "the resolution rate is drawn from a vendor proposal, which is a document but not a commitment",
-    sla: "the resolution rate is a contracted floor with a remedy attached",
-    pilot: "the resolution rate was observed in your own environment",
-  };
-  /* One sentence, built once, rendered verbatim in the UI and the export. Two things this
-     has to get right. It must not claim an axis is "weaker" when the two are tied, because
-     that is a comparison the result does not support. And it must read as a complete
-     sentence in the report, where no "It is X because" preamble precedes it. */
-  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
-  const axesTied = costConf === realConf;
-  const weakerIsReal = ORDER.indexOf(realConf) < ORDER.indexOf(costConf);
-  const evReason = EV_REASON[evKey];
-  let confReason, confSentence;
-  if (hardFlag) {
-    confReason = "an input is physically impossible or had to be clamped, so the result is blocked at Directional.";
-    confSentence = "An input is physically impossible or had to be clamped, so the result is blocked at Directional regardless of evidence or capacity action.";
-  } else if (margWasDefaulted) {
-    confReason = "the marginal cost basis is an assumed 60% of loaded cost, not a figure you supplied.";
-    confSentence = "The marginal cost basis is an assumed 60% of loaded cost rather than a figure you supplied, which holds the result at Directional.";
-  } else if (axesTied) {
-    confReason = "both axes land at " + costConf + ".";
-    confSentence = "Both axes land at " + costConf + ", so neither is the weaker one. " + cap(evReason) + ", and " + MECH_REASON[mechKey] + ".";
-  } else if (weakerIsReal) {
-    confReason = "realization is the weaker axis and " + MECH_REASON[mechKey] + ".";
-    confSentence = "The headline reports the weaker axis, which is realization at " + realConf + ", because " + MECH_REASON[mechKey] + ".";
-  } else {
-    confReason = "evidence is the weaker axis and " + evReason + ".";
-    confSentence = "The headline reports the weaker axis, which is evidence at " + costConf + ", because " + evReason + ".";
-  }
-
-  const band = { estimate: 0.25, marketing: 0.25, proposal: 0.15, sla: 0.10, pilot: 0.10 }[evKey];
+  const band = BANDS[evKey];
 
   /* Four-way decision. Economics and evidence drive it. Readiness detail routes out to
      the AI Readiness Diagnostic; this tool passes the eligibility fact, not a full audit. */
-  const bestDur = Math.min(1, R * 1.2) * (1 - RHO * 0.5);
+  const bestDur = Math.min(1, R * UP_RES) * (1 - RHO * UP_REP);
   const bestNet = marg * M * E * (bestDur * sf - (1 - bestDur) * esc) - opexMonthly;
   const strongEvidence = ev.rank >= 1;
   const creditable = cr >= 2;
@@ -322,7 +295,7 @@ export function engine(I) {
     verdict = "Fix the economics or renegotiate";
     verdictWhy = "As entered this is a net loss, but a better resolution rate or a lower platform cost could turn it positive. Renegotiate the floor and the price, or improve the foundation, before committing.";
     verdictRoute = "/tools/contract-risk"; verdictRouteLabel = "Test the contract for a floor"; verdictTone = "amber";
-  } else if (E < 0.35) {
+  } else if (E < FOUNDATION) {
     verdict = "Fix the foundation first";
     verdictWhy = "Eligibility is low, so most of your demand is not automatable yet. Knowledge coverage and intent scope are the constraint, not the vendor. Close that gap before buying capacity you cannot use.";
     verdictRoute = "/tools/ai-readiness"; verdictRouteLabel = "Check AI readiness"; verdictTone = "amber";
@@ -343,7 +316,7 @@ export function engine(I) {
     netAtEscZero, netAtEscDouble, escSwing, escShareOfResult,
     realizedDollarsPct, realizedDeflectionPct, beResPct, beNote, severityRatio, repeatTolPct, repeatNote,
     monthly, year1, year1NoRamp, rampOn, rampMonths, rampNote, payback, waterfall, waterfallSum, railRate, railBot, railPublished, railReason,
-    bestNet, flags, hardFlag, costConf, realConf, headlineConf, confReason, confSentence, axesTied, band, evidenceKey: evKey, evidenceLabel: ev.label,
+    bestNet, flags, guards, hardFlag, band, evidenceKey: evKey, evidenceLabel: ev.label, evidenceRank: ev.rank,
     verdict, verdictWhy, verdictRoute, verdictRouteLabel, verdictTone,
   };
 }
@@ -374,6 +347,112 @@ function buildScenarios(I) {
       eligibleRate: inp.eligibleRate, apparentResolutionRate: inp.apparentResolutionRate, repeatLeakRate: inp.repeatLeakRate,
     };
   });
+}
+
+/* 11B grading layer. Doctrine Section 5. Three axes, read field by field.
+
+   Evidence. Volume is the user's own figure and stands at Planning-grade once entered.
+   Eligibility, apparent resolution, repeat and the escalation premium are claims about
+   the bot, so an entered value reaches Planning-grade only when the evidence select
+   names a document or observed data. Marginal cost reaches Planning-grade only when the
+   user attests the cost basis, and the platform fee stands at Planning-grade once
+   entered. A value still at its default, a value restored from this tool's own last
+   run, and a rail value with no recorded origin all grade Directional. Nothing here
+   reaches Finance-grade: every attestation is self-declared and none is inspected, so
+   the select and the checkbox cap at Planning-grade. Decision I1, session 16.
+
+   Realization reads mech.js credit class through realizationFromCred and nothing else.
+
+   Completeness holds Directional on any input the engine had to correct, any validity
+   check that fails, and any model that measured nothing. Decision I2.
+
+   This function never reads net savings, the verdict or the break-even. Doctrine 5.5. */
+const OPS_OWN = [["M", "monthly volume"]];
+const OPS_ATTEST = [["eligibleRate", "AI-eligible demand"], ["apparentResolutionRate", "apparent resolution"], ["repeatLeakRate", "repeat and false resolution"], ["escalationPenalty", "escalation premium"]];
+const COST_ATTEST = [["marg", "marginal cost"]];
+const COST_OWN = [["botPlatformCost", "platform fee"]];
+
+/* Where a graded field's value came from. `pre` holds what the mount prefill wrote,
+   field by field, with the tool that published it. A prefilled value the user has
+   since changed is the user's own. */
+function fieldOrigin(I, pre, f) {
+  const v = n(I[f]);
+  const p = pre && Object.prototype.hasOwnProperty.call(pre, f) ? pre[f] : null;
+  if (p && n(p.value) === v) return p.src === TOOL_ID ? "self" : "rail";
+  if (v === BASE[f]) return "default";
+  return "entered";
+}
+
+function gradeAID({ I, r, pre, railOrigin }) {
+  const invariants = [];
+  const figs = [r.K, r.opexMonthly, r.durable, r.attempted, r.netAutomationRate, r.botResolutionRate, r.escalationPremium, r.year1, r.marg, r.waterfallSum];
+  if (!figs.every(Number.isFinite)) invariants.push("an output is not a finite number");
+  if (r.attempted > r.M * (1 + 1e-9) + 1e-9) invariants.push("more conversations were routed to the bot than total demand holds");
+  if (r.durable > r.attempted * (1 + 1e-9) + 1e-9) invariants.push("more durable resolutions than conversations the bot attempted");
+  if (r.durable < 0 || r.opexMonthly < 0 || r.escalationPremium < 0) invariants.push("a volume or a cost is below zero");
+
+  const all = [...OPS_OWN, ...OPS_ATTEST, ...COST_ATTEST, ...COST_OWN];
+  const origins = Object.fromEntries(all.map(([f]) => [f, fieldOrigin(I, pre, f)]));
+  if (r.margWasDefaulted) origins.marg = "default";
+  const railG = railEvidence(railOrigin);
+  const docBacked = r.evidenceRank >= 1;
+  const costAttested = !!I.costBasisOwned;
+  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railG, entered })[origins[f]];
+  const opsGrade = [...OPS_OWN.map(([f]) => fieldGrade(f, "Planning-grade")), ...OPS_ATTEST.map(([f]) => fieldGrade(f, docBacked ? "Planning-grade" : "Directional"))].reduce(weakerStream);
+  const costGrade = [...COST_ATTEST.map(([f]) => fieldGrade(f, costAttested ? "Planning-grade" : "Directional")), ...COST_OWN.map(([f]) => fieldGrade(f, "Planning-grade"))].reduce(weakerStream);
+  const evidence = weakerStream(opsGrade, costGrade);
+
+  const named = (list, o) => list.filter(([f]) => origins[f] === o).map(([, l]) => l);
+  const say = (list) => list.length > 1 ? list.slice(0, -1).join(", ") + " and " + list[list.length - 1] : list[0];
+  const why = (list) => {
+    const parts = [];
+    const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
+    if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
+    if (rail.length) parts.push(`${say(rail)} arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}, which confers consistency and evidence only as far as its origin`);
+    return parts;
+  };
+  const opsParts = why([...OPS_OWN, ...OPS_ATTEST]);
+  if (!opsParts.length && !docBacked) opsParts.push(`Eligibility, resolution, repeat and the escalation premium are your own entries, but the resolution rate is sourced to ${r.evidenceLabel.toLowerCase()}, which is not a document`);
+  if (!opsParts.length) opsParts.push(`Volume, eligibility, resolution, repeat and the escalation premium are your own entries, backed by ${r.evidenceLabel.toLowerCase()} by your own account. Self-declared evidence stands at Planning-grade at most, because no document was inspected`);
+  const costParts = why([...COST_ATTEST, ...COST_OWN]);
+  if (!costParts.length && !costAttested) costParts.push("Marginal cost is your own entry but is not attested against payroll or finance. Tick the cost basis box once it is");
+  if (!costParts.length) costParts.push("Marginal cost and the platform fee are your own entries, with the cost basis attested by your own account. Self-attestation stands at Planning-grade at most");
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const evParts = [...(opsGrade === evidence ? opsParts : []), ...(costGrade === evidence ? costParts : [])];
+
+  const realization = realizationFromCred(MECH[r.mechKey].cred);
+  const realWhy = r.mechKey === "none"
+    ? "No capacity action is selected, so no freed capacity converts to cash"
+    : `${MECH[r.mechKey].label} is credited as ${MECH[r.mechKey].cred} in mech.js`;
+
+  const blockers = [];
+  if (r.guards.length) blockers.push(`${r.guards.length} input${r.guards.length > 1 ? "s were" : " was"} outside the possible range or not a number and corrected before calculation`);
+  if (!r.margWasDefaulted && r.cpc > 0 && r.marg > r.cpc) blockers.push("marginal cost exceeds loaded cost, which is impossible");
+  else if (!r.margWasDefaulted && r.cpc > 0 && r.marg >= MARG_NEAR * r.cpc) blockers.push(`marginal cost is at least ${Math.round(MARG_NEAR * 100)} percent of loaded cost, which usually means loaded cost was entered twice`);
+  if (!r.railPublished) blockers.push(`the rail refused the result: ${r.railReason.charAt(0).toLowerCase() + r.railReason.slice(1, -1)}`);
+  else if (!(r.attempted > 0)) blockers.push("no demand is routed to the bot, so the model measured nothing");
+  if (r.attempted > 0 && r.opexMonthly / r.attempted <= BOT_NEAR_FREE) blockers.push("the bot carries volume at a near-free operating cost");
+  if (r.rp >= 100 && r.rhop <= 0) blockers.push("apparent resolution is 100 percent with no repeats, a rate no production bot sustains");
+  const completeness = blockers.length ? "Directional" : "Finance-grade";
+  const modelWhy = blockers.length ? blockers.join("; ")
+    : "The model is whole: no input was corrected, marginal cost sits plausibly below loaded, the rail accepted the result and the bot carries volume at a real cost";
+
+  const voided = invariants.length > 0;
+  const gradeObj = voided
+    ? voidResult({
+        invariant: invariants.join("; "),
+        remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this report.",
+      })
+    : emitGrades({
+        evidence, realization, completeness,
+        reasons: { evidence: `${evParts.map(cap).join(". ")}.`, realization: `${realWhy}.`, completeness: `${cap(modelWhy)}.` },
+      });
+  const confidence = voided ? "Void" : gradeObj.headline;
+  const gradeWhy = voided
+    ? `export void: ${invariants.join("; ")}`
+    : `Bound by ${gradeObj.boundBy}. ${gradeObj.boundAxes.map((x) => gradeObj.reasons[x]).join(" ")}`;
+  return { gradeObj, confidence, gradeWhy, voided, invariants, evidence, opsGrade, costGrade, realization, completeness, blockers, origins };
 }
 
 /* @engine-end */
@@ -414,12 +493,9 @@ function buildAnalystRead(R) {
 /* Scenario contract. DEFAULTS are static on purpose: the state initializer seeds from
    cross-tool pulls, but the URL diff must be taken against a fixed baseline. Marginal
    cost defaults to 0, meaning "not supplied," which forces Directional. */
-const V_A = { apparentResolutionRate: 65, repeatLeakRate: 18, escalationPenalty: 25, implOneTime: 0, botPlatformCost: 8000, qaCost: 2000, tuningHours: 40, tuningRate: 65, knowledgeMaintHours: 20, knowledgeRate: 55 };
-const V_B = { apparentResolutionRate: 58, repeatLeakRate: 14, escalationPenalty: 18, implOneTime: 0, botPlatformCost: 5000, qaCost: 1200, tuningHours: 25, tuningRate: 65, knowledgeMaintHours: 12, knowledgeRate: 55 };
-
 const DEFAULTS = {
-  M: 80000, cpc: 7, marg: 0, eligibleRate: 55,
-  mech: MECH_INITIAL, rampOn: true, rampMonths: 6, compareMode: false,
+  M: BASE.M, cpc: BASE.cpc, marg: BASE.marg, eligibleRate: BASE.eligibleRate,
+  mech: MECH_INITIAL, rampOn: true, rampMonths: BASE.rampMonths, compareMode: false,
   evidence: "estimate", costConfirmed: false,
   vA: { ...V_A }, vB: { ...V_B },
 };
@@ -455,11 +531,29 @@ function VendorInputs({ v, onChange, compact }) {
 }
 
 export default function AIDeflectionRealityCheck() {
+  /* Read the rail exactly once, at mount and BEFORE this tool publishes, with the tool
+     that wrote each value. This tool publishes on every keystroke, so a pull that
+     re-parses sessionStorage on every render would re-read a store it just wrote.
+     `pre` feeds gradeAID field by field: a restored own value and a rail value with no
+     origin grade both grade Directional. Consistency is display only. Keys stay as
+     string literals so rail-audit.mjs can see every pull. */
+  const rail = useRef(null);
+  if (rail.current === null) {
+    const got = { M: getPrimitiveWithSource("monthlyContacts"), cpc: getPrimitiveWithSource("costPerContact"), marg: getPrimitiveWithSource("marginalPerContact") };
+    const val = { M: got.M.value != null ? Math.round(got.M.value) : null, cpc: got.cpc.value, marg: got.marg.value };
+    const pre = {};
+    for (const f of ["M", "cpc", "marg"]) if (val[f] != null && !isNaN(val[f])) pre[f] = { value: val[f], src: got[f].sourceTool || "" };
+    rail.current = {
+      M: pre.M ? val.M : null, cpc: pre.cpc ? val.cpc : null, marg: pre.marg ? val.marg : null, pre,
+      consistent: sourcedExternally(["monthlyContacts", "costPerContact", "marginalPerContact"], TOOL_ID),
+      margExternal: getExternalPrimitive("marginalPerContact", TOOL_ID) != null,
+    };
+  }
   const [s, setS] = useState(() => ({
     ...DEFAULTS,
-    M: getPrimitive("monthlyContacts") != null ? Math.round(getPrimitive("monthlyContacts")) : DEFAULTS.M,
-    cpc: getPrimitive("costPerContact") != null ? getPrimitive("costPerContact") : DEFAULTS.cpc,
-    marg: getPrimitive("marginalPerContact") != null ? getPrimitive("marginalPerContact") : DEFAULTS.marg,
+    M: rail.current.M != null ? rail.current.M : DEFAULTS.M,
+    cpc: rail.current.cpc != null ? rail.current.cpc : DEFAULTS.cpc,
+    marg: rail.current.marg != null ? rail.current.marg : DEFAULTS.marg,
     vA: { ...V_A }, vB: { ...V_B },
   }));
   const [fromLink, setFromLink] = useState(false);
@@ -478,17 +572,6 @@ export default function AIDeflectionRealityCheck() {
     setS(sc); setFromLink(true); clearScenarioParam();
   }, []);
 
-  /* Read the rail exactly once. This tool publishes on every keystroke, so a pull that
-     re-parses sessionStorage on every render would re-read a store it just wrote.
-     Consistency, never evidence: none of these three raise a grade here. */
-  const rail = useRef(null);
-  if (rail.current === null) rail.current = {
-    M: getPrimitive("monthlyContacts"),
-    cpc: getPrimitive("costPerContact"),
-    marg: getPrimitive("marginalPerContact"),
-    consistent: sourcedExternally(["monthlyContacts", "costPerContact", "marginalPerContact"], TOOL_ID),
-    margExternal: getExternalPrimitive("marginalPerContact", TOOL_ID) != null,
-  };
   const pulled = {
     M: !fromLink && rail.current.M != null,
     cpc: !fromLink && rail.current.cpc != null,
@@ -501,6 +584,9 @@ export default function AIDeflectionRealityCheck() {
   const inputB = { ...inputA, ...s.vB };
   const R = engine(inputA);
   const RB = engine(inputB);
+  /* railOrigin is null because the rail carries no origin grade yet. A scenario link
+     suppresses the prefill record, since those values describe someone else's session. */
+  const G = gradeAID({ I: inputA, r: R, pre: fromLink ? {} : rail.current.pre, railOrigin: null });
   const scenarios = buildScenarios(inputA);
   const analyst = buildAnalystRead(R);
   const winner = R.netSavings >= RB.netSavings ? "A" : "B";
@@ -529,7 +615,7 @@ export default function AIDeflectionRealityCheck() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s]);
 
-  const confColor = (c) => (c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : MUTED);
+  const confColor = (c) => (c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : c === "Void" ? RED : MUTED);
   const realColor = (p) => (p >= 60 ? GREEN : p >= 35 ? AMBER : RED);
   const toneColor = (t) => (t === "green" ? GREEN : t === "electric" ? ELECTRIC : t === "amber" ? AMBER : RED);
   const sensLow = R.netSavings * (1 - R.band), sensHigh = R.netSavings * (1 + R.band);
@@ -555,7 +641,7 @@ export default function AIDeflectionRealityCheck() {
       ["Why", R.verdictWhy],
       ["Net savings monthly", fmt(R.netSavings)],
       ["Upside-case net monthly", fmt(R.bestNet)],
-      ["Confidence", R.headlineConf],
+      ["Confidence", G.confidence],
     ]},
     { title: "The Three Rates (denominator-explicit)", type: "table", rows: [
       ["Coverage", R.ep + "% of total demand is AI-eligible"],
@@ -565,10 +651,11 @@ export default function AIDeflectionRealityCheck() {
       ["Note", "These are not interchangeable. Quoted rates usually describe apparent resolution. Your budget responds to net automation of total demand."],
     ]},
     { title: "Confidence and Evidence", type: "table", rows: [
-      ["Headline confidence", R.headlineConf],
-      ["Evidence axis", R.costConf + " (" + R.evidenceLabel + ")"],
-      ["Realization axis", R.realConf + " (" + MECH[R.mechKey].label + ")"],
-      ["Why", R.confSentence],
+      ["Headline confidence", G.confidence],
+      ["Evidence axis", G.voided ? "Void" : G.evidence + " (" + R.evidenceLabel + ")"],
+      ["Realization axis", G.voided ? "Void" : G.realization + " (" + MECH[R.mechKey].label + ")"],
+      ["Completeness axis", G.voided ? "Void" : G.completeness],
+      ["Why", G.gradeWhy],
       ["Sensitivity band", "+/- " + Math.round(R.band * 100) + "% on net savings, " + fmtK(sensLow) + " to " + fmtK(sensHigh) + " per month"],
       ["Open issues", R.flags.length === 0 ? "none" : R.flags.length + (R.flags.length === 1 ? " issue, listed below" : " issues, listed below")],
       ["Cross-tool consistency", consistent ? "Volume and both cost figures arrived from other tools this session. Consistency, not evidence." : "Inputs were entered here or defaulted."],
@@ -663,10 +750,10 @@ export default function AIDeflectionRealityCheck() {
                 Marginal cost confirmed against payroll or finance data.
                 <span style={{ display: "block", fontSize: 11.5, color: MUTED, marginTop: 2 }}>
                   {R.margWasDefaulted
-                    ? "Disabled. There is nothing to confirm while the marginal cost is an assumed 60% of loaded."
+                    ? `Disabled. There is nothing to confirm while the marginal cost is an assumed ${Math.round(MARG_SHARE * 100)}% of loaded.`
                     : margSource
-                      ? "This figure arrived from another tool on this site. That confers consistency, not evidence. Finance-grade requires that a person confirmed it against a document."
-                      : "Required for Finance-grade. A number typed into a calculator is an estimate until something attests to it."}
+                      ? "This figure arrived from another tool on this site. That confers consistency, not evidence. It grades Directional until a recorded origin travels with it."
+                      : "Required for Planning-grade on the cost basis. A number typed into a calculator is an estimate until something attests to it. Self-attestation stops at Planning-grade."}
                 </span>
               </span>
             </label>
@@ -737,24 +824,29 @@ export default function AIDeflectionRealityCheck() {
           </div>
 
           {/* confidence */}
-          <div style={{ ...cardStyle, borderLeft: `3px solid ${confColor(R.headlineConf)}` }}>
+          <div style={{ ...cardStyle, borderLeft: `3px solid ${confColor(G.confidence)}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 10 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>Confidence<InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></div>
-              <div style={{ ...TYPE.h1, fontSize: 22, color: confColor(R.headlineConf) }}>{R.headlineConf}</div>
+              <div style={{ ...TYPE.h1, fontSize: 22, color: confColor(G.confidence) }}>{G.confidence}</div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12, margin: "14px 0" }} className="env">
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12, margin: "14px 0" }} className="env">
               <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 10.5, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Evidence</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: confColor(R.costConf) }}>{R.costConf}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.evidence) }}>{G.voided ? "Void" : G.evidence}</div>
                 <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>{R.evidenceLabel}</div>
               </div>
               <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
                 <div style={{ fontSize: 10.5, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Realization</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: confColor(R.realConf) }}>{R.realConf}</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.realization) }}>{G.voided ? "Void" : G.realization}</div>
                 <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>{MECH[R.mechKey].label}</div>
               </div>
+              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
+                <div style={{ fontSize: 10.5, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Completeness</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.completeness) }}>{G.voided ? "Void" : G.completeness}</div>
+                <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>{G.blockers.length ? G.blockers.length + (G.blockers.length === 1 ? " check failed" : " checks failed") : "Model is whole"}</div>
+              </div>
             </div>
-            <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{R.confSentence} Net savings carry a plus or minus {Math.round(R.band * 100)}% band at this evidence level, {fmtK(sensLow)} to {fmtK(sensHigh)} per month.</p>
+            <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{G.gradeWhy} Net savings carry a plus or minus {Math.round(R.band * 100)}% band at this evidence level, {fmtK(sensLow)} to {fmtK(sensHigh)} per month.</p>
             <div style={{ background: WARM, borderRadius: 8, padding: "10px 13px", fontSize: 11.5, color: MUTED, lineHeight: 1.55 }}>
               This grade is self-declared. It reflects what you have told this tool about your sources, not anything this tool has inspected. No document, payroll file, or pilot dataset has been reviewed here. Independent validation of the underlying inputs is a separate exercise.
             </div>
@@ -886,11 +978,12 @@ export default function AIDeflectionRealityCheck() {
           <ReportActions
             toolId={TOOL_ID}
             toolName="AI Deflection Reality Check"
-            subtitle={`${R.verdict} · ${R.headlineConf} · ${R.netAutomationRate.toFixed(1)}% net automation of total vs ${R.rp}% resolution claimed · net ${fmtK(R.netSavings)}/mo`}
+            subtitle={`${R.verdict} · ${G.confidence} · ${R.netAutomationRate.toFixed(1)}% net automation of total vs ${R.rp}% resolution claimed · net ${fmtK(R.netSavings)}/mo`}
             routePath={ROUTE}
             state={s}
             defaults={DEFAULTS}
-            confidence={R.headlineConf}
+            confidence={G.confidence}
+            grades={G.gradeObj}
             summary={[
               { label: "Recommended action", value: R.verdict },
               { label: "Vendor claim monthly", value: fmt(R.vendorClaim) },
@@ -952,7 +1045,7 @@ export default function AIDeflectionRealityCheck() {
               compared_scenarios: !!s.compareMode,
               volume_band: R.M >= 500000 ? "very_high" : R.M >= 150000 ? "high" : R.M >= 40000 ? "mid" : "low",
               automation_band: R.netAutomationRate >= 30 ? "high" : R.netAutomationRate >= 15 ? "mid" : "low",
-              confidence_class: R.headlineConf,
+              confidence_class: G.confidence,
               rail_published: R.railPublished,
               open_issues: R.flags.length,
               /* Terminal intent signal, zero infrastructure. Real cost basis, a cash-creditable
