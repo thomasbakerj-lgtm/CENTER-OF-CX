@@ -8,12 +8,14 @@ import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real module, do not rebuild it. ---- */
 let MECHMOD;
-let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards;
+let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards, BENCHMOD, CONF;
 try {
   const m = await import("./src/lib/mech.js");
   MECHMOD = m;
   ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = m);
   ({ createGuards } = await import("./src/lib/guards.js"));
+  BENCHMOD = await import("./src/lib/benchmarks.js");
+  CONF = await import("./src/lib/confidence.js");
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js. The engine cannot be");
   console.error("verified against reconstructed constants. Run from the repo root.");
@@ -48,8 +50,17 @@ const src = readFileSync("./AIDeflectionRealityCheck.jsx", "utf8");
 const a = src.indexOf("/* @engine-start"), b = src.indexOf("/* @engine-end */");
 if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found."); process.exit(1); }
 const region = src.slice(a, b).replace(/^export /gm, "");
-const { engine, buildScenarios } = new Function("MECH", "MECH_INITIAL", "createGuards",
-  region + "\nreturn { engine, buildScenarios };")(MECH, MECH_INITIAL, createGuards);
+const { engine: engineRaw, buildScenarios, gradeAID, fieldOrigin, BASE: AID_BASE, V_A, V_B, TOOL_ID } = new Function("MECH", "MECH_INITIAL", "createGuards",
+  "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
+  region + "\nreturn { engine, buildScenarios, gradeAID, fieldOrigin, BASE, V_A, V_B, TOOL_ID };")(MECH, MECH_INITIAL, createGuards,
+  BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred);
+/* The component runs engine, then gradeAID on the same inputs. The harness composes
+   them the same way, so every assertion below reads the grade the page prints. */
+const engine = (I, pre = {}, railOrigin = null) => {
+  const r = engineRaw(I);
+  const g = gradeAID({ I, r, pre, railOrigin });
+  return { ...r, ...g, headlineConf: g.confidence };
+};
 
 /* the harness must exercise the real ladder, whatever it contains */
 const MECH_KEYS = MECH_ORDER.slice();
@@ -133,8 +144,13 @@ A("no NaN reaches any reported figure", nanOK);
 
 /* ---- 7. Confidence gates ---- */
 A("defaulted marginal forces Directional", engine(DEF).headlineConf === "Directional");
-A("Finance-grade reachable with cash action, pilot evidence, confirmed basis",
-  engine({...DEF,marg:4.2,costBasisOwned:true,evidence:"pilot",mech:CASH_KEY}).headlineConf === "Finance-grade");
+/* Every graded field moved off its default, so the only thing standing between this
+   case and Finance-grade is the self-declared evidence. Decision I1, session 16. */
+const OWN_ALL = { ...DEF, M:90000, marg:4.2, eligibleRate:52, apparentResolutionRate:66, repeatLeakRate:15, escalationPenalty:22, botPlatformCost:7500 };
+A("Finance-grade is unreachable: cash action, pilot evidence, attested basis and every field entered stop at Planning-grade",
+  engine({...OWN_ALL,costBasisOwned:true,evidence:"pilot",mech:CASH_KEY}).headlineConf === "Planning-grade");
+A("a contracted floor stops at Planning-grade too", engine({...OWN_ALL,costBasisOwned:true,evidence:"sla",mech:CASH_KEY}).headlineConf === "Planning-grade");
+A("pilot evidence on default rates grades Directional", engine({...DEF,marg:4.2,costBasisOwned:true,evidence:"pilot",mech:CASH_KEY}).headlineConf === "Directional");
 A("marginal above loaded is a hard flag to Directional", engine({...DEF,marg:99,cpc:7}).headlineConf === "Directional");
 A("no self-credentialing: consistency alone cannot reach Finance",
   engine({...DEF,marg:4.2,costBasisOwned:false,evidence:"estimate",mech:CASH_KEY}).headlineConf !== "Finance-grade");
@@ -223,13 +239,8 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("recon: bot resolution is 57.0 percent", r.botResolutionRate.toFixed(1) === "57.0");
   A("recon: break-even resolution is 36.6 percent", r.beResPct.toFixed(1) === "36.6");
   A("recon: exactly one integrity flag fires", r.flags.length === 1);
-  A("recon: headline is Planning-grade, weaker axis wins", r.headlineConf === "Planning-grade" && r.realConf === "Finance-grade");
-
-  /* Defect 1. The rendered sentence is "It is {conf} because {confReason}".
-     confReason must not itself open with a "... because" clause or the copy stutters. */
-  A("no double-because stutter in confidence reason", !/^(evidence|realization) is (Directional|Planning-grade|Finance-grade) because/.test(r.confReason));
-  const rendered = "It is " + r.headlineConf + " because " + r.confReason;
-  A("rendered confidence sentence contains one 'because'", (rendered.match(/ because /g) || []).length === 1);
+  A("recon: headline is Planning-grade, bound by evidence", r.headlineConf === "Planning-grade" && r.evidence === "Planning-grade" && r.realization === "Finance-grade" && r.completeness === "Finance-grade" && r.gradeObj.boundBy === "evidence");
+  A("recon: the grade rationale is one whole paragraph", /^Bound by evidence\. [A-Z]/.test(r.gradeWhy) && /\.$/.test(r.gradeWhy) && !/because .*because/.test(r.gradeWhy));
 
   /* Defect 2. A scenario label a reader recomputes from must be the value the engine used. */
   const sc = buildScenarios(RECON);
@@ -267,24 +278,22 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("recon2: net automation is 46.2 percent", r2.netAutomationRate.toFixed(1) === "46.2");
   A("recon2: bot resolution is 65.1 percent", r2.botResolutionRate.toFixed(1) === "65.1");
   A("recon2: break-even resolution is 33.0 percent", r2.beResPct.toFixed(1) === "33.0");
-  A("recon2: both axes reach Finance-grade", r2.costConf === "Finance-grade" && r2.realConf === "Finance-grade" && r2.headlineConf === "Finance-grade");
+  A("recon2: pilot evidence and an attested basis stop at Planning-grade", r2.evidence === "Planning-grade" && r2.realization === "Finance-grade" && r2.completeness === "Finance-grade" && r2.headlineConf === "Planning-grade");
 
-  /* When the axes are tied, no axis may be described as the weaker one. */
-  A("tied axes are reported as tied, not as one being weaker",
-    r2.axesTied === true && !/weaker axis, which is/.test(r2.confSentence) && /neither is the weaker one/.test(r2.confSentence));
-
-  /* confSentence must stand alone in the export: capitalised, terminated, no stutter. */
-  const sentenceOK = (x) => /^[A-Z]/.test(x) && /[.]$/.test(x) && !/ axis[.,]? .*weaker axis/.test(x);
+  /* The rationale must stand alone in the export: capitalised, terminated, no stutter,
+     no undefined, and every applicable axis carries a reason. */
+  const sentenceOK = (x) => /^[A-Z]/.test(x) && /[.]$/.test(x) && !/undefined|\.\.| because .* because /.test(x);
   let allOK = true;
   for (const ev of ["estimate","marketing","proposal","sla","pilot"])
     for (const k of MECH_ORDER)
       for (const marg of [0, 2.59])
         for (const owned of [true,false]) {
           const t = engine({ ...R2, evidence:ev, mech:k, marg, costBasisOwned:owned });
-          if (!sentenceOK(t.confSentence)) allOK = false;
-          if (/because .*because/.test("It is " + t.headlineConf + " because " + t.confReason)) allOK = false;
+          if (!sentenceOK(t.gradeWhy)) allOK = false;
+          for (const ax of t.gradeObj.applicable) if (!sentenceOK(t.gradeObj.reasons[ax])) allOK = false;
+          if (t.gradeObj.defects.length) allOK = false;
         }
-  A("confidence sentence is standalone and stutter-free across every gate combination", allOK);
+  A("the grade rationale is standalone and stutter-free across every gate combination", allOK);
 }
 
 
@@ -298,27 +307,23 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
     knowledgeMaintHours:17, knowledgeRate:75 };
   const K90 = MECH_ORDER.filter(k => MECH[k].f === 0.9 && MECH[k].cred === "cash")[0];
 
-  const tied  = engine({ ...BASE, evidence:"pilot",    mech:K90 });          // Finance / Finance
-  const evLow = engine({ ...BASE, evidence:"proposal", mech:K90 });          // Planning / Finance
-  const rlLow = engine({ ...BASE, evidence:"pilot",    mech:MECH_INITIAL }); // Finance / Planning
+  const tied  = engine({ ...BASE, evidence:"pilot", mech:K90 });            // Planning / Finance / Finance
+  const both  = engine({ ...BASE, evidence:"pilot", mech:MECH_INITIAL });   // Planning / Planning / Finance
+  const rlLow = engine({ ...BASE, evidence:"pilot", mech:ZERO_KEY });       // Planning / Directional / Finance
 
-  A("tied case is detected", tied.axesTied === true && tied.costConf === tied.realConf);
-  A("tied case never claims one axis IS the weaker one", !/is the weaker axis|which is (realization|evidence) at/.test(tied.confSentence));
-  A("tied case says neither axis is weaker", /neither is the weaker/.test(tied.confSentence));
-  A("evidence-weaker case names evidence", /evidence/.test(evLow.confSentence) && evLow.axesTied === false);
-  A("realization-weaker case names realization", /realization/.test(rlLow.confSentence) && rlLow.axesTied === false);
+  A("evidence-bound case names evidence alone", tied.gradeObj.boundBy === "evidence" && /^Bound by evidence\./.test(tied.gradeWhy));
+  A("a tie names both axes and claims neither is weaker", both.gradeObj.boundBy === "evidence and realization" && /^Bound by evidence and realization\./.test(both.gradeWhy));
+  A("realization-bound case names realization alone", rlLow.gradeObj.boundBy === "realization" && /No capacity action is selected/.test(rlLow.gradeWhy));
 
-  /* confSentence stands alone in the report's Why row, so it must be a real sentence. */
-  for (const [nm, r] of [["tied",tied],["evidence-weaker",evLow],["realization-weaker",rlLow]]) {
-    A(nm + ": confSentence starts capitalised", /^[A-Z]/.test(r.confSentence));
-    A(nm + ": confSentence ends with a full stop", /\.$/.test(r.confSentence));
-    A(nm + ": confSentence has no double-because stutter", (r.confSentence.match(/ because /g) || []).length <= 1);
+  for (const [nm, r] of [["evidence-bound",tied],["tied",both],["realization-bound",rlLow]]) {
+    A(nm + ": gradeWhy starts capitalised", /^[A-Z]/.test(r.gradeWhy));
+    A(nm + ": gradeWhy ends with a full stop", /\.$/.test(r.gradeWhy));
+    A(nm + ": gradeWhy has no double-because stutter", (r.gradeWhy.match(/ because /g) || []).length <= 1);
   }
 
-  /* The headline must still be the weaker of the two axes, tie or not. */
-  const idx = (c) => ["Directional","Planning-grade","Finance-grade"].indexOf(c);
-  for (const r of [tied, evLow, rlLow])
-    A("headline equals the weaker axis", idx(r.headlineConf) === Math.min(idx(r.costConf), idx(r.realConf)));
+  /* The headline is the minimum of the applicable axes, computed by confidence.js. */
+  for (const r of [tied, both, rlLow])
+    A("headline equals the weakest axis", r.headlineConf === CONF.gradeConfidence({ evidence: r.evidence, realization: r.realization, completeness: r.completeness }).headline);
 
   /* Reconciliation, PDF run 2 of 22 July 2026. */
   A("recon2: net monthly savings is 244948", Math.round(tied.netSavings) === 244948);
@@ -327,7 +332,7 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("recon2: escalation swing is 126999", Math.round(tied.escSwing) === 126999);
   A("recon2: net automation is 46.2 percent", tied.netAutomationRate.toFixed(1) === "46.2");
   A("recon2: bot resolution is 65.1 percent", tied.botResolutionRate.toFixed(1) === "65.1");
-  A("recon2: headline is Finance-grade", tied.headlineConf === "Finance-grade");
+  A("recon2: headline is Planning-grade under Decision I1", tied.headlineConf === "Planning-grade");
 }
 
 
@@ -353,9 +358,9 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("recon3: net automation is 45.0 percent", r.netAutomationRate.toFixed(1) === "45.0");
   A("recon3: bot resolution is 62.5 percent", r.botResolutionRate.toFixed(1) === "62.5");
   A("recon3: break-even resolution is 36.9 percent", r.beResPct.toFixed(1) === "36.9");
-  A("recon3: headline is Planning-grade, realization is the weaker axis",
-    r.headlineConf === "Planning-grade" && r.costConf === "Finance-grade" && r.realConf === "Planning-grade");
-  A("recon3: confidence sentence names realization as weaker", /which is realization at Planning-grade/.test(r.confSentence));
+  A("recon3: realization reads the 0.75 action's credit class", r.realization === CONF.realizationFromCred(MECH[K75].cred));
+  A("recon3: headline is Planning-grade and the rationale names every binding axis",
+    r.headlineConf === "Planning-grade" && r.evidence === "Planning-grade" && r.gradeObj.boundAxes.every(ax => r.gradeWhy.indexOf(ax) > 0));
   A("recon3: waterfall closes", Math.abs(r.waterfallSum - r.netSavings) < 1e-6);
 
   /* Scenario labels must reproduce their own math on this input set too. */
@@ -507,7 +512,7 @@ console.log("\n14. enum inputs resolve through pick");
     A(`hostile evidence source ${String(k)} prints the estimate label and band`,
       r.evidenceLabel === EST.evidenceLabel && r.band === EST.band && typeof r.band === "number");
     A(`hostile evidence source ${String(k)} blocks the grade at Directional with a whole sentence`,
-      r.hardFlag === true && r.headlineConf === "Directional" && r.costConf === "Directional" && !/undefined/.test(r.confSentence));
+      r.hardFlag === true && r.headlineConf === "Directional" && r.evidence === "Directional" && !/undefined/.test(r.gradeWhy));
   }
 
   A("a hostile capacity action resolves to the zero-credit fallback", engine({ ...CLEAN, mech:"bogus" }).mechKey === MECH_FALLBACK);
@@ -531,8 +536,9 @@ console.log("\n14. enum inputs resolve through pick");
   A("no raw lookup on the entered capacity action remains", !/MECH\[I\.mech\]/.test(src) && !/MECH\[s\.mech\]/.test(src));
   A("no raw lookup on the entered evidence source remains",
     !/EVIDENCE\[I\.evidence\]/.test(src) && !/I\.evidence \|\|/.test(src) && (src.match(/I\.evidence/g) || []).length === 1);
-  A("the band, the reason and the label all read the resolved evidence key",
-    /EV_REASON\[evKey\]/.test(region) && /\}\[evKey\];/.test(region) && /const ev = EVIDENCE\[evKey\];/.test(region));
+  A("the band and the label read the resolved evidence key",
+    /const band = BANDS\[evKey\];/.test(region) && /const ev = EVIDENCE\[evKey\];/.test(region) && /evidenceRank: ev\.rank,/.test(region));
+  A("the retired evidence reason table is gone, and gradeAID writes the rationale", !/EV_REASON|MECH_REASON|confSentence|\bcostConf\b|\brealConf\b|axesTied/.test(src));
   A("the engine returns the resolved evidence key", /evidenceKey: evKey,/.test(region));
   A("the component signals read the resolved evidence key, never the entered one",
     !/indexOf\(s\.evidence\)/.test(src) && (src.match(/indexOf\(R\.evidenceKey\)/g) || []).length === 3);
@@ -616,6 +622,140 @@ console.log("\n17. numeric entries disclose");
   A("no raw ramp read remains in arithmetic", (src.match(/I\.rampMonths/g) || []).length === 1);
   A("the analyst read carries the ramp note", /if \(R\.rampNote\) out\.push\(R\.rampNote\);/.test(src));
   A("rendered ramp labels read the engine value", !/s\.rampMonths \+/.test(src) && (src.match(/R\.rampMonths \+/g) || []).length === 2);
+}
+
+/* ---- 18. 11B grading layer, registry and component wiring. Session 16. ---- */
+console.log("\n18. 11B grading layer and registry");
+{
+  const TOOL = "ai-deflection";
+  const owned = BENCHMOD.benchmarksForTool(TOOL);
+  const ids = [...src.matchAll(/benchmark\("([^"]+)"\)/g)].map(m => m[1]);
+  A("the tool id is the registry tool", TOOL_ID === TOOL);
+  A("the registry holds 38 entries for this tool", owned.length === 38);
+  A("the registry splits 33 heuristics, 0 market and 5 thresholds",
+    owned.filter(e => e.kind === "heuristic").length === 33 && owned.filter(e => e.kind === "market").length === 0 && owned.filter(e => e.kind === "threshold").length === 5);
+  A("every literal registry read resolves", ids.every(id => id in BENCHMOD.BENCHMARK_SOURCES));
+  A("the defaults read every shared field by template", /const dflt = \(f\) => benchmark\(`aid\.default\.\$\{f\}`\);/.test(src) && (src.match(/dflt\("/g) || []).length === 5);
+  A("both vendor sets read every field by template", /benchmark\(`aid\.\$\{set\}\.\$\{f\}`\)/.test(src) && VENDOR_OK());
+  function VENDOR_OK() { return Object.keys(V_A).length === 10 && Object.keys(V_A).every(f => V_A[f] === BENCHMOD.benchmark(`aid.vendorA.${f}`) && V_B[f] === BENCHMOD.benchmark(`aid.vendorB.${f}`)); }
+  A("every registered id is read by the tool", owned.every(e => ids.includes(e.id) || /^aid\.(default|vendorA|vendorB)\./.test(e.id)));
+  A("the base case is the registry, not a literal", AID_BASE.M === 80000 && AID_BASE.eligibleRate === 55 && AID_BASE.apparentResolutionRate === 65 && AID_BASE.marg === 0);
+  A("no default literal survives in the component", !/const V_A = \{ apparentResolutionRate: 65/.test(src) && !/M: 80000, cpc: 7/.test(src));
+  A("no grade or band constant survives as a literal", !/cpc \* 0\.6|0\.85 \* cpc|ep >= 90|rp >= 80|E < 0\.35|R \* 1\.2|RHO \* 0\.5|estimate: 0\.25/.test(src));
+  A("every heuristic is labelled as one", owned.filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
+  A("every threshold states a rationale", owned.filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
+  A("set B is registered as never graded", owned.filter(e => /^aid\.vendorB\./.test(e.id)).every(e => /never graded/.test(e.rationale)));
+
+  A("the grading layer is in the engine region", typeof gradeAID === "function" && typeof fieldOrigin === "function");
+  A("the component grades through gradeAID with no rail origin",
+    /const G = gradeAID\(\{ I: inputA, r: R, pre: fromLink \? \{\} : rail\.current\.pre, railOrigin: null \}\);/.test(src));
+  A("the component exports the three-axis grade object", /grades=\{G\.gradeObj\}/.test(src) && /confidence=\{G\.confidence\}/.test(src));
+  A("the rationale is displayed on the page, not only in the PDF", /\{G\.gradeWhy\} Net savings carry/.test(src));
+  A("the rail pulls carry their source tool", (src.match(/getPrimitiveWithSource\("(monthlyContacts|costPerContact|marginalPerContact)"\)/g) || []).length === 3 && !/getPrimitive\(/.test(src));
+  A("sourcedExternally is display only", (src.match(/sourcedExternally\(/g) || []).length === 1 && !/sourcedExternally/.test(region.slice(region.indexOf("function gradeAID"))));
+
+  const G = (o = {}, pre = {}, ro = null) => engine({ ...OWN_ALL, costBasisOwned: true, evidence: "pilot", mech: CASH_KEY, ...o }, pre, ro);
+  const clean = G();
+  A("a whole, own, document-backed case grades Planning-grade on evidence and Finance-grade elsewhere",
+    clean.evidence === "Planning-grade" && clean.realization === "Finance-grade" && clean.completeness === "Finance-grade" && clean.headlineConf === "Planning-grade" && clean.blockers.length === 0);
+
+  /* Defect class 2. Rail and self values carry no credential. */
+  const railM = G({}, { M: { value: OWN_ALL.M, src: "staffing-calculator" } });
+  A("class 2: a rail volume with no origin grades evidence Directional", railM.evidence === "Directional" && railM.origins.M === "rail" && /arrived over the rail with no recorded origin grade/.test(railM.gradeWhy));
+  const railMarg = G({}, { marg: { value: 4.2, src: "cost-per-contact" } });
+  A("class 2: a rail marginal cost with no origin grades cost evidence Directional even when attested", railMarg.costGrade === "Directional" && railMarg.origins.marg === "rail");
+  A("class 2: a rail value's origin grade caps at Planning-grade", G({}, { M: { value: OWN_ALL.M, src: "x" } }, "Finance-grade").evidence === "Planning-grade");
+  A("class 2: a rail Directional origin stays Directional", G({}, { M: { value: OWN_ALL.M, src: "x" } }, "Directional").evidence === "Directional");
+  const self = G({}, { M: { value: OWN_ALL.M, src: TOOL } });
+  A("class 2: a value restored from this tool's own last run grades Directional", self.evidence === "Directional" && self.origins.M === "self" && /a tool never credentials itself/.test(self.gradeWhy));
+  A("class 2: a prefilled value the user changed is the user's own", G({}, { M: { value: 1234, src: "x" } }).origins.M === "entered");
+  A("class 2: a defaulted marginal cost grades Directional whatever the checkbox says", G({ marg: 0 }).costGrade === "Directional" && G({ marg: 0 }).origins.marg === "default");
+  A("class 2: an unattested marginal cost grades Directional", G({ costBasisOwned: false }).costGrade === "Directional" && /Tick the cost basis box/.test(G({ costBasisOwned: false }).gradeWhy));
+  for (const [f, lbl] of [["M", "monthly volume"], ["eligibleRate", "AI-eligible demand"], ["apparentResolutionRate", "apparent resolution"], ["repeatLeakRate", "repeat and false resolution"], ["escalationPenalty", "escalation premium"], ["botPlatformCost", "platform fee"]]) {
+    const g = G({ [f]: AID_BASE[f] });
+    A(`class 2: ${f} still at its default grades evidence Directional and is named`, g.evidence === "Directional" && g.origins[f] === "default" && g.gradeWhy.toLowerCase().indexOf(lbl.toLowerCase()) > 0);
+  }
+
+  /* Self-credentialing. The select and the checkbox never reach Finance-grade. */
+  for (const ev of ["estimate", "marketing", "proposal", "sla", "pilot"]) for (const owned of [true, false]) {
+    const g = G({ evidence: ev, costBasisOwned: owned });
+    A(`self-credential: ${ev}, basis ${owned ? "attested" : "unattested"} never reaches Finance-grade`, g.evidence !== "Finance-grade" && g.headlineConf !== "Finance-grade");
+  }
+  A("self-credential: estimate and marketing leave the bot claims Directional", G({ evidence: "estimate" }).opsGrade === "Directional" && G({ evidence: "marketing" }).opsGrade === "Directional");
+  A("self-credential: a proposal lifts the bot claims to Planning-grade", G({ evidence: "proposal" }).opsGrade === "Planning-grade");
+
+  /* Defect class 3. Every validity check reaches completeness. */
+  const blockers = {
+    "a corrected input": { M: -5 },
+    "marginal above loaded": { marg: 9, cpc: 7 },
+    "marginal near loaded": { marg: 6.5, cpc: 7 },
+    "zero volume, rail refused": { M: 0 },
+    "no demand routed": { eligibleRate: 0 },
+    "a near-free bot": { botPlatformCost: 0, qaCost: 0, tuningHours: 0, knowledgeMaintHours: 0 },
+    "perfect resolution with no repeats": { apparentResolutionRate: 100, repeatLeakRate: 0 },
+  };
+  for (const [nm, o] of Object.entries(blockers)) {
+    const g = G(o);
+    A(`class 3: ${nm} holds completeness Directional`, g.completeness === "Directional" && g.headlineConf === "Directional" && g.blockers.length > 0 && !g.voided);
+    A(`class 3: ${nm} is named in the completeness rationale`, g.gradeObj.reasons.completeness.length > 20 && g.gradeObj.boundAxes.includes("completeness"));
+  }
+  A("class 3: the rail refusal travels into the completeness rationale", /the rail refused the result: monthly contacts is zero/i.test(G({ M: 0 }).gradeObj.reasons.completeness));
+  A("class 3: a real program at scale is not near-free", G({ M: 300000, eligibleRate: 71, botPlatformCost: 7500, qaCost: 1700, tuningHours: 80, tuningRate: 55, knowledgeMaintHours: 17, knowledgeRate: 75 }).completeness === "Finance-grade");
+  A("class 3: 99 percent resolution with no repeats is not blocked", G({ apparentResolutionRate: 99, repeatLeakRate: 0 }).completeness === "Finance-grade");
+  A("class 3: the grading layer never reads the display regex", !/hardFlag/.test(region.slice(region.indexOf("function gradeAID"), region.indexOf("/* @engine-end */"))));
+
+  /* Doctrine 5.5. The answer never reaches an axis. */
+  {
+    const I = { ...OWN_ALL, costBasisOwned: true, evidence: "pilot", mech: CASH_KEY }, r = engineRaw(I);
+    const axes = (g) => JSON.stringify([g.evidence, g.realization, g.completeness, g.confidence]);
+    const base = gradeAID({ I, r, pre: {}, railOrigin: null });
+    const neg = gradeAID({ I, r: { ...r, netSavings: -Math.abs(r.netSavings) - 1, K: -1, steadyAnnual: -1, bestNet: -1, payback: null, verdict: "Buy nothing, as scoped", beResPct: Infinity }, pre: {}, railOrigin: null });
+    const zero = gradeAID({ I, r: { ...r, netSavings: 0, bestNet: 0, payback: null, beResPct: 0 }, pre: {}, railOrigin: null });
+    A("sign invariance: a negative outcome moves no axis and no headline", axes(neg) === axes(base));
+    A("sign invariance: a zero outcome moves no axis and no headline", axes(zero) === axes(base));
+    const loss = engine({ ...I, botPlatformCost: 90000 });
+    A("sign invariance: a net-loss program from inputs grades on inputs alone", loss.netSavings < 0 && loss.completeness === "Finance-grade" && axes(loss) === axes(base));
+    A("the grading layer never reads the verdict, net savings or the break-even",
+      !/verdict|netSavings|bestNet|beResPct|payback|severityRatio/.test(region.slice(region.indexOf("function gradeAID"), region.indexOf("/* @engine-end */"))));
+  }
+
+  /* Sweep. No Finance-grade anywhere, no void reachable, no silent axis. */
+  let fin = 0, voids = 0, silent = 0, notMin = 0, defects = 0, thrown = 0;
+  const pres = [{}, { M: { value: 90000, src: "staffing-calculator" }, marg: { value: 4.2, src: "cost-per-contact" } }, { M: { value: 90000, src: TOOL } }];
+  const RN = () => Math.random();
+  for (let i = 0; i < 6000; i++) {
+    const o = {
+      M: [Math.round(RN() * 900000), 0, 1, 1e7, -5, "x", 90000][i % 7], cpc: [RN() * 20, 0, -3, 7][i % 4], marg: [RN() * 12, 0, -2, 4.2, 6.5][i % 5],
+      eligibleRate: [RN() * 100, 150, -10, 0, 100][i % 5], apparentResolutionRate: [RN() * 100, 100, 0, 220, -4][i % 5], repeatLeakRate: [RN() * 100, 0, -40, 100][i % 4],
+      escalationPenalty: [RN() * 200, 0, 300, -9][i % 4], botPlatformCost: [RN() * 40000, 0, -1][i % 3], qaCost: [RN() * 5000, 0][i % 2],
+      tuningHours: [RN() * 100, 0][i % 2], knowledgeMaintHours: [RN() * 50, 0][i % 2], implOneTime: [RN() * 1e5, 0, -5][i % 3],
+      rampOn: i % 2 === 0, rampMonths: [RN() * 24, 0, "abc", 48][i % 4],
+      evidence: ["estimate", "marketing", "proposal", "sla", "pilot", "toString", "bogus"][i % 7], costBasisOwned: i % 3 !== 0,
+      mech: [...MECH_KEYS, "toString", "bogus"][i % (MECH_KEYS.length + 2)],
+    };
+    let g;
+    try { g = engine({ ...DEF, ...o }, pres[i % 3], [null, "Finance-grade", "Planning-grade"][i % 3]); } catch { thrown++; continue; }
+    if (g.headlineConf === "Finance-grade") fin++;
+    if (g.voided) voids++;
+    if (!g.voided && g.gradeObj.applicable.some(a => !g.gradeObj.reasons[a].trim())) silent++;
+    if (!g.voided && g.headlineConf !== CONF.gradeConfidence({ evidence: g.evidence, realization: g.realization, completeness: g.completeness }).headline) notMin++;
+    if (!g.voided && g.gradeObj.defects.length) defects++;
+  }
+  A("sweep: no input set throws", thrown === 0);
+  A("sweep: no input set reaches Finance-grade", fin === 0);
+  A("sweep: every invariant is unreachable through the guards", voids === 0);
+  A("sweep: every applicable axis carries a stated reason", silent === 0);
+  A("sweep: the headline is the minimum of the applicable axes", notMin === 0);
+  A("sweep: emitGrades reports no content defect", defects === 0);
+
+  /* Void is reachable only by a broken engine, and it claims nothing. */
+  const I = { ...OWN_ALL, costBasisOwned: true, evidence: "pilot", mech: CASH_KEY }, r = engineRaw(I);
+  const vg = gradeAID({ I, r: { ...r, K: NaN }, pre: {}, railOrigin: null });
+  A("a failed invariant voids the export and claims no grade", vg.voided && vg.confidence === "Void" && CONF.isVoid(vg.gradeObj) && vg.gradeObj.headline === null && /remedy|Correct the inputs/.test(vg.gradeObj.remedy));
+  A("more routed than total demand voids the export", gradeAID({ I, r: { ...r, attempted: r.M * 2 + 1 }, pre: {}, railOrigin: null }).voided);
+  A("more durable than attempted voids the export", gradeAID({ I, r: { ...r, durable: r.attempted * 2 + 1 }, pre: {}, railOrigin: null }).voided);
+  A("a negative cost voids the export", gradeAID({ I, r: { ...r, opexMonthly: -1 }, pre: {}, railOrigin: null }).voided);
+  A("the void rationale names the failed invariant", /export void: an output is not a finite number/.test(vg.gradeWhy));
 }
 
 const r = engine(DEF);
