@@ -14,11 +14,13 @@ import { readFileSync } from "fs";
 /* ---- dependency integrity. Import the real modules, do not rebuild them. ---- */
 let MECHMOD;
 let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, COLORS, createGuards, guardVal, guardLine;
+let benchmark, benchmarksForTool, BENCHMARK_SOURCES, CONF;
 try {
   MECHMOD = await import("./src/lib/mech.js");
   const m = MECHMOD;
   ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = m);
-  ({ COLORS } = await import("./src/lib/benchmarks.js"));
+  ({ COLORS, benchmark, benchmarksForTool, BENCHMARK_SOURCES } = await import("./src/lib/benchmarks.js"));
+  CONF = await import("./src/lib/confidence.js");
   ({ createGuards, guardVal, guardLine } = await import("./src/lib/guards.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/mech.js, ./src/lib/benchmarks.js or ./src/lib/guards.js.");
@@ -56,14 +58,16 @@ const a = SRC.indexOf("/* @engine-start"), b = SRC.indexOf("/* @engine-end */");
 if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found in ChannelShiftModel.jsx."); process.exit(1); }
 const region = SRC.slice(a, b).replace(/^export /gm, "");
 
-let compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget,
-  BASE, DEFAULTS, CURVE, TARGETS, RISKS, CRED_RANK, RANK_GRADE, GRADE_RANK, money, fmtK, n, TOOL_ID, ROUTE;
+let compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget, gradeChannel, fieldOrigin,
+  BASE, DEFAULTS, CURVE, TARGETS, RISKS, money, fmtK, n, TOOL_ID, ROUTE;
 try {
-  ({ compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget,
-    BASE, DEFAULTS, CURVE, TARGETS, RISKS, CRED_RANK, RANK_GRADE, GRADE_RANK, money, fmtK, n, TOOL_ID, ROUTE } = new Function(
-    "MECH", "COLORS", "createGuards", "guardVal", "guardLine",
-    region + "\nreturn { compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget, BASE, DEFAULTS, CURVE, TARGETS, RISKS, CRED_RANK, RANK_GRADE, GRADE_RANK, money, fmtK, n, TOOL_ID, ROUTE };"
-  )(MECH, COLORS, createGuards, guardVal, guardLine));
+  ({ compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget, gradeChannel, fieldOrigin,
+    BASE, DEFAULTS, CURVE, TARGETS, RISKS, money, fmtK, n, TOOL_ID, ROUTE } = new Function(
+    "MECH", "MECH_INITIAL", "COLORS", "createGuards", "guardVal", "guardLine", "benchmark",
+    "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
+    region + "\nreturn { compute, buildVerdict, buildAnalystRead, solveBreakEven, primaryTarget, gradeChannel, fieldOrigin, BASE, DEFAULTS, CURVE, TARGETS, RISKS, money, fmtK, n, TOOL_ID, ROUTE };"
+  )(MECH, MECH_INITIAL, COLORS, createGuards, guardVal, guardLine, benchmark,
+    CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -81,7 +85,10 @@ A("DEFAULTS points at BASE, so the scenario link and the tool share one origin",
 A("the shipped default mechanism is not headcount reduction", DEFAULTS.mech !== "headcount");
 A("the engine region does NOT reconstruct MECH", !/const\s+MECH\s*=/.test(region));
 A("the engine region does NOT reconstruct COLORS", !/const\s+COLORS\s*=/.test(region));
-A("the credit ladder is in the engine region, not the component", !!CRED_RANK && typeof RANK_GRADE === "function");
+A("the grading layer is in the engine region, not the component", typeof gradeChannel === "function" && typeof fieldOrigin === "function");
+A("no local grade ladder remains anywhere in the file", !/CRED_RANK|RANK_GRADE|GRADE_RANK|ceilingGrade|credRank/.test(SRC));
+A("DEFAULTS.mech is mech.js MECH_INITIAL, never a literal in this file (1-08b residue)",
+  DEFAULTS.mech === MECH_INITIAL && /const DEFAULTS = \{ d: BASE, mech: MECH_INITIAL \};/.test(SRC) && !/mech: "hiring"/.test(SRC));
 
 /* ---- 2. formatters ---- */
 console.log("\n2. formatters");
@@ -103,7 +110,8 @@ A("baseline shifts 20,000 (20 pts of total), inside the eligible pool", near(R0.
 A("baseline displaces 11,350 voice contacts", near(R0.Dtot, 11350));
 A("baseline bounces 5,000 back to voice", near(R0.Etot, 5000));
 A("baseline voice AHT effective is 7.0 min", near(R0.baseEff, 7));
-A("baseline net realizable is $2,135.99/mo", Math.abs(R0.netRealizable - 2135.99) < 0.005);
+A("baseline net realizable is $3,022.48/mo at the $20.59 market wage", Math.abs(R0.netRealizable - 3022.48) < 0.005);
+A("decision H moved only the wage: at the retired $18 the engine still nets $2,135.99", Math.abs(compute({ ...BASE, hourlyRate: 18 }, "hiring").netRealizable - 2135.99) < 0.005);
 A("baseline produces no input corrections", R0.guards.length === 0 && R0.blocked === false);
 A("baseline is not marked impossible or implausible", !R0.deptImpossible && !R0.deptImplausible);
 
@@ -221,7 +229,7 @@ const guarded = (r, label) => r.guards.some(g => g.label === label);
       A(`capacity action ${tag} resolves to none with one disclosed correction`,
         r.mechKey === "none" && cg.length === 1 && cg[0].entered === String(k) && cg[0].used === "none" && r.guards.length === 1 && r.blocked === true);
       A(`capacity action ${tag} realizes $0 and stays finite`, r.laborCash === 0 && r.mf === 0 && Number.isFinite(r.netRealizable));
-      A(`capacity action ${tag} carries the none credit class and ceiling`, r.cred === "none" && r.ceilingGrade === "Directional");
+      A(`capacity action ${tag} carries the none credit class and ceiling`, r.cred === "none" && CONF.realizationFromCred(r.cred) === "Directional");
       A(`capacity action ${tag} matches an unknown key apart from the entered text`, shape(r) === shape(Z));
       A(`capacity action ${tag} runs the same arithmetic as none`, bare(r) === bare(NONE));
       A(`capacity action ${tag} reaches the same verdict and read as none`,
@@ -303,16 +311,15 @@ console.log("\n8. capacity action and credit class");
     MECH_ORDER.every(k => near(compute(BASE, k).botFee, R0.botFee)));
   A("net agent-minutes freed do not depend on the mechanism",
     MECH_ORDER.every(k => near(compute(BASE, k).netMin, R0.netMin)));
-  A("the credit ladder matches the one in mech.js", CRED_RANK.none === 0 && CRED_RANK.capacity === 1 && CRED_RANK.finance === 2 && CRED_RANK.cash === 3);
-  A("no capacity action ceilings at Directional", compute(BASE, "none").ceilingGrade === "Directional");
-  A("absorbing growth is capacity-only and ceilings at Directional", compute(BASE, "growth").ceilingGrade === "Directional");
-  A("reducing overtime is finance-creditable and ceilings at Planning-grade", compute(BASE, "overtime").ceilingGrade === "Planning-grade");
-  A("avoiding hiring is finance-creditable and ceilings at Planning-grade", compute(BASE, "hiring").ceilingGrade === "Planning-grade");
-  A("vendor volume reduction is cash and can reach Finance-grade", compute(BASE, "vendor").ceilingGrade === "Finance-grade");
-  A("headcount reduction is cash and can reach Finance-grade", compute(BASE, "headcount").ceilingGrade === "Finance-grade");
-  A("the ceiling is derived from mech.js, not decided here",
-    MECH_ORDER.every(k => compute(BASE, k).ceilingGrade === RANK_GRADE(CRED_RANK[MECH[k].cred])));
-  A("the grade rank ladder is ordered", GRADE_RANK["Directional"] < GRADE_RANK["Planning-grade"] && GRADE_RANK["Planning-grade"] < GRADE_RANK["Finance-grade"]);
+  const RZ = (k) => gradeChannel({ d: BASE, r: compute(BASE, k), pre: {}, railOrigin: null }).realization;
+  A("no capacity action realizes Directional", RZ("none") === "Directional");
+  A("absorbing growth is capacity-only and realizes Directional", RZ("growth") === "Directional");
+  A("reducing overtime is finance-creditable and realizes Planning-grade", RZ("overtime") === "Planning-grade");
+  A("avoiding hiring is finance-creditable and realizes Planning-grade", RZ("hiring") === "Planning-grade");
+  A("vendor volume reduction is cash and realizes Finance-grade", RZ("vendor") === "Finance-grade");
+  A("headcount reduction is cash and realizes Finance-grade", RZ("headcount") === "Finance-grade");
+  A("realization is derived from mech.js, not decided here",
+    MECH_ORDER.every(k => RZ(k) === CONF.realizationFromCred(MECH[k].cred)));
 }
 
 /* ---- 9. break-even ---- */
@@ -434,8 +441,9 @@ console.log("\n12. verdict and analyst read");
 console.log("\n13. rail contract");
 {
   A("the tool pulls with getPrimitiveWithSource, not getPrimitive", /getPrimitiveWithSource\(/.test(SRC) && !/[^h]getPrimitive\(/.test(SRC));
-  A("externality is tested with sourcedExternally against this tool's own id", /sourcedExternally\(\[[^\]]*\], TOOL_ID\)/.test(SRC));
-  A("externality is captured at mount, before this tool publishes", /setExtSourced\(sourcedExternally/.test(SRC));
+  A("sourcedExternally no longer reaches the grade (defect class 2)", !/sourcedExternally/.test(SRC.replace(/\/\*[\s\S]*?\*\//g, "")));
+  A("the prefill records every value with the tool that wrote it", /seen\[field\] = \{ value: next\[field\], src: res\.sourceTool \|\| "" \}/.test(SRC));
+  A("origins are captured at mount, before this tool publishes", /setPre\(seen\)/.test(SRC));
   A("pull keys stay as string literals, so the static rail audit can see them",
     /getPrimitiveWithSource\("monthlyContacts"\)/.test(SRC) && /getPrimitiveWithSource\("agentHourly"\)/.test(SRC));
   A("bot resolution is pulled as botResolutionRate, a share of ROUTED volume",
@@ -446,14 +454,148 @@ console.log("\n13. rail contract");
   A("the publish payload stamps its own source tool", /sourceTool: "channel-shift"/.test(SRC));
 }
 
-/* ---- 14. two-ceiling confidence, as wired in the component ---- */
-console.log("\n14. two-ceiling confidence");
+/* ---- 14. 11B grading layer, registry and component wiring ---- */
+console.log("\n14. 11B grading layer and registry");
 {
-  A("the evidence grade requires an external source or an explicit attestation",
-    /evidenceGrade = \(sourced && d\.validated\)/.test(SRC));
-  A("selecting the default mechanism alone no longer earns a grade", !/\(sourced \|\| mechSelected\)/.test(SRC));
-  A("the report takes the lower of evidence and credit class", /GRADE_RANK\[evidenceGrade\] <= GRADE_RANK\[r\.ceilingGrade\]/.test(SRC));
-  A("the rationale names the capacity action when the credit class is what bound the grade", /capped by capacity action/.test(SRC));
+  const TOOL = "channel-shift";
+  const ids = [...SRC.matchAll(/benchmark\("([^"]+)"\)/g)].map(m => m[1]);
+  const df = [...SRC.matchAll(/dflt\("(\w+)"\)/g)].map(m => m[1]);
+  const owned = benchmarksForTool(TOOL).map(e => e.id);
+  const readIds = new Set([...ids, ...df.map(f => `channel.default.${f}`)]);
+  A("the tool reads its benchmarks from the registry", ids.length >= 12);
+  A("the defaults read every field by template", df.length === 27 && /const dflt = \(f\) => benchmark\(`channel\.default\.\$\{f\}`\);/.test(SRC));
+  A("every id the tool reads is registered", [...readIds].every(id => id in BENCHMARK_SOURCES));
+  A("every id the tool reads belongs to this tool", [...readIds].every(id => BENCHMARK_SOURCES[id].tool === TOOL));
+  A("every registered entry for this tool is read", owned.every(id => readIds.has(id)));
+  A("the registry holds 39 entries for this tool", owned.length === 39);
+  A("the registry splits 35 heuristics, 1 market and 3 thresholds",
+    benchmarksForTool(TOOL).filter(e => e.kind === "heuristic").length === 35 && benchmarksForTool(TOOL).filter(e => e.kind === "market").length === 1 && benchmarksForTool(TOOL).filter(e => e.kind === "threshold").length === 3);
+  A("no default ships a bare number", !/:\s*\d/.test(SRC.slice(SRC.indexOf("const BASE = {"), SRC.indexOf("};", SRC.indexOf("const BASE = {")))));
+  A("no curve, planning constant or threshold ships bare",
+    !/c: 0\.\d|22 \* 8|\* 0\.3\)|deptEffRaw < 2|<= 0\.10|be < 1\b|be < 1 /.test(SRC));
+  A("decision H: the default wage is the BLS May 2024 market median, this tool's own entry",
+    BASE.hourlyRate === 20.59 && BENCHMARK_SOURCES["channel.wage.median"].kind === "market"
+    && /May 2024/.test(BENCHMARK_SOURCES["channel.wage.median"].source) && /43-4051/.test(BENCHMARK_SOURCES["channel.wage.median"].source));
+  A("every heuristic is labelled as one", benchmarksForTool(TOOL).filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
+  A("every threshold states a rationale", benchmarksForTool(TOOL).filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
+  A("the curves print the registry values", CURVE.mild.c === benchmark("channel.curve.mild") && CURVE.moderate.c === benchmark("channel.curve.moderate") && CURVE.severe.c === benchmark("channel.curve.severe"));
+
+  A("the engine calls emitGrades", /emitGrades\(\{/.test(region));
+  A("the engine voids through voidResult", /voidResult\(\{/.test(region));
+  A("the engine never grades a voided result", /const confidence = voided \? "Void"/.test(region));
+  A("the component passes the emitted object to ReportActions", /grades=\{gradeObj\}/.test(SRC) && !/confidence=\{grade\}/.test(SRC));
+  A("the component grades through gradeChannel with no rail origin", /gradeChannel\(\{ d, r, pre, railOrigin: null \}\)/.test(SRC));
+  A("the publish carries the headline the page shows", /grade: confidence, analystRead/.test(SRC));
+  A("the checkbox no longer promises Finance-grade", !/required for Finance-grade/.test(SRC));
+
+  const ACTIONS = ["vendor", "hiring", "overtime", "growth", "none", "headcount"];
+  const Gr = (o = {}, mech = "vendor", pre = {}, railOrigin = null) => { const d = { ...BASE, ...o }; return gradeChannel({ d, r: compute(d, mech), pre, railOrigin }); };
+  const OWN = { monthlyContacts: 84000, hourlyRate: 19.4, marginalOH: 1.22, voiceAHT: 6.6, eligibility: 55,
+    resChat: 82, dispChat: 76, resBot: 61, dispBot: 66, botCost: 0.85, validated: true };
+
+  const def = Gr({}, "hiring");
+  A("an untouched tool grades Directional, bound by evidence", def.confidence === "Directional" && def.gradeObj.boundAxes.includes("evidence") && def.evidence === "Directional");
+  A("the untouched rationale names the default drivers", ["contact volume", "voice handle time", "eligibility", "chat resolution", "bot displacement"].every(x => def.gradeObj.reasons.evidence.toLowerCase().includes(x)));
+  A("the untouched cost stream names the default wage", /agent wage/.test(def.gradeObj.reasons.evidence) || def.costGrade === "Directional");
+  A("all own figures, attested, with a cash action grade Planning-grade", Gr(OWN).confidence === "Planning-grade" && Gr(OWN).evidence === "Planning-grade");
+  A("all own figures, attested, with a finance action grade Planning-grade", Gr(OWN, "hiring").confidence === "Planning-grade");
+  A("all own figures with a capacity-only action grade Directional, bound by realization",
+    Gr(OWN, "growth").confidence === "Directional" && Gr(OWN, "growth").gradeObj.boundAxes.includes("realization"));
+  A("an inactive target's defaults do not reach the grade", Gr({ ...OWN, resEmail: BASE.resEmail, dispEmail: BASE.dispEmail }).evidence === "Planning-grade");
+  A("an activated target's defaults do reach the grade", Gr({ ...OWN, shiftToEmail: 5 }).opsGrade === "Directional");
+  A("the bot fee is graded only while the bot carries a shift",
+    Gr({ ...OWN, botCost: BASE.botCost }).costGrade === "Directional" && Gr({ ...OWN, botCost: BASE.botCost, shiftToBot: 0 }).costGrade === "Planning-grade");
+
+  /* Defect class 2. */
+  const railWage = { hourlyRate: { value: OWN.hourlyRate, src: "staffing-calculator" } };
+  const railVol = { monthlyContacts: { value: OWN.monthlyContacts, src: "cost-per-contact" } };
+  const railBot = { resBot: { value: OWN.resBot, src: "ai-deflection" } };
+  A("class 2: a rail wage with no origin grade grades Directional", Gr(OWN, "vendor", railWage).costGrade === "Directional" && Gr(OWN, "vendor", railWage).confidence === "Directional");
+  A("class 2: a rail volume with no origin grade grades Directional", Gr(OWN, "vendor", railVol).opsGrade === "Directional");
+  A("class 2: a rail bot resolution with no origin grade grades Directional", Gr(OWN, "vendor", railBot).opsGrade === "Directional");
+  A("class 2: the rationale says the rail value carried no origin grade", /no recorded origin grade/.test(Gr(OWN, "vendor", railWage).gradeObj.reasons.evidence));
+  A("class 2: rail volume and wage, attested, never reach Finance-grade (the old path)",
+    Gr(OWN, "vendor", { ...railWage, ...railVol }).confidence !== "Finance-grade");
+  A("class 2: an origin grade lifts a rail value only to the rail cap",
+    Gr(OWN, "vendor", railWage, "Finance-grade").costGrade === "Planning-grade" && Gr(OWN, "vendor", railWage, "Directional").costGrade === "Directional");
+  A("class 2: a rail value the user then changed is the user's own", Gr({ ...OWN, hourlyRate: 22.1 }, "vendor", railWage).costGrade === "Planning-grade");
+  A("self-credentialing: a value restored from this tool's own last run grades Directional",
+    Gr(OWN, "vendor", { monthlyContacts: { value: OWN.monthlyContacts, src: TOOL_ID } }).opsGrade === "Directional"
+    && fieldOrigin({ ...BASE, ...OWN }, { monthlyContacts: { value: OWN.monthlyContacts, src: TOOL_ID } }, "monthlyContacts") === "self");
+
+  /* Decision G. */
+  A("G: own eligibility, resolution and displacement without attestation grade Directional", Gr({ ...OWN, validated: false }).opsGrade === "Directional");
+  A("G: without attestation, own volume and handle time alone do not lift the stream", Gr({ ...OWN, validated: false }).confidence === "Directional");
+  A("G: attestation over a default eligibility does nothing", Gr({ ...OWN, eligibility: BASE.eligibility }).opsGrade === "Directional");
+  A("G: attestation over a default resolution does nothing", Gr({ ...OWN, resChat: BASE.resChat }).opsGrade === "Directional");
+  A("G: the checkbox never lifts past Planning-grade", ACTIONS.every(k => Gr(OWN, k).confidence !== "Finance-grade"));
+
+  /* Defect class 3. Each disclosed model failure reaches completeness. */
+  const blockers = {
+    "a corrected input": { ...OWN, resChat: 150 },
+    "a mix off 100 percent": { ...OWN, emailPct: 5 },
+    "a shift scaled to the eligible pool": { ...OWN, eligibility: 10 },
+    "an implausible departing handle time": { ...OWN, adverseCurve: "severe", dispChat: 40, dispBot: 40 },
+    "a near-free bot carrying volume": { ...OWN, botCost: 0.05 },
+    "no volume shifted": { ...OWN, shiftToChat: 0, shiftToBot: 0, shiftToEmail: 0 },
+  };
+  for (const [nm, o] of Object.entries(blockers)) {
+    const g = Gr(o);
+    A(`class 3: ${nm} holds completeness Directional`, g.completeness === "Directional" && g.confidence === "Directional" && g.blockers.length > 0);
+    A(`class 3: ${nm} is named in the completeness rationale`, g.gradeObj.reasons.completeness.length > 20 && g.gradeObj.boundAxes.includes("completeness"));
+  }
+  A("class 3: a whole model grades completeness Finance-grade", Gr(OWN).completeness === "Finance-grade" && Gr(OWN).blockers.length === 0);
+
+  /* Doctrine 5.5. The answer never reaches an axis. */
+  {
+    const d = { ...BASE, ...OWN }, r = compute(d, "vendor");
+    const base = gradeChannel({ d, r, pre: {}, railOrigin: null });
+    const axes = (g) => JSON.stringify([g.evidence, g.realization, g.completeness, g.confidence]);
+    const neg = gradeChannel({ d, r: { ...r, netRealizable: -Math.abs(r.netRealizable) - 1, gross: -1, payback: Infinity }, pre: {}, railOrigin: null });
+    const zero = gradeChannel({ d, r: { ...r, netRealizable: 0, gross: 0, payback: Infinity }, pre: {}, railOrigin: null });
+    A("sign invariance: a negative outcome moves no axis and no headline", axes(neg) === axes(base));
+    A("sign invariance: a zero outcome moves no axis and no headline", axes(zero) === axes(base));
+    A("sign invariance: a net-negative shift from inputs grades on inputs alone",
+      Gr({ ...OWN, botCost: 9 }).completeness === "Finance-grade" && compute({ ...BASE, ...OWN, botCost: 9 }, "vendor").netRealizable < 0);
+    A("the grading layer never reads the verdict or the break-even",
+      !/verdict|solveBreakEven|netRealizable\s*[<>]/.test(region.slice(region.indexOf("function gradeChannel"), region.indexOf("/* @engine-end */"))));
+  }
+
+  /* Sweep. No Finance-grade anywhere, no void reachable, no silent axis. */
+  let fin = 0, voids = 0, silent = 0, notMin = 0, defects = 0;
+  const pres = [{}, { ...railWage, ...railVol }, { monthlyContacts: { value: OWN.monthlyContacts, src: TOOL_ID } }];
+  const R = () => Math.random();
+  for (let i = 0; i < 6000; i++) {
+    const o = {
+      monthlyContacts: [Math.round(R() * 900000), 0, 1, 1e7, -5, "x"][i % 6], hourlyRate: [R() * 60, -3, 0][i % 3],
+      marginalOH: [1 + R(), 0.5, 3][i % 3], voiceAHT: [R() * 20, 0, -2][i % 3], voiceConc: [1, 0, -1][i % 3],
+      eligibility: [R() * 100, 150, -10, 0][i % 4], shiftToChat: [R() * 50, 0, 120, -5][i % 4], shiftToBot: [R() * 50, 0, 200][i % 3],
+      shiftToEmail: [0, R() * 30, -1][i % 3], resChat: [R() * 100, 150, -20][i % 3], resBot: [R() * 100, 0, 100, 300][i % 4],
+      dispChat: [R() * 100, 300, 0][i % 3], dispBot: [R() * 100, 100, -1][i % 3], botCost: [R() * 5, 0, -2][i % 3],
+      chatConc: [2.5, 0, -1, 1e-9][i % 4], escReturnFactor: [1 + R(), 0.2, 9][i % 3], voicePct: [70, 0, 100][i % 3],
+      adverseCurve: ["mild", "moderate", "severe", "toString", "bogus"][i % 5], trainingPerAgent: [1500, -9][i % 2], rampWeeks: [4, -2][i % 2],
+      validated: i % 2 === 0,
+    };
+    const g = Gr(o, [...ACTIONS, "toString", "bogus"][i % 8], pres[i % 3], [null, "Finance-grade", "Planning-grade"][i % 3]);
+    if (g.confidence === "Finance-grade") fin++;
+    if (g.voided) voids++;
+    if (!g.voided && g.gradeObj.applicable.some(a => !g.gradeObj.reasons[a].trim())) silent++;
+    if (!g.voided && g.confidence !== CONF.gradeConfidence({ evidence: g.evidence, realization: g.realization, completeness: g.completeness }).headline) notMin++;
+    if (!g.voided && g.gradeObj.defects.length) defects++;
+  }
+  A("sweep: no input set reaches Finance-grade without document attestation", fin === 0);
+  A("sweep: every invariant is unreachable through the guards", voids === 0);
+  A("sweep: every applicable axis carries a stated reason", silent === 0);
+  A("sweep: the headline is the minimum of the applicable axes", notMin === 0);
+  A("sweep: emitGrades reports no content defect", defects === 0);
+
+  const bad = { ...compute(BASE, "hiring") }; bad.netMin = NaN;
+  const vg = gradeChannel({ d: BASE, r: bad, pre: {}, railOrigin: null });
+  A("a failed invariant voids the export and claims no grade", vg.voided && vg.confidence === "Void" && CONF.isVoid(vg.gradeObj) && vg.gradeObj.headline === null);
+  const over = { ...compute(BASE, "hiring") }; over.Dtot = over.shifted * 2 + 1;
+  A("displaced above shifted voids the export", gradeChannel({ d: BASE, r: over, pre: {}, railOrigin: null }).voided);
+  const past = { ...compute(BASE, "hiring") }; past.shifted = past.eligible * 2 + 1;
+  A("shifted above the eligible pool voids the export", gradeChannel({ d: BASE, r: past, pre: {}, railOrigin: null }).voided);
   A("the grade rationale is displayed on the page, not only in the PDF", /\{gradeWhy\}/.test(SRC));
   A("corrected inputs are counted in the signals payload", /inputs_corrected: r\.guards\.length/.test(SRC));
   A("corrections are printed ahead of the analyst read", SRC.indexOf("Inputs Corrected Before Calculation") < SRC.indexOf('{ title: "Analyst Read"'));
