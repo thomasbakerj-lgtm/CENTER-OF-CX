@@ -14,11 +14,13 @@ import { readFileSync } from "fs";
 /* ---- dependency integrity. Import the real modules, do not rebuild them. ---- */
 let MECHMOD;
 let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, COLORS, createGuards, guardVal, guardLine;
+let benchmark, benchmarksForTool, BENCHMARK_SOURCES, CONF;
 try {
   MECHMOD = await import("./src/lib/mech.js");
   const m = MECHMOD;
   ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = m);
-  ({ COLORS } = await import("./src/lib/benchmarks.js"));
+  ({ COLORS, benchmark, benchmarksForTool, BENCHMARK_SOURCES } = await import("./src/lib/benchmarks.js"));
+  CONF = await import("./src/lib/confidence.js");
   ({ createGuards, guardVal, guardLine } = await import("./src/lib/guards.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/mech.js, ./src/lib/benchmarks.js or ./src/lib/guards.js.");
@@ -57,12 +59,14 @@ const a = SRC.indexOf("/* @engine-start"), b = SRC.indexOf("/* @engine-end */");
 if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found in CostPerContactCalculator.jsx."); process.exit(1); }
 const region = SRC.slice(a, b).replace(/^export /gm, "");
 
-let compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n;
+let compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, VBENCH, TOOL_ID;
 try {
-  ({ compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n } = new Function(
-    "MECH", "ELECTRIC", "GREEN", "AMBER", "createGuards", "guardVal", "guardLine",
-    region + "\nreturn { compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n };"
-  )(MECH, COLORS.electric, COLORS.green, COLORS.amber, createGuards, guardVal, guardLine));
+  ({ compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, VBENCH, TOOL_ID } = new Function(
+    "MECH", "MECH_INITIAL", "ELECTRIC", "GREEN", "AMBER", "createGuards", "guardVal", "guardLine", "benchmark",
+    "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
+    region + "\nreturn { compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, VBENCH, TOOL_ID };"
+  )(MECH, MECH_INITIAL, COLORS.electric, COLORS.green, COLORS.amber, createGuards, guardVal, guardLine, benchmark,
+    CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -76,6 +80,8 @@ A("engine region carries the shipped default input set", !!BASE && typeof BASE.m
 A("DEFAULTS.d is the shipped BASE, not a second copy", DEFAULTS.d === BASE);
 A("DEFAULTS.mech is a real mechanism key", !!MECH[DEFAULTS.mech]);
 A("DEFAULTS.mech is not headcount reduction", DEFAULTS.mech !== "headcount");
+A("DEFAULTS.mech is mech.js MECH_INITIAL, never a literal in this file (1-08b residue)",
+  DEFAULTS.mech === MECH_INITIAL && /const DEFAULTS = \{ d: BASE, mech: MECH_INITIAL \};/.test(SRC) && !/mech: "hiring"/.test(SRC));
 A("marker region contains no JSX", !/<[A-Za-z][A-Za-z0-9]*[\s/>]/.test(region));
 A("engine region does not reconstruct the mechanism ladder", !/\bnone:\s*\{\s*label:/.test(region));
 A("the file no longer carries a second copy of the formatters",
@@ -293,7 +299,7 @@ console.log("\n6. input guards and impossible-output blocking");
         r.mechKey === "none" && cg.length === 1 && cg[0].entered === String(k) && cg[0].used === "none" && r.guards.length === 1 && r.blocked === true);
       A(`capacity action ${tag} realizes $0 and stays finite`,
         r.mf === 0 && r.dividend.every(s => s.realizable === 0 && Number.isFinite(s.released)));
-      A(`capacity action ${tag} carries the none credit class and ceiling`, r.cred === "none" && r.credRank === 0 && r.ceilingGrade === "Directional");
+      A(`capacity action ${tag} carries the none credit class and a Directional realization`, r.cred === "none" && CONF.realizationFromCred(r.cred) === "Directional");
       A(`capacity action ${tag} raises the no-action warning`, r.flags.some(f => /No capacity action selected/.test(f.t)));
       A(`capacity action ${tag} matches an unknown key apart from the entered text`, shape(r) === shape(Z));
       A(`capacity action ${tag} runs the same arithmetic as none`, bare(r) === bare(NONE));
@@ -419,12 +425,14 @@ console.log("\n12. publish contract");
     /fcr_rate_entered/.test(SRC));
   A("the report carries a corrected-inputs section",
     /Inputs Corrected Before Calculation/.test(SRC));
-  A("the confidence gate reads externally sourced values only",
-    /sourcedExternally\(\[/.test(SRC) && !/const sourced = \[/.test(SRC));
   A("the confidence gate no longer reads its own pulled map",
     !/filter\(k => pulled\[k\]\)/.test(SRC));
-  A("externality is captured at mount, before this tool publishes",
-    /setExtSourced\(sourcedExternally/.test(SRC));
+  A("every prefilled value is recorded with the tool that wrote it",
+    /seen\[field\] = \{ value: next\[field\], src: res\.sourceTool \|\| "" \};/.test(SRC));
+  A("the prefill record is captured at mount, before this tool publishes", /setPre\(seen\);/.test(SRC));
+  A("the component grades through gradeCPC with the mount record and no origin grade",
+    /const graded = gradeCPC\(\{ d, r, pre, railOrigin: null \}\);/.test(SRC));
+  A("the rail publishes the headline the grading layer computed", /grade: confidence, analystRead/.test(SRC));
   A("the prefill badge names its real source rather than assuming TCO",
     !/from your TCO run/.test(SRC));
   A("publishToolResult is called with the tool's own registered id",
@@ -448,30 +456,138 @@ console.log("\n12. publish contract");
   A("the scenario contract carries the exact engine input set", /const scenario = \{ d, mech \}/.test(SRC));
 }
 
-/* ---- 12b. Credit-class doctrine. Shared with FCR Leakage and AI Deflection. ---- */
-console.log("\n12b. credit-class ceiling");
+/* ---- 12b. Credit-class doctrine. Realization reads mech.js and nothing else. ---- */
+console.log("\n12b. realization from credit class");
 {
   A("the engine reports the credit class mech.js assigns the selected action",
     K.every(k => compute(B(), k).cred === MECH[k].cred));
-  A("the credit rank ladder matches the one in the sibling locked tools",
-    /CRED_RANK = \{ none: 0, capacity: 1, finance: 2, cash: 3 \}/.test(SRC));
-  A("cash-creditable actions ceiling at Finance-grade",
-    K.filter(k => MECH[k].cred === "cash").every(k => compute(B(), k).ceilingGrade === "Finance-grade"));
-  A("finance-creditable actions ceiling at Planning-grade, never Finance-grade",
-    K.filter(k => MECH[k].cred === "finance").every(k => compute(B(), k).ceilingGrade === "Planning-grade"));
-  A("capacity-only actions ceiling at Directional",
-    K.filter(k => MECH[k].cred === "capacity").every(k => compute(B(), k).ceilingGrade === "Directional"));
-  A("no capacity action ceilings at Directional", compute(B(), "none").ceilingGrade === "Directional");
-  A("the ceiling never rises as the credit class falls",
-    K.every((k, i) => i === 0 || compute(B(), k).credRank >= compute(B(), K[i - 1]).credRank));
-  A("the component takes the LOWER of the evidence grade and the credit ceiling",
-    /GRADE_RANK\[evidenceGrade\] <= GRADE_RANK\[r\.ceilingGrade\]/.test(SRC));
-  A("selecting the default mechanism alone no longer earns Planning-grade",
-    !/\(sourced \|\| mechSelected\)/.test(SRC));
-  A("the evidence grade requires an external source or an explicit attestation",
-    /evidenceGrade = \(sourced && d\.validated\)/.test(SRC));
-  A("the rationale names the capacity action when the credit class is what bound the grade",
-    /capped by capacity action/.test(SRC));
+  A("no local credit ladder remains", !/CRED_RANK|RANK_GRADE|ceilingGrade|credRank/.test(SRC));
+  A("realization is read through realizationFromCred", /const realization = realizationFromCred\(r\.cred\);/.test(region));
+  for (const k of K) {
+    const g = gradeCPC({ d: B(), r: compute(B(), k), pre: {}, railOrigin: null });
+    A(`${k}: realization equals the credit class grade`, g.realization === CONF.realizationFromCred(MECH[k].cred));
+    A(`${k}: the headline never exceeds realization`, CONF.GRADE_RANK[g.confidence] <= CONF.GRADE_RANK[g.realization]);
+  }
+}
+
+/* ---- 14. 11B. Registry, emission, defect classes 2 and 3, decisions C to E ---- */
+console.log("\n14. 11B grading layer and registry");
+{
+  const TOOL = "cost-per-contact";
+  const ids = [...SRC.matchAll(/benchmark\("([^"]+)"\)/g)].map(m => m[1]);
+  const vk = [...SRC.matchAll(/vert\("(\w+)", "/g)].map(m => m[1]);
+  const vf = [...SRC.matchAll(/benchmark\(`cpc\.vert\.\$\{k\}\.(\w+)`\)/g)].map(m => m[1]);
+  const owned = benchmarksForTool(TOOL).map(e => e.id);
+  const readIds = new Set([...ids, ...vk.flatMap(k => vf.map(f => `cpc.vert.${k}.${f}`))]);
+  A("the tool reads its benchmarks from the registry", ids.length >= 25);
+  A("every id the tool reads is registered", ids.every(id => id in BENCHMARK_SOURCES));
+  A("every id the tool reads belongs to this tool", ids.every(id => BENCHMARK_SOURCES[id].tool === TOOL));
+  A("the vertical ranges read every field by template", ["cpcLow", "cpcHigh", "cprLow", "cprHigh", "fcr"].every(f => vf.includes(f)) && vk.length === 3);
+  A("every registered entry for this tool is read", owned.every(id => readIds.has(id)));
+  A("the registry holds 44 entries for this tool", owned.length === 44);
+  A("no default ships a bare number", !/:\s*\d/.test(SRC.slice(SRC.indexOf("const BASE = {"), SRC.indexOf("};", SRC.indexOf("const BASE = {")))));
+  A("no derivation, fallback, floor or threshold ships bare",
+    !/loaded \* 0\.6|\? 5\.5 :|Math\.max\(0\.1|repeatShare > 0\.25|fcr < 0\.70|Mu < 1\.3|fcrPct < 78|gapPct > 40|gapPct > 20|used: 140|: 140;/.test(SRC));
+  A("no dividend step ships bare", !/\[5, 10, 15\]|x\.p === 10|FCR \+10pts|\+10 FCR/.test(SRC));
+  A("decision C: the default wage is the BLS May 2024 market median, this tool's own entry",
+    BASE.agentHourly === 20.59 && BENCHMARK_SOURCES["cpc.wage.median"].kind === "market"
+    && /May 2024/.test(BENCHMARK_SOURCES["cpc.wage.median"].source) && /43-4051/.test(BENCHMARK_SOURCES["cpc.wage.median"].source));
+  A("every heuristic is labelled as one", benchmarksForTool(TOOL).filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
+  A("every threshold states a rationale", benchmarksForTool(TOOL).filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
+  A("the vertical ranges are labelled internal planning heuristics on the page",
+    /internal planning heuristics, not published benchmarks/.test(SRC) && !/validated 2026/.test(SRC));
+  A("the vertical ranges print the registry values",
+    VBENCH[0].cpc === `$${benchmark("cpc.vert.fin.cpcLow")} to $${benchmark("cpc.vert.fin.cpcHigh")}` && VBENCH[2].fcr === `${benchmark("cpc.vert.retail.fcr")}%`);
+  A("the dividend prices the registry steps, in order", JSON.stringify(compute(B(), "hiring").dividend.map(x => x.p)) === JSON.stringify(DIV_STEPS) && QUOTED_STEP === DIV_STEPS[1]);
+
+  A("the engine calls emitGrades", /emitGrades\(\{/.test(region));
+  A("the engine voids through voidResult", /voidResult\(\{/.test(region));
+  A("the engine never grades a voided result", /const confidence = voided \? "Void"/.test(region));
+  A("the component passes the emitted object to ReportActions", /grades=\{gradeObj\}/.test(SRC) && !/confidence=\{grade\}/.test(SRC));
+
+  const G = (o = {}, mech = "hiring", pre = {}, railOrigin = null) => { const d = { ...B(), ...o }; return gradeCPC({ d, r: compute(d, mech), pre, railOrigin }); };
+  const OWN = { monthlyContacts: 41000, fcrRate: 68, contactsPerUnresolved: 2.7, loadedCPC: 8.1, marginalCPC: 4.6, validated: true };
+
+  const def = G();
+  A("an untouched tool grades Directional, bound by evidence", def.confidence === "Directional" && def.gradeObj.boundAxes.includes("evidence") && def.evidence === "Directional");
+  A("the untouched rationale names every default driver", ["contact volume", "fcr", "m ", "loaded cost", "marginal cost"].every(x => def.gradeObj.reasons.evidence.toLowerCase().includes(x)));
+  A("all own figures, attested, with a finance-credited action grade Planning-grade", G(OWN).confidence === "Planning-grade" && G(OWN).evidence === "Planning-grade");
+
+  /* Defect class 2. */
+  const railCost = { loadedCPC: { value: OWN.loadedCPC, src: "tco-calculator" } };
+  const r2 = G(OWN, "vendor", railCost);
+  A("class 2: a rail cost basis with no origin grade grades Directional", r2.costGrade === "Directional" && r2.confidence === "Directional");
+  A("class 2: the rationale says the rail value carried no origin grade", /no recorded origin grade/.test(r2.gradeObj.reasons.evidence));
+  A("class 2: a rail FCR with no origin grade grades the operating stream Directional",
+    G(OWN, "vendor", { fcrRate: { value: OWN.fcrRate, src: "fcr-leakage" } }).opsGrade === "Directional");
+  A("class 2: an origin grade lifts a rail value only to the rail cap",
+    G(OWN, "vendor", railCost, "Finance-grade").costGrade === "Planning-grade" && G(OWN, "vendor", railCost, "Directional").costGrade === "Directional");
+  A("class 2: a rail value the user then changed is the user's own",
+    G({ ...OWN, loadedCPC: 9.3 }, "vendor", railCost).costGrade === "Planning-grade");
+  A("self-credentialing: a value restored from this tool's own last run grades Directional",
+    G(OWN, "vendor", { marginalCPC: { value: OWN.marginalCPC, src: TOOL_ID } }).costGrade === "Directional"
+    && fieldOrigin({ ...B(), ...OWN }, { marginalCPC: { value: OWN.marginalCPC, src: TOOL_ID } }, "marginalCPC") === "self");
+  A("a derived marginal grades cost evidence Directional", G({ ...OWN, marginalCPC: 0 }).costGrade === "Directional");
+
+  /* Decision D. */
+  A("D: own FCR and M without attestation grade the operating stream Directional", G({ ...OWN, validated: false }).opsGrade === "Directional");
+  A("D: attestation over a default FCR does nothing", G({ ...OWN, fcrRate: BASE.fcrRate }).opsGrade === "Directional");
+  A("D: attestation over a default M does nothing", G({ ...OWN, contactsPerUnresolved: BASE.contactsPerUnresolved }).opsGrade === "Directional");
+  A("D: own volume, FCR and M, attested, stand at Planning-grade", G(OWN).opsGrade === "Planning-grade");
+
+  /* Defect class 3. Each disclosed model failure reaches completeness. */
+  const blockers = {
+    "a corrected input": { ...OWN, fcrRate: 150 },
+    "marginal at or above loaded": { ...OWN, marginalCPC: 9 },
+    "a mix off 100 percent": { ...OWN, emailPct: 5 },
+    "the handle time fallback": { ...OWN, voiceAHT: 0, chatAHT: 0, emailAHT: 0 },
+    "low FCR with shallow M": { ...OWN, fcrRate: 65, contactsPerUnresolved: 1.2 },
+    "no handled volume": { ...OWN, monthlyContacts: 0 },
+    "a concurrency below one": { ...OWN, chatConcurrency: 0 },
+  };
+  for (const [nm, o] of Object.entries(blockers)) {
+    const g = G(o, "vendor");
+    A(`class 3: ${nm} holds completeness Directional`, g.completeness === "Directional" && g.confidence === "Directional" && g.blockers.length > 0);
+    A(`class 3: ${nm} is named in the completeness rationale`, g.gradeObj.reasons.completeness.length > 20 && g.gradeObj.boundAxes.includes("completeness"));
+  }
+  A("class 3: a whole model grades completeness Finance-grade", G(OWN, "vendor").completeness === "Finance-grade" && G(OWN, "vendor").blockers.length === 0);
+
+  /* Decision E. */
+  const c0 = compute({ ...B(), chatConcurrency: 0 }, "hiring"), c1 = compute({ ...B(), chatConcurrency: 1 }, "hiring");
+  A("E: a concurrency of zero is corrected to one and disclosed", c0.guards.some(g => g.label === "Chat concurrency" && g.entered === 0 && g.used === 1) && c0.channels[1].conc === 1);
+  A("E: the corrected run computes exactly the run at one", c0.fteBurden === c1.fteBurden && c0.blendedHandle === c1.blendedHandle);
+  A("E: a negative concurrency is corrected the same way", compute({ ...B(), voiceConcurrency: -3 }, "hiring").guards.some(g => g.label === "Voice concurrency" && g.used === 1));
+  A("E: the shipped concurrencies raise no correction", compute(B(), "hiring").guards.length === 0);
+
+  /* Sweep. No Finance-grade anywhere, no void reachable, no silent axis. */
+  let fin = 0, voids = 0, silent = 0, notMin = 0, defects = 0;
+  const pres = [{}, railCost, { fcrRate: { value: OWN.fcrRate, src: TOOL_ID } }];
+  for (let i = 0; i < 6000; i++) {
+    const o = {
+      monthlyContacts: [0, 1, 50000, 1e7, -5, "x"][i % 6] === 50000 ? Math.round(Math.random() * 900000) : [0, 1, 50000, 1e7, -5, "x"][i % 6],
+      fcrRate: [Math.random() * 100, 150, -20, 0, 100][i % 5], contactsPerUnresolved: [1 + Math.random() * 5, 0.2, 1e6][i % 3],
+      loadedCPC: [Math.random() * 30, -4, 0][i % 3], marginalCPC: [Math.random() * 20, 0, -1, 99][i % 4],
+      chatConcurrency: [2.5, 0, -1][i % 3], voicePct: [60, 0, 100][i % 3], validated: i % 2 === 0,
+      denominator: i % 2 ? "issues" : "handled",
+    };
+    const g = G(o, K[i % K.length], pres[i % 3], [null, "Finance-grade", "Planning-grade"][i % 3]);
+    if (g.confidence === "Finance-grade") fin++;
+    if (g.voided) voids++;
+    if (!g.voided && g.gradeObj.applicable.some(a => !g.gradeObj.reasons[a].trim())) silent++;
+    if (!g.voided && g.confidence !== CONF.gradeConfidence({ evidence: g.evidence, realization: g.realization, completeness: g.completeness }).headline) notMin++;
+    if (!g.voided && g.gradeObj.defects.length) defects++;
+  }
+  A("sweep: no input set reaches Finance-grade without document attestation", fin === 0);
+  A("sweep: every invariant is unreachable through the guards", voids === 0);
+  A("sweep: every applicable axis carries a stated reason", silent === 0);
+  A("sweep: the headline is the minimum of the applicable axes", notMin === 0);
+  A("sweep: emitGrades reports no content defect", defects === 0);
+
+  const bad = { ...compute(B(), "hiring") }; bad.burden = NaN;
+  const vg = gradeCPC({ d: B(), r: bad, pre: {}, railOrigin: null });
+  A("a failed invariant voids the export and claims no grade", vg.voided && vg.confidence === "Void" && CONF.isVoid(vg.gradeObj) && vg.gradeObj.headline === null);
+  const over = { ...compute(B(), "hiring") }; over.dividend = over.dividend.map(x => ({ ...x, realizable: x.released * 2 + 1 }));
+  A("realizable above released voids the export", gradeCPC({ d: B(), r: over, pre: {}, railOrigin: null }).voided);
 }
 
 /* ---- 13. Typography migration ---- */
