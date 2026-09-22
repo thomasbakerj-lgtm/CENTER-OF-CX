@@ -20,7 +20,8 @@
 import { readFileSync } from "node:fs";
 
 const SRC = readFileSync("./StaffingCalculator.jsx", "utf8");
-const { BENCH, COLORS, classifyOccupancy, classifyShrinkage } = await import("./src/lib/benchmarks.js");
+const { BENCH, COLORS, classifyOccupancy, classifyShrinkage, benchmark } = await import("./src/lib/benchmarks.js");
+const { emitGrades, voidResult, isVoid, railEvidence, weakerStream } = await import("./src/lib/confidence.js");
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
@@ -251,28 +252,30 @@ function render(S) {
     const presetLabel = isCustom ? "Custom" : p.label;
     const aband = abandonmentCheck(r.raw, r.A, aht, patience);
     const adjR = aband ? calc(Math.max(1, Math.round(vol * (1 - aband.estAband))), aht, intv, slT / 100, slS, shrink / 100, occCap) : null;
-    const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
+    const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= benchmark("staffing.aband.material") || (r.raw - adjR.raw) >= benchmark("staffing.aband.agents"));
     const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
     const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
-    const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards, r.met);
+    const cost = staffingCost(r.sched, railPerAgent, railHourly);
+    const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: null });
+    const { gradeObj, confidence } = graded;
     const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
     const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
     const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
     const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost, pool);
-    const spike = calc(Math.round(vol * 1.2), aht, intv, slT / 100, slS, shrink / 100, occCap);
-    const ahtUp = calc(vol, Math.round(aht * 1.1), intv, slT / 100, slS, shrink / 100, occCap);
-    const ahtDown = calc(vol, Math.round(aht * 0.9), intv, slT / 100, slS, shrink / 100, occCap);
+    const spike = calc(Math.round(vol * SPIKE), aht, intv, slT / 100, slS, shrink / 100, occCap);
+    const ahtUp = calc(vol, Math.round(aht * (1 + AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);
+    const ahtDown = calc(vol, Math.round(aht * (1 - AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);
     const subtitle = ${subtitleExpr};
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
     const sections = ${sectionsExpr};
-    return { st, stG, guards, STAFFING_DOMAIN, guardStaffing, capForCorrections, buildInsights, solveNotice, fmtSL, fmtASA, fmtPW, SL_CEILING, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
+    return { st, stG, guards, STAFFING_DOMAIN, guardStaffing, gradeStaffing, graded, gradeObj, confidence, staffingCost, buildInsights, solveNotice, fmtSL, fmtASA, fmtPW, SL_CEILING, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
              subtitle, summary, signals, sections };
   `;
-  return new Function("BENCH", "COLORS", "classifyOccupancy", "classifyShrinkage",
+  return new Function("benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "BENCH", "COLORS", "classifyOccupancy", "classifyShrinkage",
     "NAVY", "DEEP", "ELECTRIC", "LIGHT", "WARM", "SLATE", "MUTED", "BORDER", "GREEN", "AMBER", "RED",
     "severityBucket", "MUT", "createGuards", "guardVal", "guardLine", body)(
-    BENCH, COLORS, classifyOccupancy, classifyShrinkage,
+    benchmark, emitGrades, voidResult, isVoid, railEvidence, weakerStream, BENCH, COLORS, classifyOccupancy, classifyShrinkage,
     COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#F8FAFB", "#3A4F6A", COLORS.muted,
     "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, createGuards, guardVal, guardLine);
 }
@@ -356,7 +359,13 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: printed service level equals the engine figure`, String(summaryValue(doc, "Service level achieved")).indexOf(doc.fmtSL(r.sl)) === 0);
   A(`${k}: the subtitle carries the same FTE the summary carries`, doc.subtitle.indexOf(String(r.sched)) === 0);
   A(`${k}: the subtitle carries the same occupancy the summary carries`, doc.subtitle.indexOf(`${(r.occ * 100).toFixed(1)}%`) > 0);
-  A(`${k}: the subtitle carries the same cost confidence the tool exports`, doc.subtitle.indexOf(cost.confidence) > 0);
+  A(`${k}: the subtitle carries the headline the grades emit`, doc.subtitle.indexOf(`${doc.confidence}, bound by ${doc.gradeObj.boundBy}`) > 0);
+  A(`${k}: the headline is the emitted headline`, doc.confidence === doc.gradeObj.headline && !doc.graded.voided);
+  A(`${k}: the wire confidence equals the document headline`, doc.signals.confidence_class === doc.confidence);
+  A(`${k}: the wire counts the default drivers`, doc.signals.default_drivers === doc.graded.defaultDrivers.length);
+  A(`${k}: the metric grid cost sub carries the headline`, (sectionByTitle(doc, "Staffing Results").items.find(i => i.label === "Annual Cost of This Plan") || {}).sub === doc.confidence);
+  A(`${k}: the grade carries no defect`, doc.gradeObj.defects.length === 0);
+  A(`${k}: realization is not applicable with its reason`, doc.gradeObj.realization === null && doc.gradeObj.naReason.length > 40);
   A(`${k}: the cost basis line matches the rail state`, summaryValue(doc, "Cost basis") === (cost.sourced ? "user figures via rail" : "benchmark median"));
   /* Shrinkage converts base agents to scheduled FTE, so scheduled can never be smaller
      for any shrinkage inside its domain, and the guard holds every set inside it. */
@@ -485,7 +494,7 @@ const CORR = "\u26a0 Inputs Corrected Before Calculation";
   const meth = (sectionByTitle(F, "Methodology") || {}).content || "";
   A("F: the methodology states every correction through guardVal", meth.indexOf("INPUTS CORRECTED") >= 0
     && F.guards.every(g => meth.indexOf(`${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`) >= 0));
-  A("F: a corrected input holds confidence at Directional", F.cost.confidence === "Directional" && F.subtitle.indexOf("Directional") > 0);
+  A("F: a corrected input holds completeness at Directional", F.graded.completeness === "Directional" && F.subtitle.indexOf("Directional") > 0);
   A("F: the signal block counts the corrections", F.signals.inputs_corrected === 3);
   A("F: a corrected input is never decision ready", F.signals.decision_ready_signal === false);
   /* The Erlang core, fed guarded inputs, stays in its physical domain. */
@@ -518,20 +527,25 @@ const CORR = "\u26a0 Inputs Corrected Before Calculation";
   A("an unused ceiling raises no correction while the cap is off", off.guards.length === 0 && off.st.capPct === -50);
   for (const k of ["A", "B", "C", "D", "E"])
     A(`${k}: an in-domain set raises no correction and adds no section`, DOCS[k].guards.length === 0 && DOCS[k].sections[0].title !== CORR);
-  for (const k of ["A", "B", "C", "D", "E"])
-    A(`${k}: without corrections the confidence is the cost basis confidence`, DOCS[k].cost.confidence === (DOCS[k].cost.sourced ? "Planning-grade" : "Directional"));
-  /* The confidence cap, on the case the rendered sets cannot reach: this harness renders
-     with no rail, so every set is already Directional on its cost basis alone. */
-  const cap = DOCS.A.capForCorrections;
-  const sourced = { confidence: "Planning-grade", sourced: true, annual: 1 };
-  A("a sourced cost basis with a correction is held at Directional", cap(sourced, [{ label: "x" }]).confidence === "Directional");
-  A("a sourced cost basis with no correction keeps its grade and its identity", cap(sourced, []) === sourced);
+  /* Every rendered set has no rail, so the benchmark basis binds evidence Directional
+     everywhere. Completeness is what moves between sets, and it is asserted here. */
+  for (const k of ["A", "B", "C", "D"])
+    A(`${k}: a valid in-domain set grades completeness Finance-grade`, DOCS[k].graded.completeness === "Finance-grade");
+  A("E: the invalid model holds completeness Directional in the document", DOCS.E.graded.completeness === "Directional" && /times AHT/.test(DOCS.E.gradeObj.reasons.completeness));
+  for (const k of Object.keys(DOCS))
+    A(`${k}: the benchmark basis binds evidence Directional`, DOCS[k].graded.costGrade === "Directional" && DOCS[k].confidence === "Directional");
+  A("A: the shipped default names the operating profile in its evidence reason", /Cross-Industry operating profile/.test(DOCS.A.gradeObj.reasons.evidence));
   /* This harness reconstructs the component lines that call the guard, so it pins them
      to the shipped JSX. A bypass there would otherwise pass every assertion above. */
   for (const line of [
     "const { st: stG, guards } = guardStaffing(st);",
     "const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;",
-    "const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards, r.met);",
+    "const cost = staffingCost(r.sched, railPerAgent, railHourly);",
+    "const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: null });",
+    "const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= benchmark(\"staffing.aband.material\") || (r.raw - adjR.raw) >= benchmark(\"staffing.aband.agents\"));",
+    "const spike = calc(Math.round(vol * SPIKE), aht, intv, slT / 100, slS, shrink / 100, occCap);",
+    "const ahtDown = calc(vol, Math.round(aht * (1 - AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);",
+    "grades={gradeObj}",
     "decision_ready_signal: cost.sourced && valid.ok && r.met !== false && !!pair.sustainable && guards.length === 0,",
   ]) A(`the shipped component carries: ${line}`, SRC.split(line).length === 2);
   A("the on-page banner renders both sides through guardVal",
@@ -593,11 +607,33 @@ console.log("\n7c. an unmet target is disclosed in the read, the report and the 
   A("the unmet notice leads the read when the model is valid", ins[0] === msg);
   const ins2 = D.buildInsights(unmet, 0.99, 0, D.occInfo, false, 85, D.pair, { ok: false, msg: "V" }, 0, D.cost, null);
   A("model validity still outranks it", ins2[0] === "V" && ins2[1] === msg);
-  const sourced = { confidence: "Planning-grade", sourced: true, annual: 1 };
-  A("an unmet solve holds a sourced basis at Directional", D.capForCorrections(sourced, [], false).confidence === "Directional");
-  A("a met solve with no correction keeps the grade", D.capForCorrections(sourced, [], true) === sourced);
+  const gs = (rr) => D.gradeStaffing({ r: rr, guards: [], valid: { ok: true, ratio: 5 }, cost: D.staffingCost(rr.sched, 6372, 0), shipped: { label: "x", volume: -1, aht: -1, shrink: -1 }, vol: 1, aht: 1, shrink: 1, railOrigin: "Planning-grade" });
+  A("an unmet solve holds completeness Directional", gs(unmet).completeness === "Directional" && /not reached/.test(gs(unmet).gradeObj.reasons.completeness));
+  A("a met solve with no correction reaches Planning-grade on a Planning origin", gs(D.r).confidence === "Planning-grade");
   A("the shipped report lists the notice beside model validity",
     SRC.includes("...(solveNotice(r, slT / 100) ? [solveNotice(r, slT / 100)] : []),"));
+}
+
+/* ---- 11B. the void render and the sign invariance of the document ---- */
+console.log("\n11B. void render, sign invariance");
+{
+  const D = DOCS.A;
+  const v = D.gradeStaffing({ r: { ...D.r, sched: D.r.raw - 1 }, guards: [], valid: D.valid, cost: D.cost, shipped: { label: "x", volume: 0, aht: 0, shrink: 0 }, vol: 1, aht: 1, shrink: 1, railOrigin: null });
+  A("a forced invariant voids", v.voided && isVoid(v.gradeObj) && v.confidence === "Void");
+  const subtitleFn = new Function("r", "fmtMoney", "cost", "isVoid", "gradeObj", "confidence", `return ${subtitleExpr};`);
+  const fm = (x) => `$${Math.round(x)}`;
+  const vs = subtitleFn(D.r, fm, D.cost, isVoid, v.gradeObj, v.confidence);
+  A("the void subtitle says the export is void and claims no grade", /EXPORT VOID/.test(vs) && !/Directional|Planning-grade|Finance-grade/.test(vs));
+  A("the badge renders the void in red", /confidence === "Void" \? RED/.test(SRC));
+  /* Sign invariance. The same inputs with only volume moved, zero to large. */
+  const Z = render({ mut: () => ({ vol: 0, aht: 350, shrink: 31 }) });
+  const M = render({ mut: () => ({ vol: 420, aht: 350, shrink: 31 }) });
+  const L = render({ mut: () => ({ vol: 20000, aht: 350, shrink: 31 }) });
+  const ax = (d) => [d.graded.evidence, d.graded.completeness, d.confidence, d.gradeObj.boundBy].join("|");
+  A("the invariance documents span zero to large", Z.cost.annual < M.cost.annual && L.cost.annual > 10 * M.cost.annual);
+  A("sign invariance: a zero plan grades as the base plan", ax(Z) === ax(M));
+  A("sign invariance: a large plan grades as the base plan", ax(L) === ax(M));
+  A("sign invariance: the subtitle grade text holds", [Z, M, L].every(d => d.subtitle.endsWith(`${M.confidence}, bound by ${M.gradeObj.boundBy}`)));
 }
 
 /* ---------------------------------------------------------------- result */
