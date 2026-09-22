@@ -448,6 +448,47 @@ section("L. automation and internal browsers never reach the wire");
   eq("L6  webdriver blocks even when storage throws", m.captureBlocked({ webdriver: true }, { localStorage: throwingStorage }), true);
   eq("L7  missing navigator and window do not throw or block", m.captureBlocked(undefined, undefined), false);
 
+  /* L12 onward: self-identified crawlers, added after the 22 Sep export. */
+  const BOTS = [
+    "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/125.0.6422.141 Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.141 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36 Chrome-Lighthouse",
+    "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; GPTBot/1.0; +https://openai.com/gptbot)",
+    "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; ClaudeBot/1.0; +claudebot@anthropic.com)",
+    "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)",
+    "Mozilla/5.0 (compatible; SemrushBot/7~bl; +http://www.semrush.com/bot.html)",
+    "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+    "LinkedInBot/1.0 (compatible; Mozilla/5.0; Apache-HttpClient +http://www.linkedin.com)",
+    "Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)",
+    "Twitterbot/1.0",
+    "python-requests/2.31.0",
+    "curl/8.4.0",
+    "Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15 (Applebot/0.1; +http://www.apple.com/go/applebot)",
+    "Mozilla/5.0 (compatible; PerplexityBot/1.0; +https://perplexity.ai/perplexitybot)",
+  ];
+  const HUMANS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:130.0) Gecko/20100101 Firefox/130.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0",
+    "Mozilla/5.0 (Linux; Android 12; CUBOT_X30 Build/SP1A) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (iPad; CPU OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/128.0 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Abbott-Intranet",
+  ];
+  for (const ua of BOTS) eq(`L12 bot blocked: ${ua.slice(0, 60)}`, m.captureBlocked({ userAgent: ua }, { localStorage: mem() }), true);
+  for (const ua of HUMANS) eq(`L13 human passes: ${ua.slice(0, 60)}`, m.captureBlocked({ userAgent: ua }, { localStorage: mem() }), false);
+  eq("L14 bot blocked even when storage throws", m.captureBlocked({ userAgent: BOTS[0] }, { localStorage: throwingStorage }), true);
+  eq("L15 empty user agent does not block", m.captureBlocked({ userAgent: "" }, { localStorage: mem() }), false);
+  eq("L16 non-string user agent does not block or throw", m.captureBlocked({ userAgent: 42 }, { localStorage: mem() }), false);
+  ok("L17 the user agent is never a wire property", !ALLOWED_PROP_KEYS.some((k) => /agent|ua/i.test(k)));
+
   const ls = mem(), ss = mem();
   bodies.length = 0;
   run({ localStorage: ls, sessionStorage: ss, location: LOC }, { webdriver: true }, () => { m.track(EV.TOOL_VIEW, { tool: "tco" }); m.trackTool.pdf("tco"); });
@@ -460,6 +501,12 @@ section("L. automation and internal browsers never reach the wire");
 
   run({ localStorage: mem(), sessionStorage: mem(), location: LOC }, {}, () => m.trackTool.view("tco"));
   eq("L11 an ordinary browser still sends", bodies.length, 1);
+
+  bodies.length = 0;
+  const lsb = mem(), ssb = mem();
+  run({ localStorage: lsb, sessionStorage: ssb, location: LOC }, { userAgent: BOTS[1] }, () => { m.trackTool.view("tco"); m.trackTool.pdf("tco"); });
+  eq("L18 a rendering Googlebot sends nothing", bodies.length, 0);
+  eq("L19 a rendering Googlebot is never issued an id", lsb._m.has("coc:aid") || ssb._m.has("coc:sid"), false);
 }
 
 /* ------------------------------------------------------------------ report */
