@@ -23,7 +23,9 @@ import { readFileSync } from "fs";
 const SRC = readFileSync("./CostPerContactCalculator.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH } = await import("./src/lib/mech.js");
-const { COLORS } = await import("./src/lib/benchmarks.js");
+const { MECH_INITIAL } = await import("./src/lib/mech.js");
+const { COLORS, benchmark } = await import("./src/lib/benchmarks.js");
+const CONF = await import("./src/lib/confidence.js");
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 /* The real boundary guard and the real bucket, never reconstructed. The tool
@@ -156,7 +158,11 @@ const engineRegion = SRC.slice(ea, eb);
 /* Component-scope derivations the payload closes over. Sliced, never retyped:
    a retyped grade ladder is exactly the kind of copy that drifts from the
    shipped one and then certifies a report the app would never have produced. */
-const compRegion = [constLine("cprColor"), constStatement("gradeWhy")].join("\n");
+const GRADE_LINES = [
+  "const graded = gradeCPC({ d, r, pre, railOrigin: null });",
+  "const { gradeObj, confidence, gradeWhy } = graded;",
+];
+const compRegion = [constLine("cprColor")].join("\n");
 
 const subtitleAt = SRC.indexOf("subtitle={");
 const subtitleExpr = balanced(SRC, subtitleAt + 9, "{", "}").text.slice(1, -1);
@@ -172,14 +178,14 @@ A("the ReportActions signals payload slices out of the shipped JSX", !!signalsEx
 A("the ReportActions sections payload slices out of the shipped JSX", !!sectionsExpr);
 A("the report is named", !!toolNameM);
 A("the component-scope derivations slice out", compRegion.split("\n").every(Boolean));
-A("the multi-line grade ladder slices out whole, not first-branch-only", (constStatement("grade") || "").indexOf("ceilingGrade") > 0);
-A("the confidence prop is the same grade the page displays", /confidence=\{grade\}/.test(SRC));
+A("the component grades through gradeCPC exactly as the harness retypes it", GRADE_LINES.every(l => SRC.includes(l)));
+A("no local grade ladder remains in the component", !/evidenceGrade|ceilingGrade|GRADE_RANK\[/.test(SRC));
+A("ReportActions receives the emitted grade object, not a hand-passed headline", /grades=\{gradeObj\}/.test(SRC) && !/confidence=\{grade\}/.test(SRC));
 /* The render preamble retypes the lines between compute and the grade ladder.
    These gates hold the retyped copy to the shipped one, so the harness cannot
    certify a document built on a key the page never resolved. */
 A("the component resolves the capacity action from compute before anything reads it",
   /const r = compute\(d, mech\);\n(?:\s*\/\*[\s\S]*?\*\/\n)?\s*const mechKey = r\.mechKey;\n\s*const analyst = buildAnalystRead\(d, r, mechKey\);/.test(SRC));
-A("the component tests selection on the resolved key", /const mechSelected = mechKey !== "none";/.test(SRC));
 A("no MECH lookup on the entered capacity action remains in the component", !/MECH\[mech\]/.test(SRC));
 A("no none test on the entered capacity action remains in the component", !/\bmech (===|!==) "none"/.test(SRC));
 A("the rail publishes the capacity action the engine ran", /capacityAction: mechKey,/.test(SRC) && !/capacityAction: mech,/.test(SRC));
@@ -204,11 +210,11 @@ A("the setter, the effect deps and the scenario keep the entered value",
  */
 const SETS = {
   A: {
-    label: "In-house voice-led, handled basis, avoid hiring, defaults untouched",
-    d: null, mech: "hiring", validated: false, fromLink: false, pulledExternally: false,
+    label: "In-house voice-led, handled basis, the shipped initial action, defaults untouched",
+    d: null, mech: MECH_INITIAL, validated: false, fromLink: false,
   },
   B: {
-    label: "Digital-led, ISSUES basis, measured deeper repeats, absorb growth",
+    label: "Digital-led, ISSUES basis, measured deeper repeats, own figures attested, vendor reduction",
     d: {
       monthlyContacts: 22000, denominator: "issues", fcrRate: 61, contactsPerUnresolved: 3.1,
       loadedCPC: 11.4, marginalCPC: 4.9, validated: true,
@@ -217,21 +223,26 @@ const SETS = {
       voiceAHT: 9.5, chatAHT: 12, emailAHT: 6.5,
       voiceConcurrency: 1, chatConcurrency: 3, emailConcurrency: 1,
     },
-    mech: "vendor", validated: true, fromLink: true, pulledExternally: true,
+    mech: "vendor", validated: true, fromLink: true,
   },
   C: {
     label: "Hostile scenario link: FCR 150%, negative volume, no mechanism",
     d: { monthlyContacts: -50000, fcrRate: 150 },
-    mech: "none", validated: false, fromLink: true, pulledExternally: false,
+    mech: "none", validated: false, fromLink: true,
   },
   D: {
-    label: "Set B inputs exactly, absorb-growth mechanism: the credit-class ceiling",
-    d: null, mech: "growth", validated: true, fromLink: false, pulledExternally: true,
+    label: "Set B inputs exactly, absorb-growth mechanism: realization binds",
+    d: null, mech: "growth", validated: true, fromLink: false,
   },
   E: {
     label: "Negative money through a scenario link: the money-guard rendering path",
     d: { loadedCPC: -12, marginalCPC: -4, agentHourly: -30, fcrRate: 150 },
-    mech: "none", validated: false, fromLink: true, pulledExternally: false,
+    mech: "none", validated: false, fromLink: true,
+  },
+  F: {
+    label: "Set B inputs exactly, cost basis prefilled over the rail with no origin grade: defect class 2",
+    d: null, mech: "vendor", validated: true, fromLink: false,
+    pre: { loadedCPC: { value: 11.4, src: "tco-calculator" }, marginalCPC: { value: 4.9, src: "tco-calculator" } },
   },
 };
 /* D reuses B's inputs verbatim. The ONLY difference is the capacity action, so any
@@ -247,15 +258,13 @@ function render(S) {
     const r = compute(d, mech);
     const mechKey = r.mechKey;
     const analyst = buildAnalystRead(d, r, mechKey);
-    const sourced = SOURCED;
-    const mechSelected = mechKey !== "none";
-    ${constStatement("evidenceGrade")}
-    ${constStatement("grade")}
-    ${constStatement("boundBy")}
+    const pre = PRE;
+    ${GRADE_LINES.join("\n    ")}
+    const grade = confidence;
     ${compRegion}
     /* TOOL_ID and ROUTE already come out of the engine region: do not shadow them. */
     return {
-      d, mech, mechKey, r, analyst, grade, gradeWhy, evidenceGrade, boundBy, guardVal, guardLine,
+      d, mech, mechKey, r, analyst, grade, gradeWhy, gradeObj, graded, guardVal, guardLine,
       subtitle: \`${subtitleExpr.replace(/^`|`$/g, "")}\`,
       summary: ${summaryExpr},
       signals: ${signalsExpr},
@@ -264,11 +273,13 @@ function render(S) {
     .replace(/\bD_IN\b/g, JSON.stringify(S.d))
     .replace(/\bMECH_KEY\b/g, JSON.stringify(S.mech))
     .replace(/\bFROM_LINK\b/g, JSON.stringify(!!S.fromLink))
-    .replace(/\bSOURCED\b/g, JSON.stringify(!!S.pulledExternally));
+    .replace(/\bPRE\b/g, JSON.stringify(S.pre || {}));
 
   try {
-    return new Function("MECH", "ELECTRIC", "GREEN", "AMBER", "RED", "MUTED", "severityBucket", "createGuards", "guardVal", "guardLine", preamble)(
-      MECH, COLORS.electric, COLORS.green, COLORS.amber, COLORS.red, COLORS.muted, severityBucket, createGuards, guardVal, guardLine
+    return new Function("MECH", "MECH_INITIAL", "ELECTRIC", "GREEN", "AMBER", "RED", "MUTED", "severityBucket", "createGuards", "guardVal", "guardLine",
+      "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred", preamble)(
+      MECH, MECH_INITIAL, COLORS.electric, COLORS.green, COLORS.amber, COLORS.red, COLORS.muted, severityBucket, createGuards, guardVal, guardLine,
+      benchmark, CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred
     );
   } catch (e) {
     console.error("BLOCKER: the ReportActions payload did not evaluate for set:", S.label);
@@ -280,6 +291,7 @@ function render(S) {
 /* Set A must apply the `validated` flag to the shipped BASE. */
 SETS.A.d = { validated: false };
 SETS.D.d = { ...SETS.B.d };
+SETS.F.d = { ...SETS.B.d };
 
 /* ------------------------------------------------------------- the document */
 
@@ -430,22 +442,26 @@ for (const [key, S] of Object.entries(SETS)) {
   A(`${key}: the integrity section appears exactly when the engine raised flags`, (!!integ) === (r.flags.length > 0));
   if (integ) A(`${key}: every engine flag reaches the document verbatim`, integ.items.length === r.flags.length && r.flags.every((f, i) => integ.items[i] === f.t));
 
-  /* --- confidence may not exceed what the inputs support --- */
-  A(`${key}: Finance-grade requires an externally sourced cost basis, a mechanism and validation`,
-    P.grade !== "Finance-grade" || (S.pulledExternally && mech !== "none" && d.validated));
-  A(`${key}: no mechanism can never reach Finance-grade`, mech !== "none" || P.grade !== "Finance-grade");
-  A(`${key}: the grade rationale names the ceiling that actually bound it`,
-    P.boundBy === "credit class"
-      ? /capped by capacity action/.test(P.gradeWhy) && P.gradeWhy.includes(MECH[mech].label) && P.gradeWhy.includes(r.cred)
-      : !/capped by capacity action/.test(P.gradeWhy));
-  A(`${key}: the grade never exceeds what the mechanism's credit class permits`,
-    ({ "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 })[P.grade] <=
-    ({ "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 })[r.ceilingGrade]);
-  A(`${key}: the grade never exceeds what the evidence permits`,
-    ({ "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 })[P.grade] <=
-    ({ "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 })[P.evidenceGrade]);
-  A(`${key}: the credit class printed is the one mech.js assigns the selected action`,
-    r.cred === MECH[mech].cred);
+  /* --- confidence may not exceed what the inputs support. 11B, three axes. --- */
+  const G = P.graded, GR = CONF.GRADE_RANK;
+  A(`${key}: no document reaches Finance-grade, because this tool has no document attestation path`, P.grade !== "Finance-grade");
+  A(`${key}: the grade is the emitted headline, never hand-derived`, P.grade === P.gradeObj.headline && !P.gradeObj.void);
+  A(`${key}: the headline is the minimum of the applicable axes`,
+    P.grade === CONF.gradeConfidence({ evidence: G.evidence, realization: G.realization, completeness: G.completeness }).headline);
+  A(`${key}: the subtitle names the grade and the axis that bound it`, P.subtitle.includes(`${P.grade}, bound by ${P.gradeObj.boundBy}`));
+  A(`${key}: the methodology rationale is the bound axis reason`, P.gradeObj.boundAxes.every(ax => meth.includes(P.gradeObj.reasons[ax])));
+  A(`${key}: realization is the credit class grade of the action the engine ran`, G.realization === CONF.realizationFromCred(MECH[r.mechKey].cred));
+  A(`${key}: the grade never exceeds realization`, GR[P.grade] <= GR[G.realization]);
+  A(`${key}: the grade never exceeds evidence`, GR[P.grade] <= GR[G.evidence]);
+  A(`${key}: every applicable axis carries a stated reason`, P.gradeObj.applicable.every(ax => P.gradeObj.reasons[ax].trim().length > 0));
+  A(`${key}: emitGrades reports no content defect`, P.gradeObj.defects.length === 0);
+  /* Defect class 3 at the document level. A disclosure on the page must reach the grade. */
+  A(`${key}: a corrected input holds completeness Directional`, !r.guards.length || G.completeness === "Directional");
+  const modelFlag = r.flags.some(f => /Marginal cost is not below loaded|Channel mix sums|understates the repeat burden/.test(f.t));
+  A(`${key}: a disclosed model failure holds completeness Directional`, !modelFlag || G.completeness === "Directional");
+  A(`${key}: "treat the output as void" never prints over a grade above Directional`,
+    !r.flags.some(f => /treat the output as void/.test(f.t)) || P.grade === "Directional");
+  A(`${key}: the credit class printed is the one mech.js assigns the selected action`, r.cred === MECH[mech].cred || r.mechKey !== mech);
 
   /* --- no impossible figure may print --- */
   const printed = [
@@ -463,20 +479,24 @@ for (const [key, S] of Object.entries(SETS)) {
 console.log("\n" + "=".repeat(74));
 console.log("CROSS-SET");
 console.log("=".repeat(74));
-A("an untouched default document is Directional: selecting the default mechanism is not rigor",
-  R.A.grade === "Directional");
-A("a sourced, validated document with a cash-creditable action reaches Finance-grade",
-  R.B.grade === "Finance-grade");
-A("the same inputs with a capacity-only action cannot reach Finance-grade", R.D.grade !== "Finance-grade");
-A("B and D differ ONLY in the capacity action, so the ceiling is attributable",
-  JSON.stringify(SETS.B.d) === JSON.stringify(SETS.D.d) && R.B.evidenceGrade === R.D.evidenceGrade);
+A("an untouched default document is Directional, bound by evidence",
+  R.A.grade === "Directional" && R.A.gradeObj.boundAxes.includes("evidence"));
+A("own figures, attested, with a cash-creditable action reach Planning-grade and no higher",
+  R.B.grade === "Planning-grade" && R.B.graded.completeness === "Finance-grade" && R.B.graded.realization === "Finance-grade");
+A("the same inputs with a capacity-only action grade Directional, bound by realization",
+  R.D.grade === "Directional" && R.D.gradeObj.boundAxes.includes("realization") && !R.D.gradeObj.boundAxes.includes("evidence"));
+A("B and D differ ONLY in the capacity action, so the realization bind is attributable",
+  JSON.stringify(SETS.B.d) === JSON.stringify(SETS.D.d) && R.B.graded.evidence === R.D.graded.evidence && R.B.graded.completeness === R.D.graded.completeness);
 A("B and D nonetheless carry identical released capacity: the action does not change the capacity",
   R.B.r.dividend[1].released === R.D.r.dividend[1].released);
-A("D's document says plainly that the capacity action capped it",
-  /capped by capacity action/.test(R.D.gradeWhy));
-A("this tool's credit ceiling agrees with FCR Leakage on the same mechanism",
-  R.D.r.ceilingGrade === "Directional" && MECH.hiring.cred === "finance");
-A("the hostile scenario link cannot reach Finance-grade", R.C.grade !== "Finance-grade");
+A("this tool's realization agrees with mech.js on the growth action",
+  R.D.graded.realization === "Directional" && MECH.growth.cred === "capacity");
+A("class 2: the rail cost basis with no origin grade drops B's document to Directional",
+  JSON.stringify(SETS.F.d) === JSON.stringify(SETS.B.d) && R.F.grade === "Directional" && R.F.graded.costGrade === "Directional" && R.B.graded.costGrade === "Planning-grade");
+A("class 2: the rail document prints the same figures as B, so only the grade moved",
+  JSON.stringify(R.F.summary) === JSON.stringify(R.B.summary));
+A("class 2: the rail document says why", /no recorded origin grade/.test(R.F.gradeWhy));
+A("the hostile scenario link grades Directional, bound by completeness", R.C.grade === "Directional" && R.C.gradeObj.boundAxes.includes("completeness"));
 A("the hostile scenario link discloses corrections the clean sets do not",
   R.C.signals.inputs_corrected > 0 && R.A.signals.inputs_corrected === 0 && R.B.signals.inputs_corrected === 0);
 A("the hostile scenario link prints the entered FCR alongside the computed one",
@@ -497,7 +517,7 @@ A("a capacity-class mechanism realizes less cash than a cash-class one on identi
    validator is dropped in silence and never reaches the wire. Both failures
    pass a presence check, so both are asserted here on the shipped expression. */
 console.log("\nseverity band");
-const sevDoc = (label, d) => render({ label, d, mech: "hiring", validated: false, fromLink: false, pulledExternally: false });
+const sevDoc = (label, d) => render({ label, d, mech: "hiring", validated: false, fromLink: false });
 const SEV = {
   none: sevDoc("perfect resolution", { fcrRate: 100, contactsPerUnresolved: 2.4 }),
   benign: sevDoc("95% FCR, shallow repeats", { fcrRate: 95, contactsPerUnresolved: 1.2 }),
@@ -552,7 +572,7 @@ console.log("\nhostile capacity action");
     : typeof v === "string" ? /NaN/.test(v)
     : Array.isArray(v) ? v.some(hasNaN)
     : v && typeof v === "object" ? Object.values(v).some(hasNaN) : false;
-  const mechDoc = (label, mech) => render({ label, d: null, mech, validated: false, fromLink: true, pulledExternally: false });
+  const mechDoc = (label, mech) => render({ label, d: null, mech, validated: false, fromLink: true });
   const frags = (k) => [`Capacity action: entered ${k},`, `Capacity action: you entered ${k},`, `Capacity action entered ${k},`];
   const doc = (o) => ({ subtitle: o.subtitle, grade: o.grade, gradeWhy: o.gradeWhy, summary: o.summary, sections: o.sections, signals: o.signals, flags: o.r.flags });
   const face = (o, k) => {
@@ -563,8 +583,14 @@ console.log("\nhostile capacity action");
   /* The same document with the one capacity-action correction taken back out. On
      the shipped defaults it is the only correction, so what remains must be the
      none document exactly. */
+  /* The correction now reaches completeness (defect class 3), so the hostile document
+     is also bound by completeness where the none document is bound by evidence alone.
+     strip() takes the grade rationale back to the none document's as well, and the
+     completeness bind is asserted on its own below. */
   const strip = (o, k) => {
-    const x = JSON.parse(JSON.stringify(doc(o)));
+    const x = JSON.parse(JSON.stringify(doc(o))
+      .split(JSON.stringify(o.gradeWhy).slice(1, -1)).join(JSON.stringify(NONE.gradeWhy).slice(1, -1))
+      .split(`bound by ${o.gradeObj.boundBy}`).join(`bound by ${NONE.gradeObj.boundBy}`));
     const line = guardLine({ label: "Capacity action", entered: String(k), used: "none", unit: "" });
     x.sections = x.sections
       .filter(s => !(s.title.indexOf("\u26a0 Inputs Corrected") === 0 && s.items.length === 1 && s.items[0] === line))
@@ -592,10 +618,13 @@ console.log("\nhostile capacity action");
     A(`${tag}: the corrections section discloses the action through the shipped sentence`,
       !!cs && cs.items.length === 1 && cs.items[0] === guardLine({ label: "Capacity action", entered: String(k), used: "none", unit: "" }));
     A(`${tag}: inputs_corrected counts exactly one correction`, o.signals.inputs_corrected === 1);
-    A(`${tag}: signals and subtitle name the action the engine ran`, o.signals.capacity_action === MECH.none.label && o.subtitle === NONE.subtitle);
+    A(`${tag}: signals and subtitle name the action the engine ran`, o.signals.capacity_action === MECH.none.label && o.subtitle.endsWith(`action: ${MECH.none.label}`));
+    A(`${tag}: the correction binds completeness and the rationale names it`,
+      o.graded.completeness === "Directional" && o.gradeObj.boundAxes.includes("completeness") && /1 input was outside the possible range/.test(o.gradeObj.reasons.completeness));
     A(`${tag}: the page flags that no capacity action is selected`, o.r.flags.some(f => /No capacity action selected/.test(f.t)));
     A(`${tag}: realizable prints $0 under the none label`, rowVal(find(o.sections, "Three Value Layers"), `Realizable this cycle (${MECH.none.label}, 0%)`) === "$0/mo");
-    A(`${tag}: the grade and its rationale match the none document`, o.grade === NONE.grade && o.gradeWhy === NONE.gradeWhy);
+    A(`${tag}: the grade matches the none document and the evidence reason is unchanged`,
+      o.grade === NONE.grade && o.gradeObj.reasons.evidence === NONE.gradeObj.reasons.evidence && o.gradeObj.reasons.realization === NONE.gradeObj.reasons.realization);
     A(`${tag}: the document matches the unknown-key document apart from the entered text`, face(o, String(k)) === face(Z, "zzz"));
     A(`${tag}: the document is the none document plus the one disclosed correction`, strip(o, String(k)) === JSON.stringify(doc(NONE)));
   }
