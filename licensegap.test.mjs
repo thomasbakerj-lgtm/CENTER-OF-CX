@@ -15,10 +15,12 @@
  */
 import { readFileSync } from "fs";
 
-let COLORS, createGuards;
+let COLORS, createGuards, benchmark, benchmarksForTool, BENCHMARK_SOURCES, emitGrades, voidResult, isVoid, CONF_RANK;
 try {
   ({ COLORS } = await import("./src/lib/benchmarks.js"));
   ({ createGuards } = await import("./src/lib/guards.js"));
+  ({ benchmark, benchmarksForTool, BENCHMARK_SOURCES } = await import("./src/lib/benchmarks.js"));
+  ({ emitGrades, voidResult, isVoid, GRADE_RANK: CONF_RANK } = await import("./src/lib/confidence.js"));
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/benchmarks.js. Run from the repo root.");
   console.error(String(e.message || e));
@@ -37,13 +39,13 @@ if (a0 < 0 || b0 < 0) { console.error("BLOCKER: engine markers not found in Lice
 const region = SRC.slice(a0, b0).replace(/^export /gm, "");
 
 let compute, DEFAULTS, MODULES, USAGE_TYPES, COST_STATUS, DOC_EVIDENCE, DBL_MAP, DBL_LABEL,
-  EVIDENCE_OPTS, GRADE_RANK, guardVal, n, fmtK, clone, TOOL_ID, ROUTE;
+  EVIDENCE_OPTS, guardVal, n, fmtK, clone, TOOL_ID, ROUTE;
 try {
   ({ compute, DEFAULTS, MODULES, USAGE_TYPES, COST_STATUS, DOC_EVIDENCE, DBL_MAP, DBL_LABEL,
-    EVIDENCE_OPTS, GRADE_RANK, guardVal, n, fmtK, clone, TOOL_ID, ROUTE } = new Function(
-    "COLORS", "GREEN", "AMBER", "RED", "ELECTRIC", "createGuards",
-    region + "\nreturn { compute, DEFAULTS, MODULES, USAGE_TYPES, COST_STATUS, DOC_EVIDENCE, DBL_MAP, DBL_LABEL, EVIDENCE_OPTS, GRADE_RANK, guardVal, n, fmtK, clone, TOOL_ID, ROUTE };"
-  )(COLORS, COLORS.green, COLORS.amber, COLORS.red, COLORS.electric, createGuards));
+    EVIDENCE_OPTS, guardVal, n, fmtK, clone, TOOL_ID, ROUTE } = new Function(
+    "COLORS", "GREEN", "AMBER", "RED", "ELECTRIC", "createGuards", "benchmark", "emitGrades", "voidResult",
+    region + "\nreturn { compute, DEFAULTS, MODULES, USAGE_TYPES, COST_STATUS, DOC_EVIDENCE, DBL_MAP, DBL_LABEL, EVIDENCE_OPTS, guardVal, n, fmtK, clone, TOOL_ID, ROUTE };"
+  )(COLORS, COLORS.green, COLORS.amber, COLORS.red, COLORS.electric, createGuards, benchmark, emitGrades, voidResult));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -54,7 +56,8 @@ try {
 A("engine region slices and evaluates", typeof compute === "function");
 A("engine region carries its own formatters", typeof n === "function" && typeof fmtK === "function");
 A("engine region carries the corrected-value renderer", typeof guardVal === "function");
-A("engine region carries the grade ladder", GRADE_RANK && GRADE_RANK["Directional"] === 0 && GRADE_RANK["Finance-grade"] === 2);
+A("engine region carries no grade ladder of its own", !/GRADE_RANK\s*=/.test(region));
+const GRADE_RANK = CONF_RANK;
 A("engine region carries the module table", Array.isArray(MODULES) && MODULES.length === 12);
 A("engine region carries the usage table", Array.isArray(USAGE_TYPES) && USAGE_TYPES.length === 6);
 A("engine region carries the scenario contract", TOOL_ID === "license-gap" && ROUTE === "/tools/license-gap");
@@ -80,7 +83,7 @@ A("shipped defaults are not void", base.voided === false);
 A("two shelfware modules are bundled but unused", base.shelfware.length === 2);
 A("no needed module has unknown inclusion by default", base.unknowns.length === 0);
 A("analyst read is populated", Array.isArray(base.analyst) && base.analyst.length >= 1);
-A("confidence line names the grade", base.confLine.indexOf(base.confidence) >= 0);
+A("the headline comes from the shared grading layer", base.gradeObj && base.gradeObj.headline === base.confidence);
 
 /* ---- 3. the seat ladder, which is the whole point of the tool ---- */
 console.log("\n3. seat ladder identities");
@@ -341,8 +344,14 @@ A("drivers are sorted descending by annual cost",
 /* ---- 12. confidence: two axes, lower wins, and it says which ---- */
 console.log("\n12. confidence");
 const conf = (mut) => { const d = D(); mut(d); return compute(d); };
+/* Every priced driver moves off its shipped value, because a driver left at a
+   planning default grades evidence Directional whatever the selector says. */
+const priceAll = (d) => {
+  d.classes.forEach(c => { c.price = c.price + 1; });
+  MODULES.forEach(m => { if (m.typical > 0) d.modules[m.id].cost = m.typical + 1; });
+};
 const financeReady = (d) => {
-  d.evidence = "msa"; d.confirmed = true; d.committedSeats = 200; d.uplift = 5; d.dblAck = true;
+  priceAll(d); d.evidence = "msa"; d.confirmed = true; d.committedSeats = 200; d.uplift = 5; d.dblAck = true;
 };
 A("a complete, documented, confirmed run reaches Finance-grade",
   conf(financeReady).confidence === "Finance-grade");
@@ -391,14 +400,14 @@ A("confidence equals the lower of the two axes", (() => {
 A("the rationale names which axis bound the grade", (() => {
   const evBound = conf(d => { financeReady(d); d.evidence = "estimate"; });
   const mdBound = conf(d => { financeReady(d); d.committedSeats = 0; });
-  return evBound.boundBy === "evidence" && evBound.gradeWhy.indexOf("evidence") >= 0
-    && mdBound.boundBy === "model completeness" && mdBound.gradeWhy.indexOf("committed seats") >= 0;
+  return evBound.boundBy === "evidence" && evBound.gradeWhy.indexOf("Estimate") >= 0
+    && mdBound.boundBy === "completeness" && mdBound.gradeWhy.toLowerCase().indexOf("committed seats") >= 0;
 })());
 A("a Finance-grade rationale says why it earned it",
   conf(financeReady).gradeWhy.indexOf("confirmed in writing") >= 0);
 A("when both axes bind, both are named", (() => {
-  const r = conf(d => { d.committedSeats = 0; });
-  return r.boundBy === "both" || r.gradeWhy.indexOf("bound by") >= 0;
+  const r = conf(d => { financeReady(d); d.evidence = "estimate"; d.modules.wem.status = "unknown"; });
+  return r.boundBy === "evidence and completeness" && r.gradeWhy.indexOf("bound by") >= 0;
 })());
 A("every document evidence type is a real option",
   [...DOC_EVIDENCE].every(v => EVIDENCE_OPTS.some(o => o.v === v)));
@@ -536,8 +545,8 @@ A("compute is deterministic", JSON.stringify(compute(D()).flags) === JSON.string
    uplift entered" whenever it is zero. */
 {
   console.log("\nN. numeric disclosure");
-  const evalRegion = (rg) => new Function("COLORS", "GREEN", "AMBER", "RED", "ELECTRIC", "createGuards",
-    rg + "\nreturn { compute, DEFAULTS, MODULES, USAGE_TYPES, n, fmtK };")(COLORS, COLORS.green, COLORS.amber, COLORS.red, COLORS.electric, createGuards);
+  const evalRegion = (rg) => new Function("COLORS", "GREEN", "AMBER", "RED", "ELECTRIC", "createGuards", "benchmark", "emitGrades", "voidResult",
+    rg + "\nreturn { compute, DEFAULTS, MODULES, USAGE_TYPES, n, fmtK };")(COLORS, COLORS.green, COLORS.amber, COLORS.red, COLORS.electric, createGuards, benchmark, emitGrades, voidResult);
   const cl = (o) => JSON.parse(JSON.stringify(o));
   const VALS = ["", "abc", "12abc", "1,200", NaN, Infinity, null, "Infinity", "$50", "-Infinity"];
   const held = (raw) => { const p = parseFloat(raw); return Number.isFinite(p) ? Math.max(0, p) : 0; };
@@ -620,6 +629,83 @@ A("compute is deterministic", JSON.stringify(compute(D()).flags) === JSON.string
     if (suite(E, 300).size) killed++; else console.log("  survived:", nm);
   }
   A(`N mutants killed ${killed} of ${MUTANTS.length}`, killed === MUTANTS.length);
+}
+
+/* ---- 11B. axes emitted, benchmarks registered, sign invariance ---- */
+{
+  console.log("\n11B. grading layer, registry, sign invariance");
+
+  /* The registry gate. Every default price and judgment threshold in the shipped
+     engine is read by id, no bare number stands where one belongs, and every id
+     the engine reads is registered to this tool. Decision 1-07: permanent. */
+  const ids = [...region.matchAll(/benchmark\("([^"]+)"\)/g)].map(m => m[1]);
+  const owned = benchmarksForTool("license-gap").map(e => e.id);
+  A("the engine reads its benchmarks from the registry", ids.length >= 8);
+  A("every id the engine reads is registered", ids.every(id => id in BENCHMARK_SOURCES));
+  A("every id the engine reads belongs to this tool", ids.every(id => BENCHMARK_SOURCES[id].tool === "license-gap"));
+  A("every registered entry for this tool is read by the engine", owned.every(id => ids.includes(id)));
+  A("no module default ships as a bare number", !/typical:\s*\d/.test(region));
+  A("no seat default ships as a bare number", !/price:\s*\d/.test(region));
+  A("no plausibility threshold ships as a bare number", !/gapPct\s*>\s*\d|quotedSeat\s*\*\s*\d(?!\d)|Dominance\s*>\s*\d|hiddenAnnual\s*>\s*0\.\d/.test(region));
+  A("module defaults equal their registry values", MODULES.every(m => m.typical === benchmark(`lbg.module.${m.id}`)));
+  A("seat defaults equal their registry values", DEFAULTS.classes.every(c => c.price === benchmark(`lbg.seat.${c.id}`)));
+  A("every heuristic is labelled as one", benchmarksForTool("license-gap").filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
+  A("every threshold states a rationale", benchmarksForTool("license-gap").filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
+
+  /* Emission. Axes through emitGrades, realization declared N/A with its reason,
+     and no content defect in the shipped object. */
+  const g = compute(D()).gradeObj;
+  A("the engine calls emitGrades", /emitGrades\(/.test(region));
+  A("the engine computes no headline of its own", !/GRADE_RANK\[/.test(region));
+  A("realization is declared not applicable", g.realization === null && g.applicable.join() === "evidence,completeness");
+  A("the not-applicable reason is stated", g.naReason.length > 40);
+  A("the shipped default emits no grade defect", g.defects.length === 0);
+  A("a Finance-ready case emits no grade defect", conf(financeReady).gradeObj.defects.length === 0);
+  A("boundAxes rides beside the prose", Array.isArray(g.boundAxes) && g.boundAxes.length >= 1);
+
+  /* The defect this landing closed. MSA, confirmed, commit and uplift entered,
+     and every price still the tool's own planning default, used to export
+     Finance-grade bound by neither. */
+  const untouched = conf(d => { d.evidence = "msa"; d.confirmed = true; d.committedSeats = 150; d.uplift = 5; d.modules.ai.need = "no"; d.modules.telephony.need = "no"; });
+  A("regression: untouched default prices cannot reach Finance-grade", untouched.confidence === "Directional");
+  A("regression: the evidence axis names the default drivers", untouched.defaultDrivers.length === 4 && /planning default/.test(untouched.gradeObj.reasons.evidence));
+  A("one default driver is enough to hold evidence Directional",
+    conf(d => { financeReady(d); d.classes[0].price = benchmark("lbg.seat.agent"); }).evidenceGrade === "Directional");
+  A("a default price on a module that is not needed does not count",
+    conf(d => { financeReady(d); d.modules.outbound.need = "no"; d.modules.outbound.cost = benchmark("lbg.module.outbound"); }).evidenceGrade === "Finance-grade");
+  A("a default price on a seat class with no seats does not count",
+    conf(d => { financeReady(d); d.classes[1].count = 0; d.classes[1].price = benchmark("lbg.seat.sup"); }).evidenceGrade === "Finance-grade");
+
+  /* Void. Unreachable through the guards, so it is forced through the shared
+     emitter the engine calls, and the shape the report layer receives is asserted. */
+  const v = voidResult({ invariant: "effective license seat is below the quoted seat", remedy: "Correct the inputs." });
+  A("a void claims no grade", isVoid(v) && !("headline" in v && v.headline));
+  A("the engine voids through voidResult", /voidResult\(\{/.test(region));
+  A("the engine never grades a voided result", /const confidence = voided \? "Void"/.test(region));
+  A("a failed invariant no longer also degrades an axis", !/modelBlockers\.push\(`output failed/.test(region));
+
+  /* Sign invariance, doctrine 5.5. This engine cannot go negative, because every
+     negative is an invariant failure and voids. The magnitude of the answer is
+     what could leak, so the same inputs are held fixed and only the size of the
+     hidden cost moves, from zero to large but inside both plausibility guards.
+     All axes and the headline must hold. The two plausibility guards are the one
+     named exception: they test input coding, and the doctrine table grades a
+     tripped guard on a driver Directional. */
+  const axes = (r) => [r.evidenceGrade, r.completenessCeiling, r.confidence, r.boundBy].join("|");
+  const zero = conf(d => { financeReady(d); MODULES.forEach(m => { d.modules[m.id].need = "no"; }); });
+  const small = conf(d => { financeReady(d); });
+  const large = conf(d => { financeReady(d); d.modules.qa.cost = 60; d.modules.analytics.cost = 70; d.modules.wem.cost = 80; });
+  A("the invariance cases span zero to large", zero.hiddenAnnual === 0 && large.hiddenAnnual > small.hiddenAnnual * 3);
+  A("the large case trips neither plausibility guard", !large.gapImplausible && !large.seatImplausible && !large.singleDriverDominant);
+  A("sign invariance: a zero hidden cost grades as the base case", axes(zero) === axes(small));
+  A("sign invariance: a large hidden cost grades as the base case", axes(large) === axes(small));
+  A("sign invariance holds at Planning-grade too", (() => {
+    const p = (m) => conf(d => { financeReady(d); d.evidence = "email"; m(d); });
+    return axes(p(d => { MODULES.forEach(x => { d.modules[x.id].need = "no"; }); })) === axes(p(() => {}))
+      && axes(p(d => { d.modules.wem.cost = 80; d.modules.qa.cost = 60; d.modules.analytics.cost = 70; })) === axes(p(() => {}));
+  })());
+  A("the named exception: a tripped guard binds completeness",
+    conf(d => { financeReady(d); d.modules.wem.cost = 5000; }).completenessCeiling === "Directional");
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
