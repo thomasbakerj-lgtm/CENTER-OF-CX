@@ -182,6 +182,60 @@ const CHS_DEFAULTS = {
 };
 const channelDefaultEntries = Object.fromEntries(Object.entries(CHS_DEFAULTS).map(([f, [v, unit, why]]) => [`channel.default.${f}`, chHeur(v, unit, `${CHS_DEF} ${why}`)]));
 
+/* AI Deflection Reality Check. Defaults are an internal operating profile so the tool
+   opens on a runnable case, one entry per field under a template id: aid.default for
+   the shared inputs, aid.vendorA and aid.vendorB for the two assumption sets. A graded
+   driver still at its set A default grades evidence Directional. The eligibility,
+   resolution and repeat defaults are informed by published self-service ranges the
+   page cites in its methodology, and are held as labelled heuristics because no single
+   figure carries their denominator. Session 16, 11B. */
+const AID = "ai-deflection";
+const AID_HEUR = "Internal planning heuristic set by ContactCenterCX, informed by published self-service ranges. Not a cited benchmark. Replace with your own figures.";
+const aHeur = (value, unit, rationale) => ({ tool: AID, kind: "heuristic", value, unit, source: AID_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const aLine = (value, unit, rationale) => ({ tool: AID, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
+const AID_DEF = "Default so the tool opens on a runnable case.";
+const AID_DEFAULTS = {
+  M: [80000, "contacts per month", "A volume still at this value grades evidence Directional."],
+  cpc: [7, "USD per contact", "Loaded cost moves the vendor claim and moves net savings by exactly zero, so it reaches no confidence axis."],
+  marg: [0, "USD per contact", "Zero means not supplied. The tool then derives marginal cost from loaded and grades cost evidence Directional."],
+  eligibleRate: [55, "percent of total demand", "An eligibility still at this value grades evidence Directional."],
+  rampMonths: [6, "months", "Ramp length when the ramp is on. It moves Year 1 and payback only."],
+};
+const AID_VENDOR_FIELDS = {
+  apparentResolutionRate: ["percent of AI-involved conversations", "A resolution rate still at this value grades evidence Directional."],
+  repeatLeakRate: ["percent of apparent resolutions", "A repeat rate still at this value grades evidence Directional."],
+  escalationPenalty: ["percent handle time premium", "No single published figure exists. An escalation premium still at this value grades evidence Directional."],
+  implOneTime: ["USD one time", "Ships at zero and is disclosed as optimistic while it stands."],
+  botPlatformCost: ["USD per month", "A platform fee still at this value grades cost evidence Directional."],
+  qaCost: ["USD per month", "Bot quality assurance cost."],
+  tuningHours: ["hours per month", "Bot tuning effort."],
+  tuningRate: ["USD per hour", "Bot tuning labor rate."],
+  knowledgeMaintHours: ["hours per month", "Knowledge maintenance effort."],
+  knowledgeRate: ["USD per hour", "Knowledge maintenance labor rate."],
+};
+const AID_VENDORS = {
+  vendorA: [65, 18, 25, 0, 8000, 2000, 40, 65, 20, 55],
+  vendorB: [58, 14, 18, 0, 5000, 1200, 25, 65, 12, 55],
+};
+const aidEntries = {
+  ...Object.fromEntries(Object.entries(AID_DEFAULTS).map(([f, [v, unit, why]]) => [`aid.default.${f}`, aHeur(v, unit, `${AID_DEF} ${why}`)])),
+  ...Object.fromEntries(Object.entries(AID_VENDORS).flatMap(([set, vals]) => Object.entries(AID_VENDOR_FIELDS).map(([f, [unit, why]], i) =>
+    [`aid.${set}.${f}`, aHeur(vals[i], unit, `${AID_DEF} Assumption set ${set === "vendorA" ? "A, the graded set" : "B, shown for comparison and never graded"}. ${why}`)]))),
+  "aid.derive.marginalShare": aHeur(0.6, "share of loaded cost", "Marginal cost derived from loaded when none is supplied. Disclosed on the page and grades cost evidence Directional."),
+  "aid.band.estimate": aHeur(0.25, "share of net savings", "Sensitivity band printed around net savings when the resolution rate is an internal estimate. Display only. It reaches no confidence axis."),
+  "aid.band.marketing": aHeur(0.25, "share of net savings", "Sensitivity band when the resolution rate comes from vendor marketing. Display only."),
+  "aid.band.proposal": aHeur(0.15, "share of net savings", "Sensitivity band when the resolution rate comes from a proposal or SOW. Display only."),
+  "aid.band.sla": aHeur(0.1, "share of net savings", "Sensitivity band when the resolution rate is a contracted floor with a remedy. Display only."),
+  "aid.band.pilot": aHeur(0.1, "share of net savings", "Sensitivity band when the resolution rate was observed in the user's own environment. Display only."),
+  "aid.upside.resolutionLift": aHeur(1.2, "multiple of apparent resolution", "Upside case resolution, capped at 100 percent. Feeds the verdict's upside test only. It reaches no confidence axis."),
+  "aid.upside.repeatCut": aHeur(0.5, "multiple of repeat rate", "Upside case repeat rate. Feeds the verdict's upside test only."),
+  "aid.read.margNearLoaded": aLine(0.85, "share of loaded cost", "Marginal cost at or above this share of loaded usually means loaded cost was entered twice. Disclosed, and holds completeness Directional."),
+  "aid.read.eligibleRare": aLine(90, "percent of total demand", "Eligibility at or above this is rare outside narrow scopes. Disclosed on the page. Framing only."),
+  "aid.read.resolutionRare": aLine(80, "percent of AI-involved conversations", "Apparent resolution at or above this is uncommon outside narrow FAQ scopes. Disclosed on the page. Framing only."),
+  "aid.read.foundationFloor": aLine(0.35, "share of total demand", "Eligibility below this routes the verdict to fixing the foundation. A property of the answer. It reaches no confidence axis by doctrine."),
+  "aid.guard.botNearFree": aLine(0.01, "USD operating cost per bot-attempted contact", "Operating cost at or below one cent per attempted conversation makes the program look costless and drives break-even toward zero. Set below the channel fee line because this cost is a flat monthly spend spread across volume, and a real program at scale runs a few cents. Holds completeness Directional."),
+};
+
 export const BENCHMARK_SOURCES = {
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
@@ -277,6 +331,8 @@ export const BENCHMARK_SOURCES = {
   "channel.read.implausibleDeptAht": chLine(2, "minutes", "Displaced contacts implied to average under this handle time mean the complexity curve is too severe for the volume moved. Disclosed, and holds completeness Directional."),
   "channel.guard.botNearFree": chLine(0.1, "USD per bot contact", "A bot fee at or below this, with bot volume shifted, makes any shift look costless and drives break-even toward zero. Disclosed, and holds completeness Directional."),
   "channel.read.breakEvenFloor": chLine(1, "percent resolution", "A break-even below this reads as a shift profitable at any resolution. Framing only. It is a property of the answer and reaches no confidence axis by doctrine 5.5."),
+
+  ...aidEntries,
 };
 
 for (const [id, e] of Object.entries(BENCHMARK_SOURCES)) {
