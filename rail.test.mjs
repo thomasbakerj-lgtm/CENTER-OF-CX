@@ -163,9 +163,9 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   const { readFileSync } = await import("fs");
   const { getExternalPrimitive: gx } = await import("./src/lib/toolData.js");
   const tco = readFileSync("TCOCalculator.jsx", "utf8");
-  const mapLine = (tco.match(/const map = \{[^}]*\};/) || [""])[0];
-  truthy("L1  TCO pull map routes the attrition field to attritionRate", /attrition:\s*"attritionRate"/.test(mapLine));
-  truthy("L2  TCO pull map no longer names the unpublished key attrition", !/:\s*"attrition"/.test(mapLine));
+  const mapLine = (tco.match(/const got = \{[\s\S]*?\};/) || [""])[0];
+  truthy("L1  TCO pull map routes the attrition field to attritionRate", /attrition:\s*ext\(getExternalWithSource\("attritionRate", TOOL_ID\)\)/.test(mapLine));
+  truthy("L2  TCO pull map no longer names the unpublished key attrition", !/\("attrition"/.test(mapLine));
   resetRail();
   publishToolResult("attrition-cost", normalizeForPublish({ agents: 180, attritionRate: 1.2 }, { sourceTool: "attrition-cost" }).clean);
   eq("L3  a 120 percent attrition from the Attrition Calculator reaches TCO intact", gx("attritionRate", "tco-calculator"), 1.2);
@@ -174,6 +174,14 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   resetRail();
   publishToolResult("tco-calculator", normalizeForPublish({ attritionRate: 0.4 }, { sourceTool: "tco-calculator" }).clean);
   eq("L6  TCO cannot prefill attrition from its own prior publish", gx("attritionRate", "tco-calculator"), undefined);
+  const { getExternalWithSource: gws } = await import("./src/lib/toolData.js");
+  eq("L7  getExternalWithSource refuses the caller's own publish", gws("attritionRate", "tco-calculator"), null);
+  resetRail();
+  publishToolResult("attrition-cost", normalizeForPublish({ attritionRate: 0.5 }, { sourceTool: "attrition-cost" }).clean);
+  const w = gws("attritionRate", "tco-calculator");
+  truthy("L8  and returns another tool's value with its publisher", !!w && w.value === 0.5 && w.sourceTool === "attrition-cost");
+  eq("L9  and returns null when the rail has nothing", gws("nothingHere", "tco-calculator"), null);
+  resetRail();
 }
 
 // ---------------------------------------------------------------- 15. Audit dead-pull rules, mutation tested
@@ -206,15 +214,17 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   truthy("M2b occupancy is published by Staffing and pulled by no tool", !/\n\s+occupancy\s+pulled by/.test(b0.out));
   truthy("M3  a shorthand publish (Staffing aht) is read as a publisher", /aht\s+pulled by \d+\s+<-\s+published by StaffingCalculator\.jsx/.test(b0.out));
 
-  const m1 = run({ "TCOCalculator.jsx": sub('attrition: "attritionRate" };', 'attrition: "attrition" };') });
+  const m1 = run({ "TCOCalculator.jsx": sub('getExternalWithSource("attritionRate", TOOL_ID)', 'getExternalWithSource("attrition", TOOL_ID)') });
   truthy("M4  reverting TCO to the dead attrition key fails the audit", m1.code > 0);
   truthy("M5  and names attrition as an orphan pulled by TCO", /\n  attrition\s+\[NOT IN REGISTRY[^\n]*\n\s+pulled by: TCOCalculator\.jsx/.test(m1.out));
 
   const blind = AUDIT.replace("function variablePulls(src) {", "function variablePulls(src) { return { resolved: new Set(), unresolved: new Set(), external: new Set() };");
-  eq("M6  control: without variable-pull resolution the same defect passes silently", run({ "TCOCalculator.jsx": sub('attrition: "attritionRate" };', 'attrition: "attrition" };') }, blind).code, 0);
+  const m1b = run({ "TCOCalculator.jsx": sub('getExternalWithSource("attritionRate", TOOL_ID)', 'getExternalWithSource(ATTR, TOOL_ID)') });
+  truthy("M6b an unreadable getExternalWithSource key fails as unresolved", m1b.code > 0 && /TCOCalculator\.jsx\s+getExternalWithSource\(ATTR\)/.test(m1b.out));
+  eq("M6  control: without variable-pull resolution the same defect passes silently", run({ "TCOCalculator.jsx": sub('getExternalWithSource("attritionRate", TOOL_ID)', 'getExternalWithSource(ATTR, TOOL_ID)') }, blind).code, 0);
 
-  const m2 = run({ "TCOCalculator.jsx": sub('const v = getExternalPrimitive(key, "tco-calculator");', 'const v = getExternalPrimitive(pick(key), "tco-calculator");') });
-  truthy("M7  a getter keyed by an unreadable expression fails as unresolved", m2.code > 0 && /TCOCalculator\.jsx\s+getExternalPrimitive\(pick\(key\)\)/.test(m2.out));
+  const m2 = run({ "TCOCalculator.jsx": sub('getExternalWithSource("aht", TOOL_ID)', 'getExternalWithSource(pick("aht"), TOOL_ID)') });
+  truthy("M7  a getter keyed by an unreadable expression fails as unresolved", m2.code > 0 && /TCOCalculator\.jsx\s+getExternalWithSource\(pick\("aht"\)\)/.test(m2.out));
   const m3 = run({ "BusinessCaseBuilder.jsx": sub('take("currentAHT", "aht");', 'take("currentAHT", ahtKey);') });
   truthy("M8  a wrapper call site with a non-literal key fails as unresolved", m3.code > 0 && /BusinessCaseBuilder\.jsx\s+getExternalPrimitive\(key\)/.test(m3.out));
   const m4 = run({ "TCOCalculator.jsx": sub("const next = {}; const got = {};", "const next = {}; const got = {}; const lone = zed; getExternalPrimitive(lone, \"tco-calculator\");") });
