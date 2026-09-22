@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import ReportActions from "./ReportActions";
-import { COLORS, BENCH, classifyOccupancy, classifyShrinkage } from "./src/lib/benchmarks";
+import { COLORS, BENCH, classifyOccupancy, classifyShrinkage, benchmark } from "./src/lib/benchmarks";
+import { emitGrades, voidResult, isVoid, railEvidence, weakerStream } from "./src/lib/confidence";
 import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import NumField from "./src/lib/NumField";
@@ -19,7 +20,12 @@ const METHODOLOGY_VERSION = "staffing-v3.2026.08";
 
 /* Scenario defaults. Only fields that differ travel in the link, so the URL stays short.
    No contact detail is ever encoded: the shape below is the whole payload. */
-const DEFAULTS = { vol: 400, aht: 360, slT: 80, slS: 20, shrink: 30, intv: 30, patience: 0, capOn: false, capPct: 85, queues: 1, preset: "general" };
+const DEFAULTS = {
+  vol: benchmark("staffing.preset.general.vol"), aht: benchmark("staffing.preset.general.aht"),
+  slT: benchmark("staffing.preset.general.slT"), slS: benchmark("staffing.preset.general.slS"),
+  shrink: benchmark("staffing.preset.general.shrink"), intv: benchmark("staffing.default.intv"),
+  patience: 0, capOn: false, capPct: benchmark("staffing.default.capPct"), queues: 1, preset: "general",
+};
 
 function LogoMark({ size = 34, light = true }) { const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC; return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>; }
 
@@ -73,7 +79,7 @@ function calc(volume, ahtSec, intMin, slT, slSec, shrink, occCap) {
    statement, better than a stated bound, instead of a certainty the model cannot
    support. One definition, read by the screen, the insights and the report, because
    a retyped copy in the report harness is how the last drift started. */
-const SL_CEILING = 0.999;
+const SL_CEILING = benchmark("staffing.display.slCeiling");
 const fmtSL = (sl) => sl > SL_CEILING ? "> 99.9%" : `${(sl * 100).toFixed(1)}%`;
 const fmtASA = (asa) => asa < 1 ? "< 1s" : asa > 999 ? "> 15m" : `${Math.round(asa)}s`;
 const fmtPW = (pw) => pw < 0.001 ? "< 0.1%" : `${(pw * 100).toFixed(1)}%`;
@@ -85,15 +91,17 @@ const fmtPW = (pw) => pw < 0.001 ? "< 0.1%" : `${(pw * 100).toFixed(1)}%`;
    floor is an interval at least three times AHT. Below that we say so rather than
    return a confident number, because a back-office or complex-case queue is exactly
    the user who would enter these inputs and exactly the one who would be misled. */
+const VALID_RATIO = benchmark("staffing.validity.ratio");
+const VALID_CRITICAL = benchmark("staffing.validity.critical");
 function modelValidity(ahtSec, intMin) {
   const ratio = (intMin * 60) / (ahtSec || 1);
-  if (ratio >= 3) return { ok: true, ratio };
-  const needMin = Math.ceil((ahtSec * 3) / 60);
+  if (ratio >= VALID_RATIO) return { ok: true, ratio };
+  const needMin = Math.ceil((ahtSec * VALID_RATIO) / 60);
   return {
     ok: false,
     ratio,
-    severity: ratio < 1.5 ? "critical" : "caution",
-    msg: `Your interval is ${ratio.toFixed(1)} times AHT. Erlang C assumes the queue settles within the interval, which needs roughly 3 times AHT or more. Below that, contacts carry across interval boundaries and this number understates what you need. Lengthen the interval to at least ${needMin} minutes, or treat long-handle work with a capacity model rather than Erlang C.`,
+    severity: ratio < VALID_CRITICAL ? "critical" : "caution",
+    msg: `Your interval is ${ratio.toFixed(1)} times AHT. Erlang C assumes the queue settles within the interval, which needs roughly ${VALID_RATIO} times AHT or more. Below that, contacts carry across interval boundaries and this number understates what you need. Lengthen the interval to at least ${needMin} minutes, or treat long-handle work with a capacity model rather than Erlang C.`,
   };
 }
 
@@ -126,9 +134,9 @@ function sustainablePair(volume, ahtSec, intMin, slT, slSec, shrink, ceiling) {
    payroll burden, and roughly 1.9 to 2.1 once the rest is included. We use 1.95
    on base wage when only a wage is known, and prefer a real per-agent TCO figure
    whenever the rail carries one, because that is measured rather than assumed. */
-const BENCHMARK_HOURLY = 19;      // BLS and Indeed median, US contact centre agent
-const FULL_LOAD_MULTIPLE = 1.95;  // wage to fully loaded, when no TCO figure exists
-const PAID_HOURS_MONTH = 173;     // 2080 annual hours / 12
+const BENCHMARK_HOURLY = benchmark("staffing.wage.median");     // BLS OEWS May 2024, SOC 43-4051 median
+const FULL_LOAD_MULTIPLE = benchmark("staffing.load.multiple"); // wage to fully loaded, when no TCO figure exists
+const PAID_HOURS_MONTH = benchmark("staffing.hours.month");     // 2080 annual hours / 12
 
 function staffingCost(fte, railPerAgentMonth, railHourly) {
   let perAgentMonth, basis, sourced;
@@ -151,7 +159,6 @@ function staffingCost(fte, railPerAgentMonth, railHourly) {
     monthly: fte * perAgentMonth,
     basis,
     sourced,
-    confidence: sourced ? "Planning-grade" : "Directional",
   };
 }
 
@@ -226,7 +233,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
   const out = [];
   const slPct = r.sl * 100, targetPct = slTargetFrac * 100, overBy = slPct - targetPct, occPct = r.occ * 100;
   const looseOcc = r.occ < BENCH.occupancy.targetLow;
-  const aggressive = slTargetFrac >= 0.88 || slSec <= 10;
+  const aggressive = slTargetFrac >= benchmark("staffing.read.premiumSl") || slSec <= benchmark("staffing.read.premiumSec");
   const band = `${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}%`;
 
   /* Model validity outranks every reading, because if the model does not apply
@@ -240,7 +247,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
     out.push(`Your ${capPct}% occupancy ceiling, not the service-level target, is setting headcount here. The SLA alone would have cleared at fewer agents; the extra capacity is buying recovery time.`);
 
   /* Situation-specific readings rank ahead of the structural one. */
-  if (overBy >= 3) {
+  if (overBy >= benchmark("staffing.read.overServePts")) {
     let t = `You are delivering ${fmtSL(r.sl)} against your ${targetPct.toFixed(0)}% target. ${r.raw} agents is the fewest whole number that clears the SLA, so you are over-serving by ${Math.round(overBy)} points.`;
     if (looseOcc) t += ` Occupancy is ${occPct.toFixed(1)}%, below the ${band} band, confirming you are staffed ahead of your own SLA.`;
     t += ` If ${targetPct.toFixed(0)}% is firm this is correct. If it is aspirational, a slightly looser target or threshold frees capacity.`;
@@ -250,7 +257,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
   if (aggressive)
     out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service (ASA ${fmtASA(r.asa)}, only ${fmtPW(r.pw)} of callers wait). Fast, but you carry agents to buy that speed. Most centres run 80% in 20 to 30s.`);
 
-  if (looseOcc && overBy < 3)
+  if (looseOcc && overBy < benchmark("staffing.read.overServePts"))
     out.push(`Occupancy at ${occPct.toFixed(1)}% sits below the ${band} band while service level is met. You have headroom to absorb growth, or could run leaner if cost is the priority.`);
 
   /* The structural fact, stated once and priced rather than alarmed. Erlang C
@@ -259,7 +266,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
   if (!capOn && pair && pair.sustainable)
     out.push(`Staffing to your service level alone puts occupancy at ${occPct.toFixed(1)}%, above the ${band} band. That is normal for Erlang C at this volume, not a mistake in your inputs: the SLA is not the binding constraint here, occupancy is. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE rather than ${r.sched}. The ${pair.deltaFte} FTE difference is what agent recovery time costs, about ${fmtMoney(recoveryAnnual)} a year on ${cost.sourced ? "your own cost base" : "benchmark wages"}.`);
 
-  if (pool && pool.pctPenalty >= 0.05)
+  if (pool && pool.pctPenalty >= benchmark("staffing.read.poolPenalty"))
     out.push(`This volume splits across ${pool.queues} queues, which costs ${pool.deltaFte} more FTE than pooling it would, roughly ${Math.round(pool.pctPenalty * 100)}% more headcount for identical volume and identical service. That is a routing problem rather than a staffing one, and it is an upper bound: overflow rules and cross-trained agents recover part of it.`);
 
   if (out.length === 0)
@@ -320,21 +327,98 @@ function guardStaffing(stIn) {
   return { st, guards };
 }
 
-/* A corrected input fails the completeness axis, so the headline confidence cannot
-   stand above Directional while one is present, whatever the cost basis says. */
-function capForCorrections(cost, guards, met = true) {
-  return guards.length || met === false ? { ...cost, confidence: "Directional" } : cost;
+/* CONFIDENCE. Two applicable axes through confidence.js, and the report says which
+   bound it. No grade ladder lives in this file.
+
+   Evidence has two streams, and the weaker binds.
+   Operating inputs: volume, handle time and shrinkage drive every headcount and cost
+   figure. A driver still at the selected operating profile is a tool default whatever
+   else is true, so it grades Directional. Entered figures stand at Planning-grade at
+   most: this tool has no document attestation path, and Finance-grade needs one.
+   Cost basis: the benchmark wage is a market figure for the occupation and none of the
+   user's own, so it grades Directional. A rail value confers consistency, and evidence
+   only as far as the origin grade its publisher recorded, capped by railEvidence. The
+   rail carries no origin grade today, so a rail basis grades Directional until TCO
+   publishes one. That closed the defect this landing found: TCO publishes its shipped
+   $19 wage at its own defaults, and Staffing graded that Planning-grade.
+
+   Completeness holds Directional on a corrected input, an unmet solve, or an interval
+   under the Erlang C validity floor. The last was the second defect: the tool said the
+   model understated staffing and still exported Planning-grade.
+
+   Realization is not applicable, with the reason stated.
+
+   Invariants void the export. Each is unreachable through the guards and the solver,
+   and the harness proves it. If one fails, the arithmetic contradicts itself and no
+   figure in the document can be trusted, so the report is voided and graded nowhere. */
+const STAFFING_NA = "This tool prices the headcount a service level needs, which is cost. It credits no freed capacity, so there is nothing whose conversion to cash could be graded.";
+
+function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, railOrigin }) {
+  const invariants = [];
+  if (![r.raw, r.sched, r.sl, r.occ, r.asa, r.pw, cost.annual].every(Number.isFinite)) invariants.push("an output is not a finite number");
+  if (r.sched < r.raw) invariants.push("scheduled FTE is below base agents");
+  if (r.occ < 0 || r.occ > 1) invariants.push("occupancy is outside 0 to 100 percent");
+  if (r.sl < 0 || r.sl > 1) invariants.push("service level is outside 0 to 100 percent");
+  if (cost.annual < 0) invariants.push("annual cost is below zero");
+
+  const defaultDrivers = [
+    ...(vol === shipped.volume ? ["contact volume"] : []),
+    ...(aht === shipped.aht ? ["handle time"] : []),
+    ...(shrink === Math.round(shipped.shrink * 100) ? ["shrinkage"] : []),
+  ];
+  const opsGrade = defaultDrivers.length ? "Directional" : "Planning-grade";
+  const costGrade = cost.sourced ? railEvidence(railOrigin) : "Directional";
+  const evidence = weakerStream(opsGrade, costGrade);
+  const opsWhy = defaultDrivers.length
+    ? `${defaultDrivers.length} driver${defaultDrivers.length > 1 ? "s are" : " is"} still at the ${shipped.label} operating profile (${defaultDrivers.join(", ")}). Enter your own figures to lift this stream`
+    : "Volume, handle time and shrinkage are your own entries. This tool has no document attestation path, so they stand at Planning-grade at most";
+  const costWhy = cost.sourced
+    ? `The cost basis arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}. A rail value confers consistency, and evidence only as far as its origin`
+    : `The cost basis is the BLS national median wage of $${BENCHMARK_HOURLY} an hour, loaded at ${FULL_LOAD_MULTIPLE}x. It is a market figure for the occupation and none of your own`;
+  const evParts = [...(opsGrade === evidence ? [opsWhy] : []), ...(costGrade === evidence ? [costWhy] : [])];
+
+  const blockers = [];
+  if (guards.length) blockers.push(`${guards.length} input${guards.length > 1 ? "s were" : " was"} outside the possible range and corrected before calculation`);
+  if (!valid.ok) blockers.push(`the interval is ${valid.ratio.toFixed(1)} times AHT, under the ${VALID_RATIO} times Erlang C needs, so the model understates staffing`);
+  if (r.met === false) blockers.push("the service level target was not reached within the search, so every figure is a floor");
+  const completeness = blockers.length ? "Directional" : "Finance-grade";
+  const modelWhy = blockers.length ? blockers.join("; ")
+    : `The model applies: the interval is at least ${VALID_RATIO} times AHT, the target was met, and no input was corrected`;
+
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const voided = invariants.length > 0;
+  const gradeObj = voided
+    ? voidResult({
+        invariant: invariants.join("; "),
+        remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this report.",
+      })
+    : emitGrades({
+        evidence, realization: null, completeness, naReason: STAFFING_NA,
+        reasons: { evidence: `${evParts.map(cap).join(". ")}.`, completeness: `${cap(modelWhy)}.` },
+      });
+  const confidence = voided ? "Void" : gradeObj.headline;
+  return { gradeObj, confidence, voided, invariants, evidence, opsGrade, costGrade, completeness, defaultDrivers };
 }
 
+/* Operating profiles, read from the registry. Labelled heuristics there. */
+const presetOf = (k, label) => ({
+  label,
+  volume: benchmark(`staffing.preset.${k}.vol`), aht: benchmark(`staffing.preset.${k}.aht`),
+  slT: benchmark(`staffing.preset.${k}.slT`) / 100, slS: benchmark(`staffing.preset.${k}.slS`),
+  shrink: benchmark(`staffing.preset.${k}.shrink`) / 100,
+});
 const PRESETS = {
-  general: { label: "Cross-Industry", volume: 400, aht: 360, slT: 0.80, slS: 20, shrink: 0.30 },
-  financial: { label: "Financial Services", volume: 500, aht: 320, slT: 0.80, slS: 20, shrink: 0.28 },
-  healthcare: { label: "Healthcare", volume: 350, aht: 420, slT: 0.80, slS: 30, shrink: 0.32 },
-  retail: { label: "Retail + eCommerce", volume: 600, aht: 280, slT: 0.80, slS: 20, shrink: 0.32 },
-  telecom: { label: "Telecom", volume: 550, aht: 440, slT: 0.80, slS: 20, shrink: 0.30 },
-  insurance: { label: "Insurance", volume: 300, aht: 480, slT: 0.80, slS: 30, shrink: 0.28 },
-  bpo: { label: "BPO / Outsourcer", volume: 700, aht: 340, slT: 0.80, slS: 20, shrink: 0.34 },
+  general: presetOf("general", "Cross-Industry"),
+  financial: presetOf("financial", "Financial Services"),
+  healthcare: presetOf("healthcare", "Healthcare"),
+  retail: presetOf("retail", "Retail + eCommerce"),
+  telecom: presetOf("telecom", "Telecom"),
+  insurance: presetOf("insurance", "Insurance"),
+  bpo: presetOf("bpo", "BPO / Outsourcer"),
 };
+const SPIKE = benchmark("staffing.stress.spike"), AHT_STEP = benchmark("staffing.stress.aht");
+const SHRINK_STEP = benchmark("staffing.stress.shrinkPts"), SHRINK_CAP = benchmark("staffing.stress.shrinkCap");
+const SL_STEP = benchmark("staffing.stress.slPts"), SL_EASE = benchmark("staffing.stress.slEase");
 
 const fmtMoney = (v) => {
   const a = Math.abs(v);
@@ -354,11 +438,11 @@ const S = ({ label, value, sub, color }) => (
 
 export default function StaffingCalculator() {
   const [preset, setPreset] = useState("general");
-  const [volIn, setVol] = useState(400), [ahtIn, setAht] = useState(360), [slTIn, setSlT] = useState(80);
-  const [slSIn, setSlS] = useState(20), [shrinkIn, setShrink] = useState(30), [intvIn, setIntv] = useState(30);
-  const [patienceIn, setPatience] = useState(0);
-  const [queuesIn, setQueues] = useState(1);
-  const [capOn, setCapOn] = useState(false), [capPctIn, setCapPct] = useState(85);
+  const [volIn, setVol] = useState(DEFAULTS.vol), [ahtIn, setAht] = useState(DEFAULTS.aht), [slTIn, setSlT] = useState(DEFAULTS.slT);
+  const [slSIn, setSlS] = useState(DEFAULTS.slS), [shrinkIn, setShrink] = useState(DEFAULTS.shrink), [intvIn, setIntv] = useState(DEFAULTS.intv);
+  const [patienceIn, setPatience] = useState(DEFAULTS.patience);
+  const [queuesIn, setQueues] = useState(DEFAULTS.queues);
+  const [capOn, setCapOn] = useState(DEFAULTS.capOn), [capPctIn, setCapPct] = useState(DEFAULTS.capPct);
   const [showBench, setShowBench] = useState(false);
 
 
@@ -401,20 +485,23 @@ export default function StaffingCalculator() {
   const adjR = aband ? calc(Math.max(1, Math.round(vol * (1 - aband.estAband))), aht, intv, slT / 100, slS, shrink / 100, occCap) : null;
   // Show abandonment only when it's actually actionable: a real agent difference AND
   // either material abandonment (>=5%) or a 2+ agent saving. Hides trivial 1-agent/1% cases.
-  const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= 0.05 || (r.raw - adjR.raw) >= 2);
+  const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= benchmark("staffing.aband.material") || (r.raw - adjR.raw) >= benchmark("staffing.aband.agents"));
 
   const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
 
   const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
-  const cost = capForCorrections(staffingCost(r.sched, railPerAgent, railHourly), guards, r.met);
+  const cost = staffingCost(r.sched, railPerAgent, railHourly);
+  /* railOrigin is null because the rail carries no origin grade yet. See gradeStaffing. */
+  const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: null });
+  const { gradeObj, confidence } = graded;
   const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
   const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
   const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
   const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost, pool);
 
-  const spike = calc(Math.round(vol * 1.2), aht, intv, slT / 100, slS, shrink / 100, occCap);
-  const ahtUp = calc(vol, Math.round(aht * 1.1), intv, slT / 100, slS, shrink / 100, occCap);
-  const ahtDown = calc(vol, Math.round(aht * 0.9), intv, slT / 100, slS, shrink / 100, occCap);
+  const spike = calc(Math.round(vol * SPIKE), aht, intv, slT / 100, slS, shrink / 100, occCap);
+  const ahtUp = calc(vol, Math.round(aht * (1 + AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);
+  const ahtDown = calc(vol, Math.round(aht * (1 - AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);
 
   useEffect(() => {
     publishToolResult("staffing-calculator", {
@@ -533,7 +620,7 @@ export default function StaffingCalculator() {
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>{r.sched} FTE at {fmtMoney(cost.perAgentMonth)} per agent per month</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: cost.sourced ? LIGHT : AMBER, background: "rgba(255,255,255,0.08)", padding: "3px 8px", borderRadius: 5, letterSpacing: 0.5, textTransform: "uppercase" }}>{cost.confidence}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: confidence === "Void" ? RED : confidence === "Directional" ? AMBER : LIGHT, background: "rgba(255,255,255,0.08)", padding: "3px 8px", borderRadius: 5, letterSpacing: 0.5, textTransform: "uppercase" }}>{confidence}</span>
                   <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", maxWidth: 230, lineHeight: 1.5, marginTop: 5 }}>Based on {cost.basis}.{!cost.sourced && " Run the TCO Calculator to price this on your own cost base."}</div>
                 </div>
               </div>
@@ -602,11 +689,11 @@ export default function StaffingCalculator() {
               <h3 style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 10 }}>What-If Scenarios {capOn && <span style={{ color: MUTED, fontWeight: 600 }}>· respect your {capPct}% cap</span>}</h3>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="stat-grid">
                 {[
-                  { label: "+20% volume spike", r2: spike, c: AMBER },
-                  { label: "+10% AHT increase", r2: ahtUp, c: AMBER },
-                  { label: "+5pt shrinkage", r2: calc(vol, aht, intv, slT / 100, slS, Math.min((shrink + 5) / 100, 0.70), occCap), c: RED },
-                  { label: slT >= 95 ? `Ease SL to ${slT - 5}%` : `Raise SL to ${Math.min(slT + 5, 99)}%`,
-                    r2: calc(vol, aht, intv, (slT >= 95 ? slT - 5 : Math.min(slT + 5, 99)) / 100, slS, shrink / 100, occCap),
+                  { label: `+${Math.round((SPIKE - 1) * 100)}% volume spike`, r2: spike, c: AMBER },
+                  { label: `+${Math.round(AHT_STEP * 100)}% AHT increase`, r2: ahtUp, c: AMBER },
+                  { label: `+${SHRINK_STEP}pt shrinkage`, r2: calc(vol, aht, intv, slT / 100, slS, Math.min((shrink + SHRINK_STEP) / 100, SHRINK_CAP / 100), occCap), c: RED },
+                  { label: slT >= SL_EASE ? `Ease SL to ${slT - SL_STEP}%` : `Raise SL to ${Math.min(slT + SL_STEP, 99)}%`,
+                    r2: calc(vol, aht, intv, (slT >= SL_EASE ? slT - SL_STEP : Math.min(slT + SL_STEP, 99)) / 100, slS, shrink / 100, occCap),
                     c: ELECTRIC },
                 ].map((s, i) => (
                   <div key={i} style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
@@ -655,11 +742,11 @@ export default function StaffingCalculator() {
               <ReportActions
                 toolId={TOOL_ID}
                 toolName="Staffing Requirement Calculator"
-                subtitle={`${r.sched} FTE at ${(r.occ * 100).toFixed(1)}% occupancy, ${fmtMoney(cost.annual)} a year, ${cost.confidence}`}
+                subtitle={`${r.sched} FTE at ${(r.occ * 100).toFixed(1)}% occupancy, ${fmtMoney(cost.annual)} a year, ${isVoid(gradeObj) ? "EXPORT VOID, integrity invariant failed" : `${confidence}, bound by ${gradeObj.boundBy}`}`}
                 routePath={ROUTE}
                 state={st}
                 defaults={DEFAULTS}
-                confidence={cost.confidence}
+                grades={gradeObj}
                 summary={[
                   { label: "Base agents required", value: r.raw },
                   { label: "Scheduled FTE", value: r.sched },
@@ -712,13 +799,14 @@ export default function StaffingCalculator() {
                   ran_abandonment_check: !!abandMeaningful,
                   set_occupancy_ceiling: capOn,
                   fragmented_routing: !!pool,
-                  queue_count_band: queues >= 8 ? "high" : queues >= 3 ? "mid" : "low",
+                  queue_count_band: queues >= benchmark("staffing.band.queuesHigh") ? "high" : queues >= benchmark("staffing.band.queuesMid") ? "mid" : "low",
                   overrode_defaults: isCustom,
                   occupancy_band: occInfo.band,
                   shrinkage_elevated: shrinkInfo.elevated,
-                  premium_service_target: slT >= 88 || slS <= 10,
-                  scale_band: r.sched >= 400 ? "very_large" : r.sched >= 150 ? "large" : r.sched >= 40 ? "mid" : "small",
-                  confidence_class: cost.confidence,
+                  premium_service_target: slT / 100 >= benchmark("staffing.read.premiumSl") || slS <= benchmark("staffing.read.premiumSec"),
+                  scale_band: r.sched >= benchmark("staffing.band.scaleVeryLarge") ? "very_large" : r.sched >= benchmark("staffing.band.scaleLarge") ? "large" : r.sched >= benchmark("staffing.band.scaleMid") ? "mid" : "small",
+                  confidence_class: confidence,
+                  default_drivers: graded.defaultDrivers.length,
                   inputs_corrected: guards.length,
                   decision_ready_signal: cost.sourced && valid.ok && r.met !== false && !!pair.sustainable && guards.length === 0,
                 }}
@@ -744,7 +832,7 @@ export default function StaffingCalculator() {
                     { label: "Service Level", value: fmtSL(r.sl), color: r.sl >= slT / 100 ? GREEN : RED },
                     { label: "Avg Speed of Answer", value: asaD, color: ELECTRIC },
                     { label: "Probability of Wait", value: fmtPW(r.pw), color: MUTED },
-                    { label: "Annual Cost of This Plan", value: fmtMoney(cost.annual), color: NAVY, sub: cost.confidence },
+                    { label: "Annual Cost of This Plan", value: fmtMoney(cost.annual), color: NAVY, sub: confidence },
                   ]},
                   { title: "Key Findings", type: "findings", items: [
                     ...(!valid.ok ? [valid.msg] : []),
@@ -754,7 +842,7 @@ export default function StaffingCalculator() {
                     ...insights.slice(0, 3),
                     ...(shrinkInfo.elevated ? [shrinkInfo.message] : []),
                     ...(abandMeaningful ? [`With ${patience}s average patience, an estimated ${(aband.estAband * 100).toFixed(1)}% of contacts would abandon; the abandonment-adjusted estimate is ${adjR.raw} base agents versus the Erlang C ${r.raw}.`] : []),
-                    `A 20% volume spike would require ${spike.sched} FTE (${spike.sched - r.sched >= 0 ? "+" : ""}${spike.sched - r.sched} agents).`,
+                    `A ${Math.round((SPIKE - 1) * 100)}% volume spike would require ${spike.sched} FTE (${spike.sched - r.sched >= 0 ? "+" : ""}${spike.sched - r.sched} agents).`,
                   ]},
                   { title: "Recommended Actions", type: "actions", items: [
                     ...(occInfo.band === "critical" ? [{ action: "Decide whether to buy recovery time", detail: pair.sustainable
@@ -762,8 +850,8 @@ export default function StaffingCalculator() {
                         : `At ${(r.occ * 100).toFixed(1)}%, agents have insufficient recovery time. Target the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% band by adding agents or reducing volume.`, priority: "high" }]
                       : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band, workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
                     ...(shrinkInfo.elevated ? [{ action: "Decompose shrinkage", detail: `${shrink}% is above the typical ${Math.round(BENCH.shrinkage.typicalLow * 100)} to ${Math.round(BENCH.shrinkage.typicalHigh * 100)}% range. Use the Shrinkage Planner to see which categories drive the gap before adding heads.`, priority: "medium" }] : []),
-                    { action: "Model AHT reduction", detail: `A 10% AHT cut (${aht}s → ${Math.round(aht * 0.9)}s) lowers base staffing from ${r.raw} to ${ahtDown.raw} agents. Use AHT Decomposition to find reducible components without hurting quality.`, priority: "medium" },
-                    { action: "Build spike contingency", detail: `Plan for +20% volume. Identify ${spike.sched - r.sched} agents activatable via overtime, cross-training, or BPO overflow.` },
+                    { action: "Model AHT reduction", detail: `A ${Math.round(AHT_STEP * 100)}% AHT cut (${aht}s → ${Math.round(aht * (1 - AHT_STEP))}s) lowers base staffing from ${r.raw} to ${ahtDown.raw} agents. Use AHT Decomposition to find reducible components without hurting quality.`, priority: "medium" },
+                    { action: "Build spike contingency", detail: `Plan for +${Math.round((SPIKE - 1) * 100)}% volume. Identify ${spike.sched - r.sched} agents activatable via overtime, cross-training, or BPO overflow.` },
                   ]},
                   { title: "Next Steps", type: "next", items: [
                     { tool: "Shrinkage Planner", reason: "Break shrinkage into categories and find what drives the gap", href: "/tools/shrinkage-planner" },
