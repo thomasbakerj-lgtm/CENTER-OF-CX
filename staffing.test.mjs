@@ -3,6 +3,9 @@
 // published reference values and internal invariants. Run: node staffing.test.mjs
 
 import { readFileSync } from "node:fs";
+import { BENCH, benchmark, benchmarksForTool, BENCHMARK_SOURCES } from "./src/lib/benchmarks.js";
+import { emitGrades, voidResult, isVoid, railEvidence, weakerStream } from "./src/lib/confidence.js";
+import { createGuards } from "./src/lib/guards.js";
 
 const SRC = readFileSync(new URL("./StaffingCalculator.jsx", import.meta.url), "utf8");
 function slice(a, b) {
@@ -13,7 +16,7 @@ function slice(a, b) {
   return SRC.slice(i, j);
 }
 const engine = slice("function erlangB(", "function buildInsights(");
-const mod = new Function(`${engine}\nreturn { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, fmtSL, fmtASA, fmtPW, SL_CEILING, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)();
+const mod = new Function("benchmark", `${engine}\nreturn { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, fmtSL, fmtASA, fmtPW, SL_CEILING, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)(benchmark);
 const { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, fmtSL, fmtASA, fmtPW, SL_CEILING, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
 
 let pass = 0, fail = 0;
@@ -264,18 +267,19 @@ section("Cost engine");
   const bench = staffingCost(100, 0, 0);
   ok("no rail data falls back to the benchmark",
     Math.abs(bench.perAgentMonth - BENCHMARK_HOURLY * FULL_LOAD_MULTIPLE * PAID_HOURS_MONTH) < 1e-6);
-  ok("benchmark fallback is Directional, not Planning-grade", bench.confidence === "Directional" && bench.sourced === false);
+  ok("benchmark fallback is marked unsourced", bench.sourced === false);
+  ok("the cost engine carries no grade of its own", !("confidence" in bench));
   ok("benchmark basis says plainly it is not the user's figures", /not your own figures/.test(bench.basis));
 
   const wage = staffingCost(100, 0, 24);
   ok("a rail wage is used over the benchmark",
     Math.abs(wage.perAgentMonth - 24 * FULL_LOAD_MULTIPLE * PAID_HOURS_MONTH) < 1e-6);
-  ok("a rail wage earns Planning-grade", wage.confidence === "Planning-grade" && wage.sourced === true);
+  ok("a rail wage is marked sourced", wage.sourced === true);
 
   const tco = staffingCost(100, 6372, 24);
   ok("a measured per-agent TCO figure outranks a wage", tco.perAgentMonth === 6372);
   ok("per-agent basis names the TCO run", /TCO run/.test(tco.basis));
-  ok("per-agent basis is Planning-grade", tco.confidence === "Planning-grade");
+  ok("per-agent basis is marked sourced", tco.sourced === true);
 
   ok("annual is monthly times twelve", Math.abs(tco.annual - tco.monthly * 12) < 1e-6);
   ok("annual scales linearly with FTE",
@@ -449,6 +453,112 @@ section("The certainty boundary: what the model can never say");
   ok("an ordinary wait probability prints its own figure", fmtPW(plain.pw) === `${(plain.pw * 100).toFixed(1)}%`, fmtPW(plain.pw));
   ok("the ceiling sits clear of the underflow floor", SL_CEILING === 0.999 && 1 - SL_CEILING > Number.EPSILON * 1e10);
   ok("a very long wait still prints its own bound", fmtASA(4000) === "> 15m", fmtASA(4000));
+}
+
+/* ---- 11B. axes emitted, benchmarks registered, sign invariance ---- */
+section("11B. grading layer, registry, sign invariance");
+{
+  const full = slice("function erlangB(", "const S = ({ label");
+  const G = new Function("benchmark", "BENCH", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "createGuards",
+    `${full}\nreturn { calc, modelValidity, staffingCost, guardStaffing, gradeStaffing, PRESETS, STAFFING_NA, VALID_RATIO };`)(
+    benchmark, BENCH, emitGrades, voidResult, isVoid, railEvidence, weakerStream, createGuards);
+  const region = full;
+
+  /* The registry gate. Decision 1-07. */
+  const ids = [...SRC.matchAll(/benchmark\("([^"]+)"\)/g)].map(m => m[1]);
+  const tmpl = [...SRC.matchAll(/benchmark\(`staffing\.preset\.\$\{k\}\.(\w+)`\)/g)].map(m => m[1]);
+  const owned = benchmarksForTool("staffing-calculator").map(e => e.id);
+  ok("the tool reads its benchmarks from the registry", ids.length >= 20);
+  ok("every id the tool reads is registered", ids.every(id => id in BENCHMARK_SOURCES));
+  ok("every id the tool reads belongs to this tool", ids.every(id => BENCHMARK_SOURCES[id].tool === "staffing-calculator"));
+  ok("presets read every profile field by template", ["vol", "aht", "slT", "slS", "shrink"].every(f => tmpl.includes(f)));
+  const readIds = new Set([...ids, ...Object.keys(G.PRESETS).flatMap(k => tmpl.map(f => `staffing.preset.${k}.${f}`))]);
+  ok("every registered entry for this tool is read", owned.every(id => readIds.has(id)), owned.filter(id => !readIds.has(id)).join(", "));
+  ok("no preset ships a bare number", !/volume:\s*\d|aht:\s*\d|shrink:\s*0\.\d/.test(slice("const presetOf", "const SPIKE")));
+  ok("no default ships a bare benchmark", !/vol:\s*\d|aht:\s*\d|shrink:\s*\d|intv:\s*\d|capPct:\s*\d/.test(slice("const DEFAULTS = {", "};")));
+  ok("no useState seeds a bare default", !/useState\(\d/.test(SRC));
+  ok("no wage, load or hours constant ships bare", !/BENCHMARK_HOURLY = \d|FULL_LOAD_MULTIPLE = \d|PAID_HOURS_MONTH = \d/.test(SRC));
+  ok("no validity or read threshold ships bare", !/ratio >= 3|ratio < 1\.5|>= 0\.88|slSec <= 10|overBy >= 3|overBy < 3|pctPenalty >= 0\.05|estAband >= 0\.05/.test(SRC));
+  ok("no signal band ships bare", !/queues >= \d|[^-] r\.sched >= [1-9]\d* \?|slT >= 88/.test(SRC));
+  ok("no stress step ships bare", !/vol \* 1\.2|aht \* 1\.1|aht \* 0\.9|shrink \+ 5|0\.70\)|slT >= 95|slT [+-] 5/.test(SRC));
+  ok("no what-if label hardcodes its step", !/"\+20% volume|"\+10% AHT|"\+5pt/.test(SRC));
+  ok("presets equal their registry values", Object.entries(G.PRESETS).every(([k, p]) => p.volume === benchmark(`staffing.preset.${k}.vol`) && Math.round(p.shrink * 100) === benchmark(`staffing.preset.${k}.shrink`)));
+  ok("the wage is the BLS May 2024 market median", benchmark("staffing.wage.median") === 20.59 && BENCHMARK_SOURCES["staffing.wage.median"].kind === "market" && /May 2024/.test(BENCHMARK_SOURCES["staffing.wage.median"].source) && /43-4051/.test(BENCHMARK_SOURCES["staffing.wage.median"].source));
+  ok("every heuristic is labelled as one", benchmarksForTool("staffing-calculator").filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
+  ok("every threshold states a rationale", benchmarksForTool("staffing-calculator").filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
+
+  /* Emission. */
+  ok("the engine calls emitGrades", /emitGrades\(\{/.test(region));
+  ok("the engine voids through voidResult", /voidResult\(\{/.test(region));
+  ok("no local grade ladder remains", !/GRADE_RANK\[/.test(SRC) && !/confidence: sourced \?/.test(SRC) && !/capForCorrections/.test(SRC));
+  ok("the engine never grades a voided result", /const confidence = voided \? "Void"/.test(region));
+
+  const P0 = G.PRESETS.general;
+  const run = (o = {}) => {
+    const st = { vol: 400, aht: 360, slT: 80, slS: 20, shrink: 30, intv: 30, patience: 0, capOn: false, capPct: 85, queues: 1, ...o.st };
+    const { st: g, guards } = G.guardStaffing(st);
+    const r = o.r || G.calc(g.vol, g.aht, g.intv, g.slT / 100, g.slS, g.shrink / 100, st.capOn ? g.capPct / 100 : null);
+    const valid = G.modelValidity(g.aht, g.intv);
+    const cost = o.cost || G.staffingCost(r.sched, o.perAgent || 0, o.hourly || 0);
+    return G.gradeStaffing({ r, guards, valid, cost, shipped: o.shipped || P0, vol: g.vol, aht: g.aht, shrink: g.shrink, railOrigin: o.origin ?? null });
+  };
+  const own = { vol: 420, aht: 350, shrink: 31 };
+  const base = run();
+  ok("the shipped default grades Directional", base.confidence === "Directional");
+  ok("the shipped default emits no grade defect", base.gradeObj.defects.length === 0);
+  ok("realization is declared not applicable", base.gradeObj.realization === null && base.gradeObj.applicable.join() === "evidence,completeness");
+  ok("the not-applicable reason is stated", G.STAFFING_NA.length > 40 && base.gradeObj.naReason === G.STAFFING_NA);
+  ok("boundAxes rides beside the prose", Array.isArray(base.gradeObj.boundAxes) && base.gradeObj.boundAxes.length >= 1);
+  ok("the shipped default names all three default drivers", base.defaultDrivers.length === 3 && /operating profile/.test(base.gradeObj.reasons.evidence));
+
+  /* Defect 1, closed. TCO publishes its shipped wage at its own defaults. */
+  const railDefault = run({ st: own, hourly: 19 });
+  ok("regression: a rail wage with no origin grade is Directional", railDefault.costGrade === "Directional" && railDefault.confidence === "Directional");
+  ok("regression: a rail per-agent cost with no origin grade is Directional", run({ st: own, perAgent: 6372 }).confidence === "Directional");
+  ok("the rail reason says no origin grade was recorded", /no recorded origin grade/.test(railDefault.gradeObj.reasons.evidence));
+  ok("a rail origin at Finance-grade is capped at Planning-grade", run({ st: own, perAgent: 6372, origin: "Finance-grade" }).costGrade === "Planning-grade");
+  ok("with own inputs and a Planning origin the headline reaches Planning-grade", run({ st: own, perAgent: 6372, origin: "Planning-grade" }).confidence === "Planning-grade");
+  ok("Finance-grade evidence is unreachable without attestation", run({ st: own, perAgent: 6372, origin: "Finance-grade" }).evidence === "Planning-grade");
+  ok("the benchmark basis grades Directional on own inputs", run({ st: own }).costGrade === "Directional" && run({ st: own }).opsGrade === "Planning-grade");
+  ok("one default driver holds evidence Directional", run({ st: { ...own, shrink: 30 }, perAgent: 6372, origin: "Planning-grade" }).evidence === "Directional");
+  ok("a driver at another profile's value counts against that profile", run({ st: { vol: 700, aht: 340, shrink: 34 }, perAgent: 6372, origin: "Planning-grade", shipped: G.PRESETS.bpo }).defaultDrivers.length === 3);
+
+  /* Defect 2, closed. An invalid model cannot grade above Directional. */
+  const bad = run({ st: { ...own, aht: 900, intv: 15 }, perAgent: 6372, origin: "Planning-grade" });
+  ok("regression: an interval under the validity floor holds completeness Directional", bad.completeness === "Directional" && bad.confidence === "Directional");
+  ok("the completeness reason names the interval", /times AHT/.test(bad.gradeObj.reasons.completeness));
+  const caution = run({ st: { ...own, aht: 400, intv: 15 }, perAgent: 6372, origin: "Planning-grade" });
+  ok("the caution band of an invalid model holds it too", caution.completeness === "Directional");
+  ok("a guard correction holds completeness Directional", run({ st: { ...own, vol: -5 }, perAgent: 6372, origin: "Planning-grade" }).completeness === "Directional");
+  const met0 = G.calc(420, 350, 30, 0.8, 20, 0.31, null);
+  ok("an unmet solve holds completeness Directional", run({ st: own, r: { ...met0, met: false }, perAgent: 6372, origin: "Planning-grade" }).completeness === "Directional");
+  ok("a clean model grades completeness Finance-grade", run({ st: own }).completeness === "Finance-grade");
+
+  /* Void. Unreachable through the guards: fuzzed, then forced. */
+  let fuzzVoid = 0, fuzzDefect = 0, n = 0;
+  for (const vol of [-50, 0, 1, 37, 400, 5000]) for (const aht of [-1, 0, 30, 360, 1800]) for (const intv of [0, 1, 15, 30, 60])
+    for (const shrink of [-10, 0, 30, 99, 140]) for (const slT of [0, 50, 80, 99, 150]) {
+      const g = run({ st: { vol, aht, intv, shrink, slT } }); n++;
+      if (g.voided) fuzzVoid++; else if (g.gradeObj.defects.length) fuzzDefect++;
+    }
+  ok(`with every input guarded, no invariant fails (${n} cases)`, fuzzVoid === 0);
+  ok("no fuzzed case emits a grade defect", fuzzDefect === 0);
+  const forced = run({ st: own, r: { ...met0, sched: met0.raw - 1 } });
+  ok("a forced invariant voids the export", forced.voided && isVoid(forced.gradeObj) && forced.confidence === "Void");
+  ok("the void names the failed check and a remedy", /below base agents/.test(forced.gradeObj.invariant) && forced.gradeObj.remedy.length > 20);
+  ok("a non-finite output voids", run({ st: own, r: { ...met0, asa: Infinity } }).voided);
+
+  /* Sign invariance. The engine cannot go negative. Inputs fixed, only the size of
+     the answer moves, zero to large, by volume. Axes and headline must hold. */
+  const axes = (g) => [g.evidence, g.completeness, g.confidence, g.gradeObj.boundBy].join("|");
+  for (const extra of [{}, { perAgent: 6372, origin: "Planning-grade" }]) {
+    const zero = run({ st: { ...own, vol: 0 }, ...extra });
+    const small = run({ st: own, ...extra });
+    const large = run({ st: { ...own, vol: 20000 }, ...extra });
+    ok(`the invariance cases span zero to large ${extra.origin ? "(Planning)" : "(Directional)"}`, zero.gradeObj && G.staffingCost(G.calc(20000, 350, 30, 0.8, 20, 0.31, null).sched, 0, 0).annual > 10 * G.staffingCost(G.calc(420, 350, 30, 0.8, 20, 0.31, null).sched, 0, 0).annual);
+    ok(`sign invariance: zero grades as the base case ${extra.origin || ""}`, axes(zero) === axes(small), `${axes(zero)} vs ${axes(small)}`);
+    ok(`sign invariance: large grades as the base case ${extra.origin || ""}`, axes(large) === axes(small), `${axes(large)} vs ${axes(small)}`);
+  }
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
