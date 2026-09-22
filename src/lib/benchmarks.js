@@ -98,6 +98,28 @@ const mod = (value, rationale) => ({ tool: LBG, kind: "heuristic", value, unit: 
 const seat = (value, rationale) => ({ tool: LBG, kind: "heuristic", value, unit: "USD per seat per month", source: HEUR, reviewed: REVIEWED, version: 1, rationale });
 const line = (value, unit, rationale) => ({ tool: LBG, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
 
+/* Cost per Contact vs Cost per Resolution. Defaults are an internal operating
+   profile so the tool opens on a runnable case. A driver still at one grades
+   evidence Directional. The vertical ranges are internal planning ranges, labelled
+   as such on the page. The wage is the same BLS figure Staffing cites, held as this
+   tool's own entry until TCO lands as the third consumer and one shared entry
+   replaces both. */
+const CPC = "cost-per-contact";
+const CPC_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const cHeur = (value, unit, rationale) => ({ tool: CPC, kind: "heuristic", value, unit, source: CPC_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const cLine = (value, unit, rationale) => ({ tool: CPC, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
+const CPC_DEF = "Default so the tool opens on a runnable case.";
+const CPC_VERTS = { fin: [8.5, 12, 11, 16, 72], health: [9, 14, 13, 20, 71], retail: [5, 8, 6, 10, 78] };
+const CPC_VERT_FIELDS = [
+  ["cpcLow", "USD per contact", "Low end of the internal cost per contact planning range"],
+  ["cpcHigh", "USD per contact", "High end of the internal cost per contact planning range"],
+  ["cprLow", "USD per resolution", "Low end of the internal cost per resolution planning range"],
+  ["cprHigh", "USD per resolution", "High end of the internal cost per resolution planning range"],
+  ["fcr", "percent", "Internal planning FCR for this vertical"],
+];
+const cpcVertEntries = Object.fromEntries(Object.entries(CPC_VERTS).flatMap(([k, vals]) =>
+  CPC_VERT_FIELDS.map(([f, unit, what], i) => [`cpc.vert.${k}.${f}`, cHeur(vals[i], unit, `${what}. Context for the reader only. It feeds no figure and reaches no confidence axis.`)])));
+
 /* Staffing Requirement Calculator. Presets are internal operating profiles, one per
    industry, so the tool opens on a runnable case. They are labelled heuristics in
    the registry and grade evidence Directional while a driver still holds one. */
@@ -169,6 +191,37 @@ export const BENCHMARK_SOURCES = {
   "staffing.band.scaleVeryLarge": sLine(400, "scheduled FTE", "Scale band on the wire. Very large from 400 FTE. Signal only. It reaches no confidence axis."),
   "staffing.band.scaleLarge": sLine(150, "scheduled FTE", "Scale band on the wire. Large from 150 FTE. Signal only."),
   "staffing.band.scaleMid": sLine(40, "scheduled FTE", "Scale band on the wire. Mid from 40 FTE. Signal only."),
+
+  "cpc.default.volume": cHeur(50000, "contacts per month", `${CPC_DEF} A volume still at this value grades evidence Directional.`),
+  "cpc.default.fcr": cHeur(72, "percent", `${CPC_DEF} An FCR still at this value grades evidence Directional.`),
+  "cpc.default.m": cHeur(2.4, "contacts per unresolved issue", `${CPC_DEF} An M still at this value grades evidence Directional.`),
+  "cpc.default.loaded": cHeur(7, "USD per contact", `${CPC_DEF} A loaded cost still at this value grades evidence Directional.`),
+  "cpc.default.marginal": cHeur(4.2, "USD per contact", `${CPC_DEF} A marginal cost still at this value grades evidence Directional.`),
+  "cpc.default.overhead": cHeur(1.35, "multiple of hourly wage", `${CPC_DEF} Loads the wage for the channel handle view only. Staffing loads at 1.95x for a fully loaded cost; the two tools model different things and the gap is logged for review.`),
+  "cpc.default.productiveHours": cHeur(140, "productive hours per FTE per month", `${CPC_DEF} Also the fallback when no usable figure is entered, disclosed as a correction.`),
+  "cpc.default.mix.voice": cHeur(60, "percent of volume", `${CPC_DEF} Voice share of the channel mix.`),
+  "cpc.default.mix.chat": cHeur(25, "percent of volume", `${CPC_DEF} Chat share of the channel mix.`),
+  "cpc.default.mix.email": cHeur(15, "percent of volume", `${CPC_DEF} Email share of the channel mix.`),
+  "cpc.default.aht.voice": cHeur(7, "minutes", `${CPC_DEF} Voice handle time.`),
+  "cpc.default.aht.chat": cHeur(9, "minutes", `${CPC_DEF} Chat handle time.`),
+  "cpc.default.aht.email": cHeur(5, "minutes", `${CPC_DEF} Email handle time.`),
+  "cpc.default.conc.voice": cHeur(1, "concurrent contacts", `${CPC_DEF} Voice is one contact at a time.`),
+  "cpc.default.conc.chat": cHeur(2.5, "concurrent contacts", `${CPC_DEF} Typical chat session concurrency.`),
+  "cpc.default.conc.email": cHeur(1, "concurrent contacts", `${CPC_DEF} Email worked one at a time.`),
+  "cpc.derive.marginalShare": cHeur(0.6, "share of loaded cost", "Marginal cost derived from loaded when none is entered. Disclosed on the page and grades cost evidence Directional."),
+  "cpc.fallback.effAht": cHeur(5.5, "minutes", "Effective handle time used when the channel mix or handle times give none. Disclosed, and holds completeness Directional."),
+  "cpc.dividend.step1": cHeur(5, "FCR points", "First FCR improvement the dividend prices. Read as operational work."),
+  "cpc.dividend.step2": cHeur(10, "FCR points", "Second FCR improvement the dividend prices, and the one the layers table and analyst read quote. Read as root-cause work."),
+  "cpc.dividend.step3": cHeur(15, "FCR points", "Third FCR improvement the dividend prices. Read as a transformation case, never a base case."),
+  "cpc.wage.median": { tool: CPC, kind: "market", value: 20.59, unit: "USD per hour", source: "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.", reviewed: REVIEWED, version: 1, rationale: "Default agent wage for the channel handle view. The occupation median, labelled as a benchmark. It is no figure of the user's own and feeds no graded figure." },
+  "cpc.guard.concurrencyFloor": cLine(1, "concurrent contacts", "An agent cannot work fewer than one contact at a time. A concurrency below one is an input error, corrected to one and disclosed. It reaches completeness through the correction."),
+  "cpc.read.repeatShare": cLine(0.25, "share of handled contacts", "Repeat demand above this reads as a resolution problem. It is the point where the shared severity bucket turns moderate, so the flag and the published band agree. Framing only."),
+  "cpc.read.lowFcr": cLine(0.7, "FCR", "Below this FCR, paired with a shallow M, the repeat path is likely understated. Holds completeness Directional until M is checked."),
+  "cpc.read.shallowM": cLine(1.3, "contacts per unresolved issue", "An M under this with low FCR is implausibly shallow. Paired with the low FCR line, holds completeness Directional."),
+  "cpc.read.fcrLeakLink": cLine(78, "percent FCR", "Below this FCR the page offers the FCR Leakage Diagnostic. The top of the internal vertical FCR range. Navigation only."),
+  "cpc.band.gapAmber": cLine(20, "percent resolution premium", "Cost per resolution card turns amber above this premium. Colour only. It reaches no confidence axis."),
+  "cpc.band.gapRed": cLine(40, "percent resolution premium", "Cost per resolution card turns red above this premium. Colour only. It reaches no confidence axis."),
+  ...cpcVertEntries,
 };
 
 for (const [id, e] of Object.entries(BENCHMARK_SOURCES)) {
