@@ -21,7 +21,7 @@ import { readFileSync } from "fs";
 
 const SRC = readFileSync("./FCRLeakageDiagnostic.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
-const { MECH, MECH_ORDER } = await import("./src/lib/mech.js");
+const { MECH, MECH_ORDER, MECH_INITIAL } = await import("./src/lib/mech.js");
 /* The real enum guard. The engine region now resolves the mechanism and the scope
    through pick, so the rendered document cannot be reconciled without it. */
 const { createGuards } = await import("./src/lib/guards.js");
@@ -29,6 +29,12 @@ const { createGuards } = await import("./src/lib/guards.js");
    publishes signals.severity through severityBucket, and sanitizeProps is what
    decides whether that value reaches the wire or is silently dropped. */
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
+/* 11B, session 18. The real registry, confidence module and journey graph. The page
+   grades through gradeFCR and names its next steps from nextFor, so the document
+   cannot be reconciled against reconstructed copies of either. */
+const BENCHMOD = await import("./src/lib/benchmarks.js");
+const CONF = await import("./src/lib/confidence.js");
+const { nextFor } = await import("./src/lib/journey.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -146,11 +152,17 @@ const dimsRegion = "const DIMS = " + constLiteral("DIMS", "[", "]").replace(/^co
 
 /* the component-scope derivations the payload closes over */
 const compRegion = [
-  constLine("N"), constLine("dimScore"), constLine("defDeclared"), constLine("confColor"),
+  constLine("N"), constLine("dimScore"), constLine("dimComplete"), constLine("allComplete"), constLine("defDeclared"), constLine("confColor"),
   constLine("scopeLabel"), constLine("methodLabel"), constLine("aggMult"),
 ].join("\n");
 
 const ENGINE_INPUT = constLine("engineInput");
+const GRADE_LINE = constLine("G");
+const BLOCKED_LINE = constLine("blocked");
+A("the shipped grade line slices out of the JSX and grades through gradeFCR",
+  !!GRADE_LINE && /^const G = gradeFCR\(\{ I: engineInput, r: R, pre: fromLink \? \{\} : rail\.current\.pre, railOrigin: null \}\);$/.test(GRADE_LINE));
+A("the shipped blocked line reads the hard flag and the void", BLOCKED_LINE === "const blocked = R.hardFlag || G.voided;");
+A("the shipped engineInput carries the diagnostic completeness", /diagComplete: allComplete/.test(ENGINE_INPUT));
 A("the shipped engineInput slices out of the JSX and reads sanitized numerics", !!ENGINE_INPUT && /N\.M\b/.test(ENGINE_INPUT) && /numericCorrections: N\.numericCorrections/.test(ENGINE_INPUT));
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
@@ -212,11 +224,14 @@ function render(S) {
        would have kept reading raw state after the tool moved to sanitized numerics. */
     const dScore = dScoreRaw;
     ${ENGINE_INPUT}
-    const R = engine(engineInput);
+    const R0 = engine(engineInput);
+    const R = R0;
+    ${GRADE_LINE}
+    ${BLOCKED_LINE}
     const sorted = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id));
     const top = sorted[0];
     return {
-      R, dScore: dScoreRaw, sorted, top,
+      R: { ...R0, ...G, headlineConf: G.confidence }, G, dScore: dScoreRaw, sorted, top,
       subtitle: (${subtitleExpr}),
       summary: (${summaryExpr}),
       signals: (${signalsExpr}),
@@ -224,13 +239,15 @@ function render(S) {
     };
   `;
 
-  const argNames = ["MECH", "MECH_ORDER", "createGuards", "severityBucket", "SCORES", "COLORS", "M", "fcrPct", "mCPC", "lCPC", "scope", "method",
+  const argNames = ["benchmark", "emitGrades", "voidResult", "railEvidence", "weakerStream", "realizationFromCred", "nextFor", "MECH_INITIAL", "rail",
+    "MECH", "MECH_ORDER", "createGuards", "severityBucket", "SCORES", "COLORS", "M", "fcrPct", "mCPC", "lCPC", "scope", "method",
     "windowDays", "repeatModel", "measuredPct", "measuredTargetPct", "pathModel", "repeatMult", "targetPct",
     "sourcing", "mech", "investOneTime", "investRecurring", "costBasis", "fcrPulledDirty", "fromLink"];
   const C = { GREEN: "g", AMBER: "a", RED: "r", ELECTRIC: "e", NAVY: "n", MUTED: "m", SLATE: "s" };
   const body = "const { GREEN, AMBER, RED, ELECTRIC, NAVY, MUTED, SLATE } = COLORS;" + preamble;
   const fn = new Function(...argNames, body);
-  return fn(MECH, MECH_ORDER, createGuards, severityBucket, scores, C, S.M, S.fcrPct, S.mCPC, S.lCPC, S.scope, S.method, S.windowDays,
+  return fn(BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred, nextFor, MECH_INITIAL, { current: { pre: S.pre || {} } },
+    MECH, MECH_ORDER, createGuards, severityBucket, scores, C, S.M, S.fcrPct, S.mCPC, S.lCPC, S.scope, S.method, S.windowDays,
     S.repeatModel, S.measuredPct, S.measuredTargetPct, S.pathModel, S.repeatMult, S.targetPct, S.sourcing,
     S.mech, S.investOneTime, S.investRecurring, S.costBasis, S.fcrPulledDirty, S.fromLink);
 }
@@ -341,12 +358,25 @@ function auditSet(key) {
   A(P() + "subtitle confidence matches the engine headline", rep.subtitle.indexOf(R.headlineConf) >= 0);
   const confSec = rep.sections.find((s) => s.title === "Confidence and Risk Flags");
   A(P() + "confidence section states the headline grade", confSec.items[0].indexOf(R.headlineConf) >= 0);
-  A(P() + "confidence section states both axes", confSec.items[0].indexOf(R.costConf) >= 0 && confSec.items[0].indexOf(R.realConf) >= 0);
+  A(P() + "confidence section states the rationale the page prints", confSec.items[0] === "Headline " + R.confidence + ". " + R.gradeWhy);
+  /* 11B. The document prints the three graded axes as rows, read from gradeFCR. */
+  A(P() + "the evidence row prints the graded evidence axis", confSec.items[1] === "Evidence axis: " + (R.voided ? "Void" : R.evidence) + ".");
+  A(P() + "the realization row prints the graded realization axis",
+    confSec.items[2] === "Realization axis: " + (R.voided ? "Void" : R.realization) + " (" + (R.mechApplies ? MECH[R.mechKey].label : "per-contact billing") + ").");
+  A(P() + "the completeness row prints the graded completeness axis",
+    confSec.items[3].indexOf("Completeness axis: " + (R.voided ? "Void" : R.completeness)) === 0 && (R.blockers.length ? confSec.items[3].indexOf(R.blockers.length + " check") > 0 : /model is whole/.test(confSec.items[3])));
+  A(P() + "the document states the grade is self-declared", /self-declared/.test(confSec.items[4]));
+  A(P() + "the PDF grade object is the gradeFCR object", !!R.gradeObj && R.gradeObj.headline === (R.voided ? null : R.confidence));
+  A(P() + "the headline is the minimum of the applicable axes",
+    R.voided || R.confidence === CONF.gradeConfidence({ evidence: R.evidence, realization: R.realization, completeness: R.completeness }).headline);
+  A(P() + "no document reaches Finance-grade", R.confidence !== "Finance-grade");
+  const nx = rep.sections.find((s) => s.title === "Next Steps");
+  A(P() + "Next Steps are the journey graph edges, in order", JSON.stringify(nx.items) === JSON.stringify(nextFor("fcr-leakage").map((e) => ({ tool: e.name, reason: e.why, href: e.href }))) && nx.items.length === 2);
   A(P() + "confidence section carries every engine flag", R.flags.every((f) => confSec.items.indexOf(f) >= 0));
   A(P() + "signals report the APPLIED target, not the ask (" + rep.signals.target_fcr + " vs applied " + (R.target * 100).toFixed(1) + "%)",
     Math.abs(Number(String(rep.signals.target_fcr).replace("%", "")) - R.target * 100) < 0.06);
-  A(P() + "signals block agrees with the engine on both axes",
-    rep.signals.cost_basis_confidence === R.costConf && rep.signals.realization_confidence === R.realConf);
+  A(P() + "signals block agrees with the grade on all three axes",
+    rep.signals.evidence_confidence === (R.voided ? "void" : R.evidence) && rep.signals.realization_confidence === (R.voided ? "void" : R.realization) && rep.signals.completeness_confidence === (R.voided ? "void" : R.completeness));
 
   /* payback must say the same thing everywhere it is stated */
   // Payback is stated in three places with two different label styles. They are
@@ -362,14 +392,14 @@ function auditSet(key) {
   };
   A(P() + "the summary strip and the table say the same thing about payback (" + pbSummary + " / " + pbTable + ")", same(pbSummary, pbTable));
   A(P() + "payback in the prose matches the payback in the table",
-    (R.neverPaysBack && /never/.test(textSec.content)) || (!R.neverPaysBack && (textSec.content.indexOf("month " + R.payback) >= 0 || textSec.content.indexOf("beyond 48 months") >= 0)));
+    (R.neverPaysBack && /never/.test(textSec.content)) || (!R.neverPaysBack && (textSec.content.indexOf("month " + R.payback) >= 0 || textSec.content.indexOf("beyond " + BENCHMOD.benchmark("fcr.guard.horizon") + " months") >= 0)));
 
   /* the mechanism must not be named when it does not apply */
   if (S.sourcing === "bpo") {
     const all = JSON.stringify(rep.sections) + rep.subtitle;
     A(P() + "an outsourced case does not credit a capacity mechanism", rep.signals.capacity_action === "not applicable (bpo)");
     A(P() + "an outsourced case states that no mechanism was used", all.indexOf("none was used") >= 0);
-    A(P() + "an outsourced case is not presented as Finance-grade realization", R.realConf !== "Finance-grade");
+    A(P() + "an outsourced case is not presented as Finance-grade realization", R.realization === "Planning-grade");
   } else {
     A(P() + "an in-house case names the capacity mechanism it applied", rep.signals.capacity_action === MECH[R.mechKey].label);
     A(P() + "an in-house case names the credit class", rep.signals.credit_class === MECH[R.mechKey].cred);
@@ -439,7 +469,7 @@ A("a weak diagnostic does not soften the published band", weakDiag.signals.sever
 
 for (const [k, doc] of Object.entries({ A: repA, B: repB, ...SEV })) {
   const v = doc.signals.severity;
-  if (v === undefined) { A(k + ": severity is omitted only where the result is blocked", doc.R.hardFlag || doc.R.fcrImpossible); continue; }
+  if (v === undefined) { A(k + ": severity is omitted only where the result is blocked", doc.R.hardFlag || doc.R.voided || doc.R.fcrImpossible); continue; }
   A(k + ": the published band is in the canonical vocabulary", SEVERITY_BANDS.includes(v));
   A(k + ": the published band survives sanitizeProps and lands on the payload", sanitizeProps({ severity: v }).severity === v);
   A(k + ": severity reaches the manual review submission as signal_severity",
@@ -502,6 +532,21 @@ A("no substituted document publishes a severity band",
 A("a clean document discloses no enum correction at all",
   corrOf(render(SETS.A), "Realization mechanism was").length === 0 &&
   corrOf(render(SETS.A), "Resolution scope was").length === 0);
+
+/* 11B. A document built on this tool's own last run, or on a rail value with no
+   origin, prints Directional evidence and says why. A scenario link suppresses the
+   prefill record, so the same values opened from a link are the sender's entries. */
+{
+  const selfDoc = render({ ...SETS.B, label: "restored own run", pre: { M: { value: SETS.B.M, src: "fcr-leakage" } } });
+  const railDoc = render({ ...SETS.B, label: "rail volume", pre: { M: { value: SETS.B.M, src: "cost-per-contact" } } });
+  const linkDoc = render({ ...SETS.B, label: "same values from a link", fromLink: true, pre: { M: { value: SETS.B.M, src: "fcr-leakage" } } });
+  const conf = (d) => d.sections.find((s) => s.title === "Confidence and Risk Flags").items;
+  A("a restored own value prints Directional evidence and names self-credentialing", selfDoc.R.evidence === "Directional" && /a tool never credentials itself/.test(conf(selfDoc)[0]));
+  A("a rail value with no origin prints Directional evidence and names the rail", railDoc.R.evidence === "Directional" && /arrived over the rail with no recorded origin grade/.test(conf(railDoc)[0]));
+  A("the same values from a scenario link are the sender's entries", linkDoc.R.evidence === "Planning-grade" && linkDoc.R.origins.M === "entered");
+  A("set B prints Planning-grade headline with a whole model", render(SETS.B).R.confidence === "Planning-grade" && render(SETS.B).R.completeness === "Finance-grade");
+  A("set A prints Directional, bound by evidence on a modeled repeat share", render(SETS.A).R.confidence === "Directional" && /modeled from FCR/.test(conf(render(SETS.A))[0]));
+}
 
 /* The second consumer. ReportActions appends every signal to the Formspree
    review payload, so adding severity changed the manual-handling form too. */
