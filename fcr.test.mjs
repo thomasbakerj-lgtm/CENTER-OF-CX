@@ -10,12 +10,15 @@ import { readFileSync } from "fs";
 
 /* ---- dependency integrity. Import the real module, do not rebuild it. ---- */
 let MECHMOD;
-let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards;
+let MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards, BENCHMOD, CONF, JOURNEYMOD;
 try {
   MECHMOD = await import("./src/lib/mech.js");
   const m = MECHMOD;
   ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = m);
   ({ createGuards } = await import("./src/lib/guards.js"));
+  BENCHMOD = await import("./src/lib/benchmarks.js");
+  CONF = await import("./src/lib/confidence.js");
+  JOURNEYMOD = await import("./src/lib/journey.js");
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js. The engine cannot be");
   console.error("verified against reconstructed constants. Run from the repo root.");
@@ -48,10 +51,22 @@ const src = readFileSync("./FCRLeakageDiagnostic.jsx", "utf8");
 const a = src.indexOf("/* @engine-start"), b = src.indexOf("/* @engine-end */");
 if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found in FCRLeakageDiagnostic.jsx."); process.exit(1); }
 const region = src.slice(a, b).replace(/^export /gm, "");
-let engine, CRED_RANK, SCOPE, MECH_ALIAS;
+/* The region closes over the real registry and the real confidence module as well as
+   mech.js and guards.js. All are injected from their shipped files. */
+const INJECT = ["MECH", "MECH_ORDER", "createGuards", "benchmark", "emitGrades", "voidResult", "railEvidence", "weakerStream", "realizationFromCred"];
+const injected = () => [MECH, MECH_ORDER, createGuards, BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred];
+/* The component runs engine, then gradeFCR on the same inputs. The harness composes
+   them the same way, so every assertion below reads the grade the page prints. */
+const compose = (raw, grade) => (I, pre = {}, railOrigin = null) => {
+  const r = raw(I);
+  const g = grade({ I, r, pre, railOrigin });
+  return { ...r, ...g, headlineConf: g.confidence };
+};
+let engine, engineRaw, gradeFCR, fieldOrigin, FCR_BASE, TOOL_ID, CRED_RANK, SCOPE, MECH_ALIAS;
 try {
-  ({ engine, CRED_RANK, SCOPE, MECH_ALIAS } = new Function("MECH", "MECH_ORDER", "createGuards",
-    region + "\nreturn { engine, CRED_RANK, SCOPE, MECH_ALIAS };")(MECH, MECH_ORDER, createGuards));
+  ({ engine: engineRaw, gradeFCR, fieldOrigin, BASE: FCR_BASE, TOOL_ID, CRED_RANK, SCOPE, MECH_ALIAS } = new Function(...INJECT,
+    region + "\nreturn { engine, gradeFCR, fieldOrigin, BASE, TOOL_ID, CRED_RANK, SCOPE, MECH_ALIAS };")(...injected()));
+  engine = compose(engineRaw, gradeFCR);
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -73,14 +88,14 @@ const DEF = {
   M: 50000, fcr: 0.72, mCPC: 6.5, lCPC: 11,
   repeatModel: "one", measuredRate: 0.22, measuredTargetRate: null, pathModel: "one",
   repeatMult: 1.0, dScore: 3, askTarget: 0.80,
-  mech: "hiring", sourcing: "inhouse",
+  mech: MECH_INITIAL, sourcing: "inhouse",
   investOneTime: 150000, investRecurring: 90000,
   costBasis: "estimate", defDeclared: false, fcrPulledDirty: false,
-  scope: "", method: "", windowDays: 7,
+  scope: "", method: "", windowDays: 7, diagComplete: false,
 };
 /* A declared, internally consistent case. Used wherever the assertion is about
    arithmetic rather than about the undeclared-definition penalty. */
-const DECL = { ...DEF, defDeclared: true, scope: "cc", method: "survey" };
+const DECL = { ...DEF, defDeclared: true, scope: "cc", method: "survey", diagComplete: true };
 
 const MECH_KEYS = MECH_ORDER.slice();
 const SCOPES = ["voice", "cc", "digital", "enterprise"];
@@ -174,19 +189,19 @@ const hard = (r) => r.flags.some(f => /impossible|outside the plausible|outside 
     engine({ ...DECL, fcr: 1 }).flags.some(f => /outside 0 to 100/.test(f)));
   A("FCR above 100 is blocked, not divided twice",
     engine({ ...DECL, fcr: 140 }).flags.some(f => /outside 0 to 100/.test(f)));
-  A("a dirty pulled FCR caps both confidence axes at Planning-grade",
-    (() => { const r = engine({ ...DECL, fcr: 72, fcrPulledDirty: true, costBasis: "finance", mech: "headcount" }); return r.costConf === "Planning-grade" && r.realConf === "Planning-grade"; })());
-  A("a dirty pulled FCR names itself in the confidence reason",
-    /wrong unit/.test(engine({ ...DECL, fcr: 72, fcrPulledDirty: true }).confReason));
+  A("a dirty pulled FCR holds completeness Directional",
+    (() => { const r = engine({ ...DECL, fcr: 72, fcrPulledDirty: true, costBasis: "finance", mech: "headcount" }); return r.completeness === "Directional" && r.headlineConf === "Directional"; })());
+  A("a dirty pulled FCR names itself in the completeness rationale",
+    /arrived from another tool as a whole number/.test(engine({ ...DECL, fcr: 72, fcrPulledDirty: true }).gradeObj.reasons.completeness));
 }
 
 /* ---- 5. Impossible-output blocking. An impossible input must not produce a
          confident number. ---- */
 {
   const imp = engine({ ...DECL, fcr: 0, costBasis: "finance", mech: "headcount", sourcing: "bpo" });
-  A("an impossible FCR forces both axes to Directional", imp.costConf === "Directional" && imp.realConf === "Directional");
+  A("an impossible FCR holds completeness Directional without voiding", imp.completeness === "Directional" && !imp.voided);
   A("an impossible FCR sets hardFlag", imp.hardFlag === true);
-  A("hardFlag overrides an otherwise Finance-grade case", imp.headlineConf === "Directional");
+  A("an impossible FCR holds the headline Directional", imp.headlineConf === "Directional");
   A("an undeclared definition alone forces Directional",
     engine({ ...DEF, costBasis: "finance", mech: "headcount" }).headlineConf === "Directional");
   A("marginal cost above loaded cost is flagged as impossible",
@@ -346,33 +361,33 @@ const hard = (r) => r.flags.some(f => /impossible|outside the plausible|outside 
   A("realizable rises monotonically along the mechanism ladder, in-house",
     MECH_KEYS.every((k, i) => i === 0 || engine({ ...DECL, mech: k }).realizableYr >= engine({ ...DECL, mech: MECH_KEYS[i - 1] }).realizableYr));
   A("a capacity-only mechanism is Directional on the realization axis",
-    engine({ ...DECL, mech: "growth", costBasis: "finance" }).realConf === "Directional");
+    engine({ ...DECL, mech: "growth", costBasis: "finance" }).realization === "Directional");
   A("a finance-creditable mechanism is Planning-grade on the realization axis",
-    engine({ ...DECL, mech: "hiring", costBasis: "finance" }).realConf === "Planning-grade");
+    engine({ ...DECL, mech: "hiring", costBasis: "finance" }).realization === "Planning-grade");
   A("a cash mechanism reaches Finance-grade on the realization axis",
-    engine({ ...DECL, mech: "headcount", costBasis: "finance" }).realConf === "Finance-grade");
+    engine({ ...DECL, mech: "headcount", costBasis: "finance" }).realization === "Finance-grade");
   A("outsourced per-contact sourcing converts at 100 percent",
     engine({ ...DECL, sourcing: "bpo", mech: "none" }).realFactor === 1.0);
   A("outsourced sourcing ignores the mechanism selector entirely",
     MECH_KEYS.every(k => engine({ ...DECL, sourcing: "bpo", mech: k }).realizableYr === engine({ ...DECL, sourcing: "bpo", mech: "none" }).realizableYr));
   A("outsourced sourcing is held at Planning-grade, never Finance-grade",
-    MECH_KEYS.every(k => engine({ ...DECL, sourcing: "bpo", mech: k, costBasis: "finance" }).realConf === "Planning-grade"));
+    MECH_KEYS.every(k => engine({ ...DECL, sourcing: "bpo", mech: k, costBasis: "finance" }).realization === "Planning-grade"));
   A("outsourced sourcing routes the volume-commitment risk to a flag",
     engine({ ...DECL, sourcing: "bpo" }).flags.some(f => /minimum commitment|volume floor|Contract Risk/.test(f)));
   A("in-house plus a vendor-reduction mechanism raises the contradiction",
     engine({ ...DECL, sourcing: "inhouse", mech: "vendor" }).flags.some(f => /overflow or seasonal/.test(f)));
-  A("the headline reports the weaker of the two axes",
+  A("the headline reports the weakest of the three axes",
     Array.from({ length: 2000 }, () => {
       const r = engine({ ...DECL, costBasis: ["estimate", "ops", "finance"][Math.floor(Math.random() * 3)], mech: MECH_KEYS[Math.floor(Math.random() * MECH_KEYS.length)], sourcing: Math.random() < 0.5 ? "bpo" : "inhouse" });
       const ord = ["Directional", "Planning-grade", "Finance-grade"];
-      return ord.indexOf(r.headlineConf) === Math.min(ord.indexOf(r.costConf), ord.indexOf(r.realConf));
+      return ord.indexOf(r.headlineConf) === Math.min(ord.indexOf(r.evidence), ord.indexOf(r.realization), ord.indexOf(r.completeness));
     }).every(Boolean));
   A("the confidence band tightens as the cost basis strengthens",
     engine({ ...DECL, costBasis: "estimate" }).band > engine({ ...DECL, costBasis: "ops" }).band &&
     engine({ ...DECL, costBasis: "ops" }).band > engine({ ...DECL, costBasis: "finance" }).band);
-  A("the confidence reason always names an axis or a blocker",
-    Array.from({ length: 500 }, () => engine({ ...DECL, mech: MECH_KEYS[Math.floor(Math.random() * MECH_KEYS.length)], costBasis: ["estimate", "ops", "finance"][Math.floor(Math.random() * 3)] }).confReason)
-      .every(s => typeof s === "string" && s.length > 20));
+  A("the grade rationale always names the binding axis",
+    Array.from({ length: 500 }, () => engine({ ...DECL, mech: MECH_KEYS[Math.floor(Math.random() * MECH_KEYS.length)], costBasis: ["estimate", "ops", "finance"][Math.floor(Math.random() * 3)] }))
+      .every(r => typeof r.gradeWhy === "string" && r.gradeWhy.length > 20 && r.gradeWhy.indexOf("Bound by " + r.gradeObj.boundBy) === 0));
 }
 
 /* ---- 9. Payback. A project that realizes nothing must never report a horizon. ---- */
@@ -573,6 +588,197 @@ const hard = (r) => r.flags.some(f => /impossible|outside the plausible|outside 
     !/fcrLeakageConfidence/.test(region));
 }
 
+/* ---- 14. 11B grading layer, registry and component wiring. Session 18. ---- */
+console.log("\n14. 11B grading layer and registry");
+{
+  const TOOL = "fcr-leakage";
+  const owned = BENCHMOD.benchmarksForTool(TOOL);
+  const ids = [...src.matchAll(/benchmark\("([^"]+)"\)/g)].map(m => m[1]);
+  const dfltIds = [...src.matchAll(/dflt\("([^"]+)"\)/g)].map(m => "fcr.default." + m[1]);
+  A("the tool id is the registry tool", TOOL_ID === TOOL);
+  A("the registry holds 36 entries for this tool", owned.length === 36);
+  A("the registry splits 29 heuristics, 0 market and 7 thresholds",
+    owned.filter(e => e.kind === "heuristic").length === 29 && owned.filter(e => e.kind === "market").length === 0 && owned.filter(e => e.kind === "threshold").length === 7);
+  A("every literal registry read resolves", [...ids, ...dfltIds].every(id => id in BENCHMOD.BENCHMARK_SOURCES));
+  A("the defaults read every field by template", /const dflt = \(f\) => benchmark\(`fcr\.default\.\$\{f\}`\);/.test(src));
+  A("every registered id is read by the tool", owned.every(e => ids.includes(e.id) || dfltIds.includes(e.id)));
+  A("the base case is the registry, not a literal", FCR_BASE.M === 50000 && FCR_BASE.fcr === 0.72 && FCR_BASE.mCPC === 6.5 && FCR_BASE.repeatMult === 1 && FCR_BASE.measuredRate === 0.22);
+  A("no default literal survives in the component", !/M: 50000, fcrPct: 72/.test(src) && !/useState\(150000\)|useState\(22\)|useState\(80\)|\|\| 50000|\|\| 6\.5|\|\| 11\)/.test(src));
+  A("no ceiling, curve, band or threshold survives as a literal",
+    !/f: 0\.9[0-3]|f: 0\.88|0\.15 \+ \(5 - s\)|0\.25 \+ \(s - 1\)|estimate: 0\.25, ops|0\.85 \* lCPC|0\.35 \* lCPC|repeatMult > 2\.5|m <= 48|m >= 4 \?|Math\.min\(3\.0/.test(src));
+  A("every heuristic is labelled as one", owned.filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
+  A("every threshold states a rationale", owned.filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
+
+  A("1-08c: both mechanism literals read MECH_INITIAL", !/"hiring"/.test(src.replace(/hiring: "avoiding[^"]*"/, "")) && (src.match(/MECH_INITIAL/g) || []).length === 2);
+  A("1-08c: the form initial is the shared constant", /mech: MECH_INITIAL,/.test(src) && /useState\(DEFAULTS\.mech\)/.test(src));
+
+  A("the grading layer is in the engine region", typeof gradeFCR === "function" && typeof fieldOrigin === "function");
+  A("the component grades through gradeFCR with no rail origin",
+    /const G = gradeFCR\(\{ I: engineInput, r: R, pre: fromLink \? \{\} : rail\.current\.pre, railOrigin: null \}\);/.test(src));
+  A("the component exports the three-axis grade object", /grades=\{G\.gradeObj\}/.test(src) && /confidence=\{G\.confidence\}/.test(src));
+  A("the rationale is displayed on the page, not only in the PDF", /\{G\.gradeWhy\}<\/div>/.test(src));
+  A("the rail pulls carry their source tool, read once at mount",
+    (src.match(/getPrimitiveWithSource\("(monthlyContacts|fcr|marginalPerContact|marginalCPC|loadedCPC|costPerContact)"\)/g) || []).length === 6 && !/getPrimitive\(/.test(src) && /const rail = useRef\(null\);/.test(src));
+  A("the two-axis ladder is gone", !/costConf|realConf|confReason|realizationRank/.test(src));
+  A("the engine region never reads the rail", !/getPrimitive/.test(region));
+  A("the rail publishes the three-axis headline", /fcrLeakageConfidence: G\.confidence/.test(src));
+
+  /* J7. Legacy next links. The graph is the only source of a next step. */
+  A("J7: the untracked backward CTA is gone", !/Cost per Resolution →/.test(src) && !/<a href="\/tools\//.test(src));
+  A("J7: the PDF next steps read the journey graph", /type: "next", items: nextFor\(TOOL_ID\)\.map/.test(src));
+  A("the fresh-session path is proportional, and DEFAULTS keeps the legacy value", /useState\("proportional"\)/.test(src) && /pathModel: "one",\n/.test(src));
+  A("J7: the graph gives FCR two V3 next steps", JOURNEYMOD.nextFor(TOOL).map(e => e.to).join(",") === "ai-deflection,business-case-builder");
+
+  /* The rich, own, measured, attested, whole case: the best this tool can grade. */
+  const OWN = { ...DECL, pathModel: "proportional", M: 64000, fcr: 0.68, mCPC: 5.9, lCPC: 10.4, repeatModel: "measured", measuredRate: 0.27, repeatMult: 1.3, askTarget: 0.76, investOneTime: 120000, investRecurring: 40000, costBasis: "finance", mech: "headcount", method: "survey" };
+  const G = (o = {}, pre = {}, ro = null) => engine({ ...OWN, ...o }, pre, ro);
+  const clean = G();
+  A("a whole, own, measured, attested case grades Planning-grade evidence and Finance-grade elsewhere",
+    clean.evidence === "Planning-grade" && clean.realization === "Finance-grade" && clean.completeness === "Finance-grade" && clean.headlineConf === "Planning-grade" && clean.blockers.length === 0 && !clean.voided);
+  A("the shipped first paint grades Directional, bound by evidence and completeness", (() => { const d = engine(DEF); return d.headlineConf === "Directional" && d.evidence === "Directional" && d.completeness === "Directional"; })());
+
+  /* J2. A modeled repeat share is a formula, never evidence. */
+  for (const m of ["one", "geometric"]) {
+    const g = G({ repeatModel: m });
+    A(`J2: a ${m} modeled repeat share grades evidence Directional and says why`, g.opsGrade === "Directional" && g.evidence === "Directional" && /modeled from FCR/.test(g.gradeWhy));
+  }
+  A("J2: the multiplier at its conservative default does not bind", G({ repeatMult: 1 }).evidence === "Planning-grade" && G({ repeatMult: 1 }).origins.repeatMult === "default");
+  A("J2: loaded cost reaches no axis", G({ lCPC: FCR_BASE.lCPC }).evidence === "Planning-grade");
+
+  /* J1. Self-credentialing. The select never reaches Finance-grade. */
+  for (const cb of ["estimate", "ops", "finance"]) for (const mk of MECH_KEYS) for (const src2 of ["inhouse", "bpo"]) {
+    const g = G({ costBasis: cb, mech: mk, sourcing: src2 });
+    A(`J1: ${cb}, ${mk}, ${src2} never reaches Finance-grade`, g.evidence !== "Finance-grade" && g.headlineConf !== "Finance-grade");
+  }
+  A("J1: an estimate basis leaves cost evidence Directional and says what lifts it", G({ costBasis: "estimate" }).costGrade === "Directional" && /Select operations or finance data/.test(G({ costBasis: "estimate" }).gradeWhy));
+  A("J1: operations and finance data both stand at Planning-grade", G({ costBasis: "ops" }).costGrade === "Planning-grade" && G({ costBasis: "finance" }).costGrade === "Planning-grade");
+  A("J1: the band stays display only", G({ costBasis: "estimate" }).band === BENCHMOD.benchmark("fcr.band.estimate") && G({ costBasis: "estimate", mech: "headcount" }).realization === "Finance-grade");
+
+  /* J3. Defect class 2. Rail and self values carry no credential. */
+  const railM = G({}, { M: { value: OWN.M, src: "cost-per-contact" } });
+  A("class 2: a rail volume with no origin grades evidence Directional", railM.evidence === "Directional" && railM.origins.M === "rail" && /arrived over the rail with no recorded origin grade/.test(railM.gradeWhy));
+  const railFcr = G({}, { fcr: { value: OWN.fcr, src: "cost-per-contact" } });
+  A("class 2: a rail FCR with no origin grades evidence Directional", railFcr.evidence === "Directional" && railFcr.origins.fcr === "rail");
+  const railMarg = G({}, { mCPC: { value: OWN.mCPC, src: "cost-per-contact" } });
+  A("class 2: a rail marginal cost grades cost evidence Directional even when attested", railMarg.costGrade === "Directional" && railMarg.origins.mCPC === "rail");
+  A("class 2: a rail value's origin grade caps at Planning-grade", G({}, { M: { value: OWN.M, src: "x" } }, "Finance-grade").evidence === "Planning-grade");
+  A("class 2: a rail Directional origin stays Directional", G({}, { M: { value: OWN.M, src: "x" } }, "Directional").evidence === "Directional");
+  for (const f of ["M", "fcr", "mCPC"]) {
+    const g = G({}, { [f]: { value: OWN[f], src: TOOL } });
+    A(`class 2: ${f} restored from this tool's own last run grades Directional`, g.evidence === "Directional" && g.origins[f] === "self" && /a tool never credentials itself/.test(g.gradeWhy));
+  }
+  A("class 2: a prefilled value the user changed is the user's own", G({}, { M: { value: 1234, src: TOOL } }).origins.M === "entered");
+  A("class 2: a loaded-cost rail value reaches no axis", G({}, { lCPC: { value: OWN.lCPC, src: TOOL } }).evidence === "Planning-grade");
+  for (const [f, lbl] of [["M", "monthly volume"], ["fcr", "current FCR"], ["measuredRate", "measured repeat share"], ["mCPC", "marginal cost"], ["investOneTime", "one-time cost"], ["investRecurring", "recurring cost"]]) {
+    const g = G({ [f]: FCR_BASE[f] });
+    A(`class 2: ${f} still at its default grades evidence Directional and is named`, g.evidence === "Directional" && g.origins[f] === "default" && g.gradeWhy.toLowerCase().indexOf(lbl.toLowerCase()) >= 0);
+  }
+  A("class 2: an entered multiplier is graded like any own figure", G({ repeatMult: 1.3 }).origins.repeatMult === "entered" && G({ repeatMult: 1.3 }).evidence === "Planning-grade");
+
+  /* J4. Defect class 3. Every validity or applicability check reaches completeness. */
+  const blockers = {
+    "a corrected numeric": { numericCorrections: ["Monthly contacts was entered as abc, which is not a number, and was held at 0."] },
+    "a substituted mechanism": { mech: "nonsense" },
+    "a substituted scope": { scope: "nonsense" },
+    "an impossible FCR": { fcr: 0 },
+    "an FCR read as a whole number": { fcr: 1.5 },
+    "a negative input": { mCPC: -1 },
+    "a measured share above 100 percent": { measuredRate: 1.5 },
+    "a dirty pulled FCR": { fcrPulledDirty: true },
+    "marginal above loaded": { mCPC: 12, lCPC: 10.4 },
+    "marginal near loaded": { mCPC: 9.2, lCPC: 10.4 },
+    "marginal far below loaded": { mCPC: 3, lCPC: 10.4 },
+    "a multiplier below 1": { repeatMult: 0.8 },
+    "a multiplier above the ceiling": { repeatMult: 3.2 },
+    "an implausible measured share": { measuredRate: 0.7 },
+    "a short internal window": { method: "internal", windowDays: 3 },
+    "a legacy modeled path": { pathModel: "one", measuredTargetRate: null },
+    "an undeclared definition": { defDeclared: false, scope: "", method: "" },
+    "an unanswered diagnostic": { diagComplete: false },
+    "zero volume": { M: 0 },
+    "zero marginal cost": { mCPC: 0 },
+    "a target not above current": { askTarget: 0.68 },
+    "no headroom under the scope ceiling": { fcr: 0.95, askTarget: 0.97, scope: "voice" },
+  };
+  for (const [nm, o] of Object.entries(blockers)) {
+    const g = G(o);
+    A(`class 3: ${nm} holds completeness Directional`, g.completeness === "Directional" && g.headlineConf === "Directional" && g.blockers.length > 0 && !g.voided);
+    A(`class 3: ${nm} is named in the completeness rationale`, g.gradeObj.reasons.completeness.length > 20 && g.gradeObj.boundAxes.includes("completeness"));
+  }
+  A("class 3: a 7-day internal window is not blocked", G({ method: "internal", windowDays: 7 }).completeness === "Finance-grade");
+  A("class 3: a 2.5x multiplier is not blocked", G({ repeatMult: 2.5 }).completeness === "Finance-grade");
+  A("class 3: a proportional measured path is not blocked", G({ pathModel: "proportional" }).completeness === "Finance-grade");
+  A("class 3: a target capped by the diagnostic is not a blocker", (() => { const g = G({ askTarget: 0.88 }); return g.overCeiling && g.completeness === "Finance-grade"; })());
+  A("class 3: the grading layer never reads the display regex", !/hardFlag/.test(region.slice(region.indexOf("function gradeFCR"), region.indexOf("/* @engine-end */"))));
+
+  /* J5 and J9. Realization. */
+  A("J5: outsourced per-contact sourcing holds realization at Planning-grade", MECH_KEYS.every(k => G({ sourcing: "bpo", mech: k }).realization === "Planning-grade"));
+  A("J9: in-house outsourcer reduction holds realization at Planning-grade and says why", G({ mech: "vendor" }).realization === "Planning-grade" && /invoice it would reduce is not confirmed/.test(G({ mech: "vendor" }).gradeObj.reasons.realization));
+  A("J9: headcount reduction still reaches Finance-grade realization", G({ mech: "headcount" }).realization === "Finance-grade");
+  A("realization reads the credit class for every in-house mechanism", MECH_KEYS.filter(k => k !== "vendor").every(k => G({ mech: k }).realization === CONF.realizationFromCred(MECH[k].cred)));
+
+  /* Doctrine 5.5. The answer never reaches an axis. */
+  {
+    const I = { ...OWN }, r = engineRaw(I);
+    const axes = (g) => JSON.stringify([g.evidence, g.realization, g.completeness, g.confidence]);
+    const base = gradeFCR({ I, r, pre: {}, railOrigin: null });
+    const neg = gradeFCR({ I, r: { ...r, realizableYr: -1, year1Net: -1e6, year2Net: -1, cum2Yr: -1, payback: null, neverPaysBack: true, paybackLabel: "never at current scope", overCeiling: true }, pre: {}, railOrigin: null });
+    const zero = gradeFCR({ I, r: { ...r, realizableYr: 0, year1Net: 0, year2Net: 0, cum2Yr: 0, payback: null }, pre: {}, railOrigin: null });
+    A("sign invariance: a negative outcome moves no axis and no headline", axes(neg) === axes(base));
+    A("sign invariance: a zero outcome moves no axis and no headline", axes(zero) === axes(base));
+    const loss = engine({ ...I, investRecurring: 5e6 });
+    A("sign invariance: a never-pays-back project from inputs grades on inputs alone", loss.neverPaysBack && loss.completeness === "Finance-grade" && axes(loss) === axes(base));
+    const none = engine({ ...I, mech: "none" });
+    A("sign invariance: $0 realizable moves only the realization axis, through the credit class", none.realizableYr === 0 && none.completeness === "Finance-grade" && none.realization === "Directional");
+    A("the grading layer never reads realizable savings, payback, net or the ceiling cap",
+      !/realizableYr|payback|year1Net|year2Net|cum2Yr|neverPaysBack|overCeiling|steadyMo/.test(region.slice(region.indexOf("function gradeFCR"), region.indexOf("/* @engine-end */"))));
+  }
+
+  /* Sweep. No Finance-grade anywhere, no void reachable, no silent axis. */
+  let fin = 0, voids = 0, silent = 0, notMin = 0, defects = 0, thrown = 0;
+  const pres = [{}, { M: { value: 90000, src: "cost-per-contact" }, mCPC: { value: 4.2, src: "cost-per-contact" } }, { fcr: { value: 0.7, src: TOOL } }];
+  const RN = () => Math.random();
+  for (let i = 0; i < 6000; i++) {
+    const o = {
+      M: [Math.round(RN() * 900000), 0, 1, 1e7, -5, 90000][i % 6], fcr: [RN(), 0, 1, 1.5, 72, -0.3, 0.68][i % 7],
+      mCPC: [RN() * 12, 0, -2, 5.9, 11][i % 5], lCPC: [RN() * 20, 0, -3, 10.4][i % 4],
+      repeatModel: ["one", "geometric", "measured"][i % 3], measuredRate: [RN() * 0.8, 0, -0.4, 1.5, 0.27][i % 5], measuredTargetRate: [null, RN() * 0.5, 1.3, -0.2][i % 4],
+      pathModel: ["one", "proportional", "geometric"][i % 3], repeatMult: [RN() * 4, 0, -1, 1, 3.5][i % 5], dScore: 1 + RN() * 4, askTarget: [RN(), 0, 1.4, -0.1][i % 4],
+      mech: [...MECH_KEYS, "absorb", "toString", "bogus"][i % (MECH_KEYS.length + 3)], sourcing: ["inhouse", "bpo"][i % 2],
+      investOneTime: [RN() * 5e5, 0, -5][i % 3], investRecurring: [RN() * 3e5, 0, 5e6][i % 3], costBasis: ["estimate", "ops", "finance"][i % 3],
+      defDeclared: i % 4 !== 0, diagComplete: i % 5 !== 0, fcrPulledDirty: i % 11 === 0, scope: ["", "voice", "cc", "digital", "enterprise", "toString"][i % 6],
+      method: ["", "survey", "internal"][i % 3], windowDays: [RN() * 30, 2, 7][i % 3],
+      numericCorrections: i % 13 === 0 ? ["Target FCR was entered as $50, which is not a number, and was held at 0."] : [],
+    };
+    let g;
+    try { g = engine({ ...DECL, ...o }, pres[i % 3], [null, "Finance-grade", "Planning-grade"][i % 3]); } catch { thrown++; continue; }
+    if (g.headlineConf === "Finance-grade") fin++;
+    if (g.voided) voids++;
+    if (!g.voided && g.gradeObj.applicable.some(a => !g.gradeObj.reasons[a].trim())) silent++;
+    if (!g.voided && g.headlineConf !== CONF.gradeConfidence({ evidence: g.evidence, realization: g.realization, completeness: g.completeness }).headline) notMin++;
+    if (!g.voided && g.gradeObj.defects.length) defects++;
+  }
+  A("sweep: no input set throws", thrown === 0);
+  A("sweep: no input set reaches Finance-grade", fin === 0);
+  A("sweep: every invariant is unreachable through the guards", voids === 0);
+  A("sweep: every applicable axis carries a stated reason", silent === 0);
+  A("sweep: the headline is the minimum of the applicable axes", notMin === 0);
+  A("sweep: emitGrades reports no content defect", defects === 0);
+
+  /* Void is reachable only by a broken engine, and it claims nothing. */
+  const I = { ...OWN }, r = engineRaw(I);
+  const vg = gradeFCR({ I, r: { ...r, burdenYr: NaN }, pre: {}, railOrigin: null });
+  A("a failed invariant voids the export and claims no grade", vg.voided && vg.confidence === "Void" && CONF.isVoid(vg.gradeObj) && vg.gradeObj.headline === null && /Correct the inputs/.test(vg.gradeObj.remedy));
+  A("more repeats than total contacts voids the export", gradeFCR({ I, r: { ...r, repeats: r.M * 2 + 1 }, pre: {}, railOrigin: null }).voided);
+  A("a negative burden voids the export", gradeFCR({ I, r: { ...r, burdenYr: -1 }, pre: {}, railOrigin: null }).voided);
+  A("a controllable slice above the whole voids the export", gradeFCR({ I, r: { ...r, controllableBurdenYr: r.burdenYr * 2 + 1 }, pre: {}, railOrigin: null }).voided);
+  A("the void rationale names the failed invariant", /export void: an output is not a finite number/.test(vg.gradeWhy));
+  A("a measured share of 150 percent is held at 100 percent, disclosed, and never voids",
+    (() => { const g = G({ measuredRate: 1.5 }); return g.repeatShare === 1 && !g.voided && g.flags.some(f => /Measured repeat share was entered as 150%.*was held at 100%/.test(f)); })());
+  A("a negative measured share is held at zero and never produces a negative burden",
+    (() => { const g = G({ measuredRate: -0.4 }); return g.repeatShare === 0 && g.burdenYr === 0 && !g.voided && g.hardFlag; })());
+}
+
 const r = engine(DEF);
 console.log("\n  shared module: " + MECH_ORDER.length + " capacity actions, fallback '" + MECH_FALLBACK + "' at " + Math.round(MECH[MECH_FALLBACK].f * 100) + "%, form initial '" + MECH_INITIAL + "' at " + Math.round(MECH[MECH_INITIAL].f * 100) + "%");
 console.log("\n  default readout");
@@ -586,7 +792,7 @@ console.log("  year 1 net          $" + Math.round(r.year1Net).toLocaleString())
 console.log("  year 2 net          $" + Math.round(r.year2Net).toLocaleString());
 console.log("  two-year cumulative $" + Math.round(r.cum2Yr).toLocaleString());
 console.log("  payback             " + r.paybackLabel);
-console.log("  confidence          " + r.headlineConf + " (cost " + r.costConf + ", realization " + r.realConf + ")");
+console.log("  confidence          " + r.headlineConf + " (evidence " + r.evidence + ", realization " + r.realization + ", completeness " + r.completeness + ")");
 console.log("  flags               " + r.flags.length);
 
 /* ---- N. Numeric disclosure ----
@@ -596,16 +802,16 @@ console.log("  flags               " + r.flags.length);
    text when it applies, and sanitized regardless. Clean input is untouched. */
 {
   console.log("\nN. numeric disclosure");
-  const evalRegion = (rg) => new Function("MECH", "MECH_ORDER", "createGuards",
-    rg + "\nreturn { engine, saneFcr, FCR_NUM };")(MECH, MECH_ORDER, createGuards);
-  const BASE = { M: 50000, fcrPct: 72, mCPC: 6.5, lCPC: 11, windowDays: 7, measuredPct: 22, measuredTargetPct: 0, repeatMult: 1.2, targetPct: 80, investOneTime: 150000, investRecurring: 90000, scores: {}, scope: "cc", method: "internal", repeatModel: "one", pathModel: "one", mech: "hiring", sourcing: "inhouse", costBasis: "ops" };
+  const evalRegion = (rg) => { const E = new Function(...INJECT,
+    rg + "\nreturn { engine, gradeFCR, saneFcr, FCR_NUM };")(...injected()); return { ...E, engine: compose(E.engine, E.gradeFCR) }; };
+  const BASE = { M: 50000, fcrPct: 72, mCPC: 6.5, lCPC: 11, windowDays: 7, measuredPct: 22, measuredTargetPct: 0, repeatMult: 1.2, targetPct: 80, investOneTime: 150000, investRecurring: 90000, scores: {}, scope: "cc", method: "internal", repeatModel: "one", pathModel: "one", mech: MECH_INITIAL, sourcing: "inhouse", costBasis: "ops" };
   /* Mirrors the shipped engineInput line, which section 11b of fcr.report slices and runs. */
-  const build = (s, N) => ({ M: N.M, fcr: N.fcrPct / 100, mCPC: N.mCPC, lCPC: N.lCPC, repeatModel: s.repeatModel, measuredRate: N.measuredPct / 100, measuredTargetRate: N.measuredTargetPct > 0 ? N.measuredTargetPct / 100 : null, pathModel: s.pathModel, repeatMult: N.repeatMult, dScore: 3, askTarget: N.targetPct / 100, mech: s.mech, sourcing: s.sourcing, investOneTime: N.investOneTime, investRecurring: N.investRecurring, costBasis: s.costBasis, defDeclared: true, fcrPulledDirty: false, scope: s.scope, method: s.method, windowDays: N.windowDays, numericCorrections: N.numericCorrections });
+  const build = (s, N) => ({ M: N.M, fcr: N.fcrPct / 100, mCPC: N.mCPC, lCPC: N.lCPC, repeatModel: s.repeatModel, measuredRate: N.measuredPct / 100, measuredTargetRate: N.measuredTargetPct > 0 ? N.measuredTargetPct / 100 : null, pathModel: s.pathModel, repeatMult: N.repeatMult, dScore: 3, askTarget: N.targetPct / 100, mech: s.mech, sourcing: s.sourcing, investOneTime: N.investOneTime, investRecurring: N.investRecurring, costBasis: s.costBasis, defDeclared: true, fcrPulledDirty: false, scope: s.scope, method: s.method, windowDays: N.windowDays, numericCorrections: N.numericCorrections, diagComplete: true });
   const VALS = ["", "abc", "12abc", "1,200", NaN, Infinity, null, "Infinity", "$50", "-Infinity"];
   const CTX = [{}, { repeatModel: "measured" }, { method: "survey" }, { sourcing: "bpo", mech: "none" }];
   const applies = (k, s) => k === "windowDays" ? s.method === "internal" : (k === "measuredPct" || k === "measuredTargetPct") ? s.repeatModel === "measured" : true;
   const finiteAll = (r) => Object.values(r).every((v) => typeof v !== "number" || Number.isFinite(v));
-  const textClean = (r) => !/NaN|Infinity|undefined/.test(r.flags.join(" ").replace(/entered as ("[^"]*"|NaN|-?Infinity|blank)/g, "") + r.paybackLabel + r.confReason);
+  const textClean = (r) => !/NaN|Infinity|undefined/.test(r.flags.join(" ").replace(/entered as ("[^"]*"|NaN|-?Infinity|blank)/g, "") + r.paybackLabel + r.gradeWhy);
   const held = (raw) => { const p = parseFloat(raw); return Number.isFinite(p) ? p : 0; };
 
   function suite(E, neutralN) {
@@ -620,8 +826,8 @@ console.log("  flags               " + r.flags.length);
         if (N.numericCorrections.length !== 1 || !N.numericCorrections[0].startsWith(want)) bad.add("matrix: an applicable unclean entry discloses exactly once");
         else if (!N.numericCorrections[0].endsWith(`was held at ${held(v)}.`)) bad.add("matrix: disclosure names the held value");
         if (!r.flags.includes(N.numericCorrections[0])) bad.add("matrix: the disclosure reaches the document flags");
-        if (r.headlineConf !== "Directional" || !r.hardFlag) bad.add("matrix: a disclosure blocks the result at Directional");
-        if (!/not a clean number/.test(r.confReason)) bad.add("matrix: confidence reason names input integrity");
+        if (r.headlineConf !== "Directional" || !r.hardFlag || r.completeness !== "Directional") bad.add("matrix: a disclosure blocks the result at Directional");
+        if (!/corrected before calculation/.test(r.gradeObj.reasons.completeness)) bad.add("matrix: confidence reason names input integrity");
       } else if (N.numericCorrections.length) bad.add("conditional: a field that cannot move the case does not disclose");
     }
     { const N = E.saneFcr({ ...BASE, M: "1,200" }); if (N.M !== 1 || !/"1,200"/.test(N.numericCorrections[0] || "")) bad.add("\"1,200\" is held at 1 and disclosed with its raw text"); }
@@ -654,7 +860,7 @@ console.log("  flags               " + r.flags.length);
   const EI = (src.match(/^\s*const engineInput = .*$/m) || [""])[0];
   A("N engineInput reads every numeric through N", ["M", "mCPC", "lCPC", "repeatMult", "investOneTime", "investRecurring", "windowDays"].every((k) => new RegExp(`${k}: N\\.${k}\\b`).test(EI)) && /fcr: N\.fcrPct/.test(EI) && /askTarget: N\.targetPct/.test(EI) && /numericCorrections: N\.numericCorrections/.test(EI));
   A("N the rail publishes sanitized numerics", /marginalPerContact: N\.mCPC/.test(src) && /monthlyContacts: N\.M\b/.test(src));
-  A("N the sensitivity band reads the sanitized multiplier", /Math\.max\(1\.5, N\.repeatMult \+ 0\.4\)/.test(src));
+  A("N the sensitivity band reads the sanitized multiplier", /Math\.max\(SENS\.min, N\.repeatMult \+ SENS\.step\)/.test(src));
   A("N the diagnostic score reads sanitized answers", /N\.scores\[`\$\{dimId\}-\$\{i\}`\] \|\| 0/.test(src));
   A("N telemetry counts numeric corrections", /inputs_corrected: N\.numericCorrections\.length/.test(src));
   A("N the document never prints a raw numeric field", !/money2\(mCPC\)|fmtX\(repeatMult\)|money\(investOneTime\)|money\(investRecurring\)|current_fcr: fcrPct|requested_fcr: targetPct/.test(src));
@@ -665,7 +871,7 @@ console.log("  flags               " + r.flags.length);
     ["disclosure never fires", "if (check && bad !== null)", "if (check && bad === \"never\")"],
     ["window checked under every method", "k === \"windowDays\" ? s.method === \"internal\"", "k === \"windowDays\" ? true"],
     ["measured shares checked under every model", ": (k === \"measuredPct\" || k === \"measuredTargetPct\") ? s.repeatModel === \"measured\" : true;", ": true;"],
-    ["confidence reason loses input integrity", "  if ((I.numericCorrections || []).length) confReason = \"an input was not a clean number and was held at the value shown, so the result is blocked.\";\n  else if (hardFlag)", "  if (hardFlag)"],
+    ["completeness ignores numeric corrections", "r.enumCorrections.length + r.numericCorrections.length + r.measuredCorrections.length", "r.enumCorrections.length + r.measuredCorrections.length"],
     ["reader promotes a zero floor", "rawProbe(what, raw, -Infinity, null, \"\")", "rawProbe(what, raw, 0, null, \"\")"],
     ["raw value passes through", "for (const [k, what] of FCR_NUM) out[k] = read(what, s[k], applies(k));", "for (const [k, what] of FCR_NUM) { read(what, s[k], applies(k)); out[k] = s[k]; }"],
     ["held value misreported", "and was held at ${v}.`", "and was held at 0.`"],
