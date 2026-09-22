@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
 import InfoDot from "./src/lib/InfoDot";
 import NumField from "./src/lib/NumField";
-import { COLORS } from "./src/lib/benchmarks";
-import { publishToolResult, getPrimitive } from "./src/lib/toolData";
+import { COLORS, benchmark } from "./src/lib/benchmarks";
+import { emitGrades, voidResult, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
+import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
-import { MECH, MECH_ORDER } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
+import { nextFor } from "./src/lib/journey";
 import { createGuards } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
@@ -83,7 +85,23 @@ const DIMS = [
    elsewhere in the file. They are engine dependencies, so they belong inside
    the tested region rather than being rebuilt inside the harness. Nothing
    between their old and new positions evaluated them at module load, so the
-   move is behaviour-neutral. */
+   move is behaviour-neutral.
+
+   11B, session 18. Every default, ceiling, curve point, band and threshold reads
+   the registry by template id. TOOL_ID lives here because the grading layer needs
+   it to recognise a value this tool restored from its own last run. */
+const TOOL_ID = "fcr-leakage";
+const dflt = (f) => benchmark(`fcr.default.${f}`);
+const BASE = { M: dflt("M"), fcr: dflt("fcrPct") / 100, mCPC: dflt("mCPC"), lCPC: dflt("lCPC"), measuredRate: dflt("measuredPct") / 100, repeatMult: dflt("repeatMult"), investOneTime: dflt("investOneTime"), investRecurring: dflt("investRecurring") };
+const OPP_LO = benchmark("fcr.curve.oppFloor"), OPP_SPAN = benchmark("fcr.curve.oppSpan"), OPP_HI = benchmark("fcr.curve.oppCeil");
+const CAP_LO = benchmark("fcr.curve.capFloor"), CAP_SPAN = benchmark("fcr.curve.capSpan"), CAP_HI = benchmark("fcr.curve.capCeil");
+const BANDS = { estimate: benchmark("fcr.band.estimate"), ops: benchmark("fcr.band.ops"), finance: benchmark("fcr.band.finance") };
+const RAMP_MONTHS = benchmark("fcr.ramp.months");
+const HORIZON = benchmark("fcr.guard.horizon");
+const MARG_NEAR = benchmark("fcr.read.margNearLoaded"), MARG_FAR = benchmark("fcr.read.margFarBelow");
+const MULT_HIGH = benchmark("fcr.read.multHigh"), MULT_ELEVATED = benchmark("fcr.read.multElevated");
+const MEASURED_MAX = benchmark("fcr.read.measuredMax"), WINDOW_SHORT = benchmark("fcr.read.windowShort");
+const SENS = { min: benchmark("fcr.sens.aggMin"), max: benchmark("fcr.sens.aggMax"), step: benchmark("fcr.sens.aggStep") };
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const pct = (n, d = 1) => (n * 100).toFixed(d) + "%";
 
@@ -109,12 +127,12 @@ const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
    The fallback is enterprise, the strictest ceiling and therefore the lowest
    uplift, so a substituted scope can never inflate the savings it discloses. */
 const SCOPE = {
-  voice: { f: 0.93, label: "Assisted voice only" },
-  cc: { f: 0.90, label: "Contact center, cross-channel" },
-  digital: { f: 0.89, label: "Digital plus assisted" },
-  enterprise: { f: 0.88, label: "Enterprise one-contact (strictest)" },
+  voice: { f: benchmark("fcr.scope.voice"), label: "Assisted voice only" },
+  cc: { f: benchmark("fcr.scope.cc"), label: "Contact center, cross-channel" },
+  digital: { f: benchmark("fcr.scope.digital"), label: "Digital plus assisted" },
+  enterprise: { f: benchmark("fcr.scope.enterprise"), label: "Enterprise one-contact (strictest)" },
 };
-const SCOPE_UNDECLARED = 0.90;
+const SCOPE_UNDECLARED = benchmark("fcr.scope.undeclared");
 /* Label resolution lives beside the table so the document and the engine can never
    name different scopes. It takes the resolved key, never the entered string. */
 const scopeLabelFor = (k) => (k === "" || k == null ? "not declared" : SCOPE[k].label);
@@ -125,6 +143,8 @@ const scopeLabelFor = (k) => (k === "" || k == null ? "not declared" : SCOPE[k].
    realization was reachable only through headcount reduction, the one mechanism
    the suite explicitly tells people not to default to. */
 const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
+/* Retained for scenario links and the harness contract. Since 11B the realization
+   axis reads realizationFromCred in gradeFCR and nothing reads this ladder. */
 
 /* Numeric disclosure. A scenario link decodes straight into state with no type
    check, so any numeric field can arrive as "", "abc", "12abc", "1,200", null or
@@ -197,14 +217,27 @@ function engine(I) {
   // flag raised. Block it here, where every path has to pass.
   const negImpossible = M < 0 || mCPC < 0 || lCPC < 0 || repeatMult < 0;
   M = Math.max(0, M); mCPC = Math.max(0, mCPC); lCPC = Math.max(0, lCPC); repeatMult = Math.max(0, repeatMult);
-  const opportunity = (s) => clamp(0.15 + (5 - s) / 4 * 0.65, 0.15, 0.80);
-  const capture = (s) => clamp(0.25 + (s - 1) / 4 * 0.65, 0.25, 0.90);
+  const opportunity = (s) => clamp(OPP_LO + (5 - s) / 4 * OPP_SPAN, OPP_LO, OPP_HI);
+  const capture = (s) => clamp(CAP_LO + (s - 1) / 4 * CAP_SPAN, CAP_LO, CAP_HI);
   const shareOne = (f) => (1 - f) / (2 - f);
   const shareGeo = (f) => (1 - f);
   const repeatCPC = mCPC * repeatMult;
 
+  /* A measured share is a fraction of volume, so it lives on 0 to 1. A link could
+     carry -10 or 150, which drove the burden negative or above total volume. Held at
+     the bound and disclosed with "was held at", so it blocks the page and holds
+     completeness Directional instead of reaching the void. */
+  const measuredCorrections = [];
+  const holdShare = (label, v) => {
+    if (v == null || !(v < 0 || v > 1)) return v;
+    const h = clamp(v, 0, 1);
+    measuredCorrections.push(`${label} was entered as ${Math.round(v * 1000) / 10}%, outside 0 to 100% of volume, and was held at ${Math.round(h * 100)}%.`);
+    return h;
+  };
+  const measuredShare = repeatModel === "measured" ? holdShare("Measured repeat share", measuredRate) : measuredRate;
+  const measuredTarget = repeatModel === "measured" ? holdShare("Measured target repeat share", measuredTargetRate) : measuredTargetRate;
   let repeatShare, shareSource, shareBasis;
-  if (repeatModel === "measured") { repeatShare = measuredRate; shareSource = "measured data"; shareBasis = "Measured"; }
+  if (repeatModel === "measured") { repeatShare = measuredShare; shareSource = "measured data"; shareBasis = "Measured"; }
   else if (repeatModel === "geometric") { repeatShare = shareGeo(fcr); shareSource = "geometric model"; shareBasis = "Modeled"; }
   else { repeatShare = shareOne(fcr); shareSource = "one-callback model"; shareBasis = "Modeled"; }
   const repeats = M * repeatShare;
@@ -235,9 +268,9 @@ function engine(I) {
   // so it is now the only path. `pathModel` is still read from legacy scenario
   // links and flagged, so a reader holding an older PDF learns why it moved.
   let repeatShareT;
-  const measuredPathOverridden = repeatModel === "measured" && (measuredTargetRate == null || measuredTargetRate <= 0) && pathModel && pathModel !== "proportional";
+  const measuredPathOverridden = repeatModel === "measured" && (measuredTarget == null || measuredTarget <= 0) && pathModel && pathModel !== "proportional";
   if (repeatModel === "measured") {
-    if (measuredTargetRate != null && measuredTargetRate > 0) repeatShareT = measuredTargetRate;
+    if (measuredTarget != null && measuredTarget > 0) repeatShareT = measuredTarget;
     else repeatShareT = (1 - fcr) > 0 ? repeatShare * ((1 - target) / (1 - fcr)) : repeatShare;
   } else if (repeatModel === "geometric") repeatShareT = shareGeo(target);
   else repeatShareT = shareOne(target);
@@ -263,9 +296,9 @@ function engine(I) {
   // guard excluded exactly that case, so a $0 mechanism reported "beyond 48 months"
   // when the true answer is never, and the recurring-cost flag never fired.
   const neverPaysBack = realizableYr <= investRecurring;
-  const rampMo = (m) => (m >= 4 ? steadyMo : steadyMo * (m / 4));
+  const rampMo = (m) => (m >= RAMP_MONTHS ? steadyMo : steadyMo * (m / RAMP_MONTHS));
   let cum = 0, payback = null;
-  for (let m = 1; m <= 48; m++) { cum += rampMo(m) - recurMo; if (payback === null && cum >= investOneTime) payback = m; }
+  for (let m = 1; m <= HORIZON; m++) { cum += rampMo(m) - recurMo; if (payback === null && cum >= investOneTime) payback = m; }
   let c12 = 0; for (let m = 1; m <= 12; m++) c12 += rampMo(m) - recurMo;
   const year1Net = c12 - investOneTime;
   // Standalone year two: steady-state savings less the recurring cost. The one-time
@@ -274,35 +307,35 @@ function engine(I) {
   // year two by exactly the amount of year-one net.
   const year2Net = realizableYr - investRecurring;
   const cum2Yr = year1Net + year2Net;
-  const paybackLabel = neverPaysBack ? "never at current scope" : payback ? "month " + payback : "beyond 48 months";
+  const paybackLabel = neverPaysBack ? "never at current scope" : payback ? "month " + payback : "beyond " + HORIZON + " months";
 
-  const band = { estimate: 0.25, ops: 0.15, finance: 0.10 }[costBasis];
+  const band = BANDS[costBasis];
   // BPO realization is Planning-grade, full stop. It was previously Math.max(rank, 2),
   // which let an inert mechanism selector lift an outsourced case to Finance-grade.
   // Finance-grade requires confirming there is no minimum volume commitment, which
   // this tool does not collect, so it routes that to Contract Risk instead.
   // BPO converts through billing, which is finance-creditable but not confirmed
   // cash until a minimum volume commitment is ruled out. Planning-grade, always.
-  let realizationRank = mechApplies ? CRED_RANK[MECH[mechKey].cred] : 2;
 
   const flags = [];
   // Substituted enum inputs lead the list. They describe what the engine actually
   // ran, so a reader never reconciles a figure against an input that was not used.
   for (const c of enumCorrections) flags.push(c);
   for (const c of I.numericCorrections || []) flags.push(c);
+  for (const c of measuredCorrections) flags.push(c);
   if (fcrPulledDirty) flags.push("Current FCR was pulled from another tool as a whole number and normalized to " + pct(fcr) + ". Confidence is capped until you confirm it. The upstream tool is publishing FCR in the wrong unit, which is a suite-contract issue worth fixing at the source.");
   if (fcrWasPercent) flags.push("Current FCR arrived as a whole number and was read as " + pct(fcr) + ". Confirm the upstream tool publishes FCR as a fraction, not a percentage.");
   if (fcrImpossible) flags.push("Current FCR was outside 0 to 100% and had to be clamped. The result is unreliable until the input is corrected.");
   if (negImpossible) flags.push("A negative volume, cost, or multiplier reached the model, which is impossible, and was clamped to zero. This can only arrive through an edited scenario link. Re-enter the inputs directly before using any figure on this page.");
   if (repeats > M + 1) flags.push("Repeat contacts exceed total contacts, which is impossible. The inputs are inconsistent.");
-  if (repeatModel === "measured" && (measuredRate < 0 || measuredRate > 0.6)) flags.push("Measured repeat share is outside the plausible 0 to 60% range. Recheck the figure.");
-  if (method === "internal" && windowDays < 7) flags.push("Callback window of " + windowDays + " days is short. Internal FCR measured on a short window captures fewer return contacts and tends to run high, so the true repeat burden is likely larger than shown. This matters most for cross-channel and enterprise scope, where customers often return days later.");
+  if (repeatModel === "measured" && (repeatShare < 0 || repeatShare > MEASURED_MAX)) flags.push("Measured repeat share is outside the plausible 0 to " + Math.round(MEASURED_MAX * 100) + "% range. Recheck the figure.");
+  if (method === "internal" && windowDays < WINDOW_SHORT) flags.push("Callback window of " + windowDays + " days is short. Internal FCR measured on a short window captures fewer return contacts and tends to run high, so the true repeat burden is likely larger than shown. This matters most for cross-channel and enterprise scope, where customers often return days later.");
   if (neverPaysBack) flags.push("Recurring cost meets or exceeds steady-state realizable savings, so this project does not pay back at any horizon under the current scope. Reduce recurring cost, strengthen the mechanism, or narrow the target.");
-  if (repeatMult > 2.5) flags.push("Repeat complexity multiplier above 2.5x sits beyond most published estimates, which put repeats at 1.5x to 2x a first contact, with outliers to 4x. Confirm it against your own handle-time, escalation, and rework data before presenting these figures.");
+  if (repeatMult > MULT_HIGH) flags.push("Repeat complexity multiplier above " + MULT_HIGH + "x sits beyond most published estimates, which put repeats at 1.5x to 2x a first contact, with outliers to 4x. Confirm it against your own handle-time, escalation, and rework data before presenting these figures.");
   if (lCPC && mCPC > lCPC) flags.push("Marginal cost per contact exceeds loaded cost, which is impossible. Correct the inputs.");
   if (repeatMult < 1) flags.push("Repeat complexity multiplier below 1.0 implies repeats are cheaper than first contacts, which is implausible.");
-  else if (lCPC && mCPC >= 0.85 * lCPC) flags.push("Marginal cost is close to loaded cost. You may have entered loaded cost. The savings basis must be marginal.");
-  else if (lCPC && mCPC > 0 && mCPC <= 0.35 * lCPC) flags.push("Marginal cost is " + Math.round((mCPC / lCPC) * 100) + "% of loaded cost. Marginal cost is mostly agent wage and benefits, so it usually runs 50% to 75% of loaded. A ratio this low means either an unusually fixed cost base or a wrong input, and burden scales directly with it. Confirm the figure before presenting, especially if it was pulled from another tool.");
+  else if (lCPC && mCPC >= MARG_NEAR * lCPC) flags.push("Marginal cost is close to loaded cost. You may have entered loaded cost. The savings basis must be marginal.");
+  else if (lCPC && mCPC > 0 && mCPC <= MARG_FAR * lCPC) flags.push("Marginal cost is " + Math.round((mCPC / lCPC) * 100) + "% of loaded cost. Marginal cost is mostly agent wage and benefits, so it usually runs 50% to 75% of loaded. A ratio this low means either an unusually fixed cost base or a wrong input, and burden scales directly with it. Confirm the figure before presenting, especially if it was pulled from another tool.");
   if (measuredPathOverridden) flags.push("This scenario carried a modeled improvement path against a measured repeat rate. That path computes the target share from a model whose baseline your measured figure replaces, so it books the gap between the two as savings. The improvement is now scaled proportionally on your own measured base, which is the only base-consistent reading. Figures here will not match a report generated from this link before that change.");
   if (!defDeclared) flags.push("FCR definition not declared. The result is not comparable across centers until you state how you measure it.");
   if (target <= fcr + 1e-9) flags.push("Target FCR is not above current. There is no improvement to value.");
@@ -312,34 +345,149 @@ function engine(I) {
   if (!mechApplies) flags.push("Outsourced per-contact sourcing converts volume reduction to cash at 100%, and the realization mechanism does not apply. This assumes billing tracks actual volume with no minimum commitment. If your contract carries a volume floor, nothing is saved until you drop below it. Confirm the commitment terms in Contract Risk Scanner before presenting these savings.");
   const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped|clamped to zero|was held at/.test(f));
 
-  let costConf = costBasis === "finance" ? "Finance-grade" : costBasis === "ops" ? "Planning-grade" : "Directional";
-  let realConf = realizationRank >= 3 ? "Finance-grade" : realizationRank >= 2 ? "Planning-grade" : "Directional";
-  if (hardFlag || !defDeclared) { costConf = "Directional"; realConf = "Directional"; }
-  const order = ["Directional", "Planning-grade", "Finance-grade"];
-  if (fcrPulledDirty) { const ci = order.indexOf("Planning-grade"); if (order.indexOf(costConf) > ci) costConf = "Planning-grade"; if (order.indexOf(realConf) > ci) realConf = "Planning-grade"; }
-  const headlineConf = order[Math.min(order.indexOf(costConf), order.indexOf(realConf))];
-  const MECH_REASON = {
-    none: "no capacity action is selected, so freed capacity converts to no cash",
-    growth: "absorbing growth or backlog builds capacity, which finance does not credit as savings this cycle",
-    overtime: "reducing overtime stops a payment finance already makes, which is creditable, but it is not cash leaving the cost base",
-    hiring: "avoiding or slowing hiring is finance-creditable over the cycle, but it is not cash leaving the cost base",
-    vendor: "reducing outsourcer volume takes cash off the invoice",
-    headcount: "reducing headcount takes cash off the payroll",
-  };
-  const mechReason = mechApplies
-    ? MECH_REASON[mechKey]
-    : "per-contact billing falls directly with volume, so no capacity mechanism is required. It is held at Planning-grade rather than Finance-grade until a minimum volume commitment is ruled out";
-  const weakerIsReal = order.indexOf(realConf) <= order.indexOf(costConf);
-  let confReason;
-  if ((I.numericCorrections || []).length) confReason = "an input was not a clean number and was held at the value shown, so the result is blocked.";
-  else if (hardFlag) confReason = "an input is physically impossible, so the result is blocked.";
-  else if (!defDeclared) confReason = "the FCR definition is not declared, so the result is not comparable across centers.";
-  else if (fcrPulledDirty) confReason = "FCR was pulled from another tool in the wrong unit, so confidence is capped until you confirm the value.";
-  else if (weakerIsReal) confReason = "realization is " + realConf + " because " + mechReason + ".";
-  else confReason = "cost basis is " + costConf + " because " + (costBasis === "estimate" ? "cost inputs are estimates, not validated data" : costBasis === "ops" ? "cost inputs are operations data, not finance-confirmed" : "cost inputs are finance-confirmed") + ".";
-
-  return { mechKey, scopeKey, repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, headlineConf, costConf, realConf, confReason, flags, hardFlag, repeatShareT, measuredPathOverridden, negImpossible, fcrImpossible };
+  /* The two-axis ladder that lived here graded a single select to Finance-grade and
+     never read a completeness axis. Since 11B the grade is gradeFCR's alone. The
+     engine reports what it ran, and the grading layer reads those facts. */
+  return { mechKey, scopeKey, repeatCPC, repeatShare, shareSource, shareBasis, repeats, burdenYr, opp, cap, maxUplift, ceilingFCR, practicalMax, target, overCeiling, repeatsT, volReduced, grossYr, controllableBurdenYr, nonControllableBurdenYr, realFactor, mechApplies, realizableYr, steadyMo, payback, paybackLabel, neverPaysBack, year1Net, year2Net, cum2Yr, band, flags, hardFlag, repeatShareT, measuredPathOverridden, negImpossible, fcrImpossible,
+    fcrWasPercent, fcr, M, mCPC, lCPC, repeatMult, enumCorrections, measuredCorrections, numericCorrections: I.numericCorrections || [] };
 }
+
+/* 11B grading layer. Doctrine Section 5. Three axes, read field by field.
+
+   Evidence. Volume and FCR are the user's own figures and stand at Planning-grade
+   once entered. The repeat share is Planning-grade only when it is measured and
+   entered. A modeled share is a formula applied to FCR and grades Directional
+   (Decision J2). The repeat multiplier at its default is the conservative floor,
+   so it does not bind. Marginal cost reaches Planning-grade only when the cost
+   basis select names operations or finance data, and one-time and recurring cost
+   stand at Planning-grade once entered. Nothing reaches Finance-grade: the select
+   is self-declared and no document is inspected (Decision J1). A value at its
+   default, a value restored from this tool's own last run, and a rail value with
+   no recorded origin all grade Directional (Decision J3). Loaded cost values no
+   savings and reaches no axis.
+
+   Realization reads mech.js credit class through realizationFromCred. Per-contact
+   outsourcing holds at Planning-grade until a volume floor is ruled out (J5). An
+   in-house center crediting outsourcer volume holds at Planning-grade too, because
+   the invoice it would reduce is unconfirmed (J9).
+
+   Completeness holds Directional on any corrected input, any failed validity or
+   applicability check, and any model that measured nothing (J4). Void is reserved
+   for outputs no input can produce through the guards.
+
+   This function never reads realizable savings, payback, year-one or two-year net,
+   or the ceiling cap. Doctrine 5.5. */
+const OPS_OWN = [["M", "monthly volume"], ["fcr", "current FCR"]];
+const COST_ATTEST = [["mCPC", "marginal cost"]];
+const COST_OWN = [["investOneTime", "one-time cost"], ["investRecurring", "recurring cost"]];
+const asNum = (x) => (typeof x === "number" ? x : Number(x));
+
+/* Where a graded field's value came from. `pre` holds what the mount prefill wrote,
+   field by field, in engine units, with the tool that published it. A prefilled
+   value the user has since changed is the user's own. */
+function fieldOrigin(I, pre, f) {
+  const v = asNum(I[f]);
+  const p = pre && Object.prototype.hasOwnProperty.call(pre, f) ? pre[f] : null;
+  if (p && asNum(p.value) === v) return p.src === TOOL_ID ? "self" : "rail";
+  if (v === BASE[f]) return "default";
+  return "entered";
+}
+
+const MECH_REASON = {
+  none: "no capacity action is selected, so freed capacity converts to no cash",
+  growth: "absorbing growth or backlog builds capacity, which finance does not credit as savings this cycle",
+  overtime: "reducing overtime stops a payment finance already makes, which is creditable, but it is not cash leaving the cost base",
+  hiring: "avoiding or slowing hiring is finance-creditable over the cycle, but it is not cash leaving the cost base",
+  vendor: "reducing outsourcer volume takes cash off the invoice",
+  headcount: "reducing headcount takes cash off the payroll",
+};
+
+function gradeFCR({ I, r, pre, railOrigin }) {
+  const invariants = [];
+  const figs = [r.burdenYr, r.controllableBurdenYr, r.nonControllableBurdenYr, r.grossYr, r.repeats, r.repeatsT, r.target, r.ceilingFCR, r.realFactor, r.repeatCPC];
+  if (!figs.every(Number.isFinite)) invariants.push("an output is not a finite number");
+  if (r.repeats > r.M * (1 + 1e-9) + 1e-9 || r.repeatsT > r.M * (1 + 1e-9) + 1e-9) invariants.push("more repeat contacts than total contacts");
+  if (r.burdenYr < 0 || r.grossYr < 0 || r.controllableBurdenYr < 0) invariants.push("a burden or a gross value is below zero");
+  if (r.controllableBurdenYr > r.burdenYr * (1 + 1e-9) + 1e-9) invariants.push("the controllable slice exceeds the whole burden");
+
+  const measured = I.repeatModel === "measured";
+  const fields = [...OPS_OWN, ...(measured ? [["measuredRate", "measured repeat share"]] : []), ["repeatMult", "repeat complexity multiplier"], ...COST_ATTEST, ...COST_OWN];
+  const origins = Object.fromEntries(fields.map(([f]) => [f, fieldOrigin(I, pre, f)]));
+  const railG = railEvidence(railOrigin);
+  const attested = I.costBasis === "ops" || I.costBasis === "finance";
+  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railG, entered })[origins[f]];
+  const opsList = [...OPS_OWN, ...(measured ? [["measuredRate", "measured repeat share"]] : [])];
+  const multBinds = origins.repeatMult !== "default";
+  const opsGrades = [...opsList.map(([f]) => fieldGrade(f, "Planning-grade")), ...(multBinds ? [fieldGrade("repeatMult", "Planning-grade")] : []), ...(measured ? [] : ["Directional"])];
+  const opsGrade = opsGrades.reduce(weakerStream);
+  const costGrade = [...COST_ATTEST.map(([f]) => fieldGrade(f, attested ? "Planning-grade" : "Directional")), ...COST_OWN.map(([f]) => fieldGrade(f, "Planning-grade"))].reduce(weakerStream);
+  const evidence = weakerStream(opsGrade, costGrade);
+
+  const named = (list, o) => list.filter(([f]) => origins[f] === o).map(([, l]) => l);
+  const say = (list) => list.length > 1 ? list.slice(0, -1).join(", ") + " and " + list[list.length - 1] : list[0];
+  const why = (list) => {
+    const parts = [];
+    const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
+    if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
+    if (rail.length) parts.push(`${say(rail)} arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}, which confers consistency and evidence only as far as its origin`);
+    return parts;
+  };
+  const opsParts = why([...opsList, ...(multBinds ? [["repeatMult", "repeat complexity multiplier"]] : [])]);
+  if (!measured) opsParts.push(`the repeat share is modeled from FCR by the ${r.shareSource}, not measured. Select the measured model and enter your repeat rate to lift it`);
+  if (!opsParts.length) opsParts.push("Volume, FCR and the measured repeat share are your own entries. Self-declared figures stand at Planning-grade at most, because no data was inspected");
+  const costParts = why([...COST_ATTEST, ...COST_OWN]);
+  if (!costParts.length && !attested) costParts.push("Marginal cost is your own entry but the cost basis is an estimate. Select operations or finance data once it is validated");
+  if (!costParts.length) costParts.push("Marginal, one-time and recurring cost are your own entries, with the cost basis declared by your own account. Self-declaration stands at Planning-grade at most");
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const evParts = [...(opsGrade === evidence ? opsParts : []), ...(costGrade === evidence ? costParts : [])];
+
+  const inhouseVendor = r.mechApplies && r.mechKey === "vendor";
+  const realization = !r.mechApplies ? "Planning-grade" : inhouseVendor ? weakerStream(realizationFromCred(MECH[r.mechKey].cred), "Planning-grade") : realizationFromCred(MECH[r.mechKey].cred);
+  const realWhy = !r.mechApplies
+    ? "Per-contact billing falls directly with volume, so no capacity mechanism applies. It is held at Planning-grade until a minimum volume commitment is ruled out"
+    : inhouseVendor
+      ? `${MECH.vendor.label} on in-house sourcing is held at Planning-grade, because the outsourcer invoice it would reduce is not confirmed by anything this tool collects`
+      : `${MECH[r.mechKey].label} is credited as ${MECH[r.mechKey].cred} in mech.js, because ${MECH_REASON[r.mechKey] || "that is its credit class"}`;
+
+  const blockers = [];
+  const corrected = r.enumCorrections.length + r.numericCorrections.length + r.measuredCorrections.length + (r.fcrImpossible ? 1 : 0) + (r.negImpossible ? 1 : 0) + (r.fcrWasPercent ? 1 : 0);
+  if (corrected) blockers.push(`${corrected} input${corrected > 1 ? "s were" : " was"} outside the possible range, in the wrong unit, or not a valid entry, and corrected before calculation`);
+  if (I.fcrPulledDirty) blockers.push("FCR arrived from another tool as a whole number and has not been confirmed");
+  if (r.lCPC > 0 && r.mCPC > r.lCPC) blockers.push("marginal cost exceeds loaded cost, which is impossible");
+  else if (r.lCPC > 0 && r.mCPC >= MARG_NEAR * r.lCPC) blockers.push(`marginal cost is at least ${Math.round(MARG_NEAR * 100)} percent of loaded cost, which usually means loaded cost was entered as marginal`);
+  else if (r.lCPC > 0 && r.mCPC > 0 && r.mCPC <= MARG_FAR * r.lCPC) blockers.push(`marginal cost is at most ${Math.round(MARG_FAR * 100)} percent of loaded cost, outside the usual range, and the burden scales directly with it`);
+  if (r.repeatMult < 1) blockers.push("the repeat multiplier is below 1.0, which prices a repeat below a first contact");
+  else if (r.repeatMult > MULT_HIGH) blockers.push(`the repeat multiplier is above ${MULT_HIGH}x and is not yet validated against handle-time and rework data`);
+  if (measured && r.repeatShare > MEASURED_MAX) blockers.push(`the measured repeat share is above the plausible ${Math.round(MEASURED_MAX * 100)} percent`);
+  if (I.method === "internal" && I.windowDays < WINDOW_SHORT) blockers.push(`the internal callback window is under ${WINDOW_SHORT} days, which undercounts return contacts`);
+  if (r.measuredPathOverridden) blockers.push("a legacy modeled improvement path was replaced by proportional scaling on the measured base");
+  if (!I.defDeclared) blockers.push("the FCR definition is not declared, so the result is not comparable across centers");
+  if (!I.diagComplete) blockers.push("the root-cause diagnostic is not fully answered, so opportunity and capture were read at the midpoint");
+  if (!(r.M > 0) || !(r.repeatCPC > 0)) blockers.push("there is no repeat volume or no repeat cost, so the model measured nothing");
+  else if (!(I.askTarget > r.fcr + 1e-9)) blockers.push("the target FCR is not above current, so the model measured no improvement");
+  else if (!(r.practicalMax > r.fcr + 1e-9)) blockers.push("current FCR is at or above the practical maximum for this scope, so the model measured no improvement");
+  const completeness = blockers.length ? "Directional" : "Finance-grade";
+  const modelWhy = blockers.length ? blockers.join("; ")
+    : "The model is whole: no input was corrected, the definition is declared, the diagnostic is answered and every validity check passed";
+
+  const voided = invariants.length > 0;
+  const gradeObj = voided
+    ? voidResult({
+        invariant: invariants.join("; "),
+        remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this report.",
+      })
+    : emitGrades({
+        evidence, realization, completeness,
+        reasons: { evidence: `${evParts.map(cap).join(". ")}.`, realization: `${realWhy}.`, completeness: `${cap(modelWhy)}.` },
+      });
+  const confidence = voided ? "Void" : gradeObj.headline;
+  const gradeWhy = voided
+    ? `export void: ${invariants.join("; ")}`
+    : `Bound by ${gradeObj.boundBy}. ${gradeObj.boundAxes.map((x) => gradeObj.reasons[x]).join(" ")}`;
+  return { gradeObj, confidence, gradeWhy, voided, invariants, evidence, opsGrade, costGrade, realization, completeness, blockers, origins };
+}
+
 /* @engine-end */
 
 const MECH_OPTS = MECH_ORDER.map((k) => ({ v: k, l: MECH[k].label + (k === "none" ? " ($0)" : `  (${Math.round(MECH[k].f * 100)}%)`) }));
@@ -354,30 +502,55 @@ function LogoMark({ size = 30 }) {
 /* Scenario contract. Defaults are STATIC on purpose: the state initializers
    below seed from cross-tool pulls, but the URL diff must be taken against a
    fixed baseline or the same link would decode differently in another session. */
-const TOOL_ID = "fcr-leakage";
 const ROUTE = "/tools/fcr-leakage";
 const DEFAULTS = {
-  phase: "setup", M: 50000, fcrPct: 72, mCPC: 6.5, lCPC: 11,
-  scope: "", method: "", windowDays: 7, repeatModel: "one",
-  measuredPct: 22, measuredTargetPct: 0, pathModel: "one",
-  repeatMult: 1.0, targetPct: 80, sourcing: "inhouse", mech: "hiring",
-  investOneTime: 150000, investRecurring: 90000,
+  phase: "setup", M: dflt("M"), fcrPct: dflt("fcrPct"), mCPC: dflt("mCPC"), lCPC: dflt("lCPC"),
+  scope: "", method: "", windowDays: dflt("windowDays"), repeatModel: "one",
+  measuredPct: dflt("measuredPct"), measuredTargetPct: dflt("measuredTargetPct"), pathModel: "one",
+  repeatMult: dflt("repeatMult"), targetPct: dflt("targetPct"), sourcing: "inhouse", mech: MECH_INITIAL,
+  investOneTime: dflt("investOneTime"), investRecurring: dflt("investRecurring"),
   costBasis: "estimate", fcrConfirmed: false, scores: {},
 };
 
 export default function FCRLeakageDiagnostic() {
+  /* Read the rail exactly once, at mount and BEFORE this tool publishes, with the tool
+     that wrote each value. This tool republishes fcr, monthlyContacts and
+     marginalPerContact, so a pull re-read on every render found its own output and
+     showed it as PULLED. `pre` feeds gradeFCR field by field, in engine units: a
+     restored own value and a rail value with no origin grade both grade Directional.
+     Keys stay as string literals so rail-audit.mjs can see every pull. */
+  const rail = useRef(null);
+  if (rail.current === null) {
+    const got = {
+      M: getPrimitiveWithSource("monthlyContacts"), fcr: getPrimitiveWithSource("fcr"),
+      mCPC: getPrimitiveWithSource("marginalPerContact"), mCPCalt: getPrimitiveWithSource("marginalCPC"),
+      lCPC: getPrimitiveWithSource("loadedCPC"), lCPCalt: getPrimitiveWithSource("costPerContact"),
+    };
+    const first = (a, b) => (a.value ? a : b.value ? b : null);
+    const hit = { M: got.M.value ? got.M : null, mCPC: first(got.mCPC, got.mCPCalt), lCPC: first(got.lCPC, got.lCPCalt) };
+    const rawFcr = got.fcr.value;
+    const fcrPct = rawFcr == null || isNaN(rawFcr) ? null : clamp(Math.round((rawFcr > 1 ? rawFcr / 100 : rawFcr) * 100), 1, 99);
+    const pre = {};
+    for (const f of ["M", "mCPC", "lCPC"]) if (hit[f] && !isNaN(hit[f].value)) pre[f] = { value: hit[f].value, src: hit[f].sourceTool || "" };
+    if (fcrPct != null) pre.fcr = { value: fcrPct / 100, src: got.fcr.sourceTool || "" };
+    rail.current = { M: pre.M ? pre.M.value : null, mCPC: pre.mCPC ? pre.mCPC.value : null, lCPC: pre.lCPC ? pre.lCPC.value : null, fcrPct, rawFcr: fcrPct == null ? null : rawFcr, pre };
+  }
   const [phase, setPhase] = useState("setup");
-  const [M, setM] = useState(() => getPrimitive("monthlyContacts") || 50000);
-  const [fcrPct, setFcrPct] = useState(() => { const raw = getPrimitive("fcr"); const f = raw == null ? 0.72 : raw > 1 ? raw / 100 : raw; return clamp(Math.round(f * 100), 1, 99); });
-  const [mCPC, setMCPC] = useState(() => getPrimitive("marginalPerContact") || getPrimitive("marginalCPC") || 6.5);
-  const [lCPC, setLCPC] = useState(() => getPrimitive("loadedCPC") || getPrimitive("costPerContact") || 11);
-  const [scope, setScope] = useState(""); const [method, setMethod] = useState(""); const [windowDays, setWindowDays] = useState(7);
+  const [M, setM] = useState(() => rail.current.M != null ? rail.current.M : DEFAULTS.M);
+  const [fcrPct, setFcrPct] = useState(() => rail.current.fcrPct != null ? rail.current.fcrPct : DEFAULTS.fcrPct);
+  const [mCPC, setMCPC] = useState(() => rail.current.mCPC != null ? rail.current.mCPC : DEFAULTS.mCPC);
+  const [lCPC, setLCPC] = useState(() => rail.current.lCPC != null ? rail.current.lCPC : DEFAULTS.lCPC);
+  const [scope, setScope] = useState(""); const [method, setMethod] = useState(""); const [windowDays, setWindowDays] = useState(DEFAULTS.windowDays);
   const [repeatModel, setRepeatModel] = useState("one");
-  const [measuredPct, setMeasuredPct] = useState(22); const [measuredTargetPct, setMeasuredTargetPct] = useState(0); const [pathModel, setPathModel] = useState("one");
-  const [repeatMult, setRepeatMult] = useState(1.0);
-  const [targetPct, setTargetPct] = useState(80);
-  const [sourcing, setSourcing] = useState("inhouse"); const [mech, setMech] = useState("hiring");  // must be a key in src/lib/mech.js
-  const [investOneTime, setInvestOneTime] = useState(150000); const [investRecurring, setInvestRecurring] = useState(90000);
+  const [measuredPct, setMeasuredPct] = useState(DEFAULTS.measuredPct); const [measuredTargetPct, setMeasuredTargetPct] = useState(DEFAULTS.measuredTargetPct); const [pathModel, setPathModel] = useState("proportional");
+  /* A fresh session runs the only path the engine has, proportional. DEFAULTS keeps
+     "one" on purpose: a legacy link that omitted pathModel was minted on "one", so it
+     still decodes as "one" and still carries the legacy-path disclosure. The shipped
+     initial state of "one" fired that disclosure on every fresh measured run. */
+  const [repeatMult, setRepeatMult] = useState(DEFAULTS.repeatMult);
+  const [targetPct, setTargetPct] = useState(DEFAULTS.targetPct);
+  const [sourcing, setSourcing] = useState("inhouse"); const [mech, setMech] = useState(DEFAULTS.mech);
+  const [investOneTime, setInvestOneTime] = useState(DEFAULTS.investOneTime); const [investRecurring, setInvestRecurring] = useState(DEFAULTS.investRecurring);
   const [costBasis, setCostBasis] = useState("estimate");
   const [fcrConfirmed, setFcrConfirmed] = useState(false);
   const [currentDim, setCurrentDim] = useState(0); const [scores, setScores] = useState({});
@@ -407,11 +580,10 @@ export default function FCRLeakageDiagnostic() {
     clearScenarioParam();
   }, []);
 
-  const rawPulledFcr = getPrimitive("fcr");
-  const pulledM = !fromLink && !!getPrimitive("monthlyContacts"); const pulledFcr = !fromLink && rawPulledFcr != null;
-  const fcrPulledDirty = !fromLink && rawPulledFcr != null && rawPulledFcr > 1 && !fcrConfirmed;
+  const pulledM = !fromLink && rail.current.M != null; const pulledFcr = !fromLink && rail.current.fcrPct != null;
+  const fcrPulledDirty = !fromLink && rail.current.rawFcr != null && rail.current.rawFcr > 1 && !fcrConfirmed;
   const onFcr = (v) => { setFcrConfirmed(true); setFcrPct(v); };
-  const pulledMcpc = !fromLink && (getPrimitive("marginalPerContact") || getPrimitive("marginalCPC")) != null;
+  const pulledMcpc = !fromLink && rail.current.mCPC != null;
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
 
   /* Every figure below reads the sanitized numerics. Input fields keep the raw state
@@ -424,8 +596,12 @@ export default function FCRLeakageDiagnostic() {
   const dScore = DIMS.reduce((a, d) => a + dimScore(d.id), 0) / DIMS.length;
   const defDeclared = scope !== "" && method !== "";
 
-  const engineInput = { M: N.M, fcr: N.fcrPct / 100, mCPC: N.mCPC, lCPC: N.lCPC, repeatModel, measuredRate: N.measuredPct / 100, measuredTargetRate: N.measuredTargetPct > 0 ? N.measuredTargetPct / 100 : null, pathModel, repeatMult: N.repeatMult, dScore: dScore || 3, askTarget: N.targetPct / 100, mech, sourcing, investOneTime: N.investOneTime, investRecurring: N.investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays: N.windowDays, numericCorrections: N.numericCorrections };
+  const engineInput = { M: N.M, fcr: N.fcrPct / 100, mCPC: N.mCPC, lCPC: N.lCPC, repeatModel, measuredRate: N.measuredPct / 100, measuredTargetRate: N.measuredTargetPct > 0 ? N.measuredTargetPct / 100 : null, pathModel, repeatMult: N.repeatMult, dScore: dScore || 3, askTarget: N.targetPct / 100, mech, sourcing, investOneTime: N.investOneTime, investRecurring: N.investRecurring, costBasis, defDeclared, fcrPulledDirty, scope, method, windowDays: N.windowDays, numericCorrections: N.numericCorrections, diagComplete: allComplete };
   const R = engine(engineInput);
+  /* railOrigin is null because the rail carries no origin grade yet. A scenario link
+     suppresses the prefill record, since those values describe someone else's session. */
+  const G = gradeFCR({ I: engineInput, r: R, pre: fromLink ? {} : rail.current.pre, railOrigin: null });
+  const blocked = R.hardFlag || G.voided;
 
   /* Exact input set the scenario link carries. Phase rides along so a shared
      link opens on the results the sender was looking at, not an empty wizard. */
@@ -434,22 +610,22 @@ export default function FCRLeakageDiagnostic() {
     measuredPct, measuredTargetPct, pathModel, repeatMult, targetPct,
     sourcing, mech, investOneTime, investRecurring, costBasis, fcrConfirmed, scores,
   };
-  const aggMult = Math.min(3.0, Math.max(1.5, N.repeatMult + 0.4));
+  const aggMult = Math.min(SENS.max, Math.max(SENS.min, N.repeatMult + SENS.step));
   const sensLo = engine({ ...engineInput, repeatModel: "one", repeatMult: 1.0 });
   const sensHi = engine({ ...engineInput, repeatModel: "geometric", repeatMult: aggMult });
   const sorted = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id));
   const top = sorted[0];
-  const confColor = (c) => c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : MUTED;
+  const confColor = (c) => c === "Finance-grade" ? GREEN : c === "Planning-grade" ? AMBER : c === "Void" ? RED : MUTED;
   const methodLabel = method === "survey" ? "external post-call survey" : method === "internal" ? "internal callback window of " + N.windowDays + " days" : "not declared";
 
   useEffect(() => {
     if (phase === "results") publishToolResult("fcr-leakage", {
       repeatContactBurden: R.burdenYr, controllableRepeatBurden: R.controllableBurdenYr, cashRealizableSavings: R.realizableYr,
       repeatContactShare: R.repeatShare, marginalPerContact: N.mCPC, targetFCR: R.target, fcr: N.fcrPct / 100, monthlyContacts: N.M,
-      fcrLeakageConfidence: R.headlineConf,
+      fcrLeakageConfidence: G.confidence,
       analystRead: `Repeat burden ${money(R.burdenYr)}/yr (${money(R.controllableBurdenYr)} controllable). ${money(R.realizableYr)} realizable at ${pct(R.target)} FCR, payback ${R.paybackLabel}.`,
     });
-  }, [phase, R.burdenYr, R.realizableYr, R.payback]);
+  }, [phase, R.burdenYr, R.realizableYr, R.payback, G.confidence]);
 
   const card = { border: `1px solid ${BORDER}`, borderRadius: 12, padding: "22px", marginBottom: 18 };
   const h3 = { fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 16, letterSpacing: 0.3 };
@@ -486,7 +662,7 @@ export default function FCRLeakageDiagnostic() {
                 {method === "internal" ? <NumField label="Callback window" value={windowDays} onChange={setWindowDays} suffix=" days" step={1} min={1} max={30} /> : <div />}
               </div>
               {scope === "voice" && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Voice-only scope is the most generous definition. It usually inflates FCR and understates leakage, because a customer who failed in chat or a bot before calling is not counted.</p>}
-              {method === "internal" && N.windowDays < 7 && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>A {N.windowDays}-day callback window is short. It captures fewer return contacts, so internal FCR tends to read high and the true leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, since customers often return through another channel days later. Common practice is 7 to 30 days depending on issue type.</p>}
+              {method === "internal" && N.windowDays < WINDOW_SHORT && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>A {N.windowDays}-day callback window is short. It captures fewer return contacts, so internal FCR tends to read high and the true leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, since customers often return through another channel days later. Common practice is 7 to 30 days depending on issue type.</p>}
             </div>
 
             <div style={card}>
@@ -502,7 +678,7 @@ export default function FCRLeakageDiagnostic() {
                     decode, and the engine flags them. */}
                 <NumField label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} infoAlign="right" />
               </div>
-              {N.repeatMult > 2.5 ? <p style={{ fontSize: 12, color: RED, marginTop: 12, lineHeight: 1.5 }}>High assumption at {fmtX(N.repeatMult)}x. This is above most published estimates. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.</p> : N.repeatMult > 2.0 ? <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Elevated at {fmtX(N.repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.</p> : null}
+              {N.repeatMult > MULT_HIGH ? <p style={{ fontSize: 12, color: RED, marginTop: 12, lineHeight: 1.5 }}>High assumption at {fmtX(N.repeatMult)}x. This is above most published estimates. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.</p> : N.repeatMult > MULT_ELEVATED ? <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Elevated at {fmtX(N.repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.</p> : null}
             </div>
 
             <div style={card}>
@@ -552,24 +728,25 @@ export default function FCRLeakageDiagnostic() {
       {phase === "results" && (
         <section style={{ padding: "40px 28px 60px" }}>
           <div style={WRAP}>
-            {R.hardFlag && (
+            {blocked && (
               <div>
                 <div style={{ background: `${RED}0A`, border: `2px solid ${RED}`, borderRadius: 12, padding: "26px 28px", marginBottom: 20 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1.5, textTransform: "uppercase" }}>Result blocked: invalid inputs</span>
                   <p style={{ fontSize: 14, color: NAVY, lineHeight: 1.6, margin: "10px 0 14px" }}>The engine produced a physically impossible value, so no result is shown. An invalid result is not a low-confidence result. Correct the inputs below and the economics will return.</p>
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>{R.flags.filter((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped/.test(f)).map((f, i) => <li key={i} style={{ fontSize: 13, color: RED, lineHeight: 1.5, marginBottom: 4 }}>{f}</li>)}</ul>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>{[...(G.voided ? [`Export void: ${G.invariants.join("; ")}.`] : []), ...R.flags.filter((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped|was held at/.test(f))].map((f, i) => <li key={i} style={{ fontSize: 13, color: RED, lineHeight: 1.5, marginBottom: 4 }}>{f}</li>)}</ul>
                 </div>
                 <button onClick={() => setPhase("setup")} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: "pointer" }}>Adjust inputs</button>
               </div>
             )}
-            {!R.hardFlag && (<>
+            {!blocked && (<>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "12px 16px", marginBottom: 20 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: confColor(R.headlineConf), letterSpacing: 1, textTransform: "uppercase" }}>{R.headlineConf}</span>
-              <span style={{ fontSize: 12, color: SLATE }}>Cost basis <strong style={{ color: confColor(R.costConf) }}>{R.costConf}</strong></span>
-              <span style={{ fontSize: 12, color: SLATE }}>Realization <strong style={{ color: confColor(R.realConf) }}>{R.realConf}</strong></span>
-              <span style={{ fontSize: 12, color: SLATE }}>Headline reports the weaker axis.</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: confColor(G.confidence), letterSpacing: 1, textTransform: "uppercase" }}>{G.confidence}</span>
+              <span style={{ fontSize: 12, color: SLATE }}>Evidence <strong style={{ color: confColor(G.evidence) }}>{G.evidence}</strong></span>
+              <span style={{ fontSize: 12, color: SLATE }}>Realization <strong style={{ color: confColor(G.realization) }}>{G.realization}</strong></span>
+              <span style={{ fontSize: 12, color: SLATE }}>Completeness <strong style={{ color: confColor(G.completeness) }}>{G.completeness}</strong></span>
               <InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} />
-              <div style={{ flexBasis: "100%", fontSize: 12, color: SLATE, lineHeight: 1.5, marginTop: 2 }}>{R.confReason.charAt(0).toUpperCase() + R.confReason.slice(1)}</div>
+              <div style={{ flexBasis: "100%", fontSize: 12, color: SLATE, lineHeight: 1.5, marginTop: 2 }}>{G.gradeWhy}</div>
+              <div style={{ flexBasis: "100%", fontSize: 11.5, color: MUTED, lineHeight: 1.5 }}>This grade is self-declared. It reflects what you told this tool about your sources. No payroll file, finance record or repeat-contact dataset was inspected.</div>
             </div>
 
             <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
@@ -660,11 +837,12 @@ export default function FCRLeakageDiagnostic() {
             <ReportActions
               toolId={TOOL_ID}
               toolName="FCR Leakage Diagnostic"
-              subtitle={`${R.headlineConf} • Repeat burden ${money(R.burdenYr)}/yr • Year-1 net ${money(R.year1Net)}`}
+              subtitle={`${G.confidence} • Repeat burden ${money(R.burdenYr)}/yr • Year-1 net ${money(R.year1Net)}`}
               routePath={ROUTE}
               state={scenario}
               defaults={DEFAULTS}
-              confidence={R.headlineConf}
+              confidence={G.confidence}
+              grades={G.gradeObj}
               summary={[
                 { label: "Repeat burden annual", value: money(R.burdenYr) },
                 { label: "Controllable burden annual", value: money(R.controllableBurdenYr) },
@@ -672,7 +850,7 @@ export default function FCRLeakageDiagnostic() {
                 { label: "Year-1 net", value: money(R.year1Net) },
                 { label: "Year-2 net standalone", value: money(R.year2Net) },
                 { label: "Two-year cumulative net", value: money(R.cum2Yr) },
-                { label: "Payback", value: R.neverPaysBack ? "never at current scope" : R.payback ? "month " + R.payback : "beyond 48 months" },
+                { label: "Payback", value: R.neverPaysBack ? "never at current scope" : R.payback ? "month " + R.payback : "beyond " + HORIZON + " months" },
               ]}
               signals={{
                 /* Severity is the share of the achievable resolution frontier
@@ -699,11 +877,12 @@ export default function FCRLeakageDiagnostic() {
                    A hard flag or an impossible FCR means an input is physically
                    invalid and the result is blocked, so the key is omitted
                    rather than published off a clamped number. */
-                ...(R.hardFlag || R.fcrImpossible || !(R.practicalMax > 0) ? {} : {
+                ...(blocked || R.fcrImpossible || !(R.practicalMax > 0) ? {} : {
                   severity: severityBucket(Math.max(0, R.practicalMax - N.fcrPct / 100) / R.practicalMax),
                 }),
-                cost_basis_confidence: R.costConf,
-                realization_confidence: R.realConf,
+                evidence_confidence: G.voided ? "void" : G.evidence,
+                realization_confidence: G.voided ? "void" : G.realization,
+                completeness_confidence: G.voided ? "void" : G.completeness,
                 current_fcr: N.fcrPct + "%",
                 // The APPLIED target, not the ask. These diverge whenever the
                 // diagnostic caps the target, which is most of the time: the
@@ -723,7 +902,7 @@ export default function FCRLeakageDiagnostic() {
                 from_scenario_link: fromLink ? "yes" : "no",
               }}
               sections={[
-                { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.neverPaysBack ? "never at current scope" : R.payback ? "in month " + R.payback : "beyond 48 months"}. Confidence is ${R.headlineConf}.` },
+                { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.neverPaysBack ? "never at current scope" : R.payback ? "in month " + R.payback : "beyond " + HORIZON + " months"}. Confidence is ${G.confidence}.` },
                 { title: "Definitions and Scope Used", type: "findings", items: [
                   `FCR definition: ${scopeLabelFor(R.scopeKey)}, ${methodLabel}.`,
                   `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${fmtX(N.repeatMult)}x.`,
@@ -744,13 +923,17 @@ export default function FCRLeakageDiagnostic() {
                   { label: "Realizable via " + (sourcing === "bpo" ? "billing reduction" : "mechanism"), value: money(R.realizableYr), color: R.realizableYr > 0 ? GREEN : RED },
                   { label: "One-time cost", value: money(N.investOneTime), color: SLATE },
                   { label: "Recurring annual cost", value: money(N.investRecurring), color: SLATE },
-                  { label: "Payback", value: R.neverPaysBack ? "never" : R.payback ? "month " + R.payback : "48mo+", color: R.neverPaysBack ? RED : NAVY },
+                  { label: "Payback", value: R.neverPaysBack ? "never" : R.payback ? "month " + R.payback : HORIZON + "mo+", color: R.neverPaysBack ? RED : NAVY },
                   { label: "Year-1 net (after one-time cost)", value: money(R.year1Net), color: R.year1Net >= 0 ? GREEN : RED },
                   { label: "Year-2 net (standalone)", value: money(R.year2Net), color: R.year2Net >= 0 ? GREEN : RED },
                   { label: "Two-year cumulative net", value: money(R.cum2Yr), color: R.cum2Yr >= 0 ? GREEN : RED, sub: "year 1 plus year 2" },
                 ] },
                 { title: "Confidence and Risk Flags", type: "findings", items: [
-                  `Headline ${R.headlineConf}. Cost basis ${R.costConf}, realization ${R.realConf}. The headline reports the weaker axis. ${R.confReason.charAt(0).toUpperCase() + R.confReason.slice(1)}`,
+                  `Headline ${G.confidence}. ${G.gradeWhy}`,
+                  `Evidence axis: ${G.voided ? "Void" : G.evidence}.`,
+                  `Realization axis: ${G.voided ? "Void" : G.realization} (${R.mechApplies ? MECH[R.mechKey].label : "per-contact billing"}).`,
+                  `Completeness axis: ${G.voided ? "Void" : G.completeness}${G.blockers.length ? ", " + G.blockers.length + (G.blockers.length === 1 ? " check failed" : " checks failed") : ", model is whole"}.`,
+                  "This grade is self-declared. It reflects the sources you named. No payroll file, finance record or repeat-contact dataset was inspected.",
                   ...(R.flags.length ? R.flags : ["No integrity flags raised."]),
                 ] },
                 { title: "Dimension Scores", type: "table", rows: DIMS.map((d) => [d.name, dimScore(d.id).toFixed(1) + "/5 (" + d.ownerClass + ")"]) },
@@ -765,19 +948,16 @@ export default function FCRLeakageDiagnostic() {
                   "Balancing metrics (reopen, transfer, escalation, AHT, confirmed containment, CSAT) must hold or the FCR gain is not real.",
                   "Interval staffing, multi-year board case, and contract penalties are out of scope and routed below.",
                 ] },
-                { title: "Next Steps", type: "next", items: [
-                  { tool: "Staffing Calculator", reason: "Does this volume reduction change the interval staffing requirement", href: "/tools/staffing-calculator" },
-                  { tool: "Attrition Cost Calculator", reason: "Repeat-contact rework feeds agent burnout and turnover", href: "/tools/attrition-cost" },
-                  { tool: "Business Case Builder", reason: "Build the multi-year board case on these numbers", href: "/tools/business-case" },
-                  { tool: "Transformation Readiness", reason: "Confirm the organization can actually capture the upside", href: "/tools/transformation-readiness" },
-                ] },
+                /* The edge set lives in src/lib/journey.js, the same graph the tracked
+                   "Run this next" card renders, so the page and the PDF cannot name
+                   different next steps. */
+                { title: "Next Steps", type: "next", items: nextFor(TOOL_ID).map((e) => ({ tool: e.name, reason: e.why, href: e.href })) },
               ]}
             />
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
               <button onClick={() => { setCurrentDim(DIMS.length - 1); setPhase("diagnostic"); }} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>← Back to diagnostic</button>
               <button onClick={() => setPhase("setup")} style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>Adjust inputs</button>
-              <a href="/tools/cost-per-contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, textDecoration: "none" }}>Cost per Resolution →</a>
             </div>
             </>)}
           </div>
