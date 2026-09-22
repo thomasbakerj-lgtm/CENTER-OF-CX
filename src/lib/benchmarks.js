@@ -236,6 +236,59 @@ const aidEntries = {
   "aid.guard.botNearFree": aLine(0.01, "USD operating cost per bot-attempted contact", "Operating cost at or below one cent per attempted conversation makes the program look costless and drives break-even toward zero. Set below the channel fee line because this cost is a flat monthly spend spread across volume, and a real program at scale runs a few cents. Holds completeness Directional."),
 };
 
+/* FCR Leakage Diagnostic. Defaults are an internal operating profile so the tool
+   opens on a runnable case, one entry per field under fcr.default. A graded driver
+   still at its default grades evidence Directional. The scope ceilings and the
+   opportunity and capture curve are judgment values the page states openly. The
+   thresholds hold completeness Directional when crossed, except where a rationale
+   says display only. Session 18, 11B. */
+const FCR = "fcr-leakage";
+const FCR_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const fHeur = (value, unit, rationale) => ({ tool: FCR, kind: "heuristic", value, unit, source: FCR_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const fLine = (value, unit, rationale) => ({ tool: FCR, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
+const FCR_DEF = "Default so the tool opens on a runnable case.";
+const FCR_DEFAULTS = {
+  M: [50000, "contacts per month", "A volume still at this value grades evidence Directional."],
+  fcrPct: [72, "percent", "An FCR still at this value grades evidence Directional."],
+  mCPC: [6.5, "USD per contact", "A marginal cost still at this value grades cost evidence Directional."],
+  lCPC: [11, "USD per contact", "Loaded cost is context for the unit metric only. It values no savings and reaches no confidence axis."],
+  windowDays: [7, "days", "Callback window for the internal method. It moves a completeness check only."],
+  measuredPct: [22, "percent of volume", "A measured repeat share still at this value grades evidence Directional."],
+  measuredTargetPct: [0, "percent of volume", "Zero means model the target share proportionally on the measured base."],
+  repeatMult: [1, "multiple of a first contact", "The conservative floor. At this value it cannot inflate the burden, so it does not bind evidence."],
+  targetPct: [80, "percent", "Target FCR is the user's plan, not a claim about the operation. It reaches no evidence stream."],
+  investOneTime: [150000, "USD one time", "A one-time cost still at this value grades cost evidence Directional."],
+  investRecurring: [90000, "USD per year", "A recurring cost still at this value grades cost evidence Directional."],
+};
+const fcrEntries = {
+  ...Object.fromEntries(Object.entries(FCR_DEFAULTS).map(([f, [v, unit, why]]) => [`fcr.default.${f}`, fHeur(v, unit, `${FCR_DEF} ${why}`)])),
+  "fcr.scope.voice": fHeur(0.93, "practical maximum FCR", "Practical ceiling for assisted voice only, the most generous definition."),
+  "fcr.scope.cc": fHeur(0.9, "practical maximum FCR", "Practical ceiling for contact center cross-channel resolution."),
+  "fcr.scope.digital": fHeur(0.89, "practical maximum FCR", "Practical ceiling for digital plus assisted, which adds self-service to the resolution set."),
+  "fcr.scope.enterprise": fHeur(0.88, "practical maximum FCR", "Practical ceiling for enterprise one-contact, the strictest definition and the substitution fallback."),
+  "fcr.scope.undeclared": fHeur(0.9, "practical maximum FCR", "Ceiling applied while no scope is declared. An undeclared definition holds completeness Directional."),
+  "fcr.curve.oppFloor": fHeur(0.15, "share of repeat burden", "Controllable opportunity at the strongest diagnostic score."),
+  "fcr.curve.oppSpan": fHeur(0.65, "share of repeat burden", "Opportunity added from the strongest to the weakest diagnostic score."),
+  "fcr.curve.oppCeil": fHeur(0.8, "share of repeat burden", "Controllable opportunity at the weakest diagnostic score."),
+  "fcr.curve.capFloor": fHeur(0.25, "share of opportunity", "Year-one capture at the weakest diagnostic score."),
+  "fcr.curve.capSpan": fHeur(0.65, "share of opportunity", "Capture added from the weakest to the strongest diagnostic score."),
+  "fcr.curve.capCeil": fHeur(0.9, "share of opportunity", "Year-one capture at the strongest diagnostic score."),
+  "fcr.band.estimate": fHeur(0.25, "share of burden", "Range printed around the burden when cost inputs are estimates. Display only. It reaches no confidence axis."),
+  "fcr.band.ops": fHeur(0.15, "share of burden", "Range printed around the burden when cost inputs are operations data. Display only."),
+  "fcr.band.finance": fHeur(0.1, "share of burden", "Range printed around the burden when cost inputs are finance-confirmed by the user's own account. Display only."),
+  "fcr.ramp.months": fHeur(4, "months", "Linear ramp to steady-state savings. It moves payback and year-one net only."),
+  "fcr.sens.aggMin": fHeur(1.5, "multiple of a first contact", "Floor of the aggressive repeat multiplier in the sensitivity rows. Display only."),
+  "fcr.sens.aggMax": fHeur(3, "multiple of a first contact", "Ceiling of the aggressive repeat multiplier in the sensitivity rows. Display only."),
+  "fcr.sens.aggStep": fHeur(0.4, "multiple of a first contact", "Step above the entered multiplier for the aggressive sensitivity row. Display only."),
+  "fcr.read.margNearLoaded": fLine(0.85, "share of loaded cost", "Marginal cost at or above this share of loaded usually means loaded cost was entered as marginal. Disclosed, and holds completeness Directional."),
+  "fcr.read.margFarBelow": fLine(0.35, "share of loaded cost", "Marginal cost at or below this share of loaded is outside the usual 50 to 75 percent range and burden scales with it. Disclosed, and holds completeness Directional."),
+  "fcr.read.multHigh": fLine(2.5, "multiple of a first contact", "A repeat multiplier above this sits beyond most published estimates of 1.5x to 2x. Disclosed, and holds completeness Directional until validated."),
+  "fcr.read.multElevated": fLine(2, "multiple of a first contact", "A repeat multiplier above this is elevated and noted on the page. Display only. It reaches no confidence axis."),
+  "fcr.read.measuredMax": fLine(0.6, "share of volume", "A measured repeat share above this is outside the plausible range. Disclosed, and holds completeness Directional."),
+  "fcr.read.windowShort": fLine(7, "days", "An internal callback window shorter than this undercounts return contacts and reads FCR high. Disclosed, and holds completeness Directional."),
+  "fcr.guard.horizon": fLine(48, "months", "Payback search horizon. Beyond it the page reports beyond 48 months. A property of the answer, so it reaches no confidence axis."),
+};
+
 export const BENCHMARK_SOURCES = {
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
@@ -333,6 +386,7 @@ export const BENCHMARK_SOURCES = {
   "channel.read.breakEvenFloor": chLine(1, "percent resolution", "A break-even below this reads as a shift profitable at any resolution. Framing only. It is a property of the answer and reaches no confidence axis by doctrine 5.5."),
 
   ...aidEntries,
+  ...fcrEntries,
 };
 
 for (const [id, e] of Object.entries(BENCHMARK_SOURCES)) {
