@@ -16,7 +16,7 @@ const WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3
 const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 const WRAP = { maxWidth: 880, margin: "0 auto", padding: "0 28px" };
 const TOOL_ID = "business-case-builder";
-const ROUTE = "/tools/business-case-builder";
+const ROUTE = "/tools/business-case"; /* was /tools/business-case-builder, a 404: every shared scenario link and review route was dead. Found by journey.test.mjs A3 */
 
 // Display names for rail producers. A pulled value must name the tool that actually
 // produced it. Hardcoding "TCO Calculator" was printing a false provenance claim in a
