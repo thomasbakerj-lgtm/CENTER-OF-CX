@@ -98,6 +98,27 @@ const mod = (value, rationale) => ({ tool: LBG, kind: "heuristic", value, unit: 
 const seat = (value, rationale) => ({ tool: LBG, kind: "heuristic", value, unit: "USD per seat per month", source: HEUR, reviewed: REVIEWED, version: 1, rationale });
 const line = (value, unit, rationale) => ({ tool: LBG, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
 
+/* Staffing Requirement Calculator. Presets are internal operating profiles, one per
+   industry, so the tool opens on a runnable case. They are labelled heuristics in
+   the registry and grade evidence Directional while a driver still holds one. */
+const STF = "staffing-calculator";
+const STF_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const sHeur = (value, unit, rationale) => ({ tool: STF, kind: "heuristic", value, unit, source: STF_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const sLine = (value, unit, rationale) => ({ tool: STF, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
+const STF_PRESETS = {
+  general: [400, 360, 80, 20, 30], financial: [500, 320, 80, 20, 28], healthcare: [350, 420, 80, 30, 32],
+  retail: [600, 280, 80, 20, 32], telecom: [550, 440, 80, 20, 30], insurance: [300, 480, 80, 30, 28], bpo: [700, 340, 80, 20, 34],
+};
+const STF_PRESET_FIELDS = [
+  ["vol", "contacts per interval", "Voice contacts per interval for this profile"],
+  ["aht", "seconds", "Average handle time for this profile"],
+  ["slT", "percent answered", "Service level target for this profile"],
+  ["slS", "seconds", "Answer threshold for this profile"],
+  ["shrink", "percent", "Total shrinkage for this profile"],
+];
+const staffingPresetEntries = Object.fromEntries(Object.entries(STF_PRESETS).flatMap(([k, vals]) =>
+  STF_PRESET_FIELDS.map(([f, unit, what], i) => [`staffing.preset.${k}.${f}`, sHeur(vals[i], unit, `${what}. An operating profile so the tool opens on a runnable case. A volume, handle time or shrinkage still at this value grades evidence Directional.`)])));
+
 export const BENCHMARK_SOURCES = {
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
@@ -121,6 +142,33 @@ export const BENCHMARK_SOURCES = {
   "lbg.guard.usageDominance": line(0.8, "share of hidden annual", "Usage fees above 80 percent of the hidden annual make the finding a usage negotiation. Framing only. It reaches no confidence axis."),
   "lbg.band.gapAmber": line(40, "percent bundle gap", "Status band for the gap card. Amber from 40 percent, which lands in the shared moderate severity band in track.js, so the page colour and the published band agree. Colour only. It reaches no confidence axis."),
   "lbg.band.gapRed": line(80, "percent bundle gap", "Status band for the gap card. Red from 80 percent, which lands in the shared severe severity band in track.js. Colour only. It reaches no confidence axis."),
+
+  ...staffingPresetEntries,
+  "staffing.wage.median": { tool: STF, kind: "market", value: 20.59, unit: "USD per hour", source: "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.", reviewed: REVIEWED, version: 1, rationale: "Cost fallback when no wage or per-agent cost arrives over the rail. The occupation median, labelled as a benchmark wherever it prices a plan. It grades evidence Directional because it is no figure of the user's own." },
+  "staffing.load.multiple": sHeur(1.95, "multiple of base wage", "Wage to fully loaded cost: benefits, payroll tax, facilities, supervision and technology. Used only when the rail carries a wage and no per-agent cost."),
+  "staffing.hours.month": sHeur(173, "paid hours per agent per month", "The 2,080 hour full-time year over twelve months. A planning convention for converting an hourly wage to a monthly cost."),
+  "staffing.default.intv": sHeur(30, "minutes", "Default interval length. The most common forecasting interval, so the default case sits inside the Erlang C validity floor."),
+  "staffing.default.capPct": sHeur(85, "percent occupancy", "Default occupancy ceiling offered when the cap is switched on. Set at the healthy maximum of the ratified occupancy canon."),
+  "staffing.stress.spike": sHeur(1.2, "multiple of volume", "Volume spike the contingency finding prices. A planning stress step, labelled as one."),
+  "staffing.stress.aht": sHeur(0.1, "share of AHT", "Handle time change the sensitivity finding prices, applied up and down."),
+  "staffing.stress.shrinkPts": sHeur(5, "shrinkage points", "Shrinkage step the what-if grid prices."),
+  "staffing.stress.shrinkCap": sHeur(70, "percent shrinkage", "Upper bound on the shrinkage what-if, so the step never prices an implausible plan."),
+  "staffing.stress.slPts": sHeur(5, "service level points", "Service level step the what-if grid prices, up or down."),
+  "staffing.stress.slEase": sHeur(95, "percent service level", "A target at or above this is eased in the what-if grid rather than raised."),
+  "staffing.display.slCeiling": sLine(0.999, "service level", "Display floor. Erlang C never returns certainty, so a service level above this prints as above 99.9 percent. Display only. It reaches no confidence axis."),
+  "staffing.validity.ratio": sLine(3, "interval as a multiple of AHT", "Erlang C steady state floor. An interval under three times AHT lets contacts spill across interval boundaries and the model understates staffing. Holds completeness Directional."),
+  "staffing.validity.critical": sLine(1.5, "interval as a multiple of AHT", "Severity split inside an invalid model. Below 1.5 times AHT the disclosure reads critical. Framing only. The completeness hold is the same either side of it."),
+  "staffing.read.premiumSl": sLine(0.88, "service level target", "A target at or above this is read as premium service in the analyst read and the premium signal. Framing only. It reaches no confidence axis."),
+  "staffing.read.premiumSec": sLine(10, "seconds", "An answer threshold at or below this is read as premium service. Framing only. It reaches no confidence axis."),
+  "staffing.read.overServePts": sLine(3, "service level points", "Delivered service level this far above target is read as over-serving. Framing only. It reaches no confidence axis."),
+  "staffing.read.poolPenalty": sLine(0.05, "share of pooled FTE", "A split-queue penalty at or above this share is surfaced in the analyst read. Below it the effect is inside forecast noise. Framing only."),
+  "staffing.aband.material": sLine(0.05, "share of contacts", "Estimated abandonment at or above this is material enough to show the Erlang A adjusted figure. Display only."),
+  "staffing.aband.agents": sLine(2, "agents", "An abandonment adjustment of at least this many agents is shown even below the material share. Display only."),
+  "staffing.band.queuesHigh": sLine(8, "queues", "Queue count band on the wire. High from eight. Signal only. It reaches no confidence axis."),
+  "staffing.band.queuesMid": sLine(3, "queues", "Queue count band on the wire. Mid from three. Signal only."),
+  "staffing.band.scaleVeryLarge": sLine(400, "scheduled FTE", "Scale band on the wire. Very large from 400 FTE. Signal only. It reaches no confidence axis."),
+  "staffing.band.scaleLarge": sLine(150, "scheduled FTE", "Scale band on the wire. Large from 150 FTE. Signal only."),
+  "staffing.band.scaleMid": sLine(40, "scheduled FTE", "Scale band on the wire. Mid from 40 FTE. Signal only."),
 };
 
 for (const [id, e] of Object.entries(BENCHMARK_SOURCES)) {
