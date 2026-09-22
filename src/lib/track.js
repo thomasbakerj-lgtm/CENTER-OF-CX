@@ -402,8 +402,33 @@ export function claimView(pathname) {
    the manual opt-out for TB's own browsers. Checked before identity() so a
    blocked browser is never issued an id at all. */
 
+/* Self-identified crawlers. Added 22 Sep 2026 after the first PostHog export:
+   of 28 events, 7 came from Google's Council Bluffs data center in a four
+   minute sweep and 11 more from a two minute burst across data-center cities.
+   webdriver alone let every rendering crawler through, and each one counted as
+   a first-time visitor on a new device. Counts inflated that way are worse than
+   no counts, because they are believed.
+
+   The pattern is anchored so a phone brand cannot trip it: "[a-z]bot/" needs
+   the version slash crawlers put after their name, and bare "bot" needs a word
+   boundary on both sides, so "CUBOT_X30" and "Abbott" pass. The user agent is
+   read here and never sent; it is a fingerprinting input and stays local.
+
+   Limit, recorded: a crawler that spoofs a desktop Chrome user agent passes.
+   The Sep 15 burst may be that. It is caught downstream by filtering data
+   center geography in PostHog, not here, because the browser cannot see it. */
+export const BOT_UA = /\b(bot|crawler|spider|headless)\b|[a-z]bot\/|crawl|spider|slurp|headlesschrome|lighthouse|pagespeed|gtmetrix|pingdom|uptimerobot|facebookexternalhit|slackbot|linkedinbot|twitterbot|discordbot|telegrambot|whatsapp\/|skypeuripreview|embedly|prerender|phantomjs|puppeteer|playwright|selenium|python-requests|python-urllib|curl\/|wget\/|go-http-client|axios\/|node-fetch|java\/|okhttp|httpclient|mediapartners-google|adsbot|google-inspectiontool|feedfetcher|google-read-aloud|bytespider|petalbot|yandex|baiduspider|duckduckbot|applebot|gptbot|chatgpt-user|oai-searchbot|claudebot|claude-web|anthropic-ai|perplexitybot|ccbot|amazonbot|semrush|ahrefs|mj12bot|dotbot|dataforseo|screaming frog/i;
+
+export function isBotUA(ua) {
+  return typeof ua === "string" && ua.length > 0 && BOT_UA.test(ua);
+}
+
 export function captureBlocked(nav, win) {
-  try { return nav?.webdriver === true || win?.localStorage?.getItem("cccx_internal") === "1"; }
+  try {
+    if (nav?.webdriver === true) return true;
+    if (isBotUA(nav?.userAgent)) return true;
+    return win?.localStorage?.getItem("cccx_internal") === "1";
+  }
   catch { return false; /* storage denied: not internal by any evidence we hold */ }
 }
 
