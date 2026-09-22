@@ -25,6 +25,7 @@ const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/li
 const { BENCH, COLORS } = await import("./src/lib/benchmarks.js");
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
+const CONF = await import("./src/lib/confidence.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -124,10 +125,10 @@ function slice(a, b) {
   if (j < 0) return null;
   return SRC.slice(i, j);
 }
-const ids = slice('const TOOL_ID = "tco-calculator";', "const n = (v) =>");
-const helpers = slice("const n = (v) =>", "function LogoMark");
-const consts = slice("const INDUSTRY = {", "// InfoDot definition strings");
-const engine = slice("function reconcile(", "function Calculator");
+const ids = slice('const TOOL_ID = "tco-calculator";', "function LogoMark");
+const region = slice("/* @engine-start", "/* @engine-end */");
+/* The shipped grade call, sliced so the harness runs the component's own line. */
+const gradeLine = (() => { const i = SRC.indexOf("  const G = gradeTCO("); return i < 0 ? null : SRC.slice(i, SRC.indexOf("\n", i)); })();
 
 const subtitleAt = SRC.indexOf("subtitle={", raAt);
 const subtitleExpr = subtitleAt < 0 ? null : balanced(SRC, subtitleAt + 9, "{", "}").text.slice(1, -1);
@@ -137,7 +138,8 @@ const sectionsExpr = prop("sections");
 const toolNameM = SRC.match(/toolName="([^"]+)"/);
 
 console.log("\n0. payload slices out of the shipped JSX");
-A("the engine region slices out of the shipped JSX", !!ids && !!helpers && !!consts && !!engine);
+A("the engine region slices out of the shipped JSX", !!ids && !!region);
+A("the shipped grade call slices out of the component", !!gradeLine && /pre: fromLink \? \{\} : rail\.current\.pre, railOrigin: null, stanceKey: stance/.test(gradeLine));
 A("the ReportActions subtitle slices out of the shipped JSX", !!subtitleExpr);
 A("the ReportActions summary payload slices out of the shipped JSX", !!summaryExpr);
 A("the ReportActions signals payload slices out of the shipped JSX", !!signalsExpr);
@@ -225,9 +227,7 @@ const SETS = {
 function render(S) {
   const body = `
     ${ids}
-    ${helpers}
-    ${consts}
-    ${engine}
+    ${region}
     const BASE_D = { ...BASE, ...INDUSTRY.general, industry: "general" };
     const dRaw = { ...BASE_D, ...MUT(BASE_D) };
     const stance = STANCE_KEY;
@@ -235,6 +235,8 @@ function render(S) {
     const d = r.d;
     const opt = buildOptimizations(d, r, stance);
     const analyst = buildAnalystRead(d, r, opt, stance);
+    const fromLink = FROM_LINK; const rail = { current: { pre: RAIL_PRE } };
+${gradeLine}
     const escLabel = r.single ? pctD(r.wEff) + "/yr blended" : "wage " + pctD(r.wEff) + " / license " + pctD(r.lEff);
     /* Rail state. The harness renders the standalone document, the case with no
        upstream tool in the session, which is the document most readers receive. */
@@ -250,14 +252,14 @@ function render(S) {
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
     const sections = ${sectionsExpr};
-    return { dRaw, d, r, opt, stance, analyst, escLabel, subtitle, summary, signals, sections, STANCE, INDUSTRY, TCO_DOMAIN, guardTCO, BASE };
+    return { dRaw, d, r, opt, stance, analyst, escLabel, G, subtitle, summary, signals, sections, STANCE, INDUSTRY, TCO_DOMAIN, guardTCO, BASE };
   `;
   return new Function("BENCH", "COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "WARM", "SLATE",
     "MUTED", "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MUT", "STANCE_KEY",
-    "createGuards", "guardVal", "guardLine", body)(
+    "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "FROM_LINK", "RAIL_PRE", body)(
     BENCH, COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#F8FAFB", "#3A4F6A",
     COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, S.stance,
-    createGuards, guardVal, guardLine);
+    createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, !!S.fromLink, S.pre || {});
 }
 
 function allText(doc) {
@@ -327,7 +329,7 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: printed labor share equals the engine share`, summaryValue(doc, "Labor share of TCO") === r.disp.laborPctStr);
   A(`${k}: printed booked optimization equals the engine net total`, summaryValue(doc, "Optimization booked monthly") === fmtK(opt.netTotal));
   A(`${k}: printed theoretical optimization equals the engine gross total`, summaryValue(doc, "Optimization theoretical monthly") === fmtK(opt.grossTotal));
-  A(`${k}: the subtitle carries the same confidence the tool exports`, doc.subtitle.indexOf(r.confidence) >= 0);
+  A(`${k}: the subtitle carries the same confidence the tool exports`, doc.subtitle.indexOf(doc.G.confidence) >= 0);
   A(`${k}: the subtitle carries the same stance the summary carries`, doc.subtitle.indexOf(summaryValue(doc, "Realization stance")) >= 0);
   /* The source promises rounded line items always sum to the headline. A CFO should
      never see parts that fail to reconcile with the total above them. */
@@ -405,7 +407,7 @@ console.log("\n6. the guarded path: an impossible wage is disclosed, not absorbe
   const D = DOCS.D;
   A("D: the document is still whole under an impossible wage", D.sections.length >= 4);
   A("D: the impossible per-agent cost trips the ceiling flag", D.r.hasBlock);
-  A("D: a blocking flag holds confidence at Directional", D.r.confidence === "Directional");
+  A("D: a blocking flag holds confidence at Directional", D.G.confidence === "Directional" && D.G.completeness === "Directional");
   A("D: the blocking flag is disclosed to the reader, not swallowed", D.r.openIssues.length > 0);
   A("D: the disclosure names the ceiling rather than gesturing at it", D.r.openIssues.join(" ").indexOf("25,000") >= 0);
   A("D: the tool still exports a confidence grade to the wire", typeof D.signals.confidence_class === "string");
@@ -445,7 +447,7 @@ console.log("\n6b. the guarded path: corrected at the boundary, disclosed in the
     G.r.guards.every(g => issues.indexOf(guardVal(g, "entered")) >= 0 && issues.indexOf(guardVal(g, "used")) >= 0));
   const meth = (sectionByTitle(G, "Methodology") || {}).content || "";
   A("G: the methodology states the corrections", meth.indexOf("INPUTS CORRECTED") >= 0 && G.r.guards.every(g => meth.indexOf(g.label) >= 0));
-  A("G: a corrected input holds confidence at Directional", G.r.confidence === "Directional" && G.subtitle.indexOf("Directional") >= 0);
+  A("G: a corrected input holds confidence at Directional", G.G.completeness === "Directional" && G.subtitle.indexOf("Directional") >= 0);
   A("G: a corrected input is never decision ready", G.signals.decision_ready_signal === false);
   A("G: the signal block counts the corrections", G.signals.inputs_corrected === 2);
   A("G: with a positive cost base the band is published and canonical", SEVERITY_BANDS.indexOf(G.signals.severity) >= 0);
@@ -544,12 +546,13 @@ console.log("\n6d. pulled rates survive the form at the rail ceiling");
     return at < 0 ? null : { max: num("max"), min: num("min"), factor: num("factor") || 1 };
   };
   const ROWS = Object.fromEntries(DOCS.A.TCO_DOMAIN.map(r => [r[0], r]));
-  const mm = SRC.match(/const map = \{([^}]*)\}/);
-  A("the pull map is readable", !!mm);
-  const MAP = mm ? Object.fromEntries([...mm[1].matchAll(/(\w+):\s*"(\w+)"/g)].map(x => [x[1], x[2]])) : {};
+  const gm = SRC.match(/const got = \{([\s\S]*?)\};/);
+  A("the pull map is readable", !!gm);
+  const MAP = gm ? Object.fromEntries([...gm[1].matchAll(/(\w+):\s*ext\(getExternalWithSource\("(\w+)", TOOL_ID\)\)/g)].map(x => [x[1], x[2]])) : {};
+  A("every rail read keeps its source and refuses self", gm && !/getExternalPrimitive|getPrimitiveWithSource/.test(SRC) && Object.keys(MAP).length === 7);
   A("the pull map carries attrition", MAP.attrition === "attritionRate");
   A("the pull map does not prefill occupancy from interval Erlang", !("occupancy" in MAP) && !Object.values(MAP).includes("occupancy"));
-  A("no occupancy pull exists anywhere in TCO", !/getExternalPrimitive\(\s*["']occupancy["']/.test(SRC) && !/pulled=\{pulled\.occupancy\}/.test(SRC));
+  A("no occupancy pull exists anywhere in TCO", !/(getExternalPrimitive|getPrimitiveWithSource|getExternalWithSource)\(\s*["']occupancy["']/.test(SRC) && !/pulled=\{pulled\.occupancy\}/.test(SRC));
   let rates = 0;
   for (const [f, key] of Object.entries(MAP)) {
     const spec = metricRegistry[key];
@@ -588,15 +591,29 @@ console.log("\n6d. pulled rates survive the form at the rail ceiling");
   }
 }
 
-/* ---- 7. Finance-grade is reachable and is gated on documents ---- */
-console.log("\n7. Finance-grade is reachable and is gated on documents");
+/* ---- 7. A self-declared basis never reaches Finance-grade (D11, J1) ---- */
+console.log("\n7. A self-declared basis never reaches Finance-grade");
 {
   const F = DOCS.F, A_ = DOCS.A;
-  A("F: invoiced costs with no flags reach Finance-grade", F.r.confidence === "Finance-grade");
-  A("F: the wire carries the document-evidence boolean", F.signals.has_document_evidence === true);
-  A("A: an estimated cost basis does not reach Finance-grade", A_.r.confidence !== "Finance-grade");
-  A("A: the wire says so", A_.signals.has_document_evidence === false);
+  A("F: invoiced on preset inputs grades Directional", F.G.confidence === "Directional" && F.G.evidence === "Directional");
+  A("F: the wire claims no document evidence", !("has_document_evidence" in F.signals));
+  A("F: the wire still carries the declared basis", F.signals.cost_basis === "invoiced");
+  A("F: decision ready needs graded evidence, never a declared basis", F.signals.decision_ready_signal === false);
+  A("A: an estimated cost basis grades Directional", A_.G.confidence === "Directional");
   A("F and A differ only in the cost basis", F.r.annual === A_.r.annual);
+  for (const [k, doc] of Object.entries(DOCS)) {
+    const sec = doc.sections.find((x) => x.title === "Confidence and Open Issues");
+    A(`${k}: the confidence section exists`, !!sec);
+    if (!sec) continue;
+    const g = doc.G;
+    A(`${k}: the headline row prints the graded headline`, sec.items[0] === `Headline: ${g.confidence}${g.voided ? "" : ", bound by " + g.gradeObj.boundBy}.`);
+    A(`${k}: the evidence row prints the graded evidence axis`, sec.items[1] === `Evidence axis: ${g.voided ? "Void" : g.evidence}.`);
+    A(`${k}: the realization row states N/A and its reason`, sec.items[2].indexOf("Realization axis: not applicable.") === 0 && (g.voided || /cost baseline/.test(sec.items[2])));
+    A(`${k}: the completeness row prints the graded axis`, sec.items[3].indexOf(`Completeness axis: ${g.voided ? "Void" : g.completeness}`) === 0 && (g.blockers.length ? sec.items[3].indexOf(g.blockers.length + " check") > 0 : /model is whole/.test(sec.items[3])));
+    A(`${k}: the subtitle, the row and the export agree`, doc.subtitle.endsWith(g.confidence) && sec.items[0].indexOf(g.confidence) > 0);
+    A(`${k}: the grade carries no defect`, g.voided || g.gradeObj.defects.length === 0);
+    A(`${k}: no row names the retired grade`, !sec.items.some((t) => /Export confidence:/.test(t)));
+  }
 }
 
 /* ---------------------------------------------------------------- result */
