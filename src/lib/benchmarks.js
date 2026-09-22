@@ -141,6 +141,47 @@ const STF_PRESET_FIELDS = [
 const staffingPresetEntries = Object.fromEntries(Object.entries(STF_PRESETS).flatMap(([k, vals]) =>
   STF_PRESET_FIELDS.map(([f, unit, what], i) => [`staffing.preset.${k}.${f}`, sHeur(vals[i], unit, `${what}. An operating profile so the tool opens on a runnable case. A volume, handle time or shrinkage still at this value grades evidence Directional.`)])));
 
+/* Channel Shift. Defaults are an internal operating profile so the tool opens on a
+   runnable case, one entry per field under a template id. A graded driver still at
+   its default grades evidence Directional. The wage is the same BLS figure Staffing
+   and Cost per Contact cite, held as this tool's own entry until TCO lands and one
+   shared entry replaces all three. Decision H, session 15. */
+const CHS = "channel-shift";
+const CHS_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const chHeur = (value, unit, rationale) => ({ tool: CHS, kind: "heuristic", value, unit, source: CHS_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const chLine = (value, unit, rationale) => ({ tool: CHS, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
+const CHS_DEF = "Default so the tool opens on a runnable case.";
+const CHS_DEFAULTS = {
+  monthlyContacts: [100000, "contacts per month", "A volume still at this value grades evidence Directional."],
+  loadedOH: [1.35, "multiple of hourly wage", "Loads the wage for transition and ramp cost only. Staffing loads at 1.95x; the gap is logged for review at TCO."],
+  marginalOH: [1.18, "multiple of hourly wage", "The multiplier savings are valued on. A marginal overhead still at this value grades cost evidence Directional."],
+  voicePct: [70, "percent of volume", "Voice share of the current mix."],
+  voiceAHT: [7, "minutes", "A voice handle time still at this value grades evidence Directional."],
+  voiceConc: [1, "concurrent contacts", "Voice is one contact at a time."],
+  chatPct: [15, "percent of volume", "Chat share of the current mix."],
+  chatAHT: [10, "minutes", "Chat handle time."],
+  chatConc: [2.5, "concurrent contacts", "Typical chat session concurrency."],
+  emailPct: [10, "percent of volume", "Email share of the current mix."],
+  emailAHT: [5, "minutes", "Email handle time."],
+  emailConc: [1, "concurrent contacts", "Email worked one at a time."],
+  botPct: [5, "percent of volume", "Bot share of the current mix."],
+  botCost: [0.5, "USD per bot contact", "A bot fee still at this value grades cost evidence Directional when the bot carries volume."],
+  eligibility: [60, "percent of voice", "An eligibility still at this value grades evidence Directional."],
+  shiftToChat: [10, "points of total volume", "Planned shift into chat."],
+  shiftToBot: [10, "points of total volume", "Planned shift into the bot."],
+  shiftToEmail: [0, "points of total volume", "Planned shift into email. Ships at zero."],
+  resChat: [85, "percent resolved", "A chat resolution still at this value grades evidence Directional when chat carries a shift."],
+  resBot: [65, "percent resolved", "A bot resolution still at this value grades evidence Directional when the bot carries a shift."],
+  resEmail: [80, "percent resolved", "An email resolution still at this value grades evidence Directional when email carries a shift."],
+  dispChat: [80, "percent displacing voice", "A chat displacement still at this value grades evidence Directional when chat carries a shift."],
+  dispBot: [70, "percent displacing voice", "A bot displacement still at this value grades evidence Directional when the bot carries a shift."],
+  dispEmail: [80, "percent displacing voice", "An email displacement still at this value grades evidence Directional when email carries a shift."],
+  escReturnFactor: [1.2, "multiple of a normal call", "Friction of a recovery call after a failed shift."],
+  trainingPerAgent: [1500, "USD per added agent", "Transition training cost."],
+  rampWeeks: [4, "weeks", "Transition ramp length."],
+};
+const channelDefaultEntries = Object.fromEntries(Object.entries(CHS_DEFAULTS).map(([f, [v, unit, why]]) => [`channel.default.${f}`, chHeur(v, unit, `${CHS_DEF} ${why}`)]));
+
 export const BENCHMARK_SOURCES = {
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
@@ -222,6 +263,20 @@ export const BENCHMARK_SOURCES = {
   "cpc.band.gapAmber": cLine(20, "percent resolution premium", "Cost per resolution card turns amber above this premium. Colour only. It reaches no confidence axis."),
   "cpc.band.gapRed": cLine(40, "percent resolution premium", "Cost per resolution card turns red above this premium. Colour only. It reaches no confidence axis."),
   ...cpcVertEntries,
+
+  ...channelDefaultEntries,
+  "channel.wage.median": { tool: CHS, kind: "market", value: 20.59, unit: "USD per hour", source: "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.", reviewed: REVIEWED, version: 1, rationale: "Default agent wage. The occupation median, labelled as a benchmark. It is no figure of the user's own and grades cost evidence Directional while it stands." },
+  "channel.curve.mild": chHeur(0.08, "residual AHT uplift per unit of shift share", "Mild complexity curve. Easy volume leaves and residual voice gets slightly harder."),
+  "channel.curve.moderate": chHeur(0.15, "residual AHT uplift per unit of shift share", "Moderate complexity curve. The typical support environment and the shipped choice."),
+  "channel.curve.severe": chHeur(0.3, "residual AHT uplift per unit of shift share", "Severe complexity curve. Remaining voice work becomes materially harder."),
+  "channel.plan.workdays": chHeur(22, "workdays per month", "Planning convention for productive time per FTE."),
+  "channel.plan.hoursPerDay": chHeur(8, "paid hours per day", "Planning convention for productive time per FTE and for ramp cost."),
+  "channel.plan.productiveShare": chHeur(0.7, "share of paid time", "Share of paid time an agent spends on contacts, used to convert freed minutes to FTE."),
+  "channel.plan.daysPerWeek": chHeur(5, "workdays per week", "Planning convention for ramp cost."),
+  "channel.plan.rampLoss": chHeur(0.3, "share of loaded time lost in ramp", "Productivity lost while a new chat agent ramps, priced into transition cost."),
+  "channel.read.implausibleDeptAht": chLine(2, "minutes", "Displaced contacts implied to average under this handle time mean the complexity curve is too severe for the volume moved. Disclosed, and holds completeness Directional."),
+  "channel.guard.botNearFree": chLine(0.1, "USD per bot contact", "A bot fee at or below this, with bot volume shifted, makes any shift look costless and drives break-even toward zero. Disclosed, and holds completeness Directional."),
+  "channel.read.breakEvenFloor": chLine(1, "percent resolution", "A break-even below this reads as a shift profitable at any resolution. Framing only. It is a property of the answer and reaches no confidence axis by doctrine 5.5."),
 };
 
 for (const [id, e] of Object.entries(BENCHMARK_SOURCES)) {
