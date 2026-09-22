@@ -4,11 +4,12 @@ import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS, BENCH } from "./src/lib/benchmarks";
-import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
+import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
+import { emitGrades, voidResult, railEvidence, weakerStream } from "./src/lib/confidence";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -19,14 +20,6 @@ const TOOL_ID = "tco-calculator";
 const ROUTE = "/tools/tco-calculator";
 const METHODOLOGY_VERSION = "tco-v3.2026.08";
 
-
-const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
-const fmt = (v) => "$" + Math.round(n(v)).toLocaleString();
-const fmtK = (v) => { const x = n(v); return x >= 1000000 ? "$" + (x / 1000000).toFixed(1) + "M" : x >= 1000 ? "$" + (x / 1000).toFixed(0) + "K" : "$" + Math.round(x).toLocaleString(); };
-const pct = (v) => (n(v) * 100).toFixed(1) + "%";
-const pct0 = (v) => Math.round(n(v) * 100) + "%";
-const pctD = (v) => (n(v) * 100).toFixed(1).replace(/\.0$/, "") + "%";
-const mmss = (s) => `${Math.floor(n(s) / 60)}:${String(Math.round(n(s) % 60)).padStart(2, "0")}`;
 
 function LogoMark({ size = 34, light = true }) {
   const arcColor = light ? "#fff" : NAVY, xColor = light ? LIGHT : ELECTRIC;
@@ -80,6 +73,20 @@ function Nav() {
     </>
   );
 }
+
+/* @engine-start
+   Everything between these markers is the TCO engine and the only things it
+   closes over besides the imported BENCH, createGuards, guardVal and guardLine.
+   tco.test.mjs and tco.report.mjs slice this exact region out of this exact file
+   at runtime and evaluate it, so the tested engine and the shipped engine cannot
+   drift apart. Nothing in here is JSX. */
+const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
+const fmt = (v) => "$" + Math.round(n(v)).toLocaleString();
+const fmtK = (v) => { const x = n(v); return x >= 1000000 ? "$" + (x / 1000000).toFixed(1) + "M" : x >= 1000 ? "$" + (x / 1000).toFixed(0) + "K" : "$" + Math.round(x).toLocaleString(); };
+const pct = (v) => (n(v) * 100).toFixed(1) + "%";
+const pct0 = (v) => Math.round(n(v) * 100) + "%";
+const pctD = (v) => (n(v) * 100).toFixed(1).replace(/\.0$/, "") + "%";
+const mmss = (s) => `${Math.floor(n(s) / 60)}:${String(Math.round(n(s) % 60)).padStart(2, "0")}`;
 
 const INDUSTRY = {
   general: { label: "Cross-Industry Average", agents: 200, agentHourly: 19, monthlyContacts: 120000, aht: 390, fcr: 0.70, containment: 0.28, occupancy: 0.82, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 4.1, nps: 32, transferRate: 0.15, acw: 45, ccaasSeat: 150, targetAht: 345, targetFcr: 0.76, targetContainment: 0.36, targetAttrition: 0.32 },
@@ -386,8 +393,7 @@ function computeTCO(dIn, stanceKey = "expected") {
   const hasBlock = flags.some(f => f.level === "block");
   const hasFlag = flags.some(f => f.level === "flag");
 
-  // Two-axis confidence: cost-basis quality crossed with realization stance. Headline the
-  // weaker axis. Finance-grade needs invoiced costs, a non-aggressive stance, and no flags.
+  // The cost basis sets the sensitivity band only. The grade is gradeTCO's, below.
   const basisRank = { estimate: 0, quoted: 1, invoiced: 2 }[d.costBasis || "estimate"];
   const sensPct = basisRank === 2 ? 0.10 : basisRank === 1 ? 0.15 : 0.25;
   const sensitivity = { pct: sensPct, annualLow: annual * (1 - sensPct), annualHigh: annual * (1 + sensPct), threeLow: threeYear * (1 - sensPct), threeHigh: threeYear * (1 + sensPct) };
@@ -397,12 +403,6 @@ function computeTCO(dIn, stanceKey = "expected") {
   if (stanceKey === "aggressive") openIssues.push("Aggressive stance books full theoretical capacity as cash, with no haircut.");
   flags.forEach(f => { if (f.level !== "note") openIssues.push(f.msg); });
   const itemsToConfirm = flags.filter(f => f.level === "note").map(f => f.msg);
-
-  let confidence;
-  if (hasBlock) confidence = "Directional";
-  else if (basisRank === 2 && stanceKey !== "aggressive" && !hasFlag) confidence = "Finance-grade";
-  else if (basisRank >= 1) confidence = "Planning-grade"; // a CONFIRM flag caps here, not Directional
-  else confidence = "Directional";
 
   const breakdown = {
       seats,
@@ -420,7 +420,7 @@ function computeTCO(dIn, stanceKey = "expected") {
     disp: buildDisplay(breakdown, monthly),
     techPerAgent: tech / agents, y1, y2, y3, threeYear,
     wageMonthly, licenseMonthly, flatMonthly, wEff, lEff, single,
-    perAgentMonth, productiveHours, flags, hasBlock, hasFlag, domKey, domShare, confidence, sensitivity, openIssues, itemsToConfirm,
+    perAgentMonth, productiveHours, flags, hasBlock, hasFlag, domKey, domShare, sensitivity, openIssues, itemsToConfirm,
     agentHandled: contacts * (1 - n(d.containment)),
     breakdown,
   };
@@ -506,6 +506,117 @@ function buildAnalystRead(d, r, opt, stanceKey) {
   else if (n(d.occupancy) > 0 && n(d.occupancy) < 0.70) out.push(`Occupancy at ${pct(d.occupancy)} sits well below the 83 to 87 percent target, so you already carry idle capacity. The savings above are real as freed capacity, but they will not become cash until you redeploy that time or reduce headcount, and the first question is why occupancy is this low. Pressure-test it in the Occupancy Risk Simulator and Staffing Calculator before booking these numbers.`);
   return out;
 }
+/* ---- Grading. Three axes, doctrine section 5. ----
+   gradeTCO reads the guarded input, the engine result, and a per-field `pre` map of
+   what arrived over the rail at mount. It never reads flag text, a verdict, or the
+   size of any total: the grade turns on where each figure came from and on the
+   validity checks below, so scaling every price leaves it unchanged.
+
+   Evidence. Every field that moves the TCO total is graded by its origin:
+     default  still at the preset for the selected industry: Directional
+     self     restored from this tool's own last run: Directional, a tool never
+              credentials itself
+     rail     arrived from another tool: railEvidence(origin grade), capped at
+              Planning-grade, and Directional with no recorded origin grade
+     entered  the user's own figure: Planning-grade at most, because nothing was
+              inspected. Cost fields also need a quoted or invoiced cost basis.
+   The cost basis select is self-declared, so it lifts cost fields to Planning-grade
+   and no further (decision J1, carried from FCR). Finance-grade evidence needs
+   document attestation this tool does not collect.
+   Realization. TCO prices the cash the operation spends today. No capacity action
+   applies to a cost baseline, so the axis is not applicable, with its reason stated.
+   Completeness. Any validity check below holds it at Directional. */
+const TCO_OPS = [
+  ["agents", "agent count"], ["supervisors", "supervisor count"], ["qaStaff", "QA analyst count"],
+  ["wfmStaff", "WFM staff count"], ["trainers", "trainer count"], ["itSupport", "IT support count"],
+  ["monthlyContacts", "monthly contacts"], ["aht", "AHT"], ["acw", "ACW"], ["channelMixVoice", "voice share"],
+  ["attrition", "attrition"], ["newHireTrainingDays", "new hire training days"],
+];
+const TCO_COST = [
+  ["agentHourly", "agent wage"], ["agentBenefitsPct", "benefits and burden"], ["supHourly", "supervisor wage"],
+  ["qaHourly", "QA wage"], ["wfmHourly", "WFM wage"], ["trainerHourly", "trainer wage"], ["itHourly", "IT wage"],
+  ["recruitingCostPerHire", "recruiting cost per hire"], ["ccaasSeat", "CCaaS seat price"], ["wemSeat", "WEM seat price"],
+  ["crmSeat", "CRM seat price"], ["telephonyPerMin", "telephony rate"], ["ivaMonthly", "IVA platform"],
+  ["agentAssistMonthly", "agent assist"], ["rpaMonthly", "RPA"], ["analyticsMonthly", "analytics platform"],
+  ["ipaasMonthly", "iPaaS"], ["recordingMonthly", "recording and compliance"], ["knowledgeMgmt", "knowledge management"],
+  ["securityCompliance", "security and compliance"], ["cloudInfra", "cloud infrastructure"],
+  ["psAmortized", "amortized professional services"], ["facilitiesCost", "facilities"],
+];
+const TCO_CHECKS = { perAgentCeiling: 25000, domShareMax: 0.80, spanMax: 20, mixTol: 0.005 };
+
+function tcoDefaults(d) { return { ...BASE, ...(INDUSTRY[d.industry] || INDUSTRY.general) }; }
+
+function tcoFieldOrigin(d, pre, f) {
+  const v = n(d[f]);
+  const p = pre && Object.prototype.hasOwnProperty.call(pre, f) ? pre[f] : null;
+  if (p && n(p.value) === v) return p.src === TOOL_ID ? "self" : "rail";
+  if (v === n(tcoDefaults(d)[f])) return "default";
+  return "entered";
+}
+
+function gradeTCO({ d, r, pre, railOrigin, stanceKey }) {
+  const invariants = [];
+  const figs = [r.monthly, r.annual, r.threeYear, r.y2, r.y3, r.perAgentMonth, r.costPerContact, r.marginalPerContact, r.wageMonthly, r.licenseMonthly, r.flatMonthly];
+  if (!figs.every(Number.isFinite)) invariants.push("an output is not a finite number");
+  if ([r.labor, r.tech, r.overhead, r.wageMonthly, r.licenseMonthly, r.flatMonthly].some((x) => x < 0)) invariants.push("a cost bucket is below zero");
+  const bucketGap = Math.abs(r.wageMonthly + r.licenseMonthly + r.flatMonthly - r.monthly);
+  if (!(bucketGap <= 1e-9 * Math.max(1, Math.abs(r.monthly)))) invariants.push("the escalation buckets do not sum to the monthly total");
+  if (!(Math.abs(r.y1 - r.annual) <= 1e-9 * Math.max(1, Math.abs(r.annual)))) invariants.push("Year 1 does not equal the annual snapshot");
+
+  const fields = [...TCO_OPS, ...TCO_COST];
+  const origins = Object.fromEntries(fields.map(([f]) => [f, tcoFieldOrigin(d, pre, f)]));
+  const railG = railEvidence(railOrigin);
+  const attested = d.costBasis === "quoted" || d.costBasis === "invoiced";
+  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railG, entered })[origins[f]];
+  const opsGrade = TCO_OPS.map(([f]) => fieldGrade(f, "Planning-grade")).reduce(weakerStream);
+  const costGrade = TCO_COST.map(([f]) => fieldGrade(f, attested ? "Planning-grade" : "Directional")).reduce(weakerStream);
+  const evidence = weakerStream(opsGrade, costGrade);
+
+  const named = (list, o) => list.filter(([f]) => origins[f] === o).map(([, l]) => l);
+  const say = (list) => { const L = list.length > 4 ? [...list.slice(0, 4), `${list.length - 4} more`] : list; return L.length > 1 ? L.slice(0, -1).join(", ") + " and " + L[L.length - 1] : L[0]; };
+  const why = (list) => {
+    const parts = [];
+    const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
+    if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the preset for this industry`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
+    if (rail.length) parts.push(`${say(rail)} arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}, which confers consistency and evidence only as far as its origin`);
+    return parts;
+  };
+  const opsParts = why(TCO_OPS);
+  if (!opsParts.length) opsParts.push("Headcount, volume, handle time and attrition are your own entries. Self-declared figures stand at Planning-grade at most, because no data was inspected");
+  const costParts = why(TCO_COST);
+  if (!costParts.length && !attested) costParts.push("Every wage and price is your own entry but the cost basis is an estimate. Select quoted or invoiced once the figures come from quotes or invoices");
+  if (!costParts.length) costParts.push("Every wage and price is your own entry, with the cost basis declared by your own account. Self-declaration stands at Planning-grade at most; Finance-grade needs document attestation this tool does not collect");
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const evParts = [...(opsGrade === evidence ? opsParts : []), ...(costGrade === evidence ? costParts : [])];
+
+  const blockers = [];
+  if (r.guards.length) blockers.push(`${r.guards.length} input${r.guards.length > 1 ? "s were" : " was"} outside the range this model can compute, and corrected before calculation`);
+  if (r.perAgentMonth > TCO_CHECKS.perAgentCeiling) blockers.push(`cost per agent per month is above the $${TCO_CHECKS.perAgentCeiling.toLocaleString()} ceiling of any real operation`);
+  if (r.domShare > TCO_CHECKS.domShareMax && r.domKey !== "AI usage") blockers.push(`one software line is more than ${Math.round(TCO_CHECKS.domShareMax * 100)} percent of the software bucket, which usually means a miscategorized or mis-scaled input`);
+  if (n(d.agents) / Math.max(1, n(d.supervisors)) > TCO_CHECKS.spanMax) blockers.push(`span of control is above ${TCO_CHECKS.spanMax} agents per supervisor, which understates labor cost`);
+  const mix = n(d.channelMixVoice) + n(d.channelMixChat) + n(d.channelMixEmail) + n(d.channelMixSocial) + n(d.channelMixSelfServe);
+  if (!(Math.abs(mix - 1) < TCO_CHECKS.mixTol)) blockers.push("the channel mix does not total 100 percent, and the voice share prices telephony");
+  if (stanceKey === "aggressive") blockers.push("the aggressive stance books full theoretical capacity as cash with no haircut");
+  const completeness = blockers.length ? "Directional" : "Finance-grade";
+  const modelWhy = blockers.length ? blockers.join("; ")
+    : "The model is whole: no input was corrected, the channel mix totals 100 percent and every validity check passed";
+
+  const voided = invariants.length > 0;
+  const gradeObj = voided
+    ? voidResult({ invariant: invariants.join("; "), remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this report." })
+    : emitGrades({
+        evidence, realization: null, completeness,
+        naReason: "TCO prices the cash the operation spends today. No capacity action applies to a cost baseline. The optimization savings are sized opportunity and are graded in Business Case Builder once a capacity action is chosen.",
+        reasons: { evidence: `${evParts.map(cap).join(". ")}.`, completeness: `${cap(modelWhy)}.` },
+      });
+  const confidence = voided ? "Void" : gradeObj.headline;
+  const gradeWhy = voided ? `export void: ${invariants.join("; ")}` : `Bound by ${gradeObj.boundBy}. ${gradeObj.boundAxes.map((x) => gradeObj.reasons[x]).join(" ")}`;
+  return { gradeObj, confidence, gradeWhy, voided, invariants, evidence, opsGrade, costGrade, completeness, blockers, origins };
+}
+
+/* @engine-end */
+
 function Calculator() {
   const [dRaw, setD] = useState({ ...BASE, ...INDUSTRY.general, industry: "general" });
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
@@ -528,21 +639,32 @@ function Calculator() {
   // interval, 98 percent at 3,000, both at an 80/20 target. This field is operating
   // occupancy across logged-in time, and it drives the burnout and idle-capacity verdicts.
   // Same key, different fact, so a prefill would hand TCO a verdict it did not earn.
+  /* Rail reads run once, at mount, through getExternalWithSource so every value keeps
+     the tool that published it, and a value this tool published itself is never read. `pre` feeds gradeTCO field by field in engine units: a rail value with
+     no origin grade grades Directional, and a rail value confers consistency, never
+     evidence of its own. Keys stay as string literals so rail-audit.mjs sees every pull. */
+  const rail = useRef(null);
+  if (rail.current === null) {
+    const ext = (res) => (res && !isNaN(res.value) ? res : null);
+    const got = {
+      aht: ext(getExternalWithSource("aht", TOOL_ID)), shrinkage: ext(getExternalWithSource("shrinkage", TOOL_ID)),
+      agents: ext(getExternalWithSource("agents", TOOL_ID)), attrition: ext(getExternalWithSource("attritionRate", TOOL_ID)),
+      annual: ext(getExternalWithSource("annualContacts", TOOL_ID)),
+      licImpl: ext(getExternalWithSource("licenseImplementationOneTime", TOOL_ID)), bcImpl: ext(getExternalWithSource("implementationCost", TOOL_ID)),
+    };
+    const pre = {};
+    for (const f of ["aht", "shrinkage", "agents", "attrition"]) if (got[f]) pre[f] = { value: got[f].value, src: got[f].sourceTool || "" };
+    if (got.annual) pre.monthlyContacts = { value: Math.round(got.annual.value / 12), src: got.annual.sourceTool || "" };
+    const impl = got.licImpl || got.bcImpl;
+    if (impl) pre.implementationOneTime = { value: impl.value, src: impl.sourceTool || "" };
+    rail.current = { pre };
+  }
+  const [fromLink, setFromLink] = useState(false);
   useEffect(() => {
     const next = {}; const got = {};
-    const map = { aht: "aht", shrinkage: "shrinkage", agents: "agents", attrition: "attritionRate" };
-    for (const [field, key] of Object.entries(map)) {
-      const v = getExternalPrimitive(key, "tco-calculator");
-      if (v != null && !isNaN(v)) { next[field] = v; got[field] = true; }
-    }
-    const annual = getExternalPrimitive("annualContacts", "tco-calculator");
-    if (annual != null && !isNaN(annual)) { next.monthlyContacts = Math.round(annual / 12); got.monthlyContacts = true; }
-    const licImpl = getExternalPrimitive("licenseImplementationOneTime", "tco-calculator");
-    const bcImpl = getExternalPrimitive("implementationCost", "tco-calculator");
-    const impl = (licImpl != null && !isNaN(licImpl)) ? licImpl : (bcImpl != null && !isNaN(bcImpl)) ? bcImpl : null;
-    if (impl != null) { next.implementationOneTime = impl; got.implementationOneTime = true; }
+    for (const [f, p] of Object.entries(rail.current.pre)) { next[f] = p.value; got[f] = true; }
     const scn = readScenario(TOOL_ID, SCENARIO_DEFAULTS);
-    if (scn && typeof scn === "object") { Object.assign(next, scn); trackTool.scenarioLoad("tco-calculator"); clearScenarioParam(); }
+    if (scn && typeof scn === "object") { Object.assign(next, scn); setFromLink(true); trackTool.scenarioLoad("tco-calculator"); clearScenarioParam(); }
     if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -554,6 +676,9 @@ function Calculator() {
   const d = r.d;
   const opt = buildOptimizations(d, r, stance);
   const analyst = buildAnalystRead(d, r, opt, stance);
+  /* A scenario link is a deliberate act and carries its sender's entries, so a linked
+     session grades those as entered and no rail value can be credited. */
+  const G = gradeTCO({ d, r, pre: fromLink ? {} : rail.current.pre, railOrigin: null, stanceKey: stance });
 
   // Completion: fire once when the user reaches the results, with a coarse real-vs-default
   // signal and a severity bucket. No raw inputs leave the browser.
@@ -584,7 +709,7 @@ function Calculator() {
       costPerResolution: +r.costPerResolution.toFixed(2), marginalPerContact: +r.marginalPerContact.toFixed(2),
       laborPct: +r.laborPct.toFixed(4), techPct: +r.techPct.toFixed(4), threeYearTCO: Math.round(r.threeYear),
       optimizationNetMonthly: Math.round(opt.netTotal), stance, analystRead: analyst[0],
-      wageEscalatorPct: n(d.wageEscalatorPct), licenseEscalatorPct: n(d.licenseEscalatorPct), tcoConfidence: r.confidence,
+      wageEscalatorPct: n(d.wageEscalatorPct), licenseEscalatorPct: n(d.licenseEscalatorPct), tcoConfidence: G.confidence,
       // Baseline facts for downstream tools (e.g. Business Case Builder). Facts, not
       // conclusions: raw current-state drivers so a downstream case inherits the same
       // starting point. Targets and hair-cut savings are deliberately NOT published.
@@ -604,7 +729,7 @@ function Calculator() {
   const goNext = (toTool, href) => { trackTool.nextStep("tco-calculator", toTool); window.location.href = href; };
 
   const escLabel = r.single ? pctD(r.wEff) + "/yr blended" : "wage " + pctD(r.wEff) + " / license " + pctD(r.lEff);
-  const confColor = r.confidence === "Finance-grade" ? GREEN : r.confidence === "Planning-grade" ? AMBER : MUTED;
+  const confColor = G.voided ? RED : G.confidence === "Finance-grade" ? GREEN : G.confidence === "Planning-grade" ? AMBER : MUTED;
 
   const sections = ["Organization Profile", "Labor Costs", "Operational KPIs", "Channel Mix", "Technology Costs", "Overhead & Results"];
   const navBtn = (to, label, primary, disabled) => (
@@ -653,7 +778,7 @@ function Calculator() {
                 </div>
                 <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
                   <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Export confidence</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: confColor }}>{r.confidence}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: confColor }}>{G.confidence}</div>
                 </div>
               </div>
             </div>
@@ -842,7 +967,7 @@ function Calculator() {
                     </div>
                     <div style={{ background: `${confColor}12`, border: `1px solid ${confColor}40`, borderRadius: 8, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
                       <div style={{ fontSize: 11, color: MUTED }}>Export confidence</div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: confColor }}>{r.confidence}</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: confColor }}>{G.confidence}</div>
                       <div style={{ fontSize: 10, color: MUTED }}>Headline range +/- {pct0(r.sensitivity.pct)}</div>
                     </div>
                   </div>
@@ -864,7 +989,7 @@ function Calculator() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.8, textTransform: "uppercase", color: LIGHT }}>Complete TCO Results</div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: confColor, background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6, display: "inline-block" }}>{r.confidence}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: confColor, background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6, display: "inline-block" }}>{G.confidence}</div>
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>cost inputs, not savings or KPIs</div>
                     </div>
                   </div>
@@ -988,11 +1113,12 @@ function Calculator() {
 <ReportActions
                           toolId={TOOL_ID}
                           toolName="Total Cost of Ownership Analysis"
-                          subtitle={r.agents + " agents, " + (INDUSTRY[d.industry]?.label || d.industry) + ", " + STANCE[stance].label + " stance, " + r.confidence}
+                          subtitle={r.agents + " agents, " + (INDUSTRY[d.industry]?.label || d.industry) + ", " + STANCE[stance].label + " stance, " + G.confidence}
                           routePath={ROUTE}
                           state={dRaw}
                           defaults={SCENARIO_DEFAULTS}
-                          confidence={r.confidence}
+                          confidence={G.confidence}
+                          grades={G.gradeObj}
                           summary={[
                             { label: "Annual TCO", value: fmtK(r.annual) },
                             { label: "Three-year TCO", value: fmtK(r.threeYear) },
@@ -1047,10 +1173,9 @@ function Calculator() {
                                distribution, and the outlier is what this band exists to find.
                                Nothing is published when annual TCO is zero. */
                             severity: severityBucket(r.annual > 0 ? Math.max(0, Math.min(1, (opt.grossTotal * 12) / r.annual)) : null),
-                            confidence_class: r.confidence,
+                            confidence_class: G.confidence,
                             inputs_corrected: r.guards.length,
                             cost_basis: d.costBasis,
-                            has_document_evidence: d.costBasis === "invoiced",
                             stance_class: stance,
                             booked_at_full_theoretical: Math.round(opt.netTotal) === Math.round(opt.grossTotal),
                             has_optimization_levers: opt.items.length > 0,
@@ -1060,12 +1185,16 @@ function Calculator() {
                             labor_dominant: r.laborPct >= 0.75,
                             scale_band: r.agents >= 1000 ? "very_large" : r.agents >= 300 ? "large" : r.agents >= 75 ? "mid" : "small",
                             spend_band: r.annual >= 5e7 ? "very_high" : r.annual >= 1e7 ? "high" : r.annual >= 2e6 ? "mid" : "low",
-                            decision_ready_signal: d.costBasis === "invoiced" && !r.hasBlock && opt.items.length > 0,
+                            decision_ready_signal: !G.voided && G.evidence === "Planning-grade" && G.completeness === "Finance-grade" && opt.items.length > 0,
                           }}
                           sections={[
                           ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
-                          { title: "Confidence & Evidence", type: "findings", items: [
-                            `Export confidence: ${r.confidence}. Cost basis is ${d.costBasis}, which vouches for the cost inputs (wages and seat prices), not the operational KPIs or org structure. Headline sensitivity is plus or minus ${pct0(r.sensitivity.pct)} (annual ${fmtK(r.sensitivity.annualLow)} to ${fmtK(r.sensitivity.annualHigh)}).`,
+                          { title: "Confidence and Open Issues", type: "findings", items: [
+                            `Headline: ${G.confidence}${G.voided ? "" : ", bound by " + G.gradeObj.boundBy}.`,
+                            `Evidence axis: ${G.voided ? "Void" : G.evidence}.`,
+                            `Realization axis: not applicable. ${G.voided ? "" : G.gradeObj.naReason}`.trim(),
+                            `Completeness axis: ${G.voided ? "Void" : G.completeness}${G.blockers.length ? ` (${G.blockers.length} check${G.blockers.length > 1 ? "s" : ""} failed).` : ", the model is whole."}`,
+                            `Cost basis is ${d.costBasis}, declared by your own account. It sets the sensitivity range for the cost inputs (wages and seat prices), not the operational KPIs or org structure, and it lifts cost evidence to Planning-grade at most. Headline sensitivity is plus or minus ${pct0(r.sensitivity.pct)} (annual ${fmtK(r.sensitivity.annualLow)} to ${fmtK(r.sensitivity.annualHigh)}).`,
                             ...(r.openIssues.length ? r.openIssues : ["No blocking issues on the confidence checks."]),
                             ...r.itemsToConfirm.map(m => "Confirm: " + m),
                           ]},
