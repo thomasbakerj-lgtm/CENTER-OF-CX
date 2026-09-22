@@ -189,6 +189,20 @@ export function getExternalPrimitive(key, selfToolId) {
   return res.value;
 }
 
+/**
+ * getExternalPrimitive with provenance kept. Returns the getPrimitiveWithSource result,
+ * or null when the rail has nothing or when the only value is the caller's own publish.
+ * A grading tool needs the publisher to grade the field by origin, and must still never
+ * read itself. rail-audit.mjs treats this getter as an external read, so a key fed only
+ * by the caller is reported as self-fed.
+ */
+export function getExternalWithSource(key, selfToolId) {
+  const res = getPrimitiveWithSource(key);
+  if (res.value === null) return null;
+  if (selfToolId && res.sourceTool === selfToolId) return null;
+  return res;
+}
+
 /** True when every key was produced by a tool other than `selfToolId`. The confidence gate. */
 export function sourcedExternally(keys, selfToolId) {
   return keys.every((k) => getExternalPrimitive(k, selfToolId) !== undefined);
