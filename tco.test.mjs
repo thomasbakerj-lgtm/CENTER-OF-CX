@@ -2,11 +2,12 @@
 // Slices the TCO engine out of TCOCalculator.jsx at runtime and tests it directly, so
 // the verified engine and the deployed engine cannot drift apart. Run: node tco.test.mjs
 //
-// Engine region = INDUSTRY through the end of buildOptimizations. Nothing here is JSX.
+// Engine region = the @engine-start..@engine-end block. Nothing here is JSX.
 
 import { readFileSync } from "node:fs";
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
+const CONF = await import("./src/lib/confidence.js");
 
 const SRC = readFileSync(new URL("./TCOCalculator.jsx", import.meta.url), "utf8");
 
@@ -18,18 +19,16 @@ function slice(startMarker, endMarker) {
   return SRC.slice(a, b);
 }
 
-const helpers = slice("const n = (v) =>", "function LogoMark");
-const consts = slice("const INDUSTRY = {", "// InfoDot definition strings");
-const engine = slice("function reconcile(", "function Calculator");
+const region = slice("/* @engine-start", "/* @engine-end */");
 
 const BENCH = { occupancy: { cautionMax: 0.87 } };
 
 const mod = new Function(
-  "BENCH", "createGuards", "guardVal", "guardLine",
-  `${helpers}\n${consts}\n${engine}\nreturn { computeTCO, buildOptimizations, buildAnalystRead, reconcile, BASE, INDUSTRY, STANCE, n };`
-)(BENCH, createGuards, guardVal, guardLine);
+  "BENCH", "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "TOOL_ID",
+  `${region}\nreturn { computeTCO, buildOptimizations, buildAnalystRead, reconcile, gradeTCO, tcoFieldOrigin, tcoDefaults, TCO_OPS, TCO_COST, TCO_CHECKS, TCO_DOMAIN, BASE, INDUSTRY, STANCE, n };`
+)(BENCH, createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, "tco-calculator");
 
-const { computeTCO, buildOptimizations, buildAnalystRead, reconcile, BASE, INDUSTRY, STANCE } = mod;
+const { computeTCO, buildOptimizations, buildAnalystRead, reconcile, gradeTCO, tcoFieldOrigin, tcoDefaults, TCO_OPS, TCO_COST, TCO_CHECKS, TCO_DOMAIN, BASE, INDUSTRY, STANCE } = mod;
 
 let pass = 0, fail = 0;
 const near = (a, b, tol = 0.01) => Math.abs(a - b) <= tol;
@@ -40,6 +39,7 @@ function ok(name, cond, detail = "") {
 function section(t) { console.log(`\n${t}`); }
 
 const D = (over = {}) => ({ ...BASE, ...INDUSTRY.general, industry: "general", ...over });
+const g = (d, st = "expected", pre = {}, railOrigin = null) => { const r = computeTCO(d, st); return gradeTCO({ d: r.d, r, pre, railOrigin, stanceKey: st }); };
 
 /* ---------------------------------------------------- reconciliation ---- */
 section("Reconciliation");
@@ -185,18 +185,13 @@ section("Optimization model");
 /* ------------------------------------------------------- confidence ---- */
 section("Confidence and guardrails");
 {
-  ok("estimate basis is Directional", computeTCO(D({ costBasis: "estimate" }), "expected").confidence === "Directional");
-  ok("quoted basis is Planning-grade", computeTCO(D({ costBasis: "quoted" }), "expected").confidence === "Planning-grade");
-  ok("invoiced basis reaches Finance-grade", computeTCO(D({ costBasis: "invoiced" }), "expected").confidence === "Finance-grade");
-  ok("aggressive stance blocks Finance-grade",
-    computeTCO(D({ costBasis: "invoiced" }), "aggressive").confidence === "Planning-grade");
-
+  /* The legacy two-axis grade is retired. Its guardrails now reach completeness. */
+  ok("D11: invoiced on preset inputs grades Directional", g(D({ costBasis: "invoiced" })).confidence === "Directional");
   const spanned = computeTCO(D({ costBasis: "invoiced", supervisors: 2 }), "expected");
-  ok("thin span of control caps Finance-grade", spanned.confidence === "Planning-grade");
+  ok("thin span of control holds completeness Directional", g(D({ costBasis: "invoiced", supervisors: 2 })).completeness === "Directional");
   ok("thin span of control raises a flag", spanned.flags.some(f => f.level === "flag"));
-
   const insane = computeTCO(D({ costBasis: "invoiced", agentHourly: 5000 }), "expected");
-  ok("impossible per-agent cost forces Directional", insane.confidence === "Directional");
+  ok("impossible per-agent cost holds completeness Directional", g(D({ costBasis: "invoiced", agentHourly: 5000 })).completeness === "Directional");
   ok("impossible per-agent cost blocks", insane.hasBlock);
 }
 {
@@ -212,8 +207,8 @@ section("Confidence and guardrails");
   const dom = computeTCO(D({ costBasis: "invoiced", ccaasSeat: 5000 }), "expected");
   ok("one dominant license line raises a flag", dom.flags.some(f => f.level === "flag"));
   const ai = computeTCO(D({ costBasis: "invoiced", ivaMonthly: 900000 }), "expected");
-  ok("AI usage dominance is a note, not a flag, and does not cap Finance-grade",
-    ai.flags.some(f => f.level === "note") && ai.confidence === "Finance-grade");
+  ok("AI usage dominance is a note, not a flag, and does not reach completeness",
+    ai.flags.some(f => f.level === "note") && g(D({ costBasis: "invoiced", ivaMonthly: 900000 })).completeness === "Finance-grade");
   const dbl = computeTCO(D({ psAmortized: 8000, implementationOneTime: 100000 }), "expected");
   ok("amortized PS plus one-time implementation raises a double-count note",
     dbl.flags.some(f => f.level === "note" && /twice/i.test(f.msg)));
@@ -372,6 +367,127 @@ section("Cross-table consistency");
     ok("ranking is by money, not pipeline order",
       ranked[0].net === Math.max(...opt.items.map(x => x.net)));
   }
+}
+
+
+/* ---------------------------------------------- 11B: three-axis grade ---- */
+section("11B grading: evidence by origin, realization N/A, completeness by validity");
+{
+  const GRADED = [...TCO_OPS, ...TCO_COST];
+  /* Every graded field off its preset, the channel mix still whole. */
+  const E = (over = {}) => {
+    const x = D();
+    for (const [f] of GRADED) if (f !== "channelMixVoice") x[f] = +(x[f] + (x[f] < 1 ? 0.01 : 1)).toFixed(4);
+    x.channelMixVoice = +(x.channelMixVoice + 0.01).toFixed(4); x.channelMixChat = +(x.channelMixChat - 0.01).toFixed(4);
+    return { ...x, ...over };
+  };
+  ok("first paint grades Directional", g(D()).confidence === "Directional");
+  ok("first paint is bound by evidence", g(D()).gradeObj.boundBy === "evidence");
+  ok("D11: invoiced on presets is Directional", g(D({ costBasis: "invoiced" })).evidence === "Directional");
+  ok("own figures on an estimate basis: cost evidence Directional", g(E()).costGrade === "Directional" && g(E()).opsGrade === "Planning-grade");
+  ok("own figures, quoted: Planning-grade", g(E({ costBasis: "quoted" })).confidence === "Planning-grade");
+  ok("J1: own figures, invoiced: Planning-grade and no higher", g(E({ costBasis: "invoiced" })).confidence === "Planning-grade");
+  ok("a clean own-figure run is complete", g(E({ costBasis: "invoiced" })).completeness === "Finance-grade");
+  for (const [f, label] of GRADED) {
+    const x = E({ costBasis: "quoted" }); x[f] = D()[f];
+    if (f === "channelMixVoice") x.channelMixChat = D().channelMixChat;
+    const G = g(x);
+    ok(`${f} left at its preset binds evidence Directional`, G.evidence === "Directional" && G.origins[f] === "default");
+    ok(`${f} at its preset is named in the reason`, G.gradeObj.reasons.evidence.toLowerCase().includes(label.toLowerCase()));
+  }
+  ok("the preset follows the selected industry", g(E({ costBasis: "quoted", industry: "retail", agentHourly: INDUSTRY.retail.agentHourly })).origins.agentHourly === "default");
+  ok("a general preset value is entered once retail is selected", g(E({ costBasis: "quoted", industry: "retail", agentHourly: INDUSTRY.general.agentHourly })).origins.agentHourly === "entered");
+
+  const x = E({ costBasis: "quoted" });
+  ok("self: this tool's own value never credentials it", g(x, "expected", { agents: { value: x.agents, src: "tco-calculator" } }).evidence === "Directional");
+  ok("rail with no origin grade is Directional", g(x, "expected", { agents: { value: x.agents, src: "staffing-calculator" } }).evidence === "Directional");
+  ok("rail with a Planning origin grade stands at Planning-grade", g(x, "expected", { agents: { value: x.agents, src: "staffing-calculator" } }, "Planning-grade").evidence === "Planning-grade");
+  ok("rail with a Finance origin grade is capped at Planning-grade", g(x, "expected", { agents: { value: x.agents, src: "staffing-calculator" } }, "Finance-grade").evidence === "Planning-grade");
+  ok("a rail value the user changed grades as entered", g(x, "expected", { agents: { value: x.agents + 7, src: "staffing-calculator" } }).origins.agents === "entered");
+  ok("an ungraded field on the rail changes nothing", g(x, "expected", { shrinkage: { value: x.shrinkage, src: "staffing-calculator" } }).confidence === "Planning-grade");
+
+  ok("realization is not applicable", g(x).gradeObj.realization === null && g(x).gradeObj.applicable.indexOf("realization") < 0);
+  ok("realization N/A states its reason", /cost baseline/.test(g(x).gradeObj.naReason));
+  ok("a clean grade carries no defect", g(x).gradeObj.defects.length === 0);
+  ok("every applicable axis has a reason", g(x).gradeObj.applicable.every((a) => g(x).gradeObj.reasons[a].length > 20));
+
+  const blocks = [
+    ["aggressive stance", [x, "aggressive"]],
+    ["a corrected input", [{ ...x, agents: -4 }]],
+    ["per-agent cost above the ceiling", [{ ...x, agentHourly: 5000 }]],
+    ["one dominant software line", [{ ...x, ccaasSeat: 5000 }]],
+    ["span of control above 20", [{ ...x, supervisors: 2 }]],
+    ["a channel mix that does not total 100", [{ ...x, channelMixChat: x.channelMixChat + 0.1 }]],
+  ];
+  for (const [label, args] of blocks) {
+    const G = g(...args);
+    ok(`${label} holds completeness Directional`, G.completeness === "Directional" && G.confidence === "Directional");
+    ok(`${label} is named in the completeness reason`, G.blockers.length >= 1 && G.gradeObj.reasons.completeness.length > 30);
+  }
+  ok("AI usage dominance is not a blocker", g({ ...x, ivaMonthly: 900000, costBasis: "quoted" }).completeness === "Finance-grade");
+  ok("a double-count note is not a blocker", g({ ...x, implementationOneTime: 100000 }).completeness === "Finance-grade");
+
+  /* Void: an invariant failure supersedes every axis. */
+  const r0 = computeTCO(x, "expected");
+  const vd = gradeTCO({ d: r0.d, r: { ...r0, y1: r0.annual + 1 }, pre: {}, railOrigin: null, stanceKey: "expected" });
+  ok("Year 1 off the annual voids the export", vd.voided && vd.confidence === "Void" && vd.gradeObj.headline === null);
+  const vb = gradeTCO({ d: r0.d, r: { ...r0, flatMonthly: r0.flatMonthly + 100 }, pre: {}, railOrigin: null, stanceKey: "expected" });
+  ok("buckets off the monthly voids the export", vb.voided && /buckets/.test(vb.gradeWhy));
+  const vn = gradeTCO({ d: r0.d, r: { ...r0, threeYear: NaN }, pre: {}, railOrigin: null, stanceKey: "expected" });
+  ok("a non-finite output voids the export", vn.voided);
+
+  /* Class 3: the grade reads engine values and validity checks, never flag text, a
+     verdict, or the legacy grade. */
+  const body = region.slice(region.indexOf("function gradeTCO"), region.indexOf("/* @engine-end */"));
+  ok("class 3: the grade never reads flag text", !/\.flags\b|\.msg\b|openIssues|itemsToConfirm|hasFlag|hasBlock/.test(body));
+  ok("class 3: the grade never reads a total's size", !/r\.annual\s*[<>]|r\.monthly\s*[<>]|opt\./.test(body));
+  ok("the legacy grade is gone from the engine", !/basisRank\s*===\s*2\s*&&/.test(region) && computeTCO(D()).confidence === undefined);
+
+  /* Sweep: 6,000 randomized runs. */
+  let seed = 20260922; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647; const pk = (a) => a[Math.floor(rnd() * a.length)];
+  const R = { GR: { Directional: 0, "Planning-grade": 1, "Finance-grade": 2 } };
+  const bad = new Set(); let voids = 0, plan = 0;
+  const inds = Object.keys(INDUSTRY), stances = Object.keys(STANCE);
+  for (let i = 0; i < 6000; i++) {
+    const ind = pk(inds); const d = { ...BASE, ...INDUSTRY[ind], industry: ind };
+    const every = rnd() < 0.4; /* a user who replaced every preset */
+    for (const [k] of TCO_DOMAIN) if ((every || rnd() < 0.5) && typeof d[k] === "number") d[k] = +(d[k] * (0.3 + rnd() * 1.7) + (every ? 0.001 : 0)).toFixed(3);
+    if (rnd() < 0.5) { const t = d.channelMixVoice + d.channelMixChat + d.channelMixEmail + d.channelMixSocial + d.channelMixSelfServe; for (const c of ["channelMixVoice", "channelMixChat", "channelMixEmail", "channelMixSocial", "channelMixSelfServe"]) d[c] = d[c] / t; }
+    d.costBasis = pk(["estimate", "quoted", "invoiced"]); d.useSingleEscalator = rnd() < 0.3;
+    const st = pk(stances);
+    const pre = rnd() < 0.3 ? { agents: { value: d.agents, src: pk(["tco-calculator", "staffing-calculator"]) } } : {};
+    const ro = pk([null, "Directional", "Planning-grade", "Finance-grade"]);
+    const G = g(d, st, pre, ro);
+    if (G.voided) { voids++; continue; }
+    const o = G.gradeObj;
+    if (o.headline === "Finance-grade") bad.add("Finance-grade is never reached on self-declared evidence");
+    if (G.evidence === "Finance-grade") bad.add("evidence never exceeds Planning-grade");
+    const minAx = ["evidence", "completeness"].map((a) => R.GR[o[a]]).reduce((p, q) => Math.min(p, q));
+    if (R.GR[o.headline] !== minAx) bad.add("headline is the minimum of the applicable axes");
+    if (!o.boundAxes.every((a) => R.GR[o[a]] === minAx)) bad.add("the binding axis is named");
+    if (o.realization !== null) bad.add("realization is always N/A");
+    if (o.defects.length) bad.add("no grade carries a defect");
+    if (d.costBasis === "estimate" && G.costGrade !== "Directional") bad.add("an estimate basis never lifts cost evidence");
+    if (pre.agents && pre.agents.src === "tco-calculator" && G.evidence !== "Directional") bad.add("self never credentials");
+    if (st === "aggressive" && G.completeness !== "Directional") bad.add("aggressive always blocks completeness");
+    /* Scale invariance: every price times k moves no grade unless the ceiling is crossed. */
+    const k = pk([0.5, 2, 3]); const s2 = { ...d };
+    for (const [f] of TCO_COST) if (f !== "agentBenefitsPct") s2[f] = d[f] * k;
+    const r2 = computeTCO(s2, st);
+    const pre2 = pre;
+    if (Math.max(computeTCO(d, st).perAgentMonth, r2.perAgentMonth) <= TCO_CHECKS.perAgentCeiling && r2.guards.length === computeTCO(d, st).guards.length) {
+      const G2 = g(s2, st, pre2, ro);
+      if (G2.confidence !== G.confidence || G2.completeness !== G.completeness) bad.add("scale invariance: price level moves no grade");
+    }
+    /* Stance invariance: only aggressive reaches the grade. */
+    if (st !== "aggressive") { const G3 = g(d, st === "none" ? "expected" : "none", pre, ro); if (G3.confidence !== G.confidence) bad.add("stance invariance: none, conservative and expected grade alike"); }
+    if (G.confidence === "Planning-grade") plan++;
+  }
+  for (const b of bad) ok(b, false);
+  ok("6,000-case sweep: no invariant broken", bad.size === 0, [...bad].join("; "));
+  ok("the sweep never voids a clean engine run", voids === 0, `${voids} voided`);
+  ok("Planning-grade is reachable in the sweep", plan > 0, `${plan} of 6000`);
+  console.log(`  sweep: ${plan} of 6000 at Planning-grade, ${voids} void`);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
