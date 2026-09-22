@@ -119,6 +119,8 @@ export const BENCHMARK_SOURCES = {
   "lbg.guard.seatMultiple": line(5, "multiple of quoted seat", "Plausibility guard on input coding. An effective license seat above five times the quoted seat almost always means a line item is miscategorized. It tests input coding only."),
   "lbg.guard.recurDominance": line(0.8, "share of recurring license cost", "A single recurring line above 80 percent of recurring cost, with at least two lines present, is the signature of a one-time fee miscoded as recurring. Holds completeness below Finance-grade until its periodicity is confirmed."),
   "lbg.guard.usageDominance": line(0.8, "share of hidden annual", "Usage fees above 80 percent of the hidden annual make the finding a usage negotiation. Framing only. It reaches no confidence axis."),
+  "lbg.band.gapAmber": line(40, "percent bundle gap", "Status band for the gap card. Amber from 40 percent, which lands in the shared moderate severity band in track.js, so the page colour and the published band agree. Colour only. It reaches no confidence axis."),
+  "lbg.band.gapRed": line(80, "percent bundle gap", "Status band for the gap card. Red from 80 percent, which lands in the shared severe severity band in track.js. Colour only. It reaches no confidence axis."),
 };
 
 for (const [id, e] of Object.entries(BENCHMARK_SOURCES)) {
