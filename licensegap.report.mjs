@@ -23,6 +23,8 @@ const SRC = readFileSync("./LicenseBundleGapChecker.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { COLORS } = await import("./src/lib/benchmarks.js");
 const { createGuards } = await import("./src/lib/guards.js");
+const { benchmark } = await import("./src/lib/benchmarks.js");
+const { emitGrades, voidResult, isVoid } = await import("./src/lib/confidence.js");
 /* The real boundary guard and the real bucket, never reconstructed. The tool
    publishes signals.severity through severityBucket, and sanitizeProps is what
    decides whether that value reaches the wire or is silently dropped. */
@@ -135,7 +137,7 @@ A("the ReportActions summary payload slices out of the shipped JSX", !!summaryEx
 A("the ReportActions signals payload slices out of the shipped JSX", !!signalsExpr);
 A("the ReportActions sections payload slices out of the shipped JSX", !!sectionsExpr);
 A("the report is named", !!toolNameM);
-A("the confidence prop is the same grade the engine computed", /confidence=\{confidence\}/.test(SRC));
+A("the report receives the emitted grade object, never a local grade string", /grades=\{gradeObj\}/.test(SRC) && !/confidence=\{confidence\}/.test(SRC));
 A("the scenario prop carries the exact input set", /state=\{scenario\}/.test(SRC));
 A("the defaults prop points at the shared DEFAULTS", /defaults=\{DEFAULTS\}/.test(SRC));
 A("the route prop points at the shared ROUTE", /routePath=\{ROUTE\}/.test(SRC));
@@ -173,6 +175,7 @@ const B_MUT = (d) => {
   d.usage.ai = 12000; d.usage.transcription = 4200; d.usage.sms = 2600;
   d.committedSeats = 400; d.commitBasis = "license";
   d.uplift = 6; d.seats18mo = 40;
+  d.modules.wem.cost = 27; d.modules.qa.cost = 16;
   d.evidence = "msa"; d.confirmed = true; d.dblAck = true;
 };
 const SETS = {
@@ -194,7 +197,7 @@ function render(S) {
       commitExpSeats, commitExpAnnual, year3LicenseSeat, year3Seat, exp18Annual, gapColor,
       shelfware, drivers, topRecur, singleDriverDominant, confidence, confColor, flags, analyst, confLine,
       guards, invariants, voided, evidenceGrade, completenessCeiling, gradeWhy, doubtWhy,
-      gCommitted, gUplift, gSeats18, gCost, gUse, evLabel } = r;
+      gCommitted, gUplift, gSeats18, gCost, gUse, evLabel, gradeObj, boundBy, defaultDrivers } = r;
     const { classes, basis, committedSeats, commitBasis, commitRate, uplift, seats18mo, evidence, confirmed, dblAck, modules, usage } = d;
     const pulled = PULLED_FROM ? { agents: true, from: PULLED_FROM } : {};
     const fromLink = FROM_LINK;
@@ -213,9 +216,9 @@ function render(S) {
       sections: ${sectionsExpr},
     };`;
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
-    "BORDER", "GREEN", "AMBER", "RED", "TEAL", "severityBucket", "createGuards", "MUT", "FROM_LINK", "PULLED_FROM", "TOOL_NAME", preamble);
+    "BORDER", "GREEN", "AMBER", "RED", "TEAL", "severityBucket", "createGuards", "benchmark", "emitGrades", "voidResult", "MUT", "FROM_LINK", "PULLED_FROM", "TOOL_NAME", preamble);
   return fn(COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#E8F4FD", "#F8FAFB", "#3A4F6A",
-    COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, "#0EA5A5", severityBucket, createGuards,
+    COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, "#0EA5A5", severityBucket, createGuards, benchmark, emitGrades, voidResult,
     S.mut, S.fromLink, S.pulledFrom, toolNameM[1]);
 }
 
@@ -308,19 +311,26 @@ for (const [k, R] of Object.entries(results)) {
   A(`${k}: no figure renders as Infinity`, text.indexOf("Infinity") < 0);
   A(`${k}: the document carries no em-dash`, text.indexOf(String.fromCharCode(0x2014)) < 0);
 
-  /* --- confidence is stated once, consistently, with its reason --- */
-  const confSec = sect(R, "Confidence & Evidence");
-  A(`${k}: the confidence section exists`, !!confSec);
-  A(`${k}: the confidence section names the grade`, confSec.content.indexOf(r.confidence) >= 0);
-  A(`${k}: the confidence section names what bound the grade`, confSec.content.indexOf(r.gradeWhy) >= 0);
-  A(`${k}: the confidence section names both axes`,
-    confSec.content.indexOf(r.evidenceGrade) >= 0 && confSec.content.indexOf(r.completenessCeiling) >= 0);
-  A(`${k}: the subtitle carries the same grade as the confidence section`, R.subtitle.indexOf(r.confidence) >= 0);
+  /* --- confidence comes from the shared grading layer, stated once --- */
+  /* ReportActions renders the Confidence section from the emitted object, so the
+     tool no longer writes its own. What the tool still owns is the commercial
+     caveat line and the corrections, which stay in their own section. */
+  const confSec = sect(R, "Commercial Caveats");
+  const g = r.gradeObj;
+  A(`${k}: the commercial caveats section exists`, !!confSec);
+  A(`${k}: the tool writes no confidence section of its own`, !sect(R, "Confidence & Evidence"));
+  A(`${k}: the grade object carries the headline the page shows`, r.voided ? isVoid(g) : g.headline === r.confidence);
+  A(`${k}: the grade object names both applicable axes`, r.voided || (g.applicable.join() === "evidence,completeness" && g.evidence === r.evidenceGrade && g.completeness === r.completenessCeiling));
+  A(`${k}: every applicable axis carries a reason`, r.voided || (g.reasons.evidence.length > 10 && g.reasons.completeness.length > 10));
+  A(`${k}: realization is not applicable and says why`, r.voided || (g.realization === null && g.naReason.length > 40));
+  A(`${k}: the grade carries no content defect`, r.voided || g.defects.length === 0);
+  A(`${k}: the subtitle carries the same grade and binding axis`, R.subtitle.indexOf(r.confidence) >= 0 && (r.voided || R.subtitle.indexOf(r.boundBy) >= 0));
   A(`${k}: the methodology restates the same grade`, sect(R, "Methodology").content.indexOf(r.confidence) >= 0);
   A(`${k}: the methodology restates the same rationale`, sect(R, "Methodology").content.indexOf(r.gradeWhy) >= 0);
   A(`${k}: signals carry the evidence grade`, R.signals.evidence_grade === r.evidenceGrade);
   A(`${k}: signals carry the completeness ceiling`, R.signals.completeness_ceiling === r.completenessCeiling);
-  A(`${k}: signals carry the rationale, not just the verdict`, R.signals.grade_bound_by === r.gradeWhy);
+  A(`${k}: signals carry the default-driver count`, R.signals.default_drivers === r.defaultDrivers.length);
+  A(`${k}: no prose rationale rides on the wire`, !("grade_bound_by" in R.signals));
 
   /* --- corrections must be disclosed in the document, not just clamped --- */
   const corr = sect(R, "Inputs Corrected");
@@ -439,7 +449,7 @@ A("the hostile scenario link is not void, because guarding precedes the invarian
 A("a void section exists in the payload for the case the invariants ever fire",
   /Output Void/.test(sectionsExpr));
 A("the corrections section is placed before the confidence section, so it cannot be missed",
-  sectionsExpr.indexOf("Inputs Corrected") < sectionsExpr.indexOf("Confidence & Evidence"));
+  sectionsExpr.indexOf("Inputs Corrected") < sectionsExpr.indexOf("Commercial Caveats"));
 A("the void section is placed first of all", sectionsExpr.indexOf("Output Void") < sectionsExpr.indexOf("Inputs Corrected"));
 A("every set produced a document", Object.keys(results).length === 4);
 
