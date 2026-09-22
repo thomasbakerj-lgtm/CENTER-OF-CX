@@ -75,6 +75,7 @@ const INFRA = [
   { name: "seo.test.mjs", covers: "reachability: titles, counts, slugs" },
   { name: "track.test.mjs", covers: "instrumentation: event contract, no PII" },
   { name: "chunk.test.mjs", covers: "delivery: entry chunk ceiling, lazy routes" },
+  { name: "journey.test.mjs", covers: "journey: graph, live routes, tracked next steps" },
 ];
 
 /* ---------------------------------------------------------------- utilities */
