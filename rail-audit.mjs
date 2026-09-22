@@ -229,7 +229,7 @@ function wrapperLiterals(src, param) {
   return found ? out : null;
 }
 
-const PRIM_GETTERS = "getPrimitive|getPrimitiveWithSource|getExternalPrimitive";
+const PRIM_GETTERS = "getPrimitive|getPrimitiveWithSource|getExternalPrimitive|getExternalWithSource";
 function variablePulls(src) {
   const resolved = new Set(), unresolved = new Set(), external = new Set();
   const vals = constObjectValues(src);
@@ -253,7 +253,7 @@ function variablePulls(src) {
     const v = arg;
     const ent = new RegExp(`for\\s*\\(\\s*(?:const|let|var)\\s*\\[[^\\]]*\\b${v}\\b[^\\]]*\\]\\s*of\\s*Object\\.entries\\(\\s*([A-Za-z0-9_$]+)\\s*\\)`).exec(src)
       || new RegExp(`for\\s*\\(\\s*(?:const|let|var)\\s+${v}\\s+of\\s*Object\\.values\\(\\s*([A-Za-z0-9_$]+)\\s*\\)`).exec(src);
-    const add = (k) => { resolved.add(k); if (m[1] === "getExternalPrimitive") external.add(k); };
+    const add = (k) => { resolved.add(k); if (m[1] === "getExternalPrimitive" || m[1] === "getExternalWithSource") external.add(k); };
     if (ent && vals.has(ent[1])) { for (const k of vals.get(ent[1])) add(k); continue; }
     /* A local wrapper that forwards its parameter: const take = (field, key) => getter(key).
        Resolved through every call site of the wrapper, reading the argument at that position.
@@ -265,19 +265,20 @@ function variablePulls(src) {
   return { resolved, unresolved, external };
 }
 
-/* Keys this file reads through getExternalPrimitive, literal or resolved. That getter
-   returns undefined when the only producer is the caller, so a key fed by no OTHER file
+/* Keys this file reads through getExternalPrimitive or getExternalWithSource, literal or
+   resolved. Both getters
+   return nothing when the only producer is the caller, so a key fed by no OTHER file
    is as dead as a key fed by nobody. */
 function externalPullKeys(src) {
   const keys = new Set(variablePulls(src).external);
-  for (const m of src.matchAll(/\bgetExternalPrimitive\s*\(\s*["'`]([A-Za-z0-9_]+)["'`]/g)) keys.add(m[1]);
+  for (const m of src.matchAll(/\b(?:getExternalPrimitive|getExternalWithSource)\s*\(\s*["'`]([A-Za-z0-9_]+)["'`]/g)) keys.add(m[1]);
   return keys;
 }
 
 /* Every rail read: the four getters plus the key array inside sourcedExternally. */
 function pullKeys(src) {
   const keys = new Set(variablePulls(src).resolved);
-  const single = /\b(?:getPrimitive|getPrimitiveWithSource|getExternalPrimitive|getCurrent|getToolResult)\s*\(\s*["'`]([A-Za-z0-9_]+)["'`]/g;
+  const single = /\b(?:getPrimitive|getPrimitiveWithSource|getExternalPrimitive|getExternalWithSource|getCurrent|getToolResult)\s*\(\s*["'`]([A-Za-z0-9_]+)["'`]/g;
   let m;
   while ((m = single.exec(src))) keys.add(m[1]);
   const arr = /sourcedExternally\s*\(\s*\[([^\]]*)\]/g;
