@@ -26,6 +26,8 @@ const RA = readFileSync("./ReportActions.jsx", "utf8");
 const { MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = await import("./src/lib/mech.js");
 const { createGuards } = await import("./src/lib/guards.js");
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
+const BENCHMOD = await import("./src/lib/benchmarks.js");
+const CONF = await import("./src/lib/confidence.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -225,11 +227,15 @@ function render(S) {
     const base = { ...DEFAULTS, vA: { ...DEFAULTS.vA }, vB: { ...DEFAULTS.vB } };
     const mut = MUT();
     const s = { ...base, ...mut, vA: { ...base.vA, ...(mut.vA || {}) }, vB: { ...base.vB, ...(mut.vB || {}) } };
+    const fromLink = false;
     const inputA = { M: s.M, cpc: s.cpc, marg: s.marg, eligibleRate: s.eligibleRate, mech: s.mech,
       rampOn: s.rampOn, rampMonths: s.rampMonths, evidence: s.evidence, costBasisOwned: s.costConfirmed, ...s.vA };
     const inputB = { ...inputA, ...s.vB };
     const R = engine(inputA);
     const RB = engine(inputB);
+    /* Standalone document: no upstream tool in the session, no scenario link. */
+    const rail = { current: { pre: {} } };
+    const G = gradeAID({ I: inputA, r: R, pre: fromLink ? {} : rail.current.pre, railOrigin: null });
     const scenarios = buildScenarios(inputA);
     const analyst = buildAnalystRead(R);
     const winner = R.netSavings >= RB.netSavings ? "A" : "B";
@@ -239,15 +245,16 @@ function render(S) {
     const pulled = { M: false, cpc: false, marg: false };
     const consistent = false;
     const margSource = false;
-    const fromLink = false;
     const subtitle = ${subtitleExpr};
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
     const sections = ${sectionsExpr};
-    return { s, R, RB, subtitle, summary, signals, sections, analyst, scenarios };
+    return { s, R, RB, G, subtitle, summary, signals, sections, analyst, scenarios };
   `;
-  return new Function("MECH", "MECH_ORDER", "MECH_INITIAL", "severityBucket", "createGuards", "MUT", body)(
-    MECH, MECH_ORDER, MECH_INITIAL, severityBucket, createGuards, S.mut);
+  return new Function("MECH", "MECH_ORDER", "MECH_INITIAL", "severityBucket", "createGuards", "MUT",
+    "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred", body)(
+    MECH, MECH_ORDER, MECH_INITIAL, severityBucket, createGuards, S.mut,
+    BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred);
 }
 
 function allText(doc) {
@@ -315,7 +322,7 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: printed break-even is a rate when finite and a word when not`,
     isFinite(R.beResPct) ? summaryValue(doc, "Break-even resolution") === R.beResPct.toFixed(1) + "%" : summaryValue(doc, "Break-even resolution") === "never");
   A(`${k}: the subtitle carries the same verdict the summary carries`, doc.subtitle.indexOf(R.verdict) === 0);
-  A(`${k}: the subtitle carries the same confidence the tool exports`, doc.subtitle.indexOf(R.headlineConf) > 0);
+  A(`${k}: the subtitle carries the same confidence the tool exports`, doc.subtitle.indexOf(doc.G.confidence) > 0);
 }
 
 /* ---- 4. the decision section never contradicts the summary ---- */
@@ -328,7 +335,7 @@ for (const k of Object.keys(DOCS)) {
     const byLabel = Object.fromEntries(dec.rows.map(r => [r[0], r[1]]));
     A(`${k}: the Decision action matches the summary action`, byLabel["Recommended action"] === summaryValue(doc, "Recommended action"));
     A(`${k}: the Decision net savings matches the summary net savings`, byLabel["Net savings monthly"] === summaryValue(doc, "Net savings monthly"));
-    A(`${k}: the Decision confidence matches the tool confidence`, byLabel["Confidence"] === doc.R.headlineConf);
+    A(`${k}: the Decision confidence matches the tool confidence`, byLabel["Confidence"] === doc.G.confidence);
   }
 }
 
@@ -399,7 +406,7 @@ console.log("\n7. the hostile scenario link is disclosed, not absorbed");
   A("C: the document discloses the unknown capacity action it replaced",
     sectionByTitle(C, "Integrity Flags (" + C.R.flags.length + ")").items.filter(t => t === `Capacity action was "not-a-mechanism", which is not an option this tool offers, and was held at ${MECH.none.label}.`).length === 1);
   A("C: the open issues count is a number the document can print", Number.isFinite(C.signals.open_issues));
-  A("C: the tool still exports a confidence grade", typeof C.R.headlineConf === "string" && C.R.headlineConf.length > 0);
+  A("C: the tool still exports a confidence grade", typeof C.G.confidence === "string" && C.G.confidence.length > 0);
 }
 
 /* ---- 8. the zero-realization case says so rather than printing a zero ---- */
@@ -423,7 +430,7 @@ console.log("\n9. hostile enum links render a whole document");
   const HOSTILE = ["bogus", "", "HIRING", "Pilot", ...Object.getOwnPropertyNames(Object.prototype)];
   const CASH = MECH_ORDER.filter(k => MECH[k].cred === "cash").pop();
   const frag = (label, k) => `${label} was "${k}",`;
-  const face = (doc, label, k) => JSON.stringify({ ...doc, s: null, R: { ...doc.R, flags: doc.R.flags.map(f => f.split(frag(label, k)).join(frag(label, "<KEY>"))) }, RB: { ...doc.RB, flags: doc.RB.flags.map(f => f.split(frag(label, k)).join(frag(label, "<KEY>"))) },
+  const face = (doc, label, k) => JSON.stringify({ ...doc, s: null, R: { ...doc.R, flags: doc.R.flags.map(f => f.split(frag(label, k)).join(frag(label, "<KEY>"))), guards: doc.R.guards.map(f => f.split(frag(label, k)).join(frag(label, "<KEY>"))) }, RB: { ...doc.RB, flags: doc.RB.flags.map(f => f.split(frag(label, k)).join(frag(label, "<KEY>"))), guards: doc.RB.guards.map(f => f.split(frag(label, k)).join(frag(label, "<KEY>"))) },
     sections: doc.sections.map(sec => sec.items ? { ...sec, items: sec.items.map(t => typeof t === "string" ? t.split(frag(label, k)).join(frag(label, "<KEY>")) : t) } : sec) });
   const scrub = (doc, label, k) => allText(doc).split(frag(label, k)).join("");
   const docM = (k) => render({ mut: () => ({ marg: 4.2, evidence: "pilot", costConfirmed: true, mech: k }) });
@@ -447,7 +454,7 @@ console.log("\n9. hostile enum links render a whole document");
   }
   const M = docM("toString"), E = docE("constructor");
   A("hostile action: the realization row names Not selected", JSON.stringify(M.sections).indexOf(JSON.stringify(["Realization axis", "Directional (" + MECH.none.label + ")"])) >= 0);
-  A("hostile action: the document grade is Directional", M.R.headlineConf === "Directional");
+  A("hostile action: the document grade is Directional", M.G.confidence === "Directional");
   A("hostile action: no cash action travels in signals", M.signals.has_cash_action === false && M.signals.decision_ready_signal === false);
   A("hostile action: the verdict is never Proceed", M.R.verdict.indexOf("Proceed") !== 0);
   A("hostile evidence: the evidence row names the estimate label", JSON.stringify(E.sections).indexOf(JSON.stringify(["Evidence axis", "Directional (Internal estimate or benchmark)"])) >= 0);
@@ -457,6 +464,28 @@ console.log("\n9. hostile enum links render a whole document");
   A("hostile evidence: the correction is listed once in Integrity Flags",
     sectionByTitle(E, "Integrity Flags (" + E.R.flags.length + ")").items.filter(t => t.indexOf('Evidence source was "constructor",') === 0).length === 1);
 }
+
+/* 10. 11B. The document prints the graded axes, session 16. Every set prints the three
+   axes gradeAID produced, the rationale verbatim, and no Finance-grade headline. */
+console.log("\n10. the document prints the graded axes");
+for (const k of Object.keys(DOCS)) {
+  const doc = DOCS[k], G = doc.G;
+  const rows = sectionByTitle(doc, "Confidence and Evidence").rows;
+  const row = (l) => (rows.find(r => r[0] === l) || [])[1];
+  A(`${k}: the headline row is the graded headline`, row("Headline confidence") === G.confidence);
+  A(`${k}: the evidence row prints the graded evidence axis`, row("Evidence axis") === (G.voided ? "Void" : G.evidence + " (" + doc.R.evidenceLabel + ")"));
+  A(`${k}: the realization row prints the graded realization axis`, row("Realization axis") === (G.voided ? "Void" : G.realization + " (" + MECH[doc.R.mechKey].label + ")"));
+  A(`${k}: the completeness row prints the graded completeness axis`, row("Completeness axis") === (G.voided ? "Void" : G.completeness));
+  A(`${k}: the Why row is the grade rationale verbatim`, row("Why") === G.gradeWhy && /^(Bound by|export void)/.test(G.gradeWhy));
+  A(`${k}: no set prints a Finance-grade headline`, G.confidence !== "Finance-grade");
+  A(`${k}: the signals class is the graded headline`, doc.signals.confidence_class === G.confidence);
+  A(`${k}: the grade object carries no content defect`, G.voided || G.gradeObj.defects.length === 0);
+}
+A("B: a proposal on default bot rates grades Directional, and the rationale says why",
+  DOCS.B.G.confidence === "Directional" && /still at the tool default/.test(DOCS.B.G.gradeWhy));
+A("C: the hostile link holds completeness Directional on its corrections", DOCS.C.G.completeness === "Directional" && /corrected before calculation/.test(DOCS.C.G.gradeWhy));
+A("E: the free bot holds completeness Directional", DOCS.E.G.completeness === "Directional" && /near-free operating cost/.test(DOCS.E.G.gradeObj.reasons.completeness));
+A("the component passes the grade object to ReportActions", /grades=\{G\.gradeObj\}/.test(SRC));
 
 /* ---------------------------------------------------------------- result */
 console.log(`\n${pass} passed, ${fail} failed`);
