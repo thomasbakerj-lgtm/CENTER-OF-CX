@@ -22,8 +22,9 @@ import { readFileSync } from "fs";
 
 const SRC = readFileSync("./ChannelShiftModel.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
-const { MECH } = await import("./src/lib/mech.js");
-const { COLORS } = await import("./src/lib/benchmarks.js");
+const { MECH, MECH_INITIAL } = await import("./src/lib/mech.js");
+const { COLORS, benchmark } = await import("./src/lib/benchmarks.js");
+const CONF = await import("./src/lib/confidence.js");
 /* The shared clamp and disclosure renderer. The component imports them, so the
    report must be built on the same module, never on a retyped copy. */
 const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
@@ -175,8 +176,9 @@ A("the ReportActions signals payload slices out of the shipped JSX", !!signalsEx
 A("the ReportActions sections payload slices out of the shipped JSX", !!sectionsExpr);
 A("the report is named", !!toolNameM);
 A("the integrity-check block slices out", !!flagsRegion && flagsRegion.indexOf("const flags = []") > 0);
-A("the multi-line grade ladder slices out whole, not first-branch-only", (constStatement("gradeWhy") || "").indexOf("capped by capacity action") > 0);
-A("the confidence prop is the same grade the page displays", /confidence=\{grade\}/.test(SRC));
+A("the grading call slices out whole", (constStatement("graded") || "").indexOf("gradeChannel({ d, r, pre, railOrigin: null })") > 0);
+A("the component destructures the emitted grade exactly as the harness does", /const \{ gradeObj, confidence, gradeWhy \} = graded;/.test(SRC));
+A("the grades prop is the object the page displays", /grades=\{gradeObj\}/.test(SRC) && !/confidence=\{grade\}/.test(SRC));
 A("the scenario prop carries the exact input set", /state=\{scenario\}/.test(SRC));
 A("the defaults prop points at the shared DEFAULTS", /defaults=\{DEFAULTS\}/.test(SRC));
 /* The render preamble retypes the four lines between compute and the grade
@@ -185,7 +187,7 @@ A("the defaults prop points at the shared DEFAULTS", /defaults=\{DEFAULTS\}/.tes
 A("the component resolves the capacity action off r directly after compute",
   /const r = compute\(d, mech\);\n(?:\s*\/\*[\s\S]*?\*\/\n)?\s*const mechKey = r\.mechKey;\n\s*const verdict = buildVerdict\(d, r, mechKey\);/.test(SRC));
 A("the component builds the analyst read on the resolved key", /const analyst = buildAnalystRead\(d, r, mechKey, verdict\);/.test(SRC));
-A("the component tests selection on the resolved key", /const mechSelected = mechKey !== "none";/.test(SRC));
+A("the component grades on r, which carries the resolved key", /gradeChannel\(\{ d, r, pre/.test(SRC) && !/mechSelected/.test(SRC));
 A("no MECH lookup on the entered capacity action remains in the component", !/MECH\[mech\]/.test(SRC));
 
 /* ------------------------------------------------------------ input sets */
@@ -224,8 +226,14 @@ const SETS = {
   A: { label: "Shipped defaults, voice-led, chat and bot, avoid hiring", d: null, mech: "hiring", fromLink: false, pulledExternally: false },
   B: { label: "Digital-led, three targets, severe curve, vendor reduction, validated", d: B_INPUTS, mech: "vendor", fromLink: true, pulledExternally: true },
   C: { label: "Hostile scenario link: resolution 150%, displacement 300%, negative bot cost and volume", d: { monthlyContacts: -60000, chatPct: 40, resChat: 150, dispChat: 300, botCost: -2, voiceConc: 0, escReturnFactor: 0.4, rampWeeks: -3 }, mech: "none", fromLink: true, pulledExternally: false },
-  D: { label: "Set B inputs exactly, absorb-growth mechanism: the credit-class ceiling", d: B_INPUTS, mech: "growth", fromLink: false, pulledExternally: true },
+  D: { label: "Set E inputs exactly, absorb-growth mechanism: the credit-class ceiling", d: B_INPUTS, mech: "growth", fromLink: false, pulledExternally: false },
+  E: { label: "Set B inputs as the user's own entries, attested, vendor reduction: the ceiling self-attestation reaches", d: B_INPUTS, mech: "vendor", fromLink: false, pulledExternally: false },
 };
+
+/* A set marked pulledExternally arrives with its volume and wage over the rail, as
+   another tool published them, with no origin grade. That is the only rail the
+   harness can model honestly today. */
+const railPre = (d) => ({ monthlyContacts: { value: d.monthlyContacts, src: "cost-per-contact" }, hourlyRate: { value: d.hourlyRate, src: "staffing-calculator" } });
 
 function render(S) {
   const preamble = `
@@ -238,17 +246,15 @@ function render(S) {
     const verdict = buildVerdict(d, r, mechKey);
     const shiftPts = r.perTarget.reduce((acc, t) => acc + t.shiftPts, 0);
     const analyst = buildAnalystRead(d, r, mechKey, verdict);
-    const sourced = SOURCED;
-    const mechSelected = mechKey !== "none";
-    ${constStatement("evidenceGrade")}
-    ${constStatement("grade")}
-    ${constStatement("boundBy")}
-    ${constStatement("gradeWhy")}
+    const pre = PRE;
+    ${constStatement("graded")}
+    const { gradeObj, confidence, gradeWhy } = graded;
+    const grade = confidence, boundBy = isVoid(gradeObj) ? "void" : gradeObj.boundBy;
     ${flagsRegion}
     const scenario = { d, mech };
     /* TOOL_ID and ROUTE already come out of the engine region: do not shadow them. */
     return {
-      d, mech, mechKey, r, verdict, analyst, flags, grade, gradeWhy, evidenceGrade, boundBy, shiftPts, mixTotal,
+      d, mech, mechKey, r, verdict, analyst, flags, grade, gradeWhy, gradeObj, graded, boundBy, shiftPts, mixTotal,
       subtitle: \`${subtitleExpr.replace(/^`|`$/g, "")}\`,
       summary: ${summaryExpr},
       signals: ${signalsExpr},
@@ -257,10 +263,13 @@ function render(S) {
     .replace(/\bD_IN\b/g, JSON.stringify(S.d))
     .replace(/\bMECH_KEY\b/g, JSON.stringify(S.mech))
     .replace(/\bFROM_LINK\b/g, JSON.stringify(!!S.fromLink))
-    .replace(/\bSOURCED\b/g, JSON.stringify(!!S.pulledExternally));
+    .replace(/\bPRE\b/g, JSON.stringify(S.pulledExternally ? railPre(S.d) : {}));
 
   try {
-    return new Function("MECH", "COLORS", "severityBucket", "createGuards", "guardVal", "guardLine", preamble)(MECH, COLORS, severityBucket, createGuards, guardVal, guardLine);
+    return new Function("MECH", "MECH_INITIAL", "COLORS", "severityBucket", "createGuards", "guardVal", "guardLine", "benchmark",
+      "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred", preamble)(
+      MECH, MECH_INITIAL, COLORS, severityBucket, createGuards, guardVal, guardLine, benchmark,
+      CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred);
   } catch (e) {
     console.error("BLOCKER: the report payload did not evaluate for set " + S.label + ".");
     console.error(String(e.message || e));
@@ -282,7 +291,7 @@ function printDoc(key, o, S) {
   console.log(`SET ${key}  ${S.label}`);
   console.log("=".repeat(78));
   console.log(`subtitle:  ${o.subtitle}`);
-  console.log(`grade:     ${o.grade}  (evidence ${o.evidenceGrade}, ceiling ${o.r.ceilingGrade}, bound by ${o.boundBy})`);
+  console.log(`grade:     ${o.grade}  (evidence ${o.graded.evidence}, realization ${o.graded.realization}, completeness ${o.graded.completeness}, bound by ${o.boundBy})`);
   console.log(`why:       ${o.gradeWhy}`);
   console.log("\nsummary");
   for (const s of o.summary) console.log(`  ${String(s.label).padEnd(26)} ${s.value}`);
@@ -478,22 +487,28 @@ console.log("\n4. guard disclosure in the document");
 /* ------------------------------------------- 5. confidence and credit class */
 console.log("\n5. confidence and credit class");
 {
-  A("A: untouched defaults with no external source cannot reach Planning-grade", OUT.A.grade === "Directional");
-  A("A: the rationale tells the reader what to do about it", /source the volume and rate basis/.test(OUT.A.gradeWhy));
-  A("B: externally sourced and validated, on a cash-creditable action, reaches Finance-grade", OUT.B.grade === "Finance-grade");
-  A("B: the grade was bound by evidence, not by the credit class", OUT.B.boundBy === "evidence");
-  A("D: identical inputs on a capacity-only action cannot reach Finance-grade", OUT.D.grade !== "Finance-grade");
-  A("D: the credit class is what bound it", OUT.D.boundBy === "credit class");
+  const RK = CONF.GRADE_RANK;
+  A("A: untouched defaults cannot reach Planning-grade", OUT.A.grade === "Directional");
+  A("A: the rationale tells the reader which drivers are still at the default", /still at the tool default/.test(OUT.A.gradeWhy));
+  A("B: rail volume and wage with no origin grade, attested, on a cash action, grade Directional (defect class 2)", OUT.B.grade === "Directional");
+  A("B: the old path to Finance-grade is closed", OUT.B.grade !== "Finance-grade");
+  A("B: evidence is what bound it", /evidence/.test(OUT.B.boundBy));
+  A("B: the document says the rail carried no origin grade", /no recorded origin grade/.test(OUT.B.gradeWhy));
+  A("E: the same inputs as the user's own, attested, stand at Planning-grade and no higher", OUT.E.grade === "Planning-grade");
+  A("E: the document says self-attestation stands at Planning-grade at most", /Planning-grade at most/.test(sec(OUT.E, "Methodology").content));
+  A("D: identical inputs on a capacity-only action grade Directional", OUT.D.grade === "Directional");
+  A("D: realization is what bound it", /realization/.test(OUT.D.boundBy));
   A("D: the rationale names the capacity action that capped it", OUT.D.gradeWhy.indexOf(MECH.growth.label) >= 0);
-  A("B and D differ only in the capacity action", JSON.stringify(OUT.B.d) === JSON.stringify(OUT.D.d));
-  A("B and D therefore differ in grade for a reason the document states", OUT.B.grade !== OUT.D.grade);
-  A("C: no capacity action floors the document at Directional", OUT.C.grade === "Directional");
-  A("every set reports which ceiling bound it", Object.keys(SETS).every(k => ["evidence", "credit class"].indexOf(OUT[k].boundBy) >= 0));
-  A("no document claims a grade above its credit-class ceiling", Object.keys(SETS).every(k => {
-    const rank = { "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 };
-    return rank[OUT[k].grade] <= rank[OUT[k].r.ceilingGrade];
+  A("E and D differ only in the capacity action", JSON.stringify(OUT.E.d) === JSON.stringify(OUT.D.d) && !!SETS.E.pulledExternally === !!SETS.D.pulledExternally);
+  A("E and D therefore differ in grade for a reason the document states", OUT.E.grade !== OUT.D.grade);
+  A("C: a hostile link grades Directional, bound by completeness", OUT.C.grade === "Directional" && /completeness/.test(OUT.C.boundBy));
+  A("no set reaches Finance-grade", Object.keys(SETS).every(k => OUT[k].grade !== "Finance-grade"));
+  A("no set is void", Object.keys(SETS).every(k => !OUT[k].graded.voided));
+  A("no document claims a grade above its realization", Object.keys(SETS).every(k => RK[OUT[k].grade] <= RK[OUT[k].graded.realization]));
+  A("the headline is the minimum of the three axes in every set", Object.keys(SETS).every(k => {
+    const g = OUT[k].graded; return g.confidence === CONF.gradeConfidence({ evidence: g.evidence, realization: g.realization, completeness: g.completeness }).headline;
   }));
-  A("the signals payload records which ceiling bound the grade",
+  A("the signals payload records which axis bound the grade",
     Object.keys(SETS).every(k => OUT[k].signals.grade_bound_by === OUT[k].boundBy));
 }
 
@@ -644,7 +659,10 @@ console.log("\nhostile capacity action");
     A(`${tag}: signals name the action the engine ran`, o.signals.capacity_action === MECH.none.label);
     A(`${tag}: the page flags that no capacity action is selected`, o.flags.some(f => /No capacity action selected/.test(f.t)));
     A(`${tag}: realized labor prints $0 under the none label`, rowVal(sec(o, "Economics"), `Realized labor (${MECH.none.label}, 0%)`) === "$0/mo");
-    A(`${tag}: the verdict and grade match the none document`, o.verdict.label === NONE.verdict.label && o.grade === NONE.grade && o.gradeWhy === NONE.gradeWhy);
+    A(`${tag}: the verdict, headline, evidence and realization match the none document`,
+      o.verdict.label === NONE.verdict.label && o.grade === NONE.grade && o.graded.evidence === NONE.graded.evidence && o.graded.realization === NONE.graded.realization);
+    A(`${tag}: the correction reaches completeness, which a clean none does not (defect class 3)`,
+      o.graded.completeness === "Directional" && /corrected before calculation/.test(o.gradeWhy) && !/corrected before calculation/.test(NONE.gradeWhy));
     A(`${tag}: the document matches the unknown-key document apart from the entered text`, face(o, k) === face(Z, "zzz"));
   }
 }
