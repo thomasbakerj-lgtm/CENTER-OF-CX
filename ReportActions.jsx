@@ -4,6 +4,7 @@ import { scenarioLink, inputsMoved } from "./src/lib/scenarioUrl";
 import { FONT, TYPE } from "./src/lib/type";
 import { trackTool, track, EV } from "./src/lib/track";
 import { gradeConfidence, isVoid, isDual, AXES, AXIS_EXPLAINER } from "./src/lib/confidence";
+import { nextFor } from "./src/lib/journey";
 
 /**
  * ReportActions, the shared end-of-tool action block.
@@ -497,6 +498,25 @@ export default function ReportActions({
           )}
         </div>
       </div>
+
+      {/* -------------------------------------------------- run this next */}
+      {/* Tracker 3-01. The edge set lives in src/lib/journey.js, never here, so
+          nine tools cannot drift into nine journeys again. Plain anchors: the
+          click event goes out by sendBeacon, which survives the navigation. */}
+      {nextFor(toolId).length > 0 && (
+        <div style={card}>
+          <h3 style={h3}>Run this next</h3>
+          <p style={sub}>Each result raises a sharper question. These are the diagnostics that answer it.</p>
+          {nextFor(toolId).map((e) => (
+            <a key={e.to} href={e.href}
+              onClick={() => { fireComplete(); trackTool.nextStep(toolId, e.to); }}
+              style={{ display: "block", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", marginBottom: 10, background: WARM, textDecoration: "none" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 3 }}>{e.name} →</div>
+              <div style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5 }}>{e.why}</div>
+            </a>
+          ))}
+        </div>
+      )}
 
       {/* ----------------------------------------------------- request review */}
       <div style={card}>
