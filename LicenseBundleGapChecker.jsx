@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
-import { COLORS } from "./src/lib/benchmarks";
+import { COLORS, benchmark } from "./src/lib/benchmarks";
+import { emitGrades, voidResult } from "./src/lib/confidence";
 import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
@@ -29,7 +30,12 @@ const WRAP = { maxWidth: 1000, margin: "0 auto", padding: "0 28px" };
    rebuilding them inside a harness is how a harness starts testing a copy.
    Nothing between their old and new positions evaluated at module load, so the
    move is behaviour-neutral. COLORS is injected from the real benchmarks.js
-   and is not reconstructed. */
+   and is not reconstructed.
+
+   11B. Every default price and every judgment threshold below is read from the
+   benchmark registry by id, so no number ships here without provenance. The
+   headline and binding axis come from confidence.js through emitGrades, and a
+   failed invariant emits voidResult. No grade ladder lives in this file. */
 /* Finite or zero. The isNaN test let Infinity through, so fmtK printed "$InfinityM"
    and an Infinity seat price reached every figure. Identical for finite input. */
 const n = (v) => { const p = parseFloat(v); return Number.isFinite(p) ? p : 0; };
@@ -47,21 +53,20 @@ const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x
    engine never ran. `used` carries what was computed, `entered` what was asked. */
 const guardVal = (g, which) => which === "entered" && g.invalid ? g.entered : g.unit === "$" ? "$" + g[which] : `${g[which]}${g.unit}`;
 
-const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
 
 const MODULES = [
-  { id: "wem", name: "WEM / WFM", typical: 25, desc: "Forecasting, scheduling, adherence", core: true, dStatus: "addon", dScope: "agentsup" },
-  { id: "qa", name: "Quality Management", typical: 15, desc: "Evaluation, calibration, coaching", core: true, dStatus: "addon", dScope: "agentsup" },
-  { id: "recording", name: "Call Recording", typical: 10, desc: "Voice + screen, compliance", core: true, dStatus: "included", dScope: "all" },
-  { id: "analytics", name: "Speech + Text Analytics", typical: 20, desc: "Interaction analytics, sentiment", core: true, dStatus: "addon", dScope: "all" },
-  { id: "ai", name: "AI / GenAI Features", typical: 25, desc: "Summarization, agent assist, copilot", dStatus: "usage", dScope: "agent" },
-  { id: "digital", name: "Digital Channels", typical: 15, desc: "Chat, SMS, social, messaging", dStatus: "addon", dScope: "agent" },
-  { id: "outbound", name: "Outbound Dialer", typical: 20, desc: "Preview, progressive, predictive", dStatus: "addon", dScope: "agent" },
-  { id: "reporting", name: "Advanced Reporting", typical: 10, desc: "Custom dashboards, BI connector", dStatus: "addon", dScope: "agentsup" },
-  { id: "telephony", name: "BYOC / Telephony", typical: 5, desc: "Carrier, SIP trunking", dStatus: "usage", dScope: "all" },
-  { id: "storage", name: "Storage / Archival", typical: 8, desc: "Extended retention", dStatus: "limited", dScope: "all" },
-  { id: "support", name: "Premium Support / TAM", typical: 12, desc: "24/7, dedicated CSM, SLA", dStatus: "included", dScope: "all" },
-  { id: "services", name: "Professional Services", typical: 0, desc: "Implementation (one-time)", dStatus: "onetime", dScope: "all" },
+  { id: "wem", name: "WEM / WFM", typical: benchmark("lbg.module.wem"), desc: "Forecasting, scheduling, adherence", core: true, dStatus: "addon", dScope: "agentsup" },
+  { id: "qa", name: "Quality Management", typical: benchmark("lbg.module.qa"), desc: "Evaluation, calibration, coaching", core: true, dStatus: "addon", dScope: "agentsup" },
+  { id: "recording", name: "Call Recording", typical: benchmark("lbg.module.recording"), desc: "Voice + screen, compliance", core: true, dStatus: "included", dScope: "all" },
+  { id: "analytics", name: "Speech + Text Analytics", typical: benchmark("lbg.module.analytics"), desc: "Interaction analytics, sentiment", core: true, dStatus: "addon", dScope: "all" },
+  { id: "ai", name: "AI / GenAI Features", typical: benchmark("lbg.module.ai"), desc: "Summarization, agent assist, copilot", dStatus: "usage", dScope: "agent" },
+  { id: "digital", name: "Digital Channels", typical: benchmark("lbg.module.digital"), desc: "Chat, SMS, social, messaging", dStatus: "addon", dScope: "agent" },
+  { id: "outbound", name: "Outbound Dialer", typical: benchmark("lbg.module.outbound"), desc: "Preview, progressive, predictive", dStatus: "addon", dScope: "agent" },
+  { id: "reporting", name: "Advanced Reporting", typical: benchmark("lbg.module.reporting"), desc: "Custom dashboards, BI connector", dStatus: "addon", dScope: "agentsup" },
+  { id: "telephony", name: "BYOC / Telephony", typical: benchmark("lbg.module.telephony"), desc: "Carrier, SIP trunking", dStatus: "usage", dScope: "all" },
+  { id: "storage", name: "Storage / Archival", typical: benchmark("lbg.module.storage"), desc: "Extended retention", dStatus: "limited", dScope: "all" },
+  { id: "support", name: "Premium Support / TAM", typical: benchmark("lbg.module.support"), desc: "24/7, dedicated CSM, SLA", dStatus: "included", dScope: "all" },
+  { id: "services", name: "Professional Services", typical: benchmark("lbg.module.services"), desc: "Implementation (one-time)", dStatus: "onetime", dScope: "all" },
 ];
 
 const USAGE_TYPES = [
@@ -93,10 +98,10 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
 
 const DEFAULTS = {
   classes: [
-    { id: "agent", name: "Agent", count: 150, price: 125 },
-    { id: "sup", name: "Supervisor", count: 0, price: 150 },
-    { id: "admin", name: "Admin", count: 0, price: 200 },
-    { id: "analyst", name: "Analyst", count: 0, price: 170 },
+    { id: "agent", name: "Agent", count: 150, price: benchmark("lbg.seat.agent") },
+    { id: "sup", name: "Supervisor", count: 0, price: benchmark("lbg.seat.sup") },
+    { id: "admin", name: "Admin", count: 0, price: benchmark("lbg.seat.admin") },
+    { id: "analyst", name: "Analyst", count: 0, price: benchmark("lbg.seat.analyst") },
   ],
   basis: "named",
   committedSeats: 0,
@@ -186,7 +191,7 @@ export function compute(d) {
   const year3LicenseSeat = effLicenseSeat * Math.pow(1 + gUplift / 100, 2);
   const year3Seat = year3LicenseSeat + usagePerSeat; // uplift applies to contracted license rates; usage held flat (volume-driven, not seat-priced)
   const exp18Annual = gSeats18 * effPlatformSeat * 12;
-  const gapColor = gapPct > 80 ? RED : gapPct > 40 ? AMBER : GREEN;
+  const gapColor = gapPct > benchmark("lbg.band.gapRed") ? RED : gapPct > benchmark("lbg.band.gapAmber") ? AMBER : GREEN;
 
   const shelfware = MODULES.filter(mod => { const m = modules[mod.id]; return m.need === "no" && (m.status === "included" || m.status === "limited"); });
   const anyUnsure = MODULES.some(mod => modules[mod.id].need === "unsure");
@@ -204,13 +209,14 @@ export function compute(d) {
   const recurDrivers = drivers.filter(d => !d.usage);
   const topRecur = recurDrivers[0] || { name: "none", annual: 0 };
   const recurDominance = recurringAnnual > 0 ? topRecur.annual / recurringAnnual : 0;
-  const singleDriverDominant = recurDrivers.length >= 2 && recurDominance > 0.8;
-  const usageDominant = hiddenAnnual > 0 && (usageMonthly * 12) / hiddenAnnual > 0.8;
-  const gapImplausible = gapPct > 500;
-  const seatImplausible = quotedSeat > 0 && effLicenseSeat > quotedSeat * 5;
+  const singleDriverDominant = recurDrivers.length >= 2 && recurDominance > benchmark("lbg.guard.recurDominance");
+  const usageDominant = hiddenAnnual > 0 && (usageMonthly * 12) / hiddenAnnual > benchmark("lbg.guard.usageDominance");
+  const GAP_CEILING = benchmark("lbg.guard.gapPct"), SEAT_MULTIPLE = benchmark("lbg.guard.seatMultiple");
+  const gapImplausible = gapPct > GAP_CEILING;
+  const seatImplausible = quotedSeat > 0 && effLicenseSeat > quotedSeat * SEAT_MULTIPLE;
   const hardDoubt = gapImplausible || seatImplausible;
   const doubtWhy = [];
-  if (gapImplausible) doubtWhy.push(`bundle gap of ${gapPct.toFixed(0)}% exceeds the plausible ceiling of 500%`);
+  if (gapImplausible) doubtWhy.push(`bundle gap of ${gapPct.toFixed(0)}% exceeds the plausible ceiling of ${GAP_CEILING}%`);
   if (seatImplausible) doubtWhy.push(`effective license seat is ${(effLicenseSeat / Math.max(1, quotedSeat)).toFixed(1)}x the quoted seat`);
 
   /* IMPOSSIBLE-OUTPUT BLOCKING.
@@ -238,10 +244,19 @@ export function compute(d) {
      What replaces it is model completeness: whether the cost picture is whole. */
   const evLabel = EVIDENCE_OPTS.find(e => e.v === evidence)?.l || evidence;
   const docEv = DOC_EVIDENCE.has(evidence);
-  const evidenceGrade = (docEv && confirmed) ? "Finance-grade" : (docEv || evidence === "email") ? "Planning-grade" : "Directional";
+  /* A driver still at its shipped value is a tool default whatever the evidence
+     selector says, and doctrine grades a default-priced driver Directional. The
+     selector records where the user's numbers came from. It cannot certify a
+     number the user never entered. */
+  const DEFAULT_SEAT = Object.fromEntries(DEFAULTS.classes.map(c => [c.id, c.price]));
+  const defaultDrivers = [
+    ...classes.filter(c => cls[c.id] > 0 && n(c.price) === DEFAULT_SEAT[c.id]).map(c => `${c.name} seat price`),
+    ...needPriced.filter(mod => mod.typical > 0 && gCost[mod.id] === mod.typical && scopeSeats(modules[mod.id].scope || "all") > 0).map(mod => `${mod.name} cost`),
+  ];
+  const evidenceGrade = defaultDrivers.length ? "Directional"
+    : (docEv && confirmed) ? "Finance-grade" : (docEv || evidence === "email") ? "Planning-grade" : "Directional";
 
   const modelBlockers = [];
-  if (invariants.length) modelBlockers.push(`output failed an internal consistency check (${invariants.join("; ")})`);
   const badNums = guards.filter(g => g.invalid).length, outOfRange = guards.length - badNums;
   if (badNums) modelBlockers.push(`${badNums} input${badNums > 1 ? "s were" : " was"} not a clean number and ${badNums > 1 ? "were" : "was"} held at the value shown`);
   if (outOfRange) modelBlockers.push(`${outOfRange} input${outOfRange > 1 ? "s were" : " was"} outside the possible range and had to be corrected`);
@@ -259,16 +274,32 @@ export function compute(d) {
   if (singleDriverDominant) modelGaps.push("one recurring line dominates and its periodicity is unconfirmed");
 
   const completenessCeiling = modelBlockers.length ? "Directional" : modelGaps.length ? "Planning-grade" : "Finance-grade";
-  const confidence = GRADE_RANK[evidenceGrade] <= GRADE_RANK[completenessCeiling] ? evidenceGrade : completenessCeiling;
-  const boundBy = evidenceGrade === completenessCeiling ? (confidence === "Finance-grade" ? "neither" : "both")
-    : GRADE_RANK[evidenceGrade] < GRADE_RANK[completenessCeiling] ? "evidence" : "model completeness";
-  const evidenceWhy = `evidence source is ${evLabel}${docEv && !confirmed ? ", not yet confirmed in writing" : ""}`;
-  const modelWhy = (modelBlockers.length ? modelBlockers : modelGaps).join("; ");
-  const gradeWhy = boundBy === "neither" ? `document evidence (${evLabel}) confirmed in writing, and the cost model is complete`
-    : boundBy === "evidence" ? `bound by evidence: ${evidenceWhy}`
-    : boundBy === "model completeness" ? `bound by model completeness: ${modelWhy}`
-    : `bound by both: ${evidenceWhy}; and ${modelWhy}`;
+  const evidenceWhy = defaultDrivers.length
+    ? `${defaultDrivers.length} priced driver${defaultDrivers.length > 1 ? "s are" : " is"} still at the tool's planning default (${defaultDrivers.join(", ")}). Enter the figures from your quote to lift this axis`
+    : `Evidence source is ${evLabel}${docEv && !confirmed ? ", not yet confirmed in writing" : docEv ? ", confirmed in writing" : ""}`;
+  const modelWhy = modelBlockers.length || modelGaps.length
+    ? (modelBlockers.length ? modelBlockers : modelGaps).join("; ")
+    : "The cost model is complete: every needed module classified and priced, commit and uplift entered, no plausibility guard tripped";
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const AXIS_REASON = { evidence: `${cap(evidenceWhy)}.`, completeness: `${cap(modelWhy)}.` };
+
+  /* Realization is not applicable here, and the reason is stated rather than left
+     blank. This tool prices contract cost, cash that leaves the building, so there
+     is no freed capacity whose conversion to cash could be graded. */
   const voided = invariants.length > 0;
+  const gradeObj = voided
+    ? voidResult({
+        invariant: invariants.join("; "),
+        remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this report.",
+      })
+    : emitGrades({
+        evidence: evidenceGrade, realization: null, completeness: completenessCeiling,
+        naReason: "This tool prices contract cost, which is cash out the door. No freed capacity is credited, so there is nothing whose conversion to cash could be graded.",
+        reasons: AXIS_REASON,
+      });
+  const confidence = voided ? "Void" : gradeObj.headline;
+  const boundBy = voided ? "" : gradeObj.boundBy;
+  const gradeWhy = voided ? "export void" : `bound by ${boundBy}. ${gradeObj.boundAxes.map(a => AXIS_REASON[a]).join(" ")}`;
   const confColor = voided ? RED : confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? ELECTRIC : AMBER;
 
   // INTEGRITY FLAGS
@@ -311,7 +342,7 @@ export function compute(d) {
   if (unknowns.length) caveats.push(`${unknowns.length} required module${unknowns.length > 1 ? "s" : ""} with unknown inclusion`);
   if (anyUnsure) caveats.push(`needs marked Unsure`);
   if (usageFlagged.length && usageMonthly === 0) caveats.push(`usage-based module${usageFlagged.length > 1 ? "s" : ""} with no usage cost entered`);
-  const confLine = `Confidence: ${confidence}, ${gradeWhy}. Evidence grade ${evidenceGrade} against a model-completeness ceiling of ${completenessCeiling}. ` + (caveats.length ? `Open issues: ${caveats.join("; ")}. ` : doubles.length > 0 && dblAck ? `Commercial overlap: module and usage fees confirmed as separate charges. ` : `No unresolved commercial caveats. `) + (guards.length ? `INPUTS CORRECTED: ${guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}.` : "");
+  const confLine = (caveats.length ? `Open issues: ${caveats.join("; ")}. ` : doubles.length > 0 && dblAck ? `Commercial overlap: module and usage fees confirmed as separate charges. ` : `No unresolved commercial caveats. `) + (guards.length ? `INPUTS CORRECTED: ${guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}.` : "");
 
   return { cls, billable, baseMonthly, addOnMonthly, tierMonthly, oneTimeTotal,
     unknowns, limiteds, tiers, usageFlagged, doubles, usageMonthly, licenseMonthly, platformMonthly,
@@ -320,7 +351,7 @@ export function compute(d) {
     exp18Annual, gapColor, gCommitted, gUplift, gSeats18, gCost, gUse, shelfware, anyUnsure, needPriced, drivers, topDriver, dominanceShare,
     recurringAnnual, recurDrivers, topRecur, recurDominance, singleDriverDominant, usageDominant,
     gapImplausible, seatImplausible, hardDoubt, doubtWhy, invariants, voided, guards,
-    evidenceGrade, completenessCeiling, modelBlockers, modelGaps, boundBy, gradeWhy,
+    evidenceGrade, completenessCeiling, modelBlockers, modelGaps, boundBy, gradeWhy, gradeObj, defaultDrivers,
     confidence, confColor, flags, analyst, evLabel, caveats, confLine };
 }
 /* @engine-end */
@@ -343,7 +374,7 @@ const DEFS = {
   uplift: "The annual percentage your rates rise at renewal. A quote that looks fine in year one can look very different in year three; this projects the seat forward so you negotiate the uplift now.",
   seats18mo: "Seats you expect to add within eighteen months, priced at today's rate. It shows the exposure to rate-lock before signing, while you still have leverage.",
   shelfware: "Modules bundled into your tier that you don't use. Leverage to negotiate a lower tier or credits, but usually not a line you can drop on its own, so it is flagged, never counted as recoverable savings.",
-  confidence: "How much weight this output can carry, on two axes with the lower one winning. Evidence grades what the numbers rest on: a document confirmed in writing is Finance-grade, a document or vendor email alone is Planning-grade, an estimate is Directional. Model completeness grades whether the cost picture is whole: unknown inclusion, unresolved Unsure flags, a corrected input, or an implausible magnitude cap it at Directional. The report always names which axis bound the result.",
+  confidence: "How much weight this output can carry, on two axes with the lower one winning. Evidence grades what the numbers rest on: a document confirmed in writing is Finance-grade, a document or vendor email alone is Planning-grade, an estimate is Directional. Any priced driver left at the tool's planning default grades evidence Directional, whatever the source selector says. Model completeness grades whether the cost picture is whole: unknown inclusion, unresolved Unsure flags, a corrected input, or a tripped plausibility guard cap it at Directional. Realization does not apply, because this tool prices cash out the door and credits no freed capacity. The report always names which axis bound the result.",
   evidence: "What the numbers rest on. An estimate is a guess; a vendor email beats a guess; a proposal or order form is what finance will trust. Finance-grade requires a document, not a checkbox.",
 };
 
@@ -406,7 +437,7 @@ export default function LicenseBundleGapChecker() {
     quotedSeat, effLicenseSeat, effPlatformSeat, gapPct, hiddenAnnual, decomp, annualPlatform,
     commitExpSeats, commitExpAnnual, year3LicenseSeat, year3Seat, exp18Annual, gapColor,
     shelfware, drivers, topRecur, singleDriverDominant, confidence, confColor, flags, analyst, confLine,
-    guards, invariants, voided, evidenceGrade, completenessCeiling, gradeWhy, doubtWhy, gCommitted, gUplift, gSeats18, gCost } = r;
+    guards, invariants, voided, evidenceGrade, completenessCeiling, gradeWhy, doubtWhy, gCommitted, gUplift, gSeats18, gCost, gradeObj, boundBy, defaultDrivers } = r;
 
   useEffect(() => {
     /* A voided result fails its own consistency checks. Publishing it would hand a
@@ -677,11 +708,11 @@ export default function LicenseBundleGapChecker() {
           <ReportActions
             toolId={TOOL_ID}
             toolName="License Bundle Gap Analysis"
-            subtitle={`Quoted vs effective platform seat · ${confidence}`}
+            subtitle={`Quoted vs effective platform seat · ${voided ? "EXPORT VOID, integrity invariant failed" : `${confidence}, bound by ${boundBy}`}`}
             routePath={ROUTE}
             state={scenario}
             defaults={DEFAULTS}
-            confidence={confidence}
+            grades={gradeObj}
             summary={[
               { label: "Quoted seat", value: "$" + quotedSeat.toFixed(0) },
               { label: "Effective license seat", value: "$" + effLicenseSeat.toFixed(0) },
@@ -715,9 +746,8 @@ export default function LicenseBundleGapChecker() {
                  it is void: the model contradicts itself. */
               ...(voided || billable <= 0 || quotedSeat <= 0 ? {} : { severity: severityBucket(gapPct / 100) }),
               evidence,
-              evidence_grade: evidenceGrade,
-              completeness_ceiling: completenessCeiling,
-              grade_bound_by: gradeWhy,
+              ...(voided ? {} : { evidence_grade: evidenceGrade, completeness_ceiling: completenessCeiling }),
+              default_drivers: defaultDrivers.length,
               billable_seats: billable,
               shelfware_modules: shelfware.length,
               integrity_flags: flags.length,
@@ -731,7 +761,7 @@ export default function LicenseBundleGapChecker() {
             sections={[
               ...(voided ? [{ title: "\u26A0 Output Void", type: "findings", items: invariants.map(t => `${t}. This report contradicts itself and no figure in it can be used.`) }] : []),
               ...(guards.length ? [{ title: "\u26A0 Inputs Corrected Before Calculation", type: "findings", items: guards.map(g => `${g.label}: entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}.`) }] : []),
-              { title: "Confidence & Evidence", type: "text", content: confLine },
+              { title: "Commercial Caveats", type: "text", content: confLine },
               { title: "Seat Economics", type: "metrics", items: [
                 { label: "Quoted Seat", value: "$" + quotedSeat.toFixed(0), color: ELECTRIC, sub: "vendor headline" },
                 { label: "Eff. License Seat", value: "$" + effLicenseSeat.toFixed(0), color: SLATE, sub: "seat+modules+tier" },
