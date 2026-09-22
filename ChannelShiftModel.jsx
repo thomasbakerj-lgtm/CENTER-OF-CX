@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import ReportActions from "./ReportActions";
-import { COLORS } from "./src/lib/benchmarks";
-import { publishToolResult, getPrimitiveWithSource, sourcedExternally } from "./src/lib/toolData";
+import { COLORS, benchmark } from "./src/lib/benchmarks";
+import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
+import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import InfoDot from "./src/lib/InfoDot";
 import NumField from "./src/lib/NumField";
-import { MECH, MECH_ORDER } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
@@ -35,8 +36,9 @@ function LogoMark({ size = 30, light = true }) {
    drift. Nothing between their old and new positions evaluated them at module
    load, so the move is behaviour-neutral.
 
-   MECH is injected from the real src/lib/mech.js and COLORS from the real
-   src/lib/benchmarks.js. Neither is reconstructed. */
+   MECH and MECH_INITIAL are injected from the real src/lib/mech.js, COLORS and
+   benchmark from the real src/lib/benchmarks.js, and the confidence layer from the
+   real src/lib/confidence.js. None is reconstructed. */
 const MUTED = COLORS.muted, GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, TEAL = "#0E9AA4";
 
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
@@ -52,7 +54,7 @@ const fmtK = (v) => { const x = n(v), s = x < 0 ? "-" : ""; const a = Math.abs(x
    guarded tool, so the sign leads the symbol here as it does in money and fmtK
    and the rule cannot drift per tool again. */
 
-const CURVE = { mild: { label: "Mild", c: 0.08, note: "Easy volume leaves; residual voice AHT rises slightly." }, moderate: { label: "Moderate", c: 0.15, note: "Typical support environment." }, severe: { label: "Severe", c: 0.30, note: "Remaining voice work becomes materially harder." } };
+const CURVE = { mild: { label: "Mild", c: benchmark("channel.curve.mild"), note: "Easy volume leaves; residual voice AHT rises slightly." }, moderate: { label: "Moderate", c: benchmark("channel.curve.moderate"), note: "Typical support environment." }, severe: { label: "Severe", c: benchmark("channel.curve.severe"), note: "Remaining voice work becomes materially harder." } };
 const RISKS = [
   { k: "riskComplaint", label: "High complaint sensitivity" },
   { k: "riskRegulated", label: "Regulated / compliance" },
@@ -81,35 +83,43 @@ const TARGETS = [
   { key: "Email", color: AMBER, shift: "shiftToEmail", res: "resEmail", disp: "dispEmail", eff: (d) => n(d.emailAHT) / Math.max(0.1, n(d.emailConc)), bot: false },
 ];
 
+/* Every default is a registry entry under a template id. The operating profile is
+   labelled heuristic there, and the wage is the BLS market median. Decision H,
+   session 15. */
+const dflt = (f) => benchmark(`channel.default.${f}`);
 const BASE = {
-  monthlyContacts: 100000, hourlyRate: 18, loadedOH: 1.35, marginalOH: 1.18,
-  voicePct: 70, voiceAHT: 7, voiceConc: 1,
-  chatPct: 15, chatAHT: 10, chatConc: 2.5,
-  emailPct: 10, emailAHT: 5, emailConc: 1,
-  botPct: 5, botCost: 0.50,
-  eligibility: 60,
-  shiftToChat: 10, shiftToBot: 10, shiftToEmail: 0,
-  resChat: 85, resBot: 65, resEmail: 80,
-  dispChat: 80, dispBot: 70, dispEmail: 80,
-  escReturnFactor: 1.2, adverseCurve: "moderate",
-  trainingPerAgent: 1500, rampWeeks: 4, validated: false,
+  monthlyContacts: dflt("monthlyContacts"), hourlyRate: benchmark("channel.wage.median"), loadedOH: dflt("loadedOH"), marginalOH: dflt("marginalOH"),
+  voicePct: dflt("voicePct"), voiceAHT: dflt("voiceAHT"), voiceConc: dflt("voiceConc"),
+  chatPct: dflt("chatPct"), chatAHT: dflt("chatAHT"), chatConc: dflt("chatConc"),
+  emailPct: dflt("emailPct"), emailAHT: dflt("emailAHT"), emailConc: dflt("emailConc"),
+  botPct: dflt("botPct"), botCost: dflt("botCost"),
+  eligibility: dflt("eligibility"),
+  shiftToChat: dflt("shiftToChat"), shiftToBot: dflt("shiftToBot"), shiftToEmail: dflt("shiftToEmail"),
+  resChat: dflt("resChat"), resBot: dflt("resBot"), resEmail: dflt("resEmail"),
+  dispChat: dflt("dispChat"), dispBot: dflt("dispBot"), dispEmail: dflt("dispEmail"),
+  escReturnFactor: dflt("escReturnFactor"), adverseCurve: "moderate",
+  trainingPerAgent: dflt("trainingPerAgent"), rampWeeks: dflt("rampWeeks"), validated: false,
   riskComplaint: false, riskRegulated: false, riskSave: false, riskVulnerable: false, riskAuth: false, riskEmotion: false,
 };
+const WORKDAYS = benchmark("channel.plan.workdays"), HOURS_DAY = benchmark("channel.plan.hoursPerDay");
+const PROD_SHARE = benchmark("channel.plan.productiveShare"), DAYS_WEEK = benchmark("channel.plan.daysPerWeek");
+const RAMP_LOSS = benchmark("channel.plan.rampLoss");
+const IMPLAUSIBLE_DEPT = benchmark("channel.read.implausibleDeptAht");
+const BOT_NEAR_FREE = benchmark("channel.guard.botNearFree");
+const BE_FLOOR = benchmark("channel.read.breakEvenFloor");
 
 /* Scenario contract. Module scope for stable identity across renders. */
 const TOOL_ID = "channel-shift";
 const ROUTE = "/tools/channel-shift";
 const clone = (o) => JSON.parse(JSON.stringify(o));
-const DEFAULTS = { d: BASE, mech: "hiring" };
+/* The initial capacity action comes from mech.js, never a literal here. Tracker 1-08b
+   decides its value for every tool at once, and mech.js records why the flip waits
+   for the unselected-state rendering. */
+const DEFAULTS = { d: BASE, mech: MECH_INITIAL };
 
-/* The credit-class ladder, identical to the one in FCR Leakage, AI Deflection
-   and Cost per Contact. Channel Shift referenced MECH[].cred zero times, so a
-   scenario set to "absorb growth" (25% realization, capacity only) could print a
-   Finance-grade document. mech.js is the single definition of what finance will
-   credit; this tool now reads it instead of deciding for itself. */
-const CRED_RANK = { none: 0, capacity: 1, finance: 2, cash: 3 };
-const RANK_GRADE = (rank) => rank >= 3 ? "Finance-grade" : rank >= 2 ? "Planning-grade" : "Directional";
-const GRADE_RANK = { "Directional": 1, "Planning-grade": 2, "Finance-grade": 3 };
+/* No grade ladder lives in this file. The local credit ladder that stood here
+   indexed grades 1 to 3 against confidence.js's 0 to 2. Realization now reads mech.js
+   credit class through realizationFromCred in gradeChannel, and nothing else. */
 
 function compute(d, mechIn) {
   /* Input integrity. Every one of the values below was silently accepted before,
@@ -145,7 +155,6 @@ function compute(d, mechIn) {
      choose, so it does not fall back to the hiring default. */
   const mechKey = pick("Capacity action", mechIn, MECH, "none");
   const mf = MECH[mechKey].f;
-  const credRank = CRED_RANK[MECH[mechKey].cred];
 
   const voicePct = guard("Voice mix", d.voicePct, 0, 100, "%");
   const voiceVol = monthly * voicePct / 100;
@@ -205,7 +214,7 @@ function compute(d, mechIn) {
 
   // Hard invariant: the calls that left cannot have taken negative time.
   const deptImpossible = Dtot > 0 && deptEffRaw <= 0;
-  const deptImplausible = !deptImpossible && Dtot > 0 && deptEffRaw < 2;
+  const deptImplausible = !deptImpossible && Dtot > 0 && deptEffRaw < IMPLAUSIBLE_DEPT;
   const deptEff = Math.max(0, deptEffRaw);
 
   const voiceFreedMin = Dtot * deptEff;
@@ -216,7 +225,7 @@ function compute(d, mechIn) {
   const netRealizable = laborCash - botFee;
   const gross = laborCashGross - botFee;
 
-  const prodMin = 22 * 8 * 60 * 0.7;
+  const prodMin = WORKDAYS * HOURS_DAY * 60 * PROD_SHARE;
   const fteFreed = netMin / prodMin;
   const chatFTEadd = Math.max(0, chatHandled * EFF.Chat / prodMin);
   /* Transition is an investment, never a rebate. Negative training or ramp inputs
@@ -225,11 +234,11 @@ function compute(d, mechIn) {
   const trainingPerAgent = guard("Training per agent", d.trainingPerAgent, 0, null, "$");
   const rampWeeks = guard("Ramp weeks", d.rampWeeks, 0, null, "w");
   const training = chatFTEadd * trainingPerAgent;
-  const ramp = chatFTEadd * (rampWeeks * 5 * 8 * hourly * loadedOH * 0.3);
+  const ramp = chatFTEadd * (rampWeeks * DAYS_WEEK * HOURS_DAY * hourly * loadedOH * RAMP_LOSS);
   const transition = training + ramp;
   const payback = netRealizable > 0 ? transition / netRealizable : Infinity;
 
-  return { monthly, voiceVol, eligible, eligPct, voicePct, scaled, marginalPerMin, loadedPerMin, mf, credRank, mechKey, cred: MECH[mechKey].cred, ceilingGrade: RANK_GRADE(credRank), shifted, Dtot, Etot, perTarget, shiftShare, residualUplift, baseEff, residualEff, deptEff, deptEffRaw, deptImpossible, deptImplausible, netMin, laborCash, botFee, botCost, erf, curveKey, netRealizable, gross, fteFreed, training, ramp, transition, payback, guards, blocked: guards.length > 0 };
+  return { monthly, voiceVol, eligible, eligPct, voicePct, scaled, marginalPerMin, loadedPerMin, mf, mechKey, cred: MECH[mechKey].cred, shifted, Dtot, Etot, perTarget, shiftShare, residualUplift, baseEff, residualEff, deptEff, deptEffRaw, deptImpossible, deptImplausible, netMin, laborCash, botFee, botCost, erf, curveKey, netRealizable, gross, fteFreed, training, ramp, transition, payback, guards, blocked: guards.length > 0 };
 }
 
 
@@ -265,7 +274,7 @@ function buildVerdict(d, r, mechKey) {
     return { label: "Do not approve yet", color: RED, be, pt, curRes, detail: be == null ? `Net negative, and it never breaks even within range. Even perfect ${pt.key.toLowerCase()} resolution can't offset the bot fees, displacement loss, and transition. Rework the plan.` : `Breaks even at ${be.toFixed(0)}% ${pt.key.toLowerCase()} resolution; you're at ${curRes}% (${(be - curRes).toFixed(0)} pts short). Fix resolution before shifting.` };
   }
   if (riskAny) return { label: "Approve only with pilot", color: AMBER, be, pt, curRes, detail: `Net positive, but you've flagged CX/risk-sensitive volume. Require a pilot to validate resolution and CSAT before full rollout. Cost-positive is not the same as safe.` };
-  if (be != null && be < 1) return { label: "Approve", color: GREEN, be, pt, curRes, detail: `Net positive, but break-even resolves to ~0%, which usually means your bot cost or return-factor assumptions are too generous. Verify those before treating this as a clean approval.` };
+  if (be != null && be < BE_FLOOR) return { label: "Approve", color: GREEN, be, pt, curRes, detail: `Net positive, but break-even resolves to ~0%, which usually means your bot cost or return-factor assumptions are too generous. Verify those before treating this as a clean approval.` };
   return { label: "Approve", color: GREEN, be, pt, curRes, detail: `Net positive at ${curRes}% ${pt.key.toLowerCase()} resolution${be != null ? ` (break-even ${be.toFixed(0)}%)` : ""}. The shift clears its bar.` };
 }
 
@@ -283,6 +292,126 @@ function buildAnalystRead(d, r, mechKey, verdict) {
   out.push(`This is the operating-capacity question only. It does not value what those interactions are worth to the business. That's Return per Contact. And the full investment case (ramp timing, phasing, approval packaging) belongs in Business Case Builder; this exports the headline.`);
   return out;
 }
+/* CONFIDENCE. Three applicable axes through confidence.js, and the report names the
+   one that bound it. No grade ladder lives in this file.
+
+   Evidence has two streams, and the weaker binds. Each graded field carries an origin:
+   a tool default, the user's own entry, a value restored from this tool's own last
+   run, or a value another tool published on the rail.
+     Operating stream: volume and voice handle time stand at Planning-grade as the
+     user's own entries. Eligibility, and the resolution and displacement of every
+     target carrying a shift, stand at Planning-grade only when they are the user's own
+     AND the checkbox attests them from data (decision G). The checkbox is
+     self-attestation, so this tool never reaches Finance-grade on evidence: it has no
+     document attestation path. The old gate reached Finance-grade on the checkbox.
+     Cost stream: wage, marginal overhead, and the bot fee when the bot carries a
+     shift. A default grades Directional; the user's own entry, Planning-grade.
+   A rail value confers consistency, and evidence only as far as the origin grade its
+   publisher recorded, capped by railEvidence. The rail carries no origin grade today,
+   so a rail value grades Directional. That closes defect class 2 here: a rail volume
+   or wage with no origin grade used to lift this tool to Planning-grade through
+   sourcedExternally, and to Finance-grade with the checkbox ticked.
+
+   Realization reads mech.js credit class through realizationFromCred, and nothing else.
+
+   Completeness holds Directional on every disclosed failure of the model: a corrected
+   input, a channel mix off 100 percent, a shift scaled to the eligible pool, an
+   impossible or implausible departing handle time, a near-free bot carrying volume,
+   or no volume shifted. That closes defect class 3: each was disclosed and none
+   reached the grade. Net negative, break-even and the risk flags are properties of
+   the answer and reach no axis, doctrine 5.5.
+
+   Invariants void the export. Each is unreachable through the guards, and the harness
+   proves it across the scenario set. */
+const OPS_OWN = [["monthlyContacts", "contact volume"], ["voiceAHT", "voice handle time"]];
+const OPS_ATTEST = [["eligibility", "eligibility"]];
+const COST_FIELDS = [["hourlyRate", "agent wage"], ["marginalOH", "marginal overhead"]];
+
+/* Where a graded field's value came from. `pre` holds what the mount prefill wrote,
+   field by field, with the tool that published it. A prefilled value the user has
+   since changed is the user's own. */
+function fieldOrigin(d, pre, f) {
+  const v = n(d[f]);
+  const p = pre && Object.prototype.hasOwnProperty.call(pre, f) ? pre[f] : null;
+  if (p && n(p.value) === v) return p.src === TOOL_ID ? "self" : "rail";
+  if (v === BASE[f]) return "default";
+  return "entered";
+}
+
+function gradeChannel({ d, r, pre, railOrigin }) {
+  const invariants = [];
+  const figs = [r.netRealizable, r.gross, r.netMin, r.laborCash, r.botFee, r.shifted, r.Dtot, r.Etot, r.transition, r.fteFreed, r.residualEff, r.deptEff];
+  if (!figs.every(Number.isFinite)) invariants.push("an output is not a finite number");
+  if (r.shifted > r.eligible * (1 + 1e-9) + 1e-9) invariants.push("more volume shifted than the eligible voice pool holds");
+  if (r.Dtot > r.shifted * (1 + 1e-9) + 1e-9) invariants.push("more voice displaced than volume shifted");
+  if (r.Dtot < 0 || r.Etot < 0 || r.botFee < 0 || r.transition < 0) invariants.push("a volume, fee or transition cost is below zero");
+  if (r.deptEff < 0) invariants.push("the departing contacts carry negative handle time");
+
+  const active = r.perTarget.filter(t => t.shiftPts > 0);
+  const opsAttest = [...OPS_ATTEST, ...active.flatMap(t => [[t.res, `${t.key.toLowerCase()} resolution`], [t.disp, `${t.key.toLowerCase()} displacement`]])];
+  const costList = [...COST_FIELDS, ...(active.some(t => t.bot) ? [["botCost", "bot fee"]] : [])];
+  const all = [...OPS_OWN, ...opsAttest, ...costList];
+  const origins = Object.fromEntries(all.map(([f]) => [f, fieldOrigin(d, pre, f)]));
+  const railG = railEvidence(railOrigin);
+  const attested = !!d.validated;
+  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railG, entered })[origins[f]];
+  const opsGrade = [...OPS_OWN.map(([f]) => fieldGrade(f, "Planning-grade")), ...opsAttest.map(([f]) => fieldGrade(f, attested ? "Planning-grade" : "Directional"))].reduce(weakerStream);
+  const costGrade = costList.map(([f]) => fieldGrade(f, "Planning-grade")).reduce(weakerStream);
+  const evidence = weakerStream(opsGrade, costGrade);
+
+  const named = (list, o) => list.filter(([f]) => origins[f] === o).map(([, l]) => l);
+  const say = (list) => list.length > 1 ? list.slice(0, -1).join(", ") + " and " + list[list.length - 1] : list[0];
+  const why = (list) => {
+    const parts = [];
+    const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
+    if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
+    if (rail.length) parts.push(`${say(rail)} arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}, which confers consistency and evidence only as far as its origin`);
+    return parts;
+  };
+  const opsParts = why([...OPS_OWN, ...opsAttest]);
+  if (!opsParts.length && !attested) opsParts.push("Eligibility, resolution and displacement are your own entries but are not attested from data. Tick the validation box once they come from your reporting");
+  if (!opsParts.length) opsParts.push("Volume, handle time, eligibility, resolution and displacement are your own entries, attested from data. Self-attestation stands at Planning-grade at most");
+  const costParts = why(costList);
+  if (!costParts.length) costParts.push("The wage and cost basis are your own entries. With no document attestation path they stand at Planning-grade at most");
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  const evParts = [...(opsGrade === evidence ? opsParts : []), ...(costGrade === evidence ? costParts : [])];
+
+  const realization = realizationFromCred(r.cred);
+  const realWhy = r.mechKey === "none"
+    ? "No capacity action is selected, so no freed capacity converts to cash"
+    : `${MECH[r.mechKey].label} is credited as ${r.cred} in mech.js`;
+
+  const mixSum = n(d.voicePct) + n(d.chatPct) + n(d.emailPct) + n(d.botPct);
+  const blockers = [];
+  if (r.guards.length) blockers.push(`${r.guards.length} input${r.guards.length > 1 ? "s were" : " was"} outside the possible range and corrected before calculation`);
+  if (mixSum !== 100) blockers.push(`the channel mix sums to ${mixSum} percent`);
+  if (r.scaled) blockers.push("the requested shift exceeded the eligible voice pool and was scaled to fit");
+  if (r.deptImpossible) blockers.push("the complexity curve implies the departing contacts took zero or negative time, so freed minutes were clamped");
+  else if (r.deptImplausible) blockers.push(`the complexity curve implies the departing contacts average under ${IMPLAUSIBLE_DEPT} minutes`);
+  if (active.some(t => t.bot) && r.botCost <= BOT_NEAR_FREE) blockers.push("the bot carries volume at a near-free fee");
+  if (!(r.shifted > 0)) blockers.push("no volume shifts, so the model measured nothing");
+  const completeness = blockers.length ? "Directional" : "Finance-grade";
+  const modelWhy = blockers.length ? blockers.join("; ")
+    : "The model is whole: no input was corrected, the mix is 100 percent, the shift fits the eligible pool and the implied departing handle time is plausible";
+
+  const voided = invariants.length > 0;
+  const gradeObj = voided
+    ? voidResult({
+        invariant: invariants.join("; "),
+        remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this report.",
+      })
+    : emitGrades({
+        evidence, realization, completeness,
+        reasons: { evidence: `${evParts.map(cap).join(". ")}.`, realization: `${realWhy}.`, completeness: `${cap(modelWhy)}.` },
+      });
+  const confidence = voided ? "Void" : gradeObj.headline;
+  const gradeWhy = voided
+    ? `export void: ${invariants.join("; ")}`
+    : `bound by ${gradeObj.boundBy}. ${gradeObj.boundAxes.map(a => gradeObj.reasons[a]).join(" ")}`;
+  return { gradeObj, confidence, gradeWhy, voided, invariants, evidence, opsGrade, costGrade, realization, completeness, blockers, origins };
+}
+
 /* @engine-end */
 
 function Nav() {
@@ -293,7 +422,7 @@ export default function ChannelShiftModel() {
   const [mech, setMech] = useState(DEFAULTS.mech);
   const [pulled, setPulled] = useState({});
   const [pullSources, setPullSources] = useState([]);
-  const [extSourced, setExtSourced] = useState(false);
+  const [pre, setPre] = useState({});
   const [fromLink, setFromLink] = useState(false);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
   const toggle = (k) => setD(prev => ({ ...prev, [k]: !prev[k] }));
@@ -304,13 +433,14 @@ export default function ChannelShiftModel() {
     const sc = readScenario(TOOL_ID, DEFAULTS);
     if (sc) { setD(sc.d); setMech(sc.mech); setFromLink(true); clearScenarioParam(); return; }
 
-    const next = {}, got = {}, srcOf = {};
+    const next = {}, got = {}, srcOf = {}, seen = {};
     /* Keys stay as string literals at the call site. rail-audit.mjs finds pulls by
        matching a literal argument against the accessor name; hiding the key behind
        a variable would remove this tool from the static audit without failing it. */
     const take = (res, field, xform) => {
       if (res.value == null || isNaN(res.value)) return false;
       next[field] = xform(res.value);
+      seen[field] = { value: next[field], src: res.sourceTool || "" };
       if (res.sourceTool && res.sourceTool !== TOOL_ID) { got[field] = true; srcOf[field] = res.sourceTool; }
       return true;
     };
@@ -324,11 +454,10 @@ export default function ChannelShiftModel() {
     if (Object.keys(next).length) setD(prev => ({ ...prev, ...next }));
     if (Object.keys(got).length) { setPulled(got); setPullSources([...new Set(Object.values(srcOf))]); }
 
-    /* Captured once, at mount, BEFORE this tool publishes. Calling sourcedExternally
-       at render time would always be false, because by then this tool's own publish
-       has stamped itself as the source of every key it touches. A value you
-       published is not a value you sourced. */
-    setExtSourced(sourcedExternally(["monthlyContacts", "agentHourly"], TOOL_ID));
+    /* Captured once, at mount, BEFORE this tool publishes, with the tool that wrote
+       each value. gradeChannel reads it field by field: a restored own value and a
+       rail value with no origin grade both grade Directional. */
+    setPre(seen);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -342,27 +471,10 @@ export default function ChannelShiftModel() {
   const shiftPts = r.perTarget.reduce((a, t) => a + t.shiftPts, 0);
   const analyst = buildAnalystRead(d, r, mechKey, verdict);
 
-  /* EVIDENCE is what the inputs earn. The old gate accepted `mechSelected` alone,
-     and the mechanism defaults to "avoid hiring" on first paint, so an untouched
-     tool full of invented defaults presented as Planning-grade and the Directional
-     tier was unreachable in practice. Selecting the default is not rigor.
-
-     CREDIT CLASS is what finance will actually credit, and it comes from mech.js,
-     not from here. Absorbing growth is capacity, not cash, and cannot produce a
-     Finance-grade document however well sourced the inputs are.
-
-     The report takes the LOWER of the two, and says which one bound it. */
-  const sourced = extSourced;
-  const mechSelected = mechKey !== "none";
-  const evidenceGrade = (sourced && d.validated) ? "Finance-grade" : (sourced || d.validated) ? "Planning-grade" : "Directional";
-  const grade = GRADE_RANK[evidenceGrade] <= GRADE_RANK[r.ceilingGrade] ? evidenceGrade : r.ceilingGrade;
-  const boundBy = GRADE_RANK[evidenceGrade] <= GRADE_RANK[r.ceilingGrade] ? "evidence" : "credit class";
-  const gradeColor = grade === "Finance-grade" ? GREEN : grade === "Planning-grade" ? AMBER : MUTED;
-  const gradeWhy = boundBy === "credit class"
-    ? `capped by capacity action: ${MECH[mechKey].label} is credited as ${r.cred}, not cash`
-    : grade === "Finance-grade" ? "volume and rate basis sourced externally, eligibility and resolution validated, action is cash-creditable"
-    : grade === "Planning-grade" ? (sourced ? "volume and rate basis sourced externally, assumptions not yet validated" : "assumptions validated, volume and rate basis not sourced externally")
-    : (mechSelected ? "default inputs: source the volume and rate basis, or validate eligibility, displacement and resolution" : "no capacity action selected");
+  /* railOrigin is null because the rail carries no origin grade yet. See gradeChannel. */
+  const graded = gradeChannel({ d, r, pre, railOrigin: null });
+  const { gradeObj, confidence, gradeWhy } = graded;
+  const gradeColor = confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? AMBER : confidence === "Void" ? RED : MUTED;
 
   const mixTotal = n(d.voicePct) + n(d.chatPct) + n(d.emailPct) + n(d.botPct);
   const riskAny = RISKS.some(x => d[x.k]);
@@ -377,8 +489,8 @@ export default function ChannelShiftModel() {
   if (r.netRealizable < 0) flags.push({ sev: "warn", t: `Net negative (${fmtK(r.netRealizable)}/mo). Escalations, displacement loss, and bot fees outweigh the freed voice capacity. You're moving the wrong volume or the resolution rate is too low.` });
   if (riskAny && r.netRealizable >= 0) flags.push({ sev: "warn", t: `Cost-positive, but you've flagged CX/risk-sensitive volume (${RISKS.filter(x => d[x.k]).map(x => x.label).join(", ")}). Require pilot validation before approval. This tool prices capacity, not customer harm.` });
   r.perTarget.forEach(t => { if (t.shiftPts > 0 && t.dispPct >= 100) flags.push({ sev: "info", t: `${t.key} displacement at 100% assumes every adopted contact replaces a voice call. Digital channels usually generate some new demand. 70-85% is more defensible.` }); });
-  if (n(d.shiftToBot) > 0 && r.botCost <= 0.10) flags.push({ sev: "warn", t: `Bot cost is ${money(r.botCost)}, near-free. Real bots carry per-resolution or platform fees; a $0 bot makes any shift look costless and drives break-even toward 0%. Set a realistic per-contact cost.` });
-  if (verdict.be != null && verdict.be < 1 && r.netRealizable > 0 && r.shifted > 0) flags.push({ sev: "warn", t: "Break-even resolves to ~0%. The shift looks profitable at any resolution. That usually means the bot cost or escalation return factor is too generous, not that the shift is risk-free. Sanity-check those before approving." });
+  if (n(d.shiftToBot) > 0 && r.botCost <= BOT_NEAR_FREE) flags.push({ sev: "warn", t: `Bot cost is ${money(r.botCost)}, near-free. Real bots carry per-resolution or platform fees; a $0 bot makes any shift look costless and drives break-even toward 0%. Set a realistic per-contact cost.` });
+  if (verdict.be != null && verdict.be < BE_FLOOR && r.netRealizable > 0 && r.shifted > 0) flags.push({ sev: "warn", t: "Break-even resolves to ~0%. The shift looks profitable at any resolution. That usually means the bot cost or escalation return factor is too generous, not that the shift is risk-free. Sanity-check those before approving." });
   if (mechKey === "none") flags.push({ sev: "warn", t: "No capacity action selected: freed-labor value is $0. Pick a mechanism before presenting any savings number." });
   if (r.deptImpossible) flags.push({ sev: "warn", t: `Impossible assumption. A ${(r.residualUplift * 100).toFixed(1)}% residual uplift on this much displaced volume implies the departing calls took zero or negative time. Freed minutes were clamped to zero. Lower the complexity curve or reduce the shift.` });
   else if (r.deptImplausible) flags.push({ sev: "warn", t: `Your ${CURVE[r.curveKey].label.toLowerCase()} curve implies the displaced contacts average ${r.deptEffRaw.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute voice baseline. That is close to zero handle time. The curve is almost certainly too severe for the volume being moved.` });
@@ -390,7 +502,7 @@ export default function ChannelShiftModel() {
       channelShiftGrossMonthly: Math.round(r.gross), channelShiftDisplacedVoice: Math.round(r.Dtot), channelShiftBouncedMonthly: Math.round(r.Etot),
       channelShiftFteFreed: +r.fteFreed.toFixed(1), channelShiftTransition: Math.round(r.transition),
       channelShiftPaybackMonths: isFinite(r.payback) ? +r.payback.toFixed(1) : null, channelShiftBreakEvenRes: verdict.be != null ? +verdict.be.toFixed(0) : null,
-      capacityAction: mechKey, grade, analystRead: analyst[0],
+      capacityAction: mechKey, grade: confidence, analystRead: analyst[0],
     }, { sourceTool: "channel-shift" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
@@ -417,7 +529,7 @@ export default function ChannelShiftModel() {
             )}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 14px" }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: gradeColor }} />
-              <span style={{ ...TYPE.caption, fontSize: 12, color: "#fff", fontWeight: W.semibold }}>{grade}</span>
+              <span style={{ ...TYPE.caption, fontSize: 12, color: "#fff", fontWeight: W.semibold }}>{confidence}</span>
               <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>{gradeWhy}</span>
             </div>
           </div>
@@ -634,18 +746,18 @@ export default function ChannelShiftModel() {
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
               <input type="checkbox" checked={d.validated} onChange={e => set("validated", e.target.checked)} style={{ width: 14, height: 14, accentColor: ELECTRIC }} />
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: NAVY }}>Eligibility, displacement &amp; resolution validated from data (required for Finance-grade)</span>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: NAVY }}>Eligibility, displacement &amp; resolution validated from data (self-attested: lifts these to Planning-grade at most)</span>
             </label>
           </div>
 
           <ReportActions
             toolId={TOOL_ID}
             toolName="Channel Shift Economics"
-            subtitle={`Voice → digital · ${verdict.label} · ${grade}`}
+            subtitle={`Voice → digital · ${verdict.label} · ${isVoid(gradeObj) ? "EXPORT VOID, integrity invariant failed" : `${confidence}, bound by ${gradeObj.boundBy}`}`}
             routePath={ROUTE}
             state={scenario}
             defaults={DEFAULTS}
-            confidence={grade}
+            grades={gradeObj}
             summary={[
               { label: "Net realizable monthly", value: fmtK(r.netRealizable) },
               { label: "Verdict", value: verdict.label },
@@ -683,7 +795,7 @@ export default function ChannelShiftModel() {
               capacity_action: MECH[mechKey].label,
               eligibility_pct: r.eligPct + "%",
               inputs_corrected: r.guards.length,
-              grade_bound_by: boundBy,
+              grade_bound_by: isVoid(gradeObj) ? "void" : gradeObj.boundBy,
               cost_validated: d.validated ? "yes" : "no",
               adverse_curve: r.curveKey,
               from_scenario_link: fromLink ? "yes" : "no",
@@ -719,7 +831,7 @@ export default function ChannelShiftModel() {
               ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
               ...(flags.length ? [{ title: "Integrity Checks", type: "findings", items: flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${r.eligPct}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${r.erf}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call. The rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mechKey].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Adverse selection is anchored on the residual: under the ${CURVE[r.curveKey].label} complexity curve, voice AHT for the calls left behind rises ${(r.residualUplift * 100).toFixed(1)}% to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are conserved, since shifting changes which calls remain, not how long any call takes. That conservation fixes the implied AHT of the displaced contacts at ${r.deptEff.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute baseline. The tool never sets both ends independently, because that would count the same effect twice and overstate freed capacity. Break-even is the target resolution rate at which net realizable crosses zero. Report grade: ${grade}, ${gradeWhy}.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} This is an operating-capacity model, not a value or full-investment model.` },
+              { title: "Methodology", type: "text", content: `Only the eligible portion of voice (${r.eligPct}%) can shift. Each shifted contact resolves at the target resolution rate; failures bounce back to voice and add only the extra friction of re-contact (escalation return factor ${r.erf}x minus 1), since the base call always existed. Of resolved contacts, only the displacement share truly replaces a voice call. The rest is new demand, excluded from savings. Economics run on net agent-minutes freed (voice freed minus chat/email consumed minus recovery friction) valued at marginal labor and scaled by the ${MECH[mechKey].label} capacity action (${Math.round(r.mf * 100)}%); bot platform fees are real cash, netted in full. Adverse selection is anchored on the residual: under the ${CURVE[r.curveKey].label} complexity curve, voice AHT for the calls left behind rises ${(r.residualUplift * 100).toFixed(1)}% to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are conserved, since shifting changes which calls remain, not how long any call takes. That conservation fixes the implied AHT of the displaced contacts at ${r.deptEff.toFixed(1)} minutes against a ${r.baseEff.toFixed(1)} minute baseline. The tool never sets both ends independently, because that would count the same effect twice and overstate freed capacity. Break-even is the target resolution rate at which net realizable crosses zero. Report grade: ${confidence}, ${gradeWhy}${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} This is an operating-capacity model, not a value or full-investment model.` },
               { title: "Next Steps", type: "next", items: [
                 { tool: "AI Deflection Reality Check", reason: "Validate the bot resolution rate this decision rests on", href: "/tools/ai-deflection" },
                 { tool: "Business Case Builder", reason: "Build the full investment case: ramp, phasing, approval packaging", href: "/tools/business-case" },
