@@ -394,10 +394,14 @@ function gradeAID({ I, r, pre, railOrigin }) {
   const all = [...OPS_OWN, ...OPS_ATTEST, ...COST_ATTEST, ...COST_OWN];
   const origins = Object.fromEntries(all.map(([f]) => [f, fieldOrigin(I, pre, f)]));
   if (r.margWasDefaulted) origins.marg = "default";
-  const railG = railEvidence(railOrigin);
+  /* Origin grades are per field. A pulled value grades no higher than the grade its
+     publisher recorded for it, so one weak pull no longer drags every pull down and one
+     strong pull no longer lifts them. `railOrigin` is the blanket fallback for a field the
+     rail carries with no recorded origin. */
+  const railGradeOf = (f) => railEvidence((pre && pre[f] && pre[f].origin) || railOrigin);
   const docBacked = r.evidenceRank >= 1;
   const costAttested = !!I.costBasisOwned;
-  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railG, entered })[origins[f]];
+  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railGradeOf(f), entered })[origins[f]];
   const opsGrade = [...OPS_OWN.map(([f]) => fieldGrade(f, "Planning-grade")), ...OPS_ATTEST.map(([f]) => fieldGrade(f, docBacked ? "Planning-grade" : "Directional"))].reduce(weakerStream);
   const costGrade = [...COST_ATTEST.map(([f]) => fieldGrade(f, costAttested ? "Planning-grade" : "Directional")), ...COST_OWN.map(([f]) => fieldGrade(f, "Planning-grade"))].reduce(weakerStream);
   const evidence = weakerStream(opsGrade, costGrade);
@@ -409,7 +413,11 @@ function gradeAID({ I, r, pre, railOrigin }) {
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
     if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
-    if (rail.length) parts.push(`${say(rail)} arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}, which confers consistency and evidence only as far as its origin`);
+    if (rail.length) {
+      const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
+      const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
+      parts.push(`${say(rail)} arrived over the rail ${noted}, which confers consistency and evidence only as far as its origin`);
+    }
     return parts;
   };
   const opsParts = why([...OPS_OWN, ...OPS_ATTEST]);
@@ -542,7 +550,7 @@ export default function AIDeflectionRealityCheck() {
     const got = { M: getPrimitiveWithSource("monthlyContacts"), cpc: getPrimitiveWithSource("costPerContact"), marg: getPrimitiveWithSource("marginalPerContact") };
     const val = { M: got.M.value != null ? Math.round(got.M.value) : null, cpc: got.cpc.value, marg: got.marg.value };
     const pre = {};
-    for (const f of ["M", "cpc", "marg"]) if (val[f] != null && !isNaN(val[f])) pre[f] = { value: val[f], src: got[f].sourceTool || "" };
+    for (const f of ["M", "cpc", "marg"]) if (val[f] != null && !isNaN(val[f])) pre[f] = { value: val[f], src: got[f].sourceTool || "", origin: got[f].railOrigin || null };
     rail.current = {
       M: pre.M ? val.M : null, cpc: pre.cpc ? val.cpc : null, marg: pre.marg ? val.marg : null, pre,
       consistent: sourcedExternally(["monthlyContacts", "costPerContact", "marginalPerContact"], TOOL_ID),
