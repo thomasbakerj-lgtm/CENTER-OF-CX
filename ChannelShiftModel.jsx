@@ -65,7 +65,7 @@ const RISKS = [
 ];
 
 const DEFS = {
-  loadedOH: "The multiplier that turns base wage into fully-burdened cost: benefits, payroll tax, facilities, equipment. An $18/hr agent at 1.35x costs about $24/hr loaded. Used for the cost view; savings use the lower marginal multiplier instead.",
+  loadedOH: "The multiplier that turns base wage into a loaded hourly rate: benefits and employer payroll burden. A $20/hr agent at 1.30x costs about $26/hr loaded. Used for the cost view; savings use the lower marginal multiplier instead, and pricing a whole seat uses the higher fully loaded multiple.",
   marginalOH: "The multiplier for the cost that actually disappears when a contact goes away: wage plus benefits, but not fixed facilities or equipment. Savings are valued on this, because freeing one contact doesn't shrink your building.",
   eligibility: "The share of voice that is structurally safe to move: simple, transactional, low-risk volume. Exclude complex, regulated, emotional, or revenue-sensitive contacts. This caps the shift so the tool never implies all voice is movable.",
   erf: "When a contact fails in the target channel and returns to voice, how much harder that recovery call is than a normal one (1.0 same, 1.2 frustrated, 1.5 complex). The bounced call always existed, so only the extra friction counts as new cost.",
@@ -88,7 +88,7 @@ const TARGETS = [
    session 15. */
 const dflt = (f) => benchmark(`channel.default.${f}`);
 const BASE = {
-  monthlyContacts: dflt("monthlyContacts"), hourlyRate: benchmark("channel.wage.median"), loadedOH: dflt("loadedOH"), marginalOH: dflt("marginalOH"),
+  monthlyContacts: dflt("monthlyContacts"), hourlyRate: benchmark("market.wage.agent"), loadedOH: benchmark("load.benefits"), marginalOH: benchmark("load.marginal"),
   voicePct: dflt("voicePct"), voiceAHT: dflt("voiceAHT"), voiceConc: dflt("voiceConc"),
   chatPct: dflt("chatPct"), chatAHT: dflt("chatAHT"), chatConc: dflt("chatConc"),
   emailPct: dflt("emailPct"), emailAHT: dflt("emailAHT"), emailConc: dflt("emailConc"),
