@@ -253,6 +253,9 @@ const countLiterals = (src) => COUNT_LITERAL.flatMap((r) => src.match(r) || []);
 const SURFACES = {
   "Homepage.jsx": ["TOOL_COUNT", "CATEGORY_COUNT", "VENDOR_PROFILE_COUNT"],
   "Vendors.jsx": ["VENDOR_PROFILE_COUNT"],
+  /* S22: the site-wide Organization JSON-LD read "283 vendors scored. 30 free
+     tools." after both pages above were fixed. Search engines read it on every route. */
+  "App.jsx": ["TOOL_COUNT", "CATEGORY_COUNT", "VENDOR_PROFILE_COUNT"],
 };
 
 let li = 10;

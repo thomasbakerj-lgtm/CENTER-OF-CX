@@ -476,8 +476,13 @@ dashboard, the 12-phase growth program.
 3. Done S22 on the branch: research Stage 2, the CCaaS integrity freeze. Merge and
    verify on production.
 4. Done S22: Business Case Builder 11B retrofit, live and verified. 1-09 and WS1 closed.
-5. **Next:** the reachability batch (8-04 vendor titles, homepage index count, Sprinklr
-   duplicate slug), per the approved sequence.
+5. Done S22: reachability batch. 8-04 and the Sprinklr slug (0-03) were already fixed
+   in an earlier change and are live: all 283 vendor pages carry their own name as title
+   (production spot check `sprinklr-iva`, `genesys-acd`), 429 URLs with no duplicate
+   title or description. Homepage and Vendors counts already derive from data. The one
+   survivor was the site-wide Organization JSON-LD in `App.jsx` ("283 vendors scored.
+   30 free tools."); now derived, and `seo.test.mjs` E-surfaces gate it.
+6. **Next:** the V3 program for the non-rail tools (section 12).
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
@@ -488,6 +493,36 @@ Prove behavior first. Ration effort as strictly as money. Reachability precedes
 rigor. Instrumentation precedes proof. Quality is the moat. Independence is the product.
 
 ---
+
+## 12. V3 program for the non-rail tools (approved by TB, 23 Sep 2026, S22)
+
+TB ruling: **Amendment 11 is a guideline, not a hard rule.** The goal is that a user's
+first use of any tool builds enough trust to come back. Every tool reaches V3 before
+demand evidence exists; order is by group, not by demand.
+
+Standards (write into doctrine in the first program session): **V3-Full** for
+calculators, **V3-Framework** for assessments, frameworks and procurement tools, as in
+TB's 22 Sep handoff.
+
+Measured S22: none of the 21 non-rail tools has engine markers, a harness,
+ReportActions, scenario links, `track.js`, `type.js` or a journey node; 14 carry
+dashes; each is 14 to 30 KB.
+
+Order:
+1. Removals and verdict moves: retire Service Design, Experience Scorecard, Integration
+   Planner; Agent Experience to Attrition and Calibration Drift to QA as 301s. Doctrine
+   standards.
+2. **V3 floor on every remaining tool at once**: ReportActions, scenario links,
+   `tool_complete`, journey node with `nextFor`, `type.js`, no dashes, input domain
+   guards disclosed, no gated output (settles 12-05, 11-05, 2-01). One `floor.test.mjs`
+   gates every tool route. Commit a parameterized live PDF checker.
+3. Deep V3 by shared shape: one rubric engine and harness template for assessments
+   (CX Maturity and AI Readiness first, then Transformation Readiness, CX IT Alignment,
+   Governance); WFM cluster to V3-Full with one harness template, publishing to Staffing
+   with origin grades; procurement cluster (QA Program, Platform Decision Gate, RFP,
+   Contract Risk with rails to License Gap and TCO).
+4. Section H of the handoff (Vendor Match v2 on `VendorData.js`) is replaced by
+   Vendor Match V3 under section 13. Interim only: ungate, disclose, cap the ceiling.
 
 ## 13. Research program operating law
 
