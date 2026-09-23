@@ -84,7 +84,7 @@ No split into cost evidence and benefit evidence. No case-readiness axis. Cost a
 benefit are streams inside Evidence. The headline grade is the minimum of the
 applicable axes and the rationale always names the binding axis.
 
-The spec is `DOCTRINE_Section5_v1_2.md` in project knowledge. The retrofit is a
+The spec is `docs/DOCTRINE_Section5_v1_2.md`. The retrofit is a
 nine-tool walk, internally numbered 11A, 11B and so on, one tool per session.
 
 ### What just closed
@@ -131,31 +131,37 @@ violation and the retrofit must fix it, not preserve it.
 
 ---
 
-## 3. The tracker, and why it is not in the repo
+## 3. The tracker and governance docs
 
-`CCCX_MASTER_TRACKER.md` is the single backlog. 96 items across 16 workstreams
-(WS0 to WS15). It lives in **claude.ai project knowledge, not in the repo.** That
-is why `TAXONOMY.md` references WS2 and WS11 against a document you cannot find.
+`docs/CCCX_MASTER_TRACKER.md` is the single backlog. 96 items across 16 workstreams
+(WS0 to WS15). Until 23 September 2026 it lived only in claude.ai project
+knowledge, which is why `TAXONOMY.md` references WS2 and WS11 against a document
+the repo did not hold.
 
-**Recommendation: commit the tracker, the doctrine and the Section 5 spec into the
-repo under `docs/` as the first Claude Code change.** They govern every edit and
-their absence is the single biggest reason a new session starts blind. The standing
-rule is already "governance stays in both repo and library, repo wins on conflict."
-It was never executed.
+**Landed in `docs/` on 23 September 2026.** Governance stays in both repo and
+library, and the repo wins on conflict. Precedence, per `docs/README.md`: Section 5
+v1.2 overrides Section 5 of doctrine v1.1, and the Resequence overrides tracker
+Section 4. The tracker status columns predate sessions 1 to 20; see its section 3
+note.
 
-Files to land in `docs/`:
+Files in `docs/`:
 
 - `CCCX_MASTER_TRACKER.md`
 - `DOCTRINE_Epistemic_Standard.md` v1.1
 - `DOCTRINE_Section5_v1_2.md`
 - `CCCX_Resequence_Under_Doctrine_Amendment_11.md`
-- `SHIPPING.md`, which was recorded closed in WS0 and never landed
+- `SHIPPING.md`, drafted 23 September 2026 for TB approval, closing 0-06
+- `CCCX_PROJECT_KNOWLEDGE_MANIFEST.md` and `README.md`, the handoff bundle index
+
+**Known ID conflict.** The tracker defines 1-12 as `billingStartMonth` in BCB,
+GATED. This file and Section 5 v1.2 use 1-12 for the `r.payback === 0` confidence
+cap (`BusinessCaseBuilder.jsx` line 53). One ID, two items. TB to renumber one.
 
 ### The workstreams
 
 | WS | Subject | State |
 |---|---|---|
-| WS0 | Hygiene and blockers | Closed except `SHIPPING.md` |
+| WS0 | Hygiene and blockers | Closed. `SHIPPING.md` drafted, awaiting TB approval |
 | WS1 | V3 engine integrity, the nine rail tools | In flight. 1-09 retrofit, TCO done, BCB last |
 | WS2 | The other 21 tools | 2-01 triage is the highest-leverage item and is cheap |
 | WS3 | Journey architecture and interlinking | Graph exists in `src/lib/journey.js` |
@@ -165,7 +171,7 @@ Files to land in `docs/`:
 | WS7 | Vertical to vendor connectors | Gated on WS4 |
 | WS8 | SEO | 8-04 vendor title defect is live |
 | WS9 | Answer engine optimization | Blocked on published methodologies |
-| WS10 | Web performance | 2.9 MB single chunk, mobile majority |
+| WS10 | Web performance | Routes already lazy split. Measured 23 Sep: entry chunk 237 KB, 77 KB gzipped. 2.9 MB figure is stale |
 | WS11 | Behavioral instrumentation | The gate on everything in WS14 |
 | WS12 | Conversion and commercial | 12-06 independence disclosure is a credibility asset |
 | WS13 | Brand and design system | 13-01 is a decision blocking three items |
@@ -394,7 +400,10 @@ Nothing here is blocking. All of it is real.
 - Homepage claims published methodologies that do not exist as pages.
 - `VendorMatchEngine.jsx` holds a 24-vendor hardcoded fork that does not import
   `VendorData.js` and covers CCaaS only.
-- Production bundle roughly 2.9 MB, 731 KB gzipped, single chunk, mobile majority.
+- The 2.9 MB single-chunk bundle figure is stale. `npm run build` on 23 September
+  2026 emits lazy route chunks with a 237 KB entry, 77 KB gzipped, and prerender
+  writes 429 routes. Re-scope 10-01 to 10-03 against the measured build before
+  scheduling them.
 - `ReportActions.jsx` line 40, the `scenarioUrl` `__proto__` assignment, and
   `track.js` line 185 were all queued and never addressed.
 
@@ -541,11 +550,10 @@ live PDF check, the em-dash prohibition, and one tracker item per session.
 
 ## 11. Suggested first three sessions in Claude Code
 
-1. **Land the governance docs in `docs/` and close `SHIPPING.md`.** Cheap, removes
-   the blindness this handoff exists to patch, and lets the tracker be updated in
-   the same commit as the code it describes.
-2. **Step 6: the live TCO PDF check, normal and voided.** Closes 11B and the TCO
-   retrofit.
+1. **Done 23 September 2026.** Governance docs in `docs/`, `SHIPPING.md` drafted.
+2. **Next. Step 6: the live TCO PDF check, normal and voided.** Closes 11B and the
+   TCO retrofit. Production is https://contactcentercx.com. If the domain is blocked
+   from the container, run against a local build and TB pulls the production PDFs.
 3. **Business Case Builder retrofit**, fixing 1-12 as part of it. Closes the 1-09
    walk and WS1, which unblocks 2-02, 3-03, 6-01, 10-04 and 13-02.
 
