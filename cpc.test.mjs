@@ -427,8 +427,8 @@ console.log("\n12. publish contract");
     /Inputs Corrected Before Calculation/.test(SRC));
   A("the confidence gate no longer reads its own pulled map",
     !/filter\(k => pulled\[k\]\)/.test(SRC));
-  A("every prefilled value is recorded with the tool that wrote it",
-    /seen\[field\] = \{ value: next\[field\], src: res\.sourceTool \|\| "" \};/.test(SRC));
+  A("every prefilled value is recorded with the tool that wrote it and its origin grade",
+    /seen\[field\] = \{ value: next\[field\], src: res\.sourceTool \|\| "", origin: res\.railOrigin \|\| null \};/.test(SRC));
   A("the prefill record is captured at mount, before this tool publishes", /setPre\(seen\);/.test(SRC));
   A("the component grades through gradeCPC with the mount record and no origin grade",
     /const graded = gradeCPC\(\{ d, r, pre, railOrigin: null \}\);/.test(SRC));
