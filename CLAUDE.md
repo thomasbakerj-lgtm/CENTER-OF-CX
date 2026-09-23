@@ -8,8 +8,8 @@ match the baseline below. Re-verified in Claude Code on 23 September 2026 at `ma
 76f5248: all 20 md5s match, suite 18,018 green, build and prerender green. This file
 and `docs/` were committed on 23 September 2026. S22 (23 Sep): PR #1 merged to
 `main` (73a1e96), TCO fix live and verified on production. Stage 2 freeze on the
-branch, then merged (PR #2, 3d8f575) and verified live. BCB 11B retrofit on the
-branch: suite 18,363 green, build and prerender green. md5s updated below.
+branch, then merged (PR #2, 3d8f575) and verified live. BCB 11B retrofit merged
+(PR #3, 72af081) and verified on production: suite 18,363 green, build and prerender green. md5s updated below.
 
 ---
 
@@ -109,7 +109,9 @@ gates all of it: the pre-freeze files fail 27 of its 252 checks.
 Not in scope, still Phase 1: Vendor Match output (Stage 4 rebuild) and the other seven
 categories' scores and tiers (TB decision covered CCaaS).
 
-**Done S22 on the branch: 11B Business Case Builder, the ninth and last rail tool.**
+**Done S22: 11B Business Case Builder, the ninth and last rail tool. 1-09 and WS1 closed.**
+On production (PR #3): all four live PDFs (normal, Finance-grade negative, void, guard)
+are identical to the local run; the void review payload carries `confidence: VOID`.
 - Grades through `src/lib/confidence.js` and emits the Section 5.6 object: evidence is
   the weaker of the cost stream (cost basis, as before) and the benefit stream (Aggressive
   stance or targets above the planning range cap it at Planning-grade); realization from
@@ -162,7 +164,7 @@ comments and were never added to the tracker.
 | WS | Subject | State |
 |---|---|---|
 | WS0 | Hygiene and blockers | Closed. `SHIPPING.md` approved by TB 23 Sep |
-| WS1 | V3 engine integrity, nine rail tools | 1-09 walk complete S22 (TCO on production; BCB on branch, then production check) |
+| WS1 | V3 engine integrity, nine rail tools | Closed S22. 1-09 walk complete, all nine on production. Benefit-stream DECIDE open |
 | WS2 | The other 21 tools | 2-01 triage is cheap and high leverage |
 | WS3 | Journey architecture | Graph in `src/lib/journey.js` (3-01 done) |
 | WS4 | Vendor data depth | 283 vendors, 28 genuinely deep |
@@ -473,8 +475,7 @@ dashboard, the 12-phase growth program.
 2. Done S22: 11B TCO closed on production.
 3. Done S22 on the branch: research Stage 2, the CCaaS integrity freeze. Merge and
    verify on production.
-4. Done S22: Business Case Builder 11B retrofit. Merge and verify on production, which
-   closes 1-09 and WS1.
+4. Done S22: Business Case Builder 11B retrofit, live and verified. 1-09 and WS1 closed.
 5. **Next:** the reachability batch (8-04 vendor titles, homepage index count, Sprinklr
    duplicate slug), per the approved sequence.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
