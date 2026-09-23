@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { trackTool, toolIdFromPath, claimView } from "./src/lib/track"
-import { BASE, SITE, resolveSeo } from './src/lib/seo.js'
+import { BASE, SITE, resolveSeo, VENDOR_PROFILE_COUNT, CATEGORY_COUNT, TOOL_COUNT } from './src/lib/seo.js'
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { Analytics } from '@vercel/analytics/react'
 const Homepage = lazy(() => import('./Homepage'))
@@ -164,7 +164,7 @@ function SEOManager() {
         "@type": "Organization",
         "name": "The Center of CX",
         "url": BASE,
-        "description": "Independent CX and contact center technology intelligence. 283 vendors scored. 30 free tools. Consultant matching for platform selection and AI strategy.",
+        "description": `Independent CX and contact center technology intelligence. ${VENDOR_PROFILE_COUNT} vendor profiles across ${CATEGORY_COUNT} categories. ${TOOL_COUNT} free tools. Consultant matching for platform selection and AI strategy.`,
         "foundingDate": "2026",
         "sameAs": [],
         "knowsAbout": ["Contact Center Technology", "Customer Experience", "CCaaS", "IVA", "Conversational AI", "Workforce Management", "CX Analytics", "Digital Engagement"]
