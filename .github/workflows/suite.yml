@@ -1,0 +1,28 @@
+# The full suite on every pull request and every push to main.
+# Mark the "suite" check as required on main (Settings > Rules > Rulesets) so a
+# red suite cannot be merged. Free for a public repository.
+name: suite
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: suite-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Install
+        run: npm install --no-audit --no-fund
+      - name: Suite (run-all.mjs exits non-zero on any failure or UNPARSED harness)
+        run: node run-all.mjs
+      - name: Build and prerender
+        run: npm run build
