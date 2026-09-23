@@ -1,0 +1,28 @@
+# Every tool and published rubric on production, in a real browser, once a day.
+# Loads each tool, opens its sample and hostile links, generates the PDF, and fails
+# on a page error, a blank page, or NaN, Infinity or undefined. Analytics and
+# Formspree are intercepted in the browser, so no test traffic reaches production
+# data. A failed run emails the repository owner; the run log names the tool.
+name: nightly live check
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund playwright-core
+          npx playwright-core install --with-deps chromium
+      - name: Live check against production
+        run: node scripts/live-check.mjs https://www.contactcentercx.com

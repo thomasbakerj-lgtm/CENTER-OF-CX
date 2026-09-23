@@ -543,8 +543,13 @@ dashboard, the 12-phase growth program.
      the overall score and its action); every band, pattern, action and diagnostic
      reachable; partial and invalid answers claim nothing; 20,000 answer sets per rubric
      equal the pre-rubric formulas read from git. Four engine mutants all killed.
-9. **Next:** step 3b, the other three frameworks onto the engine (Transformation
-   Readiness, CX IT Alignment, Governance), then 3c the WFM cluster to V3-Full.
+9. S23: plan re-laid as phases A to G (section 12). Phase A item 1 and 3 on the
+   branch: `.github/workflows/suite.yml` (suite and build on every PR and push to
+   main) and `nightly.yml` (daily live check on production), and the committed live
+   checker `scripts/live-check.mjs` (142 checks on production: every tool, sample and
+   hostile links, their PDFs, the rubric pages; fails correctly on a dead origin).
+10. **Next:** TB makes the `suite` check required on main (ruleset). Then Phase A items
+   2 and 4 (visual audit) and TB's 11-01, then Phase B.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
@@ -570,7 +575,34 @@ Measured S22: none of the 21 non-rail tools has engine markers, a harness,
 ReportActions, scenario links, `track.js`, `type.js` or a journey node; 14 carry
 dashes; each is 14 to 30 KB.
 
-Order:
+**Phased plan, S23 (supersedes the order below from step 3 on).** Steps 1 and 2 and
+step 3a are done.
+- **A. Guardrails:** CI suite on every PR, required on main; nightly production live
+  check; committed live checker; visual audit of all 25 tools and the rubric pages on
+  desktop and phone into a punch list; TB confirms events reach Vercel (11-01).
+- **B. Shared quality:** accessibility on the shared parts (ReportActions labels,
+  contrast, keyboard, error states); one shared tool layout applied to the 16 floor
+  tools; rail debts (CPC corrected-dollar display, FCR pulled badge, Attrition live
+  PDF, ReportActions `__proto__`).
+- **C. Frameworks on the rubric engine:** Transformation Readiness, CX IT Alignment,
+  Governance; QA Program with the calibration module; Platform Decision as the renewal
+  gate; RFP and Contract Risk published criteria; Roadmap stays a planner with
+  anonymous sequence capture.
+- **D. WFM to V3-Full:** engine markers and harness pairs for AHT, Shrinkage, Occupancy,
+  Forecast, Adherence; every constant sourced and registered or labelled; rail into
+  Staffing with origin grades; Agent Experience folds into Attrition.
+- **E. External proof:** a generated methodology page per calculator (formulas,
+  sources, assumptions, worked example); reference fixtures (Erlang tables, textbook
+  cases, tracker fixtures) pinned to the dollar; version stamps and a public changelog.
+- **F. Practitioner validation:** skipped for now (TB, S23).
+- **G. Gated on TB:** TCO marginal load, BCB benefit stream, disclosure page 12-06;
+  research Stages 1 to 4 and Vendor Match V3.
+- **Aesthetic rebuild (TB, S23):** the site is v1 visually and must not read as
+  AI-generated. Scheduled after C and D, before E, once tool shapes settle. Starts from
+  a brief: 3 to 5 reference sites TB wants to stand beside, then mockups, then one
+  design system applied once.
+
+Original order (steps 1 and 2 done):
 1. Removals and verdict moves: retire Service Design, Experience Scorecard, Integration
    Planner; Agent Experience to Attrition and Calibration Drift to QA as 301s. Doctrine
    standards.
