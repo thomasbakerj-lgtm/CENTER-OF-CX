@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -29,19 +31,37 @@ const TEMPLATES = {
   ]},
 };
 
+const TOOL_ID = "qa-scorecard";
+const ROUTE = "/tools/qa-scorecard";
+export const DEFAULTS = { template: "general", categories: TEMPLATES.general.categories, evalScores: {} };
+/* A link can carry any shape. Categories keep a name, a whole-number weight from
+   0 to 100 and their criteria; an evaluation mark is kept only as a yes or no on
+   a criterion that exists. Anything else falls back to the template. */
+const cleanState = (sc) => {
+  const template = sc && Object.prototype.hasOwnProperty.call(TEMPLATES, sc.template) ? sc.template : "general";
+  const cats = Array.isArray(sc && sc.categories) ? sc.categories : TEMPLATES[template].categories;
+  const categories = cats.filter(c => c && typeof c === "object").map(c => ({
+    name: typeof c.name === "string" ? c.name.slice(0, 120) : "Category",
+    weight: Number.isFinite(c.weight) ? Math.max(0, Math.min(100, Math.round(c.weight))) : 0,
+    criteria: (Array.isArray(c.criteria) ? c.criteria : []).filter(cr => cr && typeof cr.text === "string").map(cr => ({ text: cr.text.slice(0, 300), critical: cr.critical === true })),
+  }));
+  const evalScores = Object.fromEntries(Object.entries((sc && sc.evalScores) || {}).filter(([k, v]) => {
+    const m = /^(\d+)-(\d+)$/.exec(k); return !!m && typeof v === "boolean" && !!categories[+m[1]] && +m[2] < categories[+m[1]].criteria.length;
+  }));
+  return { template, categories, evalScores };
+};
+
 export default function QAScorecardBuilder() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState(""); const [name, setName] = useState("");
-  const [sending, setSending] = useState(false);
-  const [template, setTemplate] = useState("general");
-  const [categories, setCategories] = useState(TEMPLATES.general.categories);
-  const [evalScores, setEvalScores] = useState({});
-  const [showEval, setShowEval] = useState(false);
-  useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+  const [init] = useState(() => cleanState(readScenario(TOOL_ID, DEFAULTS)));
+  const [template, setTemplate] = useState(init.template);
+  const [categories, setCategories] = useState(init.categories);
+  const [evalScores, setEvalScores] = useState(init.evalScores);
+  const [showEval, setShowEval] = useState(Object.keys(init.evalScores).length > 0);
+  useEffect(() => { window.scrollTo(0, 0); clearScenarioParam(); }, []);
 
   const applyTemplate = (key) => { setTemplate(key); setCategories(TEMPLATES[key].categories); setEvalScores({}); setShowEval(false); };
 
-  const updateWeight = (ci, val) => setCategories(prev => prev.map((c, i) => i === ci ? { ...c, weight: Number(val) || 0 } : c));
+  const updateWeight = (ci, val) => setCategories(prev => prev.map((c, i) => i === ci ? { ...c, weight: Math.max(0, Math.min(100, Math.round(Number(val) || 0))) } : c));
   const updateCriterion = (ci, cri, field, val) => setCategories(prev => prev.map((c, i) => i === ci ? { ...c, criteria: c.criteria.map((cr, j) => j === cri ? { ...cr, [field]: val } : cr) } : c));
   const addCriterion = (ci) => setCategories(prev => prev.map((c, i) => i === ci ? { ...c, criteria: [...c.criteria, { text: "New criterion", critical: false }] } : c));
   const removeCriterion = (ci, cri) => setCategories(prev => prev.map((c, i) => i === ci ? { ...c, criteria: c.criteria.filter((_, j) => j !== cri) } : c));
@@ -59,7 +79,7 @@ export default function QAScorecardBuilder() {
     const scored = cat.criteria.map((cr, cri) => evalScores[`${ci}-${cri}`]);
     const answered = scored.filter(s => s !== undefined);
     if (answered.length === 0) return null;
-    const catPct = (answered.filter(s => s === true).length / cat.criteria.length) * 100;
+    const catPct = cat.criteria.length ? (answered.filter(s => s === true).length / cat.criteria.length) * 100 : 0;
     const hasCritFail = cat.criteria.some((cr, cri) => cr.critical && evalScores[`${ci}-${cri}`] === false);
     return { catPct, weighted: catPct * (cat.weight / 100), hasCritFail };
   });
@@ -67,37 +87,18 @@ export default function QAScorecardBuilder() {
   const overallScore = catScores.every(s => s !== null) ? catScores.reduce((a, s) => a + s.weighted, 0) : null;
   const anyCritFail = catScores.some(s => s && s.hasCritFail);
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, tool: "QA Scorecard Builder", _subject: "QA Scorecard Builder Access" }) }); } catch (e) {}
-    setSending(false); setPhase("calc");
-  };
+
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>
 
-      {phase === "gate" && (
-        <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "80px 28px 60px" }}>
-          <div style={{ ...WRAP, maxWidth: 520 }}>
-            <span style={{ color: GREEN, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Performance + Quality</span>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>QA Scorecard Builder</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, marginBottom: 32 }}>Build weighted QA evaluation forms by contact type. Start from a template or create custom. Mark critical-fail criteria. Test your scorecard with a sample evaluation.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <button onClick={handleGate} disabled={sending || !email.includes("@")} style={{ padding: "14px", fontSize: 15, fontWeight: 600, background: email.includes("@") ? GREEN : SLATE, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", opacity: email.includes("@") ? 1 : 0.5 }}>{sending ? "Loading..." : "Launch Builder →"}</button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {phase === "calc" && (<>
+      <>
         <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>QA Scorecard Builder</h2>
+              <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>QA Scorecard Builder</h2>
               <div style={{ display: "flex", gap: 4 }}>
                 {Object.entries(TEMPLATES).map(([k, v]) => (
                   <button key={k} onClick={() => applyTemplate(k)} style={{ padding: "6px 14px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${template === k ? GREEN : BORDER}`, background: template === k ? GREEN : "#fff", color: template === k ? "#fff" : MUTED, cursor: "pointer" }}>{v.name}</button>
@@ -157,8 +158,8 @@ export default function QAScorecardBuilder() {
                       <div key={cri} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
                         <span style={{ flex: 1, fontSize: 13, color: NAVY }}>{cr.critical && <span style={{ color: RED, fontWeight: 700, marginRight: 4 }}>*</span>}{cr.text}</span>
                         <div style={{ display: "flex", gap: 4 }}>
-                          <button onClick={() => setEval(ci, cri, true)} style={{ padding: "4px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === true ? GREEN : BORDER}`, background: evalScores[`${ci}-${cri}`] === true ? GREEN : "#fff", color: evalScores[`${ci}-${cri}`] === true ? "#fff" : MUTED, cursor: "pointer" }}>Yes</button>
-                          <button onClick={() => setEval(ci, cri, false)} style={{ padding: "4px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === false ? RED : BORDER}`, background: evalScores[`${ci}-${cri}`] === false ? RED : "#fff", color: evalScores[`${ci}-${cri}`] === false ? "#fff" : MUTED, cursor: "pointer" }}>No</button>
+                          <button onClick={() => setEval(ci, cri, true)} style={{ padding: "4px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === GREEN}`, background: evalScores[`${ci}-${cri}`] === GREEN, color: evalScores[`${ci}-${cri}`] === "#fff", cursor: "pointer" }}>Yes</button>
+                          <button onClick={() => setEval(ci, cri, false)} style={{ padding: "4px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === BORDER}`, background: evalScores[`${ci}-${cri}`] === "#fff", color: evalScores[`${ci}-${cri}`] === MUTED, cursor: "pointer" }}>No</button>
                         </div>
                       </div>
                     ))}
@@ -166,7 +167,7 @@ export default function QAScorecardBuilder() {
                 ))}
                 {overallScore !== null && (
                   <div style={{ background: anyCritFail ? `${RED}10` : `${GREEN}10`, border: `1px solid ${anyCritFail ? RED : GREEN}30`, borderRadius: 8, padding: "16px", marginTop: 12, textAlign: "center" }}>
-                    <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 36, color: anyCritFail ? RED : overallScore >= 85 ? GREEN : overallScore >= 70 ? AMBER : RED }}>{anyCritFail ? "FAIL" : `${overallScore.toFixed(0)}%`}</div>
+                    <div style={{ fontFamily: FONT, fontSize: 36, color: anyCritFail ? RED : overallScore >= 85 ? GREEN : overallScore >= 70 ? AMBER : RED }}>{anyCritFail ? "FAIL" : `${overallScore.toFixed(0)}%`}</div>
                     <div style={{ fontSize: 12, color: MUTED }}>{anyCritFail ? "Critical criterion failed. Auto-fail regardless of score." : overallScore >= 85 ? "Meets quality standard" : overallScore >= 70 ? "Coaching opportunity" : "Performance concern"}</div>
                   </div>
                 )}
@@ -179,27 +180,40 @@ export default function QAScorecardBuilder() {
               </p>
             </div>
 
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              
-                <ReportExport toolName="QA Scorecard" subtitle={template + " Contact Type"} userName={name} userEmail={email} sections={[
-                    { title: "Scorecard Structure", type: "table", rows: categories.map(c => [c.name, "Weight: " + c.weight + "% | " + c.criteria.length + " criteria (" + c.criteria.filter(cr => cr.critical).length + " critical)"]) },
-                    { title: "Configuration", type: "metrics", items: [
-                      { label: "Categories", value: categories.length.toString(), color: ELECTRIC },
-                      { label: "Total Criteria", value: categories.reduce((a,c) => a + c.criteria.length, 0).toString(), color: ELECTRIC },
-                      { label: "Critical-Fail Items", value: categories.reduce((a,c) => a + c.criteria.filter(cr => cr.critical).length, 0).toString(), color: RED },
-                      { label: "Weight Valid", value: totalWeight === 100 ? "Yes" : "No (" + totalWeight + "%)", color: totalWeight === 100 ? GREEN : RED },
-                    ]},
-                    { title: "Key Principle", type: "text", content: "A password reset and a billing dispute require different evaluation criteria. Build 3-5 scorecards by contact type to evaluate what matters for each interaction." },
-                    { title: "Next Steps", type: "next", items: [
-                      { tool: "Attrition Cost Calculator", reason: "Price the turnover that weak coaching and QA feedback drive" },
-                    ]},
-                  ]} />
-                <a href="/tools/attrition-cost" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Attrition Cost Calculator →</a>
-              <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
-            </div>
+            <ReportActions
+              toolId={TOOL_ID}
+              toolName="QA Scorecard"
+              subtitle={TEMPLATES[template].name + " Contact Type"}
+              routePath={ROUTE}
+              state={{ template, categories, evalScores }}
+              defaults={DEFAULTS}
+              summary={[
+                { label: "Categories", value: String(categories.length) },
+                { label: "Criteria", value: String(categories.reduce((a, c) => a + c.criteria.length, 0)) },
+                { label: "Weights total", value: totalWeight + "%" },
+              ]}
+              sections={[
+                { title: "Scorecard Structure", type: "table", rows: categories.map(c => [c.name, "Weight: " + c.weight + "% | " + c.criteria.length + " criteria (" + c.criteria.filter(cr => cr.critical).length + " critical)"]) },
+                { title: "Criteria", type: "findings", items: categories.flatMap(c => c.criteria.map(cr => c.name + ": " + cr.text + (cr.critical ? " [critical fail]" : ""))) },
+                { title: "Configuration", type: "metrics", items: [
+                  { label: "Categories", value: categories.length.toString(), color: ELECTRIC },
+                  { label: "Total Criteria", value: categories.reduce((a, c) => a + c.criteria.length, 0).toString(), color: ELECTRIC },
+                  { label: "Critical-Fail Items", value: categories.reduce((a, c) => a + c.criteria.filter(cr => cr.critical).length, 0).toString(), color: RED },
+                  { label: "Weight Valid", value: weightValid ? "Yes" : "No (" + totalWeight + "%)", color: weightValid ? GREEN : RED },
+                ]},
+                ...(overallScore !== null ? [{ title: "Sample Evaluation", type: "findings", items: [
+                  "Weighted score: " + overallScore.toFixed(1) + "%" + (weightValid ? "" : " (weights do not total 100%, so this score is not comparable across scorecards)") + ".",
+                  anyCritFail ? "A critical-fail item was marked as missed. Under critical-fail rules the evaluation scores zero regardless of the weighted total." : "No critical-fail item was missed.",
+                ] }] : []),
+                { title: "Key Principle", type: "text", content: "A password reset and a billing dispute require different evaluation criteria. Build 3 to 5 scorecards by contact type to evaluate what matters for each interaction." },
+                { title: "Next Steps", type: "next", items: [
+                  { tool: "Attrition Cost Calculator", reason: "Price the turnover that weak coaching and QA feedback drive" },
+                ]},
+              ]}
+            />
           </div>
         </section>
-      </>)}
+      </>
     </div>
   );
 }

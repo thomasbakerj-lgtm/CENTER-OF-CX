@@ -1,7 +1,49 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { trackTool, toolIdFromPath, claimView } from "./src/lib/track"
 import { BASE, SITE, resolveSeo, VENDOR_PROFILE_COUNT, CATEGORY_COUNT, TOOL_COUNT } from './src/lib/seo.js'
-import { useEffect, useState, lazy, Suspense } from 'react'
+import { Component, useEffect, useState, lazy as reactLazy, Suspense } from 'react'
+
+/* A route chunk that fails to load used to leave a blank page with no way back:
+   a deploy that swaps chunk hashes under an open tab, or a dropped mobile
+   connection, and the tool simply never appeared. Each route import now retries
+   once after a short pause. If it still fails, the page reloads once per session
+   so a stale shell picks up the current build, and only then does the route
+   boundary below show a message with a reload link. `lazy` keeps its name so
+   every route declaration and the harnesses that read them are unchanged. */
+const CHUNK_RELOAD_KEY = 'cccx-chunk-reload'
+const pause = (ms) => new Promise((r) => setTimeout(r, ms))
+function lazy(factory) {
+  return reactLazy(() =>
+    factory()
+      .catch(() => pause(800).then(factory))
+      .then((mod) => { try { sessionStorage.removeItem(CHUNK_RELOAD_KEY) } catch { /* storage blocked */ } return mod })
+      .catch((err) => {
+        try {
+          if (!sessionStorage.getItem(CHUNK_RELOAD_KEY)) {
+            sessionStorage.setItem(CHUNK_RELOAD_KEY, '1')
+            window.location.reload()
+            return new Promise(() => {})
+          }
+        } catch { /* storage blocked: fall through to the boundary */ }
+        throw err
+      })
+  )
+}
+
+class RouteBoundary extends Component {
+  constructor(props) { super(props); this.state = { failed: false } }
+  static getDerivedStateFromError() { return { failed: true } }
+  render() {
+    if (!this.state.failed) return this.props.children
+    return (
+      <div style={{ maxWidth: 560, margin: '80px auto', padding: '0 24px', fontFamily: 'Archivo, -apple-system, sans-serif', color: '#0B1D3A' }}>
+        <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>This page did not load.</h1>
+        <p style={{ fontSize: 15, lineHeight: 1.6, color: '#3A4F6A', marginBottom: 20 }}>Part of the page failed to download, usually because of a dropped connection or a site update while the page was open. Nothing you entered was sent anywhere.</p>
+        <a href={typeof window !== 'undefined' ? window.location.href : '/'} style={{ display: 'inline-block', background: '#0088DD', color: '#fff', fontSize: 14, fontWeight: 600, padding: '12px 22px', borderRadius: 8, textDecoration: 'none' }}>Reload the page</a>
+      </div>
+    )
+  }
+}
 import { Analytics } from '@vercel/analytics/react'
 const Homepage = lazy(() => import('./Homepage'))
 const PlatformsTech = lazy(() => import('./PlatformsTech'))
@@ -240,12 +282,20 @@ function RouteFallback() {
   );
 }
 
+/* Keyed by path so a failed route does not leave the boundary tripped after the
+   reader navigates somewhere else. */
+function RoutedBoundary({ children }) {
+  const { pathname } = useLocation();
+  return <RouteBoundary key={pathname}>{children}</RouteBoundary>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <SEOManager />
       <Journey />
       <Analytics />
+      <RoutedBoundary>
       <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<Homepage />} />
@@ -328,6 +378,7 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       </Suspense>
+      </RoutedBoundary>
     </BrowserRouter>
   )
 }

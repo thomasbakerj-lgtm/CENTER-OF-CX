@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import { useState, useEffect, useRef } from "react";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 960, margin: "0 auto", padding: "0 28px" };
@@ -30,7 +32,7 @@ const LAYERS = [
   ]},
   { n: 5, name: "Conversation Management", color: "#1a7f9e", reqs: [
     { text: "Unified voice and digital channels from a single platform", priority: "must", tags: ["all"] },
-    { text: "Agent desktop consolidation — under 3 applications for full interaction handling", priority: "should", tags: ["all"] },
+    { text: "Agent desktop consolidation, under 3 applications for full interaction handling", priority: "should", tags: ["all"] },
     { text: "Cross-channel context continuity (chat-to-phone preserves full history)", priority: "must", tags: ["digital"] },
     { text: "WhatsApp, Apple Business Chat, RCS, and SMS messaging channels", priority: "should", tags: ["digital"] },
     { text: "Co-browse and screen sharing for complex issue resolution", priority: "nice", tags: ["enterprise"] },
@@ -60,7 +62,7 @@ const LAYERS = [
     { text: "End-to-end workflow automation for top 10 contact types", priority: "should", tags: ["all"] },
     { text: "CRM integration with real-time read/write (Salesforce, ServiceNow, Dynamics, HubSpot)", priority: "must", tags: ["all"] },
     { text: "API-triggered workflows from external events (not just UI-initiated)", priority: "should", tags: ["enterprise"] },
-    { text: "Cross-system data writes — agent actions update billing, CRM, and case systems simultaneously", priority: "should", tags: ["enterprise"] },
+    { text: "Cross-system data writes, agent actions update billing, CRM, and case systems simultaneously", priority: "should", tags: ["enterprise"] },
     { text: "Workflow versioning and rollback capability", priority: "nice", tags: ["enterprise"] },
     { text: "Low-code workflow builder for business users (not developer-only)", priority: "should", tags: ["all"] },
   ]},
@@ -94,16 +96,32 @@ const VERTICAL_REQS = {
   "Telecom": ["BSS/OSS platform integration", "Carrier-grade 99.999% availability", "CPNI protection compliance", "Complex IVR support (100+ nodes)"],
 };
 
+const TOOL_ID = "rfp-builder";
+const ROUTE = "/tools/rfp-builder";
+export const DEFAULTS = { vertical: "", size: "", activeTags: ["all"], reqs: {} };
+/* A regulated enterprise case, so the harness renders the widest requirement set
+   and its PDF content. */
+export const SAMPLE = { vertical: "Healthcare", size: "500-1000 agents", activeTags: ["all", "enterprise", "regulated", "healthcare"], reqs: {} };
+/* A link keeps only known verticals, sizes, focus tags and priorities. */
+const PRIORITIES = new Set(["must", "should", "nice"]);
+const cleanState = (sc) => {
+  const vertical = sc && VERTICALS.includes(sc.vertical) ? sc.vertical : "";
+  const size = sc && SIZES.includes(sc.size) ? sc.size : "";
+  const tags = Array.isArray(sc && sc.activeTags) ? sc.activeTags.filter(t => TAG_FILTERS.some(f => f.id === t)) : [];
+  const reqs = Object.fromEntries(Object.entries((sc && sc.reqs) || {}).filter(([k, v]) => /^\d+-\d+$/.test(k) && PRIORITIES.has(v)));
+  return { vertical, size, activeTags: tags.includes("all") ? tags : ["all", ...tags], reqs };
+};
+
 export default function RFPRequirementBuilder() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [company, setCompany] = useState("");
-  const [sending, setSending] = useState(false);
+  const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { fromLink: !!sc, ...cleanState(sc) }; });
+  const [phase, setPhase] = useState(() => (init.fromLink && init.vertical && init.size ? "results" : "input"));
   const [step, setStep] = useState(0);
-  const [vertical, setVertical] = useState("");
-  const [size, setSize] = useState("");
-  const [activeTags, setActiveTags] = useState(["all"]);
-  const [reqs, setReqs] = useState({});
-  useEffect(() => { window.scrollTo(0,0); }, [phase]);
+  const [vertical, setVertical] = useState(init.vertical);
+  const [size, setSize] = useState(init.size);
+  const [activeTags, setActiveTags] = useState(init.activeTags);
+  const [reqs, setReqs] = useState(init.reqs);
+  useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+  useEffect(() => { clearScenarioParam(); }, []);
 
   const toggleTag = (id) => setActiveTags(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
   const setReq = (layerN, reqIdx, priority) => setReqs(prev => ({ ...prev, [`${layerN}-${reqIdx}`]: priority }));
@@ -112,8 +130,11 @@ export default function RFPRequirementBuilder() {
   const isEnterprise = size.includes("500") || size.includes("1000") || size.includes("5000");
   const isRegulated = ["Healthcare","Financial Services","Government","Insurance"].includes(vertical);
 
-  // Auto-select tags based on env
+  // Auto-select tags based on env. The first run is skipped so the focus tags a
+  // scenario link carries are not overwritten on arrival.
+  const firstTagRun = useRef(true);
   useEffect(() => {
+    if (firstTagRun.current) { firstTagRun.current = false; return; }
     const auto = ["all"];
     if (isEnterprise) auto.push("enterprise");
     if (isRegulated) auto.push("regulated");
@@ -141,16 +162,10 @@ export default function RFPRequirementBuilder() {
   const niceCount = filtered.reduce((a, g) => a + g.reqs.filter(r => r.priority === "nice").length, 0);
   const vertReqs = VERTICAL_REQS[vertical] || [];
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "RFP Requirement Builder", _subject: "RFP Builder Access" }) }); } catch(e) {}
-    setSending(false); setPhase("input");
-  };
 
-  const handleGenerate = async () => {
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "RFP Requirement Builder", vertical, size, tags: activeTags.join(","), totalReqs, mustCount, _subject: `RFP Builder: ${vertical} | ${size} | ${totalReqs} reqs — ${company || name || email}` }) }); } catch(e) {}
-    setPhase("results");
-  };
+
+  const handleGenerate = () => setPhase("results");
+
 
   const priColors = { must: RED, should: AMBER, nice: MUTED };
   const priLabels = { must: "Must Have", should: "Should Have", nice: "Nice to Have" };
@@ -174,30 +189,14 @@ export default function RFPRequirementBuilder() {
   ];
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{ background: DEEP, padding: "10px 0", position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13.5 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
           <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a>
         </div>
       </nav>
-
-      {phase === "gate" && (
-        <section style={{ background: `linear-gradient(168deg,${DEEP},${NAVY})`, padding: "80px 28px 60px" }}>
-          <div style={{ ...WRAP, maxWidth: 540 }}>
-            <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Vendor Selection</span>
-            <h1 style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>RFP Requirement Builder</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, marginBottom: 32 }}>Generate weighted RFP requirements organized by the 7 orchestration layers. Tailored to your vertical, operation size, and priorities. Output a structured document you can send to vendors.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <input type="text" placeholder="Company" value={company} onChange={e => setCompany(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <button onClick={handleGate} disabled={sending || !email.includes("@")} style={{ padding: "14px", fontSize: 15, fontWeight: 600, background: email.includes("@") ? ELECTRIC : SLATE, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", opacity: email.includes("@") ? 1 : 0.5 }}>{sending ? "Loading..." : "Build RFP Requirements →"}</button>
-            </div>
-          </div>
-        </section>
-      )}
 
       {phase === "input" && (
         <section style={{ background: "#fff", padding: "64px 28px 48px" }}>
@@ -209,7 +208,7 @@ export default function RFPRequirementBuilder() {
             </div>
 
             {step === 0 && (<div>
-              <h2 style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Your environment</h2>
+              <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Your environment</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div><label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>Industry vertical</label>
                   <select value={vertical} onChange={e => setVertical(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, color: NAVY }}><option value="">Select...</option>{VERTICALS.map(v => <option key={v} value={v}>{v}</option>)}</select></div>
@@ -220,7 +219,7 @@ export default function RFPRequirementBuilder() {
             </div>)}
 
             {step === 1 && (<div>
-              <h2 style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>What are your focus areas?</h2>
+              <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>What are your focus areas?</h2>
               <p style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>We auto-selected based on your environment. Add or remove as needed.</p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }} className="pg">
                 {TAG_FILTERS.map(t => (
@@ -237,7 +236,7 @@ export default function RFPRequirementBuilder() {
             </div>)}
 
             {step === 2 && (<div>
-              <h2 style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Review + customize your requirements</h2>
+              <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Review + customize your requirements</h2>
               <p style={{ fontSize: 13, color: MUTED, marginBottom: 8 }}>Adjust priority levels for each requirement. Click Must / Should / Nice to change.</p>
               <div style={{ display: "flex", gap: 12, marginBottom: 20, padding: "10px 14px", background: WARM, borderRadius: 8, border: `1px solid ${BORDER}` }}>
                 <span style={{ fontSize: 12, fontWeight: 600, color: RED }}>★ Must Have: {mustCount}</span>
@@ -298,21 +297,21 @@ export default function RFPRequirementBuilder() {
           <div style={WRAP}>
             <div style={{ textAlign: "center", marginBottom: 28 }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 2, textTransform: "uppercase" }}>Your RFP requirements are ready</span>
-              <h2 style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0" }}>{totalReqs} requirements across {filtered.length} layers</h2>
+              <h2 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0" }}>{totalReqs} requirements across {filtered.length} layers</h2>
               <p style={{ fontSize: 13, color: MUTED }}>{vertical} · {size} · {mustCount} must have · {shouldCount} should have · {niceCount} nice to have</p>
             </div>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 24 }} className="pg">
               <div style={{ textAlign: "center", padding: "16px", background: `${RED}06`, border: `1px solid ${RED}20`, borderRadius: 10 }}>
-                <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 32, color: RED }}>{mustCount}</div>
+                <div style={{ fontFamily: FONT, fontSize: 32, color: RED }}>{mustCount}</div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: RED }}>Must Have</div>
               </div>
               <div style={{ textAlign: "center", padding: "16px", background: `${AMBER}06`, border: `1px solid ${AMBER}20`, borderRadius: 10 }}>
-                <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 32, color: AMBER }}>{shouldCount}</div>
+                <div style={{ fontFamily: FONT, fontSize: 32, color: AMBER }}>{shouldCount}</div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: AMBER }}>Should Have</div>
               </div>
               <div style={{ textAlign: "center", padding: "16px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10 }}>
-                <div style={{ fontFamily: "'Instrument Serif',Georgia,serif", fontSize: 32, color: MUTED }}>{niceCount}</div>
+                <div style={{ fontFamily: FONT, fontSize: 32, color: MUTED }}>{niceCount}</div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: MUTED }}>Nice to Have</div>
               </div>
             </div>
@@ -335,10 +334,19 @@ export default function RFPRequirementBuilder() {
             ))}
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 24, alignItems: "center" }}>
-              <ReportExport toolName="RFP Requirements Document" subtitle={`${vertical} · ${size} · ${totalReqs} requirements`} userName={name} userEmail={email} sections={reportSections} />
-              <a href="/tools/vendor-match" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Vendor Match Engine →</a>
-              <a href="/tools/contract-risk" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Contract Risk Scanner →</a>
-              <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>All Tools</a>
+              <ReportActions
+                toolId={TOOL_ID}
+                toolName="RFP Requirements Document"
+                subtitle={`${vertical || "Any vertical"}, ${size || "any size"}, ${totalReqs} requirements`}
+                routePath={ROUTE}
+                state={{ vertical, size, activeTags, reqs }}
+                defaults={DEFAULTS}
+                summary={[
+                  { label: "Requirements", value: String(totalReqs) },
+                  { label: "Must / should / nice", value: mustCount + " / " + shouldCount + " / " + niceCount },
+                ]}
+                sections={reportSections}
+              />
             </div>
 
             <div style={{ marginTop: 20, textAlign: "center" }}>

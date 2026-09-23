@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -51,19 +53,22 @@ const TERMS = [
   ]},
 ];
 
+const TOOL_ID = "contract-risk";
+const ROUTE = "/tools/contract-risk";
+export const DEFAULTS = { selections: {} };
+/* The highest-risk option on every term, so the harness renders the flagged-term
+   checklist and its PDF content. */
+export const SAMPLE = { selections: Object.fromEntries(TERMS.map(t => [t.id, t.options[t.options.length - 1].val])) };
+/* A selection is kept only if it names a real option on a real term. */
+const cleanSelections = (sel) => Object.fromEntries(TERMS.filter(t => sel && t.options.some(o => o.val === sel[t.id])).map(t => [t.id, sel[t.id]]));
+
 export default function ContractRiskScanner() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState(""); const [name, setName] = useState("");
-  const [sending, setSending] = useState(false);
-  const [selections, setSelections] = useState({});
-  useEffect(() => { window.scrollTo(0,0); }, [phase]);
+  const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { selections: cleanSelections(sc && sc.selections) }; });
+  const [selections, setSelections] = useState(init.selections);
+  useEffect(() => { window.scrollTo(0, 0); clearScenarioParam(); }, []);
   const setTerm = (id, val) => setSelections(prev => ({...prev,[id]:val}));
 
-  const handleGate = async () => {
-    if(!email.includes("@")) return; setSending(true);
-    try{await fetch("https://formspree.io/f/maqlvwne",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,tool:"Contract Risk Scanner",_subject:"Contract Risk Scanner Access"})});}catch(e){}
-    setSending(false); setPhase("calc");
-  };
+
 
   const analyzed = TERMS.map(t => {
     const opt = t.options.find(o => o.val === selections[t.id]);
@@ -78,40 +83,26 @@ export default function ContractRiskScanner() {
   const overallRisk = riskCounts.critical>=2?"High Risk":riskCounts.critical>=1||riskCounts.high>=3?"Elevated Risk":riskCounts.high>=1?"Moderate Risk":"Low Risk";
   const overallColor = riskCounts.critical>=2?RED:riskCounts.critical>=1||riskCounts.high>=3?"#DC6B00":riskCounts.high>=1?AMBER:GREEN;
 
-  const handleSendFlags = async () => {
-    const flags = flaggedTerms.map(f => `${f.name}: ${f.selected} (${f.opt.level})`).join(" | ");
-    try{await fetch("https://formspree.io/f/maqlvwne",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,tool:"Contract Risk Scanner",overallRisk,flaggedTerms:flags,_subject:`Contract Review: ${totalFlags} flags (${overallRisk}) — ${name||email}`})});}catch(e){}
-  };
+
 
   const riskColors = { low: GREEN, medium: AMBER, high: "#DC6B00", critical: RED };
 
   return(
-    <div style={{fontFamily:"'DM Sans',sans-serif",minHeight:"100vh"}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
+    <div style={{fontFamily:FONT,minHeight:"100vh"}}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
 
-      {phase==="gate"&&(<section style={{background:`linear-gradient(168deg,${DEEP},${NAVY})`,padding:"80px 28px 60px"}}><div style={{...WRAP,maxWidth:520}}>
-        <span style={{color:RED,fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",display:"block",marginBottom:12}}>Vendor Selection</span>
-        <h1 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:32,fontWeight:400,color:"#fff",lineHeight:1.15,margin:"0 0 12px"}}>Contract Risk Scanner</h1>
-        <p style={{fontSize:15,color:"rgba(255,255,255,0.5)",lineHeight:1.65,marginBottom:32}}>Select your contract terms across 7 critical areas. Get risk analysis, specific negotiation language, and a checklist you can bring to your next vendor conversation.</p>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <input type="text" placeholder="Name" value={name} onChange={e=>setName(e.target.value)} style={{padding:"12px 14px",fontSize:14,border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"#fff",outline:"none"}}/>
-          <input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} style={{padding:"12px 14px",fontSize:14,border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"#fff",outline:"none"}}/>
-          <button onClick={handleGate} disabled={sending||!email.includes("@")} style={{padding:"14px",fontSize:15,fontWeight:600,background:email.includes("@")?RED:SLATE,color:"#fff",border:"none",borderRadius:8,cursor:"pointer",opacity:email.includes("@")?1:0.5}}>{sending?"Loading...":"Launch Scanner →"}</button>
-        </div>
-      </div></section>)}
-
-      {phase==="calc"&&(<section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={WRAP}>
-        <h2 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>Contract Risk Scanner</h2>
+      <section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={WRAP}>
+        <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>Contract Risk Scanner</h2>
         <p style={{fontSize:13,color:MUTED,marginBottom:24}}>Select your current or proposed terms. Risk assessment and negotiation guidance update in real time.</p>
 
         {allAnswered&&(<div style={{background:`${overallColor}08`,border:`2px solid ${overallColor}`,borderRadius:12,padding:"20px 24px",marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
           <div>
-            <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:28,color:overallColor}}>{overallRisk}</div>
+            <div style={{fontFamily:FONT,fontSize:28,color:overallColor}}>{overallRisk}</div>
             <div style={{fontSize:13,color:SLATE}}>{totalFlags} terms flagged as high or critical risk</div>
           </div>
           <div style={{display:"flex",gap:12}}>
-            {[["Critical",riskCounts.critical,RED],["High",riskCounts.high,"#DC6B00"],["Medium",riskCounts.medium,AMBER],["Low",riskCounts.low,GREEN]].map(([l,c,color])=>(<div key={l} style={{textAlign:"center"}}><div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:20,color}}>{c}</div><div style={{fontSize:10,color:MUTED}}>{l}</div></div>))}
+            {[["Critical",riskCounts.critical,RED],["High",riskCounts.high,"#DC6B00"],["Medium",riskCounts.medium,AMBER],["Low",riskCounts.low,GREEN]].map(([l,c,color])=>(<div key={l} style={{textAlign:"center"}}><div style={{fontFamily:FONT,fontSize:20,color}}>{c}</div><div style={{fontSize:10,color:MUTED}}>{l}</div></div>))}
           </div>
         </div>)}
 
@@ -155,23 +146,32 @@ export default function ContractRiskScanner() {
 
         {/* CTAs */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:28,marginBottom:24}} className="pg">
-          <a href="/contact" onClick={handleSendFlags} style={{display:"block",background:`linear-gradient(135deg,${NAVY},${DEEP})`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
+          <a href="/contact" style={{display:"block",background:`linear-gradient(135deg,${NAVY},${DEEP})`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
             <div style={{fontSize:11,fontWeight:700,color:RED,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>Get Expert Eyes on This</div>
-            <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:20,color:"#fff",marginBottom:8}}>Review This Contract with a Consultant</div>
-            <p style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.5,margin:"0 0 12px"}}>We will receive your flagged terms and come prepared with specific negotiation strategies for your situation.</p>
+            <div style={{fontFamily:FONT,fontSize:20,color:"#fff",marginBottom:8}}>Review This Contract with a Consultant</div>
+            <p style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.5,margin:"0 0 12px"}}>Use the review request below. Your flagged terms travel with it, so the consultant comes prepared with negotiation strategies for your situation.</p>
             <span style={{display:"inline-block",background:ELECTRIC,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Request Contract Review →</span>
           </a>
           <a href="/tools/license-gap" style={{display:"block",background:`${AMBER}06`,border:`1px solid ${AMBER}30`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
             <div style={{fontSize:11,fontWeight:700,color:AMBER,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>See the Full Picture</div>
-            <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:20,color:NAVY,marginBottom:8}}>Check Your License Bundle Gap</div>
+            <div style={{fontFamily:FONT,fontSize:20,color:NAVY,marginBottom:8}}>Check Your License Bundle Gap</div>
             <p style={{fontSize:12,color:SLATE,lineHeight:1.5,margin:"0 0 12px"}}>Compare base seat price against the modules you actually need. The gap runs 40-100%.</p>
             <span style={{display:"inline-block",background:AMBER,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Run Gap Checker →</span>
           </a>
         </div>
 
-        <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-          
-                <ReportExport toolName="Contract Risk Analysis" subtitle={overallRisk + " — " + totalFlags + " terms flagged"} userName={name} userEmail={email} sections={[
+        <ReportActions
+          toolId={TOOL_ID}
+          toolName="Contract Risk Analysis"
+          subtitle={overallRisk + ", " + totalFlags + " terms flagged"}
+          routePath={ROUTE}
+          state={{ selections }}
+          defaults={DEFAULTS}
+          summary={[
+            { label: "Overall risk", value: allAnswered ? overallRisk : "Incomplete (" + Object.keys(selections).length + " of " + TERMS.length + " terms answered)" },
+            { label: "Flagged terms", value: flaggedTerms.length ? flaggedTerms.map(f => f.name + ": " + f.selected).join("; ") : "None" },
+          ]}
+          sections={[
                     { title: "Term Analysis", type: "table", rows: analyzed.filter(a => a.opt).map(a => [a.name, a.selected + " (" + a.opt.level + ")"]) },
                     { title: "Risk Summary", type: "metrics", items: [
                       { label: "Overall Risk", value: overallRisk, color: overallColor },
@@ -183,12 +183,9 @@ export default function ContractRiskScanner() {
                       { tool: "License Bundle Gap Checker", reason: "Check add-on pricing commitments" },
                       { tool: "Vendor Match Engine", reason: "Compare terms across vendors" },
                     ]},
-                  ]} />
-                <a href="/tools/vendor-match" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Vendor Match Engine →</a>
-          <a href="/tco-calculator" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>TCO Calculator →</a>
-          <a href="/research/ccaas-buyer-guide" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>CCaaS Buyer Guide →</a>
-        </div>
-      </div></section>)}
+                  ]}
+        />
+      </div></section>
     </div>
   );
 }
