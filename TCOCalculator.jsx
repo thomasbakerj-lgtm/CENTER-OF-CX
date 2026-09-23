@@ -817,6 +817,9 @@ function Calculator() {
               </div>
               <div style={{ background: NAVY, borderRadius: 10, padding: "20px 18px", color: "#fff" }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: LIGHT, marginBottom: 14 }}>Live TCO</div>
+                {G.voided ? (
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>No figure computed. The model failed an internal check; see Overhead & Results.</div>
+                ) : (<>
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Annual</div>
                   <div style={{ ...TYPE.statValue, fontSize: 25, color: LIGHT }}>{fmtK(r.annual)}</div>
@@ -827,6 +830,7 @@ function Calculator() {
                     <div key={i}><div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{item.l}</div><div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{item.v}</div></div>
                   ))}
                 </div>
+                </>)}
                 <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
                   <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Export confidence</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: confColor }}>{G.confidence}</div>
@@ -1044,6 +1048,12 @@ function Calculator() {
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>cost inputs, not savings or KPIs</div>
                     </div>
                   </div>
+                  {G.voided ? (
+                    <div style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: 8, padding: "18px 16px" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 6 }}>Result void. No figure is shown and no grade is claimed.</div>
+                      <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.55 }}>Failed check: {G.invariants.join("; ")}. Remedy: {G.gradeObj.remedy}</div>
+                    </div>
+                  ) : (<>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }} className="kpi-grid">
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Annual TCO</div>
@@ -1079,10 +1089,11 @@ function Calculator() {
                       <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Overhead {fmtK(r.overhead)}/mo</span>
                     </div>
                   </div>
+                  </>)}
                 </div>
 
                 {/* Self-audit flags */}
-                {r.flags.length > 0 && (
+                {!G.voided && r.flags.length > 0 && (
                   <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px 22px", marginBottom: 20 }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>Integrity checks</div>
                     {r.flags.map((f, i) => {
@@ -1098,11 +1109,11 @@ function Calculator() {
                   </div>
                 )}
 
-                {/* Analyst Read */}
-                <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 20 }}>
+                {/* Analyst Read. A void run has no figure to read, so it renders none. */}
+                {!G.voided && <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 20 }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read, what these numbers mean</div>
                   {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
-                </div>
+                </div>}
 
                 {/* Stance selector */}
                 <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 22px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
@@ -1114,7 +1125,7 @@ function Calculator() {
                   </div>
                 </div>
 
-                {opt.items.length > 0 && (
+                {!G.voided && opt.items.length > 0 && (
                   <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px", marginBottom: 20 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
                       <h3 style={{ ...TYPE.h2, fontSize: 19, color: NAVY, margin: 0 }}>Optimization Opportunities</h3>
@@ -1169,7 +1180,10 @@ function Calculator() {
                           defaults={SCENARIO_DEFAULTS}
                           confidence={G.confidence}
                           grades={G.gradeObj}
-                          summary={[
+                          summary={G.voided ? [
+                            { label: "Result", value: "Void. No figure was computed; see the failed invariant." },
+                            { label: "Realization stance", value: STANCE[stance].label },
+                          ] : [
                             { label: "Annual TCO", value: fmtK(r.annual) },
                             { label: "Three-year TCO", value: fmtK(r.threeYear) },
                             { label: "Cost per agent per month", value: fmt(r.perAgentMonth) },
@@ -1222,37 +1236,45 @@ function Calculator() {
                                leaks single digit percentages of its base. That is the honest
                                distribution, and the outlier is what this band exists to find.
                                Nothing is published when annual TCO is zero. */
-                            severity: severityBucket(r.annual > 0 ? Math.max(0, Math.min(1, (opt.grossTotal * 12) / r.annual)) : null),
+                            /* A void run publishes no property derived from its figures: they are not
+                               finite, so any comparison on them reads as a false fact (S21 D17). A dropped
+                               property reads as not published, never as zero (TAXONOMY rule 6). */
+                            ...(G.voided ? {} : {
+                              severity: severityBucket(r.annual > 0 ? Math.max(0, Math.min(1, (opt.grossTotal * 12) / r.annual)) : null),
+                              booked_at_full_theoretical: Math.round(opt.netTotal) === Math.round(opt.grossTotal),
+                              has_optimization_levers: opt.items.length > 0,
+                              labor_dominant: r.laborPct >= 0.75,
+                              spend_band: r.annual >= 5e7 ? "very_high" : r.annual >= 1e7 ? "high" : r.annual >= 2e6 ? "mid" : "low",
+                            }),
                             confidence_class: G.confidence,
                             inputs_corrected: r.guards.length,
                             cost_basis: d.costBasis,
                             stance_class: stance,
-                            booked_at_full_theoretical: Math.round(opt.netTotal) === Math.round(opt.grossTotal),
-                            has_optimization_levers: opt.items.length > 0,
                             modelling_implementation: n(d.implementationOneTime) > 0,
                             overrode_industry_default: d.industry !== "general",
                             pulled_from_upstream_tool: Object.keys(pulled).length > 0,
-                            labor_dominant: r.laborPct >= 0.75,
                             scale_band: r.agents >= 1000 ? "very_large" : r.agents >= 300 ? "large" : r.agents >= 75 ? "mid" : "small",
-                            spend_band: r.annual >= 5e7 ? "very_high" : r.annual >= 1e7 ? "high" : r.annual >= 2e6 ? "mid" : "low",
                             decision_ready_signal: !G.voided && G.evidence === "Planning-grade" && G.completeness === "Finance-grade" && opt.items.length > 0,
                           }}
                           sections={[
                           ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
-                          { title: "Confidence and Open Issues", type: "findings", items: [
-                            `Headline: ${G.confidence}${G.voided ? "" : ", bound by " + G.gradeObj.boundBy}.`,
-                            `Evidence axis: ${G.voided ? "Void" : G.evidence}.`,
-                            `Realization axis: not applicable. ${G.voided ? "" : G.gradeObj.naReason}`.trim(),
-                            `Completeness axis: ${G.voided ? "Void" : G.completeness}${G.blockers.length ? ` (${G.blockers.length} check${G.blockers.length > 1 ? "s" : ""} failed).` : ", the model is whole."}`,
+                          /* The document carries one confidence section, built by ReportActions from
+                             the grade (doctrine Section 5.6 item 2). This section lists open issues and
+                             never restates an axis. A void run carries none of it, because its checks
+                             read figures that are not finite (S21 defects D15 and D16). */
+                          ...(G.voided ? [] : [{ title: "Open Issues", type: "findings", items: [
                             `Cost basis is ${d.costBasis}, declared by your own account. It sets the sensitivity range for the cost inputs (wages and seat prices), not the operational KPIs or org structure, and it lifts cost evidence to Planning-grade at most. Headline sensitivity is plus or minus ${pct0(r.sensitivity.pct)} (annual ${fmtK(r.sensitivity.annualLow)} to ${fmtK(r.sensitivity.annualHigh)}).`,
                             ...(r.openIssues.length ? r.openIssues : ["No blocking issues on the confidence checks."]),
                             ...r.itemsToConfirm.map(m => "Confirm: " + m),
-                          ]},
+                          ]}]),
                           { title: "Organization Profile", type: "table", rows: [
                             ["Agents", r.agents.toString()], ["Supervisors", String(d.supervisors)], ["Sites", String(d.sites)],
                             ["Industry", INDUSTRY[d.industry]?.label || d.industry], ["Monthly Contacts", r.contacts.toLocaleString()],
                             ["AHT", mmss(d.aht)], ["FCR", pct(d.fcr)], ["Containment", pct(d.containment)], ["Occupancy", pct(d.occupancy)], ["Attrition", pct(d.attrition)],
                           ]},
+                          /* A void result prints no computed figure and no reading of one. The
+                             invariant and the remedy are stated once, by ReportActions (S21 D17). */
+                          ...(G.voided ? [] : [
                           { title: "TCO Summary", type: "metrics", items: [
                             { label: "Annual TCO", value: fmtK(r.annual), color: ELECTRIC, sub: "Range " + fmtK(r.sensitivity.annualLow) + " to " + fmtK(r.sensitivity.annualHigh) },
                             { label: "3-Year TCO", value: fmtK(r.threeYear), color: ELECTRIC, sub: escLabel },
@@ -1291,6 +1313,7 @@ function Calculator() {
                           ]},
                           { title: "Analyst Read", type: "findings", items: analyst },
                           { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: (() => { const rank = [...opt.items].sort((a, b) => b.net - a.net).findIndex(x => x === o); return rank === 0 ? "high" : rank === 1 ? "medium" : undefined; })() })) },
+                          ]),
                           { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on ${benchmark("tco.hours.month")} paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage ${pctD(benchmark("tco.escalator.wage"))} and license ${pctD(benchmark("tco.escalator.license"))}); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by the ${STANCE[stance].label.toLowerCase()} realization stance, so totals are defensible rather than inflated.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} ${BENCHMARK_SOURCES}` },
                           { title: "Next Steps", type: "next", items: nextFor(TOOL_ID).map((e) => ({ tool: e.name, reason: e.why, href: e.href })) },
                         ]}

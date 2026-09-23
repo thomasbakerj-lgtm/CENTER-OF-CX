@@ -1,0 +1,6 @@
+node_modules
+dist
+# Temp copy written by rail-audit.mjs on every suite run
+.rail-audit-metrics.mjs
+# Not committed: Vercel resolves from package.json today. Pinning is a separate decision.
+package-lock.json
