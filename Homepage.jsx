@@ -120,11 +120,11 @@ function Hero() {
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 680, marginBottom: 36 }}>
           <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 14px" }}>
-            {TOOL_COUNT} free tools. {VENDOR_PROFILE_COUNT} scored vendors.{" "}
+            {TOOL_COUNT} free tools. {VENDOR_PROFILE_COUNT} vendor profiles.{" "}
             <span style={{ color: "rgba(255,255,255,0.35)" }}>Zero vendor sponsorship.</span>
           </h1>
           <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 520 }}>
-            The resource for CX operators. Independently scored vendor intelligence, operational calculators, and buyer frameworks for contact center professionals.
+            The resource for CX operators. Independent vendor intelligence, operational calculators, and buyer frameworks for contact center professionals.
           </p>
         </div>
 
@@ -232,7 +232,7 @@ function RolePaths() {
 // ─── FEATURED TOOLS (SPOTLIGHT) ──────────────────────
 function FeaturedTools() {
   const featured = [
-    { name: "Vendor Match Engine", desc: `Tell us your environment, priorities, and constraints. Get a ranked shortlist from ${CATEGORIES.ccaas.vendorCount} scored CCaaS vendors with fit reasoning and integration data.`, href: "/tools/vendor-match", accent: ELECTRIC, tag: "Most used" },
+    { name: "Vendor Match Engine", desc: `Tell us your environment, priorities, and constraints. Get a shortlist of CCaaS vendors with fit reasoning and integration data.`, href: "/tools/vendor-match", accent: ELECTRIC, tag: "Most used" },
     { name: "Staffing Calculator", desc: "Erlang C model. Volume, AHT, SLA target, and shrinkage to required FTE. Sensitivity analysis and industry presets included.", href: "/tools/staffing-calculator", accent: AMBER, tag: "Operations" },
     { name: "TCO Calculator", desc: "What your platform stack actually costs per agent, per contact, per resolved task. Including the costs your vendor quote left out.", href: "/tco-calculator", accent: RED, tag: "Economics" },
   ];
@@ -288,7 +288,7 @@ function VendorIntel() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
               <span style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Vendor intelligence</span>
-              <span style={{ fontSize: 12, color: "rgba(107,127,153,0.6)", marginLeft: 12 }}>{VENDOR_PROFILE_COUNT} vendors · {CATEGORY_COUNT} categories · scored independently</span>
+              <span style={{ fontSize: 12, color: "rgba(107,127,153,0.6)", marginLeft: 12 }}>{VENDOR_PROFILE_COUNT} vendors · {CATEGORY_COUNT} categories · independent research</span>
             </div>
             <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Browse all vendors →</a>
           </div>
@@ -301,7 +301,7 @@ function VendorIntel() {
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
                 <div style={{ fontSize: 10.5, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>{c.s}</div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 3 }}>{c.t}</div>
-                <div style={{ fontSize: 11.5, color: MUTED }}>{c.n} scored →</div>
+                <div style={{ fontSize: 11.5, color: MUTED }}>{c.n} vendors →</div>
               </a>
             </FadeIn>
           ))}

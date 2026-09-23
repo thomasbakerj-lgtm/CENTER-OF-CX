@@ -76,6 +76,7 @@ const INFRA = [
   { name: "track.test.mjs", covers: "instrumentation: event contract, no PII" },
   { name: "chunk.test.mjs", covers: "delivery: entry chunk ceiling, lazy routes" },
   { name: "journey.test.mjs", covers: "journey: graph, live routes, tracked next steps" },
+  { name: "freeze.test.mjs", covers: "CCaaS integrity freeze: no Phase 1 score, research status shown" },
 ];
 
 /* ---------------------------------------------------------------- utilities */

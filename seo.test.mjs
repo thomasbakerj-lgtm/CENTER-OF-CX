@@ -179,7 +179,8 @@ for (const [slug, actual] of Object.entries(ACTUAL)) {
      CATEGORIES[slug].vendorCount, actual);
 
   const title = resolveSeo(`/vendors/${slug}`).title;
-  const claim = title.match(/(\d+)\s+(?:Vendors?|Platforms?)\s+Scored/i);
+  /* CCaaS says Profiled since the S22 integrity freeze withdrew its Phase 1 scores. */
+  const claim = title.match(/(\d+)\s+(?:Vendors?|Platforms?)\s+(?:Scored|Profiled)/i);
   ok(`E2  ${slug}: title states a vendor count`, !!claim);
   if (claim) eq(`E3  ${slug}: title count matches the data file`, Number(claim[1]), actual);
 }
@@ -419,7 +420,12 @@ section("V. Vendor Match roster resolves to live CCaaS profiles");
   ok("V  source gate: shortlist name and tier come from the profile", /name: p \? p\.name : v\.name, tier: p \? p\.tier : v\.tier/.test(VM));
   ok("V  Vendor Match contains no em-dash or en-dash", VM.indexOf(String.fromCharCode(0x2014)) < 0 && VM.indexOf(String.fromCharCode(0x2013)) < 0);
   const CC = readFileSync("./CCaaSCategory.jsx", "utf8");
-  ok("V  CCaaS meta description states the same dimension count as the page", /27 weighted dimensions/.test(CC) && /24 CCaaS vendors scored across 27 weighted dimensions/.test(readFileSync("./src/lib/seo.js", "utf8")));
+  /* Integrity freeze (S22): Phase 1 CCaaS scores are withdrawn. Page and meta must agree
+     that they are, and neither may claim the retired 27-dimension composite or tiers. */
+  const CCMETA = resolveSeo("/vendors/ccaas");
+  ok("V  CCaaS page and meta both state that scores are withdrawn", /withdrawn/.test(CC) && /withdrawn/.test(CCMETA.desc));
+  ok("V  CCaaS meta claims no score, dimension count or tier", !/scored|weighted dimensions|bell curve|tier/i.test(CCMETA.title + " " + CCMETA.desc));
+  ok("V  CCaaS page renders no composite score or tier", !/\{v\.score\}|\{v\.tier\}|v\.tier ===|ranked by weighted composite/i.test(CC));
   ok("V  CCaaS category page contains no em-dash or en-dash", CC.indexOf(String.fromCharCode(0x2014)) < 0 && CC.indexOf(String.fromCharCode(0x2013)) < 0);
 }
 

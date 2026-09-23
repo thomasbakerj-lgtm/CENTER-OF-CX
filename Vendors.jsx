@@ -105,7 +105,7 @@ function Hero() {
             <div>
               <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
                 {VENDOR_PROFILE_COUNT} vendors.{" "}
-                <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Scored, mapped, and evaluated.</span>
+                <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Mapped and evaluated.</span>
               </h1>
               <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 520, fontFamily: "'DM Sans', sans-serif" }}>
                 Every vendor is assessed at the architecture level using proprietary scoring rubrics. We evaluate orchestration readiness, AI maturity, vertical fit, and operational impact. Inclusion requires demonstrated capability.
@@ -204,7 +204,7 @@ function BrowseByCategory() {
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
             <Label>Browse by decision domain</Label>
-            <Title>Nine categories. Each one scored with a proprietary rubric.</Title>
+            <Title>Nine categories, each evaluated on its own terms.</Title>
           </div>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -253,8 +253,8 @@ function HowWeEvaluate() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           {[
             { t: "Architecture-level scoring", d: "We evaluate at the orchestration layer level. Routing dependencies, data fabric requirements, API maturity, event-driven capability, and governance overhead. Feature checklists miss what matters. We go deeper." },
-            { t: "Weighted dimension model", d: "Each category uses a custom rubric with up to 27 weighted scoring dimensions. CCaaS vendors, for example, are scored 1 to 5 across platform depth, workforce maturity, AI substance, architecture, and commercial fit, with weights reflecting operational importance." },
-            { t: "Maturity tiering", d: "Vendors are placed into four maturity tiers: Strategic Foundation, Strong Contender, Situational Specialist, and Limited Fit, based on weighted composite scores. Our bell curve distributions show exactly where the market clusters and where the gaps are." },
+            { t: "Category-specific rubrics", d: "Each category is evaluated on criteria built for it. CCaaS has moved to the current research method: atomic claims with dated evidence, comparison only within a competitive class, and numeric ratings withheld until each class has enough validated peers." },
+            { t: "Research status on every profile", d: "Each CCaaS profile states whether current research is complete or the page still reflects the earlier Phase 1 assessment. Phase 1 CCaaS scores and tiers are withdrawn." },
             { t: "Vertical and buyer context", d: "A vendor that's strong for retail may break in healthcare. Our evaluations include vertical fit signals, regulated-readiness indicators, and buyer-type alignment (enterprise vs mid-market vs SMB)." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.08}>
@@ -320,7 +320,7 @@ function CTA() {
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
             <Title>Need a shortlist tailored to your situation?</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px", fontFamily: "'DM Sans', sans-serif" }}>
-              Browsing {VENDOR_PROFILE_COUNT} vendors takes time. Tell us your operating model, vertical, and constraints. We deliver a scored shortlist of 3 to 5 vendors with honest assessments of each one.
+              Browsing {VENDOR_PROFILE_COUNT} vendors takes time. Tell us your operating model, vertical, and constraints. We deliver a shortlist of 3 to 5 vendors with honest assessments of each one.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Vendor Shortlist</a>
