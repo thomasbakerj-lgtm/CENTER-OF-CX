@@ -44,9 +44,29 @@ Object.defineProperty(globalThis, "navigator", { value: { userAgent: "node" }, c
 const React = require("react");
 const { renderToString } = require("react-dom/server");
 
+/* ReportActions is replaced by a probe that prints everything the PDF and the
+   review request would carry. The PDF content is otherwise built only on click,
+   so a section that reads a missing field ("Maturity level: undefined") would
+   pass a page render. Every leaf is printed with String(), so NaN, Infinity and
+   undefined survive to the text check instead of vanishing inside JSON. A field
+   whose value is undefined is an absent optional field and is skipped; the word
+   inside a string is still caught. */
+const PROBE = `
+import React from "react";
+const leaf = (v) => v === null ? "null" : typeof v === "object" ? Object.values(v).filter((x) => x !== undefined).map(leaf).join(" | ") : String(v);
+export default function ReportActions(p) {
+  return React.createElement("div", { "data-probe": "report" },
+    "PROBE request a review ",
+    leaf({ toolName: p.toolName, subtitle: p.subtitle, summary: p.summary || [], sections: p.sections || [] }));
+}`;
+const probePlugin = { name: "report-probe", setup(b) {
+  b.onResolve({ filter: /^\.\/ReportActions$/ }, () => ({ path: "probe", namespace: "probe" }));
+  b.onLoad({ filter: /.*/, namespace: "probe" }, () => ({ contents: PROBE, loader: "jsx", resolveDir: process.cwd() }));
+} };
+
 async function load(file) {
   const r = await build({ entryPoints: ["./" + file], bundle: true, write: false, format: "cjs", platform: "node",
-    jsx: "automatic", loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent" });
+    jsx: "automatic", loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent", plugins: [probePlugin] });
   const mod = { exports: {} };
   new Function("module", "exports", "require", r.outputFiles[0].text)(mod, mod.exports, require);
   return mod.exports;
@@ -145,8 +165,17 @@ for (const t of TOOLS) {
     ok(`${tag} ${label} inputs do not throw${h.error ? " (" + h.error + ")" : ""}`, !h.error);
     if (h.error) continue;
     ok(`${tag} ${label} inputs print no NaN, Infinity or undefined [${badAt(h.text)}]`, !BAD.test(h.text));
-    ok(`${tag} ${label} inputs still show the result and its actions`, /request a review/i.test(h.text));
-    if (CALCULATORS.has(t.file) && label === "negative") ok(`${tag} negative inputs are corrected and disclosed`, /computed at/.test(h.text));
+    /* A calculator corrects a bad input and still answers. A framework drops an
+       answer outside its scale, so a hostile link opens an incomplete assessment,
+       never a scored one. */
+    if (CALCULATORS.has(t.file)) {
+      ok(`${tag} ${label} inputs still show the result and its actions`, /request a review/i.test(h.text));
+      if (label === "negative") ok(`${tag} negative inputs are corrected and disclosed`, /computed at/.test(h.text));
+    } else if (label !== "zero") {
+      /* Zero is a valid answer on some framework scales (a role index), so a
+         framework is attacked with negative and huge values only. */
+      ok(`${tag} ${label} answers outside the scale never reach a scored result`, !/request a review/i.test(h.text) || !mod.SAMPLE);
+    }
   }
 }
 

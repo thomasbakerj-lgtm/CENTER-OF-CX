@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
@@ -54,16 +56,26 @@ const LEVELS = [
 
 const getTier = (score) => LEVELS.find(l => score >= l.min && score < l.max) || LEVELS[LEVELS.length - 1];
 
+const TOOL_ID = "cx-maturity";
+const ROUTE = "/tools/cx-maturity";
+export const DEFAULTS = { scores: {} };
+/* A complete set of mid-scale answers. The floor harness renders it to prove the
+   results page and its PDF content build without a gate and without a missing field. */
+export const SAMPLE = { scores: Object.fromEntries(DIMS.flatMap(d => d.qs.map((_, i) => [`${d.id}-${i}`, 3]))) };
+/* An answer is kept only if it is a whole number on the 1 to 5 scale. A link
+   carrying anything else opens the unanswered question, never a scored result. */
+const cleanScores = (sc) => Object.fromEntries(Object.entries(sc && typeof sc === "object" ? sc : {})
+  .filter(([k, v]) => /^[a-z0-9-]+$/i.test(k) && Number.isInteger(v) && v >= 1 && v <= 5));
+const isComplete = (scores) => DIMS.every(d => d.qs.every((_, i) => scores[`${d.id}-${i}`] > 0));
+
 export default function CXMaturity() {
-  const [phase, setPhase] = useState("gate"); // gate | assess | results
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [company, setCompany] = useState("");
-  const [sending, setSending] = useState(false);
+  const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { scores: cleanScores(sc && sc.scores) }; });
+  const [phase, setPhase] = useState(() => (isComplete(init.scores) ? "results" : "intro"));
   const [currentDim, setCurrentDim] = useState(0);
-  const [scores, setScores] = useState({});
+  const [scores, setScores] = useState(init.scores);
 
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+  useEffect(() => { clearScenarioParam(); }, []);
 
   const setScore = (dimId, qIdx, val) => {
     setScores(prev => ({ ...prev, [`${dimId}-${qIdx}`]: val }));
@@ -84,35 +96,13 @@ export default function CXMaturity() {
   const overallScore = DIMS.reduce((a, d) => a + dimScore(d.id), 0) / DIMS.length;
   const tier = getTier(overallScore);
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return;
-    setSending(true);
-    try {
-      await fetch("https://formspree.io/f/mdaygjev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, company, tool: "CX Maturity Assessment", _subject: "CX Maturity Assessment Access" }),
-      });
-    } catch (e) {}
-    setSending(false);
-    setPhase("assess");
-  };
+  const handleStart = () => setPhase("assess");
 
-  const handleResults = async () => {
-    const dimResults = DIMS.map(d => `${d.name}: ${dimScore(d.id).toFixed(1)}/5`).join(" | ");
-    try {
-      await fetch("https://formspree.io/f/mdaygjev", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, company, tool: "CX Maturity Assessment", overallScore: overallScore.toFixed(2), tier: tier.tier, dimensions: dimResults, _subject: `CX Maturity: ${tier.tier} (${overallScore.toFixed(1)}/5) — ${company || name || email}` }),
-      });
-    } catch (e) {}
-    setPhase("results");
-  };
+  const handleResults = () => setPhase("results");
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
 
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -122,19 +112,16 @@ export default function CXMaturity() {
       </nav>
 
       {/* ═══ GATE ═══ */}
-      {phase === "gate" && (
+      {phase === "intro" && (
         <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", padding: "80px 28px" }}>
           <div style={{ ...WRAP, textAlign: "center" }}>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Calculator & Diagnostic</span>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>CX Maturity Assessment</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 0 36px", maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>Score your organization across 5 dimensions — strategy, operations, technology, analytics, and governance. 25 questions. Takes about 5 minutes. You'll get a maturity tier, dimension-by-dimension profile, and specific recommendations.</p>
+            <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>CX Maturity Assessment</h1>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 0 36px", maxWidth: 500, marginLeft: "auto", marginRight: "auto" }}>Score your organization across 5 dimensions, strategy, operations, technology, analytics, and governance. 25 questions. Takes about 5 minutes. You'll get a maturity tier, dimension-by-dimension profile, and specific recommendations.</p>
             <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
-              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Work email *" style={{ padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none" }} />
               <div style={{ display: "flex", gap: 10 }}>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ flex: 1, padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none" }} />
-                <input value={company} onChange={e => setCompany(e.target.value)} placeholder="Company" style={{ flex: 1, padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none" }} />
               </div>
-              <button onClick={handleGate} disabled={sending || !email.includes("@")} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: sending ? 0.6 : 1, marginTop: 4 }}>{sending ? "Starting..." : "Start Assessment →"}</button>
+              <button onClick={handleStart} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: 1, marginTop: 4 }}>{"Start Assessment →"}</button>
             </div>
           </div>
         </section>
@@ -161,7 +148,7 @@ export default function CXMaturity() {
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 4, height: 24, borderRadius: 2, background: dim.color }} />
-                    <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: NAVY, margin: 0 }}>{dim.name}</h2>
+                    <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: NAVY, margin: 0 }}>{dim.name}</h2>
                     <span style={{ fontSize: 11, color: MUTED }}>({currentDim + 1} of {DIMS.length})</span>
                   </div>
                   <p style={{ fontSize: 13, color: MUTED, marginBottom: 28 }}>Rate each statement from 1 (strongly disagree) to 5 (strongly agree) based on your organization's current reality.</p>
@@ -216,13 +203,13 @@ export default function CXMaturity() {
             {/* Overall tier */}
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "40px 32px", textAlign: "center", marginBottom: 32 }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Your CX Maturity Tier</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 42, fontWeight: 400, color: tier.color, margin: "8px 0 4px" }}>{tier.tier}</h2>
-              <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: "#fff", marginBottom: 16 }}>{overallScore.toFixed(1)} <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/ 5.0</span></div>
+              <h2 style={{ fontFamily: FONT, fontSize: 42, fontWeight: 400, color: tier.color, margin: "8px 0 4px" }}>{tier.tier}</h2>
+              <div style={{ fontFamily: FONT, fontSize: 24, color: "#fff", marginBottom: 16 }}>{overallScore.toFixed(1)} <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/ 5.0</span></div>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 520, margin: "0 auto" }}>{tier.desc}</p>
             </div>
 
             {/* Dimension breakdown */}
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Dimension Scores</h3>
+            <h3 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Dimension Scores</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
               {DIMS.map((d, i) => {
                 const s = dimScore(d.id);
@@ -236,7 +223,7 @@ export default function CXMaturity() {
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ fontSize: 11, color: dt.color, fontWeight: 600 }}>{dt.tier}</span>
-                        <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: dt.color }}>{s.toFixed(1)}</span>
+                        <span style={{ fontFamily: FONT, fontSize: 20, color: dt.color }}>{s.toFixed(1)}</span>
                       </div>
                     </div>
                     <div style={{ height: 8, background: `${d.color}15`, borderRadius: 4, overflow: "hidden" }}>
@@ -270,7 +257,7 @@ export default function CXMaturity() {
 
             {/* CTA */}
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
-              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Want help closing the gaps?</h3>
+              <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Want help closing the gaps?</h3>
               <div style={{ textAlign: "left", maxWidth: 600, margin: "0 auto 24px" }}>
                 <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Your Action Plan</h3>
                 {[...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id)).slice(0, 3).map((d, i) => {
@@ -284,7 +271,7 @@ export default function CXMaturity() {
                   const rec = tools[d.id] || tools.strategy;
                   return (
                     <div key={d.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-                      <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: LIGHT, width: 20, flexShrink: 0 }}>{i + 1}</span>
+                      <span style={{ fontFamily: FONT, fontSize: 18, color: LIGHT, width: 20, flexShrink: 0 }}>{i + 1}</span>
                       <div>
                         <span style={{ fontSize: 13, color: "#fff", fontWeight: 600 }}>{d.name}</span>
                         <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>{dimScore(d.id).toFixed(1)}/5</span>
@@ -298,14 +285,14 @@ export default function CXMaturity() {
               </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
-                <ReportExport toolName="CX Maturity Assessment" subtitle={"Score: " + overallScore.toFixed(1) + "/5 — " + tier.name} userName={name} userEmail={email} sections={[
+                <ReportActions toolId={TOOL_ID} toolName="CX Maturity Assessment" subtitle={"Score: " + overallScore.toFixed(1) + "/5, " + tier.tier} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS} summary={[{ label: "Maturity score", value: overallScore.toFixed(1) + "/5" }, { label: "Maturity level", value: tier.tier }]} sections={[
                     { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
                     { title: "Assessment", type: "metrics", items: [
                       { label: "Maturity Score", value: overallScore.toFixed(1) + "/5", color: tier.color },
-                      { label: "Maturity Level", value: tier.name, color: tier.color },
+                      { label: "Maturity Level", value: tier.tier, color: tier.color },
                     ]},
                     { title: "Key Findings", type: "findings", items: [
-                      "Overall CX maturity: " + overallScore.toFixed(1) + "/5 (" + tier.name + ").",
+                      "Overall CX maturity: " + overallScore.toFixed(1) + "/5 (" + tier.tier + ").",
                       "Strongest dimension: " + [...DIMS].sort((a,b) => dimScore(b.id) - dimScore(a.id))[0].name + " (" + dimScore([...DIMS].sort((a,b) => dimScore(b.id) - dimScore(a.id))[0].id).toFixed(1) + "/5).",
                       "Weakest dimension: " + [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].name + " (" + dimScore([...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].id).toFixed(1) + "/5).",
                     ]},

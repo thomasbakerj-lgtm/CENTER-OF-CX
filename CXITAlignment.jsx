@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
@@ -43,16 +45,26 @@ const GAP_LEVELS = [
 
 const getGapLevel = (gap) => GAP_LEVELS.find(l => gap >= l.min && gap < l.max) || GAP_LEVELS[GAP_LEVELS.length - 1];
 
+const TOOL_ID = "cx-it-alignment";
+const ROUTE = "/tools/cx-it-alignment";
+export const DEFAULTS = { scores: {} };
+/* A complete set of mid-scale answers. The floor harness renders it to prove the
+   results page and its PDF content build without a gate and without a missing field. */
+export const SAMPLE = { scores: Object.fromEntries(AREAS.flatMap(a => a.pairs.flatMap((_, i) => [[`${a.id}-${i}-cx`, 4], [`${a.id}-${i}-it`, 3]]))) };
+/* An answer is kept only if it is a whole number on the 1 to 5 scale. A link
+   carrying anything else opens the unanswered question, never a scored result. */
+const cleanScores = (sc) => Object.fromEntries(Object.entries(sc && typeof sc === "object" ? sc : {})
+  .filter(([k, v]) => /^[a-z0-9-]+$/i.test(k) && Number.isInteger(v) && v >= 1 && v <= 5));
+const isComplete = (scores) => AREAS.every(a => a.pairs.every((_, i) => scores[`${a.id}-${i}-cx`] > 0 && scores[`${a.id}-${i}-it`] > 0));
+
 export default function CXITAlignment() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [company, setCompany] = useState("");
-  const [sending, setSending] = useState(false);
+  const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { scores: cleanScores(sc && sc.scores) }; });
+  const [phase, setPhase] = useState(() => (isComplete(init.scores) ? "results" : "intro"));
   const [currentArea, setCurrentArea] = useState(0);
-  const [scores, setScores] = useState({});
+  const [scores, setScores] = useState(init.scores);
 
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+  useEffect(() => { clearScenarioParam(); }, []);
 
   const setScore = (areaId, pairIdx, side, val) => setScores(prev => ({ ...prev, [`${areaId}-${pairIdx}-${side}`]: val }));
   const getScore = (areaId, pairIdx, side) => scores[`${areaId}-${pairIdx}-${side}`] || 0;
@@ -82,23 +94,13 @@ export default function CXITAlignment() {
   const overallGap = AREAS.reduce((a, ar) => a + areaGap(ar.id), 0) / AREAS.length;
   const gapLevel = getGapLevel(overallGap);
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return;
-    setSending(true);
-    try { await fetch("https://formspree.io/f/xeevgdge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "CX + IT Alignment Framework", _subject: "CX+IT Alignment Access" }) }); } catch (e) {}
-    setSending(false);
-    setPhase("assess");
-  };
+  const handleStart = () => setPhase("assess");
 
-  const handleResults = async () => {
-    const dimResults = AREAS.map(a => `${a.name}: CX=${areaAvg(a.id,"cx").toFixed(1)} IT=${areaAvg(a.id,"it").toFixed(1)} Gap=${areaGap(a.id).toFixed(1)}`).join(" | ");
-    try { await fetch("https://formspree.io/f/xeevgdge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "CX + IT Alignment", overallGap: overallGap.toFixed(2), gapLevel: gapLevel.label, dimensions: dimResults, _subject: `CX+IT Alignment: ${gapLevel.label} (Gap ${overallGap.toFixed(1)}), ${company || name || email}` }) }); } catch (e) {}
-    setPhase("results");
-  };
+  const handleResults = () => setPhase("results");
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
 
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -107,19 +109,16 @@ export default function CXITAlignment() {
         </div>
       </nav>
 
-      {phase === "gate" && (
+      {phase === "intro" && (
         <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", padding: "80px 28px" }}>
           <div style={{ ...WRAP, textAlign: "center" }}>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Framework & Template</span>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>CX + IT Alignment Framework</h1>
+            <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>CX + IT Alignment Framework</h1>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 520 }}>Rate 15 paired statements (one from the CX perspective, one from IT) across strategy, data, platforms, AI, and governance. The gap between scores reveals where misalignment creates friction, delays, and wasted spend.</p>
             <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
-              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Work email *" style={{ padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none" }} />
               <div style={{ display: "flex", gap: 10 }}>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ flex: 1, padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none" }} />
-                <input value={company} onChange={e => setCompany(e.target.value)} placeholder="Company" style={{ flex: 1, padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none" }} />
               </div>
-              <button onClick={handleGate} disabled={sending || !email.includes("@")} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: sending ? 0.6 : 1, marginTop: 4 }}>{sending ? "Starting..." : "Start Assessment →"}</button>
+              <button onClick={handleStart} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: 1, marginTop: 4 }}>{"Start Assessment →"}</button>
             </div>
           </div>
         </section>
@@ -143,7 +142,7 @@ export default function CXITAlignment() {
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 4, height: 24, borderRadius: 2, background: area.color }} />
-                    <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: NAVY, margin: 0 }}>{area.name}</h2>
+                    <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: NAVY, margin: 0 }}>{area.name}</h2>
                     <span style={{ fontSize: 11, color: MUTED }}>({currentArea + 1} of {AREAS.length})</span>
                   </div>
                   <p style={{ fontSize: 13, color: MUTED, marginBottom: 28 }}>Rate each paired statement 1 to 5. The left column is the CX perspective. The right column is the IT perspective. Gaps between scores reveal misalignment.</p>
@@ -214,12 +213,12 @@ export default function CXITAlignment() {
           <div style={WRAP}>
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "40px 32px", textAlign: "center", marginBottom: 32 }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>CX + IT Alignment Status</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 36, fontWeight: 400, color: gapLevel.color, margin: "8px 0 4px" }}>{gapLevel.label}</h2>
+              <h2 style={{ fontFamily: FONT, fontSize: 36, fontWeight: 400, color: gapLevel.color, margin: "8px 0 4px" }}>{gapLevel.label}</h2>
               <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 12 }}>Average alignment gap: {overallGap.toFixed(1)} points</div>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, maxWidth: 480, margin: "0 auto" }}>{gapLevel.desc}</p>
             </div>
 
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Alignment by Area</h3>
+            <h3 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Alignment by Area</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
               {AREAS.map((a, i) => {
                 const cxAvg = areaAvg(a.id, "cx");
@@ -276,18 +275,21 @@ export default function CXITAlignment() {
             })()}
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
-              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the alignment gaps?</h3>
+              <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the alignment gaps?</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your alignment profile has been saved. Connect with a consultant and we'll help you build a joint CX-IT governance model, prioritize the gaps, and map technology decisions to shared outcomes.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
-                <ReportExport toolName="CX-IT Alignment Framework" subtitle={"Score: " + overallScore.toFixed(1) + "/5"} userName={name} userEmail={email} sections={[
-                    { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
+                <ReportActions toolId={TOOL_ID} toolName="CX-IT Alignment Framework" subtitle={"Average CX-IT gap: " + overallGap.toFixed(1) + " points, " + gapLevel.label} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS} summary={[{ label: "Average CX-IT gap", value: overallGap.toFixed(1) + " points" }, { label: "Alignment level", value: gapLevel.label }]} sections={[
+                    { title: "Alignment by Area", type: "table", rows: AREAS.map(a => [a.name, "CX " + areaAvg(a.id, "cx").toFixed(1) + " / IT " + areaAvg(a.id, "it").toFixed(1) + ", gap " + areaGap(a.id).toFixed(1)]) },
                     { title: "Assessment", type: "metrics", items: [
-                      { label: "Alignment Score", value: overallScore.toFixed(1) + "/5", color: overallScore >= 4 ? "#10B981" : overallScore >= 3 ? "#F59E0B" : "#EF4444" },
+                      { label: "Average Gap", value: overallGap.toFixed(1) + " pts", color: gapLevel.color, sub: "0 is fully aligned, 4 is opposite" },
+                      { label: "Alignment Level", value: gapLevel.label, color: gapLevel.color },
                     ]},
                     { title: "Key Findings", type: "findings", items: [
-                      "CX-IT alignment score: " + overallScore.toFixed(1) + "/5.",
-                      "Weakest alignment area: " + [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].name + ".",
+                      gapLevel.label + ": " + gapLevel.desc,
+                      "Largest gap: " + [...AREAS].sort((a, b) => areaGap(b.id) - areaGap(a.id))[0].name + " (" + areaGap([...AREAS].sort((a, b) => areaGap(b.id) - areaGap(a.id))[0].id).toFixed(1) + " points).",
+                      "Closest alignment: " + [...AREAS].sort((a, b) => areaGap(a.id) - areaGap(b.id))[0].name + " (" + areaGap([...AREAS].sort((a, b) => areaGap(a.id) - areaGap(b.id))[0].id).toFixed(1) + " points).",
+                      "A gap is the distance between how CX and IT rate the same statement. It measures disagreement, not capability.",
                     ]},
                     { title: "Next Steps", type: "next", items: [
                       { tool: "Governance Model", reason: "Define ownership across CX strategy, ops, and AI" },
