@@ -352,9 +352,13 @@ function gradeChannel({ d, r, pre, railOrigin }) {
   const costList = [...COST_FIELDS, ...(active.some(t => t.bot) ? [["botCost", "bot fee"]] : [])];
   const all = [...OPS_OWN, ...opsAttest, ...costList];
   const origins = Object.fromEntries(all.map(([f]) => [f, fieldOrigin(d, pre, f)]));
-  const railG = railEvidence(railOrigin);
+  /* Origin grades are per field. A pulled value grades no higher than the grade its
+     publisher recorded for it, so one weak pull no longer drags every pull down and one
+     strong pull no longer lifts them. `railOrigin` is the blanket fallback for a field the
+     rail carries with no recorded origin. */
+  const railGradeOf = (f) => railEvidence((pre && pre[f] && pre[f].origin) || railOrigin);
   const attested = !!d.validated;
-  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railG, entered })[origins[f]];
+  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railGradeOf(f), entered })[origins[f]];
   const opsGrade = [...OPS_OWN.map(([f]) => fieldGrade(f, "Planning-grade")), ...opsAttest.map(([f]) => fieldGrade(f, attested ? "Planning-grade" : "Directional"))].reduce(weakerStream);
   const costGrade = costList.map(([f]) => fieldGrade(f, "Planning-grade")).reduce(weakerStream);
   const evidence = weakerStream(opsGrade, costGrade);
@@ -366,7 +370,11 @@ function gradeChannel({ d, r, pre, railOrigin }) {
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
     if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
-    if (rail.length) parts.push(`${say(rail)} arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}, which confers consistency and evidence only as far as its origin`);
+    if (rail.length) {
+      const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
+      const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
+      parts.push(`${say(rail)} arrived over the rail ${noted}, which confers consistency and evidence only as far as its origin`);
+    }
     return parts;
   };
   const opsParts = why([...OPS_OWN, ...opsAttest]);
@@ -440,7 +448,7 @@ export default function ChannelShiftModel() {
     const take = (res, field, xform) => {
       if (res.value == null || isNaN(res.value)) return false;
       next[field] = xform(res.value);
-      seen[field] = { value: next[field], src: res.sourceTool || "" };
+      seen[field] = { value: next[field], src: res.sourceTool || "", origin: res.railOrigin || null };
       if (res.sourceTool && res.sourceTool !== TOOL_ID) { got[field] = true; srcOf[field] = res.sourceTool; }
       return true;
     };
