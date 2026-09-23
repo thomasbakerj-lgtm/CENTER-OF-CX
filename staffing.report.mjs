@@ -243,6 +243,8 @@ function render(S) {
     /* Rail state. The harness renders the standalone document, the case with no
        upstream tool in the session, which is the document most readers receive. */
     const railPerAgent = 0, railHourly = 0;
+    /* Nothing on the rail in the harness, so no origin grade reaches the cost stream. */
+    const costOrigin = railPerAgent > 0 ? null : railHourly > 0 ? null : null;
     const valid = modelValidity(aht, intv);
     const occInfo = classifyOccupancy(r.occ);
     const shrinkInfo = classifyShrinkage(shrink / 100);
@@ -256,7 +258,7 @@ function render(S) {
     const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
     const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
     const cost = staffingCost(r.sched, railPerAgent, railHourly);
-    const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: null });
+    const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin });
     const { gradeObj, confidence } = graded;
     const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
     const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
@@ -541,7 +543,7 @@ const CORR = "\u26a0 Inputs Corrected Before Calculation";
     "const { st: stG, guards } = guardStaffing(st);",
     "const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;",
     "const cost = staffingCost(r.sched, railPerAgent, railHourly);",
-    "const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: null });",
+    "const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin });",
     "const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= benchmark(\"staffing.aband.material\") || (r.raw - adjR.raw) >= benchmark(\"staffing.aband.agents\"));",
     "const spike = calc(Math.round(vol * SPIKE), aht, intv, slT / 100, slS, shrink / 100, occCap);",
     "const ahtDown = calc(vol, Math.round(aht * (1 - AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);",
