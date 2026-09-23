@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
-import { COLORS, BENCH } from "./src/lib/benchmarks";
+import { COLORS, BENCH, benchmark, benchmarksForTool } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
@@ -89,19 +89,33 @@ const pctD = (v) => (n(v) * 100).toFixed(1).replace(/\.0$/, "") + "%";
 const mmss = (s) => `${Math.floor(n(s) / 60)}:${String(Math.round(n(s) % 60)).padStart(2, "0")}`;
 
 const INDUSTRY = {
-  general: { label: "Cross-Industry Average", agents: 200, agentHourly: 19, monthlyContacts: 120000, aht: 390, fcr: 0.70, containment: 0.28, occupancy: 0.82, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 4.1, nps: 32, transferRate: 0.15, acw: 45, ccaasSeat: 150, targetAht: 345, targetFcr: 0.76, targetContainment: 0.36, targetAttrition: 0.32 },
-  financial: { label: "Financial Services", agents: 350, agentHourly: 22, monthlyContacts: 180000, aht: 360, fcr: 0.74, containment: 0.25, occupancy: 0.80, shrinkage: 0.28, attrition: 0.30, absenteeism: 0.07, channelMixVoice: 0.50, channelMixChat: 0.28, channelMixEmail: 0.14, channelMixSocial: 0.04, channelMixSelfServe: 0.04, csat: 4.0, nps: 35, transferRate: 0.12, acw: 60, ccaasSeat: 175, targetAht: 315, targetFcr: 0.8, targetContainment: 0.33, targetAttrition: 0.22 },
-  healthcare: { label: "Healthcare", agents: 250, agentHourly: 20, monthlyContacts: 140000, aht: 450, fcr: 0.71, containment: 0.18, occupancy: 0.78, shrinkage: 0.32, attrition: 0.33, absenteeism: 0.09, channelMixVoice: 0.62, channelMixChat: 0.20, channelMixEmail: 0.12, channelMixSocial: 0.03, channelMixSelfServe: 0.03, csat: 3.9, nps: 28, transferRate: 0.18, acw: 75, ccaasSeat: 165, targetAht: 395, targetFcr: 0.77, targetContainment: 0.26, targetAttrition: 0.25 },
-  retail: { label: "Retail & eCommerce", agents: 180, agentHourly: 16, monthlyContacts: 150000, aht: 300, fcr: 0.78, containment: 0.32, occupancy: 0.84, shrinkage: 0.32, attrition: 0.45, absenteeism: 0.10, channelMixVoice: 0.40, channelMixChat: 0.32, channelMixEmail: 0.15, channelMixSocial: 0.08, channelMixSelfServe: 0.05, csat: 4.2, nps: 38, transferRate: 0.14, acw: 40, ccaasSeat: 135, targetAht: 265, targetFcr: 0.84, targetContainment: 0.4, targetAttrition: 0.37 },
-  telecom: { label: "Telecommunications", agents: 400, agentHourly: 19, monthlyContacts: 250000, aht: 510, fcr: 0.66, containment: 0.25, occupancy: 0.85, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.52, channelMixChat: 0.26, channelMixEmail: 0.12, channelMixSocial: 0.06, channelMixSelfServe: 0.04, csat: 3.8, nps: 22, transferRate: 0.20, acw: 60, ccaasSeat: 155, targetAht: 450, targetFcr: 0.72, targetContainment: 0.33, targetAttrition: 0.32 },
-  insurance: { label: "Insurance", agents: 300, agentHourly: 21, monthlyContacts: 100000, aht: 510, fcr: 0.70, containment: 0.16, occupancy: 0.78, shrinkage: 0.28, attrition: 0.27, absenteeism: 0.06, channelMixVoice: 0.60, channelMixChat: 0.22, channelMixEmail: 0.13, channelMixSocial: 0.03, channelMixSelfServe: 0.02, csat: 4.0, nps: 30, transferRate: 0.16, acw: 75, ccaasSeat: 170, targetAht: 450, targetFcr: 0.76, targetContainment: 0.24, targetAttrition: 0.19 },
-  bpo: { label: "BPO / Outsourcer", agents: 500, agentHourly: 15, monthlyContacts: 300000, aht: 390, fcr: 0.68, containment: 0.28, occupancy: 0.86, shrinkage: 0.34, attrition: 0.55, absenteeism: 0.12, channelMixVoice: 0.58, channelMixChat: 0.24, channelMixEmail: 0.10, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 3.9, nps: 25, transferRate: 0.17, acw: 50, ccaasSeat: 120, targetAht: 345, targetFcr: 0.74, targetContainment: 0.36, targetAttrition: 0.47 },
+  general: { label: "Cross-Industry Average", agents: 200, agentHourly: benchmark("tco.wage.general"), monthlyContacts: 120000, aht: 390, fcr: 0.70, containment: 0.28, occupancy: 0.82, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.55, channelMixChat: 0.25, channelMixEmail: 0.12, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 4.1, nps: 32, transferRate: 0.15, acw: 45, ccaasSeat: 150, targetAht: 345, targetFcr: 0.76, targetContainment: 0.36, targetAttrition: 0.32 },
+  financial: { label: "Financial Services", agents: 350, agentHourly: benchmark("tco.wage.financial"), monthlyContacts: 180000, aht: 360, fcr: 0.74, containment: 0.25, occupancy: 0.80, shrinkage: 0.28, attrition: 0.30, absenteeism: 0.07, channelMixVoice: 0.50, channelMixChat: 0.28, channelMixEmail: 0.14, channelMixSocial: 0.04, channelMixSelfServe: 0.04, csat: 4.0, nps: 35, transferRate: 0.12, acw: 60, ccaasSeat: 175, targetAht: 315, targetFcr: 0.8, targetContainment: 0.33, targetAttrition: 0.22 },
+  healthcare: { label: "Healthcare", agents: 250, agentHourly: benchmark("tco.wage.healthcare"), monthlyContacts: 140000, aht: 450, fcr: 0.71, containment: 0.18, occupancy: 0.78, shrinkage: 0.32, attrition: 0.33, absenteeism: 0.09, channelMixVoice: 0.62, channelMixChat: 0.20, channelMixEmail: 0.12, channelMixSocial: 0.03, channelMixSelfServe: 0.03, csat: 3.9, nps: 28, transferRate: 0.18, acw: 75, ccaasSeat: 165, targetAht: 395, targetFcr: 0.77, targetContainment: 0.26, targetAttrition: 0.25 },
+  retail: { label: "Retail & eCommerce", agents: 180, agentHourly: benchmark("tco.wage.retail"), monthlyContacts: 150000, aht: 300, fcr: 0.78, containment: 0.32, occupancy: 0.84, shrinkage: 0.32, attrition: 0.45, absenteeism: 0.10, channelMixVoice: 0.40, channelMixChat: 0.32, channelMixEmail: 0.15, channelMixSocial: 0.08, channelMixSelfServe: 0.05, csat: 4.2, nps: 38, transferRate: 0.14, acw: 40, ccaasSeat: 135, targetAht: 265, targetFcr: 0.84, targetContainment: 0.4, targetAttrition: 0.37 },
+  telecom: { label: "Telecommunications", agents: 400, agentHourly: benchmark("tco.wage.telecom"), monthlyContacts: 250000, aht: 510, fcr: 0.66, containment: 0.25, occupancy: 0.85, shrinkage: 0.30, attrition: 0.40, absenteeism: 0.08, channelMixVoice: 0.52, channelMixChat: 0.26, channelMixEmail: 0.12, channelMixSocial: 0.06, channelMixSelfServe: 0.04, csat: 3.8, nps: 22, transferRate: 0.20, acw: 60, ccaasSeat: 155, targetAht: 450, targetFcr: 0.72, targetContainment: 0.33, targetAttrition: 0.32 },
+  insurance: { label: "Insurance", agents: 300, agentHourly: benchmark("tco.wage.insurance"), monthlyContacts: 100000, aht: 510, fcr: 0.70, containment: 0.16, occupancy: 0.78, shrinkage: 0.28, attrition: 0.27, absenteeism: 0.06, channelMixVoice: 0.60, channelMixChat: 0.22, channelMixEmail: 0.13, channelMixSocial: 0.03, channelMixSelfServe: 0.02, csat: 4.0, nps: 30, transferRate: 0.16, acw: 75, ccaasSeat: 170, targetAht: 450, targetFcr: 0.76, targetContainment: 0.24, targetAttrition: 0.19 },
+  bpo: { label: "BPO / Outsourcer", agents: 500, agentHourly: benchmark("tco.wage.bpo"), monthlyContacts: 300000, aht: 390, fcr: 0.68, containment: 0.28, occupancy: 0.86, shrinkage: 0.34, attrition: 0.55, absenteeism: 0.12, channelMixVoice: 0.58, channelMixChat: 0.24, channelMixEmail: 0.10, channelMixSocial: 0.05, channelMixSelfServe: 0.03, csat: 3.9, nps: 25, transferRate: 0.17, acw: 50, ccaasSeat: 120, targetAht: 345, targetFcr: 0.74, targetContainment: 0.36, targetAttrition: 0.47 },
 };
 
-// Shown in-tool and in the report so the "benchmarked" claim is backed by named, dated sources.
-const BENCHMARK_SOURCES = "Benchmarks validated July 2026 against: SQM Group (FCR, occupancy), Sprinklr and Calabrio (AHT, shrinkage), Giva and SQM (attrition), Indeed, Salary.com and BLS (agent wages, roughly $19 per hour median), Forrester CCaaS Wave and vendor pricing pages (CCaaS $100 to $250 per seat), Balto, Parloa and Teneo (containment 20 to 40 percent). Escalators validated against current data: labor wage growth 3.5 percent (BLS Employment Cost Index and 2026 salary-budget surveys), contracted license renewal uplift 6 percent (enterprise CCaaS renewal clauses run 3 to 10 percent). Values are cross-industry medians; your operation will vary, so adjust any field.";
+/* Shown in-tool and in the report. Built from the registry rather than written by hand,
+   so the tool can never claim a source it does not hold. The previous paragraph named
+   three vendors for a containment range this tool does not model, and cited BLS for a $19
+   wage that is not the BLS figure. Both claims are retired. What the tool ships now is a
+   sourced list for its market entries and a plain statement that everything else is an
+   internal planning value. */
+const TCO_SHARED_IDS = ["load.benefits"];
+const BENCHMARK_SOURCES = (() => {
+  const mine = benchmarksForTool("tco-calculator");
+  const shared = benchmarksForTool("shared").filter((e) => TCO_SHARED_IDS.includes(e.id));
+  const market = [...mine, ...shared].filter((e) => e.kind === "market");
+  const name = (e) => e.label || e.id;
+  const shown = (e) => e.display || `${e.value} ${e.unit}`;
+  const sourced = market.map((e) => `${name(e)}, ${shown(e)}, from ${e.source}`).join(" ");
+  return `Sourced figures in this tool: ${sourced} Every other constant this tool ships is an internal planning value set by ContactCenterCX, not a published benchmark: the seven industry profiles, the salaried load of ${benchmark("tco.load.salaried")}x, the license renewal uplift of ${pctD(benchmark("tco.escalator.license"))}, and the plausibility checks. They exist so the tool opens on a runnable case. Any field still sitting at one grades Directional and is named as a preset in the confidence rationale. Replace them with your own figures, quotes or invoices before citing any number here.`;
+})();
 
-const BASE = { supervisors: 20, qaStaff: 5, wfmStaff: 4, trainers: 3, itSupport: 4, sites: 2, agentBenefitsPct: 0.30, supHourly: 30, qaHourly: 28, wfmHourly: 32, trainerHourly: 26, itHourly: 35, scheduleAdherence: 0.90, avgSpeedAnswer: 28, abandonRate: 0.06, avgHoldTime: 45, newHireTrainingDays: 21, qualityScore: 0.82, wemSeat: 45, telephonyPerMin: 0.025, ivaMonthly: 8000, agentAssistMonthly: 5000, rpaMonthly: 3000, analyticsMonthly: 6000, crmSeat: 75, ipaasMonthly: 4000, recordingMonthly: 3500, knowledgeMgmt: 2500, securityCompliance: 3000, cloudInfra: 5000, psAmortized: 8000, recruitingCostPerHire: 3500, facilitiesCost: 12000, implementationOneTime: 0, wageEscalatorPct: 0.035, licenseEscalatorPct: 0.06, blendedEscalatorPct: 0.045, useSingleEscalator: false, targetContainment: 0.30, targetFcr: 0.78, targetAht: 420, targetAttrition: 0.30, costBasis: "estimate" };
+const BASE = { supervisors: 20, qaStaff: 5, wfmStaff: 4, trainers: 3, itSupport: 4, sites: 2, agentBenefitsPct: benchmark("load.benefits") - 1, supHourly: 30, qaHourly: 28, wfmHourly: 32, trainerHourly: 26, itHourly: 35, scheduleAdherence: 0.90, avgSpeedAnswer: 28, abandonRate: 0.06, avgHoldTime: 45, newHireTrainingDays: 21, qualityScore: 0.82, wemSeat: 45, telephonyPerMin: 0.025, ivaMonthly: 8000, agentAssistMonthly: 5000, rpaMonthly: 3000, analyticsMonthly: 6000, crmSeat: 75, ipaasMonthly: 4000, recordingMonthly: 3500, knowledgeMgmt: 2500, securityCompliance: 3000, cloudInfra: 5000, psAmortized: 8000, recruitingCostPerHire: 3500, facilitiesCost: 12000, implementationOneTime: 0, wageEscalatorPct: benchmark("tco.escalator.wage"), licenseEscalatorPct: benchmark("tco.escalator.license"), blendedEscalatorPct: benchmark("tco.escalator.blended"), useSingleEscalator: false, targetContainment: 0.30, targetFcr: 0.78, targetAht: 420, targetAttrition: 0.30, costBasis: "estimate" };
 
 // Optimization realization confidence: how much freed capacity converts to real savings.
 // "none" is first-class so the tool can honestly report $0 realized when nothing is committed.
@@ -302,11 +316,11 @@ function guardTCO(dIn) {
 
 function computeTCO(dIn, stanceKey = "expected") {
   const { d, guards } = guardTCO(dIn);
-  const HRS = 173; // paid hours per agent per month = 2080 annual / 12
+  const HRS = benchmark("tco.hours.month"); // paid hours per agent per month = 2080 annual / 12
   const productiveHours = HRS * (1 - n(d.shrinkage)); // paid hours net of shrinkage
   const loaded = n(d.agentHourly) * (1 + n(d.agentBenefitsPct));
   const agentLabor = n(d.agents) * loaded * HRS;
-  const salaried = (rate) => rate * 1.25 * HRS;
+  const salaried = (rate) => rate * benchmark("tco.load.salaried") * HRS;
   const supLabor = n(d.supervisors) * salaried(n(d.supHourly));
   const qaLabor = n(d.qaStaff) * salaried(n(d.qaHourly));
   const wfmLabor = n(d.wfmStaff) * salaried(n(d.wfmHourly));
@@ -542,7 +556,7 @@ const TCO_COST = [
   ["securityCompliance", "security and compliance"], ["cloudInfra", "cloud infrastructure"],
   ["psAmortized", "amortized professional services"], ["facilitiesCost", "facilities"],
 ];
-const TCO_CHECKS = { perAgentCeiling: 25000, domShareMax: 0.80, spanMax: 20, mixTol: 0.005 };
+const TCO_CHECKS = { perAgentCeiling: benchmark("tco.check.perAgentCeiling"), domShareMax: benchmark("tco.check.domShareMax"), spanMax: benchmark("tco.check.spanMax"), mixTol: benchmark("tco.check.mixTol") };
 
 /* What this tool publishes, and the grade each published key carries.
    TCO_PUBLISH_ORIGIN maps a published rail key to the graded field behind it, so a
@@ -838,7 +852,7 @@ function Calculator() {
                       {Object.entries(INDUSTRY).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                     </select>
                     <div style={{ fontSize: 10, color: GREEN, marginTop: 3 }}>Prepopulated with {INDUSTRY[d.industry]?.label} benchmarks. Adjust any value.</div>
-                    <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }} title={BENCHMARK_SOURCES}>Benchmarks validated July 2026 (SQM, Sprinklr, Forrester, BLS wage data). Hover for sources.</div>
+                    <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }} title={BENCHMARK_SOURCES}>Industry profiles are internal planning values, not sourced benchmarks. Hover for what is sourced and what is not.</div>
                   </div>
                   <NumField label="Monthly Contacts (gross demand)" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} hint={`All interactions initiated. About ${Math.round(n(d.monthlyContacts) * (1 - n(d.containment))).toLocaleString()} reach an agent at ${pct0(d.containment)} containment.`} />
                 </div>
