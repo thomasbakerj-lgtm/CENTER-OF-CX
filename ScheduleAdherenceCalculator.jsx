@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { createGuards, guardLine } from "./src/lib/guards";
+
+const TOOL_ID = "schedule-adherence";
+const ROUTE = "/tools/schedule-adherence";
+export const DEFAULTS = { agents: 100, currentAdherence: 92, callsPerHour: 200, aht: 360, slaTarget: 80, slaTime: 20, hourlyRate: 18, otMultiplier: 1.5 };
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -7,33 +14,38 @@ function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:
 function Input({label,value,onChange,suffix,hint}){return<div><label style={{fontSize:12,fontWeight:600,color:NAVY,display:"block",marginBottom:4}}>{label}</label><div style={{display:"flex",alignItems:"center",gap:4}}><input type="number" value={value} onChange={e=>onChange(Number(e.target.value))} style={{width:"100%",padding:"10px 12px",fontSize:14,border:`1px solid ${BORDER}`,borderRadius:6,background:"#fff",color:NAVY,outline:"none"}} onFocus={e=>e.target.style.borderColor=ELECTRIC} onBlur={e=>e.target.style.borderColor=BORDER}/>{suffix&&<span style={{fontSize:12,color:MUTED,flexShrink:0}}>{suffix}</span>}</div>{hint&&<span style={{fontSize:11,color:MUTED,marginTop:2,display:"block"}}>{hint}</span>}</div>}
 
 export default function ScheduleAdherenceCalculator() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState(""); const [name, setName] = useState("");
-  const [sending, setSending] = useState(false);
-  const [d, setD] = useState({ agents: 100, currentAdherence: 92, callsPerHour: 200, aht: 360, slaTarget: 80, slaTime: 20, hourlyRate: 18, otMultiplier: 1.5 });
-  useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+  const [d, setD] = useState(() => readScenario(TOOL_ID, DEFAULTS) || DEFAULTS);
+  useEffect(() => { window.scrollTo(0, 0); clearScenarioParam(); }, []);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
-  const n = (v) => Number(v) || 0;
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, tool: "Schedule Adherence Calculator", _subject: "Schedule Adherence Access" }) }); } catch (e) {}
-    setSending(false); setPhase("calc");
+  /* Every input is clamped at the engine boundary and every correction is
+     disclosed on screen and in the PDF. A scenario link can carry any value. */
+  const { guards, guard } = createGuards();
+  const v = {
+    agents: guard("Agents scheduled", d.agents, 1, 100000, ""),
+    currentAdherence: guard("Current adherence", d.currentAdherence, 1, 100, "%"),
+    callsPerHour: guard("Calls per hour", d.callsPerHour, 0, 1000000, ""),
+    aht: guard("AHT", d.aht, 1, 36000, " sec"),
+    slaTarget: guard("SLA target", d.slaTarget, 1, 100, "%"),
+    slaTime: guard("SLA time", d.slaTime, 1, 3600, " sec"),
+    hourlyRate: guard("Hourly rate", d.hourlyRate, 0, 1000, "$"),
+    otMultiplier: guard("OT multiplier", d.otMultiplier, 1, 5, "x"),
   };
 
   // Model: each point of adherence loss = fewer effective agents on queue
-  const intensity = (n(d.callsPerHour) * n(d.aht)) / 3600;
+  const intensity = (v.callsPerHour * v.aht) / 3600;
   const drops = [0, 1, 2, 3, 4, 5, 7, 10];
   
   // Simple Erlang C approximation
+  /* Erlang C through the Erlang B recurrence. The previous form built A^N / N!
+     directly, which overflows to NaN above roughly 170 agents; the recurrence is
+     the same quantity and stays finite at any size. */
   function erlC(agents, A) {
-    if (agents <= A || agents <= 0) return 1;
     const N = Math.floor(agents);
-    let aN = 1; for (let i = 0; i < N; i++) aN = aN * A / (i + 1);
-    const rho = A / N;
-    let sum = 0; let term = 1;
-    for (let k = 0; k < N; k++) { if (k > 0) term = term * A / k; sum += term; }
-    return Math.max(0, Math.min(1, aN / (sum + aN / (1 - rho))));
+    if (N <= A || N <= 0) return 1;
+    let B = 1;
+    for (let k = 1; k <= N; k++) B = (A * B) / (k + A * B);
+    return Math.max(0, Math.min(1, (N * B) / (N - A * (1 - B))));
   }
   function calcSL(agents, A, targetSec, ahtSec) {
     const pW = erlC(agents, A);
@@ -49,49 +61,33 @@ export default function ScheduleAdherenceCalculator() {
   }
 
   const scenarios = drops.map(drop => {
-    const adhPct = n(d.currentAdherence) - drop;
-    const effectiveAgents = Math.round(n(d.agents) * (adhPct / 100));
-    const sl = calcSL(effectiveAgents, intensity, n(d.slaTime), n(d.aht)) * 100;
-    const asaVal = calcASA(effectiveAgents, intensity, n(d.aht));
+    const adhPct = Math.max(0, v.currentAdherence - drop);
+    const effectiveAgents = Math.round(v.agents * (adhPct / 100));
+    const sl = calcSL(effectiveAgents, intensity, v.slaTime, v.aht) * 100;
+    const asaVal = calcASA(effectiveAgents, intensity, v.aht);
     const occ = effectiveAgents > 0 ? (intensity / effectiveAgents) * 100 : 100;
     
     // Abandonment estimate: rough model based on ASA
     const abandonPct = asaVal > 120 ? 15 : asaVal > 60 ? 8 : asaVal > 30 ? 4 : asaVal > 15 ? 2 : 1;
     
     // OT cost: agents lost * hours to cover * OT rate
-    const agentsLost = n(d.agents) - effectiveAgents;
+    const agentsLost = v.agents - effectiveAgents;
     const dailyOTHours = agentsLost * 8; // full shift equivalent
-    const dailyOTCost = dailyOTHours * n(d.hourlyRate) * n(d.otMultiplier);
+    const dailyOTCost = dailyOTHours * v.hourlyRate * v.otMultiplier;
     const annualOTCost = dailyOTCost * 250;
 
     return { drop, adhPct, effectiveAgents, sl, asaVal, occ, abandonPct, agentsLost, annualOTCost };
   });
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.ag{grid-template-columns:1fr!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.ag{grid-template-columns:1fr!important}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>
 
-      {phase === "gate" && (
-        <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "80px 28px 60px" }}>
-          <div style={{ ...WRAP, maxWidth: 520 }}>
-            <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>WFM Tool</span>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>Schedule Adherence Impact Calculator</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, marginBottom: 32 }}>See exactly how 2-5 points of adherence loss cascades into ASA degradation, SLA misses, higher abandonment, and overtime cost.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <button onClick={handleGate} disabled={sending || !email.includes("@")} style={{ padding: "14px", fontSize: 15, fontWeight: 600, background: email.includes("@") ? ELECTRIC : SLATE, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", opacity: email.includes("@") ? 1 : 0.5 }}>{sending ? "Loading..." : "Launch Calculator →"}</button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {phase === "calc" && (
-        <>
+      <>
           <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
             <div style={WRAP}>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Schedule Adherence Impact Calculator</h2>
+              <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Schedule Adherence Impact Calculator</h2>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="ag">
                 <Input label="Agents scheduled" value={d.agents} onChange={v => set("agents", v)} />
                 <Input label="Current adherence" value={d.currentAdherence} onChange={v => set("currentAdherence", v)} suffix="%" />
@@ -121,10 +117,10 @@ export default function ScheduleAdherenceCalculator() {
                   </thead>
                   <tbody>
                     {scenarios.map((s, i) => {
-                      const slColor = s.sl >= n(d.slaTarget) ? GREEN : s.sl >= n(d.slaTarget) - 5 ? AMBER : RED;
+                      const slColor = s.sl >= v.slaTarget ? GREEN : s.sl >= v.slaTarget - 5 ? AMBER : RED;
                       return (
                         <tr key={i} style={{ background: i === 0 ? `${GREEN}10` : i % 2 === 0 ? "#fff" : WARM, borderBottom: `1px solid ${BORDER}`, fontWeight: i === 0 ? 600 : 400 }}>
-                          <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: i === 0 ? GREEN : NAVY }}>{s.adhPct}%</td>
+                          <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: FONT, fontSize: 16, color: i === 0 ? GREEN : NAVY }}>{s.adhPct}%</td>
                           <td style={{ padding: "10px 12px", textAlign: "right", color: i === 0 ? GREEN : RED }}>{i === 0 ? "Baseline" : `-${s.drop} pts`}</td>
                           <td style={{ padding: "10px 12px", textAlign: "right", color: NAVY }}>{s.effectiveAgents}</td>
                           <td style={{ padding: "10px 12px", textAlign: "right", color: slColor, fontWeight: 600 }}>{s.sl.toFixed(1)}%</td>
@@ -144,33 +140,47 @@ export default function ScheduleAdherenceCalculator() {
                 </p>
               </div>
 
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <ReportExport toolName="Schedule Adherence Impact Analysis" subtitle="Adherence Cascade Model" userName={name} userEmail={email} sections={[
+              {guards.length > 0 && (
+                <div style={{ background: "#FFF7E6", border: `1px solid ${AMBER}`, borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Inputs corrected. Every figure above was computed on the corrected values.</div>
+                  {guards.map((g, i) => <div key={i} style={{ fontSize: 12, color: SLATE }}>{guardLine(g)}</div>)}
+                </div>
+              )}
+              <ReportActions
+                toolId={TOOL_ID}
+                toolName="Schedule Adherence Impact Analysis"
+                subtitle="Adherence Cascade Model"
+                routePath={ROUTE}
+                state={d}
+                defaults={DEFAULTS}
+                summary={[
+                  { label: "Baseline adherence", value: scenarios[0].adhPct + "%" },
+                  { label: "Service level at baseline", value: scenarios[0].sl.toFixed(1) + "%" },
+                  { label: "Service level at 3 points of loss", value: scenarios[3].sl.toFixed(1) + "%" },
+                  { label: "Annual OT at 3 points of loss", value: "$" + Math.round(scenarios[3].annualOTCost).toLocaleString() },
+                ]}
+                sections={[
                     { title: "Adherence Cascade", type: "table", rows: scenarios.map(s => [s.adhPct + "% adherence" + (s.drop ? " (-" + s.drop + " pts)" : " (baseline)"), "SL " + s.sl.toFixed(1) + "%, ASA " + (s.asaVal < 999 ? s.asaVal.toFixed(0) + "s" : "N/A") + ", OT $" + Math.round(s.annualOTCost).toLocaleString()]) },
                     { title: "Cascade Impact at 3 Points of Loss", type: "metrics", items: [
-                      { label: "Service Level", value: scenarios[3].sl.toFixed(1) + "%", color: scenarios[3].sl >= n(d.slaTarget) ? GREEN : RED, sub: "baseline " + scenarios[0].sl.toFixed(1) + "%" },
+                      { label: "Service Level", value: scenarios[3].sl.toFixed(1) + "%", color: scenarios[3].sl >= v.slaTarget ? GREEN : RED, sub: "baseline " + scenarios[0].sl.toFixed(1) + "%" },
                       { label: "Est. Abandon", value: scenarios[3].abandonPct + "%", color: AMBER, sub: "baseline " + scenarios[0].abandonPct + "%" },
                       { label: "Annual OT Cost", value: "$" + Math.round(scenarios[3].annualOTCost).toLocaleString(), color: RED },
                     ]},
+                    ...(guards.length ? [{ title: "Inputs Corrected", type: "findings", items: guards.map(guardLine) }] : []),
                     { title: "Key Findings", type: "findings", items: [
                       "At " + scenarios[0].adhPct + "% adherence the model gives a " + scenarios[0].sl.toFixed(1) + "% service level. Losing 3 points takes it to " + scenarios[3].sl.toFixed(1) + "%.",
-                      "Covering 3 points of lost adherence with overtime costs about $" + Math.round(scenarios[3].annualOTCost).toLocaleString() + " a year at " + n(d.otMultiplier) + "x, assuming a full 8-hour shift equivalent per lost agent over 250 days.",
+                      "Covering 3 points of lost adherence with overtime costs about $" + Math.round(scenarios[3].annualOTCost).toLocaleString() + " a year at " + v.otMultiplier + "x, assuming a full 8-hour shift equivalent per lost agent over 250 days.",
                       "Abandonment here is a stepped planning heuristic keyed to ASA, not a measured rate.",
                     ]},
                     { title: "Next Steps", type: "next", items: [
                       { tool: "Staffing Calculator", reason: "Model the FTE buffer needed to absorb adherence variance" },
                       { tool: "Occupancy Risk Simulator", reason: "Check whether adherence gaps are creating occupancy spikes" },
                     ]},
-                  ]} />
-                
-                <a href="/tools/staffing-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Staffing Calculator →</a>
-                <a href="/tools/occupancy-risk" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Occupancy Risk →</a>
-                <a href="/tools/forecast-accuracy" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Forecast Accuracy →</a>
-              </div>
+                  ]}
+              />
             </div>
           </section>
-        </>
-      )}
+      </>
     </div>
   );
 }
