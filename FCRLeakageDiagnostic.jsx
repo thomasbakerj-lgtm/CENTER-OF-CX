@@ -413,9 +413,13 @@ function gradeFCR({ I, r, pre, railOrigin }) {
   const measured = I.repeatModel === "measured";
   const fields = [...OPS_OWN, ...(measured ? [["measuredRate", "measured repeat share"]] : []), ["repeatMult", "repeat complexity multiplier"], ...COST_ATTEST, ...COST_OWN];
   const origins = Object.fromEntries(fields.map(([f]) => [f, fieldOrigin(I, pre, f)]));
-  const railG = railEvidence(railOrigin);
+  /* Origin grades are per field. A pulled value grades no higher than the grade its
+     publisher recorded for it, so one weak pull no longer drags every pull down and one
+     strong pull no longer lifts them. `railOrigin` is the blanket fallback for a field the
+     rail carries with no recorded origin. */
+  const railGradeOf = (f) => railEvidence((pre && pre[f] && pre[f].origin) || railOrigin);
   const attested = I.costBasis === "ops" || I.costBasis === "finance";
-  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railG, entered })[origins[f]];
+  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railGradeOf(f), entered })[origins[f]];
   const opsList = [...OPS_OWN, ...(measured ? [["measuredRate", "measured repeat share"]] : [])];
   const multBinds = origins.repeatMult !== "default";
   const opsGrades = [...opsList.map(([f]) => fieldGrade(f, "Planning-grade")), ...(multBinds ? [fieldGrade("repeatMult", "Planning-grade")] : []), ...(measured ? [] : ["Directional"])];
@@ -430,7 +434,11 @@ function gradeFCR({ I, r, pre, railOrigin }) {
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
     if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
-    if (rail.length) parts.push(`${say(rail)} arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}, which confers consistency and evidence only as far as its origin`);
+    if (rail.length) {
+      const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
+      const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
+      parts.push(`${say(rail)} arrived over the rail ${noted}, which confers consistency and evidence only as far as its origin`);
+    }
     return parts;
   };
   const opsParts = why([...opsList, ...(multBinds ? [["repeatMult", "repeat complexity multiplier"]] : [])]);
@@ -531,8 +539,8 @@ export default function FCRLeakageDiagnostic() {
     const rawFcr = got.fcr.value;
     const fcrPct = rawFcr == null || isNaN(rawFcr) ? null : clamp(Math.round((rawFcr > 1 ? rawFcr / 100 : rawFcr) * 100), 1, 99);
     const pre = {};
-    for (const f of ["M", "mCPC", "lCPC"]) if (hit[f] && !isNaN(hit[f].value)) pre[f] = { value: hit[f].value, src: hit[f].sourceTool || "" };
-    if (fcrPct != null) pre.fcr = { value: fcrPct / 100, src: got.fcr.sourceTool || "" };
+    for (const f of ["M", "mCPC", "lCPC"]) if (hit[f] && !isNaN(hit[f].value)) pre[f] = { value: hit[f].value, src: hit[f].sourceTool || "", origin: hit[f].railOrigin || null };
+    if (fcrPct != null) pre.fcr = { value: fcrPct / 100, src: got.fcr.sourceTool || "", origin: got.fcr.railOrigin || null };
     rail.current = { M: pre.M ? pre.M.value : null, mCPC: pre.mCPC ? pre.mCPC.value : null, lCPC: pre.lCPC ? pre.lCPC.value : null, fcrPct, rawFcr: fcrPct == null ? null : rawFcr, pre };
   }
   const [phase, setPhase] = useState("setup");
