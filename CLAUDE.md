@@ -548,8 +548,18 @@ dashboard, the 12-phase growth program.
    main) and `nightly.yml` (daily live check on production), and the committed live
    checker `scripts/live-check.mjs` (142 checks on production: every tool, sample and
    hostile links, their PDFs, the rubric pages; fails correctly on a dead origin).
-10. **Next:** TB makes the `suite` check required on main (ruleset). Then Phase A items
-   2 and 4 (visual audit) and TB's 11-01, then Phase B.
+10. Done S23: Phase A items 1 to 4 merged and running (PR #11). CI `suite` green on its
+   first real runs; nightly live check triggered by hand on GitHub, 142 of 142.
+11. Done S23: Phase A item 4, the visual audit (`scripts/visual-audit.mjs`, punch list
+   in `docs/VISUAL_AUDIT.md`). Nothing overflows on a phone. Shared failures on every
+   page: controls render in Arial (no font inheritance), inputs unnamed for screen
+   readers (up to 64 per tool), most tap targets under 40px, 30 to 162 elements below
+   12px per rail tool, WCAG AA contrast failures from translucent white text, no `<h1>`
+   on floor tools, Georgia and the old homepage type pair. Copy: retired "survive a CFO"
+   in Business Case, and "industry-leading", "best-in-class", "world-class",
+   "seamless" in tools, vertical pages and vendor data.
+12. **Next:** TB: make `suite` required on main; 11-01. Me: Phase B, starting with the
+   shared fixes in the audit's punch list section 1.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
