@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 const CONF = await import("./src/lib/confidence.js");
 const BENCHMOD = await import("./src/lib/benchmarks.js");
+const JOURNEYMOD = await import("./src/lib/journey.js");
 
 const SRC = readFileSync(new URL("./TCOCalculator.jsx", import.meta.url), "utf8");
 
@@ -546,6 +547,28 @@ section("benchmark registry: every constant this tool ships is registered");
   ok("the validity checks read the registry", !/perAgentCeiling: 25000/.test(SRCTXT));
   ok("the checks still hold their shipped values",
     TCO_CHECKS.perAgentCeiling === 25000 && TCO_CHECKS.domShareMax === 0.80 && TCO_CHECKS.spanMax === 20 && TCO_CHECKS.mixTol === 0.005);
+}
+
+// ------------------------------------------------- step 5: next steps come from the graph
+section("next steps: the journey graph is the only source");
+{
+  const J = JOURNEYMOD;
+  const edges = J.nextFor("tco-calculator");
+  ok("the tool has next steps in the graph", edges.length === 3);
+  ok("the graph carries license gap, AI deflection and the decision node",
+    edges.map((e) => e.to).join(",") === "license-gap,ai-deflection,business-case-builder");
+  ok("every next step resolves to a live route", edges.every((e) => typeof e.href === "string" && e.href.startsWith("/tools/")));
+  ok("every next step carries a reason", edges.every((e) => String(e.why || "").length > 20));
+  ok("the decision node is reachable and comes last", edges[edges.length - 1].to === J.DECISION_NODE);
+
+  ok("step 5: the page CTAs render from nextFor", /\{nextFor\(TOOL_ID\)\.map\(\(c, i\) =>/.test(SRC));
+  ok("step 5: the PDF next steps render from nextFor", /items: nextFor\(TOOL_ID\)\.map\(\(e\) => \(\{ tool: e\.name, reason: e\.why, href: e\.href \}\)\)/.test(SRC));
+  ok("step 5: no hardcoded tool route survives in the component",
+    !/href: "\/tools\/license-gap"/.test(SRC) && !/href: "\/tools\/ai-deflection"/.test(SRC) && !/href: "\/tools\/business-case"/.test(SRC));
+  ok("step 5: no hardcoded next-step label survives",
+    !/tool: "License Bundle Gap Checker"/.test(SRC) && !/tool: "AI Deflection Reality Check"/.test(SRC) && !/tool: "Business Case Builder"/.test(SRC));
+  ok("the methodology paragraph reads its constants from the registry",
+    !/computed on 173 paid hours/.test(SRC) && !/wage 3\.5 percent and license 6 percent/.test(SRC));
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
