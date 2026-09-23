@@ -237,5 +237,81 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   truthy("M11 without shorthand reading, Staffing's aht vanishes and the self-fed rule catches it", m6.code > 0 && /aht\s+pulled by TCOCalculator\.jsx, which is its only publisher/.test(m6.out));
 }
 
+// ------------------------------------------------- 13. Origin grades and provenance (v3)
+{
+  const origin = (k) => railReport().origins[k] || null;
+
+  resetRail();
+  publishToolResult("tco-calculator", { agents: 200, costPerContact: 8.4 },
+    { agents: "Planning-grade", costPerContact: "Directional" });
+  eq("N1  a published origin grade reads back on the key", origin("agents"), "Planning-grade");
+  eq("N2  each key keeps its own grade", origin("costPerContact"), "Directional");
+  eq("N3  getPrimitiveWithSource returns the origin grade", getPrimitiveWithSource("agents").railOrigin, "Planning-grade");
+  eq("N4  and still names the publisher", getPrimitiveWithSource("agents").sourceTool, "tco-calculator");
+
+  resetRail();
+  publishToolResult("x", { agents: 200 });
+  eq("N5  publishing with no grades records no origin", origin("agents"), null);
+  eq("N6  an unrecorded origin reads back as null, never as a grade", getPrimitiveWithSource("agents").railOrigin, null);
+
+  resetRail();
+  publishToolResult("x", { agents: 200 }, { agents: "Gold-plated" });
+  eq("N7  a value outside the three grades is dropped, not trusted", origin("agents"), null);
+
+  resetRail();
+  publishToolResult("cost-per-contact", { marginalCPC: 4.2 }, { marginalCPC: "Planning-grade" });
+  eq("N8  an origin keyed by a deprecated alias grades the canonical key", origin("marginalPerContact"), "Planning-grade");
+
+  // Provenance does not transfer on an unchanged restatement.
+  resetRail();
+  publishToolResult("tco-calculator", { agents: 200 }, { agents: "Directional" });
+  publishToolResult("staffing-calculator", { agents: 200 }, { agents: "Finance-grade" });
+  eq("N9  restating a value unchanged leaves the producer with the key", railReport().sources.agents, "tco-calculator");
+  eq("N10 and the original origin grade survives the restatement", origin("agents"), "Directional");
+  eq("N11 a republish cannot launder a weak origin into a strong one", getPrimitiveWithSource("agents").railOrigin, "Directional");
+
+  // An edited figure is a new fact. The editing tool becomes the producer.
+  resetRail();
+  publishToolResult("tco-calculator", { agents: 200 }, { agents: "Directional" });
+  publishToolResult("staffing-calculator", { agents: 212 }, { agents: "Planning-grade" });
+  eq("N12 an edited value transfers the key to the tool that changed it", railReport().sources.agents, "staffing-calculator");
+  eq("N13 and carries the new origin grade", origin("agents"), "Planning-grade");
+  eq("N14 and the new number is what every puller reads", getPrimitive("agents"), 212);
+
+  // A tool republishing its own key is not a restatement by someone else.
+  resetRail();
+  publishToolResult("tco-calculator", { agents: 200 }, { agents: "Directional" });
+  publishToolResult("tco-calculator", { agents: 200 }, { agents: "Planning-grade" });
+  eq("N15 a producer may regrade its own key", origin("agents"), "Planning-grade");
+
+  // Dropping the grade on a re-publish clears the stale one rather than keeping it.
+  resetRail();
+  publishToolResult("tco-calculator", { agents: 200 }, { agents: "Finance-grade" });
+  publishToolResult("tco-calculator", { agents: 205 });
+  eq("N16 a regraded publish with no grade clears the stale origin", origin("agents"), null);
+
+  // Derived reads inherit the origin of the key they were derived from.
+  resetRail();
+  publishToolResult("tco-calculator", { monthlyContacts: 120000 }, { monthlyContacts: "Planning-grade" });
+  const der = getPrimitiveWithSource("annualContacts");
+  truthy("N17 a derived read is still derived", der.derived === true);
+  eq("N18 and inherits the origin of the key behind it", der.railOrigin, "Planning-grade");
+}
+
+// ------------------------------------------------- 14. The shipped tools read the origin
+{
+  const fs = await import("node:fs");
+  const has = (f, re) => re.test(fs.readFileSync(f, "utf8"));
+  const consumers = ["TCOCalculator.jsx", "CostPerContactCalculator.jsx", "ChannelShiftModel.jsx",
+    "FCRLeakageDiagnostic.jsx", "AIDeflectionRealityCheck.jsx"];
+  for (const f of consumers) {
+    truthy(`N19 ${f} carries railOrigin into its prefill record`, has(f, /railOrigin \|\| null/));
+    truthy(`N20 ${f} grades the rail per field, not by one blanket origin`, has(f, /railGradeOf/) && !has(f, /const railG = railEvidence/));
+  }
+  truthy("N21 Staffing grades its cost basis off the key that fed it", has("StaffingCalculator.jsx", /railOrigin: costOrigin/));
+  truthy("N22 TCO publishes an origin grade with its rail keys", has("TCOCalculator.jsx", /publishToolResult\("tco-calculator", normalizeForPublish\(primitives, \{ sourceTool: "tco-calculator" \}\)\.clean, originsOut\)/));
+  truthy("N23 a voided TCO run publishes no origin grades", has("TCOCalculator.jsx", /if \(!G\.voided\) \{/));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
