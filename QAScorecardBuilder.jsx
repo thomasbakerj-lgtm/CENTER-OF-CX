@@ -191,11 +191,10 @@ export default function QAScorecardBuilder() {
                     ]},
                     { title: "Key Principle", type: "text", content: "A password reset and a billing dispute require different evaluation criteria. Build 3-5 scorecards by contact type to evaluate what matters for each interaction." },
                     { title: "Next Steps", type: "next", items: [
-                      { tool: "Calibration Drift Checker", reason: "Test evaluator consistency using this scorecard" },
-                      { tool: "Agent Experience Diagnostic", reason: "QA quality depends on agent tooling and training" },
+                      { tool: "Attrition Cost Calculator", reason: "Price the turnover that weak coaching and QA feedback drive" },
                     ]},
                   ]} />
-                <a href="/tools/agent-experience" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Agent Experience Diagnostic →</a>
+                <a href="/tools/attrition-cost" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Attrition Cost Calculator →</a>
               <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
             </div>
           </div>

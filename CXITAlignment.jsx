@@ -92,7 +92,7 @@ export default function CXITAlignment() {
 
   const handleResults = async () => {
     const dimResults = AREAS.map(a => `${a.name}: CX=${areaAvg(a.id,"cx").toFixed(1)} IT=${areaAvg(a.id,"it").toFixed(1)} Gap=${areaGap(a.id).toFixed(1)}`).join(" | ");
-    try { await fetch("https://formspree.io/f/xeevgdge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "CX + IT Alignment", overallGap: overallGap.toFixed(2), gapLevel: gapLevel.label, dimensions: dimResults, _subject: `CX+IT Alignment: ${gapLevel.label} (Gap ${overallGap.toFixed(1)}) — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xeevgdge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "CX + IT Alignment", overallGap: overallGap.toFixed(2), gapLevel: gapLevel.label, dimensions: dimResults, _subject: `CX+IT Alignment: ${gapLevel.label} (Gap ${overallGap.toFixed(1)}), ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
@@ -112,7 +112,7 @@ export default function CXITAlignment() {
           <div style={{ ...WRAP, textAlign: "center" }}>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Framework & Template</span>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>CX + IT Alignment Framework</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 520 }}>Rate 15 paired statements — one from the CX perspective, one from IT — across strategy, data, platforms, AI, and governance. The gap between scores reveals where misalignment creates friction, delays, and wasted spend.</p>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 520 }}>Rate 15 paired statements (one from the CX perspective, one from IT) across strategy, data, platforms, AI, and governance. The gap between scores reveals where misalignment creates friction, delays, and wasted spend.</p>
             <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
               <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Work email *" style={{ padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none" }} />
               <div style={{ display: "flex", gap: 10 }}>
@@ -146,7 +146,7 @@ export default function CXITAlignment() {
                     <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: NAVY, margin: 0 }}>{area.name}</h2>
                     <span style={{ fontSize: 11, color: MUTED }}>({currentArea + 1} of {AREAS.length})</span>
                   </div>
-                  <p style={{ fontSize: 13, color: MUTED, marginBottom: 28 }}>Rate each paired statement 1–5. The left column is the CX perspective. The right column is the IT perspective. Gaps between scores reveal misalignment.</p>
+                  <p style={{ fontSize: 13, color: MUTED, marginBottom: 28 }}>Rate each paired statement 1 to 5. The left column is the CX perspective. The right column is the IT perspective. Gaps between scores reveal misalignment.</p>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     {area.pairs.map((pair, pi) => {
@@ -264,12 +264,12 @@ export default function CXITAlignment() {
                   <div style={{ background: `${RED}08`, border: `1px solid ${RED}20`, borderRadius: 10, padding: "20px" }}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Largest Gap</span>
                     <h4 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "6px 0 2px" }}>{worst.name}</h4>
-                    <span style={{ fontSize: 13, color: MUTED }}>Gap: {areaGap(worst.id).toFixed(1)} — CX {areaAvg(worst.id, "cx").toFixed(1)} vs IT {areaAvg(worst.id, "it").toFixed(1)}</span>
+                    <span style={{ fontSize: 13, color: MUTED }}>Gap: {areaGap(worst.id).toFixed(1)}, CX {areaAvg(worst.id, "cx").toFixed(1)} vs IT {areaAvg(worst.id, "it").toFixed(1)}</span>
                   </div>
                   <div style={{ background: `${GREEN}08`, border: `1px solid ${GREEN}20`, borderRadius: 10, padding: "20px" }}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Most Aligned</span>
                     <h4 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "6px 0 2px" }}>{best.name}</h4>
-                    <span style={{ fontSize: 13, color: MUTED }}>Gap: {areaGap(best.id).toFixed(1)} — CX {areaAvg(best.id, "cx").toFixed(1)} vs IT {areaAvg(best.id, "it").toFixed(1)}</span>
+                    <span style={{ fontSize: 13, color: MUTED }}>Gap: {areaGap(best.id).toFixed(1)}, CX {areaAvg(best.id, "cx").toFixed(1)} vs IT {areaAvg(best.id, "it").toFixed(1)}</span>
                   </div>
                 </div>
               );
@@ -291,7 +291,7 @@ export default function CXITAlignment() {
                     ]},
                     { title: "Next Steps", type: "next", items: [
                       { tool: "Governance Model", reason: "Define ownership across CX strategy, ops, and AI" },
-                      { tool: "Integration Planner", reason: "Map technical integration dependencies" },
+                      { tool: "TCO Calculator", reason: "Price the integration and migration work into the platform decision" },
                     ]},
                   ]} />
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>

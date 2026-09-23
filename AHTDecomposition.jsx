@@ -226,7 +226,7 @@ export default function AHTDecomposition() {
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
               <ReportExport
                 toolName="AHT Decomposition Analysis"
-                subtitle={`${fmtTime(totalAHT)} total handle time — ${COMPONENTS.length} components analyzed`}
+                subtitle={`${fmtTime(totalAHT)} total handle time, ${COMPONENTS.length} components analyzed`}
                 userName={name}
                 userEmail={email}
                 sections={[
@@ -239,9 +239,9 @@ export default function AHTDecomposition() {
                   ]},
                   { title: "Key Findings", type: "findings", items: [
                     `Your total AHT is ${fmtTime(totalAHT)}. Only ${talkPct.toFixed(0)}% is actual customer conversation.`,
-                    `${fmtTime(reducibleTime)} (${reduciblePct.toFixed(0)}%) is spent on hold, wrap, search, and admin — all reducible without cutting talk time.`,
+                    `${fmtTime(reducibleTime)} (${reduciblePct.toFixed(0)}%) is spent on hold, wrap, search, and admin, all reducible without cutting talk time.`,
                     ...scenarios.filter(s => s.savedSec > 10).map(s => `${s.name} could save ${s.savedSec}s per contact (${s.savedPct}% reduction): ${s.desc}.`),
-                    `Combined optimizations could reduce AHT from ${fmtTime(totalAHT)} to ${fmtTime(Math.round(combinedNew))} — a ${((1 - combinedNew / totalAHT) * 100).toFixed(0)}% improvement.`,
+                    `Combined optimizations could reduce AHT from ${fmtTime(totalAHT)} to ${fmtTime(Math.round(combinedNew))}, a ${((1 - combinedNew / totalAHT) * 100).toFixed(0)}% improvement.`,
                   ]},
                   { title: "Optimization Priorities", type: "actions", items: scenarios.sort((a, b) => b.savedSec - a.savedSec).map((s, i) => ({
                     action: `${s.name}: -${s.savedSec}s per contact`,
@@ -251,7 +251,7 @@ export default function AHTDecomposition() {
                   { title: "Next Steps", type: "next", items: [
                     { tool: "Staffing Calculator", reason: "Model how AHT reduction changes your FTE requirement" },
                     { tool: "Cost per Contact Calculator", reason: "See how AHT reduction impacts per-contact economics" },
-                    { tool: "Agent Experience Diagnostic", reason: "Assess whether tooling friction is driving hold and search time" },
+                    { tool: "Attrition Cost Calculator", reason: "Price the turnover that tooling friction and new-hire ramp drive" },
                   ]},
                   { title: "Key Principle", type: "text", content: "The goal is not shorter calls. The goal is less time spent on activities that are not conversation. Hold, search, admin, and wrap are where AHT reduction lives. Talk time is where resolution quality lives. Protect the latter while attacking the former." },
                 ]}

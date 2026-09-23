@@ -16,7 +16,7 @@ const LAYERS = [
     needs: ["LLM-native IVA (not purely intent-based architecture)", "Real-time agent assist during conversation (not post-call)", "Knowledge AI with RAG grounding on your enterprise data", "Autonomous task execution (actions, not just text)", "Guardrails preventing hallucination and policy violations"] },
   { n: 3, name: "Policy + Guardrails", color: "#0e7a5e", vendorCategory: "/vendors/payments", categoryLabel: "Payments + Identity vendors", toolLink: "/tools/contract-risk", toolLabel: "Contract Risk Scanner",
     needs: ["PCI fully descoped with tokenization", "AI guardrails for every customer-facing decision", "Identity verification consistent across all channels", "Bias detection and fairness monitoring for AI", "Audit trails for automated decisions"] },
-  { n: 2, name: "Workflow Execution", color: "#1a6b4a", vendorCategory: "/platforms-and-tech", categoryLabel: "Platform architecture", toolLink: "/tools/integration-planner", toolLabel: "Integration Planner",
+  { n: 2, name: "Workflow Execution", color: "#1a6b4a", vendorCategory: "/platforms-and-tech", categoryLabel: "Platform architecture", toolLink: "/tools/tco-calculator", toolLabel: "TCO Calculator",
     needs: ["Top 10 workflows automated end-to-end", "API-triggered workflows (not just UI-initiated)", "Exception handling without forcing callbacks", "Cross-system data writes (not just reads)", "Workflow versioning and rollback capability"] },
   { n: 1, name: "Data Access", color: "#2c5f3f", vendorCategory: "/platforms-and-tech", categoryLabel: "Data architecture", toolLink: "/tools/cx-it-alignment", toolLabel: "CX-IT Alignment",
     needs: ["Real-time CRM read/write from agent desktop + IVA", "Event streaming capturing interaction signals", "Clean customer data (deduplicated, current, complete)", "API access to billing, case management, and ERP", "Data governance with documented ownership"] },
@@ -51,7 +51,7 @@ export default function PlatformDecisionMatrix() {
   const handleResults = async () => {
     const lr=LAYERS.map(l=>`L${l.n}:${layerAvg(l.n).toFixed(1)}`).join("|");
     const gaps=LAYERS.filter(l=>layerAvg(l.n)<2.5).map(l=>`L${l.n} ${l.name}`).join(", ");
-    try{await fetch("https://formspree.io/f/maqlvwne",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Platform Decision Matrix",layers:lr,criticalGaps:gaps||"None",_subject:`Platform Matrix: ${LAYERS.filter(l=>layerAvg(l.n)<2.5).length} critical gaps — ${company||name||email}`})});}catch(e){}
+    try{await fetch("https://formspree.io/f/maqlvwne",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Platform Decision Matrix",layers:lr,criticalGaps:gaps||"None",_subject:`Platform Matrix: ${LAYERS.filter(l=>layerAvg(l.n)<2.5).length} critical gaps, ${company||name||email}`})});}catch(e){}
     setPhase("results");
   };
 
@@ -176,7 +176,7 @@ export default function PlatformDecisionMatrix() {
         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
           
                 <ReportExport toolName="Platform Decision Matrix" subtitle="7-Layer Assessment" userName={name} userEmail={email} sections={[
-                    { title: "Layer Scores", type: "table", rows: LAYERS.map(l => ["L" + l.n + " " + l.name, layerAvg(l.n).toFixed(1) + "/5 — " + getRec(layerAvg(l.n)).action]) },
+                    { title: "Layer Scores", type: "table", rows: LAYERS.map(l => ["L" + l.n + " " + l.name, layerAvg(l.n).toFixed(1) + "/5, " + getRec(layerAvg(l.n)).action]) },
                     { title: "Action Summary", type: "metrics", items: [
                       { label: "Stay", value: LAYERS.filter(l => getRec(layerAvg(l.n)).action === "Stay").length.toString(), color: "#10B981" },
                       { label: "Extend", value: LAYERS.filter(l => getRec(layerAvg(l.n)).action === "Extend").length.toString(), color: "#F59E0B" },

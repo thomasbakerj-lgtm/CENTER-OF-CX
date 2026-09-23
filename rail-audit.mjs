@@ -44,11 +44,11 @@ const REMOTE_FILES = [
   "OccupancyRiskSimulator.jsx", "ForecastAccuracyTracker.jsx", "ScheduleAdherenceCalculator.jsx",
   "AttritionCostCalculator.jsx", "CostPerContactCalculator.jsx", "AIDeflectionRealityCheck.jsx",
   "ChannelShiftModel.jsx", "LicenseBundleGapChecker.jsx", "AHTDecomposition.jsx",
-  "AgentExperienceDiagnostic.jsx", "QAScorecardBuilder.jsx", "FCRLeakageDiagnostic.jsx",
-  "CalibrationDriftChecker.jsx", "VendorMatchEngine.jsx", "PlatformDecisionMatrix.jsx",
+  "QAScorecardBuilder.jsx", "FCRLeakageDiagnostic.jsx",
+  "VendorMatchEngine.jsx", "PlatformDecisionMatrix.jsx",
   "ContractRiskScanner.jsx", "TransformationReadiness.jsx", "RFPRequirementBuilder.jsx",
-  "CXMaturity.jsx", "AIReadiness.jsx", "ExperienceScorecard.jsx", "CXITAlignment.jsx",
-  "GovernanceModel.jsx", "ServiceDesign.jsx", "RoadmapBuilder.jsx", "IntegrationPlanner.jsx",
+  "CXMaturity.jsx", "AIReadiness.jsx", "CXITAlignment.jsx",
+  "GovernanceModel.jsx", "RoadmapBuilder.jsx",
   "BusinessCaseBuilder.jsx", "HumanPremium.jsx",
 ];
 

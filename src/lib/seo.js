@@ -82,10 +82,6 @@ export const SEO_MAP = {
     title: `AI Readiness Diagnostic: Is Your Contact Center Ready? | ${SITE}`,
     desc: "Evaluate your data quality, workflow design, integration architecture, governance, and talent readiness for AI-driven automation. 24 questions across 6 dimensions.",
   },
-  "/tools/experience-scorecard": {
-    title: `Experience Scorecard: Benchmark Your Contact Center | ${SITE}`,
-    desc: "Enter your contact center metrics and compare against industry benchmarks. CSAT, FCR, AHT, containment, cost per contact, attrition, and more. Graded A through D.",
-  },
   "/tools/cx-it-alignment": {
     title: `CX + IT Alignment Framework | ${SITE}`,
     desc: "Rate 15 paired CX and IT statements to reveal alignment gaps in strategy, data, platforms, AI, and governance. Identify where misalignment creates friction.",
@@ -94,17 +90,9 @@ export const SEO_MAP = {
     title: `Governance + Operating Model | ${SITE}`,
     desc: "Map ownership across 30 CX responsibilities: strategy, operations, technology, AI, analytics, and budget. Identify governance gaps and overloaded functions.",
   },
-  "/tools/service-design": {
-    title: `Service Design Toolkit: Journey Friction Mapper | ${SITE}`,
-    desc: "Score your customer journeys on 6 friction dimensions. Get a prioritized friction map showing where to invest in service design improvements.",
-  },
   "/tools/roadmap-builder": {
     title: `Transformation Roadmap Builder: 90-Day Plan | ${SITE}`,
     desc: "Build a structured 90-day CX transformation plan with 18 milestones, dependencies, and status tracking across three phases.",
-  },
-  "/tools/integration-planner": {
-    title: `Integration Strategy Planner: Map Your CX Stack | ${SITE}`,
-    desc: "Map your technology stack across 7 CX orchestration layers. Identify integration gaps, legacy dependencies, and consolidation opportunities.",
   },
   "/tools/business-case": {
     title: `Business Case Builder: CX Transformation ROI | ${SITE}`,
@@ -194,10 +182,6 @@ export const SEO_MAP = {
     title: `AHT Decomposition Tool | Break Handle Time Into Actionable Components | ${SITE}`,
     desc: "Stop reducing AHT generically. Break it into talk, hold, wrap, transfer, search, and admin. Target the segments that are reducible without hurting quality.",
   },
-  "/tools/agent-experience": {
-    title: `Agent Experience Diagnostic | Five Dimensions That Drive Retention | ${SITE}`,
-    desc: "Assess schedule control, tooling, knowledge, supervisor quality, and career visibility. Scored output with attrition risk projection.",
-  },
   "/tools/qa-scorecard": {
     title: `QA Scorecard Builder | Weighted Evaluation Forms by Contact Type | ${SITE}`,
     desc: "Build context-specific QA scorecards with weighted dimensions and critical-fail criteria. Test with a sample evaluation. Three templates included.",
@@ -205,10 +189,6 @@ export const SEO_MAP = {
   "/tools/fcr-leakage": {
     title: `FCR Leakage Diagnostic | What Drives Repeat Contacts | ${SITE}`,
     desc: "Low FCR is a symptom. This tool identifies the root cause across policy, handoffs, channels, knowledge, skills, and workflows.",
-  },
-  "/tools/calibration-drift": {
-    title: `Calibration Drift Checker | QA Evaluator Consistency Analysis | ${SITE}`,
-    desc: "Enter scores from multiple evaluators on the same calls. See inter-rater reliability, evaluator bias, and the calls that generate the most disagreement.",
   },
   "/tools/vendor-match": {
     title: `Vendor Match Engine | Ranked Shortlist for Your Environment | ${SITE}`,

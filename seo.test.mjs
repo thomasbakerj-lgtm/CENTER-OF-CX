@@ -29,9 +29,9 @@
  * Run: node seo.test.mjs
  */
 
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE,
-         TOOL_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, VENDOR_PROFILE_COUNT } from "./src/lib/seo.js";
+         TOOL_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, VENDOR_PROFILE_COUNT, SEO_MAP } from "./src/lib/seo.js";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals.js";
 import { collectVendorNames, findCollisions, FILE_CATEGORY, collectSubVerticalNames, SUBVERTICAL_FILES } from "./gen-seo-names.mjs";
 
@@ -227,9 +227,36 @@ eq("E8  CATEGORY_COUNT equals the registry", CATEGORY_COUNT, Object.keys(CATEGOR
    LegacyRedirect target for /tco-calculator, not a route, which is why a raw
    reference count reads one high and must not be used. */
 const appSrc = readFileSync("./App.jsx", "utf8");
+/* S22: a retired tool keeps its path as a LegacyRedirect route so an in-app
+   link or a bookmark lands on the living asset. Those are not tools. */
 const toolRoutes = new Set(
-  [...appSrc.matchAll(/<Route\s+path="(\/tools\/[a-z0-9-]+)"/g)].map((m) => m[1])
+  [...appSrc.matchAll(/<Route\s+path="(\/tools\/[a-z0-9-]+)"\s+element=\{<(?!LegacyRedirect)/g)].map((m) => m[1])
 );
+
+/* S22 removals (TB decisions 19 Sep 2026): three tools retired, two folded.
+   Each path 301s to its nearest living asset at the edge and in the app, and
+   leaves the sitemap, the metadata map, the tool index and every inbound link. */
+const RETIRED = {
+  "/tools/service-design": "/tools/cx-maturity",
+  "/tools/experience-scorecard": "/tools/cost-per-contact",
+  "/tools/integration-planner": "/vendors",
+  "/tools/agent-experience": "/tools/attrition-cost",
+  "/tools/calibration-drift": "/tools/qa-scorecard",
+};
+{
+  const vercel = JSON.parse(readFileSync("./vercel.json", "utf8"));
+  const smap = readFileSync("./public/sitemap.xml", "utf8");
+  const inbound = readdirSync(".").filter((f) => f.endsWith(".jsx") && f !== "App.jsx");
+  for (const [from, to] of Object.entries(RETIRED)) {
+    ok(`R1 ${from}: permanent 301 at the edge to ${to}`, vercel.redirects.some((r) => r.source === from && r.destination === to && r.permanent === true));
+    ok(`R2 ${from}: the app route redirects to ${to}`, appSrc.includes(`<Route path="${from}" element={<LegacyRedirect to="${to}" />} />`));
+    ok(`R3 ${from}: the destination is a live route`, to === "/vendors" ? appSrc.includes('<Route path="/vendors" element') : toolRoutes.has(to));
+    ok(`R4 ${from}: gone from the sitemap`, !smap.includes(from + "<"));
+    ok(`R5 ${from}: gone from the metadata map`, !Object.prototype.hasOwnProperty.call(SEO_MAP, from));
+    const linkers = inbound.filter((f) => readFileSync("./" + f, "utf8").includes(`"${from}"`));
+    ok(`R6 ${from}: no page links to it [${linkers.join(", ")}]`, linkers.length === 0);
+  }
+}
 eq("E9  TOOL_COUNT equals the distinct tool routes mounted in App.jsx",
    TOOL_COUNT, toolRoutes.size);
 

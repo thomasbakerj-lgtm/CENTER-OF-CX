@@ -16,7 +16,7 @@ const DIMS = [
   { id: "workflow", name: "Workflow Readiness", color: "#10B981", qs: [
     { q: "Common interaction types (order status, billing, scheduling) follow documented, repeatable workflows." },
     { q: "Escalation paths and exception handling are clearly defined and consistently followed." },
-    { q: "Agent desktop workflows are standardized — agents follow the same steps for the same issue types." },
+    { q: "Agent desktop workflows are standardized, agents follow the same steps for the same issue types." },
     { q: "There is a clear view of which interaction types are high-volume, low-complexity candidates for automation." },
   ]},
   { id: "integration", name: "Integration Architecture", color: "#7C3AED", qs: [
@@ -50,7 +50,7 @@ const LEVELS = [
   { min: 1.8, max: 2.6, tier: "Early Stage", color: AMBER, desc: "Some foundations are in place but critical gaps remain. Limited AI pilots may be possible in narrow, well-defined use cases. Priority: close the biggest gaps in data access, integration, and governance before expanding.", rec: "Pilot AI in one high-volume, low-complexity use case. Simultaneously invest in data quality, API readiness, and governance policy." },
   { min: 2.6, max: 3.4, tier: "Foundation Set", color: ELECTRIC, desc: "Core readiness exists for structured AI deployments. Data access, workflows, and governance are functional but may lack depth in specific areas. Priority: expand AI coverage methodically while strengthening weak dimensions.", rec: "Deploy agent assist and automated summaries broadly. Begin IVA pilots for top 3 contact types. Invest in the weakest dimension identified." },
   { min: 3.4, max: 4.2, tier: "AI Capable", color: "#7C3AED", desc: "Strong readiness across most dimensions. The organization can support meaningful AI deployments including autonomous resolution, agent assist, and predictive analytics. Priority: optimize and scale.", rec: "Scale autonomous resolution for Tier 1 contacts. Deploy real-time agent assist across voice and digital. Build AI governance into standard operating procedures." },
-  { min: 4.2, max: 5.1, tier: "AI Advanced", color: GREEN, desc: "Exceptional readiness. The organization has the data, architecture, governance, and talent to operate AI as a core component of the service model. Priority: push toward agentic AI and experience orchestration.", rec: "Explore agentic workflows, proactive service automation, and AI-driven orchestration. Readiness is no longer your constraint — ambition is." },
+  { min: 4.2, max: 5.1, tier: "AI Advanced", color: GREEN, desc: "Exceptional readiness. The organization has the data, architecture, governance, and talent to operate AI as a core component of the service model. Priority: push toward agentic AI and experience orchestration.", rec: "Explore agentic workflows, proactive service automation, and AI-driven orchestration. Readiness is no longer your constraint. Ambition is." },
 ];
 
 const getTier = (score) => LEVELS.find(l => score >= l.min && score < l.max) || LEVELS[LEVELS.length - 1];
@@ -83,7 +83,7 @@ export default function AIReadiness() {
 
   const handleResults = async () => {
     const dimResults = DIMS.map(d => `${d.name}: ${dimScore(d.id).toFixed(1)}/5`).join(" | ");
-    try { await fetch("https://formspree.io/f/xqewqjpr", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "AI Readiness Diagnostic", overallScore: overallScore.toFixed(2), tier: tier.tier, dimensions: dimResults, _subject: `AI Readiness: ${tier.tier} (${overallScore.toFixed(1)}/5) — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/xqewqjpr", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "AI Readiness Diagnostic", overallScore: overallScore.toFixed(2), tier: tier.tier, dimensions: dimResults, _subject: `AI Readiness: ${tier.tier} (${overallScore.toFixed(1)}/5), ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
@@ -243,11 +243,11 @@ export default function AIReadiness() {
                 <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Close These Gaps First</h3>
                 {[...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id)).slice(0, 3).map((d, i) => {
                   const tools = {
-                    data: { href: "/tools/integration-planner", name: "Integration Planner", why: "Map data sources and fix access gaps" },
+                    data: { href: "/vendors", name: "Vendor Intelligence", why: "Check what each platform category exposes for data access before you plan around it" },
                     workflow: { href: "/tools/aht-decomposition", name: "AHT Decomposition", why: "Find which workflows are automatable" },
                     integration: { href: "/tools/platform-decision", name: "Platform Decision Matrix", why: "Assess integration readiness per layer" },
                     governance: { href: "/tools/governance-model", name: "Governance Model", why: "Define AI decision authority and guardrails" },
-                    talent: { href: "/tools/agent-experience", name: "Agent Experience", why: "Assess team readiness for AI-augmented work" },
+                    talent: { href: "/tools/attrition-cost", name: "Attrition Cost Calculator", why: "Price the turnover risk before AI changes the work" },
                     measurement: { href: "/tools/ai-deflection", name: "AI Deflection Reality Check", why: "Set realistic measurement baselines" },
                   };
                   const rec = tools[d.id] || tools.data;
@@ -265,7 +265,7 @@ export default function AIReadiness() {
               </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
-                <ReportExport toolName="AI Readiness Diagnostic" subtitle={"Score: " + overallScore.toFixed(1) + "/5 — " + tier.name} userName={name} userEmail={email} sections={[
+                <ReportExport toolName="AI Readiness Diagnostic" subtitle={"Score: " + overallScore.toFixed(1) + "/5, " + tier.name} userName={name} userEmail={email} sections={[
                     { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
                     { title: "Assessment", type: "metrics", items: [
                       { label: "AI Readiness", value: overallScore.toFixed(1) + "/5", color: tier.color },
