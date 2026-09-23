@@ -95,8 +95,9 @@ export const JOURNEY = {
     name: "TCO Calculator",
     route: "/tools/tco-calculator",
     next: [
-      { to: "business-case-builder", why: "Set the ownership cost against the benefit it has to earn." },
       { to: "license-gap", why: "Check the quoted seat against what you will actually pay per seat." },
+      { to: "ai-deflection", why: "Pressure-test the containment savings this model prices." },
+      { to: "business-case-builder", why: "Set the ownership cost against the benefit it has to earn." },
     ],
   },
   "business-case-builder": {
