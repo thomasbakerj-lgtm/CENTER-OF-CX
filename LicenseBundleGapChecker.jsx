@@ -437,7 +437,7 @@ export default function LicenseBundleGapChecker() {
     quotedSeat, effLicenseSeat, effPlatformSeat, gapPct, hiddenAnnual, decomp, annualPlatform,
     commitExpSeats, commitExpAnnual, year3LicenseSeat, year3Seat, exp18Annual, gapColor,
     shelfware, drivers, topRecur, singleDriverDominant, confidence, confColor, flags, analyst, confLine,
-    guards, invariants, voided, evidenceGrade, completenessCeiling, gradeWhy, doubtWhy, gCommitted, gUplift, gSeats18, gCost, gradeObj, boundBy, defaultDrivers } = r;
+    guards, invariants, voided, evidenceGrade, completenessCeiling, gradeWhy, doubtWhy, gCommitted, gUplift, gSeats18, gCost, gradeObj, boundBy, defaultDrivers, evLabel } = r;
 
   useEffect(() => {
     /* A voided result fails its own consistency checks. Publishing it would hand a
