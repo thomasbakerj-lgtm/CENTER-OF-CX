@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage, benchmark } from "./src/lib/benchmarks";
 import { emitGrades, voidResult, isVoid, railEvidence, weakerStream } from "./src/lib/confidence";
-import { publishToolResult, getExternalPrimitive } from "./src/lib/toolData";
+import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import NumField from "./src/lib/NumField";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
@@ -126,8 +126,10 @@ function sustainablePair(volume, ahtSec, intMin, slT, slSec, shrink, ceiling) {
    Provenance matters here. A wage that arrived over the rail from the user's own
    TCO run is their number; the benchmark fallback is ours. Those two are not the
    same claim, so the label follows the source and the tool never presents a
-   benchmark median as if the user had supplied it. `getExternalPrimitive` blocks
-   Staffing from reading back anything it published itself.
+   benchmark median as if the user had supplied it. `getExternalWithSource` blocks
+   Staffing from reading back anything it published itself, and keeps the origin grade
+   the publisher recorded so the cost stream grades no higher than where the figure
+   was born.
 
    Fully loaded cost is wage plus benefits, taxes, facilities, supervision, and
    technology. A common planning multiplier on base wage is 1.3 for benefits and
@@ -469,8 +471,15 @@ export default function StaffingCalculator() {
 
   const occCap = capOn ? capPct / 100 : null;
   const r = calc(vol, aht, intv, slT / 100, slS, shrink / 100, occCap);
-  const railPerAgent = getExternalPrimitive("tcoPerAgentMonth", "staffing-calculator") || 0;
-  const railHourly = getExternalPrimitive("agentHourly", "staffing-calculator") || 0;
+  /* Keys stay as string literals so rail-audit.mjs sees every pull. */
+  const perAgentRes = getExternalWithSource("tcoPerAgentMonth", "staffing-calculator");
+  const hourlyRes = getExternalWithSource("agentHourly", "staffing-calculator");
+  const railPerAgent = (perAgentRes && perAgentRes.value) || 0;
+  const railHourly = (hourlyRes && hourlyRes.value) || 0;
+  /* One key feeds the basis, in the same order staffingCost prefers them. The cost stream
+     grades off that key's origin, not off a blanket assumption about the rail. */
+  const costOrigin = railPerAgent > 0 ? (perAgentRes && perAgentRes.railOrigin) || null
+    : railHourly > 0 ? (hourlyRes && hourlyRes.railOrigin) || null : null;
   const valid = modelValidity(aht, intv);
   const occInfo = classifyOccupancy(r.occ);
   const shrinkInfo = classifyShrinkage(shrink / 100);
@@ -491,8 +500,9 @@ export default function StaffingCalculator() {
 
   const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
   const cost = staffingCost(r.sched, railPerAgent, railHourly);
-  /* railOrigin is null because the rail carries no origin grade yet. See gradeStaffing. */
-  const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: null });
+  /* railOrigin is the origin grade the publisher recorded for the key behind the cost
+     basis. Null when nothing came over the rail, which grades the stream Directional. */
+  const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin });
   const { gradeObj, confidence } = graded;
   const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
   const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
