@@ -8,6 +8,7 @@ import { publishToolResult, getExternalPrimitive, getPrimitiveWithSource } from 
 import { MECH, MECH_ORDER, MECH_FALLBACK } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { normalizeForPublish } from "./src/lib/metrics";
+import { emitGrades, voidResult, weakerStream, realizationFromCred, GRADE_RANK } from "./src/lib/confidence";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
@@ -164,15 +165,34 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
      arithmetic or the rail. */
   const { guards: raws, guard: rawProbe } = createGuards();
   const numericCorrections = [];
+  /* Domain guard, 11B. A scenario link writes straight into state, so a number can arrive
+     that no real operation has: a negative agent count shrank the platform fee and printed
+     a 129% return, and a negative platform price turned three-year cost negative, with
+     nothing corrected or disclosed. Every numeric field is clamped here to the range the
+     model can compute and every correction is recorded beside the value entered.
+     Bounds are domain limits, never plausibility ranges, and none is narrower than the
+     form: counts, times and money floor at zero with no ceiling, agents and AHT floor at
+     one because the model divides by both, shares of a whole sit in 0 to 100, annual
+     attrition carries 0 to 200 as the rail contract allows, migration carries the 0 to 36
+     months the engine already evaluates, and ramp floors at the one month the engine uses. */
+  const domainCorrections = [];
   const dg = { ...d };
-  const gv = (k, what, check = true, blankOk = false, lo = 0) => {
+  const gv = (k, what, check = true, blankOk = false) => {
     const raw = d[k];
-    const p = n(raw), v = Number.isFinite(p) ? p : 0;
-    dg[k] = v;
+    const p = n(raw);
+    let v = Number.isFinite(p) ? p : 0;
     rawProbe(what, raw, -Infinity, null, "");
     const bad = raws.length ? raws.pop().entered : null;
+    const dom = Object.prototype.hasOwnProperty.call(BCB_DOMAIN, k) ? BCB_DOMAIN[k] : null;
+    const c = dom ? Math.max(dom[0], dom[1] == null ? v : Math.min(dom[1], v)) : v;
+    // One disclosure per field: an unclean entry is reported as held, a clean one outside
+    // the domain as corrected. Both report the value the engine actually ran.
     if (check && bad !== null && !(blankOk && bad === "blank"))
-      numericCorrections.push(`${what} was entered as ${bad}, which is not a number, and was held at ${Math.max(lo, v)}.`);
+      numericCorrections.push(`${what} was entered as ${bad}, which is not a number, and was held at ${c}.`);
+    else if (check && bad === null && c !== v)
+      domainCorrections.push(`${what} was entered as ${v}, outside the range this model can compute, and was computed at ${c}.`);
+    v = c;
+    dg[k] = v;
     return v;
   };
   [["agents", "Agent count"], ["avgHourly", "Average agent hourly rate"], ["benefitsPct", "Benefits and burden"],
@@ -192,7 +212,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   gv("bauOverlapMonths", "Dual-run period", bauOn, true);
   gv("bauOverlapShare", "Current spend still paid in dual run", bauOn);
   gv("migrationMonths", "Migration timeline", rampOn || bauOn);
-  gv("rampMonths", "Ramp to full savings", rampOn, false, 1);
+  gv("rampMonths", "Ramp to full savings", rampOn); // held at the domain floor of 1
   d = dg;
 
   const loaded = n(d.avgHourly) * (1 + n(d.benefitsPct) / 100);
@@ -506,7 +526,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   const leverShortfallToZero = topLeverShare > 0 ? benefitSlack / (topLeverShare / 100) : 0;
 
   return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal,
-    mechKey: mKey, stanceKey: stKey, stanceLabel: cf.label, corrections, numericCorrections, dg, mf, mechLabel: mech.label, cred: mech.cred,
+    mechKey: mKey, stanceKey: stKey, stanceLabel: cf.label, corrections, numericCorrections, domainCorrections, dg, mf, mechLabel: mech.label, cred: mech.cred,
     capacityGross, cashGross, capacityNet, cashNet, capacityRealized, unrealizedCapacity,
     attritionCash, attritionCapacity, perHireCash, perHireCapacity,
     attributionHaircut, realizationHaircut,
@@ -525,10 +545,8 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
 // Evidence-confidence: how bookable the cost and target inputs are, degraded by
 // plausibility flags. Separate axis from the stance (which weights savings), and
 // deliberately scoped: it certifies the cost basis, not that the org can deliver.
-const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
-// Credit class governs what finance will book. capacity-only earns Directional,
-// finance-creditable earns Planning-grade, cash out the door earns Finance-grade.
-const CRED_GRADE = { none: "Directional", capacity: "Directional", finance: "Planning-grade", cash: "Finance-grade" };
+// GRADE_RANK and the credit-class realization bands come from src/lib/confidence.js, the one
+// grading authority (doctrine Section 5). The local copies this file carried are retired (11B).
 
 /* The engine's numeric read for every numeric field: n(), with a non-finite value read as 0.
    Identical to n() for every finite entry. Used where no disclosure is recorded, because
@@ -544,10 +562,33 @@ function saneNums(d) {
   return out;
 }
 
+/* Domain bounds for the guard in computeCase. Declared at module level so the harness reads
+   the same table the engine clamps with. */
+const BCB_DOMAIN = {
+  agents: [1, null], avgHourly: [0, null], benefitsPct: [0, null], monthlyContacts: [0, null],
+  currentAHT: [1, null], currentACW: [0, null], currentFCR: [0, 100], currentAttrition: [0, 200],
+  costPerContact: [0, null], recruitCostPerHire: [0, null], trainingDays: [0, null],
+  htReduction: [0, 100], acwReduction: [0, 100], fcrImprovement: [0, 100], attritionReduction: [0, 100],
+  containment: [0, 100], implementationCost: [0, null], newPlatformPerAgentMo: [0, null],
+  repeatShare: [0, 100], marginalPerContact: [0, null], bauEliminatedAnnual: [0, null],
+  bauExitCost: [0, null], bauBackfillCash: [0, null], bauAbsorbedHours: [0, null],
+  bauOverlapMonths: [0, null], bauOverlapShare: [0, 100], migrationMonths: [0, 36], rampMonths: [1, null],
+};
+
+/* The numbers the engine ran, after the domain guard, laid over the caller's object. Only the
+   guarded numeric fields are replaced; settings such as evidence and stance stay the caller's. */
+const ranValues = (d, r) => {
+  if (!r || !r.dg) return d;
+  const out = { ...d };
+  for (const k of Object.keys(BCB_DOMAIN)) if (Object.prototype.hasOwnProperty.call(r.dg, k)) out[k] = r.dg[k];
+  return out;
+};
+
 function confidenceOf(d, r, stanceKey) {
   /* Numbers are read the way the engine reads them, so raw text never prints as "abc"
      or Infinity. Settings such as evidence still come from the caller. */
   d = saneNums(d);
+  d = ranValues(d, r); // 11B: confidence reads the values the engine ran
   /* The stance the engine actually ran, not the string the caller passed. A scenario
      link supplies both, and reading the raw one here reported an attribution haircut
      the arithmetic never applied. */
@@ -596,7 +637,7 @@ function confidenceOf(d, r, stanceKey) {
   }
 
   // ---- REALIZATION. One question: can the modeled savings be booked at all? ----
-  const realizationGrade = CRED_GRADE[r.cred] || "Directional";
+  const realizationGrade = realizationFromCred(r.cred);
   if (r.mechKey === "none")
     caps.push(["Directional", "No capacity action is committed, so freed agent time realizes zero cash. Until an action is chosen this case is released capacity, not a saving. This is a benefit-realization question and says nothing about the cost inputs."]);
   else if (GRADE_RANK[realizationGrade] < GRADE_RANK[costGrade])
@@ -664,9 +705,54 @@ function confidenceOf(d, r, stanceKey) {
   if (numericCorrections.length) { const k = numericCorrections.length, many = k > 1;
     caps.push(["Directional", `${k} numeric input${many ? "s were" : " was"} not a clean number and ${many ? "were" : "was"} held at the value shown before this case was computed: ${numericCorrections.join(" ")} The figures here describe the held values. Re-enter ${many ? "them" : "it"} as plain numbers to lift this cap. This is an input-integrity concern and says nothing about the evidence behind the cost inputs.`]); }
 
-  const headline = [costGrade, realizationGrade, ...caps.map(c => c[0])]
-    .reduce((a, b) => GRADE_RANK[b] < GRADE_RANK[a] ? b : a, "Finance-grade");
-  return { grade: headline, costGrade, realizationGrade, open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence, corrections, numericCorrections };
+  // A clean number outside the model's domain is the same kind of question: the case that
+  // ran is not the case that was entered. Disclosed in its own sentence (11B domain guard).
+  const domainCorrections = r.domainCorrections || [];
+  if (domainCorrections.length) { const k = domainCorrections.length, many = k > 1;
+    caps.push(["Directional", `${k} input${many ? "s were" : " was"} outside the range this model can compute and ${many ? "were" : "was"} corrected before this case was computed: ${domainCorrections.join(" ")} The figures here describe the corrected values. This is an input-integrity concern and says nothing about the evidence behind the cost inputs.`]); }
+
+  /* ---- THE THREE AXES. Doctrine Section 5, retrofit 11B. ----
+     Evidence has two streams graded on one set of bands, and the weaker binds. The cost
+     stream is the cost basis above. The benefit stream carries the two attribution caps
+     argued under 1-12b: a stance with no haircut, and targets above the planning range.
+     BCB carries no evidence selector for its operational baselines, so the benefit stream
+     grades attribution and target ambition only, as it did before this retrofit.
+     Realization is read from the credit class of the committed capacity action and from
+     nothing else. Completeness falls to Directional when any input was substituted, held
+     or corrected, because the reader is then looking at a different case.
+     No axis reads the return. The findings above reach the reader and move nothing. */
+  const benefitCaps = [];
+  if (stKey === "aggressive") benefitCaps.push("the Aggressive stance applies no attribution haircut");
+  if (flags.length) benefitCaps.push(`${flags.length} improvement target${flags.length > 1 ? "s sit" : " sits"} above the internal planning range`);
+  const benefitGrade = benefitCaps.length ? "Planning-grade" : "Finance-grade";
+  const evidenceGrade = weakerStream(costGrade, benefitGrade);
+  const integrity = corrections.length + numericCorrections.length + domainCorrections.length;
+  const completenessGrade = integrity ? "Directional" : "Finance-grade";
+  const costBinds = GRADE_RANK[costGrade] <= GRADE_RANK[benefitGrade];
+  const reasons = {
+    evidence: `${costBinds ? "The cost stream binds" : "The benefit stream binds"}. Cost stream ${costGrade}: the investment inputs rest on ${EVIDENCE[evidence].label.toLowerCase()} evidence${open.length ? `, with ${open.length} open item${open.length > 1 ? "s" : ""} on the cost inputs` : ""}. Benefit stream ${benefitGrade}: ${benefitCaps.length ? benefitCaps.join(", and ") : "the stance applies an attribution haircut and every improvement target sits inside the internal planning range"}.`,
+    realization: r.mechKey === "none"
+      ? "No capacity action is committed, so freed agent time realizes zero cash and the case is released capacity until an action is chosen."
+      : `The ${r.mechLabel} capacity action carries credit class ${r.cred}, which earns ${realizationGrade} realization.`,
+    completeness: integrity
+      ? `${integrity} input${integrity > 1 ? "s were" : " was"} substituted, held or corrected before this case was computed, so the figures describe a different case from the one entered.`
+      : "The model is whole: no input was substituted, held or corrected before this case was computed.",
+  };
+
+  /* ---- VOID. Section 5.4: a result that contradicts itself claims no grade anywhere. ----
+     Reachable through a scenario link carrying a driver no finite arithmetic survives, for
+     example 1e308 agents or 1e308 per agent per month of platform cost. */
+  const invariants = [];
+  const figs = [r.gross, r.net, r.tco3, r.netValue3, r.benefit3, r.savings3, r.displacement3, r.year1, r.monthlyFull, r.monthlyPlatform, ...(r.roiDefined ? [r.roi3] : [])];
+  if (!figs.every(Number.isFinite)) invariants.push("an output is not a finite number");
+  if (!(r.cumFlow || []).every(Number.isFinite)) invariants.push("the cumulative cash flow is not finite");
+  const voided = invariants.length > 0;
+  const gradeObj = voided
+    ? voidResult({ invariant: invariants.join("; "), remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this case." })
+    : emitGrades({ evidence: evidenceGrade, realization: realizationGrade, completeness: completenessGrade, reasons });
+  const grade = voided ? "Void" : gradeObj.headline;
+  return { grade, gradeObj, voided, invariants, costGrade, benefitGrade, evidenceGrade, realizationGrade, completenessGrade,
+    open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence, corrections, numericCorrections, domainCorrections };
 }
 
 // One vocabulary for the four savings levers, shared by the fragility pricing and the
@@ -675,6 +761,7 @@ const LEVER_LABEL = { containment: "self-service containment", handleTime: "hand
 
 function caseInsights(r, d, stanceKey, conf) {
   d = saneNums(d);
+  d = ranValues(d, r); // 11B: insights read the values the engine ran
   /* The stance the engine ran, not the raw argument. Two of the lines below print the
      key as prose, so an unrecognised value reached the reader as the name of a stance
      that does not exist and was never applied. */
@@ -822,7 +909,7 @@ function caseInsights(r, d, stanceKey, conf) {
   else
     out.push(`Two separate adjustments run on this case. The ${stKey} stance takes ${fmtK(r.attributionHaircut)} off gross savings for attribution, asking how much of the improvement this intervention actually causes. Realization then takes a further ${fmtK(r.realizationHaircut)} off freed labor, asking what converts capacity into money. ${r.mechKey === "none" ? `The realization figure is that large only because no action has been chosen, which is an open decision rather than a stress test. Choose the action you can actually commit to before comparing gross ${fmtK(r.gross)} against realizable ${fmtK(r.net)}.` : `Presenting gross ${fmtK(r.gross)} and realizable ${fmtK(r.net)} side by side, with both adjustments named, shows a reader exactly which assumptions the figure depends on.`}`);
 
-  if (conf) out.push(`Case confidence reads ${conf.grade}, the weaker of a ${conf.costGrade} cost basis and a ${conf.realizationGrade} realization axis${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} on the cost inputs to close before you call the investment side final` : ", with no open items on the cost inputs"}.${conf.withheld && conf.withheld.length ? ` The grade is additionally capped by ${conf.withheld.length} item${conf.withheld.length > 1 ? "s" : ""} that ${conf.withheld.length > 1 ? "are" : "is"} not a costing defect, counted separately so a derivation problem never reads as a bookability problem.` : ""}${conf.findings && conf.findings.length ? ` ${conf.findings.length} finding${conf.findings.length > 1 ? "s are" : " is"} reported on the return itself, and ${conf.findings.length > 1 ? "none of them move" : "it does not move"} the grade, because a well evidenced case that does not pay is a confident negative answer.` : ""} Neither axis rates whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
+  if (conf && !conf.voided) out.push(`Case confidence reads ${conf.grade}, the weakest of three axes: evidence ${conf.evidenceGrade}, realization ${conf.realizationGrade} and completeness ${conf.completenessGrade}, bound by ${conf.gradeObj.boundBy}${conf.open.length ? `, with ${conf.open.length} open item${conf.open.length > 1 ? "s" : ""} on the cost inputs to close before you call the investment side final` : ", with no open items on the cost inputs"}.${conf.withheld && conf.withheld.length ? ` ${conf.withheld.length} item${conf.withheld.length > 1 ? "s limit" : " limits"} an axis without being a costing defect, counted separately so a derivation problem never reads as a bookability problem.` : ""}${conf.findings && conf.findings.length ? ` ${conf.findings.length} finding${conf.findings.length > 1 ? "s are" : " is"} reported on the return itself, and ${conf.findings.length > 1 ? "none of them move" : "it does not move"} the grade, because a well evidenced case that does not pay is a confident negative answer.` : ""} No axis rates whether the organization can deliver the targets, which is a separate question for the Transformation Readiness tool.`);
 
   return out;
 }
@@ -940,6 +1027,9 @@ export default function BusinessCaseBuilder() {
 
   // Publish through the shared normalizer so units and provenance are canonical on the rail.
   useEffect(() => {
+    /* A voided case publishes nothing. Its figures are not finite, and a rail value is read
+       downstream as the number this tool computed (11B, doctrine 5.4). */
+    if (conf.voided) return;
     const primitives = {
       agents: n(g.agents), annualContacts: r.annual, monthlyContacts: n(g.monthlyContacts),
       grossSavings: Math.round(r.gross), netSavings: Math.round(r.net),
@@ -992,7 +1082,7 @@ export default function BusinessCaseBuilder() {
     : `your ${sourceNames.slice(0, -1).join(", ")} and ${sourceNames[sourceNames.length - 1]} runs`;
   const marginalSource = sources.marginalPerContact ? toolLabel(sources.marginalPerContact) : null;
 
-  const gradeColor = conf.grade === "Finance-grade" ? GREEN : conf.grade === "Planning-grade" ? AMBER : MUTED;
+  const gradeColor = conf.voided ? RED : conf.grade === "Finance-grade" ? GREEN : conf.grade === "Planning-grade" ? AMBER : MUTED;
 
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: WARM }}>
@@ -1148,6 +1238,14 @@ export default function BusinessCaseBuilder() {
             </div>
           </div>
 
+          {/* A void case shows no figure and no reading of one. The failed check and the remedy
+              are stated here and again, once, by ReportActions (11B, doctrine 5.4). */}
+          {conf.voided ? (
+            <div style={{ background: `${RED}0D`, border: `1px solid ${RED}55`, borderRadius: 12, padding: "20px 22px", marginBottom: 16 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Case void. No figure is shown and no grade is claimed.</div>
+              <div style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6 }}>Failed check: {conf.invariants.join("; ")}. Remedy: {conf.gradeObj.remedy}</div>
+            </div>
+          ) : (<>
           {/* Summary */}
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "32px 28px", marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
@@ -1235,11 +1333,11 @@ export default function BusinessCaseBuilder() {
 
           {/* Confidence & open issues */}
           <div style={{ background: "#fff", border: `1px solid ${gradeColor}55`, borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: gradeColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Case confidence: {conf.grade} · cost basis {conf.costGrade} · realization {conf.realizationGrade} · {EVIDENCE[conf.evidence].label}</div>
-            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: (conf.open.length || conf.withheld.length || conf.findings.length) ? 8 : 0 }}>Two independent axes, and the badge shows the weaker. Cost basis rates how bookable the cost and investment inputs are. Realization rates whether the modeled savings can be booked at all. Neither certifies that the organization can deliver the targets, which the Transformation Readiness tool assesses separately. Whether the case pays is a separate question again, and it is reported below without moving the grade: a well evidenced case that does not return is a confident negative answer, not an uncertain one.</p>
+            <div style={{ fontSize: 10, fontWeight: 700, color: gradeColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Case confidence: {conf.grade} · evidence {conf.evidenceGrade} · realization {conf.realizationGrade} · completeness {conf.completenessGrade} · {EVIDENCE[conf.evidence].label}</div>
+            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: (conf.open.length || conf.withheld.length || conf.findings.length) ? 8 : 0 }}>Three axes, and the badge shows the weakest, bound by {conf.gradeObj.boundBy}. Evidence rates how bookable the inputs are, as the weaker of the cost stream ({conf.costGrade}) and the benefit stream ({conf.benefitGrade}). Realization rates whether the modeled savings can be booked at all, from the capacity action committed. Completeness rates whether the case that ran is the case entered. None certifies that the organization can deliver the targets, which the Transformation Readiness tool assesses separately. Whether the case pays is a separate question again, and it is reported below without moving the grade: a well evidenced case that does not return is a confident negative answer, not an uncertain one.</p>
             {conf.withheld.length > 0 && (
               <div style={{ marginBottom: (conf.findings.length || conf.open.length) ? 10 : 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Capping the grade, and not a cost-input defect:</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Limiting an axis, and not a cost-input defect:</div>
                 {conf.withheld.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: AMBER }}>&rsaquo;</span>{o}</div>)}
               </div>
             )}
@@ -1265,6 +1363,8 @@ export default function BusinessCaseBuilder() {
             ))}
           </div>
 
+          </>)}
+
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <span style={{ display: "inline-flex" }}>
               <ReportActions
@@ -1275,13 +1375,17 @@ export default function BusinessCaseBuilder() {
                 state={scenario}
                 defaults={SCENARIO_DEFAULTS}
                 confidence={conf.grade}
-                summary={[
+                grades={conf.gradeObj}
+                summary={conf.voided ? [
+                  { label: "Result", value: "Void. No figure was computed; see the failed invariant." },
+                  { label: "Capacity action", value: r.mechLabel },
+                ] : [
                   { label: "Realizable annual savings", value: fmtK(r.net) },
                   { label: "Payback", value: r.payback > 0 ? `${r.payback} months` : (r.trueBreakevenMonth > 0 ? `month ${r.trueBreakevenMonth}, beyond horizon` : "no break-even at any horizon") },
                   { label: "Three-year return", value: r.roiDefined ? `${Math.round(r.roi3)}%` : "n/a" },
                   { label: r.bauEntered ? "Gross transformation cash" : "Modeled 3-yr cost", value: fmtK(r.tco3) },
                   { label: "Capacity action", value: r.mechLabel },
-                  { label: "Case confidence", value: `${conf.grade} (cost ${conf.costGrade}, realization ${conf.realizationGrade})` },
+                  { label: "Case confidence", value: `${conf.grade} (evidence ${conf.evidenceGrade}, realization ${conf.realizationGrade}, completeness ${conf.completenessGrade})` },
                   ...(r.bauEntered ? [{ label: "Benefit mix", value: `${Math.round((1 - r.displacementShare) * 100)}% operational, ${Math.round(r.displacementShare * 100)}% displacement` }] : []),
                 ]}
                 signals={{
@@ -1290,48 +1394,60 @@ export default function BusinessCaseBuilder() {
                      the cost base stays in the browser and in the report the user downloads. */
                   stance_class: r.stanceKey,
                   capacity_action: r.mechKey,
-                  inputs_corrected: conf.corrections.length + conf.numericCorrections.length,
+                  inputs_corrected: conf.corrections.length + conf.numericCorrections.length + conf.domainCorrections.length,
                   credit_class: r.cred,
                   confidence_class: conf.grade,
                   cost_basis_class: conf.costGrade,
+                  evidence_class: conf.evidenceGrade,
                   realization_class: conf.realizationGrade,
+                  completeness_class: conf.completenessGrade,
                   evidence_basis: conf.evidence,
                   phasing_on: rampOn,
-                  returns_in_horizon: r.payback > 0,
-                  breaks_even_ever: r.trueBreakevenMonth > 0,
-                  open_cost_items: conf.open.length,
-                  withheld_caps: conf.withheld.length,
-                  return_findings: conf.findings.length,
                   bau_entered: r.bauEntered,
                   bau_evidence: conf.bauEvidence,
-                  displacement_led: r.displacementShare >= 0.5,
-                  credit_before_go_live: r.preGoLiveCredit > 0,
-                  negative_max_implementation: r.breakEvenImpl < 0,
-                  /* Tracker 1-14. A case that returns inside the horizon on a margin thinner
-                     than the gap between two attribution stances. Reported as a boolean band,
-                     never as the slack figure itself, which would carry the cost base out of
-                     the browser by arithmetic. */
-                  thin_return: r.fragile,
-                  /* Severity measures how long the business waits for its money back, and it is
-                     the correct home for verdict strength: the confidence axes rate the case, this
-                     rates the answer. Tracker 1-12c, denominator argued and rejections recorded.
-                     Denominator is 60 months, the outer edge of a five-year platform commitment,
-                     which is the longest horizon a CX platform decision is normally underwritten
-                     against. Scored on trueBreakevenMonth, which is the month cumulative cash
-                     actually turns positive under phasing, so a case that returns in month 43 is
-                     separated from one that never returns, exactly as every other surface in this
-                     tool separates them. Never returning is the only 1.0.
-                     Rejected: the 36-month evaluation horizon as the denominator, which put a
-                     27-month payback and a case that never pays in the same severe band and made
-                     four of five bands unreachable. Rejected: r.payback alone, which is 0 for both
-                     beyond-horizon and never, discarding a distinction the engine already computes.
-                     Rejected: an absolute month ladder, which would not move with the horizon.
-                     Declared unreachable: none. Every modelled transformation waits at least one
-                     month for its return, so a zero-severity business case has no referent here. */
-                  severity: severityBucket(r.trueBreakevenMonth > 0 ? Math.min(0.99, r.trueBreakevenMonth / 60) : 1),
+                  /* A void case withholds every signal read from its figures: they are not finite,
+                     so any comparison on them is a false fact. A dropped property reads as not
+                     published, never as zero (TAXONOMY rule 6). 11B. */
+                  ...(conf.voided ? {} : {
+                    open_cost_items: conf.open.length,
+                    withheld_caps: conf.withheld.length,
+                    return_findings: conf.findings.length,
+                    returns_in_horizon: r.payback > 0,
+                    breaks_even_ever: r.trueBreakevenMonth > 0,
+                          displacement_led: r.displacementShare >= 0.5,
+                    credit_before_go_live: r.preGoLiveCredit > 0,
+                    negative_max_implementation: r.breakEvenImpl < 0,
+                    /* Tracker 1-14. A case that returns inside the horizon on a margin thinner
+                       than the gap between two attribution stances. Reported as a boolean band,
+                       never as the slack figure itself, which would carry the cost base out of
+                       the browser by arithmetic. */
+                    thin_return: r.fragile,
+                    /* Severity measures how long the business waits for its money back, and it is
+                       the correct home for verdict strength: the confidence axes rate the case, this
+                       rates the answer. Tracker 1-12c, denominator argued and rejections recorded.
+                       Denominator is 60 months, the outer edge of a five-year platform commitment,
+                       which is the longest horizon a CX platform decision is normally underwritten
+                       against. Scored on trueBreakevenMonth, which is the month cumulative cash
+                       actually turns positive under phasing, so a case that returns in month 43 is
+                       separated from one that never returns, exactly as every other surface in this
+                       tool separates them. Never returning is the only 1.0.
+                       Rejected: the 36-month evaluation horizon as the denominator, which put a
+                       27-month payback and a case that never pays in the same severe band and made
+                       four of five bands unreachable. Rejected: r.payback alone, which is 0 for both
+                       beyond-horizon and never, discarding a distinction the engine already computes.
+                       Rejected: an absolute month ladder, which would not move with the horizon.
+                       Declared unreachable: none. Every modelled transformation waits at least one
+                       month for its return, so a zero-severity business case has no referent here. */
+                    severity: severityBucket(r.trueBreakevenMonth > 0 ? Math.min(0.99, r.trueBreakevenMonth / 60) : 1),
+                  }),
                 }}
                 sections={[
-                  { title: "Confidence & Evidence", type: "text", content: `Case confidence: ${conf.grade}, the weaker of two independent axes. Cost basis: ${conf.costGrade} (evidence basis: ${EVIDENCE[conf.evidence].label}), which rates how bookable the cost and investment inputs are. Realization: ${conf.realizationGrade}, which rates whether the modeled savings can be booked at all given the ${r.mechLabel} capacity action. Neither axis certifies that the organization can deliver the operational targets. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` The grade is additionally capped for reasons that are not cost-input defects: ${conf.withheld.join(" ")}` : ""}${conf.findings.length ? ` Findings on the return, reported in full and deliberately excluded from every confidence axis, because the strength of an answer is not evidence about it: ${conf.findings.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[r.stanceKey].label} stance, which weights each lever for attribution risk.` },
+                  /* One confidence section per document, built by ReportActions from the grade
+                     (doctrine 5.6 item 2). This section carries the evidence basis, open items,
+                     axis-limiting items and findings, and never restates an axis. A void case
+                     carries only its next steps and methodology (11B). */
+                  ...(conf.voided ? [] : [
+                  { title: "Evidence and Findings", type: "text", content: `Evidence basis for the cost and investment inputs: ${EVIDENCE[conf.evidence].label}. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` Items that limit an axis and are not cost-input defects: ${conf.withheld.join(" ")}` : ""}${conf.findings.length ? ` Findings on the return, reported in full and deliberately excluded from every confidence axis, because the strength of an answer is not evidence about it: ${conf.findings.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[r.stanceKey].label} stance, which weights each lever for attribution risk.` },
                   { title: "Executive Summary", type: "text", content: `Modeled on ${n(g.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[r.stanceKey].label} stance) against a ${fmtFull(n(g.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(g.costPerContact))}. ${r.stanceKey === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
                   { title: "Financial Summary", type: "metrics", items: [
                     { label: "Realizable Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[r.stanceKey].label} stance · ${r.mechLabel} · run-rate` },
@@ -1385,6 +1501,7 @@ export default function BusinessCaseBuilder() {
                     ["Underlying issues (contacts less repeats)", Math.round(r.issues).toLocaleString()],
                     ["Attribution weighting", `containment ${Math.round(STANCE[r.stanceKey].c * 100)}%, handle-time ${Math.round(STANCE[r.stanceKey].h * 100)}%, FCR ${Math.round(STANCE[r.stanceKey].f * 100)}%, attrition ${Math.round(STANCE[r.stanceKey].a * 100)}%`],
                   ]},
+                  ]),
                   { title: "Recommended Next Steps", type: "next", items: [
                     { tool: "TCO Calculator", reason: "Validate the platform cost assumptions behind this case", href: "/tools/tco-calculator" },
                     { tool: "Transformation Readiness", reason: "Confirm the organization can actually deliver these targets", href: "/tools/transformation-readiness" },

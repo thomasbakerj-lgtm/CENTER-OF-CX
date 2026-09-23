@@ -8,7 +8,8 @@ match the baseline below. Re-verified in Claude Code on 23 September 2026 at `ma
 76f5248: all 20 md5s match, suite 18,018 green, build and prerender green. This file
 and `docs/` were committed on 23 September 2026. S22 (23 Sep): PR #1 merged to
 `main` (73a1e96), TCO fix live and verified on production. Stage 2 freeze on the
-branch: suite 18,285 green (adds `freeze.test.mjs`, 252). md5s updated below.
+branch, then merged (PR #2, 3d8f575) and verified live. BCB 11B retrofit on the
+branch: suite 18,363 green, build and prerender green. md5s updated below.
 
 ---
 
@@ -58,7 +59,7 @@ second, invest third, automate last.
 | `src/lib/guards.js` | a640b502cbee94ebd08687656ba7d681 |
 | `src/lib/type.js` | fde48210b6eac47c307681b3b90adba9 |
 | `TCOCalculator.jsx` | 5329c88fa10063473c9710f8acfbbd27 (S22, on `main`) |
-| `BusinessCaseBuilder.jsx` | 46382fac41ff92601347c07887f9395a |
+| `BusinessCaseBuilder.jsx` | eb43e3f4bf9d7a806ff3799a6635ef22 (S22 11B retrofit) |
 | `StaffingCalculator.jsx` | 6f956589657ea7bfe8b7a3a7dab76dc1 |
 | `CostPerContactCalculator.jsx` | 815a2bd4a1b23537f8ec413112e38944 |
 | `ChannelShiftModel.jsx` | 9f7b3e2f941a5bd304a592a88a81efd6 |
@@ -108,16 +109,37 @@ gates all of it: the pre-freeze files fail 27 of its 252 checks.
 Not in scope, still Phase 1: Vendor Match output (Stage 4 rebuild) and the other seven
 categories' scores and tiers (TB decision covered CCaaS).
 
-**Then: Business Case Builder**, the ninth and last rail tool, 113 KB of source.
-Corrected S22: **1-12 is already closed in code.** Line 53 is `paybackStatus`, a verdict
-colour and label, not a confidence cap, and `bcb.test.mjs` section 12f sweeps 11 return
-profiles across every stance and capacity action to prove the grade never moves with
-the return. What remains is the 11B retrofit per Section 5.7: `confidenceOf` still folds
-completeness items (corrections, held numerics) into a `caps` array, keeps stance and
-target caps beside them, and emits no grade object through `confidence.js`. Promote
-those to the completeness axis, keep stance and target on the benefit evidence stream,
-emit the Section 5.6 object, and add the harness sign-invariance assertion. Regression
-fixtures for BCB are in tracker Section 1 (reference set and live PDF set).
+**Done S22 on the branch: 11B Business Case Builder, the ninth and last rail tool.**
+- Grades through `src/lib/confidence.js` and emits the Section 5.6 object: evidence is
+  the weaker of the cost stream (cost basis, as before) and the benefit stream (Aggressive
+  stance or targets above the planning range cap it at Planning-grade); realization from
+  the credit class via `realizationFromCred`; completeness Directional on any substituted,
+  held or domain-corrected input. Local `GRADE_RANK` and `CRED_GRADE` copies retired.
+- Void (5.4) on non-finite outputs or cash flow, reachable by link (`agents: 1e308`).
+  A void renders and publishes no figure: page notice, 2-page PDF (void block, next
+  steps, methodology), review summary states the void, figure-derived signals withheld,
+  nothing published to the rail.
+- Domain guard on every numeric input (`BCB_DOMAIN`, no bound narrower than the form).
+  Found by the boundary probe: `agents: -5` printed a 129% return, a negative platform
+  price made three-year cost negative, a negative implementation printed 278%, all
+  undisclosed. Now clamped and disclosed; completeness Directional.
+- `confidenceOf` and `caseInsights` read the values the engine ran (`ranValues`).
+- The PDF's own section is now "Evidence and Findings" and restates no axis; ReportActions
+  receives `grades` and owns the one confidence section.
+- 1-12 was already closed; 12f now proves all three axes and the grade object invariant
+  to the return. New 12g: headline equals the pre-retrofit formula on 6,000 in-domain
+  cases; emission, void and guard gates. Mutation set updated (3 equivalent mutants
+  retired, 3 added). One-off A/B against the original engine from `main`: 19,169 clean
+  in-domain cases, identical outputs, headlines, open items and findings.
+- Local live check: normal PDF reconciles to the dollar (net $31,850, three-year cost
+  $1,722,000, the tracker fixture); the Finance-grade case that does not return prints
+  Finance-grade with the finding; the void PDF is 2 pages with no figure; the guard case
+  discloses and grades Directional.
+- **Open for TB (DECIDE):** BCB has no evidence selector for its operational baselines
+  (AHT, FCR, volume, wage), and rail-pulled values are not origin-graded, so the benefit
+  stream grades attribution and target ambition only, exactly as before. Honest per-field
+  grading (as TCO does) would move most BCB cases to Directional. Decide before 1-10 or
+  1-11 touch the engine.
 
 ---
 
@@ -140,7 +162,7 @@ comments and were never added to the tracker.
 | WS | Subject | State |
 |---|---|---|
 | WS0 | Hygiene and blockers | Closed. `SHIPPING.md` approved by TB 23 Sep |
-| WS1 | V3 engine integrity, nine rail tools | In flight. TCO step 6, then BCB |
+| WS1 | V3 engine integrity, nine rail tools | 1-09 walk complete S22 (TCO on production; BCB on branch, then production check) |
 | WS2 | The other 21 tools | 2-01 triage is cheap and high leverage |
 | WS3 | Journey architecture | Graph in `src/lib/journey.js` (3-01 done) |
 | WS4 | Vendor data depth | 283 vendors, 28 genuinely deep |
@@ -336,6 +358,8 @@ Binding. None of this is in code comments beyond what is noted.
 - Vendor Match still ranks on its 24-vendor Phase 1 fork and prints fit scores (Stage 4,
   5-01).
 - Seven non-CCaaS categories still show Phase 1 scores and tiers as current.
+- BCB publishes `analystRead` and `confidence` on the rail (verdicts), like TCO's
+  `analystRead`. BCB next steps are a hardcoded list, not `nextFor` (3-03).
 - CCaaS vendor profile nav renders "Vendors" twice. Pre-existing, cosmetic.
 - `ReportActions.jsx` line 40, `scenarioUrl` `__proto__` assignment, `track.js` line 185.
 - `ReportActions` `Field` labels are not bound to their inputs (no `htmlFor`/`id`).
@@ -449,7 +473,10 @@ dashboard, the 12-phase growth program.
 2. Done S22: 11B TCO closed on production.
 3. Done S22 on the branch: research Stage 2, the CCaaS integrity freeze. Merge and
    verify on production.
-4. **Next:** Business Case Builder 11B retrofit (Section 5.7). Closes WS1.
+4. Done S22: Business Case Builder 11B retrofit. Merge and verify on production, which
+   closes 1-09 and WS1.
+5. **Next:** the reachability batch (8-04 vendor titles, homepage index count, Sprinklr
+   duplicate slug), per the approved sequence.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
