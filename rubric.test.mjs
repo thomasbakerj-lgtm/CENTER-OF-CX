@@ -169,12 +169,16 @@ section("N. Scores and bands are unchanged by the move into the engine");
    read from git, so the check survives a shallow clone. */
 const LEGACY = {
   "cx-maturity": [{ min: 1, max: 1.8, tier: "Foundational" }, { min: 1.8, max: 2.6, tier: "Developing" }, { min: 2.6, max: 3.4, tier: "Operational" }, { min: 3.4, max: 4.2, tier: "Advanced" }, { min: 4.2, max: 5.1, tier: "Leading" }],
+  /* Transformation Readiness, from TransformationReadiness.jsx at main 4dde784. Its first band
+     began at 0, below the scale floor of 1; no answer set can score there, so the rubric
+     starts it at 1 and the check below compares the upper edges. */
+  "transformation-readiness": [{ min: 0, max: 1.5, tier: "Not Ready" }, { min: 1.5, max: 2.5, tier: "Early Stage" }, { min: 2.5, max: 3.5, tier: "Developing" }, { min: 3.5, max: 4.2, tier: "Ready" }, { min: 4.2, max: 5.1, tier: "Strong" }],
   "ai-readiness": [{ min: 1, max: 1.8, tier: "Not Ready" }, { min: 1.8, max: 2.6, tier: "Early Stage" }, { min: 2.6, max: 3.4, tier: "Foundation Set" }, { min: 3.4, max: 4.2, tier: "AI Capable" }, { min: 4.2, max: 5.1, tier: "AI Advanced" }],
 };
-for (const id of ["cx-maturity", "ai-readiness"]) {
+for (const id of ["cx-maturity", "ai-readiness", "transformation-readiness"]) {
   const r = RUBRICS[id]; const L = LEGACY[id];
   ok(`[${id}] legacy band table read (${L.length} bands)`, L.length === r.bands.length);
-  ok(`[${id}] cut points and labels match the legacy table`, L.every((l, i) => l.min === r.bands[i].min && l.max === r.bands[i].max && l.tier === r.bands[i].label));
+  ok(`[${id}] cut points and labels match the legacy table`, L.every((l, i) => (i === 0 ? l.min <= r.bands[0].min && r.bands[0].min === r.scale.min : l.min === r.bands[i].min) && l.max === r.bands[i].max && l.tier === r.bands[i].label));
   let same = true;
   for (let k = 0; k < 20000; k++) {
     const ans = randomComplete(r);
@@ -187,14 +191,23 @@ for (const id of ["cx-maturity", "ai-readiness"]) {
       const era = legacyOverall >= 4 ? "Era 4" : legacyOverall >= 3 ? "Era 3" : legacyOverall >= 2 ? "Era 2" : "Era 1";
       if (!out.secondary.label.startsWith(era)) { same = false; break; }
     }
+    if (id === "transformation-readiness") {
+      /* The per-dimension flags the results page always showed: below 2.5 close the gap,
+         2.5 to below 3.5 monitor. They must equal the flag the dimension's band states. */
+      for (const d of out.dims) {
+        const legacyFlag = d.score < 2.5 ? "Close this gap" : d.score < 3.5 ? "Monitor" : undefined;
+        if (E.bandFor(r, d.score).dimFlag !== legacyFlag) { same = false; break; }
+      }
+      if (!same) break;
+    }
   }
-  ok(`[${id}] 20,000 complete answer sets: overall, band${id === "ai-readiness" ? " and automation pattern" : ""} equal the legacy formulas`, same);
+  ok(`[${id}] 20,000 complete answer sets: overall, band${id === "ai-readiness" ? " and automation pattern" : id === "transformation-readiness" ? " and every dimension flag" : ""} equal the legacy formulas`, same);
 }
 
 /* --------------------------------------- M. the tools read the rubric */
 section("M. Each assessment scores through the engine and publishes its rubric");
 const APP = readFileSync("./App.jsx", "utf8");
-for (const [id, file] of [["cx-maturity", "CXMaturity.jsx"], ["ai-readiness", "AIReadiness.jsx"]]) {
+for (const [id, file] of [["cx-maturity", "CXMaturity.jsx"], ["ai-readiness", "AIReadiness.jsx"], ["transformation-readiness", "TransformationReadiness.jsx"]]) {
   const src = readFileSync("./" + file, "utf8");
   ok(`${file}: imports the engine and its rubric`, /import \{ scoreRubric[^}]*\} from "\.\/src\/lib\/rubric"/.test(src) && src.includes(`/src/lib/rubrics/`));
   ok(`${file}: no local band table or score formula`, !/const LEVELS = \[|const getTier|\.reduce\(\(a, d\) => a \+ dimScore/.test(src));

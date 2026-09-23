@@ -78,6 +78,10 @@ export const SEO_MAP = {
     title: `CX Maturity Rubric: How the Assessment Scores | ${SITE}`,
     desc: "The published scoring rubric for the CX Maturity Assessment: 25 statements across 5 equally weighted dimensions, the band cut points, the action each statement triggers and what the assessment cannot tell you.",
   },
+  "/methodology/transformation-readiness": {
+    title: `Transformation Readiness Rubric: How the Scorecard Scores | ${SITE}`,
+    desc: "The published scoring rubric for the Transformation Readiness Scorecard: 24 statements across 6 equally weighted dimensions, the band cut points, the gap flags, the action each statement triggers and what the scorecard cannot tell you.",
+  },
   "/methodology/ai-readiness": {
     title: `AI Readiness Rubric: How the Diagnostic Scores | ${SITE}`,
     desc: "The published scoring rubric for the AI Readiness Diagnostic: 24 statements across 6 equally weighted dimensions, the band cut points, the action each statement triggers and what the diagnostic cannot tell you.",

@@ -573,8 +573,16 @@ dashboard, the 12-phase growth program.
    rail tools' sample, hostile and PDF paths (195 checks, was 142); on its first run it found TCO printing
    "NaN% above cost per contact" on a hostile link (fixed, A/B neutral on 12,000 cases). TCO links now open
    on Overhead & Results. The checker retries a page whose result has not appeared yet.
-15. **Next:** TB: make `suite` required on main; 11-01. Me: Phase C, frameworks on the rubric engine
-   (Transformation Readiness, CX IT Alignment, Governance first).
+15. Done S23: Phase C step 1, Transformation Readiness on the rubric engine: published rubric at
+   `/methodology/transformation-readiness` (sitemap 427), action checklist, next diagnostic per weakest
+   dimension. Cut points unchanged (20,000 answer sets equal the legacy formula, bands and every
+   dimension flag); the unpublished Close/Monitor thresholds are now stated on their bands. Technical
+   Readiness now routes to Platform Decision (was `/vendors`, not a diagnostic). Strong no longer says
+   "Execute with confidence". Open: the rubric's next diagnostic and ReportActions' journey list can
+   name different tools on the same page (also CX Maturity, AI Readiness); settle in 3-02.
+16. **Next:** TB: make `suite` required on main; 11-01. Me: CX IT Alignment needs a paired-gap kind in
+   the engine and a published rule for shared low scores (both sides at 1 reads "Aligned" today);
+   Governance is an ownership map, not a scale, and needs its own engine. Both are methodology calls.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.

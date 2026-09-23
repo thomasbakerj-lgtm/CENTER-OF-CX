@@ -52,7 +52,7 @@ export default function RubricPage({ id }) {
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Overall score</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Band</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>What it means</th></tr></thead>
           <tbody>{r.bands.map((b, i, all) => (
-            <tr key={b.id}><td style={{ ...cell, whiteSpace: "nowrap" }}>{cut(b, i, all)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{b.label}</td><td style={cell}>{b.desc}{b.rec ? ` ${b.rec}` : ""}</td></tr>
+            <tr key={b.id}><td style={{ ...cell, whiteSpace: "nowrap" }}>{cut(b, i, all)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{b.label}</td><td style={cell}>{b.desc}{b.rec ? ` ${b.rec}` : ""}{b.dimFlag ? ` A dimension scoring in this band is marked "${b.dimFlag}".` : ""}</td></tr>
           ))}</tbody>
         </table>
 
