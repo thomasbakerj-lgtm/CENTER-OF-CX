@@ -227,19 +227,20 @@ export default function ForecastAccuracyTracker() {
               </div>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <ReportExport toolName="Forecast Accuracy Analysis" subtitle="Forecast vs Actual — Interval-Level Accuracy" userName={name} userEmail={email} sections={[
-                    { title: "Forecast Data", type: "table", rows: data.map(d => [d.interval, "F: " + d.forecast + " / A: " + d.actual + " (Err: " + ((d.actual - d.forecast) / d.forecast * 100).toFixed(1) + "%)"]) },
+                <ReportExport toolName="Forecast Accuracy Analysis" subtitle="Forecast vs Actual, Interval-Level Accuracy" userName={name} userEmail={email} sections={[
+                    { title: "Forecast Data", type: "table", rows: rows.map(r => [r.interval, "F: " + r.forecast + " / A: " + r.actual + (r.forecast > 0 ? " (Err: " + ((r.actual - r.forecast) / r.forecast * 100).toFixed(1) + "%)" : " (no forecast)")]) },
                     { title: "Accuracy Metrics", type: "metrics", items: [
+                      { label: "Overall Accuracy", value: overallAccuracy.toFixed(1) + "%", color: accColor },
                       { label: "MAPE", value: mape.toFixed(1) + "%", color: mape > 10 ? RED : mape > 5 ? AMBER : GREEN },
-                      { label: "Bias", value: (bias > 0 ? "+" : "") + bias.toFixed(1) + "%", color: Math.abs(bias) > 5 ? AMBER : GREEN, sub: bias > 0 ? "Over-forecasting" : "Under-forecasting" },
+                      { label: "Bias", value: (bias > 0 ? "+" : "") + bias.toFixed(1) + "%", color: Math.abs(bias) > 3 ? AMBER : GREEN, sub: biasLabel },
                     ]},
                     { title: "Key Findings", type: "findings", items: [
-                      "MAPE of " + mape.toFixed(1) + "% — " + (mape < 5 ? "excellent accuracy" : mape < 10 ? "acceptable but improvable" : "significant forecasting gap requiring investigation"),
-                      Math.abs(bias) > 3 ? "Systematic " + (bias > 0 ? "over" : "under") + "-forecasting bias of " + Math.abs(bias).toFixed(1) + "% detected." : "No significant directional bias detected.",
+                      "MAPE of " + mape.toFixed(1) + "%: " + (mape <= 5 ? "strong interval accuracy" : mape <= 10 ? "acceptable but improvable" : "a forecasting gap worth investigating") + ".",
+                      Math.abs(bias) > 3 ? biasLabel + ": actual volume ran " + Math.abs(bias).toFixed(1) + "% " + (bias > 0 ? "above" : "below") + " forecast across the period." : "No significant directional bias: total actual volume is within 3% of forecast.",
                     ]},
                     { title: "Next Steps", type: "next", items: [
-                      { tool: "Staffing Calculator", reason: "Model staffing impact of forecast accuracy improvements" },
-                      { tool: "Schedule Adherence", reason: "Check if adherence gaps compound forecast errors" },
+                      { tool: "Staffing Calculator", reason: "Model the staffing impact of the forecast error" },
+                      { tool: "Schedule Adherence", reason: "Check whether adherence gaps compound forecast errors" },
                     ]},
                   ]} />
                 

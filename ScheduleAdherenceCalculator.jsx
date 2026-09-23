@@ -146,22 +146,19 @@ export default function ScheduleAdherenceCalculator() {
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <ReportExport toolName="Schedule Adherence Impact Analysis" subtitle="Adherence Cascade Model" userName={name} userEmail={email} sections={[
-                    { title: "Adherence Inputs", type: "table", rows: [
-                      ["Baseline Adherence", baseAdherence + "%"],
-                      ["Adherence Loss", adherenceLoss + " points"],
-                      ["Effective Adherence", (baseAdherence - adherenceLoss) + "%"],
-                    ]},
-                    { title: "Cascade Impact", type: "metrics", items: [
-                      { label: "SLA Impact", value: slaImpact.toFixed(1) + "pt", color: RED },
-                      { label: "Abandonment Increase", value: "+" + abandonIncrease.toFixed(1) + "%", color: AMBER },
-                      { label: "Overtime Hours", value: overtimeHrs.toFixed(0) + "hrs/wk", color: RED },
+                    { title: "Adherence Cascade", type: "table", rows: scenarios.map(s => [s.adhPct + "% adherence" + (s.drop ? " (-" + s.drop + " pts)" : " (baseline)"), "SL " + s.sl.toFixed(1) + "%, ASA " + (s.asaVal < 999 ? s.asaVal.toFixed(0) + "s" : "N/A") + ", OT $" + Math.round(s.annualOTCost).toLocaleString()]) },
+                    { title: "Cascade Impact at 3 Points of Loss", type: "metrics", items: [
+                      { label: "Service Level", value: scenarios[3].sl.toFixed(1) + "%", color: scenarios[3].sl >= n(d.slaTarget) ? GREEN : RED, sub: "baseline " + scenarios[0].sl.toFixed(1) + "%" },
+                      { label: "Est. Abandon", value: scenarios[3].abandonPct + "%", color: AMBER, sub: "baseline " + scenarios[0].abandonPct + "%" },
+                      { label: "Annual OT Cost", value: "$" + Math.round(scenarios[3].annualOTCost).toLocaleString(), color: RED },
                     ]},
                     { title: "Key Findings", type: "findings", items: [
-                      adherenceLoss + " points of adherence loss cascades into " + slaImpact.toFixed(1) + " points of SLA degradation.",
-                      "This generates approximately " + overtimeHrs.toFixed(0) + " hours of weekly overtime to compensate.",
+                      "At " + scenarios[0].adhPct + "% adherence the model gives a " + scenarios[0].sl.toFixed(1) + "% service level. Losing 3 points takes it to " + scenarios[3].sl.toFixed(1) + "%.",
+                      "Covering 3 points of lost adherence with overtime costs about $" + Math.round(scenarios[3].annualOTCost).toLocaleString() + " a year at " + n(d.otMultiplier) + "x, assuming a full 8-hour shift equivalent per lost agent over 250 days.",
+                      "Abandonment here is a stepped planning heuristic keyed to ASA, not a measured rate.",
                     ]},
                     { title: "Next Steps", type: "next", items: [
-                      { tool: "Staffing Calculator", reason: "Model FTE buffer needed to absorb adherence variance" },
+                      { tool: "Staffing Calculator", reason: "Model the FTE buffer needed to absorb adherence variance" },
                       { tool: "Occupancy Risk Simulator", reason: "Check whether adherence gaps are creating occupancy spikes" },
                     ]},
                   ]} />
