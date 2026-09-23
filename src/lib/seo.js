@@ -74,6 +74,14 @@ export const SEO_MAP = {
     title: `CX Industry Ecosystem: 15 Essential Publications + Communities | ${SITE}`,
     desc: "The 15 publications, research hubs, and communities that matter for CX and contact center professionals. Curated by The Center of CX.",
   },
+  "/methodology/cx-maturity": {
+    title: `CX Maturity Rubric: How the Assessment Scores | ${SITE}`,
+    desc: "The published scoring rubric for the CX Maturity Assessment: 25 statements across 5 equally weighted dimensions, the band cut points, the action each statement triggers and what the assessment cannot tell you.",
+  },
+  "/methodology/ai-readiness": {
+    title: `AI Readiness Rubric: How the Diagnostic Scores | ${SITE}`,
+    desc: "The published scoring rubric for the AI Readiness Diagnostic: 24 statements across 6 equally weighted dimensions, the band cut points, the action each statement triggers and what the diagnostic cannot tell you.",
+  },
   "/tools/cx-maturity": {
     title: `CX Maturity Assessment: Score Your Organization | ${SITE}`,
     desc: "Score your CX organization across 5 dimensions: strategy, operations, technology, analytics, and governance. 25 questions. Immediate results with maturity tier and recommendations.",
