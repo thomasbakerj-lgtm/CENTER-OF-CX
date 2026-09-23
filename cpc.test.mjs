@@ -481,17 +481,21 @@ console.log("\n14. 11B grading layer and registry");
   const readIds = new Set([...ids, ...vk.flatMap(k => vf.map(f => `cpc.vert.${k}.${f}`))]);
   A("the tool reads its benchmarks from the registry", ids.length >= 25);
   A("every id the tool reads is registered", ids.every(id => id in BENCHMARK_SOURCES));
-  A("every id the tool reads belongs to this tool", ids.every(id => BENCHMARK_SOURCES[id].tool === TOOL));
+  A("every id the tool reads is owned by this tool or shared", ids.every(id => [TOOL, "shared"].includes(BENCHMARK_SOURCES[id].tool)));
   A("the vertical ranges read every field by template", ["cpcLow", "cpcHigh", "cprLow", "cprHigh", "fcr"].every(f => vf.includes(f)) && vk.length === 3);
   A("every registered entry for this tool is read", owned.every(id => readIds.has(id)));
-  A("the registry holds 44 entries for this tool", owned.length === 44);
+  A("the registry holds 42 entries for this tool", owned.length === 42);
   A("no default ships a bare number", !/:\s*\d/.test(SRC.slice(SRC.indexOf("const BASE = {"), SRC.indexOf("};", SRC.indexOf("const BASE = {")))));
   A("no derivation, fallback, floor or threshold ships bare",
     !/loaded \* 0\.6|\? 5\.5 :|Math\.max\(0\.1|repeatShare > 0\.25|fcr < 0\.70|Mu < 1\.3|fcrPct < 78|gapPct > 40|gapPct > 20|used: 140|: 140;/.test(SRC));
   A("no dividend step ships bare", !/\[5, 10, 15\]|x\.p === 10|FCR \+10pts|\+10 FCR/.test(SRC));
-  A("decision C: the default wage is the BLS May 2024 market median, this tool's own entry",
-    BASE.agentHourly === 20.59 && BENCHMARK_SOURCES["cpc.wage.median"].kind === "market"
-    && /May 2024/.test(BENCHMARK_SOURCES["cpc.wage.median"].source) && /43-4051/.test(BENCHMARK_SOURCES["cpc.wage.median"].source));
+  A("J11: the default wage is the one shared BLS May 2024 market median, no longer this tool's own copy",
+    BASE.agentHourly === 20.59 && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
+    && BENCHMARK_SOURCES["market.wage.agent"].kind === "market" && !("cpc.wage.median" in BENCHMARK_SOURCES)
+    && /May 2024/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
+  A("J10: the overhead multiple is the shared benefits load, and the 1.35x is retired",
+    BASE.overheadMultiplier === 1.30 && BENCHMARK_SOURCES["load.benefits"].tool === "shared"
+    && !("cpc.default.overhead" in BENCHMARK_SOURCES));
   A("every heuristic is labelled as one", benchmarksForTool(TOOL).filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
   A("every threshold states a rationale", benchmarksForTool(TOOL).filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
   A("the vertical ranges are labelled internal planning heuristics on the page",
