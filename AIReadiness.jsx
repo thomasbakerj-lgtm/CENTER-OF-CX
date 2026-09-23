@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
 import { scoreRubric, bandFor } from "./src/lib/rubric";
 import { AI_READINESS as RUBRIC } from "./src/lib/rubrics/aiReadiness";
 import { JOURNEY } from "./src/lib/journey";
@@ -58,29 +59,15 @@ export default function AIReadiness() {
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
 
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a>
-        </div>
-      </nav>
+      <ToolNav wrap={WRAP} />
 
-      {phase !== "intro" && <h1 className="sr-only">AI Readiness Diagnostic</h1>}
+      {phase !== "intro" && <ToolHero compact wrap={WRAP} eyebrow="Assessments + Scorecards" title="AI Readiness Diagnostic" />}
 
       {phase === "intro" && (
-        <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", padding: "80px 28px" }}>
-          <div style={{ ...WRAP, textAlign: "center" }}>
-            <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Calculator & Diagnostic</span>
-            <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>AI Readiness Diagnostic</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 500 }}>Evaluate whether your data quality, workflow design, integration architecture, governance, talent, and measurement capabilities can support AI-driven automation and agent assist. 24 questions across 6 dimensions. Takes about 5 minutes.</p>
-            <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "flex", gap: 10 }}>
-              </div>
-              <button onClick={handleStart} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: 1, marginTop: 4 }}>{"Start Diagnostic →"}</button>
-              <a href={RUBRIC.methodology} style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", textAlign: "center", marginTop: 6 }}>See the published rubric: every statement, weight and band</a>
-            </div>
-          </div>
-        </section>
+        <ToolHero fill wrap={WRAP} eyebrow="Assessments + Scorecards" title="AI Readiness Diagnostic"
+          intro="Evaluate whether your data quality, workflow design, integration architecture, governance, talent, and measurement capabilities can support AI-driven automation and agent assist. 24 questions across 6 dimensions. Takes about 5 minutes.">
+          <ToolStart label="Start Diagnostic" onStart={handleStart} methodHref={RUBRIC.methodology} methodLabel="See the published rubric: every statement, weight and band" />
+        </ToolHero>
       )}
 
       {phase === "assess" && (

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -65,13 +66,13 @@ export default function ShrinkagePlanner() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.sg{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>
+      <ToolNav wrap={WRAP} />
+      <ToolHero wrap={WRAP} eyebrow="WFM + Staffing" title="Shrinkage Planner"
+        intro="Shrinkage is the share of paid agent time that never reaches the queue. Enter each planned and unplanned category as a percent of paid hours. The planner totals them and shows the extra staff and annual cost that total implies at your inputs." />
 
       <>
           <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
             <div style={WRAP}>
-              <h1 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Shrinkage Planner</h1>
-              <p style={{ fontSize: 13, color: MUTED, marginBottom: 20 }}>Adjust each shrinkage category. Results update in real time.</p>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="sg">
                 <div>
                   <h3 style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Planned Shrinkage</h3>

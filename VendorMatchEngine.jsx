@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -318,9 +319,10 @@ export default function VendorMatchEngine() {
   return (
     <div style={{fontFamily:FONT,minHeight:"100vh"}}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
+      <ToolNav wrap={WRAP} />
 
-      <h1 className="sr-only">Vendor Match</h1>
+      <ToolHero wrap={WRAP} eyebrow="Vendor Selection" title="Vendor Match"
+        intro="Describe your environment, priorities and compliance needs to get a shortlist with the reasoning behind each fit. The ranking runs on the Phase 1 vendor model, and its method is disclosed with the results." />
 
       {phase==="input"&&(<section style={{background:"#fff",padding:"48px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
         <div style={{display:"flex",gap:4,marginBottom:32,flexWrap:"wrap"}}>

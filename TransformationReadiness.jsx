@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -95,18 +96,17 @@ export default function TransformationReadiness() {
   return(
     <div style={{fontFamily:FONT,minHeight:"100vh"}}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
+      <ToolNav wrap={WRAP} />
 
-      {phase !== "intro" && <h1 className="sr-only">Transformation Readiness Scorecard</h1>}
+      {phase !== "intro" && <ToolHero compact wrap={WRAP} eyebrow="Assessments + Scorecards" title="Transformation Readiness Scorecard" />}
 
-      {phase === "intro"&&(<section style={{background:`linear-gradient(168deg,${DEEP},${NAVY})`,padding:"80px 28px 60px"}}><div style={{...WRAP,maxWidth:520}}>
-        <span style={{color:LIGHT,fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",display:"block",marginBottom:12}}>Vendor Selection</span>
-        <h1 style={{fontFamily:FONT,fontSize:32,fontWeight:400,color:"#fff",lineHeight:1.15,margin:"0 0 12px"}}>Transformation Readiness Scorecard</h1>
-        <p style={{fontSize:15,color:"rgba(255,255,255,0.5)",lineHeight:1.65,marginBottom:32}}>The go/no-go assessment. Score 6 dimensions, get a phased recommendation, and see exactly which tools to use to close each gap before committing budget.</p>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <button onClick={handleStart} style={{padding:"14px",fontSize:15,fontWeight:600,background:ELECTRIC,color:"#fff",border:"none",borderRadius:8,cursor:"pointer",opacity:1}}>{"Start Assessment →"}</button>
-        </div>
-      </div></section>)}
+      {phase === "intro" && (
+        <ToolHero fill wrap={WRAP} eyebrow="Assessments + Scorecards" title="Transformation Readiness Scorecard"
+          intro="The go/no-go assessment. Score 6 dimensions, get a phased recommendation, and see exactly which tools to use to close each gap before committing budget.">
+          <ToolStart label="Start Assessment" onStart={handleStart} />
+        </ToolHero>
+      )}
+
 
       {phase === "assess"&&(<section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
         <div style={{display:"flex",gap:4,marginBottom:32,flexWrap:"wrap"}}>

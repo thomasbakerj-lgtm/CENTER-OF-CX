@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -57,12 +58,13 @@ export default function OccupancyRiskSimulator() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.og{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>
+      <ToolNav wrap={WRAP} />
+      <ToolHero wrap={WRAP} eyebrow="WFM + Staffing" title="Occupancy Risk Simulator"
+        intro="Occupancy is the share of logged-in time agents spend handling contacts. Enter your queue, attrition and cost inputs to see the occupancy they produce, the extra attrition cost the model links to running above the healthy band, and the staffing cost to bring it back. The attrition multipliers are planning heuristics." />
 
       <>
           <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
             <div style={WRAP}>
-              <h1 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Occupancy Risk Simulator</h1>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="og">
                 <Input label="Agents on queue" value={d.agents} onChange={v => set("agents", v)} />
                 <Input label="Calls per hour" value={d.callsPerHour} onChange={v => set("callsPerHour", v)} />

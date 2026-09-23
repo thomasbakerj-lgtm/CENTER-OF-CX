@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -90,11 +91,11 @@ export default function ContractRiskScanner() {
   return(
     <div style={{fontFamily:FONT,minHeight:"100vh"}}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
+      <ToolNav wrap={WRAP} />
+      <ToolHero wrap={WRAP} eyebrow="Vendor Selection" title="Contract Risk Scanner"
+        intro="Select your current or proposed terms for seven common platform contract clauses. Each answer is rated from low to critical risk, with the negotiation position to take on every term flagged." />
 
       <section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={WRAP}>
-        <h1 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>Contract Risk Scanner</h1>
-        <p style={{fontSize:13,color:MUTED,marginBottom:24}}>Select your current or proposed terms. Risk assessment and negotiation guidance update in real time.</p>
 
         {allAnswered&&(<div style={{background:`${overallColor}08`,border:`2px solid ${overallColor}`,borderRadius:12,padding:"20px 24px",marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
           <div>

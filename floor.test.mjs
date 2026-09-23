@@ -75,7 +75,7 @@ function render(mod, route, search) {
   loc.search = search || ""; loc.pathname = route; loc.href = loc.origin + route + (search || "");
   try {
     const html = renderToString(React.createElement(mod.default));
-    return { text: html.replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/g, " ").replace(/\s+/g, " ") };
+    return { h1: (html.match(/<h1[\s>]/g) || []).length, text: html.replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/g, " ").replace(/\s+/g, " ") };
   } catch (e) { return { error: e.message }; }
 }
 const BAD = /\bNaN\b|\bInfinity\b|\bundefined\b|\[object Object\]/;
@@ -131,6 +131,7 @@ for (const t of TOOLS) {
   if (!RAIL.has(t.file)) {
     ok(`${tag} exports DEFAULTS`, /export const DEFAULTS\s*=/.test(src));
     ok(`${tag} reads the scenario on first paint`, /useState\(\s*\(\)\s*=>[^\n]*readScenario\(/.test(src));
+    ok(`${tag} opens with the shared tool frame (ToolNav and ToolHero)`, /<ToolNav\b/.test(src) && /<ToolHero\b/.test(src) && !/<nav\b/.test(src));
   }
   if (CALCULATORS.has(t.file)) ok(`${tag} routes inputs through the shared guard`, /createGuards\(\)/.test(src) && /guardLine/.test(src));
 }
@@ -145,6 +146,7 @@ for (const t of TOOLS) {
   ok(`${tag} default render does not throw${base.error ? " (" + base.error + ")" : ""}`, !base.error);
   if (base.error) continue;
   ok(`${tag} default render prints no NaN, Infinity or undefined [${badAt(base.text)}]`, !BAD.test(base.text));
+  ok(`${tag} default render has exactly one h1 (${base.h1})`, base.h1 === 1);
   if (RAIL.has(t.file)) continue;
 
   const id = (readFileSync("./" + t.file, "utf8").match(/const TOOL_ID\s*=\s*"([^"]+)"/) || [])[1];
@@ -158,6 +160,7 @@ for (const t of TOOLS) {
   if (!sample.error) {
     ok(`${tag} sample render shows the result and its actions without a gate`, /request a review/i.test(sample.text));
     ok(`${tag} sample render prints no NaN, Infinity or undefined [${badAt(sample.text)}]`, !BAD.test(sample.text));
+    ok(`${tag} sample render has exactly one h1 (${sample.h1})`, sample.h1 === 1);
   }
   if (!hasNumber(S)) continue;
   for (const [label, x] of [["negative", -5], ["zero", 0], ["huge", 1e12]]) {
