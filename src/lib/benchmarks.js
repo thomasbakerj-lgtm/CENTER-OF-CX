@@ -153,8 +153,6 @@ const chLine = (value, unit, rationale) => ({ tool: CHS, kind: "threshold", valu
 const CHS_DEF = "Default so the tool opens on a runnable case.";
 const CHS_DEFAULTS = {
   monthlyContacts: [100000, "contacts per month", "A volume still at this value grades evidence Directional."],
-  loadedOH: [1.35, "multiple of hourly wage", "Loads the wage for transition and ramp cost only. Staffing loads at 1.95x; the gap is logged for review at TCO."],
-  marginalOH: [1.18, "multiple of hourly wage", "The multiplier savings are valued on. A marginal overhead still at this value grades cost evidence Directional."],
   voicePct: [70, "percent of volume", "Voice share of the current mix."],
   voiceAHT: [7, "minutes", "A voice handle time still at this value grades evidence Directional."],
   voiceConc: [1, "concurrent contacts", "Voice is one contact at a time."],
@@ -289,7 +287,60 @@ const fcrEntries = {
   "fcr.guard.horizon": fLine(48, "months", "Payback search horizon. Beyond it the page reports beyond 48 months. A property of the answer, so it reaches no confidence axis."),
 };
 
+/* Shared entries. Owned by no single tool, cited by several.
+   Decision H, session 15, deferred one shared wage entry until TCO landed. TCO has
+   landed, so the three duplicate BLS wage entries collapse into one here.
+   J10 names the load concepts. Three, and only three, multiples exist in the suite:
+   benefits, marginal and fully loaded. Each names a different fact, so a tool cites the
+   concept it actually means instead of inventing a multiple of its own. TCO's 1.25x for
+   salaried staff is a fourth fact, a different population, and is registered to TCO. */
+const SHARED = "shared";
+const BLS_WAGE = "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.";
+const shLoad = (value, rationale) => ({ tool: SHARED, kind: "heuristic", value, unit: "multiple of hourly wage", source: "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.", reviewed: REVIEWED, version: 1, rationale });
+
+export const SHARED_BENCHMARKS = {
+  "market.wage.agent": { tool: SHARED, kind: "market", value: 20.59, unit: "USD per hour", source: BLS_WAGE, reviewed: REVIEWED, version: 1, rationale: "The one agent wage benchmark the platform cites. Staffing, Cost per Contact and Channel Shift read it. It is the occupation median, no figure of the user's own, so a driver still at it grades evidence Directional." },
+  "load.benefits": shLoad(1.30, "Wage plus benefits and employer payroll burden, and nothing else. The narrowest of the three loads. Use it wherever a wage becomes a loaded hourly rate for unit metrics."),
+  "load.marginal": shLoad(1.18, "The variable cost that disappears when one contact goes away. The only load a saving may be valued on, because fixed technology and facilities do not fall with volume."),
+  "load.fullyLoaded": shLoad(1.95, "Wage plus benefits, payroll tax, facilities, supervision and technology. The cost of standing a seat up. Use it only to price whole headcount, never to value a freed contact."),
+};
+
+/* Total Cost of Ownership. TCO shipped a hand-written sources paragraph that named
+   vendors for a containment range the tool does not model and cited BLS for a $19 wage
+   that is not the BLS figure. Both claims are retired here. What remains is registered.
+
+   The seven industry presets are an opening profile, not a benchmark set. They are
+   internal planning values, and any field still sitting at one grades evidence
+   Directional by the origin rule, so the tool never presents a preset as evidence. The
+   wages are registered because a wage is the single number a reader is most likely to
+   quote back as sourced. */
+const TCO = "tco-calculator";
+const TCO_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const tHeur = (value, unit, rationale) => ({ tool: TCO, kind: "heuristic", value, unit, source: TCO_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const tLine = (value, unit, rationale) => ({ tool: TCO, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
+const tWage = (value, label) => tHeur(value, "USD per hour", `Opening agent wage for the ${label} profile. An internal planning value, not a published median. The platform's sourced wage benchmark is market.wage.agent. A wage still at this value grades cost evidence Directional.`);
+
+const tcoEntries = {
+  "tco.load.salaried": tHeur(1.25, "multiple of hourly rate", "Supervisors, QA, WFM, trainers and IT are salaried and carry a lighter employer burden than an hourly agent, so they load at less than the agent benefits multiple. A fourth load concept because it prices a different population, not a different opinion about the same one."),
+  "tco.hours.month": tHeur(173, "paid hours per staff member per month", "The 2,080 hour full-time year over twelve months. Labor cost is computed on paid hours, not productive hours, because shrinkage time is paid."),
+  "tco.escalator.wage": { tool: TCO, kind: "market", label: "annual labor escalation", display: "3.5 percent a year", value: 0.035, unit: "annual rate", source: "US Bureau of Labor Statistics, Employment Cost Index, wages and salaries, private industry, twelve month change.", reviewed: REVIEWED, version: 1, rationale: "Annual labor escalation in the three year view. Applied only to the labor bucket, because wages and contracted license inflate at different rates." },
+  "tco.escalator.license": tHeur(0.06, "annual rate", "Annual uplift on contracted recurring software at renewal. The middle of the 3 to 10 percent band enterprise renewal clauses commonly carry. Replace it with the uplift in your own contract."),
+  "tco.escalator.blended": tHeur(0.045, "annual rate", "Single blended escalator, offered only when the user opts out of the split rates. A blended rate misstates a labor heavy base, so the split is the default."),
+  "tco.check.perAgentCeiling": tLine(25000, "USD per agent per month", "Plausibility guard on input coding. A cost per agent per month above this sits outside any real operation and almost always means an annual or total figure was entered as monthly. Holds completeness Directional."),
+  "tco.check.domShareMax": tLine(0.80, "share of the software bucket", "A single software line above this share of software cost is the signature of a miscategorized or mis-scaled input. Holds completeness Directional. AI usage is exempt, because usage pricing legitimately dominates."),
+  "tco.check.spanMax": tLine(20, "agents per supervisor", "Span of control above this understates supervision cost and usually means supervisors were undercounted. Holds completeness Directional."),
+  "tco.check.mixTol": tLine(0.005, "share of volume", "Tolerance on the channel mix totalling one. The voice share prices telephony, so a mix that does not total 100 percent misprices the usage bucket. Holds completeness Directional."),
+  "tco.wage.general": tWage(19, "cross-industry"),
+  "tco.wage.financial": tWage(22, "financial services"),
+  "tco.wage.healthcare": tWage(20, "healthcare"),
+  "tco.wage.retail": tWage(16, "retail and eCommerce"),
+  "tco.wage.telecom": tWage(19, "telecommunications"),
+  "tco.wage.insurance": tWage(21, "insurance"),
+  "tco.wage.bpo": tWage(15, "BPO and outsourcer"),
+};
+
 export const BENCHMARK_SOURCES = {
+  ...SHARED_BENCHMARKS,
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
   "lbg.module.recording": mod(10, "Starting price for recording, shipped as included, so it prices only if the user reclassifies it."),
@@ -314,8 +365,6 @@ export const BENCHMARK_SOURCES = {
   "lbg.band.gapRed": line(80, "percent bundle gap", "Status band for the gap card. Red from 80 percent, which lands in the shared severe severity band in track.js. Colour only. It reaches no confidence axis."),
 
   ...staffingPresetEntries,
-  "staffing.wage.median": { tool: STF, kind: "market", value: 20.59, unit: "USD per hour", source: "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.", reviewed: REVIEWED, version: 1, rationale: "Cost fallback when no wage or per-agent cost arrives over the rail. The occupation median, labelled as a benchmark wherever it prices a plan. It grades evidence Directional because it is no figure of the user's own." },
-  "staffing.load.multiple": sHeur(1.95, "multiple of base wage", "Wage to fully loaded cost: benefits, payroll tax, facilities, supervision and technology. Used only when the rail carries a wage and no per-agent cost."),
   "staffing.hours.month": sHeur(173, "paid hours per agent per month", "The 2,080 hour full-time year over twelve months. A planning convention for converting an hourly wage to a monthly cost."),
   "staffing.default.intv": sHeur(30, "minutes", "Default interval length. The most common forecasting interval, so the default case sits inside the Erlang C validity floor."),
   "staffing.default.capPct": sHeur(85, "percent occupancy", "Default occupancy ceiling offered when the cap is switched on. Set at the healthy maximum of the ratified occupancy canon."),
@@ -345,7 +394,6 @@ export const BENCHMARK_SOURCES = {
   "cpc.default.m": cHeur(2.4, "contacts per unresolved issue", `${CPC_DEF} An M still at this value grades evidence Directional.`),
   "cpc.default.loaded": cHeur(7, "USD per contact", `${CPC_DEF} A loaded cost still at this value grades evidence Directional.`),
   "cpc.default.marginal": cHeur(4.2, "USD per contact", `${CPC_DEF} A marginal cost still at this value grades evidence Directional.`),
-  "cpc.default.overhead": cHeur(1.35, "multiple of hourly wage", `${CPC_DEF} Loads the wage for the channel handle view only. Staffing loads at 1.95x for a fully loaded cost; the two tools model different things and the gap is logged for review.`),
   "cpc.default.productiveHours": cHeur(140, "productive hours per FTE per month", `${CPC_DEF} Also the fallback when no usable figure is entered, disclosed as a correction.`),
   "cpc.default.mix.voice": cHeur(60, "percent of volume", `${CPC_DEF} Voice share of the channel mix.`),
   "cpc.default.mix.chat": cHeur(25, "percent of volume", `${CPC_DEF} Chat share of the channel mix.`),
@@ -361,7 +409,6 @@ export const BENCHMARK_SOURCES = {
   "cpc.dividend.step1": cHeur(5, "FCR points", "First FCR improvement the dividend prices. Read as operational work."),
   "cpc.dividend.step2": cHeur(10, "FCR points", "Second FCR improvement the dividend prices, and the one the layers table and analyst read quote. Read as root-cause work."),
   "cpc.dividend.step3": cHeur(15, "FCR points", "Third FCR improvement the dividend prices. Read as a transformation case, never a base case."),
-  "cpc.wage.median": { tool: CPC, kind: "market", value: 20.59, unit: "USD per hour", source: "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.", reviewed: REVIEWED, version: 1, rationale: "Default agent wage for the channel handle view. The occupation median, labelled as a benchmark. It is no figure of the user's own and feeds no graded figure." },
   "cpc.guard.concurrencyFloor": cLine(1, "concurrent contacts", "An agent cannot work fewer than one contact at a time. A concurrency below one is an input error, corrected to one and disclosed. It reaches completeness through the correction."),
   "cpc.read.repeatShare": cLine(0.25, "share of handled contacts", "Repeat demand above this reads as a resolution problem. It is the point where the shared severity bucket turns moderate, so the flag and the published band agree. Framing only."),
   "cpc.read.lowFcr": cLine(0.7, "FCR", "Below this FCR, paired with a shallow M, the repeat path is likely understated. Holds completeness Directional until M is checked."),
@@ -372,7 +419,6 @@ export const BENCHMARK_SOURCES = {
   ...cpcVertEntries,
 
   ...channelDefaultEntries,
-  "channel.wage.median": { tool: CHS, kind: "market", value: 20.59, unit: "USD per hour", source: "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.", reviewed: REVIEWED, version: 1, rationale: "Default agent wage. The occupation median, labelled as a benchmark. It is no figure of the user's own and grades cost evidence Directional while it stands." },
   "channel.curve.mild": chHeur(0.08, "residual AHT uplift per unit of shift share", "Mild complexity curve. Easy volume leaves and residual voice gets slightly harder."),
   "channel.curve.moderate": chHeur(0.15, "residual AHT uplift per unit of shift share", "Moderate complexity curve. The typical support environment and the shipped choice."),
   "channel.curve.severe": chHeur(0.3, "residual AHT uplift per unit of shift share", "Severe complexity curve. Remaining voice work becomes materially harder."),
@@ -387,6 +433,7 @@ export const BENCHMARK_SOURCES = {
 
   ...aidEntries,
   ...fcrEntries,
+  ...tcoEntries,
 };
 
 for (const [id, e] of Object.entries(BENCHMARK_SOURCES)) {
