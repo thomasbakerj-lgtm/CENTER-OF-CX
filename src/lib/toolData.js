@@ -27,6 +27,14 @@
  *      Last writer wins. getPrimitiveWithSource() tells a puller which tool produced the
  *      value it just received, so a report can name its source instead of guessing.
  *
+ * v3 change, session 20.
+ *
+ *   6. ORIGIN GRADES ON THE RAIL. publishToolResult takes a third argument: the evidence
+ *      grade the publisher assigned each key. getPrimitiveWithSource returns it as
+ *      `railOrigin`, so a puller grades a rail value no higher than the grade it was born
+ *      with instead of assuming Directional. Provenance no longer transfers on an
+ *      unchanged restatement, so republishing a pulled figure cannot launder its origin.
+ *
  *   5. ORPHAN PULL DETECTION. A getPrimitive() for a key no tool has published is recorded
  *      and, in dev, warned. A dead pull is a defect. It is not graceful degradation.
  *
@@ -38,7 +46,20 @@ import { normalizeForPublish, normalizeOnPull, resolveKey, deriveFrom, isRegiste
 const KEY = "coc:toolData";
 const hasStorage = () => typeof window !== "undefined" && !!window.sessionStorage;
 
-const EMPTY = () => ({ tools: {}, current: {}, src: {}, flags: [] });
+const EMPTY = () => ({ tools: {}, current: {}, src: {}, origin: {}, flags: [] });
+
+/* Origin grades. The three evidence grades, as strings, kept local so the rail never
+   imports confidence.js. A publisher records the grade it assigned the field it is
+   publishing. A puller reads it and grades no higher than its origin. */
+const ORIGIN_GRADES = ["Directional", "Planning-grade", "Finance-grade"];
+const isOriginGrade = (g) => typeof g === "string" && ORIGIN_GRADES.indexOf(g) !== -1;
+
+/* Exact equality. Numbers arrive normalized, so any user edit changes the number and the
+   editing tool becomes the producer. An identical restatement is not a new fact. */
+function sameValue(a, b) {
+  if (typeof a === "number" && typeof b === "number") return Object.is(a, b);
+  return a === b;
+}
 
 const isDev = () => {
   if (typeof globalThis !== "undefined" && globalThis.__COC_RAIL_DEBUG__) return true;
@@ -81,16 +102,44 @@ function stripEmpty(obj) {
  * Merges into the per-tool record and into a flat `current` snapshot for cross-tool reads.
  * Records which tool produced each key.
  */
-export function publishToolResult(toolId, primitives) {
+export function publishToolResult(toolId, primitives, origins) {
   if (!hasStorage()) return { clean: {}, flags: [] };
   try {
     const { clean: normalized, flags } = normalizeForPublish(primitives, { sourceTool: toolId });
     const clean = stripEmpty(normalized);
 
     const store = readStore();
+    const prevCurrent = store.current || {};
+    const prevSrc = store.src || {};
+    store.origin = store.origin || {};
     store.tools[toolId] = { ...clean, _ts: Date.now() };
-    store.current = { ...store.current, ...clean };
-    for (const k of Object.keys(clean)) store.src[k] = toolId;
+
+    /* Origin grades arrive keyed however the caller keys them. Resolve to canonical so a
+       deprecated alias grades the key it actually wrote. Anything that is not one of the
+       three grades is dropped rather than trusted. */
+    const graded = {};
+    for (const [k, g] of Object.entries(origins || {})) {
+      if (isOriginGrade(g)) graded[resolveKey(k)] = g;
+    }
+
+    /* Provenance does not transfer on restatement. A tool that republishes a value it
+       pulled, unchanged, is agreeing with the producer, not producing. The producer keeps
+       the key and its origin grade, so a republish cannot launder a Directional preset into
+       a fresh source. The moment the user edits the figure the value differs, the editing
+       tool becomes the producer, and the new number and its grade travel to every puller. */
+    for (const k of Object.keys(clean)) {
+      const held = prevSrc[k];
+      const restated =
+        held && held !== toolId &&
+        Object.prototype.hasOwnProperty.call(prevCurrent, k) &&
+        sameValue(prevCurrent[k], clean[k]);
+      if (restated) continue;
+      store.src[k] = toolId;
+      if (graded[k]) store.origin[k] = graded[k];
+      else delete store.origin[k];
+    }
+
+    store.current = { ...prevCurrent, ...clean };
     store.current._lastTool = toolId;
     store.current._ts = Date.now();
     if (flags.length) store.flags = [...(store.flags || []), ...flags].slice(-40);
@@ -140,11 +189,12 @@ export function getPrimitiveWithSource(key) {
   if (raw !== undefined && raw !== null) {
     const res = normalizeOnPull(canonical, raw, "rail");
     if (res.status === "invalid") {
-      return { value: null, sourceTool: null, derived: false, flag: res.flag, confidenceImpact: "block" };
+      return { value: null, sourceTool: null, railOrigin: null, derived: false, flag: res.flag, confidenceImpact: "block" };
     }
     return {
       value: res.value,
       sourceTool: store.src?.[canonical] || null,
+      railOrigin: store.origin?.[canonical] || null,
       derived: false,
       flag: res.flag,
       confidenceImpact: res.confidenceImpact,
@@ -154,7 +204,7 @@ export function getPrimitiveWithSource(key) {
   const derived = deriveFrom(canonical, snapshot);
   if (derived !== undefined) {
     const from = derivations[canonical]?.from;
-    return { value: derived, sourceTool: (from && store.src?.[from]) || null, derived: true, flag: null, confidenceImpact: null };
+    return { value: derived, sourceTool: (from && store.src?.[from]) || null, railOrigin: (from && store.origin?.[from]) || null, derived: true, flag: null, confidenceImpact: null };
   }
 
   // Nothing published, nothing derivable. Record it.
@@ -166,7 +216,7 @@ export function getPrimitiveWithSource(key) {
         " A dead pull is a defect. Either a producer must publish it or the pull must be removed."
     );
   }
-  return { value: null, sourceTool: null, derived: false, flag: null, confidenceImpact: null };
+  return { value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null };
 }
 
 /**
@@ -229,6 +279,7 @@ export function railReport() {
     toolsRun: Object.keys(store.tools || {}),
     published,
     sources: { ...(store.src || {}) },
+    origins: { ...(store.origin || {}) },
     orphanPulls: [...orphanPulls],
     flags: [...(store.flags || [])],
   };
@@ -279,7 +330,7 @@ if (typeof window !== "undefined" && !window.__railReport) {
       );
       if (r.published.length && console.table) {
         console.table(
-          r.published.map((k) => ({ key: k, value: snapshot[k], source: r.sources[k] || "unknown" }))
+          r.published.map((k) => ({ key: k, value: snapshot[k], source: r.sources[k] || "unknown", origin: r.origins[k] || "none" }))
         );
       }
       if (!gate) console.warn("orphan pulls. These block a tool lock:", r.orphanPulls);
