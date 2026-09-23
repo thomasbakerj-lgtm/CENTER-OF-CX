@@ -2,8 +2,11 @@
 
 Operating brief for ContactCenterCX (`CENTER-OF-CX`). Read this first, every session.
 
-Written 22 September 2026, at the close of chat session 20. It carries the state,
-the rules, and the decisions that live nowhere else in the repo.
+Written 22 September 2026 at the close of chat session 20. Re-verified against live
+`main` the same day: TCOCalculator.jsx, journey.js and BusinessCaseBuilder.jsx md5s
+match the baseline below. Re-verified in Claude Code on 23 September 2026 at `main`
+76f5248: all 20 md5s match, suite 18,018 green, build and prerender green. This file
+and `docs/` were committed on 23 September 2026.
 
 ---
 
@@ -11,31 +14,24 @@ the rules, and the decisions that live nowhere else in the repo.
 
 ContactCenterCX.com is a bootstrapped, vendor-neutral intelligence and diagnostic
 platform for the contact center and CX technology market. One operator, Thomas
-Baker (TB), does the engineering, product, content and business development.
+Baker (TB), does engineering, product, content and business development.
 
 Roughly 30 React tools, 283 vendors across 8 categories, 78 routes. Vite + React 18
-SPA on Vercel via GitHub auto-deploy.
+SPA on Vercel via GitHub auto-deploy. Production: https://contactcentercx.com
 
-The promise is not "100% factual." It is **100% traceable**. Every historical fact
-sourced, every assumption labelled, every derivation reproducible, every forecast
-explicitly conditional. That distinction is the product. Most of the rules below
-exist to protect it.
+The promise is **100% traceable**. Every historical fact sourced, every assumption
+labelled, every derivation reproducible, every forecast explicitly conditional.
 
-The standing commercial line: monetize confidence in decisions, never access to
-vendors. Independence is the product.
+Commercial line: monetize confidence in decisions, never access to vendors.
+Independence is the product.
 
 **Zero incremental spend is the current constraint.** No paid ads, paid data, new
-SaaS, backend infrastructure, databases, accounts or auth. Operating principle:
-prove behavior first, manually learn second, invest third, automate last.
+SaaS, backend, databases, accounts or auth. Prove behavior first, manually learn
+second, invest third, automate last.
 
 ---
 
 ## 1. Verified baseline, 22 September 2026
-
-Measured against `refs/heads/main`. Re-measure before assuming it still holds.
-
-Re-verified in Claude Code on 23 September 2026 at `main` 76f5248: every md5 below
-matched, suite 18,018 of 18,018, chunk gate passing after `npm install`.
 
 | Fact | Value |
 |---|---|
@@ -45,9 +41,7 @@ matched, suite 18,018 of 18,018, chunk gate passing after `npm install`.
 | Runner | `node run-all.mjs` at repo root, exits 2 on any UNPARSED harness |
 | `.jsx` at repo root | 81 |
 | Routes in `App.jsx` | 78 |
-| Harnesses | 26 files: 10 tool pairs (`.test.mjs` + `.report.mjs`) plus `rail`, `rail-audit`, `chunk`, `confidence`, `guards`, `journey`, `seo`, `track` |
-
-File md5s at this baseline:
+| Harnesses | 10 tool pairs (`.test.mjs` + `.report.mjs`) plus `rail`, `rail-audit`, `chunk`, `confidence`, `guards`, `journey`, `seo`, `track` |
 
 | file | md5 |
 |---|---|
@@ -74,505 +68,327 @@ File md5s at this baseline:
 
 ---
 
-## 2. Where we are, exactly
+## 2. Where we are
 
-### The current workstream
+**Tracker 1-09**, the confidence taxonomy, decided 19 September 2026 and final:
+three axes, Evidence x Realization x Completeness. No cost/benefit split, no
+case-readiness axis. Cost and benefit are streams inside Evidence. Headline is the
+minimum of applicable axes; the rationale names the binding axis. Spec:
+`docs/DOCTRINE_Section5_v1_2.md`. The retrofit walks the nine rail tools as 11B,
+one per session.
 
-Tracker item **1-09**, the confidence taxonomy, was decided on 19 September 2026.
-The decision is final: **three axes, Evidence times Realization times Completeness.**
-No split into cost evidence and benefit evidence. No case-readiness axis. Cost and
-benefit are streams inside Evidence. The headline grade is the minimum of the
-applicable axes and the rationale always names the binding axis.
+Closed in the walk: Attrition, License Gap, Staffing, CPC, Channel Shift, AI
+Deflection, FCR Leakage, TCO (steps 1 to 5). See the tracker change log, section 9.
 
-The spec is `docs/DOCTRINE_Section5_v1_2.md`. The retrofit is a
-nine-tool walk, internally numbered 11A, 11B and so on, one tool per session.
-
-### What just closed
-
-Session 19 and 20 completed the **TCO Calculator** retrofit:
-
-- `gradeTCO` grades evidence per field by origin across 12 ops fields (`TCO_OPS`)
-  and 23 cost fields (`TCO_COST`). A field counts as default when it equals the
-  selected industry preset.
-- Realization is N/A with a stated reason. TCO prices cash out the door, so no
-  capacity action applies.
-- Completeness is held Directional by any of six validity checks.
-- Void on non-finite outputs, buckets that do not sum to monthly, or Year 1 off
-  the annual.
-- The legacy two-axis grade is deleted. Arithmetic A/B against the original engine
-  was identical across 6,000 cases.
-- The rail now carries **origin grades**, TCO publishes them, and five consumers
-  read them per field.
-- TCO's constants are registered. Two false source claims are retired.
-- Next-step links come from `nextFor` instead of a hardcoded list.
-
-### The one thing still open in this item
-
-**Step 6 of 11B part 2: the live PDF check. Not done.**
-
-Pull two PDFs from the deployed TCO tool and reconcile them against the harness:
-
+**Open now: 11B TCO step 6, the live PDF check.**
 1. Normal: shipped defaults, Expected stance.
-2. Voided: trip an invariant, for example a negative agent count through a scenario
-   link, and confirm the void treatment renders, states the failed invariant and the
-   remedy, and claims no grade in the strip, the PDF or the review submission.
+2. Voided: trip an invariant (negative agent count via scenario link). Confirm the
+   void renders, states the failed invariant and remedy, and claims no grade in the
+   strip, the PDF or the review submission.
+If contactcentercx.com is unreachable from the environment, run against a local
+build (`npm run build && npm run preview`) and TB pulls the two production PDFs.
 
-A live PDF generated mid-session is a defect discovery tool, not a validation step.
-Several sessions have proved that passing engine assertions coexist with PDF
-contradictions that only reconciliation catches.
-
-### Then, the last tool in this workstream
-
-**Business Case Builder.** It is the ninth and final rail tool in the 1-09 retrofit,
-and it is the hardest. It is also 113 KB of source. Known issue going in: tracker
-item **1-12**, `r.payback === 0` caps confidence at Directional, which conflates
-"we do not know" with "we know and the answer is no." That is a named doctrine
-violation and the retrofit must fix it, not preserve it.
+**Then: Business Case Builder**, the ninth and last rail tool, 113 KB of source.
+It must fix **1-12**: `r.payback === 0` caps confidence at Directional, conflating
+"we do not know" with "the answer is no." Regression fixtures for BCB are in tracker
+Section 1 (reference set and live PDF set).
 
 ---
 
-## 3. The tracker and governance docs
+## 3. The tracker
 
-`docs/CCCX_MASTER_TRACKER.md` is the single backlog. 96 items across 16 workstreams
-(WS0 to WS15). Until 23 September 2026 it lived only in claude.ai project
-knowledge, which is why `TAXONOMY.md` references WS2 and WS11 against a document
-the repo did not hold.
+`docs/CCCX_MASTER_TRACKER.md`: 96 items, 16 workstreams (WS0 to WS15). `TAXONOMY.md`
+references it. `docs/CCCX_Resequence_Under_Doctrine_Amendment_11.md` replaces its
+Section 4 and controls run order. The tracker status columns are the 25 August
+baseline; closures since are in its change log.
 
-**Landed in `docs/` on 23 September 2026.** Governance stays in both repo and
-library, and the repo wins on conflict. Precedence, per `docs/README.md`: Section 5
-v1.2 overrides Section 5 of doctrine v1.1, and the Resequence overrides tracker
-Section 4. The tracker status columns predate sessions 1 to 20; see its section 3
-note.
+Also in `docs/`: doctrine, Section 5 v1.2, `SHIPPING.md`, the project knowledge
+manifest, the bundle `README.md`, and Market Position Index Addendum 1.
 
-Files in `docs/`:
-
-- `CCCX_MASTER_TRACKER.md`
-- `DOCTRINE_Epistemic_Standard.md` v1.1
-- `DOCTRINE_Section5_v1_2.md`
-- `CCCX_Resequence_Under_Doctrine_Amendment_11.md`
-- `SHIPPING.md`, drafted 23 September 2026 for TB approval, closing 0-06
-- `CCCX_PROJECT_KNOWLEDGE_MANIFEST.md` and `README.md`, the handoff bundle index
-- `CCCX_Market_Position_Index_and_Tool_Separation_Rules_Addendum_1.md`. Uploaded
-  as `.docx` but the content is Markdown, so it lands as `.md`
-
-**Not yet received.** `docs/README.md` lists two bundle files that have not arrived:
-`TRACKER_CHANGELOG_S13_S20.md` (append to the tracker change log) and
-`SHIPPING_FACTS.md` (verified deploy facts). `SHIPPING.md` was drafted from the repo
-without it and gets reconciled against it on arrival.
-
-**Known ID conflict.** The tracker defines 1-12 as `billingStartMonth` in BCB,
-GATED. This file and Section 5 v1.2 use 1-12 for the `r.payback === 0` confidence
-cap (`BusinessCaseBuilder.jsx` line 53). One ID, two items. TB to renumber one.
-
-### The workstreams
+**ID conflict.** The tracker defines 1-12 as `billingStartMonth` in BCB, GATED.
+This file and Section 5 v1.2 use 1-12 for the `r.payback === 0` confidence cap
+(`BusinessCaseBuilder.jsx` line 53). One ID, two items. TB to renumber one.
 
 | WS | Subject | State |
 |---|---|---|
 | WS0 | Hygiene and blockers | Closed. `SHIPPING.md` drafted, awaiting TB approval |
-| WS1 | V3 engine integrity, the nine rail tools | In flight. 1-09 retrofit, TCO done, BCB last |
-| WS2 | The other 21 tools | 2-01 triage is the highest-leverage item and is cheap |
-| WS3 | Journey architecture and interlinking | Graph exists in `src/lib/journey.js` |
+| WS1 | V3 engine integrity, nine rail tools | In flight. TCO step 6, then BCB |
+| WS2 | The other 21 tools | 2-01 triage is cheap and high leverage |
+| WS3 | Journey architecture | Graph in `src/lib/journey.js` (3-01 done) |
 | WS4 | Vendor data depth | 283 vendors, 28 genuinely deep |
-| WS5 | Vendor match engine v2 | 5-01 urgent and small: delete the 24-vendor hardcoded fork |
+| WS5 | Vendor Match v2 | 5-01: delete the 24-vendor hardcoded fork |
 | WS6 | Stack analysis engine | Gated behind WS1 |
 | WS7 | Vertical to vendor connectors | Gated on WS4 |
-| WS8 | SEO | 8-04 vendor title defect is live |
+| WS8 | SEO | 8-04 vendor title defect live |
 | WS9 | Answer engine optimization | Blocked on published methodologies |
-| WS10 | Web performance | Routes already lazy split. Measured 23 Sep: entry chunk 237 KB, 77 KB gzipped. 2.9 MB figure is stale |
-| WS11 | Behavioral instrumentation | The gate on everything in WS14 |
-| WS12 | Conversion and commercial | 12-06 independence disclosure is a credibility asset |
-| WS13 | Brand and design system | 13-01 is a decision blocking three items |
-| WS14 | Growth and distribution | GATED behind instrumentation, correctly |
-| WS15 | Data moat and investment triggers | Decision register, not build work |
+| WS10 | Web performance | Already lazy split: 237 KB entry, 77 KB gzip (measured 23 Sep). Re-scope 10-01 to 10-03 |
+| WS11 | Behavioral instrumentation | Gate on everything in WS14 |
+| WS12 | Conversion and commercial | 12-06 independence disclosure |
+| WS13 | Brand and design system | 13-01 decision blocks three items |
+| WS14 | Growth and distribution | Gated behind instrumentation |
+| WS15 | Data moat and investment triggers | Decision register |
 
-### The approved sequence after WS1 closes
-
-From the Amendment 11 resequence, which replaces Section 4 of the tracker:
-
-1. Close 1-09 retrofit (TCO done, BCB remaining)
+Approved sequence after WS1:
+1. Close 1-09 (TCO step 6, BCB)
 2. Reachability batch: 8-04 vendor titles, homepage index count, Sprinklr duplicate slug
-3. SEO prerender verification
-4. 11-01 through 11-03 instrumentation and event taxonomy freeze
-5. 10-01 through 10-03 bundle splitting
-6. 2-01 triage of the 21 orphan tools
-7. 3-01 and 3-02 journey graph and NextDiagnostic
+3. SEO prerender verification against the Vercel alias
+4. 11-01 to 11-03 instrumentation and event taxonomy freeze
+5. 10-01 to 10-03 bundle splitting
+6. 2-01 triage of the 21 non-rail tools
+7. 3-02 NextDiagnostic
 
-1-07 (benchmark constant audit) and 1-10, 1-11 (BCB engine enrichment) are
-explicitly deprioritized until the platform is findable and observable.
+Deprioritized until findable and observable: 1-07, 1-10, 1-11.
 
-### The one thing to prove first
+TB direction, 19 Sep 2026: all 30 tools reach V3, not only the nine rail tools.
+CX Maturity and AI Readiness get rebuilt as differentiated assessments producing a
+checklist and routing to an SE plus consultant conversation (accepted lead-gen
+triggers). Experience Scorecard removed for now. CX IT Alignment kept, deprioritized.
+Assessments are a distinct asset class from calculators. Governance must appear on
+the site even if the current Governance Model tool is the wrong vehicle.
 
-**That a user who finishes one diagnostic runs a second one.** Everything in the
-thesis depends on it. It costs two items, 3-02 and 11-04, and no money.
+**The one thing to prove first:** a user who finishes one diagnostic runs a second.
+Cost: 3-02 and 11-04, no money.
 
 ---
 
-## 4. Doctrine: the rules that govern every edit
+## 4. Doctrine
 
-Full text in `DOCTRINE_Epistemic_Standard.md` v1.1. The load-bearing parts:
+Full text: `docs/DOCTRINE_Epistemic_Standard.md` v1.1. Section 5 is superseded by
+`docs/DOCTRINE_Section5_v1_2.md`. Doctrine lives in `docs/`, not in code comments.
 
-### The four claim classes
+**Four claim classes.** Every displayed number is one of: historical fact, assumption,
+conditional forecast, measured outcome. "This saves $1.8M" is forbidden. "Under these
+assumptions this models $1.8M" is required. Precision is not evidence.
 
-Every number a tool displays is exactly one of: **historical fact** (sourced, named
-origin, user-editable), **assumption** (labelled, origin named, adjustable),
-**conditional forecast** (explicitly conditional, conditions restated with the
-output), **measured outcome** (realized after deployment).
-
-"This saves $1.8M" is forbidden. "Under these assumptions this models $1.8M" is
-required. An assumption is never laundered into a fact by arriving over the rail,
-appearing in a PDF, or being computed to two decimals. Precision is not evidence.
-Arithmetic correctness never promotes a claim to a higher class.
-
-### The three confidence axes
-
-Evidence, Realization, Completeness. Grades are `Directional`, `Planning-grade`,
-`Finance-grade`. Headline is the minimum of the applicable axes. A null axis
-requires a stated `naReason`. Void claims no grade anywhere.
-
-- A value arriving over the rail confers **consistency, never evidence**.
-- Finance-grade requires **document attestation**.
+**Three axes.** Grades `Directional`, `Planning-grade`, `Finance-grade`. A null axis
+needs a `naReason`. Void claims no grade anywhere.
+- A rail value confers consistency, never evidence.
+- Finance-grade requires document attestation. Self-declaration is not attestation.
 - Realization is N/A for cost-only tools, with a reason.
-- **No verdict, return, payback or recommendation strength ever caps an axis.**
-  Every tool harness carries a sign-invariance assertion proving it: hold inputs
-  fixed, force the result negative and zero, assert all three axes and the headline
-  are unchanged. A tool without that assertion is not locked.
-- Doctrine forbids conflating "we do not know" with "we know and the answer is no."
+- No verdict, return, payback or recommendation strength ever caps an axis. Every
+  harness carries a sign-invariance assertion. Without it a tool is not locked.
+- Never conflate "we do not know" with "we know and the answer is no."
 
-### The data rail
+**Capacity is not cash.** Freed agent time becomes cash only through a named
+`mech.js` action. "No action selected" realizes zero. Freed labor is scaled by the
+realization factor; cash out the door is never scaled.
 
-`src/lib/toolData.js`. Session storage. Tools publish normalized primitives and
-pull each other's.
-
+**The rail** (`src/lib/toolData.js`, session storage):
 - `publishToolResult(toolId, primitives, origins)` normalizes at the door.
-- `getExternalPrimitive(key, selfToolId)` and `getExternalWithSource(key, selfToolId)`
-  refuse to return a value the caller itself published. A tool cannot credential
-  itself from its own prior output. Confidence gates must use these, never
-  `getPrimitive`.
-- **Pass facts, not verdicts.** Shared baseline, independent conclusions.
-- `railReport().orphanPulls` must be empty before any tool locks. A dead pull is a
-  defect, not graceful degradation.
-- `rail-audit.mjs` finds pulls statically by matching a **string literal** argument
-  against the accessor name. Never hide a rail key behind a variable. Doing so
-  removes the tool from the audit without failing it.
+- `getExternalPrimitive` and `getExternalWithSource` refuse self-reads. Confidence
+  gates must use these, never `getPrimitive`.
+- Pass facts, not verdicts.
+- `railReport().orphanPulls` empty before any tool locks.
+- `rail-audit.mjs` matches **string literal** keys. Never hide a key behind a variable.
 
-### The benchmark registry
+**The registry** (`src/lib/benchmarks.js`). Every shipped constant is registered or
+the suite throws. Kinds: `market` (source and review date), `heuristic` (labelled
+everywhere; a driver at default grades Directional), `threshold` (rationale,
+versioned, moves only with evidence). Ownership `shared` exists for multi-tool
+entries; per-tool gates accept `tool === TOOL || tool === "shared"`.
 
-`src/lib/benchmarks.js`. Every constant a tool ships is registered with provenance
-or the suite throws at load. Three kinds:
+**Amendment 11 (Section 11).** Effort rationed as strictly as money: any L or XL item
+needs demand evidence or a recorded reason to precede it. Reachability precedes rigor.
+Instrumentation precedes proof: no tool is locked without its completion event.
+A DECIDE item that shapes a build is scheduled before it.
 
-- `market`: a published external figure. Must name source and review date.
-- `heuristic`: an internal planning value. Must be labelled as such everywhere it
-  surfaces. A driver still at a heuristic default grades Evidence Directional.
-- `threshold`: a judgment line. Carries a stated rationale, is versioned, and moves
-  only because the evidence moved, never because of conversion or lead volume.
-
-A fourth ownership value, `shared`, was added in session 20 for entries cited by
-several tools. Per-tool harness gates accept `tool === TOOL || tool === "shared"`.
-
-### Effort, reachability, instrumentation (Amendment 11, Section 11)
-
-- **Effort is rationed as strictly as money.** Any L or XL item needs demand
-  evidence or a recorded reason it must precede evidence. "It is next in the
-  tracker" is not a reason.
-- **Reachability precedes rigor.** A tool is not shippable until it is findable,
-  loadable and shareable. Where a reachability defect and a correctness defect
-  compete, and the correctness defect is not producing a wrong number in front of a
-  user today, reachability goes first.
-- **Instrumentation precedes proof.** No tool is recorded as locked unless its
-  completion event is instrumented.
-- A DECIDE item that governs the shape of a later build is scheduled before that
-  build, never after.
-
-### Language
-
-Retired: most conservative, only independent, survives the CFO, industry-leading.
-
-**No em-dashes or en-dashes anywhere in prose, copy, comments or commit messages.**
-Enforce with `s.count(chr(0x2014))` in Python. Grep is unreliable on Unicode. There
-are still roughly 361 across 61 files, tracker item 13-03.
+**Language.** Retired: most conservative, only independent, survives the CFO,
+industry-leading. **No em-dashes or en-dashes** anywhere: prose, copy, comments,
+commit messages. Check with Python `s.count(chr(0x2014))` and `chr(0x2013)`.
+Roughly 361 remain across 61 files (13-03). No antithetical "X not Y" cadence in
+public copy.
 
 ---
 
-## 5. Decisions settled in chat that are written nowhere else
+## 5. Decisions settled in chat and written nowhere else
 
-This is the section that matters most. Everything here is binding and none of it is
-in the repo.
+Binding. None of this is in code comments beyond what is noted.
 
-### From session 19 (TCO part 1)
+**Session 13 to 18 decisions (by tool)**
+- Staffing A: headline stays Directional until upstream publishes origin grades. B:
+  BLS May 2024 wage.
+- CPC C: BLS wage. D: FCR and M lift evidence only when entered and attested by
+  checkbox. E: concurrency below 1 corrected to 1 and disclosed.
+- Channel G: validation checkbox caps at Planning-grade. F1: `MECH_INITIAL` replaces
+  the literal. **F2 deferred:** flipping `MECH_INITIAL` to "none" breaks 14 assertions
+  across four tools until unselected-state rendering exists.
+- AID I5: cost checkbox required for Planning-grade on cost basis. I6: near-free bot
+  threshold $0.01 per attempted conversation ($0.10 blocked a valid reconciled case).
+- Defect class 2: any rail value with no origin grade grades Directional through
+  `railEvidence(null)`. Defect class 3: any model-validity failure holds
+  completeness Directional.
+- All constants reaching a flag, band or verdict read from the registry by template id.
 
-- **J1 / defect D11.** A self-declared "invoiced" cost basis previously granted
-  Finance-grade. Self-declaration is not attestation. The select now caps at
-  Planning-grade. Finance-grade requires a document the tool does not collect.
-- **D13.** Rail reads moved to `getExternalWithSource(key, TOOL_ID)`, which keeps
-  the publisher and refuses self. The `pre` map is read once at mount. A scenario
-  link is a deliberate act carrying its sender's entries, so a linked session grades
-  those as **entered** and credits no rail value.
-- **Regression caught and fixed.** `rail-audit` was blind to self-fed pulls on
-  sourced getters. It now treats `getExternalWithSource` as an external read. New
-  pins L7, L8, L9, M6b.
-- The false `has_document_evidence` claim is removed from the wire.
-  `decision_ready_signal` now reads the grade.
-- **D14 downgraded.** The `implementationCost` pull from Business Case Builder
-  creates no loop.
+**Session 19**
+- J1 / D11: self-declared "invoiced" basis capped at Planning-grade.
+- D13: rail reads use `getExternalWithSource(key, TOOL_ID)`. `pre` map read once at
+  mount. A scenario link grades its values as **entered** and credits no rail value.
+- rail-audit treats sourced getters as external. Pins L7, L8, L9, M6b.
+- False `has_document_evidence` removed from the wire; `decision_ready_signal` reads
+  the grade. D14 downgraded: BCB `implementationCost` pull makes no loop.
 
-### Decisions TB ruled on directly
+**TB rulings**
+- **J9:** in-house vendor reduction caps realization at Planning-grade.
+- **J12:** Planning-grade requires all 35 TCO graded fields off preset (18 of 6,000
+  sweep cases). Keep and disclose on page. Do not loosen.
+- **Provenance:** unchanged restatement keeps the original producer and origin grade.
+  An edited value makes the editing tool the producer and propagates everywhere.
+  TB's governing principle: least user complexity.
 
-- **J9.** In-house vendor reduction caps realization at Planning-grade. TB's words:
-  "your strongest most strategic recommendation."
-- **J12.** Planning-grade requires all 35 graded fields off preset. The 6,000-case
-  sweep reaches it in 18 cases. **Keep the strictness and disclose it on the page.**
-  TB agreed. Do not loosen this to make the grade easier to reach.
+**Session 20**
+- Origin grades on the rail (`railOrigin`); graded per field via `pre[field].origin`,
+  blanket `railOrigin` only as fallback.
+- **J10:** three shared loads only: `load.benefits` 1.30, `load.marginal` 1.18 (the
+  only load a saving may be valued on), `load.fullyLoaded` 1.95. `tco.load.salaried`
+  1.25 is TCO-owned. Do not invent a fifth. CPC and Channel 1.35x retired to 1.30.
+- **J11:** one wage, `market.wage.agent` BLS $20.59 (OEWS May 2024, SOC 43-4051).
+  TCO industry wages are heuristics, never presented as medians.
+- TCO sources paragraph is generated from the registry. Balto/Parloa/Teneo containment
+  and the $19 "BLS" wage claims are retired and pinned dead.
+- TCO to AID journey edge added. TCO order: license gap, AI deflection, business case.
 
-### From session 20
-
-- **Origin grades on the rail.** `publishToolResult` takes a third argument, a map
-  of key to evidence grade. `getPrimitiveWithSource` returns it as `railOrigin`.
-  A puller grades a rail value no higher than the grade it was born with.
-- **Provenance does not transfer on restatement.** If a tool republishes a value it
-  pulled, **unchanged**, the original producer keeps the key and its origin grade.
-  The moment the user edits the figure the value differs, the editing tool becomes
-  the producer, and the new number and grade travel to every puller. TB ruled on
-  this directly: an edited number is the number the user now needs everywhere.
-- **Rail evidence is graded per field, not per tool.** `pre[field].origin` decides
-  the grade for that field. The `railOrigin` parameter survives only as a blanket
-  fallback for a field with no recorded origin. One weak pull no longer drags every
-  pull down.
-- **J10, the load concepts.** Three shared multiples, and only three:
-  `load.benefits` 1.30 (wage plus benefits and payroll burden, for unit metrics),
-  `load.marginal` 1.18 (the only load a saving may be valued on), `load.fullyLoaded`
-  1.95 (pricing a whole seat). TCO's 1.25x for salaried staff is a fourth, owned by
-  TCO, because it prices a different population. **Do not invent a fifth multiple.**
-  CPC's 1.35x and Channel Shift's 1.35x are retired to `load.benefits` 1.30. That
-  moved two shipped defaults. Both were flagged to TB.
-- **J11, one shared wage.** `market.wage.agent` at BLS $20.59, OEWS May 2024,
-  SOC 43-4051. It replaces the three duplicate copies in Staffing, CPC and Channel
-  Shift, closing Decision H from session 15. TCO's seven industry wages are
-  registered heuristics and are explicitly **not** presented as published medians.
-- **TCO's sources paragraph is generated from the registry, never hand-written.**
-  The old paragraph named Balto, Parloa and Teneo for a containment range the tool
-  does not model, and cited BLS for a $19 wage that is not the BLS figure. Both are
-  retired and pinned dead by name in `tco.test.mjs`.
-- **A journey edge was missing.** TCO's page linked to AI Deflection, which was not
-  an edge in the journey graph at all. The edge was added, because TCO prices
-  containment savings and AID pressure-tests them. TCO's order is now license gap,
-  AI deflection, business case, with the decision node last.
-
-### Standing engineering rules not in the repo
-
-- Each tool must operate specifically to its own goal. **No generic shared ranges
-  or one-size logic imposed across tools.** Same key can mean a different fact in a
-  different tool, and where it does, do not prefill. TCO deliberately does not pull
-  occupancy from Staffing for exactly this reason.
-- `MECH` and `CRED_RANK` do not apply to cost-only tools. They model cash out the
-  door, not freed capacity.
-- Vendor Match scoring must disclose methodology. Ceiling saturation, multiple
-  vendors at max score, is a signal of model failure. Five9 and Talkdesk both
-  scoring 99 on a 27-dimension model is the live example.
-- Defect patterns to watch: **split rendering** (corrections section and main output
-  rendering from different code paths), **self-credentialing**, **unreachable
-  confidence grades**, **zero substitution without disclosure**, **negative inputs
-  producing impossible results without a guard**.
+**Standing engineering rules**
+- Each tool serves its own goal. No generic shared ranges or one-size logic. If the
+  same key means a different fact in another tool, do not prefill (TCO does not pull
+  Staffing occupancy for this reason).
+- `MECH` and `CRED_RANK` do not apply to cost-only tools.
+- Vendor Match must disclose methodology. Ceiling saturation is model failure
+  (Five9 and Talkdesk both 99 on 27 dimensions).
+- Watch: split rendering, self-credentialing, unreachable grades, undisclosed zero
+  substitution, unguarded negative inputs.
+- "Digital twin" is internal language. Public term: "decision model."
 
 ---
 
-## 6. Carried debt register
-
-Nothing here is blocking. All of it is real.
+## 6. Carried debt
 
 **Rail and confidence**
+- TCO publishes `analystRead`, a verdict on the rail.
+- TCO `marginalPerContact` uses 1.30x; registry marginal is 1.18x. Undecided.
+- Only TCO publishes origin grades. Staffing, CPC, FCR, AID, Channel read but publish none.
+- CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource` (self-read capable;
+  graded `self` and Directional, so not yet a defect).
+- FCR PULLED badge reads `getPrimitive`.
+- Attrition live PDFs never pulled. `AttritionCostCalculator.jsx` line 307 local
+  `boundAxes`.
 
-- TCO publishes `analystRead`, which is a verdict on the rail. Doctrine says pass
-  facts, not verdicts. Not yet resolved.
-- TCO's `marginalPerContact` uses the 1.30x load while the registry marginal concept
-  is 1.18x. Now that both are named, the discrepancy is visible and undecided.
-- Only TCO publishes origin grades. Staffing, CPC, FCR, AID and Channel Shift read
-  them but publish none, so their own outputs grade Directional downstream. No
-  regression, but the mechanism is half wired.
-- CPC, Channel Shift, FCR and AID still pull with `getPrimitiveWithSource`, which
-  can return their own prior output. Only TCO and Staffing use the external getter.
-  Their grade paths mark self-reads as `self` and grade them Directional, so this is
-  not currently a defect, but it is one refactor away from being one.
-- FCR Leakage PULLED badge still reads `getPrimitive` rather than
-  `getPrimitiveWithSource`.
-
-**Known live defects**
-
-- 1-12: `BusinessCaseBuilder` `r.payback === 0` caps confidence at Directional.
-- `guardVal` money-rendering defect in `CostPerContactCalculator.jsx`, plus a
-  money-guard case missing from `cpc.report.mjs` set C.
-- 8-04: `seo.js` builds vendor titles from `titleCase(slug)` rather than `name`,
-  producing malformed titles across roughly 255 of 283 vendor pages.
-- Sprinklr duplicate slug across CCaaS and IVA data makes the IVA profile
-  unreachable.
-- Homepage claims published methodologies that do not exist as pages.
-- `VendorMatchEngine.jsx` holds a 24-vendor hardcoded fork that does not import
-  `VendorData.js` and covers CCaaS only.
-- The 2.9 MB single-chunk bundle figure is stale. `npm run build` on 23 September
-  2026 emits lazy route chunks with a 237 KB entry, 77 KB gzipped, and prerender
-  writes 429 routes. Re-scope 10-01 to 10-03 against the measured build before
-  scheduling them.
-- `ReportActions.jsx` line 40, the `scenarioUrl` `__proto__` assignment, and
-  `track.js` line 185 were all queued and never addressed.
+**Live defects**
+- 1-12 BCB `payback === 0`.
+- `guardVal` money rendering in CPC; money-guard case missing in `cpc.report.mjs` set C.
+- 8-04 vendor titles from `titleCase(slug)` on roughly 255 of 283 pages.
+- Sprinklr duplicate slug (CCaaS and IVA) hides the IVA profile.
+- Homepage claims methodology pages that do not exist.
+- `VendorMatchEngine.jsx` 24-vendor CCaaS-only fork, does not import `VendorData.js`.
+- ~~Bundle 2.9 MB single chunk.~~ Stale. `npm run build` on 23 Sep 2026: lazy route
+  chunks, 237 KB entry, 77 KB gzip. Re-scope 10-01 to 10-03 before scheduling.
+- Sitemap holds 429 URLs, not the 354 the tracker baseline and shipping facts state.
+- `ReportActions.jsx` line 40, `scenarioUrl` `__proto__` assignment, `track.js` line 185.
 
 **Test infrastructure**
+- `channel.report.mjs` UNPARSED once in session 20, not reproducible. UNPARSED is
+  always failure.
+- `chunk.test.mjs` imports `vite`: `npm install` before the suite.
+- `rail-audit.mjs` writes `.rail-audit-metrics.mjs` at repo root every run and never
+  removes it. Covered by `.gitignore`.
+- Root file `download` holds `.gitignore`-style content. Superseded; delete once TB
+  confirms nothing reads it.
 
-- `channel.report.mjs` returned UNPARSED once in session 20, then passed standalone
-  and on five consecutive suite runs. Not reproducible. If it recurs it is a
-  `run-all` output capture issue, not a harness defect. UNPARSED is always a failure
-  and `run-all` exits 2 on it.
-- `chunk.test.mjs` imports `vite`, so `npm install` is mandatory in a fresh
-  container before the suite will reach 25 of 25.
-- `rail-audit.mjs` writes `.rail-audit-metrics.mjs` to the repo root on every run
-  and does not remove it. It is in `.gitignore`.
-- The file named `download` at repo root holds what looks like `.gitignore`
-  content (`node_modules`, `dist`). It is superseded by `.gitignore` and can be
-  deleted once TB confirms nothing reads it.
-
----
-
-## 7. The parallel research program
-
-TB runs a vendor research program alongside the engineering. **Do not collide with
-it.** It has its own authority documents in project knowledge.
-
-- The **Center of CX Research Operating Standard** governs. The latest Next-Phase
-  Research Strategy Handoff per category is the current methodology authority.
-  Existing matrices, workbooks and prior scores are **Phase 1 historical baselines
-  and hypothesis sources, not current evidence** unless revalidated.
-- Eight category handoffs exist. Execution order: CCaaS, IVA and Conversational AI,
-  Agent Assist, WFM and QM, Experience Analytics and VoC, CX Orchestration and
-  Workflow, Digital Engagement, Payments and Identity and Trust.
-- Research is done five vendors at a time but delivered to Claude as one complete
-  category upload.
-- The **AI Builder Handoff: Vendor Intelligence and Vendor Match V3** (19 Sep 2026)
-  is build-direction authority: two connected public products on one research
-  corpus. The public universal vendor leaderboard is removed. Contextual ranking
-  happens inside Vendor Match after buyer context is known. CCaaS is the first
-  technical proof.
-- **Addendum 1, Market Position Index and Tool Separation Rules**, in `docs/`. A public Market
-  Position Index returns as a separate surface from Vendor Match. Five equally
-  weighted dimensions: market footprint, customer evidence, product and solution
-  breadth, ecosystem and interoperability, commercial and operating maturity.
-  Class-scoped. No composite decimal score. Analyst coverage displayed but never
-  scored. **A one-way wall: the index never feeds Vendor Match.**
-- Open decision for TB: whether Market Position Index positions publish inside
-  competitive class only (currently locked) or also category-wide.
-- `VENDOR_RECORD_SCHEMA_V2.md` is already in the repo. Build against it.
+**TB actions outstanding**
+- Confirm `VITE_POSTHOG_KEY` is set in Vercel.
+- 11-01: verify custom events reach Vercel dashboard on Hobby.
+- Disclosure page (12-06).
 
 ---
 
-## 8. The verification loop
+## 7. Parallel research program. Do not collide.
 
-No step is skipped. This is the definition of done for any engine change.
+- **Research Operating Standard** governs. The latest Next-Phase Research Strategy
+  Handoff per category is methodology authority. Existing matrices and workbooks in
+  project knowledge are **Phase 1 baselines and hypotheses, not current evidence.**
+- Category order: CCaaS, IVA and Conversational AI, Agent Assist, WFM and QM,
+  Experience Analytics and VoC, CX Orchestration and Workflow, Digital Engagement,
+  Payments and Identity and Trust. Delivered as one complete category upload.
+- Standard: rate every qualified vendor within competitive class; separate Product
+  Capability, Evidence Confidence, Buyer Fit, Production/Operating Risk,
+  Implementation/Change; unknown does not equal weak; preserve score lineage.
+- **AI Builder Handoff: Vendor Intelligence and Vendor Match V3** (19 Sep 2026) is
+  build authority: two products on one corpus; public universal leaderboard removed;
+  ranking happens inside Vendor Match after buyer context. CCaaS is the first proof.
+- **Addendum 1** (`docs/CCCX_Market_Position_Index_and_Tool_Separation_Rules_Addendum_1.md`): Market Position Index, five equal
+  dimensions, class-scoped, no composite decimal, analyst coverage shown not scored,
+  one-way wall so the index never feeds Vendor Match.
+- Queued vendor work: Vendor Match ceiling cap (interim Phase 1 fix); Phase 2 schema
+  and category extension registry (`VENDOR_RECORD_SCHEMA_V2.md` in repo); unfork
+  scoring out of `VendorMatchEngine.jsx` into `VendorData.js`; completion-gate and
+  score-change-control suite gates; class-scoped Vendor Match rebuild.
+- Open TB decision: Market Position Index inside competitive class only (locked) or
+  also category-wide.
 
-1. Pull live source. `git pull` in Claude Code. Historically the rule was codeload
-   tarball only, never `raw.githubusercontent.com`, which caches per path with no
-   cache-busting. Git makes that rule obsolete.
-2. **Read the source before editing it.** Not the harness, the source.
-3. **Boundary-probe the engine before writing any assertions.** Defects are found
-   before assertions, not after. An assertion written first encodes the defect.
-4. Extract arithmetic into a testable `compute(d)` between `/* @engine-start */`
-   and `/* @engine-end */`. Both harnesses slice that exact region out of the
-   shipped file at runtime and evaluate it, so the tested engine and the shipped
-   engine cannot drift. **Nothing inside the region may be JSX.** If you add a new
-   dependency inside the region, you must inject it into both harnesses'
-   `new Function(...)` signatures.
-5. **Prove the extraction is behavior neutral across the full scenario set before
-   applying any guard.** TCO's was an A/B across 6,000 cases.
-6. Write the engine harness (`[tool].test.mjs`) and the rendered-output
-   reconciliation harness (`[tool].report.mjs`). **The reconciliation harness is a
-   mandatory separate gate.** Multiple sessions confirmed that passing engine
-   assertions coexist with PDF contradictions only reconciliation catches.
-7. Register both in `run-all.mjs` with a `report` field.
-8. `node run-all.mjs`. Green means: every assertion passes, rail audit clean, chunk
-   gate 25 of 25, and **zero UNPARSED**.
-9. Em-dash check with Python on every touched file.
-10. **Generate a live PDF, one normal and one voided.** Reconcile against the
-    harness. This is a defect discovery tool.
+---
 
-### What changes now that you are in Claude Code
+## 8. Verification loop (definition of done)
 
-These rules were artifacts of TB working exclusively through the GitHub web UI with
-no local dev server. **They can be retired:**
+1. `git pull`. Read the source before editing it.
+2. Boundary-probe the engine before writing assertions.
+3. Arithmetic lives between `/* @engine-start */` and `/* @engine-end */`. Both
+   harnesses slice that region via `new Function`. No JSX inside. New dependencies in
+   the region must be injected into both harness signatures.
+4. Prove extraction behavior neutral across the full scenario set (A/B, thousands of cases).
+5. Engine harness and separate reconciliation harness, both in `run-all.mjs` with a
+   `report` field.
+6. `node run-all.mjs`: 0 failed, 0 UNPARSED, rail audit clean, chunk 25 of 25.
+7. Dash check on every touched file.
+8. Live PDF, normal and voided, reconciled to the dollar.
 
-- One file per upload with md5 verification after each.
-- Clearing the Downloads folder to avoid `(1)` naming collisions.
-- In-place edit in the GitHub web UI for `src/lib/` and `public/`, because the
-  upload dialog repeatedly dropped files at repo root.
-- Confirming the GitHub breadcrumb before every upload.
-- Pasting md5 baseline tables into session kickoff packets.
-- Python3 inline scripts with exact string matching as the edit mechanism. Keep the
-  discipline behind it, which is abort on a wrong match count, but use real edit
-  tools.
+Retired with Claude Code: single-file uploads with md5 per file, Downloads-folder
+hygiene, GitHub web UI in-place edits, breadcrumb checks, md5 tables in kickoff
+packets, Python inline string replacement as the edit tool (keep the
+abort-on-wrong-count discipline).
 
-**These do not change.** They are doctrine, not workflow: the boundary probe, the
-behavior-neutral proof, the separate reconciliation gate, UNPARSED as failure, the
-live PDF check, the em-dash prohibition, and one tracker item per session.
+Kept: everything in steps 1 to 8 and one tracker item per session.
 
 ---
 
 ## 9. Working with TB
 
-- Direct and decisive. Concise outputs, punchy declarative language, outcome first,
-  analyst voice. No hedging, no preamble.
-- "done. next" means proceed without deliberation. "next" means the next tracker
-  item in order.
-- TB approves recommendations and sequencing. **Execute autonomously across the
-  full engineering loop. Push back when something is wrong.** Make explicit
-  sequencing calls rather than asking.
-- Peer review is adversarial by design. Distinguish valid challenges from misreads.
-  Concede when wrong. Push back with reasoning when the source proves the challenge
-  incorrect.
-- One tracker item per session, occasionally waived.
-- Every session closed with a kickoff packet for the next item. In Claude Code, the
-  equivalent is updating this file and the tracker change log at the close of every
-  session. **A tracker that is not updated is a plan that is not being followed.**
+- Direct, decisive, concise. Outcome first, analyst voice. Answers short; TB asks
+  for more.
+- "next" = next tracker item in order. "done" = proceed. "go" = approved.
+- Present decisions as a numbered list, get approval, then execute the full loop
+  autonomously. Push back when wrong. Make sequencing calls.
+- Peer review is adversarial: concede valid challenges, rebut misreads with source.
+- Say when an item is done. At session close, update this file and the tracker
+  change log. A tracker not updated is a plan not followed.
 
 ---
 
-## 10. What not to build yet
+## 10. Not yet
 
-1. The stack analysis engine. It consumes an engine layer that is still moving.
-2. The remaining 70 category-by-vertical pages. Thin content at scale is a sitewide
-   quality risk and they are blocked on vendor data that does not exist.
-3. Any localStorage save-and-return system. `scenarioUrl` already does the job.
-   Measure whether anyone generates a scenario link first.
-4. User accounts, a database, or a dashboard. No WS15 trigger has been met.
-5. The 12-phase growth program. Gated on instrumentation, correctly.
+Do not build: stack analysis engine, remaining category-by-vertical pages,
+localStorage save-and-return (`scenarioUrl` already covers it), accounts, database,
+dashboard, the 12-phase growth program.
 
-### Investment triggers
-
-| Investment | Trigger, before any spend |
+| Investment | Trigger |
 |---|---|
-| User accounts | Users generate a scenario link **and return to it**, repeatedly, within 30 days |
-| Database | Manual handling of qualified opportunities exceeds several hours per week |
-| Dashboard | The same user runs three or more tools in a session, repeatedly, and asks for a combined view |
-| Cross-device saved reports | Measured mobile-to-desktop handoff, the same scenario link opened on two device classes |
-| Personalization | Vertical defaults being overridden in a consistent direction |
-| CRM automation | Qualified inbound exceeds a spreadsheet and a calendar |
-| Paid data | A decision repeatedly blocked by data not sourceable from public filings, vendor docs or the existing matrices |
-| Paid analytics | Free-tier event limits actually hit, not projected |
+| Accounts | Users generate a scenario link and return to it repeatedly within 30 days |
+| Database | Manual handling of qualified opportunities exceeds several hours a week |
+| Dashboard | Same user runs 3+ tools per session repeatedly and asks for a combined view |
+| Cross-device reports | Same scenario link opened on two device classes |
+| Personalization | Vertical defaults overridden in a consistent direction |
+| CRM automation | Qualified inbound outgrows a spreadsheet and calendar |
+| Paid data | A decision repeatedly blocked by unsourceable data |
+| Paid analytics | Free-tier event limits actually hit |
 
 ---
 
-## 11. Suggested first three sessions in Claude Code
+## 11. Next three sessions
 
-1. **Done 23 September 2026.** Governance docs in `docs/`, `SHIPPING.md` drafted.
-2. **Next. Step 6: the live TCO PDF check, normal and voided.** Closes 11B and the
-   TCO retrofit. Production is https://contactcentercx.com. If the domain is blocked
-   from the container, run against a local build and TB pulls the production PDFs.
-3. **Business Case Builder retrofit**, fixing 1-12 as part of it. Closes the 1-09
-   walk and WS1, which unblocks 2-02, 3-03, 6-01, 10-04 and 13-02.
+1. Done 23 Sep 2026: `CLAUDE.md` and `docs/` committed, change log appended,
+   `SHIPPING.md` drafted. Open: TB approval of `SHIPPING.md`, 1-12 renumber.
+2. **Next.** TCO step 6 live PDF check. Closes 11B TCO.
+3. Business Case Builder retrofit with 1-12. Closes WS1.
 
-Then the reachability batch, because reachability precedes rigor and 255 malformed
-vendor titles sit on the pages that receive the most first contacts.
+Then the reachability batch.
 
----
-
-## 12. The line
-
-Prove behavior first, manually learn second, invest third, automate last.
-Ration effort as strictly as money.
-Reachability precedes rigor.
-Instrumentation precedes proof.
-Quality is the moat. Independence is the product.
+Prove behavior first. Ration effort as strictly as money. Reachability precedes
+rigor. Instrumentation precedes proof. Quality is the moat. Independence is the product.
