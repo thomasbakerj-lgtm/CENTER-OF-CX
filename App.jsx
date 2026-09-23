@@ -305,6 +305,7 @@ export default function App() {
         <Route path="/about" element={<About />} />
         <Route path="/methodology/cx-maturity" element={<RubricPage id="cx-maturity" />} />
         <Route path="/methodology/ai-readiness" element={<RubricPage id="ai-readiness" />} />
+        <Route path="/methodology/transformation-readiness" element={<RubricPage id="transformation-readiness" />} />
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />
