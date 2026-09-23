@@ -6,9 +6,9 @@ Written 22 September 2026 at the close of chat session 20. Re-verified against l
 `main` the same day: TCOCalculator.jsx, journey.js and BusinessCaseBuilder.jsx md5s
 match the baseline below. Re-verified in Claude Code on 23 September 2026 at `main`
 76f5248: all 20 md5s match, suite 18,018 green, build and prerender green. This file
-and `docs/` were committed on 23 September 2026. S22 (23 Sep, branch
-`claude/website-project-review-iuz1uk`, not yet on `main`): suite 18,031 green;
-`TCOCalculator.jsx` and `tco.report.mjs` changed, md5s updated below.
+and `docs/` were committed on 23 September 2026. S22 (23 Sep): PR #1 merged to
+`main` (73a1e96), TCO fix live and verified on production. Stage 2 freeze on the
+branch: suite 18,285 green (adds `freeze.test.mjs`, 252). md5s updated below.
 
 ---
 
@@ -57,7 +57,7 @@ second, invest third, automate last.
 | `src/lib/metrics.js` | 37f924dfd1387e52f7da749537d1f940 |
 | `src/lib/guards.js` | a640b502cbee94ebd08687656ba7d681 |
 | `src/lib/type.js` | fde48210b6eac47c307681b3b90adba9 |
-| `TCOCalculator.jsx` | 5329c88fa10063473c9710f8acfbbd27 (S22; `main` still d6cd022364855d52495a38e23b0481fd) |
+| `TCOCalculator.jsx` | 5329c88fa10063473c9710f8acfbbd27 (S22, on `main`) |
 | `BusinessCaseBuilder.jsx` | 46382fac41ff92601347c07887f9395a |
 | `StaffingCalculator.jsx` | 6f956589657ea7bfe8b7a3a7dab76dc1 |
 | `CostPerContactCalculator.jsx` | 815a2bd4a1b23537f8ec413112e38944 |
@@ -67,7 +67,7 @@ second, invest third, automate last.
 | `LicenseBundleGapChecker.jsx` | 20af7a5d6be6b56f52343852f5d68aee |
 | `AttritionCostCalculator.jsx` | 8a185ab19300f92e3847b3fad33b01c2 |
 | `ReportActions.jsx` | db405106dfcbde98427f4be53a84be2a |
-| `run-all.mjs` | c77b1ba5df2d9027535a8326bcf27d24 |
+| `run-all.mjs` | 051f8cd18e47684940abd9c144ed9b86 (S22, registers `freeze.test.mjs`) |
 | `rail-audit.mjs` | 563baf0ef79024dc85d199824f630056 |
 
 ---
@@ -84,32 +84,29 @@ one per session.
 Closed in the walk: Attrition, License Gap, Staffing, CPC, Channel Shift, AI
 Deflection, FCR Leakage, TCO (steps 1 to 5). See the tracker change log, section 9.
 
-**Open now: 11B TCO, deploy the S22 fix and re-run the live check on production.**
-S21 ran step 6 against production: the normal PDF reconciled to the dollar; the void
-exposed D15 to D17. A negative agent count does not void (the guard floors it at 1
-and discloses it); the reachable void is a non-finite output, e.g. `agents: 1e308`.
-
-S22 fixed all three on the branch:
-- **D15, D16.** TCO no longer builds its own confidence section. ReportActions owns
-  the only one; TCO's section is now "Open Issues" and restates no axis. A void run
-  carries no Open Issues section.
-- **D17.** A void renders no figure anywhere: the page shows a void notice with the
-  failed check and remedy in place of results, flags, analyst read and savings; the
-  PDF keeps inputs, methodology and next steps only; the review summary states the
-  void; the wire withholds every property derived from a figure (severity,
-  booked_at_full_theoretical, has_optimization_levers, labor_dominant, spend_band).
-- **Gate.** `tco.report.mjs` section 7 now asserts no tool confidence section and no
-  axis rows (the old lines 614 and 616 pinned the defect). New section 8 renders the
-  reachable void from the shipped JSX. Mutation check: the old TCO file fails 48
-  assertions; the fix passes 951.
-- Verified locally with the live harness against `vite preview`: void PDF is two pages
-  with no figure, NaN, Infinity or grade claim; normal PDF figures are unchanged.
-
-To close 11B TCO: merge to `main` (every push to `main` deploys), then re-run the
-normal and voided live PDFs against contactcentercx.com.
+**Closed S22: 11B TCO.** Step 6 live check (S21) found D15 to D17; S22 fixed them
+(one confidence section owned by ReportActions; a void renders and publishes no
+figure), merged PR #1, and re-ran the live check on production: normal PDF identical
+to the verified build with all 37 dollar figures unchanged, void PDF two pages with
+no figure, NaN, Infinity or grade claim, void review payload `VOID` with no
+figure-derived signal. Production TCO chunk byte-identical to `main`.
 Browser check tooling: Playwright from the scratchpad, Chromium pinned to the proxy
 CA with `--ignore-certificate-errors-spki-list`, PostHog, Vercel Analytics and
-Formspree intercepted so no test event or review reaches production data.
+Formspree intercepted so no test event or review reaches production data. Stop a
+local `vite preview` by port, never `pkill -f "vite preview"` (it kills its own shell).
+
+**Done S22 on the branch: research Stage 2, the CCaaS integrity freeze.** Phase 1
+scores, tiers, vertical fit numbers and rank order no longer render on the CCaaS
+category page, the 28 CCaaS and adjacent profiles, or the 10 CCaaS-by-industry pages.
+`src/lib/researchStatus.js` carries only the 12 gate-passed vendors (slug, corpus
+Vendor_ID, validation date) and one shared label: "Current research complete" or
+"Phase 1 context, not yet researched". Lists are alphabetical, split by research
+status. Three narrative strings that embedded Phase 1 scores were reworded. Copy and
+metadata that claimed "scored" vendors or "published methodologies" were corrected
+(homepage, vendor hub, How to Choose, `index.html`, `seo.js`). `freeze.test.mjs`
+gates all of it: the pre-freeze files fail 27 of its 252 checks.
+Not in scope, still Phase 1: Vendor Match output (Stage 4 rebuild) and the other seven
+categories' scores and tiers (TB decision covered CCaaS).
 
 **Then: Business Case Builder**, the ninth and last rail tool, 113 KB of source.
 Corrected S22: **1-12 is already closed in code.** Line 53 is `paybackStatus`, a verdict
@@ -332,6 +329,14 @@ Binding. None of this is in code comments beyond what is noted.
 - ~~Bundle 2.9 MB single chunk.~~ Stale. `npm run build` on 23 Sep 2026: lazy route
   chunks, 237 KB entry, 77 KB gzip. Re-scope 10-01 to 10-03 before scheduling.
 - Sitemap holds 429 URLs, not the 354 the tracker baseline and shipping facts state.
+- CCaaS-by-industry pages (10) are indexable in `seo.js` because they carried per-vendor
+  vertical fit scores. The freeze removed those, so their distinct content is now the
+  vertical requirements plus the vendor list. Decide at Stage 3: rebuild them from
+  Phase 2 research or set noindex like the other 70 category-by-vertical pages.
+- Vendor Match still ranks on its 24-vendor Phase 1 fork and prints fit scores (Stage 4,
+  5-01).
+- Seven non-CCaaS categories still show Phase 1 scores and tiers as current.
+- CCaaS vendor profile nav renders "Vendors" twice. Pre-existing, cosmetic.
 - `ReportActions.jsx` line 40, `scenarioUrl` `__proto__` assignment, `track.js` line 185.
 - `ReportActions` `Field` labels are not bound to their inputs (no `htmlFor`/`id`).
   Screen readers cannot name the review form fields.
@@ -441,12 +446,10 @@ dashboard, the 12-phase growth program.
 
 1. Done 23 Sep 2026: `CLAUDE.md` and `docs/` committed, change log appended,
    `SHIPPING.md` approved, 1-12 conflict resolved, doctrine v1.2.
-2. Done 23 Sep 2026 (S21, S22): TCO live check found D15 to D17; S22 fixed them on
-   the branch. **Next:** merge to `main`, re-run the live check on production.
-   Closes 11B TCO.
-3. Research Stage 2, the integrity freeze: remove Phase 1 numeric scores and tiers
-   from public CCaaS surfaces and label the 16 unresearched vendors. Needs no corpus.
-4. Business Case Builder 11B retrofit (Section 5.7). Closes WS1.
+2. Done S22: 11B TCO closed on production.
+3. Done S22 on the branch: research Stage 2, the CCaaS integrity freeze. Merge and
+   verify on production.
+4. **Next:** Business Case Builder 11B retrofit (Section 5.7). Closes WS1.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { getCoreVendors, getAdjacentVendors } from "./VendorData";
+import { ccaasResearchStatus, CCAAS_RESEARCH, fmtDate } from "./src/lib/researchStatus";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -87,32 +88,35 @@ function Nav() {
   );
 }
 
-const tierConfig = {
-  "Strategic Foundation": { color: GREEN, bg: `${GREEN}08`, border: `${GREEN}20`, label: "Top Tier Core", desc: "Vendors that can credibly anchor serious enterprise or regulated CCaaS programs with broad platform substance. Default benchmarks in any enterprise evaluation." },
-  "Strong Contender": { color: ELECTRIC, bg: `${ELECTRIC}08`, border: `${ELECTRIC}20`, label: "Upper-Mid Core", desc: "Strong platforms with clear relevance and meaningful differentiation. Credible enterprise or mid-market options with specific strengths that can outperform top-tier leaders in defined scenarios." },
-  "Situational Specialist": { color: AMBER, bg: `${AMBER}08`, border: `${AMBER}20`, label: "Specialist", desc: "Useful in defined motions, segments, or regions. Legacy bridge, regional, or niche strength. Qualified carefully for broader enterprise needs." },
-  "Limited Fit": { color: RED, bg: `${RED}08`, border: `${RED}20`, label: "Narrow Fit", desc: "Relevant for SMB, narrow use cases, or legacy outbound. Should not appear in enterprise-scale evaluations without specific justification." },
-  "Adjacent": { color: PURPLE, bg: `${PURPLE}08`, border: `${PURPLE}20`, label: "N/A", desc: "Influential to CX stack design but evaluated as adjacent platforms, not core CCaaS foundation." },
-};
+/* Integrity freeze, TB decision 23 Sep 2026 (S22). The Phase 1 tier distribution chart, the
+   ranked directory and the 27-dimension composite no longer render. Phase 1 scored every
+   vendor on one model across unlike platforms; current research compares vendors only
+   inside a competitive class and publishes numeric ratings only once a class has enough
+   validated peers. Vendors are listed by research status, alphabetically. */
+const ADJACENT_DESC = "Influential in CX stack design and tracked as adjacent platforms beside core CCaaS.";
 
-const scoringGroups = [
-  { name: "Platform Core", weight: 35, dims: ["Voice / ACD / Routing (10)", "Telephony / BYOC (6)", "Digital Channels (5)", "Outbound (4)", "IVR / IVA / Self-Service (6)", "Agent Desktop / Supervisor (4)"] },
-  { name: "Workforce Maturity", weight: 20, dims: ["Forecasting / Scheduling (5)", "QM / Auto-QA / Compliance (7)", "Speech / Text Analytics (5)", "Performance Mgmt / Coaching (3)"] },
-  { name: "AI Substance", weight: 20, dims: ["Agent Copilot (6)", "Supervisor Copilot (3)", "Knowledge Grounding (4)", "AI Orchestration / Journey Intelligence (7)"] },
-  { name: "Architecture", weight: 16, dims: ["Cloud-Native Depth (4)", "API / Extensibility (5)", "Marketplace / Ecosystem (4)", "Hybrid / Migration Support (3)"] },
-  { name: "Enterprise Readiness", weight: 15, dims: ["Security / Compliance (6)", "Availability / Resilience (4)", "Global Scale / Data Residency (5)"] },
-  { name: "Commercial + Market Fit", weight: 18, dims: ["Partner Leverage (4)", "Time-to-Value (3)", "Services Burden (2)", "Vertical Credibility (5)", "BPO Suitability (2)", "SMB-Midmarket Fit (2)"] },
+const METHOD_CARDS = [
+  { name: "Atomic claims", text: "Each finding is one testable claim with its own dated evidence and an evidence state: verified, strongly supported, inferred or unverified." },
+  { name: "Competitive classes", text: "Vendors are compared inside a class of platforms built for the same job. The class frames the comparison and carries no quality score." },
+  { name: "Where they break", text: "Each break names the buyer condition that triggers it, whether implementation can mitigate it, what that adds in cost and who owns it after go-live." },
+  { name: "Proof and contract", text: "Each researched vendor carries the demo tests, reference questions and contract clauses a buyer should demand before signing." },
+  { name: "Unknown stays unknown", text: "Missing public evidence raises the proof burden. It is never counted as a weakness." },
+  { name: "Ratings stay locked", text: "Numeric ratings publish only when a competitive class has enough validated peers for a defensible comparison." },
 ];
 
 export default function CCaaSCategory() {
   const core = getCoreVendors();
   const adjacent = getAdjacentVendors();
 
-  const tiers = [
-    { name: "Strategic Foundation", vendors: core.filter(v => v.tier === "Strategic Foundation") },
-    { name: "Strong Contender", vendors: core.filter(v => v.tier === "Strong Contender") },
-    { name: "Situational Specialist", vendors: core.filter(v => v.tier === "Situational Specialist") },
-    { name: "Limited Fit", vendors: core.filter(v => v.tier === "Limited Fit") },
+  const complete = core.filter(v => ccaasResearchStatus(v.slug) === "complete");
+  const phase1 = core.filter(v => ccaasResearchStatus(v.slug) !== "complete");
+  const groups = [
+    { name: "Current research complete", color: GREEN, label: `${complete.length} vendors`,
+      desc: `These vendors passed the current research completion gate (last validated ${fmtDate(CCAAS_RESEARCH.asOf)}). Their pages still show the Phase 1 assessment while they are rebuilt from the new research.`,
+      vendors: complete },
+    { name: "Phase 1 context", color: ELECTRIC, label: `${phase1.length} vendors`,
+      desc: "Not yet researched under the current methodology. Their pages show the earlier Phase 1 assessment, labelled as such.",
+      vendors: phase1 },
   ];
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -140,7 +144,7 @@ export default function CCaaSCategory() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 600 }}>
-              {core.length} vendors scored across 27 weighted dimensions covering platform depth, workforce maturity, AI substance, architecture, enterprise readiness, and commercial fit. Every score is sourced, weighted, and placed on a maturity bell curve.
+              {core.length} core CCaaS platforms and {adjacent.length} adjacent suites. Current research, built from atomic claims, dated evidence, causal breaks and proof requirements, is complete on {complete.length} of them and being published. Numeric scores and tiers are withdrawn until class-specific ratings are validated.
             </p>
           </FadeIn>
           <FadeIn delay={0.15}>
@@ -159,94 +163,57 @@ export default function CCaaSCategory() {
         </div>
       </section>
 
-      {/* Bell Curve Visual */}
-      <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+      {/* Why there are no scores */}
+      <section style={{ background: WARM, padding: "56px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Bell Curve Distribution</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0 0" }}>Where the market clusters.</h2>
-            </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }} className="bell-tiers">
-              {tiers.map((t, i) => {
-                const cfg = tierConfig[t.name];
-                const heights = [140, 220, 280, 120];
-                return (
-                  <div key={i} style={{ flex: 1, minWidth: 160 }}>
-                    <div style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: "10px 10px 0 0", padding: "16px 14px", minHeight: heights[i], display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: cfg.color, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>
-                        {t.name} <span style={{ fontWeight: 400, opacity: 0.7 }}>({cfg.label})</span>
-                      </div>
-                      {t.vendors.map((v, j) => (
-                        <a key={j} href={`/vendors/${v.slug}`} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", fontSize: 12.5, color: SLATE, borderBottom: j < t.vendors.length - 1 ? `1px solid ${BORDER}` : "none", transition: "color 0.15s" }}
-                          onMouseOver={e => e.currentTarget.style.color = ELECTRIC}
-                          onMouseOut={e => e.currentTarget.style.color = SLATE}>
-                          <span style={{ fontWeight: 500 }}>{v.name}</span>
-                          <span style={{ fontWeight: 700, color: cfg.color, fontSize: 12 }}>{v.score}</span>
-                        </a>
-                      ))}
-                    </div>
-                    <div style={{ background: cfg.color, color: "#fff", textAlign: "center", padding: "6px", borderRadius: "0 0 6px 6px", fontSize: 11, fontWeight: 700 }}>
-                      {t.vendors.length} vendor{t.vendors.length !== 1 ? "s" : ""}
-                    </div>
-                  </div>
-                );
-              })}
+            <div style={{ maxWidth: 760 }}>
+              <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scores withdrawn</span>
+              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0 12px" }}>Why this page no longer ranks vendors.</h2>
+              <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, margin: 0 }}>The earlier assessment scored every vendor on one 27-dimension model and placed unlike platforms on a single curve. The current research compares vendors only inside a competitive class, keeps capability, evidence, fit, risk and implementation separate, and treats an unverified claim as a question to prove. Numeric ratings return when each class has enough validated peers to support them. Until then, the right shortlist depends on your requirements, and the vendor pages below explain where each platform fits and where it breaks.</p>
             </div>
           </FadeIn>
         </div>
       </section>
 
-      {/* Full Directory by Tier */}
+      {/* Directory by research status */}
       <section style={{ background: "#fff", padding: "80px 28px" }}>
         <div style={WRAP}>
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Complete Directory</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 40px" }}>All {core.length} vendors, ranked by weighted composite score.</h2>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 40px" }}>All {core.length} core vendors, by research status.</h2>
           </FadeIn>
 
-          {tiers.map((t, ti) => {
-            const cfg = tierConfig[t.name];
-            return (
-              <FadeIn key={ti} delay={ti * 0.05}>
-                <div style={{ marginBottom: 40 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                    <div style={{ width: 4, height: 24, borderRadius: 2, background: cfg.color }} />
-                    <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: 0 }}>{t.name}</h3>
-                    <span style={{ fontSize: 11, color: MUTED, background: WARM, padding: "2px 8px", borderRadius: 4 }}>{cfg.label}</span>
-                  </div>
-                  <p style={{ fontSize: 13, color: MUTED, marginBottom: 16, maxWidth: 700 }}>{cfg.desc}</p>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    {t.vendors.map((v, vi) => (
-                      <a key={vi} href={`/vendors/${v.slug}`}
-                        style={{ display: "flex", alignItems: "center", gap: 16, padding: "18px 20px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, transition: "all 0.2s", cursor: "pointer" }}
-                        onMouseOver={e => { e.currentTarget.style.borderColor = cfg.color; e.currentTarget.style.boxShadow = `0 4px 16px ${cfg.color}10`; }}
-                        onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
-
-                        {/* Score circle */}
-                        <div style={{ width: 48, height: 48, borderRadius: "50%", border: `2.5px solid ${cfg.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: cfg.color }}>{v.score}</span>
-                        </div>
-
-                        {/* Info */}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                            <span style={{ fontSize: 16, fontWeight: 600, color: NAVY }}>{v.name}</span>
-                            <span style={{ fontSize: 11, color: MUTED, background: "#fff", padding: "1px 8px", borderRadius: 4, border: `1px solid ${BORDER}` }}>{v.segment}</span>
-                          </div>
-                          <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.5, margin: "4px 0 0", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{v.summary}</p>
-                        </div>
-
-                        {/* Arrow */}
-                        <span style={{ fontSize: 14, color: ELECTRIC, flexShrink: 0 }}>→</span>
-                      </a>
-                    ))}
-                  </div>
+          {groups.map((g, gi) => (
+            <FadeIn key={gi} delay={gi * 0.05}>
+              <div style={{ marginBottom: 40 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                  <div style={{ width: 4, height: 24, borderRadius: 2, background: g.color }} />
+                  <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: 0 }}>{g.name}</h3>
+                  <span style={{ fontSize: 11, color: MUTED, background: WARM, padding: "2px 8px", borderRadius: 4 }}>{g.label}</span>
                 </div>
-              </FadeIn>
-            );
-          })}
+                <p style={{ fontSize: 13, color: MUTED, marginBottom: 16, maxWidth: 700 }}>{g.desc}</p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {g.vendors.map((v, vi) => (
+                    <a key={vi} href={`/vendors/${v.slug}`}
+                      style={{ display: "flex", alignItems: "center", gap: 16, padding: "18px 20px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, transition: "all 0.2s", cursor: "pointer" }}
+                      onMouseOver={e => { e.currentTarget.style.borderColor = g.color; e.currentTarget.style.boxShadow = `0 4px 16px ${g.color}10`; }}
+                      onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <span style={{ fontSize: 16, fontWeight: 600, color: NAVY }}>{v.name}</span>
+                          <span style={{ fontSize: 11, color: MUTED, background: "#fff", padding: "1px 8px", borderRadius: 4, border: `1px solid ${BORDER}` }}>{v.segment}</span>
+                        </div>
+                        <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.5, margin: "4px 0 0", overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{v.summary}</p>
+                      </div>
+                      <span style={{ fontSize: 14, color: ELECTRIC, flexShrink: 0 }}>→</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </FadeIn>
+          ))}
 
           {/* Adjacent suites */}
           <FadeIn delay={0.2}>
@@ -255,7 +222,7 @@ export default function CCaaSCategory() {
                 <div style={{ width: 4, height: 24, borderRadius: 2, background: PURPLE }} />
                 <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: 0 }}>Adjacent / Non-Core</h3>
               </div>
-              <p style={{ fontSize: 13, color: MUTED, marginBottom: 16, maxWidth: 700 }}>{tierConfig["Adjacent"].desc}</p>
+              <p style={{ fontSize: 13, color: MUTED, marginBottom: 16, maxWidth: 700 }}>{ADJACENT_DESC}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {adjacent.map((v, i) => (
                   <a key={i} href={`/vendors/${v.slug}`}
@@ -278,30 +245,23 @@ export default function CCaaSCategory() {
         </div>
       </section>
 
-      {/* Scoring Methodology */}
+      {/* How vendors are researched */}
       <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "30%", right: "-5%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.04) 0%, transparent 70%)" }} />
         <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
           <FadeIn>
             <div style={{ textAlign: "center", marginBottom: 48 }}>
-              <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>27 dimensions. 6 category groups. Total weight: 100.</h2>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is scored 1 to 5 on every dimension. Scores are multiplied by dimension weight, summed, and normalized to a 100-point composite. Weights reflect operational importance. Routing and QA carry more weight than marketplace breadth.</p>
+              <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Research Method</span>
+              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>Research individually. Validate independently. Normalize collectively.</h2>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", maxWidth: 600, margin: "0 auto" }}>Every vendor is researched on its own, every claim is tied to dated evidence, and comparisons are made only across vendors that do the same job.</p>
             </div>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }} className="method-grid">
-            {scoringGroups.map((g, i) => (
+            {METHOD_CARDS.map((c, i) => (
               <FadeIn key={i} delay={i * 0.06}>
                 <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "24px 20px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <h4 style={{ fontSize: 15, fontWeight: 600, color: "#fff", margin: 0 }}>{g.name}</h4>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: LIGHT, background: "rgba(0,170,255,0.1)", padding: "2px 8px", borderRadius: 4 }}>Weight: {g.weight}</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    {g.dims.map((d, j) => (
-                      <div key={j} style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", padding: "3px 0" }}>{d}</div>
-                    ))}
-                  </div>
+                  <h4 style={{ fontSize: 15, fontWeight: 600, color: "#fff", margin: "0 0 8px" }}>{c.name}</h4>
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: 0 }}>{c.text}</p>
                 </div>
               </FadeIn>
             ))}
@@ -309,7 +269,7 @@ export default function CCaaSCategory() {
           <FadeIn delay={0.3}>
             <div style={{ marginTop: 32, textAlign: "center" }}>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", maxWidth: 600, margin: "0 auto" }}>
-                Tier placement is analyst-assigned based on market position, platform substance, and enterprise credibility. The weighted composite score provides a quantitative benchmark. 24 core vendors scored across 27 dimensions. 4 adjacent platforms tracked for CX stack influence.
+                {complete.length} of {core.length} core vendors researched so far. {adjacent.length} adjacent platforms tracked for CX stack influence.
               </p>
             </div>
           </FadeIn>
@@ -326,7 +286,7 @@ export default function CCaaSCategory() {
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.borderLeftColor = ELECTRIC; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Most used</div>
                 <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>Vendor Match Engine</h3>
-                <p style={{ fontSize: 12, color: MUTED, margin: "0 0 8px", lineHeight: 1.5 }}>Tell us your environment and priorities. Get a ranked shortlist from these {core.length} vendors.</p>
+                <p style={{ fontSize: 12, color: MUTED, margin: "0 0 8px", lineHeight: 1.5 }}>Tell us your environment and priorities. Get a shortlist with the reasoning behind it.</p>
                 <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC }}>Launch tool →</span>
               </a>
               <a href="/tools/platform-decision" style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "22px 20px", textDecoration: "none", color: "inherit", transition: "all 0.2s", borderLeft: `3px solid ${LIGHT}` }}

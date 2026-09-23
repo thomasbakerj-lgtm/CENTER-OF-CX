@@ -8,7 +8,7 @@ export const SITE = "The Center of CX";
 export const SEO_MAP = {
   "/": {
     title: `${SITE} | Independent CX + Contact Center Technology Intelligence`,
-    desc: "282 vendors scored across 8 categories. Buyer guides, interactive tools, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play.",
+    desc: "282 vendor profiles across 8 categories. Buyer guides, interactive tools, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play.",
   },
   "/platforms-and-tech": {
     title: `Platforms + Tech | ${SITE}`,
@@ -39,12 +39,12 @@ export const SEO_MAP = {
     desc: "Original research, market analysis, and operator briefings on CX technology, AI in the contact center, and workforce transformation.",
   },
   "/vendors": {
-    title: `Vendor Intelligence | 282 Vendors Scored Across 8 Categories | ${SITE}`,
-    desc: "282 vendors across 8 categories. CCaaS, IVA, Agent Assist, WEM, Analytics, ACD/Routing, Digital Engagement, and Payments. Independently scored with published methodologies.",
+    title: `Vendor Intelligence | 282 Vendor Profiles Across 8 Categories | ${SITE}`,
+    desc: "282 vendors across 8 categories. CCaaS, IVA, Agent Assist, WEM, Analytics, ACD/Routing, Digital Engagement, and Payments. Independent research with no vendor sponsorship.",
   },
   "/vendors/ccaas": {
-    title: `CCaaS Platform Market Intelligence | 24 Vendors Scored | ${SITE}`,
-    desc: "24 CCaaS vendors scored across 27 weighted dimensions. Bell curve placement, scoring methodology, and honest assessments for enterprise buyers.",
+    title: `CCaaS Platform Market Intelligence | 24 Vendors Profiled | ${SITE}`,
+    desc: "24 CCaaS vendors and 4 adjacent suites, listed by research status. Where each platform fits, where it breaks, and the evidence behind it. Numeric scores withdrawn until class-specific ratings are validated.",
   },
   "/vendors/iva": {
     title: `IVA + Conversational AI Market Intelligence: 50 Vendors Scored Across 7 Categories | ${SITE}`,
@@ -212,7 +212,7 @@ export const SEO_MAP = {
   },
   "/tools/vendor-match": {
     title: `Vendor Match Engine | Ranked Shortlist for Your Environment | ${SITE}`,
-    desc: "Tell us your operation size, vertical, priorities, and constraints. Get a ranked vendor shortlist with fit scores from 282 independently scored profiles.",
+    desc: "Tell us your operation size, vertical, priorities, and constraints. Get a CCaaS vendor shortlist with the fit reasoning behind it.",
   },
   "/tools/platform-decision": {
     title: `Platform Decision Matrix | Stay, Extend, or Replace by Layer | ${SITE}`,
@@ -758,10 +758,10 @@ export function resolveSeo(rawPath) {
       const scored = hasScoredVerticalFit(parts[0]) && !!vertName(parts[1]);
       seo.known = !!scored;
       seo.title = scored
-        ? `${cName} for ${vName} | Scored Vendors + Vertical Fit | ${SITE}`
+        ? `${cName} for ${vName} | Vendors + Vertical Requirements | ${SITE}`
         : `${cName} for ${vName} | ${SITE}`;
       seo.desc = scored
-        ? `${cName} vendors scored for ${vName}. Vertical fit rankings, compliance requirements, key integration systems, and evaluation guidance specific to ${vName} contact centers.`
+        ? `${cName} vendors for ${vName} contact centers, by research status. Compliance requirements, key integration systems, and evaluation guidance specific to ${vName}.`
         : `${vName} compliance requirements, key integration systems, and evaluation considerations relevant to ${cName}.`;
     } else {
       /* The category is not decoration. The same vendor holds a profile in up

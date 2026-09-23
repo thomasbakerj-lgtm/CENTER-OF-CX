@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
+import { ccaasResearchLabel } from "./src/lib/researchStatus";
 import { getIVAVendor, ivaTierConfig, ivaScoringDimensions } from "./IVAData";
 import { getAgentAssistVendor, aaTierConfig, aaDimensions } from "./AgentAssistData";
 import { getWEMVendor, getWEMLeaderboardScores } from "./WEMData";
@@ -155,7 +156,7 @@ export default function VendorProfile() {
   // ─── IVA VENDOR PROFILE ───
   if (ivaVendor) {
     const iv = ivaVendor;
-    const tierCfg = ivaTierConfig[iv.tier] || { color: MUTED, range: "—" };
+    const tierCfg = ivaTierConfig[iv.tier] || { color: MUTED, range: "n/a" };
     const dims = [
       { name: "Conversational Autonomy", score: iv.autonomy, desc: "End-to-end interaction management, intent resolution, and escalation" },
       { name: "Multi-Channel Coverage", score: iv.multiChannel, desc: "Voice, chat, web, messaging, and cross-channel continuity" },
@@ -249,7 +250,7 @@ export default function VendorProfile() {
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
           <div style={WRAP}>
             <FadeIn>
-              <Section label="Market Position" title={`${iv.tier} tier — ${tierCfg.range} score range.`} dark>
+              <Section label="Market Position" title={`${iv.tier} tier, ${tierCfg.range} score range.`} dark>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>{tierCfg.desc}</p>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to IVA Market Intelligence</a>
@@ -304,7 +305,7 @@ export default function VendorProfile() {
   // ─── AGENT ASSIST VENDOR PROFILE ───
   if (aaVendor) {
     const aa = aaVendor;
-    const tierCfg = aaTierConfig[aa.tier] || { color: MUTED, range: "—" };
+    const tierCfg = aaTierConfig[aa.tier] || { color: MUTED, range: "n/a" };
     const dimScores = aaDimensions.map(d => ({ ...d, score: aa[d.abbr.toLowerCase()] }));
     return (
       <div><Nav />
@@ -648,7 +649,7 @@ export default function VendorProfile() {
         {/* 7 Dimension Scores */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <Section label="Scoring Dimensions" title="Seven dimensions, each scored 2–6.">
+            <Section label="Scoring Dimensions" title="Seven dimensions, each scored 2 to 6.">
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} className="profile-grid">
                 {dims.map((d, i) => {
                   const color = d.score >= 6 ? GREEN : d.score >= 5 ? ELECTRIC : d.score >= 4 ? AMBER : RED;
@@ -673,8 +674,8 @@ export default function VendorProfile() {
         {/* Category Context */}
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
           <div style={WRAP}><FadeIn>
-            <Section label="Market Position" title={`${av.catLabel} — ${av.segment}`} dark>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Scores are most meaningful when compared within the same platform category — a CCaaS platform and an AI-native overlay serve different buying motions.</p>
+            <Section label="Market Position" title={`${av.catLabel}, ${av.segment}`} dark>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Scores are most meaningful when compared within the same platform category, a CCaaS platform and an AI-native overlay serve different buying motions.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Analytics Intelligence</a>
                 
@@ -769,7 +770,7 @@ export default function VendorProfile() {
           </Section>
         </FadeIn></div></section>
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
-          <Section label="Market Position" title={`${av.tier} — ${av.segment}`} dark>
+          <Section label="Market Position" title={`${av.tier}, ${av.segment}`} dark>
             {av.rmi && <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 16 }}>Routing Maturity Index: {av.rmi}</p>}
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to ACD/Routing Intelligence</a>
@@ -859,7 +860,7 @@ export default function VendorProfile() {
           </Section>
         </FadeIn></div></section>
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
-          <Section label="Market Position" title={`${dv.tier} — ${dv.archetype}`} dark>
+          <Section label="Market Position" title={`${dv.tier}, ${dv.archetype}`} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Digital Engagement Intelligence</a>
               
@@ -1047,8 +1048,11 @@ export default function VendorProfile() {
               <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{v.name}</h1>
               <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>{v.summary}</p>
             </div>
-            <div style={{ flexShrink: 0 }}>
-              <ScoreBadge score={v.score} tier={v.tier} />
+            {/* Integrity freeze (23 Sep 2026): the Phase 1 composite score and tier no longer
+                render. The page states its research status instead. */}
+            <div style={{ flexShrink: 0, maxWidth: 300, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "14px 16px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ccaasResearchLabel(v.slug).status === "complete" ? GREEN : LIGHT, marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>{ccaasResearchLabel(v.slug).short}</div>
+              <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.55, fontFamily: "'DM Sans', sans-serif" }}>{ccaasResearchLabel(v.slug).text}</div>
             </div>
           </div>
         </div>
@@ -1193,17 +1197,18 @@ export default function VendorProfile() {
             {v.verticalFit && (
               <div style={{ marginBottom: v.integrations ? 32 : 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>Vertical Fit</span>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px", lineHeight: 1.2 }}>Industry scoring.</h2>
+                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px", lineHeight: 1.2 }}>Industry pages.</h2>
                 {v.verticalSummary && <p style={{ fontSize: 13, color: MUTED, marginBottom: 14, fontFamily: "'DM Sans', sans-serif" }}>{v.verticalSummary}</p>}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {Object.entries(v.verticalFit).sort((a, b) => b[1] - a[1]).map(([vert, score]) => {
-                    const c = score >= 5 ? GREEN : score >= 4 ? "#7CB342" : score === 3 ? AMBER : "#9CA3AF";
+                  {/* Phase 1 vertical fit scores are withdrawn with the composite. Industry
+                      links stay, alphabetical, with no score and no fit colour. */}
+                  {Object.keys(v.verticalFit).sort((a, b) => a.localeCompare(b)).map((vert) => {
+                    const c = ELECTRIC;
                     const vSlug = vert.toLowerCase().replace(/ \+ /g, "-").replace(/\s+/g, "-");
                     return (
                       <a key={vert} href={`/vendors/ccaas/${vSlug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "#fff", border: `1px solid ${c}30`, borderRadius: 6, fontSize: 12, fontFamily: "'DM Sans', sans-serif", transition: "border-color 0.15s" }}
                         onMouseOver={e => e.currentTarget.style.borderColor = c}
                         onMouseOut={e => e.currentTarget.style.borderColor = `${c}30`}>
-                        <span style={{ width: 20, height: 20, borderRadius: "50%", background: `${c}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: c }}>{score}</span>
                         <span style={{ color: NAVY, fontWeight: 500 }}>{vert}</span>
                       </a>
                     );
@@ -1280,7 +1285,7 @@ export default function VendorProfile() {
                 <div id="review-form" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <input type="hidden" name="vendor" value={v.name} />
                   <input type="hidden" name="vendor_slug" value={v.slug} />
-                  <input type="hidden" name="_subject" value={`Community Review: ${v.name} — Center of CX`} />
+                  <input type="hidden" name="_subject" value={`Community Review: ${v.name}, Center of CX`} />
 
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>Your overall score</label>
@@ -1317,9 +1322,9 @@ export default function VendorProfile() {
                       <select name="company_size" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
                         <option value="" disabled selected>Select</option>
                         <option value="Under 50 agents">Under 50 agents</option>
-                        <option value="50–200 agents">50–200 agents</option>
-                        <option value="200–500 agents">200–500 agents</option>
-                        <option value="500–1000 agents">500–1000 agents</option>
+                        <option value="50 to 200 agents">50 to 200 agents</option>
+                        <option value="200 to 500 agents">200 to 500 agents</option>
+                        <option value="500 to 1000 agents">500 to 1000 agents</option>
                         <option value="1000+ agents">1000+ agents</option>
                       </select>
                     </div>
@@ -1330,9 +1335,9 @@ export default function VendorProfile() {
                     <select name="tenure" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
                       <option value="" disabled selected>Select</option>
                       <option value="Less than 6 months">Less than 6 months</option>
-                      <option value="6–12 months">6–12 months</option>
-                      <option value="1–2 years">1–2 years</option>
-                      <option value="2–4 years">2–4 years</option>
+                      <option value="6 to 12 months">6 to 12 months</option>
+                      <option value="1 to 2 years">1 to 2 years</option>
+                      <option value="2 to 4 years">2 to 4 years</option>
                       <option value="4+ years">4+ years</option>
                       <option value="Evaluated but did not buy">Evaluated but did not buy</option>
                     </select>
@@ -1364,12 +1369,12 @@ export default function VendorProfile() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional — displayed as first name + last initial)</span></label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional, displayed as first name + last initial)</span></label>
                     <input name="reviewer_name" style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} placeholder="Jane S." />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Email <span style={{ fontWeight: 400, color: MUTED }}>(private — for verification only)</span></label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Email <span style={{ fontWeight: 400, color: MUTED }}>(private, for verification only)</span></label>
                     <input name="email" type="email" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} placeholder="jane@company.com" />
                   </div>
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVendorsByCategory, getVendor } from "./VendorData";
-import { CATEGORIES, VERTICALS, CCAAS_VERTICAL_FIT } from "./src/lib/verticals";
+import { CATEGORIES, VERTICALS } from "./src/lib/verticals";
+import { ccaasResearchStatus } from "./src/lib/researchStatus";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1080, margin: "0 auto", padding: "0 28px" };
@@ -19,19 +20,13 @@ export default function CategoryVerticalPage() {
 
   // Get vendors for this category
   const allCatVendors = categorySlug === "ccaas" ? getVendorsByCategory("ccaas") : [];
-  const fitScores = CCAAS_VERTICAL_FIT;
-
-  // Rank vendors by vertical fit for CCaaS
-  const rankedVendors = categorySlug === "ccaas"
-    ? allCatVendors
-        .map(v => ({ ...v, vertFit: fitScores[v.slug]?.[verticalSlug] || 2 }))
-        .sort((a, b) => b.vertFit - a.vertFit || b.score - a.score)
-    : [];
-
-  // Split into recommended vs other
-  const recommended = rankedVendors.filter(v => v.vertFit >= 4);
-  const qualified = rankedVendors.filter(v => v.vertFit === 3);
-  const limited = rankedVendors.filter(v => v.vertFit < 3);
+  /* Integrity freeze (23 Sep 2026): Phase 1 vertical fit scores, composite scores, tiers
+     and the Recommended / Conditional / Limited bands no longer render. CCaaS vendors are
+     listed alphabetically, split only by research status. */
+  const byName = (a, b) => a.name.localeCompare(b.name);
+  const rankedVendors = categorySlug === "ccaas" ? [...allCatVendors].sort(byName) : [];
+  const researched = rankedVendors.filter(v => ccaasResearchStatus(v.slug) === "complete");
+  const phase1Only = rankedVendors.filter(v => ccaasResearchStatus(v.slug) !== "complete");
 
   // For non-CCaaS categories, show leader slugs from vertical config
   const leaderSlugs = vert.ccaasLeaders || [];
@@ -43,9 +38,6 @@ export default function CategoryVerticalPage() {
     { name: "Research", href: "/research" },
     { name: "The Human Premium", href: "/human-premium" },
   ];
-
-  const fitColor = (f) => f >= 5 ? GREEN : f >= 4 ? "#7CB342" : f === 3 ? AMBER : RED;
-  const fitLabel = (f) => f >= 5 ? "Strong Fit" : f >= 4 ? "Good Fit" : f === 3 ? "Conditional" : "Limited";
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
@@ -76,7 +68,7 @@ export default function CategoryVerticalPage() {
             <span style={{ color: LIGHT }}>{vert.name}</span>
           </h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 600 }}>
-            {categorySlug === "ccaas" ? `${rankedVendors.length} vendors scored for ${vert.name} vertical fit.` : `${cat.name} vendors evaluated for ${vert.name} requirements.`} Compliance, integration, and operational considerations specific to this vertical.
+            {categorySlug === "ccaas" ? `${rankedVendors.length} CCaaS vendors, with the ${vert.name} requirements that shape the choice.` : `${cat.name} vendors evaluated for ${vert.name} requirements.`} Compliance, integration, and operational considerations specific to this vertical.
           </p>
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             <a href={cat.page} style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.12)" }}>All {cat.name} vendors →</a>
@@ -109,72 +101,39 @@ export default function CategoryVerticalPage() {
         </div>
       </section>
 
-      {/* Vendor rankings for CCaaS */}
+      {/* CCaaS vendors for this vertical, by research status */}
       {categorySlug === "ccaas" && (
         <section style={{ background: "#fff", padding: "32px 28px" }}>
           <div style={WRAP}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>Vendor Rankings for {vert.name}</h2>
-            <p style={{ fontSize: 13, color: MUTED, marginBottom: 20 }}>Ranked by vertical fit score (1-5) and weighted composite. Fit scores reflect compliance capabilities, vertical references, and integration depth.</p>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>CCaaS Vendors for {vert.name}</h2>
+            <p style={{ fontSize: 13, color: MUTED, marginBottom: 20, maxWidth: 720 }}>Vertical fit scores and rankings are withdrawn while vendors are re-researched under the current methodology, which compares platforms only within a competitive class. Use the requirements above to test each vendor, and read each profile for where it fits and where it breaks.</p>
 
-            {/* Category insight */}
             <div style={{ background: `${ELECTRIC}04`, border: `1px solid ${ELECTRIC}15`, borderRadius: 10, padding: "16px 18px", marginBottom: 24 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>Category Evaluation Context</div>
               <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{vert.ccaasContext}</p>
             </div>
 
-            {/* Recommended */}
-            {recommended.length > 0 && (<>
-              <h3 style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Recommended for {vert.name} ({recommended.length})</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
-                {recommended.map((v, i) => (
-                  <a key={v.slug} href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 18px", background: `${GREEN}04`, border: `1px solid ${GREEN}20`, borderRadius: 10, borderLeft: `4px solid ${fitColor(v.vertFit)}`, transition: "all 0.15s" }}
-                    onMouseOver={e => { e.currentTarget.style.borderColor = GREEN; e.currentTarget.style.boxShadow = "0 4px 16px rgba(16,185,129,0.08)"; }}
-                    onMouseOut={e => { e.currentTarget.style.borderColor = `${GREEN}20`; e.currentTarget.style.boxShadow = "none"; }}>
-                    <div style={{ width: 44, height: 44, borderRadius: "50%", border: `2.5px solid ${fitColor(v.vertFit)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: fitColor(v.vertFit) }}>{v.vertFit}/5</span>
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{v.name}</span>
-                        <span style={{ fontSize: 10, fontWeight: 600, color: GREEN, padding: "2px 6px", borderRadius: 3, background: `${GREEN}12` }}>{fitLabel(v.vertFit)}</span>
-                        <span style={{ fontSize: 11, color: MUTED }}>{v.tier} · Score {v.score}</span>
+            {[
+              { title: `Current research complete (${researched.length})`, color: GREEN, list: researched },
+              { title: `Phase 1 context, not yet researched (${phase1Only.length})`, color: MUTED, list: phase1Only },
+            ].filter(g => g.list.length > 0).map((g) => (
+              <div key={g.title}>
+                <h3 style={{ fontSize: 12, fontWeight: 700, color: g.color, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>{g.title}</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 24 }}>
+                  {g.list.map(v => (
+                    <a key={v.slug} href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "border-color 0.15s" }}
+                      onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
+                      onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{v.name}</span>
+                        {v.bestFit && <p style={{ fontSize: 12, color: MUTED, margin: "3px 0 0", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.bestFit.substring(0, 140)}</p>}
                       </div>
-                      <p style={{ fontSize: 12, color: MUTED, margin: "4px 0 0", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.bestFit?.substring(0, 140)}</p>
-                    </div>
-                    <span style={{ color: ELECTRIC, fontSize: 13, flexShrink: 0 }}>View profile →</span>
-                  </a>
-                ))}
+                      <span style={{ color: ELECTRIC, fontSize: 12, flexShrink: 0 }}>View profile →</span>
+                    </a>
+                  ))}
+                </div>
               </div>
-            </>)}
-
-            {/* Qualified */}
-            {qualified.length > 0 && (<>
-              <h3 style={{ fontSize: 12, fontWeight: 700, color: AMBER, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Conditionally Qualified ({qualified.length})</h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 24 }}>
-                {qualified.map(v => (
-                  <a key={v.slug} href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "border-color 0.15s" }}
-                    onMouseOver={e => e.currentTarget.style.borderColor = AMBER}
-                    onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
-                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 14, color: AMBER, width: 30, textAlign: "center" }}>{v.vertFit}/5</span>
-                    <span style={{ fontSize: 14, fontWeight: 500, color: NAVY, flex: 1 }}>{v.name}</span>
-                    <span style={{ fontSize: 11, color: MUTED }}>{v.tier} · {v.score}</span>
-                    <span style={{ color: ELECTRIC, fontSize: 12 }}>→</span>
-                  </a>
-                ))}
-              </div>
-            </>)}
-
-            {/* Limited */}
-            {limited.length > 0 && (<>
-              <h3 style={{ fontSize: 12, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>Limited Fit ({limited.length})</h3>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 24 }}>
-                {limited.map(v => (
-                  <a key={v.slug} href={`/vendors/${v.slug}`} style={{ fontSize: 12, color: MUTED, padding: "6px 12px", borderRadius: 5, border: `1px solid ${BORDER}`, background: WARM }}>
-                    {v.name} <span style={{ opacity: 0.5 }}>({v.vertFit}/5)</span>
-                  </a>
-                ))}
-              </div>
-            </>)}
+            ))}
           </div>
         </section>
       )}
@@ -185,7 +144,7 @@ export default function CategoryVerticalPage() {
           <h3 style={{ fontSize: 13, fontWeight: 600, color: MUTED, marginBottom: 12 }}>Tools for {vert.name} {cat.name} evaluation</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }} className="pg">
             {[
-              { name: "Vendor Match Engine", desc: "Get a ranked shortlist filtered for " + vert.name, href: "/tools/vendor-match" },
+              { name: "Vendor Match Engine", desc: "Get a shortlist filtered for " + vert.name, href: "/tools/vendor-match" },
               { name: "Platform Decision Matrix", desc: "Assess current platform across 7 layers", href: "/tools/platform-decision" },
               { name: "Contract Risk Scanner", desc: "Analyze terms before signing", href: "/tools/contract-risk" },
             ].map((t, i) => (
