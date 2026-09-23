@@ -37,10 +37,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/tools/agent-experience</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/tools/aht-decomposition</loc>
     <priority>0.8</priority>
   </url>
@@ -58,10 +54,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/tools/business-case</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/tools/calibration-drift</loc>
     <priority>0.8</priority>
   </url>
   <url>
@@ -85,10 +77,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/tools/experience-scorecard</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/tools/fcr-leakage</loc>
     <priority>0.8</priority>
   </url>
@@ -98,10 +86,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/tools/governance-model</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/tools/integration-planner</loc>
     <priority>0.8</priority>
   </url>
   <url>
@@ -130,10 +114,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/tools/schedule-adherence</loc>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/tools/service-design</loc>
     <priority>0.8</priority>
   </url>
   <url>

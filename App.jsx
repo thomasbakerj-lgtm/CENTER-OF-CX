@@ -58,10 +58,8 @@ const AIDeflectionRealityCheck = lazy(() => import('./AIDeflectionRealityCheck')
 const ChannelShiftModel = lazy(() => import('./ChannelShiftModel'))
 const LicenseBundleGapChecker = lazy(() => import('./LicenseBundleGapChecker'))
 const AHTDecomposition = lazy(() => import('./AHTDecomposition'))
-const AgentExperienceDiagnostic = lazy(() => import('./AgentExperienceDiagnostic'))
 const QAScorecardBuilder = lazy(() => import('./QAScorecardBuilder'))
 const FCRLeakageDiagnostic = lazy(() => import('./FCRLeakageDiagnostic'))
-const CalibrationDriftChecker = lazy(() => import('./CalibrationDriftChecker'))
 const VendorMatchEngine = lazy(() => import('./VendorMatchEngine'))
 const PlatformDecisionMatrix = lazy(() => import('./PlatformDecisionMatrix'))
 const ContractRiskScanner = lazy(() => import('./ContractRiskScanner'))
@@ -72,12 +70,9 @@ const PrivacyPolicy = lazy(() => import('./PrivacyPolicy'))
 const TermsOfService = lazy(() => import('./TermsOfService'))
 const CXMaturity = lazy(() => import('./CXMaturity'))
 const AIReadiness = lazy(() => import('./AIReadiness'))
-const ExperienceScorecard = lazy(() => import('./ExperienceScorecard'))
 const CXITAlignment = lazy(() => import('./CXITAlignment'))
 const GovernanceModel = lazy(() => import('./GovernanceModel'))
-const ServiceDesign = lazy(() => import('./ServiceDesign'))
 const RoadmapBuilder = lazy(() => import('./RoadmapBuilder'))
-const IntegrationPlanner = lazy(() => import('./IntegrationPlanner'))
 const BusinessCaseBuilder = lazy(() => import('./BusinessCaseBuilder'))
 
 
@@ -272,12 +267,12 @@ export default function App() {
         <Route path="/cx-ecosystem" element={<CXEcosystem />} />
         <Route path="/tools/cx-maturity" element={<CXMaturity />} />
         <Route path="/tools/ai-readiness" element={<AIReadiness />} />
-        <Route path="/tools/experience-scorecard" element={<ExperienceScorecard />} />
+        <Route path="/tools/experience-scorecard" element={<LegacyRedirect to="/tools/cost-per-contact" />} />
         <Route path="/tools/cx-it-alignment" element={<CXITAlignment />} />
         <Route path="/tools/governance-model" element={<GovernanceModel />} />
-        <Route path="/tools/service-design" element={<ServiceDesign />} />
+        <Route path="/tools/service-design" element={<LegacyRedirect to="/tools/cx-maturity" />} />
         <Route path="/tools/roadmap-builder" element={<RoadmapBuilder />} />
-        <Route path="/tools/integration-planner" element={<IntegrationPlanner />} />
+        <Route path="/tools/integration-planner" element={<LegacyRedirect to="/vendors" />} />
         <Route path="/tools/business-case" element={<BusinessCaseBuilder />} />
         <Route path="/tools/staffing-calculator" element={<StaffingCalculator />} />
         <Route path="/tools/shrinkage-planner" element={<ShrinkagePlanner />} />
@@ -290,10 +285,10 @@ export default function App() {
         <Route path="/tools/channel-shift" element={<ChannelShiftModel />} />
         <Route path="/tools/license-gap" element={<LicenseBundleGapChecker />} />
         <Route path="/tools/aht-decomposition" element={<AHTDecomposition />} />
-        <Route path="/tools/agent-experience" element={<AgentExperienceDiagnostic />} />
+        <Route path="/tools/agent-experience" element={<LegacyRedirect to="/tools/attrition-cost" />} />
         <Route path="/tools/qa-scorecard" element={<QAScorecardBuilder />} />
         <Route path="/tools/fcr-leakage" element={<FCRLeakageDiagnostic />} />
-        <Route path="/tools/calibration-drift" element={<CalibrationDriftChecker />} />
+        <Route path="/tools/calibration-drift" element={<LegacyRedirect to="/tools/qa-scorecard" />} />
         <Route path="/tools/vendor-match" element={<VendorMatchEngine />} />
         <Route path="/tools/platform-decision" element={<PlatformDecisionMatrix />} />
         <Route path="/tools/contract-risk" element={<ContractRiskScanner />} />

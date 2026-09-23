@@ -2,7 +2,7 @@
 
 ## The Epistemic Standard
 
-**Version 1.2. 23 September 2026.** (1.1 consolidated 27 August 2026.)
+**Version 1.3. 23 September 2026.** (1.1 consolidated 27 August 2026.)
 Status: doctrine. Applies to every tool, every artifact, every public claim.
 Supersedes any prior use of "factual," "accurate," or "correct" as a platform promise.
 
@@ -217,6 +217,13 @@ This follows the standing investment doctrine exactly: prove behavior first, man
 
 ## 10. V3 lock criteria
 
+Two standards, one per asset class. Every public tool meets one of them (TB, 23 Sep 2026).
+
+- **V3-Full** governs calculators: any tool whose output is a number derived from inputs. The criteria below are V3-Full.
+- **V3-Framework** governs assessments, frameworks and procurement tools: any tool whose output is a scored judgment, a checklist or a document. Its criteria are in Section 10.1.
+
+A tool that does both meets both.
+
 **Engineering.**
 
 - `@engine-start` and `@engine-end` markers, with the harness slicing the live file at runtime.
@@ -260,6 +267,26 @@ Adopt: a transparent contact center investment model that separates technical po
 
 And beneath it: no output is presented as a fact because the arithmetic is correct. Historical inputs are facts or sourced evidence. Targets are assumptions. Modelled outputs are conditional forecasts. Realized benefits are measured after deployment.
 
+**V3-Full additions (23 Sep 2026).** A regression fixture recorded in the tracker. A live PDF, normal and voided, reconciled to the dollar against the UI and the engine. Void is a state: a voided result renders and publishes no figure. Every benchmark constant is in the registry. A journey node with `nextFor` routing. The `tool_complete` event wired: no lock without it. An assertion that typography edits leave every headline unchanged.
+
+### 10.1 V3-Framework lock criteria
+
+**Engineering.**
+
+- The scoring logic sits between `@engine-start` and `@engine-end` and is sliced live by the harness, as for a calculator.
+- The harness proves scoring determinism (same answers, same output), criterion-to-output traceability (every output line names the criteria that produced it), no dead branches (every band and every recommendation is reachable) and checklist completeness (every failing criterion yields a checklist action).
+- `ReportActions`, `scenarioUrl`, a journey node with `nextFor`, and the `tool_complete` event.
+- Archivo via `src/lib/type.js`. No em-dashes or en-dashes.
+
+**Epistemic.**
+
+- A published rubric page. Every criterion, its weight and its bands are public, and every criterion traces to the output it can change.
+- The output is an action checklist plus a named next diagnostic.
+- The output is ungated. Only a request for a human conversation is gated.
+- The tool discloses what it cannot tell you: a self-assessment measures the respondent's view, not the operation.
+- A score is a position on the published rubric, never a benchmark percentile, unless a sourced distribution exists.
+- No commercial variable is an input, and no vendor is recommended from an assessment score.
+
 ---
 
 ## 11. Effort, reachability, instrumentation
@@ -284,6 +311,8 @@ The standing investment doctrine is: prove behavior first, manually learn second
 "It closes a workstream that unblocks nine gated items" is a reason.
 "It is the tool with the most sessions this month" is a reason.
 "It is the tool a real user got a wrong number from" is the strongest reason.
+
+**Status (TB ruling, 23 Sep 2026).** Section 11.1 is a guideline, not a hard rule. The governing goal is that a user's first use of any tool builds enough trust to return. Every public tool reaches V3 before demand evidence exists, and work is ordered by shared shape and dependency. The corollary on unaudited assets below is superseded: all non-rail tools receive a V3 pass. Sections 11.2 and 11.3 stand unchanged.
 
 **Corollary on unaudited assets.** Where many assets await the same treatment and only some will receive it, the selection is made on demand evidence, not on file order. Twenty-one tools have never been audited. They will not all receive an XL pass. Which five do is an evidence question, and answering it from a list is guessing with extra steps.
 
@@ -341,3 +370,4 @@ Instrumentation precedes proof.
 | 1.0 | Aug 2026 | Original epistemic standard, Sections 1 through 10 |
 | 1.1 | 27 Aug 2026 | Amendment 11 folded in as Section 11. Section 5 amended per tracker 1-09: credit class governs the realization axis only, confidence has three axes, verdict strength is never an axis. V3 criteria consolidated into Section 10. Standalone amendment files retired |
 | 1.2 | 23 Sep 2026 | Section 1 and Section 4 sentence 3: the promise restated as verified and traceable, so verified calculation is promised explicitly alongside traceability. No rule changed. Section 5 remains superseded by `DOCTRINE_Section5_v1_2.md` until that file is folded in |
+| 1.3 | 23 Sep 2026 | Section 10 names two standards, V3-Full and V3-Framework (new 10.1), per TB's V3 program for the non-rail tools. Section 11.1 made a guideline by TB ruling; its unaudited-assets corollary superseded |

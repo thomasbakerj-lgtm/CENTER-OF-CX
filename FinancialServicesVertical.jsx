@@ -60,11 +60,11 @@ export default function FinancialServicesVertical() {
 
   const benchmarks = [
     { metric: "CSAT", fsAvg: "79%", crossIndustry: "78%", topQuartile: "88%+", note: "FS tracks close to cross-industry average despite higher interaction complexity" },
-    { metric: "FCR", fsAvg: "68%", crossIndustry: "72%", topQuartile: "82%+", note: "Lower than average — compliance steps and multi-system lookups reduce first-contact resolution" },
+    { metric: "FCR", fsAvg: "68%", crossIndustry: "72%", topQuartile: "82%+", note: "Lower than average, compliance steps and multi-system lookups reduce first-contact resolution" },
     { metric: "AHT", fsAvg: "6:40", crossIndustry: "7:00", topQuartile: "5:20", note: "Slightly faster than average due to transactional inquiry volume, but complex interactions skew higher" },
-    { metric: "Abandon Rate", fsAvg: "12%", crossIndustry: "6%", topQuartile: "3%", note: "Significantly higher than average — driven by authentication friction and hold time" },
-    { metric: "Attrition", fsAvg: "28%", crossIndustry: "35%", topQuartile: "20%", note: "Lower than average — better compensation offsets emotional labor of fraud and retention work" },
-    { metric: "Containment", fsAvg: "20%", crossIndustry: "25%", topQuartile: "40%+", note: "Below average — security and compliance requirements limit what automation can handle independently" },
+    { metric: "Abandon Rate", fsAvg: "12%", crossIndustry: "6%", topQuartile: "3%", note: "Significantly higher than average, driven by authentication friction and hold time" },
+    { metric: "Attrition", fsAvg: "28%", crossIndustry: "35%", topQuartile: "20%", note: "Lower than average, better compensation offsets emotional labor of fraud and retention work" },
+    { metric: "Containment", fsAvg: "20%", crossIndustry: "25%", topQuartile: "40%+", note: "Below average, security and compliance requirements limit what automation can handle independently" },
   ];
 
   return (
@@ -87,7 +87,7 @@ export default function FinancialServicesVertical() {
               Financial Services{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>
-              Trust, compliance, and identity verification shape every interaction. Financial services CX operates under constraints that generic platforms and generic advice fail to address. This is the vertical-specific intelligence layer — benchmarks, technology stack mapping, failure modes, and vendor recommendations built for banking, insurance, lending, and wealth management.
+              Trust, compliance, and identity verification shape every interaction. Financial services CX operates under constraints that generic platforms and generic advice fail to address. This is the vertical-specific intelligence layer: benchmarks, technology stack mapping, failure modes, and vendor recommendations built for banking, insurance, lending, and wealth management.
             </p>
           </FadeIn>
         </div>
@@ -189,7 +189,7 @@ export default function FinancialServicesVertical() {
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How financial services compares.</h2>
-            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Financial services outperforms cross-industry on attrition but underperforms on abandon rate and containment — a direct result of compliance constraints and authentication friction.</p>
+            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Financial services outperforms cross-industry on attrition but underperforms on abandon rate and containment, a direct result of compliance constraints and authentication friction.</p>
           </FadeIn>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -220,7 +220,7 @@ export default function FinancialServicesVertical() {
           </div>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}>
-              <a href="/tools/experience-scorecard" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Score your metrics against these benchmarks →</a>
+              <a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your cost per contact against these benchmarks →</a>
               <a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your FS TCO →</a>
             </div>
           </FadeIn>
@@ -249,7 +249,7 @@ export default function FinancialServicesVertical() {
               <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}>
                 <h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {["Fraud detection and identity verification require deep institutional knowledge", "Wealth management and advisory interactions demand licensed representatives", "Regulatory compliance varies by state and jurisdiction — BPO training gaps create exposure", "Complex dispute resolution requires system access and authority that BPOs often lack", "Data residency and privacy requirements may restrict offshore processing"].map((item, i) => (
+                  {["Fraud detection and identity verification require deep institutional knowledge", "Wealth management and advisory interactions demand licensed representatives", "Regulatory compliance varies by state and jurisdiction, BPO training gaps create exposure", "Complex dispute resolution requires system access and authority that BPOs often lack", "Data residency and privacy requirements may restrict offshore processing"].map((item, i) => (
                     <p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>
                   ))}
                 </div>
@@ -305,7 +305,7 @@ export default function FinancialServicesVertical() {
               <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.08) 0%, transparent 70%)" }} />
               <div style={{ position: "relative", zIndex: 1 }}>
                 <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating CX technology for financial services?</h2>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>Compliance, identity verification, and core banking integration change which platforms are viable and which are risky. We can help you build a shortlist weighted for your specific sub-vertical — retail banking, insurance, lending, or wealth management.</p>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>Compliance, identity verification, and core banking integration change which platforms are viable and which are risky. We can help you build a shortlist weighted for your specific sub-vertical: retail banking, insurance, lending, or wealth management.</p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.25)` }}>Request a Financial Services Briefing</a>
                   <a href="/tools/cx-maturity" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Take the CX Maturity Assessment →</a>

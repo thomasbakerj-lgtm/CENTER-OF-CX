@@ -66,10 +66,10 @@ second, invest third, automate last.
 | `FCRLeakageDiagnostic.jsx` | 366b409640f3eb8bb11dc0710a002d77 |
 | `AIDeflectionRealityCheck.jsx` | d54d6ff73405d891a20d4314272799c4 |
 | `LicenseBundleGapChecker.jsx` | 20af7a5d6be6b56f52343852f5d68aee |
-| `AttritionCostCalculator.jsx` | 8a185ab19300f92e3847b3fad33b01c2 |
+| `AttritionCostCalculator.jsx` | see git (S22: next-step and driver links repointed, engine untouched) |
 | `ReportActions.jsx` | db405106dfcbde98427f4be53a84be2a |
 | `run-all.mjs` | 051f8cd18e47684940abd9c144ed9b86 (S22, registers `freeze.test.mjs`) |
-| `rail-audit.mjs` | 563baf0ef79024dc85d199824f630056 |
+| `rail-audit.mjs` | see git (S22: retired tools removed from the scan list) |
 
 ---
 
@@ -225,7 +225,7 @@ Cost: 3-02 and 11-04, no money.
 
 ## 4. Doctrine
 
-Full text: `docs/DOCTRINE_Epistemic_Standard.md` v1.2. Section 5 is superseded by
+Full text: `docs/DOCTRINE_Epistemic_Standard.md` v1.3 (Section 10: V3-Full and V3-Framework; 11.1 a guideline). Section 5 is superseded by
 `docs/DOCTRINE_Section5_v1_2.md`. Doctrine lives in `docs/`, not in code comments.
 
 **Four claim classes.** Every displayed number is one of: historical fact, assumption,
@@ -482,7 +482,16 @@ dashboard, the 12-phase growth program.
    title or description. Homepage and Vendors counts already derive from data. The one
    survivor was the site-wide Organization JSON-LD in `App.jsx` ("283 vendors scored.
    30 free tools."); now derived, and `seo.test.mjs` E-surfaces gate it.
-6. **Next:** the V3 program for the non-rail tools (section 12).
+6. Done S22: V3 program step 1. Retired Service Design, Experience Scorecard, Integration
+   Planner; Agent Experience and Calibration Drift removed as standalone tools. Each path
+   301s at the edge (`vercel.json`) and in the app (`LegacyRedirect`) to cx-maturity,
+   cost-per-contact, `/vendors`, attrition-cost and qa-scorecard. Removed from the
+   sitemap (424 URLs), `SEO_MAP`, How to Choose and every inbound link (13 files
+   repointed). 25 tools. `seo.test.mjs` R1 to R6 gate each retirement; E9 no longer
+   counts redirect routes. Doctrine v1.3 carries both standards. Attrition's coaching
+   driver now points to QA Scorecard; its Agent Experience content returns in step 3 as
+   Attrition's root-cause layer, and Calibration Drift as QA's calibration module.
+7. **Next:** V3 program step 2, the floor on all 16 remaining non-rail tools.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.

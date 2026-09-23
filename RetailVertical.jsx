@@ -58,12 +58,12 @@ export default function RetailVertical() {
   ];
 
   const benchmarks = [
-    { metric: "CSAT", avg: "76%", cross: "78%", top: "88%+", note: "Below cross-industry — returns friction and fulfillment issues suppress satisfaction" },
-    { metric: "FCR", avg: "75%", cross: "72%", top: "82%+", note: "Above average — many retail issues are transactional and resolvable in one contact" },
-    { metric: "AHT", avg: "5:40", cross: "7:00", top: "4:00", note: "Faster than average — high volume of simple status and returns queries" },
-    { metric: "Abandon Rate", avg: "5%", cross: "6%", top: "3%", note: "Slightly better — digital channels reduce phone dependency" },
-    { metric: "Attrition", avg: "42%", cross: "35%", top: "20%", note: "Well above average — seasonal hiring patterns, low wages, and repetitive work drive turnover" },
-    { metric: "Containment", avg: "30%", cross: "25%", top: "40%+", note: "Above average — order status and tracking are highly automatable" },
+    { metric: "CSAT", avg: "76%", cross: "78%", top: "88%+", note: "Below cross-industry, returns friction and fulfillment issues suppress satisfaction" },
+    { metric: "FCR", avg: "75%", cross: "72%", top: "82%+", note: "Above average, many retail issues are transactional and resolvable in one contact" },
+    { metric: "AHT", avg: "5:40", cross: "7:00", top: "4:00", note: "Faster than average, high volume of simple status and returns queries" },
+    { metric: "Abandon Rate", avg: "5%", cross: "6%", top: "3%", note: "Slightly better, digital channels reduce phone dependency" },
+    { metric: "Attrition", avg: "42%", cross: "35%", top: "20%", note: "Well above average, seasonal hiring patterns, low wages, and repetitive work drive turnover" },
+    { metric: "Containment", avg: "30%", cross: "25%", top: "40%+", note: "Above average, order status and tracking are highly automatable" },
   ];
 
   return (
@@ -78,7 +78,7 @@ export default function RetailVertical() {
           </div></FadeIn>
           <FadeIn delay={0.05}>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>Retail & eCommerce{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span></h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Speed, volume, and seasonality define retail CX. Every delayed response is a lost sale. Every unresolved return is a lost customer. This is the vertical-specific intelligence layer — benchmarks, technology stack mapping, failure modes, and vendor recommendations built for eCommerce, omnichannel retail, subscription, and marketplace operations.</p>
+            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Speed, volume, and seasonality define retail CX. Every delayed response is a lost sale. Every unresolved return is a lost customer. This is the vertical-specific intelligence layer: benchmarks, technology stack mapping, failure modes, and vendor recommendations built for eCommerce, omnichannel retail, subscription, and marketplace operations.</p>
           </FadeIn>
         </div>
       </section>
@@ -110,7 +110,7 @@ export default function RetailVertical() {
       <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}><div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn><span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Technology Stack</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Seven orchestration layers, mapped for retail.</h2>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 5 (Conversation Management) carries disproportionate weight because retail is digital-first — chat, messaging, and social are primary channels. Retailers who over-invest in voice infrastructure at the expense of digital engagement are fighting yesterday's battle.</p>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 5 (Conversation Management) carries disproportionate weight because retail is digital-first, chat, messaging, and social are primary channels. Retailers who over-invest in voice infrastructure at the expense of digital engagement are fighting yesterday's battle.</p>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {stackLayers.map((sl, i) => (<FadeIn key={i} delay={i * 0.03}><div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "20px 22px", display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}><div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: LIGHT }}>{sl.layer}</span></div><div style={{ flex: 1, minWidth: 250 }}><h3 style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>{sl.name}</h3><p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 8px" }}>{sl.note}</p><div style={{ fontSize: 11, color: LIGHT }}>Key vendors: {sl.vendors}</div></div></div></FadeIn>))}
@@ -125,14 +125,14 @@ export default function RetailVertical() {
             <tbody>{benchmarks.map((b, i) => { const better = ["AHT","Abandon Rate","Attrition"].includes(b.metric) ? parseFloat(b.avg) < parseFloat(b.cross) : parseFloat(b.avg) > parseFloat(b.cross); return (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: better ? GREEN : AMBER }}>{b.avg}</td><td style={{ padding: "12px 14px", color: MUTED }}>{b.cross}</td><td style={{ padding: "12px 14px", color: GREEN, fontWeight: 600 }}>{b.top}</td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>); })}</tbody>
           </table>
         </div>
-        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/experience-scorecard" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Score your metrics against these benchmarks →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your retail TCO →</a></div></FadeIn>
+        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your cost per contact against these benchmarks →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your retail TCO →</a></div></FadeIn>
       </div></section>
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: AMBER, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>The BPO Question</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How outsourcing fits in retail CX.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 24 }} className="sub-grid">
-          <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Peak season scaling (Black Friday, holiday, back-to-school)", "Order status and tracking inquiries — high volume, low complexity", "Returns processing and refund authorization", "After-hours and weekend coverage for global eCommerce", "Social media response management for brand protection"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
+          <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Peak season scaling (Black Friday, holiday, back-to-school)", "Order status and tracking inquiries: high volume, low complexity", "Returns processing and refund authorization", "After-hours and weekend coverage for global eCommerce", "Social media response management for brand protection"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
           <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["VIP and loyalty tier interactions require brand intimacy BPOs rarely achieve", "Complex product expertise (luxury, technical goods) needs deep training investment", "Retention and save offers require authority and system access most BPO contracts underspecify", "Fraud detection in returns requires institutional pattern recognition", "Brand voice consistency degrades when multiple BPO teams serve the same customer base"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>))}</div></div></FadeIn>
         </div>
       </div></section>
@@ -157,7 +157,7 @@ export default function RetailVertical() {
         <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "relative", zIndex: 1 }}>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating CX technology for retail?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>Speed, seasonality, and commerce integration change which platforms are viable. We can help you build a shortlist weighted for your sub-vertical — eCommerce, omnichannel, subscription, or marketplace.</p>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>Speed, seasonality, and commerce integration change which platforms are viable. We can help you build a shortlist weighted for your sub-vertical: eCommerce, omnichannel, subscription, or marketplace.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Retail CX Briefing</a>
               <a href="/tools/cx-maturity" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Take the CX Maturity Assessment →</a>

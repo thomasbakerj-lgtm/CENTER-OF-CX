@@ -34,7 +34,7 @@ const DIMS = [
       { q: "Reference checks completed with orgs of similar size, vertical, and complexity." },
       { q: "Contract terms reviewed for rate locks, exit clauses, SLAs, and data portability." },
     ]},
-  { id: "technical", name: "Technical Readiness", color: "#0EA5E9", fixTool: "/tools/integration-planner", fixLabel: "Integration Planner", fixDesc: "Map your integration landscape and identify dependencies.",
+  { id: "technical", name: "Technical Readiness", color: "#0EA5E9", fixTool: "/vendors", fixLabel: "Vendor Intelligence", fixDesc: "Review the integration and architecture notes for the platforms in scope.",
     qs: [
       { q: "Integration dependencies mapped (CRM, WFM, QA, knowledge, identity, payments, reporting)." },
       { q: "Data migration strategy defined (what moves, what stays, what gets rebuilt)." },
@@ -83,7 +83,7 @@ export default function TransformationReadiness() {
   const handleResults = async () => {
     const dr=DIMS.map(d=>`${d.name}:${dimScore(d.id).toFixed(1)}`).join("|");
     const gaps=DIMS.filter(d=>dimScore(d.id)<2.5).map(d=>d.name).join(", ");
-    try{await fetch("https://formspree.io/f/maqlvwne",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Transformation Readiness",score:overallScore.toFixed(1),tier:tier.tier,dimensions:dr,criticalGaps:gaps||"None",_subject:`Readiness: ${tier.tier} (${overallScore.toFixed(1)}/5) — ${company||name||email}`})});}catch(e){}
+    try{await fetch("https://formspree.io/f/maqlvwne",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Transformation Readiness",score:overallScore.toFixed(1),tier:tier.tier,dimensions:dr,criticalGaps:gaps||"None",_subject:`Readiness: ${tier.tier} (${overallScore.toFixed(1)}/5), ${company||name||email}`})});}catch(e){}
     setPhase("results");
   };
 
@@ -203,7 +203,7 @@ export default function TransformationReadiness() {
 
         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
           
-                <ReportExport toolName="Transformation Readiness" subtitle={"Score: " + overallScore.toFixed(1) + "/5 — " + tier.tier} userName={name} userEmail={email} sections={[
+                <ReportExport toolName="Transformation Readiness" subtitle={"Score: " + overallScore.toFixed(1) + "/5, " + tier.tier} userName={name} userEmail={email} sections={[
                     { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
                     { title: "Assessment", type: "metrics", items: [
                       { label: "Readiness", value: overallScore.toFixed(1) + "/5", color: tier.color },

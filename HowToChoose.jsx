@@ -41,10 +41,8 @@ const CATEGORIES = [
   { id: "quality", label: "Performance + Quality", color: "#7C3AED", desc: "Measure what actually drives outcomes",
     tools: [
       { title: "AHT Decomposition", desc: "Break AHT into talk, hold, wrap, transfer, search, admin.", href: "/tools/aht-decomposition", popular: true },
-      { title: "Agent Experience Diagnostic", desc: "Five dimensions that drive retention and attrition risk.", href: "/tools/agent-experience" },
       { title: "QA Scorecard Builder", desc: "Weighted QA forms by contact type. Critical-fail criteria. Test mode.", href: "/tools/qa-scorecard" },
       { title: "FCR Leakage Diagnostic", desc: "What drives repeat contacts across 6 root-cause dimensions.", href: "/tools/fcr-leakage" },
-      { title: "Calibration Drift Checker", desc: "Evaluator consistency. Inter-rater reliability and bias detection.", href: "/tools/calibration-drift" },
     ]},
   { id: "selection", label: "Vendor Selection", color: ELECTRIC, desc: "From shortlist to signed contract",
     tools: [
@@ -58,15 +56,12 @@ const CATEGORIES = [
     tools: [
       { title: "CX Maturity Assessment", desc: "Strategy, ops, tech, analytics, governance. 25 questions. Tier classification.", href: "/tools/cx-maturity" },
       { title: "AI Readiness Diagnostic", desc: "Whether your data, workflows, and governance are ready for AI.", href: "/tools/ai-readiness" },
-      { title: "Experience Scorecard", desc: "CSAT, FCR, cost-per-contact, containment scored across dimensions.", href: "/tools/experience-scorecard" },
     ]},
   { id: "framework", label: "Frameworks + Planning", color: "#0099CC", desc: "Build the plan, not just the score",
     tools: [
       { title: "CX-IT Alignment Framework", desc: "Bridge the gap between experience vision and tech execution.", href: "/tools/cx-it-alignment" },
       { title: "Governance + Operating Model", desc: "Who owns what across CX strategy, ops, and AI.", href: "/tools/governance-model" },
-      { title: "Service Design Toolkit", desc: "Journey mapping, effort scoring, and friction analysis.", href: "/tools/service-design" },
       { title: "Roadmap Builder", desc: "90-day planning template with milestones and dependencies.", href: "/tools/roadmap-builder" },
-      { title: "Integration Planner", desc: "Map your stack across the seven orchestration layers.", href: "/tools/integration-planner" },
       { title: "Business Case Builder", desc: "The ROI narrative for your board, built from your real numbers.", href: "/tools/business-case" },
     ]},
 ];

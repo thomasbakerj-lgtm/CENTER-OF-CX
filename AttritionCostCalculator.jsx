@@ -639,7 +639,7 @@ export default function AttritionCostCalculator() {
             {[
               { driver: "Occupancy above 85%", likelihood: r.attritionRate > 35 ? "High" : "Medium", tool: "/tools/occupancy-risk", toolName: "Occupancy Risk Simulator", why: "Insufficient recovery time between contacts burns agents out. The most controllable attrition driver." },
               { driver: "Repeat contacts / rework load", likelihood: "Medium", tool: "/tools/fcr-leakage", toolName: "FCR Leakage Diagnostic", why: "New-hire error and repeat-contact cost lives here, not in this tool. Quantify the rework that frustrates agents and customers alike." },
-              { driver: "Weak coaching or agent experience", likelihood: "Medium", tool: "/tools/agent-experience", toolName: "Agent Experience Diagnostic", why: "Agents who feel unsupported leave faster than agents who feel underpaid. Assess the five retention dimensions." },
+              { driver: "Weak coaching or agent experience", likelihood: "Medium", tool: "/tools/qa-scorecard", toolName: "QA Scorecard Builder", why: "Agents who feel unsupported leave faster than agents who feel underpaid. Coaching runs through the QA program." },
               { driver: "No visible career path", likelihood: r.attritionRate > 40 ? "High" : "Medium", tool: "/human-premium", toolName: "The Human Premium", why: "When agents cannot see what comes after this role, they leave to find it. New CX roles are emerging." },
             ].map((item, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
@@ -752,8 +752,8 @@ export default function AttritionCostCalculator() {
               ]},
               { title: "Next Steps", type: "next", items: [
                 { tool: "Occupancy Risk Simulator", href: "/tools/occupancy-risk", reason: "Check whether occupancy is driving burnout-led exits" },
-                { tool: "Agent Experience Diagnostic", href: "/tools/agent-experience", reason: "Identify which retention dimensions are failing" },
                 { tool: "FCR Leakage Diagnostic", href: "/tools/fcr-leakage", reason: "Quantify the new-hire rework and repeat-contact cost" },
+                { tool: "Business Case Builder", href: "/tools/business-case", reason: "Carry the turnover cost into a case with payback and risk" },
               ]},
             ]}
           />
