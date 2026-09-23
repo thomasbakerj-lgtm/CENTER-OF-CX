@@ -889,3 +889,6 @@ export default function StaffingCalculator() {
     </div>
   );
 }
+
+/* The scenario-link defaults, exported for the live checker and the visual audit. */
+export { DEFAULTS };

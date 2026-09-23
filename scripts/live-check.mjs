@@ -42,12 +42,15 @@ globalThis.window = { location: { search: "" } };
 async function linksFor(file) {
   const src = readFileSync(new URL("../" + file, import.meta.url), "utf8");
   const id = (src.match(/const TOOL_ID\s*=\s*"([^"]+)"/) || [])[1];
-  if (!/export const DEFAULTS/.test(src) || !id) return null;
+  if (!id) return null;
   const r = await build({ entryPoints: [new URL("../" + file, import.meta.url).pathname], bundle: true, write: false, format: "cjs",
     platform: "node", jsx: "automatic", loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent" });
   const mod = { exports: {} };
   new Function("module", "exports", "require", r.outputFiles[0].text)(mod, mod.exports, require);
-  const D = mod.exports.DEFAULTS, S = mod.exports.SAMPLE || D;
+  if (!mod.exports.SCENARIO_DEFAULTS && !mod.exports.DEFAULTS) return null;
+  /* A tool that keeps its form defaults apart from its link defaults exports the
+     link set as SCENARIO_DEFAULTS; that is the set its scenario links encode against. */
+  const D = mod.exports.SCENARIO_DEFAULTS || mod.exports.DEFAULTS, S = mod.exports.SAMPLE || D;
   const hostile = JSON.parse(JSON.stringify(S, (k, v) => (typeof v === "number" ? -5 : v)));
   return { sample: "?s=" + encodeScenario(id, S, D), hostile: "?s=" + encodeScenario(id, hostile, D) };
 }
@@ -76,7 +79,9 @@ async function open(path, expect) {
     if (status >= 200 && status < 400) await page.waitForFunction((re) => new RegExp(re, "i").test(document.body.innerText) && document.body.innerText.length > 150,
       expect ? expect.source : ".", { timeout: 20000 }).catch(() => {});
     text = status >= 200 && status < 400 ? await page.innerText("body").catch(() => "") : "";
-    if (text.length > 150) break;
+    /* A page that loaded its header but not yet its result gets the same retries as
+       a blank one: the first request after a deploy can outlast one wait. */
+    if (text.length > 150 && (!expect || expect.test(text))) break;
   }
   if (!text) errors.push(`no page (HTTP ${status || "no response"})`);
   return { ctx, page, errors, text };

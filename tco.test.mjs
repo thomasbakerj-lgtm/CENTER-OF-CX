@@ -358,6 +358,22 @@ section("Cross-table consistency");
       !quoted || quoted[1] === r.disp.laborPctStr, `${quoted && quoted[1]} vs ${r.disp.laborPctStr}`);
   }
 }
+// A hostile scenario link: every number replaced. The guard corrects each input and the
+// prose must still say something true. Found by the live checker: at -5 every cost clamps
+// to zero, cost per contact is $0.00, and the resolution premium divided zero by zero.
+{
+  const BAD = /\bNaN\b|\bInfinity\b|\bundefined\b/;
+  for (const x of [-5, 0, 1e12]) {
+    const base = { ...BASE, ...INDUSTRY.general, industry: "general" };
+    const hostile = Object.fromEntries(Object.entries(base).map(([k, v]) => [k, typeof v === "number" ? x : v]));
+    const r = computeTCO(hostile, "expected");
+    const opt = buildOptimizations(r.d, r, "expected");
+    const prose = buildAnalystRead(r.d, r, opt, "expected").join(" ");
+    const bad = prose.match(new RegExp(".{0,60}(" + BAD.source + ").{0,20}"));
+    ok(`every number at ${x}: the analyst read prints no NaN, Infinity or undefined`, !bad, bad && bad[0]);
+    ok(`every number at ${x}: the optimizations print no NaN, Infinity or undefined`, !BAD.test(JSON.stringify(opt.items)));
+  }
+}
 {
   // Priority is rank-based: exactly one high, one medium, regardless of spread.
   for (const over of [{ aht: 550, targetAht: 345 }, {}, { containment: 0.28, targetContainment: 0.60 }]) {

@@ -36,12 +36,14 @@ globalThis.window = { location: { search: "" } };
 async function sampleQuery(file) {
   const src = readFileSync(new URL("../" + file, import.meta.url), "utf8");
   const id = (src.match(/const TOOL_ID\s*=\s*"([^"]+)"/) || [])[1];
-  if (!/export const DEFAULTS/.test(src) || !id) return "";
+  if (!id) return "";
   const r = await build({ entryPoints: [new URL("../" + file, import.meta.url).pathname], bundle: true, write: false, format: "cjs",
     platform: "node", jsx: "automatic", loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent" });
   const mod = { exports: {} };
   new Function("module", "exports", "require", r.outputFiles[0].text)(mod, mod.exports, require);
-  return "?s=" + encodeScenario(id, mod.exports.SAMPLE || mod.exports.DEFAULTS, mod.exports.DEFAULTS);
+  if (!mod.exports.SCENARIO_DEFAULTS && !mod.exports.DEFAULTS) return "";
+  const D = mod.exports.SCENARIO_DEFAULTS || mod.exports.DEFAULTS;
+  return "?s=" + encodeScenario(id, mod.exports.SAMPLE || D, D);
 }
 
 /* Runs in the page. Every measure is a count plus a few examples, so a reviewer can

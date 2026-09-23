@@ -1525,3 +1525,6 @@ export default function BusinessCaseBuilder() {
     </div>
   );
 }
+
+/* The scenario-link defaults, exported for the live checker and the visual audit. */
+export { SCENARIO_DEFAULTS };

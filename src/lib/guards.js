@@ -93,11 +93,20 @@ export function createGuards() {
   return { guards, guard, scaled, pick };
 }
 
+/* Money reads the way the rest of the document prints money: thousands grouped, a
+   whole amount bare, anything else to the cent. Below a dollar up to four places
+   survive, so a sub-cent unit cost is never shown as $0.00. */
+export const money = (v) => {
+  const a = Math.abs(v);
+  const whole = Number.isInteger(a);
+  const s = a.toLocaleString("en-US", { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: whole ? 0 : a < 1 ? 4 : 2 });
+  return (v < 0 ? "-$" : "$") + s;
+};
 export const guardVal = (g, which) => {
   const v = g[which];
   if (which === "entered" && g.invalid) return v;
   if (g.unit !== "$") return `${v}${g.unit}`;
-  return (v < 0 ? "-$" : "$") + Math.abs(v);
+  return money(v);
 };
 
 export const guardLine = (g) => `${g.label}: entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}.`;

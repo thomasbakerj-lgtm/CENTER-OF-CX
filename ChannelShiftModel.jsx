@@ -856,3 +856,6 @@ export default function ChannelShiftModel() {
     </div>
   );
 }
+
+/* The scenario-link defaults, exported for the live checker and the visual audit. */
+export { DEFAULTS };
