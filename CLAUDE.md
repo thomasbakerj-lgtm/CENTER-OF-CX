@@ -580,9 +580,14 @@ dashboard, the 12-phase growth program.
    Readiness now routes to Platform Decision (was `/vendors`, not a diagnostic). Strong no longer says
    "Execute with confidence". Open: the rubric's next diagnostic and ReportActions' journey list can
    name different tools on the same page (also CX Maturity, AI Readiness); settle in 3-02.
-16. **Next:** TB: make `suite` required on main; 11-01. Me: CX IT Alignment needs a paired-gap kind in
-   the engine and a published rule for shared low scores (both sides at 1 reads "Aligned" today);
-   Governance is an ownership map, not a scale, and needs its own engine. Both are methodology calls.
+16. Done S23: Phase C step 2, CX IT Alignment on the rubric engine (TB approved the rule). New paired kind,
+   `scorePaired` in `src/lib/rubric.js`: a pair scores its CX to IT gap; bands and every area gap equal the
+   legacy formula on 20,000 answer sets. Published rule: a pair 2+ points apart is misaligned, a pair at 2 or
+   below on both sides is a shared weakness; both reach the checklist. Published at `/methodology/cx-it-alignment`
+   (sitemap 428). Intro now recommends two respondents via the scenario link. Removed false "profile has been
+   saved" copy in CX IT and Governance.
+17. **Next:** Governance on its own ownership-map engine, per the S23 recommendation to TB (pending his go on
+   the specifics). TB: make `suite` required on main; 11-01.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.

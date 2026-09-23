@@ -19,7 +19,9 @@ export default function RubricPage({ id }) {
   useEffect(() => { window.scrollTo(0, 0); }, [id]);
   if (!r) return null;
   const totalWeight = r.dims.reduce((s, d) => s + d.weight, 0);
-  const statements = r.dims.reduce((s, d) => s + d.criteria.length, 0);
+  const paired = r.kind === "paired";
+  const statements = r.dims.reduce((s, d) => s + (paired ? d.pairs.length * 2 : d.criteria.length), 0);
+  const sideLabel = (i) => (paired ? r.sides[i].label : "");
   const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
   const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
   const cell = { ...TYPE.cell, color: SLATE, padding: "10px 12px", borderBottom: `1px solid ${BORDER}`, verticalAlign: "top", textAlign: "left" };
@@ -39,18 +41,23 @@ export default function RubricPage({ id }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published rubric</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how it scores</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.6)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", marginTop: 14 }}>Rubric version {r.version}, published {r.published}. {r.dims.length} dimensions, {statements} statements.</p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", marginTop: 14 }}>Rubric version {r.version}, published {r.published}. {r.dims.length} {paired ? "areas" : "dimensions"}, {statements} statements{paired ? ` in ${statements / 2} pairs` : ""}.</p>
         </div>
       </header>
 
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
         <h2 style={H2}>How the score is calculated</h2>
-        <p style={P}>Each statement is answered on a scale from {r.scale.min} ({r.scale.low.toLowerCase()}) to {r.scale.max} ({r.scale.high.toLowerCase()}). A dimension scores the average of its statements. The overall score is the weighted average of the dimensions; the weights are shown below and total {totalWeight}. A band is assigned only when every statement is answered, and an answer outside the scale counts as unanswered.</p>
-        <p style={P}>Every statement answered at {r.failAt} or below adds its action to your checklist, weakest dimension first. The next diagnostic is the one named below for your lowest-scoring dimension.</p>
+        {paired ? (<>
+          <p style={P}>Each area holds pairs of statements: one from the {sideLabel(0).toLowerCase()} and one from the {sideLabel(1).toLowerCase()}, each answered on a scale from {r.scale.min} ({r.scale.low.toLowerCase()}) to {r.scale.max} ({r.scale.high.toLowerCase()}). A pair scores the gap between its two answers. An area scores the average gap of its pairs, and the overall score is the weighted average of the areas; the weights are shown below and total {totalWeight}. Lower is closer agreement. A band is assigned only when every statement is answered, and an answer outside the scale counts as unanswered.</p>
+          <p style={P}>Two kinds of pair reach your checklist. A pair whose answers are {r.gapAt} or more points apart is misaligned, and adds the alignment action. A pair answered at {r.failAt} or below on both sides is a shared weakness, and adds the build action: both sides agree the capability is missing, which a gap of zero would otherwise hide. The checklist runs from the area with the largest gap. The next diagnostic is the one named below for that area.</p>
+        </>) : (<>
+          <p style={P}>Each statement is answered on a scale from {r.scale.min} ({r.scale.low.toLowerCase()}) to {r.scale.max} ({r.scale.high.toLowerCase()}). A dimension scores the average of its statements. The overall score is the weighted average of the dimensions; the weights are shown below and total {totalWeight}. A band is assigned only when every statement is answered, and an answer outside the scale counts as unanswered.</p>
+          <p style={P}>Every statement answered at {r.failAt} or below adds its action to your checklist, weakest dimension first. The next diagnostic is the one named below for your lowest-scoring dimension.</p>
+        </>)}
 
         <h2 style={H2}>Bands</h2>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Overall score</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Band</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>What it means</th></tr></thead>
+          <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY }}>{paired ? "Average gap" : "Overall score"}</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Band</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>What it means</th></tr></thead>
           <tbody>{r.bands.map((b, i, all) => (
             <tr key={b.id}><td style={{ ...cell, whiteSpace: "nowrap" }}>{cut(b, i, all)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{b.label}</td><td style={cell}>{b.desc}{b.rec ? ` ${b.rec}` : ""}{b.dimFlag ? ` A dimension scoring in this band is marked "${b.dimFlag}".` : ""}</td></tr>
           ))}</tbody>
@@ -65,19 +72,28 @@ export default function RubricPage({ id }) {
           </table>
         </>)}
 
-        <h2 style={H2}>Dimensions, statements and actions</h2>
+        <h2 style={H2}>{paired ? "Areas, paired statements and actions" : "Dimensions, statements and actions"}</h2>
         {r.dims.map((d) => (
           <section key={d.id} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
             <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
               <h3 style={{ ...TYPE.h3, color: NAVY }}>{d.name}</h3>
-              <span style={{ ...TYPE.caption, color: MUTED }}>Weight {d.weight} of {totalWeight}. If lowest, next diagnostic: {JOURNEY[d.next] ? <a href={JOURNEY[d.next].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[d.next].name}</a> : d.next}</span>
+              <span style={{ ...TYPE.caption, color: MUTED }}>Weight {d.weight} of {totalWeight}. {paired ? "If largest gap" : "If lowest"}, next diagnostic: {JOURNEY[d.next] ? <a href={JOURNEY[d.next].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[d.next].name}</a> : d.next}</span>
             </div>
+            {paired ? (
+            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+              <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY }}>{sideLabel(0)}</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>{sideLabel(1)}</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>If {r.gapAt}+ points apart</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>If both at {r.failAt} or below</th></tr></thead>
+              <tbody>{d.pairs.map((p, i) => (
+                <tr key={i}><td style={cell}>{p[r.sides[0].id]}</td><td style={cell}>{p[r.sides[1].id]}</td><td style={cell}>{p.align}</td><td style={cell}>{p.build}</td></tr>
+              ))}</tbody>
+            </table>
+            ) : (
             <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
               <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY, width: "45%" }}>Statement</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Action if answered {r.failAt} or below</th></tr></thead>
               <tbody>{d.criteria.map((c, i) => (
                 <tr key={i}><td style={cell}>{c.text}</td><td style={cell}>{c.action}</td></tr>
               ))}</tbody>
             </table>
+            )}
           </section>
         ))}
 

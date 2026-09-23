@@ -220,7 +220,7 @@ export default function GovernanceModel() {
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center", marginTop: 20 }}>
               <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Need help structuring governance?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your governance profile has been saved. Connect with a consultant and they'll help you resolve ownership gaps, balance workloads, and build a governance model that scales.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Connect with a consultant and they'll help you resolve ownership gaps, balance workloads, and build a governance model that scales.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
                 <ReportActions toolId={TOOL_ID} toolName="Governance and Operating Model" subtitle={assignedCount + " of " + totalItems + " decisions have a named owner"} routePath={ROUTE} state={{ primary, secondary }} defaults={DEFAULTS}
