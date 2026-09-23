@@ -150,6 +150,7 @@ A("the ReportActions signals payload slices out of the shipped JSX", !!signalsEx
 A("the ReportActions sections payload slices out of the shipped JSX", !!sectionsExpr);
 A("the report is named", !!toolNameM);
 A("the confidence prop is the same grade the engine computed", /confidence=\{conf\.grade\}/.test(SRC));
+A("the grade object reaches ReportActions, which owns the one confidence section (5.6)", /grades=\{conf\.gradeObj\}/.test(SRC));
 A("the scenario prop carries the exact input set", /state=\{scenario\}/.test(SRC));
 A("the defaults prop points at the shared SCENARIO_DEFAULTS", /defaults=\{SCENARIO_DEFAULTS\}/.test(SRC));
 A("the route prop points at the shared ROUTE", /routePath=\{ROUTE\}/.test(SRC));
@@ -238,6 +239,8 @@ const SETS = {
 /* Dependency integrity. Import the real modules, do not rebuild them. */
 const { MECH, MECH_ORDER, MECH_FALLBACK } = await import("./src/lib/mech.js");
 const { createGuards } = await import("./src/lib/guards.js");
+/* 11B: the engine grades through the shared confidence module, injected as the real module. */
+const CONF = await import("./src/lib/confidence.js");
 
 /* Display names for rail producers, matching the shipped toolLabel map. Only the one
    entry the sets use is needed, and an unknown id must fall through to the id itself
@@ -263,7 +266,7 @@ function render(S) {
     const paybackColor = STATUS_COLOR(stPayback, C);
     const roiColor = r.roiDefined ? STATUS_COLOR(stRoi, C) : MUTED;
     const paybackLabel = r.payback > 0 ? r.payback + " mo" : ">36 mo";
-    const gradeColor = conf.grade === "Finance-grade" ? GREEN : conf.grade === "Planning-grade" ? AMBER : MUTED;
+    const gradeColor = conf.voided ? RED : conf.grade === "Finance-grade" ? GREEN : conf.grade === "Planning-grade" ? AMBER : MUTED;
     const bucketRows = [
       { label: "Self-service containment", key: "containment", val: r.buckets.containment },
       { label: "Handle-time reduction (talk + ACW)", key: "handleTime", val: r.buckets.handleTime },
@@ -283,11 +286,12 @@ function render(S) {
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
     "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MECH", "MECH_ORDER", "MECH_FALLBACK",
     "createGuards", "TOOL_LABELS", "MUT", "STANCE_KEY", "RAMP_ON", "MECH_KEY", "PULLED", "SOURCES", "TOOL_NAME",
-    "trackTool", preamble);
+    "trackTool", "emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", preamble);
   return fn(COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#E8F4FD", "#F8FAFB", "#3A4F6A",
     COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket,
     MECH, MECH_ORDER, MECH_FALLBACK, createGuards, TOOL_LABELS, S.mut, S.stance, S.rampOn, S.mech,
-    S.pulled, S.sources, toolNameM[1], { nextStep: () => {}, pdf: () => {} });
+    S.pulled, S.sources, toolNameM[1], { nextStep: () => {}, pdf: () => {} },
+    CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK);
 }
 
 /* -------------------------------------------------------------- printing */
@@ -348,8 +352,10 @@ for (const [k, R] of Object.entries(results)) {
     sumOf(R, "Realizable annual savings") === (r.net >= 1000000 ? "$" + (r.net / 1000000).toFixed(2) + "M" : r.net >= 1000 ? "$" + Math.round(r.net / 1000) + "K" : "$" + Math.round(r.net).toLocaleString()));
   A(`${k}: summary three-year return matches the engine`,
     sumOf(R, "Three-year return") === (r.roiDefined ? Math.round(r.roi3) + "%" : "n/a"));
-  A(`${k}: summary confidence names the same three grades the engine computed`,
-    sumOf(R, "Case confidence") === `${conf.grade} (cost ${conf.costGrade}, realization ${conf.realizationGrade})`);
+  A(`${k}: summary confidence names the headline and all three axes the engine computed`,
+    sumOf(R, "Case confidence") === `${conf.grade} (evidence ${conf.evidenceGrade}, realization ${conf.realizationGrade}, completeness ${conf.completenessGrade})`);
+  A(`${k}: the grade object is the shared emission, with no defect`,
+    conf.gradeObj && conf.gradeObj.headline === conf.grade && conf.gradeObj.defects.length === 0 && conf.gradeObj.boundBy.length > 0);
   A(`${k}: the subtitle carries the same headline grade as the summary strip`,
     R.subtitle.indexOf("case confidence " + conf.grade) >= 0);
 
@@ -381,8 +387,12 @@ for (const [k, R] of Object.entries(results)) {
     && (!r.roiDefined || /strong|acceptable|thin|does not return/.test(metricOf(R, "3-Year Return").sub || "")));
 
   /* --- 1-12. The three channels are separate, and all three reach the reader --- */
-  const confSect = sect(R, "Confidence & Evidence");
-  A(`${k}: the confidence section exists`, !!confSect);
+  /* 11B: ReportActions builds the one confidence section. The tool's own section carries the
+     evidence basis, open items, axis-limiting items and findings, and restates no axis. */
+  const confSect = sect(R, "Evidence and Findings");
+  A(`${k}: the evidence and findings section exists`, !!confSect);
+  A(`${k}: no tool section is a confidence section`, !R.sections.some(x => x && /confidence/i.test(x.title)));
+  A(`${k}: the tool section restates no axis or headline`, !/Case confidence:|the weaker of two independent axes|Cost basis: (Directional|Planning-grade|Finance-grade)/.test(confSect.content));
   A(`${k}: every open cost item is printed in the document`,
     conf.open.every(t => confSect.content.indexOf(t) >= 0));
   A(`${k}: every cap is printed in the document`,
@@ -392,8 +402,8 @@ for (const [k, R] of Object.entries(results)) {
     `${conf.findings.length} findings`);
   A(`${k}: the document tells the reader the findings move no axis`,
     conf.findings.length === 0 || /deliberately excluded from every confidence axis/.test(confSect.content));
-  A(`${k}: no return finding is ever presented as capping the grade`,
-    conf.findings.every(t => confSect.content.indexOf("capped for reasons that are not cost-input defects: " + t) < 0));
+  A(`${k}: no return finding is ever presented as limiting an axis`,
+    conf.findings.every(t => confSect.content.indexOf("limit an axis and are not cost-input defects: " + t) < 0));
   /* The confidence sentence is written in caseInsights and lands wherever the read ranks it,
      so this counts against the whole read rather than against a position. What must hold is
      that the sentence and the section never disagree about how many findings there are. */
@@ -440,6 +450,27 @@ for (const [k, R] of Object.entries(results)) {
   })(), (R.insights[0] || "").slice(0, 60));
   A(`${k}: the read never claims a payback the tiles do not show`,
     r.payback > 0 || !/\bpayback of \d/.test(read));
+}
+
+/* ------------------------------------------------ the void document, 11B */
+console.log(`\n${"=".repeat(78)}\nVOID: a case that contradicts itself claims no grade and prints no figure\n${"=".repeat(78)}`);
+{
+  const V = render({ label: "Agents 1e308 by scenario link", stance: "expected", rampOn: true, mech: "headcount", pulled: {}, sources: {}, mut: () => ({ agents: 1e308, evidence: "proposal" }) });
+  const text = [V.subtitle, ...V.summary.map(x => `${x.label} ${x.value}`), flat(V.sections)].join("\n");
+  A("V: the case voids", V.conf.voided === true && V.conf.grade === "Void" && V.conf.gradeObj.void === true);
+  A("V: the void names its failed invariant and a remedy", V.conf.invariants.length >= 1 && V.conf.gradeObj.invariant.length > 10 && V.conf.gradeObj.remedy.length > 10);
+  A("V: the document prints no NaN or Infinity", !/NaN|Infinity/.test(text) && text.indexOf(String.fromCharCode(0x221e)) < 0);
+  A("V: the document prints no money figure", !/\$\d/.test(text));
+  const claim = [V.subtitle, ...V.summary.map(x => `${x.label} ${x.value}`), flat(V.sections.filter(x => x.title !== "Methodology"))].join("\n");
+  A("V: the document claims no grade outside the methodology", !/Directional|Planning-grade|Finance-grade/.test(claim));
+  for (const t of ["Evidence and Findings", "Executive Summary", "Financial Summary", "Savings Breakdown", "Capacity and Cash", "Business-as-Usual Counterfactual", "Decision Read", "Key Assumptions"])
+    A(`V: the ${t} section is withheld`, !sect(V, t));
+  A("V: next steps and methodology are still shown", !!sect(V, "Recommended Next Steps") && !!sect(V, "Methodology"));
+  A("V: the summary states the void", V.summary.some(x => /^Void/.test(String(x.value))));
+  for (const p of ["severity", "returns_in_horizon", "breaks_even_ever", "thin_return", "negative_max_implementation", "displacement_led", "credit_before_go_live", "return_findings", "withheld_caps", "open_cost_items"])
+    A(`V: the wire withholds ${p}, which reads a figure`, !(p in V.signals));
+  A("V: the wire states the void class", V.signals.confidence_class === "Void");
+  A("A: the same payload on a valid case still publishes severity", "severity" in results.A.signals);
 }
 
 /* ------------------------------------- the 1-12 gate, stated as one test */

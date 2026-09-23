@@ -23,22 +23,27 @@ const engine  = slice("function computeCase(", "export default function");
 
 /* Dependency integrity. Import the real modules, do not rebuild them. A local copy of
    MECH drifts, and a local copy of pick would test a guard the tool does not run. */
-let MECH, MECH_ORDER, MECH_FALLBACK, createGuards;
+let MECH, MECH_ORDER, MECH_FALLBACK, createGuards, CONF;
 try {
   ({ MECH, MECH_ORDER, MECH_FALLBACK } = await import("./src/lib/mech.js"));
   ({ createGuards } = await import("./src/lib/guards.js"));
+  CONF = await import("./src/lib/confidence.js");
 } catch (e) {
-  console.error("BLOCKER: could not import ./src/lib/mech.js or ./src/lib/guards.js.");
+  console.error("BLOCKER: could not import ./src/lib/mech.js, ./src/lib/guards.js or ./src/lib/confidence.js.");
   console.error(String(e.message || e));
   process.exit(1);
 }
 
-const mod = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards",
+/* 11B: the engine grades through the shared confidence module. The real module is injected,
+   so the harness tests the grading the tool ships. */
+const CONF_ARGS = ["emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK"];
+const CONF_VALS = () => [CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK];
+const mod = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards", ...CONF_ARGS,
   `${helpers}\n${consts}\n${engine}\n` +
-  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
-)(MECH, MECH_ORDER, MECH_FALLBACK, createGuards);
+  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BCB_DOMAIN, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
+)(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, ...CONF_VALS());
 
-const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE } = mod;
+const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BCB_DOMAIN } = mod;
 
 /* The harness scenario set was written against a capacity action of "hiring", which was
    the silent signature default before 1-08 split the constant. The shipped UI has always
@@ -344,11 +349,14 @@ section("8. Savings phasing and payback");
 /* ------------------------------------------------------- boundary cases --- */
 section("9. Boundaries and degenerate inputs");
 {
+  /* 11B domain guard. Zero agents is outside the range the model computes (it divides by
+     headcount), so it is corrected to the floor of one and disclosed. Before the guard these
+     assertions pinned a zero-agent case with no platform cost as valid output. */
   const dZeroAgents = D({ agents: 0 });
   const r0 = computeCase(dZeroAgents, "expected", true);
   ok("zero agents does not throw", Number.isFinite(r0.gross));
-  ok("zero agents zeroes attrition lever", near(r0.buckets.attrition, 0, 0.001));
-  ok("zero agents zeroes recurring platform cost", near(r0.recurring, 0, 0.001));
+  ok("zero agents is computed at the floor of one agent", r0.dg.agents === 1);
+  ok("zero agents is disclosed as a domain correction", r0.domainCorrections.length === 1 && /Agent count was entered as 0, outside the range this model can compute, and was computed at 1\./.test(r0.domainCorrections[0]));
 
   const dZeroVol = D({ monthlyContacts: 0 });
   const rV = computeCase(dZeroVol, "expected", true);
@@ -676,7 +684,7 @@ section("12b. Semantic status, headroom and horizon language");
   })());
   ok("the confidence line reports the two counters separately", (() => {
     const r = computeCase(T3, "aggressive", true), c = confidenceOf(T3, r, "aggressive");
-    return /additionally capped by \d+ item/.test(caseInsights(r, T3, "aggressive", c).join(" "));
+    return /\d+ items? limits? an axis without being a costing defect/.test(caseInsights(r, T3, "aggressive", c).join(" "));
   })());
   ok("a cash-class capacity action adds no realization withholding", (() => {
     const r = computeCase({ ...T3, implementationCost: 300000 }, "expected", true, "headcount");
@@ -793,12 +801,16 @@ section("12z. Rendered narrative, asserted on the SOURCE");
   ok("SOURCE no surface still calls the headline cost-input confidence", !has("Cost-input confidence"));
   ok("SOURCE the PDF subtitle names the capacity action and case confidence",
      has("case confidence ${conf.grade}") && has("${r.mechLabel} · case confidence"));
-  ok("SOURCE the PDF confidence section states BOTH axes",
-     has("conf.costGrade") && has("conf.realizationGrade") && has("the weaker of two independent axes"));
+  /* 11B: the PDF carries one confidence section, built by ReportActions from the grade
+     object; the tool's own section restates no axis. The on-screen panel names all three. */
+  ok("SOURCE ReportActions receives the grade object and the tool section restates no axis",
+     has("grades={conf.gradeObj}") && has('title: "Evidence and Findings"') && !has("the weaker of two independent axes") && !has('title: "Confidence & Evidence"'));
+  ok("SOURCE the on-screen panel names all three axes",
+     has("evidence {conf.evidenceGrade} · realization {conf.realizationGrade} · completeness {conf.completenessGrade}"));
   ok("SOURCE the UI renders withheld items, not only open items",
      has("conf.withheld.map") && has("conf.open.map"));
   ok("SOURCE the UI labels withheld items as not a cost defect",
-     has("Capping the grade, and not a cost-input defect"));
+     has("Limiting an axis, and not a cost-input defect"));
   ok("SOURCE the capacity strip renders all four quantities",
      has("Capacity released") && has("Converted to value") && has("Not converted") && has("Cash-releasing"));
   ok("SOURCE the PDF carries a Capacity and Cash table", has('title: "Capacity and Cash"'));
@@ -1201,11 +1213,11 @@ section("12f. Verdict strength is never a confidence axis");
         const d = { ...fixed, ...over };
         const r = computeCase(d, st, true, mk);
         const c = confidenceOf(d, r, st);
-        grades.add(c.costGrade + "|" + c.realizationGrade);
-        heads.add(c.grade);
+        grades.add(c.costGrade + "|" + c.evidenceGrade + "|" + c.realizationGrade + "|" + c.completenessGrade);
+        heads.add(c.grade + "|" + c.gradeObj.headline + "|" + c.gradeObj.boundBy);
         if (r.payback === 0) sawNoReturn = true; else sawReturn = true;
       }
-      ok(`${st}/${mk}: the two axes are identical across every return profile`, grades.size === 1,
+      ok(`${st}/${mk}: all three axes and the cost stream are identical across every return profile`, grades.size === 1,
          JSON.stringify([...grades]));
       ok(`${st}/${mk}: the headline is identical across every return profile`, heads.size === 1,
          JSON.stringify([...heads]));
@@ -1276,6 +1288,83 @@ section("12f. Verdict strength is never a confidence axis");
 }
 
 /* -------------------------------------------- single-driver dominance ----- */
+/* --------------------------------------- 12g. 11B, three axes, void, A/B --- */
+/*
+ * Retrofit 11B, doctrine Section 5.7. The case emits the Section 5.6 object through the
+ * shared confidence module: evidence as the weaker of a cost stream and a benefit stream,
+ * realization from the credit class, completeness from substituted, held or corrected
+ * inputs. The headline must equal the pre-retrofit formula on every in-domain case, so the
+ * retrofit changes the shape of the grade and never its value. A case whose arithmetic is
+ * not finite voids and claims no grade.
+ */
+section("12g. 11B: three axes, the shared emission, the void, and the unchanged headline");
+{
+  const RK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
+  const minG = (list) => list.reduce((a, b) => RK[b] < RK[a] ? b : a, "Finance-grade");
+  /* The pre-retrofit headline, restated from the fields the engine still returns:
+     cost basis, realization, the Aggressive cap, the target cap, no capacity action,
+     substituted settings and held numerics. */
+  const oldHeadline = (r, c, st) => minG([c.costGrade, c.realizationGrade,
+    ...(r.stanceKey === "aggressive" ? ["Planning-grade"] : []),
+    ...(c.flags.length ? ["Planning-grade"] : []),
+    ...(r.mechKey === "none" ? ["Directional"] : []),
+    ...(c.corrections.length || c.numericCorrections.length ? ["Directional"] : [])]);
+  let seed = 4242; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const pickOf = (a) => a[Math.floor(rnd() * a.length)];
+  let same = true, emitted = true, reasoned = true, noVoid = true, bound = true, n = 0, byAxis = { evidence: 0, realization: 0, completeness: 0 };
+  for (let i = 0; i < 6000; i++) {
+    const d = { ...D(),
+      agents: 20 + Math.round(rnd() * 1500), avgHourly: 14 + rnd() * 20, monthlyContacts: 5000 + Math.round(rnd() * 400000),
+      currentAHT: 180 + Math.round(rnd() * 600), currentFCR: 50 + Math.round(rnd() * 45), htReduction: Math.round(rnd() * 30),
+      containment: Math.round(rnd() * 45), fcrImprovement: Math.round(rnd() * 20), attritionReduction: Math.round(rnd() * 40),
+      implementationCost: Math.round(rnd() * 4000000), newPlatformPerAgentMo: 40 + Math.round(rnd() * 250),
+      evidence: pickOf(["estimate", "quote", "proposal"]), bauEvidence: pickOf(["estimated", "reviewed"]),
+      bauEliminatedAnnual: rnd() < 0.4 ? Math.round(rnd() * 600000) : 0 };
+    const st = pickOf(["conservative", "expected", "aggressive"]), mk = pickOf(MECH_ORDER), ramp = rnd() < 0.8;
+    const r = computeCase(d, st, ramp, mk), c = confidenceOf(d, r, st);
+    n++;
+    if (c.voided) { noVoid = false; continue; }
+    if (r.domainCorrections.length) continue;
+    if (c.grade !== oldHeadline(r, c, st)) same = false;
+    const g = c.gradeObj;
+    if (!g || g.void || g.headline !== c.grade || g.defects.length || g.realization === null) emitted = false;
+    if (!["evidence", "realization", "completeness"].every(a => String(g.reasons[a] || "").length > 20)) reasoned = false;
+    if (g.evidence !== c.evidenceGrade || g.realization !== c.realizationGrade || g.completeness !== c.completenessGrade) bound = false;
+    for (const a of g.boundAxes) byAxis[a]++;
+  }
+  ok("A/B: the headline equals the pre-retrofit formula on 6,000 in-domain cases", same);
+  ok("every graded case carries the shared emission with no defect and a realization axis", emitted);
+  ok("every axis carries a stated reason", reasoned);
+  ok("the emission object and the returned axes agree", bound);
+  ok("a clean in-domain sweep never voids", noVoid, String(n));
+  /* Completeness is Finance-grade on every case in this sweep (corrected cases are
+     excluded above), so it binds only where the other two are Finance-grade too. The
+     Finance-grade and correction cases below cover it directly. */
+  ok("evidence and realization each bind somewhere in the sweep, so neither is decorative", byAxis.evidence > 0 && byAxis.realization > 0, JSON.stringify(byAxis));
+
+  const E = { ...D(), evidence: "proposal", bauEvidence: "reviewed" };
+  const g1 = (over, st = "expected", mk = "headcount") => { const d = { ...E, ...over }; const r = computeCase(d, st, true, mk); return confidenceOf(d, r, st); };
+  ok("evidence is the weaker stream: Aggressive caps the benefit stream, never the cost stream", (() => { const c = g1({}, "aggressive"); return c.benefitGrade === "Planning-grade" && c.costGrade === "Finance-grade" && c.evidenceGrade === "Planning-grade" && /benefit stream binds/i.test(c.gradeObj.reasons.evidence); })());
+  ok("an ambitious target caps the benefit stream", g1({ containment: 40 }).benefitGrade === "Planning-grade");
+  ok("realization reads the credit class and nothing else", ["none", "growth", "overtime", "hiring", "vendor", "headcount"].every(mk => g1({}, "expected", mk).realizationGrade === CONF.realizationFromCred(computeCase(E, "expected", true, mk).cred)));
+  ok("a substituted setting holds completeness Directional", g1({ evidence: "forged" }).completenessGrade === "Directional");
+  ok("a held numeric holds completeness Directional", g1({ agents: "abc" }).completenessGrade === "Directional");
+  ok("a domain correction holds completeness Directional", g1({ containment: 150 }).completenessGrade === "Directional");
+  ok("a whole model is Finance-grade complete", g1({}).completenessGrade === "Finance-grade");
+  ok("the Finance-grade case binds on nothing below Finance-grade", (() => { const c = g1({}); return c.grade === "Finance-grade" && c.gradeObj.boundAxes.length === 3; })());
+
+  for (const [label, over] of [["agents 1e308", { agents: 1e308 }], ["platform 1e308 per agent", { newPlatformPerAgentMo: 1e308 }], ["contacts 1e308", { monthlyContacts: 1e308 }]]) {
+    const c = g1(over);
+    ok(`void: ${label} voids and claims no grade`, c.voided === true && c.grade === "Void" && c.gradeObj.void === true && c.gradeObj.headline === null);
+    ok(`void: ${label} names the failed invariant and the remedy`, /not a finite number|not finite/.test(c.gradeObj.invariant) && c.gradeObj.remedy.length > 20);
+  }
+  ok("void: a void is never written into an axis", (() => { const c = g1({ agents: 1e308 }); return c.gradeObj.evidence === null && c.gradeObj.realization === null && c.gradeObj.completeness === null; })());
+  ok("void: the insight read carries no confidence sentence on a void", !caseInsights(computeCase({ ...E, agents: 1e308 }, "expected", true, "headcount"), { ...E, agents: 1e308 }, "expected", g1({ agents: 1e308 })).some(t => /Case confidence reads/.test(t)));
+  ok("SOURCE the tool grades through the shared module and keeps no local grade table",
+     /from "\.\/src\/lib\/confidence"/.test(SRC) && !/^const GRADE_RANK = /m.test(SRC) && !/^const CRED_GRADE = /m.test(SRC) && /emitGrades\(\{ evidence: evidenceGrade, realization: realizationGrade, completeness: completenessGrade, reasons \}\)/.test(SRC));
+  ok("SOURCE a voided case publishes nothing to the rail", /if \(conf\.voided\) return;/.test(SRC));
+}
+
 section("13. Single-driver dominance");
 {
   const d = D();
@@ -2383,7 +2472,7 @@ section("K. Enum resolution, substitution and disclosure");
   A("the evidence selector displays the resolved evidence key", /background: conf\.evidence === k \? ELECTRIC/.test(SRC));
   A("the displaced-spend selector displays the resolved key", /background: conf\.bauEvidence === k \? ELECTRIC/.test(SRC));
   A("telemetry reports the resolved stance and the correction count",
-    /stance_class: r\.stanceKey,/.test(SRC) && /inputs_corrected: conf\.corrections\.length \+ conf\.numericCorrections\.length,/.test(SRC));
+    /stance_class: r\.stanceKey,/.test(SRC) && /inputs_corrected: conf\.corrections\.length \+ conf\.numericCorrections\.length \+ conf\.domainCorrections\.length,/.test(SRC));
   A("the correction cap is Directional and names its own domain",
     /caps\.push\(\["Directional", `\$\{corrections\.length\} setting/.test(SRC)
     && /scenario-integrity concern and says nothing about the cost inputs/.test(SRC));
@@ -2412,7 +2501,9 @@ section("L. Numeric disclosure, every numeric input");
     "bauExitCost", "bauBackfillCash", "bauAbsorbedHours"]);
   const UNCLEAN = ["", "abc", "12abc", "1,200", NaN, Infinity, null, "Infinity", "$50"];
   const ENTERED = (v) => v == null || v === "" ? "blank" : typeof v === "string" ? `"${v}"` : String(v);
-  const HELD = (k, v) => { const p = parseFloat(v); const x = Number.isFinite(p) ? p : 0; return k === "rampMonths" ? Math.max(1, x) : x; };
+  /* 11B: an unclean entry is held at 0, then at the domain floor where 0 is outside it
+     (agents and AHT hold at 1, ramp at 1 as before). */
+  const HELD = (k, v) => { const p = parseFloat(v); const x = Number.isFinite(p) ? p : 0; const b = BCB_DOMAIN[k]; return b ? Math.max(b[0], b[1] == null ? x : Math.min(b[1], x)) : x; };
   const nonFinite = (r) => Object.entries(r).filter(([, v]) => typeof v === "number" && !Number.isFinite(v)).map(([k]) => k);
   const printed = (c, ins) => (c.withheld.join(" ") + " " + c.findings.join(" ") + " " + ins.join(" "))
     .replace(/was entered as [^,]*, which is not a number/g, "");
@@ -2466,33 +2557,45 @@ section("L. Numeric disclosure, every numeric input");
       const st = ["aggressive", "expected", "conservative"][i % 3], ramp = i % 5 !== 0, mech = MECH_ORDER[i % MECH_ORDER.length];
       const r = M.computeCase(d, st, ramp, mech);
       if (r.numericCorrections.length) { neutral = false; break; }
-      for (const k of numKeys) if (r.dg[k] !== M.n(d[k])) neutral = false;
+      /* 11B: a clean number runs exactly as entered when it is inside the domain, and at the
+         nearest bound when it is not. Before the guard this line required negatives and
+         zeros to run unclamped, which pinned the defect. */
+      const dom = (k, v) => { const b = M.BCB_DOMAIN[k]; return b ? Math.max(b[0], b[1] == null ? v : Math.min(b[1], v)) : v; };
+      for (const k of numKeys) if (r.dg[k] !== dom(k, M.n(d[k]))) neutral = false;
       const dn = { ...d, ...Object.fromEntries(numKeys.map(k => [k, r.dg[k]])) };
       const c1 = M.confidenceOf(d, r, st), c2 = M.confidenceOf(dn, r, st);
       if (JSON.stringify(c1) !== JSON.stringify(c2)) neutral = false;
       if (M.caseInsights(r, d, st, c1).join("|") !== M.caseInsights(r, dn, st, c2).join("|")) neutral = false;
     }
-    res.push(T("neutrality: 8,000 clean random cases record nothing and read exactly as n()", neutral));
+    res.push(T("neutrality: 8,000 clean random cases hold nothing, run the domain value of n(), and grade identically from raw and ran values", neutral));
+    res.push(T("a negative agent count is corrected to the floor and disclosed", (() => { const { r } = one({ agents: -5 }); return r.dg.agents === 1 && r.domainCorrections.length === 1; })()));
+    res.push(T("a negative platform price is corrected to zero and disclosed", (() => { const { r } = one({ newPlatformPerAgentMo: -155 }); return r.dg.newPlatformPerAgentMo === 0 && r.recurring >= 0 && r.domainCorrections.length === 1; })()));
+    res.push(T("a containment share above 100 runs at 100", one({ containment: 150 }).r.dg.containment === 100));
+    res.push(T("a corrected input holds completeness Directional and names the correction", (() => { const { c } = one({ implementationCost: -500000 }); return c.completenessGrade === "Directional" && c.withheld.some((t) => /outside the range this model can compute/.test(t)); })()));
     return res;
   };
 
-  const build = (eng, cons = consts) => new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards",
-    `${helpers}\n${cons}\n${eng}\nreturn { computeCase, confidenceOf, caseInsights, DEFAULTS, n };`)(MECH, MECH_ORDER, MECH_FALLBACK, createGuards);
+  const build = (eng, cons = consts) => new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards", ...CONF_ARGS,
+    `${helpers}\n${cons}\n${eng}\nreturn { computeCase, confidenceOf, caseInsights, DEFAULTS, BCB_DOMAIN, n };`)(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, ...CONF_VALS());
   checks(build(engine), true);
 
+  /* 11B retired three mutants that the domain guard made equivalent: the ramp floor now lives
+     in the domain table, so the message floor was dead, and ranValues supplies every guarded
+     number, so removing the older saneNums line changes nothing. The two ranValues mutants
+     and the domain-guard mutant replace them. */
   const MUTANTS = [
     ["disclosure silenced", "if (check && bad !== null", "if (false && bad !== null"],
-    ["non-finite passed through", "const p = n(raw), v = Number.isFinite(p) ? p : 0;", "const p = n(raw), v = p;"],
+    ["non-finite passed through", "let v = Number.isFinite(p) ? p : 0;", "let v = p;"],
+    ["domain guard removed", "const c = dom ? Math.max(", "const c = false ? Math.max("],
+    ["confidence reads raw values after the guard", "  d = ranValues(d, r); // 11B: confidence reads the values the engine ran", ""],
+    ["insights read raw values after the guard", "  d = ranValues(d, r); // 11B: insights read the values the engine ran", ""],
     ["engine reads raw input", "  d = dg;\n", "\n"],
-    ["ramp floor dropped from the sentence", 'gv("rampMonths", "Ramp to full savings", rampOn, false, 1);', 'gv("rampMonths", "Ramp to full savings", rampOn, false, 0);'],
     ["every blank exempted", "].forEach(([k, what]) => gv(k, what));", "].forEach(([k, what]) => gv(k, what, true, true));"],
     ["Directional cap removed", "if (numericCorrections.length) { const k", "if (false) { const k"],
-    ["confidence reads raw numbers", "     or Infinity. Settings such as evidence still come from the caller. */\n  d = saneNums(d);", "     or Infinity. Settings such as evidence still come from the caller. */"],
-    ["insights read raw numbers", "function caseInsights(r, d, stanceKey, conf) {\n  d = saneNums(d);", "function caseInsights(r, d, stanceKey, conf) {"],
     ["dual-run checked without BAU", 'gv("bauOverlapShare", "Current spend still paid in dual run", bauOn);', 'gv("bauOverlapShare", "Current spend still paid in dual run", true);'],
-    ["ramp checked with phasing off", 'gv("rampMonths", "Ramp to full savings", rampOn, false, 1);', 'gv("rampMonths", "Ramp to full savings", true, false, 1);'],
+    ["ramp checked with phasing off", 'gv("rampMonths", "Ramp to full savings", rampOn);', 'gv("rampMonths", "Ramp to full savings", true);'],
     ["migration always checked", 'gv("migrationMonths", "Migration timeline", rampOn || bauOn);', 'gv("migrationMonths", "Migration timeline", true);'],
-    ["thousands group read as 1200", "const p = n(raw), v", 'const p = n(typeof raw === "string" ? raw.replace(/,/g, "") : raw), v'],
+    ["thousands group read as 1200", "const p = n(raw);", 'const p = n(typeof raw === "string" ? raw.replace(/,/g, "") : raw);'],
   ];
   let killed = 0;
   for (const [name, from, to] of MUTANTS) {
@@ -2508,7 +2611,7 @@ section("L. Numeric disclosure, every numeric input");
   S("the component binds the values the engine ran right after computing the case", gAt > 0 && SRC.indexOf("const r = computeCase(d, stance, rampOn, mech);") < gAt);
   S("no component read after that point parses raw state with n()", !SRC.slice(gAt).includes("n(d."));
   S("the rail publishes the values the engine ran", /agents: n\(g\.agents\), annualContacts: r\.annual, monthlyContacts: n\(g\.monthlyContacts\)/.test(SRC));
-  S("telemetry counts numeric corrections", /inputs_corrected: conf\.corrections\.length \+ conf\.numericCorrections\.length,/.test(SRC));
+  S("telemetry counts numeric and domain corrections", /inputs_corrected: conf\.corrections\.length \+ conf\.numericCorrections\.length \+ conf\.domainCorrections\.length,/.test(SRC));
   S("the numeric cap is Directional and names its own domain", /input-integrity concern and says nothing about the evidence behind the cost inputs/.test(SRC));
   S("the probe runs with no bounds, so domains stay tool-owned", /rawProbe\(what, raw, -Infinity, null, ""\)/.test(SRC));
 }
