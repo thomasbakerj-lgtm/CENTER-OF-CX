@@ -149,20 +149,20 @@ export default function ShrinkagePlanner() {
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <ReportExport toolName="Shrinkage Analysis" subtitle="8-Category Shrinkage Model" userName={name} userEmail={email} sections={[
-                    { title: "Shrinkage Breakdown", type: "table", rows: categories.map(c => [c.name, ((values[c.id] || c.default).toFixed(1)) + "%"]).concat([["Total Shrinkage", totalShrinkage.toFixed(1) + "%"]]) },
+                    { title: "Shrinkage Breakdown", type: "table", rows: all.map(c => [c.name + " (" + c.type + ")", c.pct.toFixed(1) + "%"]).concat([["Total Shrinkage", totalShrinkage.toFixed(1) + "%"]]) },
                     { title: "Key Metrics", type: "metrics", items: [
-                      { label: "Total Shrinkage", value: totalShrinkage.toFixed(1) + "%", color: totalShrinkage > 32 ? RED : totalShrinkage > 28 ? AMBER : GREEN },
+                      { label: "Total Shrinkage", value: totalShrinkage.toFixed(1) + "%", color: shrinkColor },
                       { label: "Annual Cost Impact", value: "$" + Math.round(annualCost).toLocaleString(), color: RED },
-                      { label: "Planned vs Unplanned", value: planned.toFixed(0) + "% / " + unplanned.toFixed(0) + "%", color: ELECTRIC },
+                      { label: "Planned vs Unplanned", value: totalPlanned.toFixed(1) + "% / " + totalUnplanned.toFixed(1) + "%", color: ELECTRIC },
                     ]},
                     { title: "Key Findings", type: "findings", items: [
-                      "Total shrinkage of " + totalShrinkage.toFixed(1) + "% means for every 100 scheduled agents, only " + (100 - totalShrinkage).toFixed(0) + " are available to handle contacts.",
-                      totalShrinkage > 30 ? "Your shrinkage is above the 28-30% industry benchmark. Focus on the largest unplanned categories." : "Your shrinkage is within the industry benchmark range.",
-                      "Annual cost impact at current shrinkage: $" + Math.round(annualCost).toLocaleString() + ".",
+                      "Total shrinkage of " + totalShrinkage.toFixed(1) + "% means that of " + n(d.agents) + " scheduled agents, about " + effectiveAgents + " are available to handle contacts.",
+                      totalUnplanned > totalPlanned ? "Unplanned shrinkage (" + totalUnplanned.toFixed(1) + "%) exceeds planned (" + totalPlanned.toFixed(1) + "%). Start with the largest unplanned category." : "Planned shrinkage (" + totalPlanned.toFixed(1) + "%) is the larger share. Check whether coaching and training time is protected or absorbed.",
+                      "Annual cost of the " + gap + " unavailable agent equivalents at $" + n(d.hourlyRate) + " per hour over 2,080 hours: $" + Math.round(annualCost).toLocaleString() + ".",
                     ]},
                     { title: "Next Steps", type: "next", items: [
                       { tool: "Staffing Calculator", reason: "Model required FTE with this shrinkage factor" },
-                      { tool: "Occupancy Risk Simulator", reason: "Check if low shrinkage is driving high occupancy" },
+                      { tool: "Occupancy Risk Simulator", reason: "Check whether shrinkage is pushing occupancy up" },
                     ]},
                   ]} />
                 

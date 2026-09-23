@@ -139,18 +139,18 @@ export default function OccupancyRiskSimulator() {
               </div>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <ReportExport toolName="Occupancy Risk Analysis" subtitle="Occupancy Threshold + Attrition Impact Model" userName={name} userEmail={email} sections={[
+                <ReportExport toolName="Occupancy Risk Analysis" subtitle="Occupancy Threshold and Attrition Impact Model" userName={name} userEmail={email} sections={[
                     { title: "Occupancy Analysis", type: "metrics", items: [
-                      { label: "Current Occupancy", value: occupancy + "%", color: occupancy > 90 ? RED : occupancy > 85 ? AMBER : GREEN },
-                      { label: "Risk Level", value: occupancy > 90 ? "Critical" : occupancy > 85 ? "Elevated" : "Healthy", color: occupancy > 90 ? RED : occupancy > 85 ? AMBER : GREEN },
+                      { label: "Current Occupancy", value: currentOcc.toFixed(1) + "%", color: currentColor },
+                      { label: "Risk Band", value: currentOcc > 92 ? "Critical" : currentOcc > 88 ? "High" : currentOcc > 85 ? "Elevated" : currentOcc > 80 ? "Moderate" : "Low", color: currentColor },
                     ]},
                     { title: "Key Findings", type: "findings", items: [
-                      "At " + occupancy + "% occupancy, agents have " + (100 - occupancy) + "% of their time for recovery between contacts.",
-                      occupancy > 88 ? "This occupancy level is associated with 25-40% higher attrition. The cost of lost agents exceeds the cost of adding headcount." : "Occupancy is within a sustainable operating range.",
+                      "At " + currentOcc.toFixed(1) + "% occupancy, agents have about " + Math.max(0, (100 - currentOcc) * 0.6).toFixed(1) + " minutes per hour between contacts.",
+                      currentOcc > 85 ? "This model raises attrition by 1.15x above 85% occupancy and by 1.4x above 90%. These multipliers are planning heuristics, not measured values for your operation." : "Occupancy is below the 85% level where this model begins to raise attrition.",
                     ]},
                     { title: "Next Steps", type: "next", items: [
-                      { tool: "Staffing Calculator", reason: "Model the FTE needed to reduce occupancy to 85%" },
-                      { tool: "Attrition Cost Calculator", reason: "Quantify the cost if high occupancy drives turnover" },
+                      { tool: "Staffing Calculator", reason: "Model the FTE needed to bring occupancy to your target" },
+                      { tool: "Attrition Cost Calculator", reason: "Price the turnover if high occupancy drives exits" },
                     ]},
                   ]} />
                 
