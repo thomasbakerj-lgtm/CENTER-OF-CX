@@ -675,7 +675,7 @@ All three are contingent, none are current.
 | Date | Item | Result |
 |---|---|---|
 | 2026-08-25 | Baseline audit | Document created. Nine rail tools identified, five with unproven V3 locks. 283 vendors, 228 scored, 24 with vertical fit. Vendor match engine confirmed as a 24-vendor hardcoded fork |
-| 2026-09-23 | Governance into repo, 0-06 | Tracker, doctrine v1.1, Section 5 v1.2, Resequence, manifest and bundle README landed in `docs/`. `SHIPPING.md` drafted for TB approval, closing 0-06 on the Claude Code workflow. `CLAUDE.md` and `.gitignore` at repo root. Suite 18,018 green, build and prerender green (429 routes). Next: 11B step 6, live TCO PDF check |
+| 2026-09-23 | Governance into repo, 0-06 | Tracker, doctrine v1.1, Section 5 v1.2, Resequence, manifest, bundle README and Market Position Index Addendum 1 landed in `docs/`. Sessions 13 to 20 change log (`TRACKER_CHANGELOG_S13_S20.md`) not yet received. `SHIPPING.md` drafted for TB approval, closing 0-06 on the Claude Code workflow. `CLAUDE.md` and `.gitignore` at repo root. Suite 18,018 green, build and prerender green (429 routes). Next: 11B step 6, live TCO PDF check |
 
 ---
 

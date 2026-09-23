@@ -152,6 +152,13 @@ Files in `docs/`:
 - `CCCX_Resequence_Under_Doctrine_Amendment_11.md`
 - `SHIPPING.md`, drafted 23 September 2026 for TB approval, closing 0-06
 - `CCCX_PROJECT_KNOWLEDGE_MANIFEST.md` and `README.md`, the handoff bundle index
+- `CCCX_Market_Position_Index_and_Tool_Separation_Rules_Addendum_1.md`. Uploaded
+  as `.docx` but the content is Markdown, so it lands as `.md`
+
+**Not yet received.** `docs/README.md` lists two bundle files that have not arrived:
+`TRACKER_CHANGELOG_S13_S20.md` (append to the tracker change log) and
+`SHIPPING_FACTS.md` (verified deploy facts). `SHIPPING.md` was drafted from the repo
+without it and gets reconciled against it on arrival.
 
 **Known ID conflict.** The tracker defines 1-12 as `billingStartMonth` in BCB,
 GATED. This file and Section 5 v1.2 use 1-12 for the `r.payback === 0` confidence
@@ -442,7 +449,7 @@ it.** It has its own authority documents in project knowledge.
   corpus. The public universal vendor leaderboard is removed. Contextual ranking
   happens inside Vendor Match after buyer context is known. CCaaS is the first
   technical proof.
-- **Addendum 1, Market Position Index and Tool Separation Rules.** A public Market
+- **Addendum 1, Market Position Index and Tool Separation Rules**, in `docs/`. A public Market
   Position Index returns as a separate surface from Vendor Match. Five equally
   weighted dimensions: market footprint, customer evidence, product and solution
   breadth, ecosystem and interoperability, commercial and operating maturity.
