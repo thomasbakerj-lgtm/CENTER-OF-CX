@@ -544,6 +544,22 @@ const TCO_COST = [
 ];
 const TCO_CHECKS = { perAgentCeiling: 25000, domShareMax: 0.80, spanMax: 20, mixTol: 0.005 };
 
+/* What this tool publishes, and the grade each published key carries.
+   TCO_PUBLISH_ORIGIN maps a published rail key to the graded field behind it, so a
+   republished input travels with the grade this tool actually assigned it: a preset that
+   was never touched publishes as Directional, not as a fresh source.
+   TCO_DERIVED_KEYS are computed outputs and ungraded entries. They carry the tool's
+   headline evidence grade, which is the weakest input that produced them. */
+const TCO_PUBLISH_ORIGIN = {
+  agents: "agents", monthlyContacts: "monthlyContacts", agentHourly: "agentHourly",
+  aht: "aht", attritionRate: "attrition",
+};
+const TCO_DERIVED_KEYS = [
+  "annualTCO", "monthlyTCO", "tcoPerAgentMonth", "costPerContact", "costPerResolution",
+  "marginalPerContact", "laborPct", "techPct", "threeYearTCO", "optimizationNetMonthly",
+  "fcr", "wageEscalatorPct", "licenseEscalatorPct",
+];
+
 function tcoDefaults(d) { return { ...BASE, ...(INDUSTRY[d.industry] || INDUSTRY.general) }; }
 
 function tcoFieldOrigin(d, pre, f) {
@@ -565,9 +581,17 @@ function gradeTCO({ d, r, pre, railOrigin, stanceKey }) {
 
   const fields = [...TCO_OPS, ...TCO_COST];
   const origins = Object.fromEntries(fields.map(([f]) => [f, tcoFieldOrigin(d, pre, f)]));
-  const railG = railEvidence(railOrigin);
+  /* Origin grades are per field. A pulled value grades no higher than the grade its
+     publisher recorded for it, so one weak pull no longer drags every pull down and one
+     strong pull no longer lifts them. `railOrigin` is the blanket fallback for a field the
+     rail carries with no recorded origin. */
+  const railGradeOf = (f) => railEvidence((pre && pre[f] && pre[f].origin) || railOrigin);
   const attested = d.costBasis === "quoted" || d.costBasis === "invoiced";
-  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railG, entered })[origins[f]];
+  const fieldGrade = (f, entered) => ({ default: "Directional", self: "Directional", rail: railGradeOf(f), entered })[origins[f]];
+  const isCostField = (f) => TCO_COST.some(([c]) => c === f);
+  const gradeOfField = (f) => (isCostField(f)
+    ? fieldGrade(f, attested ? "Planning-grade" : "Directional")
+    : fieldGrade(f, "Planning-grade"));
   const opsGrade = TCO_OPS.map(([f]) => fieldGrade(f, "Planning-grade")).reduce(weakerStream);
   const costGrade = TCO_COST.map(([f]) => fieldGrade(f, attested ? "Planning-grade" : "Directional")).reduce(weakerStream);
   const evidence = weakerStream(opsGrade, costGrade);
@@ -579,7 +603,11 @@ function gradeTCO({ d, r, pre, railOrigin, stanceKey }) {
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the preset for this industry`);
     if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
-    if (rail.length) parts.push(`${say(rail)} arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}, which confers consistency and evidence only as far as its origin`);
+    if (rail.length) {
+      const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
+      const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
+      parts.push(`${say(rail)} arrived over the rail ${noted}, which confers consistency and evidence only as far as its origin`);
+    }
     return parts;
   };
   const opsParts = why(TCO_OPS);
@@ -612,7 +640,7 @@ function gradeTCO({ d, r, pre, railOrigin, stanceKey }) {
       });
   const confidence = voided ? "Void" : gradeObj.headline;
   const gradeWhy = voided ? `export void: ${invariants.join("; ")}` : `Bound by ${gradeObj.boundBy}. ${gradeObj.boundAxes.map((x) => gradeObj.reasons[x]).join(" ")}`;
-  return { gradeObj, confidence, gradeWhy, voided, invariants, evidence, opsGrade, costGrade, completeness, blockers, origins };
+  return { gradeObj, confidence, gradeWhy, voided, invariants, evidence, opsGrade, costGrade, completeness, blockers, origins, fieldGrade: gradeOfField };
 }
 
 /* @engine-end */
@@ -653,10 +681,10 @@ function Calculator() {
       licImpl: ext(getExternalWithSource("licenseImplementationOneTime", TOOL_ID)), bcImpl: ext(getExternalWithSource("implementationCost", TOOL_ID)),
     };
     const pre = {};
-    for (const f of ["aht", "shrinkage", "agents", "attrition"]) if (got[f]) pre[f] = { value: got[f].value, src: got[f].sourceTool || "" };
-    if (got.annual) pre.monthlyContacts = { value: Math.round(got.annual.value / 12), src: got.annual.sourceTool || "" };
+    for (const f of ["aht", "shrinkage", "agents", "attrition"]) if (got[f]) pre[f] = { value: got[f].value, src: got[f].sourceTool || "", origin: got[f].railOrigin || null };
+    if (got.annual) pre.monthlyContacts = { value: Math.round(got.annual.value / 12), src: got.annual.sourceTool || "", origin: got.annual.railOrigin || null };
     const impl = got.licImpl || got.bcImpl;
-    if (impl) pre.implementationOneTime = { value: impl.value, src: impl.sourceTool || "" };
+    if (impl) pre.implementationOneTime = { value: impl.value, src: impl.sourceTool || "", origin: impl.railOrigin || null };
     rail.current = { pre };
   }
   const [fromLink, setFromLink] = useState(false);
@@ -679,6 +707,14 @@ function Calculator() {
   /* A scenario link is a deliberate act and carries its sender's entries, so a linked
      session grades those as entered and no rail value can be credited. */
   const G = gradeTCO({ d, r, pre: fromLink ? {} : rail.current.pre, railOrigin: null, stanceKey: stance });
+  /* Publish the grade this tool assigned each field it republishes, so a downstream tool
+     grades a pulled figure by where it was born rather than by who last restated it. A
+     computed output carries this tool's evidence grade. A voided run publishes nothing. */
+  const originsOut = {};
+  if (!G.voided) {
+    for (const [f, g] of Object.entries(TCO_PUBLISH_ORIGIN)) originsOut[f] = G.fieldGrade(g);
+    for (const k of TCO_DERIVED_KEYS) originsOut[k] = G.evidence;
+  }
 
   // Completion: fire once when the user reaches the results, with a coarse real-vs-default
   // signal and a severity bucket. No raw inputs leave the browser.
@@ -715,7 +751,7 @@ function Calculator() {
       // starting point. Targets and hair-cut savings are deliberately NOT published.
       agentHourly: n(d.agentHourly), aht: n(d.aht), fcr: n(d.fcr), attritionRate: n(d.attrition),
     };
-    publishToolResult("tco-calculator", normalizeForPublish(primitives, { sourceTool: "tco-calculator" }).clean);
+    publishToolResult("tco-calculator", normalizeForPublish(primitives, { sourceTool: "tco-calculator" }).clean, originsOut);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dRaw, stance]);
 
