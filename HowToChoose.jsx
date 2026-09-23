@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -7,7 +8,7 @@ const LIGHT = "#00AAFF";
 const ICE = "#E8F4FD";
 const WARM = "#F8FAFB";
 const SLATE = "#3A4F6A";
-const MUTED = "#6B7F99";
+const MUTED = "#5B6E88";
 const BORDER = "#D8E3ED";
 const GREEN = "#10B981";
 const AMBER = "#F59E0B";
@@ -82,11 +83,11 @@ export default function HowToChoose() {
   ];
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
+        ${FONT_IMPORT_CSS}
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
+        body { font-family: ${FONT}; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .mob-btn { display: flex !important; } .cat-jump { flex-wrap: wrap !important; } }
       `}</style>
@@ -109,12 +110,12 @@ export default function HowToChoose() {
         <div style={WRAP}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "0 0 4px" }}>CX Pro Tools</h1>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)" }}>{totalTools} tools across {CATEGORIES.length} categories. Free. Immediate output.</p>
+              <h1 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>CX Pro Tools</h1>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)" }}>{totalTools} tools across {CATEGORIES.length} categories. Free. Immediate output.</p>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <a href="/research/ccaas-buyer-guide" style={{ fontSize: 11, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.1)" }}>CCaaS Guide ↓</a>
-              <a href="/research/iva-buyer-guide" style={{ fontSize: 11, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.1)" }}>IVA Guide ↓</a>
+              <a href="/research/ccaas-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.1)" }}>CCaaS Guide ↓</a>
+              <a href="/research/iva-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.1)" }}>IVA Guide ↓</a>
             </div>
           </div>
         </div>
@@ -142,7 +143,7 @@ export default function HowToChoose() {
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, paddingTop: ci > 0 ? 12 : 0, borderTop: ci > 0 ? `1px solid ${BORDER}` : "none" }}>
                 <div style={{ width: 4, height: 24, borderRadius: 2, background: cat.color }} />
                 <div>
-                  <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: 0 }}>{cat.label}</h2>
+                  <h2 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 600, color: NAVY, margin: 0 }}>{cat.label}</h2>
                   <span style={{ fontSize: 12, color: MUTED }}>{cat.desc}</span>
                 </div>
               </div>
@@ -161,7 +162,7 @@ export default function HowToChoose() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{t.title}</span>
-                        {t.popular && <span style={{ fontSize: 9, fontWeight: 700, color: GREEN, letterSpacing: 0.6, textTransform: "uppercase", background: `${GREEN}10`, padding: "2px 6px", borderRadius: 3, flexShrink: 0 }}>Popular</span>}
+                        {t.popular && <span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 0.6, textTransform: "uppercase", background: `${GREEN}10`, padding: "2px 6px", borderRadius: 3, flexShrink: 0 }}>Popular</span>}
                       </div>
                       <span style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.4 }}>{t.desc}</span>
                     </div>
@@ -186,10 +187,10 @@ export default function HowToChoose() {
       <footer style={{ background: DEEP, padding: "32px 28px 20px" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={22} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 12 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)" }}>© 2026 The Center of CX</span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>© 2026 The Center of CX</span>
           <div style={{ display: "flex", gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Privacy</a>
-            <a href="/terms" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Terms</a>
+            <a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Privacy</a>
+            <a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Terms</a>
           </div>
         </div>
       </footer>

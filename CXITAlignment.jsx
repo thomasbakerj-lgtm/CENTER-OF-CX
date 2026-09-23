@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
 
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
@@ -105,16 +105,18 @@ export default function CXITAlignment() {
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a>
+          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a>
         </div>
       </nav>
+
+      {phase !== "intro" && <h1 className="sr-only">CX + IT Alignment Framework</h1>}
 
       {phase === "intro" && (
         <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", padding: "80px 28px" }}>
           <div style={{ ...WRAP, textAlign: "center" }}>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Framework & Template</span>
             <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>CX + IT Alignment Framework</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 520 }}>Rate 15 paired statements (one from the CX perspective, one from IT) across strategy, data, platforms, AI, and governance. The gap between scores reveals where misalignment creates friction, delays, and wasted spend.</p>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 520 }}>Rate 15 paired statements (one from the CX perspective, one from IT) across strategy, data, platforms, AI, and governance. The gap between scores reveals where misalignment creates friction, delays, and wasted spend.</p>
             <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 10 }}>
               </div>
@@ -131,7 +133,7 @@ export default function CXITAlignment() {
               {AREAS.map((a, i) => (
                 <div key={i} onClick={() => setCurrentArea(i)} style={{ flex: 1, cursor: "pointer" }}>
                   <div style={{ height: 4, borderRadius: 2, background: areaComplete(a.id) ? a.color : i === currentArea ? `${a.color}60` : BORDER }} />
-                  <div style={{ fontSize: 9, color: i === currentArea ? a.color : MUTED, fontWeight: i === currentArea ? 700 : 400, marginTop: 6, textAlign: "center" }}>{a.name.split(" ")[0]}</div>
+                  <div style={{ fontSize: 12, color: i === currentArea ? a.color : MUTED, fontWeight: i === currentArea ? 700 : 400, marginTop: 6, textAlign: "center" }}>{a.name.split(" ")[0]}</div>
                 </div>
               ))}
             </div>
@@ -143,7 +145,7 @@ export default function CXITAlignment() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 4, height: 24, borderRadius: 2, background: area.color }} />
                     <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: NAVY, margin: 0 }}>{area.name}</h2>
-                    <span style={{ fontSize: 11, color: MUTED }}>({currentArea + 1} of {AREAS.length})</span>
+                    <span style={{ fontSize: 12, color: MUTED }}>({currentArea + 1} of {AREAS.length})</span>
                   </div>
                   <p style={{ fontSize: 13, color: MUTED, marginBottom: 28 }}>Rate each paired statement 1 to 5. The left column is the CX perspective. The right column is the IT perspective. Gaps between scores reveal misalignment.</p>
 
@@ -159,7 +161,7 @@ export default function CXITAlignment() {
                           <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 1fr", gap: 12 }}>
                             {/* CX side */}
                             <div>
-                              <div style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>CX Perspective</div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>CX Perspective</div>
                               <p style={{ fontSize: 12.5, color: NAVY, lineHeight: 1.5, margin: "0 0 10px", fontWeight: 500 }}>{pair.cx}</p>
                               <div style={{ display: "flex", gap: 4 }}>
                                 {[1,2,3,4,5].map(v => (
@@ -170,14 +172,14 @@ export default function CXITAlignment() {
                             {/* Gap indicator */}
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                               {gap !== null ? (
-                                <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${gapColor}15`, border: `2px solid ${gapColor}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: gapColor }}>{gap}</div>
+                                <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${gapColor}15`, border: `2px solid ${gapColor}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: gapColor }}>{gap}</div>
                               ) : (
-                                <div style={{ fontSize: 10, color: MUTED }}>vs</div>
+                                <div style={{ fontSize: 12, color: MUTED }}>vs</div>
                               )}
                             </div>
                             {/* IT side */}
                             <div>
-                              <div style={{ fontSize: 9, fontWeight: 700, color: "#7C3AED", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>IT Perspective</div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#7C3AED", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>IT Perspective</div>
                               <p style={{ fontSize: 12.5, color: NAVY, lineHeight: 1.5, margin: "0 0 10px", fontWeight: 500 }}>{pair.it}</p>
                               <div style={{ display: "flex", gap: 4 }}>
                                 {[1,2,3,4,5].map(v => (
@@ -212,10 +214,10 @@ export default function CXITAlignment() {
         <section style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "48px 28px 80px" }}>
           <div style={WRAP}>
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "40px 32px", textAlign: "center", marginBottom: 32 }}>
-              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>CX + IT Alignment Status</span>
+              <span style={{ color: "rgba(255,255,255,0.72)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>CX + IT Alignment Status</span>
               <h2 style={{ fontFamily: FONT, fontSize: 36, fontWeight: 400, color: gapLevel.color, margin: "8px 0 4px" }}>{gapLevel.label}</h2>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 12 }}>Average alignment gap: {overallGap.toFixed(1)} points</div>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, maxWidth: 480, margin: "0 auto" }}>{gapLevel.desc}</p>
+              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", marginBottom: 12 }}>Average alignment gap: {overallGap.toFixed(1)} points</div>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.7, maxWidth: 480, margin: "0 auto" }}>{gapLevel.desc}</p>
             </div>
 
             <h3 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Alignment by Area</h3>
@@ -232,18 +234,18 @@ export default function CXITAlignment() {
                         <div style={{ width: 4, height: 20, borderRadius: 2, background: a.color }} />
                         <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{a.name}</span>
                       </div>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: gl.color, background: `${gl.color}12`, padding: "2px 8px", borderRadius: 4 }}>{gl.label} (gap {gap.toFixed(1)})</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: gl.color, background: `${gl.color}12`, padding: "2px 8px", borderRadius: 4 }}>{gl.label} (gap {gap.toFixed(1)})</span>
                     </div>
                     <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
                       <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: MUTED, marginBottom: 3 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: MUTED, marginBottom: 3 }}>
                           <span>CX: {cxAvg.toFixed(1)}</span><span>IT: {itAvg.toFixed(1)}</span>
                         </div>
                         <div style={{ position: "relative", height: 8, background: `${BORDER}`, borderRadius: 4 }}>
                           <div style={{ position: "absolute", left: `${((cxAvg - 1) / 4) * 100}%`, top: -2, width: 12, height: 12, borderRadius: "50%", background: ELECTRIC, border: "2px solid #fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
                           <div style={{ position: "absolute", left: `${((itAvg - 1) / 4) * 100}%`, top: -2, width: 12, height: 12, borderRadius: "50%", background: "#7C3AED", border: "2px solid #fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
                         </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: MUTED, marginTop: 4 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: MUTED, marginTop: 4 }}>
                           <span style={{ color: ELECTRIC, fontWeight: 600 }}>● CX</span><span style={{ color: "#7C3AED", fontWeight: 600 }}>● IT</span>
                         </div>
                       </div>
@@ -261,12 +263,12 @@ export default function CXITAlignment() {
               return (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
                   <div style={{ background: `${RED}08`, border: `1px solid ${RED}20`, borderRadius: 10, padding: "20px" }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Largest Gap</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Largest Gap</span>
                     <h4 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "6px 0 2px" }}>{worst.name}</h4>
                     <span style={{ fontSize: 13, color: MUTED }}>Gap: {areaGap(worst.id).toFixed(1)}, CX {areaAvg(worst.id, "cx").toFixed(1)} vs IT {areaAvg(worst.id, "it").toFixed(1)}</span>
                   </div>
                   <div style={{ background: `${GREEN}08`, border: `1px solid ${GREEN}20`, borderRadius: 10, padding: "20px" }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Most Aligned</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Most Aligned</span>
                     <h4 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "6px 0 2px" }}>{best.name}</h4>
                     <span style={{ fontSize: 13, color: MUTED }}>Gap: {areaGap(best.id).toFixed(1)}, CX {areaAvg(best.id, "cx").toFixed(1)} vs IT {areaAvg(best.id, "it").toFixed(1)}</span>
                   </div>
@@ -276,7 +278,7 @@ export default function CXITAlignment() {
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
               <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the alignment gaps?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your alignment profile has been saved. Connect with a consultant and we'll help you build a joint CX-IT governance model, prioritize the gaps, and map technology decisions to shared outcomes.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your alignment profile has been saved. Connect with a consultant and we'll help you build a joint CX-IT governance model, prioritize the gaps, and map technology decisions to shared outcomes.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
                 <ReportActions toolId={TOOL_ID} toolName="CX-IT Alignment Framework" subtitle={"Average CX-IT gap: " + overallGap.toFixed(1) + " points, " + gapLevel.label} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS} summary={[{ label: "Average CX-IT gap", value: overallGap.toFixed(1) + " points" }, { label: "Alignment level", value: gapLevel.label }]} sections={[

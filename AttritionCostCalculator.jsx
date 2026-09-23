@@ -386,7 +386,7 @@ function Select({ label, value, onChange, opts, info, infoTitle, align }) {
   return (
     <div>
       <label style={{ ...TYPE.label, color: NAVY, display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>{label}{info && <InfoDot text={info} title={infoTitle || label} align={align} />}</label>
-      <select value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "9px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }}>
+      <select aria-label={typeof label === "string" ? label : undefined} value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "9px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }}>
         {opts.map(o => <option key={o.v} value={o.v}>{o.label}</option>)}
       </select>
     </div>
@@ -456,19 +456,19 @@ export default function AttritionCostCalculator() {
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.cg{grid-template-columns:1fr 1fr!important}.cg3{grid-template-columns:1fr!important}}`}</style>
 
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Back to Tools</a></div></nav>
+      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>Back to Tools</a></div></nav>
 
       <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "48px 28px 36px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: RED, display: "block", marginBottom: 10 }}>Cost + Economics</span>
           <h1 style={t("display", { color: "#fff", margin: "0 0 10px" })}>Attrition Cost Calculator</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.55)", maxWidth: 700 }}>The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act. Replacement cost scales with how much you backfill; seats you do not refill are treated as a capacity decision, never as free. Benchmarked against the published 40-60% of salary band for frontline roles.</p>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.72)", maxWidth: 700 }}>The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act. Replacement cost scales with how much you backfill; seats you do not refill are treated as a capacity decision, never as free. Benchmarked against the published 40-60% of salary band for frontline roles.</p>
         </div>
       </section>
 
       <section style={{ background: WARM, padding: "32px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
-          <h2 style={{ ...TYPE.eyebrow, fontSize: 11, color: NAVY, margin: "0 0 14px" }}>Your Operation</h2>
+          <h2 style={{ ...TYPE.eyebrow, fontSize: 12, color: NAVY, margin: "0 0 14px" }}>Your Operation</h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
             <NumField label="Total agents" value={d.agents} onChange={v => set("agents", v)} step={5} min={0} pulled={!!pulled.agents} />
             <NumField label="Annual attrition" value={d.attritionRate} onChange={v => set("attritionRate", v)} suffix="%" min={0} max={300} info={DEFS.denominator} infoTitle="Attrition denominator" hint="Sep / avg headcount" />
@@ -481,7 +481,7 @@ export default function AttritionCostCalculator() {
             <NumField label="Early washout (new hires)" value={d.earlyWashoutRate} onChange={v => set("earlyWashoutRate", v)} suffix="%" min={0} max={100} info={DEFS.early} infoTitle="Early washout rate" hint="Leave before productivity" />
           </div>
 
-          <h2 style={{ ...TYPE.eyebrow, fontSize: 11, color: NAVY, margin: "22px 0 14px", display: "flex", alignItems: "center", gap: 4 }}>Cash Out The Door<InfoDot text={DEFS.marginalCash} title="Cash out the door" /></h2>
+          <h2 style={{ ...TYPE.eyebrow, fontSize: 12, color: NAVY, margin: "22px 0 14px", display: "flex", alignItems: "center", gap: 4 }}>Cash Out The Door<InfoDot text={DEFS.marginalCash} title="Cash out the door" /></h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
             <NumField label="Recruiting cost" value={d.recruitingCost} onChange={v => set("recruitingCost", v)} suffix="$" step={250} min={0} hint="Postings, agency, referral" />
             <NumField label="Screening hours" value={d.screeningHours} onChange={v => set("screeningHours", v)} suffix="hrs" min={0} />
@@ -496,7 +496,7 @@ export default function AttritionCostCalculator() {
             <Select label="Vacancy costing mode" value={r.vacancyMode} onChange={v => set("vacancyMode", v)} opts={VACANCY_OPTS} info={DEFS.vacancyMode} infoTitle="Vacancy costing mode" align="right" />
           </div>
 
-          <h2 style={{ ...TYPE.eyebrow, fontSize: 11, color: NAVY, margin: "22px 0 14px", display: "flex", alignItems: "center", gap: 4 }}>Capacity / Opportunity<InfoDot text={DEFS.capacity} title="Capacity vs cash" /></h2>
+          <h2 style={{ ...TYPE.eyebrow, fontSize: 12, color: NAVY, margin: "22px 0 14px", display: "flex", alignItems: "center", gap: 4 }}>Capacity / Opportunity<InfoDot text={DEFS.capacity} title="Capacity vs cash" /></h2>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
             <NumField label="Nesting duration" value={d.nestingWeeks} onChange={v => set("nestingWeeks", v)} suffix="wks" min={0} info={DEFS.nesting} infoTitle="Nesting" />
             <NumField label="Nesting productivity" value={d.nestingProductivity} onChange={v => set("nestingProductivity", v)} suffix="%" min={0} max={100} hint="Of full output" />
@@ -526,18 +526,18 @@ export default function AttritionCostCalculator() {
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: 22, textAlign: "center" }}>
               <div style={{ ...TYPE.eyebrow, color: LIGHT, marginBottom: 6 }}>Cash Per Departure</div>
               <div style={statLg}>{fmtK(r.cashPerDeparture)}</div>
-              <div style={{ ...TYPE.caption, color: "rgba(255,255,255,0.45)" }}>Avoided when a refill is prevented</div>
+              <div style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)" }}>Avoided when a refill is prevented</div>
             </div>
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: 22, textAlign: "center" }}>
               <div style={{ ...TYPE.eyebrow, color: AMBER, marginBottom: 6 }}>Capacity Per Departure</div>
               <div style={statLg}>{fmtK(r.capacityPerDeparture)}</div>
-              <div style={{ ...TYPE.caption, color: "rgba(255,255,255,0.45)" }}>Recovered only if you act</div>
+              <div style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)" }}>Recovered only if you act</div>
             </div>
             <div style={{ background: `linear-gradient(135deg, #7F1D1D, #991B1B)`, borderRadius: 10, padding: 22, textAlign: "center" }}>
               <div style={{ ...TYPE.eyebrow, color: "#FCA5A5", marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>All-In Per Departure<InfoDot text={DEFS.sensitivity} title="Why a range, not a point" align="right" /></div>
               <div style={statLg}>{fmtK(r.allInPerDeparture)}</div>
               <div style={{ ...TYPE.caption, ...NUM, color: "rgba(255,255,255,0.7)" }}>range {fmtK(r.allInLow)} to {fmtK(r.allInHigh)} (+/-{Math.round(r.uncPct * 100)}%)</div>
-              <div style={{ ...TYPE.caption, ...NUM, color: "rgba(255,255,255,0.45)" }}>{r.salaryUnknown ? "salary not entered" : `${Math.round(r.pctSalary)}% of salary`} · per refill</div>
+              <div style={{ ...TYPE.caption, ...NUM, color: "rgba(255,255,255,0.72)" }}>{r.salaryUnknown ? "salary not entered" : `${Math.round(r.pctSalary)}% of salary`} · per refill</div>
             </div>
           </div>
 
@@ -575,12 +575,12 @@ export default function AttritionCostCalculator() {
             <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 8 }}>
               {AXES.map((a) => (
                 <div key={a} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.5px", color: MUTED }}>{AXIS_LABEL[a]}</span>
+                  <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: MUTED }}>{AXIS_LABEL[a]}</span>
                   <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "1px", color: tierColor(r.grades[a]), padding: "3px 8px", borderRadius: 4, background: `${tierColor(r.grades[a])}1a` }}>{r.grades[a]}</span>
                 </div>
               ))}
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.5px", color: MUTED }}>Headline</span>
+                <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: MUTED }}>Headline</span>
                 <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "1px", color: "#fff", padding: "3px 8px", borderRadius: 4, background: r.voided ? RED : tierColor(r.confidence) }}>{r.voided ? "Void" : r.confidence}</span>
               </div>
             </div>
@@ -601,27 +601,27 @@ export default function AttritionCostCalculator() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 26 }} className="cg">
             {r.scenarios.map((s, i) => (
               <div key={i} style={{ background: WARM, border: `1px solid ${r.costPerPoint > 0 && s.net < 0 ? RED : BORDER}`, borderRadius: 10, padding: 16, textAlign: "center" }}>
-                <div style={{ ...TYPE.eyebrow, fontSize: 10, color: GREEN, marginBottom: 4 }}>-{s.redPts} pts to {s.newRate}%</div>
+                <div style={{ ...TYPE.eyebrow, fontSize: 12, color: GREEN, marginBottom: 4 }}>-{s.redPts} pts to {s.newRate}%</div>
                 {r.costPerPoint > 0 ? (<>
                   <div style={{ ...TYPE.statValue, fontSize: 22, color: s.net < 0 ? RED : GREEN }}>{fmtK(s.net)}</div>
                   <div style={{ ...TYPE.caption, color: MUTED }}>net / yr</div>
-                  <div style={{ ...TYPE.caption, ...NUM, fontSize: 10, color: MUTED, marginTop: 4 }}>{fmtK(s.total)} gross less {fmtK(s.achieveCost)} cost<br />{s.roi != null ? `${s.roi.toFixed(1)}x return · ` : ""}{s.avoided} fewer</div>
+                  <div style={{ ...TYPE.caption, ...NUM, fontSize: 12, color: MUTED, marginTop: 4 }}>{fmtK(s.total)} gross less {fmtK(s.achieveCost)} cost<br />{s.roi != null ? `${s.roi.toFixed(1)}x return · ` : ""}{s.avoided} fewer</div>
                 </>) : (<>
                   <div style={{ ...TYPE.statValue, fontSize: 22, color: GREEN }}>{fmtK(s.total)}</div>
                   <div style={{ ...TYPE.caption, color: MUTED }}>realizable / yr</div>
-                  <div style={{ ...TYPE.caption, ...NUM, fontSize: 10, color: MUTED, marginTop: 4 }}>{fmtK(s.cash)} cash avoided + {fmtK(s.cap)} capacity value<br />{s.avoided} fewer departures</div>
+                  <div style={{ ...TYPE.caption, ...NUM, fontSize: 12, color: MUTED, marginTop: 4 }}>{fmtK(s.cash)} cash avoided + {fmtK(s.cap)} capacity value<br />{s.avoided} fewer departures</div>
                 </>)}
-                <div style={{ ...TYPE.eyebrow, fontSize: 9, letterSpacing: "0.3px", color: tierColor(r.grades.realization), marginTop: 6, padding: "2px 6px", borderRadius: 3, background: `${tierColor(r.grades.realization)}14`, display: "inline-block" }}>{r.bookLabel}</div>
+                <div style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.3px", color: tierColor(r.grades.realization), marginTop: 6, padding: "2px 6px", borderRadius: 3, background: `${tierColor(r.grades.realization)}14`, display: "inline-block" }}>{r.bookLabel}</div>
               </div>
             ))}
           </div>
 
           {r.flags.length > 0 && (
             <div style={{ background: "#FFF8F0", border: `1px solid ${AMBER}`, borderRadius: 10, padding: "16px 18px", marginBottom: 22 }}>
-              <h3 style={{ ...TYPE.eyebrow, fontSize: 11, color: "#92400E", marginBottom: 8 }}>Integrity Checks</h3>
+              <h3 style={{ ...TYPE.eyebrow, fontSize: 12, color: "#92400E", marginBottom: 8 }}>Integrity Checks</h3>
               {r.flags.map((f, i) => (
                 <div key={i} style={{ display: "flex", gap: 8, padding: "4px 0" }}>
-                  <span style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.5px", color: f.sev === "high" ? RED : AMBER, flexShrink: 0, marginTop: 2, width: 32 }}>{f.sev === "high" ? "FLAG" : "NOTE"}</span>
+                  <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: f.sev === "high" ? RED : AMBER, flexShrink: 0, marginTop: 2, width: 32 }}>{f.sev === "high" ? "FLAG" : "NOTE"}</span>
                   <span style={{ ...TYPE.bodySm, color: SLATE }}>{f.t}</span>
                 </div>
               ))}
@@ -629,13 +629,13 @@ export default function AttritionCostCalculator() {
           )}
 
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 24 }}>
-            <h3 style={{ ...TYPE.eyebrow, fontSize: 11, color: GREEN, marginBottom: 12 }}>Analyst Read</h3>
+            <h3 style={{ ...TYPE.eyebrow, fontSize: 12, color: GREEN, marginBottom: 12 }}>Analyst Read</h3>
             {r.analystRead.split("\n\n").map((para, i) => <p key={i} style={{ ...TYPE.bodySm, color: "rgba(255,255,255,0.7)", marginBottom: 10 }}>{para}</p>)}
           </div>
 
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 24 }}>
-            <h3 style={{ ...TYPE.eyebrow, fontSize: 11, color: GREEN, marginBottom: 8 }}>What Is Driving This Attrition?</h3>
-            <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.45)", marginBottom: 14 }}>At {r.attritionRate}% one or more of these is active. The rate gets fixed in these tools, not in this calculator.</p>
+            <h3 style={{ ...TYPE.eyebrow, fontSize: 12, color: GREEN, marginBottom: 8 }}>What Is Driving This Attrition?</h3>
+            <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", marginBottom: 14 }}>At {r.attritionRate}% one or more of these is active. The rate gets fixed in these tools, not in this calculator.</p>
             {[
               { driver: "Occupancy above 85%", likelihood: r.attritionRate > 35 ? "High" : "Medium", tool: "/tools/occupancy-risk", toolName: "Occupancy Risk Simulator", why: "Insufficient recovery time between contacts burns agents out. The most controllable attrition driver." },
               { driver: "Repeat contacts / rework load", likelihood: "Medium", tool: "/tools/fcr-leakage", toolName: "FCR Leakage Diagnostic", why: "New-hire error and repeat-contact cost lives here, not in this tool. Quantify the rework that frustrates agents and customers alike." },
@@ -643,10 +643,10 @@ export default function AttritionCostCalculator() {
               { driver: "No visible career path", likelihood: r.attritionRate > 40 ? "High" : "Medium", tool: "/human-premium", toolName: "The Human Premium", why: "When agents cannot see what comes after this role, they leave to find it. New CX roles are emerging." },
             ].map((item, i) => (
               <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
-                <span style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.5px", color: item.likelihood === "High" ? RED : AMBER, padding: "2px 6px", borderRadius: 3, background: item.likelihood === "High" ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)", flexShrink: 0, marginTop: 2 }}>{item.likelihood}</span>
+                <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: item.likelihood === "High" ? RED : AMBER, padding: "2px 6px", borderRadius: 3, background: item.likelihood === "High" ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)", flexShrink: 0, marginTop: 2 }}>{item.likelihood}</span>
                 <div>
                   <span style={{ ...TYPE.h3, fontSize: 13, color: "#fff" }}>{item.driver}</span>
-                  <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.35)", margin: "2px 0 4px" }}>{item.why}</p>
+                  <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", margin: "2px 0 4px" }}>{item.why}</p>
                   <a href={item.tool} style={{ ...TYPE.caption, fontWeight: 600, color: LIGHT, padding: "2px 8px", borderRadius: 3, border: "1px solid rgba(255,255,255,0.12)" }}>{item.toolName}</a>
                 </div>
               </div>

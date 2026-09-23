@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
@@ -72,6 +72,8 @@ export default function PlatformDecisionMatrix() {
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
 
+      {phase !== "intro" && <h1 className="sr-only">Platform Decision Matrix</h1>}
+
       {phase === "intro"&&(<section style={{background:`linear-gradient(168deg,${DEEP},${NAVY})`,padding:"80px 28px 60px"}}><div style={{...WRAP,maxWidth:520}}>
         <span style={{color:LIGHT,fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",display:"block",marginBottom:12}}>Vendor Selection</span>
         <h1 style={{fontFamily:FONT,fontSize:32,fontWeight:400,color:"#fff",lineHeight:1.15,margin:"0 0 12px"}}>Platform Decision Matrix</h1>
@@ -83,7 +85,7 @@ export default function PlatformDecisionMatrix() {
 
       {phase === "assess"&&(<section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
         <div style={{display:"flex",gap:4,marginBottom:24,flexWrap:"wrap"}}>
-          {LAYERS.map((l,i)=>(<button key={l.n} onClick={()=>setCurrentLayer(i)} style={{padding:"6px 12px",fontSize:11,fontWeight:600,borderRadius:6,cursor:"pointer",border:`1px solid ${i===currentLayer?l.color:layerComplete(l.n)?GREEN:BORDER}`,background:i===currentLayer?l.color:layerComplete(l.n)?`${GREEN}08`:"#fff",color:i===currentLayer?"#fff":layerComplete(l.n)?GREEN:MUTED}}>{layerComplete(l.n)?"✓ ":""}L{l.n}</button>))}
+          {LAYERS.map((l,i)=>(<button key={l.n} onClick={()=>setCurrentLayer(i)} style={{padding:"6px 12px",fontSize:12,fontWeight:600,borderRadius:6,cursor:"pointer",border:`1px solid ${i===currentLayer?l.color:layerComplete(l.n)?GREEN:BORDER}`,background:i===currentLayer?l.color:layerComplete(l.n)?`${GREEN}08`:"#fff",color:i===currentLayer?"#fff":layerComplete(l.n)?GREEN:MUTED}}>{layerComplete(l.n)?"✓ ":""}L{l.n}</button>))}
         </div>
         {(()=>{const layer=LAYERS[currentLayer]; return(<div>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
@@ -95,7 +97,7 @@ export default function PlatformDecisionMatrix() {
             {layer.needs.map((need,ni)=>(<div key={ni} style={{background:WARM,border:`1px solid ${scores[`${layer.n}-${ni}`]?layer.color+"30":BORDER}`,borderRadius:8,padding:"14px 16px"}}>
               <p style={{fontSize:13,color:NAVY,margin:"0 0 10px",fontWeight:500}}>{need}</p>
               <div style={{display:"flex",gap:4}}>
-                {RATINGS.map(r=>(<button key={r.value} onClick={()=>setScore(layer.n,ni,r.value)} style={{flex:1,padding:"6px 4px",fontSize:10,fontWeight:600,borderRadius:4,cursor:"pointer",border:`1px solid ${scores[`${layer.n}-${ni}`]===r.value?r.color:BORDER}`,background:scores[`${layer.n}-${ni}`]===r.value?r.color:"#fff",color:scores[`${layer.n}-${ni}`]===r.value?"#fff":MUTED}}>{r.label}</button>))}
+                {RATINGS.map(r=>(<button key={r.value} onClick={()=>setScore(layer.n,ni,r.value)} style={{flex:1,padding:"6px 4px",fontSize:12,fontWeight:600,borderRadius:4,cursor:"pointer",border:`1px solid ${scores[`${layer.n}-${ni}`]===r.value?r.color:BORDER}`,background:scores[`${layer.n}-${ni}`]===r.value?r.color:"#fff",color:scores[`${layer.n}-${ni}`]===r.value?"#fff":MUTED}}>{r.label}</button>))}
               </div>
             </div>))}
           </div>
@@ -141,13 +143,13 @@ export default function PlatformDecisionMatrix() {
 
                   {/* Contextual next steps for gaps */}
                   {needsAction&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
-                    <a href={layer.vendorCategory} style={{fontSize:11,fontWeight:600,color:"#fff",padding:"5px 12px",borderRadius:5,background:rec.color}}>See {layer.categoryLabel} →</a>
-                    <a href={layer.toolLink} style={{fontSize:11,fontWeight:600,color:rec.color,padding:"5px 12px",borderRadius:5,border:`1px solid ${rec.color}30`,background:`${rec.color}06`}}>{layer.toolLabel} →</a>
-                    <a href="/tools/vendor-match" style={{fontSize:11,fontWeight:600,color:ELECTRIC,padding:"5px 12px",borderRadius:5,border:`1px solid ${ELECTRIC}30`,background:`${ELECTRIC}06`}}>Find matching vendors →</a>
+                    <a href={layer.vendorCategory} style={{fontSize:12,fontWeight:600,color:"#fff",padding:"5px 12px",borderRadius:5,background:rec.color}}>See {layer.categoryLabel} →</a>
+                    <a href={layer.toolLink} style={{fontSize:12,fontWeight:600,color:rec.color,padding:"5px 12px",borderRadius:5,border:`1px solid ${rec.color}30`,background:`${rec.color}06`}}>{layer.toolLabel} →</a>
+                    <a href="/tools/vendor-match" style={{fontSize:12,fontWeight:600,color:ELECTRIC,padding:"5px 12px",borderRadius:5,border:`1px solid ${ELECTRIC}30`,background:`${ELECTRIC}06`}}>Find matching vendors →</a>
                   </div>)}
 
                   {rec.action==="Extend"&&(<div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
-                    <a href={layer.toolLink} style={{fontSize:11,fontWeight:600,color:AMBER,padding:"5px 12px",borderRadius:5,border:`1px solid ${AMBER}30`,background:`${AMBER}06`}}>Diagnose with {layer.toolLabel} →</a>
+                    <a href={layer.toolLink} style={{fontSize:12,fontWeight:600,color:AMBER,padding:"5px 12px",borderRadius:5,border:`1px solid ${AMBER}30`,background:`${AMBER}06`}}>Diagnose with {layer.toolLabel} →</a>
                   </div>)}
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>

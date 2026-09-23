@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
@@ -92,22 +92,22 @@ export default function QAScorecardBuilder() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>
+      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>
 
       <>
         <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-              <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>QA Scorecard Builder</h2>
+              <h1 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>QA Scorecard Builder</h1>
               <div style={{ display: "flex", gap: 4 }}>
                 {Object.entries(TEMPLATES).map(([k, v]) => (
-                  <button key={k} onClick={() => applyTemplate(k)} style={{ padding: "6px 14px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${template === k ? GREEN : BORDER}`, background: template === k ? GREEN : "#fff", color: template === k ? "#fff" : MUTED, cursor: "pointer" }}>{v.name}</button>
+                  <button key={k} onClick={() => applyTemplate(k)} style={{ padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${template === k ? GREEN : BORDER}`, background: template === k ? GREEN : "#fff", color: template === k ? "#fff" : MUTED, cursor: "pointer" }}>{v.name}</button>
                 ))}
               </div>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 16 }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: weightValid ? GREEN : RED }}>Total weight: {totalWeight}%</span>
-              {!weightValid && <span style={{ fontSize: 11, color: RED }}>Must equal 100%</span>}
+              {!weightValid && <span style={{ fontSize: 12, color: RED }}>Must equal 100%</span>}
             </div>
           </div>
         </section>
@@ -117,22 +117,22 @@ export default function QAScorecardBuilder() {
             {categories.map((cat, ci) => (
               <div key={ci} style={{ marginBottom: 20, background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden" }}>
                 <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                  <input type="text" value={cat.name} onChange={e => updateCatName(ci, e.target.value)} style={{ flex: 1, minWidth: 200, padding: "6px 10px", fontSize: 14, fontWeight: 600, border: `1px solid ${BORDER}`, borderRadius: 4, background: "#fff", color: NAVY }} />
+                  <input type="text" aria-label={`Category ${ci + 1} name`} value={cat.name} onChange={e => updateCatName(ci, e.target.value)} style={{ flex: 1, minWidth: 200, padding: "6px 10px", fontSize: 14, fontWeight: 600, border: `1px solid ${BORDER}`, borderRadius: 4, background: "#fff", color: NAVY }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <span style={{ fontSize: 11, color: MUTED }}>Weight:</span>
-                    <input type="number" value={cat.weight} onChange={e => updateWeight(ci, e.target.value)} style={{ width: 50, padding: "6px 8px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 4, textAlign: "center" }} />
-                    <span style={{ fontSize: 11, color: MUTED }}>%</span>
+                    <span style={{ fontSize: 12, color: MUTED }}>Weight:</span>
+                    <input type="number" aria-label={`${cat.name} weight, percent`} value={cat.weight} onChange={e => updateWeight(ci, e.target.value)} style={{ width: 50, padding: "6px 8px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 4, textAlign: "center" }} />
+                    <span style={{ fontSize: 12, color: MUTED }}>%</span>
                   </div>
-                  <button onClick={() => removeCategory(ci)} style={{ fontSize: 11, color: RED, background: "none", border: "none", cursor: "pointer" }}>Remove</button>
+                  <button aria-label={`Remove category ${cat.name}`} onClick={() => removeCategory(ci)} style={{ fontSize: 12, color: RED, background: "none", border: "none", cursor: "pointer" }}>Remove</button>
                 </div>
                 <div style={{ padding: "8px 18px 14px" }}>
                   {cat.criteria.map((cr, cri) => (
                     <div key={cri} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: cri < cat.criteria.length - 1 ? `1px solid ${BORDER}` : "none" }}>
-                      <input type="text" value={cr.text} onChange={e => updateCriterion(ci, cri, "text", e.target.value)} style={{ flex: 1, padding: "6px 10px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 4, background: "#fff" }} />
-                      <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: cr.critical ? RED : MUTED, cursor: "pointer", flexShrink: 0 }}>
+                      <input type="text" aria-label={`${cat.name} criterion ${cri + 1}`} value={cr.text} onChange={e => updateCriterion(ci, cri, "text", e.target.value)} style={{ flex: 1, padding: "6px 10px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 4, background: "#fff" }} />
+                      <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: cr.critical ? RED : MUTED, cursor: "pointer", flexShrink: 0 }}>
                         <input type="checkbox" checked={cr.critical} onChange={e => updateCriterion(ci, cri, "critical", e.target.checked)} /> Critical
                       </label>
-                      <button onClick={() => removeCriterion(ci, cri)} style={{ fontSize: 14, color: MUTED, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}>×</button>
+                      <button aria-label={`Remove ${cat.name} criterion ${cri + 1}`} onClick={() => removeCriterion(ci, cri)} style={{ fontSize: 14, color: MUTED, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}>×</button>
                     </div>
                   ))}
                   <button onClick={() => addCriterion(ci)} style={{ fontSize: 12, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", marginTop: 6, fontWeight: 600 }}>+ Add criterion</button>
@@ -158,8 +158,8 @@ export default function QAScorecardBuilder() {
                       <div key={cri} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
                         <span style={{ flex: 1, fontSize: 13, color: NAVY }}>{cr.critical && <span style={{ color: RED, fontWeight: 700, marginRight: 4 }}>*</span>}{cr.text}</span>
                         <div style={{ display: "flex", gap: 4 }}>
-                          <button onClick={() => setEval(ci, cri, true)} style={{ padding: "4px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === GREEN}`, background: evalScores[`${ci}-${cri}`] === GREEN, color: evalScores[`${ci}-${cri}`] === "#fff", cursor: "pointer" }}>Yes</button>
-                          <button onClick={() => setEval(ci, cri, false)} style={{ padding: "4px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === BORDER}`, background: evalScores[`${ci}-${cri}`] === "#fff", color: evalScores[`${ci}-${cri}`] === MUTED, cursor: "pointer" }}>No</button>
+                          <button onClick={() => setEval(ci, cri, true)} style={{ padding: "4px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === GREEN}`, background: evalScores[`${ci}-${cri}`] === GREEN, color: evalScores[`${ci}-${cri}`] === "#fff", cursor: "pointer" }}>Yes</button>
+                          <button onClick={() => setEval(ci, cri, false)} style={{ padding: "4px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === BORDER}`, background: evalScores[`${ci}-${cri}`] === "#fff", color: evalScores[`${ci}-${cri}`] === MUTED, cursor: "pointer" }}>No</button>
                         </div>
                       </div>
                     ))}
@@ -175,7 +175,7 @@ export default function QAScorecardBuilder() {
             )}
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0 }}>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, margin: 0 }}>
                 <strong style={{ color: "#fff" }}>Why one scorecard fails:</strong> A password reset and a billing dispute require different evaluation criteria. Using one scorecard for all contact types means you are either evaluating too generically (missing what matters for complex calls) or too specifically (penalizing simple calls for not hitting criteria that do not apply). Build 3-5 scorecards by contact type, complexity, or risk level. Weight the dimensions that matter most for each type.
               </p>
             </div>

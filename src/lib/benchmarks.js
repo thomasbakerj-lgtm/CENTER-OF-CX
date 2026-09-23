@@ -15,7 +15,7 @@ export const COLORS = {
   red: "#EF4444",
   electric: "#0088DD",
   navy: "#0B1D3A",
-  muted: "#6B7F99",
+  muted: "#5B6E88",
 };
 
 export const BENCH = {

@@ -41,16 +41,16 @@ function Sel({ label, value, onChange, options, info, infoTitle, align, disabled
   return (
     <div>
       <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: disabled ? MUTED : SLATE, marginBottom: 6 }}>{label}{info && <InfoDot text={info} title={infoTitle} align={align} />}</label>
-      <select value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} style={{ width: "100%", padding: "11px 12px", fontSize: 14, fontWeight: 600, color: disabled ? MUTED : NAVY, border: `1px solid ${BORDER}`, borderRadius: 8, background: disabled ? WARM : "#fff", outline: "none", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.7 : 1 }}>
+      <select aria-label={typeof label === "string" ? label : undefined} value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} style={{ width: "100%", padding: "11px 12px", fontSize: 14, fontWeight: 600, color: disabled ? MUTED : NAVY, border: `1px solid ${BORDER}`, borderRadius: 8, background: disabled ? WARM : "#fff", outline: "none", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.7 : 1 }}>
         {options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
       </select>
-      {note && <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.45, margin: "6px 0 0" }}>{note}</p>}
+      {note && <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.45, margin: "6px 0 0" }}>{note}</p>}
     </div>
   );
 }
 
 function Tag({ text, color }) {
-  return <span style={{ fontSize: 9, fontWeight: 700, color, background: `${color}16`, padding: "1px 6px", borderRadius: 4, letterSpacing: 0.4, textTransform: "uppercase" }}>{text}</span>;
+  return <span style={{ fontSize: 12, fontWeight: 700, color, background: `${color}16`, padding: "1px 6px", borderRadius: 4, letterSpacing: 0.4, textTransform: "uppercase" }}>{text}</span>;
 }
 
 const DIMS = [
@@ -641,7 +641,7 @@ export default function FCRLeakageDiagnostic() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff", color: NAVY }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}select{font-family:inherit}@media(max-width:700px){.g2{grid-template-columns:1fr!important}.g3{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}><LogoMark /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, textDecoration: "none" }}>← Back to Tools</a></div></nav>
+      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}><LogoMark /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13, textDecoration: "none" }}>← Back to Tools</a></div></nav>
 
       {phase === "setup" && (
         <section style={{ padding: "44px 28px 60px" }}>
@@ -649,7 +649,7 @@ export default function FCRLeakageDiagnostic() {
             <span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Performance + Quality</span>
             <h1 style={{ ...TYPE.display, margin: "10px 0 10px" }}>FCR Leakage Diagnostic</h1>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.6, marginBottom: 12, maxWidth: 620 }}>Repeat contacts are the leakage. This tool separates the burden you carry, the portion that is realistically controllable, and the part that converts to actual cash. It will tell you when a project does not pay back.</p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 26, fontSize: 11, color: MUTED }}><span>1. Burden</span><span>2. Controllable opportunity</span><span>3. Realizable cash</span><span>4. Confidence</span><span>5. Next operating test</span></div>
+            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 26, fontSize: 12, color: MUTED }}><span>1. Burden</span><span>2. Controllable opportunity</span><span>3. Realizable cash</span><span>4. Confidence</span><span>5. Next operating test</span></div>
 
             <div style={card}>
               <h3 style={h3}>Volume + Economics</h3>
@@ -709,7 +709,7 @@ export default function FCRLeakageDiagnostic() {
         <section style={{ padding: "40px 28px 60px" }}>
           <div style={{ ...WRAP, maxWidth: 700 }}>
             <div style={{ display: "flex", gap: 4, marginBottom: 28, flexWrap: "wrap" }}>
-              {DIMS.map((d, i) => <button key={d.id} onClick={() => setCurrentDim(i)} style={{ padding: "8px 13px", fontSize: 11, fontWeight: 600, borderRadius: 6, cursor: "pointer", border: `1px solid ${i === currentDim ? d.color : dimComplete(d.id) ? GREEN : BORDER}`, background: i === currentDim ? `${d.color}12` : dimComplete(d.id) ? `${GREEN}08` : "#fff", color: i === currentDim ? d.color : dimComplete(d.id) ? GREEN : MUTED }}>{dimComplete(d.id) ? "✓ " : ""}{d.icon} {d.name.split("+")[0].trim()}</button>)}
+              {DIMS.map((d, i) => <button key={d.id} onClick={() => setCurrentDim(i)} style={{ padding: "8px 13px", fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: "pointer", border: `1px solid ${i === currentDim ? d.color : dimComplete(d.id) ? GREEN : BORDER}`, background: i === currentDim ? `${d.color}12` : dimComplete(d.id) ? `${GREEN}08` : "#fff", color: i === currentDim ? d.color : dimComplete(d.id) ? GREEN : MUTED }}>{dimComplete(d.id) ? "✓ " : ""}{d.icon} {d.name.split("+")[0].trim()}</button>)}
             </div>
             {(() => { const d = DIMS[currentDim]; return (
               <div>
@@ -719,7 +719,7 @@ export default function FCRLeakageDiagnostic() {
                   {d.qs.map((q, qi) => (
                     <div key={qi} style={{ background: WARM, border: `1px solid ${scores[`${d.id}-${qi}`] ? d.color + "30" : BORDER}`, borderRadius: 10, padding: "16px 18px" }}>
                       <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 12px" }}>{q}</p>
-                      <div style={{ display: "flex", gap: 6 }}>{[1, 2, 3, 4, 5].map((v) => <button key={v} onClick={() => setScore(d.id, qi, v)} style={{ flex: 1, padding: "8px 4px", fontSize: 11, fontWeight: 600, borderRadius: 6, cursor: "pointer", border: `1px solid ${scores[`${d.id}-${qi}`] === v ? d.color : BORDER}`, background: scores[`${d.id}-${qi}`] === v ? d.color : "#fff", color: scores[`${d.id}-${qi}`] === v ? "#fff" : MUTED }}>{LABELS[v]}</button>)}</div>
+                      <div style={{ display: "flex", gap: 6 }}>{[1, 2, 3, 4, 5].map((v) => <button key={v} onClick={() => setScore(d.id, qi, v)} style={{ flex: 1, padding: "8px 4px", fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: "pointer", border: `1px solid ${scores[`${d.id}-${qi}`] === v ? d.color : BORDER}`, background: scores[`${d.id}-${qi}`] === v ? d.color : "#fff", color: scores[`${d.id}-${qi}`] === v ? "#fff" : MUTED }}>{LABELS[v]}</button>)}</div>
                     </div>
                   ))}
                 </div>
@@ -754,7 +754,7 @@ export default function FCRLeakageDiagnostic() {
               <span style={{ fontSize: 12, color: SLATE }}>Completeness <strong style={{ color: confColor(G.completeness) }}>{G.completeness}</strong></span>
               <InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} />
               <div style={{ flexBasis: "100%", fontSize: 12, color: SLATE, lineHeight: 1.5, marginTop: 2 }}>{G.gradeWhy}</div>
-              <div style={{ flexBasis: "100%", fontSize: 11.5, color: MUTED, lineHeight: 1.5 }}>This grade is self-declared. It reflects what you told this tool about your sources. No payroll file, finance record or repeat-contact dataset was inspected.</div>
+              <div style={{ flexBasis: "100%", fontSize: 12, color: MUTED, lineHeight: 1.5 }}>This grade is self-declared. It reflects what you told this tool about your sources. No payroll file, finance record or repeat-contact dataset was inspected.</div>
             </div>
 
             <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
@@ -775,7 +775,7 @@ export default function FCRLeakageDiagnostic() {
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>Burden split, not savings</span><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: SLATE }}>Theoretical controllable burden <Tag text="Capped" color={AMBER} /></span><strong style={{ color: NAVY }}>{money(R.controllableBurdenYr)}</strong></div>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: SLATE }}>Non-controllable <Tag text="Excluded" color={MUTED} /></span><strong style={{ color: MUTED }}>{money(R.nonControllableBurdenYr)}</strong></div>
-                <p style={{ fontSize: 10.5, color: MUTED, lineHeight: 1.45, marginTop: 8 }}>Burden, not savings. The controllable slice is not cash-realizable unless the selected mechanism converts freed capacity, and only net of the cost to achieve it.</p>
+                <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.45, marginTop: 8 }}>Burden, not savings. The controllable slice is not cash-realizable unless the selected mechanism converts freed capacity, and only net of the cost to achieve it.</p>
               </div>
               <div style={{ background: NAVY, borderRadius: 12, padding: "16px 20px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>Opportunity times capture</span><InfoDot text={DEFS.ceiling.text} title={DEFS.ceiling.title} /></div>
@@ -795,7 +795,7 @@ export default function FCRLeakageDiagnostic() {
               {sorted.slice(0, 3).map((d, i) => (
                 <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < 2 ? `1px solid ${RED}15` : "none" }}>
                   <span style={{ ...TYPE.h2, ...NUM, color: RED, width: 22 }}>{i + 1}</span>
-                  <div style={{ flex: 1 }}><span style={{ fontSize: 13, fontWeight: 600 }}>{d.icon} {d.name}</span><div style={{ fontSize: 11, color: MUTED }}>Owner: {d.owner}</div></div>
+                  <div style={{ flex: 1 }}><span style={{ fontSize: 13, fontWeight: 600 }}>{d.icon} {d.name}</span><div style={{ fontSize: 12, color: MUTED }}>Owner: {d.owner}</div></div>
                   <span style={{ ...TYPE.h2, ...NUM, color: RED }}>{dimScore(d.id).toFixed(1)}</span>
                 </div>
               ))}
@@ -815,18 +815,18 @@ export default function FCRLeakageDiagnostic() {
             <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18 }}>
               <div style={{ border: `1px solid ${AMBER}30`, borderRadius: 12, padding: "16px 20px", background: `${AMBER}06` }}>
                 <h4 style={{ fontSize: 12, fontWeight: 700, color: AMBER, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Do not let FCR get gamed</h4>
-                <p style={{ fontSize: 11.5, color: SLATE, lineHeight: 1.5, marginBottom: 8 }}>FCR rises falsely if agents mark issues resolved, callbacks get recoded, or bots contain without resolving. Track these alongside it:</p>
-                <div style={{ fontSize: 11.5, color: SLATE, lineHeight: 1.7 }}>{GAMING.join(" · ")}</div>
+                <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, marginBottom: 8 }}>FCR rises falsely if agents mark issues resolved, callbacks get recoded, or bots contain without resolving. Track these alongside it:</p>
+                <div style={{ fontSize: 12, color: SLATE, lineHeight: 1.7 }}>{GAMING.join(" · ")}</div>
               </div>
               <div style={{ border: `1px solid ${ELECTRIC}30`, borderRadius: 12, padding: "16px 20px", background: `${ELECTRIC}06` }}>
                 <h4 style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Containment is not resolution</h4>
-                <p style={{ fontSize: 11.5, color: SLATE, lineHeight: 1.55 }}>A bot can contain a conversation without resolving it, and a customer who gives up looks like a success. Use confirmed resolution, repeat contact, escalation, and CSAT as balancing checks before crediting AI deflection. Benchmarks run 50% to 90% by industry and complexity, so your own trend and definition consistency matter more than the market average.</p>
+                <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55 }}>A bot can contain a conversation without resolving it, and a customer who gives up looks like a success. Use confirmed resolution, repeat contact, escalation, and CSAT as balancing checks before crediting AI deflection. Benchmarks run 50% to 90% by industry and complexity, so your own trend and definition consistency matter more than the market average.</p>
               </div>
             </div>
 
             <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px 22px", marginBottom: 18 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}><h3 style={{ fontSize: 13, fontWeight: 700, color: NAVY, margin: 0 }}>Assumption sensitivity</h3><InfoDot text="Repeat-contact cost premiums run 1.5x to 2x in published research, and repeat behavior can be one-callback or geometric. This shows how those two assumptions swing year-one net, holding your FCR, target, mechanism, and costs constant, so you can see which assumptions matter most before acting." title="Assumption sensitivity" /></div>
-              <p style={{ fontSize: 11.5, color: MUTED, marginBottom: 12, lineHeight: 1.5 }}>Same FCR, target, mechanism, and costs. Only the repeat-behavior model and cost premium change.</p>
+              <p style={{ fontSize: 12, color: MUTED, marginBottom: 12, lineHeight: 1.5 }}>Same FCR, target, mechanism, and costs. Only the repeat-behavior model and cost premium change.</p>
               {[
                 { k: "Conservative", d: "one-callback, 1.0x cost", r: sensLo },
                 { k: "Current model", d: `${repeatModel === "geometric" ? "geometric" : repeatModel === "measured" ? "measured" : "one-callback"}, ${fmtX(N.repeatMult)}x cost`, r: R, cur: true },
@@ -834,12 +834,12 @@ export default function FCRLeakageDiagnostic() {
               ].map((row, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < 2 ? `1px solid ${BORDER}` : "none", background: row.cur ? `${ELECTRIC}06` : "transparent" }}>
                   <span style={{ fontSize: 12.5, fontWeight: row.cur ? 700 : 600, color: row.cur ? ELECTRIC : NAVY, width: 120 }}>{row.k}</span>
-                  <span style={{ fontSize: 11.5, color: MUTED, flex: 1 }}>{row.d}</span>
+                  <span style={{ fontSize: 12, color: MUTED, flex: 1 }}>{row.d}</span>
                   <span style={{ fontSize: 12, color: SLATE }}>burden {money(row.r.burdenYr)}</span>
                   <span style={{ ...TYPE.h3, ...NUM, fontWeight: W.semibold, color: row.r.year1Net >= 0 ? GREEN : RED, width: 110, textAlign: "right" }}>{money(row.r.year1Net)}</span>
                 </div>
               ))}
-              <p style={{ fontSize: 10.5, color: MUTED, marginTop: 8 }}>Rightmost column is year-one net. If the sign flips across these rows, your repeat-cost assumption is the deciding factor and is worth measuring before you commit.</p>
+              <p style={{ fontSize: 12, color: MUTED, marginTop: 8 }}>Rightmost column is year-one net. If the sign flips across these rows, your repeat-cost assumption is the deciding factor and is worth measuring before you commit.</p>
             </div>
 
             <ReportActions

@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 960, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=28,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
@@ -194,9 +194,11 @@ export default function RFPRequirementBuilder() {
       <nav style={{ background: DEEP, padding: "10px 0", position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13.5 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a>
+          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a>
         </div>
       </nav>
+
+      <h1 className="sr-only">RFP Requirement Builder</h1>
 
       {phase === "input" && (
         <section style={{ background: "#fff", padding: "64px 28px 48px" }}>
@@ -225,7 +227,7 @@ export default function RFPRequirementBuilder() {
                 {TAG_FILTERS.map(t => (
                   <button key={t.id} onClick={() => t.id !== "all" && toggleTag(t.id)} style={{ padding: "14px 16px", textAlign: "left", borderRadius: 8, cursor: t.id === "all" ? "default" : "pointer", border: `1px solid ${activeTags.includes(t.id) ? ELECTRIC : BORDER}`, background: activeTags.includes(t.id) ? `${ELECTRIC}06` : "#fff", opacity: t.id === "all" ? 0.6 : 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: activeTags.includes(t.id) ? ELECTRIC : NAVY }}>{activeTags.includes(t.id) ? "✓ " : ""}{t.label}</div>
-                    <div style={{ fontSize: 11, color: MUTED }}>{t.desc}</div>
+                    <div style={{ fontSize: 12, color: MUTED }}>{t.desc}</div>
                   </button>
                 ))}
               </div>
@@ -248,9 +250,9 @@ export default function RFPRequirementBuilder() {
               {filtered.map(g => (
                 <div key={g.layer.n} style={{ marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 5, background: g.layer.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700 }}>{g.layer.n}</div>
+                    <div style={{ width: 24, height: 24, borderRadius: 5, background: g.layer.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>{g.layer.n}</div>
                     <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{g.layer.name}</span>
-                    <span style={{ fontSize: 11, color: MUTED }}>({g.reqs.length} requirements)</span>
+                    <span style={{ fontSize: 12, color: MUTED }}>({g.reqs.length} requirements)</span>
                   </div>
                   <div style={{ border: `1px solid ${BORDER}`, borderRadius: 8, overflow: "hidden" }}>
                     {g.reqs.map((r, ri) => (
@@ -258,7 +260,7 @@ export default function RFPRequirementBuilder() {
                         <span style={{ flex: 1 }}>{r.text}</span>
                         <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
                           {["must","should","nice"].map(p => (
-                            <button key={p} onClick={() => setReq(r.layerN, r.idx, p)} style={{ padding: "3px 8px", fontSize: 10, fontWeight: 600, borderRadius: 4, cursor: "pointer", border: `1px solid ${r.priority === p ? priColors[p] : BORDER}`, background: r.priority === p ? `${priColors[p]}12` : "#fff", color: r.priority === p ? priColors[p] : MUTED }}>{p === "must" ? "Must" : p === "should" ? "Should" : "Nice"}</button>
+                            <button key={p} onClick={() => setReq(r.layerN, r.idx, p)} style={{ padding: "3px 8px", fontSize: 12, fontWeight: 600, borderRadius: 4, cursor: "pointer", border: `1px solid ${r.priority === p ? priColors[p] : BORDER}`, background: r.priority === p ? `${priColors[p]}12` : "#fff", color: r.priority === p ? priColors[p] : MUTED }}>{p === "must" ? "Must" : p === "should" ? "Should" : "Nice"}</button>
                           ))}
                         </div>
                       </div>
@@ -270,7 +272,7 @@ export default function RFPRequirementBuilder() {
               {vertReqs.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 5, background: GREEN, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700 }}>V</div>
+                    <div style={{ width: 24, height: 24, borderRadius: 5, background: GREEN, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>V</div>
                     <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{vertical}-Specific Requirements</span>
                   </div>
                   <div style={{ border: `1px solid ${GREEN}30`, borderRadius: 8, overflow: "hidden", background: `${GREEN}04` }}>
@@ -319,13 +321,13 @@ export default function RFPRequirementBuilder() {
             {filtered.map(g => (
               <div key={g.layer.n} style={{ marginBottom: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <div style={{ width: 20, height: 20, borderRadius: 4, background: g.layer.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 10, fontWeight: 700 }}>{g.layer.n}</div>
+                  <div style={{ width: 20, height: 20, borderRadius: 4, background: g.layer.color, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>{g.layer.n}</div>
                   <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{g.layer.name}</span>
                 </div>
                 <div style={{ border: `1px solid ${BORDER}`, borderRadius: 6, overflow: "hidden" }}>
                   {g.reqs.map((r, ri) => (
                     <div key={ri} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderBottom: ri < g.reqs.length - 1 ? `1px solid ${BORDER}` : "none", fontSize: 12.5, color: SLATE, background: r.priority === "must" ? `${RED}03` : "transparent" }}>
-                      <span style={{ fontSize: 9, fontWeight: 700, color: priColors[r.priority], padding: "2px 6px", borderRadius: 3, background: `${priColors[r.priority]}12`, flexShrink: 0 }}>{priLabels[r.priority]}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: priColors[r.priority], padding: "2px 6px", borderRadius: 3, background: `${priColors[r.priority]}12`, flexShrink: 0 }}>{priLabels[r.priority]}</span>
                       <span>{r.text}</span>
                     </div>
                   ))}

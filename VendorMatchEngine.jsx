@@ -4,7 +4,7 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { getVendor } from "./VendorData";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 960, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
@@ -248,7 +248,7 @@ const VENDORS = [
     addOns:"Win themes: Fast SMB-midmarket consolidation and cost control | Watch: Can lose once buyers compare to stronger midmarket-enterprise platforms | Best for: Use in SMB cost-sensitive reviews" },
 ];
 
-function Select({label,value,onChange,options,hint}){return<div><label style={{fontSize:12,fontWeight:600,color:NAVY,display:"block",marginBottom:4}}>{label}</label><select value={value} onChange={e=>onChange(e.target.value)} style={{width:"100%",padding:"10px 12px",fontSize:14,border:`1px solid ${BORDER}`,borderRadius:6,background:"#fff",color:NAVY,outline:"none",cursor:"pointer"}}><option value="">Select...</option>{options.map(o=>typeof o==="string"?<option key={o} value={o}>{o}</option>:<option key={o.value} value={o.value}>{o.label}</option>)}</select>{hint&&<span style={{fontSize:11,color:MUTED,marginTop:2,display:"block"}}>{hint}</span>}</div>}
+function Select({label,value,onChange,options,hint}){return<div><label style={{fontSize:12,fontWeight:600,color:NAVY,display:"block",marginBottom:4}}>{label}</label><select value={value} onChange={e=>onChange(e.target.value)} style={{width:"100%",padding:"10px 12px",fontSize:14,border:`1px solid ${BORDER}`,borderRadius:6,background:"#fff",color:NAVY,outline:"none",cursor:"pointer"}}><option value="">Select...</option>{options.map(o=>typeof o==="string"?<option key={o} value={o}>{o}</option>:<option key={o.value} value={o.value}>{o.label}</option>)}</select>{hint&&<span style={{fontSize:12,color:MUTED,marginTop:2,display:"block"}}>{hint}</span>}</div>}
 
 const TOOL_ID = "vendor-match";
 const ROUTE = "/tools/vendor-match";
@@ -320,6 +320,8 @@ export default function VendorMatchEngine() {
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
 
+      <h1 className="sr-only">Vendor Match</h1>
+
       {phase==="input"&&(<section style={{background:"#fff",padding:"48px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
         <div style={{display:"flex",gap:4,marginBottom:32,flexWrap:"wrap"}}>
           {["Your Environment","What Matters","Compliance","Dimension Weighting"].map((s,i)=>(
@@ -347,7 +349,7 @@ export default function VendorMatchEngine() {
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}} className="pg">
             {PRIORITIES.map(p=>(<button key={p.id} onClick={()=>toggleArr("priorities",p.id)} style={{padding:"14px 16px",textAlign:"left",borderRadius:8,cursor:"pointer",border:`1px solid ${d.priorities.includes(p.id)?ELECTRIC:BORDER}`,background:d.priorities.includes(p.id)?`${ELECTRIC}06`:"#fff",color:"inherit"}}>
               <div style={{fontSize:13,fontWeight:600,color:d.priorities.includes(p.id)?ELECTRIC:NAVY}}>{d.priorities.includes(p.id)?"✓ ":""}{p.name}</div>
-              <div style={{fontSize:11,color:MUTED,marginTop:2}}>{p.desc}</div>
+              <div style={{fontSize:12,color:MUTED,marginTop:2}}>{p.desc}</div>
             </button>))}
           </div>
           <div style={{display:"flex",gap:12,marginTop:24}}>
@@ -373,7 +375,7 @@ export default function VendorMatchEngine() {
           <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Rate your selected priorities: 1 = nice to have, 5 = critical.</p>
           {selPriorities.map(dim=>(<div key={dim.id} style={{marginBottom:14,padding:"14px 16px",background:WARM,borderRadius:8,border:`1px solid ${BORDER}`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <div><span style={{fontSize:13,fontWeight:600,color:NAVY}}>{dim.name}</span><span style={{fontSize:11,color:MUTED,display:"block"}}>{dim.desc}</span></div>
+              <div><span style={{fontSize:13,fontWeight:600,color:NAVY}}>{dim.name}</span><span style={{fontSize:12,color:MUTED,display:"block"}}>{dim.desc}</span></div>
               <span style={{fontFamily:FONT,fontSize:22,color:ELECTRIC}}>{d.importance[dim.id]||3}</span>
             </div>
             <input type="range" min={1} max={5} value={d.importance[dim.id]||3} onChange={e=>setImp(dim.id,Number(e.target.value))} style={{width:"100%",accentColor:ELECTRIC}}/>
@@ -413,26 +415,26 @@ export default function VendorMatchEngine() {
                   </div>
                   {isTop&&(<>
                     <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:8,marginBottom:6}}>
-                      {v.strengths.map((s,si)=><span key={si} style={{fontSize:11,padding:"3px 8px",borderRadius:4,background:`${GREEN}10`,color:GREEN,fontWeight:500}}>✓ {s}</span>)}
+                      {v.strengths.map((s,si)=><span key={si} style={{fontSize:12,padding:"3px 8px",borderRadius:4,background:`${GREEN}10`,color:GREEN,fontWeight:500}}>✓ {s}</span>)}
                     </div>
                     <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
-                      {v.risks.map((r,ri)=><span key={ri} style={{fontSize:11,padding:"3px 8px",borderRadius:4,background:`${RED}08`,color:RED}}>⚠ {r}</span>)}
+                      {v.risks.map((r,ri)=><span key={ri} style={{fontSize:12,padding:"3px 8px",borderRadius:4,background:`${RED}08`,color:RED}}>⚠ {r}</span>)}
                     </div>
                   </>)}
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>
                   <div style={{fontFamily:FONT,fontSize:isTop?36:24,color:fc}}>{v.score}</div>
-                  <div style={{fontSize:11,fontWeight:600,color:fc}}>{fl}</div>
+                  <div style={{fontSize:12,fontWeight:600,color:fc}}>{fl}</div>
                 </div>
               </div>
               {isTop&&(<>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:10,paddingTop:10,borderTop:`1px solid ${BORDER}`}}>
                   {selPriorities.slice(0,6).map(p=>(<div key={p.id} style={{textAlign:"center",minWidth:70}}>
-                    <div style={{fontSize:9,color:MUTED,marginBottom:2}}>{p.name.split("+")[0].trim()}</div>
+                    <div style={{fontSize:12,color:MUTED,marginBottom:2}}>{p.name.split("+")[0].trim()}</div>
                     <div style={{height:4,background:BORDER,borderRadius:2,overflow:"hidden",width:60}}>
                       <div style={{height:"100%",width:`${v.dims[p.id]||50}%`,background:(v.dims[p.id]||50)>=80?GREEN:(v.dims[p.id]||50)>=65?AMBER:MUTED,borderRadius:2}}/>
                     </div>
-                    <div style={{fontSize:11,fontWeight:600,color:SLATE,marginTop:1}}>{v.dims[p.id]||"n/a"}</div>
+                    <div style={{fontSize:12,fontWeight:600,color:SLATE,marginTop:1}}>{v.dims[p.id]||"n/a"}</div>
                   </div>))}
                 </div>
                 <details style={{marginTop:10}}><summary style={{fontSize:12,fontWeight:600,color:ELECTRIC,cursor:"pointer"}}>Market intelligence + competitive positioning</summary>
@@ -440,9 +442,9 @@ export default function VendorMatchEngine() {
                 </details>
                 {v.integrations&&v.integrations.length>0&&(
                   <div style={{marginTop:8,padding:"8px 14px",background:`${GREEN}04`,border:`1px solid ${GREEN}15`,borderRadius:6}}>
-                    <div style={{fontSize:10,fontWeight:700,color:GREEN,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Verified Integrations</div>
+                    <div style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Verified Integrations</div>
                     <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                      {v.integrations.map((ig,igi)=><span key={igi} style={{fontSize:11,padding:"2px 8px",borderRadius:4,background:`${GREEN}10`,color:GREEN}}>{ig}</span>)}
+                      {v.integrations.map((ig,igi)=><span key={igi} style={{fontSize:12,padding:"2px 8px",borderRadius:4,background:`${GREEN}10`,color:GREEN}}>{ig}</span>)}
                     </div>
                   </div>
                 )}

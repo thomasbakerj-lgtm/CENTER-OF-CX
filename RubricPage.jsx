@@ -8,7 +8,7 @@ import { JOURNEY } from "./src/lib/journey";
    says is exactly how the assessment scores. Nothing here is written by hand per tool. */
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF";
-const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED";
+const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
 const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 24px" };
 
 const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -39,7 +39,7 @@ export default function RubricPage({ id }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published rubric</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how it scores</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.6)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.45)", marginTop: 14 }}>Rubric version {r.version}, published {r.published}. {r.dims.length} dimensions, {statements} statements.</p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", marginTop: 14 }}>Rubric version {r.version}, published {r.published}. {r.dims.length} dimensions, {statements} statements.</p>
         </div>
       </header>
 

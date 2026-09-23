@@ -1,13 +1,14 @@
 import { useState, useRef } from "react";
 import { COLORS } from "./benchmarks";
+import { FONT } from "./type";
 
 /**
- * InfoDot — a small "i" affardon next to a field label that reveals a short
+ * InfoDot: a small "i" affardon next to a field label that reveals a short
  * definition on tap (works on touch) and on hover (desktop bonus).
  *
  * Usage:  <InfoDot title="Loaded overhead" text="Two short sentences..." />
  *
- * Discipline: two sentences max — what it is, and why the tool uses it.
+ * Discipline: two sentences max: what it is, and why the tool uses it.
  * Only attach to conceptually loaded fields, never to obvious ones.
  */
 const NAVY = COLORS.navy, SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED", ELECTRIC = COLORS.electric;
@@ -26,9 +27,9 @@ export default function InfoDot({ text, title, align = "center" }) {
 
   return (
     <span style={{ position: "relative", display: "inline-flex", verticalAlign: "middle" }} onMouseEnter={enter} onMouseLeave={leave}>
-      <button type="button" aria-label={title ? `What is ${title}?` : "More information"}
+      <button type="button" className="infodot" aria-label={title ? `What is ${title}?` : "More information"}
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPinned(p => !p); }}
-        style={{ width: 14, height: 14, borderRadius: "50%", border: `1px solid ${open ? ELECTRIC : MUTED}`, background: open ? ELECTRIC : "transparent", color: open ? "#fff" : MUTED, fontSize: 9.5, fontWeight: 700, fontStyle: "italic", fontFamily: "Georgia, 'Times New Roman', serif", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, lineHeight: 1, flexShrink: 0 }}>
+        style={{ width: 14, height: 14, borderRadius: "50%", border: `1px solid ${open ? ELECTRIC : MUTED}`, background: open ? ELECTRIC : "transparent", color: open ? "#fff" : MUTED, fontSize: 10, fontWeight: 700, fontFamily: FONT, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0, lineHeight: 1, flexShrink: 0 }}>
         i
       </button>
       {pinned && <span onClick={(e) => { e.stopPropagation(); setPinned(false); }} style={{ position: "fixed", inset: 0, zIndex: 40, background: "transparent" }} />}

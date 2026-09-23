@@ -189,7 +189,7 @@ A("the component resolves the capacity action from compute before anything reads
 A("no MECH lookup on the entered capacity action remains in the component", !/MECH\[mech\]/.test(SRC));
 A("no none test on the entered capacity action remains in the component", !/\bmech (===|!==) "none"/.test(SRC));
 A("the rail publishes the capacity action the engine ran", /capacityAction: mechKey,/.test(SRC) && !/capacityAction: mech,/.test(SRC));
-A("the selector shows the capacity action the engine ran", /<select value=\{mechKey\}/.test(SRC));
+A("the selector shows the capacity action the engine ran", /<select (?:aria-label="[^"]*" )?value=\{mechKey\}/.test(SRC));
 A("the setter, the effect deps and the scenario keep the entered value",
   /onChange=\{e => setMech\(e\.target\.value\)\}/.test(SRC) && /\}, \[d, mech\]\);/.test(SRC) && /const scenario = \{ d, mech \};/.test(SRC));
 

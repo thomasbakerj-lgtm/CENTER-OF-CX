@@ -8,7 +8,7 @@ const TOOL_ID = "aht-decomposition";
 const ROUTE = "/tools/aht-decomposition";
 export const DEFAULTS = { values: { talk: 210, hold: 55, wrap: 60, transfer: 15, search: 30, admin: 25 }, contactType: "blended" };
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
@@ -31,9 +31,9 @@ function Slider({ component, value, onChange }) {
         </div>
         <span style={{ fontFamily: FONT, fontSize: 20, color: component.color, fontWeight: 400 }}>{value}s</span>
       </div>
-      <input type="range" min={0} max={300} value={value} onChange={e => onChange(Number(e.target.value))}
+      <input type="range" aria-label={`${component.name}, seconds`} min={0} max={300} value={value} onChange={e => onChange(Number(e.target.value))}
         style={{ width: "100%", accentColor: component.color, height: 6, cursor: "pointer" }} />
-      <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>{component.desc}</div>
+      <div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>{component.desc}</div>
     </div>
   );
 }
@@ -89,19 +89,19 @@ export default function AHTDecomposition() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>
+      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>
 
       <>
         <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
               <div>
-                <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>AHT Decomposition</h2>
+                <h1 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>AHT Decomposition</h1>
                 <p style={{ fontSize: 13, color: MUTED, margin: "4px 0 0" }}>Adjust each component. See where time goes and what is reducible.</p>
               </div>
               <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                 {[["blended","Blended"],["billing","Billing"],["techSupport","Tech Support"],["sales","Sales"],["simple","Simple"]].map(([k,l]) => (
-                  <button key={k} onClick={() => applyPreset(k)} style={{ padding: "6px 12px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${contactType === k ? ELECTRIC : BORDER}`, background: contactType === k ? ELECTRIC : "#fff", color: contactType === k ? "#fff" : MUTED, cursor: "pointer" }}>{l}</button>
+                  <button key={k} onClick={() => applyPreset(k)} style={{ padding: "6px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${contactType === k ? ELECTRIC : BORDER}`, background: contactType === k ? ELECTRIC : "#fff", color: contactType === k ? "#fff" : MUTED, cursor: "pointer" }}>{l}</button>
                 ))}
               </div>
             </div>
@@ -118,22 +118,22 @@ export default function AHTDecomposition() {
               <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Total AHT</div>
                 <div style={{ fontFamily: FONT, fontSize: 32, color: "#fff" }}>{fmtTime(totalAHT)}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{(totalAHT / 60).toFixed(1)} minutes</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{(totalAHT / 60).toFixed(1)} minutes</div>
               </div>
               <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Actual Talk</div>
                 <div style={{ fontFamily: FONT, fontSize: 32, color: ELECTRIC }}>{talkPct.toFixed(0)}%</div>
-                <div style={{ fontSize: 11, color: MUTED }}>{fmtTime(values.talk)} of conversation</div>
+                <div style={{ fontSize: 12, color: MUTED }}>{fmtTime(values.talk)} of conversation</div>
               </div>
               <div style={{ background: WARM, border: `1px solid ${nonTalkPct > 45 ? RED : nonTalkPct > 38 ? AMBER : GREEN}`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Non-Talk Time</div>
                 <div style={{ fontFamily: FONT, fontSize: 32, color: nonTalkPct > 45 ? RED : nonTalkPct > 38 ? AMBER : GREEN }}>{nonTalkPct.toFixed(0)}%</div>
-                <div style={{ fontSize: 11, color: MUTED }}>{nonTalkPct > 45 ? "Significant friction" : nonTalkPct > 38 ? "Room for improvement" : "Well optimized"}</div>
+                <div style={{ fontSize: 12, color: MUTED }}>{nonTalkPct > 45 ? "Significant friction" : nonTalkPct > 38 ? "Room for improvement" : "Well optimized"}</div>
               </div>
               <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Reducible Time</div>
                 <div style={{ fontFamily: FONT, fontSize: 32, color: AMBER }}>{fmtTime(reducibleTime)}</div>
-                <div style={{ fontSize: 11, color: MUTED }}>{reduciblePct.toFixed(0)}% of total AHT</div>
+                <div style={{ fontSize: 12, color: MUTED }}>{reduciblePct.toFixed(0)}% of total AHT</div>
               </div>
             </div>
 
@@ -144,14 +144,14 @@ export default function AHTDecomposition() {
                 const pct = totalAHT > 0 ? (values[c.id] / totalAHT) * 100 : 0;
                 return pct > 0 && (
                   <div key={c.id} style={{ width: `${pct}%`, background: c.color, display: "flex", alignItems: "center", justifyContent: "center", transition: "width 0.3s", minWidth: pct > 5 ? 0 : 0 }}>
-                    {pct >= 8 && <span style={{ fontSize: 10, color: "#fff", fontWeight: 600, textAlign: "center", lineHeight: 1.2 }}>{c.icon} {pct.toFixed(0)}%</span>}
+                    {pct >= 8 && <span style={{ fontSize: 12, color: "#fff", fontWeight: 600, textAlign: "center", lineHeight: 1.2 }}>{c.icon} {pct.toFixed(0)}%</span>}
                   </div>
                 );
               })}
             </div>
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 28 }}>
               {COMPONENTS.map(c => (
-                <span key={c.id} style={{ fontSize: 11, color: MUTED, display: "flex", alignItems: "center", gap: 4 }}>
+                <span key={c.id} style={{ fontSize: 12, color: MUTED, display: "flex", alignItems: "center", gap: 4 }}>
                   <span style={{ width: 10, height: 10, borderRadius: 2, background: c.color, flexShrink: 0 }} />{c.name}: {fmtTime(values[c.id])}
                 </span>
               ))}
@@ -167,9 +167,9 @@ export default function AHTDecomposition() {
                     <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{c.icon} {c.name}</span>
                     <span style={{ fontFamily: FONT, fontSize: 18, color: c.color }}>{pct.toFixed(0)}%</span>
                     <div>
-                      <div style={{ fontSize: 11, color: MUTED }}>Benchmark: {c.benchmark}</div>
+                      <div style={{ fontSize: 12, color: MUTED }}>Benchmark: {c.benchmark}</div>
                     </div>
-                    <div style={{ fontSize: 11, color: c.reducible.startsWith("Very high") || c.reducible.startsWith("High") ? GREEN : c.reducible.startsWith("Medium") ? AMBER : MUTED, fontWeight: 600 }}>
+                    <div style={{ fontSize: 12, color: c.reducible.startsWith("Very high") || c.reducible.startsWith("High") ? GREEN : c.reducible.startsWith("Medium") ? AMBER : MUTED, fontWeight: 600 }}>
                       {c.reducible.split(".")[0]}
                     </div>
                   </div>
@@ -187,7 +187,7 @@ export default function AHTDecomposition() {
                     <span style={{ fontFamily: FONT, fontSize: 20, color: GREEN }}>-{s.savedSec}s</span>
                   </div>
                   <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5, margin: "0 0 6px" }}>{s.desc}</p>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
                     <span style={{ color: MUTED }}>New AHT: {fmtTime(s.newAHT)}</span>
                     <span style={{ color: GREEN, fontWeight: 600 }}>-{s.savedPct}%</span>
                   </div>
@@ -204,10 +204,10 @@ export default function AHTDecomposition() {
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <div style={{ fontFamily: FONT, fontSize: 28, color: GREEN }}>-{((1 - combinedNew / totalAHT) * 100).toFixed(0)}%</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>AHT reduction without cutting talk time</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>AHT reduction without cutting talk time</div>
                 </div>
               </div>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", lineHeight: 1.65, margin: "16px 0 0" }}>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, margin: "16px 0 0" }}>
                 The goal is not shorter calls. The goal is less time spent on activities that are not conversation. Hold, search, admin, and wrap are where AHT reduction lives. Talk time is where resolution quality lives. Protect the latter while attacking the former.
               </p>
             </div>

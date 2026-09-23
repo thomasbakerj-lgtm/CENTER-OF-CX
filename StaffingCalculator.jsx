@@ -434,7 +434,7 @@ const S = ({ label, value, sub, color }) => (
   <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 18px" }}>
     <div style={{ fontSize: 11, fontWeight: 600, color: MUTED, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>{label}</div>
     <div style={{ ...TYPE.statValue, fontSize: 28, color: color || ELECTRIC }}>{value}</div>
-    {sub && <div style={{ fontSize: 11, color: MUTED, marginTop: 4, lineHeight: 1.4 }}>{sub}</div>}
+    {sub && <div style={{ fontSize: 12, color: MUTED, marginTop: 4, lineHeight: 1.4 }}>{sub}</div>}
   </div>
 );
 
@@ -548,7 +548,7 @@ export default function StaffingCalculator() {
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: WARM }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}input[type=number]::-webkit-inner-spin-button{opacity:1}@media(max-width:700px){.calc-grid{grid-template-columns:1fr!important}.stat-grid{grid-template-columns:1fr 1fr!important}}`}</style>
 
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>
+      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>
 
       <div style={{ ...WRAP, padding: "40px 28px 80px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
@@ -558,7 +558,7 @@ export default function StaffingCalculator() {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {isCustom && <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, background: "#E6F4FB", padding: "4px 8px", borderRadius: 5, letterSpacing: 0.5, textTransform: "uppercase" }}>Custom</span>}
-            <select value={preset} onChange={e => apply(e.target.value)} style={{ padding: "10px 14px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+            <select aria-label="Industry preset" value={preset} onChange={e => apply(e.target.value)} style={{ padding: "10px 14px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
               {Object.entries(PRESETS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
           </div>
@@ -591,7 +591,7 @@ export default function StaffingCalculator() {
             <NumField label="Avg caller patience (optional)" value={patience} onChange={setPatience} hint="Seconds before a caller abandons. Zero turns the abandonment reality-check off." suffix="sec" min={0} max={600} />
 
             <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px", marginTop: 14 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>Traffic Intensity</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 2 }}>Traffic Intensity</div>
               <div style={{ ...TYPE.statValue, fontSize: 21, color: ELECTRIC }}>{r.A.toFixed(1)} <span style={{ fontSize: 12, color: MUTED }}>Erlangs</span></div>
             </div>
           </div>
@@ -599,7 +599,7 @@ export default function StaffingCalculator() {
           <div>
             {guards.length > 0 && (
               <div style={{ background: "#FEF2F2", border: `1px solid ${RED}`, borderRadius: 12, padding: "14px 18px", marginBottom: 12 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>Inputs corrected before calculation</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>Inputs corrected before calculation</div>
                 {guards.map((g, i) => (
                   <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "4px 0 0" : 0 }}>{`${g.label}: you entered ${guardVal(g, "entered")}, which is outside the range this model can compute. Every figure below was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.`}</p>
                 ))}
@@ -607,7 +607,7 @@ export default function StaffingCalculator() {
             )}
             {!valid.ok && (
               <div style={{ background: valid.severity === "critical" ? "#FEF2F2" : "#FFFBEB", border: `1px solid ${valid.severity === "critical" ? RED : AMBER}`, borderRadius: 12, padding: "14px 18px", marginBottom: 12 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: valid.severity === "critical" ? RED : AMBER, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>Model validity warning</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: valid.severity === "critical" ? RED : AMBER, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>Model validity warning</div>
                 <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: 0 }}>{valid.msg}</p>
               </div>
             )}
@@ -625,18 +625,18 @@ export default function StaffingCalculator() {
             <div style={{ background: DEEP, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 1, textTransform: "uppercase" }}>Annual cost of this plan</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1, textTransform: "uppercase" }}>Annual cost of this plan</div>
                   <div style={{ ...TYPE.statValueLg, fontSize: 29, color: "#fff", marginTop: 3 }}>{fmtMoney(cost.annual)}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>{r.sched} FTE at {fmtMoney(cost.perAgentMonth)} per agent per month</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{r.sched} FTE at {fmtMoney(cost.perAgentMonth)} per agent per month</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: confidence === "Void" ? RED : confidence === "Directional" ? AMBER : LIGHT, background: "rgba(255,255,255,0.08)", padding: "3px 8px", borderRadius: 5, letterSpacing: 0.5, textTransform: "uppercase" }}>{confidence}</span>
-                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", maxWidth: 230, lineHeight: 1.5, marginTop: 5 }}>Based on {cost.basis}.{!cost.sourced && " Run the TCO Calculator to price this on your own cost base."}</div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: confidence === "Void" ? RED : confidence === "Directional" ? AMBER : LIGHT, background: "rgba(255,255,255,0.08)", padding: "3px 8px", borderRadius: 5, letterSpacing: 0.5, textTransform: "uppercase" }}>{confidence}</span>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", maxWidth: 230, lineHeight: 1.5, marginTop: 5 }}>Based on {cost.basis}.{!cost.sourced && " Run the TCO Calculator to price this on your own cost base."}</div>
                 </div>
               </div>
             </div>
             <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "16px 18px", marginBottom: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Analyst Read</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Analyst Read</div>
               {insights.slice(0, 2).map((t, i) => (
                 <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>
               ))}
@@ -647,27 +647,27 @@ export default function StaffingCalculator() {
               <div style={{ position: "relative", height: 20, borderRadius: 10, overflow: "hidden", background: `linear-gradient(90deg, ${GREEN} 0%, ${GREEN} ${BENCH.occupancy.healthyMax * 100}%, ${AMBER} ${BENCH.occupancy.healthyMax * 100}%, ${AMBER} ${BENCH.occupancy.cautionMax * 100}%, ${RED} ${BENCH.occupancy.cautionMax * 100}%, ${RED} 100%)` }}>
                 <div style={{ position: "absolute", left: `${Math.min(r.occ * 100, 98)}%`, top: -1, width: 3, height: 22, background: NAVY, borderRadius: 2, transition: "left 0.3s" }} />
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 9, color: MUTED }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 12, color: MUTED }}>
                 <span>0%</span><span style={{ color: GREEN }}>&lt;{Math.round(BENCH.occupancy.healthyMax * 100)}% healthy</span><span style={{ color: AMBER }}>{Math.round(BENCH.occupancy.healthyMax * 100)} to {Math.round(BENCH.occupancy.cautionMax * 100)}% caution</span><span style={{ color: RED }}>&gt;{Math.round(BENCH.occupancy.cautionMax * 100)}% critical</span>
               </div>
-              <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: "10px 0 0" }}>Occupancy steps down each time another agent is required, so it rises then drops as volume grows. Small teams swing more than large ones.</p>
+              <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5, margin: "10px 0 0" }}>Occupancy steps down each time another agent is required, so it rises then drops as volume grows. Small teams swing more than large ones.</p>
               {!capOn && pair.sustainable && (
                 <div style={{ display: "flex", gap: 0, marginTop: 14, border: `1px solid ${BORDER}`, borderRadius: 8, overflow: "hidden" }}>
                   <div style={{ flex: 1, padding: "12px 14px", background: WARM }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Staffed to service level</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Staffed to service level</div>
                     <div style={{ ...TYPE.statValue, fontSize: 23, color: NAVY, marginTop: 2 }}>{r.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
-                    <div style={{ fontSize: 11, color: occInfo.color, fontWeight: 600, ...NUM }}>{(r.occ * 100).toFixed(1)}% occupancy</div>
+                    <div style={{ fontSize: 12, color: occInfo.color, fontWeight: 600, ...NUM }}>{(r.occ * 100).toFixed(1)}% occupancy</div>
                   </div>
                   <div style={{ flex: 1, padding: "12px 14px", background: "#fff", borderLeft: `1px solid ${BORDER}` }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Staffed to a {Math.round(pair.ceiling * 100)}% ceiling</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Staffed to a {Math.round(pair.ceiling * 100)}% ceiling</div>
                     <div style={{ ...TYPE.statValue, fontSize: 23, color: NAVY, marginTop: 2 }}>{pair.sustainable.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
-                    <div style={{ fontSize: 11, color: GREEN, fontWeight: 600, ...NUM }}>{(pair.sustainable.occ * 100).toFixed(1)}% occupancy</div>
+                    <div style={{ fontSize: 12, color: GREEN, fontWeight: 600, ...NUM }}>{(pair.sustainable.occ * 100).toFixed(1)}% occupancy</div>
                   </div>
                   <div style={{ flex: "0 0 128px", padding: "12px 14px", background: WARM, borderLeft: `1px solid ${BORDER}` }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Difference</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 0.8, textTransform: "uppercase" }}>Difference</div>
                     <div style={{ ...TYPE.statValue, fontSize: 23, color: ELECTRIC, marginTop: 2 }}>+{pair.deltaFte} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, marginTop: 1, ...NUM }}>{fmtMoney(recoveryAnnual)}/yr</div>
-                    <div style={{ fontSize: 10, color: MUTED, lineHeight: 1.35, marginTop: 2 }}>cost of recovery time</div>
+                    <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.35, marginTop: 2 }}>cost of recovery time</div>
                   </div>
                 </div>
               )}
@@ -679,7 +679,7 @@ export default function StaffingCalculator() {
                 <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>
                   Erlang C is non-linear in scale, so one pooled queue always needs fewer agents than the same volume split up. Across {pool.queues} queues this volume needs <strong style={{ color: NAVY, ...NUM }}>{pool.splitFte} FTE</strong> against <strong style={{ color: NAVY, ...NUM }}>{pool.pooled.sched} FTE</strong> pooled, a difference of {pool.deltaFte} FTE{poolAnnual > 0 ? <> or about <strong style={{ color: NAVY, ...NUM }}>{fmtMoney(poolAnnual)} a year</strong></> : null}. The fix is routing, not headcount.
                 </p>
-                <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: 0 }}>
+                <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5, margin: 0 }}>
                   Treat this as a ceiling, not a promise. It assumes fully independent queues with no overflow and no cross-trained agents; real routing recovers part of the loss. Note also that splitting drops occupancy from {(pool.pooledOcc * 100).toFixed(1)}% to {(pool.splitOcc * 100).toFixed(1)}%, so if you were already staffing to a ceiling, some of this capacity is spend you had planned anyway.
                 </p>
               </div>
@@ -691,7 +691,7 @@ export default function StaffingCalculator() {
                 <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>
                   Erlang C assumes no one ever hangs up, so it over-staffs when callers abandon. At an average patience of {patience}s, roughly <strong style={{ color: NAVY }}>{(aband.estAband * 100).toFixed(1)}%</strong> of contacts would abandon under this staffing. Accounting for that, an estimated <strong style={{ color: NAVY }}>{adjR.raw} base agents</strong> ({adjR.sched} FTE) could hold target, about {r.raw - adjR.raw} fewer than Erlang C.
                 </p>
-                <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, margin: 0 }}>This is a planning estimate, not a guarantee. Keep the Erlang C number ({r.raw}) as the conservative baseline; treat the adjusted figure as the floor abandonment makes possible.</p>
+                <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5, margin: 0 }}>This is a planning estimate, not a guarantee. Keep the Erlang C number ({r.raw}) as the conservative baseline; treat the adjusted figure as the floor abandonment makes possible.</p>
               </div>
             )}
 
@@ -707,9 +707,9 @@ export default function StaffingCalculator() {
                     c: ELECTRIC },
                 ].map((s, i) => (
                   <div key={i} style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: s.c, letterSpacing: 1, textTransform: "uppercase" }}>{s.label}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: s.c, letterSpacing: 1, textTransform: "uppercase" }}>{s.label}</div>
                     <div style={{ ...TYPE.statValue, fontSize: 21, color: NAVY, marginTop: 2 }}>{s.r2.sched} <span style={{ fontSize: 12, color: MUTED }}>FTE</span></div>
-                    <div style={{ fontSize: 11, color: MUTED, ...NUM }}>{s.r2.sched - r.sched >= 0 ? "+" : ""}{s.r2.sched - r.sched} agents | Occ: {(s.r2.occ * 100).toFixed(0)}%</div>
+                    <div style={{ fontSize: 12, color: MUTED, ...NUM }}>{s.r2.sched - r.sched >= 0 ? "+" : ""}{s.r2.sched - r.sched} agents | Occ: {(s.r2.occ * 100).toFixed(0)}%</div>
                   </div>
                 ))}
               </div>
@@ -723,7 +723,7 @@ export default function StaffingCalculator() {
               {showBench && (
                 <div style={{ marginTop: 12, overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, ...NUM }}>
-                    <thead><tr style={{ textAlign: "left", color: MUTED, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    <thead><tr style={{ textAlign: "left", color: MUTED, fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>
                       <th style={{ padding: "6px 8px 6px 0" }}>Industry</th><th style={{ padding: 6 }}>AHT</th><th style={{ padding: 6 }}>Shrinkage</th><th style={{ padding: 6 }}>SL Target</th><th style={{ padding: 6 }}>Calls/agent/hr*</th>
                     </tr></thead>
                     <tbody>
@@ -738,13 +738,13 @@ export default function StaffingCalculator() {
                       ))}
                     </tbody>
                   </table>
-                  <p style={{ fontSize: 10.5, color: MUTED, lineHeight: 1.5, margin: "8px 0 0" }}>*Per-agent capacity at 85% occupancy = 0.85 × 3600 ÷ AHT. Starting points from our presets. Your own data may differ by call complexity, training, and tooling.</p>
+                  <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5, margin: "8px 0 0" }}>*Per-agent capacity at 85% occupancy = 0.85 × 3600 ÷ AHT. Starting points from our presets. Your own data may differ by call complexity, training, and tooling.</p>
                 </div>
               )}
             </div>
 
             <div style={{ background: WARM, borderRadius: 10, padding: "14px 16px", marginTop: 12, borderLeft: `3px solid ${ELECTRIC}` }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Methodology</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Methodology</div>
               <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, margin: 0 }}>Erlang C, the industry-standard staffing model, solved via the numerically stable Erlang B recursion (accurate from a handful of agents to several thousand). It assumes random Poisson arrivals, exponential handle times, and infinite caller patience (no abandonment), so it tends to over-staff. Enter an average patience to see the abandonment-adjusted estimate. The optional occupancy cap staffs to the greater of "meets service level" and "occupancy at or below your ceiling." Shrinkage is applied after the agent calculation to convert base agents to scheduled FTE. Erlang C models one contact per agent at a time, so it does not describe chat, messaging, or email, where agents run concurrent sessions. Applying these numbers to a digital queue overstates headcount, often by half or more.</p>
             </div>
 
@@ -881,10 +881,10 @@ export default function StaffingCalculator() {
         </div>
       </div>
 
-      <footer style={{ background: DEEP, padding: "40px 28px 28px" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={24} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 12 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX</span>
+      <footer style={{ background: DEEP, padding: "40px 28px 28px" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={24} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 12 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>© 2026 The Center of CX</span>
         <div style={{ display: "flex", gap: 16 }}>
-          <a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Privacy</a>
-          <a href="/terms" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Terms</a>
+          <a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Privacy</a>
+          <a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Terms</a>
         </div></div></div></footer>
     </div>
   );

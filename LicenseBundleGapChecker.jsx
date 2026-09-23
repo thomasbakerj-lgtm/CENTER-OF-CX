@@ -382,19 +382,19 @@ function LogoMark({ size = 30, light = true }) {
   const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC;
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
 }
-function Select({ value, onChange, options, color }) {
-  return <select value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "6px 8px", fontSize: 12, border: `1px solid ${BORDER}`, borderRadius: 5, background: "#fff", color: color || NAVY, fontWeight: 600, outline: "none", cursor: "pointer", appearance: "none", WebkitAppearance: "none" }}>
+function Select({ value, onChange, options, color, label }) {
+  return <select aria-label={label} value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "6px 8px", fontSize: 12, border: `1px solid ${BORDER}`, borderRadius: 5, background: "#fff", color: color || NAVY, fontWeight: 600, outline: "none", cursor: "pointer", appearance: "none", WebkitAppearance: "none" }}>
     {options.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
   </select>;
 }
-function Cell({ value, onChange, prefix }) {
+function Cell({ value, onChange, prefix, label }) {
   return <div style={{ position: "relative" }}>
-    {prefix && <span style={{ position: "absolute", left: 7, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
-    <input type="number" value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "6px 8px", paddingLeft: prefix ? 16 : 8, fontSize: 12, border: `1px solid ${BORDER}`, borderRadius: 5, textAlign: "right", color: NAVY, outline: "none" }} />
+    {prefix && <span style={{ position: "absolute", left: 7, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
+    <input type="number" aria-label={label} value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "6px 8px", paddingLeft: prefix ? 16 : 8, fontSize: 12, border: `1px solid ${BORDER}`, borderRadius: 5, textAlign: "right", color: NAVY, outline: "none" }} />
   </div>;
 }
 function Nav() {
-  return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
+  return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
 }
 
 export default function LicenseBundleGapChecker() {
@@ -462,7 +462,7 @@ export default function LicenseBundleGapChecker() {
   };
 
   const card = { background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 14px", textAlign: "center" };
-  const lab = { fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, display: "flex", justifyContent: "center", alignItems: "center", gap: 4, lineHeight: 1.25 };
+  const lab = { fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, display: "flex", justifyContent: "center", alignItems: "center", gap: 4, lineHeight: 1.25 };
   const big = { ...TYPE.statValue, fontSize: 28 };
   const h3 = { ...TYPE.h3, fontSize: 12, fontWeight: W.bold, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 8px", display: "flex", alignItems: "center", gap: 6 };
 
@@ -475,7 +475,7 @@ export default function LicenseBundleGapChecker() {
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "0 0 12px" }}>License Bundle Gap Checker</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 720 }}>The advertised seat price is not the license cost. This reconciles the quote against what you actually pay: base seats by class, required add-ons and edition upgrades scoped to the seats they touch, usage fees normalized for comparison, minimum commits, and renewal uplift, plus the shelfware you can use as leverage. It hands TCO and Contract Risk better numbers; it does not replace them.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, maxWidth: 720 }}>The advertised seat price is not the license cost. This reconciles the quote against what you actually pay: base seats by class, required add-ons and edition upgrades scoped to the seats they touch, usage fees normalized for comparison, minimum commits, and renewal uplift, plus the shelfware you can use as leverage. It hands TCO and Contract Risk better numbers; it does not replace them.</p>
           {pulled.agents && <div style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}><span style={{ fontSize: 12, color: "#fff", fontWeight: W.semibold }}>Agent count pulled from your {pulled.from} run. Editable below.</span></div>}
         </div>
       </section>
@@ -488,31 +488,31 @@ export default function LicenseBundleGapChecker() {
               <h3 style={h3}>Seat classes<InfoDot text={DEFS.seatClass} title="Seat classes" /></h3>
               <div style={{ border: `1px solid ${BORDER}`, borderRadius: 8, overflow: "hidden" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 72px 84px", gap: 8, padding: "6px 10px", background: DEEP }} className="clsrow">
-                  <span style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>Class</span>
-                  <span style={{ fontSize: 9, color: "#fff", fontWeight: 700, textAlign: "right" }}>Count</span>
-                  <span style={{ fontSize: 9, color: "#fff", fontWeight: 700, textAlign: "right" }}>$/seat/mo</span>
+                  <span style={{ fontSize: 12, color: "#fff", fontWeight: 700 }}>Class</span>
+                  <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, textAlign: "right" }}>Count</span>
+                  <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, textAlign: "right" }}>$/seat/mo</span>
                 </div>
                 {classes.map((c, i) => (
                   <div key={c.id} style={{ display: "grid", gridTemplateColumns: "1fr 72px 84px", gap: 8, padding: "7px 10px", alignItems: "center", background: i % 2 ? WARM : "#fff" }} className="clsrow">
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: c.id === "agent" ? NAVY : SLATE }}>{c.name}{c.id === "agent" && pulled.agents && <span style={{ fontSize: 8, fontWeight: 700, color: ELECTRIC, background: ICE, padding: "1px 4px", borderRadius: 3, marginLeft: 5 }}>PULLED</span>}</span>
-                    <Cell value={c.count} onChange={v => setClass(c.id, "count", v)} />
-                    <Cell value={c.price} onChange={v => setClass(c.id, "price", v)} prefix="$" />
+                    <span style={{ fontSize: 12.5, fontWeight: 600, color: c.id === "agent" ? NAVY : SLATE }}>{c.name}{c.id === "agent" && pulled.agents && <span style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, background: ICE, padding: "1px 4px", borderRadius: 3, marginLeft: 5 }}>PULLED</span>}</span>
+                    <Cell label={`${c.name} seat count`} value={c.count} onChange={v => setClass(c.id, "count", v)} />
+                    <Cell label={`${c.name} price per seat per month`} value={c.price} onChange={v => setClass(c.id, "price", v)} prefix="$" />
                   </div>
                 ))}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 72px 84px", gap: 8, padding: "7px 10px", background: NAVY }} className="clsrow">
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#fff" }}>Billable total</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>Billable total</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", textAlign: "right" }}>{billable}</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: LIGHT, textAlign: "right" }}>${quotedSeat.toFixed(0)}</span>
                 </div>
               </div>
               <div style={{ marginTop: 8 }}>
-                <label style={{ fontSize: 11, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>License basis<InfoDot text={DEFS.basis} title="License basis" /></label>
+                <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>License basis<InfoDot text={DEFS.basis} title="License basis" /></label>
                 <div style={{ display: "flex", gap: 6 }}>
                   {[["named", "Named"], ["concurrent", "Concurrent"], ["blended", "Blended"]].map(([v, l]) => (
-                    <button key={v} onClick={() => set("basis", v)} style={{ flex: 1, padding: "7px", fontSize: 11.5, fontWeight: 600, borderRadius: 6, border: `1px solid ${basis === v ? ELECTRIC : BORDER}`, background: basis === v ? ELECTRIC : "#fff", color: basis === v ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
+                    <button key={v} onClick={() => set("basis", v)} style={{ flex: 1, padding: "7px", fontSize: 12, fontWeight: 600, borderRadius: 6, border: `1px solid ${basis === v ? ELECTRIC : BORDER}`, background: basis === v ? ELECTRIC : "#fff", color: basis === v ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
                   ))}
                 </div>
-                <span style={{ fontSize: 10.5, color: MUTED, marginTop: 4, display: "block" }}>{basis === "concurrent" ? "Count peak simultaneous logins, not headcount." : basis === "blended" ? "Each class priced on its own edition or rate." : "Every assigned user needs a license, active or not."}</span>
+                <span style={{ fontSize: 12, color: MUTED, marginTop: 4, display: "block" }}>{basis === "concurrent" ? "Count peak simultaneous logins, not headcount." : basis === "blended" ? "Each class priced on its own edition or rate." : "Every assigned user needs a license, active or not."}</span>
               </div>
             </div>
             <div>
@@ -520,13 +520,13 @@ export default function LicenseBundleGapChecker() {
               <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                 <NumField label="Committed / minimum seats" value={committedSeats} onChange={v => set("committedSeats", v)} step={5} min={0} hint="The floor you pay for, even if you staff fewer" info={DEFS.committed} infoTitle="Committed seats" />
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Commit priced at<InfoDot text={DEFS.commitBasis} title="Commit basis" /></label>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Commit priced at<InfoDot text={DEFS.commitBasis} title="Commit basis" /></label>
                   <div style={{ display: "flex", gap: 6 }}>
                     {[["license", "License seat"], ["quoted", "Quoted base"], ["custom", "Custom"]].map(([v, l]) => (
-                      <button key={v} onClick={() => set("commitBasis", v)} style={{ flex: 1, padding: "6px", fontSize: 11, fontWeight: 600, borderRadius: 6, border: `1px solid ${commitBasis === v ? ELECTRIC : BORDER}`, background: commitBasis === v ? ELECTRIC : "#fff", color: commitBasis === v ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
+                      <button key={v} onClick={() => set("commitBasis", v)} style={{ flex: 1, padding: "6px", fontSize: 12, fontWeight: 600, borderRadius: 6, border: `1px solid ${commitBasis === v ? ELECTRIC : BORDER}`, background: commitBasis === v ? ELECTRIC : "#fff", color: commitBasis === v ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
                     ))}
                   </div>
-                  {commitBasis === "custom" && <div style={{ marginTop: 6 }}><Cell value={commitRate} onChange={v => set("commitRate", v)} prefix="$" /></div>}
+                  {commitBasis === "custom" && <div style={{ marginTop: 6 }}><Cell label="Custom commit rate per seat" value={commitRate} onChange={v => set("commitRate", v)} prefix="$" /></div>}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <NumField label="Renewal uplift" value={uplift} onChange={v => set("uplift", v)} suffix="%" step={1} min={0} hint="Rate rise / year" info={DEFS.uplift} infoTitle="Renewal uplift" />
@@ -544,12 +544,12 @@ export default function LicenseBundleGapChecker() {
           <h3 style={h3}>Module coverage<InfoDot text={DEFS.status} title="Module pricing type" /></h3>
           <div style={{ borderRadius: 8, overflow: "hidden", border: `1px solid ${BORDER}` }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 180px 84px 116px 116px 64px", gap: 8, padding: "8px 10px", background: DEEP, alignItems: "center" }} className="modrow">
-              <span style={{ fontSize: 9, color: "#fff", fontWeight: 700 }}>Module</span>
-              <span style={{ fontSize: 9, color: "#fff", fontWeight: 700 }} className="moddesc">What it is</span>
-              <span style={{ fontSize: 9, color: "#fff", fontWeight: 700, textAlign: "center" }}>Need</span>
-              <span style={{ fontSize: 9, color: "#fff", fontWeight: 700, textAlign: "center" }}>Pricing type</span>
-              <span style={{ fontSize: 9, color: "#fff", fontWeight: 700, textAlign: "center" }}>Applies to</span>
-              <span style={{ fontSize: 9, color: "#fff", fontWeight: 700, textAlign: "right" }}>$/seat</span>
+              <span style={{ fontSize: 12, color: "#fff", fontWeight: 700 }}>Module</span>
+              <span style={{ fontSize: 12, color: "#fff", fontWeight: 700 }} className="moddesc">What it is</span>
+              <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, textAlign: "center" }}>Need</span>
+              <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, textAlign: "center" }}>Pricing type</span>
+              <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, textAlign: "center" }}>Applies to</span>
+              <span style={{ fontSize: 12, color: "#fff", fontWeight: 700, textAlign: "right" }}>$/seat</span>
             </div>
             {MODULES.map((mod, i) => {
               const m = modules[mod.id];
@@ -564,16 +564,16 @@ export default function LicenseBundleGapChecker() {
               return (
                 <div key={mod.id} style={{ display: "grid", gridTemplateColumns: "1fr 180px 84px 116px 116px 64px", gap: 8, padding: "8px 10px", alignItems: "center", background: i % 2 ? WARM : "#fff", borderLeft: `3px solid ${lc}` }} className="modrow">
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: NAVY }}>{mod.name}</span>
-                  <span style={{ fontSize: 11, color: MUTED }} className="moddesc">{mod.desc}</span>
-                  <div><Select value={m.need} onChange={v => setMod(mod.id, "need", v)} options={NEED_OPTS} color={m.need === "yes" ? NAVY : m.need === "unsure" ? AMBER : MUTED} /></div>
-                  <div><Select value={m.status} onChange={v => setMod(mod.id, "status", v)} options={STATUS_OPTS} color={isCost ? AMBER : m.status === "unknown" ? RED : m.status === "usage" ? TEAL : SLATE} /></div>
-                  <div>{showScope ? <Select value={m.scope} onChange={v => setMod(mod.id, "scope", v)} options={SCOPE_OPTS} color={SLATE} /> : <span style={{ fontSize: 10, color: isOneTime && m.need === "yes" ? SLATE : BORDER, display: "block", textAlign: "center" }}>{isOneTime && m.need === "yes" ? "one-time total" : "-"}</span>}</div>
-                  <div>{showCost ? <Cell value={m.cost} onChange={v => setMod(mod.id, "cost", v)} prefix="$" /> : <span style={{ fontSize: 10.5, color: BORDER, display: "block", textAlign: "right" }}>{m.status === "usage" ? "below" : "-"}</span>}</div>
+                  <span style={{ fontSize: 12, color: MUTED }} className="moddesc">{mod.desc}</span>
+                  <div><Select label={`${mod.name}: do you need it`} value={m.need} onChange={v => setMod(mod.id, "need", v)} options={NEED_OPTS} color={m.need === "yes" ? NAVY : m.need === "unsure" ? AMBER : MUTED} /></div>
+                  <div><Select label={`${mod.name}: license status`} value={m.status} onChange={v => setMod(mod.id, "status", v)} options={STATUS_OPTS} color={isCost ? AMBER : m.status === "unknown" ? RED : m.status === "usage" ? TEAL : SLATE} /></div>
+                  <div>{showScope ? <Select label={`${mod.name}: scope`} value={m.scope} onChange={v => setMod(mod.id, "scope", v)} options={SCOPE_OPTS} color={SLATE} /> : <span style={{ fontSize: 12, color: isOneTime && m.need === "yes" ? SLATE : BORDER, display: "block", textAlign: "center" }}>{isOneTime && m.need === "yes" ? "one-time total" : "-"}</span>}</div>
+                  <div>{showCost ? <Cell label={`${mod.name}: add-on cost`} value={m.cost} onChange={v => setMod(mod.id, "cost", v)} prefix="$" /> : <span style={{ fontSize: 12, color: BORDER, display: "block", textAlign: "right" }}>{m.status === "usage" ? "below" : "-"}</span>}</div>
                 </div>
               );
             })}
           </div>
-          <p style={{ fontSize: 11, color: MUTED, marginTop: 8 }}>
+          <p style={{ fontSize: 12, color: MUTED, marginTop: 8 }}>
             Add-ons <strong style={{ color: AMBER }}>{fmtK(addOnMonthly)}/mo</strong> · tier upgrades <strong style={{ color: AMBER }}>{fmtK(tierMonthly)}/mo</strong>{oneTimeTotal > 0 ? <> · implementation <strong style={{ color: SLATE }}>{fmtK(oneTimeTotal)} one-time</strong></> : null} · scoped to the seats each touches · {shelfware.length} shelfware · {unknowns.length} unknown
           </p>
 
@@ -583,13 +583,13 @@ export default function LicenseBundleGapChecker() {
             {USAGE_TYPES.map(t => (
               <div key={t.id} style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", background: n(usage[t.id]) > 0 ? `${TEAL}08` : "#fff" }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>{t.name}</div>
-                <div style={{ fontSize: 10, color: MUTED, marginBottom: 6 }}>{t.basis}</div>
-                <Cell value={usage[t.id]} onChange={v => setUse(t.id, v)} prefix="$" />
-                <div style={{ fontSize: 9.5, color: MUTED, marginTop: 3 }}>$/month</div>
+                <div style={{ fontSize: 12, color: MUTED, marginBottom: 6 }}>{t.basis}</div>
+                <Cell label={`${t.name}: monthly amount`} value={usage[t.id]} onChange={v => setUse(t.id, v)} prefix="$" />
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 3 }}>$/month</div>
               </div>
             ))}
           </div>
-          <p style={{ fontSize: 11, color: MUTED, marginTop: 8 }}>Total metered fees <strong style={{ color: TEAL }}>{fmtK(usageMonthly)}/mo</strong>, normalized to {fmtK(usageMonthly / Math.max(1, billable))}/seat for comparison only, not a seat fee.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginTop: 8 }}>Total metered fees <strong style={{ color: TEAL }}>{fmtK(usageMonthly)}/mo</strong>, normalized to {fmtK(usageMonthly / Math.max(1, billable))}/seat for comparison only, not a seat fee.</p>
         </div>
       </section>
 
@@ -597,10 +597,10 @@ export default function LicenseBundleGapChecker() {
       <section style={{ background: "#fff", padding: "28px 28px" }}>
         <div style={WRAP}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 12 }} className="s4">
-            <div style={card}><div style={lab}>Quoted Seat<InfoDot text={DEFS.baseSeat} title="Quoted seat" /></div><div style={{ ...big, color: ELECTRIC }}>${quotedSeat.toFixed(0)}</div><div style={{ fontSize: 10, color: MUTED }}>vendor headline</div></div>
-            <div style={card}><div style={lab}>Eff. License Seat<InfoDot text={DEFS.effLicenseSeat} title="Effective license seat" /></div><div style={{ ...big, color: SLATE }}>${effLicenseSeat.toFixed(0)}</div><div style={{ fontSize: 10, color: MUTED }}>seat + modules + tier</div></div>
-            <div style={{ ...card, background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, border: "none" }}><div style={{ ...lab, color: gapColor }}>Platform Seat-Eq<InfoDot text={DEFS.effPlatform} title="Effective platform seat equivalent" align="right" /></div><div style={{ ...big, color: "#fff" }}>${effPlatformSeat.toFixed(0)}</div><div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>+ usage, normalized</div></div>
-            <div style={{ ...card, border: `1px solid ${gapColor}` }}><div style={lab}>Bundle Gap<InfoDot text={DEFS.gap} title="Bundle gap" /></div><div style={{ ...big, color: gapColor }}>+{gapPct.toFixed(0)}%</div><div style={{ fontSize: 10, color: MUTED }}>platform vs quote</div></div>
+            <div style={card}><div style={lab}>Quoted Seat<InfoDot text={DEFS.baseSeat} title="Quoted seat" /></div><div style={{ ...big, color: ELECTRIC }}>${quotedSeat.toFixed(0)}</div><div style={{ fontSize: 12, color: MUTED }}>vendor headline</div></div>
+            <div style={card}><div style={lab}>Eff. License Seat<InfoDot text={DEFS.effLicenseSeat} title="Effective license seat" /></div><div style={{ ...big, color: SLATE }}>${effLicenseSeat.toFixed(0)}</div><div style={{ fontSize: 12, color: MUTED }}>seat + modules + tier</div></div>
+            <div style={{ ...card, background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, border: "none" }}><div style={{ ...lab, color: gapColor }}>Platform Seat-Eq<InfoDot text={DEFS.effPlatform} title="Effective platform seat equivalent" align="right" /></div><div style={{ ...big, color: "#fff" }}>${effPlatformSeat.toFixed(0)}</div><div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>+ usage, normalized</div></div>
+            <div style={{ ...card, border: `1px solid ${gapColor}` }}><div style={lab}>Bundle Gap<InfoDot text={DEFS.gap} title="Bundle gap" /></div><div style={{ ...big, color: gapColor }}>+{gapPct.toFixed(0)}%</div><div style={{ fontSize: 12, color: MUTED }}>platform vs quote</div></div>
           </div>
 
           {/* Hidden annual decomposition */}
@@ -617,7 +617,7 @@ export default function LicenseBundleGapChecker() {
             </div>
             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
               {[["Add-ons", decomp.addOns, AMBER], ["Tier upgrades", decomp.tier, "#D97706"], ["Usage fees", decomp.usage, TEAL]].map(([l, v, c]) => (
-                <span key={l} style={{ fontSize: 11, color: SLATE, display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 9, height: 9, borderRadius: 2, background: c, display: "inline-block" }} />{l} <strong>{fmtK(v)}</strong></span>
+                <span key={l} style={{ fontSize: 12, color: SLATE, display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 9, height: 9, borderRadius: 2, background: c, display: "inline-block" }} />{l} <strong>{fmtK(v)}</strong></span>
               ))}
             </div>
           </div>
@@ -630,10 +630,10 @@ export default function LicenseBundleGapChecker() {
                   <span style={{ fontSize: 12, color: MUTED, width: 16 }}>{i + 1}</span>
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: hot ? RED : NAVY, flex: 1 }}>{dr.name}{hot ? " (confirm periodicity)" : ""}</span>
                   <span style={{ fontSize: 12, color: SLATE }}>{fmtK(dr.annual)}/yr</span>
-                  <span style={{ fontSize: 11, color: hot ? RED : MUTED, width: 44, textAlign: "right" }}>{(share * 100).toFixed(0)}%</span>
+                  <span style={{ fontSize: 12, color: hot ? RED : MUTED, width: 44, textAlign: "right" }}>{(share * 100).toFixed(0)}%</span>
                 </div>
               ); })}
-              <p style={{ fontSize: 10.5, color: MUTED, marginTop: 6 }}>Share of recurring hidden annual. A single line above 80% is flagged as a likely miscategorization.</p>
+              <p style={{ fontSize: 12, color: MUTED, marginTop: 6 }}>Share of recurring hidden annual. A single line above 80% is flagged as a likely miscategorization.</p>
             </div>
           )}
 
@@ -646,23 +646,23 @@ export default function LicenseBundleGapChecker() {
           {/* Commercial traps */}
           {(commitExpSeats > 0 || gUplift > 0 || gSeats18 > 0) && (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 18 }} className="s3">
-              <div style={{ ...card, textAlign: "left", opacity: commitExpSeats > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Commit Exposure</div><div style={{ ...TYPE.statValue, fontSize: 21, color: commitExpSeats > 0 ? AMBER : MUTED }}>{commitExpSeats > 0 ? `${commitExpSeats} seats` : "none"}</div><div style={{ fontSize: 10, color: MUTED }}>{commitExpSeats > 0 ? `vs ${billable} active · ${fmtK(commitExpAnnual)}/yr at ${commitBasis} basis` : "committed ≤ active"}</div></div>
-              <div style={{ ...card, textAlign: "left", opacity: gUplift > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Year-3 Seat-Eq</div><div style={{ ...TYPE.statValue, fontSize: 21, color: gUplift > 0 ? RED : MUTED }}>${year3Seat.toFixed(0)}</div><div style={{ fontSize: 10, color: MUTED }}>{gUplift > 0 ? `license $${effLicenseSeat.toFixed(0)}→$${year3LicenseSeat.toFixed(0)} at ${gUplift}%, usage flat` : "enter uplift to project"}</div></div>
-              <div style={{ ...card, textAlign: "left", opacity: gSeats18 > 0 ? 1 : 0.5 }}><div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>18-mo Expansion</div><div style={{ ...TYPE.statValue, fontSize: 21, color: gSeats18 > 0 ? SLATE : MUTED }}>{fmtK(exp18Annual)}</div><div style={{ fontSize: 10, color: MUTED }}>{gSeats18 > 0 ? `${gSeats18} seats · rate-lock now` : "enter expansion seats"}</div></div>
+              <div style={{ ...card, textAlign: "left", opacity: commitExpSeats > 0 ? 1 : 0.5 }}><div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Commit Exposure</div><div style={{ ...TYPE.statValue, fontSize: 21, color: commitExpSeats > 0 ? AMBER : MUTED }}>{commitExpSeats > 0 ? `${commitExpSeats} seats` : "none"}</div><div style={{ fontSize: 12, color: MUTED }}>{commitExpSeats > 0 ? `vs ${billable} active · ${fmtK(commitExpAnnual)}/yr at ${commitBasis} basis` : "committed ≤ active"}</div></div>
+              <div style={{ ...card, textAlign: "left", opacity: gUplift > 0 ? 1 : 0.5 }}><div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Year-3 Seat-Eq</div><div style={{ ...TYPE.statValue, fontSize: 21, color: gUplift > 0 ? RED : MUTED }}>${year3Seat.toFixed(0)}</div><div style={{ fontSize: 12, color: MUTED }}>{gUplift > 0 ? `license $${effLicenseSeat.toFixed(0)}→$${year3LicenseSeat.toFixed(0)} at ${gUplift}%, usage flat` : "enter uplift to project"}</div></div>
+              <div style={{ ...card, textAlign: "left", opacity: gSeats18 > 0 ? 1 : 0.5 }}><div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>18-mo Expansion</div><div style={{ ...TYPE.statValue, fontSize: 21, color: gSeats18 > 0 ? SLATE : MUTED }}>{fmtK(exp18Annual)}</div><div style={{ fontSize: 12, color: MUTED }}>{gSeats18 > 0 ? `${gSeats18} seats · rate-lock now` : "enter expansion seats"}</div></div>
             </div>
           )}
 
           {/* Confidence + evidence */}
           <div style={{ border: `1px solid ${confColor}`, background: `${confColor}0A`, borderRadius: 10, padding: "12px 16px", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10.5, fontWeight: 700, color: confColor, letterSpacing: 1, textTransform: "uppercase" }}>Export confidence</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: confColor, letterSpacing: 1, textTransform: "uppercase" }}>Export confidence</span>
               <span style={{ fontSize: 13, fontWeight: W.bold, color: confColor }}>{voided ? "Void" : confidence}</span>
               <InfoDot text={DEFS.confidence} title="Export confidence" />
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span style={{ fontSize: 11, color: SLATE, fontWeight: 600 }}>Evidence</span>
-                <div style={{ minWidth: 130 }}><Select value={evidence} onChange={v => set("evidence", v)} options={EVIDENCE_OPTS} color={DOC_EVIDENCE.has(evidence) ? GREEN : MUTED} /></div>
+                <span style={{ fontSize: 12, color: SLATE, fontWeight: 600 }}>Evidence</span>
+                <div style={{ minWidth: 130 }}><Select label="Evidence" value={evidence} onChange={v => set("evidence", v)} options={EVIDENCE_OPTS} color={DOC_EVIDENCE.has(evidence) ? GREEN : MUTED} /></div>
                 <InfoDot text={DEFS.evidence} title="Evidence source" align="right" />
               </div>
               <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }}>
@@ -677,7 +677,7 @@ export default function LicenseBundleGapChecker() {
               <span style={{ fontSize: 12, color: SLATE, fontWeight: 600 }}>Possible double counts confirmed as separate charges{!dblAck && <span style={{ color: AMBER, fontWeight: 700 }}>, required for Finance-grade</span>}</span>
             </label>
           )}
-          <p style={{ fontSize: 11.5, color: voided ? RED : MUTED, margin: "0 0 18px" }}>{voided ? `Output void: ${invariants.join("; ")}. Correct the inputs before using any figure above.` : `Evidence ${evidenceGrade}, model completeness ${completenessCeiling}, ${gradeWhy}.`}</p>
+          <p style={{ fontSize: 12, color: voided ? RED : MUTED, margin: "0 0 18px" }}>{voided ? `Output void: ${invariants.join("; ")}. Correct the inputs before using any figure above.` : `Evidence ${evidenceGrade}, model completeness ${completenessCeiling}, ${gradeWhy}.`}</p>
 
           {/* Shelfware */}
           {shelfware.length > 0 && (
@@ -701,7 +701,7 @@ export default function LicenseBundleGapChecker() {
 
           {/* Analyst */}
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 22 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · normalized per-seat is not a vendor seat price</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · normalized per-seat is not a vendor seat price</div>
             {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
           </div>
 

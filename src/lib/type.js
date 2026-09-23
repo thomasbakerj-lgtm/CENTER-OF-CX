@@ -8,7 +8,7 @@
 // and drift apart. Import the tokens; do not hand-write font-family anywhere.
 //
 // Archivo was drawn for high performance at small sizes and in dense settings,
-// which is most of this interface: 10px uppercase card labels, 11px input
+// which is most of this interface: 11px uppercase card labels, 12px input
 // hints, 12px table rows. It also ships width variants (Narrow, Expanded) that
 // are the same design, so wide comparison tables and display headlines can
 // stay in one voice later without adding a second typeface.
@@ -68,10 +68,10 @@ export const TYPE = {
   label: { fontFamily: FONT, fontSize: 12, fontWeight: W.semibold, lineHeight: 1.4 },
 
   // The uppercase eyebrow above a heading, and stat-card captions.
-  eyebrow: { fontFamily: FONT, fontSize: 10, fontWeight: W.semibold, letterSpacing: "1.6px", textTransform: "uppercase", lineHeight: 1.4 },
+  eyebrow: { fontFamily: FONT, fontSize: 11, fontWeight: W.semibold, letterSpacing: "1.6px", textTransform: "uppercase", lineHeight: 1.4 },
 
   // Hints under inputs, footnotes, disclaimers.
-  caption: { fontFamily: FONT, fontSize: 11, fontWeight: W.regular, lineHeight: 1.5 },
+  caption: { fontFamily: FONT, fontSize: 12, fontWeight: W.regular, lineHeight: 1.5 },
 
   // Any cell that holds a number. Always tabular.
   cell: { fontFamily: FONT, fontSize: 12.5, fontWeight: W.regular, lineHeight: 1.5 },

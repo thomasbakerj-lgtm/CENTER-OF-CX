@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 900, margin: "0 auto", padding: "0 28px" };
 
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
@@ -90,16 +90,18 @@ export default function RoadmapBuilder() {
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a>
+          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a>
         </div>
       </nav>
+
+      {phase !== "intro" && <h1 className="sr-only">Transformation Roadmap Builder</h1>}
 
       {phase === "intro" && (
         <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", padding: "80px 28px" }}>
           <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Planning Tool</span>
             <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>Transformation Roadmap Builder</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 520 }}>A structured 90-day plan with 18 milestones across three phases, Foundation, Design & Pilot, and Scale & Optimize. Track status, identify dependencies, flag risks, and build the plan you can put in front of leadership.</p>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 520 }}>A structured 90-day plan with 18 milestones across three phases, Foundation, Design & Pilot, and Scale & Optimize. Track status, identify dependencies, flag risks, and build the plan you can put in front of leadership.</p>
             <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", gap: 10 }}>
               </div>
@@ -120,7 +122,7 @@ export default function RoadmapBuilder() {
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {STATUS_OPTIONS.map(s => {
                   const count = allMilestones.filter(m => getStatus(m.id) === s.value).length;
-                  return count > 0 ? <span key={s.value} style={{ fontSize: 10, fontWeight: 600, color: s.color, background: `${s.color}12`, padding: "3px 8px", borderRadius: 4 }}>{count} {s.label}</span> : null;
+                  return count > 0 ? <span key={s.value} style={{ fontSize: 12, fontWeight: 600, color: s.color, background: `${s.color}12`, padding: "3px 8px", borderRadius: 4 }}>{count} {s.label}</span> : null;
                 })}
               </div>
             </div>
@@ -137,7 +139,7 @@ export default function RoadmapBuilder() {
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
                     <div style={{ width: 4, height: 24, borderRadius: 2, background: p.color }} />
                     <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 400, color: NAVY, margin: 0 }}>{p.name}</h3>
-                    <span style={{ fontSize: 10, color: MUTED }}>{phaseComplete}/{p.milestones.length}</span>
+                    <span style={{ fontSize: 12, color: MUTED }}>{phaseComplete}/{p.milestones.length}</span>
                   </div>
                   <p style={{ fontSize: 12, color: MUTED, marginBottom: 12, paddingLeft: 14 }}>{p.desc}</p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -148,13 +150,13 @@ export default function RoadmapBuilder() {
                         <div key={m.id} style={{ background: "#fff", border: `1px solid ${st.color}25`, borderLeft: `3px solid ${st.color}`, borderRadius: "0 8px 8px 0", padding: "12px 14px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <span style={{ fontSize: 13, fontWeight: 500, color: NAVY, flex: 1, minWidth: 200 }}>{m.text}</span>
-                            <span style={{ fontSize: 10, color: MUTED }}>{m.owner}</span>
-                            <select value={getStatus(m.id)} onChange={e => setStatus(m.id, e.target.value)} style={{ fontSize: 10, padding: "4px 8px", borderRadius: 4, border: `1px solid ${st.color}40`, background: `${st.color}08`, color: st.color, fontWeight: 600, cursor: "pointer", outline: "none" }}>
+                            <span style={{ fontSize: 12, color: MUTED }}>{m.owner}</span>
+                            <select value={getStatus(m.id)} onChange={e => setStatus(m.id, e.target.value)} style={{ fontSize: 12, padding: "4px 8px", borderRadius: 4, border: `1px solid ${st.color}40`, background: `${st.color}08`, color: st.color, fontWeight: 600, cursor: "pointer", outline: "none" }}>
                               {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                             </select>
                           </div>
                           {m.deps.length > 0 && !depsMet && getStatus(m.id) !== "complete" && (
-                            <div style={{ fontSize: 10, color: AMBER, marginTop: 6 }}>⚠ Depends on: {m.deps.map(d => allMilestones.find(am => am.id === d)?.text?.split(" ").slice(0, 4).join(" ")).join(", ")}</div>
+                            <div style={{ fontSize: 12, color: AMBER, marginTop: 6 }}>⚠ Depends on: {m.deps.map(d => allMilestones.find(am => am.id === d)?.text?.split(" ").slice(0, 4).join(" ")).join(", ")}</div>
                           )}
                         </div>
                       );
@@ -177,7 +179,7 @@ export default function RoadmapBuilder() {
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 32px" }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>✓</div>
               <h2 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 400, color: GREEN, margin: "0 0 12px" }}>{initiative ? initiative : "Your roadmap"}</h2>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 24 }}>{completedCount}/{allMilestones.length} milestones complete. {atRiskCount > 0 ? `${atRiskCount} at risk or blocked.` : "No items at risk."} Download it or copy the scenario link below to keep it.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.6, marginBottom: 24 }}>{completedCount}/{allMilestones.length} milestones complete. {atRiskCount > 0 ? `${atRiskCount} at risk or blocked.` : "No items at risk."} Download it or copy the scenario link below to keep it.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
                 <ReportActions toolId={TOOL_ID} toolName="Transformation Roadmap" subtitle={(initiative ? initiative + ", " : "") + "90-Day Planning Framework"} routePath={ROUTE} state={{ statuses, notes, initiative }} defaults={DEFAULTS}

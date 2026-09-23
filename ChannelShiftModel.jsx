@@ -423,7 +423,7 @@ function gradeChannel({ d, r, pre, railOrigin }) {
 /* @engine-end */
 
 function Nav() {
-  return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
+  return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
 }
 export default function ChannelShiftModel() {
   const [d, setD] = useState(() => clone(DEFAULTS.d));
@@ -528,7 +528,7 @@ export default function ChannelShiftModel() {
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "0 0 12px" }}>Channel Shift Economics</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 700 }}>Channel shift only creates value when eligible demand resolves in the target channel at a rate high enough to offset failure, escalation, residual voice complexity, transition cost, and capacity realization. This model does not assume digital adoption equals savings. It separates shifted, resolved, displaced, and finance-realizable volume.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, maxWidth: 700 }}>Channel shift only creates value when eligible demand resolves in the target channel at a rate high enough to offset failure, escalation, residual voice complexity, transition cost, and capacity realization. This model does not assume digital adoption equals savings. It separates shifted, resolved, displaced, and finance-realizable volume.</p>
           <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             {Object.keys(pulled).length > 0 && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}>
@@ -538,7 +538,7 @@ export default function ChannelShiftModel() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 14px" }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: gradeColor }} />
               <span style={{ ...TYPE.caption, fontSize: 12, color: "#fff", fontWeight: W.semibold }}>{confidence}</span>
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>{gradeWhy}</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{gradeWhy}</span>
             </div>
           </div>
         </div>
@@ -548,7 +548,7 @@ export default function ChannelShiftModel() {
       <section style={{ background: `${verdict.color}0A`, borderBottom: `2px solid ${verdict.color}`, padding: "20px 28px" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
           <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: 150, padding: "10px 18px", background: "#fff", border: `1px solid ${verdict.color}`, borderRadius: 10 }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase" }}>Verdict</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase" }}>Verdict</span>
             <span style={{ fontSize: 17, fontWeight: 700, color: verdict.color, textAlign: "center", lineHeight: 1.2 }}>{verdict.label}</span>
           </div>
           <div style={{ flex: "1 1 360px" }}>
@@ -591,9 +591,9 @@ export default function ChannelShiftModel() {
             <div>
               <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Residual complexity curve<InfoDot text={DEFS.curve} title="Residual complexity curve" align="right" /></label>
               <div style={{ display: "flex", gap: 4, background: "#fff", padding: 3, borderRadius: 7, border: `1px solid ${BORDER}` }}>
-                {Object.entries(CURVE).map(([k, v]) => <button key={k} onClick={() => set("adverseCurve", k)} style={{ flex: 1, fontSize: 11, fontWeight: 600, padding: "7px 4px", borderRadius: 5, border: "none", cursor: "pointer", background: d.adverseCurve === k ? ELECTRIC : "transparent", color: d.adverseCurve === k ? "#fff" : SLATE }}>{v.label}</button>)}
+                {Object.entries(CURVE).map(([k, v]) => <button key={k} onClick={() => set("adverseCurve", k)} style={{ flex: 1, fontSize: 12, fontWeight: 600, padding: "7px 4px", borderRadius: 5, border: "none", cursor: "pointer", background: d.adverseCurve === k ? ELECTRIC : "transparent", color: d.adverseCurve === k ? "#fff" : SLATE }}>{v.label}</button>)}
               </div>
-              <span style={{ fontSize: 10.5, color: MUTED, marginTop: 2, display: "block" }}>{CURVE[r.curveKey].note}</span>
+              <span style={{ fontSize: 12, color: MUTED, marginTop: 2, display: "block" }}>{CURVE[r.curveKey].note}</span>
             </div>
           </div>
 
@@ -608,21 +608,21 @@ export default function ChannelShiftModel() {
               <div style={{ display: "flex", flexWrap: "wrap", gap: 22, alignItems: "flex-end" }}>
                 <div>
                   <div style={{ fontSize: 19, fontWeight: 700, color: NAVY }}>{r.baseEff.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span></div>
-                  <div style={{ fontSize: 10.5, color: MUTED }}>Voice baseline today</div>
+                  <div style={{ fontSize: 12, color: MUTED }}>Voice baseline today</div>
                 </div>
                 <div style={{ fontSize: 15, color: MUTED, paddingBottom: 4 }}>&rarr;</div>
                 <div>
                   <div style={{ fontSize: 19, fontWeight: 700, color: r.deptImpossible || r.deptImplausible ? RED : ELECTRIC }}>
                     {r.deptEffRaw.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span>
                   </div>
-                  <div style={{ fontSize: 10.5, color: MUTED }}>Implied AHT of the calls you displace</div>
+                  <div style={{ fontSize: 12, color: MUTED }}>Implied AHT of the calls you displace</div>
                 </div>
                 <div>
                   <div style={{ fontSize: 19, fontWeight: 700, color: AMBER }}>{r.residualEff.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span></div>
-                  <div style={{ fontSize: 10.5, color: MUTED }}>Voice left behind, {(r.residualUplift * 100).toFixed(1)}% harder</div>
+                  <div style={{ fontSize: 12, color: MUTED }}>Voice left behind, {(r.residualUplift * 100).toFixed(1)}% harder</div>
                 </div>
               </div>
-              <p style={{ fontSize: 11, color: SLATE, lineHeight: 1.6, margin: "12px 0 0" }}>
+              <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.6, margin: "12px 0 0" }}>
                 Total voice minutes do not change when you shift: the same calls take the same time, only fewer of them
                 stay. So choosing a residual uplift also decides how simple the departing calls must have been. If the
                 volume you plan to move is not around {r.deptEffRaw.toFixed(1)} minutes, this curve is the wrong one.
@@ -631,9 +631,9 @@ export default function ChannelShiftModel() {
           )}
 
           <div style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase", margin: "20px 0 4px" }}>Shift from voice → target</div>
-          <p style={{ fontSize: 11, color: MUTED, marginBottom: 10 }}>Points are the plan. Everything under them is the discount. Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts. Set them to what your data supports.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginBottom: 10 }}>Points are the plan. Everything under them is the discount. Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts. Set them to what your data supports.</p>
 
-          <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", marginBottom: 12, fontSize: 11.5, color: SLATE, lineHeight: 1.6 }}>
+          <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", marginBottom: 12, fontSize: 12, color: SLATE, lineHeight: 1.6 }}>
             <strong style={{ color: NAVY }}>How to use the points.</strong> A point is one percent of your total monthly contact volume,
             moved out of voice. Voice is currently {r.voicePct}% of the mix. Shifting {shiftPts} points takes it to {Math.max(0, r.voicePct - shiftPts)}%.
             {" "}Start by asking how much voice is <em>structurally eligible</em> to move, set that above, then set points to match.
@@ -665,7 +665,7 @@ export default function ChannelShiftModel() {
             <div style={{ background: WARM, border: `1px solid ${mechKey === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>Capacity action<InfoDot text={DEFS.capacity} title="Capacity action" /></div>
               <div style={{ fontSize: 12, color: mechKey === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[mechKey].note}</div>
-              <select value={mechKey} onChange={e => setMech(e.target.value)} style={{ width: "100%", fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
+              <select aria-label="Realization mechanism" value={mechKey} onChange={e => setMech(e.target.value)} style={{ width: "100%", fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
                 {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
               </select>
             </div>
@@ -673,7 +673,7 @@ export default function ChannelShiftModel() {
               <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 8 }}>Risk guardrails <span style={{ fontWeight: 400, color: MUTED }}>· flags CX-sensitive volume</span></div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
                 {RISKS.map(rk => (
-                  <label key={rk.k} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 11.5, color: SLATE }}>
+                  <label key={rk.k} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: SLATE }}>
                     <input type="checkbox" checked={d[rk.k]} onChange={() => toggle(rk.k)} style={{ width: 13, height: 13, accentColor: AMBER }} />{rk.label}
                   </label>
                 ))}
@@ -684,24 +684,24 @@ export default function ChannelShiftModel() {
           {/* Summary */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 24 }} className="s4">
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: r.netRealizable >= 0 ? GREEN : RED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Net Realizable</div>
-              <div style={{ ...TYPE.statValue, color: "#fff" }}>{fmtK(r.netRealizable)}<span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>/mo</span></div>
-              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)" }}>{r.netRealizable >= 0 ? `${fmtK(r.netRealizable * 12)}/yr` : "net cost"}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: r.netRealizable >= 0 ? GREEN : RED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Net Realizable</div>
+              <div style={{ ...TYPE.statValue, color: "#fff" }}>{fmtK(r.netRealizable)}<span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>/mo</span></div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{r.netRealizable >= 0 ? `${fmtK(r.netRealizable * 12)}/yr` : "net cost"}</div>
             </div>
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Voice Displaced</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Voice Displaced</div>
               <div style={{ ...TYPE.statValue, color: GREEN }}>{Math.round(r.Dtot).toLocaleString()}</div>
-              <div style={{ fontSize: 10.5, color: MUTED }}>truly leave voice/mo</div>
+              <div style={{ fontSize: 12, color: MUTED }}>truly leave voice/mo</div>
             </div>
             <div style={{ background: WARM, border: `1px solid ${AMBER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Bounced to Voice</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Bounced to Voice</div>
               <div style={{ ...TYPE.statValue, color: AMBER }}>{Math.round(r.Etot).toLocaleString()}</div>
-              <div style={{ fontSize: 10.5, color: MUTED }}>failed in channel/mo</div>
+              <div style={{ fontSize: 12, color: MUTED }}>failed in channel/mo</div>
             </div>
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Voice FTE Freed</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Voice FTE Freed</div>
               <div style={{ ...TYPE.statValue, color: r.fteFreed >= 0 ? GREEN : RED }}>{r.fteFreed.toFixed(1)}</div>
-              <div style={{ fontSize: 10.5, color: MUTED }}>net capacity</div>
+              <div style={{ fontSize: 12, color: MUTED }}>net capacity</div>
             </div>
           </div>
           <p style={{ fontSize: 12, color: SLATE, marginBottom: 24, background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}20`, borderRadius: 8, padding: "10px 14px", lineHeight: 1.5 }}>
@@ -726,7 +726,7 @@ export default function ChannelShiftModel() {
             {r.perTarget.filter(t => t.S > 0).map((t, i) => (
               <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: t.color, marginBottom: 8 }}>{t.key === "Bot" ? "Bot" : t.key}</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 11 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 12 }}>
                   <div><span style={{ color: MUTED }}>Shifted</span><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{Math.round(t.S).toLocaleString()}</div></div>
                   <div><span style={{ color: MUTED }}>Displaced</span><div style={{ fontSize: 14, fontWeight: 600, color: GREEN }}>{Math.round(t.D).toLocaleString()}</div></div>
                   <div><span style={{ color: MUTED }}>Bounced</span><div style={{ fontSize: 14, fontWeight: 600, color: AMBER }}>{Math.round(t.E).toLocaleString()}</div></div>
@@ -740,21 +740,21 @@ export default function ChannelShiftModel() {
           {/* Transition */}
           <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Transition Investment</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="s3">
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Chat reskilling</div><div style={{ fontSize: 20, fontWeight: 600, color: NAVY }}>{fmtK(r.training)}</div></div>
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Ramp productivity loss</div><div style={{ fontSize: 20, fontWeight: 600, color: NAVY }}>{fmtK(r.ramp)}</div></div>
-            <div style={{ background: WARM, border: `1px solid ${isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Payback (headline)</div><div style={{ fontSize: 20, fontWeight: 600, color: isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER }}>{isFinite(r.payback) ? r.payback.toFixed(1) + " mo" : "Never"}</div></div>
+            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>Chat reskilling</div><div style={{ fontSize: 20, fontWeight: 600, color: NAVY }}>{fmtK(r.training)}</div></div>
+            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>Ramp productivity loss</div><div style={{ fontSize: 20, fontWeight: 600, color: NAVY }}>{fmtK(r.ramp)}</div></div>
+            <div style={{ background: WARM, border: `1px solid ${isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>Payback (headline)</div><div style={{ fontSize: 20, fontWeight: 600, color: isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER }}>{isFinite(r.payback) ? r.payback.toFixed(1) + " mo" : "Never"}</div></div>
           </div>
 
           {/* Analyst */}
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 24 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · shift resolvable volume, not all volume</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · shift resolvable volume, not all volume</div>
             {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
               <input type="checkbox" checked={d.validated} onChange={e => set("validated", e.target.checked)} style={{ width: 14, height: 14, accentColor: ELECTRIC }} />
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: NAVY }}>Eligibility, displacement &amp; resolution validated from data (self-attested: lifts these to Planning-grade at most)</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Eligibility, displacement &amp; resolution validated from data (self-attested: lifts these to Planning-grade at most)</span>
             </label>
           </div>
 
