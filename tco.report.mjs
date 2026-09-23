@@ -23,6 +23,7 @@ import { readFileSync } from "node:fs";
 const SRC = readFileSync("./TCOCalculator.jsx", "utf8");
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
 const { BENCH, COLORS } = await import("./src/lib/benchmarks.js");
+const BENCHMOD = await import("./src/lib/benchmarks.js");
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 const CONF = await import("./src/lib/confidence.js");
@@ -256,10 +257,12 @@ ${gradeLine}
   `;
   return new Function("BENCH", "COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "WARM", "SLATE",
     "MUTED", "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MUT", "STANCE_KEY",
-    "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "FROM_LINK", "RAIL_PRE", body)(
+    "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "FROM_LINK", "RAIL_PRE",
+    "benchmark", "benchmarksForTool", body)(
     BENCH, COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#F8FAFB", "#3A4F6A",
     COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, S.stance,
-    createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, !!S.fromLink, S.pre || {});
+    createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, !!S.fromLink, S.pre || {},
+    BENCHMOD.benchmark, BENCHMOD.benchmarksForTool);
 }
 
 function allText(doc) {
