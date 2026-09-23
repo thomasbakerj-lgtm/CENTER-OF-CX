@@ -80,13 +80,27 @@ one per session.
 Closed in the walk: Attrition, License Gap, Staffing, CPC, Channel Shift, AI
 Deflection, FCR Leakage, TCO (steps 1 to 5). See the tracker change log, section 9.
 
-**Open now: 11B TCO step 6, the live PDF check.**
-1. Normal: shipped defaults, Expected stance.
-2. Voided: trip an invariant (negative agent count via scenario link). Confirm the
-   void renders, states the failed invariant and remedy, and claims no grade in the
-   strip, the PDF or the review submission.
-If contactcentercx.com is unreachable from the environment, run against a local
-build (`npm run build && npm run preview`) and TB pulls the two production PDFs.
+**Open now: 11B TCO, fix the void defects found by the step 6 live check (S21).**
+Step 6 ran 23 Sep 2026 against production. Normal PDF reconciles to the dollar.
+A negative agent count does not void (the guard floors it at 1 and discloses it);
+the reachable void is a non-finite output, e.g. `agents: 1e308` by scenario link.
+The top ReportActions void block, the on-page strip and the review payload's
+`confidence: VOID` are correct. Defects:
+- **D15.** TCO builds its own "Confidence and Open Issues" PDF section. On a void it
+  prints "Evidence axis: Void", "Completeness axis: Void (2 checks failed)" (three
+  invariants failed) and grade language ("Finance-grade is blocked"). Section 5.4:
+  Void is never written into an axis. `tco.report.mjs` lines 614 and 616 assert
+  this text, so the gate encodes the defect.
+- **D16.** Every TCO PDF carries two confidence sections. Section 5.6 item 2: one
+  section, built in ReportActions, never assembled in the tool. TCO only.
+- **D17.** A void still renders `$InfinityM`, `$∞`, `NaN%` and `3.3e+306 hires` in the
+  UI, PDF and review summary. The analyst read draws false conclusions from NaN
+  ("unusually tech-heavy", "no haircut applied") and the review signal
+  `booked_at_full_theoretical` reads true. The harness "no Infinity" assertion
+  never meets a reachable void because no case in `tco.report.mjs` produces one.
+Browser check tooling: Playwright from the scratchpad, Chromium pinned to the proxy
+CA with `--ignore-certificate-errors-spki-list`, PostHog, Vercel Analytics and
+Formspree intercepted so no test event or review reaches production data.
 
 **Then: Business Case Builder**, the ninth and last rail tool, 113 KB of source.
 It must fix **1-12**: `r.payback === 0` caps confidence at Directional, conflating
@@ -283,6 +297,13 @@ Binding. None of this is in code comments beyond what is noted.
   chunks, 237 KB entry, 77 KB gzip. Re-scope 10-01 to 10-03 before scheduling.
 - Sitemap holds 429 URLs, not the 354 the tracker baseline and shipping facts state.
 - `ReportActions.jsx` line 40, `scenarioUrl` `__proto__` assignment, `track.js` line 185.
+- `ReportActions` `Field` labels are not bound to their inputs (no `htmlFor`/`id`).
+  Screen readers cannot name the review form fields.
+- A failed lazy route chunk leaves the tool blank with no retry or error boundary.
+  Seen in S21 through a transient proxy 502; a flaky mobile connection hits the same path.
+- TCO guard case (1 agent, 120,000 contacts) prints marginal cost per contact above
+  cost per contact, unflagged, and its open-issues text says "treat the output as void"
+  while grading Directional. Low.
 
 **Test infrastructure**
 - `channel.report.mjs` UNPARSED once in session 20, not reproducible. UNPARSED is
@@ -294,7 +315,6 @@ Binding. None of this is in code comments beyond what is noted.
   confirms nothing reads it.
 
 **TB actions outstanding**
-- Confirm `VITE_POSTHOG_KEY` is set in Vercel.
 - 11-01: verify custom events reach Vercel dashboard on Hobby.
 - Disclosure page (12-06).
 
@@ -385,7 +405,8 @@ dashboard, the 12-phase growth program.
 
 1. Done 23 Sep 2026: `CLAUDE.md` and `docs/` committed, change log appended,
    `SHIPPING.md` drafted. Open: TB approval of `SHIPPING.md`, 1-12 renumber.
-2. **Next.** TCO step 6 live PDF check. Closes 11B TCO.
+2. Done 23 Sep 2026 (S21): TCO step 6 live check ran; found D15 to D17.
+   **Next:** fix D15 to D17, re-run the live check. Closes 11B TCO.
 3. Business Case Builder retrofit with 1-12. Closes WS1.
 
 Then the reachability batch.
