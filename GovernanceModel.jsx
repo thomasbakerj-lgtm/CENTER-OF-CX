@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -18,13 +20,35 @@ const DOMAINS = [
   { name: "Budget & Vendor Management", items: ["CX technology budget ownership", "Vendor contract negotiation and renewal", "TCO modeling and cost optimization", "Build vs buy decisions", "Professional services oversight"] },
 ];
 
+const TOOL_ID = "governance-model";
+const ROUTE = "/tools/governance-model";
+export const DEFAULTS = { primary: {}, secondary: {} };
+/* Ownership assigned to every item, rotating through the roles, with a different
+   supporting role. The floor harness renders it to prove the results page and its
+   PDF content build without a gate and without a missing field. */
+export const SAMPLE = {
+  primary: Object.fromEntries(DOMAINS.flatMap((d, di) => d.items.map((_, ii) => [`${di}-${ii}`, (di + ii) % ROLES.length]))),
+  secondary: Object.fromEntries(DOMAINS.flatMap((d, di) => d.items.map((_, ii) => [`${di}-${ii}`, (di + ii + 1) % ROLES.length]))),
+};
+/* An assignment is kept only for a real item and a real role. A supporting role
+   needs an owner and cannot be the owner. */
+const MIN_ASSIGNED = 20;
+const validKey = (k) => { const m = /^(\d+)-(\d+)$/.exec(k); return !!m && !!DOMAINS[+m[1]] && +m[2] < DOMAINS[+m[1]].items.length; };
+const validRole = (v) => Number.isInteger(v) && v >= 0 && v < ROLES.length;
+const cleanMap = (m) => Object.fromEntries(Object.entries(m && typeof m === "object" ? m : {}).filter(([k, v]) => validKey(k) && validRole(v)));
+const cleanState = (sc) => {
+  const primary = cleanMap(sc && sc.primary);
+  const secondary = Object.fromEntries(Object.entries(cleanMap(sc && sc.secondary)).filter(([k, v]) => primary[k] !== undefined && primary[k] !== v));
+  return { primary, secondary };
+};
+
 export default function GovernanceModel() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [company, setCompany] = useState("");
-  const [sending, setSending] = useState(false);
-  const [primary, setPrimary] = useState({}); const [secondary, setSecondary] = useState({});
+  const [init] = useState(() => cleanState(readScenario(TOOL_ID, DEFAULTS)));
+  const [phase, setPhase] = useState(() => (Object.keys(init.primary).length >= MIN_ASSIGNED ? "results" : "intro"));
+  const [primary, setPrimary] = useState(init.primary); const [secondary, setSecondary] = useState(init.secondary);
 
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+  useEffect(() => { clearScenarioParam(); }, []);
 
   const k = (di, ii) => `${di}-${ii}`;
 
@@ -48,21 +72,15 @@ export default function GovernanceModel() {
   const primaryCounts = ROLES.map((_, ri) => Object.values(primary).filter(v => v === ri).length);
   const secondaryCounts = ROLES.map((_, ri) => Object.values(secondary).filter(v => v === ri).length);
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/mojydbde", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Governance & Operating Model", _subject: "Governance Model Access" }) }); } catch (e) {}
-    setSending(false); setPhase("assign");
-  };
+  const handleStart = () => setPhase("assign");
 
-  const handleResults = async () => {
-    const summary = ROLES.map((r, i) => `${r}: ${primaryCounts[i]}P/${secondaryCounts[i]}S`).join(" | ");
-    try { await fetch("https://formspree.io/f/mojydbde", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: "Governance Model", assigned: assignedCount, unowned: unownedItems.length, distribution: summary, _subject: `Governance: ${unownedItems.length} unowned — ${company || name || email}` }) }); } catch (e) {}
-    setPhase("results");
-  };
+
+  const handleResults = () => setPhase("results");
+
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
 
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ maxWidth: 920, margin: "0 auto", padding: "0 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -71,19 +89,16 @@ export default function GovernanceModel() {
         </div>
       </nav>
 
-      {phase === "gate" && (
+      {phase === "intro" && (
         <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", padding: "80px 28px" }}>
           <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Framework & Template</span>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>Governance & Operating Model</h1>
+            <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>Governance & Operating Model</h1>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 36px", maxWidth: 520 }}>Map primary and secondary ownership across 30 CX responsibilities. Identify governance gaps, overloaded functions, and advisory roles without real authority.</p>
             <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
-              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Work email *" style={{ padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none" }} />
               <div style={{ display: "flex", gap: 10 }}>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ flex: 1, padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none" }} />
-                <input value={company} onChange={e => setCompany(e.target.value)} placeholder="Company" style={{ flex: 1, padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none" }} />
               </div>
-              <button onClick={handleGate} disabled={sending || !email.includes("@")} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: sending ? 0.6 : 1, marginTop: 4 }}>{sending ? "Starting..." : "Start Mapping →"}</button>
+              <button onClick={handleStart} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: 1, marginTop: 4 }}>{"Start Mapping →"}</button>
             </div>
           </div>
         </section>
@@ -92,7 +107,7 @@ export default function GovernanceModel() {
       {phase === "assign" && (
         <section style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "40px 28px 80px" }}>
           <div style={WRAP}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Who owns what?</h2>
+            <h2 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Who owns what?</h2>
             <p style={{ fontSize: 13, color: MUTED, marginBottom: 20 }}>Click a role to set it as <strong>primary owner</strong>. Once a primary is set, click a different role to add an optional <strong>secondary</strong>. Items left blank will be flagged as governance gaps. {assignedCount}/{totalItems} assigned.</p>
 
             {DOMAINS.map((dom, di) => (
@@ -140,7 +155,7 @@ export default function GovernanceModel() {
             ))}
 
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-              <button onClick={handleResults} disabled={assignedCount < 20} style={{ padding: "14px 28px", borderRadius: 8, border: "none", background: assignedCount >= 20 ? GREEN : MUTED, color: "#fff", fontSize: 15, fontWeight: 600, cursor: assignedCount >= 20 ? "pointer" : "default", opacity: assignedCount >= 20 ? 1 : 0.5 }}>
+              <button onClick={handleResults} disabled={assignedCount < MIN_ASSIGNED} style={{ padding: "14px 28px", borderRadius: 8, border: "none", background: assignedCount >= 20 ? GREEN : MUTED, color: "#fff", fontSize: 15, fontWeight: 600, cursor: assignedCount >= 20 ? "pointer" : "default", opacity: assignedCount >= 20 ? 1 : 0.5 }}>
                 {assignedCount >= 20 ? `View Governance Profile (${assignedCount}/${totalItems}) →` : `Assign at least 20 (${assignedCount}/${totalItems})`}
               </button>
             </div>
@@ -153,26 +168,26 @@ export default function GovernanceModel() {
           <div style={WRAP}>
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "40px 32px", textAlign: "center", marginBottom: 32 }}>
               <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Governance Profile</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", margin: "8px 0 16px" }}>{assignedCount} responsibilities mapped</h2>
+              <h2 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: "#fff", margin: "8px 0 16px" }}>{assignedCount} responsibilities mapped</h2>
               {unownedItems.length > 0 ? (
-                <p style={{ fontSize: 16, color: RED, fontWeight: 600 }}>{unownedItems.length} item{unownedItems.length > 1 ? "s" : ""} have no primary owner — governance gaps.</p>
+                <p style={{ fontSize: 16, color: RED, fontWeight: 600 }}>{unownedItems.length} item{unownedItems.length > 1 ? "s" : ""} have no primary owner, governance gaps.</p>
               ) : (
                 <p style={{ fontSize: 16, color: GREEN, fontWeight: 600 }}>Every responsibility has a primary owner.</p>
               )}
             </div>
 
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Ownership Distribution</h3>
+            <h3 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Ownership Distribution</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10, marginBottom: 32 }}>
               {ROLES.map((r, i) => {
                 const pc = primaryCounts[i]; const sc = secondaryCounts[i];
                 return (
                   <div key={i} style={{ background: "#fff", border: `1px solid ${ROLE_COLORS[i]}30`, borderRadius: 10, padding: "16px", textAlign: "center" }}>
-                    <div style={{ fontSize: 28, fontWeight: 700, color: ROLE_COLORS[i], fontFamily: "'Instrument Serif', Georgia, serif" }}>{pc}</div>
+                    <div style={{ fontSize: 28, fontWeight: 700, color: ROLE_COLORS[i], fontFamily: FONT }}>{pc}</div>
                     <div style={{ fontSize: 11, fontWeight: 600, color: NAVY }}>{r}</div>
                     <div style={{ fontSize: 10, color: MUTED }}>primary</div>
                     {sc > 0 && <div style={{ fontSize: 10, color: ROLE_COLORS[i], marginTop: 4, fontWeight: 600 }}>+ {sc} supporting</div>}
                     {pc > 8 && <div style={{ fontSize: 9, color: AMBER, fontWeight: 600, marginTop: 6 }}>Potentially overloaded</div>}
-                    {pc === 0 && sc > 0 && <div style={{ fontSize: 9, color: MUTED, fontWeight: 600, marginTop: 6 }}>Advisory only — no lead</div>}
+                    {pc === 0 && sc > 0 && <div style={{ fontSize: 9, color: MUTED, fontWeight: 600, marginTop: 6 }}>Advisory only, no lead</div>}
                   </div>
                 );
               })}
@@ -189,16 +204,16 @@ export default function GovernanceModel() {
               return (<>
                 {shared.length > 0 && (
                   <div style={{ background: `${GREEN}08`, border: `1px solid ${GREEN}20`, borderRadius: 10, padding: "20px 22px", marginBottom: 12 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Shared Ownership — {shared.length} items</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Shared Ownership, {shared.length} items</span>
                     <p style={{ fontSize: 11, color: MUTED, margin: "4px 0 8px" }}>Clear lead with cross-functional support. The strongest governance pattern.</p>
-                    {shared.map((s, i) => <p key={i} style={{ fontSize: 12, color: NAVY, margin: "3px 0" }}><strong>{s.item}</strong> — <span style={{ color: s.pc, fontWeight: 600 }}>{s.pri}</span> leads, <span style={{ color: s.sc, fontWeight: 600 }}>{s.sec}</span> supports</p>)}
+                    {shared.map((s, i) => <p key={i} style={{ fontSize: 12, color: NAVY, margin: "3px 0" }}><strong>{s.item}</strong>, <span style={{ color: s.pc, fontWeight: 600 }}>{s.pri}</span> leads, <span style={{ color: s.sc, fontWeight: 600 }}>{s.sec}</span> supports</p>)}
                   </div>
                 )}
                 {solo.length > 0 && (
                   <div style={{ background: `${AMBER}08`, border: `1px solid ${AMBER}20`, borderRadius: 10, padding: "20px 22px", marginBottom: 12 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 1, textTransform: "uppercase" }}>Single Owner — {solo.length} items</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 1, textTransform: "uppercase" }}>Single Owner, {solo.length} items</span>
                     <p style={{ fontSize: 11, color: MUTED, margin: "4px 0 8px" }}>Primary owner assigned but no supporting function. Consider whether any need cross-functional accountability.</p>
-                    {solo.slice(0, 6).map((s, i) => <p key={i} style={{ fontSize: 12, color: NAVY, margin: "3px 0" }}><strong>{s.item}</strong> — <span style={{ color: s.pc, fontWeight: 600 }}>{s.pri}</span> only</p>)}
+                    {solo.slice(0, 6).map((s, i) => <p key={i} style={{ fontSize: 12, color: NAVY, margin: "3px 0" }}><strong>{s.item}</strong>, <span style={{ color: s.pc, fontWeight: 600 }}>{s.pri}</span> only</p>)}
                     {solo.length > 6 && <p style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>+ {solo.length - 6} more</p>}
                   </div>
                 )}
@@ -207,25 +222,30 @@ export default function GovernanceModel() {
 
             {unownedItems.length > 0 && (
               <div style={{ background: `${RED}08`, border: `1px solid ${RED}20`, borderRadius: 10, padding: "20px 22px", marginBottom: 32 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Unowned — {unownedItems.length} items</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Unowned, {unownedItems.length} items</span>
                 <p style={{ fontSize: 11, color: MUTED, margin: "4px 0 8px" }}>No primary owner. Each one creates decision ambiguity and accountability risk.</p>
                 {unownedItems.map((u, i) => <p key={i} style={{ fontSize: 12, color: NAVY, margin: "3px 0" }}><strong>{u.domain}:</strong> {u.item}</p>)}
               </div>
             )}
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center", marginTop: 20 }}>
-              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Need help structuring governance?</h3>
+              <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Need help structuring governance?</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your governance profile has been saved. Connect with a consultant and they'll help you resolve ownership gaps, balance workloads, and build a governance model that scales.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
-                <ReportExport toolName="Governance + Operating Model" subtitle={"Governance Assessment"} userName={name} userEmail={email} sections={[
-                    { title: "Dimension Scores", type: "table", rows: DIMS.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5"]) },
+                <ReportActions toolId={TOOL_ID} toolName="Governance and Operating Model" subtitle={assignedCount + " of " + totalItems + " decisions have a named owner"} routePath={ROUTE} state={{ primary, secondary }} defaults={DEFAULTS}
+                  summary={[{ label: "Decisions with an owner", value: assignedCount + " of " + totalItems }, { label: "Unowned decisions", value: String(unownedItems.length) }]}
+                  sections={[
+                    { title: "Ownership by Role", type: "table", rows: ROLES.map((r, i) => [r, primaryCounts[i] + " owned, " + secondaryCounts[i] + " supporting"]) },
                     { title: "Assessment", type: "metrics", items: [
-                      { label: "Governance Score", value: overallScore.toFixed(1) + "/5", color: overallScore >= 4 ? "#10B981" : overallScore >= 3 ? "#F59E0B" : "#EF4444" },
+                      { label: "Owned Decisions", value: assignedCount + " / " + totalItems, color: unownedItems.length ? AMBER : GREEN },
+                      { label: "Unowned", value: String(unownedItems.length), color: unownedItems.length ? RED : GREEN },
                     ]},
+                    { title: "Unowned Decisions", type: "findings", items: unownedItems.length ? unownedItems.map(u => u.domain + ": " + u.item) : ["Every decision in the model has a named owner."] },
+                    { title: "Method", type: "text", content: "Each decision is assigned one owning role and, optionally, one supporting role. The model counts assignments; it does not judge whether the chosen role is the right one for your organization." },
                     { title: "Next Steps", type: "next", items: [
                       { tool: "CX-IT Alignment", reason: "Align CX vision with IT execution" },
-                      { tool: "Roadmap Builder", reason: "Build phased plan from governance findings" },
+                      { tool: "Roadmap Builder", reason: "Build a phased plan from the ownership gaps" },
                     ]},
                   ]} />
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>

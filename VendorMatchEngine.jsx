@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { getVendor } from "./VendorData";
-import ReportExport from "./ReportExport";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 960, margin: "0 auto", padding: "0 28px" };
@@ -248,13 +250,41 @@ const VENDORS = [
 
 function Select({label,value,onChange,options,hint}){return<div><label style={{fontSize:12,fontWeight:600,color:NAVY,display:"block",marginBottom:4}}>{label}</label><select value={value} onChange={e=>onChange(e.target.value)} style={{width:"100%",padding:"10px 12px",fontSize:14,border:`1px solid ${BORDER}`,borderRadius:6,background:"#fff",color:NAVY,outline:"none",cursor:"pointer"}}><option value="">Select...</option>{options.map(o=>typeof o==="string"?<option key={o} value={o}>{o}</option>:<option key={o.value} value={o.value}>{o.label}</option>)}</select>{hint&&<span style={{fontSize:11,color:MUTED,marginTop:2,display:"block"}}>{hint}</span>}</div>}
 
+const TOOL_ID = "vendor-match";
+const ROUTE = "/tools/vendor-match";
+export const DEFAULTS = { vertical: "", size: "", currentPlatform: "", priorities: [], compliance: [], importance: {}, budgetSensitivity: "moderate", billingPreference: "monthly", termLength: "3 years" };
+/* A mid-market healthcare buyer with two priorities, so the harness renders the
+   shortlist and its PDF content. */
+export const SAMPLE = { ...DEFAULTS, vertical: "Healthcare", size: "200-500 agents", priorities: PRIORITIES.slice(0, 2).map(p => p.id) };
+/* A link keeps only known options. Importance is a whole number from 1 to 5. */
+const pick = (v, list, fallback) => (list.includes(v) ? v : fallback);
+const cleanState = (sc) => {
+  const x = sc && typeof sc === "object" ? sc : {};
+  return {
+    vertical: pick(x.vertical, VERTICALS, ""),
+    size: pick(x.size, SIZES, ""),
+    currentPlatform: pick(x.currentPlatform, PLATFORMS.map(p => p.name), ""),
+    priorities: Array.isArray(x.priorities) ? x.priorities.filter(id => PRIORITIES.some(p => p.id === id)) : [],
+    compliance: Array.isArray(x.compliance) ? x.compliance.filter(c => typeof c === "string").map(c => c.slice(0, 80)) : [],
+    importance: Object.fromEntries(Object.entries(x.importance && typeof x.importance === "object" ? x.importance : {}).filter(([k, v]) => /^[a-z]+$/i.test(k) && Number.isInteger(v) && v >= 1 && v <= 5)),
+    budgetSensitivity: pick(x.budgetSensitivity, ["low", "moderate", "high"], "moderate"),
+    billingPreference: pick(x.billingPreference, ["monthly", "annual"], "monthly"),
+    termLength: pick(x.termLength, ["1 year", "3 years", "5 years"], "3 years"),
+  };
+};
+
+/* Interim disclosure (CLAUDE.md sections 12 and 13). This engine still scores a
+   24-vendor CCaaS set from the Phase 1 model. The class-scoped rebuild on current
+   research is Stage 4. Until then the page says so. */
+const METHOD_NOTE = "These fit scores come from the Phase 1 CCaaS model: 24 vendors, each scored on 27 dimensions, adjusted for your size, vertical, priorities and budget sensitivity. They are a starting shortlist, not a ranking on current research. Current research on CCaaS vendors is under way, and this engine will be rebuilt on it, ranking only within comparable classes of vendor. Scores near the top of the scale are not meaningfully different from each other.";
+
 export default function VendorMatchEngine() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [company, setCompany] = useState("");
-  const [sending, setSending] = useState(false);
+  const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { fromLink: !!sc, d: cleanState(sc) }; });
+  const [phase, setPhase] = useState(() => (init.fromLink && init.d.vertical && init.d.size && init.d.priorities.length ? "results" : "input"));
   const [step, setStep] = useState(0);
-  const [d, setD] = useState({ vertical:"", size:"", currentPlatform:"", priorities:[], compliance:[], importance:{}, budgetSensitivity:"moderate", billingPreference:"monthly", termLength:"3 years" });
-  useEffect(() => { window.scrollTo(0,0); }, [phase]);
+  const [d, setD] = useState(init.d);
+  useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+  useEffect(() => { clearScenarioParam(); }, []);
   const set = (k,v) => setD(prev => ({...prev,[k]:v}));
   const toggleArr = (k,v) => setD(prev => ({...prev,[k]:prev[k].includes(v)?prev[k].filter(x=>x!==v):[...prev[k],v]}));
   const setImp = (id,val) => setD(prev => ({...prev,importance:{...prev.importance,[id]:val}}));
@@ -262,11 +292,7 @@ export default function VendorMatchEngine() {
   const vertComp = VERTICAL_COMPLIANCE[d.vertical] || VERTICAL_COMPLIANCE["Other"];
   const selPriorities = PRIORITIES.filter(p => d.priorities.includes(p.id));
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/maqlvwne", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Vendor Match Engine",_subject:"Vendor Match Engine Access"})}); } catch(e){}
-    setSending(false); setPhase("input");
-  };
+
 
   const getResults = () => {
     const sk = (d.size.includes("5000")||d.size.includes("1000"))?"large":(d.size.includes("500")||d.size.includes("200"))?"mid":"small";
@@ -284,30 +310,15 @@ export default function VendorMatchEngine() {
     }).sort((a,b) => b.score-a.score);
   };
 
-  const handleResults = async () => {
-    const res = getResults();
-    try { await fetch("https://formspree.io/f/maqlvwne", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Vendor Match Engine",vertical:d.vertical,size:d.size,platform:d.currentPlatform,priorities:d.priorities.join(", "),top3:res.slice(0,3).map(r=>`${r.name}:${r.score}`).join(", "),_subject:`Vendor Match: ${d.vertical}|${d.size}|Top:${res[0]?.name} | ${company||name||email}`})}); } catch(e){}
-    setPhase("results");
-  };
+  const handleResults = () => setPhase("results");
+
 
   const results = getResults();
 
   return (
-    <div style={{fontFamily:"'DM Sans',sans-serif",minHeight:"100vh"}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
+    <div style={{fontFamily:FONT,minHeight:"100vh"}}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
-
-      {phase==="gate"&&(<section style={{background:`linear-gradient(168deg,${DEEP},${NAVY})`,padding:"80px 28px 60px"}}><div style={{...WRAP,maxWidth:540}}>
-        <span style={{color:ELECTRIC,fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",display:"block",marginBottom:12}}>Vendor Selection</span>
-        <h1 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:32,fontWeight:400,color:"#fff",lineHeight:1.15,margin:"0 0 12px"}}>Vendor Match Engine</h1>
-        <p style={{fontSize:15,color:"rgba(255,255,255,0.5)",lineHeight:1.65,marginBottom:32}}>Describe your operation, priorities, and compliance requirements. Get a ranked vendor shortlist with fit reasoning, add-on intelligence, and direct paths to demos and advisory.</p>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <input type="text" placeholder="Name" value={name} onChange={e=>setName(e.target.value)} style={{padding:"12px 14px",fontSize:14,border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"#fff",outline:"none"}}/>
-          <input type="text" placeholder="Company" value={company} onChange={e=>setCompany(e.target.value)} style={{padding:"12px 14px",fontSize:14,border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"#fff",outline:"none"}}/>
-          <input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} style={{padding:"12px 14px",fontSize:14,border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"#fff",outline:"none"}}/>
-          <button onClick={handleGate} disabled={sending||!email.includes("@")} style={{padding:"14px",fontSize:15,fontWeight:600,background:email.includes("@")?ELECTRIC:SLATE,color:"#fff",border:"none",borderRadius:8,cursor:"pointer",opacity:email.includes("@")?1:0.5}}>{sending?"Loading...":"Start Matching →"}</button>
-        </div>
-      </div></section>)}
 
       {phase==="input"&&(<section style={{background:"#fff",padding:"48px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
         <div style={{display:"flex",gap:4,marginBottom:32,flexWrap:"wrap"}}>
@@ -317,7 +328,7 @@ export default function VendorMatchEngine() {
         </div>
 
         {step===0&&(<div>
-          <h2 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 20px"}}>Tell us about your environment</h2>
+          <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 20px"}}>Tell us about your environment</h2>
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <Select label="Industry vertical" value={d.vertical} onChange={v=>{set("vertical",v);set("compliance",[]);}} options={VERTICALS}/>
             <Select label="Operation size" value={d.size} onChange={v=>set("size",v)} options={SIZES}/>
@@ -331,7 +342,7 @@ export default function VendorMatchEngine() {
         </div>)}
 
         {step===1&&(<div>
-          <h2 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>What matters to your operation?</h2>
+          <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>What matters to your operation?</h2>
           <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Select all that apply. The more you select, the more nuanced the match.</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}} className="pg">
             {PRIORITIES.map(p=>(<button key={p.id} onClick={()=>toggleArr("priorities",p.id)} style={{padding:"14px 16px",textAlign:"left",borderRadius:8,cursor:"pointer",border:`1px solid ${d.priorities.includes(p.id)?ELECTRIC:BORDER}`,background:d.priorities.includes(p.id)?`${ELECTRIC}06`:"#fff",color:"inherit"}}>
@@ -346,7 +357,7 @@ export default function VendorMatchEngine() {
         </div>)}
 
         {step===2&&(<div>
-          <h2 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>Compliance Requirements</h2>
+          <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>Compliance Requirements</h2>
           <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Based on your {d.vertical||"selected"} vertical. Select requirements that apply.</p>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}} className="pg">
             {vertComp.map(req=>(<button key={req} onClick={()=>toggleArr("compliance",req)} style={{padding:"12px 16px",fontSize:13,textAlign:"left",borderRadius:8,cursor:"pointer",border:`1px solid ${d.compliance.includes(req)?RED:BORDER}`,background:d.compliance.includes(req)?`${RED}06`:"#fff",color:d.compliance.includes(req)?RED:SLATE,fontWeight:d.compliance.includes(req)?600:400}}>{d.compliance.includes(req)?"✓ ":""}{req}</button>))}
@@ -358,12 +369,12 @@ export default function VendorMatchEngine() {
         </div>)}
 
         {step===3&&(<div>
-          <h2 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>How important is each dimension?</h2>
+          <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>How important is each dimension?</h2>
           <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Rate your selected priorities: 1 = nice to have, 5 = critical.</p>
           {selPriorities.map(dim=>(<div key={dim.id} style={{marginBottom:14,padding:"14px 16px",background:WARM,borderRadius:8,border:`1px solid ${BORDER}`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
               <div><span style={{fontSize:13,fontWeight:600,color:NAVY}}>{dim.name}</span><span style={{fontSize:11,color:MUTED,display:"block"}}>{dim.desc}</span></div>
-              <span style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:22,color:ELECTRIC}}>{d.importance[dim.id]||3}</span>
+              <span style={{fontFamily:FONT,fontSize:22,color:ELECTRIC}}>{d.importance[dim.id]||3}</span>
             </div>
             <input type="range" min={1} max={5} value={d.importance[dim.id]||3} onChange={e=>setImp(dim.id,Number(e.target.value))} style={{width:"100%",accentColor:ELECTRIC}}/>
           </div>))}
@@ -381,9 +392,10 @@ export default function VendorMatchEngine() {
       </div></section>)}
 
       {phase==="results"&&(<section style={{background:"#fff",padding:"48px 28px 60px"}}><div style={WRAP}>
+        <div style={{background:WARM,border:`1px solid ${BORDER}`,borderRadius:8,padding:"12px 16px",marginBottom:24,fontSize:12,color:SLATE,lineHeight:1.6}}><strong style={{color:NAVY}}>How these scores are made. </strong>{METHOD_NOTE}</div>
         <div style={{textAlign:"center",marginBottom:32}}>
           <span style={{fontSize:11,fontWeight:700,color:ELECTRIC,letterSpacing:2,textTransform:"uppercase"}}>Your Vendor Shortlist</span>
-          <h2 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:28,fontWeight:400,color:NAVY,margin:"8px 0"}}>Ranked by fit for your environment</h2>
+          <h2 style={{fontFamily:FONT,fontSize:28,fontWeight:400,color:NAVY,margin:"8px 0"}}>Ranked by fit for your environment</h2>
           <p style={{fontSize:13,color:MUTED,maxWidth:560,margin:"0 auto"}}>{d.size} in {d.vertical||"your vertical"}{d.currentPlatform&&d.currentPlatform!=="None / Greenfield"?`, migrating from ${d.currentPlatform}`:""}. {d.priorities.length} priorities. {d.compliance.length} compliance requirements.</p>
         </div>
 
@@ -396,8 +408,8 @@ export default function VendorMatchEngine() {
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap"}}>
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-                    <span style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:isTop?14:12,color:MUTED}}>#{i+1}</span>
-                    <a href={`/vendors/${v.slug}`} style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:isTop?22:17,fontWeight:400,color:NAVY,borderBottom:`1px solid ${ELECTRIC}30`}}>{v.name}</a>
+                    <span style={{fontFamily:FONT,fontSize:isTop?14:12,color:MUTED}}>#{i+1}</span>
+                    <a href={`/vendors/${v.slug}`} style={{fontFamily:FONT,fontSize:isTop?22:17,fontWeight:400,color:NAVY,borderBottom:`1px solid ${ELECTRIC}30`}}>{v.name}</a>
                   </div>
                   {isTop&&(<>
                     <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:8,marginBottom:6}}>
@@ -409,7 +421,7 @@ export default function VendorMatchEngine() {
                   </>)}
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>
-                  <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:isTop?36:24,color:fc}}>{v.score}</div>
+                  <div style={{fontFamily:FONT,fontSize:isTop?36:24,color:fc}}>{v.score}</div>
                   <div style={{fontSize:11,fontWeight:600,color:fc}}>{fl}</div>
                 </div>
               </div>
@@ -444,12 +456,16 @@ export default function VendorMatchEngine() {
 
         {/* Download report */}
         <div style={{marginBottom:20}}>
-          <ReportExport
+          <ReportActions
+            toolId={TOOL_ID}
+            routePath={ROUTE}
+            state={d}
+            defaults={DEFAULTS}
+            summary={results.slice(0, 5).map((v, i) => ({ label: "Match " + (i + 1), value: v.name }))}
             toolName="Vendor Match Analysis"
             subtitle={`${d.size} · ${d.vertical} · ${d.priorities.length} priorities weighted`}
-            userName={name}
-            userEmail={email}
             sections={[
+              { title: "How These Scores Are Made", type: "text", content: METHOD_NOTE },
               { title: "Environment", type: "table", rows: [
                 ["Vertical", d.vertical || "Not specified"],
                 ["Operation Size", d.size || "Not specified"],
@@ -485,13 +501,13 @@ export default function VendorMatchEngine() {
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:24}} className="pg">
           <a href="/contact" style={{display:"block",background:`linear-gradient(135deg,${NAVY},${DEEP})`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
             <div style={{fontSize:11,fontWeight:700,color:LIGHT,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>Refine Your Shortlist</div>
-            <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:20,color:"#fff",marginBottom:8}}>Speak with a CX Consultant</div>
+            <div style={{fontFamily:FONT,fontSize:20,color:"#fff",marginBottom:8}}>Speak with a CX Consultant</div>
             <p style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.5,margin:"0 0 12px"}}>30 minutes to refine this shortlist based on integration complexity, contract terms, and organizational readiness.</p>
             <span style={{display:"inline-block",background:ELECTRIC,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Request Working Session →</span>
           </a>
           <a href="/contact" style={{display:"block",background:`${GREEN}06`,border:`1px solid ${GREEN}30`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
             <div style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>See It In Action</div>
-            <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:20,color:NAVY,marginBottom:8}}>Request a Vendor Introduction</div>
+            <div style={{fontFamily:FONT,fontSize:20,color:NAVY,marginBottom:8}}>Request a Vendor Introduction</div>
             <p style={{fontSize:12,color:SLATE,lineHeight:1.5,margin:"0 0 12px"}}>We coordinate a tailored demo with your top match using your scenarios, not their standard pitch.</p>
             <span style={{display:"inline-block",background:GREEN,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Request Introduction + Demo →</span>
           </a>

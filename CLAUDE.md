@@ -52,7 +52,7 @@ second, invest third, automate last.
 |---|---|
 | `src/lib/toolData.js` | 6108aae36f798ac0ba572888ad6c00c5 |
 | `src/lib/benchmarks.js` | 565d1f2c826e32f1baf66faebac2d71a |
-| `src/lib/journey.js` | 54d372ec2cf606a01b28ddca4d69e5ac |
+| `src/lib/journey.js` | see git (S23: 25 nodes) |
 | `src/lib/track.js` | d04c15c02e96bdee21ded2cf03a45866 |
 | `src/lib/confidence.js` | cd405788506e7970ad581cfcb9a84997 |
 | `src/lib/metrics.js` | 37f924dfd1387e52f7da749537d1f940 |
@@ -65,10 +65,10 @@ second, invest third, automate last.
 | `ChannelShiftModel.jsx` | 9f7b3e2f941a5bd304a592a88a81efd6 |
 | `FCRLeakageDiagnostic.jsx` | 366b409640f3eb8bb11dc0710a002d77 |
 | `AIDeflectionRealityCheck.jsx` | d54d6ff73405d891a20d4314272799c4 |
-| `LicenseBundleGapChecker.jsx` | 20af7a5d6be6b56f52343852f5d68aee |
+| `LicenseBundleGapChecker.jsx` | see git (S23 hotfix: `evLabel` destructure) |
 | `AttritionCostCalculator.jsx` | see git (S22: next-step and driver links repointed, engine untouched) |
 | `ReportActions.jsx` | db405106dfcbde98427f4be53a84be2a |
-| `run-all.mjs` | 051f8cd18e47684940abd9c144ed9b86 (S22, registers `freeze.test.mjs`) |
+| `run-all.mjs` | see git (S23: registers `floor.test.mjs`) |
 | `rail-audit.mjs` | see git (S22: retired tools removed from the scan list) |
 
 ---
@@ -366,8 +366,13 @@ Binding. None of this is in code comments beyond what is noted.
 - `ReportActions.jsx` line 40, `scenarioUrl` `__proto__` assignment, `track.js` line 185.
 - `ReportActions` `Field` labels are not bound to their inputs (no `htmlFor`/`id`).
   Screen readers cannot name the review form fields.
-- A failed lazy route chunk leaves the tool blank with no retry or error boundary.
-  Seen in S21 through a transient proxy 502; a flaky mobile connection hits the same path.
+- ~~A failed lazy route chunk leaves the tool blank.~~ Fixed S23: one retry, one
+  reload per session, then a route error boundary with a reload link.
+- Non-rail tools carry floor only: no engine markers, harness pairs, claim-class
+  language review or registry constants yet (step 3). Heuristics named in copy where
+  seen (Occupancy multipliers, AHT reduction factors, adherence abandonment steps).
+- Occupancy Risk "Critical Threshold Warning" panel uses an unsourced 0.15 turnover
+  factor; AHT benchmark ranges and Contract Risk "gap runs 40-100%" are unsourced.
 - TCO guard case (1 agent, 120,000 contacts) prints marginal cost per contact above
   cost per contact, unflagged, and its open-issues text says "treat the output as void"
   while grading Directional. Low.
@@ -491,7 +496,37 @@ dashboard, the 12-phase growth program.
    counts redirect routes. Doctrine v1.3 carries both standards. Attrition's coaching
    driver now points to QA Scorecard; its Agent Experience content returns in step 3 as
    Attrition's root-cause layer, and Calibration Drift as QA's calibration module.
-7. **Next:** V3 program step 2, the floor on all 16 remaining non-rail tools.
+7. Done S23: V3 program step 2, the floor, on all 16 non-rail tools. Live defects found
+   and fixed on the way (all confirmed on production first):
+   - Four WFM tools (Forecast, Occupancy, Schedule Adherence, Shrinkage) rendered a
+     blank page for every user who passed the email gate: PDF blocks read variables
+     that did not exist. Hotfix PR #7.
+   - License Gap, a V3 rail tool, rendered a blank page for every visitor since the
+     initial import (`evLabel` missing from a destructure). Hotfix PR #8.
+   - CX IT Alignment, Governance Model and Roadmap Builder crashed on their results
+     page (PDF blocks read `DIMS`, `dimScore`, `overallScore`, `phases`, none defined).
+   - CX Maturity and AI Readiness PDFs printed "undefined" for the tier.
+   - Schedule Adherence's Erlang C dropped the 1/(1-rho) factor (C(2,1) printed 1/6,
+     true value 1/3), overstating service level; now the Erlang B recurrence, the same
+     form Staffing uses.
+   - Forecast Accuracy's default "actuals" came from Math.random on every load and
+     printed in the PDF as the reader's data; now a deterministic sample, labelled.
+   - Roadmap told users their roadmap "has been sent to your email" (it went to TB's
+     Formspree). Contract Risk promised "we will receive your flagged terms" from a
+     silent post. Both now route through the review request, which carries them.
+   Floor delivered: no email gate on any tool, no tool posts to Formspree itself
+   (only the ReportActions review request does), ReportActions and scenario links on
+   all 25, the scenario read on first paint, `type.js` everywhere, input guards
+   disclosed on the five calculators, answers outside the scale dropped on the
+   frameworks, 16 journey nodes (25 total) with six rail edges into them, Vendor
+   Match method disclosure on page and in the PDF, lazy route retry and a route error
+   boundary. `floor.test.mjs` bundles and server-renders every tool with defaults,
+   its sample and hostile links, with ReportActions swapped for a probe that prints
+   every PDF and review field, so a crash or a NaN, Infinity or undefined headed for a
+   PDF fails the suite. Suite 19,246 green. Browser check: 48 runs clean.
+8. **Next:** V3 program step 3, deep V3 by shape. First the shared rubric engine and
+   published rubric pages for CX Maturity and AI Readiness (V3-Framework), then the
+   WFM cluster to V3-Full (engine markers, harness pairs, Staffing rail).
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.

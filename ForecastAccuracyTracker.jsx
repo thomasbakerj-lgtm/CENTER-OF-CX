@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { createGuards, guardLine } from "./src/lib/guards";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -13,53 +16,51 @@ const CHANNEL_DEFAULTS = {
   email: { label: "Email", data: [8,10,12,14,16,18,20,20,18,16,15,14,12,12,14,16,14,12,10,8,8,6,5,4,4,3,2,2,1,1,0] },
 };
 
+/* Sample actuals are deterministic. They used to be drawn from Math.random on
+   every load, so a first visit showed invented volumes that changed on refresh
+   and printed in the PDF as if they were the reader's. A fixed pattern within
+   the chosen variance keeps the sample reproducible and a scenario link exact. */
+const WOBBLE = INTERVALS.map((_, i) => Math.sin(i * 2.399) * 0.5 + Math.sin(i * 0.7) * 0.5);
+const sampleRows = (ch, variancePct) => {
+  const base = CHANNEL_DEFAULTS[ch].data, v = variancePct / 100;
+  return INTERVALS.map((t, i) => ({ interval: t, forecast: base[i], actual: Math.max(0, Math.round(base[i] * (1 + WOBBLE[i] * v))) }));
+};
+
+const TOOL_ID = "forecast-accuracy";
+const ROUTE = "/tools/forecast-accuracy";
+export const DEFAULTS = { channel: "voice", variance: 8, rows: sampleRows("voice", 8) };
+
 export default function ForecastAccuracyTracker() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState(""); const [name, setName] = useState("");
-  const [sending, setSending] = useState(false);
-  const [channel, setChannel] = useState("voice");
-  const [variance, setVariance] = useState(8);
-  const [rows, setRows] = useState(() => {
-    const base = CHANNEL_DEFAULTS.voice.data;
-    return INTERVALS.map((t, i) => ({
-      interval: t,
-      forecast: base[i],
-      actual: Math.round(base[i] * (1 + (Math.random() * 0.16 - 0.08))),
-    }));
-  });
+  const [init] = useState(() => readScenario(TOOL_ID, DEFAULTS) || DEFAULTS);
+  const [channel, setChannel] = useState(init.channel);
+  const [variance, setVariance] = useState(init.variance);
+  const [rawRows, setRows] = useState(init.rows);
+  useEffect(() => { window.scrollTo(0, 0); clearScenarioParam(); }, []);
+  /* Sample until the reader enters a volume. A link that carries rows other than
+     the sample for its channel is treated as entered data. */
+  const [edited, setEdited] = useState(() => JSON.stringify(init.rows) !== JSON.stringify(sampleRows(init.channel, init.variance)));
 
-  useEffect(() => { window.scrollTo(0, 0); }, [phase]);
-
-  const applyChannel = (ch) => {
-    setChannel(ch);
-    const base = CHANNEL_DEFAULTS[ch].data;
-    const v = variance / 100;
-    setRows(INTERVALS.map((t, i) => ({
-      interval: t,
-      forecast: base[i],
-      actual: Math.max(0, Math.round(base[i] * (1 + (Math.random() * v * 2 - v)))),
-    })));
-  };
-
+  const applyChannel = (ch) => { setChannel(ch); setRows(sampleRows(ch, variance)); setEdited(false); };
+  /* A fresh sample at the chosen variance, still deterministic: the pattern is
+     shifted by a counter rather than drawn at random. */
+  const [shift, setShift] = useState(0);
   const randomize = () => {
-    const base = CHANNEL_DEFAULTS[channel].data;
-    const v = variance / 100;
-    setRows(INTERVALS.map((t, i) => ({
-      interval: t,
-      forecast: base[i],
-      actual: Math.max(0, Math.round(base[i] * (1 + (Math.random() * v * 2 - v)))),
-    })));
+    const next = shift + 1; setShift(next); setEdited(false);
+    const base = CHANNEL_DEFAULTS[channel].data, v = variance / 100;
+    setRows(INTERVALS.map((t, i) => ({ interval: t, forecast: base[i], actual: Math.max(0, Math.round(base[i] * (1 + WOBBLE[(i + next * 7) % WOBBLE.length] * v))) })));
   };
-
   const updateRow = (i, field, val) => {
+    setEdited(true);
     setRows(prev => prev.map((r, idx) => idx === i ? { ...r, [field]: Number(val) || 0 } : r));
   };
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, tool: "Forecast Accuracy Tracker", _subject: "Forecast Accuracy Tracker Access" }) }); } catch (e) {}
-    setSending(false); setPhase("calc");
-  };
+  /* Every cell is clamped at the engine boundary and every correction disclosed. */
+  const { guards, guard } = createGuards();
+  const rows = (Array.isArray(rawRows) ? rawRows : DEFAULTS.rows).map((r) => ({
+    interval: String(r.interval),
+    forecast: guard(`${r.interval} forecast`, r.forecast, 0, 10000000, ""),
+    actual: guard(`${r.interval} actual`, r.actual, 0, 10000000, ""),
+  }));
 
   // Metrics
   const totalForecast = rows.reduce((a, r) => a + r.forecast, 0);
@@ -83,31 +84,15 @@ export default function ForecastAccuracyTracker() {
   const chartW = 700; const chartH = 180; const barW = chartW / rows.length;
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.fg{grid-template-columns:1fr!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.fg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>
 
-      {phase === "gate" && (
-        <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "80px 28px 60px" }}>
-          <div style={{ ...WRAP, maxWidth: 520 }}>
-            <span style={{ color: AMBER, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>WFM Tool</span>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 12px" }}>Forecast Accuracy Tracker</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, marginBottom: 32 }}>Compare forecast vs actual by interval and channel. Identify where your forecast breaks down and quantify the impact on staffing accuracy.</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: "12px 14px", fontSize: 14, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "#fff", outline: "none" }} />
-              <button onClick={handleGate} disabled={sending || !email.includes("@")} style={{ padding: "14px", fontSize: 15, fontWeight: 600, background: email.includes("@") ? AMBER : SLATE, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", opacity: email.includes("@") ? 1 : 0.5 }}>{sending ? "Loading..." : "Launch Tracker →"}</button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {phase === "calc" && (
-        <>
+      <>
           <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
             <div style={WRAP}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>Forecast Accuracy Tracker</h2>
+                <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>Forecast Accuracy Tracker</h2>
                 <div style={{ display: "flex", gap: 4 }}>
                   {Object.entries(CHANNEL_DEFAULTS).map(([k, v]) => (
                     <button key={k} onClick={() => applyChannel(k)} style={{ padding: "6px 14px", fontSize: 11, fontWeight: 600, borderRadius: 4, border: `1px solid ${channel === k ? ELECTRIC : BORDER}`, background: channel === k ? ELECTRIC : "#fff", color: channel === k ? "#fff" : MUTED, cursor: "pointer" }}>{v.label}</button>
@@ -129,22 +114,22 @@ export default function ForecastAccuracyTracker() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="fg">
                 <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Overall Accuracy</div>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 36, color: accColor }}>{overallAccuracy.toFixed(1)}%</div>
+                  <div style={{ fontFamily: FONT, fontSize: 36, color: accColor }}>{overallAccuracy.toFixed(1)}%</div>
                   <div style={{ fontSize: 11, color: MUTED }}>{overallAccuracy >= 95 ? "Excellent" : overallAccuracy >= 90 ? "Acceptable" : "Needs attention"}</div>
                 </div>
                 <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>MAPE</div>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 36, color: mape <= 5 ? GREEN : mape <= 10 ? AMBER : RED }}>{mape.toFixed(1)}%</div>
+                  <div style={{ fontFamily: FONT, fontSize: 36, color: mape <= 5 ? GREEN : mape <= 10 ? AMBER : RED }}>{mape.toFixed(1)}%</div>
                   <div style={{ fontSize: 11, color: MUTED }}>Mean absolute % error</div>
                 </div>
                 <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Forecast Bias</div>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 36, color: Math.abs(bias) <= 3 ? GREEN : AMBER }}>{bias > 0 ? "+" : ""}{bias.toFixed(1)}%</div>
+                  <div style={{ fontFamily: FONT, fontSize: 36, color: Math.abs(bias) <= 3 ? GREEN : AMBER }}>{bias > 0 ? "+" : ""}{bias.toFixed(1)}%</div>
                   <div style={{ fontSize: 11, color: MUTED }}>{biasLabel}</div>
                 </div>
                 <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: "20px", textAlign: "center" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Volume Delta</div>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 36, color: "#fff" }}>{totalActual - totalForecast > 0 ? "+" : ""}{totalActual - totalForecast}</div>
+                  <div style={{ fontFamily: FONT, fontSize: 36, color: "#fff" }}>{totalActual - totalForecast > 0 ? "+" : ""}{totalActual - totalForecast}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Contacts vs forecast</div>
                 </div>
               </div>
@@ -226,31 +211,51 @@ export default function ForecastAccuracyTracker() {
                 </p>
               </div>
 
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <ReportExport toolName="Forecast Accuracy Analysis" subtitle="Forecast vs Actual, Interval-Level Accuracy" userName={name} userEmail={email} sections={[
+              {!edited && (
+                <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 16px", marginBottom: 16, fontSize: 12, color: SLATE }}>
+                  These are sample volumes, not your data. Enter your own forecast and actual volumes by interval in the table above for a result about your operation.
+                </div>
+              )}
+              {guards.length > 0 && (
+                <div style={{ background: "#FFF7E6", border: `1px solid ${AMBER}`, borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Inputs corrected. Every figure above was computed on the corrected values.</div>
+                  {guards.map((g, i) => <div key={i} style={{ fontSize: 12, color: SLATE }}>{guardLine(g)}</div>)}
+                </div>
+              )}
+              <ReportActions
+                toolId={TOOL_ID}
+                toolName="Forecast Accuracy Analysis"
+                subtitle="Forecast vs Actual, Interval-Level Accuracy"
+                routePath={ROUTE}
+                state={{ channel, variance, rows: rawRows }}
+                defaults={DEFAULTS}
+                summary={[
+                  { label: "Overall accuracy", value: overallAccuracy.toFixed(1) + "%" },
+                  { label: "MAPE", value: mape.toFixed(1) + "%" },
+                  { label: "Bias", value: (bias > 0 ? "+" : "") + bias.toFixed(1) + "%" },
+                ]}
+                sections={[
                     { title: "Forecast Data", type: "table", rows: rows.map(r => [r.interval, "F: " + r.forecast + " / A: " + r.actual + (r.forecast > 0 ? " (Err: " + ((r.actual - r.forecast) / r.forecast * 100).toFixed(1) + "%)" : " (no forecast)")]) },
                     { title: "Accuracy Metrics", type: "metrics", items: [
                       { label: "Overall Accuracy", value: overallAccuracy.toFixed(1) + "%", color: accColor },
                       { label: "MAPE", value: mape.toFixed(1) + "%", color: mape > 10 ? RED : mape > 5 ? AMBER : GREEN },
                       { label: "Bias", value: (bias > 0 ? "+" : "") + bias.toFixed(1) + "%", color: Math.abs(bias) > 3 ? AMBER : GREEN, sub: biasLabel },
                     ]},
+                    ...(guards.length ? [{ title: "Inputs Corrected", type: "findings", items: guards.map(guardLine) }] : []),
                     { title: "Key Findings", type: "findings", items: [
                       "MAPE of " + mape.toFixed(1) + "%: " + (mape <= 5 ? "strong interval accuracy" : mape <= 10 ? "acceptable but improvable" : "a forecasting gap worth investigating") + ".",
                       Math.abs(bias) > 3 ? biasLabel + ": actual volume ran " + Math.abs(bias).toFixed(1) + "% " + (bias > 0 ? "above" : "below") + " forecast across the period." : "No significant directional bias: total actual volume is within 3% of forecast.",
                     ]},
+                    { title: "Data", type: "text", content: edited ? "Forecast and actual volumes as entered." : "These are sample volumes, not your data. Enter your own forecast and actual volumes by interval for a result about your operation." },
                     { title: "Next Steps", type: "next", items: [
                       { tool: "Staffing Calculator", reason: "Model the staffing impact of the forecast error" },
                       { tool: "Schedule Adherence", reason: "Check whether adherence gaps compound forecast errors" },
                     ]},
-                  ]} />
-                
-                <a href="/tools/staffing-calculator" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Staffing Calculator →</a>
-                <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
-              </div>
+                  ]}
+              />
             </div>
           </section>
-        </>
-      )}
+      </>
     </div>
   );
 }

@@ -41,6 +41,7 @@ export const JOURNEY = {
     next: [
       { to: "fcr-leakage", why: "Repeat contacts inflate cost per resolution. Find out how much of it is controllable." },
       { to: "channel-shift", why: "Test whether moving volume to digital changes the unit cost or just moves it." },
+      { to: "aht-decomposition", why: "Break handle time into its parts before you price any reduction." },
     ],
   },
   "fcr-leakage": {
@@ -57,6 +58,7 @@ export const JOURNEY = {
     next: [
       { to: "business-case-builder", why: "Carry the net automation number into a case with payback and risk." },
       { to: "tco-calculator", why: "Price the platform the deflection depends on over its full term." },
+      { to: "ai-readiness", why: "Check the data and governance readiness the automation depends on." },
     ],
   },
   "channel-shift": {
@@ -73,6 +75,7 @@ export const JOURNEY = {
     next: [
       { to: "attrition-cost", why: "Turnover drains the capacity you just sized. Price the leak." },
       { to: "cost-per-contact", why: "Turn the FTE requirement into a cost per contact and per resolution." },
+      { to: "shrinkage-planner", why: "Check the shrinkage factor the requirement is sized on." },
     ],
   },
   "attrition-cost": {
@@ -81,6 +84,7 @@ export const JOURNEY = {
     next: [
       { to: "staffing-calculator", why: "Size the backfill capacity turnover forces you to carry." },
       { to: "business-case-builder", why: "Test whether a retention fix pays back before any technology does." },
+      { to: "occupancy-risk", why: "Test whether sustained occupancy is driving the exits you priced." },
     ],
   },
   "license-gap": {
@@ -89,6 +93,7 @@ export const JOURNEY = {
     next: [
       { to: "tco-calculator", why: "Carry the effective seat cost into the full cost of ownership." },
       { to: "business-case-builder", why: "Decide whether the gap justifies a change or a renegotiation." },
+      { to: "contract-risk", why: "Review the contract terms that come with the seat price." },
     ],
   },
   "tco-calculator": {
@@ -106,6 +111,140 @@ export const JOURNEY = {
     next: [
       { to: "tco-calculator", why: "Pressure test the cost side of the case over the full term." },
       { to: "fcr-leakage", why: "Confirm the benefit is recoverable repeat demand before you commit to it." },
+    ],
+  },
+  "aht-decomposition": {
+    name: "AHT Decomposition",
+    route: "/tools/aht-decomposition",
+    next: [
+      { to: "staffing-calculator", why: "Carry the reduced handle time into the FTE requirement." },
+      { to: "cost-per-contact", why: "See what the handle time reduction does to unit cost." },
+      { to: "qa-scorecard", why: "Check whether the QA scorecard rewards the handle time behavior you want." },
+    ],
+  },
+  "shrinkage-planner": {
+    name: "Shrinkage Planner",
+    route: "/tools/shrinkage-planner",
+    next: [
+      { to: "staffing-calculator", why: "Size the requirement on the shrinkage you just measured." },
+      { to: "occupancy-risk", why: "Check whether lost time is pushing occupancy up." },
+    ],
+  },
+  "occupancy-risk": {
+    name: "Occupancy Risk",
+    route: "/tools/occupancy-risk",
+    next: [
+      { to: "staffing-calculator", why: "Model the staffing that brings occupancy to target." },
+      { to: "attrition-cost", why: "Price the turnover sustained occupancy drives." },
+      { to: "schedule-adherence", why: "Check whether adherence gaps are creating the occupancy spikes." },
+    ],
+  },
+  "forecast-accuracy": {
+    name: "Forecast Accuracy",
+    route: "/tools/forecast-accuracy",
+    next: [
+      { to: "staffing-calculator", why: "Model the staffing cost of the forecast error." },
+      { to: "schedule-adherence", why: "Check whether adherence gaps compound forecast error." },
+    ],
+  },
+  "schedule-adherence": {
+    name: "Schedule Adherence",
+    route: "/tools/schedule-adherence",
+    next: [
+      { to: "staffing-calculator", why: "Size the buffer needed to absorb adherence variance." },
+      { to: "forecast-accuracy", why: "Separate forecast error from adherence loss." },
+      { to: "occupancy-risk", why: "Check the occupancy load that adherence loss creates." },
+    ],
+  },
+  "qa-scorecard": {
+    name: "QA Scorecard",
+    route: "/tools/qa-scorecard",
+    next: [
+      { to: "attrition-cost", why: "Price the turnover that weak coaching and QA feedback drive." },
+      { to: "fcr-leakage", why: "Tie the scorecard to the repeat contacts it should prevent." },
+    ],
+  },
+  "contract-risk": {
+    name: "Contract Risk Scanner",
+    route: "/tools/contract-risk",
+    next: [
+      { to: "license-gap", why: "Check add-on and usage pricing behind the flagged terms." },
+      { to: "tco-calculator", why: "Price the contract over its full term." },
+    ],
+  },
+  "platform-decision": {
+    name: "Platform Decision Matrix",
+    route: "/tools/platform-decision",
+    next: [
+      { to: "vendor-match", why: "Build a shortlist for the layers marked replace or evaluate." },
+      { to: "rfp-builder", why: "Turn the layer gaps into RFP requirements." },
+      { to: "tco-calculator", why: "Price staying against replacing over the full term." },
+    ],
+  },
+  "rfp-builder": {
+    name: "RFP Requirement Builder",
+    route: "/tools/rfp-builder",
+    next: [
+      { to: "vendor-match", why: "Build a shortlist before you send the RFP." },
+      { to: "contract-risk", why: "Know the contract terms to negotiate before responses arrive." },
+    ],
+  },
+  "vendor-match": {
+    name: "Vendor Match",
+    route: "/tools/vendor-match",
+    next: [
+      { to: "contract-risk", why: "Scan the terms each shortlisted vendor will propose." },
+      { to: "tco-calculator", why: "Price the shortlisted platforms over the full term." },
+      { to: "rfp-builder", why: "Turn your priorities into RFP requirements." },
+    ],
+  },
+  "cx-maturity": {
+    name: "CX Maturity Assessment",
+    route: "/tools/cx-maturity",
+    next: [
+      { to: "ai-readiness", why: "Assess AI-specific readiness on the weakest dimensions." },
+      { to: "transformation-readiness", why: "Test whether the organization can act on the gaps now." },
+    ],
+  },
+  "ai-readiness": {
+    name: "AI Readiness Diagnostic",
+    route: "/tools/ai-readiness",
+    next: [
+      { to: "ai-deflection", why: "Test how much demand automation can really absorb." },
+      { to: "governance-model", why: "Define who owns AI decisions and guardrails." },
+    ],
+  },
+  "transformation-readiness": {
+    name: "Transformation Readiness",
+    route: "/tools/transformation-readiness",
+    next: [
+      { to: "roadmap-builder", why: "Sequence the program around the gaps you found." },
+      { to: "governance-model", why: "Settle decision rights before the program starts." },
+    ],
+  },
+  "cx-it-alignment": {
+    name: "CX IT Alignment",
+    route: "/tools/cx-it-alignment",
+    next: [
+      { to: "governance-model", why: "Assign ownership where CX and IT disagree." },
+      { to: "platform-decision", why: "Test the platform against the gaps CX and IT agree on." },
+      { to: "cx-maturity", why: "Place the alignment gaps in the wider maturity picture." },
+    ],
+  },
+  "governance-model": {
+    name: "Governance Model",
+    route: "/tools/governance-model",
+    next: [
+      { to: "roadmap-builder", why: "Build a phased plan around the ownership gaps." },
+      { to: "cx-it-alignment", why: "Check whether CX and IT agree on the owners you chose." },
+    ],
+  },
+  "roadmap-builder": {
+    name: "Roadmap Builder",
+    route: "/tools/roadmap-builder",
+    next: [
+      { to: "business-case-builder", why: "Build the case the roadmap initiatives have to earn." },
+      { to: "governance-model", why: "Name who owns each phase of the roadmap." },
     ],
   },
 };

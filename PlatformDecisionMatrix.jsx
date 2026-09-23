@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import ReportExport from "./ReportExport";
+import ReportActions from "./ReportActions";
+import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -30,30 +32,33 @@ const RATINGS = [
   { value: 5, label: "Excellent", color: GREEN },
 ];
 
+const TOOL_ID = "platform-decision";
+const ROUTE = "/tools/platform-decision";
+export const DEFAULTS = { scores: {} };
+/* A complete set of mid-scale answers. The floor harness renders it to prove the
+   results page and its PDF content build without a gate and without a missing field. */
+export const SAMPLE = { scores: Object.fromEntries(LAYERS.flatMap(l => l.needs.map((_, i) => [`${l.n}-${i}`, ((l.n + i) % 5) + 1]))) };
+/* An answer is kept only if it is a whole number on the 1 to 5 scale. A link
+   carrying anything else opens the unanswered question, never a scored result. */
+const cleanScores = (sc) => Object.fromEntries(Object.entries(sc && typeof sc === "object" ? sc : {})
+  .filter(([k, v]) => /^[a-z0-9-]+$/i.test(k) && Number.isInteger(v) && v >= 1 && v <= 5));
+const isComplete = (scores) => LAYERS.every(l => l.needs.every((_, i) => scores[`${l.n}-${i}`] > 0));
+
 export default function PlatformDecisionMatrix() {
-  const [phase, setPhase] = useState("gate");
-  const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [company, setCompany] = useState("");
-  const [sending, setSending] = useState(false);
-  const [scores, setScores] = useState({});
+  const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { scores: cleanScores(sc && sc.scores) }; });
+  const [phase, setPhase] = useState(() => (isComplete(init.scores) ? "results" : "intro"));
+  const [scores, setScores] = useState(init.scores);
   const [currentLayer, setCurrentLayer] = useState(0);
-  useEffect(() => { window.scrollTo(0,0); }, [phase]);
+  useEffect(() => { window.scrollTo(0, 0); }, [phase]);
+  useEffect(() => { clearScenarioParam(); }, []);
 
   const setScore = (n, i, v) => setScores(prev => ({...prev,[`${n}-${i}`]:v}));
   const layerAvg = (n) => { const l=LAYERS.find(x=>x.n===n); const v=l.needs.map((_,i)=>scores[`${n}-${i}`]||0).filter(x=>x>0); return v.length===0?0:v.reduce((a,b)=>a+b,0)/v.length; };
   const layerComplete = (n) => LAYERS.find(x=>x.n===n).needs.every((_,i)=>scores[`${n}-${i}`]>0);
   const allComplete = LAYERS.every(l=>layerComplete(l.n));
 
-  const handleGate = async () => {
-    if(!email.includes("@")) return; setSending(true);
-    try{await fetch("https://formspree.io/f/maqlvwne",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Platform Decision Matrix",_subject:"Platform Decision Matrix Access"})});}catch(e){}
-    setSending(false); setPhase("assess");
-  };
-  const handleResults = async () => {
-    const lr=LAYERS.map(l=>`L${l.n}:${layerAvg(l.n).toFixed(1)}`).join("|");
-    const gaps=LAYERS.filter(l=>layerAvg(l.n)<2.5).map(l=>`L${l.n} ${l.name}`).join(", ");
-    try{await fetch("https://formspree.io/f/maqlvwne",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,name,company,tool:"Platform Decision Matrix",layers:lr,criticalGaps:gaps||"None",_subject:`Platform Matrix: ${LAYERS.filter(l=>layerAvg(l.n)<2.5).length} critical gaps, ${company||name||email}`})});}catch(e){}
-    setPhase("results");
-  };
+  const handleStart = () => setPhase("assess");
+  const handleResults = () => setPhase("results");
 
   const getRec = (avg) => {
     if(avg>=4) return{action:"Stay",color:GREEN,desc:"Current platform serves this layer. Optimize, do not replace."};
@@ -63,30 +68,27 @@ export default function PlatformDecisionMatrix() {
   };
 
   return(
-    <div style={{fontFamily:"'DM Sans',sans-serif",minHeight:"100vh"}}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
+    <div style={{fontFamily:FONT,minHeight:"100vh"}}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
 
-      {phase==="gate"&&(<section style={{background:`linear-gradient(168deg,${DEEP},${NAVY})`,padding:"80px 28px 60px"}}><div style={{...WRAP,maxWidth:520}}>
+      {phase === "intro"&&(<section style={{background:`linear-gradient(168deg,${DEEP},${NAVY})`,padding:"80px 28px 60px"}}><div style={{...WRAP,maxWidth:520}}>
         <span style={{color:LIGHT,fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",display:"block",marginBottom:12}}>Vendor Selection</span>
-        <h1 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:32,fontWeight:400,color:"#fff",lineHeight:1.15,margin:"0 0 12px"}}>Platform Decision Matrix</h1>
+        <h1 style={{fontFamily:FONT,fontSize:32,fontWeight:400,color:"#fff",lineHeight:1.15,margin:"0 0 12px"}}>Platform Decision Matrix</h1>
         <p style={{fontSize:15,color:"rgba(255,255,255,0.5)",lineHeight:1.65,marginBottom:32}}>Assess your current platform across all 7 orchestration layers. Get a layer-by-layer recommendation with direct paths to scored vendors and diagnostic tools for every gap identified.</p>
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <input type="text" placeholder="Name" value={name} onChange={e=>setName(e.target.value)} style={{padding:"12px 14px",fontSize:14,border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"#fff",outline:"none"}}/>
-          <input type="text" placeholder="Company" value={company} onChange={e=>setCompany(e.target.value)} style={{padding:"12px 14px",fontSize:14,border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"#fff",outline:"none"}}/>
-          <input type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} style={{padding:"12px 14px",fontSize:14,border:"1px solid rgba(255,255,255,0.12)",borderRadius:6,background:"rgba(255,255,255,0.04)",color:"#fff",outline:"none"}}/>
-          <button onClick={handleGate} disabled={sending||!email.includes("@")} style={{padding:"14px",fontSize:15,fontWeight:600,background:email.includes("@")?ELECTRIC:SLATE,color:"#fff",border:"none",borderRadius:8,cursor:"pointer",opacity:email.includes("@")?1:0.5}}>{sending?"Loading...":"Start Assessment →"}</button>
+          <button onClick={handleStart} style={{padding:"14px",fontSize:15,fontWeight:600,background:ELECTRIC,color:"#fff",border:"none",borderRadius:8,cursor:"pointer",opacity:1}}>{"Start Assessment →"}</button>
         </div>
       </div></section>)}
 
-      {phase==="assess"&&(<section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
+      {phase === "assess"&&(<section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
         <div style={{display:"flex",gap:4,marginBottom:24,flexWrap:"wrap"}}>
           {LAYERS.map((l,i)=>(<button key={l.n} onClick={()=>setCurrentLayer(i)} style={{padding:"6px 12px",fontSize:11,fontWeight:600,borderRadius:6,cursor:"pointer",border:`1px solid ${i===currentLayer?l.color:layerComplete(l.n)?GREEN:BORDER}`,background:i===currentLayer?l.color:layerComplete(l.n)?`${GREEN}08`:"#fff",color:i===currentLayer?"#fff":layerComplete(l.n)?GREEN:MUTED}}>{layerComplete(l.n)?"✓ ":""}L{l.n}</button>))}
         </div>
         {(()=>{const layer=LAYERS[currentLayer]; return(<div>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-            <div style={{width:32,height:32,borderRadius:6,background:layer.color,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontFamily:"'Instrument Serif',Georgia,serif",fontSize:16}}>{layer.n}</div>
-            <h2 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:22,fontWeight:400,color:NAVY,margin:0}}>{layer.name}</h2>
+            <div style={{width:32,height:32,borderRadius:6,background:layer.color,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontFamily:FONT,fontSize:16}}>{layer.n}</div>
+            <h2 style={{fontFamily:FONT,fontSize:22,fontWeight:400,color:NAVY,margin:0}}>{layer.name}</h2>
           </div>
           <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Rate your current platform for each capability at this layer.</p>
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -107,8 +109,8 @@ export default function PlatformDecisionMatrix() {
         </div>);})()}
       </div></section>)}
 
-      {phase==="results"&&(<section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={WRAP}>
-        <h2 style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:28,fontWeight:400,color:NAVY,margin:"0 0 8px",textAlign:"center"}}>Your Platform Recommendations</h2>
+      {phase === "results"&&(<section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={WRAP}>
+        <h2 style={{fontFamily:FONT,fontSize:28,fontWeight:400,color:NAVY,margin:"0 0 8px",textAlign:"center"}}>Your Platform Recommendations</h2>
         <p style={{fontSize:13,color:MUTED,textAlign:"center",marginBottom:32}}>Layer-by-layer assessment with specific next steps for every gap.</p>
 
         {/* Summary counts */}
@@ -116,7 +118,7 @@ export default function PlatformDecisionMatrix() {
           {[["Stay",GREEN],["Extend",AMBER],["Evaluate","#DC6B00"],["Replace",RED]].map(([label,color])=>{
             const count=LAYERS.filter(l=>getRec(layerAvg(l.n)).action===label).length;
             return(<div key={label} style={{textAlign:"center",padding:"16px",background:`${color}08`,border:`1px solid ${color}20`,borderRadius:10}}>
-              <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:32,color}}>{count}</div>
+              <div style={{fontFamily:FONT,fontSize:32,color}}>{count}</div>
               <div style={{fontSize:12,fontWeight:600,color}}>{label}</div>
             </div>);
           })}
@@ -132,7 +134,7 @@ export default function PlatformDecisionMatrix() {
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:16,flexWrap:"wrap"}}>
                 <div style={{flex:1,minWidth:240}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-                    <span style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:20,color:layer.color}}>L{layer.n}</span>
+                    <span style={{fontFamily:FONT,fontSize:20,color:layer.color}}>L{layer.n}</span>
                     <span style={{fontSize:14,fontWeight:600,color:NAVY}}>{layer.name}</span>
                   </div>
                   <p style={{fontSize:12,color:MUTED,margin:"0 0 8px"}}>{rec.desc}</p>
@@ -149,7 +151,7 @@ export default function PlatformDecisionMatrix() {
                   </div>)}
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>
-                  <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:28,color:avg>=3.5?GREEN:avg>=2.5?AMBER:RED}}>{avg.toFixed(1)}</div>
+                  <div style={{fontFamily:FONT,fontSize:28,color:avg>=3.5?GREEN:avg>=2.5?AMBER:RED}}>{avg.toFixed(1)}</div>
                   <div style={{padding:"4px 12px",borderRadius:6,background:`${rec.color}12`,color:rec.color,fontSize:12,fontWeight:700,marginTop:4}}>{rec.action}</div>
                 </div>
               </div>
@@ -161,13 +163,13 @@ export default function PlatformDecisionMatrix() {
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:24}} className="pg">
           <a href="/contact" style={{display:"block",background:`linear-gradient(135deg,${NAVY},${DEEP})`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
             <div style={{fontSize:11,fontWeight:700,color:LIGHT,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>Build Your Migration Plan</div>
-            <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:20,color:"#fff",marginBottom:8}}>Speak with a CX Consultant</div>
+            <div style={{fontFamily:FONT,fontSize:20,color:"#fff",marginBottom:8}}>Speak with a CX Consultant</div>
             <p style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.5,margin:"0 0 12px"}}>Prioritize which layers to address first based on your risk, budget, and timeline.</p>
             <span style={{display:"inline-block",background:ELECTRIC,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Request Working Session →</span>
           </a>
           <a href="/tools/vendor-match" style={{display:"block",background:`${ELECTRIC}06`,border:`1px solid ${ELECTRIC}30`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
             <div style={{fontSize:11,fontWeight:700,color:ELECTRIC,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>Find the Right Vendors</div>
-            <div style={{fontFamily:"'Instrument Serif',Georgia,serif",fontSize:20,color:NAVY,marginBottom:8}}>Run the Vendor Match Engine</div>
+            <div style={{fontFamily:FONT,fontSize:20,color:NAVY,marginBottom:8}}>Run the Vendor Match Engine</div>
             <p style={{fontSize:12,color:SLATE,lineHeight:1.5,margin:"0 0 12px"}}>Get a ranked vendor shortlist based on your operation, priorities, and the gaps identified here.</p>
             <span style={{display:"inline-block",background:ELECTRIC,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Match Me to Vendors →</span>
           </a>
@@ -175,7 +177,7 @@ export default function PlatformDecisionMatrix() {
 
         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
           
-                <ReportExport toolName="Platform Decision Matrix" subtitle="7-Layer Assessment" userName={name} userEmail={email} sections={[
+                <ReportActions toolId={TOOL_ID} toolName="Platform Decision Matrix" subtitle="7-Layer Assessment" routePath={ROUTE} state={{ scores }} defaults={DEFAULTS} summary={[{ label: "Layers to replace or evaluate", value: LAYERS.filter(l => layerAvg(l.n) < 3).map(l => "L" + l.n + " " + l.name).join("; ") || "None" }]} sections={[
                     { title: "Layer Scores", type: "table", rows: LAYERS.map(l => ["L" + l.n + " " + l.name, layerAvg(l.n).toFixed(1) + "/5, " + getRec(layerAvg(l.n)).action]) },
                     { title: "Action Summary", type: "metrics", items: [
                       { label: "Stay", value: LAYERS.filter(l => getRec(layerAvg(l.n)).action === "Stay").length.toString(), color: "#10B981" },
