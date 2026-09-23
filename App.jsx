@@ -45,6 +45,7 @@ class RouteBoundary extends Component {
   }
 }
 import { Analytics } from '@vercel/analytics/react'
+import { FONT } from './src/lib/type'
 const Homepage = lazy(() => import('./Homepage'))
 const RubricPage = lazy(() => import('./RubricPage'))
 const PlatformsTech = lazy(() => import('./PlatformsTech'))
@@ -121,9 +122,9 @@ const BusinessCaseBuilder = lazy(() => import('./BusinessCaseBuilder'))
 
 function NotFound() {
   return (
-    <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "160px 28px 80px", textAlign: "center", fontFamily: "'DM Sans', sans-serif" }}>
-      <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 40, fontWeight: 400, color: "#0B1D3A", margin: "0 0 12px" }}>Page not found.</h1>
-      <p style={{ fontSize: 16, color: "#6B7F99", maxWidth: 520, lineHeight: 1.7, margin: "0 0 28px" }}>
+    <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "160px 28px 80px", textAlign: "center", fontFamily: FONT }}>
+      <h1 style={{ fontFamily: FONT, fontSize: 40, fontWeight: 600, color: "#0B1D3A", margin: "0 0 12px" }}>Page not found.</h1>
+      <p style={{ fontSize: 16, color: "#5B6E88", maxWidth: 520, lineHeight: 1.7, margin: "0 0 28px" }}>
         That address does not exist on The Center of CX. The tools, vendor profiles, and research are all reachable from the links below.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -277,7 +278,7 @@ function RouteFallback() {
   return (
     <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "160px 28px 80px" }}>
       {show ? (
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 15, color: "#6B7F99", margin: 0 }}>Loading.</p>
+        <p style={{ fontFamily: FONT, fontSize: 15, color: "#5B6E88", margin: 0 }}>Loading.</p>
       ) : null}
     </div>
   );

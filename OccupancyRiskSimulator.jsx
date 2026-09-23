@@ -8,10 +8,10 @@ const TOOL_ID = "occupancy-risk";
 const ROUTE = "/tools/occupancy-risk";
 export const DEFAULTS = { agents: 50, callsPerHour: 120, aht: 360, attritionRate: 35, avgTenure: 14, hiringCost: 6500, trainingWeeks: 6, hourlyRate: 18 };
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
-function Input({label,value,onChange,suffix,hint}){return<div><label style={{fontSize:12,fontWeight:600,color:NAVY,display:"block",marginBottom:4}}>{label}</label><div style={{display:"flex",alignItems:"center",gap:4}}><input type="number" value={value} onChange={e=>onChange(Number(e.target.value))} style={{width:"100%",padding:"10px 12px",fontSize:14,border:`1px solid ${BORDER}`,borderRadius:6,background:"#fff",color:NAVY,outline:"none"}} onFocus={e=>e.target.style.borderColor=ELECTRIC} onBlur={e=>e.target.style.borderColor=BORDER}/>{suffix&&<span style={{fontSize:12,color:MUTED,flexShrink:0}}>{suffix}</span>}</div>{hint&&<span style={{fontSize:11,color:MUTED,marginTop:2,display:"block"}}>{hint}</span>}</div>}
+function Input({label,value,onChange,suffix,hint}){return<div><label style={{fontSize:12,fontWeight:600,color:NAVY,display:"block",marginBottom:4}}>{label}</label><div style={{display:"flex",alignItems:"center",gap:4}}><input aria-label={label} type="number" value={value} onChange={e=>onChange(Number(e.target.value))} style={{width:"100%",padding:"10px 12px",fontSize:14,border:`1px solid ${BORDER}`,borderRadius:6,background:"#fff",color:NAVY,outline:"none"}} onFocus={e=>e.target.style.borderColor=ELECTRIC} onBlur={e=>e.target.style.borderColor=BORDER}/>{suffix&&<span style={{fontSize:12,color:MUTED,flexShrink:0}}>{suffix}</span>}</div>{hint&&<span style={{fontSize:12,color:MUTED,marginTop:2,display:"block"}}>{hint}</span>}</div>}
 
 export default function OccupancyRiskSimulator() {
   const [d, setD] = useState(() => readScenario(TOOL_ID, DEFAULTS) || DEFAULTS);
@@ -57,12 +57,12 @@ export default function OccupancyRiskSimulator() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.og{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>
+      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>
 
       <>
           <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
             <div style={WRAP}>
-              <h2 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Occupancy Risk Simulator</h2>
+              <h1 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Occupancy Risk Simulator</h1>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="og">
                 <Input label="Agents on queue" value={d.agents} onChange={v => set("agents", v)} />
                 <Input label="Calls per hour" value={d.callsPerHour} onChange={v => set("callsPerHour", v)} />
@@ -115,22 +115,22 @@ export default function OccupancyRiskSimulator() {
                     <h3 style={{ fontSize: 12, fontWeight: 700, color: RED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8 }}>What This Occupancy Costs You</h3>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 12 }}>
                       <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px", textAlign: "center", border: "1px solid rgba(255,255,255,0.06)" }}>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Extra agents needed for 85%</div>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Extra agents needed for 85%</div>
                         <div style={{ fontFamily: FONT, fontSize: 22, color: "#fff" }}>+{Math.ceil(v.agents * (currentOcc / 85 - 1))}</div>
                       </div>
                       <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px", textAlign: "center", border: "1px solid rgba(255,255,255,0.06)" }}>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Estimated extra attrition cost</div>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Estimated extra attrition cost</div>
                         <div style={{ fontFamily: FONT, fontSize: 22, color: RED }}>${Math.round(v.agents * 0.15 * v.hiringCost * (currentOcc - 85) / 10 / 1000)}K/yr</div>
                       </div>
                       <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px", textAlign: "center", border: "1px solid rgba(255,255,255,0.06)" }}>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Staffing cost to fix</div>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Staffing cost to fix</div>
                         <div style={{ fontFamily: FONT, fontSize: 22, color: GREEN }}>${Math.round(Math.ceil(v.agents * (currentOcc / 85 - 1)) * v.hourlyRate * 2080 / 1000)}K/yr</div>
                       </div>
                     </div>
-                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: 0, lineHeight: 1.5 }}>If the staffing cost is less than the attrition cost, adding agents is the better investment. It usually is.</p>
+                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", margin: 0, lineHeight: 1.5 }}>If the staffing cost is less than the attrition cost, adding agents is the better investment. It usually is.</p>
                   </div>
                 )}
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.55, margin: 0 }}>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.55, margin: 0 }}>
                   The most efficient occupancy target for sustained operations is 82-86%. Above 88%, attrition increases 15-40% and the cost of replacement exceeds the staffing savings within 6 months.
                 </p>
                 <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>

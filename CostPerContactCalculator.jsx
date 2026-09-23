@@ -329,7 +329,7 @@ function gradeCPC({ d, r, pre, railOrigin }) {
 /* @engine-end */
 
 function Nav() {
-  return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
+  return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>;
 }
 export default function CostPerContactCalculator() {
   const [d, setD] = useState(() => clone(DEFAULTS.d));
@@ -410,7 +410,7 @@ export default function CostPerContactCalculator() {
   const cprColor = r.gapPct > GAP_RED ? RED : r.gapPct > GAP_AMBER ? AMBER : GREEN;
   const tierColor = (t) => t === "Operational" ? GREEN : t === "Root-cause work" ? AMBER : RED;
   const volLabel = d.denominator === "issues" ? "Monthly resolved issues" : "Monthly handled contacts";
-  const seg = (active) => ({ flex: 1, fontSize: 11, fontWeight: 600, padding: "7px 8px", borderRadius: 5, border: "none", cursor: "pointer", background: active ? ELECTRIC : "transparent", color: active ? "#fff" : SLATE });
+  const seg = (active) => ({ flex: 1, fontSize: 12, fontWeight: 600, padding: "7px 8px", borderRadius: 5, border: "none", cursor: "pointer", background: active ? ELECTRIC : "transparent", color: active ? "#fff" : SLATE });
   const mathRow = (label, val) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "5px 0", borderBottom: `1px solid ${BORDER}`, fontSize: 12 }}><span style={{ color: SLATE, fontFamily: "monospace" }}>{label}</span><span style={{ color: NAVY, fontWeight: 600, textAlign: "right" }}>{val}</span></div>;
 
   return (
@@ -422,18 +422,18 @@ export default function CostPerContactCalculator() {
         <div style={WRAP}>
           <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "0 0 12px" }}>Cost per Contact vs Cost per Resolution</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, maxWidth: 680 }}>A $7 call that takes three contacts to resolve is a $21 resolution. This separates handle cost from resolution cost and keeps four things distinct that most ROI decks blur: cost reported, repeat-demand burden, capacity released, and savings realized.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, maxWidth: 680 }}>A $7 call that takes three contacts to resolve is a $21 resolution. This separates handle cost from resolution cost and keeps four things distinct that most ROI decks blur: cost reported, repeat-demand burden, capacity released, and savings realized.</p>
           <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             {Object.keys(pulled).length > 0 && (
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}>
                 <span style={{ ...TYPE.caption, fontSize: 12, color: "#fff", fontWeight: W.semibold }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from {pullSources.length ? pullSources.join(", ") : "a previous tool"}.</span>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>Editable.</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Editable.</span>
               </div>
             )}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 14px" }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: gradeColor }} />
               <span style={{ fontSize: 12, color: "#fff", fontWeight: 600 }}>{confidence}</span>
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)" }}>{gradeWhy}</span>
+              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{gradeWhy}</span>
             </div>
           </div>
         </div>
@@ -444,7 +444,7 @@ export default function CostPerContactCalculator() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase" }}>Volume & resolution</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 11, color: MUTED }}>Volume is:</span>
+              <span style={{ fontSize: 12, color: MUTED }}>Volume is:</span>
               <div style={{ display: "flex", gap: 3, background: "#fff", padding: 3, borderRadius: 7, border: `1px solid ${BORDER}`, width: 230 }}>
                 <button onClick={() => set("denominator", "handled")} style={seg(d.denominator === "handled")}>Handled contacts</button>
                 <button onClick={() => set("denominator", "issues")} style={seg(d.denominator === "issues")}>Resolved issues</button>
@@ -475,12 +475,12 @@ export default function CostPerContactCalculator() {
               <div style={{ fontSize: 12, color: mechKey === "none" ? AMBER : MUTED }}>{MECH[mechKey].note}</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <select value={mechKey} onChange={e => setMech(e.target.value)} style={{ fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
+              <select aria-label="Realization mechanism" value={mechKey} onChange={e => setMech(e.target.value)} style={{ fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
                 {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
               </select>
               <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
                 <input type="checkbox" checked={d.validated} onChange={e => set("validated", e.target.checked)} style={{ width: 14, height: 14, accentColor: ELECTRIC }} />
-                <span style={{ fontSize: 11.5, fontWeight: 600, color: NAVY }}>FCR & M validated from data</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>FCR & M validated from data</span>
               </label>
             </div>
           </div>
@@ -488,24 +488,24 @@ export default function CostPerContactCalculator() {
           {/* Summary: burden is a ceiling, not a savings */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 12 }} className="s4">
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Contact</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Contact</div>
               <div style={{ ...TYPE.statValue, color: ELECTRIC }}>{money(r.loaded)}</div>
-              <div style={{ fontSize: 10.5, color: MUTED }}>fully-loaded</div>
+              <div style={{ fontSize: 12, color: MUTED }}>fully-loaded</div>
             </div>
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: cprColor, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Resolution</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: cprColor, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Resolution</div>
               <div style={{ ...TYPE.statValue, color: "#fff" }}>{money(r.cprLoaded)}</div>
-              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)" }}>{r.C.toFixed(2)} contacts/issue · +{r.gapPct.toFixed(0)}%</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{r.C.toFixed(2)} contacts/issue · +{r.gapPct.toFixed(0)}%</div>
             </div>
             <div style={{ background: WARM, border: `1px solid ${AMBER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Repeat Demand Share</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Repeat Demand Share</div>
               <div style={{ ...TYPE.statValue, color: AMBER }}>{(r.repeatShare * 100).toFixed(0)}%</div>
-              <div style={{ fontSize: 10.5, color: MUTED }}>{r.repeatContacts.toLocaleString()} repeats/mo</div>
+              <div style={{ fontSize: 12, color: MUTED }}>{r.repeatContacts.toLocaleString()} repeats/mo</div>
             </div>
             <div style={{ background: WARM, border: `1px solid ${RED}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 10.5, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Repeat-Demand Burden</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Repeat-Demand Burden</div>
               <div style={{ ...TYPE.statValue, color: RED }}>{fmtK(r.burden)}<span style={{ fontSize: 13, color: MUTED }}>/mo</span></div>
-              <div style={{ fontSize: 10.5, color: MUTED }}>marginal ceiling · {r.fteBurden.toFixed(1)} FTE</div>
+              <div style={{ fontSize: 12, color: MUTED }}>marginal ceiling · {r.fteBurden.toFixed(1)} FTE</div>
             </div>
           </div>
           <p style={{ fontSize: 12, color: SLATE, marginBottom: 28, background: `${RED}06`, border: `1px solid ${RED}20`, borderRadius: 8, padding: "10px 14px", lineHeight: 1.5 }}>
@@ -532,13 +532,13 @@ export default function CostPerContactCalculator() {
               <div key={i} style={{ background: `${GREEN}0A`, border: `1px solid ${GREEN}30`, borderRadius: 10, padding: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 0.5, textTransform: "uppercase" }}>FCR +{s.p} → {s.newFCR.toFixed(0)}%</span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: tierColor(s.tier), background: `${tierColor(s.tier)}15`, padding: "2px 6px", borderRadius: 4 }}>{s.tier}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: tierColor(s.tier), background: `${tierColor(s.tier)}15`, padding: "2px 6px", borderRadius: 4 }}>{s.tier}</span>
                 </div>
-                <div style={{ fontSize: 11, color: MUTED }}>Released</div>
+                <div style={{ fontSize: 12, color: MUTED }}>Released</div>
                 <div style={{ ...TYPE.h2, ...NUM, color: SLATE }}>{fmtK(s.released * 12)}/yr</div>
-                <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>Realizable ({Math.round(r.mf * 100)}%)</div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>Realizable ({Math.round(r.mf * 100)}%)</div>
                 <div style={{ ...TYPE.statValue, fontSize: 22, color: GREEN }}>{fmtK(s.realizable * 12)}/yr</div>
-                <div style={{ fontSize: 10.5, color: MUTED, marginTop: 3 }}>{Math.round(s.avoided).toLocaleString()} avoided/mo · {s.fte.toFixed(1)} FTE</div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 3 }}>{Math.round(s.avoided).toLocaleString()} avoided/mo · {s.fte.toFixed(1)} FTE</div>
               </div>
             ))}
           </div>
@@ -551,13 +551,13 @@ export default function CostPerContactCalculator() {
               <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <span style={{ fontSize: 13, fontWeight: 600, color: ch.color }}>{ch.name}</span>
-                  <span style={{ fontSize: 11, color: MUTED }}>{ch.pct}% of volume</span>
+                  <span style={{ fontSize: 12, color: MUTED }}>{ch.pct}% of volume</span>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div><div style={{ fontSize: 10, color: MUTED }}>AHT</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{ch.aht}m</div></div>
-                  <div><div style={{ fontSize: 10, color: MUTED }}>Effective (÷{ch.conc})</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{ch.effAHT.toFixed(1)}m</div></div>
-                  <div><div style={{ fontSize: 10, color: MUTED }}>Handle cost</div><div style={{ fontSize: 14, fontWeight: 600, color: ch.color }}>{money(ch.handleCPC)}</div></div>
-                  <div><div style={{ fontSize: 10, color: MUTED }}>Handle spend</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{fmtK(ch.spend)}</div></div>
+                  <div><div style={{ fontSize: 12, color: MUTED }}>AHT</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{ch.aht}m</div></div>
+                  <div><div style={{ fontSize: 12, color: MUTED }}>Effective (÷{ch.conc})</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{ch.effAHT.toFixed(1)}m</div></div>
+                  <div><div style={{ fontSize: 12, color: MUTED }}>Handle cost</div><div style={{ fontSize: 14, fontWeight: 600, color: ch.color }}>{money(ch.handleCPC)}</div></div>
+                  <div><div style={{ fontSize: 12, color: MUTED }}>Handle spend</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{fmtK(ch.spend)}</div></div>
                 </div>
               </div>
             ))}
@@ -565,7 +565,7 @@ export default function CostPerContactCalculator() {
 
           {/* Analyst */}
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 24 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · cost reported ≠ capacity created ≠ savings realized</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · cost reported ≠ capacity created ≠ savings realized</div>
             {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
           </div>
 
@@ -585,21 +585,21 @@ export default function CostPerContactCalculator() {
                 {mathRow(`Released (+${QUOTED_STEP} FCR) = issues × (C − C₁) × marginal`, `${fmtK(quoted(r).released)}/mo`)}
                 {mathRow(`Realizable = released × ${Math.round(r.mf * 100)}% (${MECH[mechKey].label})`, `${fmtK(quoted(r).realizable)}/mo`)}
                 {mathRow("FTE burden = repeats × blended eff. min / 60 / prod hrs", `${r.fteBurden.toFixed(1)}`)}
-                <p style={{ fontSize: 11, color: MUTED, marginTop: 10, lineHeight: 1.5 }}>M = total contacts an unresolved issue takes (incl. the first). Reported CPC/CPR are loaded; burden and released are marginal; realizable applies the capacity action. FTE is a capacity equivalent, not a headcount cut.</p>
+                <p style={{ fontSize: 12, color: MUTED, marginTop: 10, lineHeight: 1.5 }}>M = total contacts an unresolved issue takes (incl. the first). Reported CPC/CPR are loaded; burden and released are marginal; realizable applies the capacity action. FTE is a capacity equivalent, not a headcount cut.</p>
               </div>
             )}
           </div>
 
           {/* Benchmarks */}
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Vertical Planning Ranges <span style={{ fontWeight: 400, color: "rgba(255,255,255,0.35)" }}>· internal planning heuristics, not published benchmarks. Context only; no figure above uses them.</span></h3>
+            <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Vertical Planning Ranges <span style={{ fontWeight: 400, color: "rgba(255,255,255,0.72)" }}>· internal planning heuristics, not published benchmarks. Context only; no figure above uses them.</span></h3>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }} className="s3">
               {VBENCH.map((b, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>{b.vert}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.72)", marginBottom: 4 }}>{b.vert}</div>
                   <div style={{ fontSize: 12, color: "#fff" }}>CPC: {b.cpc}</div>
                   <div style={{ fontSize: 12, color: "#fff" }}>CPR: {b.cpr}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Avg FCR: {b.fcr}</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Avg FCR: {b.fcr}</div>
                 </div>
               ))}
             </div>

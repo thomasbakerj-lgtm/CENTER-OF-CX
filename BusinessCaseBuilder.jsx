@@ -1091,15 +1091,15 @@ export default function BusinessCaseBuilder() {
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Back to Tools</a>
+          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>Back to Tools</a>
         </div>
       </nav>
 
       <section style={{ padding: "40px 28px 80px" }}>
         <div style={WRAP}>
           <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Planning Tool</span>
-          <h2 style={{ ...TYPE.display, color: NAVY, margin: "6px 0 6px" }}>Business Case Builder</h2>
-          <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, marginBottom: 10, maxWidth: 680 }}>Model the ROI of a CX transformation on your real numbers, live and with no sign-up. This tool is built to survive a CFO, so it does four things most ROI calculators do not.</p>
+          <h1 style={{ ...TYPE.display, color: NAVY, margin: "6px 0 6px" }}>Business Case Builder</h1>
+          <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, marginBottom: 10, maxWidth: 680 }}>Model the ROI of a CX transformation on your real numbers, live and with no sign-up. Every figure shows its inputs and its method, and the model does four things most ROI calculators do not.</p>
           <ul style={{ fontSize: 13, color: SLATE, lineHeight: 1.7, marginBottom: 20, maxWidth: 680, paddingLeft: 18 }}>
             <li><b>Separates released capacity from cash.</b> Avoided contacts release agent labor capacity valued at marginal cost, not at fully loaded cost per contact. Whether that capacity becomes financial benefit depends on the realization action you select, and until one is selected it converts to nothing.</li>
             <li><b>De-overlaps every lever.</b> Deflection, handle-time, FCR, and attrition never claim the same minute or contact twice.</li>
@@ -1109,7 +1109,7 @@ export default function BusinessCaseBuilder() {
 
           {Object.keys(pulled).length > 0 && (
             <div style={{ background: ICE, border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "10px 14px", marginBottom: 18, fontSize: 12.5, color: NAVY }}>
-              Baseline inherited from {sourceSummary}. Fields marked <span style={{ fontSize: 9, fontWeight: 700, color: ELECTRIC, background: "#fff", padding: "1px 5px", borderRadius: 4 }}>PULLED</span> carried over as shared facts and stay editable. Target improvements were left for you to author, because the transformation is the argument, not an inherited assumption.
+              Baseline inherited from {sourceSummary}. Fields marked <span style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, background: "#fff", padding: "1px 5px", borderRadius: 4 }}>PULLED</span> carried over as shared facts and stay editable. Target improvements were left for you to author, because the transformation is the argument, not an inherited assumption.
             </div>
           )}
 
@@ -1136,11 +1136,11 @@ export default function BusinessCaseBuilder() {
               <span style={{ fontSize: 14, fontWeight: 700, color: ELECTRIC }}>{fmt2(r.marginal)}</span>
               {r.marginalPulled
                 ? <>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: "#fff", background: r.marginalStale ? AMBER : ELECTRIC, padding: "1px 5px", borderRadius: 4 }}>{marginalSource ? `FROM ${marginalSource.toUpperCase()}` : "PULLED"}</span>
-                    {r.marginalStale && <span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>AHT and wage here imply {fmt2(r.derivedMarginal)}, a {Math.round(r.marginalGap * 100)}% gap</span>}
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: r.marginalStale ? AMBER : ELECTRIC, padding: "1px 5px", borderRadius: 4 }}>{marginalSource ? `FROM ${marginalSource.toUpperCase()}` : "PULLED"}</span>
+                    {r.marginalStale && <span style={{ fontSize: 12, color: AMBER, fontWeight: 600 }}>AHT and wage here imply {fmt2(r.derivedMarginal)}, a {Math.round(r.marginalGap * 100)}% gap</span>}
                   </>
-                : <span style={{ fontSize: 11, color: MUTED }}>derived from AHT and loaded wage</span>}
-              <span style={{ fontSize: 11, color: MUTED }}>vs {fmt2(n(g.costPerContact))} fully loaded</span>
+                : <span style={{ fontSize: 12, color: MUTED }}>derived from AHT and loaded wage</span>}
+              <span style={{ fontSize: 12, color: MUTED }}>vs {fmt2(n(g.costPerContact))} fully loaded</span>
             </div>
           </Card>
 
@@ -1153,7 +1153,7 @@ export default function BusinessCaseBuilder() {
               <NumField label="Attrition Reduction" value={d.attritionReduction} onChange={v => set("attritionReduction", v)} suffix="%" min={0} max={100} info={DEFS.attrition} infoTitle="Attrition reduction" hint="Internal planning range 15 to 25%, adjust to your evidence" />
               <NumField label="Self-Service Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" min={0} max={100} info={DEFS.containment} infoTitle="Self-service containment" hint="Internal planning range 10 to 25%, adjust to your evidence" />
             </div>
-            <p style={{ fontSize: 11, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>ACW is modeled as a slice of AHT, so handle-time and ACW reductions never double-count the same minutes. Containment removes contacts from the handled pool before any per-contact saving is applied.</p>
+            <p style={{ fontSize: 12, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>ACW is modeled as a slice of AHT, so handle-time and ACW reductions never double-count the same minutes. Containment removes contacts from the handled pool before any per-contact saving is applied.</p>
           </Card>
 
           <Card accent={AMBER}>
@@ -1183,10 +1183,10 @@ export default function BusinessCaseBuilder() {
                 Capacity action <InfoDot text={DEFS.mech} title="Capacity action" />
               </div>
               <div style={{ fontSize: 12, color: r.mechKey === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[r.mechKey].note}</div>
-              <select value={r.mechKey} onChange={e => setMech(e.target.value)} style={{ width: "100%", maxWidth: 420, padding: "10px 12px", fontSize: 13, fontWeight: 600, color: NAVY, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, cursor: "pointer" }}>
+              <select aria-label="Realization mechanism" value={r.mechKey} onChange={e => setMech(e.target.value)} style={{ width: "100%", maxWidth: 420, padding: "10px 12px", fontSize: 13, fontWeight: 600, color: NAVY, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, cursor: "pointer" }}>
                 {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
               </select>
-              <div style={{ fontSize: 11.5, color: MUTED, marginTop: 8, lineHeight: 1.55, maxWidth: 640 }}>
+              <div style={{ fontSize: 12, color: MUTED, marginTop: 8, lineHeight: 1.55, maxWidth: 640 }}>
                 Freed agent time is capacity, not money. This selects what converts it. Avoided recruiting and training spend is cash-releasing regardless and is never scaled by this factor. Neither are platform or implementation costs.
               </div>
             </div>
@@ -1205,7 +1205,7 @@ export default function BusinessCaseBuilder() {
               <NumField label="Incremental Cash Labor (one-time)" value={d.bauBackfillCash} onChange={v => set("bauBackfillCash", v)} prefix="$" step={5000} min={0} hint="Contractors, overtime, temporary backfill" />
               <NumField label="Absorbed Internal Labor" value={d.bauAbsorbedHours} onChange={v => set("bauAbsorbedHours", v)} suffix="hrs" step={100} min={0} hint="Existing team time, disclosed not costed" />
             </div>
-            <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.55, marginBottom: 14, maxWidth: 720 }}>
+            <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.55, marginBottom: 14, maxWidth: 720 }}>
               Only include costs that end because of this program. Exclude retained carrier, CRM, WEM, storage, network, support or any other service that continues. Entering a whole current stack when only part of it retires creates displacement that will not happen. Absorbed internal labor is existing salaried capacity, so it is shown as an hours burden and kept out of the cash return, on the same principle that unconverted freed agent capacity is kept out of the benefit.
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -1249,24 +1249,24 @@ export default function BusinessCaseBuilder() {
           {/* Summary */}
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "32px 28px", marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase" }}>Business Case Summary <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>· {STANCE[r.stanceKey].label} stance</span></h3>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: gradeColor, padding: "4px 10px", borderRadius: 20 }}>Case confidence: {conf.grade}</span>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase" }}>Business Case Summary <span style={{ color: "rgba(255,255,255,0.72)", fontWeight: 600 }}>· {STANCE[r.stanceKey].label} stance</span></h3>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: gradeColor, padding: "4px 10px", borderRadius: 20 }}>Case confidence: {conf.grade}</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 22 }} className="bc-sum">
               <div style={{ textAlign: "center" }}>
                 <div style={{ ...TYPE.statValueLg, fontSize: 30, color: GREEN }}>{fmtK(r.net)}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Realizable Annual Savings <span style={{ opacity: 0.6 }}>· run-rate</span></div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{rampOn ? `year 1 ${fmtK(r.year1)} after ramp` : `gross ${fmtK(r.gross)} less ${fmtK(r.haircut)} haircut`}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Realizable Annual Savings <span style={{ opacity: 0.6 }}>· run-rate</span></div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{rampOn ? `year 1 ${fmtK(r.year1)} after ramp` : `gross ${fmtK(r.gross)} less ${fmtK(r.haircut)} haircut`}</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ ...TYPE.statValueLg, fontSize: 30, color: paybackColor }}>{paybackLabel}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>Payback Period <span style={{ opacity: 0.75 }}>· {STATUS_LABEL[stPayback]}</span></div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{rampOn ? `phased: ${r.M}mo build + ${r.R}mo ramp` : "idealized, phasing off"}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Payback Period <span style={{ opacity: 0.75 }}>· {STATUS_LABEL[stPayback]}</span></div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{rampOn ? `phased: ${r.M}mo build + ${r.R}mo ramp` : "idealized, phasing off"}</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ ...TYPE.statValueLg, fontSize: 30, color: roiColor }}>{r.roiDefined ? Math.round(r.roi3) + "%" : "n/a"}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>3-Year Return{r.roiDefined ? <span style={{ opacity: 0.75 }}> · {STATUS_LABEL[stRoi]}</span> : null}</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} ${r.bauEntered ? "gross transformation cash" : "modeled 3-yr cost"}` : "no investment entered"}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>3-Year Return{r.roiDefined ? <span style={{ opacity: 0.75 }}> · {STATUS_LABEL[stRoi]}</span> : null}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} ${r.bauEntered ? "gross transformation cash" : "modeled 3-yr cost"}` : "no investment entered"}</div>
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1275,46 +1275,46 @@ export default function BusinessCaseBuilder() {
                 const pctLabel = r.pct[item.key];
                 return (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", flex: 1 }}>{item.label}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", flex: 1 }}>{item.label}</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: GREEN, minWidth: 70, textAlign: "right", ...NUM }}>{fmtK(item.val)}</span>
                     <div style={{ width: 80, height: 6, background: "rgba(255,255,255,0.1)", borderRadius: 3, overflow: "hidden" }}>
                       <div style={{ width: `${pctv}%`, height: "100%", background: GREEN, borderRadius: 3 }} />
                     </div>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", minWidth: 30 }}>{pctLabel}%</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", minWidth: 30 }}>{pctLabel}%</span>
                   </div>
                 );
               })}
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.32)", marginTop: 8, letterSpacing: 0.3 }}>Gross modeled benefit before attribution and realization. These four do not sum to the headline.</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 8, letterSpacing: 0.3 }}>Gross modeled benefit before attribution and realization. These four do not sum to the headline.</div>
 
             <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.10)", display: "flex", gap: 26, flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.33)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Capacity released</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Capacity released</div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: "rgba(255,255,255,0.85)", ...NUM }}>{Math.round(r.freedHoursAttributed).toLocaleString()} hrs/yr</div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{fmtK(r.capacityNet)} labor-equivalent</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{fmtK(r.capacityNet)} labor-equivalent</div>
               </div>
               <div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.33)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Converted to value</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Converted to value</div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: r.mechKey === "none" ? RED : GREEN, ...NUM }}>{fmtK(r.capacityRealized)}</div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{r.mechLabel}, {Math.round(r.mf * 100)}%</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{r.mechLabel}, {Math.round(r.mf * 100)}%</div>
               </div>
               <div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.33)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Not converted</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Not converted</div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: r.unrealizedCapacity > 0 ? AMBER : "rgba(255,255,255,0.5)", ...NUM }}>{fmtK(r.unrealizedCapacity)}</div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>capacity, excluded from cash</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>capacity, excluded from cash</div>
               </div>
               <div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.33)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Cash-releasing</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Cash-releasing</div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: GREEN, ...NUM }}>{fmtK(r.cashNet)}</div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>recruiting spend avoided</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>recruiting spend avoided</div>
               </div>
             </div>
 
             {rampOn && (
               <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: 1, textTransform: "uppercase" }}>Cumulative Cash Flow · 36 months</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{r.payback > 0 ? `Breaks even month ${r.payback}` : "No breakeven in 3 yrs"} · ends {fmtK(spark.end)}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.72)", letterSpacing: 1, textTransform: "uppercase" }}>Cumulative Cash Flow · 36 months</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{r.payback > 0 ? `Breaks even month ${r.payback}` : "No breakeven in 3 yrs"} · ends {fmtK(spark.end)}</span>
                 </div>
                 <svg viewBox={`0 0 ${spark.W} ${spark.H}`} width="100%" height="88" preserveAspectRatio="none" style={{ display: "block", overflow: "visible" }}>
                   <line x1="0" y1={spark.y0} x2={spark.W} y2={spark.y0} stroke="rgba(255,255,255,0.25)" strokeWidth="1" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
@@ -1322,7 +1322,7 @@ export default function BusinessCaseBuilder() {
                   <polyline points={spark.pts} fill="none" stroke={LIGHT} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
                   {spark.pbx != null && <circle cx={spark.pbx} cy={spark.y0} r="3.5" fill={GREEN} />}
                 </svg>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 4 }}>
                   <span>Month 0 · minus {fmtK(Math.abs(r.cumFlow[0]))}</span>
                   <span>Migration {r.M}mo</span>
                   <span>Month 36</span>
@@ -1333,23 +1333,23 @@ export default function BusinessCaseBuilder() {
 
           {/* Confidence & open issues */}
           <div style={{ background: "#fff", border: `1px solid ${gradeColor}55`, borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: gradeColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Case confidence: {conf.grade} · evidence {conf.evidenceGrade} · realization {conf.realizationGrade} · completeness {conf.completenessGrade} · {EVIDENCE[conf.evidence].label}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: gradeColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Case confidence: {conf.grade} · evidence {conf.evidenceGrade} · realization {conf.realizationGrade} · completeness {conf.completenessGrade} · {EVIDENCE[conf.evidence].label}</div>
             <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: (conf.open.length || conf.withheld.length || conf.findings.length) ? 8 : 0 }}>Three axes, and the badge shows the weakest, bound by {conf.gradeObj.boundBy}. Evidence rates how bookable the inputs are, as the weaker of the cost stream ({conf.costGrade}) and the benefit stream ({conf.benefitGrade}). Realization rates whether the modeled savings can be booked at all, from the capacity action committed. Completeness rates whether the case that ran is the case entered. None certifies that the organization can deliver the targets, which the Transformation Readiness tool assesses separately. Whether the case pays is a separate question again, and it is reported below without moving the grade: a well evidenced case that does not return is a confident negative answer, not an uncertain one.</p>
             {conf.withheld.length > 0 && (
               <div style={{ marginBottom: (conf.findings.length || conf.open.length) ? 10 : 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Limiting an axis, and not a cost-input defect:</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Limiting an axis, and not a cost-input defect:</div>
                 {conf.withheld.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: AMBER }}>&rsaquo;</span>{o}</div>)}
               </div>
             )}
             {conf.findings.length > 0 && (
               <div style={{ marginBottom: conf.open.length ? 10 : 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Findings on the return, which do not move the grade:</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Findings on the return, which do not move the grade:</div>
                 {conf.findings.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: ELECTRIC }}>&rsaquo;</span>{o}</div>)}
               </div>
             )}
             {conf.open.length > 0 && (
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Open items on the cost inputs, before the investment side is final:</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Open items on the cost inputs, before the investment side is final:</div>
                 {conf.open.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: gradeColor }}>›</span>{o}</div>)}
               </div>
             )}
@@ -1357,7 +1357,7 @@ export default function BusinessCaseBuilder() {
 
           {/* Decision Read */}
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "18px 20px", marginBottom: 16 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Decision Read · what could change the conclusion</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Decision Read · what could change the conclusion</div>
             {insights.map((t, i) => (
               <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>
             ))}
@@ -1516,12 +1516,12 @@ export default function BusinessCaseBuilder() {
             <a href="/contact" onClick={() => trackTool.nextStep(TOOL_ID, "contact")} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8 }}>Connect with a Consultant</a>
             <button onClick={() => goNext("tco-calculator", "/tools/tco-calculator")} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8, cursor: "pointer" }}>TCO Calculator</button>
           </div>
-          <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginTop: 10, maxWidth: 760 }}>Your results do not determine whether the consultant option appears, and nothing you entered is shared with anyone unless you ask us to. If a commercial relationship exists with any specialist we introduce, it is disclosed before an introduction is made. No vendor pays to appear here and this tool recommends no vendor.</div>
+          <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.6, marginTop: 10, maxWidth: 760 }}>Your results do not determine whether the consultant option appears, and nothing you entered is shared with anyone unless you ask us to. If a commercial relationship exists with any specialist we introduce, it is disclosed before an introduction is made. No vendor pays to appear here and this tool recommends no vendor.</div>
         </div>
       </section>
 
-      <footer style={{ background: DEEP, padding: "40px 28px 28px" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={24} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 12 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 11, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX</span>
-        <div style={{ display: "flex", gap: 16 }}><a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Privacy</a><a href="/terms" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Terms</a></div></div></div></footer>
+      <footer style={{ background: DEEP, padding: "40px 28px 28px" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={24} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 12 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>© 2026 The Center of CX</span>
+        <div style={{ display: "flex", gap: 16 }}><a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Privacy</a><a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Terms</a></div></div></div></footer>
     </div>
   );
 }

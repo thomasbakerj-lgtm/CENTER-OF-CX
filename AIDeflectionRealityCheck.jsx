@@ -513,7 +513,7 @@ function LogoMark({ size = 30 }) {
 }
 
 function Nav() {
-  return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, textDecoration: "none" }}>Back to Tools</a></div></nav>;
+  return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13, textDecoration: "none" }}>Back to Tools</a></div></nav>;
 }
 
 const sel = { width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, fontFamily: FONT };
@@ -630,9 +630,9 @@ export default function AIDeflectionRealityCheck() {
 
   const card = (label, value, sub, color, dark) => (
     <div style={{ background: dark ? `linear-gradient(135deg, ${NAVY}, ${DEEP})` : WARM, border: dark ? "none" : `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-      <div style={{ fontSize: 10.5, fontWeight: 700, color: dark ? color : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: dark ? color : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
       <div style={{ ...TYPE.statValue, fontSize: 28, color: dark ? "#fff" : color }}>{value}</div>
-      <div style={{ fontSize: 10.5, color: dark ? "rgba(255,255,255,0.4)" : MUTED }}>{sub}</div>
+      <div style={{ fontSize: 12, color: dark ? "rgba(255,255,255,0.4)" : MUTED }}>{sub}</div>
     </div>
   );
 
@@ -716,7 +716,7 @@ export default function AIDeflectionRealityCheck() {
         <div style={WRAP}>
           <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 10 }}>Cost and Economics · Diagnose before you buy</div>
           <h1 style={{ ...TYPE.display, fontSize: "clamp(26px, 3.3vw, 37px)", color: "#fff", margin: "0 0 12px" }}>AI Deflection Reality Check</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", maxWidth: 680, lineHeight: 1.65, margin: 0 }}>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", maxWidth: 680, lineHeight: 1.65, margin: 0 }}>
             A 70% AI resolution rate does not mean 70% of total customer demand disappeared. The denominator determines the truth. This tool separates coverage, resolution, and durable automation into three honest rates, then values what is left at the cost that actually leaves your budget. Run it before you approve an automation business case or commit to a resolution target. Sometimes the answer is that the program pays. Sometimes it is that the slide is inflated and the move is to renegotiate, fix the foundation first, or buy nothing.
           </p>
           {fromLink && <div style={{ marginTop: 18, display: "inline-block", background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", borderRadius: 6, padding: "8px 14px", fontSize: 12.5, color: LIGHT }}>Loaded from a scenario link. These are the sender's inputs, not this session's.</div>}
@@ -740,13 +740,13 @@ export default function AIDeflectionRealityCheck() {
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12, marginTop: 16 }} className="env">
               <div>
                 <label style={lbl}>Where does the resolution rate come from<InfoDot text={DEFS.evidence.text} title={DEFS.evidence.title} /></label>
-                <select value={s.evidence} onChange={(e) => set("evidence", e.target.value)} style={sel}>
+                <select aria-label="Evidence for the containment rate" value={s.evidence} onChange={(e) => set("evidence", e.target.value)} style={sel}>
                   {EVIDENCE_ORDER.map((k) => <option key={k} value={k}>{EVIDENCE[k].label}</option>)}
                 </select>
               </div>
               <div>
                 <label style={lbl}>Capacity action<InfoDot text={DEFS.mech.text} title={DEFS.mech.title} align="right" /></label>
-                <select value={s.mech} onChange={(e) => set("mech", e.target.value)} style={sel}>
+                <select aria-label="Realization mechanism" value={s.mech} onChange={(e) => set("mech", e.target.value)} style={sel}>
                   {MECH_ORDER.map((k) => <option key={k} value={k}>{MECH[k].label}{k === "none" ? " ($0)" : "  (" + Math.round(MECH[k].f * 100) + "%)"}</option>)}
                 </select>
               </div>
@@ -756,7 +756,7 @@ export default function AIDeflectionRealityCheck() {
               <input type="checkbox" checked={s.costConfirmed && !R.margWasDefaulted} disabled={R.margWasDefaulted} onChange={(e) => set("costConfirmed", e.target.checked)} style={{ marginTop: 3 }} />
               <span style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.55 }}>
                 Marginal cost confirmed against payroll or finance data.
-                <span style={{ display: "block", fontSize: 11.5, color: MUTED, marginTop: 2 }}>
+                <span style={{ display: "block", fontSize: 12, color: MUTED, marginTop: 2 }}>
                   {R.margWasDefaulted
                     ? `Disabled. There is nothing to confirm while the marginal cost is an assumed ${Math.round(MARG_SHARE * 100)}% of loaded.`
                     : margSource
@@ -800,7 +800,7 @@ export default function AIDeflectionRealityCheck() {
               <div key={i} style={{ marginBottom: i === funnelRows.length - 1 ? 0 : 14 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: NAVY }}>{f.label}</span>
-                  <span style={{ fontSize: 11.5, color: MUTED, textAlign: "right", ...NUM }}>{Math.round(f.val).toLocaleString()} / mo · {f.of}</span>
+                  <span style={{ fontSize: 12, color: MUTED, textAlign: "right", ...NUM }}>{Math.round(f.val).toLocaleString()} / mo · {f.of}</span>
                 </div>
                 <div style={{ height: 22, background: WARM, borderRadius: 5, overflow: "hidden", border: `1px solid ${BORDER}` }}>
                   <div style={{ width: Math.max(1, Math.min(100, f.pct)) + "%", height: "100%", background: f.color, opacity: i === 0 ? 0.35 : 0.85 }} />
@@ -822,10 +822,10 @@ export default function AIDeflectionRealityCheck() {
 
           {/* decision */}
           <div style={{ ...cardStyle, borderLeft: `4px solid ${toneColor(R.verdictTone)}` }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>The decision this protects<InfoDot text={DEFS.verdict.text} title={DEFS.verdict.title} /></div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>The decision this protects<InfoDot text={DEFS.verdict.text} title={DEFS.verdict.title} /></div>
             <div style={{ ...TYPE.h1, fontSize: 26, color: toneColor(R.verdictTone), margin: "0 0 8px" }}>{R.verdict}</div>
             <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.65, margin: "0 0 10px" }}>{R.verdictWhy}</p>
-            <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginBottom: 14, background: WARM, borderRadius: 8, padding: "10px 13px" }}>
+            <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.6, marginBottom: 14, background: WARM, borderRadius: 8, padding: "10px 13px" }}>
               What selected this: net {fmt(R.netSavings)}/mo, upside case {fmt(R.bestNet)}/mo, eligibility {R.ep}%, evidence {R.evidenceLabel.toLowerCase()}, capacity action {MECH[R.mechKey].label.toLowerCase()}. Change any of those and the verdict can change.
             </div>
             <a href={R.verdictRoute} style={{ display: "inline-block", fontSize: 12.5, fontWeight: 600, color: "#fff", background: toneColor(R.verdictTone), padding: "8px 16px", borderRadius: 6, textDecoration: "none" }}>{R.verdictRouteLabel}</a>
@@ -834,35 +834,35 @@ export default function AIDeflectionRealityCheck() {
           {/* confidence */}
           <div style={{ ...cardStyle, borderLeft: `3px solid ${confColor(G.confidence)}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 10 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>Confidence<InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>Confidence<InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></div>
               <div style={{ ...TYPE.h1, fontSize: 22, color: confColor(G.confidence) }}>{G.confidence}</div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12, margin: "14px 0" }} className="env">
               <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 10.5, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Evidence</div>
+                <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Evidence</div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.evidence) }}>{G.voided ? "Void" : G.evidence}</div>
-                <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>{R.evidenceLabel}</div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{R.evidenceLabel}</div>
               </div>
               <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 10.5, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Realization</div>
+                <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Realization</div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.realization) }}>{G.voided ? "Void" : G.realization}</div>
-                <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>{MECH[R.mechKey].label}</div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{MECH[R.mechKey].label}</div>
               </div>
               <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 10.5, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Completeness</div>
+                <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Completeness</div>
                 <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.completeness) }}>{G.voided ? "Void" : G.completeness}</div>
-                <div style={{ fontSize: 11.5, color: MUTED, marginTop: 2 }}>{G.blockers.length ? G.blockers.length + (G.blockers.length === 1 ? " check failed" : " checks failed") : "Model is whole"}</div>
+                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{G.blockers.length ? G.blockers.length + (G.blockers.length === 1 ? " check failed" : " checks failed") : "Model is whole"}</div>
               </div>
             </div>
             <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{G.gradeWhy} Net savings carry a plus or minus {Math.round(R.band * 100)}% band at this evidence level, {fmtK(sensLow)} to {fmtK(sensHigh)} per month.</p>
-            <div style={{ background: WARM, borderRadius: 8, padding: "10px 13px", fontSize: 11.5, color: MUTED, lineHeight: 1.55 }}>
+            <div style={{ background: WARM, borderRadius: 8, padding: "10px 13px", fontSize: 12, color: MUTED, lineHeight: 1.55 }}>
               This grade is self-declared. It reflects what you have told this tool about your sources, not anything this tool has inspected. No document, payroll file, or pilot dataset has been reviewed here. Independent validation of the underlying inputs is a separate exercise.
             </div>
           </div>
 
           {/* rail handoff */}
           <div style={{ ...cardStyle, borderLeft: `3px solid ${R.railPublished ? ELECTRIC : RED}` }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: R.railPublished ? ELECTRIC : RED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: R.railPublished ? ELECTRIC : RED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
               Rail handoff<InfoDot text={DEFS.rail.text} title={DEFS.rail.title} />
             </div>
             {R.railPublished ? (
@@ -872,12 +872,12 @@ export default function AIDeflectionRealityCheck() {
                 </p>
                 <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12 }} className="env">
                   <div style={{ background: ICE, borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: NAVY }}>{R.netAutomationRate.toFixed(1)}% net automation</div>
-                    <div style={{ fontSize: 11.5, color: SLATE, marginTop: 3, lineHeight: 1.5 }}>Share of your <strong>total</strong> contact volume the bot durably removes. The honest headline deflection number.</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{R.netAutomationRate.toFixed(1)}% net automation</div>
+                    <div style={{ fontSize: 12, color: SLATE, marginTop: 3, lineHeight: 1.5 }}>Share of your <strong>total</strong> contact volume the bot durably removes. The honest headline deflection number.</div>
                   </div>
                   <div style={{ background: ICE, borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: NAVY }}>{R.botResolutionRate.toFixed(1)}% bot resolution</div>
-                    <div style={{ fontSize: 11.5, color: SLATE, marginTop: 3, lineHeight: 1.5 }}>Share of the volume you <strong>route to the bot</strong> that durably resolves. This is what Channel Shift needs to size the human pool.</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{R.botResolutionRate.toFixed(1)}% bot resolution</div>
+                    <div style={{ fontSize: 12, color: SLATE, marginTop: 3, lineHeight: 1.5 }}>Share of the volume you <strong>route to the bot</strong> that durably resolves. This is what Channel Shift needs to size the human pool.</div>
                   </div>
                 </div>
               </>
@@ -892,7 +892,7 @@ export default function AIDeflectionRealityCheck() {
           {/* integrity */}
           {R.flags.length > 0 && (
             <div style={{ ...cardStyle, borderLeft: `3px solid ${R.hardFlag ? RED : AMBER}` }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: R.hardFlag ? RED : AMBER, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: R.hardFlag ? RED : AMBER, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
                 Integrity flags · {R.flags.length} {R.flags.length === 1 ? "issue" : "issues"}
               </div>
               {R.flags.map((f, i) => <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "10px 0 0" : 0 }}>{f}</p>)}
@@ -913,7 +913,7 @@ export default function AIDeflectionRealityCheck() {
               <span style={{ fontSize: 14, fontWeight: 700, color: NAVY }}>Net monthly savings</span>
               <span style={{ ...TYPE.statValue, fontSize: 23, color: R.netSavings >= 0 ? GREEN : RED }}>{fmt(R.netSavings)}</span>
             </div>
-            <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BORDER}`, fontSize: 11.5, color: MUTED, lineHeight: 1.6 }}>
+            <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BORDER}`, fontSize: 12, color: MUTED, lineHeight: 1.6 }}>
               The escalation premium is a directional constant, not a measured figure. At 0% it would be {fmt(R.netAtEscZero)} a month. At {R.escP * 2}%, double what you entered, it would be {fmt(R.netAtEscDouble)}. That is a {fmt(R.escSwing)} swing across the plausible range, so measure your own post-escalation handle time before leaning on this line.
             </div>
           </div>
@@ -922,34 +922,34 @@ export default function AIDeflectionRealityCheck() {
           <div style={cardStyle}>
             <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 16px" }}>Year one, month by month</h3>
             <div style={{ display: "flex", gap: 24, alignItems: "flex-end", flexWrap: "wrap" }}>
-              <div><div style={{ fontSize: 11, color: MUTED }}>Year 1 {R.rampOn ? "(ramped " + R.rampMonths + "mo)" : "(full)"}</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.year1 >= 0 ? GREEN : RED }}>{fmtK(R.year1)}</div></div>
-              <div><div style={{ fontSize: 11, color: MUTED }}>Steady-state annual</div><div style={{ ...TYPE.statValue, fontSize: 24, color: NAVY }}>{fmtK(R.steadyAnnual)}</div></div>
-              <div><div style={{ fontSize: 11, color: MUTED }}>Payback</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.payback ? NAVY : RED }}>{R.payback ? "Mo " + R.payback : "None"}</div></div>
+              <div><div style={{ fontSize: 12, color: MUTED }}>Year 1 {R.rampOn ? "(ramped " + R.rampMonths + "mo)" : "(full)"}</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.year1 >= 0 ? GREEN : RED }}>{fmtK(R.year1)}</div></div>
+              <div><div style={{ fontSize: 12, color: MUTED }}>Steady-state annual</div><div style={{ ...TYPE.statValue, fontSize: 24, color: NAVY }}>{fmtK(R.steadyAnnual)}</div></div>
+              <div><div style={{ fontSize: 12, color: MUTED }}>Payback</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.payback ? NAVY : RED }}>{R.payback ? "Mo " + R.payback : "None"}</div></div>
               <div style={{ flex: 1, minWidth: 200 }}>
                 <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 48 }}>
                   {R.monthly.map((m, i) => { const mx = Math.max(...R.monthly.map(Math.abs), 1); return <div key={i} title={"Mo " + (i + 1) + ": " + fmtK(m)} style={{ flex: 1, height: Math.max(4, (Math.abs(m) / mx) * 100) + "%", background: m >= 0 ? GREEN : RED, opacity: 0.35 + 0.65 * (i / 11), borderRadius: 2 }} />; })}
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: MUTED, marginTop: 3 }}><span>Mo 1</span><span>net savings per month</span><span>Mo 12</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: MUTED, marginTop: 3 }}><span>Mo 1</span><span>net savings per month</span><span>Mo 12</span></div>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12, marginTop: 18 }} className="s3">
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 10.5, color: MUTED }}>Break-even resolution</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{isFinite(R.beResPct) ? R.beResPct.toFixed(1) + "%" : "never"}</div><div style={{ fontSize: 10.5, color: MUTED }}>your figure is {R.rp}%</div></div>
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 10.5, color: MUTED }}>Max tolerable repeat</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{R.repeatTolPct != null ? R.repeatTolPct.toFixed(0) + "%" : "n/a"}</div><div style={{ fontSize: 10.5, color: MUTED }}>{R.repeatTolPct != null ? "you entered " + R.rhop + "%" : R.repeatNote}</div></div>
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 10.5, color: MUTED }}>Upside-case net</div><div style={{ fontSize: 15, fontWeight: 600, color: R.bestNet >= 0 ? GREEN : RED }}>{fmtK(R.bestNet)}/mo</div><div style={{ fontSize: 10.5, color: MUTED }}>better resolution, fewer repeats</div></div>
+              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 12, color: MUTED }}>Break-even resolution</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{isFinite(R.beResPct) ? R.beResPct.toFixed(1) + "%" : "never"}</div><div style={{ fontSize: 12, color: MUTED }}>your figure is {R.rp}%</div></div>
+              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 12, color: MUTED }}>Max tolerable repeat</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{R.repeatTolPct != null ? R.repeatTolPct.toFixed(0) + "%" : "n/a"}</div><div style={{ fontSize: 12, color: MUTED }}>{R.repeatTolPct != null ? "you entered " + R.rhop + "%" : R.repeatNote}</div></div>
+              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 12, color: MUTED }}>Upside-case net</div><div style={{ fontSize: 15, fontWeight: 600, color: R.bestNet >= 0 ? GREEN : RED }}>{fmtK(R.bestNet)}/mo</div><div style={{ fontSize: 12, color: MUTED }}>better resolution, fewer repeats</div></div>
             </div>
           </div>
 
           {/* scenarios */}
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 20 }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Three scenarios, named assumptions</h3>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>Not low, medium, and high with the same story. Each scenario states the eligibility, resolution, and repeat assumptions that move it, so you can see exactly what has to be true to reach it.</p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginBottom: 14 }}>Not low, medium, and high with the same story. Each scenario states the eligibility, resolution, and repeat assumptions that move it, so you can see exactly what has to be true to reach it.</p>
             <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 10 }} className="s3">
               {scenarios.map((x, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "13px 15px", border: `1px solid ${i === 1 ? "rgba(0,170,255,0.4)" : "rgba(255,255,255,0.06)"}` }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.6 }}>{x.label}</div>
-                  <div style={{ ...TYPE.statValue, fontSize: 21, color: x.netSavings >= 0 ? "#fff" : RED }}>{fmtK(x.netSavings)}<span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>/mo</span></div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>{x.netAutomationRate.toFixed(1)}% net automation of total</div>
-                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>eligible {x.eligibleRate}% · resolution {x.apparentResolutionRate}% · repeat {x.repeatLeakRate}%</div>
+                  <div style={{ ...TYPE.statValue, fontSize: 21, color: x.netSavings >= 0 ? "#fff" : RED }}>{fmtK(x.netSavings)}<span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>/mo</span></div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginBottom: 8 }}>{x.netAutomationRate.toFixed(1)}% net automation of total</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>eligible {x.eligibleRate}% · resolution {x.apparentResolutionRate}% · repeat {x.repeatLeakRate}%</div>
                 </div>
               ))}
             </div>
@@ -970,7 +970,7 @@ export default function AIDeflectionRealityCheck() {
                   <div key={k} style={{ background: winner === k ? ICE : WARM, border: `1px solid ${winner === k ? ELECTRIC : BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase" }}>Set {k} {winner === k && <span style={{ color: ELECTRIC }}>· higher net</span>}</div>
                     <div style={{ ...TYPE.statValue, fontSize: 24, color: r.netSavings >= 0 ? GREEN : RED, margin: "4px 0" }}>{fmtK(r.netSavings)}<span style={{ fontSize: 12, color: MUTED }}>/mo</span></div>
-                    <div style={{ fontSize: 11.5, color: SLATE, lineHeight: 1.55 }}>Resolves {r.rp}% of involved, which is {r.netAutomationRate.toFixed(1)}% of total demand. Operating cost {fmtK(r.opexMonthly)}/mo. Verdict: {r.verdict}.</div>
+                    <div style={{ fontSize: 12, color: SLATE, lineHeight: 1.55 }}>Resolves {r.rp}% of involved, which is {r.netAutomationRate.toFixed(1)}% of total demand. Operating cost {fmtK(r.opexMonthly)}/mo. Verdict: {r.verdict}.</div>
                   </div>
                 ))}
               </div>
@@ -979,7 +979,7 @@ export default function AIDeflectionRealityCheck() {
 
           {/* analyst read */}
           <div style={{ ...cardStyle, borderLeft: `3px solid ${ELECTRIC}` }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst read · what the vendor slide skips</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst read · what the vendor slide skips</div>
             {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.65, margin: i ? "10px 0 0" : 0 }}>{t}</p>)}
           </div>
 

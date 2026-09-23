@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useId } from "react";
 import ReportExport from "./ReportExport";
 import { scenarioLink, inputsMoved } from "./src/lib/scenarioUrl";
 import { FONT, TYPE } from "./src/lib/type";
@@ -56,7 +56,7 @@ import { nextFor } from "./src/lib/journey";
 
 const NAVY = "#0B1D3A";
 const ELECTRIC = "#0088DD";
-const MUTED = "#6B7F99";
+const MUTED = "#5B6E88";
 const BORDER = "#D8E3ED";
 const GREEN = "#10B981";
 const RED = "#EF4444";
@@ -113,13 +113,14 @@ const inputStyle = (bad) => ({
 });
 
 function Field({ label, value, onChange, placeholder, type = "text", required, bad, autoComplete }) {
+  const id = useId();
   return (
     <div style={{ marginBottom: 12 }}>
-      <label style={labelStyle}>
+      <label htmlFor={id} style={labelStyle}>
         {label}{required && <span style={{ color: ELECTRIC }}> *</span>}
       </label>
       <input
-        type={type} value={value} placeholder={placeholder} autoComplete={autoComplete}
+        id={id} type={type} value={value} placeholder={placeholder} autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)} style={inputStyle(bad)}
         onFocus={(e) => { e.target.style.borderColor = ELECTRIC; }}
         onBlur={(e) => { e.target.style.borderColor = bad ? RED : BORDER; }}
@@ -142,19 +143,19 @@ const AXIS_COLOR = (g) => g === "Finance-grade" ? GREEN : g === "Planning-grade"
 function AxisStrip({ grades, confidence, label }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 14 }}>
-      {label && <span style={{ ...TYPE.eyebrow, fontSize: 9.5, letterSpacing: "0.5px", color: NAVY, fontWeight: 700 }}>{label}</span>}
+      {label && <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: NAVY, fontWeight: 700 }}>{label}</span>}
       {AXIS_ORDER.map((a) => (
         <span key={a} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span style={{ ...TYPE.eyebrow, fontSize: 9.5, letterSpacing: "0.5px", color: MUTED }}>{AXIS_LABEL[a]}</span>
-          <span style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.8px", color: AXIS_COLOR(grades[a]), background: `${AXIS_COLOR(grades[a])}1a`, padding: "2px 7px", borderRadius: 4 }}>
+          <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: MUTED }}>{AXIS_LABEL[a]}</span>
+          <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.8px", color: AXIS_COLOR(grades[a]), background: `${AXIS_COLOR(grades[a])}1a`, padding: "2px 7px", borderRadius: 4 }}>
             {grades[a] == null ? "N/A" : grades[a]}
           </span>
         </span>
       ))}
       {confidence && (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <span style={{ ...TYPE.eyebrow, fontSize: 9.5, letterSpacing: "0.5px", color: MUTED }}>Headline</span>
-          <span style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.8px", color: "#fff", background: confidence === "Void" ? RED : AXIS_COLOR(confidence), padding: "2px 7px", borderRadius: 4 }}>{confidence}</span>
+          <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: MUTED }}>Headline</span>
+          <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.8px", color: "#fff", background: confidence === "Void" ? RED : AXIS_COLOR(confidence), padding: "2px 7px", borderRadius: 4 }}>{confidence}</span>
         </span>
       )}
     </div>
@@ -406,7 +407,7 @@ export default function ReportActions({
         <h3 style={h3}>Take this with you</h3>
         {grades && voided && (
           <div style={{ border: `1px solid ${RED}`, borderRadius: 6, padding: "10px 12px", marginBottom: 14, background: `${RED}0d` }}>
-            <div style={{ ...TYPE.eyebrow, fontSize: 10, letterSpacing: "0.8px", color: RED, marginBottom: 4 }}>EXPORT VOID, NO GRADE CLAIMED</div>
+            <div style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.8px", color: RED, marginBottom: 4 }}>EXPORT VOID, NO GRADE CLAIMED</div>
             <div style={{ ...TYPE.caption, color: NAVY }}>{(isDual(grades) ? grades.cost : grades).invariant} <strong>Remedy:</strong> {(isDual(grades) ? grades.cost : grades).remedy}</div>
           </div>
         )}
@@ -466,7 +467,7 @@ export default function ReportActions({
               <label style={labelStyle}>Also email me a copy (optional)</label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
-                  type="email" value={copyEmail} placeholder="you@company.com" autoComplete="email"
+                  aria-label="Email me a copy" type="email" value={copyEmail} placeholder="you@company.com" autoComplete="email"
                   onChange={(e) => setCopyEmail(e.target.value)}
                   style={{ ...inputStyle(false), flex: 1 }}
                 />
@@ -483,7 +484,7 @@ export default function ReportActions({
                   {copyState === "sending" ? "Sending" : "Send"}
                 </button>
               </div>
-              <p style={{ fontSize: 11.5, color: MUTED, marginTop: 7, lineHeight: 1.5 }}>
+              <p style={{ fontSize: 12, color: MUTED, marginTop: 7, lineHeight: 1.5 }}>
                 A person sends this, not a robot. Expect it within one business day.
                 Your address is used to send this report and to reply if you ask a question.
                 Nothing you entered leaves your browser unless you send it here, and the
@@ -579,7 +580,7 @@ export default function ReportActions({
               </p>
             )}
 
-            <p style={{ fontSize: 11.5, color: MUTED, marginTop: 12, lineHeight: 1.55 }}>
+            <p style={{ fontSize: 12, color: MUTED, marginTop: 12, lineHeight: 1.55 }}>
               Your inputs and results travel with this request so the review has something to work from.
             </p>
           </>

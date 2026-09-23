@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
@@ -97,6 +97,8 @@ export default function TransformationReadiness() {
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
 
+      {phase !== "intro" && <h1 className="sr-only">Transformation Readiness Scorecard</h1>}
+
       {phase === "intro"&&(<section style={{background:`linear-gradient(168deg,${DEEP},${NAVY})`,padding:"80px 28px 60px"}}><div style={{...WRAP,maxWidth:520}}>
         <span style={{color:LIGHT,fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",display:"block",marginBottom:12}}>Vendor Selection</span>
         <h1 style={{fontFamily:FONT,fontSize:32,fontWeight:400,color:"#fff",lineHeight:1.15,margin:"0 0 12px"}}>Transformation Readiness Scorecard</h1>
@@ -108,7 +110,7 @@ export default function TransformationReadiness() {
 
       {phase === "assess"&&(<section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
         <div style={{display:"flex",gap:4,marginBottom:32,flexWrap:"wrap"}}>
-          {DIMS.map((d,i)=>(<button key={d.id} onClick={()=>setCurrentDim(i)} style={{padding:"8px 14px",fontSize:11,fontWeight:600,borderRadius:6,cursor:"pointer",border:`1px solid ${i===currentDim?d.color:dimComplete(d.id)?GREEN:BORDER}`,background:i===currentDim?`${d.color}12`:dimComplete(d.id)?`${GREEN}08`:"#fff",color:i===currentDim?d.color:dimComplete(d.id)?GREEN:MUTED}}>{dimComplete(d.id)?"✓ ":""}{d.name.split("+")[0].trim()}</button>))}
+          {DIMS.map((d,i)=>(<button key={d.id} onClick={()=>setCurrentDim(i)} style={{padding:"8px 14px",fontSize:12,fontWeight:600,borderRadius:6,cursor:"pointer",border:`1px solid ${i===currentDim?d.color:dimComplete(d.id)?GREEN:BORDER}`,background:i===currentDim?`${d.color}12`:dimComplete(d.id)?`${GREEN}08`:"#fff",color:i===currentDim?d.color:dimComplete(d.id)?GREEN:MUTED}}>{dimComplete(d.id)?"✓ ":""}{d.name.split("+")[0].trim()}</button>))}
         </div>
         {(()=>{const dim=DIMS[currentDim]; return(<div>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
@@ -119,7 +121,7 @@ export default function TransformationReadiness() {
             {dim.qs.map((q,qi)=>(<div key={qi} style={{background:WARM,border:`1px solid ${scores[`${dim.id}-${qi}`]?dim.color+"30":BORDER}`,borderRadius:10,padding:"18px 20px"}}>
               <p style={{fontSize:14,color:NAVY,lineHeight:1.55,margin:"0 0 12px"}}>{q.q}</p>
               <div style={{display:"flex",gap:6}}>
-                {[1,2,3,4,5].map(v=>(<button key={v} onClick={()=>setScore(dim.id,qi,v)} style={{flex:1,padding:"8px 4px",fontSize:11,fontWeight:600,borderRadius:6,cursor:"pointer",border:`1px solid ${scores[`${dim.id}-${qi}`]===v?dim.color:BORDER}`,background:scores[`${dim.id}-${qi}`]===v?dim.color:"#fff",color:scores[`${dim.id}-${qi}`]===v?"#fff":MUTED}}>{labels[v]}</button>))}
+                {[1,2,3,4,5].map(v=>(<button key={v} onClick={()=>setScore(dim.id,qi,v)} style={{flex:1,padding:"8px 4px",fontSize:12,fontWeight:600,borderRadius:6,cursor:"pointer",border:`1px solid ${scores[`${dim.id}-${qi}`]===v?dim.color:BORDER}`,background:scores[`${dim.id}-${qi}`]===v?dim.color:"#fff",color:scores[`${dim.id}-${qi}`]===v?"#fff":MUTED}}>{labels[v]}</button>))}
               </div>
             </div>))}
           </div>
@@ -155,8 +157,8 @@ export default function TransformationReadiness() {
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
                     <span style={{fontSize:14,fontWeight:600,color:NAVY}}>{d.name}</span>
-                    {isWeak&&<span style={{fontSize:10,fontWeight:700,color:RED,padding:"2px 8px",borderRadius:4,background:`${RED}10`}}>CLOSE THIS GAP</span>}
-                    {isModerate&&<span style={{fontSize:10,fontWeight:700,color:AMBER,padding:"2px 8px",borderRadius:4,background:`${AMBER}10`}}>MONITOR</span>}
+                    {isWeak&&<span style={{fontSize:12,fontWeight:700,color:RED,padding:"2px 8px",borderRadius:4,background:`${RED}10`}}>CLOSE THIS GAP</span>}
+                    {isModerate&&<span style={{fontSize:12,fontWeight:700,color:AMBER,padding:"2px 8px",borderRadius:4,background:`${AMBER}10`}}>MONITOR</span>}
                   </div>
                   <div style={{height:5,background:`${d.color}15`,borderRadius:3,overflow:"hidden",marginBottom:8,maxWidth:300}}>
                     <div style={{height:"100%",width:`${(sc/5)*100}%`,background:d.color,borderRadius:3}}/>
@@ -164,11 +166,11 @@ export default function TransformationReadiness() {
                   {(isWeak||isModerate)&&(<a href={d.fixTool} style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:12,fontWeight:600,color:ELECTRIC,padding:"6px 14px",borderRadius:5,border:`1px solid ${ELECTRIC}30`,background:`${ELECTRIC}06`,marginTop:4}}>
                     Use: {d.fixLabel} →
                   </a>)}
-                  {(isWeak||isModerate)&&<p style={{fontSize:11,color:MUTED,margin:"6px 0 0"}}>{d.fixDesc}</p>}
+                  {(isWeak||isModerate)&&<p style={{fontSize:12,color:MUTED,margin:"6px 0 0"}}>{d.fixDesc}</p>}
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>
                   <div style={{fontFamily:FONT,fontSize:28,color:sc>=3.5?GREEN:sc>=2.5?AMBER:RED}}>{sc.toFixed(1)}</div>
-                  <div style={{fontSize:10,color:MUTED}}>/5</div>
+                  <div style={{fontSize:12,color:MUTED}}>/5</div>
                 </div>
               </div>
             </div>);
@@ -185,7 +187,7 @@ export default function TransformationReadiness() {
             {gaps.map((d,i)=>(<div key={d.id} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 0",borderBottom:i<gaps.length-1?"1px solid rgba(255,255,255,0.06)":"none"}}>
               <span style={{fontFamily:FONT,fontSize:18,color:LIGHT,width:24}}>{i+1}</span>
               <span style={{fontSize:13,color:"#fff",flex:1}}>{d.name} <span style={{color:"rgba(255,255,255,0.35)"}}>({dimScore(d.id).toFixed(1)}/5)</span></span>
-              <a href={d.fixTool} style={{fontSize:11,fontWeight:600,color:LIGHT,padding:"4px 10px",borderRadius:4,border:"1px solid rgba(255,255,255,0.15)"}}>{d.fixLabel} →</a>
+              <a href={d.fixTool} style={{fontSize:12,fontWeight:600,color:LIGHT,padding:"4px 10px",borderRadius:4,border:"1px solid rgba(255,255,255,0.15)"}}>{d.fixLabel} →</a>
             </div>))}
           </div>);
         })()}

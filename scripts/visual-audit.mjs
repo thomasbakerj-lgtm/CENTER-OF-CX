@@ -7,7 +7,7 @@
  *
  * For each page and viewport it saves a first-screen and a full-page screenshot and
  * measures what a reviewer would otherwise judge by eye: horizontal overflow on a
- * phone, text below 12px, tap targets under 40px, inputs with no accessible name,
+ * phone, text below 12px (11px for uppercase eyebrows), tap targets under 40px, inputs with no accessible name,
  * text below WCAG AA contrast on a solid background, emoji used as icons, heading
  * structure, images without alt text and the font families in use. Tools open on
  * their sample link, so the audit sees the result a user sees.
@@ -67,9 +67,11 @@ function measure() {
   const fonts = new Set();
   for (const el of all) {
     const t = ownText(el); if (!t) continue;
+    if (el.closest(".infodot")) continue; /* the info glyph is an icon with an aria-label */
     const s = getComputedStyle(el); const fs = parseFloat(s.fontSize);
     fonts.add(s.fontFamily.split(",")[0].replace(/["']/g, "").trim());
-    if (fs < 12) small.push(`${fs}px "${t.slice(0, 30)}"`);
+    /* Uppercase eyebrow labels may sit at 11px (type.js TYPE.eyebrow); all other text at 12px or more. */
+    if (fs < 12 && !(fs >= 11 && s.textTransform === "uppercase")) small.push(`${fs}px "${t.slice(0, 30)}"`);
     if (EMOJI.test(t)) emoji.push(t.slice(0, 20));
     const fg = rgb(s.color), bg = solidBg(el);
     if (fg && bg) {

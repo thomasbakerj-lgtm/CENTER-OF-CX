@@ -2467,7 +2467,7 @@ section("K. Enum resolution, substitution and disclosure");
   A("no component-path read still indexes STANCE by raw state", !/STANCE\[stance\]/.test(SRC));
   A("the component reads the resolved stance", (SRC.match(/STANCE\[r\.stanceKey\]/g) || []).length === 11);
   A("the capacity-action note reads the resolved mech key", /\{MECH\[r\.mechKey\]\.note\}/.test(SRC));
-  A("the capacity-action selector displays the resolved mech key", /<select value=\{r\.mechKey\}/.test(SRC));
+  A("the capacity-action selector displays the resolved mech key", /<select (?:aria-label="[^"]*" )?value=\{r\.mechKey\}/.test(SRC));
   A("the stance selector displays the resolved stance key", /background: r\.stanceKey === k \? ELECTRIC/.test(SRC));
   A("the evidence selector displays the resolved evidence key", /background: conf\.evidence === k \? ELECTRIC/.test(SRC));
   A("the displaced-spend selector displays the resolved key", /background: conf\.bauEvidence === k \? ELECTRIC/.test(SRC));

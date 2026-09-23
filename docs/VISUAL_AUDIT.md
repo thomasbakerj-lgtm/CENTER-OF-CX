@@ -61,6 +61,8 @@ Archivo, the site face.
 
 ### 1. Shared fixes, once for every page (Phase B, one session)
 
+**Status, 23 Sep 2026:** done except the colour items noted in the tracker change log (ELECTRIC and status colours as text, link tap targets), which move to the aesthetic rebuild. Re-run: `scripts/visual-audit.mjs` against a local build.
+
 1. **Buttons, inputs and selects do not inherit the site font.** Every tool renders
    its controls in Arial. One global rule (`button, input, select, textarea
    { font: inherit }`) fixes all 25.

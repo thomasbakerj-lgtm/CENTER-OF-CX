@@ -816,23 +816,23 @@ function Calculator() {
                 ))}
               </div>
               <div style={{ background: NAVY, borderRadius: 10, padding: "20px 18px", color: "#fff" }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: LIGHT, marginBottom: 14 }}>Live TCO</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: LIGHT, marginBottom: 14 }}>Live TCO</div>
                 {G.voided ? (
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>No figure computed. The model failed an internal check; see Overhead & Results.</div>
                 ) : (<>
                 <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Annual</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Annual</div>
                   <div style={{ ...TYPE.statValue, fontSize: 25, color: LIGHT }}>{fmtK(r.annual)}</div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>3-yr {fmtK(r.threeYear)}</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>3-yr {fmtK(r.threeYear)}</div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   {[{ l: "Agent/Mo", v: fmt(r.monthly / r.agents) }, { l: "Per Contact", v: "$" + r.costPerContact.toFixed(2) }, { l: "Per Resolution", v: "$" + r.costPerResolution.toFixed(2) }, { l: "Labor %", v: r.disp.laborPctStr }].map((item, i) => (
-                    <div key={i}><div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{item.l}</div><div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{item.v}</div></div>
+                    <div key={i}><div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{item.l}</div><div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{item.v}</div></div>
                   ))}
                 </div>
                 </>)}
                 <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Export confidence</div>
+                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Export confidence</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: confColor }}>{G.confidence}</div>
                 </div>
               </div>
@@ -853,11 +853,11 @@ function Calculator() {
                   <NumField label="Sites" value={d.sites} onChange={v => set("sites", v)} min={1} />
                   <div>
                     <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4 }}>Industry</label>
-                    <select value={d.industry} onChange={e => loadIndustry(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                    <select aria-label="Industry" value={d.industry} onChange={e => loadIndustry(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
                       {Object.entries(INDUSTRY).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                     </select>
-                    <div style={{ fontSize: 10, color: GREEN, marginTop: 3 }}>Prepopulated with {INDUSTRY[d.industry]?.label} benchmarks. Adjust any value.</div>
-                    <div style={{ fontSize: 10, color: MUTED, marginTop: 4, lineHeight: 1.4 }} title={BENCHMARK_SOURCES}>Industry profiles are internal planning values, not sourced benchmarks. Hover for what is sourced and what is not.</div>
+                    <div style={{ fontSize: 12, color: GREEN, marginTop: 3 }}>Prepopulated with {INDUSTRY[d.industry]?.label} benchmarks. Adjust any value.</div>
+                    <div style={{ fontSize: 12, color: MUTED, marginTop: 4, lineHeight: 1.4 }} title={BENCHMARK_SOURCES}>Industry profiles are internal planning values, not sourced benchmarks. Hover for what is sourced and what is not.</div>
                   </div>
                   <NumField label="Monthly Contacts (gross demand)" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} hint={`All interactions initiated. About ${Math.round(n(d.monthlyContacts) * (1 - n(d.containment))).toLocaleString()} reach an agent at ${pct0(d.containment)} containment.`} />
                 </div>
@@ -872,7 +872,7 @@ function Calculator() {
                   <NumField label="Agent Hourly Rate" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" step={0.5} min={0} />
                   <NumField label="Benefits & Burden" value={d.agentBenefitsPct} onChange={v => set("agentBenefitsPct", v)} suffix="%" factor={100} min={0} max={100} hint="Typically 25 to 35%" info={DEFS.loaded} infoTitle="Loaded rate" />
                   <div style={{ background: ICE, borderRadius: 6, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <div style={{ fontSize: 11, color: MUTED }}>Loaded Rate</div>
+                    <div style={{ fontSize: 12, color: MUTED }}>Loaded Rate</div>
                     <div style={{ fontSize: 18, fontWeight: 600, color: NAVY }}>${r.loaded.toFixed(2)}/hr</div>
                   </div>
                   <NumField label="Supervisor Hourly" value={d.supHourly} onChange={v => set("supHourly", v)} prefix="$" step={0.5} min={0} />
@@ -883,8 +883,8 @@ function Calculator() {
                   <NumField label="Recruiting Cost/Hire" value={d.recruitingCostPerHire} onChange={v => set("recruitingCostPerHire", v)} prefix="$" step={100} min={0} />
                 </div>
                 <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "14px 18px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div><div style={{ fontSize: 11, color: MUTED }}>Monthly Labor</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.labor)}</div></div>
-                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: MUTED }}>Attrition Cost/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.attritionCost)}</div><div style={{ fontSize: 11, color: MUTED }}>{r.monthlyHires} hires/mo</div></div>
+                  <div><div style={{ fontSize: 12, color: MUTED }}>Monthly Labor</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.labor)}</div></div>
+                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 12, color: MUTED }}>Attrition Cost/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.attritionCost)}</div><div style={{ fontSize: 12, color: MUTED }}>{r.monthlyHires} hires/mo</div></div>
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(0, "Back", false)}{navBtn(2, "Next: KPIs", true)}</div>
               </div>
@@ -912,7 +912,7 @@ function Calculator() {
                   <NumField label="NPS (-100 to 100)" value={d.nps} onChange={v => set("nps", v)} min={-100} max={100} />
                   <NumField label="New Hire Training (days)" value={d.newHireTrainingDays} onChange={v => set("newHireTrainingDays", v)} min={0} />
                 </div>
-                <p style={{ fontSize: 11, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>Only headcount, wages, attrition, contract and usage prices, and AHT (through voice minutes) move the current TCO total. FCR, containment, occupancy, and shrinkage do not change current cost; they size the optimization opportunity and derived metrics. CSAT, NPS, QA, adherence, ASA, abandon, transfer, hold, and absenteeism are context for the analyst read and coherence checks.</p>
+                <p style={{ fontSize: 12, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>Only headcount, wages, attrition, contract and usage prices, and AHT (through voice minutes) move the current TCO total. FCR, containment, occupancy, and shrinkage do not change current cost; they size the optimization opportunity and derived metrics. CSAT, NPS, QA, adherence, ASA, abandon, transfer, hold, and absenteeism are context for the analyst read and coherence checks.</p>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(1, "Back", false)}{navBtn(3, "Next: Channel Mix", true)}</div>
               </div>
             )}
@@ -927,9 +927,9 @@ function Calculator() {
                   <NumField label="Social" value={d.channelMixSocial} onChange={v => set("channelMixSocial", v)} suffix="%" factor={100} min={0} max={100} />
                   <NumField label="Self-Service" value={d.channelMixSelfServe} onChange={v => set("channelMixSelfServe", v)} suffix="%" factor={100} min={0} max={100} />
                   <div style={{ background: channelOK ? ICE : "#FEF2F2", borderRadius: 6, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", border: channelOK ? "none" : `1px solid ${RED}40` }}>
-                    <div style={{ fontSize: 11, color: MUTED }}>Total</div>
+                    <div style={{ fontSize: 12, color: MUTED }}>Total</div>
                     <div style={{ fontSize: 18, fontWeight: 600, color: channelOK ? GREEN : RED , ...NUM }}>{pct(channelTotal)}</div>
-                    <div style={{ fontSize: 11, color: channelOK ? MUTED : RED }}>{channelOK ? "Balanced" : "Must equal 100%"}</div>
+                    <div style={{ fontSize: 12, color: channelOK ? MUTED : RED }}>{channelOK ? "Balanced" : "Must equal 100%"}</div>
                   </div>
                 </div>
                 {!channelOK && (
@@ -939,7 +939,7 @@ function Calculator() {
                   </div>
                 )}
                 <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "14px 18px" }}>
-                  <div style={{ fontSize: 11, color: MUTED }}>Monthly Voice Minutes</div>
+                  <div style={{ fontSize: 12, color: MUTED }}>Monthly Voice Minutes</div>
                   <div style={{ fontSize: 18, fontWeight: 600, color: NAVY }}>{Math.round(r.voiceMinutes).toLocaleString()}</div>
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -970,8 +970,8 @@ function Calculator() {
                   <NumField label="Security & Compliance" value={d.securityCompliance} onChange={v => set("securityCompliance", v)} prefix="$" step={500} min={0} />
                 </div>
                 <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "14px 18px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div><div style={{ fontSize: 11, color: MUTED }}>Monthly Tech Cost</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.tech)}</div></div>
-                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 11, color: MUTED }}>Tech Per Agent/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmt(r.techPerAgent)}</div></div>
+                  <div><div style={{ fontSize: 12, color: MUTED }}>Monthly Tech Cost</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.tech)}</div></div>
+                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 12, color: MUTED }}>Tech Per Agent/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmt(r.techPerAgent)}</div></div>
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(3, "Back", false)}{navBtn(5, "Next: Results", true)}</div>
               </div>
@@ -1002,9 +1002,9 @@ function Calculator() {
                         <NumField label="Wage Growth (labor)" value={d.wageEscalatorPct} onChange={v => set("wageEscalatorPct", v)} suffix="%" factor={100} step={0.5} min={0} max={20} hint="Default 3.5%, applied to labor" info={DEFS.wageEsc} infoTitle="Wage growth" />
                         <NumField label="License Renewal Uplift" value={d.licenseEscalatorPct} onChange={v => set("licenseEscalatorPct", v)} suffix="%" factor={100} step={0.5} min={0} max={20} hint="Default 6%, applied to software" info={DEFS.licenseEsc} infoTitle="Renewal uplift" />
                         <div style={{ background: ICE, borderRadius: 6, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                          <div style={{ fontSize: 11, color: MUTED }}>Held flat</div>
+                          <div style={{ fontSize: 12, color: MUTED }}>Held flat</div>
                           <div style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>Usage + facilities</div>
-                          <div style={{ fontSize: 10, color: MUTED }}>one-time added once</div>
+                          <div style={{ fontSize: 12, color: MUTED }}>one-time added once</div>
                         </div>
                       </div>
                     )}
@@ -1013,17 +1013,17 @@ function Calculator() {
                   <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="input-row">
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Cost basis <InfoDot title="Cost basis" text={DEFS.costBasis} /></label>
-                      <select value={d.costBasis} onChange={e => set("costBasis", e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                      <select aria-label="Cost basis" value={d.costBasis} onChange={e => set("costBasis", e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
                         <option value="estimate">Estimate (directional)</option>
                         <option value="quoted">Vendor quote</option>
                         <option value="invoiced">Actual invoice</option>
                       </select>
-                      <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>Sets the sensitivity range and gates Finance-grade. Applies to cost inputs like wages and seat prices, not KPIs.</div>
+                      <div style={{ fontSize: 12, color: MUTED, marginTop: 3 }}>Sets the sensitivity range and gates Finance-grade. Applies to cost inputs like wages and seat prices, not KPIs.</div>
                     </div>
                     <div style={{ background: `${confColor}12`, border: `1px solid ${confColor}40`, borderRadius: 8, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                      <div style={{ fontSize: 11, color: MUTED }}>Export confidence</div>
+                      <div style={{ fontSize: 12, color: MUTED }}>Export confidence</div>
                       <div style={{ fontSize: 16, fontWeight: 700, color: confColor }}>{G.confidence}</div>
-                      <div style={{ fontSize: 10, color: MUTED }}>Headline range +/- {pct0(r.sensitivity.pct)}</div>
+                      <div style={{ fontSize: 12, color: MUTED }}>Headline range +/- {pct0(r.sensitivity.pct)}</div>
                     </div>
                   </div>
                 </div>
@@ -1044,8 +1044,8 @@ function Calculator() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.8, textTransform: "uppercase", color: LIGHT }}>Complete TCO Results</div>
                     <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: confColor, background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6, display: "inline-block" }}>{G.confidence}</div>
-                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>cost inputs, not savings or KPIs</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: confColor, background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6, display: "inline-block" }}>{G.confidence}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 3 }}>cost inputs, not savings or KPIs</div>
                     </div>
                   </div>
                   {G.voided ? (
@@ -1056,37 +1056,37 @@ function Calculator() {
                   ) : (<>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }} className="kpi-grid">
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Annual TCO</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Annual TCO</div>
                       <div style={{ ...TYPE.statValueLg, fontSize: 29, color: LIGHT }}>{fmtK(r.annual)}</div>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Range {fmtK(r.sensitivity.annualLow)} to {fmtK(r.sensitivity.annualHigh)}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Range {fmtK(r.sensitivity.annualLow)} to {fmtK(r.sensitivity.annualHigh)}</div>
                     </div>
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>3-Year TCO</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>3-Year TCO</div>
                       <div style={{ ...TYPE.statValueLg, fontSize: 29, color: "#fff" }}>{fmtK(r.threeYear)}</div>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{n(d.implementationOneTime) > 0 ? fmtK(n(d.implementationOneTime)) + " impl + " : ""}{escLabel}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{n(d.implementationOneTime) > 0 ? fmtK(n(d.implementationOneTime)) + " impl + " : ""}{escLabel}</div>
                     </div>
                     <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>Per Agent/Month</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Per Agent/Month</div>
                       <div style={{ ...TYPE.statValueLg, fontSize: 29, color: getBench(r.monthly / r.agents, 4500, 7500, true) }}>{fmt(r.monthly / r.agents)}</div>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Industry: $4.5K to $7.5K loaded</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Industry: $4.5K to $7.5K loaded</div>
                     </div>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 24 }} className="kpi-grid">
                     {[{ l: "Cost Per Contact", v: "$" + r.costPerContact.toFixed(2) }, { l: "Cost Per Resolution", v: "$" + r.costPerResolution.toFixed(2) }, { l: "Marginal / Contact", v: "$" + r.marginalPerContact.toFixed(2) }, { l: "Contacts / Agent/Mo", v: Math.round(r.contacts / r.agents).toLocaleString() }].map((item, i) => (
-                      <div key={i} style={{ textAlign: "center" }}><div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>{item.l}</div><div style={{ fontSize: 20, fontWeight: 600, color: "#fff" }}>{item.v}</div></div>
+                      <div key={i} style={{ textAlign: "center" }}><div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{item.l}</div><div style={{ fontSize: 20, fontWeight: 600, color: "#fff" }}>{item.v}</div></div>
                     ))}
                   </div>
                   <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>Cost Distribution</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginBottom: 6 }}>Cost Distribution</div>
                     <div style={{ display: "flex", height: 24, borderRadius: 6, overflow: "hidden" }}>
-                      <div style={{ width: r.disp.laborPctStr, background: ELECTRIC, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: "#fff" }}>{r.disp.laborPctStr}</span></div>
-                      <div style={{ width: r.disp.techPctStr, background: LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: NAVY }}>{r.disp.techPctStr}</span></div>
-                      <div style={{ width: r.disp.overheadPctStr, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 9, fontWeight: 600, color: "#fff" }}>{r.disp.overheadPctStr}</span></div>
+                      <div style={{ width: r.disp.laborPctStr, background: ELECTRIC, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>{r.disp.laborPctStr}</span></div>
+                      <div style={{ width: r.disp.techPctStr, background: LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>{r.disp.techPctStr}</span></div>
+                      <div style={{ width: r.disp.overheadPctStr, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>{r.disp.overheadPctStr}</span></div>
                     </div>
                     <div style={{ display: "flex", gap: 16, marginTop: 6, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Labor {fmtK(r.labor)}/mo</span>
-                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Tech {fmtK(r.tech)}/mo</span>
-                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Overhead {fmtK(r.overhead)}/mo</span>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Labor {fmtK(r.labor)}/mo</span>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Tech {fmtK(r.tech)}/mo</span>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Overhead {fmtK(r.overhead)}/mo</span>
                     </div>
                   </div>
                   </>)}
@@ -1095,13 +1095,13 @@ function Calculator() {
                 {/* Self-audit flags */}
                 {!G.voided && r.flags.length > 0 && (
                   <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px 22px", marginBottom: 20 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>Integrity checks</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>Integrity checks</div>
                     {r.flags.map((f, i) => {
                       const c = f.level === "block" ? RED : f.level === "flag" ? AMBER : MUTED;
                       const tag = f.level === "block" ? "BLOCK" : f.level === "flag" ? "CONFIRM" : "NOTE";
                       return (
                         <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "8px 0", borderTop: i ? `1px solid ${BORDER}` : "none" }}>
-                          <span style={{ fontSize: 9, fontWeight: 700, color: c, background: `${c}15`, padding: "2px 7px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>{tag}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: c, background: `${c}15`, padding: "2px 7px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>{tag}</span>
                           <span style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5 }}>{f.msg}</span>
                         </div>
                       );
@@ -1111,7 +1111,7 @@ function Calculator() {
 
                 {/* Analyst Read. A void run has no figure to read, so it renders none. */}
                 {!G.voided && <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 20 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read, what these numbers mean</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read, what these numbers mean</div>
                   {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
                 </div>}
 
@@ -1131,7 +1131,7 @@ function Calculator() {
                       <h3 style={{ ...TYPE.h2, fontSize: 19, color: NAVY, margin: 0 }}>Optimization Opportunities</h3>
                       <div style={{ fontSize: 12, color: MUTED }}>{Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? "Booked at full theoretical value" : "Booked"} <strong style={{ color: GREEN }}>{fmtK(opt.netTotal)}/mo</strong> ({fmtK(opt.netTotal * 12)}/yr){Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", no haircut applied" : `, haircut from ${fmtK(opt.grossTotal)}/mo theoretical`}</div>
                     </div>
-                    <p style={{ fontSize: 11, color: MUTED, margin: "0 0 12px", lineHeight: 1.5 }}>De-overlapped: each lever acts on the volume the prior leaves, valued at marginal cost, then scaled by the {STANCE[stance].label.toLowerCase()} stance. They do not double-count.</p>
+                    <p style={{ fontSize: 12, color: MUTED, margin: "0 0 12px", lineHeight: 1.5 }}>De-overlapped: each lever acts on the volume the prior leaves, valued at marginal cost, then scaled by the {STANCE[stance].label.toLowerCase()} stance. They do not double-count.</p>
                     {opt.items.map((o, i) => (
                       <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, padding: "12px 0", borderBottom: i < opt.items.length - 1 ? `1px solid ${BORDER}` : "none" }}>
                         <div style={{ flex: 1 }}>
@@ -1140,7 +1140,7 @@ function Calculator() {
                         </div>
                         <div style={{ textAlign: "right", flexShrink: 0 }}>
                           <div style={{ background: `${GREEN}15`, color: GREEN, fontSize: 13, fontWeight: 700, padding: "5px 10px", borderRadius: 6 }}>{fmtK(o.net)}/mo</div>
-                          {o.net !== o.gross && <div style={{ fontSize: 10, color: MUTED, marginTop: 2 }}>gross {fmtK(o.gross)}</div>}
+                          {o.net !== o.gross && <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>gross {fmtK(o.gross)}</div>}
                         </div>
                       </div>
                     ))}
@@ -1159,7 +1159,7 @@ function Calculator() {
                     {nextFor(TOOL_ID).map((c, i) => (
                       <button key={i} onClick={() => goNext(c.to, c.href)} style={{ textAlign: "left", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", cursor: "pointer" }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: ELECTRIC, marginBottom: 3 }}>{c.name}</div>
-                        <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.4 }}>{c.why}</div>
+                        <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.4 }}>{c.why}</div>
                       </button>
                     ))}
                   </div>
@@ -1168,7 +1168,7 @@ function Calculator() {
                 <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "28px 24px", textAlign: "center" }}>
                     <div>
                       <h3 style={{ ...TYPE.h2, fontSize: 19, color: "#fff", margin: "0 0 8px" }}>Take this to your team</h3>
-                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "0 0 20px" }}>Download the board-ready breakdown, share the exact scenario as a link, or send it to our advisory team for a free expert read of the highest-impact levers.</p>
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", margin: "0 0 20px" }}>Download the board-ready breakdown, share the exact scenario as a link, or send it to our advisory team for a free expert read of the highest-impact levers.</p>
                       <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                         <span style={{ display: "inline-flex" }}>
 <ReportActions
@@ -1320,7 +1320,7 @@ function Calculator() {
                         />
                         </span>
                       </div>
-                      <a href="/contact" style={{ display: "inline-block", marginTop: 14, color: "rgba(255,255,255,0.5)", fontSize: 12 }}>Prefer the full contact form?</a>
+                      <a href="/contact" style={{ display: "inline-block", marginTop: 14, color: "rgba(255,255,255,0.72)", fontSize: 12 }}>Prefer the full contact form?</a>
                     </div>
                 </div>
               </div>
@@ -1341,10 +1341,10 @@ function Footer() {
             <LogoMark size={28} />
             <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span>
           </a>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>2026 The Center of CX. All rights reserved.</span>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>2026 The Center of CX. All rights reserved.</span>
           <div style={{ display: "flex", gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Privacy</a>
-            <a href="/terms" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Terms</a>
+            <a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Privacy</a>
+            <a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Terms</a>
           </div>
         </div>
       </div>

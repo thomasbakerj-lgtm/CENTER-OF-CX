@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
@@ -93,7 +93,7 @@ export default function ContractRiskScanner() {
       <nav style={{background:DEEP,padding:"16px 0"}}><div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}><a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={30}/><span style={{color:"#fff",fontWeight:600,fontSize:14}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a><a href="/how-to-choose" style={{color:"rgba(255,255,255,0.5)",fontSize:13}}>← Back to Tools</a></div></nav>
 
       <section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={WRAP}>
-        <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>Contract Risk Scanner</h2>
+        <h1 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>Contract Risk Scanner</h1>
         <p style={{fontSize:13,color:MUTED,marginBottom:24}}>Select your current or proposed terms. Risk assessment and negotiation guidance update in real time.</p>
 
         {allAnswered&&(<div style={{background:`${overallColor}08`,border:`2px solid ${overallColor}`,borderRadius:12,padding:"20px 24px",marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
@@ -102,7 +102,7 @@ export default function ContractRiskScanner() {
             <div style={{fontSize:13,color:SLATE}}>{totalFlags} terms flagged as high or critical risk</div>
           </div>
           <div style={{display:"flex",gap:12}}>
-            {[["Critical",riskCounts.critical,RED],["High",riskCounts.high,"#DC6B00"],["Medium",riskCounts.medium,AMBER],["Low",riskCounts.low,GREEN]].map(([l,c,color])=>(<div key={l} style={{textAlign:"center"}}><div style={{fontFamily:FONT,fontSize:20,color}}>{c}</div><div style={{fontSize:10,color:MUTED}}>{l}</div></div>))}
+            {[["Critical",riskCounts.critical,RED],["High",riskCounts.high,"#DC6B00"],["Medium",riskCounts.medium,AMBER],["Low",riskCounts.low,GREEN]].map(([l,c,color])=>(<div key={l} style={{textAlign:"center"}}><div style={{fontFamily:FONT,fontSize:20,color}}>{c}</div><div style={{fontSize:12,color:MUTED}}>{l}</div></div>))}
           </div>
         </div>)}
 
@@ -120,11 +120,11 @@ export default function ContractRiskScanner() {
               </div>
               {term.opt&&(<>
                 <div style={{display:"flex",alignItems:"flex-start",gap:8,marginTop:8}}>
-                  <span style={{fontSize:10,fontWeight:700,color:rc,letterSpacing:1,textTransform:"uppercase",padding:"2px 6px",borderRadius:3,background:`${rc}12`,flexShrink:0}}>{term.opt.level}</span>
+                  <span style={{fontSize:11,fontWeight:700,color:rc,letterSpacing:1,textTransform:"uppercase",padding:"2px 6px",borderRadius:3,background:`${rc}12`,flexShrink:0}}>{term.opt.level}</span>
                   <span style={{fontSize:12,color:SLATE,lineHeight:1.5}}>{term.opt.note}</span>
                 </div>
                 {term.opt.negotiate&&(<div style={{marginTop:8,padding:"10px 14px",background:`${ELECTRIC}04`,border:`1px solid ${ELECTRIC}15`,borderRadius:6}}>
-                  <div style={{fontSize:10,fontWeight:700,color:ELECTRIC,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Negotiation Recommendation</div>
+                  <div style={{fontSize:11,fontWeight:700,color:ELECTRIC,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Negotiation Recommendation</div>
                   <p style={{fontSize:12,color:SLATE,lineHeight:1.55,margin:0}}>{term.opt.negotiate}</p>
                 </div>)}
               </>)}

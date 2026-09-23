@@ -558,8 +558,13 @@ dashboard, the 12-phase growth program.
    on floor tools, Georgia and the old homepage type pair. Copy: retired "survive a CFO"
    in Business Case, and "industry-leading", "best-in-class", "world-class",
    "seamless" in tools, vertical pages and vendor data.
-12. **Next:** TB: make `suite` required on main; 11-01. Me: Phase B, starting with the
-   shared fixes in the audit's punch list section 1.
+12. Done S23: Phase B shared fixes (punch list section 1). One type family on every audited
+   page; every field named (326 to 0); 44px touch targets; sub-12px text 1,415 to 11; contrast
+   failures 2,031 to 762; h1 on every tool. Left for the aesthetic rebuild: ELECTRIC and status
+   colours used as text (need text and fill variants), link tap targets, the 45 content pages
+   still on DM Sans and Instrument Serif.
+13. **Next:** TB: make `suite` required on main; 11-01. Me: Phase B continued, the shared tool
+   layout for the 16 floor tools, then the rail debts.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
