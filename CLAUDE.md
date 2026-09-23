@@ -524,9 +524,27 @@ dashboard, the 12-phase growth program.
    its sample and hostile links, with ReportActions swapped for a probe that prints
    every PDF and review field, so a crash or a NaN, Infinity or undefined headed for a
    PDF fails the suite. Suite 19,246 green. Browser check: 48 runs clean.
-8. **Next:** V3 program step 3, deep V3 by shape. First the shared rubric engine and
-   published rubric pages for CX Maturity and AI Readiness (V3-Framework), then the
-   WFM cluster to V3-Full (engine markers, harness pairs, Staffing rail).
+8. Done S23: V3 program step 3a, V3-Framework for CX Maturity and AI Readiness.
+   - `src/lib/rubric.js` is the one scoring engine (engine markers); rubrics are data in
+     `src/lib/rubrics/` (registry `index.js`). Answer keys unchanged, so old links open.
+   - Output adds an action checklist (every statement answered at 2 or below, weakest
+     dimension first) and a named next diagnostic (the weakest dimension's journey tool).
+     Replaces the two unpublished dimension-to-tool maps.
+   - Published rubric pages `/methodology/cx-maturity` and `/methodology/ai-readiness`
+     render from the same objects the engine scores (`RubricPage.jsx`); linked from the
+     intro, the results and the PDF Method section. Sitemap 426.
+   - AI Readiness "Era" pattern had its own unpublished thresholds; now a published
+     second band set. Copy softened where a self-assessment cannot claim it: CX
+     "Leading" no longer says "competitive advantage"; AI "ready for autonomous AI
+     agents" and "Readiness is no longer your constraint. Ambition is." restated as what
+     the rubric maps to. Cut points unchanged.
+   - `rubric.test.mjs` (259): engine sliced live and equal to the module; determinism;
+     checklist completeness and order; traceability (every criterion moves its dimension,
+     the overall score and its action); every band, pattern, action and diagnostic
+     reachable; partial and invalid answers claim nothing; 20,000 answer sets per rubric
+     equal the pre-rubric formulas read from git. Four engine mutants all killed.
+9. **Next:** step 3b, the other three frameworks onto the engine (Transformation
+   Readiness, CX IT Alignment, Governance), then 3c the WFM cluster to V3-Full.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.

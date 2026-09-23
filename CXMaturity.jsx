@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { scoreRubric, bandFor } from "./src/lib/rubric";
+import { CX_MATURITY as RUBRIC } from "./src/lib/rubrics/cxMaturity";
+import { JOURNEY } from "./src/lib/journey";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -8,53 +11,11 @@ const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
 
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
-const DIMS = [
-  { id: "strategy", name: "Strategy & Leadership", color: ELECTRIC, qs: [
-    { q: "CX has a named executive sponsor with budget authority and cross-functional mandate.", },
-    { q: "There is a documented CX strategy that connects to measurable business outcomes.", },
-    { q: "CX investment decisions are made using data and frameworks rather than vendor demos.", },
-    { q: "The organization treats CX as an operating discipline with defined roles, metrics, and governance.", },
-    { q: "Leadership reviews CX performance with the same rigor as financial or sales performance.", },
-  ]},
-  { id: "operations", name: "Operations & Workforce", color: "#10B981", qs: [
-    { q: "Workforce management uses data-driven forecasting and intraday management across all channels.", },
-    { q: "Quality assurance covers both human and automated interactions with consistent scoring criteria.", },
-    { q: "Agents have clear career paths, coaching programs, and performance visibility.", },
-    { q: "Service levels are measured and managed across voice, digital, and async channels independently.", },
-    { q: "Escalation paths, exception handling, and fallback logic are documented and governed.", },
-  ]},
-  { id: "technology", name: "Technology & Architecture", color: "#7C3AED", qs: [
-    { q: "The contact center platform (CCaaS) is cloud-native with API extensibility and ecosystem integration.", },
-    { q: "CRM, knowledge, identity, and workflow systems are integrated with the agent desktop.", },
-    { q: "Digital channels (chat, messaging, social) are routed and managed with the same rigor as voice.", },
-    { q: "The technology stack has a defined architecture owner who governs vendor selection and integration.", },
-    { q: "There is a technology roadmap aligned to the CX strategy with phased milestones.", },
-  ]},
-  { id: "analytics", name: "Analytics & Intelligence", color: "#F59E0B", qs: [
-    { q: "Interaction analytics (speech, text, sentiment) are used to identify root causes and trends.", },
-    { q: "Reporting goes beyond volume and AHT to measure resolution quality, effort, and business outcomes.", },
-    { q: "Analytics insights drive operational changes within weeks rather than being trapped in reports.", },
-    { q: "AI-generated insights (auto-QA, topic clustering, behavioral analysis) are part of the QA workflow.", },
-    { q: "Journey analytics connect contact center data to upstream and downstream customer behavior.", },
-  ]},
-  { id: "governance", name: "Governance & AI Readiness", color: "#EF4444", qs: [
-    { q: "AI and automation deployments have defined governance, testing protocols, and rollback procedures.", },
-    { q: "There are clear policies for what AI can and cannot do in customer interactions.", },
-    { q: "Data privacy, consent, and compliance requirements are embedded in technology decisions.", },
-    { q: "The organization has defined ownership for AI quality, model performance, and escalation design.", },
-    { q: "There is a process for evaluating new AI capabilities against operational readiness and risk tolerance.", },
-  ]},
-];
-
-const LEVELS = [
-  { min: 1, max: 1.8, tier: "Foundational", color: RED, desc: "The organization is in early stages. CX efforts are fragmented, reactive, and lack consistent governance. Priority: establish basic measurement, define ownership, and build a strategy before investing in technology." },
-  { min: 1.8, max: 2.6, tier: "Developing", color: AMBER, desc: "Some CX discipline exists but it is inconsistent across the organization. Pockets of maturity coexist with significant gaps. Priority: standardize operations, close the biggest gaps, and align technology to strategy." },
-  { min: 2.6, max: 3.4, tier: "Operational", color: ELECTRIC, desc: "CX is managed as a real operating discipline with defined metrics and governance. The foundation is solid but advanced capabilities (AI, orchestration, journey analytics) are still emerging. Priority: deepen analytics, expand automation, and strengthen cross-functional alignment." },
-  { min: 3.4, max: 4.2, tier: "Advanced", color: "#7C3AED", desc: "The organization has strong CX maturity across most dimensions. AI and analytics are integrated into operations. Priority: optimize orchestration, govern AI at scale, and connect CX outcomes to enterprise strategy." },
-  { min: 4.2, max: 5.1, tier: "Leading", color: GREEN, desc: "CX is a genuine competitive advantage. The organization has deep operational discipline, AI governance, and measurable business impact. Priority: sustain excellence, innovate at the edges, and share best practices." },
-];
-
-const getTier = (score) => LEVELS.find(l => score >= l.min && score < l.max) || LEVELS[LEVELS.length - 1];
+const DIM_COLORS = { strategy: ELECTRIC, operations: "#10B981", technology: "#7C3AED", analytics: "#F59E0B", governance: "#EF4444" };
+const BAND_COLORS = { foundational: RED, developing: AMBER, operational: ELECTRIC, advanced: "#7C3AED", leading: GREEN };
+/* The questions, weights and bands live in the published rubric; this file only
+   presents them. See cxMaturity and {RUBRIC.methodology}. */
+const DIMS = RUBRIC.dims.map(d => ({ id: d.id, name: d.name, color: DIM_COLORS[d.id], qs: d.criteria.map(c => ({ q: c.text })) }));
 
 const TOOL_ID = "cx-maturity";
 const ROUTE = "/tools/cx-maturity";
@@ -66,7 +27,7 @@ export const SAMPLE = { scores: Object.fromEntries(DIMS.flatMap(d => d.qs.map((_
    carrying anything else opens the unanswered question, never a scored result. */
 const cleanScores = (sc) => Object.fromEntries(Object.entries(sc && typeof sc === "object" ? sc : {})
   .filter(([k, v]) => /^[a-z0-9-]+$/i.test(k) && Number.isInteger(v) && v >= 1 && v <= 5));
-const isComplete = (scores) => DIMS.every(d => d.qs.every((_, i) => scores[`${d.id}-${i}`] > 0));
+const isComplete = (scores) => scoreRubric(RUBRIC, scores).complete;
 
 export default function CXMaturity() {
   const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { scores: cleanScores(sc && sc.scores) }; });
@@ -81,20 +42,16 @@ export default function CXMaturity() {
     setScores(prev => ({ ...prev, [`${dimId}-${qIdx}`]: val }));
   };
 
-  const dimScore = (dimId) => {
-    const dim = DIMS.find(d => d.id === dimId);
-    const vals = dim.qs.map((_, i) => scores[`${dimId}-${i}`] || 0).filter(v => v > 0);
-    return vals.length === 0 ? 0 : vals.reduce((a, b) => a + b, 0) / vals.length;
-  };
-
-  const dimComplete = (dimId) => {
-    const dim = DIMS.find(d => d.id === dimId);
-    return dim.qs.every((_, i) => scores[`${dimId}-${i}`] > 0);
-  };
-
-  const allComplete = DIMS.every(d => dimComplete(d.id));
-  const overallScore = DIMS.reduce((a, d) => a + dimScore(d.id), 0) / DIMS.length;
-  const tier = getTier(overallScore);
+  /* Every score, band, checklist action and the next diagnostic come from the one
+     rubric engine, so the page, the PDF and the published rubric cannot disagree. */
+  const R = scoreRubric(RUBRIC, scores);
+  const dimOf = (dimId) => R.dims.find(d => d.id === dimId);
+  const dimScore = (dimId) => dimOf(dimId).score || 0;
+  const dimComplete = (dimId) => dimOf(dimId).complete;
+  const allComplete = R.complete;
+  const overallScore = R.overall || 0;
+  const tier = R.band ? { ...R.band, tier: R.band.label, color: BAND_COLORS[R.band.id] } : { tier: "", color: MUTED, desc: "" };
+  const next = R.nextDiagnostic && JOURNEY[R.nextDiagnostic.tool] ? { name: JOURNEY[R.nextDiagnostic.tool].name, href: JOURNEY[R.nextDiagnostic.tool].route, because: dimOf(R.nextDiagnostic.because).name } : null;
 
   const handleStart = () => setPhase("assess");
 
@@ -122,6 +79,7 @@ export default function CXMaturity() {
               <div style={{ display: "flex", gap: 10 }}>
               </div>
               <button onClick={handleStart} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: 1, marginTop: 4 }}>{"Start Assessment →"}</button>
+              <a href={RUBRIC.methodology} style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", textAlign: "center", marginTop: 6 }}>See the published rubric: every statement, weight and band</a>
             </div>
           </div>
         </section>
@@ -213,7 +171,7 @@ export default function CXMaturity() {
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
               {DIMS.map((d, i) => {
                 const s = dimScore(d.id);
-                const dt = getTier(s);
+                const dt = (b => ({ ...b, tier: b.label, color: BAND_COLORS[b.id] }))(bandFor(RUBRIC, s));
                 return (
                   <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -259,29 +217,26 @@ export default function CXMaturity() {
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
               <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Want help closing the gaps?</h3>
               <div style={{ textAlign: "left", maxWidth: 600, margin: "0 auto 24px" }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Your Action Plan</h3>
-                {[...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id)).slice(0, 3).map((d, i) => {
-                  const tools = {
-                    strategy: { href: "/tools/roadmap-builder", name: "Roadmap Builder", why: "Build a phased strategy with milestones" },
-                    operations: { href: "/tools/staffing-calculator", name: "Staffing Calculator", why: "Model your FTE requirements and shrinkage" },
-                    technology: { href: "/tools/platform-decision", name: "Platform Decision Matrix", why: "Assess your platform across 7 layers" },
-                    analytics: { href: "/tools/forecast-accuracy", name: "Forecast Accuracy Tracker", why: "Measure and improve your data quality" },
-                    governance: { href: "/tools/governance-model", name: "Governance Model", why: "Define ownership across CX, ops, and AI" },
-                  };
-                  const rec = tools[d.id] || tools.strategy;
-                  return (
-                    <div key={d.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-                      <span style={{ fontFamily: FONT, fontSize: 18, color: LIGHT, width: 20, flexShrink: 0 }}>{i + 1}</span>
-                      <div>
-                        <span style={{ fontSize: 13, color: "#fff", fontWeight: 600 }}>{d.name}</span>
-                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>{dimScore(d.id).toFixed(1)}/5</span>
-                        <div style={{ marginTop: 4 }}>
-                          <a href={rec.href} style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "3px 10px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.15)" }}>→ {rec.name}: {rec.why}</a>
-                        </div>
-                      </div>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Your Action Checklist</h3>
+                {R.checklist.length === 0 ? (
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>No statement was answered at {RUBRIC.failAt} or below, so the rubric raises no action. Your lowest dimension is still the place to look first.</p>
+                ) : R.checklist.map((c, i) => (
+                  <div key={c.criterion} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: i < R.checklist.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                    <span style={{ fontFamily: FONT, fontSize: 16, color: LIGHT, width: 22, flexShrink: 0 }}>{i + 1}</span>
+                    <div>
+                      <div style={{ fontSize: 13, color: "#fff", fontWeight: 600, lineHeight: 1.5 }}>{c.action}</div>
+                      <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginTop: 3, lineHeight: 1.5 }}>{c.dimensionName}: you answered {c.score} of 5 to "{c.text}"</div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
+                {next && (
+                  <div style={{ marginTop: 16, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
+                    Next diagnostic: <a href={next.href} style={{ color: LIGHT, fontWeight: 600 }}>{next.name}</a>, because {next.because} is your lowest-scoring dimension.
+                  </div>
+                )}
+                <p style={{ marginTop: 16, fontSize: 11.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+                  Scored on the <a href={RUBRIC.methodology} style={{ color: LIGHT }}>published rubric</a>, version {RUBRIC.version}. {RUBRIC.limits[0]} {RUBRIC.limits[1]}
+                </p>
               </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
@@ -296,10 +251,10 @@ export default function CXMaturity() {
                       "Strongest dimension: " + [...DIMS].sort((a,b) => dimScore(b.id) - dimScore(a.id))[0].name + " (" + dimScore([...DIMS].sort((a,b) => dimScore(b.id) - dimScore(a.id))[0].id).toFixed(1) + "/5).",
                       "Weakest dimension: " + [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].name + " (" + dimScore([...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].id).toFixed(1) + "/5).",
                     ]},
-                    { title: "Next Steps", type: "next", items: [
-                      { tool: "AI Readiness Diagnostic", reason: "Assess AI-specific readiness" },
-                      { tool: "Transformation Readiness", reason: "Determine if you are ready to act on gaps" },
-                    ]},
+                    { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ": answered " + c.score + " of 5 to \"" + c.text + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No statement was answered at " + RUBRIC.failAt + " or below.", detail: "The rubric raises no action. Start with the lowest-scoring dimension." }] },
+                    { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: next.because + " is your lowest-scoring dimension." }] : [] },
+                    { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
+                    { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each dimension scores the mean of its statements on a 1 to 5 scale; the overall score is the equally weighted mean of the dimensions; the band is read from the published cut points. Every statement answered at " + RUBRIC.failAt + " or below adds its action to the checklist, weakest dimension first. The next diagnostic is the one the rubric names for your lowest dimension." },
                   ]} />
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
                 <a href="/vendors" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Browse Vendor Intelligence →</a>

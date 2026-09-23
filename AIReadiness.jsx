@@ -1,4 +1,7 @@
 import { useState, useEffect } from "react";
+import { scoreRubric, bandFor } from "./src/lib/rubric";
+import { AI_READINESS as RUBRIC } from "./src/lib/rubrics/aiReadiness";
+import { JOURNEY } from "./src/lib/journey";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -8,54 +11,11 @@ const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
 
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
-const DIMS = [
-  { id: "data", name: "Data Quality & Access", color: ELECTRIC, qs: [
-    { q: "Customer interaction data (calls, chats, emails) is captured, stored, and accessible in a structured format." },
-    { q: "CRM and case data is reliably linked to interaction records so AI can access customer context." },
-    { q: "Knowledge base content is current, well-organized, and machine-readable." },
-    { q: "Data quality issues (duplicates, missing fields, stale records) are actively managed and measured." },
-  ]},
-  { id: "workflow", name: "Workflow Readiness", color: "#10B981", qs: [
-    { q: "Common interaction types (order status, billing, scheduling) follow documented, repeatable workflows." },
-    { q: "Escalation paths and exception handling are clearly defined and consistently followed." },
-    { q: "Agent desktop workflows are standardized, agents follow the same steps for the same issue types." },
-    { q: "There is a clear view of which interaction types are high-volume, low-complexity candidates for automation." },
-  ]},
-  { id: "integration", name: "Integration Architecture", color: "#7C3AED", qs: [
-    { q: "Core systems (CRM, CCaaS, knowledge base, billing) have documented APIs that are actively maintained." },
-    { q: "The CCaaS platform supports real-time event streaming and webhook-based integrations." },
-    { q: "Identity and authentication systems can be invoked during automated interactions." },
-    { q: "There is an integration owner or team responsible for maintaining cross-system connectivity." },
-  ]},
-  { id: "governance", name: "AI Governance & Policy", color: "#F59E0B", qs: [
-    { q: "There are defined policies for what AI can and cannot do in customer-facing interactions." },
-    { q: "AI outputs are subject to review, testing, and approval before production deployment." },
-    { q: "There is a named owner for AI quality, model performance, and escalation design." },
-    { q: "Compliance, privacy, and consent requirements are documented and applied to AI-driven interactions." },
-  ]},
-  { id: "talent", name: "Talent & Change Readiness", color: "#EF4444", qs: [
-    { q: "The organization has people who can configure, tune, and maintain AI tools (or a plan to hire/train them)." },
-    { q: "Frontline agents and supervisors understand how AI will change their roles and workflows." },
-    { q: "Leadership has set realistic expectations for AI deployment timelines and outcomes." },
-    { q: "There is a change management plan that addresses agent adoption, trust, and feedback loops." },
-  ]},
-  { id: "measurement", name: "Measurement & Iteration", color: "#3B82F6", qs: [
-    { q: "There are defined KPIs for AI performance (containment rate, handoff quality, answer accuracy, resolution time)." },
-    { q: "AI interactions are monitored with the same rigor as human interactions (QA scoring, compliance checks)." },
-    { q: "There is a feedback loop where AI performance data drives tuning and improvement cycles." },
-    { q: "The organization can measure the economic impact of AI (cost per contact change, labor leverage, deflection rate)." },
-  ]},
-];
-
-const LEVELS = [
-  { min: 1, max: 1.8, tier: "Not Ready", color: RED, desc: "Significant gaps exist across data, workflow, and governance foundations. AI deployments attempted now will likely underperform or create risk. Priority: build the data and workflow foundation before investing in AI tooling.", rec: "Start with data quality assessment, workflow documentation, and governance policy creation. Do not purchase AI tools yet." },
-  { min: 1.8, max: 2.6, tier: "Early Stage", color: AMBER, desc: "Some foundations are in place but critical gaps remain. Limited AI pilots may be possible in narrow, well-defined use cases. Priority: close the biggest gaps in data access, integration, and governance before expanding.", rec: "Pilot AI in one high-volume, low-complexity use case. Simultaneously invest in data quality, API readiness, and governance policy." },
-  { min: 2.6, max: 3.4, tier: "Foundation Set", color: ELECTRIC, desc: "Core readiness exists for structured AI deployments. Data access, workflows, and governance are functional but may lack depth in specific areas. Priority: expand AI coverage methodically while strengthening weak dimensions.", rec: "Deploy agent assist and automated summaries broadly. Begin IVA pilots for top 3 contact types. Invest in the weakest dimension identified." },
-  { min: 3.4, max: 4.2, tier: "AI Capable", color: "#7C3AED", desc: "Strong readiness across most dimensions. The organization can support meaningful AI deployments including autonomous resolution, agent assist, and predictive analytics. Priority: optimize and scale.", rec: "Scale autonomous resolution for Tier 1 contacts. Deploy real-time agent assist across voice and digital. Build AI governance into standard operating procedures." },
-  { min: 4.2, max: 5.1, tier: "AI Advanced", color: GREEN, desc: "Exceptional readiness. The organization has the data, architecture, governance, and talent to operate AI as a core component of the service model. Priority: push toward agentic AI and experience orchestration.", rec: "Explore agentic workflows, proactive service automation, and AI-driven orchestration. Readiness is no longer your constraint. Ambition is." },
-];
-
-const getTier = (score) => LEVELS.find(l => score >= l.min && score < l.max) || LEVELS[LEVELS.length - 1];
+const DIM_COLORS = { data: ELECTRIC, workflow: "#10B981", integration: "#7C3AED", governance: "#F59E0B", talent: "#EF4444", measurement: "#3B82F6" };
+const BAND_COLORS = { "not-ready": RED, "early-stage": AMBER, "foundation-set": ELECTRIC, "ai-capable": "#7C3AED", "ai-advanced": GREEN };
+/* The questions, weights and bands live in the published rubric; this file only
+   presents them. See aiReadiness and {RUBRIC.methodology}. */
+const DIMS = RUBRIC.dims.map(d => ({ id: d.id, name: d.name, color: DIM_COLORS[d.id], qs: d.criteria.map(c => ({ q: c.text })) }));
 
 const TOOL_ID = "ai-readiness";
 const ROUTE = "/tools/ai-readiness";
@@ -67,7 +27,7 @@ export const SAMPLE = { scores: Object.fromEntries(DIMS.flatMap(d => d.qs.map((_
    carrying anything else opens the unanswered question, never a scored result. */
 const cleanScores = (sc) => Object.fromEntries(Object.entries(sc && typeof sc === "object" ? sc : {})
   .filter(([k, v]) => /^[a-z0-9-]+$/i.test(k) && Number.isInteger(v) && v >= 1 && v <= 5));
-const isComplete = (scores) => DIMS.every(d => d.qs.every((_, i) => scores[`${d.id}-${i}`] > 0));
+const isComplete = (scores) => scoreRubric(RUBRIC, scores).complete;
 
 export default function AIReadiness() {
   const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { scores: cleanScores(sc && sc.scores) }; });
@@ -79,11 +39,16 @@ export default function AIReadiness() {
   useEffect(() => { clearScenarioParam(); }, []);
 
   const setScore = (dimId, qIdx, val) => setScores(prev => ({ ...prev, [`${dimId}-${qIdx}`]: val }));
-  const dimScore = (dimId) => { const dim = DIMS.find(d => d.id === dimId); const vals = dim.qs.map((_, i) => scores[`${dimId}-${i}`] || 0).filter(v => v > 0); return vals.length === 0 ? 0 : vals.reduce((a, b) => a + b, 0) / vals.length; };
-  const dimComplete = (dimId) => DIMS.find(d => d.id === dimId).qs.every((_, i) => scores[`${dimId}-${i}`] > 0);
-  const allComplete = DIMS.every(d => dimComplete(d.id));
-  const overallScore = DIMS.reduce((a, d) => a + dimScore(d.id), 0) / DIMS.length;
-  const tier = getTier(overallScore);
+  /* Every score, band, checklist action and the next diagnostic come from the one
+     rubric engine, so the page, the PDF and the published rubric cannot disagree. */
+  const R = scoreRubric(RUBRIC, scores);
+  const dimOf = (dimId) => R.dims.find(d => d.id === dimId);
+  const dimScore = (dimId) => dimOf(dimId).score || 0;
+  const dimComplete = (dimId) => dimOf(dimId).complete;
+  const allComplete = R.complete;
+  const overallScore = R.overall || 0;
+  const tier = R.band ? { ...R.band, tier: R.band.label, color: BAND_COLORS[R.band.id] } : { tier: "", color: MUTED, desc: "" };
+  const next = R.nextDiagnostic && JOURNEY[R.nextDiagnostic.tool] ? { name: JOURNEY[R.nextDiagnostic.tool].name, href: JOURNEY[R.nextDiagnostic.tool].route, because: dimOf(R.nextDiagnostic.because).name } : null;
 
   const handleStart = () => setPhase("assess");
 
@@ -110,6 +75,7 @@ export default function AIReadiness() {
               <div style={{ display: "flex", gap: 10 }}>
               </div>
               <button onClick={handleStart} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: 1, marginTop: 4 }}>{"Start Diagnostic →"}</button>
+              <a href={RUBRIC.methodology} style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", textAlign: "center", marginTop: 6 }}>See the published rubric: every statement, weight and band</a>
             </div>
           </div>
         </section>
@@ -191,7 +157,7 @@ export default function AIReadiness() {
             <h3 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Dimension Scores</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
               {DIMS.map((d, i) => {
-                const s = dimScore(d.id); const dt = getTier(s);
+                const s = dimScore(d.id); const dt = (b => ({ ...b, tier: b.label, color: BAND_COLORS[b.id] }))(bandFor(RUBRIC, s));
                 return (
                   <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
@@ -234,33 +200,31 @@ export default function AIReadiness() {
               <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the gaps?</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your AI readiness profile is below.</p>
               <div style={{ textAlign: "left", maxWidth: 600, margin: "0 auto 24px" }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>AI Architecture Readiness</h3>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>{RUBRIC.secondaryBands.title}</h3>
                 <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, padding: "12px 16px", marginBottom: 16 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{overallScore >= 4 ? "Era 4: LLM-Native" : overallScore >= 3 ? "Era 3: Hybrid (Intent + LLM)" : overallScore >= 2 ? "Era 2: Intent-Based" : "Era 1: Rules-Based"}</span>
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "4px 0 0" }}>{overallScore >= 4 ? "Your org is ready for autonomous AI agents with LLM-native architecture." : overallScore >= 3 ? "You can deploy hybrid IVA with intent matching + LLM fallback. Full autonomous AI requires closing data and governance gaps." : overallScore >= 2 ? "Focus on structured intent-based automation first. LLM deployment requires data quality and governance foundations." : "Start with rules-based automation (IVR optimization, simple chatbot). Build data and workflow foundations before AI investment."}</p>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#fff" }}>{R.secondary ? R.secondary.label : ""}</span>
+                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", margin: "4px 0 0" }}>{R.secondary ? R.secondary.desc : ""}</p>
                 </div>
-                <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Close These Gaps First</h3>
-                {[...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id)).slice(0, 3).map((d, i) => {
-                  const tools = {
-                    data: { href: "/vendors", name: "Vendor Intelligence", why: "Check what each platform category exposes for data access before you plan around it" },
-                    workflow: { href: "/tools/aht-decomposition", name: "AHT Decomposition", why: "Find which workflows are automatable" },
-                    integration: { href: "/tools/platform-decision", name: "Platform Decision Matrix", why: "Assess integration readiness per layer" },
-                    governance: { href: "/tools/governance-model", name: "Governance Model", why: "Define AI decision authority and guardrails" },
-                    talent: { href: "/tools/attrition-cost", name: "Attrition Cost Calculator", why: "Price the turnover risk before AI changes the work" },
-                    measurement: { href: "/tools/ai-deflection", name: "AI Deflection Reality Check", why: "Set realistic measurement baselines" },
-                  };
-                  const rec = tools[d.id] || tools.data;
-                  return (
-                    <div key={d.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "8px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-                      <span style={{ fontFamily: FONT, fontSize: 18, color: LIGHT, width: 20, flexShrink: 0 }}>{i + 1}</span>
-                      <div>
-                        <span style={{ fontSize: 13, color: "#fff", fontWeight: 600 }}>{d.name}</span>
-                        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginLeft: 8 }}>{dimScore(d.id).toFixed(1)}/5</span>
-                        <div style={{ marginTop: 4 }}><a href={rec.href} style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "3px 10px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.15)" }}>→ {rec.name}: {rec.why}</a></div>
-                      </div>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Your Action Checklist</h3>
+                {R.checklist.length === 0 ? (
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>No statement was answered at {RUBRIC.failAt} or below, so the rubric raises no action. Your lowest dimension is still the place to look first.</p>
+                ) : R.checklist.map((c, i) => (
+                  <div key={c.criterion} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: i < R.checklist.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                    <span style={{ fontFamily: FONT, fontSize: 16, color: LIGHT, width: 22, flexShrink: 0 }}>{i + 1}</span>
+                    <div>
+                      <div style={{ fontSize: 13, color: "#fff", fontWeight: 600, lineHeight: 1.5 }}>{c.action}</div>
+                      <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginTop: 3, lineHeight: 1.5 }}>{c.dimensionName}: you answered {c.score} of 5 to "{c.text}"</div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
+                {next && (
+                  <div style={{ marginTop: 16, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
+                    Next diagnostic: <a href={next.href} style={{ color: LIGHT, fontWeight: 600 }}>{next.name}</a>, because {next.because} is your lowest-scoring dimension.
+                  </div>
+                )}
+                <p style={{ marginTop: 16, fontSize: 11.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+                  Scored on the <a href={RUBRIC.methodology} style={{ color: LIGHT }}>published rubric</a>, version {RUBRIC.version}. {RUBRIC.limits[0]} {RUBRIC.limits[1]}
+                </p>
               </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 
@@ -274,10 +238,10 @@ export default function AIReadiness() {
                       "AI readiness score: " + overallScore.toFixed(1) + "/5 (" + tier.tier + ").",
                       "Weakest dimension: " + [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].name + ".",
                     ]},
-                    { title: "Next Steps", type: "next", items: [
-                      { tool: "IVA Buyer Guide", reason: "Evaluate conversational AI vendors" },
-                      { tool: "AI Deflection Reality Check", reason: "Model realistic automation savings" },
-                    ]},
+                    { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ": answered " + c.score + " of 5 to \"" + c.text + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No statement was answered at " + RUBRIC.failAt + " or below.", detail: "The rubric raises no action. Start with the lowest-scoring dimension." }] },
+                    { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: next.because + " is your lowest-scoring dimension." }] : [] },
+                    { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
+                    { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each dimension scores the mean of its statements on a 1 to 5 scale; the overall score is the equally weighted mean of the dimensions; the band is read from the published cut points. Every statement answered at " + RUBRIC.failAt + " or below adds its action to the checklist, weakest dimension first. The next diagnostic is the one the rubric names for your lowest dimension." },
                   ]} />
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
                 <a href="/vendors/agent-assist" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Browse Agent Assist Vendors →</a>

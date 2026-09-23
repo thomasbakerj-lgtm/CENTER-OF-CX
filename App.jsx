@@ -46,6 +46,7 @@ class RouteBoundary extends Component {
 }
 import { Analytics } from '@vercel/analytics/react'
 const Homepage = lazy(() => import('./Homepage'))
+const RubricPage = lazy(() => import('./RubricPage'))
 const PlatformsTech = lazy(() => import('./PlatformsTech'))
 const About = lazy(() => import('./About'))
 const Advisory = lazy(() => import('./Advisory'))
@@ -301,6 +302,8 @@ export default function App() {
         <Route path="/" element={<Homepage />} />
         <Route path="/platforms-and-tech" element={<PlatformsTech />} />
         <Route path="/about" element={<About />} />
+        <Route path="/methodology/cx-maturity" element={<RubricPage id="cx-maturity" />} />
+        <Route path="/methodology/ai-readiness" element={<RubricPage id="ai-readiness" />} />
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />
