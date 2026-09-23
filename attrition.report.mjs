@@ -520,6 +520,21 @@ for (const [k, doc] of Object.entries({ ...DOCS, ...SEV })) {
    would report a reading the model never earned, which is the same defect as
    reporting none for an unknown. */
 const sevVoid = render({ label: "voided export", fromLink: true, mut: () => ({ trainingWeeks: 1e308 }) });
+/* A void claims no grade anywhere and speaks to a reader, not a debugger. Found by the
+   first live pull of this PDF: the methodology still named a realization grade, and the
+   invariant lines printed variable names and a raw Infinity. */
+{
+  const vt = allText(sevVoid);
+  A("a voided export names no grade anywhere in the document", !/Directional|Planning-grade|Finance-grade/.test(vt));
+  A("a voided export prints no NaN, Infinity or undefined", !/\bNaN\b|\bInfinity\b|\bundefined\b/.test(vt));
+  A("a voided export names outputs in words, never by variable", !/\b(cashPerDeparture|allInPerDeparture|annualCashBurden|annualReplBurden|earlyWaste|pctSalary)\b/.test(vt));
+  A("the page withholds every result block on a void", (SRC.match(/\{!r\.voided && \(<>/g) || []).length === 3);
+  A("the page's band hint does not test a void result", /This result is \{r\.voided \? "void, so it is not tested against the band"/.test(SRC));
+  const keep = ["Export Void", "Inputs Corrected Before Calculation", "Methodology", "Next Steps"];
+  A("a voided export keeps only the notice, corrections, method and next steps",
+    sevVoid.sections.slice(1).every((x) => keep.includes(x.title)) && sevVoid.sections.some((x) => x.title === "Export Void"));
+  A("a voided export reports no figure in its summary", sevVoid.summary.length === 1 && !/\$/.test(sevVoid.summary[0].value));
+}
 A("the overflow set voids the export", sevVoid.r.voided);
 A("a void export publishes no severity at all rather than a confident band", !("severity" in sevVoid.signals));
 A("a void export therefore carries no signal_severity into the review payload",

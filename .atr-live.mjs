@@ -1,0 +1,38 @@
+import { chromium } from "playwright-core";
+import { build } from "esbuild"; import { createRequire } from "node:module"; import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { encodeScenario } from "./src/lib/scenarioUrl.js";
+globalThis.window = { location: { search: "" } };
+const require = createRequire(import.meta.url);
+const [ORIGIN, OUT] = process.argv.slice(2); mkdirSync(OUT, { recursive: true });
+const r = await build({ entryPoints: ["./AttritionCostCalculator.jsx"], bundle: true, write: false, format: "cjs", platform: "node", jsx: "automatic", loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent" });
+const mod = { exports: {} }; new Function("module", "exports", "require", r.outputFiles[0].text)(mod, mod.exports, require);
+const D = mod.exports.DEFAULTS;
+const link = (mut) => "/tools/attrition-cost?s=" + encodeScenario("attrition-cost", { d: { ...D.d, ...mut } }, D);
+const cases = { normal: "/tools/attrition-cost", finance: link({ evidence: "finance", mech: "vendor" }), void: link({ trainingWeeks: 1e308 }) };
+const ENGINE = JSON.parse(readFileSync("/tmp/claude-0/atr-engine.json", "utf8"));
+const MONEY = /-?\$[\d,]+(?:\.\d+)?[KM]?/g;
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: (process.env.CHROMIUM_ARGS || "").split(" ").filter(Boolean) });
+for (const [name, path] of Object.entries(cases)) {
+  const ctx = await b.newContext({ viewport: { width: 1300, height: 900 } });
+  await ctx.route(/posthog\.com|_vercel\/insights|vitals\.vercel|formspree\.io/, (x) => x.abort());
+  const p = await ctx.newPage(); const errs = []; p.on("pageerror", (e) => errs.push(e.message));
+  await p.goto(ORIGIN + path, { waitUntil: "networkidle" });
+  await p.waitForFunction(() => /Download Report/.test(document.body.innerText), null, { timeout: 20000 });
+  await p.getByRole("button", { name: /Download Report/ }).first().click(); await p.waitForTimeout(300);
+  const [pop] = await Promise.all([ctx.waitForEvent("page"), p.getByRole("button", { name: /Generate/ }).first().click()]);
+  await pop.waitForLoadState("load"); await pop.waitForTimeout(700);
+  const txt = await pop.innerText("body");
+  await pop.emulateMedia({ media: "print" });
+  await pop.pdf({ path: `${OUT}/attrition-${name}.pdf`, format: "Letter", printBackground: true, preferCSSPageSize: true });
+  writeFileSync(`${OUT}/attrition-${name}.txt`, txt);
+  const got = (txt.match(MONEY) || []).map((m) => m.replace(/,$/, ""));
+  const want = ENGINE[name].money.map((m) => m.replace(/,$/, ""));
+  const count = (arr) => arr.reduce((m, x) => (m[x] = (m[x] || 0) + 1, m), {});
+  const cg = count(got), cw = count(want);
+  const missing = Object.keys(cw).filter((k) => (cg[k] || 0) < cw[k]);
+  const extra = Object.keys(cg).filter((k) => (cw[k] || 0) < cg[k]);
+  const summaryOk = ENGINE[name].summary.every((s) => txt.includes(s.value));
+  console.log(name.padEnd(8), "| engine figures", want.length, "| pdf figures", got.length, "| engine figures missing from pdf:", missing.join(" ") || "none", "| pdf-only:", extra.join(" ") || "none", "| summary tiles:", summaryOk, "| NaN/Inf/undef:", /\bNaN\b|\bInfinity\b|\bundefined\b/.test(txt), "| grade:", (txt.match(/Void|Directional|Planning-grade|Finance-grade/) || [""])[0], "| errors:", errs.length);
+  await ctx.close();
+}
+await b.close();

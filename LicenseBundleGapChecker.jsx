@@ -805,3 +805,6 @@ export default function LicenseBundleGapChecker() {
     </div>
   );
 }
+
+/* The scenario-link defaults, exported for the live checker and the visual audit. */
+export { DEFAULTS };

@@ -102,6 +102,15 @@ A("no parseFloat reads typed text", !/parseFloat\((raw|local)\)/.test(NF));
 A("an unclean prop displays as its raw text", /const toDisp = \(v\) => isCleanEntry\(v\) \?/.test(NF));
 A("blank and partial typing still send nothing", /raw\.trim\(\) === "" \|\| raw === "-" \|\| raw === "\." \|\| raw === "-\."\) return;/.test(NF));
 const GS = readFileSync("./src/lib/guards.js", "utf8");
+/* Money in a disclosure. */
+{
+  const { money, guardVal } = await import("./src/lib/guards.js");
+  for (const [v, want] of [[-12.5, "-$12.50"], [0, "$0"], [-1234567.891, "-$1,234,567.89"], [5000000, "$5,000,000"], [0.004, "$0.004"], [-0.1, "-$0.10"], [12, "$12"]])
+    A(`money(${v}) prints ${want}`, money(v) === want);
+  A("guardVal routes money through money()", guardVal({ entered: -12.5, used: 0, unit: "$" }, "entered") === "-$12.50");
+  A("guardVal leaves a non-money unit as a suffix", guardVal({ entered: 140, used: 100, unit: "%" }, "entered") === "140%");
+  A("guardVal prints an invalid entry as typed", guardVal({ entered: '"12abc"', used: 12, unit: "$", invalid: true }, "entered") === '"12abc"');
+}
 A("guards.js carries no em or en dash", GS.indexOf("\u2014") < 0 && GS.indexOf("\u2013") < 0);
 
 console.log("\n" + "=".repeat(78));

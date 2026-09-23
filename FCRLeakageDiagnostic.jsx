@@ -519,6 +519,13 @@ const DEFAULTS = {
   investOneTime: dflt("investOneTime"), investRecurring: dflt("investRecurring"),
   costBasis: "estimate", fcrConfirmed: false, scores: {},
 };
+/* A worked example for the live checker and the visual audit: the shipped inputs,
+   cross-channel scope, an internal callback window, and every diagnostic statement
+   answered with a fixed spread across the 1 to 5 scale. Deterministic by construction. */
+const SAMPLE = {
+  ...DEFAULTS, phase: "results", scope: "cc", method: "internal",
+  scores: Object.fromEntries(DIMS.flatMap((d, di) => d.qs.map((_, qi) => [`${d.id}-${qi}`, ((di + qi) % 5) + 1]))),
+};
 
 export default function FCRLeakageDiagnostic() {
   /* Read the rail exactly once, at mount and BEFORE this tool publishes, with the tool
@@ -588,10 +595,14 @@ export default function FCRLeakageDiagnostic() {
     clearScenarioParam();
   }, []);
 
-  const pulledM = !fromLink && rail.current.M != null; const pulledFcr = !fromLink && rail.current.fcrPct != null;
+  /* PULLED means another tool supplied the value. This tool's own last run, restored
+     from the rail, is a restore: it still grades Directional through gradeFCR, but it
+     carries no badge naming someone else as its source. */
+  const fromOther = (f) => !fromLink && !!rail.current.pre[f] && rail.current.pre[f].src !== TOOL_ID;
+  const pulledM = fromOther("M"); const pulledFcr = fromOther("fcr");
   const fcrPulledDirty = !fromLink && rail.current.rawFcr != null && rail.current.rawFcr > 1 && !fcrConfirmed;
   const onFcr = (v) => { setFcrConfirmed(true); setFcrPct(v); };
-  const pulledMcpc = !fromLink && rail.current.mCPC != null;
+  const pulledMcpc = fromOther("mCPC");
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
 
   /* Every figure below reads the sanitized numerics. Input fields keep the raw state
@@ -974,3 +985,6 @@ export default function FCRLeakageDiagnostic() {
     </div>
   );
 }
+
+/* The scenario-link defaults and a worked example, exported for the live checker and the visual audit. */
+export { DEFAULTS, SAMPLE };

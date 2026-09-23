@@ -58,6 +58,23 @@ function sameLeaf(a, b) {
   return a === b;
 }
 
+/* A link is untrusted input. These names would reach an object's prototype or
+   plant a key no tool state has, so they are dropped at every copy, in both
+   directions: a link never carries them and a decoded state never receives them. */
+const UNSAFE = new Set(["__proto__", "constructor", "prototype"]);
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+/** Deep copy of a decoded value with the unsafe names removed. */
+function clean(v) {
+  if (isArr(v)) return v.map(clean);
+  if (isObj(v)) {
+    const out = {};
+    for (const k of Object.keys(v)) if (!UNSAFE.has(k)) out[k] = clean(v[k]);
+    return out;
+  }
+  return v;
+}
+
 /* ---------------------------------------------------------------- diff ---- */
 
 /**
@@ -79,8 +96,8 @@ function diff(cur, def) {
   if (isObj(cur) && isObj(def)) {
     const out = {};
     for (const k of Object.keys(cur)) {
-      if (isPii(k)) continue;
-      const d = k in def ? diff(cur[k], def[k]) : { _v: strip(cur[k]) };
+      if (isPii(k) || UNSAFE.has(k)) continue;
+      const d = own(def, k) ? diff(cur[k], def[k]) : { _v: strip(cur[k]) };
       if (d !== undefined) out[k] = d;
     }
     return Object.keys(out).length ? out : undefined;
@@ -99,7 +116,7 @@ function strip(v) {
   if (isArr(v)) return v.map(strip);
   if (isObj(v)) {
     const out = {};
-    for (const k of Object.keys(v)) if (!isPii(k)) out[k] = strip(v[k]);
+    for (const k of Object.keys(v)) if (!isPii(k) && !UNSAFE.has(k)) out[k] = strip(v[k]);
     return out;
   }
   return norm(v);
@@ -109,7 +126,7 @@ function strip(v) {
 
 function patch(def, d) {
   if (d === undefined) return def;
-  if (isObj(d) && "_v" in d) return d._v;
+  if (isObj(d) && own(d, "_v")) return clean(d._v);
 
   if (isArr(def) && isObj(d)) {
     const n = typeof d._n === "number" ? d._n : def.length;
@@ -124,13 +141,13 @@ function patch(def, d) {
   if (isObj(def) && isObj(d)) {
     const out = { ...def };
     for (const k of Object.keys(d)) {
-      if (k === "_n") continue;
-      out[k] = patch(def[k], d[k]);
+      if (k === "_n" || UNSAFE.has(k)) continue;
+      out[k] = patch(own(def, k) ? def[k] : undefined, d[k]);
     }
     return out;
   }
 
-  return d;
+  return clean(d);
 }
 
 /* -------------------------------------------------------------- base64 ---- */

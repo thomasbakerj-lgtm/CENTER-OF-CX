@@ -667,6 +667,13 @@ console.log("\n14. 11B grading layer and registry");
     const g = G({}, { [f]: { value: OWN[f], src: TOOL } });
     A(`class 2: ${f} restored from this tool's own last run grades Directional`, g.evidence === "Directional" && g.origins[f] === "self" && /a tool never credentials itself/.test(g.gradeWhy));
   }
+  /* The PULLED badge names another tool as the source. A restored own value is not
+     pulled, so the badge reads the recorded producer, never mere presence. */
+  A("class 2: the PULLED badges fire only on a value another tool produced",
+    /const fromOther = \(f\) => !fromLink && !!rail\.current\.pre\[f\] && rail\.current\.pre\[f\]\.src !== TOOL_ID;/.test(src)
+    && /const pulledM = fromOther\("M"\); const pulledFcr = fromOther\("fcr"\);/.test(src)
+    && /const pulledMcpc = fromOther\("mCPC"\);/.test(src)
+    && !/pulled\w* = !fromLink && rail\.current\.\w+ != null/.test(src));
   A("class 2: a prefilled value the user changed is the user's own", G({}, { M: { value: 1234, src: TOOL } }).origins.M === "entered");
   A("class 2: a loaded-cost rail value reaches no axis", G({}, { lCPC: { value: OWN.lCPC, src: TOOL } }).evidence === "Planning-grade");
   for (const [f, lbl] of [["M", "monthly volume"], ["fcr", "current FCR"], ["measuredRate", "measured repeat share"], ["mCPC", "marginal cost"], ["investOneTime", "one-time cost"], ["investRecurring", "recurring cost"]]) {

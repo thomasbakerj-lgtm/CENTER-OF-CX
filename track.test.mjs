@@ -509,6 +509,36 @@ section("L. automation and internal browsers never reach the wire");
   eq("L19 a rendering Googlebot is never issued an id", lsb._m.has("coc:aid") || ssb._m.has("coc:sid"), false);
 }
 
+section("M. A scenario link cannot reach an object's prototype or plant a key");
+{
+  const { decodeScenario, encodeScenario } = await import("./src/lib/scenarioUrl.js");
+  const link = (d) => "?s=" + Buffer.from(`{"v":1,"t":"x","d":${d}}`).toString("base64url");
+  const D = { agents: 100, mode: "a", nested: { x: 1 }, rows: [{ a: 1 }] };
+  const plain = (o) => Object.getPrototypeOf(o) === Object.prototype;
+  const attacks = [
+    ["top-level __proto__", '{"__proto__":{"polluted":true}}'],
+    ["nested __proto__", '{"nested":{"__proto__":{"polluted":true}}}'],
+    ["constructor.prototype", '{"constructor":{"prototype":{"polluted":true}}}'],
+    ["__proto__ inside a wholesale value", '{"extra":{"_v":{"__proto__":{"polluted":true},"ok":1}}}'],
+    ["__proto__ inside an array row", '{"rows":{"0":{"__proto__":{"polluted":true}}}}'],
+  ];
+  for (const [label, d] of attacks) {
+    const s = decodeScenario(link(d), "x", D);
+    const reach = [s, s.nested, s.extra, s.rows && s.rows[0]].filter((o) => o && typeof o === "object");
+    ok(`M ${label}: every decoded object keeps the plain prototype`, reach.every(plain));
+    ok(`M ${label}: no decoded object inherits the planted value`, reach.every((o) => o.polluted === undefined));
+    ok(`M ${label}: no unsafe name becomes an own key`, reach.every((o) => !["__proto__", "constructor", "prototype"].some((k) => Object.prototype.hasOwnProperty.call(o, k))));
+    ok(`M ${label}: the global prototype is untouched`, ({}).polluted === undefined);
+  }
+  const wholesale = decodeScenario(link('{"extra":{"_v":{"__proto__":{"polluted":true},"ok":1}}}'), "x", D);
+  eq("M a wholesale value keeps its safe keys", wholesale.extra && wholesale.extra.ok, 1);
+  /* Ordinary links are unchanged: a state round-trips exactly. */
+  const S = { agents: 250, mode: "b", nested: { x: 3, y: "new" }, rows: [{ a: 2 }, { a: 5, b: [1, 2] }], added: { k: 1 } };
+  const back = decodeScenario("?s=" + encodeScenario("x", S, D), "x", D);
+  eq("M an ordinary state round-trips exactly", JSON.stringify(back), JSON.stringify(S));
+  eq("M a state carrying an unsafe key encodes without it", JSON.stringify(decodeScenario("?s=" + encodeScenario("x", JSON.parse('{"agents":1,"constructor":{"x":1}}'), D), "x", D)), JSON.stringify({ ...D, agents: 1 }));
+}
+
 /* ------------------------------------------------------------------ report */
 
 if (failures.length) {

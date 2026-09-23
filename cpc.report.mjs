@@ -239,6 +239,11 @@ const SETS = {
     d: { loadedCPC: -12, marginalCPC: -4, agentHourly: -30, fcrRate: 150 },
     mech: "none", validated: false, fromLink: true,
   },
+  G: {
+    label: "Fractional and large negative money through a scenario link: cents and grouping",
+    d: { loadedCPC: -12.5, marginalCPC: -1234567.891, agentHourly: -0.0035, fcrRate: 150 },
+    mech: "none", validated: false, fromLink: true,
+  },
   F: {
     label: "Set B inputs exactly, cost basis prefilled over the rail with no origin grade: defect class 2",
     d: null, mech: "vendor", validated: true, fromLink: false,
@@ -430,6 +435,10 @@ for (const [key, S] of Object.entries(SETS)) {
       corrected.items.every(t => t.indexOf("$-") < 0));
     A(`${key}: no money correction prints its unit as a suffix`,
       r.guards.filter(g => g.unit === "$").every((g, i) => !/\d\$/.test(P.guardLine(g))));
+    /* Money in a correction reads like every other figure in the document: grouped,
+       to the cent when not whole, never float noise, never a sub-cent value rounded away. */
+    A(`${key}: every money correction prints grouped dollars and cents`,
+      r.guards.filter(g => g.unit === "$").every(g => ["entered", "used"].every(w => /^-?\$\d{1,3}(,\d{3})*(\.\d{2,4})?$/.test(P.guardVal(g, w)))));
     A(`${key}: the correction is repeated in methodology so the prose cannot contradict it`, /INPUTS CORRECTED/.test(meth));
     A(`${key}: the corrections section is ordered ahead of the analyst read`,
       P.sections.findIndex(s => s.title.indexOf("⚠ Inputs Corrected") === 0) < P.sections.findIndex(s => s.title === "Analyst Read"));
@@ -496,6 +505,9 @@ A("class 2: the rail cost basis with no origin grade drops B's document to Direc
 A("class 2: the rail document prints the same figures as B, so only the grade moved",
   JSON.stringify(R.F.summary) === JSON.stringify(R.B.summary));
 A("class 2: the rail document says why", /no recorded origin grade/.test(R.F.gradeWhy));
+A("set G: fractional money prints to the cent", R.G.r.guards.some(g => R.G.guardVal(g, "entered") === "-$12.50"));
+A("set G: large money prints grouped", R.G.r.guards.some(g => R.G.guardVal(g, "entered") === "-$1,234,567.89"));
+A("set G: sub-dollar money keeps its precision", R.G.r.guards.some(g => R.G.guardVal(g, "entered") === "-$0.0035"));
 A("the hostile scenario link grades Directional, bound by completeness", R.C.grade === "Directional" && R.C.gradeObj.boundAxes.includes("completeness"));
 A("the hostile scenario link discloses corrections the clean sets do not",
   R.C.signals.inputs_corrected > 0 && R.A.signals.inputs_corrected === 0 && R.B.signals.inputs_corrected === 0);

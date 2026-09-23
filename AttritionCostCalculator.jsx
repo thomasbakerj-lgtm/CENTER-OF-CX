@@ -260,9 +260,13 @@ export function compute(d) {
      exactly how the License Gap negative-seat defect survived. */
   const invariants = [];
   const published = { cashPerDeparture, capacityPerDeparture, allInPerDeparture, annualCashBurden, annualCapBurden, annualReplBurden, earlyWaste, hires, departures, unbackfilled, pctSalary };
+  /* The reader sees the figure's name, never the variable behind it. */
+  const OUTPUT_NAME = { cashPerDeparture: "Cash per departure", capacityPerDeparture: "Capacity per departure", allInPerDeparture: "All-in per departure",
+    annualCashBurden: "Annual cash burden", annualCapBurden: "Annual capacity burden", annualReplBurden: "Annual replacement burden",
+    earlyWaste: "Early-washout waste", hires: "Hires", departures: "Departures", unbackfilled: "Unbackfilled departures", pctSalary: "Cost as a share of salary" };
   for (const [k, v] of Object.entries(published)) {
-    if (!Number.isFinite(v)) invariants.push(`${k} is not a finite number (${String(v)}). The model cannot be exported.`);
-    else if (v < 0) invariants.push(`${k} is negative (${fmt$(v)}). No component of a replacement cost can be below zero. The model cannot be exported.`);
+    if (!Number.isFinite(v)) invariants.push(`${OUTPUT_NAME[k]} does not compute to a finite number at these inputs. The model cannot be exported.`);
+    else if (v < 0) invariants.push(`${OUTPUT_NAME[k]} is negative (${fmt$(v)}). No component of a replacement cost can be below zero. The model cannot be exported.`);
   }
   for (const s of scenarios) {
     if (!Number.isFinite(s.total)) invariants.push(`Realizable value at -${s.redPts} points is not a finite number.`);
@@ -303,8 +307,7 @@ export function compute(d) {
      result can reach a grade. That is doctrine 5.5 enforced by construction rather
      than by review, and it is why a zero payback can no longer cap a grade. */
   const grades = { evidence: evidenceGrade, realization, completeness };
-  const { headline: confidence, boundBy } = gradeConfidence(grades);
-  const boundAxes = AXES.filter((a) => GRADE_RANK[grades[a]] === GRADE_RANK[confidence]);
+  const { headline: confidence, boundBy, boundAxes } = gradeConfidence(grades);
 
   const evidenceReason = evidence === "finance" ? "Finance-confirmed figures."
     : evidence === "hrdata" ? "Real HR figures, but not finance-confirmed."
@@ -522,6 +525,8 @@ export default function AttritionCostCalculator() {
             </div>
           )}
 
+          {/* A void renders no figure: the notice above, the corrections and the inputs stay; every result is withheld. */}
+          {!r.voided && (<>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }} className="cg3">
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: 22, textAlign: "center" }}>
               <div style={{ ...TYPE.eyebrow, color: LIGHT, marginBottom: 6 }}>Cash Per Departure</div>
@@ -562,6 +567,7 @@ export default function AttritionCostCalculator() {
               <div style={{ ...TYPE.caption, color: MUTED, marginTop: 4 }}>Subset of cash burden, the most recoverable slice.</div>
             </div>
           </div>
+          </>)}
 
           {r.guards.length > 0 && (
             <div style={{ background: "#FFF8F0", border: `1px solid ${RED}`, borderRadius: 10, padding: "16px 18px", marginBottom: 20 }}>
@@ -585,9 +591,10 @@ export default function AttritionCostCalculator() {
               </div>
             </div>
             <div style={{ ...TYPE.caption, color: SLATE }}>The headline is the weakest of the three axes. <strong style={{ color: NAVY }}>Bound by {r.boundBy}.</strong> <strong style={{ color: NAVY }}>Evidence:</strong> {r.evidenceReason} <strong style={{ color: NAVY }}>Realization:</strong> {r.realizationReason} <strong style={{ color: NAVY }}>Completeness:</strong> {r.completenessReason}</div>
-            <div style={{ ...TYPE.cell, ...NUM, color: SLATE, marginTop: 6 }}>Frontline band is 40-60% of salary ({fmtK(r.bandLo)} to {fmtK(r.bandHi)} here); the published $10-20K all-in reference assumes typical frontline wages. This result is {r.salaryUnknown ? "untestable, because no salary was entered" : `${Math.round(r.pctSalary)}% / ${fmtK(r.allInPerDeparture)}, ${r.guardrailOk ? "within band" : r.pctSalary > 60 ? "above band, validate" : "below band, validate"}`}.</div>
+            <div style={{ ...TYPE.cell, ...NUM, color: SLATE, marginTop: 6 }}>Frontline band is 40-60% of salary ({fmtK(r.bandLo)} to {fmtK(r.bandHi)} here); the published $10-20K all-in reference assumes typical frontline wages. This result is {r.voided ? "void, so it is not tested against the band" : r.salaryUnknown ? "untestable, because no salary was entered" : `${Math.round(r.pctSalary)}% / ${fmtK(r.allInPerDeparture)}, ${r.guardrailOk ? "within band" : r.pctSalary > 60 ? "above band, validate" : "below band, validate"}`}.</div>
           </div>
 
+          {!r.voided && (<>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 26 }} className="cg3">
             <div><h3 style={t("h3", { color: NAVY, marginBottom: 10 })}>Cash out the door</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{r.cashRows.map((b, i) => <Bar key={i} b={b} />)}</div></div>
             <div><h3 style={t("h3", { color: NAVY, marginBottom: 10 })}>Capacity / opportunity</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{r.capRows.map((b, i) => <Bar key={i} b={b} />)}</div></div>
@@ -595,9 +602,11 @@ export default function AttritionCostCalculator() {
 
           <h3 style={t("h3", { color: NAVY, marginBottom: 4 })}>Realizable value if you reduce attrition</h3>
           <p style={{ ...TYPE.caption, color: MUTED, marginBottom: 12 }}>Cash in full; capacity at {Math.round(r.mech * 100)}% per mechanism; both scaled to {r.backfillRate}% backfill. Realizable value, not the burden above.{!r.downsizing && r.unbackfilled > 0 ? " Under forced under-staffing, retained capacity carries additional value. See Staffing." : ""}{r.downsizing ? " Note: under intended downsizing, retaining agents slows your planned reduction, so this credits only replacement cost avoided on the seats you would refill, not a net headcount saving." : ""}</p>
+          </>)}
           <div style={{ maxWidth: 300, marginBottom: 14 }}>
             <NumField label="Cost to achieve (per point / yr)" value={d.costPerPoint} onChange={v => set("costPerPoint", v)} suffix="$" step={5000} min={0} info={DEFS.costToAchieve} infoTitle="Cost to achieve: CFO net view" hint={r.costPerPoint > 0 ? "Cards show net of this spend" : "0 = show gross only"} />
           </div>
+          {!r.voided && (<>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 26 }} className="cg">
             {r.scenarios.map((s, i) => (
               <div key={i} style={{ background: WARM, border: `1px solid ${r.costPerPoint > 0 && s.net < 0 ? RED : BORDER}`, borderRadius: 10, padding: 16, textAlign: "center" }}>
@@ -632,6 +641,7 @@ export default function AttritionCostCalculator() {
             <h3 style={{ ...TYPE.eyebrow, fontSize: 12, color: GREEN, marginBottom: 12 }}>Analyst Read</h3>
             {r.analystRead.split("\n\n").map((para, i) => <p key={i} style={{ ...TYPE.bodySm, color: "rgba(255,255,255,0.7)", marginBottom: 10 }}>{para}</p>)}
           </div>
+          </>)}
 
           <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 24 }}>
             <h3 style={{ ...TYPE.eyebrow, fontSize: 12, color: GREEN, marginBottom: 8 }}>What Is Driving This Attrition?</h3>
@@ -661,7 +671,7 @@ export default function AttritionCostCalculator() {
             state={{ d }}
             defaults={DEFAULTS}
             grades={r.gradeObj}
-            summary={[
+            summary={r.voided ? [{ label: "Export", value: "Void: an integrity invariant failed, so no figure is reported" }] : [
               { label: "Cash per departure", value: fmt$(r.cashPerDeparture) },
               { label: "All-in per departure", value: fmt$(r.allInPerDeparture) },
               { label: "Annual replacement burden", value: fmt$(r.annualReplBurden) },
@@ -703,6 +713,8 @@ export default function AttritionCostCalculator() {
               export_voided: r.voided ? "yes" : "no",
               from_scenario_link: fromLink ? "yes" : "no",
             }}
+            /* A void publishes no figure (doctrine 5.4): the document keeps the void notice,
+               the corrected inputs, the method and the next steps, and nothing computed. */
             sections={[
               ...(r.voided ? [{ title: "Export Void", type: "findings", items: [...r.invariants, "A model that produced an impossible figure has not produced a small error. Correct the inputs and run it again. Nothing in this document should be cited until it clears."] }] : []),
               ...(r.guards.length ? [{ title: "Inputs Corrected Before Calculation", type: "findings", items: [...corrections, "Every figure in this document was computed on the corrected values, not on what was entered."] }] : []),
@@ -746,7 +758,7 @@ export default function AttritionCostCalculator() {
               ]},
               { title: "Methodology", type: "findings", items: [
                 `Cost model: per replaced departure = cash (recruiting, screening, ${r.signOn > 0 ? "sign-on, " : ""}training wages, trainer, vacancy OT) + capacity (nesting and ramp productivity loss, supervisor coaching). Capacity is recovered time, credited only through a realization mechanism.`,
-                `Capacity realization: "${r.mechName}" credits ${Math.round(r.mech * 100)}% of freed capacity, read from the shared platform capacity-action table so the same mechanism means the same thing in every tool. Credit class ${r.cred}, which sets the realization axis at ${r.grades.realization}. Cash out the door is never scaled by this factor.`,
+                `Capacity realization: "${r.mechName}" credits ${Math.round(r.mech * 100)}% of freed capacity, read from the shared platform capacity-action table so the same mechanism means the same thing in every tool. Credit class ${r.cred}${r.voided ? "" : `, which sets the realization axis at ${r.grades.realization}`}. Cash out the door is never scaled by this factor.`,
                 `Benchmark guardrail: the 40-60%-of-salary frontline sanity band is based on role-specific replacement-cost estimates (frontline about 40% of salary, well below the generic 50-200% turnover figure). The $10-20K all-in reference is the published contact-center agent replacement estimate and is not salary-adjusted.`,
                 `Confidence: three named axes. Evidence is input provenance. Realization is whether modelled benefit converts to cash, read from the shared credit class. Completeness is whether the model is whole and internally consistent. The headline is the weakest of the three and the rationale names the binding axis. A failed integrity invariant voids the export rather than grading it down, because an impossible figure is not an uncertain one.${r.guards.length ? ` INPUTS CORRECTED: ${corrections.join(" ")} Every figure above was computed on the corrected values.` : ""}`,
               ]},
@@ -755,7 +767,7 @@ export default function AttritionCostCalculator() {
                 { tool: "FCR Leakage Diagnostic", href: "/tools/fcr-leakage", reason: "Quantify the new-hire rework and repeat-contact cost" },
                 { tool: "Business Case Builder", href: "/tools/business-case", reason: "Carry the turnover cost into a case with payback and risk" },
               ]},
-            ]}
+            ].filter((sec) => !r.voided || ["Export Void", "Inputs Corrected Before Calculation", "Methodology", "Next Steps"].includes(sec.title))}
           />
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
@@ -767,3 +779,6 @@ export default function AttritionCostCalculator() {
     </div>
   );
 }
+
+/* The scenario-link defaults, exported for the live checker and the visual audit. */
+export { DEFAULTS };

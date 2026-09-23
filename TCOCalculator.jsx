@@ -497,7 +497,10 @@ function buildOptimizations(d, r, stanceKey) {
 function buildAnalystRead(d, r, opt, stanceKey) {
   const out = [];
   const resPremium = r.costPerResolution / r.costPerContact - 1;
-  if (resPremium > 0.12)
+  /* At a cost per contact of zero the premium is zero over zero. Say so plainly. */
+  if (!(r.costPerContact > 0))
+    out.push(`Cost per contact computes to $${(r.costPerContact || 0).toFixed(2)} at these inputs, so no resolution premium can be stated. Check the corrected inputs first.`);
+  else if (resPremium > 0.12)
     out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) runs ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}). At ${pct(d.fcr)} FCR a share of issues take more than one contact to close (this uses the standard one plus repeat-rate model, about ${(2 - n(d.fcr)).toFixed(2)} contacts per resolution), and that gap is where rework cost sits.`);
   else
     out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) is ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}), a small gap at ${pct(d.fcr)} FCR, so rework is not a major cost driver here. The cost story is volume and labor.`);
@@ -707,7 +710,9 @@ function Calculator() {
     const next = {}; const got = {};
     for (const [f, p] of Object.entries(rail.current.pre)) { next[f] = p.value; got[f] = true; }
     const scn = readScenario(TOOL_ID, SCENARIO_DEFAULTS);
-    if (scn && typeof scn === "object") { Object.assign(next, scn); setFromLink(true); trackTool.scenarioLoad("tco-calculator"); clearScenarioParam(); }
+    /* A shared link opens on Overhead & Results, the section that carries the report the
+       sender shared; the recipient can still step back through every input. */
+    if (scn && typeof scn === "object") { Object.assign(next, scn); setFromLink(true); setActiveSection(5); trackTool.scenarioLoad("tco-calculator"); clearScenarioParam(); }
     if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1361,3 +1366,6 @@ export default function TCOCalculator() {
     </div>
   );
 }
+
+/* The scenario-link defaults, exported for the live checker and the visual audit. */
+export { SCENARIO_DEFAULTS };

@@ -340,12 +340,12 @@ Binding. None of this is in code comments beyond what is noted.
 - Only TCO publishes origin grades. Staffing, CPC, FCR, AID, Channel read but publish none.
 - CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource` (self-read capable;
   graded `self` and Directional, so not yet a defect).
-- FCR PULLED badge reads `getPrimitive`.
-- Attrition live PDFs never pulled. `AttritionCostCalculator.jsx` line 307 local
-  `boundAxes`.
+- ~~FCR PULLED badge reads `getPrimitive`.~~ Fixed S23: the badge fires only on a value another tool produced.
+- ~~Attrition live PDFs never pulled; local `boundAxes`.~~ Fixed S23: pulled and reconciled (29 of 29 figures,
+  normal and Finance-grade); the void now publishes no figure (it printed `$∞` and a grade); shared `boundAxes`.
 
 **Live defects**
-- `guardVal` money rendering in CPC; money-guard case missing in `cpc.report.mjs` set C.
+- ~~`guardVal` money rendering in CPC.~~ Fixed S23: `money()` in `guards.js` (grouped, to the cent); set G pins it.
 - 8-04 vendor titles from `titleCase(slug)` on roughly 255 of 283 pages.
 - Sprinklr duplicate slug (CCaaS and IVA) hides the IVA profile.
 - Homepage claims methodology pages that do not exist.
@@ -363,7 +363,8 @@ Binding. None of this is in code comments beyond what is noted.
 - BCB publishes `analystRead` and `confidence` on the rail (verdicts), like TCO's
   `analystRead`. BCB next steps are a hardcoded list, not `nextFor` (3-03).
 - CCaaS vendor profile nav renders "Vendors" twice. Pre-existing, cosmetic.
-- `ReportActions.jsx` line 40, `scenarioUrl` `__proto__` assignment, `track.js` line 185.
+- ~~`scenarioUrl` `__proto__` assignment.~~ Fixed S23: a link could swap a decoded state's prototype; unsafe names
+  are now dropped in both directions (`track.test.mjs` M). `track.js` was already allowlisted.
 - `ReportActions` `Field` labels are not bound to their inputs (no `htmlFor`/`id`).
   Screen readers cannot name the review form fields.
 - ~~A failed lazy route chunk leaves the tool blank.~~ Fixed S23: one retry, one
@@ -566,8 +567,14 @@ dashboard, the 12-phase growth program.
 13. Done S23: Phase B shared tool frame (`src/lib/ToolShell.jsx`) on all 16 floor tools; gated in
    `floor.test.mjs` (frame present, exactly one h1 per render). Rail tools keep their own headers,
    same shape; fold them onto ToolShell in the aesthetic rebuild.
-14. **Next:** TB: make `suite` required on main; 11-01. Me: Phase B rail debts (CPC corrected-dollar
-   display, FCR pulled badge, Attrition live PDF, ReportActions `__proto__`).
+14. Done S23: Phase B rail debts. Scenario links can no longer reach an object's prototype; guarded money
+   prints grouped and to the cent on every tool; FCR's PULLED badge ignores its own restored values;
+   Attrition's void publishes no figure and no grade on page or PDF. The live checker now covers the nine
+   rail tools' sample, hostile and PDF paths (195 checks, was 142); on its first run it found TCO printing
+   "NaN% above cost per contact" on a hostile link (fixed, A/B neutral on 12,000 cases). TCO links now open
+   on Overhead & Results. The checker retries a page whose result has not appeared yet.
+15. **Next:** TB: make `suite` required on main; 11-01. Me: Phase C, frameworks on the rubric engine
+   (Transformation Readiness, CX IT Alignment, Governance first).
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
