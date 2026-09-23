@@ -182,7 +182,7 @@ Small, cheap, and each one removes a piece of friction that keeps recurring.
 | 0-03 | Resolve `sprinklr` duplicate slug across CCaaS and IVA data | NEXT | S |
 | 0-04 | Confirm `favicon.svg` resolves in production (file exists in `public/`) | NEXT | S |
 | 0-05 | Build `run-all.mjs` suite runner so every harness runs in one command | NEXT | S |
-| 0-06 | Add a pre-upload checklist file to the repo: clear Downloads, in-place edit, md5 verify | NEXT | S |
+| 0-06 | Add a pre-upload checklist file to the repo: clear Downloads, in-place edit, md5 verify | DONE 23 Sep: replaced by `docs/SHIPPING.md` (git workflow), approved by TB | S |
 
 **0-05 definition of done:** `node run-all.mjs` prints a per-harness pass/fail
 table and exits non-zero if any harness fails or is missing.
@@ -216,7 +216,8 @@ Open each file once.
 | 1-09 | Confidence taxonomy: split into cost evidence, benefit evidence, case readiness across all locked tools plus `ReportActions`, or do not | DECIDE | M | none |
 | 1-10 | Planned-hires cap: cap monetized capacity against a stated hiring plan rather than a percentage | GATED | L | 1-06 |
 | 1-11 | Growth escalation in BCB: BAU volume and wage trajectory | GATED | XL | 1-06 |
-| 1-12 | `billingStartMonth` in BCB | GATED | L | 1-11 |
+| 1-12 | `r.payback === 0` capped BCB confidence at Directional (verdict strength as an axis) | DONE in code, guarded by `bcb.test.mjs` 12f; confirmed 23 Sep | M | none |
+| 1-17 | `billingStartMonth` in BCB (was 1-12 in v1.0 of this tracker; renumbered 23 Sep) | GATED | L | 1-11 |
 
 **Definition of done for 1-02 through 1-06, per tool:**
 
@@ -686,6 +687,7 @@ All three are contingent, none are current.
 | 2026-09-23 | Governance into repo, 0-06 | Tracker, doctrine v1.1, Section 5 v1.2, Resequence, manifest, bundle README and Market Position Index Addendum 1 landed in `docs/`. Sessions 13 to 20 appended from `TRACKER_CHANGELOG_S13_S20.md`; sessions 1 to 12 are summarized only in the Resequence. `SHIPPING.md` drafted for TB approval, closing 0-06 on the Claude Code workflow. `CLAUDE.md` and `.gitignore` at repo root. Suite 18,018 green, build and prerender green (429 routes). Next: 11B step 6, live TCO PDF check |
 | 2026-09-23 (S21) | 11B TCO step 6, live PDF check | Production TCO chunk byte-identical to `main` except import hashes; PostHog key confirmed in the production build. Three live PDFs and review payloads captured from contactcentercx.com with analytics and Formspree intercepted. Normal: every figure reconciles to the dollar against the engine. Brief premise corrected: a negative agent count does not void, the guard floors it at 1, discloses it and holds completeness Directional (correct). A reachable void needs a non-finite output, for example agents 1e308 by link. Void defects found: D15 tool-built Confidence and Open Issues section writes Void into the evidence and completeness axes and keeps grade language, and `tco.report.mjs` 614 and 616 assert that text; D16 two confidence sections in every TCO PDF, violating Section 5.6 item 2; D17 a void still renders Infinity and NaN figures in UI, PDF and review summary, and the analyst read and signals draw false conclusions from NaN comparisons. 11B TCO not closed. Next: fix D15 to D17 in TCO, then re-run the live check |
 | 2026-09-23 (S22) | 11B TCO void fix; CCaaS research readiness | D15 to D17 fixed on the branch: one confidence section (ReportActions), TCO section renamed Open Issues with no axis rows, a void renders and publishes no figure or figure-derived signal in page, PDF, review summary or wire. `tco.report.mjs` section 7 rewritten, section 8 added for the reachable void; old TCO fails 48, fix passes 951. Suite 18,031 green, build and prerender green, local live PDFs verified. Not yet on `main`. CCaaS Phase 2 corpus reviewed (12 vendors, 765 claims, 440 evidence, clean integrity); readiness report delivered. TB decisions: research Stages 1 and 2 before BCB, remove Phase 1 scores from public CCaaS surfaces, keep and label the 16 unresearched vendors, merge `CLAUDE.md`. Repo verified public: raw corpus stays out of git. Next: merge to `main`, production live check, then research Stage 1 |
+| 2026-09-23 (S22) | Decisions | `SHIPPING.md` approved, 0-06 closed. ID conflict resolved: 1-12 is the payback cap, already removed in code and guarded by `bcb.test.mjs` 12f; `billingStartMonth` renumbered to 1-17. Doctrine v1.2: promise restated as verified and traceable, no rule changed. Research Stage 1 waits for the full CCaaS corpus; Stage 2 (score freeze) runs before BCB |
 
 ---
 

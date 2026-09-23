@@ -7,8 +7,8 @@ edit in place, md5 verify each file. That workflow is retired now that work runs
 through git in Claude Code (`CLAUDE.md` section 8). This file replaces it. The
 discipline stays: no change ships unverified.
 
-Drafted 23 September 2026 from the repo and `SHIPPING_FACTS.md` (22 Sep). Awaiting
-TB approval.
+Drafted 23 September 2026 from the repo and `SHIPPING_FACTS.md` (22 Sep). Approved
+by TB 23 September 2026.
 
 ---
 

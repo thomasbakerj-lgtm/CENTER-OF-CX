@@ -21,8 +21,10 @@ Baker (TB), does engineering, product, content and business development.
 Roughly 30 React tools, 283 vendors across 8 categories, 78 routes. Vite + React 18
 SPA on Vercel via GitHub auto-deploy. Production: https://contactcentercx.com
 
-The promise is **100% traceable**. Every historical fact sourced, every assumption
-labelled, every derivation reproducible, every forecast explicitly conditional.
+The promise is **verified and traceable** (doctrine v1.2). Every calculation verified,
+every historical fact sourced, every assumption labelled, every derivation
+reproducible, every forecast explicitly conditional. The math is always right; whether
+the answer is right depends on the inputs, and every input shows where it came from.
 
 Commercial line: monetize confidence in decisions, never access to vendors.
 Independence is the product.
@@ -110,9 +112,15 @@ CA with `--ignore-certificate-errors-spki-list`, PostHog, Vercel Analytics and
 Formspree intercepted so no test event or review reaches production data.
 
 **Then: Business Case Builder**, the ninth and last rail tool, 113 KB of source.
-It must fix **1-12**: `r.payback === 0` caps confidence at Directional, conflating
-"we do not know" with "the answer is no." Regression fixtures for BCB are in tracker
-Section 1 (reference set and live PDF set).
+Corrected S22: **1-12 is already closed in code.** Line 53 is `paybackStatus`, a verdict
+colour and label, not a confidence cap, and `bcb.test.mjs` section 12f sweeps 11 return
+profiles across every stance and capacity action to prove the grade never moves with
+the return. What remains is the 11B retrofit per Section 5.7: `confidenceOf` still folds
+completeness items (corrections, held numerics) into a `caps` array, keeps stance and
+target caps beside them, and emits no grade object through `confidence.js`. Promote
+those to the completeness axis, keep stance and target on the benefit evidence stream,
+emit the Section 5.6 object, and add the harness sign-invariance assertion. Regression
+fixtures for BCB are in tracker Section 1 (reference set and live PDF set).
 
 ---
 
@@ -126,13 +134,15 @@ baseline; closures since are in its change log.
 Also in `docs/`: doctrine, Section 5 v1.2, `SHIPPING.md`, the project knowledge
 manifest, the bundle `README.md`, and Market Position Index Addendum 1.
 
-**ID conflict.** The tracker defines 1-12 as `billingStartMonth` in BCB, GATED.
-This file and Section 5 v1.2 use 1-12 for the `r.payback === 0` confidence cap
-(`BusinessCaseBuilder.jsx` line 53). One ID, two items. TB to renumber one.
+**IDs in code, not in the tracker.** Resolved S22: 1-12 is the payback confidence cap,
+as used across code, harnesses and Section 5 v1.2. The tracker's `billingStartMonth`
+item moved to **1-17**. IDs 1-12b, 1-13 (PDF verdict tile colour), 1-14 (fragile
+return case), 1-15 (TCO severity band) and 1-16 (finding sizing) are used in code
+comments and were never added to the tracker.
 
 | WS | Subject | State |
 |---|---|---|
-| WS0 | Hygiene and blockers | Closed. `SHIPPING.md` drafted, awaiting TB approval |
+| WS0 | Hygiene and blockers | Closed. `SHIPPING.md` approved by TB 23 Sep |
 | WS1 | V3 engine integrity, nine rail tools | In flight. TCO step 6, then BCB |
 | WS2 | The other 21 tools | 2-01 triage is cheap and high leverage |
 | WS3 | Journey architecture | Graph in `src/lib/journey.js` (3-01 done) |
@@ -168,7 +178,8 @@ Assessments are a distinct asset class from calculators. Governance must appear 
 the site even if the current Governance Model tool is the wrong vehicle.
 
 **TB decisions, 23 Sep 2026 (S22), on the CCaaS research integration:**
-1. Order: TCO fix, then research Stages 1 and 2, then Business Case Builder.
+1. Order: TCO fix, then research Stage 2 (the freeze), then Business Case Builder.
+   Stage 1 waits for the full corpus (TB, S22: the shared corpus is an example).
 2. Remove Phase 1 numeric scores and tiers from public CCaaS surfaces (integrity
    freeze, Stage 2).
 3. The 16 site CCaaS vendors without Phase 2 research stay, labelled "Phase 1
@@ -193,7 +204,7 @@ Cost: 3-02 and 11-04, no money.
 
 ## 4. Doctrine
 
-Full text: `docs/DOCTRINE_Epistemic_Standard.md` v1.1. Section 5 is superseded by
+Full text: `docs/DOCTRINE_Epistemic_Standard.md` v1.2. Section 5 is superseded by
 `docs/DOCTRINE_Section5_v1_2.md`. Doctrine lives in `docs/`, not in code comments.
 
 **Four claim classes.** Every displayed number is one of: historical fact, assumption,
@@ -313,7 +324,6 @@ Binding. None of this is in code comments beyond what is noted.
   `boundAxes`.
 
 **Live defects**
-- 1-12 BCB `payback === 0`.
 - `guardVal` money rendering in CPC; money-guard case missing in `cpc.report.mjs` set C.
 - 8-04 vendor titles from `titleCase(slug)` on roughly 255 of 283 pages.
 - Sprinklr duplicate slug (CCaaS and IVA) hides the IVA profile.
@@ -430,12 +440,16 @@ dashboard, the 12-phase growth program.
 ## 11. Next three sessions
 
 1. Done 23 Sep 2026: `CLAUDE.md` and `docs/` committed, change log appended,
-   `SHIPPING.md` drafted. Open: TB approval of `SHIPPING.md`, 1-12 renumber.
+   `SHIPPING.md` approved, 1-12 conflict resolved, doctrine v1.2.
 2. Done 23 Sep 2026 (S21, S22): TCO live check found D15 to D17; S22 fixed them on
    the branch. **Next:** merge to `main`, re-run the live check on production.
    Closes 11B TCO.
-3. Research Stage 1 and Stage 2 (TB order, S22).
-4. Business Case Builder retrofit with 1-12. Closes WS1.
+3. Research Stage 2, the integrity freeze: remove Phase 1 numeric scores and tiers
+   from public CCaaS surfaces and label the 16 unresearched vendors. Needs no corpus.
+4. Business Case Builder 11B retrofit (Section 5.7). Closes WS1.
+Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
+the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
+vendors are complete, when the site-enhancement work starts.
 
 Then the reachability batch.
 

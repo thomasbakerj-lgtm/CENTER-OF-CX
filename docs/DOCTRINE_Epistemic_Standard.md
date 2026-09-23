@@ -2,7 +2,7 @@
 
 ## The Epistemic Standard
 
-**Version 1.1. Consolidated 27 August 2026.**
+**Version 1.2. 23 September 2026.** (1.1 consolidated 27 August 2026.)
 Status: doctrine. Applies to every tool, every artifact, every public claim.
 Supersedes any prior use of "factual," "accurate," or "correct" as a platform promise.
 
@@ -14,14 +14,17 @@ file is the only doctrine file. Nothing amends it from outside.
 
 ## 1. The promise
 
-**Not:** 100% factual.
-**But:** 100% traceable.
+**Verified and traceable.**
 
-Every historical fact sourced. Every assumption labelled. Every derivation reproducible. Every forecast explicitly conditional.
+Every calculation verified. Every historical fact sourced. Every assumption labelled. Every derivation reproducible. Every forecast explicitly conditional.
 
-A forecast cannot be factual. It can be traceable. Factuality is the wrong promise because it is unachievable for the class of output this platform produces, and an unachievable promise degrades into marketing.
+The math is always right. Whether the answer is right depends on the inputs, and every input shows where it came from.
 
-Traceability is achievable on every line of every tool today, is testable, and is a higher bar than the category currently clears.
+These are two promises and the platform makes both. Verified is a claim about the computation: the software executes its stated method, and that is proved by test and reconciliation (Section 3, Level 1). Traceable is a claim about every number shown: the reader can see which class it belongs to and where it came from (Section 2).
+
+What the platform does not promise is that an output is a fact. A forecast cannot be a fact until it happens, and a correct calculation on a preset or assumed input describes the modelled case, not the reader's operation. Promising factual outputs would be unachievable for the class of output this platform produces, and an unachievable promise degrades into marketing.
+
+Verified and traceable is achievable on every line of every tool today, is testable, and is a higher bar than the category currently clears.
 
 ---
 
@@ -90,7 +93,7 @@ Forecast values have been compared against realized outcomes across a sample of 
 
 1. The goal is to predict reality.
 2. Until prediction is empirically demonstrated, every forecast remains conditional.
-3. 100% traceable means every historical fact is sourced, every assumption labelled, every derivation reproducible, and every forecast explicitly conditional.
+3. Verified and traceable means every calculation is verified, every historical fact is sourced, every assumption labelled, every derivation reproducible, and every forecast explicitly conditional.
 4. Predictive claims unlock only when forecast-versus-actual evidence demonstrates calibration.
 
 The platform's ambition is to predict reality. That ambition is stated as a direction of travel, never as a current capability.
@@ -337,3 +340,4 @@ Instrumentation precedes proof.
 |---|---|---|
 | 1.0 | Aug 2026 | Original epistemic standard, Sections 1 through 10 |
 | 1.1 | 27 Aug 2026 | Amendment 11 folded in as Section 11. Section 5 amended per tracker 1-09: credit class governs the realization axis only, confidence has three axes, verdict strength is never an axis. V3 criteria consolidated into Section 10. Standalone amendment files retired |
+| 1.2 | 23 Sep 2026 | Section 1 and Section 4 sentence 3: the promise restated as verified and traceable, so verified calculation is promised explicitly alongside traceability. No rule changed. Section 5 remains superseded by `DOCTRINE_Section5_v1_2.md` until that file is folded in |
