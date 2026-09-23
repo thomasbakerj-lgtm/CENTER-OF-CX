@@ -61,7 +61,7 @@ const BASE = {
   monthlyContacts: benchmark("cpc.default.volume"), denominator: "handled",
   fcrRate: benchmark("cpc.default.fcr"), contactsPerUnresolved: benchmark("cpc.default.m"),
   loadedCPC: benchmark("cpc.default.loaded"), marginalCPC: benchmark("cpc.default.marginal"), validated: false,
-  agentHourly: benchmark("cpc.wage.median"), overheadMultiplier: benchmark("cpc.default.overhead"),
+  agentHourly: benchmark("market.wage.agent"), overheadMultiplier: benchmark("load.benefits"),
   productiveHoursPerFTE: benchmark("cpc.default.productiveHours"),
   voicePct: benchmark("cpc.default.mix.voice"), chatPct: benchmark("cpc.default.mix.chat"), emailPct: benchmark("cpc.default.mix.email"),
   voiceAHT: benchmark("cpc.default.aht.voice"), chatAHT: benchmark("cpc.default.aht.chat"), emailAHT: benchmark("cpc.default.aht.email"),
