@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
+import { scorePaired, bandFor } from "./src/lib/rubric";
+import { CX_IT_ALIGNMENT as RUBRIC } from "./src/lib/rubrics/cxItAlignment";
+import { JOURNEY } from "./src/lib/journey";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -9,42 +12,12 @@ const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
 
 function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
-const AREAS = [
-  { id: "strategy", name: "Strategy Alignment", color: ELECTRIC, pairs: [
-    { cx: "CX has a documented strategy with measurable outcomes.", it: "IT has a technology roadmap that maps to the CX strategy." },
-    { cx: "CX priorities are clearly communicated to IT leadership.", it: "IT understands which CX initiatives require technology investment." },
-    { cx: "CX leadership participates in technology selection decisions.", it: "IT involves CX stakeholders in architecture and vendor decisions." },
-  ]},
-  { id: "data", name: "Data & Integration", color: "#10B981", pairs: [
-    { cx: "CX teams have access to the customer data they need for decisions.", it: "IT provides reliable, governed data pipelines to CX systems." },
-    { cx: "Customer journey data is connected across channels and touchpoints.", it: "Integration architecture supports cross-system data flow." },
-    { cx: "CX can measure outcomes (CSAT, FCR, effort) with trusted data.", it: "IT maintains data quality standards and monitoring for CX systems." },
-  ]},
-  { id: "platforms", name: "Platform & Tooling", color: "#7C3AED", pairs: [
-    { cx: "CX teams have the platforms they need to execute their strategy.", it: "IT can support, secure, and maintain the platforms CX depends on." },
-    { cx: "New CX tools can be evaluated and deployed without 12-month cycles.", it: "IT has a process for evaluating and onboarding new CX technology." },
-    { cx: "Agent-facing tools are effective and reduce friction.", it: "IT provides reliable desktop environments with acceptable performance." },
-  ]},
-  { id: "ai", name: "AI & Automation", color: "#F59E0B", pairs: [
-    { cx: "CX has identified which interactions should be automated.", it: "IT can assess whether the data and infrastructure support AI deployment." },
-    { cx: "CX defines the quality and governance standards for AI interactions.", it: "IT implements AI guardrails, testing, and monitoring." },
-    { cx: "CX measures AI performance against customer experience outcomes.", it: "IT manages AI model performance, accuracy, and scalability." },
-  ]},
-  { id: "governance", name: "Governance & Ownership", color: "#EF4444", pairs: [
-    { cx: "CX has defined ownership for experience outcomes across channels.", it: "IT has defined ownership for platform reliability and integration health." },
-    { cx: "CX and IT have a shared governance model for technology decisions.", it: "IT and CX jointly own the escalation path when systems impact customers." },
-    { cx: "Budget decisions for CX technology involve both CX and IT input.", it: "IT can articulate the cost of supporting CX technology requests." },
-  ]},
-];
-
-const GAP_LEVELS = [
-  { min: 0, max: 0.8, label: "Aligned", color: GREEN, desc: "CX vision and IT execution are well matched. Focus on maintaining alignment as both functions evolve." },
-  { min: 0.8, max: 1.5, label: "Minor Gaps", color: ELECTRIC, desc: "Small misalignments exist but are manageable. Address them through regular cross-functional planning sessions." },
-  { min: 1.5, max: 2.5, label: "Significant Gaps", color: AMBER, desc: "Material disconnects between CX ambition and IT capability. These gaps are creating friction, delays, or suboptimal outcomes." },
-  { min: 2.5, max: 5, label: "Critical Misalignment", color: RED, desc: "CX and IT are operating with fundamentally different priorities. Technology is either blocking CX progress or CX is creating ungoverned shadow IT." },
-];
-
-const getGapLevel = (gap) => GAP_LEVELS.find(l => gap >= l.min && gap < l.max) || GAP_LEVELS[GAP_LEVELS.length - 1];
+const AREA_COLORS = { strategy: ELECTRIC, data: "#10B981", platforms: "#7C3AED", ai: "#F59E0B", governance: "#EF4444" };
+const BAND_COLORS = { aligned: GREEN, minor: ELECTRIC, significant: AMBER, critical: RED };
+/* The pairs, gap bands, actions and next diagnostics live in the published rubric; this
+   file only presents them. See cxItAlignment and RUBRIC.methodology. */
+const AREAS = RUBRIC.dims.map(d => ({ id: d.id, name: d.name, color: AREA_COLORS[d.id], pairs: d.pairs.map(p => ({ cx: p.cx, it: p.it })) }));
+const toolOf = (id) => JOURNEY[id] ? { name: JOURNEY[id].name, href: JOURNEY[id].route } : null;
 
 const TOOL_ID = "cx-it-alignment";
 const ROUTE = "/tools/cx-it-alignment";
@@ -56,7 +29,7 @@ export const SAMPLE = { scores: Object.fromEntries(AREAS.flatMap(a => a.pairs.fl
    carrying anything else opens the unanswered question, never a scored result. */
 const cleanScores = (sc) => Object.fromEntries(Object.entries(sc && typeof sc === "object" ? sc : {})
   .filter(([k, v]) => /^[a-z0-9-]+$/i.test(k) && Number.isInteger(v) && v >= 1 && v <= 5));
-const isComplete = (scores) => AREAS.every(a => a.pairs.every((_, i) => scores[`${a.id}-${i}-cx`] > 0 && scores[`${a.id}-${i}-it`] > 0));
+const isComplete = (scores) => scorePaired(RUBRIC, scores).complete;
 
 export default function CXITAlignment() {
   const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { scores: cleanScores(sc && sc.scores) }; });
@@ -70,30 +43,20 @@ export default function CXITAlignment() {
   const setScore = (areaId, pairIdx, side, val) => setScores(prev => ({ ...prev, [`${areaId}-${pairIdx}-${side}`]: val }));
   const getScore = (areaId, pairIdx, side) => scores[`${areaId}-${pairIdx}-${side}`] || 0;
 
-  const areaGap = (areaId) => {
-    const area = AREAS.find(a => a.id === areaId);
-    const gaps = area.pairs.map((_, i) => {
-      const cx = getScore(areaId, i, "cx");
-      const it = getScore(areaId, i, "it");
-      return cx && it ? Math.abs(cx - it) : null;
-    }).filter(g => g !== null);
-    return gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : 0;
-  };
-
-  const areaAvg = (areaId, side) => {
-    const area = AREAS.find(a => a.id === areaId);
-    const vals = area.pairs.map((_, i) => getScore(areaId, i, side)).filter(v => v > 0);
-    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
-  };
-
-  const areaComplete = (areaId) => {
-    const area = AREAS.find(a => a.id === areaId);
-    return area.pairs.every((_, i) => getScore(areaId, i, "cx") > 0 && getScore(areaId, i, "it") > 0);
-  };
-
-  const allComplete = AREAS.every(a => areaComplete(a.id));
-  const overallGap = AREAS.reduce((a, ar) => a + areaGap(ar.id), 0) / AREAS.length;
-  const gapLevel = getGapLevel(overallGap);
+  /* Every gap, band, checklist action and the next diagnostic come from the one rubric
+     engine, so the page, the PDF and the published rubric cannot disagree. */
+  const R = scorePaired(RUBRIC, scores);
+  const areaOf = (id) => R.dims.find(d => d.id === id);
+  const areaGap = (id) => areaOf(id).gap || 0;
+  const areaAvg = (id, side) => areaOf(id)[side] || 0;
+  const areaComplete = (id) => areaOf(id).complete;
+  const allComplete = R.complete;
+  const overallGap = R.overall || 0;
+  const gapLevel = R.band ? { ...R.band, color: BAND_COLORS[R.band.id] } : { label: "", color: MUTED, desc: "" };
+  const byGap = [...AREAS].sort((a, b) => areaGap(b.id) - areaGap(a.id) || AREAS.indexOf(a) - AREAS.indexOf(b));
+  const misaligned = R.checklist.filter(c => c.kind === "misaligned");
+  const shared = R.checklist.filter(c => c.kind === "shared");
+  const next = R.nextDiagnostic && toolOf(R.nextDiagnostic.tool) ? { ...toolOf(R.nextDiagnostic.tool), because: areaOf(R.nextDiagnostic.because).name } : null;
 
   const handleStart = () => setPhase("assess");
 
@@ -109,8 +72,8 @@ export default function CXITAlignment() {
 
       {phase === "intro" && (
         <ToolHero fill wrap={WRAP} eyebrow="Frameworks + Planning" title="CX + IT Alignment Framework"
-          intro="Rate 15 paired statements (one from the CX perspective, one from IT) across strategy, data, platforms, AI, and governance. The gap between scores reveals where misalignment creates friction, delays, and wasted spend.">
-          <ToolStart label="Start Assessment" onStart={handleStart} />
+          intro="Rate 15 paired statements, one from the CX side and one from the IT side, across strategy, data, platforms, AI and governance. The result shows where the two sides see the same capability differently, and where both agree it is missing. Best answered by two people: the CX lead fills the CX column, then sends the scenario link to the IT lead to fill the IT column.">
+          <ToolStart label="Start Assessment" onStart={handleStart} methodHref={RUBRIC.methodology} methodLabel="See the published rubric: every pair, band and action" />
         </ToolHero>
       )}
 
@@ -199,96 +162,94 @@ export default function CXITAlignment() {
       )}
 
       {phase === "results" && (
-        <section style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "48px 28px 80px" }}>
+        <section style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "44px 28px 80px" }}>
           <div style={WRAP}>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "40px 32px", textAlign: "center", marginBottom: 32 }}>
-              <span style={{ color: "rgba(255,255,255,0.72)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>CX + IT Alignment Status</span>
-              <h2 style={{ fontFamily: FONT, fontSize: 36, fontWeight: 400, color: gapLevel.color, margin: "8px 0 4px" }}>{gapLevel.label}</h2>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", marginBottom: 12 }}>Average alignment gap: {overallGap.toFixed(1)} points</div>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.7, maxWidth: 480, margin: "0 auto" }}>{gapLevel.desc}</p>
+            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 32px", textAlign: "center", marginBottom: 24 }}>
+              <span style={{ color: "rgba(255,255,255,0.78)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>CX + IT alignment</span>
+              <h2 style={{ fontFamily: FONT, fontSize: 36, fontWeight: 600, color: gapLevel.color, margin: "8px 0 4px" }}>{gapLevel.label}</h2>
+              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.78)", marginBottom: 12 }}>Average gap {overallGap.toFixed(1)} points, where 0 is identical answers and 4 is opposite</div>
+              <p style={{ fontSize: 14, color: "#fff", lineHeight: 1.7, maxWidth: 560, margin: "0 auto" }}>{gapLevel.desc}</p>
             </div>
 
-            <h3 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 20px" }}>Alignment by Area</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 32 }}>
-              {AREAS.map((a, i) => {
-                const cxAvg = areaAvg(a.id, "cx");
-                const itAvg = areaAvg(a.id, "it");
-                const gap = areaGap(a.id);
-                const gl = getGapLevel(gap);
+            {shared.length > 0 && (
+              <div style={{ background: "#FFF7ED", border: `1px solid ${AMBER}`, borderRadius: 10, padding: "16px 20px", marginBottom: 24 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#9A3412", marginBottom: 4 }}>{shared.length} shared weakness{shared.length === 1 ? "" : "es"}</div>
+                <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>On {shared.length === 1 ? "this pair" : "these pairs"} both sides answered {RUBRIC.failAt} or below. The two sides agree the capability is missing, so the gap does not show it. {shared.length === 1 ? "It is" : "They are"} on the checklist below.</p>
+              </div>
+            )}
+
+            <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 600, color: NAVY, margin: "0 0 14px" }}>Alignment by area, largest gap first</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
+              {byGap.map((a) => {
+                const cxAvg = areaAvg(a.id, "cx"), itAvg = areaAvg(a.id, "it"), gap = areaGap(a.id);
+                const gl = (b => ({ ...b, color: BAND_COLORS[b.id] }))(bandFor(RUBRIC, gap));
+                const sh = shared.filter(c => c.dimension === a.id).length;
                 return (
-                  <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <div key={a.id} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 22px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <div style={{ width: 4, height: 20, borderRadius: 2, background: a.color }} />
                         <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{a.name}</span>
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: gl.color, background: `${gl.color}12`, padding: "2px 8px", borderRadius: 4 }}>{gl.label} (gap {gap.toFixed(1)})</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: NAVY, background: `${gl.color}18`, padding: "3px 8px", borderRadius: 4 }}>{gl.label}, gap {gap.toFixed(1)}{sh ? `, ${sh} shared weakness${sh === 1 ? "" : "es"}` : ""}</span>
                     </div>
-                    <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: MUTED, marginBottom: 3 }}>
-                          <span>CX: {cxAvg.toFixed(1)}</span><span>IT: {itAvg.toFixed(1)}</span>
-                        </div>
-                        <div style={{ position: "relative", height: 8, background: `${BORDER}`, borderRadius: 4 }}>
-                          <div style={{ position: "absolute", left: `${((cxAvg - 1) / 4) * 100}%`, top: -2, width: 12, height: 12, borderRadius: "50%", background: ELECTRIC, border: "2px solid #fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
-                          <div style={{ position: "absolute", left: `${((itAvg - 1) / 4) * 100}%`, top: -2, width: 12, height: 12, borderRadius: "50%", background: "#7C3AED", border: "2px solid #fff", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: MUTED, marginTop: 4 }}>
-                          <span style={{ color: ELECTRIC, fontWeight: 600 }}>● CX</span><span style={{ color: "#7C3AED", fontWeight: 600 }}>● IT</span>
-                        </div>
-                      </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: SLATE, marginBottom: 4 }}><span>CX {cxAvg.toFixed(1)}</span><span>IT {itAvg.toFixed(1)}</span></div>
+                    <div style={{ position: "relative", height: 8, background: BORDER, borderRadius: 4 }}>
+                      <div style={{ position: "absolute", left: `calc(${((cxAvg - 1) / 4) * 100}% - 6px)`, top: -2, width: 12, height: 12, borderRadius: "50%", background: ELECTRIC, border: "2px solid #fff" }} />
+                      <div style={{ position: "absolute", left: `calc(${((itAvg - 1) / 4) * 100}% - 6px)`, top: -2, width: 12, height: 12, borderRadius: "50%", background: "#7C3AED", border: "2px solid #fff" }} />
                     </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 4 }}><span style={{ color: ELECTRIC, fontWeight: 600 }}>CX average</span><span style={{ color: "#7C3AED", fontWeight: 600 }}>IT average</span></div>
                   </div>
                 );
               })}
             </div>
 
-            {/* Biggest gaps */}
-            {(() => {
-              const sorted = [...AREAS].sort((a, b) => areaGap(b.id) - areaGap(a.id));
-              const worst = sorted[0];
-              const best = sorted[sorted.length - 1];
-              return (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 32 }}>
-                  <div style={{ background: `${RED}08`, border: `1px solid ${RED}20`, borderRadius: 10, padding: "20px" }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Largest Gap</span>
-                    <h4 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "6px 0 2px" }}>{worst.name}</h4>
-                    <span style={{ fontSize: 13, color: MUTED }}>Gap: {areaGap(worst.id).toFixed(1)}, CX {areaAvg(worst.id, "cx").toFixed(1)} vs IT {areaAvg(worst.id, "it").toFixed(1)}</span>
-                  </div>
-                  <div style={{ background: `${GREEN}08`, border: `1px solid ${GREEN}20`, borderRadius: 10, padding: "20px" }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Most Aligned</span>
-                    <h4 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "6px 0 2px" }}>{best.name}</h4>
-                    <span style={{ fontSize: 13, color: MUTED }}>Gap: {areaGap(best.id).toFixed(1)}, CX {areaAvg(best.id, "cx").toFixed(1)} vs IT {areaAvg(best.id, "it").toFixed(1)}</span>
+            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "28px 28px", marginBottom: 24 }}>
+              <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Your action checklist</h3>
+              {R.checklist.length === 0 ? (
+                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>No pair is {RUBRIC.gapAt} or more points apart and none is answered {RUBRIC.failAt} or below on both sides, so the rubric raises no action. The area with the largest gap is still the place to look first.</p>
+              ) : R.checklist.map((c, i) => (
+                <div key={c.criterion} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: i < R.checklist.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
+                  <span style={{ fontFamily: FONT, fontSize: 16, color: LIGHT, width: 22, flexShrink: 0 }}>{i + 1}</span>
+                  <div>
+                    <div style={{ fontSize: 14, color: "#fff", fontWeight: 600, lineHeight: 1.5 }}>{c.action}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.78)", marginTop: 3, lineHeight: 1.5 }}>{c.dimensionName}, {c.kind === "misaligned" ? `misaligned: CX answered ${c.cx} and IT answered ${c.it}` : `shared weakness: CX answered ${c.cx} and IT answered ${c.it}`}, on "{c.texts.cx}"</div>
                   </div>
                 </div>
-              );
-            })()}
+              ))}
+              {next && (
+                <div style={{ marginTop: 16, fontSize: 14, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>
+                  Next diagnostic: <a href={next.href} style={{ color: LIGHT, fontWeight: 600 }}>{next.name}</a>, because {next.because} has the largest gap.
+                </div>
+              )}
+              <p style={{ marginTop: 16, fontSize: 12, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>
+                Scored on the <a href={RUBRIC.methodology} style={{ color: LIGHT }}>published rubric</a>, version {RUBRIC.version}. {RUBRIC.limits[0]} {RUBRIC.limits[1]}
+              </p>
+            </div>
 
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
-              <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the alignment gaps?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your alignment profile has been saved. Connect with a consultant and we'll help you build a joint CX-IT governance model, prioritize the gaps, and map technology decisions to shared outcomes.</p>
-              <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-                
-                <ReportActions toolId={TOOL_ID} toolName="CX-IT Alignment Framework" subtitle={"Average CX-IT gap: " + overallGap.toFixed(1) + " points, " + gapLevel.label} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS} summary={[{ label: "Average CX-IT gap", value: overallGap.toFixed(1) + " points" }, { label: "Alignment level", value: gapLevel.label }]} sections={[
-                    { title: "Alignment by Area", type: "table", rows: AREAS.map(a => [a.name, "CX " + areaAvg(a.id, "cx").toFixed(1) + " / IT " + areaAvg(a.id, "it").toFixed(1) + ", gap " + areaGap(a.id).toFixed(1)]) },
-                    { title: "Assessment", type: "metrics", items: [
-                      { label: "Average Gap", value: overallGap.toFixed(1) + " pts", color: gapLevel.color, sub: "0 is fully aligned, 4 is opposite" },
-                      { label: "Alignment Level", value: gapLevel.label, color: gapLevel.color },
-                    ]},
-                    { title: "Key Findings", type: "findings", items: [
-                      gapLevel.label + ": " + gapLevel.desc,
-                      "Largest gap: " + [...AREAS].sort((a, b) => areaGap(b.id) - areaGap(a.id))[0].name + " (" + areaGap([...AREAS].sort((a, b) => areaGap(b.id) - areaGap(a.id))[0].id).toFixed(1) + " points).",
-                      "Closest alignment: " + [...AREAS].sort((a, b) => areaGap(a.id) - areaGap(b.id))[0].name + " (" + areaGap([...AREAS].sort((a, b) => areaGap(a.id) - areaGap(b.id))[0].id).toFixed(1) + " points).",
-                      "A gap is the distance between how CX and IT rate the same statement. It measures disagreement, not capability.",
-                    ]},
-                    { title: "Next Steps", type: "next", items: [
-                      { tool: "Governance Model", reason: "Define ownership across CX strategy, ops, and AI" },
-                      { tool: "TCO Calculator", reason: "Price the integration and migration work into the platform decision" },
-                    ]},
-                  ]} />
-                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
-                <a href="/tools/governance-model" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Governance & Operating Model →</a>
-              </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+              <ReportActions toolId={TOOL_ID} toolName="CX + IT Alignment Framework" subtitle={"Average CX to IT gap " + overallGap.toFixed(1) + " points, " + gapLevel.label} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS}
+                summary={[{ label: "Average CX to IT gap", value: overallGap.toFixed(1) + " pts" }, { label: "Alignment band", value: gapLevel.label }, { label: "Misaligned pairs", value: String(misaligned.length) }, { label: "Shared weaknesses", value: String(shared.length) }]}
+                sections={[
+                  { title: "Alignment by Area", type: "table", rows: byGap.map(a => [a.name, "CX " + areaAvg(a.id, "cx").toFixed(1) + " / IT " + areaAvg(a.id, "it").toFixed(1) + ", gap " + areaGap(a.id).toFixed(1)]) },
+                  { title: "Assessment", type: "metrics", items: [
+                    { label: "Average Gap", value: overallGap.toFixed(1) + " pts", color: gapLevel.color, sub: "0 is identical answers, 4 is opposite" },
+                    { label: "Alignment Band", value: gapLevel.label, color: gapLevel.color },
+                    { label: "Shared Weaknesses", value: String(shared.length), color: shared.length ? AMBER : GREEN, sub: "both sides at " + RUBRIC.failAt + " or below" },
+                  ]},
+                  { title: "Key Findings", type: "findings", items: [
+                    gapLevel.label + ": " + gapLevel.desc,
+                    "Largest gap: " + byGap[0].name + " (" + areaGap(byGap[0].id).toFixed(1) + " points).",
+                    shared.length ? shared.length + " pair" + (shared.length === 1 ? " was" : "s were") + " answered " + RUBRIC.failAt + " or below by both sides: agreement that the capability is missing, which the gap does not show." : "No pair was answered " + RUBRIC.failAt + " or below by both sides.",
+                    "A gap is the distance between how CX and IT rate the same capability. It measures agreement, never capability.",
+                  ]},
+                  { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ", " + (c.kind === "misaligned" ? "misaligned" : "shared weakness") + ": CX " + c.cx + ", IT " + c.it + " on \"" + c.texts.cx + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No pair reaches the gap line or the shared-weakness line, so the rubric raises no action.", detail: "The area with the largest gap is still the place to look first.", priority: "medium" }] },
+                  { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: next.because + " has the largest gap." }] : [] },
+                  { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
+                  { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each pair scores the gap between its CX and IT answers on a 1 to 5 scale; an area scores the average gap of its pairs and the overall score is the equally weighted average of the five areas. A pair " + RUBRIC.gapAt + " or more points apart is misaligned; a pair answered " + RUBRIC.failAt + " or below on both sides is a shared weakness. Both add their action to the checklist, largest area gap first." },
+                ]} />
+              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Talk through the gaps</a>
+              <a href="/tools/governance-model" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Governance & Operating Model</a>
             </div>
           </div>
         </section>

@@ -89,6 +89,10 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/methodology/cx-it-alignment</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/tools/fcr-leakage</loc>
     <priority>0.8</priority>
   </url>

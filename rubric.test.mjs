@@ -40,7 +40,7 @@ section("0. The engine is sliced live and matches the module");
 const SRC = readFileSync("./src/lib/rubric.js", "utf8");
 const a = SRC.indexOf("/* @engine-start */"), b = SRC.indexOf("/* @engine-end */");
 ok("engine markers present, in order", a > 0 && b > a);
-const E = new Function(SRC.slice(a, b) + "\nreturn { scoreRubric, isAnswer, criterionKey, bandFor };")();
+const E = new Function(SRC.slice(a, b) + "\nreturn { scoreRubric, scorePaired, isAnswer, criterionKey, bandFor };")();
 ok("the slice exports the engine", typeof E.scoreRubric === "function");
 ok("the slice has no import, JSX or DOM access", !/import |<[A-Z]|window\.|document\./.test(SRC.slice(a, b)));
 
@@ -48,6 +48,7 @@ const answersAll = (r, f) => Object.fromEntries(r.dims.flatMap((d, di) => d.crit
 const randomComplete = (r) => answersAll(r, () => pickInt(r.scale.min, r.scale.max));
 
 for (const r of Object.values(RUBRICS)) {
+  if (r.kind === "paired") continue; /* paired rubrics: section P */
   const T = `[${r.id}]`;
   const nCrit = r.dims.reduce((s, d) => s + d.criteria.length, 0);
 
@@ -205,12 +206,85 @@ for (const id of ["cx-maturity", "ai-readiness", "transformation-readiness"]) {
 }
 
 /* --------------------------------------- M. the tools read the rubric */
+section("P. Paired rubrics: the gap is scored, and shared weaknesses are not hidden by it");
+for (const r of Object.values(RUBRICS).filter((x) => x.kind === "paired")) {
+  const T = `[${r.id}]`;
+  const [s1, s2] = r.sides.map((x) => x.id);
+  const pairsAll = (f) => Object.fromEntries(r.dims.flatMap((d) => d.pairs.flatMap((_, i) => [[`${d.id}-${i}-${s1}`, f(d, i, s1)], [`${d.id}-${i}-${s2}`, f(d, i, s2)]])));
+  const randomPairs = () => pairsAll(() => pickInt(r.scale.min, r.scale.max));
+  ok(`${T} has a title, version, publication date and methodology route`, !!r.title && /^\d+\.\d+$/.test(r.version) && r.methodology === `/methodology/${r.id}`);
+  ok(`${T} tool route is a journey node route`, !!JOURNEY[r.id] && JOURNEY[r.id].route === r.route);
+  ok(`${T} two named sides`, Array.isArray(r.sides) && r.sides.length === 2 && s1 !== s2);
+  ok(`${T} fail line and gap line inside the scale`, r.failAt >= r.scale.min && r.failAt < r.scale.max && r.gapAt > 0 && r.gapAt <= r.scale.max - r.scale.min);
+  ok(`${T} a pair cannot be both misaligned and a shared weakness`, r.failAt - r.scale.min < r.gapAt);
+  ok(`${T} limits disclose who answers, gap versus capability, no percentile, no vendor`,
+    r.limits.some((l) => /answers/i.test(l)) && r.limits.some((l) => /never capability/i.test(l)) && r.limits.some((l) => /percentile/i.test(l)) && r.limits.some((l) => /never recommends a vendor/i.test(l)));
+  ok(`${T} gap bands start at 0, are contiguous and cover the largest possible gap`,
+    r.bands[0].min === 0 && r.bands.every((x, i) => i === 0 || x.min === r.bands[i - 1].max) && r.bands[r.bands.length - 1].max > r.scale.max - r.scale.min);
+  for (const d of r.dims) {
+    ok(`${T} ${d.id}: next diagnostic is a journey tool other than itself`, !!JOURNEY[d.next] && d.next !== r.id);
+    d.pairs.forEach((p, i) => ok(`${T} ${d.id}-${i}: both statements and both actions present and distinct`,
+      [p[s1], p[s2], p.align, p.build].every((t) => typeof t === "string" && t.length > 20) && p.align !== p.build && !DASH.test(p.align + p.build + p[s1] + p[s2])));
+  }
+  ok(`${T} rubric text carries no em or en dash`, !DASH.test(JSON.stringify(r)));
+
+  /* Legacy equality: the gap formula and bands CXITAlignment.jsx carried at main 4dde784. */
+  const LEG = [{ min: 0, max: 0.8, label: "Aligned" }, { min: 0.8, max: 1.5, label: "Minor Gaps" }, { min: 1.5, max: 2.5, label: "Significant Gaps" }, { min: 2.5, max: 5, label: "Critical Misalignment" }];
+  ok(`${T} cut points and labels match the legacy table`, LEG.every((l, i) => l.min === r.bands[i].min && l.max === r.bands[i].max && l.label === r.bands[i].label));
+  let same = true, rules = true, order = true, det = true;
+  for (let k = 0; k < 20000; k++) {
+    const ans = randomPairs();
+    const legGap = (d) => { const g = d.pairs.map((_, i) => Math.abs(ans[`${d.id}-${i}-${s1}`] - ans[`${d.id}-${i}-${s2}`])); return g.reduce((x, y) => x + y, 0) / g.length; };
+    const legOverall = r.dims.reduce((x, d) => x + legGap(d), 0) / r.dims.length;
+    const legBand = (LEG.find((l) => legOverall >= l.min && legOverall < l.max) || LEG[LEG.length - 1]).label;
+    const out = E.scorePaired(r, ans);
+    if (Math.abs(out.overall - legOverall) > 1e-12 || out.band.label !== legBand || out.dims.some((d) => Math.abs(d.gap - legGap(r.dims.find((x) => x.id === d.id))) > 1e-12)) same = false;
+    /* Every qualifying pair appears exactly once with the right kind and action; no other pair appears. */
+    const want = [];
+    for (const d of r.dims) d.pairs.forEach((p, i) => {
+      const v1 = ans[`${d.id}-${i}-${s1}`], v2 = ans[`${d.id}-${i}-${s2}`];
+      const kind = Math.abs(v1 - v2) >= r.gapAt ? "misaligned" : Math.max(v1, v2) <= r.failAt ? "shared" : null;
+      if (kind) want.push(`${d.id}-${i}:${kind}:${kind === "misaligned" ? p.align : p.build}`);
+    });
+    const got = out.checklist.map((c) => `${c.criterion}:${c.kind}:${c.action}`);
+    if (got.length !== want.length || want.some((w) => !got.includes(w))) rules = false;
+    /* Largest dimension gap first; within a dimension, misaligned before shared. */
+    const dimGap = Object.fromEntries(out.dims.map((d) => [d.id, d.gap]));
+    for (let i = 1; i < out.checklist.length; i++) {
+      const x = out.checklist[i - 1], y = out.checklist[i];
+      if (dimGap[x.dimension] < dimGap[y.dimension]) order = false;
+      if (x.dimension === y.dimension && x.kind === "shared" && y.kind === "misaligned") order = false;
+    }
+    if (k < 500 && JSON.stringify(E.scorePaired(r, ans)) !== JSON.stringify(out)) det = false;
+  }
+  ok(`${T} 20,000 complete answer sets: overall gap, band and every area gap equal the legacy formula`, same);
+  ok(`${T} 20,000 answer sets: every misaligned and every shared-weakness pair is on the checklist exactly once, and nothing else is`, rules);
+  ok(`${T} checklist order: largest area gap first, misaligned before shared within an area`, order);
+  ok(`${T} scoring is deterministic`, det);
+
+  /* The blind spot a gap alone has: both sides agree the capability is missing. */
+  const low = E.scorePaired(r, pairsAll(() => r.scale.min));
+  ok(`${T} both sides at the floor: the gap reads 0 and the band is the first band`, low.overall === 0 && low.band.id === r.bands[0].id);
+  ok(`${T} both sides at the floor: every pair is raised as a shared weakness`, low.checklist.length === r.dims.reduce((x, d) => x + d.pairs.length, 0) && low.checklist.every((c) => c.kind === "shared"));
+  const mid = E.scorePaired(r, pairsAll(() => r.failAt + 1));
+  ok(`${T} both sides agree above the fail line: nothing is raised`, mid.overall === 0 && mid.checklist.length === 0);
+  const far = E.scorePaired(r, pairsAll((d, i, side) => (side === s1 ? r.scale.max : r.scale.min)));
+  ok(`${T} opposite answers: the largest gap, the last band, every pair misaligned`, far.overall === r.scale.max - r.scale.min && far.band.id === r.bands[r.bands.length - 1].id && far.checklist.every((c) => c.kind === "misaligned"));
+
+  /* Partial and invalid answers claim nothing. */
+  const part = E.scorePaired(r, { [`${r.dims[0].id}-0-${s1}`]: 5 });
+  ok(`${T} one answer: no overall, no band, no next diagnostic, no checklist`, part.complete === false && part.overall === null && part.band === null && part.nextDiagnostic === null && part.checklist.length === 0);
+  const bad = pairsAll(() => 3); bad[`${r.dims[0].id}-0-${s1}`] = 9; bad[`${r.dims[0].id}-1-${s2}`] = 2.5;
+  ok(`${T} an answer off the scale or not whole counts as unanswered`, E.scorePaired(r, bad).complete === false);
+  ok(`${T} a completed set names a journey tool as the next diagnostic`, !!JOURNEY[E.scorePaired(r, randomPairs()).nextDiagnostic.tool]);
+}
+
 section("M. Each assessment scores through the engine and publishes its rubric");
 const APP = readFileSync("./App.jsx", "utf8");
-for (const [id, file] of [["cx-maturity", "CXMaturity.jsx"], ["ai-readiness", "AIReadiness.jsx"], ["transformation-readiness", "TransformationReadiness.jsx"]]) {
+for (const [id, file] of [["cx-maturity", "CXMaturity.jsx"], ["ai-readiness", "AIReadiness.jsx"], ["transformation-readiness", "TransformationReadiness.jsx"], ["cx-it-alignment", "CXITAlignment.jsx"]]) {
   const src = readFileSync("./" + file, "utf8");
-  ok(`${file}: imports the engine and its rubric`, /import \{ scoreRubric[^}]*\} from "\.\/src\/lib\/rubric"/.test(src) && src.includes(`/src/lib/rubrics/`));
-  ok(`${file}: no local band table or score formula`, !/const LEVELS = \[|const getTier|\.reduce\(\(a, d\) => a \+ dimScore/.test(src));
+  ok(`${file}: imports the engine and its rubric`, /import \{ (scoreRubric|scorePaired)[^}]*\} from "\.\/src\/lib\/rubric"/.test(src) && src.includes(`/src/lib/rubrics/`));
+  ok(`${file}: no local band table or score formula`, !/const LEVELS = \[|const GAP_LEVELS = \[|const getTier|const getGapLevel|\.reduce\(\(a, d\) => a \+ dimScore/.test(src));
   ok(`${file}: renders the checklist and the next diagnostic`, /R\.checklist\.map/.test(src) && /Next diagnostic:/.test(src));
   ok(`${file}: links the published rubric`, /href=\{RUBRIC\.methodology\}/.test(src));
   ok(`${file}: the PDF carries the checklist, the limits and the method`, /title: "Action Checklist"/.test(src) && /title: "What This Assessment Cannot Tell You"/.test(src) && /title: "Method"/.test(src));
