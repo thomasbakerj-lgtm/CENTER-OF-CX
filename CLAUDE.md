@@ -6,7 +6,9 @@ Written 22 September 2026 at the close of chat session 20. Re-verified against l
 `main` the same day: TCOCalculator.jsx, journey.js and BusinessCaseBuilder.jsx md5s
 match the baseline below. Re-verified in Claude Code on 23 September 2026 at `main`
 76f5248: all 20 md5s match, suite 18,018 green, build and prerender green. This file
-and `docs/` were committed on 23 September 2026.
+and `docs/` were committed on 23 September 2026. S22 (23 Sep, branch
+`claude/website-project-review-iuz1uk`, not yet on `main`): suite 18,031 green;
+`TCOCalculator.jsx` and `tco.report.mjs` changed, md5s updated below.
 
 ---
 
@@ -53,7 +55,7 @@ second, invest third, automate last.
 | `src/lib/metrics.js` | 37f924dfd1387e52f7da749537d1f940 |
 | `src/lib/guards.js` | a640b502cbee94ebd08687656ba7d681 |
 | `src/lib/type.js` | fde48210b6eac47c307681b3b90adba9 |
-| `TCOCalculator.jsx` | d6cd022364855d52495a38e23b0481fd |
+| `TCOCalculator.jsx` | 5329c88fa10063473c9710f8acfbbd27 (S22; `main` still d6cd022364855d52495a38e23b0481fd) |
 | `BusinessCaseBuilder.jsx` | 46382fac41ff92601347c07887f9395a |
 | `StaffingCalculator.jsx` | 6f956589657ea7bfe8b7a3a7dab76dc1 |
 | `CostPerContactCalculator.jsx` | 815a2bd4a1b23537f8ec413112e38944 |
@@ -80,24 +82,29 @@ one per session.
 Closed in the walk: Attrition, License Gap, Staffing, CPC, Channel Shift, AI
 Deflection, FCR Leakage, TCO (steps 1 to 5). See the tracker change log, section 9.
 
-**Open now: 11B TCO, fix the void defects found by the step 6 live check (S21).**
-Step 6 ran 23 Sep 2026 against production. Normal PDF reconciles to the dollar.
-A negative agent count does not void (the guard floors it at 1 and discloses it);
-the reachable void is a non-finite output, e.g. `agents: 1e308` by scenario link.
-The top ReportActions void block, the on-page strip and the review payload's
-`confidence: VOID` are correct. Defects:
-- **D15.** TCO builds its own "Confidence and Open Issues" PDF section. On a void it
-  prints "Evidence axis: Void", "Completeness axis: Void (2 checks failed)" (three
-  invariants failed) and grade language ("Finance-grade is blocked"). Section 5.4:
-  Void is never written into an axis. `tco.report.mjs` lines 614 and 616 assert
-  this text, so the gate encodes the defect.
-- **D16.** Every TCO PDF carries two confidence sections. Section 5.6 item 2: one
-  section, built in ReportActions, never assembled in the tool. TCO only.
-- **D17.** A void still renders `$InfinityM`, `$∞`, `NaN%` and `3.3e+306 hires` in the
-  UI, PDF and review summary. The analyst read draws false conclusions from NaN
-  ("unusually tech-heavy", "no haircut applied") and the review signal
-  `booked_at_full_theoretical` reads true. The harness "no Infinity" assertion
-  never meets a reachable void because no case in `tco.report.mjs` produces one.
+**Open now: 11B TCO, deploy the S22 fix and re-run the live check on production.**
+S21 ran step 6 against production: the normal PDF reconciled to the dollar; the void
+exposed D15 to D17. A negative agent count does not void (the guard floors it at 1
+and discloses it); the reachable void is a non-finite output, e.g. `agents: 1e308`.
+
+S22 fixed all three on the branch:
+- **D15, D16.** TCO no longer builds its own confidence section. ReportActions owns
+  the only one; TCO's section is now "Open Issues" and restates no axis. A void run
+  carries no Open Issues section.
+- **D17.** A void renders no figure anywhere: the page shows a void notice with the
+  failed check and remedy in place of results, flags, analyst read and savings; the
+  PDF keeps inputs, methodology and next steps only; the review summary states the
+  void; the wire withholds every property derived from a figure (severity,
+  booked_at_full_theoretical, has_optimization_levers, labor_dominant, spend_band).
+- **Gate.** `tco.report.mjs` section 7 now asserts no tool confidence section and no
+  axis rows (the old lines 614 and 616 pinned the defect). New section 8 renders the
+  reachable void from the shipped JSX. Mutation check: the old TCO file fails 48
+  assertions; the fix passes 951.
+- Verified locally with the live harness against `vite preview`: void PDF is two pages
+  with no figure, NaN, Infinity or grade claim; normal PDF figures are unchanged.
+
+To close 11B TCO: merge to `main` (every push to `main` deploys), then re-run the
+normal and voided live PDFs against contactcentercx.com.
 Browser check tooling: Playwright from the scratchpad, Chromium pinned to the proxy
 CA with `--ignore-certificate-errors-spki-list`, PostHog, Vercel Analytics and
 Formspree intercepted so no test event or review reaches production data.
@@ -159,6 +166,25 @@ checklist and routing to an SE plus consultant conversation (accepted lead-gen
 triggers). Experience Scorecard removed for now. CX IT Alignment kept, deprioritized.
 Assessments are a distinct asset class from calculators. Governance must appear on
 the site even if the current Governance Model tool is the wrong vehicle.
+
+**TB decisions, 23 Sep 2026 (S22), on the CCaaS research integration:**
+1. Order: TCO fix, then research Stages 1 and 2, then Business Case Builder.
+2. Remove Phase 1 numeric scores and tiers from public CCaaS surfaces (integrity
+   freeze, Stage 2).
+3. The 16 site CCaaS vendors without Phase 2 research stay, labelled "Phase 1
+   context, not yet researched under the current methodology".
+4. One `CLAUDE.md`: engineering brief plus research operating law (section 13).
+5. The GitHub repo is **public** (verified S22). The raw research corpus is never
+   committed. Stage 1 must keep it out of the repo and ship only filtered, publishable
+   derived data. Proposal for TB: build-time ingestion from a private location.
+
+Research integration plan (architecture-readiness report, S22): Stage 1 corpus
+loader, schema check, normalization on read, publishability filter and the 20
+required tests, no UI change; Stage 2 integrity freeze; Stage 3 Vendor Intelligence
+pages for the 12 researched vendors; Stage 4 Vendor Match v3, class-scoped, blocked
+on the CCaaS Next-Phase Research Strategy Handoff (.docx, not yet received); Stage 5
+Market Position Index, blocked on capture data (`31_MARKET_POSITION_CAPTURE` is
+empty); Stage 6 later categories on their own methodologies.
 
 **The one thing to prove first:** a user who finishes one diagnostic runs a second.
 Cost: 3-02 and 11-04, no money.
@@ -405,11 +431,257 @@ dashboard, the 12-phase growth program.
 
 1. Done 23 Sep 2026: `CLAUDE.md` and `docs/` committed, change log appended,
    `SHIPPING.md` drafted. Open: TB approval of `SHIPPING.md`, 1-12 renumber.
-2. Done 23 Sep 2026 (S21): TCO step 6 live check ran; found D15 to D17.
-   **Next:** fix D15 to D17, re-run the live check. Closes 11B TCO.
-3. Business Case Builder retrofit with 1-12. Closes WS1.
+2. Done 23 Sep 2026 (S21, S22): TCO live check found D15 to D17; S22 fixed them on
+   the branch. **Next:** merge to `main`, re-run the live check on production.
+   Closes 11B TCO.
+3. Research Stage 1 and Stage 2 (TB order, S22).
+4. Business Case Builder retrofit with 1-12. Closes WS1.
 
 Then the reachability batch.
 
 Prove behavior first. Ration effort as strictly as money. Reachability precedes
 rigor. Instrumentation precedes proof. Quality is the moat. Independence is the product.
+
+---
+
+## 13. Research program operating law
+
+Merged 23 Sep 2026 (S22) from TB's research `CLAUDE.md`. It governs research data,
+vendor surfaces, Vendor Match and the Market Position Index. Sections 0 to 12 govern
+the calculators and engineering. Where both speak, the stricter rule applies.
+
+Read `docs/research/CCCX_Claude_Code_Master_Handoff_v1.0.md` (once landed; until then the claude.ai project) before changing data models, scoring logic, ranking logic, research ingestion, vendor pages, or Vendor Match.
+
+### Product thesis
+
+The Center of CX is a buyer decision-intelligence system, not a feature-comparison site.
+
+The product must answer:
+- what a platform can actually do;
+- when that capability matters;
+- what must be true for success;
+- where and why the architecture or operating model breaks;
+- whether implementation can mitigate the break;
+- what that mitigation adds in services, cost, dependency, change burden and risk;
+- who owns complexity after go-live;
+- what evidence the buyer should demand;
+- when another architecture becomes more rational.
+
+Operating principle: **Research individually. Validate independently. Normalize collectively.**
+
+### Authority order
+
+When sources conflict, use this order:
+
+1. User/project Research Operating Standard.
+2. Latest category `Next-Phase Research Strategy Handoff`.
+3. Latest category Master Research Corpus JSON.
+4. `CCCX_Market_Position_Index_and_Tool_Separation_Rules_Addendum_1.docx` for public-surface/tool-separation rules.
+5. Current Master Research Corpus XLSX for human audit.
+6. Vendor readouts as narrative summaries only.
+7. Phase 1 workbooks as historical baselines/hypothesis sources only.
+8. Current source evidence used to validate claims.
+
+Never allow a lower-authority artifact to silently override a higher-authority artifact.
+
+### Current CCaaS checkpoint
+
+- Schema: v1.0.
+- Schema status: locked after three-vendor calibration.
+- Current checkpoint: `PRODUCTION_COHORT2_DIALPAD_COMPLETE`.
+- 12 vendors completed: 3 calibration + 5 Production Cohort 1 + 4 Production Cohort 2.
+- Production Cohort 2 is 4/5 complete: Zoom, 8x8, Odigo, Dialpad.
+- Cohort 2 vendor 5 is **not yet locked**. Do not infer or choose it in code.
+- Phase 2 numeric ratings remain locked/unapplied.
+- After vendor 5: run the required five-vendor normalization gate before any methodology/rating change.
+- No schema change was approved for Dialpad.
+- Do not silently change competitive-class status/definitions. In the current corpus, classes 001 to 003 are calibrated/locked; later classes may still carry draft metadata pending normalization.
+
+### System of record
+
+`CCaaS_Master_Research_Corpus_v1.0_Production_Cohort2_Dialpad_Complete.json` is authoritative.
+
+The XLSX is the human audit/research workbook. Narrative markdown/readouts are secondary.
+
+Do not scrape narrative output back into the corpus. Do not treat a UI-derived value as research evidence.
+
+### Research genealogy
+
+Preserve this chain:
+
+**Phase 1 Baseline → Claim Migration Ledger → Evidence Ledger → Validated Finding → Rating/Score Delta → Published Decision Intelligence → Continuous Revalidation**
+
+Phase 1 is never silently overwritten.
+
+### Five decision layers must remain separate
+
+Never collapse these into one uncontrolled score:
+
+1. Product Capability
+2. Evidence Confidence
+3. Buyer Fit
+4. Production / Operating Risk
+5. Implementation / Change implications
+
+**Unknown or unverified is not weak.** Missing public evidence raises proof burden; it does not become a capability penalty.
+
+### Competitive-class law
+
+Do not force unlike vendors into a universal peer set. Enterprise suites, programmable/hyperscaler platforms, unified-stack midmarket vendors, sovereignty-led platforms, resilience/orchestration specialists, regional platforms and migration-centric products can solve different primary jobs.
+
+Class assignment is context for comparison, not a hidden quality score.
+
+### Three truth surfaces, hard separation
+
+#### Market Position Index = market truth
+Answers: who is established in this market, what do they sell, and how did they get here?
+
+#### Vendor Intelligence = research truth
+Answers: what is the platform, what can it do, where does it break, what does it take to implement and own?
+
+#### Vendor Match = buyer truth
+Answers: which platforms are rational for this buyer, in what order, and what is the buyer signing up for?
+
+#### Absolute separation law
+- Market Position values, components, bands and ordinals must never feed Vendor Match.
+- Vendor Match outputs must never feed Market Position.
+- Phase 1 scores never feed Vendor Match.
+- Score-delta governance records never feed Vendor Match.
+- Facts may be reused only when independently represented as atomic current claims with their own evidence.
+- Pass facts across tools, never another tool's verdict/rank/recommendation.
+- Every new tool declares one truth type. If it produces two truth types, treat it as two tools.
+
+### Market Position Index rules
+
+The index uses five presence dimensions, each 0 to 4, equally weighted:
+- Market Footprint
+- Customer Evidence
+- Product and Solution Breadth
+- Ecosystem and Interoperability
+- Commercial and Operating Maturity
+
+Rules:
+- scope ranking to competitive class;
+- show five components and dates;
+- no composite decimal score presented as a buying verdict;
+- where component sums differ by one point or less, show a tied position;
+- use position bands;
+- publish methodology, inputs, exclusions, refresh cadence and known limitations;
+- disclose that four of five dimensions correlate with company scale;
+- analyst inclusion may be displayed as a dated fact but never scored;
+- never use estimated market share, analyst placements, star ratings/review averages, review text, sponsorship/commercial relationships, web traffic/social following, Vendor Match output, buyer-session data or Phase 2 atomic capability findings as index inputs.
+
+The current workbook's `31_MARKET_POSITION_CAPTURE` has no populated records. Do not fabricate them.
+
+### Evidence ingestion rules
+
+Every ingested artifact must carry:
+- source/evidence tier;
+- retrieval/session date;
+- confidentiality state;
+- publication-permission state.
+
+If confidentiality has not been determined, treat the artifact as confidential.
+
+Evidence is a separate reusable object. Claims and evidence have a many-to-many relationship.
+
+Public product/technical docs can support current capability claims. Marketing collateral creates vendor-stated claims and questions. Private demos/briefings, RFP/RFI responses, buyer transcripts and field intelligence have restricted publication rules. Never publish confidential material or private-source claims without permitted corroboration.
+
+Nothing ingested changes an existing rating until it has passed through claim migration/evidence validation and the appropriate completion/normalization governance.
+
+### Research state rules
+
+Explicitly preserve maturity states such as:
+- Preview
+- Beta
+- Early Access / EAP
+- GA
+- current marketed state where GA is not established
+
+Do not award GA/production credit to roadmap or Early Access functionality.
+
+### Vendor completion
+
+A vendor is not complete because a narrative exists. Current CCaaS requires the locked 20/20 completion gate. No score/rating or market-facing current-state change should publish before completion.
+
+### Schema/change governance
+
+Do not change the schema because one vendor is awkward.
+
+Schema/framework changes:
+- happen only at calibration or normalization gates;
+- are versioned;
+- identify every prior record needing back-application;
+- preserve previous definitions and score lineage.
+
+Build derived view models if the UI needs another shape. Do not mutate the authoritative corpus schema merely for presentation convenience.
+
+### Build architecture expectations
+
+Prefer:
+- immutable/raw current corpus input;
+- schema validation at ingestion;
+- derived selectors/view models per truth surface;
+- explicit field-consumer permissions;
+- stale/refresh-state handling;
+- publishability/confidentiality filtering;
+- source/evidence drill-through;
+- competitive-class-aware comparison;
+- deterministic rail tests preventing verdict leakage.
+
+Do not:
+- hard-code a universal vendor ranking;
+- convert null/unknown/unverified into zero;
+- average structural risks away;
+- use company size as a shortcut for buyer fit;
+- infer missing evidence;
+- silently normalize IDs or rewrite historical records;
+- expose confidential/non-publishable evidence on public surfaces.
+
+### Required automated acceptance tests
+
+At minimum test that:
+1. Vendor Match cannot import/read any Market Position value, component, band or ordinal.
+2. Market Position computation receives no Vendor Match/session output.
+3. Phase 1 baseline fields cannot become current match inputs.
+4. Score-delta records cannot become buyer-fit inputs.
+5. Evidence Confidence remains separate from capability/fit.
+6. Unknown/unverified does not coerce to weak/zero.
+7. Competitive class is applied before peer ordering/comparison.
+8. Stale material claims are flagged.
+9. Non-publishable/confidential evidence cannot render publicly.
+10. Preview/Beta/EAP state is preserved and cannot render as GA.
+11. Durable IDs remain stable through transformations.
+12. Schema version is checked before ingest.
+13. Completion-gate state is checked before current vendor publication.
+14. Phase 2 numeric ratings do not render while `phase2_ratings_locked=true`.
+15. Index near-ties are displayed as ties.
+16. Every index component/rating and material vendor claim can expose a last-validated date.
+17. No analyst ranking/review content is reproduced into scoring or public research.
+18. New tools declare truth type and their allowed incoming data rail.
+
+### Category execution order
+
+1. CCaaS
+2. IVA + Conversational AI
+3. Agent Assist
+4. WFM/QM
+5. Experience Analytics + VoC
+6. CX Orchestration + Workflow
+7. Digital Engagement
+8. Payments, Identity & Trust
+
+Do not force one category's criteria or scoring model onto another category. Reuse the research control system, not the category-specific decision logic.
+
+### Before coding
+
+First report:
+- which authority files you read;
+- the current checkpoint/schema version;
+- which truth surface the requested feature belongs to;
+- which corpus fields it may read;
+- what it must not read;
+- whether any proposed change is presentation-only or a methodology/schema change;
+- what tests will prove separation and lineage are preserved.
+
+If a requested code change appears to require a research-methodology or schema change, stop and flag it rather than silently implementing it.

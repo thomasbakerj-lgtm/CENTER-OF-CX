@@ -279,6 +279,8 @@ function allText(doc) {
 }
 const summaryValue = (doc, label) => (doc.summary.find(x => x.label === label) || {}).value;
 const sectionByTitle = (doc, t) => doc.sections.find(sec => sec.title === t);
+/* A row that restates an axis or the headline. ReportActions owns those (Section 5.6). */
+const AXIS_ROW = /^(Headline:|Evidence axis:|Realization axis:|Completeness axis:|Export confidence:)/;
 
 const DOCS = {};
 for (const k of Object.keys(SETS)) {
@@ -605,19 +607,60 @@ console.log("\n7. A self-declared basis never reaches Finance-grade");
   A("F: decision ready needs graded evidence, never a declared basis", F.signals.decision_ready_signal === false);
   A("A: an estimated cost basis grades Directional", A_.G.confidence === "Directional");
   A("F and A differ only in the cost basis", F.r.annual === A_.r.annual);
+  /* One confidence section per document (doctrine Section 5.6 item 2). ReportActions
+     builds it from the grade; the tool payload lists open issues and never restates an
+     axis. Before S21 this block asserted the tool's own axis rows, including "Evidence
+     axis: Void", which pinned the defect D15 rather than guarding against it. */
   for (const [k, doc] of Object.entries(DOCS)) {
-    const sec = doc.sections.find((x) => x.title === "Confidence and Open Issues");
-    A(`${k}: the confidence section exists`, !!sec);
-    if (!sec) continue;
     const g = doc.G;
-    A(`${k}: the headline row prints the graded headline`, sec.items[0] === `Headline: ${g.confidence}${g.voided ? "" : ", bound by " + g.gradeObj.boundBy}.`);
-    A(`${k}: the evidence row prints the graded evidence axis`, sec.items[1] === `Evidence axis: ${g.voided ? "Void" : g.evidence}.`);
-    A(`${k}: the realization row states N/A and its reason`, sec.items[2].indexOf("Realization axis: not applicable.") === 0 && (g.voided || /cost baseline/.test(sec.items[2])));
-    A(`${k}: the completeness row prints the graded axis`, sec.items[3].indexOf(`Completeness axis: ${g.voided ? "Void" : g.completeness}`) === 0 && (g.blockers.length ? sec.items[3].indexOf(g.blockers.length + " check") > 0 : /model is whole/.test(sec.items[3])));
-    A(`${k}: the subtitle, the row and the export agree`, doc.subtitle.endsWith(g.confidence) && sec.items[0].indexOf(g.confidence) > 0);
+    A(`${k}: no tool section is a confidence section`, !doc.sections.some((x) => /confidence/i.test(x.title)));
+    A(`${k}: no tool row restates an axis or the headline`, !doc.sections.some((x) => (x.items || []).some((t) => typeof t === "string" && AXIS_ROW.test(t))));
+    const sec = doc.sections.find((x) => x.title === "Open Issues");
+    A(`${k}: the open issues section exists`, !!sec);
+    if (!sec) continue;
+    A(`${k}: open issues opens with the declared cost basis`, sec.items[0].indexOf(`Cost basis is ${doc.d.costBasis}`) === 0);
+    A(`${k}: the subtitle and the export agree`, doc.subtitle.endsWith(g.confidence));
     A(`${k}: the grade carries no defect`, g.voided || g.gradeObj.defects.length === 0);
-    A(`${k}: no row names the retired grade`, !sec.items.some((t) => /Export confidence:/.test(t)));
   }
+}
+
+/* ---- 8. the void document (S21 D15 to D17) ---- */
+/* The reachable void, found by the S21 live check: a scenario link carrying a driver
+   no finite arithmetic survives. A negative count is corrected by the guard (Set G)
+   and never voids. The void must state its invariant and remedy through ReportActions
+   and nothing else: no figure, no reading of a figure, no grade word, and no wire
+   property derived from a figure. */
+console.log("\n8. the void document");
+{
+  const V = render({ label: "Agents 1e308 through a scenario link: the reachable void", stance: "expected", mut: () => ({ agents: 1e308 }) });
+  const text = allText(V);
+  A("V: the case voids", V.G.voided === true && V.G.confidence === "Void");
+  A("V: the grade object is the void treatment", CONF.isVoid ? CONF.isVoid(V.G.gradeObj) : V.G.gradeObj.headline === null);
+  A("V: the void names its failed invariant", V.G.invariants.length >= 1 && V.G.gradeObj.invariant.length > 10);
+  A("V: the void carries a remedy", typeof V.G.gradeObj.remedy === "string" && V.G.gradeObj.remedy.length > 10);
+  A("V: the document prints no NaN", !/NaN/.test(text));
+  A("V: the document prints no Infinity", !/Infinity/.test(text));
+  A("V: the document prints no infinity sign", text.indexOf(String.fromCharCode(0x221e)) < 0);
+  A("V: the document prints no money figure", !/\$\d/.test(text));
+  /* Methodology states the grading rule in general terms; every other line of a void
+     document must claim no grade. */
+  const claimText = allText({ ...V, sections: V.sections.filter((x) => x.title !== "Methodology") });
+  A("V: the document claims no grade outside the methodology", !/Directional|Planning-grade|Finance-grade/.test(claimText));
+  A("V: no row restates an axis", !V.sections.some((x) => (x.items || []).some((t) => typeof t === "string" && AXIS_ROW.test(t))));
+  for (const t of ["Open Issues", "TCO Summary", "3-Year Projection", "Cost Reconciliation", "Cost Distribution", "Analyst Read", "Optimization Opportunities"])
+    A(`V: the ${t} section is withheld`, !sectionByTitle(V, t));
+  A("V: the inputs are still shown so the cause can be found", !!sectionByTitle(V, "Organization Profile"));
+  A("V: the methodology is still shown", !!sectionByTitle(V, "Methodology"));
+  A("V: the next steps are still shown", !!sectionByTitle(V, "Next Steps"));
+  A("V: the summary states the void and carries no figure", V.summary.some((x) => /^Void/.test(x.value)) && !V.summary.some((x) => /\$\d|NaN|Infinity/.test(String(x.value))));
+  for (const p of ["severity", "booked_at_full_theoretical", "has_optimization_levers", "labor_dominant", "spend_band"])
+    A(`V: the wire withholds ${p}, which reads a figure`, !(p in V.signals));
+  A("V: the wire states the void class", V.signals.confidence_class === "Void");
+  A("V: the wire never marks a void decision ready", V.signals.decision_ready_signal === false);
+  /* The same payload on a valid run still publishes every property, so the gate is
+     the void state and nothing else. */
+  for (const p of ["severity", "booked_at_full_theoretical", "has_optimization_levers", "labor_dominant", "spend_band"])
+    A(`A: the wire still publishes ${p}`, p in DOCS.A.signals);
 }
 
 /* ---------------------------------------------------------------- result */
