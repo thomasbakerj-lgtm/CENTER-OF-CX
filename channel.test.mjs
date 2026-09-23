@@ -442,7 +442,7 @@ console.log("\n13. rail contract");
 {
   A("the tool pulls with getPrimitiveWithSource, not getPrimitive", /getPrimitiveWithSource\(/.test(SRC) && !/[^h]getPrimitive\(/.test(SRC));
   A("sourcedExternally no longer reaches the grade (defect class 2)", !/sourcedExternally/.test(SRC.replace(/\/\*[\s\S]*?\*\//g, "")));
-  A("the prefill records every value with the tool that wrote it", /seen\[field\] = \{ value: next\[field\], src: res\.sourceTool \|\| "" \}/.test(SRC));
+  A("the prefill records every value with the tool that wrote it and its origin grade", /seen\[field\] = \{ value: next\[field\], src: res\.sourceTool \|\| "", origin: res\.railOrigin \|\| null \}/.test(SRC));
   A("origins are captured at mount, before this tool publishes", /setPre\(seen\)/.test(SRC));
   A("pull keys stay as string literals, so the static rail audit can see them",
     /getPrimitiveWithSource\("monthlyContacts"\)/.test(SRC) && /getPrimitiveWithSource\("agentHourly"\)/.test(SRC));
