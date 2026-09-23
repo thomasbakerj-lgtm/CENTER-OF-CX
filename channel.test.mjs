@@ -463,19 +463,24 @@ console.log("\n14. 11B grading layer and registry");
   const owned = benchmarksForTool(TOOL).map(e => e.id);
   const readIds = new Set([...ids, ...df.map(f => `channel.default.${f}`)]);
   A("the tool reads its benchmarks from the registry", ids.length >= 12);
-  A("the defaults read every field by template", df.length === 27 && /const dflt = \(f\) => benchmark\(`channel\.default\.\$\{f\}`\);/.test(SRC));
+  A("the defaults read every remaining field by template", df.length === 25 && /const dflt = \(f\) => benchmark\(`channel\.default\.\$\{f\}`\);/.test(SRC));
   A("every id the tool reads is registered", [...readIds].every(id => id in BENCHMARK_SOURCES));
-  A("every id the tool reads belongs to this tool", [...readIds].every(id => BENCHMARK_SOURCES[id].tool === TOOL));
+  A("every id the tool reads is owned by this tool or shared", [...readIds].every(id => [TOOL, "shared"].includes(BENCHMARK_SOURCES[id].tool)));
   A("every registered entry for this tool is read", owned.every(id => readIds.has(id)));
-  A("the registry holds 39 entries for this tool", owned.length === 39);
-  A("the registry splits 35 heuristics, 1 market and 3 thresholds",
-    benchmarksForTool(TOOL).filter(e => e.kind === "heuristic").length === 35 && benchmarksForTool(TOOL).filter(e => e.kind === "market").length === 1 && benchmarksForTool(TOOL).filter(e => e.kind === "threshold").length === 3);
+  A("the registry holds 36 entries for this tool", owned.length === 36);
+  A("the registry splits 33 heuristics and 3 thresholds, with the market wage now shared",
+    benchmarksForTool(TOOL).filter(e => e.kind === "heuristic").length === 33 && benchmarksForTool(TOOL).filter(e => e.kind === "market").length === 0 && benchmarksForTool(TOOL).filter(e => e.kind === "threshold").length === 3);
   A("no default ships a bare number", !/:\s*\d/.test(SRC.slice(SRC.indexOf("const BASE = {"), SRC.indexOf("};", SRC.indexOf("const BASE = {")))));
   A("no curve, planning constant or threshold ships bare",
     !/c: 0\.\d|22 \* 8|\* 0\.3\)|deptEffRaw < 2|<= 0\.10|be < 1\b|be < 1 /.test(SRC));
-  A("decision H: the default wage is the BLS May 2024 market median, this tool's own entry",
-    BASE.hourlyRate === 20.59 && BENCHMARK_SOURCES["channel.wage.median"].kind === "market"
-    && /May 2024/.test(BENCHMARK_SOURCES["channel.wage.median"].source) && /43-4051/.test(BENCHMARK_SOURCES["channel.wage.median"].source));
+  A("J11 closes decision H: the default wage is the one shared BLS market median",
+    BASE.hourlyRate === 20.59 && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
+    && BENCHMARK_SOURCES["market.wage.agent"].kind === "market" && !("channel.wage.median" in BENCHMARK_SOURCES)
+    && /May 2024/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
+  A("J10: both overheads are shared load concepts, not multiples of this tool's own",
+    BASE.loadedOH === 1.30 && BASE.marginalOH === 1.18
+    && BENCHMARK_SOURCES["load.benefits"].tool === "shared" && BENCHMARK_SOURCES["load.marginal"].tool === "shared"
+    && !("channel.default.loadedOH" in BENCHMARK_SOURCES) && !("channel.default.marginalOH" in BENCHMARK_SOURCES));
   A("every heuristic is labelled as one", benchmarksForTool(TOOL).filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
   A("every threshold states a rationale", benchmarksForTool(TOOL).filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
   A("the curves print the registry values", CURVE.mild.c === benchmark("channel.curve.mild") && CURVE.moderate.c === benchmark("channel.curve.moderate") && CURVE.severe.c === benchmark("channel.curve.severe"));
