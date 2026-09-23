@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal, guardLine } = await import("./src/lib/guards.js");
 const CONF = await import("./src/lib/confidence.js");
+const BENCHMOD = await import("./src/lib/benchmarks.js");
 
 const SRC = readFileSync(new URL("./TCOCalculator.jsx", import.meta.url), "utf8");
 
@@ -24,9 +25,9 @@ const region = slice("/* @engine-start", "/* @engine-end */");
 const BENCH = { occupancy: { cautionMax: 0.87 } };
 
 const mod = new Function(
-  "BENCH", "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "TOOL_ID",
-  `${region}\nreturn { computeTCO, buildOptimizations, buildAnalystRead, reconcile, gradeTCO, tcoFieldOrigin, tcoDefaults, TCO_OPS, TCO_COST, TCO_CHECKS, TCO_DOMAIN, BASE, INDUSTRY, STANCE, n };`
-)(BENCH, createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, "tco-calculator");
+  "BENCH", "benchmark", "benchmarksForTool", "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "TOOL_ID",
+  `${region}\nreturn { computeTCO, buildOptimizations, buildAnalystRead, reconcile, gradeTCO, tcoFieldOrigin, tcoDefaults, TCO_OPS, TCO_COST, TCO_CHECKS, TCO_DOMAIN, BASE, INDUSTRY, STANCE, BENCHMARK_SOURCES, n };`
+)(BENCH, BENCHMOD.benchmark, BENCHMOD.benchmarksForTool, createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, "tco-calculator");
 
 const { computeTCO, buildOptimizations, buildAnalystRead, reconcile, gradeTCO, tcoFieldOrigin, tcoDefaults, TCO_OPS, TCO_COST, TCO_CHECKS, TCO_DOMAIN, BASE, INDUSTRY, STANCE } = mod;
 
@@ -488,6 +489,63 @@ section("11B grading: evidence by origin, realization N/A, completeness by valid
   ok("the sweep never voids a clean engine run", voids === 0, `${voids} voided`);
   ok("Planning-grade is reachable in the sweep", plan > 0, `${plan} of 6000`);
   console.log(`  sweep: ${plan} of 6000 at Planning-grade, ${voids} void`);
+}
+
+// ------------------------------------------------- registry gate (J10, J11, step 2)
+section("benchmark registry: every constant this tool ships is registered");
+{
+  const SRCTXT = SRC;
+  const { BENCHMARK_SOURCES, benchmarksForTool, benchmark: bm } = BENCHMOD;
+  const TOOL = "tco-calculator";
+  const readIds = [...SRCTXT.matchAll(/benchmark\("([^"]+)"\)/g)].map((m) => m[1]);
+
+  ok("the tool reads the registry rather than shipping bare constants", readIds.length > 0);
+  ok("every id the tool reads is registered", readIds.every((id) => id in BENCHMARK_SOURCES),
+    readIds.filter((id) => !(id in BENCHMARK_SOURCES)).join(", "));
+  ok("every id the tool reads is owned by this tool or shared",
+    readIds.every((id) => [TOOL, "shared"].includes(BENCHMARK_SOURCES[id].tool)));
+  ok("the registry holds 16 entries for this tool", benchmarksForTool(TOOL).length === 16, `${benchmarksForTool(TOOL).length}`);
+  ok("every heuristic is labelled as one", benchmarksForTool(TOOL).filter((e) => e.kind === "heuristic").every((e) => /heuristic/i.test(e.source)));
+  ok("every threshold states a rationale", benchmarksForTool(TOOL).filter((e) => e.kind === "threshold").every((e) => e.rationale.length > 40));
+  ok("the one market entry names its source and date", benchmarksForTool(TOOL).filter((e) => e.kind === "market").every((e) => /Bureau of Labor Statistics/.test(e.source)));
+
+  // J10. Four load concepts exist, three shared and one owned, and no fifth ships bare.
+  ok("J10: the agent benefits load is the shared concept", BASE.agentBenefitsPct === bm("load.benefits") - 1 && BENCHMARK_SOURCES["load.benefits"].tool === "shared");
+  ok("J10: the salaried load is registered to this tool, not hardcoded",
+    bm("tco.load.salaried") === 1.25 && BENCHMARK_SOURCES["tco.load.salaried"].tool === TOOL && !/\* 1\.25 \* HRS/.test(SRCTXT));
+  ok("J10: no bare 1.35 multiple survives anywhere in this tool", !/1\.35/.test(SRCTXT));
+  ok("J10: the three shared load concepts are named and distinct",
+    bm("load.benefits") === 1.30 && bm("load.marginal") === 1.18 && bm("load.fullyLoaded") === 1.95);
+
+  // J11. One shared wage entry, and this tool's industry wages are registered heuristics.
+  ok("J11: the shared market wage is the BLS May 2024 median",
+    bm("market.wage.agent") === 20.59 && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
+    && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
+  ok("J11: the three per-tool wage copies are retired",
+    !("staffing.wage.median" in BENCHMARK_SOURCES) && !("cpc.wage.median" in BENCHMARK_SOURCES) && !("channel.wage.median" in BENCHMARK_SOURCES));
+  const inds = ["general", "financial", "healthcare", "retail", "telecom", "insurance", "bpo"];
+  ok("J11: all seven industry wages are registered heuristics",
+    inds.every((k) => BENCHMARK_SOURCES[`tco.wage.${k}`] && BENCHMARK_SOURCES[`tco.wage.${k}`].kind === "heuristic"));
+  ok("J11: each industry preset reads its wage from the registry",
+    inds.every((k) => INDUSTRY[k].agentHourly === bm(`tco.wage.${k}`)));
+  ok("J11: no industry wage is presented as the sourced market figure",
+    inds.every((k) => /not a published median/.test(BENCHMARK_SOURCES[`tco.wage.${k}`].rationale)));
+
+  // Step 2. The hand-written sources paragraph is gone and cannot come back.
+  const paragraph = mod.BENCHMARK_SOURCES || "";
+  ok("step 2: the sources paragraph is built, not hand-written", /const BENCHMARK_SOURCES = \(\(\) =>/.test(SRCTXT));
+  ok("step 2: the unverified vendor containment claim is retired",
+    !/Balto|Parloa|Teneo|SQM|Sprinklr|Calabrio|Giva|Forrester|Salary\.com/.test(SRCTXT));
+  ok("step 2: the false BLS wage claim is retired", !/BLS \(agent wages/.test(SRCTXT) && !/roughly \$19 per hour/.test(SRCTXT));
+  ok("step 2: the paragraph names its sourced figures", /Bureau of Labor Statistics/.test(paragraph));
+  ok("step 2: the paragraph says plainly what is not sourced", /internal planning value/.test(paragraph));
+
+  // No bare constant reaches the engine where a registry id exists for it.
+  ok("the hours constant reads the registry", !/const HRS = 173/.test(SRCTXT));
+  ok("the escalator defaults read the registry", !/wageEscalatorPct: 0\.035/.test(SRCTXT) && !/licenseEscalatorPct: 0\.06/.test(SRCTXT));
+  ok("the validity checks read the registry", !/perAgentCeiling: 25000/.test(SRCTXT));
+  ok("the checks still hold their shipped values",
+    TCO_CHECKS.perAgentCeiling === 25000 && TCO_CHECKS.domShareMax === 0.80 && TCO_CHECKS.spanMax === 20 && TCO_CHECKS.mixTol === 0.005);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
