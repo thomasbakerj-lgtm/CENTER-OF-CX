@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -191,14 +192,10 @@ export default function RFPRequirementBuilder() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "10px 0", position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13.5 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a>
-        </div>
-      </nav>
+      <ToolNav wrap={WRAP} />
 
-      <h1 className="sr-only">RFP Requirement Builder</h1>
+      <ToolHero wrap={WRAP} eyebrow="Vendor Selection" title="RFP Requirement Builder"
+        intro="Pick your vertical, size and focus areas to get weighted requirements by platform layer, ready to edit and export into your RFP." />
 
       {phase === "input" && (
         <section style={{ background: "#fff", padding: "64px 28px 48px" }}>

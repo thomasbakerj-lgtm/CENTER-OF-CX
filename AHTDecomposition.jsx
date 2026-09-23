@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -89,15 +90,15 @@ export default function AHTDecomposition() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13 }}>← Back to Tools</a></div></nav>
+      <ToolNav wrap={WRAP} />
+      <ToolHero wrap={WRAP} eyebrow="Performance + Quality" title="AHT Decomposition"
+        intro="Average handle time is several components added together. Set talk, hold, wrap, transfer, search and admin time to see where the seconds go and how much of each the model treats as reducible. The reduction factors are planning heuristics." />
 
       <>
         <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
               <div>
-                <h1 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: 0 }}>AHT Decomposition</h1>
-                <p style={{ fontSize: 13, color: MUTED, margin: "4px 0 0" }}>Adjust each component. See where time goes and what is reducible.</p>
               </div>
               <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                 {[["blended","Blended"],["billing","Billing"],["techSupport","Tech Support"],["sales","Sales"],["simple","Simple"]].map(([k,l]) => (

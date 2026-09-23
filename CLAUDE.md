@@ -563,8 +563,11 @@ dashboard, the 12-phase growth program.
    failures 2,031 to 762; h1 on every tool. Left for the aesthetic rebuild: ELECTRIC and status
    colours used as text (need text and fill variants), link tap targets, the 45 content pages
    still on DM Sans and Instrument Serif.
-13. **Next:** TB: make `suite` required on main; 11-01. Me: Phase B continued, the shared tool
-   layout for the 16 floor tools, then the rail debts.
+13. Done S23: Phase B shared tool frame (`src/lib/ToolShell.jsx`) on all 16 floor tools; gated in
+   `floor.test.mjs` (frame present, exactly one h1 per render). Rail tools keep their own headers,
+   same shape; fold them onto ToolShell in the aesthetic rebuild.
+14. **Next:** TB: make `suite` required on main; 11-01. Me: Phase B rail debts (CPC corrected-dollar
+   display, FCR pulled badge, Attrition live PDF, ReportActions `__proto__`).
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
