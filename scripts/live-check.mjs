@@ -104,7 +104,12 @@ for (const t of TOOLS) {
   const links = await linksFor(t.file);
   if (!links) continue;
   for (const [kind, q] of [["sample", links.sample], ["hostile", links.hostile]]) {
-    const v = await open(t.route + q, kind === "sample" ? /request a review/ : null);
+    /* A sample link must reach its result. A hostile link settles on its result, on its start
+       screen (an assessment whose answers were dropped as off the scale) or on a blocked or
+       void notice (a calculator that refuses impossible inputs). Any of these is fine, but the
+       report always says which, so a skipped PDF check is never silent. */
+    const NO_RESULT = /Start [A-Z][a-z]+|result blocked|export void/i;
+    const v = await open(t.route + q, kind === "sample" ? /request a review/ : new RegExp("request a review|" + NO_RESULT.source, "i"));
     const shown = v.text.length > 150;
     report(v.errors.length === 0 && shown, `${t.route} ${kind} link renders`, v.errors[0] || (shown ? "" : "blank page"));
     report(shown && !BAD.test(v.text), `${t.route} ${kind} page is clean`, shown ? badAt(v.text) : "blank page");
@@ -114,6 +119,10 @@ for (const t of TOOLS) {
         report(p.length > 300 && !BAD.test(p), `${t.route} ${kind} PDF is clean`, badAt(p) || (p.length <= 300 ? "PDF nearly empty" : ""));
       } catch (e) { report(false, `${t.route} ${kind} PDF generates`, e.message.slice(0, 100)); }
     } else if (kind === "sample") report(false, `${t.route} sample link shows the result`);
+    else {
+      const state = !shown ? "" : /result blocked|export void/i.test(v.text) ? "a blocked-result notice" : /Start [A-Z][a-z]+/.test(v.text) ? "its start screen" : "";
+      report(!!state, `${t.route} hostile link shows ${state || "no result and no start screen"}, so it claims no result`, state ? "" : shown ? "neither a result, a start screen nor a blocked notice" : "blank page");
+    }
     await v.ctx.close();
   }
 }

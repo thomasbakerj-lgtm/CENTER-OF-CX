@@ -75,17 +75,21 @@ export default function QAScorecardBuilder() {
   const totalWeight = categories.reduce((a, c) => a + c.weight, 0);
   const weightValid = totalWeight === 100;
 
-  // Calculate eval score
+  /* The sample evaluation scores only when every criterion is marked. An unmarked
+     criterion used to count as a miss inside its category, so a half-marked form printed
+     a low score that nobody had given. */
+  const totalCriteria = categories.reduce((a, c) => a + c.criteria.length, 0);
+  const markedCount = categories.reduce((a, c, ci) => a + c.criteria.filter((_, cri) => evalScores[`${ci}-${cri}`] !== undefined).length, 0);
   const catScores = categories.map((cat, ci) => {
     const scored = cat.criteria.map((cr, cri) => evalScores[`${ci}-${cri}`]);
     const answered = scored.filter(s => s !== undefined);
-    if (answered.length === 0) return null;
+    if (answered.length === 0 || answered.length < cat.criteria.length) return null;
     const catPct = cat.criteria.length ? (answered.filter(s => s === true).length / cat.criteria.length) * 100 : 0;
     const hasCritFail = cat.criteria.some((cr, cri) => cr.critical && evalScores[`${ci}-${cri}`] === false);
     return { catPct, weighted: catPct * (cat.weight / 100), hasCritFail };
   });
 
-  const overallScore = catScores.every(s => s !== null) ? catScores.reduce((a, s) => a + s.weighted, 0) : null;
+  const overallScore = totalCriteria > 0 && catScores.every(s => s !== null) ? catScores.reduce((a, s) => a + s.weighted, 0) : null;
   const anyCritFail = catScores.some(s => s && s.hasCritFail);
 
 
@@ -160,17 +164,21 @@ export default function QAScorecardBuilder() {
                       <div key={cri} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
                         <span style={{ flex: 1, fontSize: 13, color: NAVY }}>{cr.critical && <span style={{ color: RED, fontWeight: 700, marginRight: 4 }}>*</span>}{cr.text}</span>
                         <div style={{ display: "flex", gap: 4 }}>
-                          <button onClick={() => setEval(ci, cri, true)} style={{ padding: "4px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === GREEN}`, background: evalScores[`${ci}-${cri}`] === GREEN, color: evalScores[`${ci}-${cri}`] === "#fff", cursor: "pointer" }}>Yes</button>
-                          <button onClick={() => setEval(ci, cri, false)} style={{ padding: "4px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === BORDER}`, background: evalScores[`${ci}-${cri}`] === "#fff", color: evalScores[`${ci}-${cri}`] === MUTED, cursor: "pointer" }}>No</button>
+                          <button aria-pressed={evalScores[`${ci}-${cri}`] === true} onClick={() => setEval(ci, cri, true)} style={{ padding: "4px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === true ? GREEN : BORDER}`, background: evalScores[`${ci}-${cri}`] === true ? GREEN : "#fff", color: evalScores[`${ci}-${cri}`] === true ? "#fff" : SLATE, cursor: "pointer" }}>Yes</button>
+                          <button aria-pressed={evalScores[`${ci}-${cri}`] === false} onClick={() => setEval(ci, cri, false)} style={{ padding: "4px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${evalScores[`${ci}-${cri}`] === false ? RED : BORDER}`, background: evalScores[`${ci}-${cri}`] === false ? RED : "#fff", color: evalScores[`${ci}-${cri}`] === false ? "#fff" : SLATE, cursor: "pointer" }}>No</button>
                         </div>
                       </div>
                     ))}
                   </div>
                 ))}
+                {overallScore === null && markedCount > 0 && (
+                  <p style={{ fontSize: 13, color: SLATE, marginTop: 8 }}>{markedCount} of {totalCriteria} criteria marked. The score appears once every criterion is marked.</p>
+                )}
                 {overallScore !== null && (
                   <div style={{ background: anyCritFail ? `${RED}10` : `${GREEN}10`, border: `1px solid ${anyCritFail ? RED : GREEN}30`, borderRadius: 8, padding: "16px", marginTop: 12, textAlign: "center" }}>
                     <div style={{ fontFamily: FONT, fontSize: 36, color: anyCritFail ? RED : overallScore >= 85 ? GREEN : overallScore >= 70 ? AMBER : RED }}>{anyCritFail ? "FAIL" : `${overallScore.toFixed(0)}%`}</div>
-                    <div style={{ fontSize: 12, color: MUTED }}>{anyCritFail ? "Critical criterion failed. Auto-fail regardless of score." : overallScore >= 85 ? "Meets quality standard" : overallScore >= 70 ? "Coaching opportunity" : "Performance concern"}</div>
+                    <div style={{ fontSize: 12, color: MUTED }}>{anyCritFail ? "Critical criterion failed. Auto-fail regardless of score." : overallScore >= 85 ? "At or above 85: meets the default standard" : overallScore >= 70 ? "70 to 84: coaching opportunity under the default bands" : "Below 70: performance concern under the default bands"}</div>
+                    <div style={{ fontSize: 12, color: SLATE, marginTop: 6 }}>The 85 and 70 bands are planning defaults with no published source. Set your program's own.</div>
                   </div>
                 )}
               </div>

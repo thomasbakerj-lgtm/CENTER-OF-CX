@@ -596,7 +596,10 @@ dashboard, the 12-phase growth program.
    Alignment when half the serious findings sit in strategy or technology, else Roadmap. Published at
    `/methodology/governance-model` (sitemap 429). `ownership.test.mjs` (46): every rule equals an oracle on
    20,000 maps; legacy counts and item list frozen. Phase C frameworks trio done.
-18. **Next:** Phase C continues: QA Program with the calibration module, Platform Decision as the renewal gate,
+18. Done S23: live checker reports every hostile outcome (result, start screen or blocked notice; none skipped). QA
+   Scorecard defects fixed: Yes/No selection now shows, no score until every criterion is marked, bands labelled
+   unsourced defaults. Suite 19,931.
+19. **Next:** Phase C continues: QA Program with the calibration module (design to TB first), Platform Decision as the renewal gate,
    RFP and Contract Risk published criteria. TB: make `suite` required on main; 11-01.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
