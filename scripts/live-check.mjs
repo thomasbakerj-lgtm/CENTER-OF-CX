@@ -60,11 +60,25 @@ const browser = await chromium.launch({
   args: (process.env.CHROMIUM_ARGS || "").split(" ").filter(Boolean),
 });
 let failures = 0, checks = 0;
+/* Every Content Security Policy violation, on any page or report window, fails the run.
+   INJECT_HEADERS=1 applies the headers in vercel.json to each document, so a local
+   preview is checked under the same policy production serves. */
+const cspViolations = [];
+let docHeaders = null;
+const INJECT = process.env.INJECT_HEADERS === "1"
+  ? Object.fromEntries(JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8")).headers[0].headers.map((h) => [h.key.toLowerCase(), h.value]))
+  : null;
 const report = (ok, what, detail = "") => { checks++; if (!ok) failures++; console.log(`${ok ? "ok  " : "FAIL"} ${what}${detail ? "  " + detail : ""}`); };
 
 async function open(path, expect) {
   const ctx = await browser.newContext({ viewport: { width: 1300, height: 900 } });
-  await ctx.route(/posthog\.com|_vercel\/insights|vitals\.vercel|formspree\.io/, (r) => r.abort());
+  await ctx.route(/posthog\.com|_vercel\/insights|vitals\.vercel|formspree\.io|va\.vercel-scripts/, (r) => r.abort());
+  if (INJECT) await ctx.route((u) => u.href.startsWith(ORIGIN), async (route) => {
+    if (route.request().resourceType() !== "document") return route.continue();
+    const resp = await route.fetch(); return route.fulfill({ response: resp, headers: { ...resp.headers(), ...INJECT } });
+  });
+  const watch = (p) => p.on("console", (m) => { if (/Content Security Policy|Refused to (load|execute|apply|connect|frame)/i.test(m.text())) cspViolations.push(path + ": " + m.text().slice(0, 140)); });
+  ctx.on("page", watch);
   const page = await ctx.newPage(); const errors = [];
   page.on("pageerror", (e) => errors.push(e.message.slice(0, 120)));
   let text = "", status = 0;
@@ -74,6 +88,7 @@ async function open(path, expect) {
   for (let i = 0; i < 3; i++) {
     const res = await page.goto(ORIGIN + path, { waitUntil: "networkidle", timeout: 45000 }).catch(() => null);
     status = res ? res.status() : 0;
+    if (res && !docHeaders && status >= 200 && status < 400) docHeaders = await res.allHeaders().catch(() => null);
     /* Wait for the content itself, not a fixed pause: a route chunk can arrive
        after the network first goes idle. A sample link waits for its result. */
     if (status >= 200 && status < 400) await page.waitForFunction((re) => new RegExp(re, "i").test(document.body.innerText) && document.body.innerText.length > 150,
@@ -131,6 +146,13 @@ for (const m of METHODOLOGY) {
   report(v.errors.length === 0 && /bands/i.test(v.text) && /cannot tell you/i.test(v.text) && !BAD.test(v.text), `${m} renders its rubric`, v.errors[0] || badAt(v.text));
   await v.ctx.close();
 }
+/* The security headers production must serve, and no policy violation anywhere. */
+if (INJECT || !/localhost|127\.0\.0\.1/.test(ORIGIN)) {
+  const csp = (docHeaders && docHeaders["content-security-policy"]) || "";
+  report(/script-src 'self'/.test(csp) && !/unsafe-inline[^;]*;|unsafe-eval/.test(csp.split(";").find((d) => /script-src/.test(d)) + ";") && /frame-ancestors 'none'/.test(csp) && /object-src 'none'/.test(csp), "the site serves its Content Security Policy", csp ? "" : "no policy header");
+  report(!!docHeaders && docHeaders["x-content-type-options"] === "nosniff" && docHeaders["x-frame-options"] === "DENY" && !!docHeaders["referrer-policy"] && !!docHeaders["permissions-policy"], "the site serves its security headers");
+}
+report(cspViolations.length === 0, "no Content Security Policy violation on any page or report window", cspViolations.slice(0, 3).join(" | "));
 await browser.close();
 console.log(`\n${checks - failures} of ${checks} checks passed.`);
 process.exit(failures ? 1 : 0);

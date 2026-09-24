@@ -1,15 +1,77 @@
 {
   "redirects": [
-    { "source": "/tco-calculator", "destination": "/tools/tco-calculator", "permanent": true },
-    { "source": "/vendors/ccaas/travel-hospitality", "destination": "/vendors/ccaas/travel", "permanent": true },
-    { "source": "/vendors/ccaas/retail-ecommerce", "destination": "/vendors/ccaas/retail", "permanent": true },
-    { "source": "/tools/service-design", "destination": "/tools/cx-maturity", "permanent": true },
-    { "source": "/tools/experience-scorecard", "destination": "/tools/cost-per-contact", "permanent": true },
-    { "source": "/tools/integration-planner", "destination": "/vendors", "permanent": true },
-    { "source": "/tools/agent-experience", "destination": "/tools/attrition-cost", "permanent": true },
-    { "source": "/tools/calibration-drift", "destination": "/tools/qa-scorecard", "permanent": true }
+    {
+      "source": "/tco-calculator",
+      "destination": "/tools/tco-calculator",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/ccaas/travel-hospitality",
+      "destination": "/vendors/ccaas/travel",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/ccaas/retail-ecommerce",
+      "destination": "/vendors/ccaas/retail",
+      "permanent": true
+    },
+    {
+      "source": "/tools/service-design",
+      "destination": "/tools/cx-maturity",
+      "permanent": true
+    },
+    {
+      "source": "/tools/experience-scorecard",
+      "destination": "/tools/cost-per-contact",
+      "permanent": true
+    },
+    {
+      "source": "/tools/integration-planner",
+      "destination": "/vendors",
+      "permanent": true
+    },
+    {
+      "source": "/tools/agent-experience",
+      "destination": "/tools/attrition-cost",
+      "permanent": true
+    },
+    {
+      "source": "/tools/calibration-drift",
+      "destination": "/tools/qa-scorecard",
+      "permanent": true
+    }
   ],
   "rewrites": [
-    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!.*\\.).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://us.i.posthog.com https://formspree.io; form-action 'self' https://formspree.io; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+        }
+      ]
+    }
   ]
 }

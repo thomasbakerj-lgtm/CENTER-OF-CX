@@ -319,6 +319,13 @@ Binding. None of this is in code comments beyond what is noted.
   and the $19 "BLS" wage claims are retired and pinned dead.
 - TCO to AID journey edge added. TCO order: license gap, AI deflection, business case.
 
+**Security (TB, S23)**
+- Every security finding gets the full `SECURITY.md` protocol: confirm and size, fix at the sink with the safe default,
+  sweep for siblings, add a second layer, gate it with a harness and a static rule proven to fire, verify on production,
+  record. The fix ships before any public detail. `security.test.mjs` and the live checker's policy checks stay green.
+- A new external host (script, font, API) must be added to the policy in `vercel.json` in the same change, or it is
+  blocked in production and `security.test.mjs` fails.
+
 **Standing engineering rules**
 - Each tool serves its own goal. No generic shared ranges or one-size logic. If the
   same key means a different fact in another tool, do not prefill (TCO does not pull
@@ -619,7 +626,16 @@ dashboard, the 12-phase growth program.
    rule, old links, 4 mutants killed.
 20. Done S23: the report renderer escapes every field (`reportHtml`, `export.test.mjs`). Closes the scenario-link markup
    injection into the same-origin report window found during step 4. Suite 20,044.
-21. **Next:** Phase C continues: Platform Decision as the renewal gate,
+21. Done S23: security hardening and a standing protocol (`SECURITY.md`, TB: a complete solution whenever a security
+   problem is found). Site-wide Content Security Policy in `vercel.json` (scripts from the site only, no inline or
+   eval, hosts limited to fonts, PostHog and Formspree), nosniff, DENY framing, referrer and permissions policies. The
+   report window carries its own `script-src 'none'` policy, its print button is wired from the site and its opener is
+   cut. `security.test.mjs` (29) gates headers, allowed hosts both ways, HTML sinks, the report window, new-tab links and
+   committed secrets. The live checker fails on any policy violation and checks the served headers; `INJECT_HEADERS=1`
+   runs it locally under the production policy (209 of 209; all 430 sitemap pages clean). QA calibration flow made
+   explicit (TB could not tell where codes come from): four steps, an evaluator link that opens at step 3, add-my-code,
+   a sample session, and rejection text that says where codes come from.
+22. **Next:** Phase C continues: Platform Decision as the renewal gate (TB approved the six-point design),
    RFP and Contract Risk published criteria. TB: make `suite` required on main; 11-01.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS

@@ -122,6 +122,7 @@ export function reportHtml({ toolName, subtitle, reportName, company, logo, toda
 <html>
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
 <title>${e(toolName)}, Report</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@400;600&display=swap');
@@ -372,7 +373,7 @@ td.value { font-weight: 600; color: ${NAVY}; text-align: right; }
 
 <div class="print-bar">
 <span>Report preview. Save as PDF or print</span>
-<button onclick="window.print()">Download PDF ↓</button>
+<button id="print-report" type="button">Download PDF ↓</button>
 </div>
 
 <div class="cover">
@@ -444,6 +445,12 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
 
     win.document.write(html);
     win.document.close();
+    /* The report window runs no script of its own (its policy is script-src 'none'), so
+       the print button is wired from here, and the window loses its handle back to the
+       site. */
+    const btn = win.document.getElementById("print-report");
+    if (btn) btn.addEventListener("click", () => win.print());
+    try { win.opener = null; } catch (err) { /* already detached */ }
   };
 
   return (
