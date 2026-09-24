@@ -208,7 +208,7 @@ export const SEO_MAP = {
   },
   "/tools/qa-scorecard": {
     title: `QA Scorecard Builder | Weighted Evaluation Forms by Contact Type | ${SITE}`,
-    desc: "Build context-specific QA scorecards with weighted dimensions and critical-fail criteria. Test with a sample evaluation. Three templates included.",
+    desc: "Build weighted QA forms by contact type, check that they produce defensible scores, and calibrate evaluators blind under a published method: Krippendorff's alpha, Gwet's AC1 and bootstrap intervals.",
   },
   "/tools/fcr-leakage": {
     title: `FCR Leakage Diagnostic | What Drives Repeat Contacts | ${SITE}`,

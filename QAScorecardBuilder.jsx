@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { ToolNav, ToolHero } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
-import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { readScenario, clearScenarioParam, encodeScenario } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { JOURNEY } from "./src/lib/journey";
 import { QA_SCORECARD as MODEL } from "./src/lib/rubrics/qaScorecard";
-import { qaCriteria, scoreEvaluation, encodeSubmission, reviewQA, qaThresholdVars } from "./src/lib/qa";
+import { qaCriteria, qaFormKey, scoreEvaluation, encodeSubmission, reviewQA, qaThresholdVars } from "./src/lib/qa";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
@@ -84,7 +84,13 @@ export default function QAScorecardBuilder() {
   const [call, setCall] = useState(init.call);
   const [session, setSession] = useState(init.session);
   const [copied, setCopied] = useState(false);
-  useEffect(() => { window.scrollTo(0, 0); clearScenarioParam(); }, []);
+  /* An evaluator link ends in #score, so it opens at step 3, where the code is made. */
+  useEffect(() => {
+    const toScore = window.location.hash === "#score";
+    clearScenarioParam();
+    const el = toScore && document.getElementById && document.getElementById("score");
+    if (el && el.scrollIntoView) el.scrollIntoView(); else window.scrollTo(0, 0);
+  }, []);
 
   const applyTemplate = (key) => { setTemplate(key); setCategories(TEMPLATES[key].categories); setEvalScores({}); };
   const updateWeight = (ci, val) => setCategories(prev => prev.map((c, i) => i === ci ? { ...c, weight: Math.max(0, Math.min(100, Math.round(Number(val) || 0))) } : c));
@@ -108,6 +114,20 @@ export default function QAScorecardBuilder() {
   const own = scoreEvaluation(form, marks);
   const code = own && evaluator && call ? encodeSubmission(form, { evaluator, call, marks }) : "";
   const copy = () => { try { navigator.clipboard.writeText(code); setCopied(true); } catch (e) { setCopied(false); } };
+  const [added, setAdded] = useState(false);
+  const addMine = () => { setSession(s => ({ ...s, codes: [...s.codes.filter(c => c.trim() && c.trim() !== code), code] })); setAdded(true); };
+  /* The link a QA lead sends evaluators: this form only, with no marks, names or session,
+     opening at step 3. */
+  const [linkCopied, setLinkCopied] = useState(false);
+  const evaluatorLink = () => (typeof window !== "undefined" && window.location ? window.location.origin : "") + ROUTE + "?s=" + encodeScenario(TOOL_ID, { template, categories, evalScores: {}, evaluator: "", call: "", session: NO_SESSION }, DEFAULTS) + "#score";
+  const copyLink = () => { try { navigator.clipboard.writeText(evaluatorLink()); setLinkCopied(true); } catch (e) { setLinkCopied(false); } };
+  const sampleForm = qaFormKey({ categories: TEMPLATES.general.categories }) === qaFormKey(form);
+  const loadSample = () => {
+    if (!sampleForm && typeof window !== "undefined" && window.confirm && !window.confirm("The sample session was scored on the General Inbound form. Switch the form to General Inbound? Your edits to this form will be replaced.")) return;
+    if (!sampleForm) { setTemplate("general"); setCategories(TEMPLATES.general.categories); setEvalScores({}); }
+    setSession(SAMPLE.session);
+  };
+  const example = "QA1|" + qaFormKey(form) + "|AB|1001|" + "Y".repeat(Math.max(1, crit.length));
 
   const nextTool = R.next.tool && JOURNEY[R.next.tool] ? { name: JOURNEY[R.next.tool].name, href: JOURNEY[R.next.tool].route } : null;
   const NEXT_TEXT = {
@@ -198,7 +218,7 @@ export default function QAScorecardBuilder() {
           </div>
           {L.findings.length ? L.findings.map((f, i) => <Finding key={i} f={f} />) : <p style={{ ...P, color: "#047857", fontWeight: 600 }}>The form passes every published check.</p>}
 
-          <h2 style={{ ...H2, marginTop: 36 }}>3. Score a call</h2>
+          <h2 id="score" style={{ ...H2, marginTop: 36 }}>3. Score a call</h2>
           <p style={P}>For each evaluator in a calibration session: enter your initials and the call ID, mark every criterion, then send your submission code to your QA lead. You see only your own score. Nobody sees how it compares until every evaluator has scored every call.</p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
             <input type="text" aria-label="Your initials" placeholder="Your initials" value={evaluator} onChange={e => setEvaluator(e.target.value.replace(/[^A-Za-z0-9 ._-]/g, "").slice(0, 24))} style={{ ...inputStyle, width: 160 }} />
@@ -234,6 +254,7 @@ export default function QAScorecardBuilder() {
                       <input id="qa-code" readOnly value={code} onFocus={e => e.target.select()} style={{ ...inputStyle, flex: 1, fontFamily: "monospace", fontSize: 12 }} />
                       <button onClick={copy} style={{ padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: "none", background: NAVY, color: "#fff", cursor: "pointer" }}>{copied ? "Copied" : "Copy"}</button>
                     </div>
+                    <p style={{ fontSize: 12, color: SLATE, marginTop: 8 }}>One code per call. To score another call, change the call ID and mark the criteria again. If you are also the QA lead, <button onClick={addMine} style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", padding: 0 }}>{added ? "added to your session in step 4" : "add this code to your session in step 4"}</button>.</p>
                   </div>
                 ) : <p style={{ fontSize: 12, color: SLATE, marginTop: 10 }}>Enter your initials and the call ID to get your submission code.</p>}
               </div>
@@ -241,8 +262,15 @@ export default function QAScorecardBuilder() {
           </div>
 
           <h2 style={H2}>4. Calibration session</h2>
-          <p style={P}>For the QA lead: paste every evaluator's code, one per line. Results stay sealed until every evaluator has scored every call. Choose calls that range from weak to strong: the method measures whether evaluators separate good calls from weak ones, so a set of similar calls reads as low agreement.</p>
-          <textarea aria-label="Submission codes, one per line" value={session.codes.join("\n")} onChange={e => setSession(s => ({ ...s, codes: e.target.value.split("\n").slice(0, 400) }))} rows={5} style={{ ...inputStyle, width: "100%", fontFamily: "monospace", fontSize: 12, marginBottom: 10 }} placeholder="QA1|..." />
+          <p style={P}>For the QA lead. A session runs in four steps:</p>
+          <ol style={{ ...P, paddingLeft: 22 }}>
+            <li>Pick 3 or more calls that range from weak to strong. The method measures whether evaluators separate good calls from weak ones, so a set of similar calls reads as low agreement.</li>
+            <li>Send each evaluator this form: <button onClick={copyLink} style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", padding: 0 }}>{linkCopied ? "evaluator link copied" : "copy the evaluator link"}</button>. It opens this form at step 3, with nothing marked.</li>
+            <li>Each evaluator enters their initials and the call ID, marks every criterion, and sends you the code that appears. One code per evaluator per call.</li>
+            <li>Paste every code below, one per line. Results stay sealed until every evaluator has scored every call.</li>
+          </ol>
+          <p style={{ fontSize: 13, color: SLATE, marginBottom: 10 }}>To see how results read first, <button onClick={loadSample} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", padding: 0 }}>load a sample session</button>: three evaluators on three calls, on the General Inbound form.</p>
+          <textarea aria-label="Submission codes, one per line" value={session.codes.join("\n")} onChange={e => setSession(s => ({ ...s, codes: e.target.value.split("\n").slice(0, 400) }))} rows={5} style={{ ...inputStyle, width: "100%", fontFamily: "monospace", fontSize: 12, marginBottom: 10 }} placeholder={"One code per line. Each looks like:\n" + example} />
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
             <label htmlFor="qa-ref" style={{ fontSize: 13, color: SLATE }}>Reference evaluator (optional, measures accuracy):</label>
             <select id="qa-ref" value={session.reference} onChange={e => setSession(s => ({ ...s, reference: e.target.value }))} style={{ ...inputStyle, fontSize: 12 }}>
@@ -252,6 +280,7 @@ export default function QAScorecardBuilder() {
           </div>
           <p style={{ fontSize: 13, color: SLATE, marginBottom: 8 }}>{C.accepted} codes accepted from {C.evaluators} evaluators on {C.calls} calls{C.rejected.length ? `; ${C.rejected.length} set aside` : ""}.</p>
           {C.rejected.map((r, i) => <p key={i} style={{ fontSize: 12, color: "#B91C1C" }}>Line {r.index + 1}: {r.reason}.</p>)}
+          {C.rejected.length > 0 && <p style={{ fontSize: 12, color: SLATE, marginBottom: 8 }}>Codes come from step 3: an evaluator marks every criterion for one call and the code appears under their score. A code starts with QA1 and carries this form's fingerprint, {qaFormKey(form)}, so a code scored on a different form is set aside.</p>}
           {!CR && C.calls > 0 && (
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 16px", margin: "10px 0 24px" }}>
               <p style={{ fontSize: 13, color: NAVY, fontWeight: 600, marginBottom: 6 }}>Sealed. Results appear once every evaluator has scored every call{C.raters < MODEL.thresholds.minEvaluators.value ? `, with at least ${MODEL.thresholds.minEvaluators.value} evaluators besides any reference` : ""}.</p>
