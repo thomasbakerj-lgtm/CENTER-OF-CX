@@ -48,8 +48,18 @@ const section = (s) => console.log(`\n${s}`);
  *
  * The numbers are argued, not rounded.
  *
- * Measured entry at the close of 11A: 236,431 bytes raw, 76,784 gzipped.
+ * Measured entry on 24 September 2026, Phase D step 2 (Shrinkage): 242,088 bytes raw,
+ * 78,883 gzipped. Reset from the close of 11A (236,431 raw, 76,784 gzipped, commit
+ * ea42b7c). The rendered bytes were attributed module by module against a build of that
+ * commit, and every byte traces to shell code meant to ship. App.jsx grew 2,621: the
+ * published method page routes, the retired-tool redirects, the lazy route retry and the
+ * route error boundary. src/lib/seo.js grew 2,764: metadata for the published method
+ * pages and the retirements. src/lib/type.js entered at 4,630, the one type family the
+ * shell now renders in. src/lib/track.js grew 864. src/lib/verticals.js shrank 2,494.
+ * No route component or data file entered the chunk. Each further method page adds about
+ * 110 gzipped bytes of metadata and route, well inside the headroom below.
  *
+ * Before that, at the close of 11A:
  * Reset from the 10-01 measure of 230,041 raw, 74,681 gzipped. The 6,390 raw
  * bytes between the two were attributed module by module against a build of
  * commit 2f7935f, and every byte traces to a fix that was meant to ship.
@@ -77,12 +87,12 @@ const section = (s) => console.log(`\n${s}`);
  * this paragraph. Do not raise it to make a build pass. A run that reports this
  * harness UNPARSED has not measured anything and is a failure, never a pass.
  */
-const BASE_RAW = 236431;
-const BASE_GZ = 76784;
+const BASE_RAW = 242088;
+const BASE_GZ = 78883;
 const SMALLEST_SPLIT_RAW = 8931;
 const SMALLEST_SPLIT_GZ = 3100;
-const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 242,385
-const GZ_CEILING = BASE_GZ + Math.floor((SMALLEST_SPLIT_GZ * 2) / 3);      // 78,850
+const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 248,042
+const GZ_CEILING = BASE_GZ + Math.floor((SMALLEST_SPLIT_GZ * 2) / 3);      // 80,949
 
 /* ----------------------------------------------------------------- measure */
 

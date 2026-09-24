@@ -516,7 +516,7 @@ function CalcPage({ r }) {
         <h2 style={H2}>Every constant and where it comes from</h2>
         {r.constants().map((c) => (
           <div key={c.id} style={box}>
-            <div style={{ ...TYPE.label, color: NAVY }}>{c.value.toLocaleString("en-US")} {c.unit} <span style={{ color: SLATE, fontWeight: 600 }}>· {kindLabel[c.kind] || c.kind}</span></div>
+            <div style={{ ...TYPE.label, color: NAVY }}>{c.value.toLocaleString("en-US")} {c.unit} <span style={{ color: SLATE, fontWeight: 600 }}>· {/^A definition/.test(c.source) ? "Definition" : kindLabel[c.kind] || c.kind}</span></div>
             <p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{c.rationale}{c.kind === "market" ? " Source: " + c.source : ""}</p>
           </div>
         ))}

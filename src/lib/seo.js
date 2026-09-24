@@ -106,6 +106,10 @@ export const SEO_MAP = {
     title: `Occupancy Risk Method: Formulas, Bands and a Worked Example | ${SITE}`,
     desc: "The published method behind the Occupancy Risk Simulator: workload in Erlangs, occupancy, the shared occupancy bands, staffing to a target, the labelled attrition model, every constant with its source, and a worked example.",
   },
+  "/methodology/shrinkage-planner": {
+    title: `Shrinkage Planner Method: Formulas and a Worked Example | ${SITE}`,
+    desc: "The published method behind the Shrinkage Planner: total shrinkage on one base, planned and unplanned, agents on the queue, agents to schedule, the value of paid time off the queue, every constant with its source, and a worked example.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",

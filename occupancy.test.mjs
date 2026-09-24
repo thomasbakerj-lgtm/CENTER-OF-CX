@@ -21,7 +21,7 @@ const close = (a, b, e = 1e-6) => Math.abs(a - b) <= e * Math.max(1, Math.abs(a)
 const P = {
   bands: BENCH.occupancy,
   mult: { caution: benchmark("occ.attrition.mult.caution"), critical: benchmark("occ.attrition.mult.critical") },
-  load: benchmark("load.benefits"), hoursWeek: benchmark("occ.hours.week"), hoursYear: benchmark("occ.hours.year"),
+  load: benchmark("load.benefits"), hoursWeek: benchmark("time.hours.week"), hoursYear: benchmark("time.hours.year"),
 };
 const randomInputs = () => ({
   agents: 1 + Math.floor(rnd() * 400), callsPerHour: Math.floor(rnd() * 3000), aht: 30 + Math.floor(rnd() * 900),
@@ -101,7 +101,7 @@ ok("attrition cost of today's occupancy $33,926 a year", Math.round(X.excessAttr
 
 section("5. Registry and retired claims");
 const TOOL = readFileSync("./OccupancyRiskSimulator.jsx", "utf8");
-ok("four Occupancy constants are registered, every one labelled", benchmarksForTool("occupancy-risk").length === 4 && benchmarksForTool("occupancy-risk").every((e) => e.kind === "heuristic" && /Not sourced/.test(e.source)));
+ok("two Occupancy constants are registered and labelled; the paid hours are the shared definitions", benchmarksForTool("occupancy-risk").length === 2 && benchmarksForTool("occupancy-risk").every((e) => e.kind === "heuristic" && /Not sourced/.test(e.source)) && benchmark("time.hours.year") === 2080 && benchmark("time.hours.week") === 40);
 ok("the tool reads every constant from the registry and holds no literal of its own", /benchmark\("occ\.attrition\.mult\.caution"\)/.test(TOOL) && /benchmark\("load\.benefits"\)/.test(TOOL) && /benchmark\("market\.wage\.agent"\)/.test(TOOL) && !/\b(0\.15|1\.15|1\.4|2080|1\.3)\b/.test(TOOL));
 ok("the invented 0.15 attrition formula is gone", !/\* 0\.15 \*/.test(TOOL));
 ok("the unsourced claims are gone", !/82-86|15-40%|within 6 months|It usually is|usually is\./.test(TOOL));

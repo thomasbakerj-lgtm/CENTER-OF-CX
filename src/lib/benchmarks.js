@@ -5,7 +5,7 @@
  *
  * CANON (ratified for Tool Upgrades 2.0):
  *   Occupancy. healthy < 85% · caution 85 to 90% · critical > 90% · target band 83 to 87%
- *   Shrinkage. typical 28 to 35% · investigate above 35%
+ *   Shrinkage. planning range 28 to 35% (labelled heuristic) · decompose above 35%
  *   Service.   default target 80% answered within 20s
  */
 
@@ -57,11 +57,11 @@ export function classifyShrinkage(sh) {
   if (sh > typicalHigh)
     return {
       elevated: true,
-      message: `${pctStr(sh)} is above the typical ${pctStr(typicalLow)} to ${pctStr(typicalHigh)} range. Worth decomposing before you treat it as fixed.`,
+      message: `${pctStr(sh)} is above the ${pctStr(typicalLow)} to ${pctStr(typicalHigh)} planning range (a labelled heuristic). Worth decomposing before you treat it as fixed.`,
     };
   return {
     elevated: false,
-    message: `${pctStr(sh)} sits within the typical ${pctStr(typicalLow)} to ${pctStr(typicalHigh)} range.`,
+    message: `${pctStr(sh)} is at or below the top of the ${pctStr(typicalLow)} to ${pctStr(typicalHigh)} planning range (a labelled heuristic).`,
   };
 }
 /* ------------------------------------------------------ benchmark registry */
@@ -296,6 +296,7 @@ const fcrEntries = {
    salaried staff is a fourth fact, a different population, and is registered to TCO. */
 const SHARED = "shared";
 const BLS_WAGE = "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.";
+const TIME_DEF = "A definition: the full-time paid schedule of 40 hours a week for 52 weeks. Not a benchmark; change it where your contract hours differ.";
 const shLoad = (value, rationale) => ({ tool: SHARED, kind: "heuristic", value, unit: "multiple of hourly wage", source: "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.", reviewed: REVIEWED, version: 1, rationale });
 
 export const SHARED_BENCHMARKS = {
@@ -303,6 +304,15 @@ export const SHARED_BENCHMARKS = {
   "load.benefits": shLoad(1.30, "Wage plus benefits and employer payroll burden, and nothing else. The narrowest of the three loads. Use it wherever a wage becomes a loaded hourly rate for unit metrics."),
   "load.marginal": shLoad(1.18, "The variable cost that disappears when one contact goes away. The only load a saving may be valued on, because fixed technology and facilities do not fall with volume."),
   "load.fullyLoaded": shLoad(1.95, "Wage plus benefits, payroll tax, facilities, supervision and technology. The cost of standing a seat up. Use it only to price whole headcount, never to value a freed contact."),
+  /* The full-time paid week and year. Definitions, not benchmarks, held once so every tool
+     that prices a year of an agent uses the same hours. */
+  "time.hours.week": { tool: SHARED, kind: "heuristic", value: 40, unit: "paid hours per week", source: TIME_DEF, reviewed: REVIEWED, version: 1, rationale: "Full-time paid week. Occupancy uses it to price the wages paid while a new hire ramps." },
+  "time.hours.year": { tool: SHARED, kind: "heuristic", value: 2080, unit: "paid hours per year", source: TIME_DEF, reviewed: REVIEWED, version: 1, rationale: "The 2,080 hour full-time year (40 hours for 52 weeks). Occupancy prices an added agent on it; Shrinkage prices paid time off the queue on it." },
+  /* The shrinkage planning range. Staffing flags a total above it and Shrinkage places a
+     total against it. No published benchmark sets it, so it is a labelled planning range
+     and says nothing about whether a total is right for an operation. */
+  "shrinkage.range.low": { tool: SHARED, kind: "heuristic", value: BENCH.shrinkage.typicalLow, unit: "share of paid hours", source: "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.", reviewed: REVIEWED, version: 1, rationale: "Bottom of the planning range for total shrinkage. A total below it can mean coaching and training time is being skipped as easily as good control." },
+  "shrinkage.range.high": { tool: SHARED, kind: "heuristic", value: BENCH.shrinkage.typicalHigh, unit: "share of paid hours", source: "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.", reviewed: REVIEWED, version: 1, rationale: "Top of the planning range for total shrinkage. Staffing flags a total above it as worth decomposing before it is treated as fixed." },
 };
 
 /* Total Cost of Ownership. TCO shipped a hand-written sources paragraph that named
@@ -350,8 +360,6 @@ const oHeur = (value, unit, rationale) => ({ tool: OCC, kind: "heuristic", value
 const occEntries = {
   "occ.attrition.mult.caution": oHeur(1.15, "multiple of baseline attrition", "Attrition multiple applied while occupancy sits in the caution band, above the healthy maximum. Your entered attrition is taken as the rate at or below the healthy band."),
   "occ.attrition.mult.critical": oHeur(1.40, "multiple of baseline attrition", "Attrition multiple applied while occupancy sits in the critical band, above the caution maximum, and whenever offered load exceeds staffed agents."),
-  "occ.hours.week": oHeur(40, "paid hours per week", "Full-time paid week used to price the wages paid while a new hire ramps. A definition, not a benchmark; change the training weeks to match your ramp."),
-  "occ.hours.year": oHeur(2080, "paid hours per year", "The 2,080 hour full-time year (40 hours for 52 weeks) used to price an added agent for a year."),
 };
 
 export const BENCHMARK_SOURCES = {
