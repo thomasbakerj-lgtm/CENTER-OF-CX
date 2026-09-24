@@ -170,6 +170,7 @@ export const JOURNEY = {
     next: [
       { to: "license-gap", why: "Check add-on and usage pricing behind the flagged terms." },
       { to: "tco-calculator", why: "Price the contract over its full term." },
+      { to: "platform-decision", why: "Decide whether to renew, renew with conditions or evaluate." },
     ],
   },
   "platform-decision": {
@@ -185,8 +186,9 @@ export const JOURNEY = {
     name: "RFP Requirement Builder",
     route: "/tools/rfp-builder",
     next: [
-      { to: "vendor-match", why: "Build a shortlist before you send the RFP." },
+      { to: "vendor-match", why: "Build a starting list of vendors to send the RFP to." },
       { to: "contract-risk", why: "Know the contract terms to negotiate before responses arrive." },
+      { to: "license-gap", why: "Price the add-ons vendors need to meet your requirements." },
     ],
   },
   "vendor-match": {

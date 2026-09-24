@@ -49,9 +49,9 @@ const CATEGORIES = [
     tools: [
       { title: "Vendor Match Engine", desc: "Shortlist with fit reasoning. Environment, priorities, compliance.", href: "/tools/vendor-match", popular: true },
       { title: "Platform Decision", desc: "The renewal gate: renew, renew with conditions, add a specialist or evaluate, across 7 layers and against your notice date.", href: "/tools/platform-decision" },
-      { title: "Contract Risk Scanner", desc: "7 contract terms analyzed. Negotiation recommendations for every flag.", href: "/tools/contract-risk" },
+      { title: "Contract Risk Scanner", desc: "13 contract clauses read against published severities, with the position to ask for on every flag.", href: "/tools/contract-risk" },
       { title: "Transformation Readiness", desc: "Go/no-go assessment. Six dimensions. Phased recommendation.", href: "/tools/transformation-readiness" },
-      { title: "RFP Requirement Builder", desc: "Weighted requirements by layer. Tailored to your vertical and priorities.", href: "/tools/rfp-builder", popular: true },
+      { title: "RFP Requirement Builder", desc: "Weighted requirements by layer, then vendor responses scored: who meets every must-have and what to verify in the demo.", href: "/tools/rfp-builder", popular: true },
     ]},
   { id: "assessment", label: "Assessments + Scorecards", color: GREEN, desc: "Where do you stand",
     tools: [

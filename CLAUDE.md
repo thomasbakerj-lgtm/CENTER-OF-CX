@@ -650,7 +650,29 @@ dashboard, the 12-phase growth program.
    the no-average, unknown-is-not-weak, not-needed and monotonic laws, reachability, old and hostile links, 4 mutants.
    GitHub nightly on production after PR #22: green, headers and policy included. A 502 seen from the sandbox was its
    own egress (curl got no HTTP response on 11 of 40 tries; GitHub runners saw none).
-23. **Next:** Phase C continues: RFP Builder and Contract Risk published criteria. TB: make `suite` required on main; 11-01.
+23. Done S23: Phase C steps 6 and 7, the procurement pair (TB approved all eight points; TB: facts and perspective only,
+   the buyer decides, no steering, no disclosure text wanted).
+   - Contract Risk on `src/lib/terms.js` + `src/lib/rubrics/contractRisk.js`: 13 clauses (7 kept with their answers, so
+     old links open; new: price at renewal, liability cap, AI use of your data, security and residency, assignment,
+     transition help). Every option has a published severity and reason; "don't know" on every clause is a find item,
+     never a pass. Published reading: any critical, do not sign as written; any high, negotiate; any unknown, find the
+     missing clauses; any medium, acceptable with notes; else clear. Unsourced figures (15 to 30%, 40 to 100%, "most
+     common tactic", "walk", "non-negotiable") retired; negotiation figures labelled as positions from practice; uptime
+     minutes are arithmetic. Next: License Gap, Platform Decision or TCO. `terms.test.mjs` (77).
+   - RFP Builder on `src/lib/rfp.js` + `src/lib/rubrics/rfpBuilder.js` (truth type: the buyer's requirements and their
+     vendors' responses; any vendor can be entered, on the site or not). Response scorer: only generally available earns
+     full credit, preview and roadmap earn none, partner 0.5 (labelled default), unanswered is a clarification never a
+     zero, a must-have claim stays to verify until seen in the demo. Analyst read: unmet and not-GA must-haves, partner
+     ownership, clarifications, demo script, add-ons to price, where the choice is decided, layers no vendor covers,
+     ties within 5 points (heuristic). Order only among the vendors entered. Next move: Vendor Match as a starting list
+     (the bridge), Platform Decision, License Gap or Contract Risk; consultant path and review request carry the lead.
+     Fixed: a link dropped the Healthcare and Government tags, so HIPAA and FedRAMP vanished on reopen. Scenario links
+     pack responses one character per requirement (worst case 6 vendors, 1,531 characters). `rfp.test.mjs` (62).
+   Published at `/methodology/contract-risk` and `/methodology/rfp-builder` (sitemap 433). Phase C is complete except
+   Roadmap (stays a planner). Suite 20,320; local live check under the production policy 212 of 212.
+24. **Next:** Phase D, WFM to V3-Full (AHT, Shrinkage, Occupancy, Forecast, Adherence): engine markers and harness
+   pairs, every constant sourced or labelled, rail into Staffing with origin grades. Research Stage 3 and Vendor Match
+   V3 remain gated on the corpus. TB: make `suite` required on main; 11-01.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.

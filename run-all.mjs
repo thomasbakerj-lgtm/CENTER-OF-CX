@@ -82,6 +82,8 @@ const INFRA = [
   { name: "ownership.test.mjs", covers: "V3-Framework: the Governance ownership model, every finding rule against an oracle" },
   { name: "security.test.mjs", covers: "Security floor: headers and policy, allowed hosts, HTML sinks, report window, new-tab links, secrets" },
   { name: "export.test.mjs", covers: "The report renderer: every section and cover field attacked with markup, every interpolation escaped" },
+  { name: "rfp.test.mjs", covers: "V3-Framework: RFP requirements and response scoring against an oracle, GA-only credit, unanswered is never a zero" },
+  { name: "terms.test.mjs", covers: "V3-Framework: Contract Risk clauses, reading rule against an oracle, unknown is never a pass" },
   { name: "renewal.test.mjs", covers: "V3-Framework: Platform Decision renewal gate, every rule against an oracle, the no-average and unknown-is-not-weak laws" },
   { name: "qa.test.mjs", covers: "V3-Framework: QA form checks and blind calibration, alpha and AC1 pinned to published examples" },
 ];

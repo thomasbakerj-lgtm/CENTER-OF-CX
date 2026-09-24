@@ -23,6 +23,8 @@ export default function RubricPage({ id }) {
   if (r.kind === "ownership") return <OwnershipPage r={r} />;
   if (r.kind === "qa") return <QAPage r={r} />;
   if (r.kind === "renewal") return <RenewalPage r={r} />;
+  if (r.kind === "terms") return <TermsPage r={r} />;
+  if (r.kind === "rfp") return <RfpPage r={r} />;
   const totalWeight = r.dims.reduce((s, d) => s + d.weight, 0);
   const paired = r.kind === "paired";
   const statements = r.dims.reduce((s, d) => s + (paired ? d.pairs.length * 2 : d.criteria.length), 0);
@@ -330,6 +332,140 @@ function RenewalPage({ r }) {
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
           <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Run the renewal check</a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+/* The published page for a contract terms model (kind "terms"): the severity levels, the
+   reading rule, and every clause with every option, its severity, its reason and the
+   position to ask for. Rendered from the same object the terms engine reads. */
+function TermsPage({ r }) {
+  const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
+  const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
+  const cell = { ...TYPE.cell, color: SLATE, padding: "10px 12px", borderBottom: `1px solid ${BORDER}`, verticalAlign: "top", textAlign: "left" };
+  const th = { ...cell, ...TYPE.label, color: NAVY };
+  const lvl = (id) => (r.levels.find((l) => l.id === id) || {}).label || id;
+  const link = (id) => (JOURNEY[id] ? <a href={JOURNEY[id].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[id].name}</a> : id);
+  return (
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <nav style={{ background: DEEP, padding: "16px 0" }}>
+        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
+          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
+        </div>
+      </nav>
+      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+        <div style={WRAP}>
+          <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how each clause is rated</h1>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.terms.length} clauses. {r.truthType}</p>
+        </div>
+      </header>
+      <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
+        <h2 style={H2}>How a contract is read</h2>
+        <p style={P}>Each clause is answered with the option that matches the contract, or {r.unknown.label.toLowerCase()}. Every option carries a published severity. A clause you do not know is an item to find before signing: it is never counted as a pass and never given a severity. {r.positionsNote}</p>
+        <h2 style={H2}>Rules and bands</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+          <thead><tr><th style={th}>Severity</th><th style={th}>Meaning</th></tr></thead>
+          <tbody>{r.levels.map((l) => <tr key={l.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{l.label}</td><td style={cell}>{l.test}</td></tr>)}</tbody>
+        </table>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Reading</th><th style={th}>When</th></tr></thead>
+          <tbody>{r.readings.map((x) => <tr key={x.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.label}</td><td style={cell}>{x.test}</td></tr>)}</tbody>
+        </table>
+        <p style={{ ...P, marginTop: 12 }}>The next step is {link(r.next.addons)} when add-on pricing is unpriced or not known, {link(r.next.renewal)} when the renewal window or renewal price is high or critical, and otherwise {link(r.next.price)}, to price the contract over its full term.</p>
+        <h2 style={H2}>Every clause</h2>
+        {r.terms.map((t) => (
+          <section key={t.id} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
+            <h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 6 }}>{t.name}</h3>
+            <p style={{ ...P, fontSize: 14 }}>{t.why}</p>
+            {/* One block per option instead of a four-column table, so the page reads on a phone. */}
+            {t.options.map((o) => (
+              <div key={o.val} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", marginTop: 8 }}>
+                <div style={{ ...TYPE.label, color: NAVY }}>{o.val} <span style={{ color: SLATE, fontWeight: 600 }}>· {lvl(o.level)}</span></div>
+                <p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{o.note}{o.negotiate ? " Ask for: " + o.negotiate : ""}</p>
+              </div>
+            ))}
+          </section>
+        ))}
+        <h2 style={H2}>What this tool cannot tell you</h2>
+        <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
+        <div style={{ marginTop: 36 }}>
+          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Scan a contract</a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+/* The published page for the RFP model (kind "rfp"): the default weights, the credit each
+   response earns, the analyst read rules, and every requirement by layer with its default
+   priority and focus areas. Rendered from the same object the RFP engine reads. */
+function RfpPage({ r }) {
+  const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
+  const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
+  const cell = { ...TYPE.cell, color: SLATE, padding: "10px 12px", borderBottom: `1px solid ${BORDER}`, verticalAlign: "top", textAlign: "left" };
+  const th = { ...cell, ...TYPE.label, color: NAVY };
+  const pri = (id) => (r.priorities.find((p) => p.id === id) || {}).label || id;
+  const tag = (id) => (r.tags.find((t) => t.id === id) || {}).label || (id === "healthcare" ? "Healthcare" : id === "government" ? "Government" : id);
+  const sev = (x) => (x.severity === "info" ? "Insight" : x.severity[0].toUpperCase() + x.severity.slice(1));
+  const fillT = (t) => t.replace("{tieMargin}", r.thresholds.tieMargin.value);
+  const link = (id) => (JOURNEY[id] ? <a href={JOURNEY[id].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[id].name}</a> : id);
+  const total = r.layers.reduce((s, l) => s + l.reqs.length, 0);
+  return (
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <nav style={{ background: DEEP, padding: "16px 0" }}>
+        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
+          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
+        </div>
+      </nav>
+      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+        <div style={WRAP}>
+          <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how requirements are built and responses scored</h1>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} requirements, plus requirements for {Object.keys(r.verticalReqs).length} verticals. {r.truthType}</p>
+        </div>
+      </header>
+      <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
+        <h2 style={H2}>How responses are scored</h2>
+        <p style={P}>Each requirement carries a priority, which you can change. {r.weightsNote} Weighted coverage is the credit a vendor earns over the weight of the requirements it answered. A requirement a vendor left unanswered is left out of its score and listed as a clarification to send back; it is never counted as a zero. A vendor is ordered only when it meets or conditionally meets every must-have and has no must-have left unanswered, and vendors within {r.thresholds.tieMargin.value} points share a position. Only the vendors you enter are ordered, on your data.</p>
+        <h2 style={H2}>Rules and bands</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+          <thead><tr><th style={th}>Response</th><th style={th}>Credit</th><th style={th}>Meets a must-have</th></tr></thead>
+          <tbody>{r.responses.map((x) => <tr key={x.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.label}</td><td style={cell}>{x.credit}{x.heuristic ? " (default, no published source)" : ""}</td><td style={cell}>{x.meets ? "Yes" + (x.id === "partner" ? ", with the ownership questions below" : "") : "No"}</td></tr>)}</tbody>
+        </table>
+        <p style={P}>Preview, beta, early access and roadmap capabilities earn no credit: a capability that is not generally available cannot be relied on in production, however soon it is promised.</p>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Finding</th><th style={th}>Raised when</th><th style={th}>Severity</th></tr></thead>
+          <tbody>{Object.entries(r.rules).map(([id, x]) => <tr key={id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.title}</td><td style={cell}>{fillT(x.test)}</td><td style={cell}>{sev(x)}</td></tr>)}</tbody>
+        </table>
+        <p style={{ ...P, marginTop: 12 }}>The next move is {link(r.next.match)} before any vendor is scored, {link(r.next.specialist)} when no vendor covers a layer, {link(r.next.addons)} when vendors meet requirements through add-ons, and {link(r.next.contract)} once vendors are ordered.</p>
+        <h2 style={H2}>Every requirement</h2>
+        {r.layers.map((l) => (
+          <section key={l.n} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
+            <h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 10 }}>L{l.n} {l.name}</h3>
+            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+              <thead><tr><th style={{ ...th, width: "58%" }}>Requirement</th><th style={th}>Default priority</th><th style={th}>Included for</th></tr></thead>
+              <tbody>{l.reqs.map((q, i) => <tr key={i}><td style={cell}>{q.text}</td><td style={cell}>{pri(q.priority)}</td><td style={cell}>{q.tags.map(tag).join(", ")}</td></tr>)}</tbody>
+            </table>
+          </section>
+        ))}
+        <h2 style={H2}>Vertical requirements</h2>
+        <p style={P}>Added as must-haves when you choose the vertical; you can change their priority.</p>
+        {Object.entries(r.verticalReqs).map(([v, list]) => (
+          <section key={v} style={{ marginBottom: 12 }}><h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 6 }}>{v}</h3><ul style={{ paddingLeft: 20 }}>{list.map((q, i) => <li key={i} style={{ ...P, marginBottom: 4 }}>{q}</li>)}</ul></section>
+        ))}
+        <h2 style={H2}>What this tool cannot tell you</h2>
+        <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
+        <div style={{ marginTop: 36 }}>
+          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Build your RFP</a>
         </div>
       </main>
     </div>
