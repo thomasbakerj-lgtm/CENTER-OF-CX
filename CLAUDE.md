@@ -697,7 +697,12 @@ dashboard, the 12-phase growth program.
    flag) and `time.hours.week/year` (Occupancy repointed). Float noise ("28.000000000000004") is now bad text in the
    Shrinkage report harness, `floor.test.mjs` and the live checker. Chunk gate re-based with attribution (see its
    comment). `/methodology/shrinkage-planner` (sitemap 435). `shrinkage.test.mjs` 34, `shrinkage.report.mjs` 44.
-26. **Next:** Phase D continues: AHT, Forecast Accuracy, Schedule Adherence, then the rail into Staffing. Research Stage 3 and Vendor Match
+26. Done S23: Phase D step 3, AHT Decomposition to V3-Full (TB approved six calls). Engine `src/lib/aht.js`; time outside the
+   conversation is a fact (never "reducible"); share ranges and reducibility ratings retired; seven lever shares registered
+   (`aht.lever.*`), editable, counted only when selected, compounding on a shared component; the unreachable 90% talk floor
+   removed; contacts per month gives agent hours as capacity. `/methodology/aht-decomposition` (sitemap 436).
+   `aht.test.mjs` 35, `aht.report.mjs` 39.
+27. **Next:** Phase D continues: Forecast Accuracy, Schedule Adherence, then the rail into Staffing. Research Stage 3 and Vendor Match
    V3 remain gated on the corpus.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS

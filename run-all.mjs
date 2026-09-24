@@ -86,6 +86,8 @@ const INFRA = [
   { name: "occupancy.report.mjs", covers: "V3-Full: Occupancy PDF reconciled to the engine on four links; method example is the default case" },
   { name: "shrinkage.test.mjs", covers: "V3-Full: Shrinkage engine against an oracle, A/B with the previous tool, the gross-up, registry, worked example" },
   { name: "shrinkage.report.mjs", covers: "V3-Full: Shrinkage PDF reconciled to the engine on four links; method example is the default case" },
+  { name: "aht.test.mjs", covers: "V3-Full: AHT engine against an oracle, A/B with the previous tool, levers compound, registry, worked example" },
+  { name: "aht.report.mjs", covers: "V3-Full: AHT PDF reconciled to the engine on four links; method example is the default case" },
   { name: "rfp.test.mjs", covers: "V3-Framework: RFP requirements and response scoring against an oracle, GA-only credit, unanswered is never a zero" },
   { name: "terms.test.mjs", covers: "V3-Framework: Contract Risk clauses, reading rule against an oracle, unknown is never a pass" },
   { name: "renewal.test.mjs", covers: "V3-Framework: Platform Decision renewal gate, every rule against an oracle, the no-average and unknown-is-not-weak laws" },
