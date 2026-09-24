@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { FONT, FONT_IMPORT_CSS, TYPE } from "./src/lib/type";
 import { RUBRICS } from "./src/lib/rubrics";
 import { JOURNEY } from "./src/lib/journey";
+import { qaAgreement, qaThresholdVars } from "./src/lib/qa";
 
 /* The published rubric for a V3-Framework assessment (doctrine v1.3 Section 10.1).
    It renders from the same rubric object the scoring engine reads, so what this page
@@ -19,6 +20,7 @@ export default function RubricPage({ id }) {
   useEffect(() => { window.scrollTo(0, 0); }, [id]);
   if (!r) return null;
   if (r.kind === "ownership") return <OwnershipPage r={r} />;
+  if (r.kind === "qa") return <QAPage r={r} />;
   const totalWeight = r.dims.reduce((s, d) => s + d.weight, 0);
   const paired = r.kind === "paired";
   const statements = r.dims.reduce((s, d) => s + (paired ? d.pairs.length * 2 : d.criteria.length), 0);
@@ -165,6 +167,93 @@ function OwnershipPage({ r }) {
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((l, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{l}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
           <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Map your {r.title}</a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+/* The published page for the QA program model (kind "qa"): the form checks, the blind
+   calibration rule, the Center of CX Calibration Method with its bands, thresholds and
+   sources, and the kappa paradox worked from the model's own example. Rendered from the
+   same object the QA engine reads. */
+function QAPage({ r }) {
+  const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
+  const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
+  const cell = { ...TYPE.cell, color: SLATE, padding: "10px 12px", borderBottom: `1px solid ${BORDER}`, verticalAlign: "top", textAlign: "left" };
+  const th = { ...cell, ...TYPE.label, color: NAVY };
+  const TV = qaThresholdVars(r);
+  const fillT = (t) => t.replace(/\{(\w+)\}/g, (_, k) => (TV[k] === undefined ? "" : String(TV[k])));
+  const sev = (x) => (x.severity === "info" ? "Note" : x.severity[0].toUpperCase() + x.severity.slice(1));
+  const rules = (group) => Object.entries(r.rules).filter(([, x]) => x.group === group);
+  const RuleTable = ({ group }) => (
+    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <thead><tr><th style={th}>Finding</th><th style={th}>Raised when</th><th style={th}>Severity</th></tr></thead>
+      <tbody>{rules(group).map(([id, x]) => (
+        <tr key={id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.title}</td><td style={cell}>{fillT(x.test)}{x.heuristic ? " Heuristic threshold." : ""}</td><td style={cell}>{sev(x)}</td></tr>
+      ))}</tbody>
+    </table>
+  );
+  /* The paradox, computed: two evaluators, one critical item. */
+  const px = r.paradox;
+  const units = [...Array(px.bothPass).fill([1, 1]), ...Array(px.splitA).fill([1, 0]), ...Array(px.splitB).fill([0, 1]), ...Array(px.bothFail).fill([0, 0])];
+  const g = qaAgreement(units, 2);
+  const passA = (px.bothPass + px.splitA) / px.calls, passB = (px.bothPass + px.splitB) / px.calls;
+  const peK = passA * passB + (1 - passA) * (1 - passB);
+  const kappa = (g.pa - peK) / (1 - peK);
+  const next = JOURNEY[r.next.tool];
+  return (
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <nav style={{ background: DEEP, padding: "16px 0" }}>
+        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
+          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
+        </div>
+      </nav>
+      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+        <div style={WRAP}>
+          <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how forms are checked and evaluators calibrated</h1>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.method.name} {r.method.version}.</p>
+        </div>
+      </header>
+      <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
+        <h2 style={H2}>How a form is checked</h2>
+        <p style={P}>Before anyone scores against it, the form is checked for how it is built. A criterion's swing is its category's weight divided by the number of criteria in the category: the points one mark moves the score. What the form measures is shown as a share of its weight on {r.focus.map((f) => f.label.toLowerCase()).join(", ")}, as a fact with no threshold, because no source says what the right mix is. An auto-fail must name its reason: {r.reasons.map((x) => x.label.toLowerCase()).join(", ")}.</p>
+        <RuleTable group="form" />
+        <h2 style={H2}>Blind calibration</h2>
+        <p style={P}>Each evaluator scores the same calls alone and sees only their own score. They send the QA lead a submission code, which carries their initials, the call ID, their marks and a fingerprint of the form, so a code scored on a different form is set aside. The tool compares nothing, and shows no score, bias or agreement, until every evaluator has scored every call. Until then it shows only how many evaluators have scored each call. A session needs at least {r.thresholds.minEvaluators.value} evaluators besides any reference.</p>
+        <h2 style={H2}>{r.method.name}, version {r.method.version}</h2>
+        <p style={P}>{r.method.summary} The method is our own combination; every statistic inside it is published and cited below.</p>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Measure</th><th style={th}>Statistic</th></tr></thead>
+          <tbody>{r.measures.map((m) => <tr key={m.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{m.label}</td><td style={cell}>{m.stat}</td></tr>)}</tbody>
+        </table>
+        <p style={{ ...P, marginTop: 12 }}>Every measure carries a {Math.round(r.bootstrap.level * 100)}% bootstrap interval: the calls are resampled {r.bootstrap.resamples.toLocaleString("en-US")} times with a fixed seed, so the same session always gives the same interval. A measure is graded by where its whole interval falls. An interval that crosses a band line is inconclusive, and a session of fewer than {r.thresholds.minCalls.value} calls is shown but not graded. When every evaluator gives every mark the same value, alpha has no value to compute, because there is no variation to measure; the session reads as unanimous and is never reported as a failure. Percent agreement sits beside each measure because it is the number a supervisor reads first.</p>
+        <h2 style={H2}>Rules and bands</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Band</th><th style={th}>Cut point</th><th style={th}>Meaning</th></tr></thead>
+          <tbody>{r.bands.map((b, i) => <tr key={b.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{b.label}</td><td style={cell}>{i === 0 ? `${b.min.toFixed(3)} and above` : Number.isFinite(b.min) ? `${b.min.toFixed(3)} to below ${r.bands[i - 1].min.toFixed(3)}` : `Below ${r.bands[i - 1].min.toFixed(3)}`}</td><td style={cell}>{b.desc}</td></tr>)}</tbody>
+        </table>
+        <p style={{ ...P, marginTop: 12 }}>The cut points are Krippendorff's (2004). Gwet publishes no fixed cut points for AC1, so the method applies the same two to it.</p>
+        <RuleTable group="calibration" />
+        <h2 style={H2}>Why kappa is not used for critical fails</h2>
+        <p style={P}>Two evaluators score {px.calls} calls on one auto-fail criterion. Both pass {px.bothPass}; each fails {px.splitA} that the other passed; neither fails the same call. They agree on {Math.round(g.pa * 100)}% of calls. Cohen's kappa for this table is {kappa.toFixed(2)}, which reads as no agreement at all, because rare fails make chance agreement look almost certain. Gwet's AC1 for the same table is {g.ac1.toFixed(2)}. Critical fails are rare by design, so the method grades them with AC1 (Feinstein and Cicchetti 1990; Gwet 2008).</p>
+        <h2 style={H2}>Thresholds</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Threshold</th><th style={th}>Value</th><th style={th}>Basis</th></tr></thead>
+          <tbody>{Object.entries(r.thresholds).map(([id, t]) => <tr key={id}><td style={cell}>{t.text[0].toUpperCase() + t.text.slice(1)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{TV[id]}</td><td style={cell}>{t.kind === "heuristic" ? "Heuristic, no published source" : "Rule of the method"}</td></tr>)}</tbody>
+        </table>
+        <h2 style={H2}>The next step</h2>
+        <p style={P}>While the form has a critical or high finding, the next step is to fix the form. Then to calibrate; then to calibrate again while any measure is not reliable, inconclusive, tentative or ungraded. Once the form passes and evaluators agree, the next step is {next ? <a href={next.route} style={{ color: ELECTRIC, fontWeight: 600 }}>{next.name}</a> : r.next.tool}, to test whether the scores track the repeat contacts they should prevent.</p>
+        <h2 style={H2}>Sources</h2>
+        <ul style={{ paddingLeft: 20 }}>{r.sources.map((x) => <li key={x.id} style={{ ...P, marginBottom: 8 }}>{x.text}</li>)}</ul>
+        <h2 style={H2}>What this tool cannot tell you</h2>
+        <ul style={{ paddingLeft: 20 }}>{r.limits.map((l, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{l}</li>)}</ul>
+        <div style={{ marginTop: 36 }}>
+          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Build and calibrate a QA form</a>
         </div>
       </main>
     </div>

@@ -160,8 +160,8 @@ export const JOURNEY = {
     name: "QA Scorecard",
     route: "/tools/qa-scorecard",
     next: [
+      { to: "fcr-leakage", why: "Test whether the scores track the repeat contacts they should prevent." },
       { to: "attrition-cost", why: "Price the turnover that weak coaching and QA feedback drive." },
-      { to: "fcr-leakage", why: "Tie the scorecard to the repeat contacts it should prevent." },
     ],
   },
   "contract-risk": {

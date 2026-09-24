@@ -108,6 +108,8 @@ const RAIL = new Set(["AttritionCostCalculator.jsx", "LicenseBundleGapChecker.js
 /* Calculators disclose a corrected input. Frameworks drop an out-of-range answer. */
 const CALCULATORS = new Set(["AHTDecomposition.jsx", "ShrinkagePlanner.jsx", "OccupancyRiskSimulator.jsx",
   "ForecastAccuracyTracker.jsx", "ScheduleAdherenceCalculator.jsx"]);
+/* Builders always show their form and report; a hostile value is clamped and flagged. */
+const BUILDERS = new Set(["QAScorecardBuilder.jsx"]);
 
 section("0. The tool set is read from App.jsx");
 ok("25 tool routes are mounted", TOOLS.length === 25);
@@ -174,6 +176,10 @@ for (const t of TOOLS) {
     if (CALCULATORS.has(t.file)) {
       ok(`${tag} ${label} inputs still show the result and its actions`, /request a review/i.test(h.text));
       if (label === "negative") ok(`${tag} negative inputs are corrected and disclosed`, /computed at/.test(h.text));
+    } else if (BUILDERS.has(t.file)) {
+      /* A builder always shows its form and report. A hostile weight is clamped, and the
+         form check must then say the weights no longer total 100. */
+      if (label !== "zero") ok(`${tag} ${label} weights are clamped and the form check flags them`, /Weights do not total 100/.test(h.text));
     } else if (label !== "zero") {
       /* Zero is a valid answer on some framework scales (a role index), so a
          framework is attacked with negative and huge values only. */
