@@ -8,7 +8,6 @@
  * Every constant is registered; the retired claims and the 0.15 formula stay dead.
  */
 import { readFileSync } from "node:fs";
-import { execSync } from "node:child_process";
 import * as E0 from "./src/lib/occupancy.js";
 import { BENCH, benchmark, benchmarksForTool } from "./src/lib/benchmarks.js";
 
@@ -58,7 +57,13 @@ for (let i = 0; i < 20000; i++) {
 ok(`20,000 random cases: every output equals the oracle${bad ? " " + JSON.stringify(bad) : ""}`, oSame);
 
 section("2. Behavior neutral where no change was intended: A/B against the previous tool");
-const LEGACY = execSync("git show c90dfa6:OccupancyRiskSimulator.jsx", { encoding: "utf8" });
+/* The previous tool's engine lines, frozen from OccupancyRiskSimulator.jsx at c90dfa6 (lines 36, 42
+   and 48). Kept here so the check runs on a shallow CI checkout that has no history. */
+const LEGACY = [
+  "  const intensity = (v.callsPerHour * v.aht) / 3600;",
+  "    const attritionImpact = occ > 90 ? v.attritionRate * 1.4 : occ > 85 ? v.attritionRate * 1.15 : v.attritionRate;",
+  "  const currentOcc = v.agents > 0 ? (intensity / v.agents) * 100 : 0;",
+].join("\n");
 ok("the previous tool computed occupancy as workload over agents", /const intensity = \(v\.callsPerHour \* v\.aht\) \/ 3600;/.test(LEGACY) && /\(intensity \/ v\.agents\) \* 100/.test(LEGACY));
 ok("the previous ladder used the same 1.15x and 1.4x multipliers at 85% and 90%", /occ > 90 \? v\.attritionRate \* 1\.4 : occ > 85 \? v\.attritionRate \* 1\.15/.test(LEGACY));
 let ab = true;
