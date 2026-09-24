@@ -48,7 +48,7 @@ const answersAll = (r, f) => Object.fromEntries(r.dims.flatMap((d, di) => d.crit
 const randomComplete = (r) => answersAll(r, () => pickInt(r.scale.min, r.scale.max));
 
 for (const r of Object.values(RUBRICS)) {
-  if (r.kind === "paired") continue; /* paired rubrics: section P */
+  if (r.kind) continue; /* paired rubrics: section P; ownership models: ownership.test.mjs */
   const T = `[${r.id}]`;
   const nCrit = r.dims.reduce((s, d) => s + d.criteria.length, 0);
 

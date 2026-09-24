@@ -86,6 +86,10 @@ export const SEO_MAP = {
     title: `CX + IT Alignment Rubric: How the Framework Scores | ${SITE}`,
     desc: "The published scoring rubric for the CX + IT Alignment Framework: 15 paired CX and IT statements across 5 areas, the gap bands, the misalignment and shared-weakness rules, the action each pair triggers and what the framework cannot tell you.",
   },
+  "/methodology/governance-model": {
+    title: `Governance & Operating Model: How the Map Is Read | ${SITE}`,
+    desc: "The published model behind the Governance & Operating Model: 30 CX decisions across 6 domains, the common owner and required functions for each, the six finding rules with their thresholds, and what the assessment cannot tell you.",
+  },
   "/methodology/ai-readiness": {
     title: `AI Readiness Rubric: How the Diagnostic Scores | ${SITE}`,
     desc: "The published scoring rubric for the AI Readiness Diagnostic: 24 statements across 6 equally weighted dimensions, the band cut points, the action each statement triggers and what the diagnostic cannot tell you.",

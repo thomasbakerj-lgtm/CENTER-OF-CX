@@ -18,6 +18,7 @@ export default function RubricPage({ id }) {
   const r = RUBRICS[id];
   useEffect(() => { window.scrollTo(0, 0); }, [id]);
   if (!r) return null;
+  if (r.kind === "ownership") return <OwnershipPage r={r} />;
   const totalWeight = r.dims.reduce((s, d) => s + d.weight, 0);
   const paired = r.kind === "paired";
   const statements = r.dims.reduce((s, d) => s + (paired ? d.pairs.length * 2 : d.criteria.length), 0);
@@ -102,6 +103,68 @@ export default function RubricPage({ id }) {
 
         <div style={{ marginTop: 36 }}>
           <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Take the {r.title}</a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+/* The published page for an ownership model (kind "ownership"): the roles, the six rules
+   with their tests and severities, and every decision with its common owner and the
+   functions it needs. Rendered from the same object the ownership engine reads. */
+function OwnershipPage({ r }) {
+  const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
+  const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
+  const cell = { ...TYPE.cell, color: SLATE, padding: "10px 12px", borderBottom: `1px solid ${BORDER}`, verticalAlign: "top", textAlign: "left" };
+  const th = { ...cell, ...TYPE.label, color: NAVY };
+  const role = (id) => (r.roles.find((x) => x.id === id) || {}).label || id;
+  const total = r.domains.reduce((s, d) => s + d.items.length, 0);
+  const bottleneckAt = Math.ceil((2 * total) / r.roles.length);
+  const need = (it) => (it.involve || []).map((e) => (typeof e === "string" ? role(e) : role(e.role) + (e.severity === "high" ? " (high if missing)" : ""))).join(", ");
+  return (
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <nav style={{ background: DEEP, padding: "16px 0" }}>
+        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
+          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
+        </div>
+      </nav>
+      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+        <div style={WRAP}>
+          <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published model</span>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how it reads your map</h1>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.domains.length} domains, {total} decisions, {r.roles.length} roles.</p>
+        </div>
+      </header>
+      <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
+        <h2 style={H2}>How the map is read</h2>
+        <p style={P}>Each decision gets one accountable role and, optionally, one contributing role. The model does not score: governance quality does not average, and one unowned decision can matter more than the rest together. It raises findings under the six rules below, most serious first. Findings appear once {r.minAssigned} of the {total} decisions have an owner. The roles are {r.roles.map((x) => x.label).join(", ")}.</p>
+        <h2 style={H2}>Rules and bands</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Finding</th><th style={th}>Raised when</th><th style={th}>Severity</th></tr></thead>
+          <tbody>{Object.entries(r.rules).map(([id, x]) => (
+            <tr key={id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.title}</td><td style={cell}>{id === "bottleneck" ? `${x.test} Across ${r.roles.length} roles that is ${bottleneckAt} or more.` : x.test}</td><td style={cell}>{x.severity === "info" ? "Confirm" : x.severity[0].toUpperCase() + x.severity.slice(1)}</td></tr>
+          ))}</tbody>
+        </table>
+        <p style={{ ...P, marginTop: 12 }}>The next diagnostic is {JOURNEY[r.next.cxIt] ? <a href={JOURNEY[r.next.cxIt].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[r.next.cxIt].name}</a> : r.next.cxIt} when at least half of the critical and high findings sit in CX Strategy & Vision or Technology & Platforms, where CX and IT decisions meet; otherwise {JOURNEY[r.next.otherwise] ? <a href={JOURNEY[r.next.otherwise].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[r.next.otherwise].name}</a> : r.next.otherwise}, to sequence the fixes.</p>
+        <h2 style={H2}>Decisions, common owners and required functions</h2>
+        {r.domains.map((d) => (
+          <section key={d.id} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
+            <h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 10 }}>{d.name}</h3>
+            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+              <thead><tr><th style={{ ...th, width: "45%" }}>Decision</th><th style={th}>Common owner</th><th style={th}>Must involve</th></tr></thead>
+              <tbody>{d.items.map((it, i) => (
+                <tr key={i}><td style={cell}>{it.text}</td><td style={cell}>{role(it.common)}</td><td style={cell}>{need(it) || "None required"}</td></tr>
+              ))}</tbody>
+            </table>
+          </section>
+        ))}
+        <h2 style={H2}>What this assessment cannot tell you</h2>
+        <ul style={{ paddingLeft: 20 }}>{r.limits.map((l, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{l}</li>)}</ul>
+        <div style={{ marginTop: 36 }}>
+          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Map your {r.title}</a>
         </div>
       </main>
     </div>
