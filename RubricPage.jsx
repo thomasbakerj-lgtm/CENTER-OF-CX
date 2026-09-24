@@ -521,7 +521,7 @@ function CalcPage({ r }) {
           </div>
         ))}
         <h2 style={H2}>Worked example</h2>
-        <p style={P}>Computed by the tool's own engine at its default inputs, so this page and the calculator always agree.</p>
+        <p style={P}>{r.example.note || "Computed by the tool's own engine at its default inputs, so this page and the calculator always agree."}</p>
         <div style={box}>{r.example.inputs.map(([a, b]) => <p key={a} style={{ ...P, fontSize: 14, margin: "2px 0" }}><strong style={{ color: NAVY }}>{a}:</strong> {b}</p>)}</div>
         {r.example.steps.map(([a, b]) => <div key={a} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{a}</div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{b}</p></div>)}
         <h2 style={H2}>What this tool cannot tell you</h2>

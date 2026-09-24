@@ -380,10 +380,18 @@ const ahtEntries = {
   "aht.lever.routing.talk": ahHeur(0.05, "Talk time removed when the first agent reached can resolve the contact."),
 };
 
+/* Forecast Accuracy Tracker. Every accuracy measure is arithmetic on the rows. The one
+   line the tool draws is the tracking signal limit: the running sum of errors over the mean
+   absolute error, outside plus or minus 4, reads as a forecast that leans one way. */
+const forecastEntries = {
+  "forecast.ts.limit": { tool: "forecast-accuracy", kind: "threshold", value: 4, unit: "mean absolute errors", source: "The tracking signal and its control limits of plus or minus 4 mean absolute deviations, as taught in standard operations management texts (for example Heizer, Render and Munson, Operations Management, chapter on forecasting). A convention, not a law: some planners use 3 for tighter control.", reviewed: REVIEWED, version: 1, rationale: "Outside plus or minus 4 the errors lean one way more than random error would, so the forecast is read as biased. Inside it, bias is not distinguished from noise." },
+};
+
 export const BENCHMARK_SOURCES = {
   ...SHARED_BENCHMARKS,
   ...occEntries,
   ...ahtEntries,
+  ...forecastEntries,
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
   "lbg.module.recording": mod(10, "Starting price for recording, shipped as included, so it prices only if the user reclassifies it."),

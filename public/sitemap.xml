@@ -125,6 +125,10 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/methodology/forecast-accuracy</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/tools/fcr-leakage</loc>
     <priority>0.8</priority>
   </url>
