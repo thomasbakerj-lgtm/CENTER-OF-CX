@@ -42,7 +42,7 @@ const CATEGORIES = [
   { id: "quality", label: "Performance + Quality", color: "#7C3AED", desc: "Measure what actually drives outcomes",
     tools: [
       { title: "AHT Decomposition", desc: "Break AHT into talk, hold, wrap, transfer, search, admin.", href: "/tools/aht-decomposition", popular: true },
-      { title: "QA Scorecard Builder", desc: "Weighted QA forms by contact type, with critical-fail criteria.", href: "/tools/qa-scorecard" },
+      { title: "QA Scorecard Builder", desc: "Weighted QA forms by contact type, with critical-fail criteria and a sample evaluation.", href: "/tools/qa-scorecard" },
       { title: "FCR Leakage Diagnostic", desc: "What drives repeat contacts across 6 root-cause dimensions.", href: "/tools/fcr-leakage" },
     ]},
   { id: "selection", label: "Vendor Selection", color: ELECTRIC, desc: "From shortlist to signed contract",
