@@ -312,6 +312,7 @@ export default function App() {
         <Route path="/methodology/platform-decision" element={<RubricPage id="platform-decision" />} />
         <Route path="/methodology/contract-risk" element={<RubricPage id="contract-risk" />} />
         <Route path="/methodology/rfp-builder" element={<RubricPage id="rfp-builder" />} />
+        <Route path="/methodology/occupancy-risk" element={<RubricPage id="occupancy-risk" />} />
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />

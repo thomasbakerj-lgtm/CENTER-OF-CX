@@ -339,8 +339,24 @@ const tcoEntries = {
   "tco.wage.bpo": tWage(15, "BPO and outsourcer"),
 };
 
+/* Occupancy Risk Simulator. Occupancy itself is arithmetic (workload in Erlangs over
+   agents) and needs no source. The bands are the platform's shared occupancy bands (BENCH).
+   What this tool adds is a planning model of how attrition rises with occupancy; no
+   published study gives a multiplier for a given occupancy, so both are labelled heuristics
+   everywhere they appear, and the page says so beside every figure they drive. */
+const OCC = "occupancy-risk";
+const OCC_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const oHeur = (value, unit, rationale) => ({ tool: OCC, kind: "heuristic", value, unit, source: OCC_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const occEntries = {
+  "occ.attrition.mult.caution": oHeur(1.15, "multiple of baseline attrition", "Attrition multiple applied while occupancy sits in the caution band, above the healthy maximum. Your entered attrition is taken as the rate at or below the healthy band."),
+  "occ.attrition.mult.critical": oHeur(1.40, "multiple of baseline attrition", "Attrition multiple applied while occupancy sits in the critical band, above the caution maximum, and whenever offered load exceeds staffed agents."),
+  "occ.hours.week": oHeur(40, "paid hours per week", "Full-time paid week used to price the wages paid while a new hire ramps. A definition, not a benchmark; change the training weeks to match your ramp."),
+  "occ.hours.year": oHeur(2080, "paid hours per year", "The 2,080 hour full-time year (40 hours for 52 weeks) used to price an added agent for a year."),
+};
+
 export const BENCHMARK_SOURCES = {
   ...SHARED_BENCHMARKS,
+  ...occEntries,
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
   "lbg.module.recording": mod(10, "Starting price for recording, shipped as included, so it prices only if the user reclassifies it."),

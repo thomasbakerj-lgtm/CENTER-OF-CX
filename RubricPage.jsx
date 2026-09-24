@@ -25,6 +25,7 @@ export default function RubricPage({ id }) {
   if (r.kind === "renewal") return <RenewalPage r={r} />;
   if (r.kind === "terms") return <TermsPage r={r} />;
   if (r.kind === "rfp") return <RfpPage r={r} />;
+  if (r.kind === "calc") return <CalcPage r={r} />;
   const totalWeight = r.dims.reduce((s, d) => s + d.weight, 0);
   const paired = r.kind === "paired";
   const statements = r.dims.reduce((s, d) => s + (paired ? d.pairs.length * 2 : d.criteria.length), 0);
@@ -466,6 +467,67 @@ function RfpPage({ r }) {
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
           <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Build your RFP</a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+/* The published page for a calculator (kind "calc"): what each number is, the formulas in
+   words, the bands, every constant with its kind and source, a worked example computed by
+   the tool's own engine, and the limits. Rendered from the model object, which reads the
+   registry and the engine directly. */
+function CalcPage({ r }) {
+  const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
+  const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
+  const box = { border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, background: WARM };
+  const kindLabel = { market: "Published source", heuristic: "Heuristic, no published source", threshold: "Threshold" };
+  return (
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <nav style={{ background: DEEP, padding: "16px 0" }}>
+        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
+          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
+        </div>
+      </nav>
+      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+        <div style={WRAP}>
+          <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: formulas, assumptions and a worked example</h1>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Method version {r.version}, published {r.published}.</p>
+        </div>
+      </header>
+      <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
+        <h2 style={H2}>What each number is</h2>
+        <p style={P}>{r.claimClasses}</p>
+        <h2 style={H2}>Formulas</h2>
+        {r.formulas.map((f) => (
+          <div key={f.name} style={box}>
+            <div style={{ ...TYPE.label, color: NAVY }}>{f.name}</div>
+            <p style={{ ...P, fontSize: 15, margin: "4px 0", color: NAVY }}>{f.formula}</p>
+            <p style={{ ...P, fontSize: 14, margin: 0 }}>{f.note}</p>
+          </div>
+        ))}
+        <h2 style={H2}>Rules and bands</h2>
+        {r.bands.map((b) => <div key={b.label} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{b.label} <span style={{ color: SLATE, fontWeight: 600 }}>· {b.range}</span></div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{b.meaning}</p></div>)}
+        <p style={P}>{r.bandsNote}</p>
+        <h2 style={H2}>Every constant and where it comes from</h2>
+        {r.constants().map((c) => (
+          <div key={c.id} style={box}>
+            <div style={{ ...TYPE.label, color: NAVY }}>{c.value.toLocaleString("en-US")} {c.unit} <span style={{ color: SLATE, fontWeight: 600 }}>· {kindLabel[c.kind] || c.kind}</span></div>
+            <p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{c.rationale}{c.kind === "market" ? " Source: " + c.source : ""}</p>
+          </div>
+        ))}
+        <h2 style={H2}>Worked example</h2>
+        <p style={P}>Computed by the tool's own engine at its default inputs, so this page and the calculator always agree.</p>
+        <div style={box}>{r.example.inputs.map(([a, b]) => <p key={a} style={{ ...P, fontSize: 14, margin: "2px 0" }}><strong style={{ color: NAVY }}>{a}:</strong> {b}</p>)}</div>
+        {r.example.steps.map(([a, b]) => <div key={a} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{a}</div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{b}</p></div>)}
+        <h2 style={H2}>What this tool cannot tell you</h2>
+        <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
+        <div style={{ marginTop: 36 }}>
+          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Open the {r.title}</a>
         </div>
       </main>
     </div>
