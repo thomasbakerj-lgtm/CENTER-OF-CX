@@ -90,6 +90,10 @@ export const SEO_MAP = {
     title: `Governance & Operating Model: How the Map Is Read | ${SITE}`,
     desc: "The published model behind the Governance & Operating Model: 30 CX decisions across 6 domains, the common owner and required functions for each, the six finding rules with their thresholds, and what the assessment cannot tell you.",
   },
+  "/methodology/qa-scorecard": {
+    title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
+    desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",
+  },
   "/methodology/ai-readiness": {
     title: `AI Readiness Rubric: How the Diagnostic Scores | ${SITE}`,
     desc: "The published scoring rubric for the AI Readiness Diagnostic: 24 statements across 6 equally weighted dimensions, the band cut points, the action each statement triggers and what the diagnostic cannot tell you.",

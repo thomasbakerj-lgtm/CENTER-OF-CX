@@ -365,6 +365,9 @@ Binding. None of this is in code comments beyond what is noted.
 - CCaaS vendor profile nav renders "Vendors" twice. Pre-existing, cosmetic.
 - ~~`scenarioUrl` `__proto__` assignment.~~ Fixed S23: a link could swap a decoded state's prototype; unsafe names
   are now dropped in both directions (`track.test.mjs` M). `track.js` was already allowlisted.
+- `ReportExport.jsx` writes section strings into the PDF window as raw HTML. A crafted scenario link can put markup into
+  user text (criterion names, roadmap items, RFP lines) and it runs in the same-origin popup. QA escapes its own
+  strings (S23); the fix belongs in the renderer (escape by default, opt-in markup). Found S23, not yet fixed.
 - `ReportActions` `Field` labels are not bound to their inputs (no `htmlFor`/`id`).
   Screen readers cannot name the review form fields.
 - ~~A failed lazy route chunk leaves the tool blank.~~ Fixed S23: one retry, one
@@ -599,7 +602,21 @@ dashboard, the 12-phase growth program.
 18. Done S23: live checker reports every hostile outcome (result, start screen or blocked notice; none skipped). QA
    Scorecard defects fixed: Yes/No selection now shows, no score until every criterion is marked, bands labelled
    unsourced defaults. Suite 19,931.
-19. **Next:** Phase C continues: QA Program with the calibration module (design to TB first), Platform Decision as the renewal gate,
+19. Done S23: Phase C step 4, QA Scorecard on its own engine (TB approved the design). `src/lib/qa.js` (engine markers)
+   reads `src/lib/rubrics/qaScorecard.js`. Form checks: weights total 100 and no empty category (critical); every
+   criterion defined and every auto-fail names a legal, regulatory, security or customer-harm reason (high); one
+   non-critical criterion swinging more than 15 points (medium, heuristic); focus mix shown as a fact, no threshold.
+   Blind calibration (TB rule): each evaluator sees only their own score and sends a plain-text code (form
+   fingerprint, initials, call, marks); nothing is compared until every evaluator has scored every call. The Center
+   of CX Calibration Method 1.0 (our combination, cited): Krippendorff's alpha on scores (interval) and marks
+   (nominal), Gwet's AC1 on critical fails (kappa paradox), percent agreement beside each, seeded 95% bootstrap
+   intervals; Krippendorff 2004 cut points 0.800 and 0.667, applied to AC1 and disclosed; interval across a line is
+   inconclusive; under 3 calls not graded. Heuristics labelled: bias 5, spread 5, item agreement 80%, critical load
+   50%. Optional reference evaluator for accuracy. Next step: fix the form, calibrate, calibrate again, then FCR
+   Leakage. Published at `/methodology/qa-scorecard` (sitemap 430). `qa.test.mjs` (97): alpha pinned to Krippendorff
+   (2011) 0.743 and 0.849, AC1 to the paradox table 0.890 (kappa -0.053), brute-force oracles, blind rule, every
+   rule, old links, 4 mutants killed. The PDF escapes every user string (see section 6).
+20. **Next:** Phase C continues: Platform Decision as the renewal gate,
    RFP and Contract Risk published criteria. TB: make `suite` required on main; 11-01.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
