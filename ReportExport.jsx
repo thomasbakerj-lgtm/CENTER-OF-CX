@@ -32,6 +32,379 @@ const SLATE = "#3A4F6A";
  * clickable link (absolute URL, so it works in the popup preview and the saved PDF).
  */
 
+/* The report as one HTML document. Every string a tool, a user or a scenario link can
+   set is escaped here, so section text always renders as text: a criterion name or a
+   roadmap item carrying markup cannot run in the report window. Pure, so the harness
+   can build it without a browser. */
+const e = (v) => String(v === undefined || v === null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "" }) {
+  // Resolve relative next-step links against the live origin so they work in the
+  // popup preview (whose own URL is about:blank) and remain clickable in the PDF.
+  const absUrl = (href) => !href ? null : (/^https?:\/\//i.test(href) ? href : origin + (href.startsWith("/") ? href : "/" + href));
+
+  const renderSection = (s, i) => {
+    if (s.type === "table") {
+      return `<div class="section">
+        <h3>${e(s.title)}</h3>
+        <table>${s.rows.map(r => `<tr><td class="label">${e(r[0])}</td><td class="value">${e(r[1])}</td></tr>`).join("")}</table>
+      </div>`;
+    }
+    if (s.type === "metrics") {
+      // Six 22pt serif figures do not fit one row. Wrap by count, and shrink the
+      // face size to the longest value so a dollar figure is never clipped.
+      const nItems = s.items.length;
+      // Balance the grid so the last row is not a lone orphan card.
+      // 9 items become 3x3, not 4+4+1.
+      const cols = nItems <= 4 ? nItems
+        : nItems % 3 === 0 ? 3
+        : nItems % 4 === 0 ? 4
+        : nItems <= 6 ? 3 : 4;
+      // Size each card to its OWN value. One verbose card must not shrink the
+      // headline figures beside it.
+      const sizeOf = (v) => { const len = String(v).replace(/<[^>]*>/g, "").length;
+        return len <= 8 ? "sz-l" : len <= 12 ? "sz-m" : len <= 18 ? "sz-s" : "sz-xs"; };
+      return `<div class="section">
+        <h3>${e(s.title)}</h3>
+        <div class="metrics cols-${cols}">${s.items.map(m => `
+          <div class="metric">
+            <div class="metric-value ${sizeOf(m.value)}" style="color:${e(m.color || ELECTRIC)}">${e(m.value)}</div>
+            <div class="metric-label">${e(m.label)}</div>
+            ${m.sub ? `<div class="metric-sub">${e(m.sub)}</div>` : ""}
+          </div>`).join("")}
+        </div>
+      </div>`;
+    }
+    if (s.type === "findings") {
+      return `<div class="section">
+        <h3>${e(s.title)}</h3>
+        <div class="findings">${s.items.map((f, fi) => `
+          <div class="finding">
+            <span class="finding-num">${fi + 1}</span>
+            <span>${e(f)}</span>
+          </div>`).join("")}
+        </div>
+      </div>`;
+    }
+    if (s.type === "actions") {
+      return `<div class="section">
+        <h3>${e(s.title)}</h3>
+        <div class="actions">${s.items.map(a => `
+          <div class="action ${e(a.priority || "")}">
+            <div class="action-header">
+              ${a.priority === "high" ? '<span class="priority high">High Priority</span>' : a.priority === "medium" ? '<span class="priority medium">Medium</span>' : ""}
+              <strong>${e(a.action)}</strong>
+            </div>
+            <p>${e(a.detail)}</p>
+          </div>`).join("")}
+        </div>
+      </div>`;
+    }
+    if (s.type === "next") {
+      return `<div class="section next-section">
+        <h3>${e(s.title)}</h3>
+        <div class="next-tools">${s.items.map(nx => {
+          const url = absUrl(nx.href);
+          const inner = `<strong>${e(nx.tool)}${url ? ' <span class="next-arrow">&rarr;</span>' : ""}</strong><span>${e(nx.reason)}</span>`;
+          return url
+            ? `<a class="next-tool next-link" href="${e(url)}" target="_blank" rel="noopener">${inner}</a>`
+            : `<div class="next-tool">${inner}</div>`;
+        }).join("")}
+        </div>
+      </div>`;
+    }
+    if (s.type === "text") {
+      return `<div class="section"><h3>${e(s.title)}</h3><p class="text-block">${e(s.content)}</p></div>`;
+    }
+    return "";
+  };
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${e(toolName)}, Report</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@400;600&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@page { margin: 0.6in 0.7in; size: letter; }
+
+body {
+  font-family: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: ${NAVY};
+  font-size: 10pt;
+  line-height: 1.5;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Cover header */
+.cover {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 20px;
+  border-bottom: 2px solid ${ELECTRIC};
+  margin-bottom: 24px;
+}
+.cover-left { flex: 1; }
+.cover-right { text-align: right; }
+.cover h1 {
+  font-family: 'Archivo', -apple-system, sans-serif;
+  letter-spacing: -0.7px;
+  font-size: 21pt;
+  font-weight: 600;
+  color: ${NAVY};
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+.cover .subtitle {
+  font-size: 11pt;
+  color: ${MUTED};
+  margin-bottom: 12px;
+}
+.cover .meta {
+  font-size: 8.5pt;
+  color: ${MUTED};
+  line-height: 1.6;
+}
+.cover .meta strong { color: ${NAVY}; }
+.company-logo {
+  max-width: 160px;
+  max-height: 60px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+.site-mark {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.site-mark span {
+  font-size: 8pt;
+  color: ${MUTED};
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.site-mark .cx { color: ${LIGHT}; }
+
+/* Sections */
+.section {
+  margin-bottom: 22px;
+  page-break-inside: avoid;
+}
+.section h3 {
+  font-size: 10pt;
+  font-weight: 700;
+  color: ${ELECTRIC};
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #E8F0F6;
+}
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+td { padding: 6px 10px; border-bottom: 1px solid #F0F3F7; font-size: 9.5pt; }
+td.label { color: ${SLATE}; width: 45%; }
+td.value { font-weight: 600; color: ${NAVY}; text-align: right; }
+
+/* Metrics */
+.metrics {
+  display: grid;
+  gap: 12px;
+}
+.metrics.cols-1 { grid-template-columns: 1fr; }
+.metrics.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.metrics.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.metrics.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.metric {
+  min-width: 0;
+  background: #F8FAFB;
+  border: 1px solid #E8F0F6;
+  border-radius: 6px;
+  padding: 12px 10px;
+  text-align: center;
+  overflow: hidden;
+}
+.metric-value {
+  font-family: 'Archivo', -apple-system, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+.metric-value.sz-l  { font-size: 22pt; }
+.metric-value.sz-m  { font-size: 17pt; }
+.metric-value.sz-s  { font-size: 13.5pt; }
+.metric-value.sz-xs { font-size: 11.5pt; }
+.metric-label { font-size: 8.5pt; color: ${MUTED}; margin-top: 2px; }
+.metric-sub { font-size: 8pt; color: ${MUTED}; opacity: 0.7; }
+
+/* Findings */
+.findings { display: flex; flex-direction: column; gap: 6px; }
+.finding {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #F8FAFB;
+  border-radius: 4px;
+  font-size: 9.5pt;
+  color: ${SLATE};
+  line-height: 1.45;
+}
+.finding-num {
+  background: ${ELECTRIC};
+  color: #fff;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8pt;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Actions */
+.actions { display: flex; flex-direction: column; gap: 8px; }
+.action {
+  padding: 10px 12px;
+  border-left: 3px solid #D8E3ED;
+  background: #FAFBFC;
+  border-radius: 0 4px 4px 0;
+}
+.action.high { border-left-color: #EF4444; background: #FEF7F7; }
+.action.medium { border-left-color: #F59E0B; background: #FFFCF5; }
+.action-header { margin-bottom: 4px; font-size: 9.5pt; }
+.action p { font-size: 9pt; color: ${SLATE}; line-height: 1.5; }
+.priority {
+  font-size: 7.5pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-right: 6px;
+}
+.priority.high { background: #FEE2E2; color: #DC2626; }
+.priority.medium { background: #FEF3C7; color: #D97706; }
+
+/* Next tools */
+.next-section { margin-top: 16px; }
+.next-tools { display: flex; flex-direction: column; gap: 6px; }
+.next-tool {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #F0F9FF;
+  border: 1px solid #DBEAFE;
+  border-radius: 4px;
+  font-size: 9pt;
+}
+.next-tool strong { color: ${NAVY}; }
+.next-tool span { color: ${MUTED}; }
+.next-link { text-decoration: none; color: inherit; transition: background 0.15s, border-color 0.15s; }
+.next-link strong { color: ${ELECTRIC}; }
+.next-arrow { color: ${ELECTRIC}; font-weight: 700; }
+.next-link:hover { background: #E3F2FD; border-color: ${ELECTRIC}; }
+
+.text-block { font-size: 9.5pt; color: ${SLATE}; line-height: 1.6; }
+
+/* Footer */
+.report-footer {
+  margin-top: 28px;
+  padding-top: 12px;
+  border-top: 1px solid #E8F0F6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 7.5pt;
+  color: #A0AEC0;
+}
+
+/* Print button, hidden on print */
+.print-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: ${NAVY};
+  padding: 12px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+}
+.print-bar span { color: rgba(255,255,255,0.6); font-size: 12px; }
+.print-bar button {
+  background: ${ELECTRIC};
+  color: #fff;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Archivo', sans-serif;
+}
+@media print {
+  .print-bar { display: none !important; }
+  body { padding-top: 0 !important; }
+  .next-link { background: #F0F9FF !important; }
+}
+@media screen {
+  body { padding: 56px 32px 32px; max-width: 800px; margin: 0 auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="print-bar">
+<span>Report preview. Save as PDF or print</span>
+<button onclick="window.print()">Download PDF ↓</button>
+</div>
+
+<div class="cover">
+<div class="cover-left">
+  <h1>${e(toolName)}</h1>
+  ${subtitle ? `<div class="subtitle">${e(subtitle)}</div>` : ""}
+  <div class="meta">
+    ${reportName ? `<div><strong>Prepared for:</strong> ${e(reportName)}</div>` : ""}
+    ${company ? `<div><strong>Organization:</strong> ${e(company)}</div>` : ""}
+    <div><strong>Date:</strong> ${e(today)}</div>
+  </div>
+</div>
+<div class="cover-right">
+  ${logo ? `<img src="${e(logo)}" class="company-logo" alt="Company logo" />` : ""}
+  <div class="site-mark">
+    <svg width="18" height="18" viewBox="0 0 120 120"><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="${NAVY}" stroke-width="2" opacity="0.3"/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="${NAVY}" stroke-width="3" opacity="0.5"/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="${NAVY}" stroke-width="4.5"/><line x1="-14" y1="-14" x2="14" y2="14" stroke="${LIGHT}" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke="${LIGHT}" stroke-width="5" stroke-linecap="round"/></g></svg>
+    <span>THE CENTER OF <span class="cx">CX</span></span>
+  </div>
+</div>
+</div>
+
+${sections.map((s, i) => renderSection(s, i)).join("\n")}
+
+<div class="report-footer">
+<span>Generated by The Center of CX. contactcentercx.com</span>
+<span>${e(today)}</span>
+</div>
+
+</body>
+</html>`;
+}
+
 export default function ReportExport({ toolId, grade, toolName, subtitle, userName, userEmail, sections = [] }) {
   const [showModal, setShowModal] = useState(false);
   const [logo, setLogo] = useState(null);
@@ -66,372 +439,8 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
     const win = window.open("", "_blank");
     if (!win) { alert("Please allow pop-ups to download your report."); return; }
 
-    // Resolve relative next-step links against the live origin so they work in the
-    // popup preview (whose own URL is about:blank) and remain clickable in the PDF.
     const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "";
-    const absUrl = (href) => !href ? null : (/^https?:\/\//i.test(href) ? href : origin + (href.startsWith("/") ? href : "/" + href));
-
-    const renderSection = (s, i) => {
-      if (s.type === "table") {
-        return `<div class="section">
-          <h3>${s.title}</h3>
-          <table>${s.rows.map(r => `<tr><td class="label">${r[0]}</td><td class="value">${r[1]}</td></tr>`).join("")}</table>
-        </div>`;
-      }
-      if (s.type === "metrics") {
-        // Six 22pt serif figures do not fit one row. Wrap by count, and shrink the
-        // face size to the longest value so a dollar figure is never clipped.
-        const nItems = s.items.length;
-        // Balance the grid so the last row is not a lone orphan card.
-        // 9 items become 3x3, not 4+4+1.
-        const cols = nItems <= 4 ? nItems
-          : nItems % 3 === 0 ? 3
-          : nItems % 4 === 0 ? 4
-          : nItems <= 6 ? 3 : 4;
-        // Size each card to its OWN value. One verbose card must not shrink the
-        // headline figures beside it.
-        const sizeOf = (v) => { const len = String(v).replace(/<[^>]*>/g, "").length;
-          return len <= 8 ? "sz-l" : len <= 12 ? "sz-m" : len <= 18 ? "sz-s" : "sz-xs"; };
-        return `<div class="section">
-          <h3>${s.title}</h3>
-          <div class="metrics cols-${cols}">${s.items.map(m => `
-            <div class="metric">
-              <div class="metric-value ${sizeOf(m.value)}" style="color:${m.color || ELECTRIC}">${m.value}</div>
-              <div class="metric-label">${m.label}</div>
-              ${m.sub ? `<div class="metric-sub">${m.sub}</div>` : ""}
-            </div>`).join("")}
-          </div>
-        </div>`;
-      }
-      if (s.type === "findings") {
-        return `<div class="section">
-          <h3>${s.title}</h3>
-          <div class="findings">${s.items.map((f, fi) => `
-            <div class="finding">
-              <span class="finding-num">${fi + 1}</span>
-              <span>${f}</span>
-            </div>`).join("")}
-          </div>
-        </div>`;
-      }
-      if (s.type === "actions") {
-        return `<div class="section">
-          <h3>${s.title}</h3>
-          <div class="actions">${s.items.map(a => `
-            <div class="action ${a.priority || ""}">
-              <div class="action-header">
-                ${a.priority === "high" ? '<span class="priority high">High Priority</span>' : a.priority === "medium" ? '<span class="priority medium">Medium</span>' : ""}
-                <strong>${a.action}</strong>
-              </div>
-              <p>${a.detail}</p>
-            </div>`).join("")}
-          </div>
-        </div>`;
-      }
-      if (s.type === "next") {
-        return `<div class="section next-section">
-          <h3>${s.title}</h3>
-          <div class="next-tools">${s.items.map(nx => {
-            const url = absUrl(nx.href);
-            const inner = `<strong>${nx.tool}${url ? ' <span class="next-arrow">&rarr;</span>' : ""}</strong><span>${nx.reason}</span>`;
-            return url
-              ? `<a class="next-tool next-link" href="${url}" target="_blank" rel="noopener">${inner}</a>`
-              : `<div class="next-tool">${inner}</div>`;
-          }).join("")}
-          </div>
-        </div>`;
-      }
-      if (s.type === "text") {
-        return `<div class="section"><h3>${s.title}</h3><p class="text-block">${s.content}</p></div>`;
-      }
-      return "";
-    };
-
-    const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>${toolName}, Report</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@400;600&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  @page { margin: 0.6in 0.7in; size: letter; }
-
-  body {
-    font-family: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-variant-numeric: tabular-nums;
-    color: ${NAVY};
-    font-size: 10pt;
-    line-height: 1.5;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  /* Cover header */
-  .cover {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding-bottom: 20px;
-    border-bottom: 2px solid ${ELECTRIC};
-    margin-bottom: 24px;
-  }
-  .cover-left { flex: 1; }
-  .cover-right { text-align: right; }
-  .cover h1 {
-    font-family: 'Archivo', -apple-system, sans-serif;
-    letter-spacing: -0.7px;
-    font-size: 21pt;
-    font-weight: 600;
-    color: ${NAVY};
-    line-height: 1.15;
-    margin-bottom: 4px;
-  }
-  .cover .subtitle {
-    font-size: 11pt;
-    color: ${MUTED};
-    margin-bottom: 12px;
-  }
-  .cover .meta {
-    font-size: 8.5pt;
-    color: ${MUTED};
-    line-height: 1.6;
-  }
-  .cover .meta strong { color: ${NAVY}; }
-  .company-logo {
-    max-width: 160px;
-    max-height: 60px;
-    object-fit: contain;
-    margin-bottom: 8px;
-  }
-  .site-mark {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 8px;
-  }
-  .site-mark span {
-    font-size: 8pt;
-    color: ${MUTED};
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-  .site-mark .cx { color: ${LIGHT}; }
-
-  /* Sections */
-  .section {
-    margin-bottom: 22px;
-    page-break-inside: avoid;
-  }
-  .section h3 {
-    font-size: 10pt;
-    font-weight: 700;
-    color: ${ELECTRIC};
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 10px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid #E8F0F6;
-  }
-
-  /* Tables */
-  table { width: 100%; border-collapse: collapse; }
-  td { padding: 6px 10px; border-bottom: 1px solid #F0F3F7; font-size: 9.5pt; }
-  td.label { color: ${SLATE}; width: 45%; }
-  td.value { font-weight: 600; color: ${NAVY}; text-align: right; }
-
-  /* Metrics */
-  .metrics {
-    display: grid;
-    gap: 12px;
-  }
-  .metrics.cols-1 { grid-template-columns: 1fr; }
-  .metrics.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .metrics.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .metrics.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .metric {
-    min-width: 0;
-    background: #F8FAFB;
-    border: 1px solid #E8F0F6;
-    border-radius: 6px;
-    padding: 12px 10px;
-    text-align: center;
-    overflow: hidden;
-  }
-  .metric-value {
-    font-family: 'Archivo', -apple-system, sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.12;
-    overflow-wrap: anywhere;
-    word-break: normal;
-  }
-  .metric-value.sz-l  { font-size: 22pt; }
-  .metric-value.sz-m  { font-size: 17pt; }
-  .metric-value.sz-s  { font-size: 13.5pt; }
-  .metric-value.sz-xs { font-size: 11.5pt; }
-  .metric-label { font-size: 8.5pt; color: ${MUTED}; margin-top: 2px; }
-  .metric-sub { font-size: 8pt; color: ${MUTED}; opacity: 0.7; }
-
-  /* Findings */
-  .findings { display: flex; flex-direction: column; gap: 6px; }
-  .finding {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 8px 10px;
-    background: #F8FAFB;
-    border-radius: 4px;
-    font-size: 9.5pt;
-    color: ${SLATE};
-    line-height: 1.45;
-  }
-  .finding-num {
-    background: ${ELECTRIC};
-    color: #fff;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 8pt;
-    font-weight: 700;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  /* Actions */
-  .actions { display: flex; flex-direction: column; gap: 8px; }
-  .action {
-    padding: 10px 12px;
-    border-left: 3px solid #D8E3ED;
-    background: #FAFBFC;
-    border-radius: 0 4px 4px 0;
-  }
-  .action.high { border-left-color: #EF4444; background: #FEF7F7; }
-  .action.medium { border-left-color: #F59E0B; background: #FFFCF5; }
-  .action-header { margin-bottom: 4px; font-size: 9.5pt; }
-  .action p { font-size: 9pt; color: ${SLATE}; line-height: 1.5; }
-  .priority {
-    font-size: 7.5pt;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    margin-right: 6px;
-  }
-  .priority.high { background: #FEE2E2; color: #DC2626; }
-  .priority.medium { background: #FEF3C7; color: #D97706; }
-
-  /* Next tools */
-  .next-section { margin-top: 16px; }
-  .next-tools { display: flex; flex-direction: column; gap: 6px; }
-  .next-tool {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 10px;
-    background: #F0F9FF;
-    border: 1px solid #DBEAFE;
-    border-radius: 4px;
-    font-size: 9pt;
-  }
-  .next-tool strong { color: ${NAVY}; }
-  .next-tool span { color: ${MUTED}; }
-  .next-link { text-decoration: none; color: inherit; transition: background 0.15s, border-color 0.15s; }
-  .next-link strong { color: ${ELECTRIC}; }
-  .next-arrow { color: ${ELECTRIC}; font-weight: 700; }
-  .next-link:hover { background: #E3F2FD; border-color: ${ELECTRIC}; }
-
-  .text-block { font-size: 9.5pt; color: ${SLATE}; line-height: 1.6; }
-
-  /* Footer */
-  .report-footer {
-    margin-top: 28px;
-    padding-top: 12px;
-    border-top: 1px solid #E8F0F6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 7.5pt;
-    color: #A0AEC0;
-  }
-
-  /* Print button, hidden on print */
-  .print-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: ${NAVY};
-    padding: 12px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 100;
-  }
-  .print-bar span { color: rgba(255,255,255,0.6); font-size: 12px; }
-  .print-bar button {
-    background: ${ELECTRIC};
-    color: #fff;
-    border: none;
-    padding: 8px 24px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'Archivo', sans-serif;
-  }
-  @media print {
-    .print-bar { display: none !important; }
-    body { padding-top: 0 !important; }
-    .next-link { background: #F0F9FF !important; }
-  }
-  @media screen {
-    body { padding: 56px 32px 32px; max-width: 800px; margin: 0 auto; }
-  }
-</style>
-</head>
-<body>
-
-<div class="print-bar">
-  <span>Report preview. Save as PDF or print</span>
-  <button onclick="window.print()">Download PDF ↓</button>
-</div>
-
-<div class="cover">
-  <div class="cover-left">
-    <h1>${toolName}</h1>
-    ${subtitle ? `<div class="subtitle">${subtitle}</div>` : ""}
-    <div class="meta">
-      ${reportName ? `<div><strong>Prepared for:</strong> ${reportName}</div>` : ""}
-      ${company ? `<div><strong>Organization:</strong> ${company}</div>` : ""}
-      <div><strong>Date:</strong> ${today}</div>
-    </div>
-  </div>
-  <div class="cover-right">
-    ${logo ? `<img src="${logo}" class="company-logo" alt="Company logo" />` : ""}
-    <div class="site-mark">
-      <svg width="18" height="18" viewBox="0 0 120 120"><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="${NAVY}" stroke-width="2" opacity="0.3"/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="${NAVY}" stroke-width="3" opacity="0.5"/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="${NAVY}" stroke-width="4.5"/><line x1="-14" y1="-14" x2="14" y2="14" stroke="${LIGHT}" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke="${LIGHT}" stroke-width="5" stroke-linecap="round"/></g></svg>
-      <span>THE CENTER OF <span class="cx">CX</span></span>
-    </div>
-  </div>
-</div>
-
-${sections.map((s, i) => renderSection(s, i)).join("\n")}
-
-<div class="report-footer">
-  <span>Generated by The Center of CX. contactcentercx.com</span>
-  <span>${today}</span>
-</div>
-
-</body>
-</html>`;
+    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin });
 
     win.document.write(html);
     win.document.close();

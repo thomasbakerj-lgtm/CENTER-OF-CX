@@ -297,7 +297,7 @@ const APP = readFileSync("./App.jsx", "utf8");
 ok("the tool imports the engine and the model", /from "\.\/src\/lib\/qa"/.test(TOOL) && /from "\.\/src\/lib\/rubrics\/qaScorecard"/.test(TOOL));
 ok("the tool keeps no template or band table of its own", !/const TEMPLATES = \{\n/.test(TOOL) && !/>= 85/.test(TOOL));
 ok("the tool links the published method", /href=\{MODEL\.methodology\}/.test(TOOL));
-ok("every user string headed for the PDF is escaped", /const esc = /.test(TOOL) && /esc\(c\.name\)/.test(TOOL) && /esc\(f\.action\)/.test(TOOL));
+ok("the tool leaves escaping to the report renderer, so nothing is escaped twice", !/const esc = |&amp;|&lt;/.test(TOOL));
 ok("the PDF carries findings, limits and method", /title: "Findings"/.test(TOOL) && /title: "What This Tool Cannot Tell You"/.test(TOOL) && /title: "Method"/.test(TOOL));
 ok("/methodology/qa-scorecard: route mounted", APP.includes('<Route path="/methodology/qa-scorecard" element={<RubricPage id="qa-scorecard" />} />'));
 ok("/methodology/qa-scorecard: in the sitemap", readFileSync("./public/sitemap.xml", "utf8").includes("/methodology/qa-scorecard<"));

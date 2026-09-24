@@ -365,9 +365,10 @@ Binding. None of this is in code comments beyond what is noted.
 - CCaaS vendor profile nav renders "Vendors" twice. Pre-existing, cosmetic.
 - ~~`scenarioUrl` `__proto__` assignment.~~ Fixed S23: a link could swap a decoded state's prototype; unsafe names
   are now dropped in both directions (`track.test.mjs` M). `track.js` was already allowlisted.
-- `ReportExport.jsx` writes section strings into the PDF window as raw HTML. A crafted scenario link can put markup into
-  user text (criterion names, roadmap items, RFP lines) and it runs in the same-origin popup. QA escapes its own
-  strings (S23); the fix belongs in the renderer (escape by default, opt-in markup). Found S23, not yet fixed.
+- ~~`ReportExport.jsx` wrote section strings into the PDF window as raw HTML.~~ Fixed S23: a crafted scenario link could
+  put markup into user text (criterion names, roadmap items, RFP lines) that ran in the same-origin report window.
+  `reportHtml` is now pure and escapes every field; no tool used markup in PDF strings (37 reports scanned).
+  `export.test.mjs` attacks every section type and cover field and checks every interpolation.
 - `ReportActions` `Field` labels are not bound to their inputs (no `htmlFor`/`id`).
   Screen readers cannot name the review form fields.
 - ~~A failed lazy route chunk leaves the tool blank.~~ Fixed S23: one retry, one
@@ -615,8 +616,10 @@ dashboard, the 12-phase growth program.
    50%. Optional reference evaluator for accuracy. Next step: fix the form, calibrate, calibrate again, then FCR
    Leakage. Published at `/methodology/qa-scorecard` (sitemap 430). `qa.test.mjs` (97): alpha pinned to Krippendorff
    (2011) 0.743 and 0.849, AC1 to the paradox table 0.890 (kappa -0.053), brute-force oracles, blind rule, every
-   rule, old links, 4 mutants killed. The PDF escapes every user string (see section 6).
-20. **Next:** Phase C continues: Platform Decision as the renewal gate,
+   rule, old links, 4 mutants killed.
+20. Done S23: the report renderer escapes every field (`reportHtml`, `export.test.mjs`). Closes the scenario-link markup
+   injection into the same-origin report window found during step 4. Suite 20,044.
+21. **Next:** Phase C continues: Platform Decision as the renewal gate,
    RFP and Contract Risk published criteria. TB: make `suite` required on main; 11-01.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS

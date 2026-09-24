@@ -16,8 +16,6 @@ const fill = (t) => t.replace(/\{(\w+)\}/g, (_, k) => (TV[k] === undefined ? "" 
 const whyOf = (f) => f.title + ": " + fill(MODEL.rules[f.rule].test) + (MODEL.rules[f.rule].heuristic ? " Heuristic threshold." : "");
 const gradeOf = (m) => m.grade ? GRADE[m.grade] : { label: "Not graded", color: SLATE };
 const num = (v) => (v === null || v === undefined ? "n/a" : v.toFixed(2));
-/* The PDF is built as HTML, so every string a user or a link can set is escaped first. */
-const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
 const TEMPLATES = MODEL.templates;
 const TOOL_ID = "qa-scorecard";
@@ -314,16 +312,16 @@ export default function QAScorecardBuilder() {
               { label: "Next step", value: STEP_LABEL[R.next.step] },
             ]}
             sections={[
-              { title: "Scorecard Structure", type: "table", rows: categories.map(c => [esc(c.name), "Weight " + c.weight + "%, " + c.criteria.length + " criteria (" + c.criteria.filter(cr => cr.critical).length + " auto-fail)"]) },
-              { title: "Criteria and Definitions", type: "findings", items: crit.length ? crit.map(c => esc(c.category + ": " + c.text) + (c.critical ? " [auto-fail" + (c.reason ? ", " + esc(MODEL.reasons.find(r => r.id === c.reason).label.toLowerCase()) : "") + "]" : "") + ". " + (c.def ? esc(c.def) : "No definition.")) : ["No criteria."] },
+              { title: "Scorecard Structure", type: "table", rows: categories.map(c => [c.name, "Weight " + c.weight + "%, " + c.criteria.length + " criteria (" + c.criteria.filter(cr => cr.critical).length + " auto-fail)"]) },
+              { title: "Criteria and Definitions", type: "findings", items: crit.length ? crit.map(c => c.category + ": " + c.text + (c.critical ? " [auto-fail" + (c.reason ? ", " + MODEL.reasons.find(r => r.id === c.reason).label.toLowerCase() : "") + "]" : "") + ". " + (c.def ? c.def : "No definition.")) : ["No criteria."] },
               { title: "What the Form Measures", type: "metrics", items: L.mix.map(m => ({ label: m.label, value: pct(m.weight), color: ELECTRIC })) },
               ...(CR ? [{ title: "Calibration", type: "table", rows: [
                 ...CR.measures.map(m => [m.label, num(m.value) + ", " + gradeOf(m).label + (m.interval ? ", interval " + num(m.interval.low) + " to " + num(m.interval.high) : "") + ", percent agreement " + (m.agreement === null ? "n/a" : Math.round(m.agreement * 100) + "%")]),
-                ...CR.bias.map(b => ["Bias, " + esc(b.evaluator), (b.bias >= 0 ? "+" : "") + b.bias.toFixed(1) + " points against the others"]),
-                ["Session", C.raters + " evaluators on " + C.calls + " calls" + (C.reference ? ", reference " + esc(C.reference) : "")],
+                ...CR.bias.map(b => ["Bias, " + b.evaluator, (b.bias >= 0 ? "+" : "") + b.bias.toFixed(1) + " points against the others"]),
+                ["Session", C.raters + " evaluators on " + C.calls + " calls" + (C.reference ? ", reference " + C.reference : "")],
               ] }] : []),
               ...(own ? [{ title: "Your Evaluation", type: "findings", items: [(own.autoFail ? "Auto-fail. Weighted score before the auto-fail: " : "Weighted score: ") + own.score.toFixed(1) + "%" + (L.total === 100 ? "." : ". Weights do not total 100%, so this score cannot be compared with another form's.")] }] : []),
-              { title: "Findings", type: "actions", items: R.findings.length ? R.findings.map(f => ({ action: esc(f.action), detail: SEV_STYLE[f.severity].label + ". " + esc(whyOf(f)), priority: f.severity === "critical" || f.severity === "high" ? "high" : "medium" })) : [{ action: "No published rule raises a finding.", detail: "Keep calibrating on a regular cycle; agreement drifts.", priority: "medium" }] },
+              { title: "Findings", type: "actions", items: R.findings.length ? R.findings.map(f => ({ action: f.action, detail: SEV_STYLE[f.severity].label + ". " + whyOf(f), priority: f.severity === "critical" || f.severity === "high" ? "high" : "medium" })) : [{ action: "No published rule raises a finding.", detail: "Keep calibrating on a regular cycle; agreement drifts.", priority: "medium" }] },
               { title: "Next Step", type: "text", content: NEXT_TEXT[R.next.step] },
               { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
               { title: "Method", type: "text", content: MODEL.method.name + " " + MODEL.method.version + ". " + MODEL.method.summary + " Published at contactcentercx.com" + MODEL.methodology + "." },
