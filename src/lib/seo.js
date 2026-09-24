@@ -94,6 +94,14 @@ export const SEO_MAP = {
     title: `Platform Decision Method: How the Renewal Gate Reads Your Platform | ${SITE}`,
     desc: "The published method behind Platform Decision: 35 needs across 7 layers, must-have gaps, proof requests for unknowns, layer outcomes, the renewal gate, the notice-date clock and every threshold.",
   },
+  "/methodology/contract-risk": {
+    title: `Contract Risk Method: How Each Clause Is Rated | ${SITE}`,
+    desc: "The published method behind the Contract Risk Scanner: 13 clauses, every option's severity and reason, the reading rule, negotiation positions and what the scanner cannot tell you.",
+  },
+  "/methodology/rfp-builder": {
+    title: `RFP Builder Method: Requirements and Response Scoring | ${SITE}`,
+    desc: "The published method behind the RFP Requirement Builder: every requirement by layer, default weights, response credits where only generally available earns full credit, clarifications, demo verification and the analyst read rules.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",
@@ -228,7 +236,7 @@ export const SEO_MAP = {
   },
   "/tools/contract-risk": {
     title: `Contract Risk Scanner | Find Red Flags Before You Sign | ${SITE}`,
-    desc: "Select your contract terms across 7 critical areas. See which clauses protect you, which expose you, and what to renegotiate.",
+    desc: "Read 13 clauses of a contact center platform contract against published severities: renewal, price, SLA, liability, exit, data, AI use of your data, security and add-ons. See what to ask for instead.",
   },
   "/tools/transformation-readiness": {
     title: `Transformation Readiness Scorecard | Go/No-Go Assessment | ${SITE}`,
@@ -236,7 +244,7 @@ export const SEO_MAP = {
   },
   "/tools/rfp-builder": {
     title: `RFP Requirement Builder | Weighted Requirements by Layer | ${SITE}`,
-    desc: "Generate weighted RFP requirements organized by the 7 orchestration layers. Tailored to your vertical, operation size, and priorities. Downloadable document.",
+    desc: "Build weighted RFP requirements by layer for your vertical and size, then score vendor responses: must-haves met, generally available only, what to verify in each demo and where the choice is decided.",
   },
   "/privacy": {
     title: `Privacy Policy | ${SITE}`,

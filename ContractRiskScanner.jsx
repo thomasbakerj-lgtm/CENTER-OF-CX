@@ -1,190 +1,127 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
+import { ToolNav, ToolHero } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { JOURNEY } from "./src/lib/journey";
+import { CONTRACT_RISK as MODEL } from "./src/lib/rubrics/contractRisk";
+import { scoreTerms } from "./src/lib/terms";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+/* Contract Risk Scanner. The clauses, options, severities and reading rule live in the
+   published model (src/lib/rubrics/contractRisk.js) and the engine (src/lib/terms.js);
+   this file only presents them. */
+
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const BORDER = "#D8E3ED";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
-function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
-
-const TERMS = [
-  { id: "length", name: "Contract Length", options: [
-    { val: "1 year", level: "low", note: "Maximum flexibility. Less pricing leverage but no long-term lock.", negotiate: "" },
-    { val: "2 years", level: "low", note: "Standard. Balanced leverage and flexibility.", negotiate: "" },
-    { val: "3 years", level: "medium", note: "Common for enterprise. Ensure rate locks cover the full term.", negotiate: "Push for full-term rate lock. Request mid-term review clause at 18 months with renegotiation rights if usage changes by more than 20%." },
-    { val: "5 years", level: "high", note: "Locks you through massive technology change. AI capabilities will evolve significantly.", negotiate: "Request a technology refresh clause allowing platform or tier changes at Year 3. Include mid-term rate reset if vendor introduces consumption pricing." },
-  ]},
-  { id: "renewal", name: "Auto-Renewal Notice Window", options: [
-    { val: "30 days", level: "low", note: "Reasonable notice period.", negotiate: "" },
-    { val: "60 days", level: "medium", note: "Set a calendar reminder 9 months before expiration.", negotiate: "Push for 30-day notice. If they insist on 60, request that notice can be delivered via email (not certified mail only)." },
-    { val: "90 days", level: "high", note: "You must decide a full quarter before expiration.", negotiate: "Negotiate down to 60 days. If they hold at 90, require vendor to send a written renewal reminder 120 days before expiration." },
-    { val: "180 days", level: "critical", note: "6 months notice. Start vendor evaluation 12 months before expiration.", negotiate: "This is a dealbreaker for most buyers. Push hard for 60-90 days. If they refuse, add a clause requiring written notice from vendor at 210 days." },
-  ]},
-  { id: "rateLock", name: "Rate Lock Duration", options: [
-    { val: "Full term", level: "low", note: "Ideal. Your price is your price for the contract duration.", negotiate: "" },
-    { val: "Year 1 only", level: "high", note: "Exposed to 15-30% increases in Year 2+. Most common vendor tactic.", negotiate: "Negotiate full-term lock. Fallback: cap increases at 3-5% annually. Never accept uncapped Year 2+ pricing." },
-    { val: "CPI-linked", level: "medium", note: "Reasonable if capped at 3-5%. Watch for uncapped CPI escalators.", negotiate: "Ensure CPI is capped at 5% maximum per year. Specify which CPI index is used (CPI-U, not industry-specific)." },
-    { val: "No rate lock", level: "critical", note: "Vendor can raise prices at any renewal. Walk unless corrected.", negotiate: "This is non-negotiable. Demand at minimum Year 1-2 lock with 5% annual cap thereafter. If vendor refuses, they are telling you something about their pricing trajectory." },
-  ]},
-  { id: "sla", name: "Uptime SLA + Consequences", options: [
-    { val: "99.999% with credits", level: "low", note: "Gold standard. Verify credit calculation and maximum cap.", negotiate: "" },
-    { val: "99.99% with credits", level: "low", note: "Standard enterprise. ~52 minutes downtime per year.", negotiate: "Ensure credits are meaningful (10-25% of monthly fee per breach, not 1%). Verify measurement methodology (customer-facing, not infrastructure-only)." },
-    { val: "99.9% with credits", level: "medium", note: "8.7 hours downtime per year. Only acceptable for non-critical.", negotiate: "Push for 99.99%. If they hold at 99.9%, demand higher credit percentages (25%+ per incident) to create financial incentive for reliability." },
-    { val: "99.9% no credits", level: "high", note: "SLA without financial consequence is not an SLA.", negotiate: "Add credit structure. Minimum: 10% monthly credit for each 0.01% below target. This turns a suggestion into a commitment." },
-    { val: "No SLA", level: "critical", note: "Unacceptable for production contact center.", negotiate: "Do not proceed without an SLA. This is non-negotiable. If vendor will not commit to uptime, they are not ready for enterprise." },
-  ]},
-  { id: "termination", name: "Early Termination Rights", options: [
-    { val: "Mutual 90-day notice", level: "low", note: "Either party can exit with notice. Best case.", negotiate: "" },
-    { val: "Pay remaining term", level: "critical", note: "Financial trap if platform fails to deliver.", negotiate: "Negotiate to 50% of remaining term maximum. Add performance-based exit: if SLA is breached 3+ times in any 6-month period, termination without penalty." },
-    { val: "Pay 50% remaining", level: "high", note: "Painful but survivable.", negotiate: "Push to 25-30% of remaining term. Add declining termination fee: 50% in Year 1, 25% in Year 2, 0% in Year 3. Performance exit clause still applies." },
-    { val: "Termination for cause only", level: "high", note: "'Cause' is narrowly defined. Performance failures rarely qualify.", negotiate: "Expand 'cause' definition to include: 3+ SLA breaches in 6 months, failure to deliver contracted features within 6 months of promised date, material security incident." },
-  ]},
-  { id: "data", name: "Data Portability + Ownership", options: [
-    { val: "Full export, standard format, 30 days", level: "low", note: "You own your data and can leave with it.", negotiate: "" },
-    { val: "Export available, proprietary format", level: "medium", note: "You can get data but need transformation.", negotiate: "Request standard format options (CSV, JSON, XML). Include API access for data extraction during transition period." },
-    { val: "Export on request, additional cost", level: "high", note: "Data hostage increases lock-in.", negotiate: "Remove the cost. Data portability should be a contract right, not a billable service. Include transition support at no charge for 90 days post-termination." },
-    { val: "No export clause", level: "critical", note: "Your interaction data stays with vendor. Dealbreaker.", negotiate: "Add explicit clause: all customer data, interaction recordings, analytics, and model training data is customer property. Export in standard format within 30 days of request." },
-  ]},
-  { id: "addons", name: "Add-On Pricing Commitment", options: [
-    { val: "All modules priced in contract", level: "low", note: "You know your full cost. Ideal.", negotiate: "" },
-    { val: "Key modules priced, others at list", level: "medium", note: "Acceptable if 'key' covers WEM, QA, analytics, AI.", negotiate: "Define 'key modules' explicitly. Include a most-favored-customer clause: if vendor offers better pricing to a comparable customer, you get the same rate." },
-    { val: "List pricing at time of purchase", level: "high", note: "List prices increase. You pay more than new customers.", negotiate: "Lock add-on pricing for modules you anticipate needing within 18 months. Include 15-20% discount guarantee off list for any module added during the term." },
-    { val: "No pricing committed", level: "critical", note: "Base seat price is meaningless. The gap runs 40-100%.", negotiate: "Get every module priced before signing. Use our License Bundle Gap Checker to identify the modules you need. If vendor refuses to price them, the base seat price is a marketing number, not a budget number." },
-  ]},
-];
+const LEVEL = { low: { label: "Low", color: "#047857" }, medium: { label: "Medium", color: "#B45309" }, high: { label: "High", color: "#C2410C" }, critical: { label: "Critical", color: "#B91C1C" }, unknown: { label: "Find it", color: "#3A4F6A" } };
+const READING_COLOR = { doNotSign: "#B91C1C", negotiate: "#C2410C", find: "#3A4F6A", notes: "#B45309", clear: "#047857" };
+const readingOf = (id) => MODEL.readings.find((r) => r.id === id);
+const toolOf = (id) => (JOURNEY[id] ? { name: JOURNEY[id].name, href: JOURNEY[id].route } : null);
 
 const TOOL_ID = "contract-risk";
 const ROUTE = "/tools/contract-risk";
 export const DEFAULTS = { selections: {} };
-/* The highest-risk option on every term, so the harness renders the flagged-term
-   checklist and its PDF content. */
-export const SAMPLE = { selections: Object.fromEntries(TERMS.map(t => [t.id, t.options[t.options.length - 1].val])) };
-/* A selection is kept only if it names a real option on a real term. */
-const cleanSelections = (sel) => Object.fromEntries(TERMS.filter(t => sel && t.options.some(o => o.val === sel[t.id])).map(t => [t.id, sel[t.id]]));
+/* A complete sample that reaches every severity and a clause not known: the highest-risk
+   option on most clauses, a middle option on some, and "don't know" on two. The floor
+   harness renders it to prove the reading, the checklist and the PDF build. */
+export const SAMPLE = { selections: Object.fromEntries(MODEL.terms.map((t, i) => [t.id, i % 5 === 3 ? MODEL.unknown.val : i % 3 === 1 ? t.options[1].val : t.options[t.options.length - 1].val])) };
+/* A selection is kept only if it names a real option on a real clause, or "don't know". */
+const cleanSelections = (sel) => Object.fromEntries(MODEL.terms.filter((t) => sel && typeof sel === "object" && Object.prototype.hasOwnProperty.call(sel, t.id) && (t.options.some((o) => o.val === sel[t.id]) || sel[t.id] === MODEL.unknown.val)).map((t) => [t.id, sel[t.id]]));
 
 export default function ContractRiskScanner() {
   const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { selections: cleanSelections(sc && sc.selections) }; });
   const [selections, setSelections] = useState(init.selections);
   useEffect(() => { window.scrollTo(0, 0); clearScenarioParam(); }, []);
-  const setTerm = (id, val) => setSelections(prev => ({...prev,[id]:val}));
+  const setTerm = (id, val) => setSelections((prev) => ({ ...prev, [id]: val }));
+  const R = scoreTerms(MODEL, { selections });
+  const reading = R.reading ? readingOf(R.reading) : null;
+  const next = R.next ? toolOf(R.next) : null;
+  const NEXT_WHY = { "license-gap": "add-on pricing is unpriced or not known, and it changes what the contract costs", "platform-decision": "the renewal terms are the problem, and the renewal gate decides what to do about them", "tco-calculator": "the next question is what the contract costs over its full term" };
 
-
-
-  const analyzed = TERMS.map(t => {
-    const opt = t.options.find(o => o.val === selections[t.id]);
-    return { ...t, selected: selections[t.id], opt };
-  });
-  const riskCounts = { low:0, medium:0, high:0, critical:0 };
-  analyzed.forEach(a => { if(a.opt) riskCounts[a.opt.level]++; });
-  const totalFlags = riskCounts.high + riskCounts.critical;
-  const allAnswered = TERMS.every(t => selections[t.id]);
-  const flaggedTerms = analyzed.filter(a => a.opt && (a.opt.level === "high" || a.opt.level === "critical"));
-
-  const overallRisk = riskCounts.critical>=2?"High Risk":riskCounts.critical>=1||riskCounts.high>=3?"Elevated Risk":riskCounts.high>=1?"Moderate Risk":"Low Risk";
-  const overallColor = riskCounts.critical>=2?RED:riskCounts.critical>=1||riskCounts.high>=3?"#DC6B00":riskCounts.high>=1?AMBER:GREEN;
-
-
-
-  const riskColors = { low: GREEN, medium: AMBER, high: "#DC6B00", critical: RED };
-
-  return(
-    <div style={{fontFamily:FONT,minHeight:"100vh"}}>
+  return (
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
       <ToolNav wrap={WRAP} />
       <ToolHero wrap={WRAP} eyebrow="Vendor Selection" title="Contract Risk Scanner"
-        intro="Select your current or proposed terms for seven common platform contract clauses. Each answer is rated from low to critical risk, with the negotiation position to take on every term flagged." />
+        intro={`Read ${MODEL.terms.length} clauses of a contact center platform contract against published severities. Pick the option that matches your contract, or "don't know"; every flagged clause comes with the reason and the position to ask for instead.`}>
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every clause, severity and rule is in the <a href={MODEL.methodology} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>. Not legal advice.</p>
+      </ToolHero>
 
-      <section style={{background:"#fff",padding:"40px 28px 60px"}}><div style={WRAP}>
-
-        {allAnswered&&(<div style={{background:`${overallColor}08`,border:`2px solid ${overallColor}`,borderRadius:12,padding:"20px 24px",marginBottom:24,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
-          <div>
-            <div style={{fontFamily:FONT,fontSize:28,color:overallColor}}>{overallRisk}</div>
-            <div style={{fontSize:13,color:SLATE}}>{totalFlags} terms flagged as high or critical risk</div>
+      <section style={{ background: "#fff", padding: "40px 28px 60px" }}><div style={WRAP}>
+        {reading && (
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase" }}>Reading{R.complete ? "" : `, ${R.answered} of ${R.total} clauses answered`}</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "#fff", margin: "6px 0" }}>{reading.label}</div>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.8)" }}>{reading.test}</p>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+              {["critical", "high", "medium", "unknown", "low"].map((k) => <span key={k} style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: R.counts[k] ? LEVEL[k].color : "rgba(255,255,255,0.14)", padding: "4px 10px", borderRadius: 6 }}>{R.counts[k]} {k === "unknown" ? "to find" : LEVEL[k].label.toLowerCase()}</span>)}
+            </div>
           </div>
-          <div style={{display:"flex",gap:12}}>
-            {[["Critical",riskCounts.critical,RED],["High",riskCounts.high,"#DC6B00"],["Medium",riskCounts.medium,AMBER],["Low",riskCounts.low,GREEN]].map(([l,c,color])=>(<div key={l} style={{textAlign:"center"}}><div style={{fontFamily:FONT,fontSize:20,color}}>{c}</div><div style={{fontSize:12,color:MUTED}}>{l}</div></div>))}
-          </div>
-        </div>)}
+        )}
 
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          {analyzed.map((term,i) => {
-            const rc = term.opt ? riskColors[term.opt.level] : BORDER;
-            return(<div key={term.id} style={{background:WARM,border:`1px solid ${term.opt?rc+"40":BORDER}`,borderRadius:10,padding:"18px 20px",borderLeft:term.opt?`4px solid ${rc}`:"4px solid transparent"}}>
-              <div style={{fontSize:14,fontWeight:600,color:NAVY,marginBottom:10}}>{term.name}</div>
-              <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:term.opt?10:0}}>
-                {term.options.map(opt=>{
-                  const oc=riskColors[opt.level];
-                  const sel=selections[term.id]===opt.val;
-                  return(<button key={opt.val} onClick={()=>setTerm(term.id,opt.val)} style={{padding:"8px 14px",fontSize:12,fontWeight:sel?600:400,borderRadius:6,cursor:"pointer",border:`1px solid ${sel?oc:BORDER}`,background:sel?`${oc}12`:"#fff",color:sel?oc:MUTED}}>{opt.val}</button>);
-                })}
-              </div>
-              {term.opt&&(<>
-                <div style={{display:"flex",alignItems:"flex-start",gap:8,marginTop:8}}>
-                  <span style={{fontSize:11,fontWeight:700,color:rc,letterSpacing:1,textTransform:"uppercase",padding:"2px 6px",borderRadius:3,background:`${rc}12`,flexShrink:0}}>{term.opt.level}</span>
-                  <span style={{fontSize:12,color:SLATE,lineHeight:1.5}}>{term.opt.note}</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {R.clauses.map((c) => {
+            const term = MODEL.terms.find((t) => t.id === c.id);
+            const lv = c.status === "unanswered" ? null : LEVEL[c.status];
+            return (
+              <div key={c.id} style={{ background: WARM, border: `1px solid ${lv ? lv.color + "40" : BORDER}`, borderLeft: `4px solid ${lv ? lv.color : "transparent"}`, borderRadius: 10, padding: "18px 20px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: NAVY }}>{c.name}</div>
+                <p style={{ fontSize: 12, color: SLATE, margin: "4px 0 10px" }}>{c.why}</p>
+                <div role="group" aria-label={c.name} style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {[...term.options.map((o) => ({ val: o.val, color: LEVEL[o.level].color })), { val: MODEL.unknown.val, color: LEVEL.unknown.color }].map((o) => {
+                    const sel = selections[c.id] === o.val;
+                    return <button key={o.val} aria-pressed={sel} onClick={() => setTerm(c.id, o.val)} style={{ padding: "8px 14px", fontSize: 12, fontWeight: sel ? 700 : 500, borderRadius: 6, cursor: "pointer", border: `1px solid ${sel ? o.color : BORDER}`, background: sel ? o.color : "#fff", color: sel ? "#fff" : SLATE }}>{o.val}</button>;
+                  })}
                 </div>
-                {term.opt.negotiate&&(<div style={{marginTop:8,padding:"10px 14px",background:`${ELECTRIC}04`,border:`1px solid ${ELECTRIC}15`,borderRadius:6}}>
-                  <div style={{fontSize:11,fontWeight:700,color:ELECTRIC,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Negotiation Recommendation</div>
-                  <p style={{fontSize:12,color:SLATE,lineHeight:1.55,margin:0}}>{term.opt.negotiate}</p>
-                </div>)}
-              </>)}
-            </div>);
+                {lv && (
+                  <div style={{ marginTop: 10 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: lv.color, marginRight: 8 }}>{lv.label}.</span>
+                    <span style={{ fontSize: 13, color: SLATE }}>{c.status === "unknown" ? "Find this clause in the contract before signing. A clause you do not know is not rated either way." : c.note}</span>
+                    {c.negotiate && <p style={{ fontSize: 13, color: NAVY, marginTop: 6 }}><strong>Ask for:</strong> {c.negotiate}</p>}
+                  </div>
+                )}
+              </div>
+            );
           })}
         </div>
 
-        {/* Negotiation checklist for flagged items */}
-        {allAnswered&&flaggedTerms.length>0&&(<div style={{marginTop:28,background:`${RED}04`,border:`1px solid ${RED}20`,borderRadius:12,padding:"24px"}}>
-          <h3 style={{fontSize:14,fontWeight:700,color:RED,marginBottom:12}}>Your Negotiation Checklist ({flaggedTerms.length} items to address)</h3>
-          {flaggedTerms.map((f,i)=>(<div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"10px 0",borderBottom:i<flaggedTerms.length-1?`1px solid ${RED}10`:"none"}}>
-            <span style={{fontSize:14,color:RED,flexShrink:0,marginTop:1}}>☐</span>
-            <div>
-              <span style={{fontSize:13,fontWeight:600,color:NAVY}}>{f.name}: {f.selected}</span>
-              {f.opt.negotiate&&<p style={{fontSize:12,color:SLATE,lineHeight:1.5,margin:"4px 0 0"}}>{f.opt.negotiate}</p>}
-            </div>
-          </div>))}
-        </div>)}
-
-        {/* CTAs */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:28,marginBottom:24}} className="pg">
-          <a href="/contact" style={{display:"block",background:`linear-gradient(135deg,${NAVY},${DEEP})`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
-            <div style={{fontSize:11,fontWeight:700,color:RED,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>Get Expert Eyes on This</div>
-            <div style={{fontFamily:FONT,fontSize:20,color:"#fff",marginBottom:8}}>Review This Contract with a Consultant</div>
-            <p style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.5,margin:"0 0 12px"}}>Use the review request below. Your flagged terms travel with it, so the consultant comes prepared with negotiation strategies for your situation.</p>
-            <span style={{display:"inline-block",background:ELECTRIC,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Request Contract Review →</span>
-          </a>
-          <a href="/tools/license-gap" style={{display:"block",background:`${AMBER}06`,border:`1px solid ${AMBER}30`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
-            <div style={{fontSize:11,fontWeight:700,color:AMBER,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>See the Full Picture</div>
-            <div style={{fontFamily:FONT,fontSize:20,color:NAVY,marginBottom:8}}>Check Your License Bundle Gap</div>
-            <p style={{fontSize:12,color:SLATE,lineHeight:1.5,margin:"0 0 12px"}}>Compare base seat price against the modules you actually need. The gap runs 40-100%.</p>
-            <span style={{display:"inline-block",background:AMBER,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Run Gap Checker →</span>
-          </a>
-        </div>
+        {R.checklist.length > 0 && (
+          <div style={{ marginTop: 28, background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "24px" }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: NAVY, marginBottom: 8 }}>Negotiation checklist</h2>
+            <p style={{ fontSize: 12, color: SLATE, marginBottom: 10 }}>{MODEL.positionsNote}</p>
+            {R.checklist.map((f, i) => (
+              <div key={f.clause} style={{ display: "flex", gap: 10, padding: "10px 0", borderTop: i ? `1px solid ${BORDER}` : "none" }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: LEVEL[f.severity].color, padding: "2px 8px", borderRadius: 4, flexShrink: 0, minWidth: 64, textAlign: "center", alignSelf: "flex-start" }}>{LEVEL[f.severity].label}</span>
+                <div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{f.name}{f.severity === "unknown" ? "" : ": " + f.selected}</div><div style={{ fontSize: 13, color: SLATE, marginTop: 2 }}>{f.action}</div></div>
+              </div>
+            ))}
+          </div>
+        )}
+        {next && <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, margin: "20px 0" }}>Next diagnostic: <a href={next.href} style={{ color: ELECTRIC, fontWeight: 600 }}>{next.name}</a>, because {NEXT_WHY[R.next]}.</p>}
+        <p style={{ fontSize: 13, color: SLATE, margin: "0 0 24px" }}>Want a second pair of eyes before you sign? Use the review request below: your answers travel with it.</p>
 
         <ReportActions
           toolId={TOOL_ID}
-          toolName="Contract Risk Analysis"
-          subtitle={overallRisk + ", " + totalFlags + " terms flagged"}
+          toolName="Contract Risk Scanner"
+          subtitle={reading ? reading.label : "Not started"}
           routePath={ROUTE}
           state={{ selections }}
           defaults={DEFAULTS}
           summary={[
-            { label: "Overall risk", value: allAnswered ? overallRisk : "Incomplete (" + Object.keys(selections).length + " of " + TERMS.length + " terms answered)" },
-            { label: "Flagged terms", value: flaggedTerms.length ? flaggedTerms.map(f => f.name + ": " + f.selected).join("; ") : "None" },
+            { label: "Reading", value: reading ? reading.label : "No clause answered" },
+            { label: "Clauses answered", value: R.answered + " of " + R.total },
+            { label: "Critical or high", value: String(R.counts.critical + R.counts.high) },
+            { label: "Clauses to find", value: String(R.counts.unknown + R.total - R.answered) },
           ]}
           sections={[
-                    { title: "Term Analysis", type: "table", rows: analyzed.filter(a => a.opt).map(a => [a.name, a.selected + " (" + a.opt.level + ")"]) },
-                    { title: "Risk Summary", type: "metrics", items: [
-                      { label: "Overall Risk", value: overallRisk, color: overallColor },
-                      { label: "Critical", value: riskCounts.critical.toString(), color: "#EF4444" },
-                      { label: "High", value: riskCounts.high.toString(), color: "#DC6B00" },
-                    ]},
-                    { title: "Negotiation Checklist", type: "actions", items: flaggedTerms.map(f => ({ action: f.name + ": " + f.selected, detail: f.opt.negotiate || f.opt.note, priority: f.opt.level === "critical" ? "high" : "medium" })) },
-                    { title: "Next Steps", type: "next", items: [
-                      { tool: "License Bundle Gap Checker", reason: "Check add-on pricing commitments" },
-                      { tool: "Vendor Match Engine", reason: "Compare terms across vendors" },
-                    ]},
-                  ]}
+            { title: "Reading", type: "text", content: reading ? reading.label + ". " + reading.test + (R.complete ? "" : " " + (R.total - R.answered) + " clauses are not answered yet.") : "No clause answered yet." },
+            { title: "Every Clause", type: "table", rows: R.clauses.map((c) => [c.name, c.status === "unanswered" ? "Not answered" : c.selected + " (" + LEVEL[c.status].label.toLowerCase() + ")"]) },
+            { title: "Negotiation Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((f) => ({ action: f.name + (f.severity === "unknown" ? "" : ": " + f.selected), detail: LEVEL[f.severity].label + ". " + f.action + " Why it matters: " + f.why, priority: f.severity === "critical" || f.severity === "high" ? "high" : "medium" })) : [{ action: "No clause is critical, high or unknown.", detail: "Have counsel review the final contract before signing.", priority: "medium" }] },
+            { title: "Negotiation Positions", type: "text", content: MODEL.positionsNote },
+            { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
+            { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". Each clause option carries a published severity; the reading is the most serious one present, and a clause you do not know is an item to find, never a pass. Published at contactcentercx.com" + MODEL.methodology + "." },
+            { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: "Because " + NEXT_WHY[R.next] + "." }] : [] },
+          ]}
         />
       </div></section>
     </div>
