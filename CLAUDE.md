@@ -399,8 +399,13 @@ Binding. None of this is in code comments beyond what is noted.
   confirms nothing reads it.
 
 **TB actions outstanding**
-- 11-01: verify custom events reach Vercel dashboard on Hobby.
-- Disclosure page (12-06).
+- ~~11-01: verify custom events reach Vercel dashboard on Hobby.~~ Settled S23: Vercel Hobby has no custom events. PostHog
+  is the event source of truth (production bundle carries `VITE_POSTHOG_KEY`; `track.js` sends every tool event there);
+  Vercel Analytics counts page views only.
+- ~~Make `suite` required on main.~~ Done S23 by TB: classic branch protection on `main`, PR required (no approval
+  count), `suite` required and up to date, linear history off (merge commits), no bypass lock. Verified: `main`
+  reports protected.
+- Disclosure page (12-06): TB, S23: no disclosure text wanted; the site states facts and perspective only.
 
 ---
 
@@ -672,7 +677,7 @@ dashboard, the 12-phase growth program.
    Roadmap (stays a planner). Suite 20,320; local live check under the production policy 212 of 212.
 24. **Next:** Phase D, WFM to V3-Full (AHT, Shrinkage, Occupancy, Forecast, Adherence): engine markers and harness
    pairs, every constant sourced or labelled, rail into Staffing with origin grades. Research Stage 3 and Vendor Match
-   V3 remain gated on the corpus. TB: make `suite` required on main; 11-01.
+   V3 remain gated on the corpus.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
