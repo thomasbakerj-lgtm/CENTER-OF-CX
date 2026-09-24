@@ -586,8 +586,18 @@ dashboard, the 12-phase growth program.
    below on both sides is a shared weakness; both reach the checklist. Published at `/methodology/cx-it-alignment`
    (sitemap 428). Intro now recommends two respondents via the scenario link. Removed false "profile has been
    saved" copy in CX IT and Governance.
-17. **Next:** Governance on its own ownership-map engine, per the S23 recommendation to TB (pending his go on
-   the specifics). TB: make `suite` required on main; 11-01.
+17. Done S23: Phase C step 3, Governance & Operating Model on its own engine (TB approved the design).
+   `src/lib/ownership.js` (engine markers) reads the model in `src/lib/rubrics/governance.js`: one accountable
+   role and one optional contributor per decision; no score. Six published rules: unowned (critical); function
+   missing (high on five control and budget decisions, medium otherwise); bottleneck at twice an even share
+   (10 of 30 across six roles; replaces the unpublished "more than 8"); influence without authority (5+
+   contributing, 0 accountable); fragmented domain (4+ owners); different from the common pattern (confirm).
+   Risk & Compliance appended as a sixth role so old links keep every assignment. Next diagnostic: CX IT
+   Alignment when half the serious findings sit in strategy or technology, else Roadmap. Published at
+   `/methodology/governance-model` (sitemap 429). `ownership.test.mjs` (46): every rule equals an oracle on
+   20,000 maps; legacy counts and item list frozen. Phase C frameworks trio done.
+18. **Next:** Phase C continues: QA Program with the calibration module, Platform Decision as the renewal gate,
+   RFP and Contract Risk published criteria. TB: make `suite` required on main; 11-01.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.

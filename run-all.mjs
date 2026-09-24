@@ -79,6 +79,7 @@ const INFRA = [
   { name: "freeze.test.mjs", covers: "CCaaS integrity freeze: no Phase 1 score, research status shown" },
   { name: "floor.test.mjs", covers: "V3 floor: every tool renders, ungated, exports, links, guards" },
   { name: "rubric.test.mjs", covers: "V3-Framework: published rubrics, determinism, traceability, reachability" },
+  { name: "ownership.test.mjs", covers: "V3-Framework: the Governance ownership model, every finding rule against an oracle" },
 ];
 
 /* ---------------------------------------------------------------- utilities */
