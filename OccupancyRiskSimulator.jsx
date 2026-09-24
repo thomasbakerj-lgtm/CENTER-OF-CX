@@ -22,8 +22,8 @@ export const OCC_PARAMS = {
   bands: BENCH.occupancy,
   mult: { caution: benchmark("occ.attrition.mult.caution"), critical: benchmark("occ.attrition.mult.critical") },
   load: benchmark("load.benefits"),
-  hoursWeek: benchmark("occ.hours.week"),
-  hoursYear: benchmark("occ.hours.year"),
+  hoursWeek: benchmark("time.hours.week"),
+  hoursYear: benchmark("time.hours.year"),
 };
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
@@ -162,6 +162,7 @@ export default function OccupancyRiskSimulator() {
           <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 20px", marginBottom: 24 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Planning assumptions on this page</div>
             {heuristics.map((e) => <p key={e.id} style={{ fontSize: 12, color: SLATE, marginBottom: 4 }}>{e.value.toLocaleString("en-US")} {e.unit}: {e.rationale} Heuristic, no published source.</p>)}
+            <p style={{ fontSize: 12, color: SLATE, marginBottom: 4 }}>Paid hours: {OCC_PARAMS.hoursWeek} a week and {OCC_PARAMS.hoursYear.toLocaleString("en-US")} a year, the full-time definition.</p>
             <p style={{ fontSize: 12, color: SLATE }}>Benefits load {OCC_PARAMS.load}x: {BENCHMARK_SOURCES["load.benefits"].rationale} Bands: healthy to {pct(B.healthyMax, 0)}, caution to {pct(B.cautionMax, 0)}, the platform's shared occupancy bands.</p>
           </div>
 
@@ -195,7 +196,7 @@ export default function OccupancyRiskSimulator() {
               ...(guards.length ? [{ title: "Inputs Corrected", type: "findings", items: guards.map(guardLine) }] : []),
               { title: "Key Findings", type: "findings", items: findings },
               { title: "Occupancy Ladder", type: "table", rows: R.ladder.map((l) => [l.occ + "% (" + BAND[l.band].label + ")", l.agents + " agents, " + l.attrition.toFixed(0) + "% attrition, " + k(l.turnoverCost) + "/yr turnover"]) },
-              { title: "Planning Assumptions", type: "findings", items: heuristics.map((e) => e.value + " " + e.unit + ": heuristic, no published source.").concat(["Benefits load " + OCC_PARAMS.load + "x, the platform's shared heuristic.", "Hourly rate " + (wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024." : "entered by you.")]) },
+              { title: "Planning Assumptions", type: "findings", items: heuristics.map((e) => e.value + " " + e.unit + ": heuristic, no published source.").concat(["Paid hours " + OCC_PARAMS.hoursWeek + " a week and " + OCC_PARAMS.hoursYear.toLocaleString("en-US") + " a year: the full-time definition.", "Benefits load " + OCC_PARAMS.load + "x, the platform's shared heuristic.", "Hourly rate " + (wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024." : "entered by you.")]) },
               { title: "Method", type: "text", content: "Occupancy is offered load in Erlangs (calls per hour times AHT in hours) divided by agents. Bands are the platform's shared occupancy bands. Attrition multipliers are labelled planning heuristics. Published at contactcentercx.com" + METHOD + "." },
               { title: "Next Steps", type: "next", items: [
                 { tool: "Staffing Calculator", href: "/tools/staffing-calculator", reason: "Staff to your target occupancy and your service level together" },

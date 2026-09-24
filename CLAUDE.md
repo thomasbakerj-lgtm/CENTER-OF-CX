@@ -690,7 +690,14 @@ dashboard, the 12-phase growth program.
    oracle on 20,000 cases, A/B equal to the previous tool on occupancy, ladder, idle time and attrition (10,000 cases),
    laws, dollar fixture, registry, 4 mutants. `occupancy.report.mjs` (34): PDF reconciled to the engine on four links.
    The rail into Staffing (occupancy target to Staffing's cap, shrinkage and AHT) is one step after all five engines.
-25. **Next:** Phase D continues: Shrinkage, AHT, Forecast Accuracy, Schedule Adherence, then the rail into Staffing. Research Stage 3 and Vendor Match
+25. Done S23: Phase D step 2, Shrinkage Planner to V3-Full (TB approved six calls). Engine `src/lib/shrinkage.js`; PTO is
+   planned; agents to schedule = need ÷ (1 − shrinkage) rounded up; paid time off the queue at the loaded BLS wage (wages
+   already paid, never a saving) replaces "Annual Cost of Gap"; one point sized; unsourced claims and the $18 wage retired.
+   Shared registry entries: `shrinkage.range.low/high` (the 28 to 35% planning range, labelled heuristic, also Staffing's
+   flag) and `time.hours.week/year` (Occupancy repointed). Float noise ("28.000000000000004") is now bad text in the
+   Shrinkage report harness, `floor.test.mjs` and the live checker. Chunk gate re-based with attribution (see its
+   comment). `/methodology/shrinkage-planner` (sitemap 435). `shrinkage.test.mjs` 34, `shrinkage.report.mjs` 44.
+26. **Next:** Phase D continues: AHT, Forecast Accuracy, Schedule Adherence, then the rail into Staffing. Research Stage 3 and Vendor Match
    V3 remain gated on the corpus.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS

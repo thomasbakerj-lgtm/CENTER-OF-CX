@@ -12,8 +12,8 @@ const P = {
   bands: BENCH.occupancy,
   mult: { caution: benchmark("occ.attrition.mult.caution"), critical: benchmark("occ.attrition.mult.critical") },
   load: benchmark("load.benefits"),
-  hoursWeek: benchmark("occ.hours.week"),
-  hoursYear: benchmark("occ.hours.year"),
+  hoursWeek: benchmark("time.hours.week"),
+  hoursYear: benchmark("time.hours.year"),
 };
 const EXAMPLE = { agents: 50, callsPerHour: 440, aht: 360, attritionRate: 35, hiringCost: 6500, trainingWeeks: 6, hourlyRate: benchmark("market.wage.agent"), target: 85 };
 const X = runOccupancy(EXAMPLE, P);
@@ -47,7 +47,7 @@ export const OCCUPANCY_MODEL = {
   bandsNote: "These are the platform's shared occupancy bands, the same ones the Staffing Calculator uses, so an occupancy gets the same label in every tool.",
   constants: () => [
     ...benchmarksForTool("occupancy-risk").map((e) => ({ id: e.id, value: e.value, unit: e.unit, kind: e.kind, source: e.source, rationale: e.rationale })),
-    ...["load.benefits", "market.wage.agent"].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
+    ...["time.hours.week", "time.hours.year", "load.benefits", "market.wage.agent"].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   ],
   example: {
     inputs: [["Agents on queue", String(EXAMPLE.agents)], ["Calls per hour", String(EXAMPLE.callsPerHour)], ["AHT", EXAMPLE.aht + " seconds"], ["Attrition", EXAMPLE.attritionRate + "% a year"], ["Hiring cost", usd(EXAMPLE.hiringCost)], ["Training ramp", EXAMPLE.trainingWeeks + " weeks"], ["Hourly rate", "$" + EXAMPLE.hourlyRate + " (BLS median)"], ["Target occupancy", EXAMPLE.target + "%"]],

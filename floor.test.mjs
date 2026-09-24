@@ -79,6 +79,10 @@ function render(mod, route, search) {
   } catch (e) { return { error: e.message }; }
 }
 const BAD = /\bNaN\b|\bInfinity\b|\bundefined\b|\[object Object\]/;
+/* Float noise: a figure such as 28.000000000000004 or 0.30000000000000004 printed as if
+   it were a value. Checked on the default and sample renders, which a reader sees first. */
+const NOISE = /\d\.\d*0000000\d|\d\.\d*9999999\d/;
+const noiseAt = (t) => { const m = t.match(new RegExp(".{0,40}(" + NOISE.source + ").{0,20}")); return m ? m[0] : ""; };
 const badAt = (t) => { const m = t.match(new RegExp(".{0,50}(" + BAD.source + ").{0,30}")); return m ? m[0] : ""; };
 
 /* Every numeric leaf replaced by a hostile value. Arrays and nested objects are
@@ -149,6 +153,7 @@ for (const t of TOOLS) {
   if (base.error) continue;
   ok(`${tag} default render prints no NaN, Infinity or undefined [${badAt(base.text)}]`, !BAD.test(base.text));
   ok(`${tag} default render has exactly one h1 (${base.h1})`, base.h1 === 1);
+  ok(`${tag} default render prints no float noise [${noiseAt(base.text)}]`, !NOISE.test(base.text));
   if (RAIL.has(t.file)) continue;
 
   const id = (readFileSync("./" + t.file, "utf8").match(/const TOOL_ID\s*=\s*"([^"]+)"/) || [])[1];
@@ -163,6 +168,7 @@ for (const t of TOOLS) {
     ok(`${tag} sample render shows the result and its actions without a gate`, /request a review/i.test(sample.text));
     ok(`${tag} sample render prints no NaN, Infinity or undefined [${badAt(sample.text)}]`, !BAD.test(sample.text));
     ok(`${tag} sample render has exactly one h1 (${sample.h1})`, sample.h1 === 1);
+    ok(`${tag} sample render prints no float noise [${noiseAt(sample.text)}]`, !NOISE.test(sample.text));
   }
   if (!hasNumber(S)) continue;
   for (const [label, x] of [["negative", -5], ["zero", 0], ["huge", 1e12]]) {

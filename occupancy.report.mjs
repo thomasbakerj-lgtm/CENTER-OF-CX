@@ -59,7 +59,7 @@ for (const [label, state] of [["defaults", null], ["overloaded link", { ...DEFAU
   ok(`${label}: the replacement cost is stated to the cent`, F.includes("costs " + money(X.replacementCost)) && F.includes(money(X.rampWages)));
   const L = sec(rep, "Occupancy Ladder").rows;
   ok(`${label}: all 15 ladder rows equal the engine`, L.length === 15 && L.every((row, j) => row[1] === X.ladder[j].agents + " agents, " + X.ladder[j].attrition.toFixed(0) + "% attrition, " + k(X.ladder[j].turnoverCost) + "/yr turnover"));
-  ok(`${label}: the PDF labels every heuristic`, sec(rep, "Planning Assumptions").items.filter((x) => /heuristic/.test(x)).length >= 4);
+  ok(`${label}: the PDF labels every heuristic and states the paid hours`, sec(rep, "Planning Assumptions").items.filter((x) => /heuristic/.test(x)).length >= 3 && sec(rep, "Planning Assumptions").items.some((x) => /40 a week and 2,080 a year/.test(x)));
   ok(`${label}: no NaN, Infinity or undefined anywhere in the page or the report`, !/NaN|Infinity|undefined/.test(html + JSON.stringify(rep)));
 }
 

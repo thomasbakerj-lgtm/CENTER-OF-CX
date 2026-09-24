@@ -9,7 +9,7 @@
  *
  * For every tool route in App.jsx it loads the page and fails on any page error or a
  * blank page. For every tool that exports DEFAULTS it also opens its SAMPLE and a
- * hostile scenario link, generates the PDF, and fails on NaN, Infinity or undefined
+ * hostile scenario link, generates the PDF, and fails on NaN, Infinity, undefined or float noise
  * in the page or the PDF. Methodology pages must render their bands and limits.
  *
  * No test traffic reaches production data: PostHog, Vercel Analytics and Formspree
@@ -27,7 +27,8 @@ import { encodeScenario } from "../src/lib/scenarioUrl.js";
 
 const ORIGIN = (process.argv[2] || "https://www.contactcentercx.com").replace(/\/$/, "");
 const require = createRequire(import.meta.url);
-const BAD = /\bNaN\b|\bInfinity\b|\bundefined\b|\[object Object\]/;
+/* Float noise (28.000000000000004) counts as bad text: a figure printed as if it were a value. */
+const BAD = /\bNaN\b|\bInfinity\b|\bundefined\b|\[object Object\]|\d\.\d*0000000\d|\d\.\d*9999999\d/;
 const badAt = (t) => { const m = t.match(new RegExp(".{0,50}(" + BAD.source + ").{0,30}")); return m ? m[0].replace(/\s+/g, " ") : ""; };
 
 /* The tool set comes from App.jsx, the same source floor.test.mjs reads. */
