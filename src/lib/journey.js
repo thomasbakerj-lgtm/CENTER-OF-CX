@@ -173,12 +173,12 @@ export const JOURNEY = {
     ],
   },
   "platform-decision": {
-    name: "Platform Decision Matrix",
+    name: "Platform Decision",
     route: "/tools/platform-decision",
     next: [
-      { to: "vendor-match", why: "Build a shortlist for the layers marked replace or evaluate." },
-      { to: "rfp-builder", why: "Turn the layer gaps into RFP requirements." },
-      { to: "tco-calculator", why: "Price staying against replacing over the full term." },
+      { to: "contract-risk", why: "Check the exit, data and renewal terms the negotiation depends on." },
+      { to: "tco-calculator", why: "Price renewing against the alternative over the full term." },
+      { to: "rfp-builder", why: "Turn the layer gaps into requirements when the gate says evaluate." },
     ],
   },
   "rfp-builder": {

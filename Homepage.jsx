@@ -179,7 +179,7 @@ function RolePaths() {
     { role: "I'm evaluating platforms", color: ELECTRIC, tools: [
       { name: "Vendor Match Engine", href: "/tools/vendor-match" },
       { name: "RFP Requirement Builder", href: "/tools/rfp-builder" },
-      { name: "Platform Decision Matrix", href: "/tools/platform-decision" },
+      { name: "Platform Decision", href: "/tools/platform-decision" },
       { name: "Contract Risk Scanner", href: "/tools/contract-risk" },
     ]},
     { role: "I'm running operations", color: AMBER, tools: [

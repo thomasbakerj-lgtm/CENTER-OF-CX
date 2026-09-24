@@ -493,7 +493,7 @@ export default function VendorMatchEngine() {
                 priority: i === 0 ? "high" : undefined,
               })) },
               { title: "Recommended Next Steps", type: "next", items: [
-                { tool: "Platform Decision Matrix", reason: "Assess your current platform across all 7 layers before committing" },
+                { tool: "Platform Decision", reason: "Assess your current platform across all 7 layers before committing" },
                 { tool: "Contract Risk Scanner", reason: "Analyze contract terms before signing with your top match" },
                 { tool: "Transformation Readiness", reason: "Confirm organizational readiness before starting implementation" },
               ]},
@@ -518,7 +518,7 @@ export default function VendorMatchEngine() {
         </div>
 
         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-          <a href="/tools/platform-decision" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Platform Decision Matrix →</a>
+          <a href="/tools/platform-decision" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Platform Decision →</a>
           <a href="/tools/contract-risk" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Contract Risk Scanner →</a>
           <a href="/tools/transformation-readiness" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Transformation Readiness →</a>
           <a href="/how-to-choose" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Explore All 29 Tools</a>

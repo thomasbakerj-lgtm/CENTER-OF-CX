@@ -145,7 +145,7 @@ export default function CategoryVerticalPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }} className="pg">
             {[
               { name: "Vendor Match Engine", desc: "Get a shortlist filtered for " + vert.name, href: "/tools/vendor-match" },
-              { name: "Platform Decision Matrix", desc: "Assess current platform across 7 layers", href: "/tools/platform-decision" },
+              { name: "Platform Decision", desc: "The renewal gate for your current platform", href: "/tools/platform-decision" },
               { name: "Contract Risk Scanner", desc: "Analyze terms before signing", href: "/tools/contract-risk" },
             ].map((t, i) => (
               <a key={i} href={t.href} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px", borderLeft: `3px solid ${ELECTRIC}`, transition: "all 0.15s" }}

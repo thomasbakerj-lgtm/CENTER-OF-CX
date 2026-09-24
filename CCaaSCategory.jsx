@@ -293,7 +293,7 @@ export default function CCaaSCategory() {
                 onMouseOver={e => { e.currentTarget.style.borderColor = LIGHT; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,170,255,0.08)"; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.borderLeftColor = LIGHT; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Assessment</div>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>Platform Decision Matrix</h3>
+                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>Platform Decision</h3>
                 <p style={{ fontSize: 12, color: MUTED, margin: "0 0 8px", lineHeight: 1.5 }}>Assess your current platform across all 7 layers. Stay, extend, or replace.</p>
                 <span style={{ fontSize: 12, fontWeight: 600, color: LIGHT }}>Launch tool →</span>
               </a>

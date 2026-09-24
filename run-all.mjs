@@ -82,6 +82,7 @@ const INFRA = [
   { name: "ownership.test.mjs", covers: "V3-Framework: the Governance ownership model, every finding rule against an oracle" },
   { name: "security.test.mjs", covers: "Security floor: headers and policy, allowed hosts, HTML sinks, report window, new-tab links, secrets" },
   { name: "export.test.mjs", covers: "The report renderer: every section and cover field attacked with markup, every interpolation escaped" },
+  { name: "renewal.test.mjs", covers: "V3-Framework: Platform Decision renewal gate, every rule against an oracle, the no-average and unknown-is-not-weak laws" },
   { name: "qa.test.mjs", covers: "V3-Framework: QA form checks and blind calibration, alpha and AC1 pinned to published examples" },
 ];
 

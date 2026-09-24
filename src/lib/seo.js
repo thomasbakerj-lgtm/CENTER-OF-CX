@@ -90,6 +90,10 @@ export const SEO_MAP = {
     title: `Governance & Operating Model: How the Map Is Read | ${SITE}`,
     desc: "The published model behind the Governance & Operating Model: 30 CX decisions across 6 domains, the common owner and required functions for each, the six finding rules with their thresholds, and what the assessment cannot tell you.",
   },
+  "/methodology/platform-decision": {
+    title: `Platform Decision Method: How the Renewal Gate Reads Your Platform | ${SITE}`,
+    desc: "The published method behind Platform Decision: 35 needs across 7 layers, must-have gaps, proof requests for unknowns, layer outcomes, the renewal gate, the notice-date clock and every threshold.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",
@@ -219,8 +223,8 @@ export const SEO_MAP = {
     desc: "Tell us your operation size, vertical, priorities, and constraints. Get a CCaaS vendor shortlist with the fit reasoning behind it.",
   },
   "/tools/platform-decision": {
-    title: `Platform Decision Matrix | Stay, Extend, or Replace by Layer | ${SITE}`,
-    desc: "Assess your current platform across all 7 orchestration layers. Get a layer-by-layer recommendation: stay, extend, evaluate, or replace.",
+    title: `Platform Decision: The Renewal Gate for Your Contact Center Platform | ${SITE}`,
+    desc: "Decide what to do at renewal: renew as is, renew with conditions, add a specialist or run an evaluation. Rate 35 needs across 7 layers by what matters and how you know, against your notice date.",
   },
   "/tools/contract-risk": {
     title: `Contract Risk Scanner | Find Red Flags Before You Sign | ${SITE}`,
