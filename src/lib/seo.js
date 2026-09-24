@@ -114,6 +114,10 @@ export const SEO_MAP = {
     title: `AHT Decomposition Method: Formulas, Levers and a Worked Example | ${SITE}`,
     desc: "The published method behind AHT Decomposition: handle time by component, initiative levers as editable shares, how selected levers combine, agent hours as capacity, every lever share with its source, and a worked example.",
   },
+  "/methodology/forecast-accuracy": {
+    title: `Forecast Accuracy Method: WAPE, MAPE and the Tracking Signal | ${SITE}`,
+    desc: "The published method behind the Forecast Accuracy Tracker: WAPE as the headline, MAPE beside it, total-volume accuracy and why interval errors cancel in it, bias, the tracking signal and its limit, and workload from contacts missed.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",

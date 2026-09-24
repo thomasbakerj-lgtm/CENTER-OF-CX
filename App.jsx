@@ -315,6 +315,7 @@ export default function App() {
         <Route path="/methodology/occupancy-risk" element={<RubricPage id="occupancy-risk" />} />
         <Route path="/methodology/shrinkage-planner" element={<RubricPage id="shrinkage-planner" />} />
         <Route path="/methodology/aht-decomposition" element={<RubricPage id="aht-decomposition" />} />
+        <Route path="/methodology/forecast-accuracy" element={<RubricPage id="forecast-accuracy" />} />
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />

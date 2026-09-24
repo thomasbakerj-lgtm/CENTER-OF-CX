@@ -702,7 +702,12 @@ dashboard, the 12-phase growth program.
    (`aht.lever.*`), editable, counted only when selected, compounding on a shared component; the unreachable 90% talk floor
    removed; contacts per month gives agent hours as capacity. `/methodology/aht-decomposition` (sitemap 436).
    `aht.test.mjs` 35, `aht.report.mjs` 39.
-27. **Next:** Phase D continues: Forecast Accuracy, Schedule Adherence, then the rail into Staffing. Research Stage 3 and Vendor Match
+27. Done S23: Phase D step 4, Forecast Accuracy to V3-Full (TB approved six calls). Engine `src/lib/forecast.js`; interval
+   accuracy (1 minus WAPE) leads, since total-volume accuracy lets interval errors cancel (a 20% miss every interval scored
+   99.8% "Excellent"); MAPE beside it; misses ranked by contacts; tracking signal against the cited plus or minus 4
+   (`forecast.ts.limit`); unsourced grades retired; optional AHT gives workload hours and agents busy. `CalcPage` example
+   note. `/methodology/forecast-accuracy` (sitemap 437). `forecast.test.mjs` 32, `forecast.report.mjs` 37.
+28. **Next:** Phase D continues: Schedule Adherence, then the rail into Staffing. Research Stage 3 and Vendor Match
    V3 remain gated on the corpus.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
