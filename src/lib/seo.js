@@ -102,6 +102,10 @@ export const SEO_MAP = {
     title: `RFP Builder Method: Requirements and Response Scoring | ${SITE}`,
     desc: "The published method behind the RFP Requirement Builder: every requirement by layer, default weights, response credits where only generally available earns full credit, clarifications, demo verification and the analyst read rules.",
   },
+  "/methodology/occupancy-risk": {
+    title: `Occupancy Risk Method: Formulas, Bands and a Worked Example | ${SITE}`,
+    desc: "The published method behind the Occupancy Risk Simulator: workload in Erlangs, occupancy, the shared occupancy bands, staffing to a target, the labelled attrition model, every constant with its source, and a worked example.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",

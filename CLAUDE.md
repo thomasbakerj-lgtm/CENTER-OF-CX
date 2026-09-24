@@ -675,8 +675,22 @@ dashboard, the 12-phase growth program.
      pack responses one character per requirement (worst case 6 vendors, 1,531 characters). `rfp.test.mjs` (62).
    Published at `/methodology/contract-risk` and `/methodology/rfp-builder` (sitemap 433). Phase C is complete except
    Roadmap (stays a planner). Suite 20,320; local live check under the production policy 212 of 212.
-24. **Next:** Phase D, WFM to V3-Full (AHT, Shrinkage, Occupancy, Forecast, Adherence): engine markers and harness
-   pairs, every constant sourced or labelled, rail into Staffing with origin grades. Research Stage 3 and Vendor Match
+24. Done S23: Phase D step 1, Occupancy Risk Simulator to V3-Full (TB approved six calls; TB: keep sourcing calls short,
+   implication plus recommendation). Engine `src/lib/occupancy.js` (markers, constants injected); four heuristics
+   registered (`occ.attrition.mult.caution` 1.15, `occ.attrition.mult.critical` 1.40, `occ.hours.week` 40,
+   `occ.hours.year` 2080) plus shared `load.benefits` and `market.wage.agent`. One attrition model (the invented 0.15
+   formula, which contradicted the ladder, is gone); shared occupancy bands (was 80/85/88/92); target occupancy is an
+   input (default 85); staffing cost carries the 1.30 benefits load; default wage is the BLS $20.59; training weeks
+   now price the ramp (replacement cost = hire + loaded ramp wages); tenure input removed; unsourced claims retired
+   ("82 to 86% most efficient", "15 to 40%", "6 months", "it usually is"). Opening case changed to 440 calls an hour
+   (88%, caution band); the old default opened at 24%. At that case reaching 85% costs about $111K a year against
+   about $34K of modelled attrition, the opposite of the retired copy. First generated calculator method page
+   (`CalcPage`, kind `calc`): formulas in words, bands, every constant with its kind and source, and a worked example
+   computed by the engine at the tool's defaults. `/methodology/occupancy-risk` (sitemap 434). `occupancy.test.mjs` (34):
+   oracle on 20,000 cases, A/B equal to the previous tool on occupancy, ladder, idle time and attrition (10,000 cases),
+   laws, dollar fixture, registry, 4 mutants. `occupancy.report.mjs` (34): PDF reconciled to the engine on four links.
+   The rail into Staffing (occupancy target to Staffing's cap, shrinkage and AHT) is one step after all five engines.
+25. **Next:** Phase D continues: Shrinkage, AHT, Forecast Accuracy, Schedule Adherence, then the rail into Staffing. Research Stage 3 and Vendor Match
    V3 remain gated on the corpus.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
