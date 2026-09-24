@@ -181,7 +181,7 @@ export default function TransformationReadiness() {
               { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
               { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each dimension scores the mean of its statements on a 1 to 5 scale; the overall score is the equally weighted mean of the six dimensions. A dimension below 2.5 is marked Close this gap and one from 2.5 to below 3.5 is marked Monitor. Every statement answered at " + RUBRIC.failAt + " or below adds its action to the checklist, weakest dimension first." },
             ]} />
-          <a href="/tools/platform-decision" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Platform Decision Matrix</a>
+          <a href="/tools/platform-decision" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Platform Decision</a>
           <a href="/tools/contract-risk" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Contract Risk Scanner</a>
           <a href="/how-to-choose" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>All tools</a>
         </div>

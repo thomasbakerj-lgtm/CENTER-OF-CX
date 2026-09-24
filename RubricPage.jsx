@@ -3,6 +3,7 @@ import { FONT, FONT_IMPORT_CSS, TYPE } from "./src/lib/type";
 import { RUBRICS } from "./src/lib/rubrics";
 import { JOURNEY } from "./src/lib/journey";
 import { qaAgreement, qaThresholdVars } from "./src/lib/qa";
+import { renewalVars } from "./src/lib/renewal";
 
 /* The published rubric for a V3-Framework assessment (doctrine v1.3 Section 10.1).
    It renders from the same rubric object the scoring engine reads, so what this page
@@ -21,6 +22,7 @@ export default function RubricPage({ id }) {
   if (!r) return null;
   if (r.kind === "ownership") return <OwnershipPage r={r} />;
   if (r.kind === "qa") return <QAPage r={r} />;
+  if (r.kind === "renewal") return <RenewalPage r={r} />;
   const totalWeight = r.dims.reduce((s, d) => s + d.weight, 0);
   const paired = r.kind === "paired";
   const statements = r.dims.reduce((s, d) => s + (paired ? d.pairs.length * 2 : d.criteria.length), 0);
@@ -254,6 +256,80 @@ function QAPage({ r }) {
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((l, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{l}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
           <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Build and calibrate a QA form</a>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+/* The published page for the renewal model (kind "renewal"): what the buyer records per
+   need, the per-need rules, the layer outcomes, the gate, the clock, every threshold and
+   every need by layer. Rendered from the same object the renewal engine reads. */
+function RenewalPage({ r }) {
+  const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
+  const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
+  const cell = { ...TYPE.cell, color: SLATE, padding: "10px 12px", borderBottom: `1px solid ${BORDER}`, verticalAlign: "top", textAlign: "left" };
+  const th = { ...cell, ...TYPE.label, color: NAVY };
+  const TV = renewalVars(r);
+  const fillT = (t) => t.replace(/\{(\w+)\}/g, (_, k) => (TV[k] === undefined ? "" : String(TV[k])));
+  const sev = (x) => (x.severity === "info" ? "Note" : x.severity[0].toUpperCase() + x.severity.slice(1));
+  const total = r.layers.reduce((s, l) => s + l.needs.length, 0);
+  const link = (id) => (JOURNEY[id] ? <a href={JOURNEY[id].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[id].name}</a> : id);
+  return (
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <nav style={{ background: DEEP, padding: "16px 0" }}>
+        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
+          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
+        </div>
+      </nav>
+      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+        <div style={WRAP}>
+          <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how the renewal gate reads your platform</h1>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} needs. {r.truthType}</p>
+        </div>
+      </header>
+      <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
+        <h2 style={H2}>What you record for each need</h2>
+        <p style={P}>How well your current platform does it: {r.ratings.map((x) => x.value + " " + x.label.toLowerCase()).join(", ")}, or {r.unknown.label.toLowerCase()}. How you know: {r.evidence.map((x) => x.label.toLowerCase()).join(" or ")}. Whether it matters for the next contract term: {r.needLevels.map((x) => x.label.toLowerCase()).join(", ")}. A need marked not needed drops out of every outcome. Nothing is averaged: a must-have gap is a gap whatever the other ratings are, and a rating you do not know is a request for proof, never a low score.</p>
+        <h2 style={H2}>Rules and bands</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Finding</th><th style={th}>Raised when</th><th style={th}>Severity</th></tr></thead>
+          <tbody>{Object.entries(r.rules).map(([id, x]) => (
+            <tr key={id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.title}</td><td style={cell}>{fillT(x.test)}</td><td style={cell}>{sev(x)}</td></tr>
+          ))}</tbody>
+        </table>
+        <h2 style={H2}>Layer outcomes</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Outcome</th><th style={th}>When</th></tr></thead>
+          <tbody>{r.outcomes.map((o) => <tr key={o.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{o.label}</td><td style={cell}>{fillT(o.test)}</td></tr>)}</tbody>
+        </table>
+        <p style={{ ...P, marginTop: 12 }}>A core layer is what the contact center platform itself is: {r.layers.filter((l) => l.core).map((l) => l.name).join(" and ")}. A gap there is not closed by adding a product beside the platform, so it calls for a market test; on the other layers a specialist can serve beside it.</p>
+        <h2 style={H2}>The renewal gate</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Gate</th><th style={th}>When</th></tr></thead>
+          <tbody>{r.gates.map((g) => <tr key={g.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{g.label}</td><td style={cell}>{fillT(g.test)}</td></tr>)}</tbody>
+        </table>
+        <p style={{ ...P, marginTop: 12 }}>The clock then checks whether there is time to act: fewer than {TV.evaluationMonths} months to the notice date is too little to run an evaluation, and fewer than {TV.negotiationMonths} months is little time to negotiate conditions. The next step is {link(r.next.contract)} when the exit and data terms are unknown or conditions must be written in, {link(r.next.market)} when the gate says evaluate, and {link(r.next.price)} when the call is to renew.</p>
+        <h2 style={H2}>Thresholds</h2>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><th style={th}>Threshold</th><th style={th}>Value</th><th style={th}>Basis</th></tr></thead>
+          <tbody>{Object.entries(r.thresholds).map(([id, t]) => <tr key={id}><td style={cell}>{t.text[0].toUpperCase() + t.text.slice(1)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{TV[id]}</td><td style={cell}>{t.kind === "heuristic" ? "Heuristic, no published source" : "Rule of the method"}</td></tr>)}</tbody>
+        </table>
+        <h2 style={H2}>Layers and needs</h2>
+        {r.layers.map((l) => (
+          <section key={l.n} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
+            <h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 10 }}>L{l.n} {l.name}{l.core ? " (core)" : ""}</h3>
+            <ul style={{ paddingLeft: 20 }}>{l.needs.map((n, i) => <li key={i} style={{ ...P, marginBottom: 4 }}>{n}</li>)}</ul>
+          </section>
+        ))}
+        <h2 style={H2}>What this tool cannot tell you</h2>
+        <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
+        <div style={{ marginTop: 36 }}>
+          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Run the renewal check</a>
         </div>
       </main>
     </div>

@@ -635,8 +635,22 @@ dashboard, the 12-phase growth program.
    runs it locally under the production policy (209 of 209; all 430 sitemap pages clean). QA calibration flow made
    explicit (TB could not tell where codes come from): four steps, an evaluator link that opens at step 3, add-my-code,
    a sample session, and rejection text that says where codes come from.
-22. **Next:** Phase C continues: Platform Decision as the renewal gate (TB approved the six-point design),
-   RFP and Contract Risk published criteria. TB: make `suite` required on main; 11-01.
+22. Done S23: Phase C step 5, Platform Decision as the renewal gate (TB approved the six-point design). `src/lib/renewal.js`
+   (engine markers) reads `src/lib/rubrics/platformDecision.js` (truth type: the buyer's own view; reads no vendor
+   research or score). Per need: rating 1 to 5 or don't know, how it is known (production or vendor), and whether it
+   matters (must, nice, not needed). No averaging: a must-have at 2 or below is a gap; don't know is a proof request,
+   never a gap; not needed drops out. Layer outcome: renew, renew with conditions, add a specialist (half or more
+   must-haves are gaps, non-core layer), test the market (same on a core layer: Routing, Conversation). Gate: renew,
+   renew with conditions, run an evaluation (a core market test or 3+ specialists). Clock: under 6 months to notice
+   cannot evaluate, under 3 cannot negotiate, unknown exit terms, long term with open conditions (all heuristics
+   labelled). Negotiation checklist in the PDF. Next: Contract Risk, RFP Builder or TCO. Old links keep every rating as
+   must-have seen in production; the legacy sample now surfaces 14 must-have gaps the average hid. Journey no longer
+   routes to the Phase 1 Vendor Match; the "ranked vendor shortlist" promise and "50 scored IVA vendors" are gone.
+   Published at `/methodology/platform-decision` (sitemap 431). `renewal.test.mjs` (83): oracle on 20,000 answer sets,
+   the no-average, unknown-is-not-weak, not-needed and monotonic laws, reachability, old and hostile links, 4 mutants.
+   GitHub nightly on production after PR #22: green, headers and policy included. A 502 seen from the sandbox was its
+   own egress (curl got no HTTP response on 11 of 40 tries; GitHub runners saw none).
+23. **Next:** Phase C continues: RFP Builder and Contract Risk published criteria. TB: make `suite` required on main; 11-01.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
