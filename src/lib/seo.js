@@ -110,6 +110,10 @@ export const SEO_MAP = {
     title: `Shrinkage Planner Method: Formulas and a Worked Example | ${SITE}`,
     desc: "The published method behind the Shrinkage Planner: total shrinkage on one base, planned and unplanned, agents on the queue, agents to schedule, the value of paid time off the queue, every constant with its source, and a worked example.",
   },
+  "/methodology/aht-decomposition": {
+    title: `AHT Decomposition Method: Formulas, Levers and a Worked Example | ${SITE}`,
+    desc: "The published method behind AHT Decomposition: handle time by component, initiative levers as editable shares, how selected levers combine, agent hours as capacity, every lever share with its source, and a worked example.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",

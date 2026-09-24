@@ -362,9 +362,28 @@ const occEntries = {
   "occ.attrition.mult.critical": oHeur(1.40, "multiple of baseline attrition", "Attrition multiple applied while occupancy sits in the critical band, above the caution maximum, and whenever offered load exceeds staffed agents."),
 };
 
+/* AHT Decomposition. Handle time is the sum of its parts, which is arithmetic. What the tool
+   adds is a set of initiative levers, each a share of one component the initiative removes.
+   No published study gives these shares for an operation, so every one is a labelled
+   heuristic, opens as the default the buyer can edit, and only counts when the buyer turns
+   its lever on. */
+const AHT = "aht-decomposition";
+const AHT_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const ahHeur = (value, rationale) => ({ tool: AHT, kind: "heuristic", value, unit: "share of the component removed", source: AHT_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const ahtEntries = {
+  "aht.lever.summarization.wrap": ahHeur(0.50, "After-call work removed by automatic call summaries and disposition."),
+  "aht.lever.knowledge.search": ahHeur(0.40, "Knowledge search time removed when answers are surfaced during the contact."),
+  "aht.lever.knowledge.hold": ahHeur(0.15, "Hold time removed when agents stop placing customers on hold to look things up."),
+  "aht.lever.desktop.admin": ahHeur(0.50, "System and admin time removed by bringing the agent's applications into one desktop."),
+  "aht.lever.desktop.hold": ahHeur(0.10, "Hold time removed when fewer holds wait on application switching."),
+  "aht.lever.routing.transfer": ahHeur(0.50, "Transfer time removed when contacts reach the right agent first."),
+  "aht.lever.routing.talk": ahHeur(0.05, "Talk time removed when the first agent reached can resolve the contact."),
+};
+
 export const BENCHMARK_SOURCES = {
   ...SHARED_BENCHMARKS,
   ...occEntries,
+  ...ahtEntries,
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
   "lbg.module.recording": mod(10, "Starting price for recording, shipped as included, so it prices only if the user reclassifies it."),
