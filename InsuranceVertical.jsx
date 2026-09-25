@@ -31,19 +31,19 @@ export default function InsuranceVertical() {
   ];
 
   const stats = [
-    { n: "80%+", label: "CSAT benchmark — nearly 2x higher with clear communications", source: "J.D. Power / Nextiva" },
+    { n: "80%+", label: "CSAT benchmark: nearly 2x higher with clear communications", source: "J.D. Power / Nextiva" },
     { n: "$146B", label: "Insured losses from natural catastrophes in 2025", source: "Swiss Re Institute" },
     { n: "35%", label: "Increase in renewal likelihood from strong CX", source: "Industry composite" },
-    { n: "70%", label: "Average FCR in insurance — claims require follow-up", source: "Nextiva 2026" },
-    { n: "9 min", label: "Average handle time — coverage discussions can't be rushed", source: "Nextiva 2026" },
+    { n: "70%", label: "Average FCR in insurance: claims require follow-up", source: "Nextiva 2026" },
+    { n: "9 min", label: "Average handle time: coverage discussions can't be rushed", source: "Nextiva 2026" },
     { n: "81%", label: "Increase in retention from well-tailored customer service", source: "LiveAgent" },
   ];
 
   const failureModes = [
-    { title: "FNOL is the moment of truth — and most carriers fumble it", desc: "First Notice of Loss is when the policyholder is most distressed and most attentive. A slow, confusing, or impersonal FNOL experience sets the tone for the entire claim. Carriers that treat FNOL as data collection rather than service recovery lose the emotional window where trust is built or destroyed." },
-    { title: "Catastrophe events expose every capacity and process weakness", desc: "When a hurricane, wildfire, or hail storm hits, claim volume surges 10-50x in days. Carriers without CAT response plans — surge staffing, geo-targeted IVR, proactive outreach, simplified FNOL — drown in volume while policyholders wait on hold for hours." },
+    { title: "FNOL is the moment of truth, and most carriers fumble it", desc: "First Notice of Loss is when the policyholder is most distressed and most attentive. A slow, confusing, or impersonal FNOL experience sets the tone for the entire claim. Carriers that treat FNOL as data collection rather than service recovery lose the emotional window where trust is built or destroyed." },
+    { title: "Catastrophe events expose every capacity and process weakness", desc: "When a hurricane, wildfire, or hail storm hits, claim volume surges 10-50x in days. Carriers without CAT response plans, surge staffing, geo-targeted IVR, proactive outreach, simplified FNOL, drown in volume while policyholders wait on hold for hours." },
     { title: "The agent channel creates a three-party service problem", desc: "Many policyholders are served by independent agents who sit between the carrier and the customer. When a policyholder calls the carrier directly, the agent isn't informed. When they call the agent, the carrier has no record. This creates duplicate work, conflicting information, and frustrated policyholders." },
-    { title: "Claims cycle time drives satisfaction more than claims outcome", desc: "Policyholders accept fair claim outcomes. What they don't accept is waiting 45 days for a decision they expected in 10. The gap between expected and actual claims timeline — not the dollar amount — is the primary driver of claims dissatisfaction." },
+    { title: "Claims cycle time drives satisfaction more than claims outcome", desc: "Policyholders accept fair claim outcomes. What they don't accept is waiting 45 days for a decision they expected in 10. The gap between expected and actual claims timeline, not the dollar amount, is the primary driver of claims dissatisfaction." },
     { title: "Renewal is treated as a billing event instead of a retention moment", desc: "Most carriers send a renewal notice 30 days before expiration with a new premium. If the premium increased, the policyholder shops competitors. The carrier's contact center receives the cancellation call but has no save offer, no competitive context, and no authority to adjust pricing." },
   ];
 
@@ -58,12 +58,12 @@ export default function InsuranceVertical() {
   ];
 
   const benchmarks = [
-    { metric: "CSAT", avg: "80%", cross: "78%", top: "90%+", note: "Above cross-industry when communications are clear — drops sharply with claims delays" },
-    { metric: "FCR", avg: "65%", cross: "72%", top: "82%+", note: "Below average — multi-party claims coordination prevents single-call resolution" },
-    { metric: "AHT", avg: "9:00", cross: "7:00", top: "7:00", note: "Above average — coverage discussions and claims intake are inherently detailed" },
-    { metric: "Claims Cycle", avg: "30 days", cross: "N/A", top: "14 days", note: "Varies dramatically by peril type — auto glass is same-day; property fire is 60-90 days" },
-    { metric: "Attrition", avg: "32%", cross: "35%", top: "20%", note: "Slightly below cross-industry — better compensation offsets emotional labor" },
-    { metric: "Containment", avg: "15%", cross: "25%", top: "30%+", note: "Below average — policy complexity and emotional stakes limit what automation can handle" },
+    { metric: "CSAT", avg: "80%", cross: "78%", top: "90%+", note: "Above cross-industry when communications are clear: drops sharply with claims delays" },
+    { metric: "FCR", avg: "65%", cross: "72%", top: "82%+", note: "Below average: multi-party claims coordination prevents single-call resolution" },
+    { metric: "AHT", avg: "9:00", cross: "7:00", top: "7:00", note: "Above average: coverage discussions and claims intake are inherently detailed" },
+    { metric: "Claims Cycle", avg: "30 days", cross: "N/A", top: "14 days", note: "Varies dramatically by peril type: auto glass is same-day; property fire is 60-90 days" },
+    { metric: "Attrition", avg: "32%", cross: "35%", top: "20%", note: "Slightly below cross-industry: better compensation offsets emotional labor" },
+    { metric: "Containment", avg: "15%", cross: "25%", top: "30%+", note: "Below average: policy complexity and emotional stakes limit what automation can handle" },
   ];
 
   return (
@@ -125,8 +125,8 @@ export default function InsuranceVertical() {
         <FadeIn><span style={{ color: AMBER, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>The BPO Question</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How outsourcing fits in insurance CX.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 24 }} className="sub-grid">
-          <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["FNOL intake for high-volume personal lines during CAT events","Policy servicing — endorsements, certificates, and billing inquiries","Claims status callbacks and proactive claim milestone notifications","After-hours and weekend FNOL coverage for 24/7 reporting","Outbound renewal reminder campaigns and payment collections"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
-          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Coverage determinations require licensed adjusters — BPO agents cannot make coverage decisions","Complex claims handling (liability disputes, bodily injury) requires institutional judgment","State DOI compliance varies by jurisdiction — BPO training gaps create regulatory exposure","Recorded statements have legal implications that require carrier-controlled protocols","Agent/broker relationship management needs carrier-level authority and system access"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>))}</div></div></FadeIn>
+          <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["FNOL intake for high-volume personal lines during CAT events","Policy servicing: endorsements, certificates, and billing inquiries","Claims status callbacks and proactive claim milestone notifications","After-hours and weekend FNOL coverage for 24/7 reporting","Outbound renewal reminder campaigns and payment collections"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
+          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Coverage determinations require licensed adjusters: BPO agents cannot make coverage decisions","Complex claims handling (liability disputes, bodily injury) requires institutional judgment","State DOI compliance varies by jurisdiction: BPO training gaps create regulatory exposure","Recorded statements have legal implications that require carrier-controlled protocols","Agent/broker relationship management needs carrier-level authority and system access"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>))}</div></div></FadeIn>
         </div>
       </div></section>
 
@@ -135,7 +135,7 @@ export default function InsuranceVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms strongest for insurance.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
-            { name: "NICE CXone", score: 90, why: "Industry-leading WEM and compliance controls for regulated insurance environments. Strong QA for claims interactions. Best-in-class analytics for E&O risk monitoring.", href: "/vendors/nice-cxone" },
+            { name: "NICE CXone", score: 90, why: "WEM and compliance controls for regulated insurance environments. Strong QA for claims interactions. Analytics for E&O risk monitoring.", href: "/vendors/nice-cxone" },
             { name: "Genesys", score: 94, why: "Deepest routing for multi-line carriers. CAT surge routing, FNOL priority, and licensed-agent matching. Proven at major P&C carriers globally.", href: "/vendors/genesys" },
             { name: "Talkdesk", score: 78, why: "Purpose-built Insurance Experience Cloud with pre-built claims workflows, Guidewire integration, and FNOL automation.", href: "/vendors/talkdesk" },
             { name: "Five9", score: 82, why: "Strong Salesforce integration for carriers using FSC. Practical AI for policy servicing and billing. Good mid-market to enterprise fit.", href: "/vendors/five9" },
@@ -149,7 +149,7 @@ export default function InsuranceVertical() {
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
         <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating CX technology for insurance?</h2>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>State DOI compliance, claims system integration, and CAT response routing change which platforms are viable. We can help you build a shortlist weighted for your line of business — personal lines, commercial, life, or specialty.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>State DOI compliance, claims system integration, and CAT response routing change which platforms are viable. We can help you build a shortlist weighted for your line of business: personal lines, commercial, life, or specialty.</p>
           <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
             <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request an Insurance CX Briefing</a>
             <a href="/tools/cx-maturity" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Take the CX Maturity Assessment →</a>

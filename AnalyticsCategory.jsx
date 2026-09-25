@@ -45,7 +45,7 @@ export default function AnalyticsCategory() {
               Advanced Analytics{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 620 }}>
-              {all.length} vendors across 6 platform categories, scored on 7 dimensions — intelligence depth, auto-QA, operational workflow, WFM alignment, product insights, integration/data, and scalability/governance. Total score out of 42.
+              {all.length} vendors across 6 platform categories, scored on 7 dimensions: intelligence depth, auto-QA, operational workflow, WFM alignment, product insights, integration/data, and scalability/governance. Total score out of 42.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -177,7 +177,7 @@ export default function AnalyticsCategory() {
           <FadeIn>
             <div style={{ textAlign: "center", marginBottom: 40 }}>
               <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>7 dimensions. Scale of 2–6. Total out of 42.</h2>
+              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>7 dimensions. Scale of 2 to 6. Total out of 42.</h2>
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is evaluated on a qualitative scale (High / Med-High / Med / Low-Med / Low) mapped to numeric scores (6 / 5 / 4 / 3 / 2). Vendors are organized by platform category for apples-to-apples comparison within each segment, then ranked across the full market.</p>
             </div>
           </FadeIn>

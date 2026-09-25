@@ -24,7 +24,7 @@ export default function HumanPremium() {
     <div>
       <Nav />
 
-      {/* ═══ HERO — different energy from the rest of the site ═══ */}
+      {/* ═══ HERO: different energy from the rest of the site ═══ */}
       <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, #0D2240 50%, #132D4F 100%)`, padding: "150px 28px 100px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 30% 70%, rgba(16,185,129,0.06) 0%, transparent 60%)" }} />
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 70% 30%, rgba(0,136,221,0.04) 0%, transparent 60%)" }} />
@@ -35,7 +35,7 @@ export default function HumanPremium() {
               The Human{" "}<span style={{ background: `linear-gradient(135deg, ${GREEN}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Premium</span>
             </h1>
             <p style={{ fontSize: "clamp(16px, 1.8vw, 19px)", color: "rgba(255,255,255,0.55)", lineHeight: 1.75, maxWidth: 580, margin: "0 auto 36px" }}>
-              As AI handles more of the routine, the humans who remain become exponentially more important. This isn't a displacement story. It's a transformation story — and the people who lean in will build careers that didn't exist two years ago.
+              As AI handles more of the routine, the humans who remain become exponentially more important. This isn't a displacement story. It's a transformation story: and the people who lean in will build careers that didn't exist two years ago.
             </p>
             <div style={{ width: 60, height: 2, background: GREEN, margin: "0 auto", borderRadius: 1 }} />
           </FadeIn>
@@ -51,7 +51,7 @@ export default function HumanPremium() {
           </FadeIn>
           <FadeIn delay={0.05}>
             <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.8, marginBottom: 16 }}>
-              Every analyst firm, every vendor, every conference keynote frames the conversation the same way: <em>"How much can we automate?"</em> Containment rates. Cost-per-interaction. Agent labor reduction. The metrics all point in one direction — fewer humans, more machines.
+              Every analyst firm, every vendor, every conference keynote frames the conversation the same way: <em>"How much can we automate?"</em> Containment rates. Cost-per-interaction. Agent labor reduction. The metrics all point in one direction: fewer humans, more machines.
             </p>
             <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.8, marginBottom: 16 }}>
               That framing is incomplete. It measures what AI replaces. It ignores what humans create.
@@ -60,13 +60,13 @@ export default function HumanPremium() {
               When your IVA handles 60-80% of routine interactions, the remaining 20-40% is not residual volume you haven't automated yet. It is the highest-stakes, most emotionally charged, most commercially consequential work in your entire operation. A patient who needs clinical empathy. A business customer whose $2M relationship depends on someone understanding their specific situation. A fraud victim who needs a human being to say "I believe you, and here's what we're going to do."
             </p>
             <p style={{ fontSize: 16, color: NAVY, lineHeight: 1.8, fontWeight: 500 }}>
-              The companies that treat this 20% as the premium layer — and invest in the humans who operate it — will outperform the ones that treat it as a cost line to be further compressed. This is not a sentimental argument. It is a commercial one.
+              The companies that treat this 20% as the premium layer, and invest in the humans who operate it, will outperform the ones that treat it as a cost line to be further compressed. This is not a sentimental argument. It is a commercial one.
             </p>
           </FadeIn>
         </div>
       </section>
 
-      {/* ═══ THE ECONOMICS — data-backed ═══ */}
+      {/* ═══ THE ECONOMICS: data-backed ═══ */}
       <section style={{ background: WARM, padding: "80px 28px", borderTop: `1px solid ${BORDER}`, borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <FadeIn>
@@ -76,9 +76,9 @@ export default function HumanPremium() {
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }} className="hp-grid">
             {[
-              { icon: "↓", stat: "60-80%", label: "Routine interactions automated", sub: "Password resets, order status, appointment scheduling, FAQ — the work that was never a career to begin with", color: ELECTRIC },
+              { icon: "↓", stat: "60-80%", label: "Routine interactions automated", sub: "Password resets, order status, appointment scheduling, FAQ: the work that was never a career to begin with", color: ELECTRIC },
               { icon: "↑", stat: "2-3x", label: "Complexity per remaining interaction", sub: "Every interaction an agent handles is harder, more emotional, and more consequential than before automation", color: AMBER },
-              { icon: "◆", stat: "Premium", label: "Compensation for specialist resolvers", sub: "Fewer agents, paid more, trained deeper, given more authority, measured on resolution quality — not handle time", color: GREEN },
+              { icon: "◆", stat: "Premium", label: "Compensation for specialist resolvers", sub: "Fewer agents, paid more, trained deeper, given more authority, measured on resolution quality, not handle time", color: GREEN },
             ].map((s, i) => (
               <FadeIn key={i} delay={i * 0.08}>
                 <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "32px 28px", height: "100%" }}>
@@ -93,7 +93,7 @@ export default function HumanPremium() {
           <FadeIn delay={0.2}>
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "28px 32px", marginTop: 24 }}>
               <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.7, margin: 0 }}>
-                <span style={{ color: GREEN, fontWeight: 600 }}>The bottom line:</span> A 500-agent operation that automates 60% doesn't become a 200-agent operation at the same cost per agent. It becomes a 200-agent operation where each person is worth 2-3x what a generalist was worth — because they handle 2-3x the complexity. Organizations that plan for this build better teams. Organizations that expect both fewer agents AND lower wages end up with undertrained people handling the hardest interactions their customers will ever have.
+                <span style={{ color: GREEN, fontWeight: 600 }}>The bottom line:</span> A 500-agent operation that automates 60% doesn't become a 200-agent operation at the same cost per agent. It becomes a 200-agent operation where each person is worth 2-3x what a generalist was worth, because they handle 2-3x the complexity. Organizations that plan for this build better teams. Organizations that expect both fewer agents AND lower wages end up with undertrained people handling the hardest interactions their customers will ever have.
               </p>
             </div>
           </FadeIn>
@@ -106,12 +106,12 @@ export default function HumanPremium() {
           <FadeIn>
             <span style={{ color: GREEN, fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase", display: "block", marginBottom: 10 }}>Career Transformation</span>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: NAVY, lineHeight: 1.2, margin: "0 0 12px" }}>Four roles that didn't exist two years ago.</h2>
-            <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>AI doesn't just eliminate roles — it creates new ones. The people best positioned to fill them are the ones who understand the work at an operational level. That's you.</p>
+            <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>AI doesn't just eliminate roles: it creates new ones. The people best positioned to fill them are the ones who understand the work at an operational level. That's you.</p>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }} className="role-grid">
             {[
-              { title: "Complex Issue Resolver", path: "Agent → Specialist", desc: "Handles the 20-40% of interactions AI escalates — emotional, multi-system, exception-heavy. Requires deep product knowledge, empathy, and authority to make decisions that fall outside policy automation.", pay: "Higher compensation, smaller caseloads, measured on resolution quality", grow: "Become the person who handles what AI can't. Build a portfolio of complex resolutions. Document your wins.", color: GREEN },
-              { title: "AI Trainer & Knowledge Curator", path: "Agent → AI Operations", desc: "Maintains the knowledge base, reviews AI decisions, tunes conversation flows, identifies gaps in automation. Understanding what the AI gets wrong requires domain expertise that AI itself cannot self-diagnose.", pay: "New role category — lateral move into AI operations with growth trajectory", grow: "Your 10 years of handling insurance claims IS the knowledge base. Learn to capture it, document it, and position yourself as the person who makes AI actually work.", color: ELECTRIC },
+              { title: "Complex Issue Resolver", path: "Agent → Specialist", desc: "Handles the 20-40% of interactions AI escalates: emotional, multi-system, exception-heavy. Requires deep product knowledge, empathy, and authority to make decisions that fall outside policy automation.", pay: "Higher compensation, smaller caseloads, measured on resolution quality", grow: "Become the person who handles what AI can't. Build a portfolio of complex resolutions. Document your wins.", color: GREEN },
+              { title: "AI Trainer & Knowledge Curator", path: "Agent → AI Operations", desc: "Maintains the knowledge base, reviews AI decisions, tunes conversation flows, identifies gaps in automation. Understanding what the AI gets wrong requires domain expertise that AI itself cannot self-diagnose.", pay: "New role category: lateral move into AI operations with growth trajectory", grow: "Your 10 years of handling insurance claims IS the knowledge base. Learn to capture it, document it, and position yourself as the person who makes AI actually work.", color: ELECTRIC },
               { title: "Experience Designer", path: "Team Lead → Design", desc: "Designs escalation paths, conversation flows, and the seams between AI and human interaction. Designing for the edge case requires understanding hundreds of failure modes from production experience.", pay: "Cross-functional role combining ops knowledge, design thinking, and technical fluency", grow: "Start mapping the failure modes you see every day. That institutional knowledge is your design portfolio.", color: AMBER },
               { title: "Quality & Governance Lead", path: "QA Analyst → AI Governance", desc: "Monitors AI decisions for bias, accuracy, compliance, and customer harm. Owns the trust layer. Regulatory judgment, ethical assessment, and accountability require human ownership.", pay: "Compliance background + AI literacy = high-demand combination", grow: "As AI handles more decisions, someone must ensure those decisions are fair, accurate, and legal. That someone has regulatory expertise AI doesn't.", color: "#8B5CF6" },
             ].map((r, i) => (
@@ -146,17 +146,17 @@ export default function HumanPremium() {
           <FadeIn>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase", display: "block", marginBottom: 10 }}>The Growth Playbook</span>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: "#fff", lineHeight: 1.2, margin: "0 0 12px" }}>Seven moves that separate those who thrive from those who get displaced.</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Humans who upskill, re-educate, and approach this era with a growth mindset will always win. Here's where to focus — starting today.</p>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Humans who upskill, re-educate, and approach this era with a growth mindset will always win. Here's where to focus: starting today.</p>
           </FadeIn>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
-              { n: "01", title: "Learn to use AI — not just survive it", desc: "The most valuable CX professional in 2027 isn't the one who resists AI or the one replaced by it — it's the one who makes AI better. Start with the tools you have: use ChatGPT or Claude to draft customer responses, summarize complex cases, or practice difficult conversations. The skill isn't 'prompting' — it's knowing what good output looks like because you've done the work yourself for years.", action: "This week: Use an AI tool to draft 5 customer responses. Edit them. Notice what the AI misses. That gap is your value." },
-              { n: "02", title: "Build a portfolio of complex resolutions", desc: "Designers have portfolios. Developers have GitHub. CX professionals have... nothing. Change that. Start documenting your most complex resolutions — the multi-department escalation you navigated, the regulatory edge case you resolved, the at-risk customer you retained. Strip PII, capture the decision-making process, and articulate the outcome.", action: "This month: Document 3 complex resolutions. Include the situation, the constraints, your decisions, and the outcome. This is your career capital." },
-              { n: "03", title: "Reframe your professional identity", desc: "'Contact center agent' carries stigma and implies replaceability. 'Customer resolution specialist,' 'CX intelligence analyst,' 'escalation architect' — these describe the work you actually do. The rebrand isn't cosmetics. It changes how you see yourself, how you interview, how you negotiate, and how hiring managers perceive your value.", action: "Today: Update your LinkedIn title. Change 'Contact Center Agent' to something that describes the complexity you handle. The job title you give yourself signals what you believe you're worth." },
+              { n: "01", title: "Learn to use AI: not just survive it", desc: "The most valuable CX professional in 2027 isn't the one who resists AI or the one replaced by it: it's the one who makes AI better. Start with the tools you have: use ChatGPT or Claude to draft customer responses, summarize complex cases, or practice difficult conversations. The skill isn't 'prompting': it's knowing what good output looks like because you've done the work yourself for years.", action: "This week: Use an AI tool to draft 5 customer responses. Edit them. Notice what the AI misses. That gap is your value." },
+              { n: "02", title: "Build a portfolio of complex resolutions", desc: "Designers have portfolios. Developers have GitHub. CX professionals have... nothing. Change that. Start documenting your most complex resolutions: the multi-department escalation you navigated, the regulatory edge case you resolved, the at-risk customer you retained. Strip PII, capture the decision-making process, and articulate the outcome.", action: "This month: Document 3 complex resolutions. Include the situation, the constraints, your decisions, and the outcome. This is your career capital." },
+              { n: "03", title: "Reframe your professional identity", desc: "'Contact center agent' carries stigma and implies replaceability. 'Customer resolution specialist,' 'CX intelligence analyst,' 'escalation architect': these describe the work you actually do. The rebrand isn't cosmetics. It changes how you see yourself, how you interview, how you negotiate, and how hiring managers perceive your value.", action: "Today: Update your LinkedIn title. Change 'Contact Center Agent' to something that describes the complexity you handle. The job title you give yourself signals what you believe you're worth." },
               { n: "04", title: "Get certified in something that compounds", desc: "Not every certification matters. The ones that compound are the ones that position you at the intersection of domain expertise and AI capability. A CX professional with an AI certification is rare. An AI engineer who understands contact center operations is even rarer. You can become both.", action: "This quarter: Start one certification from the list below. Choose based on where you want to go, not where you are." },
-              { n: "05", title: "Teach AI what you know", desc: "This is the most powerful reframe available: you're not being replaced by AI — you're training it. Your decade of handling insurance claims IS the knowledge base that makes the IVA work. Your understanding of when a customer is about to churn IS the signal the model needs. That expertise has value — learn to capture it, structure it, and position yourself as the person who makes AI actually function in production.", action: "This month: Write down the 10 things you know about your domain that no AI could figure out on its own. That's your intellectual property." },
-              { n: "06", title: "Explore the side path", desc: "A 15-year contact center veteran with deep vertical expertise — healthcare billing, insurance claims, financial services compliance — is a consultant who doesn't know they're a consultant yet. Companies paying $200/hour for CX consulting are buying expertise you already have. The side hustle isn't gig work — it's monetizing knowledge that companies desperately need during their own AI transformations.", action: "This month: Join 2 CX communities (CCW, ICMI, CX Network). Answer questions. Offer perspective. Build visibility. Your first consulting client will come from being known." },
-              { n: "07", title: "Protect your mental game", desc: "Everyone talks about upskilling. Nobody talks about the emotional reality of being told your job is being automated. The anxiety is real. The uncertainty is real. The grief for how things used to be is real. Acknowledging that — and building resilience deliberately — is not weakness. It's the foundation that makes everything else possible. The people who thrive through transformation are the ones who process the emotion and then channel it into action.", action: "Ongoing: Find one person — a mentor, a coach, a peer — who you can be honest with about how this feels. Isolation is the real threat, not AI." },
+              { n: "05", title: "Teach AI what you know", desc: "This is the most powerful reframe available: you're not being replaced by AI, you're training it. Your decade of handling insurance claims IS the knowledge base that makes the IVA work. Your understanding of when a customer is about to churn IS the signal the model needs. That expertise has value: learn to capture it, structure it, and position yourself as the person who makes AI actually function in production.", action: "This month: Write down the 10 things you know about your domain that no AI could figure out on its own. That's your intellectual property." },
+              { n: "06", title: "Explore the side path", desc: "A 15-year contact center veteran with deep vertical expertise, healthcare billing, insurance claims, financial services compliance, is a consultant who doesn't know they're a consultant yet. Companies paying $200/hour for CX consulting are buying expertise you already have. The side hustle isn't gig work: it's monetizing knowledge that companies desperately need during their own AI transformations.", action: "This month: Join 2 CX communities (CCW, ICMI, CX Network). Answer questions. Offer perspective. Build visibility. Your first consulting client will come from being known." },
+              { n: "07", title: "Protect your mental game", desc: "Everyone talks about upskilling. Nobody talks about the emotional reality of being told your job is being automated. The anxiety is real. The uncertainty is real. The grief for how things used to be is real. Acknowledging that, and building resilience deliberately, is not weakness. It's the foundation that makes everything else possible. The people who thrive through transformation are the ones who process the emotion and then channel it into action.", action: "Ongoing: Find one person, a mentor, a coach, a peer, who you can be honest with about how this feels. Isolation is the real threat, not AI." },
             ].map((m, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <div style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 10, padding: "24px 28px" }}>
@@ -184,7 +184,7 @@ export default function HumanPremium() {
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase", display: "block", marginBottom: 10 }}>Where to Level Up</span>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: NAVY, lineHeight: 1.2, margin: "0 0 12px" }}>Certifications and learning paths that compound.</h2>
-            <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>Not every certification matters. These are the ones that position you at the intersection of CX expertise and AI capability — where demand is highest and supply is thinnest.</p>
+            <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>Not every certification matters. These are the ones that position you at the intersection of CX expertise and AI capability, where demand is highest and supply is thinnest.</p>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="cert-grid">
             {[
@@ -195,7 +195,7 @@ export default function HumanPremium() {
                 { name: "IBM AI Foundations for Business", link: "https://www.ibm.com/training/collection/ibm-ai-foundations-for-business", time: "~15 hours", cost: "Free", why: "Business-oriented AI understanding. Good starting point." },
               ]},
               { cat: "CX & Contact Center", color: GREEN, certs: [
-                { name: "ICMI Certified Associate (CCCA)", link: "https://www.icmi.com/training", time: "Self-paced", cost: "$995", why: "Industry-standard contact center management credential." },
+                { name: "ICMI Certified Associate (CCCA)", link: "https://www.icmi.com/training", time: "Self-paced", cost: "$995", why: "Widely used contact center management credential." },
                 { name: "COPC CX Standard", link: "https://www.copc.com/training/", time: "3-5 days", cost: "Varies", why: "Operations excellence. The gold standard for CX performance." },
                 { name: "HDI Support Center Analyst", link: "https://www.thinkhdi.com/education/courses", time: "2 days", cost: "~$1,500", why: "Service desk and support operations. Strong for IT+CX roles." },
                 { name: "Qualtrics XM Certification", link: "https://www.qualtrics.com/training/", time: "Self-paced", cost: "Free", why: "Experience management platform skills. Growing demand." },
@@ -233,21 +233,21 @@ export default function HumanPremium() {
         </div>
       </section>
 
-      {/* ═══ CAREER PATHS — side hustles, next roles ═══ */}
+      {/* ═══ CAREER PATHS: side hustles, next roles ═══ */}
       <section style={{ background: WARM, padding: "80px 28px", borderTop: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <FadeIn>
             <span style={{ color: NAVY, fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase", display: "block", marginBottom: 10 }}>What's Next</span>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 30, fontWeight: 400, color: NAVY, lineHeight: 1.2, margin: "0 0 12px" }}>Five paths forward. Pick the one that fits your ambition.</h2>
-            <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>Your CX experience is an asset, not a liability. Here's how to deploy it — whether you want to go deeper, go wider, go independent, or go somewhere entirely new.</p>
+            <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>Your CX experience is an asset, not a liability. Here's how to deploy it: whether you want to go deeper, go wider, go independent, or go somewhere entirely new.</p>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="path-grid">
             {[
               { path: "Go Deeper", title: "Specialist Resolver", desc: "Stay in the contact center. Become the expert who handles what AI can't. Build the highest-value version of the role you already know.", steps: ["Request assignment to escalated/complex queues", "Build expertise in one vertical domain (billing, claims, compliance)", "Document your resolution portfolio", "Negotiate specialist compensation based on complexity metrics"], color: GREEN },
-              { path: "Go Wider", title: "CX Operations Leader", desc: "Move from individual contributor to operational leadership. Manage the AI-human hybrid model. Design the workforce of the future.", steps: ["Get certified in one operational framework (COPC, ICMI, Six Sigma)", "Volunteer to lead a pilot — AI implementation, new channel launch, or process redesign", "Learn to read P&L impact, not just CSAT scores", "Build cross-functional relationships with IT, product, and analytics"], color: ELECTRIC },
-              { path: "Go Technical", title: "AI Operations / CX Engineer", desc: "Bridge CX expertise and technical capability. Become the person who makes AI work in production — because you understand what 'work' means operationally.", steps: ["Complete one AI/ML certification (Google AI Essentials is the fastest start)", "Learn basic data analysis (Google Data Analytics or Tableau)", "Start documenting knowledge base gaps and bot failure patterns", "Position yourself as the domain expert in AI implementation projects"], color: AMBER },
-              { path: "Go Independent", title: "CX Consultant / Advisor", desc: "Your 10-15 years of operational experience is consulting gold. Companies implementing AI need people who understand how contact centers actually work — not just how they should work in theory.", steps: ["Pick a niche: vertical expertise (healthcare CX) or functional depth (WFM optimization)", "Build visibility: write on LinkedIn, join CX communities, share operational insights", "Start with fractional work: 10-20 hours/month for 2-3 clients", "Price based on value delivered, not hours worked — your expertise prevents six-figure mistakes"], color: "#8B5CF6" },
-              { path: "Go Build", title: "Entrepreneur / Creator", desc: "Use AI as a force multiplier. Build a training business. Create content. Launch a product. The barrier to starting has never been lower — and your domain expertise is the unfair advantage that AI tools alone can't replicate.", steps: ["Identify a problem you've solved hundreds of times that others struggle with", "Use AI to create the first version — course outline, content drafts, landing page", "Launch small: one workshop, one guide, one consulting engagement", "Let the market tell you what to build next — don't over-plan, over-execute"], color: RED },
+              { path: "Go Wider", title: "CX Operations Leader", desc: "Move from individual contributor to operational leadership. Manage the AI-human hybrid model. Design the workforce of the future.", steps: ["Get certified in one operational framework (COPC, ICMI, Six Sigma)", "Volunteer to lead a pilot: AI implementation, new channel launch, or process redesign", "Learn to read P&L impact, not just CSAT scores", "Build cross-functional relationships with IT, product, and analytics"], color: ELECTRIC },
+              { path: "Go Technical", title: "AI Operations / CX Engineer", desc: "Bridge CX expertise and technical capability. Become the person who makes AI work in production, because you understand what 'work' means operationally.", steps: ["Complete one AI/ML certification (Google AI Essentials is the fastest start)", "Learn basic data analysis (Google Data Analytics or Tableau)", "Start documenting knowledge base gaps and bot failure patterns", "Position yourself as the domain expert in AI implementation projects"], color: AMBER },
+              { path: "Go Independent", title: "CX Consultant / Advisor", desc: "Your 10-15 years of operational experience is consulting gold. Companies implementing AI need people who understand how contact centers actually work, not just how they should work in theory.", steps: ["Pick a niche: vertical expertise (healthcare CX) or functional depth (WFM optimization)", "Build visibility: write on LinkedIn, join CX communities, share operational insights", "Start with fractional work: 10-20 hours/month for 2-3 clients", "Price based on value delivered, not hours worked: your expertise prevents six-figure mistakes"], color: "#8B5CF6" },
+              { path: "Go Build", title: "Entrepreneur / Creator", desc: "Use AI as a force multiplier. Build a training business. Create content. Launch a product. The barrier to starting has never been lower, and your domain expertise is the unfair advantage that AI tools alone can't replicate.", steps: ["Identify a problem you've solved hundreds of times that others struggle with", "Use AI to create the first version: course outline, content drafts, landing page", "Launch small: one workshop, one guide, one consulting engagement", "Let the market tell you what to build next: don't over-plan, over-execute"], color: RED },
             ].map((p, i) => (
               <FadeIn key={i} delay={i * 0.06}>
                 <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, overflow: "hidden", height: "100%" }}>
@@ -283,7 +283,7 @@ export default function HumanPremium() {
                 Every IVA deployment is simultaneously a workforce transformation. Every CCaaS migration changes how humans work. Every automation initiative reshapes what skills matter.
               </p>
               <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", lineHeight: 1.8, marginBottom: 16 }}>
-                The vendors who understand this — and the buyers who plan for it — will build operations that are both more efficient AND more human. The ones who treat automation as a headcount reduction exercise will automate the easy work, lose their best people, and be left with undertrained agents handling the hardest interactions their customers will ever have.
+                The vendors who understand this, and the buyers who plan for it, will build operations that are both more efficient AND more human. The ones who treat automation as a headcount reduction exercise will automate the easy work, lose their best people, and be left with undertrained agents handling the hardest interactions their customers will ever have.
               </p>
               <p style={{ fontSize: 16, color: GREEN, lineHeight: 1.8, fontWeight: 500 }}>
                 That is not a CX strategy. That is a CX liability.

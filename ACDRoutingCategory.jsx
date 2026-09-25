@@ -65,7 +65,7 @@ export default function ACDRoutingCategory() {
               ACD & Routing{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 620 }}>
-              {all.length} vendors scored across 10 dimensions — routing logic, data inputs, latency, queue architecture, failover, observability, AI routing, integrations, WEM alignment, and global scale. Scored 1–5 per dimension with weighted averages on a 0–5 scale. The operator's truth about who can actually route.
+              {all.length} vendors scored across 10 dimensions, routing logic, data inputs, latency, queue architecture, failover, observability, AI routing, integrations, WEM alignment, and global scale. Scored 1 to 5 per dimension with weighted averages on a 0 to 5 scale. The operator's truth about who can actually route.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -113,7 +113,7 @@ export default function ACDRoutingCategory() {
           <FadeIn>
             <div style={{ textAlign: "center", marginBottom: 32 }}>
               <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Bell Curve Distribution</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0 4px" }}>8–10 vendors compete at real routing depth. 20+ are ceiling-limited.</h2>
+              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0 4px" }}>8 to 10 vendors compete at real routing depth. 20+ are ceiling-limited.</h2>
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }} className="bell-tiers">
               {tiers.map((t, i) => {
@@ -220,8 +220,8 @@ export default function ACDRoutingCategory() {
           <FadeIn>
             <div style={{ textAlign: "center", marginBottom: 40 }}>
               <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>10 dimensions. Weighted average. Scale of 1–5.</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 540, margin: "0 auto" }}>Each vendor is scored 1–5 on real-world operational maturity. Scores reflect production routing capability as observed in deployment, independent of vendor marketing claims. The weighted average produces a composite on a 0–5 scale.</p>
+              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>10 dimensions. Weighted average. Scale of 1 to 5.</h2>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 540, margin: "0 auto" }}>Each vendor is scored 1 to 5 on real-world operational maturity. Scores reflect production routing capability as observed in deployment, independent of vendor marketing claims. The weighted average produces a composite on a 0 to 5 scale.</p>
             </div>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }} className="method-grid">

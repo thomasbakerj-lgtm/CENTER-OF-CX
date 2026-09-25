@@ -48,7 +48,7 @@ export default function DigitalEngagementCategory() {
               Digital Engagement{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>
-              {all.length} platforms scored across 8 capability dimensions — channel breadth, AI maturity, agent desktop, orchestration, integrations, analytics, enterprise readiness, and cost model. The first operator-grade classification of the digital engagement market built from contact center reality.
+              {all.length} platforms scored across 8 capability dimensions: channel breadth, AI maturity, agent desktop, orchestration, integrations, analytics, enterprise readiness, and cost model. The first operator-grade classification of the digital engagement market built from contact center reality.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -109,7 +109,7 @@ export default function DigitalEngagementCategory() {
 
           <FadeIn delay={0.03}>
             <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "10px 16px", background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}15`, borderRadius: 8, marginBottom: 24, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: SLATE, marginRight: 6 }}>Dimension scores (1–5):</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: SLATE, marginRight: 6 }}>Dimension scores (1 to 5):</span>
               {deDimensions.map((d, i) => (
                 <span key={i} style={{ fontSize: 10, color: MUTED }}>
                   <span style={{ fontWeight: 700, color: NAVY }}>{d.abbr}</span>={d.name}{i < deDimensions.length - 1 ? <span style={{ color: BORDER, margin: "0 3px" }}>·</span> : ""}
@@ -177,8 +177,8 @@ export default function DigitalEngagementCategory() {
           <FadeIn>
             <div style={{ textAlign: "center", marginBottom: 40 }}>
               <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>8 dimensions. Scale of 1–5. Weighted total.</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each platform is scored 1–5 on eight operational dimensions. Scores are weighted and produce a composite reflecting real-world digital engagement maturity. Channel breadth without orchestration depth does not score well. AI without handoff quality does not score well. The methodology punishes checkbox marketing.</p>
+              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>8 dimensions. Scale of 1 to 5. Weighted total.</h2>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each platform is scored 1 to 5 on eight operational dimensions. Scores are weighted and produce a composite reflecting real-world digital engagement maturity. Channel breadth without orchestration depth does not score well. AI without handoff quality does not score well. The methodology punishes checkbox marketing.</p>
             </div>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }} className="method-grid">

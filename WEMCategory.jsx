@@ -234,7 +234,7 @@ export default function WEMCategory() {
 
       {/* Consolidation Note */}
       <section style={{ background: "#fff", padding: "40px 28px" }}><div style={{ ...WRAP, maxWidth: 700 }}>
-        <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.6, textAlign: "center" }}>{categoryMeta.consolidationNote} — Last updated {categoryMeta.lastUpdated}.</p>
+        <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.6, textAlign: "center" }}>{categoryMeta.consolidationNote}: Last updated {categoryMeta.lastUpdated}.</p>
       </div></section>
 
       <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}><div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span>

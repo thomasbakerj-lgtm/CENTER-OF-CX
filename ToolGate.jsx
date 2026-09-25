@@ -91,7 +91,7 @@ export default function ToolGate() {
               <div style={{ fontSize: 28, marginBottom: 12 }}>✓</div>
               <h3 style={{ fontSize: 18, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>You're on the list.</h3>
               <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 0 20px" }}>
-                The {tool.name} is in final development. We'll email you the moment it launches — along with early access and a walkthrough of the methodology behind it.
+                The {tool.name} is in final development. We'll email you the moment it launches: along with early access and a walkthrough of the methodology behind it.
               </p>
               <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                 <a href="/tco-calculator" style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Try the TCO Calculator now →</a>

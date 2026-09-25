@@ -1,4 +1,4 @@
-// Workforce & Quality Management — Category Intelligence Data
+// Workforce & Quality Management: Category Intelligence Data
 // 25 active vendors across 3 market layers, 3 scoring modes, 8 weighted criteria
 
 export const categoryMeta = {
@@ -8,8 +8,8 @@ export const categoryMeta = {
   lastUpdated: "April 2026",
   executiveTake: "The workforce and quality stack is no longer one clean market. It has split into four real layers: enterprise WEM/WFO suites, CCaaS-embedded modules, best-of-breed WFM specialists, and AI-first QM/Auto-QA overlays. The mistake is treating them as interchangeable. They are not. WFM is still the harder operational control plane; QM is where AI overlays are fragmenting the market fastest.",
   scoringNote: "Do not force WFM, QM, and AI-QA into one flat leaderboard. Vendors are ranked within the layer they actually compete in. That keeps the shortlist honest and prevents a flashy Auto-QA overlay from outranking a true workforce control plane on the wrong criteria.",
-  methodology: "Scores use one framework with three weighting modes. The criteria stay consistent, but the weights change based on whether you are buying a WFM backbone, a balanced WEM suite, or a QA modernization layer. Enterprise depth (1–5) measures suitability for large, complex, multi-site, multi-skill, compliance-heavy operations. AI-QA maturity (1–5) measures credibility of 100% interaction review, auto-scoring, coaching workflows, and operational usability. Scores are analyst judgment based on current official product evidence and market structure, not vendor self-scores.",
-  consolidationNote: "Playvox is now folded into NICE. Klaus is now Zendesk QA. CommunityWFM is absorbed into RingCentral's WEM motion. These are not counted as standalone leaders — doing so would distort the market map.",
+  methodology: "Scores use one framework with three weighting modes. The criteria stay consistent, but the weights change based on whether you are buying a WFM backbone, a balanced WEM suite, or a QA modernization layer. Enterprise depth (1 to 5) measures suitability for large, complex, multi-site, multi-skill, compliance-heavy operations. AI-QA maturity (1 to 5) measures credibility of 100% interaction review, auto-scoring, coaching workflows, and operational usability. Scores are analyst judgment based on current official product evidence and market structure, not vendor self-scores.",
+  consolidationNote: "Playvox is now folded into NICE. Klaus is now Zendesk QA. CommunityWFM is absorbed into RingCentral's WEM motion. These are not counted as standalone leaders, doing so would distort the market map.",
 };
 
 export const scoringCriteria = [
@@ -26,7 +26,7 @@ export const scoringCriteria = [
 export const leaderboards = {
   wfmBackbone: {
     name: "WFM Backbone Mode",
-    description: "Weighted for organizations where workforce management — forecasting, scheduling, intraday, adherence — is the primary buying problem.",
+    description: "Weighted for organizations where workforce management, forecasting, scheduling, intraday, adherence, is the primary buying problem.",
     vendors: [
       { rank: 1, vendor: "NICE", score: 4.86, read: "Best overall labor control plane" },
       { rank: 1, vendor: "Verint", score: 4.86, read: "Peer to NICE for complex enterprise WFM" },
@@ -54,7 +54,7 @@ export const leaderboards = {
   },
   qaModernization: {
     name: "QA Modernization Mode",
-    description: "Weighted for organizations where AI-driven quality management — 100% interaction review, auto-scoring, coaching — is the primary buying motion.",
+    description: "Weighted for organizations where AI-driven quality management, 100% interaction review, auto-scoring, coaching, is the primary buying motion.",
     vendors: [
       { rank: 1, vendor: "Cresta", score: 4.06, read: "Best coaching-forward Auto-QA score" },
       { rank: 2, vendor: "CallMiner", score: 3.98, read: "Strongest compliance/analytics-heavy QA overlay" },
@@ -98,7 +98,7 @@ export const marketLayers = {
   },
   aiQAOverlays: {
     name: "AI-QA / Auto-QA Overlays",
-    description: "AI-first quality management platforms. Auto-QA is now baseline — the real separation is explainability, calibration, coaching integration, and how cleanly the model output becomes supervisor action.",
+    description: "AI-first quality management platforms. Auto-QA is now baseline: the real separation is explainability, calibration, coaching integration, and how cleanly the model output becomes supervisor action.",
     vendors: [
       { rank: 1, vendor: "Observe.AI", slug: "observeai-wem", segment: "Auto-QA overlay", entDepth: 3, aiQA: 5, native: "Native", rec: "Best pure Auto-QA posture on the board", bpo: 3 },
       { rank: 2, vendor: "CallMiner", slug: "callminer-wem", segment: "Analytics-led AI-QA", entDepth: 4, aiQA: 5, native: "Native", rec: "Best if QA, compliance, and analytics need to sit together", bpo: 4 },
@@ -112,12 +112,12 @@ export const marketLayers = {
 };
 
 export const buyerShortlists = [
-  { situation: "WFM backbone is the primary problem", shortlist: "NICE, Verint, Calabrio, Genesys — then Aspect, Peopleware/injixo, Eleveo for specialist depth", logic: "Buy workforce control first; then add QA depth" },
-  { situation: "CCaaS-embedded WEM without a second platform", shortlist: "Amazon Connect, Webex, Talkdesk, Five9, RingCentral — based on your installed base", logic: "Unify admin and data model unless WFM depth is clearly insufficient" },
-  { situation: "QA modernization is urgent and telephony is settled", shortlist: "Observe.AI, CallMiner, Cresta — strongest first-wave overlay shortlist", logic: "Overlay on existing CCaaS; don't replace the platform for QA" },
+  { situation: "WFM backbone is the primary problem", shortlist: "NICE, Verint, Calabrio, Genesys, then Aspect, Peopleware/injixo, Eleveo for specialist depth", logic: "Buy workforce control first; then add QA depth" },
+  { situation: "CCaaS-embedded WEM without a second platform", shortlist: "Amazon Connect, Webex, Talkdesk, Five9, RingCentral: based on your installed base", logic: "Unify admin and data model unless WFM depth is clearly insufficient" },
+  { situation: "QA modernization is urgent and telephony is settled", shortlist: "Observe.AI, CallMiner, Cresta: strongest first-wave overlay shortlist", logic: "Overlay on existing CCaaS; don't replace the platform for QA" },
   { situation: "Digital-support-first, not voice-first", shortlist: "Zendesk, Assembled, MaestroQA", logic: "Optimize for support operations workflow, not classic call-center orthodoxy" },
   { situation: "BPO or multi-client operations", shortlist: "NICE, Verint, Calabrio, Aspect, CallMiner, Scorebuddy", logic: "Multi-client governance, role separation, and reporting isolation are non-negotiable" },
-  { situation: "Enterprise voice-heavy global operations", shortlist: "NICE, Verint, Aspect, Calabrio — then CallMiner or Observe.AI for QA overlay", logic: "Buy workforce control first; then add QA depth" },
+  { situation: "Enterprise voice-heavy global operations", shortlist: "NICE, Verint, Aspect, Calabrio, then CallMiner or Observe.AI for QA overlay", logic: "Buy workforce control first; then add QA depth" },
 ];
 
 export const demoGates = [
@@ -138,7 +138,7 @@ export const brutalConclusions = [
   "Consolidation is real. Playvox is rolling into NICE, Klaus is now Zendesk QA, CommunityWFM is absorbed into RingCentral. Counting old sub-brands as separate market leaders distorts your map.",
 ];
 
-// Lookup function — searches across all three market layers
+// Lookup function: searches across all three market layers
 export function getWEMVendor(slug) {
   for (const layerKey of Object.keys(marketLayers)) {
     const layer = marketLayers[layerKey];

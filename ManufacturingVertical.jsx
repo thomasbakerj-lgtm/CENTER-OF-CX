@@ -23,22 +23,22 @@ export default function ManufacturingVertical() {
     { name: "Industrial & B2B Manufacturing", slug: "industrial-b2b", desc: "Parts ordering, warranty claims, technical support, field service coordination, and distributor/channel support.", contact: "Lower volume, high technical complexity" },
     { name: "Consumer Electronics & Appliances", slug: "consumer-electronics", desc: "Product setup, troubleshooting, warranty claims, returns, and smart home integration. Post-purchase experience defines repurchase.", contact: "High volume, product complexity varies" },
     { name: "Aerospace & Defense", slug: "aerospace-defense", desc: "MRO support, parts logistics, AOG emergencies, regulatory compliance, and fleet operator technical services.", contact: "Low volume, mission-critical urgency" },
-    { name: "Food & Beverage Manufacturing", slug: "food-beverage", desc: "Product quality complaints, allergen inquiries, recall management, retailer support, and consumer hotline.", contact: "Variable — recall-spike-driven" },
+    { name: "Food & Beverage Manufacturing", slug: "food-beverage", desc: "Product quality complaints, allergen inquiries, recall management, retailer support, and consumer hotline.", contact: "Variable: recall-spike-driven" },
   ];
   const stats = [
     { n: "30M+", label: "Vehicles recalled in the US in 2025 across ~1,000 campaigns", source: "NHTSA / AutoInsurance.com" },
-    { n: "12M+", label: "Vehicles recalled in Q1 2026 alone — accelerating sharply", source: "BizzyCar Q1 2026" },
-    { n: "35%", label: "Of manufacturing churn — highest B2B churn rate by industry", source: "CustomerGauge" },
+    { n: "12M+", label: "Vehicles recalled in Q1 2026 alone, accelerating sharply", source: "BizzyCar Q1 2026" },
+    { n: "35%", label: "Of manufacturing churn: highest B2B churn rate by industry", source: "CustomerGauge" },
     { n: "$50B+", label: "Annual US warranty claims cost across all manufacturers", source: "Industry composite" },
-    { n: "153", label: "Recalls by Ford alone in 2025 — most of any manufacturer", source: "NHTSA" },
+    { n: "153", label: "Recalls by Ford alone in 2025: most of any manufacturer", source: "NHTSA" },
     { n: "78%", label: "Of consumers say post-purchase service affects brand loyalty", source: "Industry research" },
   ];
   const failureModes = [
-    { title: "Recall campaigns create massive, unpredictable contact surges", desc: "A single safety recall affecting 2 million vehicles generates 200,000+ calls within weeks — owners asking if their vehicle is affected, how to schedule a repair, and whether it's safe to drive. Without proactive VIN-specific notification and self-service scheduling, every affected owner calls individually." },
-    { title: "Warranty claim disputes erode brand loyalty permanently", desc: "A customer whose $800 repair is denied as 'not covered under warranty' will never buy from that brand again — and will tell 10 people. Warranty agents making coverage decisions under time pressure with incomplete vehicle history create the most consequential CX moments in manufacturing." },
-    { title: "Connected vehicle and EV support requires a new agent profile", desc: "A Tesla owner calling about over-the-air update failures and a Ford owner calling about a Mustang Mach-E charging issue need agents with software and electrical engineering knowledge — not traditional automotive call center training. The industry hasn't caught up." },
+    { title: "Recall campaigns create massive, unpredictable contact surges", desc: "A single safety recall affecting 2 million vehicles generates 200,000+ calls within weeks: owners asking if their vehicle is affected, how to schedule a repair, and whether it's safe to drive. Without proactive VIN-specific notification and self-service scheduling, every affected owner calls individually." },
+    { title: "Warranty claim disputes erode brand loyalty permanently", desc: "A customer whose $800 repair is denied as 'not covered under warranty' will never buy from that brand again, and will tell 10 people. Warranty agents making coverage decisions under time pressure with incomplete vehicle history create the most consequential CX moments in manufacturing." },
+    { title: "Connected vehicle and EV support requires a new agent profile", desc: "A Tesla owner calling about over-the-air update failures and a Ford owner calling about a Mustang Mach-E charging issue need agents with software and electrical engineering knowledge, not traditional automotive call center training. The industry hasn't caught up." },
     { title: "Dealer and OEM support are disconnected", desc: "The customer sees one brand. The OEM and dealer operate as separate businesses with separate systems and separate incentives. An owner who calls the OEM about a bad dealer experience gets 'that's the dealer's responsibility.' An owner who calls the dealer about a product defect gets 'call the manufacturer.' Nobody owns the full experience." },
-    { title: "B2B manufacturers treat support as cost center, not competitive advantage", desc: "Industrial manufacturers with 48-hour part delivery SLAs and $10,000/hour production line downtime still run support through email ticketing systems with 24-hour response times. The disconnect between the customer's urgency and the manufacturer's response creates channel conflict — customers call their sales rep directly because support is too slow." },
+    { title: "B2B manufacturers treat support as cost center, not competitive advantage", desc: "Industrial manufacturers with 48-hour part delivery SLAs and $10,000/hour production line downtime still run support through email ticketing systems with 24-hour response times. The disconnect between the customer's urgency and the manufacturer's response creates channel conflict: customers call their sales rep directly because support is too slow." },
   ];
   const stackLayers = [
     { layer: 7, name: "Analytics & Governance", vendors: "NICE, Verint, Medallia, J.D. Power", note: "Warranty cost analytics, recall completion tracking, CSI/SSI scoring, connected vehicle issue trending, and NPS by product line." },
@@ -50,12 +50,12 @@ export default function ManufacturingVertical() {
     { layer: 1, name: "Data Access", vendors: "SAP, Oracle, Salesforce Mfg Cloud, DMS (CDK, Reynolds)", note: "ERP/MRP, warranty management, CRM, parts inventory, connected vehicle telemetry, and dealer management systems." },
   ];
   const benchmarks = [
-    { metric: "CSAT", avg: "76%", cross: "78%", top: "85%+", note: "Near average — warranty and recall friction offset by product enthusiasm" },
-    { metric: "FCR", avg: "60%", cross: "72%", top: "78%+", note: "Below average — warranty decisions, parts availability, and technical complexity require follow-up" },
-    { metric: "AHT", avg: "8:30", cross: "7:00", top: "6:00", note: "Above average — VIN lookup, warranty verification, and technical diagnosis are time-intensive" },
-    { metric: "Churn (B2B)", avg: "35%", cross: "20%", top: "12%", note: "Highest B2B churn — commoditized products with undifferentiated service" },
-    { metric: "Attrition", avg: "30%", cross: "35%", top: "18%", note: "Below average — technical specialization and product knowledge create retention" },
-    { metric: "Recall Volume", avg: "30M/yr", cross: "N/A", top: "N/A", note: "Unique to manufacturing — single recalls can drive 100K+ inbound calls" },
+    { metric: "CSAT", avg: "76%", cross: "78%", top: "85%+", note: "Near average: warranty and recall friction offset by product enthusiasm" },
+    { metric: "FCR", avg: "60%", cross: "72%", top: "78%+", note: "Below average: warranty decisions, parts availability, and technical complexity require follow-up" },
+    { metric: "AHT", avg: "8:30", cross: "7:00", top: "6:00", note: "Above average: VIN lookup, warranty verification, and technical diagnosis are time-intensive" },
+    { metric: "Churn (B2B)", avg: "35%", cross: "20%", top: "12%", note: "Highest B2B churn: commoditized products with undifferentiated service" },
+    { metric: "Attrition", avg: "30%", cross: "35%", top: "18%", note: "Below average: technical specialization and product knowledge create retention" },
+    { metric: "Recall Volume", avg: "30M/yr", cross: "N/A", top: "N/A", note: "Unique to manufacturing: single recalls can drive 100K+ inbound calls" },
   ];
   return (
     <div><Nav />
@@ -65,7 +65,7 @@ export default function ManufacturingVertical() {
           <FadeIn><div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}><a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><a href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Industries</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Manufacturing & Automotive</span></div></FadeIn>
           <FadeIn delay={0.05}>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>Manufacturing & Automotive{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span></h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Warranty, recalls, technical support, parts logistics, and post-purchase service define manufacturing CX. With 30+ million vehicles recalled annually, $50B+ in warranty claims, and the highest B2B churn rate of any industry, the contact center is where product quality meets customer loyalty — or doesn't.</p>
+            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Warranty, recalls, technical support, parts logistics, and post-purchase service define manufacturing CX. With 30+ million vehicles recalled annually, $50B+ in warranty claims, and the highest B2B churn rate of any industry, the contact center is where product quality meets customer loyalty, or doesn't.</p>
           </FadeIn>
         </div>
       </section>
@@ -110,7 +110,7 @@ export default function ManufacturingVertical() {
         <FadeIn><span style={{ color: AMBER, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>The BPO Question</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How outsourcing fits in manufacturing CX.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 24 }} className="sub-grid">
-          <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Recall notification campaigns — high-volume outbound VIN-specific contact","Tier 1 warranty status and parts order tracking","Product registration and basic troubleshooting for consumer products","After-hours roadside assistance and emergency support","CSI survey administration and follow-up for automotive"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
+          <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Recall notification campaigns: high-volume outbound VIN-specific contact","Tier 1 warranty status and parts order tracking","Product registration and basic troubleshooting for consumer products","After-hours roadside assistance and emergency support","CSI survey administration and follow-up for automotive"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
           <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Warranty claim adjudication requires product knowledge and authority BPOs typically lack","Technical troubleshooting for complex products needs engineering-level expertise","Dealer relationship management involves commercial sensitivity and brand authority","NHTSA safety-related complaint documentation has regulatory consequences","Connected vehicle and EV support requires software/firmware knowledge that evolves weekly"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>))}</div></div></FadeIn>
         </div>
       </div></section>

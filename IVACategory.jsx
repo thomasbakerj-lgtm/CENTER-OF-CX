@@ -201,7 +201,7 @@ export default function IVACategory() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }} className="pg">
             {[
               { name: "AI Deflection Reality Check", desc: "Net savings after leakage, containment failure, and escalation", href: "/tools/ai-deflection" },
-              { name: "AI Readiness Diagnostic", desc: "Data, workflows, governance — are you ready for AI?", href: "/tools/ai-readiness" },
+              { name: "AI Readiness Diagnostic", desc: "Data, workflows, governance, are you ready for AI?", href: "/tools/ai-readiness" },
               { name: "Vendor Match Engine", desc: "Ranked shortlist from 24 scored CCaaS vendors", href: "/tools/vendor-match" },
             ].map((t, i) => (
               <a key={i} href={t.href} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px", borderLeft: `3px solid ${ELECTRIC}`, transition: "all 0.15s" }}

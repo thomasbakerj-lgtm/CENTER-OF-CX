@@ -139,7 +139,7 @@ function SubscribePage() {
               </div>
 
               <div id="subscribe-form" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "32px 28px" }}>
-                <input type="hidden" name="_subject" value="New Newsletter Subscriber — Center of CX" />
+                <input type="hidden" name="_subject" value="New Newsletter Subscriber: Center of CX" />
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                   <div>

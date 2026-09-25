@@ -34,7 +34,7 @@ export default function FinancialServicesVertical() {
   const stats = [
     { n: "79%", label: "Average CSAT in financial services contact centers", source: "Sprinklr / industry composite" },
     { n: "46%", label: "Of adults open to switching banks or using multiple institutions", source: "TTEC / industry research" },
-    { n: "73%", label: "Of consumers expect seamless channel transitions", source: "CX Today" },
+    { n: "73%", label: "Of consumers expect smooth channel transitions", source: "CX Today" },
     { n: "13%", label: "Of consumers feel their financial institution meets that expectation", source: "CX Today" },
     { n: "1.3x", label: "Longer hold times than cross-industry average", source: "Talkdesk" },
     { n: "55%", label: "Of banks globally report FCR below 70%", source: "Capgemini" },
@@ -270,7 +270,7 @@ export default function FinancialServicesVertical() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
             {[
               { name: "Genesys", score: 94, why: "Deepest routing, strongest compliance controls, proven in Tier 1 banks globally. Enterprise-grade security and multi-region deployment.", href: "/vendors/genesys" },
-              { name: "NICE CXone", score: 90, why: "Industry-leading WEM and QA for regulated environments. Strong analytics for compliance review and dispute resolution workflows.", href: "/vendors/nice-cxone" },
+              { name: "NICE CXone", score: 90, why: "WEM and QA for regulated environments. Strong analytics for compliance review and dispute resolution workflows.", href: "/vendors/nice-cxone" },
               { name: "Talkdesk", score: 78, why: "Purpose-built Financial Services Experience Cloud with pre-built banking workflows, PCI compliance, and vertical-specific AI.", href: "/vendors/talkdesk" },
               { name: "Five9", score: 82, why: "Strong Salesforce Financial Services Cloud integration. Proven in mid-market banking and lending operations.", href: "/vendors/five9" },
               { name: "Cisco", score: 78, why: "Enterprise security posture and networking heritage. Strong fit for banks with existing Cisco infrastructure investments.", href: "/vendors/cisco" },

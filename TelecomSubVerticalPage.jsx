@@ -56,7 +56,7 @@ export default function FSSubVerticalPage() {
       const have = l.capabilities.filter((_, ci) => getStatus(li, ci) === "Have").length;
       return `L${l.layer} ${l.name}: ${have}/${l.capabilities.length}`;
     }).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: `Stack Framework: ${sv.name}`, maturity: `${maturityPct}%`, have: haveCount, need: needCount, planned: plannedCount, layers: layerSummary, _subject: `Stack: ${sv.name} ${maturityPct}% mature — ${company || name || email}` }) }); } catch (e) {}
+    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: `Stack Framework: ${sv.name}`, maturity: `${maturityPct}%`, have: haveCount, need: needCount, planned: plannedCount, layers: layerSummary, _subject: `Stack: ${sv.name} ${maturityPct}% mature: ${company || name || email}` }) }); } catch (e) {}
     setPhase("results");
   };
 
@@ -75,7 +75,7 @@ export default function FSSubVerticalPage() {
       {phase === "gate" && (
         <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", padding: "80px 28px" }}>
           <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
-            <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>{sv.parent} — {sv.name}</span>
+            <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>{sv.parent}: {sv.name}</span>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>{sv.name} CX Stack Framework</h1>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 16px", maxWidth: 520 }}>{sv.intro}</p>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", marginBottom: 32 }}>Map your current capabilities across all 7 orchestration layers. {totalCaps} checkpoints. Identify what you have, what you need, and where the gaps create the most risk.</p>
@@ -107,7 +107,7 @@ export default function FSSubVerticalPage() {
           <div style={WRAP}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 12 }}>
               <div>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: 0 }}>{sv.name} — 7-Layer CX Stack</h2>
+                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: 0 }}>{sv.name}: 7-Layer CX Stack</h2>
                 <p style={{ fontSize: 13, color: MUTED, marginTop: 4 }}>For each capability, mark whether you <strong style={{ color: GREEN }}>Have</strong> it, <strong style={{ color: RED }}>Need</strong> it, or have it <strong style={{ color: AMBER }}>Planned</strong>.</p>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -254,7 +254,7 @@ export default function FSSubVerticalPage() {
             {needCount > 0 && (
               <div style={{ background: `${RED}08`, border: `1px solid ${RED}20`, borderRadius: 10, padding: "20px 22px", marginBottom: 32 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Critical Gaps ({needCount})</span>
-                <p style={{ fontSize: 11, color: MUTED, margin: "4px 0 10px" }}>Capabilities marked as "Need" — these are the highest-priority investments for your {sv.name} CX stack.</p>
+                <p style={{ fontSize: 11, color: MUTED, margin: "4px 0 10px" }}>Capabilities marked as "Need" are the highest-priority investments for your {sv.name} CX stack.</p>
                 {sv.layers.map((layer, li) => layer.capabilities.map((cap, ci) => getStatus(li, ci) === "Need" ? (
                   <p key={`${li}-${ci}`} style={{ fontSize: 12, color: NAVY, margin: "4px 0", paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}><strong>L{layer.layer}:</strong> {cap}</p>
                 ) : null))}

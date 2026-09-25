@@ -12,11 +12,11 @@ const reports = {
     pages: "25 pages",
     highlights: [
       "50 vendors scored across conversational autonomy, multi-channel, orchestration, and analytics",
-      "Five architecture eras — know where every vendor sits and where the market is heading",
-      "The Human Premium — why the best CX operations invest more in people, not less",
+      "Five architecture eras: know where every vendor sits and where the market is heading",
+      "The Human Premium: why the best CX operations invest more in people, not less",
       "12 / 24 / 36-month forecasts with confidence levels, validated by Gartner and Forrester",
       "12 demo questions that separate real capability from slides",
-      "TCO reality check — the costs nobody mentions until month 6",
+      "TCO reality check: the costs nobody mentions until month 6",
       "Buyer scenarios mapping your situation to specific vendor shortlists",
     ],
     pdf: "/IVA-Conversational-AI-Buyer-Guide-2026.pdf",
@@ -94,7 +94,7 @@ const reports = {
       "Seven orchestration layers mapped with ownership, vendor landscape, and rate of change",
       "Layer-by-layer deep dives with key decisions, 12-month outlook, and preparation steps",
       "Integration dependency map showing what breaks when each layer fails",
-      "14-question readiness checklist with maturity scoring (Foundation to Industry-Leading)",
+      "14-question readiness checklist with maturity scoring (Foundation to Leading)",
       "Forward-looking preparation for agentic AI, regulatory changes, and architecture evolution",
     ],
     pdf: "/CX-Orchestration-Framework-2026.pdf",
@@ -257,7 +257,7 @@ export default function GatedReport() {
             </div>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 16px" }}>Your report is ready.</h1>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 32 }}>
-              Thank you, {formData.name.split(" ")[0]}. Click below to open your copy of the {report.title}. No email required — it opens immediately.
+              Thank you, {formData.name.split(" ")[0]}. Click below to open your copy of the {report.title}. No email required: it opens immediately.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href={report.pdf} target="_blank" rel="noopener noreferrer" style={{ background: ELECTRIC, color: "#fff", fontSize: 16, fontWeight: 600, padding: "16px 32px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.3)", display: "inline-block" }}>
@@ -273,7 +273,7 @@ export default function GatedReport() {
         <section style={{ background: "#fff", padding: "64px 28px" }}>
           <div style={{ ...WRAP, maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Want to go deeper?</h2>
-            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginBottom: 24 }}>We help CX leaders evaluate vendors, build shortlists, and design technology strategies. Tell us your challenge — we'll come prepared.</p>
+            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginBottom: 24 }}>We help CX leaders evaluate vendors, build shortlists, and design technology strategies. Tell us your challenge: we'll come prepared.</p>
             <a href="/contact" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Briefing</a>
           </div>
         </section>
@@ -333,7 +333,7 @@ export default function GatedReport() {
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 20, fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, marginBottom: 14 }}>Optional: get notified when the guide is updated.</div>
               </>) : (<>
               <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 6px" }}>Get instant access.</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5, marginBottom: 24 }}>Fill out the form below. The report opens immediately — no email delivery, no waiting.</p>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5, marginBottom: 24 }}>Fill out the form below. The report opens immediately: no email delivery, no waiting.</p>
               </>)}
               {open && unlocked ? (
                 <p style={{ fontSize: 14, color: "#10B981", margin: 0 }}>Thanks. You're on the update list.</p>

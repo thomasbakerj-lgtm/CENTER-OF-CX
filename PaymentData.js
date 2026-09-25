@@ -1,4 +1,4 @@
-// Payment Technology Matrix — sourced from Payment_Technology_Matrix.xlsx
+// Payment Technology Matrix: sourced from Payment_Technology_Matrix.xlsx
 // 51 vendors | 8 capability dimensions | H=3, M=2, L=1 | Max score 24
 // Plus 5 C-suite fit indicators (CFO, CTO, CIO, COO, CX)
 
@@ -33,7 +33,7 @@ export const paymentVendors = [
   // ═══ DEVICE / IN-STORE SPECIALISTS ═══
   { name: "Square / Block", slug: "square-pay", score: 16, cat: "SMB / In-Store", onl: 2, pos: 3, kio: 2, hh: 3, orch: 1, alt: 2, glob: 2, ent: 2, role: "Point of sale and small business payments", diff: "Great hardware experience; simple pricing", bestFit: "Small retail and food service", caution: "Not optimized for enterprise scale", cfo: "M", cto: "M", cio: "M", coo: "M", cx: "H" },
   { name: "Shift4", slug: "shift4-pay", score: 17, cat: "Hospitality", onl: 2, pos: 3, kio: 3, hh: 3, orch: 1, alt: 2, glob: 2, ent: 2, role: "Hospitality and restaurant payments", diff: "Strong restaurant and hotel integrations; good hardware fleet", bestFit: "Hospitality brands", caution: "Less flexible for digital-first business", cfo: "M", cto: "M", cio: "M", coo: "M", cx: "M" },
-  { name: "Verifone", slug: "verifone-pay", score: 18, cat: "Enterprise In-Store", onl: 2, pos: 3, kio: 3, hh: 3, orch: 2, alt: 2, glob: 3, ent: 2, role: "Device and point of sale platform", diff: "Large device ecosystem; strong compliance; global reach", bestFit: "Retailers needing robust terminal management", caution: "Gateway technology less modern", cfo: "M", cto: "M", cio: "H", coo: "M", cx: "M" },
+  { name: "Verifone", slug: "verifone-pay", score: 18, cat: "Enterprise In-Store", onl: 2, pos: 3, kio: 3, hh: 3, orch: 2, alt: 2, glob: 3, ent: 2, role: "Device and point of sale platform", diff: "Large device ecosystem; strong compliance; global reach", bestFit: "Retailers needing strong terminal management", caution: "Gateway technology less modern", cfo: "M", cto: "M", cio: "H", coo: "M", cx: "M" },
   { name: "PAX", slug: "pax-pay", score: 18, cat: "Enterprise In-Store", onl: 2, pos: 3, kio: 3, hh: 3, orch: 2, alt: 2, glob: 3, ent: 2, role: "Payment terminals", diff: "Wide range of devices; competitive hardware pricing", bestFit: "Regions with strong PAX distributor networks", caution: "Software maturity varies by region", cfo: "M", cto: "M", cio: "M", coo: "M", cx: "M" },
   { name: "SumUp", slug: "sumup-pay", score: 16, cat: "SMB / In-Store", onl: 2, pos: 3, kio: 2, hh: 3, orch: 1, alt: 2, glob: 2, ent: 1, role: "Small business point of sale", diff: "Simple hardware; easy onboarding", bestFit: "Small retail and mobile sellers", caution: "Not enterprise-grade", cfo: "L", cto: "M", cio: "M", coo: "M", cx: "M" },
 
@@ -51,7 +51,7 @@ export const paymentVendors = [
 
   // ═══ SMB / BASIC ═══
   { name: "Authorize.Net", slug: "authnet-pay", score: 10, cat: "SMB Gateway", onl: 2, pos: 1, kio: 1, hh: 1, orch: 1, alt: 1, glob: 2, ent: 1, role: "U.S. online gateway", diff: "Simple, reliable online acceptance", bestFit: "Small to mid-market online merchants", caution: "Dated technology; enterprise-grade depth absent", cfo: "L", cto: "L", cio: "L", coo: "L", cx: "M" },
-  { name: "Tietoevry Payments", slug: "tietoevry-pay", score: 14, cat: "Regional", onl: 2, pos: 2, kio: 1, hh: 1, orch: 2, alt: 1, glob: 3, ent: 2, role: "European enterprise payments", diff: "Strong in Europe; robust compliance tools", bestFit: "Banks and large enterprises", caution: "Limited e-commerce features", cfo: "M", cto: "M", cio: "H", coo: "M", cx: "M" },
+  { name: "Tietoevry Payments", slug: "tietoevry-pay", score: 14, cat: "Regional", onl: 2, pos: 2, kio: 1, hh: 1, orch: 2, alt: 1, glob: 3, ent: 2, role: "European enterprise payments", diff: "Strong in Europe; strong compliance tools", bestFit: "Banks and large enterprises", caution: "Limited e-commerce features", cfo: "M", cto: "M", cio: "H", coo: "M", cx: "M" },
   { name: "AffiniPay", slug: "affinipay-pay", score: 11, cat: "Specialty", onl: 2, pos: 1, kio: 1, hh: 1, orch: 1, alt: 1, glob: 2, ent: 2, role: "Payments for professional services", diff: "Specialized workflows for legal and accounting", bestFit: "Law firms, accountants", caution: "Narrow vertical applicability", cfo: "M", cto: "M", cio: "M", coo: "M", cx: "M" },
   { name: "PagSeguro", slug: "pagseguro-pay", score: 19, cat: "Regional", onl: 3, pos: 3, kio: 2, hh: 3, orch: 2, alt: 3, glob: 2, ent: 2, role: "Brazil payments", diff: "Popular in Brazil; strong point of sale devices", bestFit: "Brazilian small merchants", caution: "Limited reach outside Brazil", cfo: "M", cto: "M", cio: "M", coo: "M", cx: "M" },
 ];
@@ -74,10 +74,10 @@ export const paymentCats = [
   { name: "Unified Commerce", color: "#10B981", desc: "Full-spectrum processors supporting online, in-store, kiosk, and mobile from a single platform." },
   { name: "Digital-First", color: "#0088DD", desc: "Online-first processors with strong APIs, orchestration, and global coverage. Weaker in physical point of sale." },
   { name: "Global Acquiring", color: "#3B82F6", desc: "Legacy and enterprise acquirers with broad geographic reach and strong compliance depth." },
-  { name: "Enterprise In-Store", color: "#7C3AED", desc: "Specialized in physical retail payment infrastructure — terminals, kiosks, and in-store security." },
+  { name: "Enterprise In-Store", color: "#7C3AED", desc: "Specialized in physical retail payment infrastructure: terminals, kiosks, and in-store security." },
   { name: "Orchestration", color: "#EC4899", desc: "Payment routing and orchestration layers that sit above processors. Enable multi-provider flexibility." },
   { name: "Regional", color: "#F59E0B", desc: "Dominant in specific geographic markets. Strong local adoption but limited global applicability." },
-  { name: "Specialty", color: "#14B8A6", desc: "Purpose-built for specific payment motions — marketplaces, subscriptions, professional services, or bank-to-bank." },
+  { name: "Specialty", color: "#14B8A6", desc: "Purpose-built for specific payment motions: marketplaces, subscriptions, professional services, or bank-to-bank." },
   { name: "SMB / In-Store", color: "#6B7280", desc: "Simple hardware and onboarding for small businesses and mobile sellers." },
 ];
 

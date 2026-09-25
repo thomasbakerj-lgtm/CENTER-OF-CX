@@ -110,7 +110,7 @@ function Hero() {
           <FadeIn delay={0.15}>
             <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14, padding: "28px 24px" }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, fontFamily: "'DM Sans', sans-serif" }}>Each category answers</div>
-              {["Who owns this decision", "When you need it (and when you don't)", "What breaks if you choose wrong", "Which vendors lead — and where they fall short", "How it maps to the orchestration stack"].map((q, i) => (
+              {["Who owns this decision", "When you need it (and when you don't)", "What breaks if you choose wrong", "Which vendors lead: and where they fall short", "How it maps to the orchestration stack"].map((q, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < 4 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
                   <div style={{ width: 18, height: 18, borderRadius: 4, background: `rgba(0,136,221,0.12)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                     <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700 }}>✓</span>
@@ -280,7 +280,7 @@ function Categories() {
   const cats = [
     {
       t: "Core CX Platforms", s: "CCaaS", layers: "5, 6, 7", href: "/vendors/ccaas",
-      d: "The foundational platform for voice, digital channels, routing, and workforce management. Most enterprises already have one — the real question is whether to optimize, extend, or replace.",
+      d: "The foundational platform for voice, digital channels, routing, and workforce management. Most enterprises already have one: the real question is whether to optimize, extend, or replace.",
       questions: ["Who should not switch platforms", "When add-ons beat rip-and-replace", "Platform-native AI vs best-of-breed"],
       vendors: "Genesys, NICE, Five9, AWS Connect, Cisco, Talkdesk, 8x8, Zoom",
     },
@@ -299,12 +299,12 @@ function Categories() {
     {
       t: "Workforce & Quality Management", s: "WEM · QM · WFM · Coaching", layers: "7", href: "/vendors/wem-qm",
       d: "Forecasting, scheduling, quality monitoring, coaching, and performance management. AI is transforming QA from 2% sample reviews to 100% automated evaluation.",
-      questions: ["AI QA vs human QA — what actually works", "Forecasting truth in volatile environments", "Cost control levers most teams miss"],
+      questions: ["AI QA vs human QA: what actually works", "Forecasting truth in volatile environments", "Cost control levers most teams miss"],
       vendors: "NICE, Verint, Calabrio, Genesys WEM, Five9",
     },
     {
       t: "Experience Analytics & VoC", s: "Speech · Text · Journey Analytics", layers: "7", href: "/vendors/analytics",
-      d: "Understanding what's actually happening in customer interactions — sentiment, topics, root cause, journey patterns — versus what your dashboards claim is happening.",
+      d: "Understanding what's actually happening in customer interactions, sentiment, topics, root cause, journey patterns, versus what your dashboards claim is happening.",
       questions: ["Root cause vs vanity metrics", "Journey visibility across fragmented systems", "When speech analytics ROI is real vs theoretical"],
       vendors: "CallMiner, Observe.AI, Qualtrics, Genesys, Verint",
     },
@@ -329,7 +329,7 @@ function Categories() {
     {
       t: "Digital Engagement", s: "Chat · Messaging · Social · CPaaS", layers: "5", href: "/vendors/digital-engagement",
       d: "Multi-channel digital engagement platforms, conversational messaging, social media management, and CPaaS. The layer that connects your brand to customers on the channels they actually use.",
-      questions: ["Messaging vs chat — what's the real difference", "Social CX management at scale", "CPaaS vs platform-native digital channels"],
+      questions: ["Messaging vs chat: what's the real difference", "Social CX management at scale", "CPaaS vs platform-native digital channels"],
       vendors: "Ada, Intercom, Sprinklr, Zendesk, Khoros, Gladly",
     },
   ];
@@ -399,8 +399,8 @@ function ArchEvolution() {
       label: "~2015", tag: "On-Prem Era",
       arch: "On-prem ACD + IVR + CTI with point-solution WFM & recording",
       components: "PBX/ACD, IVR, CTI, WFM, recording, basic reporting",
-      automation: "5–10% containment via IVR self-service",
-      tco: "$450–$800",
+      automation: "5 to 10% containment via IVR self-service",
+      tco: "$450 to $800",
       cost_driver: "Human labor + CapEx hardware/software",
       unit: "Cost per FTE",
     },
@@ -408,17 +408,17 @@ function ArchEvolution() {
       label: "Today", tag: "CCaaS Era",
       arch: "CCaaS core + add-on AI + some RPA/iPaaS",
       components: "CCaaS (omnichannel), IVA/VA, WEM suite, RPA/iPaaS, analytics, knowledge",
-      automation: "20–40% automation via IVA/VA + simple workflows",
-      tco: "$305–$540",
+      automation: "20 to 40% automation via IVA/VA + simple workflows",
+      tco: "$305 to $540",
       cost_driver: "Human labor + SaaS licenses",
       unit: "Cost per contact",
     },
     {
       label: "~2030", tag: "AI-Native Era",
       arch: "AI-native orchestration layer over CCaaS + automation fabric",
-      components: "Orchestration engine (7–9 layers), AI workers, CCaaS as commodity, data fabric & governance",
-      automation: "50–70%+ automation via AI workers + deep workflows",
-      tco: "$325–$600",
+      components: "Orchestration engine (7 to 9 layers), AI workers, CCaaS as commodity, data fabric & governance",
+      automation: "50 to 70%+ automation via AI workers + deep workflows",
+      tco: "$325 to $600",
       cost_driver: "Human labor for exceptions + AI/automation spend",
       unit: "Cost per successfully completed task/journey",
     },
@@ -485,7 +485,7 @@ function ArchEvolution() {
         <FadeIn delay={0.2}>
           <div style={{ textAlign: "center", marginTop: 40 }}>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, maxWidth: 600, margin: "0 auto 20px", fontFamily: "'DM Sans', sans-serif" }}>
-              Cost per resolved interaction drops sharply as automation rises — even as per-agent TCO flattens. The winning metric shifts from cost-per-agent to cost-per-successful-task.
+              Cost per resolved interaction drops sharply as automation rises, even as per-agent TCO flattens. The winning metric shifts from cost-per-agent to cost-per-successful-task.
             </p>
             <a href="/contact" style={{ fontSize: 14, fontWeight: 600, color: LIGHT, fontFamily: "'DM Sans', sans-serif" }}>Calculate your stack's TCO →</a>
           </div>
