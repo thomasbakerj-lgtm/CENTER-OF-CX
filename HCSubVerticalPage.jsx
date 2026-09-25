@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { getHCSubVertical } from "./HCSubVerticalData";
-import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
-import { claimIds } from "./src/lib/claims.js";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1000, margin: "0 auto", padding: "0 28px" };
@@ -90,13 +88,13 @@ export default function FSSubVerticalPage() {
           <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>{sv.parent}: {sv.name}</span>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>{sv.name} CX Stack Framework</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 16px", maxWidth: 520 }}><ClaimText text={sv.intro} /></p>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 16px", maxWidth: 520 }}>{sv.intro}</p>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", marginBottom: 32 }}>Map your current capabilities across all 7 orchestration layers. {totalCaps} checkpoints. Identify what you have, what you need, and where the gaps create the most risk.</p>
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 28 }}>
               {sv.kpis.map((k, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "12px 8px", textAlign: "center" }}>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: LIGHT }}><ClaimText text={k.avg} /></div>
+                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: LIGHT }}>{k.avg}</div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{k.metric}</div>
                 </div>
               ))}
@@ -182,7 +180,7 @@ export default function FSSubVerticalPage() {
                                       {v.href ? <a href={v.href} style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{v.name}</a> : <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{v.name}</span>}
                                       <span style={{ fontSize: 9, fontWeight: 600, color: MUTED, background: "#fff", padding: "1px 6px", borderRadius: 3, border: `1px solid ${BORDER}` }}>{v.role}</span>
                                     </div>
-                                    <p style={{ fontSize: 12, color: SLATE, margin: "2px 0 0", lineHeight: 1.5 }}><ClaimText text={v.why} /></p>
+                                    <p style={{ fontSize: 12, color: SLATE, margin: "2px 0 0", lineHeight: 1.5 }}>{v.why}</p>
                                   </div>
                                 </div>
                               ))}
@@ -190,7 +188,7 @@ export default function FSSubVerticalPage() {
                             {layer.pitfall && (
                               <div style={{ marginTop: 10, padding: "10px 12px", background: `${AMBER}06`, border: `1px solid ${AMBER}18`, borderRadius: 6 }}>
                                 <span style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 0.5, textTransform: "uppercase" }}>Integration pitfall</span>
-                                <p style={{ fontSize: 12, color: SLATE, margin: "3px 0 0", lineHeight: 1.5 }}><ClaimText text={layer.pitfall} /></p>
+                                <p style={{ fontSize: 12, color: SLATE, margin: "3px 0 0", lineHeight: 1.5 }}>{layer.pitfall}</p>
                               </div>
                             )}
                           </div>
@@ -200,7 +198,7 @@ export default function FSSubVerticalPage() {
 
                     {layer.risk && (
                       <div style={{ fontSize: 11, color: RED, padding: "6px 18px", background: `${RED}06`, borderRadius: "0 0 6px 6px", border: `1px solid ${RED}15`, borderTop: "none" }}>
-                        ⚠ Key risk: <ClaimText text={layer.risk} />
+                        ⚠ Key risk: {layer.risk}
                       </div>
                     )}
                   </div>
@@ -212,12 +210,6 @@ export default function FSSubVerticalPage() {
               <button onClick={handleResults} disabled={assessed < totalCaps * 0.5} style={{ padding: "14px 28px", borderRadius: 8, border: "none", background: assessed >= totalCaps * 0.5 ? ELECTRIC : MUTED, color: "#fff", fontSize: 15, fontWeight: 600, cursor: assessed >= totalCaps * 0.5 ? "pointer" : "default", opacity: assessed >= totalCaps * 0.5 ? 1 : 0.5 }}>
                 {assessed >= totalCaps * 0.5 ? `View My Stack Profile (${assessed}/${totalCaps}) →` : `Assess at least ${Math.ceil(totalCaps * 0.5)} capabilities (${assessed}/${totalCaps})`}
               </button>
-            </div>
-
-            <div id="sources" style={{ marginTop: 48, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
-              <h2 style={{ fontSize: 18, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h2>
-              <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or a worked example.</p>
-              <ClaimSources ids={claimIds(sv)} color={SLATE} accent={ELECTRIC} />
             </div>
           </div>
         </section>
