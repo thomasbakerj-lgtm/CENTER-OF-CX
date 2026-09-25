@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import ClaimText from "./src/lib/ClaimText.jsx";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -147,7 +148,7 @@ function StackModel() {
 function IndustryGrid() {
   const industries = [
     { name: "Financial Services", href: "/industries/financial-services", subs: 7, checks: 245, sub: "Retail Banking · Credit Unions · Insurance · Wealth · Lending · Fintech · Payments", stat: "79% CSAT", why: "Trust-sensitive, compliance-heavy, multi-system authentication, and core banking integration complexity that most CCaaS vendors underestimate." },
-    { name: "Healthcare", href: "/industries/healthcare", subs: 6, checks: 210, sub: "Health Systems · Health Insurance · Provider Groups · Digital Health · Pharma · Home Health", stat: "52% FCR", why: "Emotionally charged patient interactions, HIPAA at every layer, EHR integration, and scheduling fragmentation across clinical and administrative systems." },
+    { name: "Healthcare", href: "/industries/healthcare", subs: 6, checks: 210, sub: "Health Systems · Health Insurance · Provider Groups · Digital Health · Pharma · Home Health", stat: "[[hc.bench.fcr.hc]] FCR", why: "Emotionally charged patient interactions, HIPAA at every layer, EHR integration, and scheduling fragmentation across clinical and administrative systems." },
     { name: "Retail & eCommerce", href: "/industries/retail", subs: 6, checks: 210, sub: "eCommerce/DTC · Omnichannel · Subscription · Marketplace · Luxury · Grocery/Delivery", stat: "35% containment", why: "High-volume speed-sensitive service, returns and fulfillment complexity, seasonal 10x surges, and commerce platform integration." },
     { name: "Telecommunications", href: "/industries/telecom", subs: 6, checks: 210, sub: "Mobile/Wireless · Broadband/ISP · Cable/Pay TV · Enterprise Comms · MSPs · Fiber", stat: "NPS of 14", why: "Lowest NPS of any industry. Billing complexity, BSS/OSS integration, outage surges, SIM swap fraud, and 45% annual agent attrition." },
     { name: "Travel & Hospitality", href: "/industries/travel", subs: 6, checks: 210, sub: "Airlines · Hotels & Resorts · OTAs · Car Rental · Cruise Lines · Tours & Experiences", stat: "12% abandonment", why: "Disruption volume spikes of 10-50x, multilingual support across timezones, GDS integration, and loyalty recognition failures." },
@@ -185,7 +186,7 @@ function IndustryGrid() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
                     <div style={{ background: WARM, borderRadius: 6, padding: "8px 14px", textAlign: "right" }}>
-                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: ELECTRIC }}>{ind.stat}</div>
+                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: ELECTRIC }}><ClaimText text={ind.stat} /></div>
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Explore vertical →</span>
                   </div>

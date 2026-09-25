@@ -30,6 +30,13 @@ the answer is right depends on the inputs, and every input shows where it came f
 Commercial line: monetize confidence in decisions, never access to vendors.
 Independence is the product.
 
+**Audience goal (TB, S23):** 100,000 people. For now the site stands on published sources to build trust, users,
+data, feedback and a large community; the long-term aim is to create and own original research.
+
+**Never plagiarize (TB, S23).** Content that is not our own is sourced. A quotation is quoted and credited with a link;
+a paraphrase of someone else's finding is cited; everything else is written in our own words. Every converted page
+carries an originality record (`src/lib/claims/originality.js`).
+
 **Zero incremental spend is the current constraint.** No paid ads, paid data, new
 SaaS, backend, databases, accounts or auth. Prove behavior first, manually learn
 second, invest third, automate last.
