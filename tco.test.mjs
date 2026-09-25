@@ -588,5 +588,62 @@ section("next steps: the journey graph is the only source");
     !/computed on 173 paid hours/.test(SRC) && !/wage 3\.5 percent and license 6 percent/.test(SRC));
 }
 
+/* ------------------------------------------- marginal load (TB S23, Path B) --- */
+/*
+ * Deflection and repeat savings value agent time at the shared marginal load (J10), never
+ * above the loaded rate entered; unit costs stay on the loaded rate. The A/B builds the same
+ * engine with the marginal load set to the benefits load, which is the engine before this
+ * change, and shows that only the containment and FCR savings move.
+ */
+section("marginal load: only deflection and repeat savings move");
+{
+  const build = (bm) => new Function(
+    "BENCH", "benchmark", "benchmarksForTool", "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "TOOL_ID",
+    `${region}\nreturn { computeTCO, buildOptimizations, buildAnalystRead, gradeTCO, BASE, INDUSTRY, STANCE };`
+  )(BENCH, bm, BENCHMOD.benchmarksForTool, createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, "tco-calculator");
+  /* The previous engine valued savings at the loaded rate: a marginal load at least the
+     benefits load reproduces it exactly, because the engine takes the smaller of the two. */
+  const OLD = build((id) => id === "load.marginal" ? 99 : BENCHMOD.benchmark(id));
+  ok("the registry marginal load is the shared 1.18", BENCHMOD.benchmark("load.marginal") === 1.18);
+  ok("SOURCE the tool declares the shared marginal load it reads", /const TCO_SHARED_IDS = \["load\.benefits", "load\.marginal"\];/.test(SRC) && /benchmark\("load\.marginal"\)/.test(SRC));
+  let seed = 1234; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const n = mod.n;
+  const inds = Object.keys(INDUSTRY), sts = Object.keys(STANCE);
+  const COST = ["loaded", "labor", "tech", "overhead", "monthly", "annual", "costPerContact", "costPerResolution", "costPerHuman", "threeYear", "y2", "y3", "perHire", "attritionCost", "laborPct", "techPct"];
+  let costSame = true, gradeSame = true, othersSame = true, lower = true, oracle = true, capped = true, moved = 0, count = 0;
+  for (let i = 0; i < 6000; i++) {
+    const ind = inds[Math.floor(rnd() * inds.length)], st = sts[Math.floor(rnd() * sts.length)];
+    const d = { ...BASE, ...INDUSTRY[ind], industry: ind, agents: 20 + Math.round(rnd() * 2000), agentHourly: 14 + rnd() * 20,
+      agentBenefitsPct: rnd() < 0.15 ? rnd() * 0.18 : 0.2 + rnd() * 0.3, aht: 180 + Math.round(rnd() * 700), monthlyContacts: 10000 + Math.round(rnd() * 800000),
+      containment: rnd() * 0.4, fcr: 0.5 + rnd() * 0.4, targetContainment: rnd() * 0.6, targetFcr: 0.5 + rnd() * 0.45, targetAht: 120 + Math.round(rnd() * 500),
+      attrition: rnd() * 0.8, targetAttrition: rnd() * 0.5, channelMixVoice: rnd() };
+    const rN = computeTCO(d, st), rO = OLD.computeTCO(d, st); count++;
+    for (const k of COST) if (rN[k] !== rO[k]) costSame = false;
+    if (JSON.stringify(gradeTCO({ d: rN.d, r: rN, pre: {}, railOrigin: null, stanceKey: st })) !== JSON.stringify(OLD.gradeTCO({ d: rO.d, r: rO, pre: {}, railOrigin: null, stanceKey: st }))) gradeSame = false;
+    const oN = buildOptimizations(rN.d, rN, st), oO = OLD.buildOptimizations(rO.d, rO, st);
+    const by = (x) => Object.fromEntries(x.items.map((it) => [it.key, it]));
+    const a = by(oN), b = by(oO);
+    for (const k of ["aht", "attrition"]) if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) othersSame = false;
+    if (oN.grossTotal > oO.grossTotal) lower = false;
+    if (oN.grossTotal !== oO.grossTotal) moved++;
+    const load = Math.min(1.18, 1 + n(rN.d.agentBenefitsPct));
+    const tel = n(rN.d.channelMixVoice) * (Math.max(0, n(rN.d.aht) - n(rN.d.acw)) / 60) * n(rN.d.telephonyPerMin);
+    if (!near(rN.marginalPerContact, (n(rN.d.aht) / 60) * n(rN.d.agentHourly) * load / 60 + tel, 1e-9)) oracle = false;
+    if (rN.marginalPerContact > rO.marginalPerContact + 1e-12) capped = false;
+  }
+  ok("A/B: every cost figure is identical on 6,000 cases", costSame, String(count));
+  ok("A/B: every grade is identical", gradeSame);
+  ok("A/B: the handle-time and attrition levers are identical", othersSame);
+  ok("A/B: savings never rise", lower);
+  ok("A/B: savings move on most cases", moved > count / 2, String(moved));
+  ok("marginal per contact = handle minutes × wage × marginal load per minute + voice telephony", oracle);
+  ok("the marginal rate never exceeds the loaded rate entered", capped);
+  ok("a benefits load below the marginal load is used as it is", (() => { const r = computeTCO(D({ agentBenefitsPct: 0.1 }), "expected"); return near(r.marginalLoad, 1.1, 1e-12); })());
+  const r = computeTCO(D(), "expected"), op = buildOptimizations(r.d, r, "expected");
+  const read = buildAnalystRead(r.d, r, op, "expected").join(" ");
+  ok("the disclosure line states both loads and sizes the benefits share", /wage times 1\.18, the marginal load, and unit costs at the loaded 1\.30\. Capturing the saving by not backfilling seats removes benefits too, about 10% more on those two levers\./.test(read), read.slice(-260));
+  ok("the disclosure drops its size when the loads are equal", !/about \d+% more/.test(buildAnalystRead(r.d, { ...r, marginalLoad: 1.3 }, op, "expected").join(" ")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);
