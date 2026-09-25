@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import ReportActions from "./ReportActions";
-import { COLORS } from "./src/lib/benchmarks";
+import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
@@ -17,7 +17,7 @@ const DEEP = "#061325", LIGHT = "#00AAFF", WARM = "#F8FAFB", SLATE = "#3A4F6A", 
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 
 const DEFS = {
-  benefitsLoad: "The percentage added to base wage for employer-paid benefits, payroll taxes, and overhead. The tool loads wage-paid time at this rate because you really do pay salary plus benefits while a new hire trains or ramps, not just base wage.",
+  benefitsLoad: "The percentage added to base wage for employer-paid benefits and payroll taxes. It opens at the platform's shared 30% benefits load. The tool loads wage-paid time at this rate because you really do pay salary plus benefits while a new hire trains or ramps, not just base wage.",
   backfill: "The share of departures you actually replace. Replacement cost only exists for seats you refill: no hire means no recruiting, training, ramp, or coverage spend. Backfill therefore scales the entire replacement cycle. Seats you do not refill are a capacity decision, not a replacement cost, and are handled separately below.",
   unbackfill: "What happens to the seats you do not refill. Intended downsizing means the capacity reduction is deliberate, so it is not a turnover cost. Forced under-staffing means you are losing output you still need; that lost capacity is real but is valued in Staffing and Occupancy, not invented here, so this tool routes it rather than guessing a number.",
   marginalCash: "Cash out the door is spend that genuinely disappears when a backfilled departure is avoided: recruiting, training wages, sign-on, and overtime premium. It is credited at 100 percent in savings because you simply stop spending it.",
@@ -109,15 +109,23 @@ const EVIDENCE_GRADE = { estimate: "Directional", hrdata: "Planning-grade", fina
 const TOOL_ID = "attrition-cost";
 const ROUTE = "/tools/attrition-cost";
 const clone = (o) => JSON.parse(JSON.stringify(o));
+/* Every default is a registry entry. The operating profile is labelled heuristic there;
+   the salary is the shared BLS median wage over the 2,080 hour year, the benefits load the
+   shared load (J10, J11) and the overtime premium the FLSA minimum. */
+const at = (k) => benchmark(`attrition.${k}`);
+const HOURS_YEAR = benchmark("time.hours.year");
+const HOURS_DAY = at("time.hoursDay"), DAYS_WEEK = at("time.daysWeek"), WORKDAYS_MONTH = at("time.workdaysMonth");
+const BAND = { low: at("band.low"), high: at("band.high"), floor: at("band.floor"), ceiling: at("band.ceiling") };
 const BASE = {
-  agents: 200, attritionRate: 35, avgSalary: 38000, benefitsLoadPct: 28,
-  backfillRate: 100, unbackfillIntent: "forced", earlyWashoutRate: 25,
-  recruitingCost: 2500, screeningHours: 8, hrLoadedRate: 48,
-  trainingWeeks: 6, trainerLoadedRate: 45, classSize: 12, signOnBonus: 0,
-  nestingWeeks: 4, nestingProductivity: 50,
-  rampMonths: 3, rampProductivity: 75,
-  supervisorHoursPerNew: 10, supLoadedRate: 55,
-  overtimePremium: 50, vacancyDays: 30, vacancyCoverageFraction: 60, vacancyMode: "incremental",
+  agents: at("default.agents"), attritionRate: at("default.rate"),
+  avgSalary: Math.round(benchmark("market.wage.agent") * HOURS_YEAR), benefitsLoadPct: Math.round((benchmark("load.benefits") - 1) * 100),
+  backfillRate: at("default.backfill"), unbackfillIntent: "forced", earlyWashoutRate: at("default.washout"),
+  recruitingCost: at("default.recruiting"), screeningHours: at("default.screeningHours"), hrLoadedRate: at("default.hrRate"),
+  trainingWeeks: at("default.trainingWeeks"), trainerLoadedRate: at("default.trainerRate"), classSize: at("default.classSize"), signOnBonus: 0,
+  nestingWeeks: at("default.nestingWeeks"), nestingProductivity: at("default.nestingProductivity"),
+  rampMonths: at("default.rampMonths"), rampProductivity: at("default.rampProductivity"),
+  supervisorHoursPerNew: at("default.supervisorHours"), supLoadedRate: at("default.supervisorRate"),
+  overtimePremium: Math.round((benchmark("adh.ot.multiplier") - 1) * 100), vacancyDays: at("default.vacancyDays"), vacancyCoverageFraction: at("default.vacancyCoverage"), vacancyMode: "incremental",
   mech: MECH_INITIAL, evidence: "estimate", costPerPoint: 0,
 };
 const DEFAULTS = { d: BASE };
@@ -158,27 +166,27 @@ export function compute(d) {
      being a data-entry error, not at 100. */
   const attritionRate = guard("Annual attrition", d.attritionRate, 0, 300, "%");
   const avgSalary = guard("Avg agent salary", d.avgSalary, 0, null, "$");
-  const benefitsLoadPct = guard("Benefits + overhead", d.benefitsLoadPct, 0, null, "%");
+  const benefitsLoadPct = guard("Benefits load", d.benefitsLoadPct, 0, null, "%");
   const backfillRate = guard("Backfill basis", d.backfillRate, 0, 100, "%");
   const earlyWashoutRate = guard("Early washout", d.earlyWashoutRate, 0, 100, "%");
 
   const departures = Math.round(agents * (attritionRate / 100));
   const bf = backfillRate / 100;
-  const wageHourly = avgSalary / 2080;
+  const wageHourly = avgSalary / HOURS_YEAR;
   const loadedHourly = wageHourly * (1 + benefitsLoadPct / 100);
 
   // ---- PER REPLACED DEPARTURE (the replacement cycle) ----
   const recruiting = guard("Recruiting cost", d.recruitingCost, 0, null, "$")
     + guard("Screening hours", d.screeningHours, 0, null, "hrs") * guard("HR loaded rate", d.hrLoadedRate, 0, null, "$");
   const trainingWeeks = guard("Training duration", d.trainingWeeks, 0, null, "wks");
-  const trDays = trainingWeeks * 5;
+  const trDays = trainingWeeks * DAYS_WEEK;
   /* Class size divides, so it cannot be zero. The shipped Math.max(1, x) silently
      substituted 1 and tripled trainer cost with nothing recorded anywhere. */
   const classSize = guard("Class size", d.classSize, 1, null, "");
-  const training = trDays * 8 * loadedHourly + trDays * 8 * guard("Trainer loaded rate", d.trainerLoadedRate, 0, null, "$") / classSize;
+  const training = trDays * HOURS_DAY * loadedHourly + trDays * HOURS_DAY * guard("Trainer loaded rate", d.trainerLoadedRate, 0, null, "$") / classSize;
   const signOn = guard("Sign-on bonus", d.signOnBonus, 0, null, "$");
   const overtimePremium = guard("Overtime premium", d.overtimePremium, 0, null, "%");
-  const vacHours = guard("Vacancy days", d.vacancyDays, 0, null, "days") * 8 * (guard("Vacancy covered by OT", d.vacancyCoverageFraction, 0, 100, "%") / 100);
+  const vacHours = guard("Vacancy days", d.vacancyDays, 0, null, "days") * HOURS_DAY * (guard("Vacancy covered by OT", d.vacancyCoverageFraction, 0, 100, "%") / 100);
   const vacancy = vacancyMode === "gross" ? vacHours * wageHourly * (1 + overtimePremium / 100) : vacHours * wageHourly * (overtimePremium / 100);
   const hireCash = recruiting + training + signOn; // sunk on every hire, recoverable on early washout
   const cashPerDeparture = hireCash + vacancy;
@@ -186,8 +194,8 @@ export function compute(d) {
   /* Productivity above 100 percent inverts the loss into a negative cost. Nothing
      stopped it, and the sanity band only looked upward, so the result printed a
      negative all-in with no flag at all. */
-  const nestingLoss = guard("Nesting duration", d.nestingWeeks, 0, null, "wks") * 5 * 8 * loadedHourly * (1 - guard("Nesting productivity", d.nestingProductivity, 0, 100, "%") / 100);
-  const rampLoss = guard("Ramp (after nesting)", d.rampMonths, 0, null, "mo") * 22 * 8 * loadedHourly * (1 - guard("Ramp productivity", d.rampProductivity, 0, 100, "%") / 100);
+  const nestingLoss = guard("Nesting duration", d.nestingWeeks, 0, null, "wks") * DAYS_WEEK * HOURS_DAY * loadedHourly * (1 - guard("Nesting productivity", d.nestingProductivity, 0, 100, "%") / 100);
+  const rampLoss = guard("Ramp (after nesting)", d.rampMonths, 0, null, "mo") * WORKDAYS_MONTH * HOURS_DAY * loadedHourly * (1 - guard("Ramp productivity", d.rampProductivity, 0, 100, "%") / 100);
   const supervisorBurden = guard("Supervisor hrs / new hire", d.supervisorHoursPerNew, 0, null, "hrs") * guard("Supervisor loaded rate", d.supLoadedRate, 0, null, "$");
   const capacityPerDeparture = nestingLoss + rampLoss + supervisorBurden;
 
@@ -213,7 +221,7 @@ export function compute(d) {
   const earlyWaste = earlyWashouts * hireCash;
 
   // ---- UNCERTAINTY BAND: a point estimate of six multiplied inputs is a range ----
-  const uncPct = evidence === "finance" ? 0.10 : evidence === "hrdata" ? 0.15 : 0.25;
+  const uncPct = at(`band.${evidence}`);
   const allInLow = allInPerDeparture * (1 - uncPct), allInHigh = allInPerDeparture * (1 + uncPct);
   const annLow = annualReplBurden * (1 - uncPct), annHigh = annualReplBurden * (1 + uncPct);
 
@@ -234,18 +242,18 @@ export function compute(d) {
   // ---- INTEGRITY FLAGS ----
   const flags = [];
   if (guards.length) flags.push({ t: `${guards.length} input${guards.length > 1 ? "s were" : " was"} outside the possible range and ${guards.length > 1 ? "were" : "was"} corrected before calculation. Every figure in this report was computed on the corrected values, listed in full above. Correct the input or treat the output as void.`, sev: "high" });
-  if (salaryUnknown) flags.push({ t: "Average salary is zero, so the cost basis cannot be tested against the 40-60% frontline band. That band is the check that lets a CFO trust the rest of the model, so without it this export is a structure, not a validated figure.", sev: "high" });
-  else if (pctSalary > 100) flags.push({ t: "All-in exceeds 100% of salary. That is manager-tier territory, implausible for a frontline agent. Re-check ramp loss, vacancy coverage, and double counting.", sev: "high" });
-  else if (pctSalary > 60) flags.push({ t: `All-in is ${Math.round(pctSalary)}% of salary, above the typical frontline sanity band of about 40-60%. Defensible for complex or regulated centers, but validate role type and inputs.`, sev: "med" });
-  else if (pctSalary > 0 && pctSalary < 30) flags.push({ t: `All-in is only ${Math.round(pctSalary)}% of salary, below the 40-60% frontline band. Plausible for offshore or BPO, but for a US onshore center it usually signals understated training, ramp, or vacancy inputs. Validate before citing.`, sev: "med" });
+  if (salaryUnknown) flags.push({ t: `Average salary is zero, so the cost basis cannot be tested against the ${BAND.low} to ${BAND.high}% frontline planning band. That band is the plausibility check on the rest of the model, so without it this export is a structure, not a validated figure.`, sev: "high" });
+  else if (pctSalary > BAND.ceiling) flags.push({ t: `All-in exceeds ${BAND.ceiling}% of salary. That is manager-tier territory, implausible for a frontline agent. Re-check ramp loss, vacancy coverage, and double counting.`, sev: "high" });
+  else if (pctSalary > BAND.high) flags.push({ t: `All-in is ${Math.round(pctSalary)}% of salary, above the ${BAND.low} to ${BAND.high}% frontline planning band. Defensible for complex or regulated centers, but validate role type and inputs.`, sev: "med" });
+  else if (pctSalary > 0 && pctSalary < BAND.floor) flags.push({ t: `All-in is only ${Math.round(pctSalary)}% of salary, below the ${BAND.low} to ${BAND.high}% frontline planning band. Plausible for offshore or BPO, but for a US onshore center it usually signals understated training, ramp, or vacancy inputs. Validate before citing.`, sev: "med" });
   const compNames = [["Recruiting + screening", recruiting], ["Training", training], ["Vacancy coverage", vacancy], ["Nesting loss", nestingLoss], ["Ramp loss", rampLoss], ["Supervisor coaching", supervisorBurden]];
   const topComp = compNames.reduce((a, b) => b[1] > a[1] ? b : a, compNames[0]);
   const trainShare = allInPerDeparture > 0 ? training / allInPerDeparture : 0;
-  if (topComp[0] === "Training" && trainShare > 0.40) flags.push({ t: `Training is the dominant cost driver (${Math.round(trainShare * 100)}% of all-in, ${fmt$(training)}). ${trainShare > 0.55 ? "That is high, so " : "That can be valid for a long program, but "}validate training duration, paid hours, class size, and trainer allocation before citing.`, sev: "med" });
-  else if (allInPerDeparture > 0 && topComp[1] / allInPerDeparture > 0.55) flags.push({ t: `${topComp[0]} is over 55% of all-in cost (${fmt$(topComp[1])}). A single line dominating this hard usually means an overstated duration or rate. Verify before citing.`, sev: "med" });
-  if (attritionRate < 10) flags.push({ t: "Attrition under 10% is low for a contact center. Validate the denominator (separations divided by average headcount, rolling 12 months).", sev: "med" });
-  else if (attritionRate > 100) flags.push({ t: `Attrition of ${Math.round(attritionRate)}% means you replace the entire floor more than once a year. That happens, but it is far more often a denominator error: a bad month annualized, or headcount taken at period end rather than as an average. Confirm the definition before citing this.`, sev: "high" });
-  else if (attritionRate > 50) flags.push({ t: "Attrition over 50% is severe churn. The early-washout share is usually where the recoverable waste sits. Confirm it.", sev: "med" });
+  if (topComp[0] === "Training" && trainShare > at("read.trainingShare")) flags.push({ t: `Training is the dominant cost driver (${Math.round(trainShare * 100)}% of all-in, ${fmt$(training)}). ${trainShare > at("read.trainingHigh") ? "That is high, so " : "That can be valid for a long program, but "}validate training duration, paid hours, class size, and trainer allocation before citing.`, sev: "med" });
+  else if (allInPerDeparture > 0 && topComp[1] / allInPerDeparture > at("read.dominance")) flags.push({ t: `${topComp[0]} is over ${Math.round(at("read.dominance") * 100)}% of all-in cost (${fmt$(topComp[1])}). A single line dominating this hard usually means an overstated duration or rate. Verify before citing.`, sev: "med" });
+  if (attritionRate < at("read.rateLow")) flags.push({ t: "Attrition under " + at("read.rateLow") + "% is low for a contact center. Validate the denominator (separations divided by average headcount, rolling 12 months).", sev: "med" });
+  else if (attritionRate > at("read.rateExtreme")) flags.push({ t: `Attrition of ${Math.round(attritionRate)}% means you replace the entire floor more than once a year. That happens, but it is far more often a denominator error: a bad month annualized, or headcount taken at period end rather than as an average. Confirm the definition before citing this.`, sev: "high" });
+  else if (attritionRate > at("read.rateHigh")) flags.push({ t: "Attrition over " + at("read.rateHigh") + "% is severe churn. The early-washout share is usually where the recoverable waste sits. Confirm it.", sev: "med" });
   if (unbackfilled > 0 && !downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures/yr are not replaced under forced under-staffing. That lost capacity is a real cost, but it is an output and service-level question. Quantify it in Staffing and Occupancy, not here. This tool does not zero it out as free.`, sev: "high" });
   if (unbackfilled > 0 && downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures/yr are a deliberate headcount reduction, so they carry no replacement cost. Confirm this is truly intended and not a hiring freeze in disguise.`, sev: "med" });
   if (mech === 0) flags.push({ t: "No capacity action is selected, so recovered capacity is credited at $0. The savings shown are avoided cash only, the honest floor.", sev: "med" });
@@ -283,13 +291,13 @@ export function compute(d) {
      Completeness: whether the model is whole and internally consistent.
      The headline is the minimum. The rationale names the binding axis.
 
-     The 40-60% band moved off the evidence axis, where it used to sit as a
+     The frontline band moved off the evidence axis, where it used to sit as a
      precondition on Finance-grade inputs. Where a number came from and whether the
      model built from it is coherent are different questions, and answering them on
      one axis is why the old grade could not say which one was failing. */
-  const bandLo = avgSalary * 0.40, bandHi = avgSalary * 0.60;
-  const inBand = !salaryUnknown && pctSalary >= 40 && pctSalary <= 60;
-  const guardrailOk = !salaryUnknown && pctSalary >= 30 && pctSalary <= 60;
+  const bandLo = avgSalary * BAND.low / 100, bandHi = avgSalary * BAND.high / 100;
+  const inBand = !salaryUnknown && pctSalary >= BAND.low && pctSalary <= BAND.high;
+  const guardrailOk = !salaryUnknown && pctSalary >= BAND.floor && pctSalary <= BAND.high;
   const hardFlag = flags.some((f) => f.sev === "high");
 
   const evidenceGrade = EVIDENCE_GRADE[evidence];
@@ -298,8 +306,8 @@ export function compute(d) {
   let completeness = "Finance-grade";
   const completenessNotes = [];
   if (hardFlag) { completeness = "Directional"; }
-  else if (!guardrailOk) { completeness = "Directional"; completenessNotes.push("cost basis sits outside the 30-60% plausible range"); }
-  else if (!inBand) { completeness = "Planning-grade"; completenessNotes.push("cost basis is inside the plausible range but outside the published 40-60% frontline band"); }
+  else if (!guardrailOk) { completeness = "Directional"; completenessNotes.push(`cost basis sits outside the ${BAND.floor} to ${BAND.high}% plausible range`); }
+  else if (!inBand) { completeness = "Planning-grade"; completenessNotes.push(`cost basis is inside the plausible range but outside the ${BAND.low} to ${BAND.high}% frontline planning band`); }
   if (!hardFlag && vacancyMode === "gross" && GRADE_RANK[completeness] > GRADE_RANK["Planning-grade"]) { completeness = "Planning-grade"; completenessNotes.push("gross vacancy costing carries a known double-count risk"); }
 
   /* The headline and the binding axis are computed by the shared grading layer and
@@ -319,7 +327,7 @@ export function compute(d) {
   const completenessReason = voided ? "The model failed an integrity invariant, so the export is void rather than graded."
     : hardFlag ? "An active hard flag means part of this model is corrected, untestable, or routed to another tool. Resolve it first."
     : completenessNotes.length ? `Model is internally consistent, but ${completenessNotes.join(", and ")}.`
-    : "Model is whole and internally consistent: every input inside its possible range, cost basis inside the published frontline band, and no value routed out of the model.";
+    : "Model is whole and internally consistent: every input inside its possible range, cost basis inside the frontline planning band, and no value routed out of the model.";
   const AXIS_REASON = { evidence: evidenceReason, realization: realizationReason, completeness: completenessReason };
   const why = `${confidence}, bound by ${boundBy}. ${boundAxes.map((a) => AXIS_REASON[a]).join(" ")}`;
 
@@ -359,7 +367,7 @@ export function compute(d) {
     ? (downsizing
         ? `At 0% backfill, this model does not generate replacement cost, because the center is not refilling departures. Here that is intended downsizing: ${departures} seats a year are being shed on purpose, so there is no recruiting, training, or ramp spend to recover, and early-washout waste is correctly $0, because there are no new hires to wash out.\n\nWhat this tool will not do is call that a $0 problem and move on. Confirm the reduction is genuinely planned and not a hiring freeze wearing downsizing's clothes. If the demand those seats carried has not gone away, the exposure has simply moved from replacement cost to capacity, and that belongs in Staffing and Occupancy.\n\nThe per-refill economics above still stand as the cost you would re-incur the moment you start backfilling again: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${pctShort}. Treat that as the price of reversing the reduction, not as a current burden.`
         : `At 0% backfill, this model does not generate replacement cost, because the center is not replacing departures. That does not mean attrition is harmless. With no hires, there is no recruiting, training, or ramp spend, so replacement burden and early-washout waste are both correctly $0, but the economic exposure has not vanished, it has shifted.\n\nUnder forced under-staffing it moves to understaffing, occupancy, service level, backlog, burnout, and customer-impact risk. None of that is a replacement cost, so this tool deliberately does not invent a dollar for it; it routes the case to Staffing and Occupancy, where lost output, overtime on the remaining team, and SLA breach can be modeled honestly. That is also why this export is held at Directional on the completeness axis: the real cost lives in a model this calculator is not.\n\nThe per-refill economics above remain valid as the cost you re-incur the moment you resume hiring: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${pctShort}. Do not read the $0 replacement burden as "attrition is free."`)
-    : `Attrition cost is not one number, and the honest version refuses to pretend it is. Replacing one frontline agent here runs about ${fmt$(allInPerDeparture)} all-in, ${pctClaim}, which sits ${salaryUnknown ? "outside the reach of the frontline band entirely, so the band cannot test it" : inBand ? "inside the published frontline band of 40 to 60 percent, the test that lets a CFO trust the rest of the model" : pctSalary > 60 ? "above the published frontline band of 40 to 60 percent, so validate the ramp, vacancy, and training inputs before a CFO sees it; complex or regulated centers can justify it, but it is not automatically defensible" : "below the published frontline band of 40 to 60 percent, which reads as either an efficient or offshore model or understated inputs, so confirm which before relying on it"}.\n\nThat figure is a burden, not a savings cheque. About ${fmt$(cashPerDeparture)} is cash out the door: recruiting, training wages, sign-on, and the overtime premium to cover the empty seat. The other ${fmt$(capacityPerDeparture)} is recovered capacity: nesting and ramp time you pay full wage for at partial output, plus supervisor coaching. Cash disappears when a backfilled departure is avoided; capacity becomes money only when leadership commits a mechanism. At ${backfillRate}% backfill and a "${mechLabel}" mechanism, that is why the realizable column is smaller than the burden.\n\nBackfill is the assumption most attrition models get wrong. Replacement cost only exists for seats you refill. ${unbackfillSentence}\n\nThe sharpest recoverable line is early washout. ${earlyWashoutRate}% of your replacement hires, about ${earlyWashouts} a year, leave before reaching productive output, and the ${fmt$(earlyWaste)} of recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}and training cash spent on them returns almost nothing. Because it is measured against hires, it can never exceed your replacement cash; it is the cleanest target on the page. The defensible business case is not "attrition costs us everything." It is "this much is cash, this much is capacity, this much we can actually realize, and this slice is near-pure waste we can attack first."`;
+    : `Attrition cost is not one number, and the honest version refuses to pretend it is. Replacing one frontline agent here runs about ${fmt$(allInPerDeparture)} all-in, ${pctClaim}, which sits ${salaryUnknown ? "outside the reach of the frontline band entirely, so the band cannot test it" : inBand ? "inside the frontline planning band of ${BAND.low} to ${BAND.high} percent, the plausibility check on the rest of the model" : pctSalary > 60 ? "above the frontline planning band of ${BAND.low} to ${BAND.high} percent, so validate the ramp, vacancy, and training inputs before a CFO sees it; complex or regulated centers can justify it, but it is not automatically defensible" : "below the frontline planning band of ${BAND.low} to ${BAND.high} percent, which reads as either an efficient or offshore model or understated inputs, so confirm which before relying on it"}.\n\nThat figure is a burden, not a savings cheque. About ${fmt$(cashPerDeparture)} is cash out the door: recruiting, training wages, sign-on, and the overtime premium to cover the empty seat. The other ${fmt$(capacityPerDeparture)} is recovered capacity: nesting and ramp time you pay full wage for at partial output, plus supervisor coaching. Cash disappears when a backfilled departure is avoided; capacity becomes money only when leadership commits a mechanism. At ${backfillRate}% backfill and a "${mechLabel}" mechanism, that is why the realizable column is smaller than the burden.\n\nBackfill is the assumption most attrition models get wrong. Replacement cost only exists for seats you refill. ${unbackfillSentence}\n\nThe sharpest recoverable line is early washout. ${earlyWashoutRate}% of your replacement hires, about ${earlyWashouts} a year, leave before reaching productive output, and the ${fmt$(earlyWaste)} of recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}and training cash spent on them returns almost nothing. Because it is measured against hires, it can never exceed your replacement cash; it is the cleanest target on the page. The defensible business case is not "attrition costs us everything." It is "this much is cash, this much is capacity, this much we can actually realize, and this slice is near-pure waste we can attack first."`;
 
   const railRead = voided
     ? `Attrition: export void, integrity invariant failed. Do not consume downstream.`
@@ -377,7 +385,7 @@ export function compute(d) {
     earlyWashouts, earlyWaste,
     uncPct, allInLow, allInHigh, annLow, annHigh,
     scenarios, compNames, topComp, trainShare, pctClaim, pctShort,
-    bandLo, bandHi, inBand, guardrailOk, hardFlag,
+    bandLo, bandHi, band: BAND, inBand, guardrailOk, hardFlag,
     grades, gradeObj, confidence, boundAxes, boundBy,
     evidenceReason, realizationReason, completenessReason, completenessNotes, why,
     bookLabel, cashRows, capRows, unbackfillSentence, analystRead, railRead,
@@ -465,7 +473,7 @@ export default function AttritionCostCalculator() {
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: RED, display: "block", marginBottom: 10 }}>Cost + Economics</span>
           <h1 style={t("display", { color: "#fff", margin: "0 0 10px" })}>Attrition Cost Calculator</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.72)", maxWidth: 700 }}>The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act. Replacement cost scales with how much you backfill; seats you do not refill are treated as a capacity decision, never as free. Benchmarked against the published 40-60% of salary band for frontline roles.</p>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.72)", maxWidth: 700 }}>The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act. Replacement cost scales with how much you backfill; seats you do not refill are treated as a capacity decision, never as free. Checked against a {BAND.low} to {BAND.high}% of salary planning band for frontline roles, set by this platform. Every formula, constant and a worked example are in the <a href="/methodology/attrition-cost" style={{ color: LIGHT, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
         </div>
       </section>
 
@@ -476,7 +484,7 @@ export default function AttritionCostCalculator() {
             <NumField label="Total agents" value={d.agents} onChange={v => set("agents", v)} step={5} min={0} pulled={!!pulled.agents} />
             <NumField label="Annual attrition" value={d.attritionRate} onChange={v => set("attritionRate", v)} suffix="%" min={0} max={300} info={DEFS.denominator} infoTitle="Attrition denominator" hint="Sep / avg headcount" />
             <NumField label="Avg agent salary" value={d.avgSalary} onChange={v => set("avgSalary", v)} suffix="$/yr" step={1000} min={0} pulled={!!pulled.avgSalary} />
-            <NumField label="Benefits + overhead" value={d.benefitsLoadPct} onChange={v => set("benefitsLoadPct", v)} suffix="%" min={0} info={DEFS.benefitsLoad} infoTitle="Benefits + overhead load" />
+            <NumField label="Benefits load" value={d.benefitsLoadPct} onChange={v => set("benefitsLoadPct", v)} suffix="%" min={0} info={DEFS.benefitsLoad} infoTitle="Benefits load" />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }} className="cg">
             <Select label="Backfill basis" value={d.backfillRate} onChange={v => set("backfillRate", Number(v))} opts={BACKFILL_OPTS} info={DEFS.backfill} infoTitle="Backfill basis" />
@@ -591,7 +599,7 @@ export default function AttritionCostCalculator() {
               </div>
             </div>
             <div style={{ ...TYPE.caption, color: SLATE }}>The headline is the weakest of the three axes. <strong style={{ color: NAVY }}>Bound by {r.boundBy}.</strong> <strong style={{ color: NAVY }}>Evidence:</strong> {r.evidenceReason} <strong style={{ color: NAVY }}>Realization:</strong> {r.realizationReason} <strong style={{ color: NAVY }}>Completeness:</strong> {r.completenessReason}</div>
-            <div style={{ ...TYPE.cell, ...NUM, color: SLATE, marginTop: 6 }}>Frontline band is 40-60% of salary ({fmtK(r.bandLo)} to {fmtK(r.bandHi)} here); the published $10-20K all-in reference assumes typical frontline wages. This result is {r.voided ? "void, so it is not tested against the band" : r.salaryUnknown ? "untestable, because no salary was entered" : `${Math.round(r.pctSalary)}% / ${fmtK(r.allInPerDeparture)}, ${r.guardrailOk ? "within band" : r.pctSalary > 60 ? "above band, validate" : "below band, validate"}`}.</div>
+            <div style={{ ...TYPE.cell, ...NUM, color: SLATE, marginTop: 6 }}>Frontline planning band is {r.band.low} to {r.band.high}% of salary ({fmtK(r.bandLo)} to {fmtK(r.bandHi)} here), a check set by this platform. This result is {r.voided ? "void, so it is not tested against the band" : r.salaryUnknown ? "untestable, because no salary was entered" : `${Math.round(r.pctSalary)}% / ${fmtK(r.allInPerDeparture)}, ${r.guardrailOk ? "within band" : r.pctSalary > r.band.high ? "above band, validate" : "below band, validate"}`}.</div>
           </div>
 
           {!r.voided && (<>
@@ -726,8 +734,8 @@ export default function AttritionCostCalculator() {
                 `Backfill basis: ${r.backfillRate}% of departures replaced (${r.hires} of ${r.departures}). Replacement cost scales with this; ${r.unbackfilled} un-backfilled seats are ${r.downsizing ? "a deliberate reduction with no replacement cost" : "lost capacity routed to Staffing/Occupancy, not zeroed out as free"}.`,
                 `Vacancy costing: ${r.vacancyMode === "gross" ? "Gross coverage spend (full OT) that overstates incremental cost unless the vacant seat's stopped payroll is credited elsewhere. Incremental (OT premium only) is the conservative default." : "Incremental, OT premium only (the conservative default)."}`,
                 r.salaryUnknown
-                  ? `Cost basis: ${fmt$(r.allInPerDeparture)} all-in, but average salary was not entered, so the 40-60% frontline band cannot test it. That band is the check that lets a CFO trust the rest of the model.`
-                  : `Cost basis: ${Math.round(r.pctSalary)}% of salary (${fmt$(r.allInPerDeparture)}, planning range ${fmt$(r.allInLow)} to ${fmt$(r.allInHigh)} at +/-${Math.round(r.uncPct * 100)}%) versus the 40-60% frontline band of ${fmt$(r.bandLo)} to ${fmt$(r.bandHi)}. ${r.guardrailOk ? "Within the plausible range." : "Outside the plausible range. Verify inputs before citing."} The $10-20K all-in reference assumes typical frontline wages and is not salary-adjusted.`,
+                  ? `Cost basis: ${fmt$(r.allInPerDeparture)} all-in, but average salary was not entered, so the ${r.band.low} to ${r.band.high}% frontline planning band cannot test it. That band is the plausibility check on the rest of the model.`
+                  : `Cost basis: ${Math.round(r.pctSalary)}% of salary (${fmt$(r.allInPerDeparture)}, planning range ${fmt$(r.allInLow)} to ${fmt$(r.allInHigh)} at +/-${Math.round(r.uncPct * 100)}%) versus the ${r.band.low} to ${r.band.high}% frontline planning band of ${fmt$(r.bandLo)} to ${fmt$(r.bandHi)}. ${r.guardrailOk ? "Within the plausible range." : "Outside the plausible range. Verify inputs before citing."}`,
               ]},
               ...(r.flags.length > 0 ? [{ title: "Integrity Flags", type: "findings", items: r.flags.map(f => `${f.sev === "high" ? "[FLAG] " : "[NOTE] "}${f.t}`) }] : []),
               { title: "Cost Per Replaced Departure", type: "table", rows: [
@@ -759,7 +767,7 @@ export default function AttritionCostCalculator() {
               { title: "Methodology", type: "findings", items: [
                 `Cost model: per replaced departure = cash (recruiting, screening, ${r.signOn > 0 ? "sign-on, " : ""}training wages, trainer, vacancy OT) + capacity (nesting and ramp productivity loss, supervisor coaching). Capacity is recovered time, credited only through a realization mechanism.`,
                 `Capacity realization: "${r.mechName}" credits ${Math.round(r.mech * 100)}% of freed capacity, read from the shared platform capacity-action table so the same mechanism means the same thing in every tool. Credit class ${r.cred}${r.voided ? "" : `, which sets the realization axis at ${r.grades.realization}`}. Cash out the door is never scaled by this factor.`,
-                `Benchmark guardrail: the 40-60%-of-salary frontline sanity band is based on role-specific replacement-cost estimates (frontline about 40% of salary, well below the generic 50-200% turnover figure). The $10-20K all-in reference is the published contact-center agent replacement estimate and is not salary-adjusted.`,
+                `Plausibility check: the ${r.band.low} to ${r.band.high}% of salary frontline band is a planning check set by this platform, not a published study. Replace it with your own replacement-cost history where you have one. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/attrition-cost.`,
                 `Confidence: three named axes. Evidence is input provenance. Realization is whether modelled benefit converts to cash, read from the shared credit class. Completeness is whether the model is whole and internally consistent. The headline is the weakest of the three and the rationale names the binding axis. A failed integrity invariant voids the export rather than grading it down, because an impossible figure is not an uncertain one.${r.guards.length ? ` INPUTS CORRECTED: ${corrections.join(" ")} Every figure above was computed on the corrected values.` : ""}`,
               ]},
               { title: "Next Steps", type: "next", items: [

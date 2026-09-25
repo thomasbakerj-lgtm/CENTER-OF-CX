@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
-import { COLORS } from "./src/lib/benchmarks";
+import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalPrimitive, getPrimitiveWithSource } from "./src/lib/toolData";
 import { MECH, MECH_ORDER, MECH_FALLBACK } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
@@ -91,10 +91,12 @@ const DEFS = {
   attrition: "The percent cut in agent turnover, converted into fewer hires and their recruiting and training cost. It is the softest lever because attrition has many causes, so a platform rarely deserves full credit for the improvement.",
 };
 
+/* Every stance factor, opening value and planning line is a registry entry (bcb.*), labelled
+   heuristic or threshold there. */
 const STANCE = {
-  aggressive: { label: "Aggressive", c: 1.00, h: 1.00, f: 1.00, a: 1.00, note: "Full modeled savings, no discount. Matches typical vendor ROI tools." },
-  expected: { label: "Expected", c: 0.85, h: 0.90, f: 0.80, a: 0.65, note: "Each lever discounted for real-world attribution. The defensible default." },
-  conservative: { label: "Conservative", c: 0.70, h: 0.80, f: 0.65, a: 0.50, note: "Heavy haircut on the soft levers. The floor you can commit to." },
+  aggressive: { label: "Aggressive", c: benchmark("bcb.stance.aggressive.containment"), h: benchmark("bcb.stance.aggressive.handleTime"), f: benchmark("bcb.stance.aggressive.fcr"), a: benchmark("bcb.stance.aggressive.attrition"), note: "Full modeled savings, no discount. Matches typical vendor ROI tools." },
+  expected: { label: "Expected", c: benchmark("bcb.stance.expected.containment"), h: benchmark("bcb.stance.expected.handleTime"), f: benchmark("bcb.stance.expected.fcr"), a: benchmark("bcb.stance.expected.attrition"), note: "Each lever discounted for real-world attribution. The defensible default." },
+  conservative: { label: "Conservative", c: benchmark("bcb.stance.conservative.containment"), h: benchmark("bcb.stance.conservative.handleTime"), f: benchmark("bcb.stance.conservative.fcr"), a: benchmark("bcb.stance.conservative.attrition"), note: "Heavy haircut on the soft levers. The floor you can commit to." },
 };
 
 const EVIDENCE = {
@@ -230,7 +232,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   // Trigger on the SAME rounded percentage the tool prints. A raw > 0.10 test would flag a
   // 10.4% gap while the sentence beside it said "10%", so the stated arithmetic would not
   // reproduce its own trigger.
-  const marginalStale = Math.round(marginalGap * 100) > 10;
+  const marginalStale = Math.round(marginalGap * 100) > Math.round(benchmark("bcb.read.marginalStale") * 100);
 
   const annual = n(d.monthlyContacts) * 12;
   const deflected = annual * (n(d.containment) / 100);
@@ -286,12 +288,12 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   // so what is actually avoided is the lost production during ramp, which is capacity like any
   // other freed hour and must be scaled by the same realization factor.
   const perHireCash = n(d.recruitCostPerHire);
-  const perHireCapacity = n(d.trainingDays) * 8 * loaded;
+  const perHireCapacity = n(d.trainingDays) * benchmark("bcb.time.trainingHoursDay") * loaded;
   const perHire = perHireCash + perHireCapacity;
   const attrition = avoidedTurnover * perHire;
   const attritionCash = avoidedTurnover * perHireCash;
   const attritionCapacity = avoidedTurnover * perHireCapacity;
-  const hoursAttrition = avoidedTurnover * n(d.trainingDays) * 8;
+  const hoursAttrition = avoidedTurnover * n(d.trainingDays) * benchmark("bcb.time.trainingHoursDay");
 
   const buckets = { containment, handleTime, fcr, attrition };
   const gross = containment + handleTime + fcr + attrition;
@@ -479,7 +481,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
 
   // The same case priced at the bottom of the range this tool calls typical ($3K per agent).
   // Lets the implementation warning state its own consequence instead of asserting one.
-  const TYPICAL_PER_AGENT = 3000;
+  const TYPICAL_PER_AGENT = benchmark("bcb.read.typicalImplPerAgent");
   const typicalImpl = TYPICAL_PER_AGENT * agentsN;
   // Same one-time bucket and same benefit basis as the headline, or the comparison silently
   // runs on different arithmetic than the figure it is being compared against.
@@ -515,7 +517,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   // paying case as low severity, because it does pay. Fragility asks whether the answer
   // survives a normal input error, which is a different question, and folding it into
   // severity would reverse the 1-12c decision.
-  const FRAGILE_SLACK = 0.15;
+  const FRAGILE_SLACK = benchmark("bcb.read.fragileSlack");
   const fragile = payback > 0 && benefitSlack > 0 && benefitSlack < FRAGILE_SLACK;
   // The dominant lever, derived once here rather than twice, so the read and the fragility
   // pricing cannot disagree about which lever carries the case.
@@ -679,12 +681,12 @@ function confidenceOf(d, r, stanceKey) {
   // alternative: treating it as completeness. Completeness asks whether the model is whole
   // and internally consistent, and an ambitious target leaves it both.
   if (stKey === "aggressive") caps.push(["Planning-grade", "The Aggressive stance presents savings with no attribution haircut. This is a benefit-attribution concern rather than a cost-input one, and it is listed here precisely so it does not get counted as a costing defect."]);
-  if (n(d.containment) > 25) flags.push(`Containment target of ${n(d.containment)}% is above the 10 to 25% range most centers reach without a proven pilot.`);
-  if (n(d.htReduction) > 15) flags.push(`Handle-time reduction of ${n(d.htReduction)}% is above the 8 to 15% range we use for planning.`);
+  if (n(d.containment) > benchmark("bcb.target.containmentMax")) flags.push(`Containment target of ${n(d.containment)}% is above the 10 to ${benchmark("bcb.target.containmentMax")}% internal planning range for containment without a proven pilot.`);
+  if (n(d.htReduction) > benchmark("bcb.target.handleTimeMax")) flags.push(`Handle-time reduction of ${n(d.htReduction)}% is above the 8 to ${benchmark("bcb.target.handleTimeMax")}% internal planning range.`);
   if (r.fcrPerfectTarget) flags.push(`The FCR target reaches 100% first-contact resolution, which removes every repeat contact in the model. No contact center resolves every issue first time, so this lever sits at a theoretical ceiling rather than a plannable target.`);
-  else if (r.fcrLiftEffectivePts > 10) flags.push(`FCR improvement of ${r.fcrLiftEffectivePts} points is above the 5 to 10 point internal planning range.`);
+  else if (r.fcrLiftEffectivePts > benchmark("bcb.target.fcrMax")) flags.push(`FCR improvement of ${r.fcrLiftEffectivePts} points is above the 5 to ${benchmark("bcb.target.fcrMax")} point internal planning range.`);
   if (r.fcrLiftClamped) flags.push(`An FCR improvement of ${n(d.fcrImprovement)} points was entered against a current rate of ${n(d.currentFCR)}%, which would exceed 100%. The model uses only the ${r.fcrLiftEffectivePts} points of headroom that exist.`);
-  if (n(d.attritionReduction) > 25) flags.push(`Attrition reduction of ${n(d.attritionReduction)}% is optimistic and hard to attribute to a platform.`);
+  if (n(d.attritionReduction) > benchmark("bcb.target.attritionMax")) flags.push(`Attrition reduction of ${n(d.attritionReduction)}% is optimistic and hard to attribute to a platform.`);
   if (flags.length) caps.push(["Planning-grade", `${flags.length} improvement target${flags.length > 1 ? "s sit" : " sits"} above the internal planning range: ${flags.join(" ")} This is a target-plausibility concern, not a cost-input one.`]);
 
   // ---- PRICE PLAUSIBILITY is not evidence quality. A signed proposal stays contracted. ----
@@ -768,9 +770,9 @@ function caseInsights(r, d, stanceKey, conf) {
   const stKey = r.stanceKey;
   const flags = [], leadFlags = [];
   // Input plausibility, the assumptions a CFO rejects on sight. These lead the read.
-  if (n(d.containment) > 25) flags.push(`Your ${n(d.containment)}% self-service containment is above the 10 to 25% most centers actually achieve. Without a pilot proving it, model 15 to 20% as the defensible case. It is ${r.pct.containment}% of your savings, so the board challenges it first.`);
-  if (n(d.htReduction) > 15) flags.push(`A ${n(d.htReduction)}% handle-time reduction is aggressive. 8 to 15% is typical even with AI assist, so treat anything above 15% as upside, not base case.`);
-  if (n(d.attritionReduction) > 25) flags.push(`${n(d.attritionReduction)}% attrition reduction is optimistic (15 to 25% is realistic) and the hardest lever to attribute to a platform. Discount it heavily or footnote it.`);
+  if (n(d.containment) > benchmark("bcb.target.containmentMax")) flags.push(`Your ${n(d.containment)}% self-service containment is above the 10 to ${benchmark("bcb.target.containmentMax")}% internal planning range. Without a pilot proving it, treat the excess as upside. It is ${r.pct.containment}% of your savings, so the board challenges it first.`);
+  if (n(d.htReduction) > benchmark("bcb.target.handleTimeMax")) flags.push(`A ${n(d.htReduction)}% handle-time reduction is above the 8 to ${benchmark("bcb.target.handleTimeMax")}% internal planning range, so treat the excess as upside until a pilot measures it.`);
+  if (n(d.attritionReduction) > benchmark("bcb.target.attritionMax")) flags.push(`${n(d.attritionReduction)}% attrition reduction is above the ${benchmark("bcb.target.attritionMax")}% internal planning line and the hardest lever to attribute to a platform. Discount it heavily or footnote it.`);
   const perAgentImpl = n(d.agents) > 0 ? n(d.implementationCost) / n(d.agents) : 0;
   // Once recurring platform cost exceeds recurring benefit, the size of the one-time
   // implementation cannot change the outcome. Saying it looks understated is true and useless.
@@ -914,11 +916,14 @@ function caseInsights(r, d, stanceKey, conf) {
   return out;
 }
 
+/* The opening case reads the registry: the wage is the shared BLS median (J11), the benefits
+   load the shared load (J10), and every other value a labelled bcb.default heuristic. */
+const bd = (k) => benchmark(`bcb.default.${k}`);
 const DEFAULTS = {
-  agents: 200, avgHourly: 18, benefitsPct: 30, monthlyContacts: 120000, currentAHT: 420, currentACW: 45,
-  currentFCR: 72, repeatShare: 0, currentAttrition: 35, costPerContact: 7, marginalPerContact: 0, recruitCostPerHire: 3500, trainingDays: 21,
-  htReduction: 12, acwReduction: 30, fcrImprovement: 8, attritionReduction: 20, containment: 15,
-  implementationCost: 750000, newPlatformPerAgentMo: 135, migrationMonths: 9, rampMonths: 6, evidence: "estimate",
+  agents: bd("agents"), avgHourly: benchmark("market.wage.agent"), benefitsPct: Math.round((benchmark("load.benefits") - 1) * 100), monthlyContacts: bd("contacts"), currentAHT: bd("aht"), currentACW: bd("acw"),
+  currentFCR: bd("fcr"), repeatShare: 0, currentAttrition: bd("attrition"), costPerContact: bd("costPerContact"), marginalPerContact: 0, recruitCostPerHire: bd("recruiting"), trainingDays: bd("trainingDays"),
+  htReduction: bd("htReduction"), acwReduction: bd("acwReduction"), fcrImprovement: bd("fcrImprovement"), attritionReduction: bd("attritionReduction"), containment: bd("containment"),
+  implementationCost: bd("implementation"), newPlatformPerAgentMo: bd("platform"), migrationMonths: bd("migrationMonths"), rampMonths: bd("rampMonths"), evidence: "estimate",
   // BAU counterfactual. All zero by default, so an untouched case reproduces the pre-BAU
   // engine exactly. bauOverlapShare is a percentage and only bites when spend is entered.
   bauEliminatedAnnual: 0, bauOverlapMonths: 0, bauOverlapShare: 100, bauExitCost: 0,
@@ -1153,7 +1158,7 @@ export default function BusinessCaseBuilder() {
               <NumField label="Attrition Reduction" value={d.attritionReduction} onChange={v => set("attritionReduction", v)} suffix="%" min={0} max={100} info={DEFS.attrition} infoTitle="Attrition reduction" hint="Internal planning range 15 to 25%, adjust to your evidence" />
               <NumField label="Self-Service Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" min={0} max={100} info={DEFS.containment} infoTitle="Self-service containment" hint="Internal planning range 10 to 25%, adjust to your evidence" />
             </div>
-            <p style={{ fontSize: 12, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>ACW is modeled as a slice of AHT, so handle-time and ACW reductions never double-count the same minutes. Containment removes contacts from the handled pool before any per-contact saving is applied.</p>
+            <p style={{ fontSize: 12, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>ACW is modeled as a slice of AHT, so handle-time and ACW reductions never double-count the same minutes. Containment removes contacts from the handled pool before any per-contact saving is applied. Every formula, constant and a worked example are in the <a href="/methodology/business-case-builder" style={{ color: NAVY, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
           </Card>
 
           <Card accent={AMBER}>
@@ -1509,7 +1514,7 @@ export default function BusinessCaseBuilder() {
                   ]},
                   { title: "Methodology", type: "text", content: "Avoided contacts release agent labor capacity valued at marginal cost, the handle-time labor content of a contact, not the fully loaded cost per contact, because fixed tech, facilities and supervision do not fall when one contact is removed. This valuation is shared with the TCO Calculator, so the two tools are consistent on the value of the same contact. Consistency establishes a shared definition, not that the released capacity is cash-releasing. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance). Attribution is then followed by a separate and independent adjustment: freed agent labor is released capacity, not cash, and converts to money only through a named action, so containment, handle-time and FCR savings are scaled by the " + r.mechLabel + " capacity action at " + Math.round(r.mf * 100) + "%. Avoided recruiting and training spend is cash-releasing and is never scaled. Platform and implementation costs are real cash out and are never scaled by either adjustment. " + (r.repeatBasis === "fcr-proxy" ? "Repeat-contact volume was not supplied, so avoided repeats are derived from FCR on the underlying issue count rather than on total handled contacts, which assumes one repeat per unresolved issue and is a proxy rather than a measurement." : "Avoided repeats are computed on measured same-reason repeat volume.") + (rampOn ? " Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback reflects the real J-curve rather than assuming benefits land on day one." : " Savings phasing was turned OFF for this case, so the model assumes full run-rate savings from month one. Payback and ROI here are idealized figures that ignore the migration build and the post-go-live ramp, and they will be shorter and higher than the phased case a CFO should be shown.") + (r.bauEntered
                     ? " Return is calculated against gross transformation cash, meaning one-time implementation plus contractual exit and incremental cash labor, plus three years of the new platform fee. A business-as-usual counterfactual has been entered, and displaced current spend is credited on the BENEFIT side as avoided cash rather than netted out of that denominator. Netting it out would drive the denominator toward zero and then negative as the displaced figure grows, so the ratio would become unstable exactly where the economics are strongest. Displaced spend is not weighted by the stance or by the capacity action, because retiring a contract is a contractual outcome rather than an attribution or realization question, and it is not phased over the savings ramp: it steps at the end of the dual-run period instead. Absorbed internal project labor is disclosed as an hours burden and excluded from the cash return on the same principle that unconverted freed agent capacity is excluded from the benefit. This still excludes usage-based charges and any growth in volume or wages over the horizon, which are a forward counterfactual this version does not model."
-                    : " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: no business-as-usual counterfactual has been entered for this case, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. The tool models all of those, and they are all zero here. A full incremental comparison would move this figure in both directions.") + (r.stanceKey === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") },
+                    : " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: no business-as-usual counterfactual has been entered for this case, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. The tool models all of those, and they are all zero here. A full incremental comparison would move this figure in both directions.") + (r.stanceKey === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") + " The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/business-case-builder." },
                 ]}
               />
             </span>

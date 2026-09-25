@@ -126,6 +126,38 @@ export const SEO_MAP = {
     title: `Staffing Calculator Method: Erlang C, FTE and Cost | ${SITE}`,
     desc: "The published method behind the Staffing Requirement Calculator: offered load, Erlang C by recurrence, the agents that meet a service level, occupancy ceilings, shrinkage to scheduled FTE, annual cost, pooling and abandonment checks, and two worked examples.",
   },
+  "/methodology/cost-per-contact": {
+    title: `Cost per Contact Method: Cost per Resolution and Repeat Demand | ${SITE}`,
+    desc: "The published method behind the Cost per Contact Calculator: contacts per resolution, cost per resolution, repeat demand and its burden, channel handle cost, FTE burden, capacity released by an FCR improvement, every constant with its source, and a worked example.",
+  },
+  "/methodology/channel-shift": {
+    title: `Channel Shift Method: Net Minutes, Bot Fees and Break-even | ${SITE}`,
+    desc: "The published method behind the Channel Shift Model: eligible voice, displacement and bounce-back, residual and departing handle time, net minutes freed, bot fees, transition, payback, break-even, every constant with its source, and a worked example.",
+  },
+  "/methodology/fcr-leakage": {
+    title: `FCR Leakage Method: Repeat Burden, Ceiling and Payback | ${SITE}`,
+    desc: "The published method behind the FCR Leakage Diagnostic: repeat share models, repeat burden, the opportunity and capture curves, the practical ceiling by scope, contacts avoided, realizable savings, payback, every constant with its source, and a worked example.",
+  },
+  "/methodology/ai-deflection": {
+    title: `AI Deflection Method: Three Rates, Net Savings and Break-even | ${SITE}`,
+    desc: "The published method behind the AI Deflection Reality Check: coverage, apparent resolution and net automation with their denominators, durable resolution, net savings, the bridge from the vendor claim, break-even resolution, repeat tolerance, payback, every constant with its source, and a worked example.",
+  },
+  "/methodology/tco-calculator": {
+    title: `TCO Method: Labor, Technology, Overhead and Three Years | ${SITE}`,
+    desc: "The published method behind the TCO Calculator: agent and salaried labor, attrition, telephony, technology and overhead, cost per contact and per resolution, marginal cost, the three-year escalation, the four optimization levers, every constant with its source, and a worked example.",
+  },
+  "/methodology/license-gap": {
+    title: `License Gap Method: Quoted Seat to Platform Cost | ${SITE}`,
+    desc: "The published method behind the License Bundle Gap Checker: quoted seat, effective license seat, platform seat-equivalent, the bundle gap and hidden annual, commit exposure, year-three seat, growth, every constant with its source, and a worked example.",
+  },
+  "/methodology/attrition-cost": {
+    title: `Attrition Cost Method: Cash, Capacity and Avoided Cost | ${SITE}`,
+    desc: "The published method behind the Attrition Cost Calculator: departures and hires, cash and capacity per departure, vacancy coverage, annual burden, the frontline planning band, avoided cost at lower rates, every constant with its source, and a worked example.",
+  },
+  "/methodology/business-case-builder": {
+    title: `Business Case Method: Levers, Attribution, Realization and Return | ${SITE}`,
+    desc: "The published method behind the Business Case Builder: the containment, handle-time, FCR and attrition levers, attribution by stance, realization by capacity action, the phased three-year cash flow, return and payback, every constant with its source, and a worked example.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",

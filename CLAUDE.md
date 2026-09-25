@@ -721,7 +721,18 @@ dashboard, the 12-phase growth program.
    the rail, pulled fields are badged with their source, and a pulled driver grades by railEvidence(origin) while held.
    Staffing's solver starts at floor(A)+1 (1,297 of 20,000 random queues moved down one agent, about 0.2% at 70 to 90%
    targets). Rail audit no longer credits a member access (v.target) with v's keys. `wfmrail.test.mjs` 34. Phase D done.
-30. **Next:** Phase D is complete. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
+30. Done S23: Phase E1, published method pages for the nine rail calculators (TB: keep formulas public; the repo stays
+   public for now, since GitHub Free drops branch protection on private repos). `/methodology/<tool>` for Staffing, CPC,
+   Channel Shift, FCR Leakage, AI Deflection, TCO, License Gap, Attrition and Business Case (sitemap 447). Engines stay in
+   the tool files; each model in `src/lib/rubrics/<tool>Model.js` carries pins and `methods.test.mjs` (101) recomputes them
+   from the tool's own engine (Staffing also pins Nextiva's published 68/98/84.0% case). Tool page and PDF link the method.
+   Attrition and Business Case read no registry: all constants registered (`attrition.*`, `bcb.*`), both open on the BLS
+   wage and shared benefits load (J10, J11): Attrition $38,000 to $42,827 and 28% to 30%, Business Case $18 to $20.59.
+   A/B 20,000 cases each, equal inputs equal figures and grades; fixtures pinned at their verified inputs. Retired
+   unsourced copy: Attrition "published 40-60% band" and "$10-20K reference", Business Case "most centers achieve" and
+   "15 to 25% is realistic". Suite 20,934.
+31. **Next:** Phase E2 (reference fixtures harness), E3 (method version stamps, public changelog), then the full site
+   scan (TB, S23). Phase D is complete. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
    (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match
    V3 remain gated on the corpus.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares

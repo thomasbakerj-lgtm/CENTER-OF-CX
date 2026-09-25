@@ -317,6 +317,14 @@ export default function App() {
         <Route path="/methodology/aht-decomposition" element={<RubricPage id="aht-decomposition" />} />
         <Route path="/methodology/forecast-accuracy" element={<RubricPage id="forecast-accuracy" />} />
         <Route path="/methodology/schedule-adherence" element={<RubricPage id="schedule-adherence" />} />
+        <Route path="/methodology/business-case-builder" element={<RubricPage id="business-case-builder" />} />
+        <Route path="/methodology/attrition-cost" element={<RubricPage id="attrition-cost" />} />
+        <Route path="/methodology/license-gap" element={<RubricPage id="license-gap" />} />
+        <Route path="/methodology/tco-calculator" element={<RubricPage id="tco-calculator" />} />
+        <Route path="/methodology/ai-deflection" element={<RubricPage id="ai-deflection" />} />
+        <Route path="/methodology/fcr-leakage" element={<RubricPage id="fcr-leakage" />} />
+        <Route path="/methodology/channel-shift" element={<RubricPage id="channel-shift" />} />
+        <Route path="/methodology/cost-per-contact" element={<RubricPage id="cost-per-contact" />} />
         <Route path="/methodology/staffing-calculator" element={<RubricPage id="staffing-calculator" />} />
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />

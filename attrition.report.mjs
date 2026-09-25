@@ -26,7 +26,7 @@ import { readFileSync } from "fs";
 
 const SRC = readFileSync("./AttritionCostCalculator.jsx", "utf8");
 const RA = readFileSync("./ReportActions.jsx", "utf8");
-const { COLORS } = await import("./src/lib/benchmarks.js");
+const { COLORS, benchmark } = await import("./src/lib/benchmarks.js");
 const { MECH, MECH_ORDER, MECH_INITIAL } = await import("./src/lib/mech.js");
 /* The shared guard module the engine imports. Injected, never reconstructed. */
 const { createGuards, guardVal } = await import("./src/lib/guards.js");
@@ -257,8 +257,8 @@ function render(S) {
     const confidence = r.voided ? "Void" : r.confidence;
     return { d, r, subtitle, grades, summary, signals, sections, confidence, corrections };
   `;
-  const out = new Function("COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", "createGuards", "guardVal", "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE", body)(
-    COLORS, MECH, MECH_ORDER, MECH_INITIAL, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink, createGuards, guardVal, gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE);
+  const out = new Function("COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", "createGuards", "guardVal", "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE", "benchmark", body)(
+    COLORS, MECH, MECH_ORDER, MECH_INITIAL, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink, createGuards, guardVal, gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE, benchmark);
   out.sections = [confidenceSection(out.grades, out.confidence), ...out.sections];
   return out;
 }
@@ -452,12 +452,12 @@ for (const [k, doc] of Object.entries(DOCS)) {
 console.log("\n8. cost basis and the frontline band");
 for (const [k, doc] of Object.entries(DOCS)) {
   const ed = itemsOf(doc, "Evidence Detail");
-  A(`${k}: the evidence detail states the cost basis against the 40-60 band`, ed.includes("40-60% frontline band") || ed.includes("frontline band cannot test it"));
+  A(`${k}: the evidence detail states the cost basis against the 40 to 60 planning band`, ed.includes("40 to 60% frontline planning band") || ed.includes("frontline planning band cannot test it"));
   A(`${k}: the band figures printed are the engine's band figures`, doc.r.salaryUnknown || (ed.includes(money(doc.r.bandLo)) && ed.includes(money(doc.r.bandHi))));
   A(`${k}: the printed percentage of salary matches the engine`, doc.r.salaryUnknown || ed.includes(`${Math.round(doc.r.pctSalary)}% of salary`));
   A(`${k}: the planning range printed matches the engine`, doc.r.salaryUnknown || (ed.includes(money(doc.r.allInLow)) && ed.includes(money(doc.r.allInHigh))));
   A(`${k}: the in-band verdict printed agrees with the engine`, doc.r.salaryUnknown || ed.includes(doc.r.guardrailOk ? "Within the plausible range." : "Outside the plausible range."));
-  A(`${k}: the reference figure is disclosed as not salary-adjusted`, ed.includes("not salary-adjusted") || doc.r.salaryUnknown);
+  A(`${k}: no unsourced all-in reference figure is printed`, !/10-20K|10 to 20K|published contact-center/.test(allText(doc)));
 }
 const Z = render({ label: "zero salary", fromLink: false, mut: () => ({ avgSalary: 0, evidence: "finance", mech: "vendor" }) });
 A("zero salary: the document says the band cannot test the result", itemsOf(Z, "Evidence Detail").includes("cannot test it"));

@@ -17,10 +17,10 @@
  */
 import { readFileSync } from "fs";
 
-let COLORS, MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards, guardVal;
+let COLORS, benchmark, MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards, guardVal;
 let gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE;
 try {
-  ({ COLORS } = await import("./src/lib/benchmarks.js"));
+  ({ COLORS, benchmark } = await import("./src/lib/benchmarks.js"));
   ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = await import("./src/lib/mech.js"));
   ({ createGuards, guardVal } = await import("./src/lib/guards.js"));
   ({ gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE } = await import("./src/lib/confidence.js"));
@@ -47,9 +47,9 @@ try {
   ({ compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS,
     EVIDENCE_OPTS, EVIDENCE_GRADE, n, fmtK, fmt$, clone, TOOL_ID, ROUTE } = new Function(
     "COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "createGuards", "guardVal",
-    "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE",
+    "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE", "benchmark",
     region + "\nreturn { compute, DEFAULTS, BASE, MECH_OPTS, LEGACY_MECH, BACKFILL_OPTS, INTENT_OPTS, VACANCY_OPTS, EVIDENCE_OPTS, EVIDENCE_GRADE, n, fmtK, fmt$, clone, TOOL_ID, ROUTE };"
-  )(COLORS, MECH, MECH_ORDER, MECH_INITIAL, createGuards, guardVal, gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE));
+  )(COLORS, MECH, MECH_ORDER, MECH_INITIAL, createGuards, guardVal, gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE, benchmark));
 } catch (e) {
   console.error("BLOCKER: the engine region did not evaluate. The marker region has");
   console.error("picked up code it cannot parse, or lost a dependency it closes over.");
@@ -73,25 +73,32 @@ A("engine region contains no bare Math.max floor on an input", !/Math\.max\(1,\s
 const D = () => clone(DEFAULTS.d);
 const m = (o) => ({ ...D(), ...o });
 const base = compute(D());
+/* The dollar fixture predates the registry defaults. It pins the arithmetic at the inputs it
+   was verified on ($38,000 salary, 28% load); the opening case now reads the shared BLS wage
+   and the shared benefits load (J10, J11), checked below. */
+const fixture = compute(m({ avgSalary: 38000, benefitsLoadPct: 28 }));
 
 /* ---- 2. the shipped default scenario ---- */
 console.log("\n2. shipped defaults");
 A("200 agents at 35% gives 70 departures", base.departures === 70);
 A("all departures are refilled at 100% backfill", base.hires === 70 && base.unbackfilled === 0);
-A("cash per departure is $10,711.69", near(base.cashPerDeparture, 10711.692307692309));
-A("capacity per departure is $5,507.54", near(base.capacityPerDeparture, 5507.538461538462));
-A("all-in per departure is $16,219.23", near(base.allInPerDeparture, 16219.23076923077));
-A("all-in is 42.68% of salary", near(base.pctSalary, 42.68218623481781));
-A("annual replacement burden is $1,135,346.15", near(base.annualReplBurden, 1135346.153846154));
-A("annual cash burden is $749,818.46", near(base.annualCashBurden, 749818.4615384616));
+A("fixture: cash per departure is $10,711.69", near(fixture.cashPerDeparture, 10711.692307692309));
+A("capacity per departure is $5,507.54", near(fixture.capacityPerDeparture, 5507.538461538462));
+A("all-in per departure is $16,219.23", near(fixture.allInPerDeparture, 16219.23076923077));
+A("all-in is 42.68% of salary", near(fixture.pctSalary, 42.68218623481781));
+A("annual replacement burden is $1,135,346.15", near(fixture.annualReplBurden, 1135346.153846154));
+A("annual cash burden is $749,818.46", near(fixture.annualCashBurden, 749818.4615384616));
 A("early washouts are 18 of 70 hires", base.earlyWashouts === 18);
-A("early-washout waste is $169,133.54", near(base.earlyWaste, 169133.53846153847));
+A("early-washout waste is $169,133.54", near(fixture.earlyWaste, 169133.53846153847));
 A("no inputs required correction on the shipped defaults", base.guards.length === 0);
+A("the opening salary is the shared BLS wage over the 2,080 hour year", DEFAULTS.d.avgSalary === Math.round(benchmark("market.wage.agent") * benchmark("time.hours.year")) && DEFAULTS.d.avgSalary === 42827);
+A("the opening benefits load is the shared load, and the overtime premium the FLSA minimum", DEFAULTS.d.benefitsLoadPct === Math.round((benchmark("load.benefits") - 1) * 100) && DEFAULTS.d.overtimePremium === 50);
+A("every other opening value reads the registry", ["agents", "attritionRate", "earlyWashoutRate", "recruitingCost", "trainingWeeks", "rampMonths", "vacancyDays"].every((k) => /at\("default\./.test(region)) && benchmark("attrition.default.agents") === DEFAULTS.d.agents);
 A("no invariant fails on the shipped defaults", base.invariants.length === 0);
 A("shipped defaults are not void", base.voided === false);
 A("shipped defaults carry no hard flag", base.hardFlag === false);
 A("shipped default mechanism is the defensible default, not headcount reduction", base.mechKey === "hiring");
-A("shipped defaults sit inside the 40-60 frontline band", base.inBand === true && base.guardrailOk === true);
+A("shipped defaults sit inside the 40 to 60 frontline planning band", base.inBand === true && base.guardrailOk === true);
 A("uncertainty band on estimated inputs is plus or minus 25 percent", near(base.uncPct, 0.25));
 A("the planning range brackets the point estimate", base.allInLow < base.allInPerDeparture && base.allInHigh > base.allInPerDeparture);
 A("the annual range brackets the annual point estimate", base.annLow < base.annualReplBurden && base.annHigh > base.annualReplBurden);
@@ -348,8 +355,8 @@ A("a zero salary does not print a false percentage claim", compute(m({ avgSalary
 /* Every check used to look upward only, so a negative cost basis raised nothing. */
 console.log("\n10. implausibility checks");
 A("a cost basis above 100% of salary is flagged", compute(m({ rampMonths: 30 })).flags.some(f => /exceeds 100%/.test(f.t)));
-A("a cost basis above the band is flagged", compute(m({ rampMonths: 10 })).flags.some(f => /above the typical frontline/.test(f.t)));
-A("a cost basis below the band is flagged", compute(m({ trainingWeeks: 1, rampMonths: 0, nestingWeeks: 0 })).flags.some(f => /below the 40-60%/.test(f.t)));
+A("a cost basis above the band is flagged", compute(m({ rampMonths: 10 })).flags.some(f => /above the 40 to 60% frontline planning band/.test(f.t)));
+A("a cost basis below the band is flagged", compute(m({ trainingWeeks: 1, rampMonths: 0, nestingWeeks: 0 })).flags.some(f => /below the 40 to 60% frontline planning band/.test(f.t)));
 A("attrition under 10 percent is flagged as a denominator question", compute(m({ attritionRate: 6 })).flags.some(f => /under 10%/.test(f.t)));
 A("attrition over 50 percent is flagged as severe churn", compute(m({ attritionRate: 62 })).flags.some(f => /over 50%/.test(f.t)));
 A("attrition over 100 percent is flagged as a probable denominator error", compute(m({ attritionRate: 180 })).flags.some(f => /denominator error/.test(f.t)));
