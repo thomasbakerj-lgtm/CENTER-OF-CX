@@ -903,12 +903,6 @@ export default function StaffingCalculator() {
                     { action: "Model AHT reduction", detail: `A ${Math.round(AHT_STEP * 100)}% AHT cut (${aht}s → ${Math.round(aht * (1 - AHT_STEP))}s) lowers base staffing from ${r.raw} to ${ahtDown.raw} agents. Use AHT Decomposition to find reducible components without hurting quality.`, priority: "medium" },
                     { action: "Build spike contingency", detail: `Plan for +${Math.round((SPIKE - 1) * 100)}% volume. Identify ${spike.sched - r.sched} agents activatable via overtime, cross-training, or BPO overflow.` },
                   ]},
-                  { title: "Next Steps", type: "next", items: [
-                    { tool: "Shrinkage Planner", reason: "Break shrinkage into categories and find what drives the gap", href: "/tools/shrinkage-planner" },
-                    { tool: "AHT Decomposition", reason: "Identify which handle-time components are reducible", href: "/tools/aht-decomposition" },
-                    { tool: "Occupancy Risk Simulator", reason: "Stress-test how fragile this plan is to a forecast miss", href: "/tools/occupancy-risk" },
-                    { tool: "Attrition Cost Calculator", reason: "Quantify the cost if occupancy-driven burnout raises turnover", href: "/tools/attrition-cost" },
-                  ]},
                   { title: "Methodology", type: "text", content: "Erlang C via the numerically stable Erlang B recursion. Assumes random Poisson arrivals and exponential handle times. It models one contact per agent at a time, so it applies to voice and not to concurrent digital channels. Erlang C assumes infinite patience (no abandonment) and tends to over-staff; the optional patience input estimates abandonment and an Erlang A-adjusted requirement. The optional occupancy cap staffs to the greater of meeting service level and holding occupancy at or below the ceiling. Shrinkage is applied post-calculation to convert base agents to scheduled FTE. Every formula, constant and a worked example are published at contactcentercx.com/methodology/staffing-calculator." + (guards.length ? ` INPUTS CORRECTED: ${guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : "") },
                 ]}
               />

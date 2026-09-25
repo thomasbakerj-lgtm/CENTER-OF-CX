@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { toolAt } from "./src/lib/journey";
 import ReportActions from "./ReportActions";
 import { METHOD_VERSIONS, methodStamp } from "./src/lib/methodVersions";
 import NumField from "./src/lib/NumField";
@@ -698,13 +699,6 @@ export default function AIDeflectionRealityCheck() {
     ...(R.flags.length ? [{ title: "Integrity Flags (" + R.flags.length + ")", type: "findings", items: R.flags }] : []),
     { title: "Analyst Read", type: "findings", items: analyst },
     { title: "Methodology", type: "text", content: `Three rates, three denominators, never interchanged. Coverage is AI-eligible demand over total demand. Apparent resolution is the vendor's headline, measured over AI-involved conversations. Net automation is durable resolutions over total demand, and it is the only one that maps to a budget. Durable resolutions, meaning apparent resolutions that do not recur, are valued at marginal cost, the variable handle-time labor that resolution actually frees, not at the fully loaded cost the vendor uses, because fixed platform, facilities, and supervision cost do not fall with volume. Loaded cost therefore moves the vendor's claim and moves net savings by exactly zero. Freed handle time is capacity, not cash, until an action converts it. Realized capacity is scaled by the selected capacity action, ${MECH[R.mechKey].label} at ${Math.round(MECH[R.mechKey].f * 100)}%, and "Not selected" realizes $0. Operating cost and the escalation premium are cash out the door and are never scaled by that action, which is why no action still shows a loss rather than a zero. The escalation premium applies to every post-bot human contact, both immediate escalations and false-resolution returns. Valuing resolution at 100% is headcount reduction, the assumption most vendor ROI slides make silently. Break-even thresholds are solved in closed form and verified against the engine's own zero crossings. The bridge reconciles exactly to net monthly savings. Every rate input is clamped to its physical domain before any arithmetic runs, so this engine cannot produce a net automation rate outside 0 to 100%, and cannot hand the rest of the suite a value that would be silently dropped or rescaled. Confidence is two-axis: evidence for what attests to the resolution rate and the cost basis, realization for whether finance can book the result. The headline is the weaker of the two. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/ai-deflection. Benchmark defaults, all editable: ${SOURCES.eligible} ${SOURCES.resolution} ${SOURCES.repeat} ${SOURCES.escalation}` },
-    { title: "Next Steps", type: "next", items: [
-      ...(R.margWasDefaulted ? [{ tool: "Cost per Contact", reason: "Replace the assumed marginal cost basis. It drives every dollar on this page", href: "/tools/cost-per-contact" }] : []),
-      { tool: R.verdictRouteLabel, reason: R.verdictWhy, href: R.verdictRoute },
-      { tool: "Channel Shift Economics", reason: "Size the human pool using the bot resolution rate published above", href: "/tools/channel-shift" },
-      { tool: "Staffing Calculator", reason: "Convert avoided workload into a real schedule reduction using Erlang C, because volume off the queue is not headcount off the roster", href: "/tools/staffing-calculator" },
-      { tool: "Contract Risk Scanner", reason: "Test whether the resolution floor is contractually enforceable", href: "/tools/contract-risk" },
-    ]},
   ];
 
   return (
@@ -984,6 +978,7 @@ export default function AIDeflectionRealityCheck() {
           </div>
 
           <ReportActions
+            next={R.verdictRoute ? { to: toolAt(R.verdictRoute), because: R.verdictWhy } : null}
             toolId={TOOL_ID}
             toolName="AI Deflection Reality Check"
             subtitle={`${R.verdict} · ${G.confidence} · ${R.netAutomationRate.toFixed(1)}% net automation of total vs ${R.rp}% resolution claimed · net ${fmtK(R.netSavings)}/mo`}

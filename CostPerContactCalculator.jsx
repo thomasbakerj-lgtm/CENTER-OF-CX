@@ -665,11 +665,6 @@ export default function CostPerContactCalculator() {
               ...(r.flags.length ? [{ title: "Integrity Checks", type: "findings", items: r.flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
               { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mechKey].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/cost-per-contact. Report grade: ${confidence}, ${gradeWhy}${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at ${Math.round(MARG_SHARE * 100)}% of loaded (${money(r.marg)}).` : ""}` },
-              { title: "Next Steps", type: "next", items: [
-                { tool: "FCR Leakage Diagnostic", reason: "Decompose repeat demand by root cause and friction type", href: "/tools/fcr-leakage" },
-                { tool: "Channel Shift Economics", reason: "Move resolvable volume to cheaper channels by issue type", href: "/tools/channel-shift" },
-                { tool: "Business Case Builder", reason: "Add implementation cost, ramp, and payback to realizable savings", href: "/tools/business-case" },
-              ]},
             ]}
           />
 

@@ -577,8 +577,9 @@ section("next steps: the journey graph is the only source");
   ok("every next step carries a reason", edges.every((e) => String(e.why || "").length > 20));
   ok("the decision node is reachable and comes last", edges[edges.length - 1].to === J.DECISION_NODE);
 
-  ok("step 5: the page CTAs render from nextFor", /\{nextFor\(TOOL_ID\)\.map\(\(c, i\) =>/.test(SRC));
-  ok("step 5: the PDF next steps render from nextFor", /items: nextFor\(TOOL_ID\)\.map\(\(e\) => \(\{ tool: e\.name, reason: e\.why, href: e\.href \}\)\)/.test(SRC));
+  /* P2 task 8: one next step per result, rendered by ReportActions on the page and in the PDF from the graph. */
+  ok("step 5: the tool lists no next steps of its own; ReportActions renders the one step", !/nextFor\(/.test(SRC) && !/type: "next"/.test(SRC) && !/What to test next/.test(SRC));
+  ok("step 5: the one step is the graph's first edge", J.nextDiagnostic("tco-calculator").to === "license-gap");
   ok("step 5: no hardcoded tool route survives in the component",
     !/href: "\/tools\/license-gap"/.test(SRC) && !/href: "\/tools\/ai-deflection"/.test(SRC) && !/href: "\/tools\/business-case"/.test(SRC));
   ok("step 5: no hardcoded next-step label survives",

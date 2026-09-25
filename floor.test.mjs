@@ -43,6 +43,7 @@ Object.defineProperty(globalThis, "navigator", { value: { userAgent: "node" }, c
 
 const React = require("react");
 const { renderToString } = require("react-dom/server");
+const JOURNEYMOD = await import("./src/lib/journey.js");
 
 /* ReportActions is replaced by a probe that prints everything the PDF and the
    review request would carry. The PDF content is otherwise built only on click,
@@ -51,13 +52,15 @@ const { renderToString } = require("react-dom/server");
    undefined survive to the text check instead of vanishing inside JSON. A field
    whose value is undefined is an absent optional field and is skipped; the word
    inside a string is still caught. */
-const PROBE = `
+const PROBE = `import { withNextStep } from ${JSON.stringify(process.cwd() + "/src/lib/journey.js")};
+
 import React from "react";
 const leaf = (v) => v === null ? "null" : typeof v === "object" ? Object.values(v).filter((x) => x !== undefined).map(leaf).join(" | ") : String(v);
 export default function ReportActions(p) {
+  globalThis.__NEXT = { toolId: p.toolId, steps: withNextStep(p.toolId, p.sections || [], p.next).filter((s) => s.type === "next") };
   return React.createElement("div", { "data-probe": "report" },
     "PROBE request a review ",
-    leaf({ toolName: p.toolName, subtitle: p.subtitle, summary: p.summary || [], sections: p.sections || [] }));
+    leaf({ toolName: p.toolName, subtitle: p.subtitle, summary: p.summary || [], sections: withNextStep(p.toolId, p.sections || [], p.next) }));
 }`;
 const probePlugin = { name: "report-probe", setup(b) {
   b.onResolve({ filter: /^\.\/ReportActions$/ }, () => ({ path: "probe", namespace: "probe" }));
@@ -166,6 +169,10 @@ for (const t of TOOLS) {
   ok(`${tag} sample render does not throw${sample.error ? " (" + sample.error + ")" : ""}`, !sample.error);
   if (!sample.error) {
     ok(`${tag} sample render shows the result and its actions without a gate`, /request a review/i.test(sample.text));
+    /* P2 task 8: the report carries exactly one next step, an edge of this tool in the journey graph. */
+    const N = globalThis.__NEXT || { steps: [] };
+    const edges = (JOURNEYMOD.JOURNEY[N.toolId] || { next: [] }).next.map((e) => JOURNEYMOD.JOURNEY[e.to] && JOURNEYMOD.JOURNEY[e.to].route);
+    ok(`${tag} sample render carries exactly one next step, an edge of its journey node`, N.steps.length === 1 && N.steps[0].items.length === 1 && edges.includes(N.steps[0].items[0].href));
     ok(`${tag} sample render prints no NaN, Infinity or undefined [${badAt(sample.text)}]`, !BAD.test(sample.text));
     ok(`${tag} sample render has exactly one h1 (${sample.h1})`, sample.h1 === 1);
     ok(`${tag} sample render prints no float noise [${noiseAt(sample.text)}]`, !NOISE.test(sample.text));

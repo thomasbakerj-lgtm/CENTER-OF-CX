@@ -26,10 +26,13 @@ Object.defineProperty(globalThis, "navigator", { value: { userAgent: "node" }, c
 const React = require("react");
 const { renderToString } = require("react-dom/server");
 
+/* The probe composes the PDF sections the way ReportActions does (withNextStep), so the checks below read what the
+   reader gets, the one next step included. */
 const PROBE = `import React from "react";
-export default function ReportActions(p) { globalThis.__REPORT = p; return React.createElement("div", null, "probe"); }`;
+import { withNextStep } from ${JSON.stringify(process.cwd() + "/src/lib/journey.js")};
+export default function ReportActions(p) { globalThis.__REPORT = { ...p, sections: withNextStep(p.toolId, p.sections, p.next) }; return React.createElement("div", null, "probe"); }`;
 const r = await build({ entryPoints: ["./ForecastAccuracyTracker.jsx"], bundle: true, write: false, format: "cjs", platform: "node", jsx: "automatic", loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent",
-  plugins: [{ name: "probe", setup(b) { b.onResolve({ filter: /^\.\/ReportActions$/ }, () => ({ path: "p", namespace: "probe" })); b.onLoad({ filter: /.*/, namespace: "probe" }, () => ({ contents: PROBE, loader: "jsx" })); } }] });
+  plugins: [{ name: "probe", setup(b) { b.onResolve({ filter: /^\.\/ReportActions$/ }, () => ({ path: "p", namespace: "probe" })); b.onLoad({ filter: /.*/, namespace: "probe" }, () => ({ contents: PROBE, loader: "jsx", resolveDir: process.cwd() })); } }] });
 const mod = { exports: {} };
 new Function("module", "exports", "require", r.outputFiles[0].text)(mod, mod.exports, require);
 const { DEFAULTS, FC_PARAMS } = mod.exports;

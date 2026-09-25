@@ -11,7 +11,8 @@
  */
 
 import { readFileSync, readdirSync } from "node:fs";
-import { JOURNEY, PROVING_JOURNEY, DECISION_NODE, nextFor } from "./src/lib/journey.js";
+import { JOURNEY, PROVING_JOURNEY, DECISION_NODE, nextFor, nextDiagnostic, nextSection, withNextStep, toolAt } from "./src/lib/journey.js";
+import { RUBRICS } from "./src/lib/rubrics/index.js";
 
 let pass = 0, fail = 0;
 const failures = [];
@@ -53,7 +54,8 @@ section("B. Edges are well formed and stay inside V3");
 const DASH = /[\u2013\u2014]/;
 for (const id of ids) {
   const edges = JOURNEY[id].next;
-  ok(`B0  ${id}: one to three edges`, Array.isArray(edges) && edges.length >= 1 && edges.length <= 3);
+  /* Edges are the routes a result can take; only one renders (section E), so a node may carry more than three. */
+  ok(`B0  ${id}: at least one edge`, Array.isArray(edges) && edges.length >= 1);
   ok(`B1  ${id}: no duplicate targets`, new Set(edges.map((e) => e.to)).size === edges.length);
   for (const e of edges) {
     ok(`B2  ${id} -> ${e.to}: target is a V3 node`, !!JOURNEY[e.to]);
@@ -92,13 +94,53 @@ for (const id of ids) {
 /* ------------------------------------------------------------ D. source */
 section("D. ReportActions renders the graph and tracks every click");
 const RA = readFileSync("ReportActions.jsx", "utf8");
-ok("D0  imports nextFor from src/lib/journey", /import\s*\{\s*nextFor\s*\}\s*from\s*"\.\/src\/lib\/journey"/.test(RA));
-ok("D1  renders nextFor(toolId)", /nextFor\(toolId\)\.map/.test(RA));
-ok("D2  every rendered edge fires trackTool.nextStep(toolId, e.to)", /trackTool\.nextStep\(toolId,\s*e\.to\)/.test(RA));
-ok("D3  href comes from the graph, never a literal", /href=\{e\.href\}/.test(RA));
+ok("D0  imports nextDiagnostic and withNextStep from src/lib/journey", /import\s*\{\s*nextDiagnostic,\s*withNextStep\s*\}\s*from\s*"\.\/src\/lib\/journey"/.test(RA));
+ok("D1  renders one step, nextDiagnostic(toolId, next)", /const step = nextDiagnostic\(toolId, next\)/.test(RA) && !/nextFor\(toolId\)\.map/.test(RA));
+ok("D2  the rendered step fires trackTool.nextStep(toolId, step.to)", /trackTool\.nextStep\(toolId,\s*step\.to\)/.test(RA));
+ok("D3  href comes from the graph, never a literal", /href=\{step\.href\}/.test(RA));
 const block = RA.slice(RA.indexOf("run this next"), RA.indexOf("request review */"));
 ok("D4  the card holds no hardcoded tool route", !/\/tools\//.test(block));
 ok("D5  the card sits before the review card", RA.indexOf("Run this next") > 0 && RA.indexOf("Run this next") < RA.indexOf("Have someone read it"));
+ok("D6  the PDF carries the same step (withNextStep on the exported sections)", /const ownSections = withNextStep\(toolId, sections, next\)/.test(RA));
+
+/* ------------------------------------------------------ E. NextDiagnostic */
+/* P2 task 8 (tracker 3-02): one next step per result, from this graph only, on the page and in the PDF. */
+section("E. One next diagnostic per result, and it is an edge of the graph");
+{
+  /* Every choice an engine can make is an edge of its tool, so no result names a tool the graph does not route to. */
+  const choices = {};
+  for (const [id, r] of Object.entries(RUBRICS)) {
+    const t = new Set();
+    for (const d of r.dims || r.areas || []) if (d.next) t.add(d.next);
+    if (r.next) for (const v of Object.values(r.next)) if (typeof v === "string") t.add(v);
+    choices[id] = t;
+  }
+  const AID = readFileSync("AIDeflectionRealityCheck.jsx", "utf8");
+  choices["ai-deflection"] = new Set([...AID.matchAll(/verdictRoute = "(\/tools\/[a-z-]+)"/g)].map((m) => toolAt(m[1])));
+  choices["attrition-cost"] = new Set(["occupancy-risk"]);
+  for (const [id, set] of Object.entries(choices)) {
+    if (!set.size) continue;
+    const edges = new Set((JOURNEY[id] ? JOURNEY[id].next : []).map((e) => e.to));
+    const missing = [...set].filter((t) => !edges.has(t));
+    ok(`E1  ${id}: every next tool its engine can choose is an edge [${missing.join(", ")}]`, !!JOURNEY[id] && missing.length === 0);
+  }
+  for (const id of ids) {
+    const n = nextDiagnostic(id);
+    ok(`E2  ${id}: with no choice, one step, the first edge`, !!n && n.to === JOURNEY[id].next[0].to && typeof n.href === "string" && n.why.length > 10);
+    for (const e of JOURNEY[id].next) ok(`E3  ${id}: a choice of ${e.to} is honoured`, nextDiagnostic(id, { to: e.to }).to === e.to && nextDiagnostic(id, e.to).to === e.to);
+    ok(`E4  ${id}: a choice outside the graph falls back to the first edge`, nextDiagnostic(id, "not-a-tool").to === JOURNEY[id].next[0].to);
+  }
+  ok("E5  the result's reason replaces the edge's", nextDiagnostic("cx-maturity", { to: "qa-scorecard", because: "Operations is your lowest-scoring dimension." }).why === "Operations is your lowest-scoring dimension.");
+  const composed = withNextStep("cost-per-contact", [{ title: "A", type: "text" }, { title: "Old", type: "next", items: [1, 2, 3] }]);
+  ok("E6  the PDF keeps the tool's sections, drops any next list, and adds exactly one step", composed.length === 2 && composed.filter((x) => x.type === "next").length === 1 && composed[1].items.length === 1 && composed[1].title === "Next Step");
+  ok("E7  an unknown tool gets no step", nextDiagnostic("not-a-tool") === null && nextSection("not-a-tool") === null);
+  const tools = readdirSync(".").filter((f) => f.endsWith(".jsx") && /<ReportActions\b/.test(readFileSync(f, "utf8")));
+  const own = tools.filter((f) => /type: "next"/.test(readFileSync(f, "utf8")));
+  ok(`E8  no tool authors its own next-step list (${tools.length} tools) [${own.join(", ")}]`, tools.length >= 25 && own.length === 0);
+  const engineTools = ["CXMaturity.jsx", "AIReadiness.jsx", "TransformationReadiness.jsx", "CXITAlignment.jsx", "GovernanceModel.jsx", "PlatformDecisionMatrix.jsx", "ContractRiskScanner.jsx", "RFPRequirementBuilder.jsx", "QAScorecardBuilder.jsx", "AIDeflectionRealityCheck.jsx", "AttritionCostCalculator.jsx"];
+  const noChoice = engineTools.filter((f) => !/<ReportActions[\s\S]{0,80}next=\{/.test(readFileSync(f, "utf8")));
+  ok(`E9  every tool whose result chooses a step passes that choice [${noChoice.join(", ")}]`, noChoice.length === 0);
+}
 
 /* ------------------------------------------------------------ report */
 if (failures.length) {

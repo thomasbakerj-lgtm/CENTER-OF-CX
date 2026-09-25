@@ -188,10 +188,6 @@ export default function ScheduleAdherenceCalculator() {
                 "Erlang C assumes no caller abandons, so the service level it gives sits below what abandonment would produce.",
               ]},
               { title: "Method", type: "text", content: "Erlang C through the Erlang B recurrence gives service level and speed of answer for the agents on the queue at each adherence. Agents needed on the queue are the fewest that meet the target; agents to schedule are that number divided by adherence, rounded up; overtime prices any agents beyond the roster for the open hours and days entered. Published at contactcentercx.com" + METHOD + "." },
-              { title: "Next Steps", type: "next", items: [
-                { tool: "Staffing Calculator", href: "/tools/staffing-calculator", reason: "Size the roster with shrinkage and an occupancy ceiling" },
-                { tool: "Occupancy Risk Simulator", href: "/tools/occupancy-risk", reason: "Check the occupancy that adherence loss creates" },
-              ]},
             ]}
           />
         </div>

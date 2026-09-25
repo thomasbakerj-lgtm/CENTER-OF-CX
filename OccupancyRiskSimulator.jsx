@@ -204,10 +204,6 @@ export default function OccupancyRiskSimulator() {
               { title: "Occupancy Ladder", type: "table", rows: R.ladder.map((l) => [l.occ + "% (" + BAND[l.band].label + ")", l.agents + " agents, " + l.attrition.toFixed(0) + "% attrition, " + k(l.turnoverCost) + "/yr turnover"]) },
               { title: "Planning Assumptions", type: "findings", items: heuristics.map((e) => e.value + " " + e.unit + ": heuristic, no published source.").concat(["Paid hours " + OCC_PARAMS.hoursWeek + " a week and " + OCC_PARAMS.hoursYear.toLocaleString("en-US") + " a year: the full-time definition.", "Benefits load " + OCC_PARAMS.load + "x, the platform's shared heuristic.", "Hourly rate " + (wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024." : "entered by you.")]) },
               { title: "Method", type: "text", content: "Occupancy is offered load in Erlangs (calls per hour times AHT in hours) divided by agents. Bands are the platform's shared occupancy bands. Attrition multipliers are labelled planning heuristics. Published at contactcentercx.com" + METHOD + "." },
-              { title: "Next Steps", type: "next", items: [
-                { tool: "Staffing Calculator", href: "/tools/staffing-calculator", reason: "Staff to your target occupancy and your service level together" },
-                { tool: "Attrition Cost Calculator", href: "/tools/attrition-cost", reason: "Price the turnover in full, beyond this planning model" },
-              ]},
             ]}
           />
         </div>

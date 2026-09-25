@@ -129,6 +129,9 @@ const subtitleExpr = balanced(SRC, subtitleAt + 9, "{", "}").text.slice(1, -1);
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
+/* P2 task 8: the report adds one next step from the journey graph (withNextStep), as ReportActions does. */
+const nextExpr = prop("next") || "null";
+globalThis.__withNextStep = (await import("./src/lib/journey.js")).withNextStep;
 const toolNameM = SRC.match(/toolName="([^"]+)"/);
 
 console.log("\n0. payload slices out of the shipped JSX");
@@ -213,7 +216,7 @@ function render(S) {
       subtitle: ${subtitleExpr},
       summary: ${summaryExpr},
       signals: ${signalsExpr},
-      sections: ${sectionsExpr},
+      sections: globalThis.__withNextStep("license-gap", ${sectionsExpr}, ${nextExpr}),
     };`;
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
     "BORDER", "GREEN", "AMBER", "RED", "TEAL", "severityBucket", "createGuards", "benchmark", "emitGrades", "voidResult", "MUT", "FROM_LINK", "PULLED_FROM", "TOOL_NAME", preamble);
@@ -409,8 +412,8 @@ for (const [k, R] of Object.entries(results)) {
 
   /* --- the analyst read and next steps --- */
   A(`${k}: the analyst read reaches the document`, !!sect(R, "Analyst Read") && sect(R, "Analyst Read").items.length === r.analyst.length);
-  A(`${k}: the next steps block offers three routes`, sect(R, "Next Steps").items.length === 3);
-  A(`${k}: every next step carries a working route`, sect(R, "Next Steps").items.every(i => /^\/tools\//.test(i.href)));
+  A(`${k}: the next step block offers one route, from the journey graph`, sect(R, "Next Step").items.length === 1);
+  A(`${k}: every next step carries a working route`, sect(R, "Next Step").items.every(i => /^\/tools\//.test(i.href)));
   A(`${k}: the methodology states that shelfware is not savings`,
     sect(R, "Methodology").content.indexOf("never recoverable savings") >= 0);
   A(`${k}: the methodology states that the platform seat is not a vendor seat price`,

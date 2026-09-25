@@ -141,6 +141,9 @@ const subtitleExpr = balanced(SRC, subtitleAt + 9, "{", "}").text.slice(1, -1);
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
+/* P2 task 8: the report adds one next step from the journey graph (withNextStep), as ReportActions does. */
+const nextExpr = prop("next") || "null";
+globalThis.__withNextStep = (await import("./src/lib/journey.js")).withNextStep;
 const toolNameM = SRC.match(/toolName="([^"]+)"/);
 
 console.log("\n0. payload slices out of the shipped JSX");
@@ -281,7 +284,7 @@ function render(S) {
       subtitle: ${subtitleExpr},
       summary: ${summaryExpr},
       signals: ${signalsExpr},
-      sections: ${sectionsExpr},
+      sections: globalThis.__withNextStep("business-case-builder", ${sectionsExpr}, ${nextExpr}),
     };`;
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
     "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MECH", "MECH_ORDER", "MECH_FALLBACK",
@@ -465,7 +468,7 @@ console.log(`\n${"=".repeat(78)}\nVOID: a case that contradicts itself claims no
   A("V: the document claims no grade outside the methodology", !/Directional|Planning-grade|Finance-grade/.test(claim));
   for (const t of ["Evidence and Findings", "Executive Summary", "Financial Summary", "Savings Breakdown", "Capacity and Cash", "Business-as-Usual Counterfactual", "Decision Read", "Key Assumptions"])
     A(`V: the ${t} section is withheld`, !sect(V, t));
-  A("V: next steps and methodology are still shown", !!sect(V, "Recommended Next Steps") && !!sect(V, "Methodology"));
+  A("V: next steps and methodology are still shown", !!sect(V, "Next Step") && !!sect(V, "Methodology"));
   A("V: the summary states the void", V.summary.some(x => /^Void/.test(String(x.value))));
   for (const p of ["severity", "returns_in_horizon", "breaks_even_ever", "thin_return", "negative_max_implementation", "displacement_led", "credit_before_go_live", "return_findings", "withheld_caps", "open_cost_items"])
     A(`V: the wire withholds ${p}, which reads a figure`, !(p in V.signals));

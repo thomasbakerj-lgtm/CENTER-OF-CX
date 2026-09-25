@@ -240,10 +240,6 @@ export default function AHTDecomposition() {
               { title: "Levers", type: "table", rows: R.levers.map((L) => [L.name + (L.on ? " (selected)" : " (not selected)"), `${leverLine(L)}: ${fmt(L.saved)} a contact, handle time ${fmt(L.newAHT)}${v.contacts > 0 ? `, ${hrs(L.hours)} agent hours a year` : ""}`]) },
               { title: "Planning Assumptions", type: "findings", items: assumptions },
               { title: "Method", type: "text", content: "Handle time is the sum of its six components. Each lever removes its share of the components it targets; selected levers combine multiplicatively on a shared component. Agent hours are seconds saved times contacts a month times 12, over 3,600. Published at contactcentercx.com" + METHOD + "." },
-              { title: "Next Steps", type: "next", items: [
-                { tool: "Staffing Calculator", href: "/tools/staffing-calculator", reason: "Turn the new handle time into agents at your service level" },
-                { tool: "Cost per Contact Calculator", href: "/tools/cost-per-contact", reason: "See what handle time does to cost per contact" },
-              ]},
             ]}
           />
         </div>

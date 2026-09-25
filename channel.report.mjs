@@ -167,6 +167,9 @@ const subtitleExpr = balanced(SRC, subtitleAt + 9, "{", "}").text.slice(1, -1);
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
+/* P2 task 8: the report adds one next step from the journey graph (withNextStep), as ReportActions does. */
+const nextExpr = prop("next") || "null";
+globalThis.__withNextStep = (await import("./src/lib/journey.js")).withNextStep;
 const toolNameM = SRC.match(/toolName="([^"]+)"/);
 
 console.log("\n0. payload slices out of the shipped JSX");
@@ -258,7 +261,7 @@ function render(S) {
       subtitle: \`${subtitleExpr.replace(/^`|`$/g, "")}\`,
       summary: ${summaryExpr},
       signals: ${signalsExpr},
-      sections: ${sectionsExpr},
+      sections: globalThis.__withNextStep("channel-shift", ${sectionsExpr}, ${nextExpr}),
     };`
     .replace(/\bD_IN\b/g, JSON.stringify(S.d))
     .replace(/\bMECH_KEY\b/g, JSON.stringify(S.mech))
@@ -315,7 +318,7 @@ console.log("\n1. structural contract");
 for (const k of Object.keys(SETS)) {
   const o = OUT[k];
   A(`${k}: the document carries all five permanent sections`,
-    ["Decision", "Volume Bridge", "Economics", "Analyst Read", "Methodology"].every(t => !!sec(o, t)) && !!sec(o, "Next Steps"));
+    ["Decision", "Volume Bridge", "Economics", "Analyst Read", "Methodology"].every(t => !!sec(o, t)) && !!sec(o, "Next Step"));
   A(`${k}: the adverse-selection section is present`, !!secStartingWith(o, "Adverse Selection"));
   A(`${k}: every section declares a renderable type`,
     o.sections.every(s => ["metrics", "table", "findings", "text", "next"].indexOf(s.type) >= 0));
@@ -328,7 +331,7 @@ for (const k of Object.keys(SETS)) {
   })());
   A(`${k}: no em-dash reaches the document`,
     (JSON.stringify(o.sections) + JSON.stringify(o.summary) + o.subtitle).indexOf(String.fromCharCode(0x2014)) < 0);
-  A(`${k}: the next-step links are absolute routes`, sec(o, "Next Steps").items.every(i => i.href.startsWith("/tools/")));
+  A(`${k}: the next-step links are absolute routes`, sec(o, "Next Step").items.every(i => i.href.startsWith("/tools/")));
   A(`${k}: the subtitle states the verdict and the grade`,
     o.subtitle.indexOf(o.verdict.label) >= 0 && o.subtitle.indexOf(o.grade) >= 0);
 }

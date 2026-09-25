@@ -8,7 +8,6 @@ import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
-import { nextFor } from "./src/lib/journey";
 import { createGuards } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 
@@ -971,7 +970,6 @@ export default function FCRLeakageDiagnostic() {
                 /* The edge set lives in src/lib/journey.js, the same graph the tracked
                    "Run this next" card renders, so the page and the PDF cannot name
                    different next steps. */
-                { title: "Next Steps", type: "next", items: nextFor(TOOL_ID).map((e) => ({ tool: e.name, reason: e.why, href: e.href })) },
               ]}
             />
 

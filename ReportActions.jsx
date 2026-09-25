@@ -4,7 +4,7 @@ import { scenarioLink, inputsMoved } from "./src/lib/scenarioUrl";
 import { FONT, TYPE } from "./src/lib/type";
 import { trackTool, track, EV } from "./src/lib/track";
 import { gradeConfidence, isVoid, isDual, AXES, AXIS_EXPLAINER } from "./src/lib/confidence";
-import { nextFor } from "./src/lib/journey";
+import { nextDiagnostic, withNextStep } from "./src/lib/journey";
 import { methodStamp } from "./src/lib/methodVersions";
 
 /**
@@ -217,7 +217,7 @@ function headlineOf(grades) {
 
 export default function ReportActions({
   toolId, toolName, subtitle, routePath,
-  state, defaults, confidence, grades = null, summary = [], signals = {}, sections = [],
+  state, defaults, confidence, grades = null, summary = [], signals = {}, sections = [], next = null,
 }) {
   const saved = useRef(readContact()).current;
 
@@ -295,7 +295,11 @@ export default function ReportActions({
 
   /* Prepended, not appended: a reader who stops after page one has still been told
      what the number is worth. Absent `grades`, the section list is untouched. */
-  const exportSections = grades ? [confidenceSection(grades, headline), ...sections] : sections;
+  /* One next step (tracker 3-02): the result's choice among the tool's journey edges, or its first edge. The page card
+     and the PDF section are the same step; a next-step section a tool passes is dropped so the two cannot differ. */
+  const step = nextDiagnostic(toolId, next);
+  const ownSections = withNextStep(toolId, sections, next);
+  const exportSections = grades ? [confidenceSection(grades, headline), ...ownSections] : ownSections;
   /* The published method this result was computed under, on the page and the PDF cover. */
   const stamp = methodStamp(toolId);
 
@@ -513,18 +517,16 @@ export default function ReportActions({
       {/* Tracker 3-01. The edge set lives in src/lib/journey.js, never here, so
           nine tools cannot drift into nine journeys again. Plain anchors: the
           click event goes out by sendBeacon, which survives the navigation. */}
-      {nextFor(toolId).length > 0 && (
+      {step && (
         <div style={card}>
           <h3 style={h3}>Run this next</h3>
-          <p style={sub}>Each result raises a sharper question. These are the diagnostics that answer it.</p>
-          {nextFor(toolId).map((e) => (
-            <a key={e.to} href={e.href}
-              onClick={() => { fireComplete(); trackTool.nextStep(toolId, e.to); }}
-              style={{ display: "block", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", marginBottom: 10, background: WARM, textDecoration: "none" }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 3 }}>{e.name} →</div>
-              <div style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5 }}>{e.why}</div>
-            </a>
-          ))}
+          <p style={sub}>Each result raises a sharper question. This is the diagnostic that answers it.</p>
+          <a key={step.to} href={step.href}
+            onClick={() => { fireComplete(); trackTool.nextStep(toolId, step.to); }}
+            style={{ display: "block", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", marginBottom: 10, background: WARM, textDecoration: "none" }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 3 }}>{step.name} →</div>
+            <div style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5 }}>{step.why}</div>
+          </a>
         </div>
       )}
 

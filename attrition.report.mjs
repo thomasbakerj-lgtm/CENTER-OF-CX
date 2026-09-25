@@ -136,6 +136,9 @@ const gradesExpr = prop("grades");
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
+/* P2 task 8: the report adds one next step from the journey graph (withNextStep), as ReportActions does. */
+const nextExpr = prop("next") || "null";
+globalThis.__withNextStep = (await import("./src/lib/journey.js")).withNextStep;
 const toolNameM = SRC.match(/toolName="([^"]+)"/);
 
 console.log("\n0. payload slices out of the shipped JSX");
@@ -166,8 +169,8 @@ A("the binding axis reaches instrumentation as a token", /bound_axis: boundAxis/
 A("a void result reports as Void rather than as an absent grade", /const eventGrade = voided \? "Void" : headline;/.test(RA));
 A("a void submission carries the invariant instead of a grade", /b\.append\("void_invariant"/.test(RA) && /b\.append\("confidence", "VOID"\)/.test(RA));
 A("grade defects reach the human reviewer", /b\.append\("grade_defect", d\)/.test(RA));
-A("the confidence section is prepended, not appended", /\[confidenceSection\(grades, headline\), \.\.\.sections\]/.test(RA));
-A("a tool without grades exports the untouched section list", /grades \? \[confidenceSection[\s\S]{0,60}: sections/.test(RA));
+A("the confidence section is prepended, not appended", /\[confidenceSection\(grades, headline\), \.\.\.ownSections\]/.test(RA));
+A("a tool without grades exports its own sections plus the one next step", /grades \? \[confidenceSection[\s\S]{0,60}: ownSections/.test(RA) && /const ownSections = withNextStep\(toolId, sections, next\)/.test(RA));
 A("an N/A axis is forced to state a reason", /No reason was given, which is itself a defect/.test(RA));
 A("the axes are exported to the lead payload as well as the PDF", /axis_\$\{a\}/.test(RA));
 A("ReportActions carries no em-dash", RA.indexOf(String.fromCharCode(0x2014)) < 0);
@@ -253,7 +256,7 @@ function render(S) {
     const grades = ${gradesExpr};
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
-    const sections = ${sectionsExpr};
+    const sections = globalThis.__withNextStep("attrition-cost", ${sectionsExpr}, ${nextExpr});
     const confidence = r.voided ? "Void" : r.confidence;
     return { d, r, subtitle, grades, summary, signals, sections, confidence, corrections };
   `;
@@ -299,8 +302,8 @@ for (const [k, doc] of Object.entries(DOCS)) {
   A(`${k}: the document mentions no undefined, NaN or Infinity anywhere`, !/undefined|NaN|Infinity/.test(allText(doc)));
   A(`${k}: the document contains no em-dash`, allText(doc).indexOf(String.fromCharCode(0x2014)) < 0);
   A(`${k}: every money figure in the document is well formed`, (allText(doc).match(MONEY) || []).every(t => /^-?\$[\d,]+(\.\d+)?[KM]?$/.test(t)));
-  A(`${k}: the Next Steps section routes onward`, sectionByTitle(doc, "Next Steps").items.length === 3);
-  A(`${k}: every next step carries a tool, a link and a reason`, sectionByTitle(doc, "Next Steps").items.every(i => i.tool && i.href && i.reason));
+  A(`${k}: the Next Step section routes onward, one step`, sectionByTitle(doc, "Next Step").items.length === 1);
+  A(`${k}: every next step carries a tool, a link and a reason`, sectionByTitle(doc, "Next Step").items.every(i => i.tool && i.href && i.reason));
   A(`${k}: the Methodology section is present`, !!sectionByTitle(doc, "Methodology"));
   A(`${k}: the Evidence Detail section is present`, !!sectionByTitle(doc, "Evidence Detail"));
 }
@@ -417,7 +420,7 @@ A("E routes the lost capacity to another tool rather than pricing it here", item
 A("E says explicitly that the value is not zeroed out as free", itemsOf(E, "Evidence Detail").includes("not zeroed out as free"));
 A("E repeats the routing in key findings", itemsOf(E, "Key Findings").includes("This is lost capacity, not zero cost"));
 A("E raises the routing as a flag, not only as prose", itemsOf(E, "Integrity Flags").includes("not replaced under forced under-staffing"));
-A("E points the reader at the tool that can price it", sectionByTitle(E, "Next Steps").items.some(i => /Occupancy/.test(i.tool)));
+A("E points the reader at the tool that can price it", sectionByTitle(E, "Next Step").items.some(i => /Occupancy/.test(i.tool)));
 A("A has no un-backfilled seats and says the full cycle applies", DOCS.A.r.unbackfilled === 0 && itemsOf(DOCS.A, "Key Findings").includes("All departures are refilled"));
 
 /* ---- 6. the mechanism is described consistently everywhere it appears ---- */
@@ -530,7 +533,7 @@ const sevVoid = render({ label: "voided export", fromLink: true, mut: () => ({ t
   A("a voided export names outputs in words, never by variable", !/\b(cashPerDeparture|allInPerDeparture|annualCashBurden|annualReplBurden|earlyWaste|pctSalary)\b/.test(vt));
   A("the page withholds every result block on a void", (SRC.match(/\{!r\.voided && \(<>/g) || []).length === 3);
   A("the page's band hint does not test a void result", /This result is \{r\.voided \? "void, so it is not tested against the band"/.test(SRC));
-  const keep = ["Export Void", "Inputs Corrected Before Calculation", "Methodology", "Next Steps"];
+  const keep = ["Export Void", "Inputs Corrected Before Calculation", "Methodology", "Next Step"];
   A("a voided export keeps only the notice, corrections, method and next steps",
     sevVoid.sections.slice(1).every((x) => keep.includes(x.title)) && sevVoid.sections.some((x) => x.title === "Export Void"));
   A("a voided export reports no figure in its summary", sevVoid.summary.length === 1 && !/\$/.test(sevVoid.summary[0].value));

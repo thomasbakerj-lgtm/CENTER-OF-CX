@@ -167,6 +167,9 @@ A("the shipped engineInput slices out of the JSX and reads sanitized numerics", 
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
+/* P2 task 8: the report adds one next step from the journey graph (withNextStep), as ReportActions does. */
+const nextExpr = prop("next") || "null";
+globalThis.__withNextStep = (await import("./src/lib/journey.js")).withNextStep;
 const subtitleAt = SRC.indexOf("subtitle={");
 const subtitleExpr = balanced(SRC, subtitleAt + 9, "{", "}").text.slice(1, -1);
 
@@ -235,7 +238,7 @@ function render(S) {
       subtitle: (${subtitleExpr}),
       summary: (${summaryExpr}),
       signals: (${signalsExpr}),
-      sections: (${sectionsExpr}),
+      sections: (globalThis.__withNextStep("fcr-leakage", ${sectionsExpr}, ${nextExpr})),
     };
   `;
 
@@ -370,8 +373,9 @@ function auditSet(key) {
   A(P() + "the headline is the minimum of the applicable axes",
     R.voided || R.confidence === CONF.gradeConfidence({ evidence: R.evidence, realization: R.realization, completeness: R.completeness }).headline);
   A(P() + "no document reaches Finance-grade", R.confidence !== "Finance-grade");
-  const nx = rep.sections.find((s) => s.title === "Next Steps");
-  A(P() + "Next Steps are the journey graph edges, in order", JSON.stringify(nx.items) === JSON.stringify(nextFor("fcr-leakage").map((e) => ({ tool: e.name, reason: e.why, href: e.href }))) && nx.items.length === 2);
+  const nx = rep.sections.find((s) => s.title === "Next Step");
+  const one = nextFor("fcr-leakage")[0];
+  A(P() + "the Next Step is the journey graph's first edge, one step", !!nx && nx.items.length === 1 && JSON.stringify(nx.items[0]) === JSON.stringify({ tool: one.name, href: one.href, reason: one.why }));
   A(P() + "confidence section carries every engine flag", R.flags.every((f) => confSec.items.indexOf(f) >= 0));
   A(P() + "signals report the APPLIED target, not the ask (" + rep.signals.target_fcr + " vs applied " + (R.target * 100).toFixed(1) + "%)",
     Math.abs(Number(String(rep.signals.target_fcr).replace("%", "")) - R.target * 100) < 0.06);

@@ -205,7 +205,7 @@ export default function GovernanceModel() {
             </div>
 
             <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-              <ReportActions toolId={TOOL_ID} toolName="Governance & Operating Model" subtitle={assignedCount + " of " + totalItems + " decisions have an accountable owner, " + R.findings.length + " findings"} routePath={ROUTE} state={{ primary, secondary }} defaults={DEFAULTS}
+              <ReportActions next={R.nextDiagnostic ? { to: R.nextDiagnostic.tool, because: next ? "Because " + next.why + "." : null } : null} toolId={TOOL_ID} toolName="Governance & Operating Model" subtitle={assignedCount + " of " + totalItems + " decisions have an accountable owner, " + R.findings.length + " findings"} routePath={ROUTE} state={{ primary, secondary }} defaults={DEFAULTS}
                 summary={[{ label: "Decisions with an owner", value: assignedCount + " of " + totalItems }, { label: "Critical findings", value: String(sevCount("critical")) }, { label: "High findings", value: String(sevCount("high")) }, { label: "Medium findings", value: String(sevCount("medium")) }]}
                 sections={[
                   { title: "Ownership by Function", type: "table", rows: R.counts.map(c => [c.label, c.primary + " accountable, " + c.secondary + " contributing"]) },
@@ -216,7 +216,6 @@ export default function GovernanceModel() {
                   ]},
                   { title: "Findings", type: "actions", items: R.findings.length ? R.findings.map(f => ({ action: f.action, detail: SEV_STYLE[f.severity].label + ". " + whyOf(f), priority: f.severity === "critical" || f.severity === "high" ? "high" : "medium" })) : [{ action: "None of the six rules raises a finding on this map.", detail: "Confirm the map with the function owners before relying on it.", priority: "medium" }] },
                   { title: "Ownership Map", type: "table", rows: R.items.map(x => [x.domainName + ": " + x.text, x.primary === null ? "No owner" : ROLES[x.primary] + (x.secondary !== null ? ", with " + ROLES[x.secondary] : "")]) },
-                  { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: "Because " + next.why + "." }] : [] },
                   { title: "What This Assessment Cannot Tell You", type: "findings", items: MODEL.limits },
                   { title: "Method", type: "text", content: MODEL.title + " model version " + MODEL.version + ", published at contactcentercx.com" + MODEL.methodology + ". Each decision has one accountable role and at most one contributing role. Six rules raise findings: an unowned decision (critical); a function the decision needs left out (high on five control and budget decisions, medium otherwise); one role accountable for " + R.bottleneckAt + " or more decisions (high); a role contributing to " + MODEL.advisoryMin + " or more and accountable for none (medium); " + MODEL.fragmentedMin + " or more owners in one domain (medium); an owner different from the common pattern (confirm). Findings appear once " + MODEL.minAssigned + " decisions are assigned." },
                 ]} />

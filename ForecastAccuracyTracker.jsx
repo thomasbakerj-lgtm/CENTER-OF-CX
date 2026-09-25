@@ -251,10 +251,6 @@ export default function ForecastAccuracyTracker() {
               { title: "Forecast Data", type: "table", rows: R.perInterval.map((r) => [r.interval, "Forecast " + r.forecast + ", actual " + r.actual + ", " + signed(r.err) + (r.pctErr === null ? " (no forecast)" : " (" + pc(r.pctErr) + " of forecast)")]) },
               { title: "Data", type: "text", content: edited ? "Forecast and actual volumes as entered." : "These are sample volumes. Enter your own forecast and actual volumes by interval for a result about your operation." },
               { title: "Method", type: "text", content: "WAPE is the contacts missed in every interval over the actual contacts; interval accuracy is 1 minus WAPE. MAPE is the mean of interval percent errors over intervals with actual contacts. The tracking signal is the sum of errors over the mean absolute error, read against plus or minus " + L + ", a textbook control limit. Workload hours are contacts times AHT over 3,600; agents busy are that workload over the 30-minute interval. Published at contactcentercx.com" + METHOD + "." },
-              { title: "Next Steps", type: "next", items: [
-                { tool: "Staffing Calculator", href: "/tools/staffing-calculator", reason: "Staff the intervals that ran above forecast at your service level" },
-                { tool: "Schedule Adherence", href: "/tools/schedule-adherence", reason: "Check whether adherence gaps compound the forecast error" },
-              ]},
             ]}
           />
         </div>
