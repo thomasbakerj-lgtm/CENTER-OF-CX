@@ -7,6 +7,8 @@ const TEL_METHOD = "Every prose string extracted (776 segments across TelecomVer
 
 const TRV_METHOD = "Every prose string extracted (735 segments across TravelVertical.jsx, TravelSubVerticalData.js and the Travel card in Industries.jsx). 20 distinctive sentences searched as exact phrases (the session's search budget ran out before 40); 24 candidate pages fetched, 21 compared with all 735 segments for shared runs of 8 and of 6 words; 3 refused the fetch. Result: no shared run of 8 words; three 6 word runs, all generic. The one attributed external finding (Delta, 30 to 40% fewer disruption calls) had no primary source and was retired. Sentences written during the research pass are our own wording of cited regulations.";
 
+const EDU_METHOD = "Every prose string extracted (788 segments in EducationSubVerticalData.js, the string literals of EducationVertical.jsx, and the Education card in Industries.jsx). 32 distinctive sentences searched as exact phrases (full sentence or an 8 to 12 word run) before the session search budget ran out; 23 candidate pages (education contact center vendors and BPOs, admissions and melt articles, Slate, Mongoose, EAB, NICE, Salesforce, Ivy.ai, FERPA chatbot guides) fetched and compared with every segment for shared runs of 8 and of 6 words; Anthology Ocelot, Talkdesk, Five9 and Genesys education pages returned 404 and ServiceNow refused. Result: no shared run of 8 words outside one generic list of departments (Voiso); one 6 word run, a generic phrase. Sentences written during the research pass that day are our own wording of cited findings.";
+
 export const ORIGINALITY = {
   "HealthcareVertical.jsx": { checked: "2026-09-25", method: METHOD, matches: [] },
   "HCSubVerticalData.js": {
@@ -34,6 +36,16 @@ export const ORIGINALITY = {
     method: TRV_METHOD,
     matches: [
       { text: "Delta's implementation of this capability reduced IROP call volume by 30-40%.", near: "no primary Delta source found; circulates in trade coverage", kind: "unsourced attribution of an external finding", resolution: "rewritten" },
+    ],
+  },
+  "EducationVertical.jsx": { checked: "2026-09-25", method: EDU_METHOD, matches: [
+    { text: "With 72% of students who don't re-enroll citing customer service as the reason", near: "https://files.eric.ed.gov/fulltext/ED593366.pdf", kind: "uncited figure from a consultant's claim", resolution: "rewritten" },
+  ] },
+  "EducationSubVerticalData.js": {
+    checked: "2026-09-25",
+    method: EDU_METHOD,
+    matches: [
+      { text: "Inquiries contacted within 5 minutes convert 100x better", near: "InsideSales.com and MIT Lead Response Management Study (sales leads, not education; seen quoted, not fetched)", kind: "uncited figure close to a published finding", resolution: "rewritten" },
     ],
   },
 };

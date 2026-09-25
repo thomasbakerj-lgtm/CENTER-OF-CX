@@ -48,11 +48,11 @@ for (const f of verticals) {
   const s = readFileSync(f, "utf8");
   const block = (s.match(/const stats = \[([\s\S]*?)\n  \];/) || [])[1];
   ok(`${f}: stats block found`, block !== undefined);
-  const entries = (block || "").split("\n").filter((l) => l.includes("{ n:"));
+  const entries = (block || "").split("\n").filter((l) => l.includes("{ n:") || l.includes("{ id:"));
   for (const e of entries) {
     /* A stat that is one claim token takes its source from the registry; the claim must be a fact with a publisher and
      * an https url (claims.test.mjs checks the rest). */
-    const tok = (e.match(/n: "\[\[([a-z0-9.\-]+)\]\]"/) || [])[1];
+    const tok = (e.match(/n: "\[\[([a-z0-9.\-]+)\]\]"/) || e.match(/\{ id: "([a-z0-9.\-]+)"/) || [])[1];
     if (tok && !/source: "/.test(e)) {
       const c = CLAIMS[tok];
       ok(`${f}: a tokenized stat is a sourced fact`, !!c && c.kind === "fact" && !!c.source && /^https:\/\//.test(c.source.url || ""), tok);
