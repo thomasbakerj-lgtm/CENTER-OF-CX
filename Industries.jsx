@@ -186,7 +186,7 @@ function IndustryGrid() {
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0, maxWidth: "100%" }}>
                     <div style={{ background: WARM, borderRadius: 6, padding: "8px 14px", textAlign: "right" }}>
-                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: ELECTRIC }}><ClaimText text={ind.stat} /></div>
+                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: ELECTRIC }}><ClaimText text={ind.stat} links={false} /></div>
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Explore vertical →</span>
                   </div>

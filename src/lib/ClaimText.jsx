@@ -10,31 +10,35 @@ import { claim, tokens, TESTS } from "./claims.js";
 /* Tags wrap: a long publisher name must never widen the page on a phone. */
 const TAG = { fontSize: "0.72em", fontWeight: 600, marginLeft: 2, letterSpacing: 0.2, whiteSpace: "normal", overflowWrap: "anywhere" };
 
-function Mark({ c }) {
+/* `links={false}` renders every tag as plain text, for claim text that sits inside a link (a card that is itself an
+   <a>): a link inside a link is invalid HTML, and the browser would split the card. The page's Sources section still
+   links every source. */
+function Mark({ c, links = true }) {
   if (c.research === "pending") return <sup style={{ ...TAG, color: "#B45309" }}>source pending</sup>;
   if (c.kind === "fact") {
     const s = c.source;
+    if (!links) return <sup style={TAG}><span title={`${s.publisher}, ${s.title}, ${s.year}`} style={{ opacity: 0.75 }}>{s.publisher} {s.year}</span></sup>;
     return <sup style={TAG}><a href={s.url} target="_blank" rel="noopener noreferrer" title={`${s.publisher}, ${s.title}, ${s.year}`} aria-label={`Source: ${s.publisher}, ${s.title}, ${s.year}`} style={{ color: "inherit", textDecoration: "underline", opacity: 0.75 }}>{s.publisher} {s.year}</a></sup>;
   }
   if (c.kind === "assumption") {
     const t = TESTS[c.test];
-    return <sup style={TAG}><span title={c.rationale} style={{ opacity: 0.75 }}>planning assumption</span>{t && <> · <a href={t.href} aria-label={`Test this with your numbers in ${t.label}`} style={{ color: "inherit", textDecoration: "underline", opacity: 0.75 }}>test yours</a></>}</sup>;
+    return <sup style={TAG}><span title={c.rationale} style={{ opacity: 0.75 }}>planning assumption</span>{t && links && <> · <a href={t.href} aria-label={`Test this with your numbers in ${t.label}`} style={{ color: "inherit", textDecoration: "underline", opacity: 0.75 }}>test yours</a></>}</sup>;
   }
   if (c.kind === "example") return <sup style={TAG}><span title={c.rationale} style={{ opacity: 0.75 }}>example</span></sup>;
   return null;
 }
 
-export function Claim({ id }) {
+export function Claim({ id, links = true }) {
   const c = claim(id);
   if (c.kind === "none") {
     const t = TESTS[c.test];
-    return <span><span style={{ opacity: 0.75 }}>No public benchmark</span>{t && <sup style={TAG}><a href={t.href} aria-label={`Measure yours in ${t.label}`} style={{ color: "inherit", textDecoration: "underline", opacity: 0.75 }}>measure yours</a></sup>}</span>;
+    return <span><span style={{ opacity: 0.75 }}>No public benchmark</span>{t && links && <sup style={TAG}><a href={t.href} aria-label={`Measure yours in ${t.label}`} style={{ color: "inherit", textDecoration: "underline", opacity: 0.75 }}>measure yours</a></sup>}</span>;
   }
-  return <span>{c.kind === "example" && c.text ? c.text : c.value}<Mark c={c} /></span>;
+  return <span>{c.kind === "example" && c.text ? c.text : c.value}<Mark c={c} links={links} /></span>;
 }
 
-export default function ClaimText({ text }) {
-  return <>{tokens(text).map((p, i) => (p.id ? <Claim key={i} id={p.id} /> : <span key={i}>{p.text}</span>))}</>;
+export default function ClaimText({ text, links = true }) {
+  return <>{tokens(text).map((p, i) => (p.id ? <Claim key={i} id={p.id} links={links} /> : <span key={i}>{p.text}</span>))}</>;
 }
 
 const KIND_LABEL = { fact: "Published figures", assumption: "Planning assumptions", example: "Worked examples", none: "No public benchmark" };

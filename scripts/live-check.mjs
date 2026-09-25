@@ -153,6 +153,17 @@ for (const m of METHODOLOGY) {
   report(v.errors.length === 0 && /What changed in how the tools calculate/.test(v.text) && /\d{1,2} [A-Z][a-z]+ 20\d\d/.test(v.text) && !BAD.test(v.text), "/changelog renders the method changes", v.errors[0] || badAt(v.text));
   await v.ctx.close();
 }
+/* Full-page prerender (P1 task 3): the served HTML carries the page body before any script runs, and the page then
+   hydrates with no error (a hydration mismatch surfaces as a page error). One of each page type. */
+for (const path of ["/", "/about", "/industries", "/industries/healthcare", "/industries/healthcare/health-insurance", "/vendors/ccaas", "/vendors/genesys", "/methodology/staffing-calculator", "/tools/staffing-calculator"]) {
+  const v = await open(path);
+  const raw = await v.ctx.request.get(ORIGIN + path).then((r) => r.text()).catch(() => "");
+  const body = (raw.match(/<div id="root">([\s\S]*)<\/div>/) || [])[1] || "";
+  report(/<h1[\s>]/.test(body) && body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").length > 250, `${path} is served with its body in the HTML`, body ? "" : "empty root");
+  report(v.errors.length === 0 && v.text.length > 150, `${path} hydrates with no error`, v.errors[0] || "");
+  await v.ctx.close();
+}
+
 /* The security headers production must serve, and no policy violation anywhere. */
 if (INJECT || !/localhost|127\.0\.0\.1/.test(ORIGIN)) {
   const csp = (docHeaders && docHeaders["content-security-policy"]) || "";

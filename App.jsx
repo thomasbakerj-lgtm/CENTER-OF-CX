@@ -291,9 +291,11 @@ function RoutedBoundary({ children }) {
   return <RouteBoundary key={pathname}>{children}</RouteBoundary>;
 }
 
-export default function App() {
+/* Everything inside the router. The browser wraps it in BrowserRouter (below); the build's prerender
+   (entry-server.jsx) wraps it in a StaticRouter so every sitemap page ships its body in the HTML. */
+export function AppRoutes() {
   return (
-    <BrowserRouter>
+    <>
       <SEOManager />
       <Journey />
       <Analytics />
@@ -405,6 +407,14 @@ export default function App() {
       </Routes>
       </Suspense>
       </RoutedBoundary>
+    </>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
     </BrowserRouter>
   )
 }

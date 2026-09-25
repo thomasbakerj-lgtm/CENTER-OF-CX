@@ -211,8 +211,8 @@ function ContactPage() {
 
                     <div>
                       <label style={labelStyle}>What are you working on?</label>
-                      <select name="topic" required style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
-                        <option value="" disabled selected>Select a topic</option>
+                      <select name="topic" required defaultValue="" style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
+                        <option value="" disabled>Select a topic</option>
                         <option value="Platform selection / CCaaS evaluation">Platform selection / CCaaS evaluation</option>
                         <option value="AI readiness assessment">AI readiness assessment</option>
                         <option value="Vendor shortlisting">Vendor shortlisting</option>
