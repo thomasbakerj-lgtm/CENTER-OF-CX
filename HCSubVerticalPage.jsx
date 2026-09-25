@@ -19,9 +19,11 @@ const STATUS_OPTS = [
 export default function FSSubVerticalPage() {
   const { slug } = useParams();
   const sv = getHCSubVertical(slug);
-  const [phase, setPhase] = useState("gate");
+  const [phase, setPhase] = useState("framework");
   const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [company, setCompany] = useState("");
   const [sending, setSending] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [sent, setSent] = useState("");
   const [statuses, setStatuses] = useState({});
   const [expandedLayers, setExpandedLayers] = useState({});
   const toggleLayer = (li) => setExpandedLayers(prev => ({ ...prev, [li]: !prev[li] }));
@@ -44,20 +46,29 @@ export default function FSSubVerticalPage() {
   const plannedCount = Object.values(statuses).filter(s => s === "Planned").length;
   const maturityPct = totalCaps > 0 ? Math.round((haveCount / totalCaps) * 100) : 0;
 
-  const handleGate = async () => {
-    if (!email.includes("@")) return; setSending(true);
-    try { await fetch("https://formspree.io/f/xnjolywk", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: `CX Stack Framework: ${sv.name}`, _subject: `Stack Framework: ${sv.name}` }) }); } catch (e) {}
-    setSending(false); setPhase("framework");
+
+  /* The framework is open to every visitor (TB, S23). Nothing is sent anywhere unless the visitor asks for a
+     consultant review below and presses Send. */
+  const handleResults = () => setPhase("results");
+
+  const profileText = () => [
+    `${sv.parent}: ${sv.name} CX stack profile`,
+    `${haveCount} of ${totalCaps} capabilities in place (${maturityPct}%). Planned: ${plannedCount}. Needed: ${needCount}.`,
+    ...sv.layers.map((l, li) => `L${l.layer} ${l.name}: ${l.capabilities.filter((_, ci) => getStatus(li, ci) === "Have").length} of ${l.capabilities.length} in place`),
+    ...sv.layers.flatMap((l, li) => l.capabilities.filter((_, ci) => getStatus(li, ci) === "Need").map((c) => `Need, L${l.layer}: ${c}`)),
+  ].join("\n");
+
+  const copyProfile = async () => {
+    try { await navigator.clipboard.writeText(profileText()); setCopied(true); setTimeout(() => setCopied(false), 2400); } catch (e) { setCopied(false); }
   };
 
-  const handleResults = async () => {
-    const layerSummary = sv.layers.map(l => {
-      const li = sv.layers.indexOf(l);
-      const have = l.capabilities.filter((_, ci) => getStatus(li, ci) === "Have").length;
-      return `L${l.layer} ${l.name}: ${have}/${l.capabilities.length}`;
-    }).join(" | ");
-    try { await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, name, company, tool: `Stack Framework: ${sv.name}`, maturity: `${maturityPct}%`, have: haveCount, need: needCount, planned: plannedCount, layers: layerSummary, _subject: `Stack: ${sv.name} ${maturityPct}% mature: ${company || name || email}` }) }); } catch (e) {}
-    setPhase("results");
+  const requestReview = async () => {
+    if (!email.includes("@")) return; setSending(true); setSent("");
+    try {
+      const r = await fetch("https://formspree.io/f/maqlvwne", { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ email, name, company, tool: `Stack Framework: ${sv.name}`, _subject: `Stack Framework review request: ${sv.name}`, maturity: `${maturityPct}%`, have: haveCount, need: needCount, planned: plannedCount, profile: profileText() }) });
+      setSent(r.ok ? "ok" : "error");
+    } catch (e) { setSent("error"); }
+    setSending(false);
   };
 
   return (
@@ -72,15 +83,15 @@ export default function FSSubVerticalPage() {
       </nav>
 
       {/* GATE */}
-      {phase === "gate" && (
-        <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, minHeight: "calc(100vh - 60px)", display: "flex", alignItems: "center", padding: "80px 28px" }}>
+      {phase === "framework" && (
+        <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, display: "flex", alignItems: "center", padding: "72px 28px 56px" }}>
           <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
             <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>{sv.parent}: {sv.name}</span>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>{sv.name} CX Stack Framework</h1>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 16px", maxWidth: 520 }}>{sv.intro}</p>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", marginBottom: 32 }}>Map your current capabilities across all 7 orchestration layers. {totalCaps} checkpoints. Identify what you have, what you need, and where the gaps create the most risk.</p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 28 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 28 }}>
               {sv.kpis.map((k, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "12px 8px", textAlign: "center" }}>
                   <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: LIGHT }}>{k.avg}</div>
@@ -89,21 +100,14 @@ export default function FSSubVerticalPage() {
               ))}
             </div>
 
-            <div style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
-              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Work email *" style={{ padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, outline: "none" }} />
-              <div style={{ display: "flex", gap: 10 }}>
-                <input value={name} onChange={e => setName(e.target.value)} placeholder="Name" style={{ flex: 1, padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none" }} />
-                <input value={company} onChange={e => setCompany(e.target.value)} placeholder="Company" style={{ flex: 1, padding: "14px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 14, outline: "none" }} />
-              </div>
-              <button onClick={handleGate} disabled={sending || !email.includes("@")} style={{ padding: "16px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer", opacity: sending ? 0.6 : 1, marginTop: 4 }}>{sending ? "Loading..." : "Access the Framework →"}</button>
-            </div>
+            <a href="#framework" style={{ display: "inline-block", padding: "14px 28px", borderRadius: 8, background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600 }}>Map your stack ↓</a>
           </div>
         </section>
       )}
 
       {/* FRAMEWORK */}
       {phase === "framework" && (
-        <section style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "40px 28px 80px" }}>
+        <section id="framework" style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "40px 28px 80px" }}>
           <div style={WRAP}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 12 }}>
               <div>
@@ -141,7 +145,7 @@ export default function FSSubVerticalPage() {
                         const status = getStatus(li, ci);
                         const sc = STATUS_OPTS.find(s => s.label === status);
                         return (
-                          <div key={ci} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", borderBottom: ci < layer.capabilities.length - 1 ? `1px solid ${BORDER}` : "none" }}>
+                          <div key={ci} style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, padding: "10px 18px", borderBottom: ci < layer.capabilities.length - 1 ? `1px solid ${BORDER}` : "none" }}>
                             <div style={{ flex: 1 }}>
                               <span style={{ fontSize: 13, color: status === "Have" ? GREEN : status === "Need" ? RED : status === "Planned" ? AMBER : NAVY, fontWeight: status ? 500 : 400 }}>{cap}</span>
                             </div>
@@ -263,10 +267,23 @@ export default function FSSubVerticalPage() {
 
             <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
               <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the gaps?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Your {sv.name} stack profile has been saved. Connect with a consultant and we'll map your gaps to specific vendor capabilities, build an implementation sequence, and help you prioritize based on operational impact.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Connect with a consultant and we'll map your gaps to specific vendor capabilities, build an implementation sequence, and help you prioritize based on operational impact.</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
                 <a href="/vendors/ccaas" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Browse CCaaS Platforms →</a>
+              </div>
+              <div style={{ maxWidth: 440, margin: "28px auto 0", textAlign: "left" }}>
+                <button onClick={copyProfile} style={{ width: "100%", padding: "12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>{copied ? "Profile copied" : "Copy my profile"}</button>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: "20px 0 10px" }}>Want a consultant to review it? This sends your profile and details to The Center of CX so a consultant can reply. Nothing is sent until you press Send.</p>
+                <label htmlFor="sv-review-email" style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>Work email</label>
+                <input id="sv-review-email" value={email} onChange={e => setEmail(e.target.value)} style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, marginBottom: 10 }} />
+                <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                  <div style={{ flex: 1 }}><label htmlFor="sv-review-name" style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>Name</label><input id="sv-review-name" value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14 }} /></div>
+                  <div style={{ flex: 1 }}><label htmlFor="sv-review-company" style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>Company</label><input id="sv-review-company" value={company} onChange={e => setCompany(e.target.value)} style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14 }} /></div>
+                </div>
+                <button onClick={requestReview} disabled={sending || !email.includes("@") || sent === "ok"} style={{ width: "100%", padding: "12px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", opacity: sending || !email.includes("@") ? 0.6 : 1 }}>{sending ? "Sending..." : sent === "ok" ? "Sent" : "Send for review"}</button>
+                {sent === "ok" && <p role="status" style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", margin: "10px 0 0" }}>Sent. A consultant will reply to {email}.</p>}
+                {sent === "error" && <p role="alert" style={{ fontSize: 13, color: "#FCA5A5", margin: "10px 0 0" }}>That did not go through. Copy your profile and email it through the contact page instead.</p>}
               </div>
             </div>
           </div>

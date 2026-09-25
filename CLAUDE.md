@@ -756,7 +756,10 @@ dashboard, the 12-phase growth program.
    "most centers", TCO's check lines, read lines and sensitivity bands (7 registry entries; A/B on 12,000 cases, figures
    and flag levels unchanged). Unused `ToolGate.jsx` deleted. Deferred to the aesthetic rebuild copy pass (TB): the
    "X, not Y" cadence (about 440 occurrences), page by page. Still open: unsourced figures in sub-vertical prose
-   ("catches 95%", "40 to 60% of the time"); sub-vertical pages post their Stack Framework form to Formspree directly.
+   ("catches 95%", "40 to 60% of the time"); sub-vertical email gate removed (TB: yes, S23): the 61 frameworks open to everyone, reaching the results sends
+   nothing, a copy button keeps the profile, and a labelled optional review request is the only send (`copy.test.mjs` 5).
+   The Healthcare claims pilot is on local branch `claims-wip` and was reverted out of this PR; it returns by reverting
+   the revert once its research lands (needs a session with the widened network policy).
 36. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
    status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
    lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
