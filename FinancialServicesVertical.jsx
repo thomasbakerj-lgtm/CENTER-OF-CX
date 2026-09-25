@@ -264,25 +264,24 @@ export default function FinancialServicesVertical() {
         <div style={WRAP}>
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Vendor Intelligence</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms strongest for financial services.</h2>
-            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Based on our 28-vendor CCaaS assessment, these platforms score highest when weighted for compliance controls, security posture, integration depth with core banking systems, and regulated-environment deployment experience.</p>
+            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms often evaluated for financial services.</h2>
+            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Platforms often evaluated for compliance controls, security posture, integration with core banking systems and regulated deployment. Listed by name. The notes are Phase 1 context; scores are withdrawn until each vendor is researched under the current methodology.</p>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
             {[
-              { name: "Genesys", score: 94, why: "Deepest routing, strongest compliance controls, proven in Tier 1 banks globally. Enterprise-grade security and multi-region deployment.", href: "/vendors/genesys" },
-              { name: "NICE CXone", score: 90, why: "WEM and QA for regulated environments. Strong analytics for compliance review and dispute resolution workflows.", href: "/vendors/nice-cxone" },
-              { name: "Talkdesk", score: 78, why: "Purpose-built Financial Services Experience Cloud with pre-built banking workflows, PCI compliance, and vertical-specific AI.", href: "/vendors/talkdesk" },
-              { name: "Five9", score: 82, why: "Strong Salesforce Financial Services Cloud integration. Proven in mid-market banking and lending operations.", href: "/vendors/five9" },
-              { name: "Cisco", score: 78, why: "Enterprise security posture and networking heritage. Strong fit for banks with existing Cisco infrastructure investments.", href: "/vendors/cisco" },
-              { name: "Amazon Connect", score: 77, why: "Pay-per-use pricing with strong AI capabilities. Best for banks with AWS cloud maturity and builder teams.", href: "/vendors/amazon-connect" },
-            ].map((v, i) => (
+              { name: "Genesys", why: "Deepest routing, strongest compliance controls, proven in Tier 1 banks globally. Enterprise-grade security and multi-region deployment.", href: "/vendors/genesys" },
+              { name: "NICE CXone", why: "WEM and QA for regulated environments. Strong analytics for compliance review and dispute resolution workflows.", href: "/vendors/nice-cxone" },
+              { name: "Talkdesk", why: "Purpose-built Financial Services Experience Cloud with pre-built banking workflows, PCI compliance, and vertical-specific AI.", href: "/vendors/talkdesk" },
+              { name: "Five9", why: "Strong Salesforce Financial Services Cloud integration. Proven in mid-market banking and lending operations.", href: "/vendors/five9" },
+              { name: "Cisco", why: "Enterprise security posture and networking heritage. Strong fit for banks with existing Cisco infrastructure investments.", href: "/vendors/cisco" },
+              { name: "Amazon Connect", why: "Pay-per-use pricing with strong AI capabilities. Best for banks with AWS cloud maturity and builder teams.", href: "/vendors/amazon-connect" },
+            ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }}
                   onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }}
                   onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3>
-                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: ELECTRIC }}>{v.score}</span>
                   </div>
                   <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p>
                 </a>
@@ -291,7 +290,7 @@ export default function FinancialServicesVertical() {
           </div>
           <FadeIn delay={0.2}>
             <div style={{ textAlign: "center", marginTop: 24 }}>
-              <a href="/vendors/ccaas" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>See all 28 CCaaS vendors scored →</a>
+              <a href="/vendors/ccaas" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>See all CCaaS vendors →</a>
             </div>
           </FadeIn>
         </div>

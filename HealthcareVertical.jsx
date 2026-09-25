@@ -143,18 +143,18 @@ export default function HealthcareVertical() {
 
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Vendor Intelligence</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms strongest for healthcare.</h2></FadeIn>
+          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms often evaluated for healthcare.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
-            { name: "NICE CXone", score: 90, why: "Compliance controls, WEM for healthcare staffing, and analytics depth for CAHPS alignment. Strong in payer and provider environments.", href: "/vendors/nice-cxone" },
-            { name: "Genesys", score: 94, why: "Deepest routing for clinical vs administrative triage. Strong EHR integration ecosystem. Proven in large health systems.", href: "/vendors/genesys" },
-            { name: "Talkdesk", score: 78, why: "Purpose-built Healthcare Experience Cloud with Epic integration, HIPAA compliance, and pre-built patient access workflows.", href: "/vendors/talkdesk" },
-            { name: "Cisco", score: 78, why: "Enterprise security posture critical for healthcare networks. Strong in health systems with existing Cisco infrastructure.", href: "/vendors/cisco" },
-            { name: "8x8", score: 68, why: "HIPAA-compliant unified communications for mid-size provider groups needing voice, video, and contact center on one platform.", href: "/vendors/8x8" },
-            { name: "Five9", score: 82, why: "Strong Salesforce Health Cloud integration. Practical AI for patient scheduling and insurance verification.", href: "/vendors/five9" },
-          ].map((v, i) => (<FadeIn key={i} delay={i * 0.04}><a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }} onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3><span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: ELECTRIC }}>{v.score}</span></div><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p></a></FadeIn>))}
+            { name: "NICE CXone", why: "Compliance controls, WEM for healthcare staffing, and analytics depth for CAHPS alignment. Strong in payer and provider environments.", href: "/vendors/nice-cxone" },
+            { name: "Genesys", why: "Deepest routing for clinical vs administrative triage. Strong EHR integration ecosystem. Proven in large health systems.", href: "/vendors/genesys" },
+            { name: "Talkdesk", why: "Purpose-built Healthcare Experience Cloud with Epic integration, HIPAA compliance, and pre-built patient access workflows.", href: "/vendors/talkdesk" },
+            { name: "Cisco", why: "Enterprise security posture critical for healthcare networks. Strong in health systems with existing Cisco infrastructure.", href: "/vendors/cisco" },
+            { name: "8x8", why: "HIPAA-compliant unified communications for mid-size provider groups needing voice, video, and contact center on one platform.", href: "/vendors/8x8" },
+            { name: "Five9", why: "Strong Salesforce Health Cloud integration. Practical AI for patient scheduling and insurance verification.", href: "/vendors/five9" },
+          ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (<FadeIn key={i} delay={i * 0.04}><a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }} onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3></div><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p></a></FadeIn>))}
         </div>
-        <FadeIn delay={0.2}><div style={{ textAlign: "center", marginTop: 24 }}><a href="/vendors/ccaas" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>See all 28 CCaaS vendors scored →</a></div></FadeIn>
+        <FadeIn delay={0.2}><div style={{ textAlign: "center", marginTop: 24 }}><a href="/vendors/ccaas" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>See all CCaaS vendors →</a></div></FadeIn>
       </div></section>
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}><FadeIn>

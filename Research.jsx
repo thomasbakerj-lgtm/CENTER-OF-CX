@@ -116,7 +116,7 @@ function Hero() {
 function ContentTypes() {
   const types = [
     { tag: "CX Reality Checks", color: "#D4380D", desc: "The myths and assumptions that cost organizations money. We name them, quantify the damage, and explain what to do instead." },
-    { tag: "Market Maps", color: "#0088DD", desc: "Opinionated views of vendor landscapes by category. Who leads, who's emerging, who's fading, and why the standard analyst maps miss the picture." },
+    { tag: "Market Maps", color: "#0088DD", desc: "Opinionated views of vendor landscapes by category: how each market splits, what is changing, and why the standard analyst maps miss the picture." },
     { tag: "Operator Briefings", color: "#389E0D", desc: "What's actually working in production environments. Real operational patterns from contact centers that have moved past the pilot stage." },
     { tag: "Future Forecasts", color: "#7C3AED", desc: "Where the CX technology and operations landscape is heading, with explicit confidence levels. We tell you what we're sure about and what we're guessing." },
   ];
@@ -150,13 +150,13 @@ function FeaturedArticles() {
     {
       tag: "Buyer's Guide", color: "#0088DD", read: "25 pages",
       title: "IVA & Conversational AI Platform Buyer's Guide 2026",
-      desc: "50 vendors scored across 7 market categories. The Human Premium workforce framework. Market forecasts through 2029 with validated Gartner, Forrester, and Opus Research data. Architecture eras, buyer scenarios, demo questions, TCO reality, and implementation pitfalls.",
+      desc: "Phase 1 edition. 50 vendors across 7 market categories; its scores are withdrawn on the site until the category is researched under the current methodology. The Human Premium workforce framework. Market forecasts through 2029 with validated Gartner, Forrester, and Opus Research data. Architecture eras, buyer scenarios, demo questions, TCO reality, and implementation pitfalls.",
       href: "/research/iva-buyer-guide",
     },
     {
       tag: "Buyer's Guide", color: "#10B981", read: "19 pages",
       title: "CCaaS Platform Buyer's Guide 2026",
-      desc: "28 CCaaS platforms scored on 27 weighted dimensions. Tier placement, operating-model fit, migration risk, hidden costs, and the RFP questions most evaluations skip.",
+      desc: "Phase 1 edition (April 2026). 28 CCaaS platforms; its scores and tiers are withdrawn on the site while current research is published. Operating-model fit, migration risk, hidden costs, and the RFP questions most evaluations skip.",
       href: "/research/ccaas-buyer-guide",
     },
     {
@@ -167,7 +167,7 @@ function FeaturedArticles() {
     {
       tag: "Market Map", color: "#0088DD", read: "12 min",
       title: "Agent Assist in 2026: Who's Real vs Who's Marketing",
-      desc: "Every CCaaS vendor now claims agent assist capabilities. The standalone players are fighting for survival. We scored 50+ vendors on real-time guidance quality, knowledge retrieval depth, summarization accuracy, and adoption reality.",
+      desc: "Every CCaaS vendor now claims agent assist capabilities. The standalone players are fighting for survival. We look at real-time guidance quality, knowledge retrieval depth, summarization accuracy and adoption.",
     },
   ];
 
@@ -214,7 +214,7 @@ function AllArticles() {
     { tag: "Operator Briefing", color: "#389E0D", read: "9 min", title: "ACD Routing Is Dead. Here's What Replaced It.", desc: "Skills-based routing was the right answer in 2015. In 2026, intent-driven orchestration across seven layers determines who, or what, handles each interaction. The vendors who understand this and the ones who are still catching up." },
     { tag: "Future Forecast", color: "#7C3AED", read: "11 min", title: "CCaaS Becomes Commodity Infrastructure by 2030", desc: "The platform that defines your contact center today will be a utility layer under an orchestration engine within five years. Here's what that transition looks like, who benefits, and what the vendor consolidation timeline probably looks like." },
     { tag: "CX Reality Check", color: "#D4380D", read: "6 min", title: "Your QA Program Is Sampling 2% and Calling It Quality", desc: "Manual QA at 2% sample rates was acceptable when it was all we had. AI-powered evaluation across 100% of interactions changes the math on staffing, coaching, and performance management entirely." },
-    { tag: "Market Map", color: "#0088DD", read: "13 min", title: "IVA Market Maturity: Who Leads and Where the Bell Curve Breaks", desc: "50 IVA vendors scored across conversational autonomy, multi-channel coverage, orchestration depth, and analytics. The leaders cluster tightly. The long tail is full of vendors who will merge or disappear by 2027." },
+    { tag: "Market Map", color: "#0088DD", read: "13 min", title: "IVA Market Map: Categories and Where the Market Splits", desc: "A Phase 1 view of 50 IVA vendors across conversational autonomy, multi-channel coverage, orchestration depth and analytics. Its scores are withdrawn on the site until the category is researched under the current methodology." },
   ];
 
   return (

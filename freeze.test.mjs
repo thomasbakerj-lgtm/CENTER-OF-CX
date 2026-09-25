@@ -141,8 +141,47 @@ section("5. Public copy makes no claim the freeze made false");
 
 /* ------------------------------------------------------------ 6. dashes */
 section("6. Every file this freeze touched carries no dash");
-for (const f of ["CCaaSCategory.jsx", "CategoryVerticalPage.jsx", "src/lib/researchStatus.js", "freeze.test.mjs", "Homepage.jsx", "HowToChoose.jsx"]) {
+for (const f of ["CCaaSCategory.jsx", "CategoryVerticalPage.jsx", "src/lib/researchStatus.js", "freeze.test.mjs", "Homepage.jsx", "HowToChoose.jsx", "src/lib/Phase1Directory.jsx", "VendorProfile.jsx", "IVACategory.jsx", "WEMCategory.jsx"]) {
   ok(`${f}: no em-dash or en-dash`, noDash(readFileSync("./" + f, "utf8")));
+}
+
+/* ----------------------------------- 7. the freeze extended to every category */
+section("7. S23: the seven other categories, their profiles and the industry pages carry no Phase 1 score");
+{
+  ok("the status registry reads CCaaS from the corpus and every other category as Phase 1", RS.researchStatus("ccaas", "genesys") === "complete" && RS.researchStatus("ccaas", "avaya") === "phase1" && Object.keys(RS.PHASE1_CATEGORIES).every((c) => RS.researchStatus(c, "anything") === "phase1"));
+  ok("seven categories are named, CCaaS is not among them", Object.keys(RS.PHASE1_CATEGORIES).length === 7 && !("ccaas" in RS.PHASE1_CATEGORIES));
+  const L = RS.phase1Label();
+  ok("one Phase 1 label, saying scores, tiers and rankings are withdrawn", L.status === "phase1" && L.short === "Phase 1 context" && /scores, tiers and rankings are withdrawn/.test(L.text) && noDash(L.text));
+  ok("the directory order is by name", [{ name: "b" }, { name: "A" }, { name: "c" }].sort(RS.byName).map((x) => x.name).join("") === "Abc");
+  const strip = (x) => x.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+  const DIR = strip(readFileSync("./src/lib/Phase1Directory.jsx", "utf8"));
+  ok("the shared directory sorts by name and prints the Phase 1 label, never a score", /\.sort\(byName\)/.test(DIR) && /phase1Label\(\)/.test(DIR) && !/\.score\b|\.tier\b|\.rank\b|score=/.test(DIR));
+  const RETIRED_PAGE = /\{v\.score\}|v\.tier\b|v\.rank\b|tierConfig|bell curve|ranked by|Vendors scored|Platforms scored|Leaderboard|b\.score - a\.score|b\.product - a\.product|quadrant/i;
+  const PAGES = { iva: "IVACategory.jsx", "agent-assist": "AgentAssistCategory.jsx", "wem-qm": "WEMCategory.jsx", analytics: "AnalyticsCategory.jsx", "digital-engagement": "DigitalEngagementCategory.jsx", payments: "PaymentCategory.jsx", "acd-routing": "ACDRoutingCategory.jsx" };
+  for (const [cat, f] of Object.entries(PAGES)) {
+    const src = strip(readFileSync("./" + f, "utf8"));
+    ok(`${f}: renders the withdrawn banner and the shared directory`, /<ScoresWithdrawn /.test(src) && /<Phase1Directory groups=\{groups\} \/>/.test(src));
+    ok(`${f}: no score, tier, rank, quadrant, leaderboard or score order`, !RETIRED_PAGE.test(src), (src.match(RETIRED_PAGE) || [""])[0]);
+    const seo = resolveSeo(`/vendors/${cat}`);
+    ok(`/vendors/${cat}: metadata claims no scores, tiers or rankings`, !/scored|tier|ranking|quadrant|100-point|max score/i.test(seo.title + " " + seo.desc) && /withdrawn/i.test(seo.desc));
+  }
+  const VP = readFileSync("./VendorProfile.jsx", "utf8");
+  const other = VP.slice(VP.indexOf("export default function VendorProfile"), VP.indexOf("CCaaS VENDOR PROFILE"));
+  ok("vendor profiles: the seven non-CCaaS branches show the Phase 1 badge", (other.match(/<Phase1Badge \/>/g) || []).length === 7);
+  ok("vendor profiles: no score badge, score, tier, rank, quadrant, dimension bar or fit rating in the non-CCaaS branches", !/ScoreBadge|\.score\b|\.tier\b|\.rank\b|quadrant|\/5<|\/6<|\/3<|\.fit\b|Leaderboard|Rank in layer|momentum|Routing Maturity Index/i.test(other), (other.match(/ScoreBadge|\.score\b|\.tier\b|\.rank\b|quadrant|\/5<|\.fit\b|Leaderboard|momentum/i) || [""])[0]);
+  const VERT = ["EducationVertical", "FinancialServicesVertical", "GovernmentVertical", "HealthcareVertical", "InsuranceVertical", "ManufacturingVertical", "RetailVertical", "TelecomVertical", "TravelVertical", "UtilitiesVertical"];
+  for (const v of VERT) {
+    const src = readFileSync(`./${v}.jsx`, "utf8");
+    ok(`${v}.jsx: the platform list carries no score and is sorted by name`, !/\{ name: "[^"]+", score:/.test(src) && !/v\.score/.test(src) && /\]\.sort\(\(a, b\) => a\.name\.localeCompare\(b\.name\)\)\.map\(\(v, i\)/.test(src) && !/strongest for|score highest|vendors scored/i.test(src));
+  }
+  const COPY = { "Industries.jsx": 0, "Research.jsx": 0, "Vendors.jsx": 0, "CXEcosystem.jsx": 0, "index.html": 0 };
+  for (const f of Object.keys(COPY)) {
+    const src = readFileSync("./" + f, "utf8");
+    ok(`${f}: no scored-vendor claim`, !/\b\d+\+? (?:IVA |CCaaS )?(?:vendors|platforms) scored|scored vendor|we score vendors|vendor scoring|scoring dimensions|scored by vertical|is scored for each vertical|who leads/i.test(src), (src.match(/\b\d+\+? (?:IVA |CCaaS )?(?:vendors|platforms) scored|scored vendor|we score vendors|vendor scoring|scoring dimensions/i) || [""])[0]);
+  }
+  const GR = readFileSync("./GatedReport.jsx", "utf8");
+  ok("both Phase 1 buyer guides carry the Phase 1 edition notice", (GR.match(/phase1: true/g) || []).length === 2 && /report\.phase1 && <p/.test(GR));
+  ok("the default and vendor profile descriptions claim no scores", !/Vendor scoring|Scores, strengths/.test(readFileSync("./src/lib/seo.js", "utf8")));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

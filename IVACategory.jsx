@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { IVA_CATEGORIES, SCORING_MODEL, USE_CASES, ivaVendors, USE_CASE_SHORTLISTS, getIVAVendorsByCategory, getAllIVAVendors } from "./IVAData";
+import { IVA_CATEGORIES, getAllIVAVendors } from "./IVAData";
+import { ScoresWithdrawn, Phase1Directory } from "./src/lib/Phase1Directory.jsx";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1120, margin: "0 auto", padding: "0 28px" };
@@ -8,19 +9,15 @@ function LogoMark({size=28,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:
 function useInView(t=0.1){const r=useRef(null);const[v,s]=useState(false);useEffect(()=>{const e=r.current;if(!e)return;const o=new IntersectionObserver(([i])=>{if(i.isIntersecting){s(true);o.unobserve(e)}},{threshold:t});o.observe(e);return()=>o.disconnect()},[]);return[r,v]}
 function FadeIn({children,delay=0,className,style={}}){const[r,v]=useInView();return<div ref={r} className={className} style={{...style,opacity:v?1:0,transform:v?"translateY(0)":"translateY(16px)",transition:`opacity 0.5s ease ${delay}s, transform 0.5s ease ${delay}s`}}>{children}</div>}
 
-const tierColor = (s) => s >= 85 ? GREEN : s >= 78 ? "#7CB342" : s >= 70 ? AMBER : s >= 60 ? "#DC6B00" : MUTED;
-const tierLabel = (s) => s >= 85 ? "Leader" : s >= 78 ? "Strong Contender" : s >= 70 ? "Contender" : s >= 60 ? "Emerging" : "Watchlist";
 
 export default function IVACategory() {
-  const [activeCategory, setActiveCategory] = useState("enterprise");
-  const [activeUseCase, setActiveUseCase] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const allVendors = getAllIVAVendors();
-  const catVendors = getIVAVendorsByCategory(activeCategory);
-  const activeCat = IVA_CATEGORIES.find(c => c.id === activeCategory);
+  /* Integrity freeze (TB, S23): grouped by market category, listed by name; no score, tier or fit rating. */
+  const groups = IVA_CATEGORIES.map((c) => ({ name: c.name, desc: c.desc, vendors: allVendors.filter((v) => v.category === c.id).map((v) => ({ slug: v.slug, name: v.name, line: v.modality })) })).filter((g) => g.vendors.length);
 
   const navLinks = [{ name: "Vendors", href: "/vendors" },{ name: "Tools", href: "/how-to-choose" },{ name: "Industries", href: "/industries" },{ name: "Research", href: "/research" },{ name: "The Human Premium", href: "/human-premium" }];
 
@@ -45,7 +42,7 @@ export default function IVACategory() {
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase" }}>Vendor Intelligence</span>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "8px 0 12px" }}>IVA + Conversational AI</h1>
             <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", lineHeight: 1.65, maxWidth: 600 }}>
-              {allVendors.length} vendors scored across 7 market categories. Enterprise IVA, voice-native, helpdesk AI, CCaaS-native, agent assist, ecommerce, and CRM/workflow. 100-point scoring model with 10 weighted dimensions.
+              {allVendors.length} vendors across {IVA_CATEGORIES.length} market categories: enterprise IVA, voice-native, helpdesk AI, CCaaS-native, agent assist, ecommerce, and CRM and workflow. Listed by category and name; scores are withdrawn until this category is researched under the current methodology.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -67,132 +64,8 @@ export default function IVACategory() {
         </div>
       </section>
 
-      {/* Market Taxonomy */}
-      <section style={{ background: "#fff", padding: "36px 28px 20px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Market Taxonomy</h2>
-          </FadeIn>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 24 }} className="cat-tabs">
-            {IVA_CATEGORIES.map(cat => (
-              <button key={cat.id} onClick={() => { setActiveCategory(cat.id); setActiveUseCase(null); }} style={{
-                padding: "10px 16px", fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: "pointer",
-                border: `1px solid ${activeCategory === cat.id ? cat.color : BORDER}`,
-                background: activeCategory === cat.id ? `${cat.color}08` : "#fff",
-                color: activeCategory === cat.id ? cat.color : MUTED,
-                transition: "all 0.15s",
-              }}>
-                {cat.name} <span style={{ opacity: 0.5 }}>({getIVAVendorsByCategory(cat.id).length})</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Category description */}
-          <div style={{ background: `${activeCat.color}06`, border: `1px solid ${activeCat.color}20`, borderRadius: 10, padding: "16px 20px", marginBottom: 20 }}>
-            <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{activeCat.desc}</p>
-          </div>
-
-          {/* Vendor directory for active category */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {catVendors.map((v, i) => (
-              <div key={v.slug} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", border: `1px solid ${BORDER}`, borderRadius: 8, borderLeft: `4px solid ${tierColor(v.product)}`, transition: "all 0.15s" }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = tierColor(v.product); e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.04)"; }}
-                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.borderLeftColor = tierColor(v.product); e.currentTarget.style.boxShadow = "none"; }}>
-                <div style={{ width: 44, height: 44, borderRadius: "50%", border: `2.5px solid ${tierColor(v.product)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 15, color: tierColor(v.product) }}>{v.product}</span>
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{v.name}</span>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: tierColor(v.product), padding: "2px 6px", borderRadius: 3, background: `${tierColor(v.product)}12` }}>{tierLabel(v.product)}</span>
-                    {v.confidence >= 4.0 && <span style={{ fontSize: 9, fontWeight: 600, color: GREEN, padding: "2px 5px", borderRadius: 3, background: `${GREEN}08` }}>High confidence</span>}
-                  </div>
-                  <p style={{ fontSize: 12, color: MUTED, margin: "3px 0 0", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.summary}</p>
-                </div>
-                <div style={{ textAlign: "right", flexShrink: 0, display: "flex", flexDirection: "column", gap: 2 }}>
-                  <div style={{ fontSize: 10, color: MUTED }}>Ent: <span style={{ fontWeight: 600, color: NAVY }}>{v.enterprise}</span></div>
-                  <div style={{ fontSize: 10, color: MUTED }}>BPO: <span style={{ fontWeight: 600, color: NAVY }}>{v.bpo}</span></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Use Case Shortlists */}
-      <section style={{ background: WARM, padding: "36px 28px", borderTop: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>Best-Fit by Use Case</h2>
-            <p style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>There is no universal winner. The best vendor changes by operating model. Select a use case to see the shortlist.</p>
-          </FadeIn>
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 20 }}>
-            {USE_CASES.map(uc => (
-              <button key={uc.id} onClick={() => setActiveUseCase(activeUseCase === uc.id ? null : uc.id)} style={{
-                padding: "6px 12px", fontSize: 11, fontWeight: 600, borderRadius: 5, cursor: "pointer",
-                border: `1px solid ${activeUseCase === uc.id ? ELECTRIC : BORDER}`,
-                background: activeUseCase === uc.id ? `${ELECTRIC}08` : "#fff",
-                color: activeUseCase === uc.id ? ELECTRIC : MUTED,
-              }}>
-                {uc.name}
-              </button>
-            ))}
-          </div>
-
-          {activeUseCase && (
-            <FadeIn>
-              <div style={{ border: `1px solid ${ELECTRIC}20`, borderRadius: 10, overflow: "hidden", background: "#fff" }}>
-                <div style={{ padding: "14px 18px", background: `${ELECTRIC}04`, borderBottom: `1px solid ${ELECTRIC}15` }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{USE_CASES.find(u => u.id === activeUseCase)?.name}</h3>
-                  <p style={{ fontSize: 12, color: MUTED, margin: "2px 0 0" }}>{USE_CASES.find(u => u.id === activeUseCase)?.desc}</p>
-                </div>
-                {(USE_CASE_SHORTLISTS[activeUseCase] || []).map((slug, i) => {
-                  const v = ivaVendors[slug];
-                  if (!v) return null;
-                  const fit = v.useCaseFit?.[activeUseCase];
-                  return (
-                    <div key={slug} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 18px", borderBottom: i < (USE_CASE_SHORTLISTS[activeUseCase]?.length || 0) - 1 ? `1px solid ${BORDER}` : "none" }}>
-                      <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: ELECTRIC, width: 24, textAlign: "center" }}>{i + 1}</span>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: NAVY, flex: 1 }}>{v.name}</span>
-                      {fit && <span style={{ fontSize: 10, fontWeight: 700, color: fit >= 5 ? GREEN : fit >= 4 ? AMBER : MUTED, padding: "2px 6px", borderRadius: 3, background: fit >= 5 ? `${GREEN}10` : fit >= 4 ? `${AMBER}10` : `${MUTED}10` }}>Fit: {fit}/5</span>}
-                      <span style={{ fontSize: 11, color: MUTED }}>{v.product} pts</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </FadeIn>
-          )}
-        </div>
-      </section>
-
-      {/* Scoring Methodology */}
-      <section style={{ background: "#fff", padding: "36px 28px", borderTop: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>Scoring Methodology</h2>
-            <p style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>100-point product capability score across 10 weighted dimensions. Enterprise and BPO decision overlays scored separately.</p>
-          </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
-            {SCORING_MODEL.map((dim, i) => (
-              <FadeIn key={i} delay={i * 0.03}>
-                <div style={{ padding: "14px 16px", border: `1px solid ${BORDER}`, borderRadius: 8, background: WARM }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>{dim.name}</span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: ELECTRIC }}>{dim.weight}</span>
-                  </div>
-                  <div style={{ height: 4, borderRadius: 2, background: `${ELECTRIC}15` }}>
-                    <div style={{ height: 4, borderRadius: 2, background: ELECTRIC, width: `${dim.weight * 5}%`, transition: "width 0.5s ease" }} />
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-          <div style={{ marginTop: 16, padding: "12px 16px", background: `${AMBER}06`, border: `1px solid ${AMBER}20`, borderRadius: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: AMBER }}>Evidence rule: </span>
-            <span style={{ fontSize: 12, color: SLATE }}>No vendor receives a confidence score of 5 without production metrics, POC results, or direct customer references. Vendor claims alone cap the score at 3. Demo-only evidence caps at 3.</span>
-          </div>
-        </div>
-      </section>
+      <ScoresWithdrawn category="IVA and conversational AI" />
+      <Phase1Directory groups={groups} />
 
       {/* Tools */}
       <section style={{ background: WARM, padding: "28px 28px", borderTop: `1px solid ${BORDER}` }}>
@@ -202,7 +75,7 @@ export default function IVACategory() {
             {[
               { name: "AI Deflection Reality Check", desc: "Net savings after leakage, containment failure, and escalation", href: "/tools/ai-deflection" },
               { name: "AI Readiness Diagnostic", desc: "Data, workflows, governance, are you ready for AI?", href: "/tools/ai-readiness" },
-              { name: "Vendor Match Engine", desc: "Ranked shortlist from 24 scored CCaaS vendors", href: "/tools/vendor-match" },
+              { name: "Vendor Match Engine", desc: "A starting list of CCaaS vendors for your requirements", href: "/tools/vendor-match" },
             ].map((t, i) => (
               <a key={i} href={t.href} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px", borderLeft: `3px solid ${ELECTRIC}`, transition: "all 0.15s" }}
                 onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
