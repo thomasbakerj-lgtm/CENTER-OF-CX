@@ -803,6 +803,7 @@ dashboard, the 12-phase growth program.
    supersedes the older "Next" lines and the reachability batch note. Work top down; one item per session where large.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
+Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
 
 P0. Start here in a new session (the old session's egress refused publisher hosts).
   1. Healthcare claims research and originality pass (item 36): confirm `bls.gov` and `ecfr.gov` fetch, check every
