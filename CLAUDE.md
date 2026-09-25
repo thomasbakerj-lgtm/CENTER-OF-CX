@@ -794,10 +794,38 @@ dashboard, the 12-phase growth program.
    - Originality: 668 segments, 62 exact-phrase searches, 24 pages compared: no shared run of 8 words. Three close
      paraphrases rewritten (Carevoyant superlative, uncited "4-6 systems", a trade cliche). Gate now also catches count
      ranges and counted nouns ("50-500 agents", "20 visits"); five more bare figures rewritten. Suite 21,412.
-   - Open for TB: BLS OEWS now shows May 2025; the site wage (`market.wage.agent`, J11) is May 2024. Updating moves every
-     wage-driven figure; schedule it as its own change.
-   - Next: the other nine industries on the same pattern, one shared sub-page component (the 10 files are near identical).
-37. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
+   - CMS strip (TB: yes): the health insurance page shows CMS test-call measures for Medicare plan call centers (hold
+     0:32 against a 2:00 standard, 1.01% dropped against 5%, interpreter and TTY 97%), labelled as not handle time.
+37. Done S23 (on the branch): full site scan part 4, the other nine industries (TB: go). One shared sub-page component
+   (`src/lib/SubVerticalPage.jsx`; the ten industry files are wrappers). Nine research agents, one per industry, on one
+   brief; the lead verified headline sources on the publisher's page and integrated. Every figure on all ten main pages,
+   61 sub-pages and the hub cards is now a fact, a labelled assumption, an example, or "No public benchmark"
+   (`claims.test.mjs` 2,748; suite 23,870; browser sweep 144 runs clean at desktop and phone).
+   - Pattern across industries: the benchmark tables' industry cells were mostly SQM all-industry figures or unsourced;
+     each industry now shows SQM's own 2026 chart figure where one exists (Retail 77, Telecom 56, Utilities 70, Insurance
+     75, Financial 70, Government 70, Health Insurance 69), else none. Top quartile columns removed everywhere.
+   - Regulatory corrections (read on eCFR, statute or regulator): FTC click-to-cancel vacated (ROSCA stands); PHMSA sets
+     no 60 minute gas response limit; recall reports are due in 5 working days, not 24 hours; FERPA covers attendees, not
+     applicants; Clery, not Title IX, for campus crime statistics; Section 508 is WCAG 2.0 AA, ADA Title II is 2.1 AA; EU261
+     scope follows departure airport and carrier; Florida claim acknowledgment is 7 days; no FCC rule bars cable retention
+     offers; 99.9% uptime is about 43 minutes a month, not 87.
+   - Hub stats replaced: $146B cat losses (no source; Munich Re 2025 is $108bn insured), 30M+ recalls (29.3M, our sum of
+     NHTSA's own recall file, reproduced), 72% of students (a consultant's claim), 11 points behind (unverified).
+   - Stats strip entries may be a claim token or `{ id }`; the source comes from the registry (`copy.test.mjs` 4).
+   - Claim source tags wrap (a long publisher name widened phone pages).
+   - Originality: no shared run of 8 words on any page. The session's web search budget ran out mid-pass, so coverage
+     differs by industry and each record says what ran: full phrase searches (Healthcare, Retail, Insurance,
+     Manufacturing after a positive control), partial (Telecom 33, Education 32, Travel 20 of 40), none possible
+     (Financial Services, Utilities, Government: word-run comparison against 51 to 61 fetched pages instead). Queued
+     phrases are in each agent's notes; run them in a session with search budget.
+   - Two sources read off the publisher's own site, disclosed in the claim: ACSI federal figures from ACSI's study PDF
+     hosted by FedScoop (theacsi sites refuse this network). Government CSAT row sets ACSI's index (65) beside SQM's
+     top-box 78%, with the scale difference stated.
+38. **Scheduled (TB: yes):** BLS wage update, its own change after the site scan. OEWS now publishes May 2025; the site
+   wage (`market.wage.agent`, $20.59, J11) is May 2024. Read the May 2025 national row for SOC 43-4051 first (bls.gov
+   refuses this sandbox; WebFetch reaches only index pages; the national XLSX or TB can supply it), then move the registry
+   entry and its review date, and A/B every wage-driven tool (figures move by the wage ratio, grades unchanged).
+39. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
    status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
    lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
    (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match
