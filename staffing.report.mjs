@@ -1,3 +1,4 @@
+const { METHOD_VERSIONS, methodStamp } = await import("./src/lib/methodVersions.js");
 /* staffing.report.mjs
  *
  * Rendered-output reconciliation for the Staffing Requirement Calculator.
@@ -279,10 +280,10 @@ function render(S) {
   `;
   return new Function("benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "BENCH", "COLORS", "classifyOccupancy", "classifyShrinkage",
     "NAVY", "DEEP", "ELECTRIC", "LIGHT", "WARM", "SLATE", "MUTED", "BORDER", "GREEN", "AMBER", "RED",
-    "severityBucket", "MUT", "createGuards", "guardVal", "guardLine", body)(
+    "severityBucket", "MUT", "createGuards", "guardVal", "guardLine", "METHOD_VERSIONS", "methodStamp", body)(
     benchmark, emitGrades, voidResult, isVoid, railEvidence, weakerStream, BENCH, COLORS, classifyOccupancy, classifyShrinkage,
     COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#F8FAFB", "#3A4F6A", COLORS.muted,
-    "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, createGuards, guardVal, guardLine);
+    "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, createGuards, guardVal, guardLine, METHOD_VERSIONS, methodStamp);
 }
 
 function allText(doc) {

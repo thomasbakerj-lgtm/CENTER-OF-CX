@@ -93,6 +93,7 @@ const INFRA = [
   { name: "adherence.test.mjs", covers: "V3-Full: Schedule Adherence engine, Erlang C against published tables and an oracle, agreement with Staffing, A/B with the previous tool" },
   { name: "adherence.report.mjs", covers: "V3-Full: Schedule Adherence PDF reconciled to the engine on four links; method example is the default case" },
   { name: "wfmrail.test.mjs", covers: "Phase D rail: AHT, shrinkage and occupancy into Staffing with origin grades; Staffing solver start A/B on 20,000 queues" },
+  { name: "fixtures.test.mjs", covers: "Phase E: reference fixtures (Erlang C tables, Nextiva, Krippendorff 2011, WAPE, the tracker fixture) reproduced by the shipped engines" },
   { name: "methods.test.mjs", covers: "Phase E: published method pages for the nine rail calculators, every worked-example pin recomputed from the tool's own engine" },
   { name: "rfp.test.mjs", covers: "V3-Framework: RFP requirements and response scoring against an oracle, GA-only credit, unanswered is never a zero" },
   { name: "terms.test.mjs", covers: "V3-Framework: Contract Risk clauses, reading rule against an oracle, unknown is never a pass" },

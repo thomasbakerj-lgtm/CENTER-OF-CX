@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import ReportActions from "./ReportActions";
+import { METHOD_VERSIONS } from "./src/lib/methodVersions";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage, benchmark } from "./src/lib/benchmarks";
 import { emitGrades, voidResult, isVoid, railEvidence, weakerStream } from "./src/lib/confidence";
 import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
@@ -16,7 +17,7 @@ const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 
 const TOOL_ID = "staffing-calculator";
 const ROUTE = "/tools/staffing-calculator";
-const METHODOLOGY_VERSION = "staffing-v3.2026.08";
+const METHODOLOGY_VERSION = METHOD_VERSIONS[TOOL_ID].version;
 
 /* Scenario defaults. Only fields that differ travel in the link, so the URL stays short.
    No contact detail is ever encoded: the shape below is the whole payload. */

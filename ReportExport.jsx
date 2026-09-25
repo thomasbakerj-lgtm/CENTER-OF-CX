@@ -37,7 +37,7 @@ const SLATE = "#3A4F6A";
    roadmap item carrying markup cannot run in the report window. Pure, so the harness
    can build it without a browser. */
 const e = (v) => String(v === undefined || v === null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "" }) {
+export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "", method = "" }) {
   // Resolve relative next-step links against the live origin so they work in the
   // popup preview (whose own URL is about:blank) and remain clickable in the PDF.
   const absUrl = (href) => !href ? null : (/^https?:\/\//i.test(href) ? href : origin + (href.startsWith("/") ? href : "/" + href));
@@ -384,6 +384,7 @@ td.value { font-weight: 600; color: ${NAVY}; text-align: right; }
     ${reportName ? `<div><strong>Prepared for:</strong> ${e(reportName)}</div>` : ""}
     ${company ? `<div><strong>Organization:</strong> ${e(company)}</div>` : ""}
     <div><strong>Date:</strong> ${e(today)}</div>
+    ${method ? `<div><strong>Method:</strong> ${e(method)}</div>` : ""}
   </div>
 </div>
 <div class="cover-right">
@@ -406,7 +407,7 @@ ${sections.map((s, i) => renderSection(s, i)).join("\n")}
 </html>`;
 }
 
-export default function ReportExport({ toolId, grade, toolName, subtitle, userName, userEmail, sections = [] }) {
+export default function ReportExport({ toolId, grade, toolName, subtitle, userName, userEmail, sections = [], method = "" }) {
   const [showModal, setShowModal] = useState(false);
   const [logo, setLogo] = useState(null);
   const [reportName, setReportName] = useState(userName || "");
@@ -441,7 +442,7 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
     if (!win) { alert("Please allow pop-ups to download your report."); return; }
 
     const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "";
-    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin });
+    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin, method });
 
     win.document.write(html);
     win.document.close();

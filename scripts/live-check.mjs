@@ -147,6 +147,12 @@ for (const m of METHODOLOGY) {
   report(v.errors.length === 0 && /bands/i.test(v.text) && /cannot tell you/i.test(v.text) && !BAD.test(v.text), `${m} renders its rubric`, v.errors[0] || badAt(v.text));
   await v.ctx.close();
 }
+/* The public method changelog: renders, lists at least one dated change, links methods. */
+{
+  const v = await open("/changelog");
+  report(v.errors.length === 0 && /What changed in how the tools calculate/.test(v.text) && /\d{1,2} [A-Z][a-z]+ 20\d\d/.test(v.text) && !BAD.test(v.text), "/changelog renders the method changes", v.errors[0] || badAt(v.text));
+  await v.ctx.close();
+}
 /* The security headers production must serve, and no policy violation anywhere. */
 if (INJECT || !/localhost|127\.0\.0\.1/.test(ORIGIN)) {
   const csp = (docHeaders && docHeaders["content-security-policy"]) || "";

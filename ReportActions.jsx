@@ -5,6 +5,7 @@ import { FONT, TYPE } from "./src/lib/type";
 import { trackTool, track, EV } from "./src/lib/track";
 import { gradeConfidence, isVoid, isDual, AXES, AXIS_EXPLAINER } from "./src/lib/confidence";
 import { nextFor } from "./src/lib/journey";
+import { methodStamp } from "./src/lib/methodVersions";
 
 /**
  * ReportActions, the shared end-of-tool action block.
@@ -295,6 +296,8 @@ export default function ReportActions({
   /* Prepended, not appended: a reader who stops after page one has still been told
      what the number is worth. Absent `grades`, the section list is untouched. */
   const exportSections = grades ? [confidenceSection(grades, headline), ...sections] : sections;
+  /* The published method this result was computed under, on the page and the PDF cover. */
+  const stamp = methodStamp(toolId);
 
   const basePayload = (intent) => {
     const b = new FormData();
@@ -424,6 +427,11 @@ export default function ReportActions({
         <p style={sub}>
           The report downloads immediately. No email required, no wall.
         </p>
+        {stamp && (
+          <p style={{ ...TYPE.caption, color: MUTED, margin: "-6px 0 14px" }}>
+            {stamp.text}. <a href={stamp.href} style={{ color: ELECTRIC, fontWeight: 600 }}>How this is calculated</a> · <a href="/changelog" style={{ color: ELECTRIC, fontWeight: 600 }}>Changes</a>
+          </p>
+        )}
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 18 }}>
           <span onClickCapture={fireComplete} style={{ display: "contents" }}><ReportExport
@@ -434,6 +442,7 @@ export default function ReportActions({
             userName={[first, last].filter(Boolean).join(" ")}
             userEmail={email || copyEmail}
             sections={exportSections}
+            method={stamp ? `${stamp.text}, contactcentercx.com${stamp.href}` : ""}
           /></span>
 
           {link ? (

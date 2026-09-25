@@ -731,8 +731,21 @@ dashboard, the 12-phase growth program.
    A/B 20,000 cases each, equal inputs equal figures and grades; fixtures pinned at their verified inputs. Retired
    unsourced copy: Attrition "published 40-60% band" and "$10-20K reference", Business Case "most centers achieve" and
    "15 to 25% is realistic". Suite 20,934.
-31. **Next:** Phase E2 (reference fixtures harness), E3 (method version stamps, public changelog), then the full site
-   scan (TB, S23). Phase D is complete. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
+31. Done S23: Phase E2, reference fixtures. `src/lib/fixtures.js` lists cases whose answer is known outside the site,
+   each marked published, derivation or reconciled: Erlang C at 10 Erlangs (0.6821 to 0.1741), 1 Erlang on 2 agents by
+   hand (1/3), 80/20 at 10 Erlangs (14 agents), Nextiva (68, 98, 84.0%), Krippendorff (2011) alpha 0.743 and 0.849, a
+   WAPE case whose errors cancel, the tracker fixture. `fixtures.test.mjs` (16) computes each with the shipped engine
+   (Staffing and Adherence Erlang C both, plus an independent factorial oracle); method pages print them under
+   "Checked against".
+32. Done S23: Phase E3, version stamps and the public changelog. `src/lib/methodVersions.js` (checked equal to every
+   model by `methods.test.mjs`); ReportActions prints "Method 1.0, published ..." with the method and changelog links on
+   every tool with a published method, and the PDF cover carries it. AI Deflection's "3.1" and Staffing and TCO's
+   private version strings retired to the shared table. `/changelog` (sitemap 448) from `src/lib/changelog.js`: method
+   changes only (TB), starting with the Phase D rebuild; each method page lists its own changes. Chunk gate re-based
+   with attribution (routes and SEO for 13 pages). Suite 20,968; local live check 227 of 227.
+33. **Next:** the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
+   status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
+   lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
    (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match
    V3 remain gated on the corpus.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares

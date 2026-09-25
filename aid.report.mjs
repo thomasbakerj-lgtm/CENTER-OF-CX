@@ -1,3 +1,4 @@
+const { METHOD_VERSIONS, methodStamp } = await import("./src/lib/methodVersions.js");
 /* aid.report.mjs
  *
  * Rendered-output reconciliation for the AI Deflection Reality Check.
@@ -252,9 +253,9 @@ function render(S) {
     return { s, R, RB, G, subtitle, summary, signals, sections, analyst, scenarios };
   `;
   return new Function("MECH", "MECH_ORDER", "MECH_INITIAL", "severityBucket", "createGuards", "MUT",
-    "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred", body)(
+    "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred", "METHOD_VERSIONS", "methodStamp", body)(
     MECH, MECH_ORDER, MECH_INITIAL, severityBucket, createGuards, S.mut,
-    BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred);
+    BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred, METHOD_VERSIONS, methodStamp);
 }
 
 function allText(doc) {

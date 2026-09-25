@@ -1,3 +1,4 @@
+const { METHOD_VERSIONS, methodStamp } = await import("./src/lib/methodVersions.js");
 /* tco.report.mjs
  *
  * Rendered-output reconciliation for the Total Cost of Ownership Analysis.
@@ -259,11 +260,11 @@ ${gradeLine}
   return new Function("BENCH", "COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "WARM", "SLATE",
     "MUTED", "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MUT", "STANCE_KEY",
     "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "FROM_LINK", "RAIL_PRE",
-    "benchmark", "benchmarksForTool", "nextFor", body)(
+    "benchmark", "benchmarksForTool", "nextFor", "METHOD_VERSIONS", "methodStamp", body)(
     BENCH, COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#F8FAFB", "#3A4F6A",
     COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket, S.mut, S.stance,
     createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, !!S.fromLink, S.pre || {},
-    BENCHMOD.benchmark, BENCHMOD.benchmarksForTool, JOURNEY.nextFor);
+    BENCHMOD.benchmark, BENCHMOD.benchmarksForTool, JOURNEY.nextFor, METHOD_VERSIONS, methodStamp);
 }
 
 function allText(doc) {

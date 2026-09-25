@@ -48,7 +48,15 @@ const section = (s) => console.log(`\n${s}`);
  *
  * The numbers are argued, not rounded.
  *
- * Measured entry on 24 September 2026, Phase D step 2 (Shrinkage): 242,088 bytes raw,
+ * Measured entry on 25 September 2026, Phase E3 (method changelog): 248,077 bytes raw,
+ * 80,341 gzipped. Reset from 242,088 raw, 78,883 gzipped (24 September, Phase D step 2).
+ * The 5,989 raw bytes between them are App.jsx routes and src/lib/seo.js metadata for 13
+ * published pages: the AHT, Forecast and Adherence methods, the nine rail calculator methods
+ * and /changelog. The changelog route alone is 270 of them (247,807 on main before it).
+ * Checked against the built entry: no method model, fixture, changelog entry or version
+ * table string is in it; all of that loads with the method page chunk.
+ *
+ * Before that, measured on 24 September 2026, Phase D step 2 (Shrinkage): 242,088 bytes raw,
  * 78,883 gzipped. Reset from the close of 11A (236,431 raw, 76,784 gzipped, commit
  * ea42b7c). The rendered bytes were attributed module by module against a build of that
  * commit, and every byte traces to shell code meant to ship. App.jsx grew 2,621: the
@@ -87,12 +95,12 @@ const section = (s) => console.log(`\n${s}`);
  * this paragraph. Do not raise it to make a build pass. A run that reports this
  * harness UNPARSED has not measured anything and is a failure, never a pass.
  */
-const BASE_RAW = 242088;
-const BASE_GZ = 78883;
+const BASE_RAW = 248077;
+const BASE_GZ = 80341;
 const SMALLEST_SPLIT_RAW = 8931;
 const SMALLEST_SPLIT_GZ = 3100;
-const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 248,042
-const GZ_CEILING = BASE_GZ + Math.floor((SMALLEST_SPLIT_GZ * 2) / 3);      // 80,949
+const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 254,031
+const GZ_CEILING = BASE_GZ + Math.floor((SMALLEST_SPLIT_GZ * 2) / 3);      // 82,407
 
 /* ----------------------------------------------------------------- measure */
 
