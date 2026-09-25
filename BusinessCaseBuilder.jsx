@@ -79,6 +79,7 @@ function H({ children, color }) {
 const DEFS = {
   repeatShare: "Same-reason repeat contacts as a share of total volume. Annual volume already contains repeats, so FCR improvement must be applied to the underlying issues, not to every contact. Supply this if you measure it. Left blank, the tool derives the issue count from FCR, which assumes one repeat per unresolved issue and is labelled a proxy in the report.",
   mech: "Freed agent time is released capacity, not cash. It becomes money only when a named action converts it: reducing overtime, avoiding planned hires, reducing vendor or BPO volume, or removing headcount. Absorbing growth is real operational value but is not cash this cycle, and selecting no action realizes zero. Only freed labor is scaled by this factor. Avoided recruiting spend, platform fees and implementation are never scaled.",
+  baseline: "The savings are priced on four baselines: handle time, first contact resolution, contact volume and the agent wage. The example values this tool opens with grade Directional. Your own estimate grades Planning-grade, as does a system report you have not attested. A system report you attest by the checkbox grades Finance-grade. A baseline pulled from another tool grades by the origin grade that tool published, and never above Planning-grade. The weakest one sets the benefit stream.",
   marginal: "The variable cost that actually disappears when one contact goes away, essentially the agent handle-time labor for that contact. Savings are valued here rather than at fully loaded cost, because fixed tech, facilities, and supervision do not fall when a single contact is deflected.",
   loadedCPC: "Your fully loaded cost per contact, carrying labor plus a share of fixed tech, facilities, and supervision. The tool shows it for context but never values savings on it, because deflecting one contact does not remove those fixed costs.",
   stance: "A per-lever haircut on modeled savings, set higher for levers a board trusts and lower for levers that are hard to attribute to a platform. It exists because deflection, handle-time, FCR, and attrition are not equally believable, so a single blanket discount would either overstate the soft levers or understate the hard ones.",
@@ -115,6 +116,18 @@ const BAU_EVIDENCE = {
   served: { label: "Notice served", note: "Termination or non-renewal notice already given." },
 };
 const BAU_RANK = { estimated: 0, budgeted: 1, reviewed: 2, served: 3 };
+
+/* Baseline evidence (TB, S23). The benefit stream is priced on four operating baselines:
+   handle time, first contact resolution, contact volume and the agent wage. One question
+   asks where they come from. Our example defaults grade Directional, the reader's estimate
+   and an unattested system report Planning-grade, and a system report the reader attests
+   Finance-grade. A baseline pulled from another tool grades by its origin (railEvidence). */
+const BASELINE_EVIDENCE = {
+  defaults: { label: "Our defaults", note: "The example values this tool opens with." },
+  estimate: { label: "Your estimate", note: "Your own figures, not from a system report." },
+  report: { label: "System report", note: "Read from your ACD, WFM or payroll reports." },
+};
+const BASELINE_FIELDS = [["currentAHT", "handle time"], ["currentFCR", "first contact resolution"], ["monthlyContacts", "contact volume"], ["avgHourly", "agent wage"]];
 
 /* De-overlapped model: every contact-based saving runs on the HANDLED pool
    (post-deflection); ACW is a disjoint slice of AHT; FCR repeats are on handled
@@ -586,7 +599,10 @@ const ranValues = (d, r) => {
   return out;
 };
 
-function confidenceOf(d, r, stanceKey) {
+/* `rail` maps a baseline field to the value another tool supplied and that value's origin
+   grade: { currentAHT: { value, origin, tool } }. A field counts as pulled only while it
+   still holds that value; an edit makes it the reader's own. */
+function confidenceOf(d, r, stanceKey, rail = {}) {
   /* Numbers are read the way the engine reads them, so raw text never prints as "abc"
      or Infinity. Settings such as evidence still come from the caller. */
   d = saneNums(d);
@@ -632,6 +648,8 @@ function confidenceOf(d, r, stanceKey) {
   // of exactly the same kind as the investment inputs: is this a cash flow that actually
   // stops? Once it carries a quarter of the modeled benefit, an unreviewed contract is a
   // defect in the cost evidence, not a plausibility observation.
+  // Resolved here, before the substitution list is read, so a forged answer is disclosed.
+  const baselineAsked = resolveC("Baseline evidence", d.baselineEvidence == null || d.baselineEvidence === "" ? "defaults" : d.baselineEvidence, BASELINE_EVIDENCE, "defaults");
   const bauEvidence = resolveC("Displaced spend evidence", d.bauEvidence == null || d.bauEvidence === "" ? "estimated" : d.bauEvidence, BAU_EVIDENCE, "estimated");
   if (r.displacementShare > 0.25 && BAU_RANK[bauEvidence] < BAU_RANK.reviewed) {
     open.push(`${Math.round(r.displacementShare * 100)}% of modeled three-year benefit is technology-cost displacement, and the ${fmtFull(r.bauAnnual)} of eliminated annual spend rests on evidence rated ${BAU_EVIDENCE[bauEvidence].label} rather than a reviewed contract. Displacement is credited as avoided cash, so it carries the same evidence burden as the spend it offsets.`);
@@ -717,8 +735,8 @@ function confidenceOf(d, r, stanceKey) {
      Evidence has two streams graded on one set of bands, and the weaker binds. The cost
      stream is the cost basis above. The benefit stream carries the two attribution caps
      argued under 1-12b: a stance with no haircut, and targets above the planning range.
-     BCB carries no evidence selector for its operational baselines, so the benefit stream
-     grades attribution and target ambition only, as it did before this retrofit.
+     Since S23 it also carries the baseline evidence: the weakest of the reader's answer on
+     where the baselines come from and the origin grade of any baseline pulled from the rail.
      Realization is read from the credit class of the committed capacity action and from
      nothing else. Completeness falls to Directional when any input was substituted, held
      or corrected, because the reader is then looking at a different case.
@@ -726,13 +744,34 @@ function confidenceOf(d, r, stanceKey) {
   const benefitCaps = [];
   if (stKey === "aggressive") benefitCaps.push("the Aggressive stance applies no attribution haircut");
   if (flags.length) benefitCaps.push(`${flags.length} improvement target${flags.length > 1 ? "s sit" : " sits"} above the internal planning range`);
-  const benefitGrade = benefitCaps.length ? "Planning-grade" : "Finance-grade";
+  /* Baseline evidence. The reader's answer grades every baseline they supplied; a baseline
+     still holding a value another tool published grades by that tool's origin grade. An
+     unanswered question with a baseline edited here reads as the reader's estimate, so an
+     older link with its own figures is not graded as our defaults. */
+  const railed = (f) => rail && Object.prototype.hasOwnProperty.call(rail, f) && rail[f] && rail[f].value === n(d[f]);
+  const pulledBase = BASELINE_FIELDS.filter(([f]) => railed(f));
+  const ownBase = BASELINE_FIELDS.filter(([f]) => !railed(f));
+  const baselineInferred = baselineAsked === "defaults" && ownBase.some(([f]) => n(d[f]) !== DEFAULTS[f]);
+  const baselineEvidence = baselineInferred ? "estimate" : baselineAsked;
+  const baselineAttested = baselineEvidence === "report" && d.baselineAttested === true;
+  const answerGrade = baselineEvidence === "defaults" ? "Directional" : baselineAttested ? "Finance-grade" : "Planning-grade";
+  let baselineGrade = ownBase.length ? answerGrade : "Finance-grade";
+  for (const [f] of pulledBase) baselineGrade = weakerStream(baselineGrade, railEvidence(rail[f].origin));
+  const joinNames = (xs) => xs.length > 1 ? `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}` : xs[0];
+  const baselineWhy = [
+    ...(ownBase.length ? [`the ${joinNames(ownBase.map(([, w]) => w))} baseline${ownBase.length > 1 ? "s" : ""} ${
+      baselineEvidence === "defaults" ? `${ownBase.length > 1 ? "are" : "is"} this tool's example default${ownBase.length > 1 ? "s" : ""}`
+      : baselineEvidence === "estimate" ? (baselineInferred ? `${ownBase.length > 1 ? "were" : "was"} edited here with no stated source, so ${ownBase.length > 1 ? "they read" : "it reads"} as your estimate` : `${ownBase.length > 1 ? "are" : "is"} your estimate`)
+      : baselineAttested ? `come${ownBase.length > 1 ? "" : "s"} from a system report you attested` : `come${ownBase.length > 1 ? "" : "s"} from a system report you have not attested`}, which grades ${answerGrade}`] : []),
+    ...pulledBase.map(([f, w]) => `the ${w} baseline came from ${rail[f].tool || "another tool"} ${rail[f].origin ? `with an origin grade of ${rail[f].origin}` : "with no recorded origin grade"}, which grades ${railEvidence(rail[f].origin)}`),
+  ];
+  const benefitGrade = weakerStream(benefitCaps.length ? "Planning-grade" : "Finance-grade", baselineGrade);
   const evidenceGrade = weakerStream(costGrade, benefitGrade);
   const integrity = corrections.length + numericCorrections.length + domainCorrections.length;
   const completenessGrade = integrity ? "Directional" : "Finance-grade";
   const costBinds = GRADE_RANK[costGrade] <= GRADE_RANK[benefitGrade];
   const reasons = {
-    evidence: `${costBinds ? "The cost stream binds" : "The benefit stream binds"}. Cost stream ${costGrade}: the investment inputs rest on ${EVIDENCE[evidence].label.toLowerCase()} evidence${open.length ? `, with ${open.length} open item${open.length > 1 ? "s" : ""} on the cost inputs` : ""}. Benefit stream ${benefitGrade}: ${benefitCaps.length ? benefitCaps.join(", and ") : "the stance applies an attribution haircut and every improvement target sits inside the internal planning range"}.`,
+    evidence: `${costBinds ? "The cost stream binds" : "The benefit stream binds"}. Cost stream ${costGrade}: the investment inputs rest on ${EVIDENCE[evidence].label.toLowerCase()} evidence${open.length ? `, with ${open.length} open item${open.length > 1 ? "s" : ""} on the cost inputs` : ""}. Benefit stream ${benefitGrade}: ${benefitCaps.length ? benefitCaps.join(", and ") : "the stance applies an attribution haircut and every improvement target sits inside the internal planning range"}; ${baselineWhy.join("; ")}.`,
     realization: r.mechKey === "none"
       ? "No capacity action is committed, so freed agent time realizes zero cash and the case is released capacity until an action is chosen."
       : `The ${r.mechLabel} capacity action carries credit class ${r.cred}, which earns ${realizationGrade} realization.`,
@@ -754,7 +793,8 @@ function confidenceOf(d, r, stanceKey) {
     : emitGrades({ evidence: evidenceGrade, realization: realizationGrade, completeness: completenessGrade, reasons });
   const grade = voided ? "Void" : gradeObj.headline;
   return { grade, gradeObj, voided, invariants, costGrade, benefitGrade, evidenceGrade, realizationGrade, completenessGrade,
-    open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence, corrections, numericCorrections, domainCorrections };
+    open, withheld: caps.map(c => c[1]), findings, flags, evidence, bauEvidence, corrections, numericCorrections, domainCorrections,
+    baselineEvidence, baselineAttested, baselineInferred, baselineGrade, baselinePulled: pulledBase.map(([f]) => f) };
 }
 
 // One vocabulary for the four savings levers, shared by the fragility pricing and the
@@ -924,6 +964,7 @@ const DEFAULTS = {
   currentFCR: bd("fcr"), repeatShare: 0, currentAttrition: bd("attrition"), costPerContact: bd("costPerContact"), marginalPerContact: 0, recruitCostPerHire: bd("recruiting"), trainingDays: bd("trainingDays"),
   htReduction: bd("htReduction"), acwReduction: bd("acwReduction"), fcrImprovement: bd("fcrImprovement"), attritionReduction: bd("attritionReduction"), containment: bd("containment"),
   implementationCost: bd("implementation"), newPlatformPerAgentMo: bd("platform"), migrationMonths: bd("migrationMonths"), rampMonths: bd("rampMonths"), evidence: "estimate",
+  baselineEvidence: "defaults", baselineAttested: false,
   // BAU counterfactual. All zero by default, so an untouched case reproduces the pre-BAU
   // engine exactly. bauOverlapShare is a percentage and only bites when spend is entered.
   bauEliminatedAnnual: 0, bauOverlapMonths: 0, bauOverlapShare: 100, bauExitCost: 0,
@@ -947,6 +988,8 @@ export default function BusinessCaseBuilder() {
   const [mech, setMech] = useState(MECH_FALLBACK);
   const [pulled, setPulled] = useState({});
   const [sources, setSources] = useState({});
+  // Baseline fields pulled from another tool, with the value and origin grade it published.
+  const [railBase, setRailBase] = useState({});
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
 
   const completedRef = useRef(false);
@@ -956,7 +999,7 @@ export default function BusinessCaseBuilder() {
   // is authored here, so the target fields keep their defaults for the user to own.
   useEffect(() => {
     window.scrollTo(0, 0);
-    const next = {}, got = {}, src = {};
+    const next = {}, got = {}, src = {}, origin = {};
     // EXTERNAL ONLY. getPrimitive would return this tool's own last publish, which is how a
     // marginal derived here came back one session later labelled as inherited from TCO and
     // priced a different contact center's savings. A value you published is not a value you
@@ -966,7 +1009,8 @@ export default function BusinessCaseBuilder() {
       const v = getExternalPrimitive(key, "business-case-builder");
       if (v != null && !isNaN(v)) {
         next[field] = xf(v); got[field] = true;
-        src[field] = getPrimitiveWithSource(key).sourceTool;
+        const res = getPrimitiveWithSource(key);
+        src[field] = res.sourceTool; origin[field] = res.railOrigin;
       }
     };
     take("agents", "agents");
@@ -979,12 +1023,14 @@ export default function BusinessCaseBuilder() {
     const annual = getExternalPrimitive("annualContacts", "business-case-builder");
     if (annual != null && !isNaN(annual)) {
       next.monthlyContacts = Math.round(annual / 12); got.monthlyContacts = true;
-      src.monthlyContacts = getPrimitiveWithSource("annualContacts").sourceTool;
+      const res = getPrimitiveWithSource("annualContacts");
+      src.monthlyContacts = res.sourceTool; origin.monthlyContacts = res.railOrigin;
     } else {
       const mc = getExternalPrimitive("monthlyContacts", "business-case-builder");
       if (mc != null && !isNaN(mc)) {
         next.monthlyContacts = Math.round(mc); got.monthlyContacts = true;
-        src.monthlyContacts = getPrimitiveWithSource("monthlyContacts").sourceTool;
+        const res = getPrimitiveWithSource("monthlyContacts");
+        src.monthlyContacts = res.sourceTool; origin.monthlyContacts = res.railOrigin;
       }
     }
     // A scenario link is a deliberate act and outranks the ambient cross-tool pull, so it
@@ -1000,14 +1046,19 @@ export default function BusinessCaseBuilder() {
       clearScenarioParam();
       return;
     }
-    if (Object.keys(next).length) { setD(prev => ({ ...prev, ...next })); setPulled(got); setSources(src); }
+    if (Object.keys(next).length) {
+      setD(prev => ({ ...prev, ...next })); setPulled(got); setSources(src);
+      const base = {};
+      for (const [f] of BASELINE_FIELDS) if (got[f]) base[f] = { value: next[f], origin: origin[f] || null, tool: toolLabel(src[f]) };
+      setRailBase(base);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const r = computeCase(d, stance, rampOn, mech);
   // Every figure the page prints, publishes or exports reads the values the engine ran.
   const g = r.dg;
-  const conf = confidenceOf(d, r, stance);
+  const conf = confidenceOf(d, r, stance, railBase);
   const insights = caseInsights(r, d, stance, conf);
 
   const spark = (() => {
@@ -1133,6 +1184,24 @@ export default function BusinessCaseBuilder() {
               <NumField label="Loaded Cost per Contact" value={d.costPerContact} onChange={v => set("costPerContact", v)} prefix="$" step={0.5} min={0} info={DEFS.loadedCPC} infoTitle="Loaded cost per contact" hint="Context only, not the savings basis" pulled={pulled.costPerContact} />
               <NumField label="Recruiting Cost / Hire" value={d.recruitCostPerHire} onChange={v => set("recruitCostPerHire", v)} prefix="$" step={100} min={0} />
               <NumField label="New Hire Training Days" value={d.trainingDays} onChange={v => set("trainingDays", v)} min={0} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Where do your baselines come from?</span>
+              <InfoDot text={DEFS.baseline} title="Baseline evidence" />
+              <div role="group" aria-label="Baseline evidence" style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8, flexWrap: "wrap" }}>
+                {Object.entries(BASELINE_EVIDENCE).map(([k, v]) => (
+                  <button key={k} onClick={() => set("baselineEvidence", k)} aria-pressed={conf.baselineEvidence === k} title={v.note} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: conf.baselineEvidence === k ? ELECTRIC : "transparent", color: conf.baselineEvidence === k ? "#fff" : SLATE }}>{v.label}</button>
+                ))}
+              </div>
+              {conf.baselineEvidence === "report" && (
+                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                  <input type="checkbox" checked={d.baselineAttested === true} onChange={e => set("baselineAttested", e.target.checked)} style={{ width: 15, height: 15, accentColor: ELECTRIC, cursor: "pointer" }} />
+                  <span style={{ fontSize: 12, color: NAVY }}>I read handle time, FCR, volume and wage from our system reports</span>
+                </label>
+              )}
+            </div>
+            <div style={{ fontSize: 12, color: conf.baselineGrade === "Directional" ? AMBER : MUTED, marginTop: 6 }}>
+              Baselines grade {conf.baselineGrade}{conf.baselineInferred ? ": edited here with no stated source, read as your estimate" : ""}{conf.baselinePulled.length ? `; ${conf.baselinePulled.length} pulled from another tool grade${conf.baselinePulled.length > 1 ? "" : "s"} by that tool's origin grade` : ""}.
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "10px 14px", background: WARM, borderRadius: 8, flexWrap: "wrap" }}>
               <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Savings basis</span>
@@ -1452,7 +1521,7 @@ export default function BusinessCaseBuilder() {
                      axis-limiting items and findings, and never restates an axis. A void case
                      carries only its next steps and methodology (11B). */
                   ...(conf.voided ? [] : [
-                  { title: "Evidence and Findings", type: "text", content: `Evidence basis for the cost and investment inputs: ${EVIDENCE[conf.evidence].label}. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` Items that limit an axis and are not cost-input defects: ${conf.withheld.join(" ")}` : ""}${conf.findings.length ? ` Findings on the return, reported in full and deliberately excluded from every confidence axis, because the strength of an answer is not evidence about it: ${conf.findings.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[r.stanceKey].label} stance, which weights each lever for attribution risk.` },
+                  { title: "Evidence and Findings", type: "text", content: `Evidence basis for the cost and investment inputs: ${EVIDENCE[conf.evidence].label}. Baselines (handle time, FCR, volume, wage): ${BASELINE_EVIDENCE[conf.baselineEvidence].label}${conf.baselineEvidence === "report" ? (conf.baselineAttested ? ", attested" : ", not attested") : ""}${conf.baselineInferred ? ", read from baselines edited with no stated source" : ""}${conf.baselinePulled.length ? `, with ${conf.baselinePulled.length} pulled from another tool` : ""}. ${conf.open.length ? `Open items on the cost inputs, before the investment side is final: ${conf.open.join(" ")}` : "No open items were flagged on the cost inputs at the current settings."}${conf.withheld.length ? ` Items that limit an axis and are not cost-input defects: ${conf.withheld.join(" ")}` : ""}${conf.findings.length ? ` Findings on the return, reported in full and deliberately excluded from every confidence axis, because the strength of an answer is not evidence about it: ${conf.findings.join(" ")}` : ""} Savings believability is governed separately by the ${STANCE[r.stanceKey].label} stance, which weights each lever for attribution risk.` },
                   { title: "Executive Summary", type: "text", content: `Modeled on ${n(g.agents)} agents handling ${(r.annual / 1e6).toFixed(2)}M contacts annually, this CX transformation reaches ${fmtK(r.net)} in realizable annual savings at full run-rate (${STANCE[r.stanceKey].label} stance) against a ${fmtFull(n(g.implementationCost))} one-time investment and ${fmtFull(r.recurring)} per year in platform cost. ${rampOn ? `Savings are phased over a ${r.M}-month migration and ${r.R}-month ramp, so year one delivers ${fmtK(r.year1)} as the program ramps, producing ` : `Assuming savings land at full run-rate immediately, this produces `}a ${r.payback > 0 ? `${r.payback}-month` : "beyond-three-year"} payback and ${r.roiDefined ? (r.bauEntered ? `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of gross transformation cash, against a benefit of ${fmtK(r.benefit3)} that is ${Math.round((1 - r.displacementShare) * 100)}% operational improvement and ${Math.round(r.displacementShare * 100)}% displaced technology spend` : `${Math.round(r.roi3)}% three-year return on ${fmtK(r.tco3)} of modeled investment cost, which is implementation plus three years of the new platform fee and is not a full total cost of ownership because no business-as-usual counterfactual has been entered`) : `no meaningful ROI percentage, because no investment has been entered`}. Deflected and repeat-avoided contacts are valued at the marginal labor content of ${fmt2(r.marginal)} each rather than the fully loaded ${fmt2(n(g.costPerContact))}. ${r.stanceKey === "aggressive" ? `Savings are de-overlapped so no lever double-counts another, but the Aggressive stance applies no attribution haircut, so these are full modeled savings with no attribution applied. The Expected stance applies attribution weighting to each lever.` : `Savings are de-overlapped and discounted for attribution risk.`} The headline is realizable savings, not gross labor value: this case releases ${Math.round(r.freedHoursAttributed).toLocaleString()} agent hours a year worth ${fmtK(r.capacityNet)}, of which the ${r.mechLabel} capacity action converts ${fmtK(r.capacityRealized)}, plus ${fmtK(r.cashNet)} of cash-releasing avoided recruiting spend. This is a conditional forecast under the stated assumptions, not a measured outcome.` },
                   { title: "Financial Summary", type: "metrics", items: [
                     { label: "Realizable Annual Savings", value: fmtFull(r.net), color: GREEN, sub: `${STANCE[r.stanceKey].label} stance · ${r.mechLabel} · run-rate` },

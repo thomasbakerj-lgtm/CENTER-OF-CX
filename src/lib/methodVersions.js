@@ -29,7 +29,7 @@ export const METHOD_VERSIONS = {
   "tco-calculator": V("1.0", "2026-09-25"),
   "license-gap": V("1.0", "2026-09-25"),
   "attrition-cost": V("1.0", "2026-09-25"),
-  "business-case-builder": V("1.0", "2026-09-25"),
+  "business-case-builder": V("1.1", "2026-09-25"),
 };
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

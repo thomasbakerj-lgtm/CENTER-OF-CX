@@ -197,6 +197,9 @@ A("the report payload contains no em-dash",
  * changed. Any difference in confidence between F and G is verdict strength moving an
  * axis, exactly as with B and C.
  */
+/* Baseline evidence (S23): the sets built to grade Finance-grade answer "a system report,
+   attested", the one answer that leaves the benefit stream where it was. */
+const ATTESTED = { baselineEvidence: "report", baselineAttested: true };
 const SETS = {
   A: {
     label: "Shipped defaults: 200 agents, no capacity action, evidence is an estimate",
@@ -206,12 +209,12 @@ const SETS = {
   B: {
     label: "1-12 case: signed proposal, reviewed BAU, headcount reduction, and it does not pay",
     stance: "expected", rampOn: true, mech: "headcount", pulled: {}, sources: {},
-    mut: () => ({ evidence: "proposal", bauEvidence: "reviewed", implementationCost: 6000000 }),
+    mut: () => ({ evidence: "proposal", ...ATTESTED, bauEvidence: "reviewed", implementationCost: 6000000 }),
   },
   C: {
     label: "Set B exactly, implementation cut so the case returns: the return axis control",
     stance: "expected", rampOn: true, mech: "headcount", pulled: {}, sources: {},
-    mut: () => ({ evidence: "proposal", bauEvidence: "reviewed", implementationCost: 400000 }),
+    mut: () => ({ evidence: "proposal", ...ATTESTED, bauEvidence: "reviewed", implementationCost: 400000 }),
   },
   D: {
     label: "Hostile: stale inherited marginal, FCR conflict, targets above every range, aggressive",
@@ -230,12 +233,12 @@ const SETS = {
   F: {
     label: "1-14 case: signed proposal, pays back in month 20, and the three-year return is fragile",
     stance: "expected", rampOn: false, mech: "headcount", pulled: {}, sources: {},
-    mut: () => ({ evidence: "proposal", implementationCost: 600000, newPlatformPerAgentMo: 330 }),
+    mut: () => ({ evidence: "proposal", ...ATTESTED, implementationCost: 600000, newPlatformPerAgentMo: 330 }),
   },
   G: {
     label: "Set F exactly, platform fee cut so the margin is healthy: the fragility control",
     stance: "expected", rampOn: false, mech: "headcount", pulled: {}, sources: {},
-    mut: () => ({ evidence: "proposal", implementationCost: 600000, newPlatformPerAgentMo: 200 }),
+    mut: () => ({ evidence: "proposal", ...ATTESTED, implementationCost: 600000, newPlatformPerAgentMo: 200 }),
   },
 };
 
@@ -289,12 +292,12 @@ function render(S) {
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
     "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MECH", "MECH_ORDER", "MECH_FALLBACK",
     "createGuards", "TOOL_LABELS", "MUT", "STANCE_KEY", "RAMP_ON", "MECH_KEY", "PULLED", "SOURCES", "TOOL_NAME",
-    "trackTool", "emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", "benchmark", preamble);
+    "trackTool", "emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", "benchmark", "railEvidence", preamble);
   return fn(COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#E8F4FD", "#F8FAFB", "#3A4F6A",
     COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket,
     MECH, MECH_ORDER, MECH_FALLBACK, createGuards, TOOL_LABELS, S.mut, S.stance, S.rampOn, S.mech,
     S.pulled, S.sources, toolNameM[1], { nextStep: () => {}, pdf: () => {} },
-    CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK, benchmark);
+    CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK, benchmark, CONF.railEvidence);
 }
 
 /* -------------------------------------------------------------- printing */
@@ -490,6 +493,8 @@ console.log(`\n${"=".repeat(78)}\n1-12 GATE: a confident negative result\n${"=".
       B.conf.open.length === 0 && B.conf.withheld.length === 0);
     A("B: the case genuinely does not return inside the horizon", B.r.payback === 0);
     A("B: the exported headline grade is Finance-grade", B.conf.grade === "Finance-grade", B.conf.grade);
+    A("A: unattested baselines hold the opening case below Finance-grade and the reason says why",
+      results.A.conf.grade !== "Finance-grade" && /baseline/.test(results.A.conf.gradeObj.reasons.evidence), results.A.conf.gradeObj.reasons.evidence);
     A("B: the document prints Finance-grade in the subtitle a buyer reads first",
       B.subtitle.indexOf("case confidence Finance-grade") >= 0);
     A("B: the negative finding survives into the document intact",

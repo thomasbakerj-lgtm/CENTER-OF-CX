@@ -228,7 +228,9 @@ section("Version stamps and the changelog");
   ok("the PDF cover prints the method, escaped", RE.includes("<strong>Method:</strong> ${e(method)}"));
   const tools = [...readFileSync("./App.jsx", "utf8").matchAll(/<Route\s+path="\/tools\/[a-z0-9-]+"\s+element=\{<(\w+) \/>\}/g)].map((m) => m[1]);
   ok("no tool keeps a private method version string", ["AIDeflectionRealityCheck.jsx", "StaffingCalculator.jsx", "TCOCalculator.jsx"].every((f) => /METHODOLOGY_VERSION = METHOD_VERSIONS\[TOOL_ID\]\.version/.test(readFileSync("./" + f, "utf8"))) && tools.length > 20);
-  ok("changelog entries name published methods, a version and at least one change", CHANGELOG.every((c) => /^\d{4}-\d{2}-\d{2}$/.test(c.date) && c.methods.length && c.methods.every((m) => RUBRICS[m]) && c.version === RUBRICS[c.methods[0]].version && c.changes.length && c.title));
+  ok("changelog entries name published methods, a version and at least one change", CHANGELOG.every((c) => /^\d{4}-\d{2}-\d{2}$/.test(c.date) && c.methods.length && c.methods.every((m) => RUBRICS[m]) && /^\d+\.\d+$/.test(c.version) && c.changes.length && c.title));
+  /* A method's history keeps its earlier versions; its newest entry carries the current one. */
+  ok("each method's newest changelog entry carries its current version", Object.keys(RUBRICS).filter((m) => changesFor(m).length).every((m) => changesFor(m)[0].version === RUBRICS[m].version));
   ok("the changelog runs newest first", CHANGELOG.every((c, i) => i === 0 || c.date <= CHANGELOG[i - 1].date));
   ok("every method rebuilt or published since the log began has an entry", ["occupancy-risk", "shrinkage-planner", "aht-decomposition", "forecast-accuracy", "schedule-adherence", "staffing-calculator", "cost-per-contact", "channel-shift", "fcr-leakage", "ai-deflection", "tco-calculator", "license-gap", "attrition-cost", "business-case-builder"].every((m) => changesFor(m).length > 0));
   ok("no dash, noise or undefined in the changelog", !DASH.test(JSON.stringify(CHANGELOG)) && !NOISE.test(JSON.stringify(CHANGELOG)) && !/undefined|NaN/.test(JSON.stringify(CHANGELOG)));

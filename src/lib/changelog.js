@@ -7,6 +7,15 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-25", methods: ["business-case-builder"], version: "1.1",
+    title: "Business Case: the benefit stream grades where the baselines come from",
+    changes: [
+      "A new question asks where handle time, FCR, contact volume and wage come from. Our example defaults grade the benefit stream Directional; your estimate or an unattested system report, Planning-grade; a system report you attest, Finance-grade.",
+      "Before this change the benefit stream could grade Finance-grade on the tool's own example baselines. A baseline pulled from another tool now grades by the origin grade it carries.",
+      "No figure changes. Only the evidence axis moves, and only downward where the baselines are ours or unattested.",
+    ],
+  },
+  {
     date: "2026-09-25", methods: ["attrition-cost"], version: "1.0",
     title: "Attrition Cost: method 1.0 published; opens on the BLS wage",
     changes: [

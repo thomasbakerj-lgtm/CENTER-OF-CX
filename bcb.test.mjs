@@ -37,14 +37,14 @@ try {
 
 /* 11B: the engine grades through the shared confidence module. The real module is injected,
    so the harness tests the grading the tool ships. */
-const CONF_ARGS = ["emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", "benchmark"];
-const CONF_VALS = () => [CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK, BENCH.benchmark];
+const CONF_ARGS = ["emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", "benchmark", "railEvidence"];
+const CONF_VALS = () => [CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK, BENCH.benchmark, CONF.railEvidence];
 const mod = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards", ...CONF_ARGS,
   `${helpers}\n${consts}\n${engine}\n` +
-  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BCB_DOMAIN, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
+  `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BASELINE_EVIDENCE, BASELINE_FIELDS, BCB_DOMAIN, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
 )(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, ...CONF_VALS());
 
-const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS: SHIPPED_DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BCB_DOMAIN } = mod;
+const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS: SHIPPED_DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BASELINE_EVIDENCE, BASELINE_FIELDS, BCB_DOMAIN } = mod;
 
 /* The harness scenario set was written against a capacity action of "hiring", which was
    the silent signature default before 1-08 split the constant. The shipped UI has always
@@ -135,7 +135,11 @@ function ex(name, fn) { try { ok(name, fn()); } catch (e) { ok(name, false, e.me
 /* The fixtures below were verified at an $18 wage, the tool's opening value before the registry
    (the tracker fixture, net $31,850, among them). They keep that wage so every pinned dollar
    still tests the same arithmetic; the opening case now reads the BLS wage, checked here. */
-const DEFAULTS = { ...SHIPPED_DEFAULTS, avgHourly: 18 };
+const DEFAULTS = { ...SHIPPED_DEFAULTS, avgHourly: 18, baselineEvidence: "report", baselineAttested: true };
+/* Baseline evidence (S23) grades the benefit stream on where the baselines come from. The
+   fixtures written before it answer "a system report, attested", the one answer that leaves
+   the benefit stream where it was, so every earlier grade expectation still tests the axis it
+   was written for. Section 12i tests the question itself on the shipped defaults. */
 ok("the opening wage is the shared BLS median and the load the shared benefits load", SHIPPED_DEFAULTS.avgHourly === BENCH.benchmark("market.wage.agent") && SHIPPED_DEFAULTS.benefitsPct === 30);
 ok("every other opening value reads the registry", Object.entries({ agents: "agents", monthlyContacts: "contacts", currentAHT: "aht", implementationCost: "implementation", newPlatformPerAgentMo: "platform" }).every(([k, id]) => SHIPPED_DEFAULTS[k] === BENCH.benchmark("bcb.default." + id)));
 const D = (over = {}) => ({ ...DEFAULTS, ...over });
@@ -875,7 +879,7 @@ section("12c. Capacity is not cash");
     currentACW: 54, currentFCR: 69, currentAttrition: 32, costPerContact: 6.25, marginalPerContact: 0,
     recruitCostPerHire: 3100, trainingDays: 25, htReduction: 13, acwReduction: 22, fcrImprovement: 10,
     attritionReduction: 25, containment: 14, implementationCost: 521000, newPlatformPerAgentMo: 187,
-    migrationMonths: 12, rampMonths: 7, evidence: "proposal" };
+    migrationMonths: 12, rampMonths: 7, evidence: "proposal", baselineEvidence: "report", baselineAttested: true };
 
   // Monotonicity and the two endpoints that matter most.
   const byMech = MECH_ORDER.map(k => [k, computeCase(T, "expected", true, k)]);
@@ -1370,6 +1374,96 @@ section("12g. 11B: three axes, the shared emission, the void, and the unchanged 
   ok("SOURCE the tool grades through the shared module and keeps no local grade table",
      /from "\.\/src\/lib\/confidence"/.test(SRC) && !/^const GRADE_RANK = /m.test(SRC) && !/^const CRED_GRADE = /m.test(SRC) && /emitGrades\(\{ evidence: evidenceGrade, realization: realizationGrade, completeness: completenessGrade, reasons \}\)/.test(SRC));
   ok("SOURCE a voided case publishes nothing to the rail", /if \(conf\.voided\) return;/.test(SRC));
+}
+
+/* ------------------------------------------------ 12i. baseline evidence --- */
+/*
+ * TB decision S23. One question, "Where do your baselines come from?": our defaults grade
+ * Directional, the reader's estimate and an unattested system report Planning-grade, an
+ * attested system report Finance-grade. A baseline pulled from another tool grades by its
+ * origin grade through railEvidence. The benefit stream is the weaker of the attribution caps
+ * and the baseline grade, and nothing else moves: no figure, no realization, no completeness.
+ */
+section("12i. Baseline evidence: the benefit stream grades where the baselines come from");
+{
+  const RK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
+  const minG = (list) => list.reduce((a, b) => RK[b] < RK[a] ? b : a, "Finance-grade");
+  const S = SHIPPED_DEFAULTS;
+  const base = { ...S, evidence: "proposal", bauEvidence: "reviewed" };
+  const g = (over, rail, st = "expected", mk = "headcount") => { const d = { ...base, ...over }; const r = computeCase(d, st, true, mk); return confidenceOf(d, r, st, rail); };
+  ok("the question offers exactly three answers", JSON.stringify(Object.keys(BASELINE_EVIDENCE)) === JSON.stringify(["defaults", "estimate", "report"]));
+  ok("the baselines are handle time, FCR, volume and wage", JSON.stringify(BASELINE_FIELDS.map(([f]) => f)) === JSON.stringify(["currentAHT", "currentFCR", "monthlyContacts", "avgHourly"]));
+  ok("the tool opens on our defaults, unattested", S.baselineEvidence === "defaults" && S.baselineAttested === false);
+  ok("our defaults grade the benefit stream Directional", (() => { const c = g({}); return c.baselineGrade === "Directional" && c.benefitGrade === "Directional" && c.grade === "Directional" && c.gradeObj.boundAxes.includes("evidence"); })());
+  ok("the opening case can no longer headline above Directional on any stance or action", ["conservative", "expected", "aggressive"].every(st => MECH_ORDER.every(mk => g({}, {}, st, mk).grade === "Directional")));
+  ok("your estimate grades Planning-grade", g({ baselineEvidence: "estimate" }).baselineGrade === "Planning-grade");
+  ok("an unattested system report grades Planning-grade", g({ baselineEvidence: "report" }).baselineGrade === "Planning-grade");
+  ok("an attested system report grades Finance-grade", (() => { const c = g({ baselineEvidence: "report", baselineAttested: true }); return c.baselineGrade === "Finance-grade" && c.grade === "Finance-grade"; })());
+  ok("the checkbox lifts nothing unless the answer is a system report", g({ baselineEvidence: "estimate", baselineAttested: true }).baselineGrade === "Planning-grade" && g({ baselineAttested: true }).baselineGrade === "Directional");
+  ok("only a literal true attests", ["true", 1, "yes", {}].every(v => g({ baselineEvidence: "report", baselineAttested: v }).baselineGrade === "Planning-grade"));
+  for (const [f] of BASELINE_FIELDS) {
+    ok(`an unanswered question with ${f} edited reads as your estimate and says so`, (() => { const c = g({ [f]: S[f] + 1 }); return c.baselineInferred === true && c.baselineEvidence === "estimate" && c.baselineGrade === "Planning-grade" && /no stated source/.test(c.gradeObj.reasons.evidence); })());
+  }
+  ok("a non-baseline edit (agents, targets, investment) is not read as an estimate", g({ agents: 350, containment: 20, implementationCost: 400000 }).baselineGrade === "Directional");
+  ok("an older link with no answer and its own baselines grades Planning-grade", (() => { const d = { ...base, currentAHT: 390, avgHourly: 18 }; delete d.baselineEvidence; delete d.baselineAttested; const r = computeCase(d, "expected", true, "headcount"); return confidenceOf(d, r, "expected").baselineGrade === "Planning-grade"; })());
+  ok("an unknown answer is substituted with our defaults and disclosed, holding completeness", (() => { const c = g({ baselineEvidence: "forged" }); return c.baselineEvidence === "defaults" && c.completenessGrade === "Directional" && c.withheld.some(t => /Baseline evidence was "forged"/.test(t)); })());
+  ok("an inherited key is not an answer", g({ baselineEvidence: "toString" }).baselineEvidence === "defaults");
+
+  // Rail: a pulled baseline grades by its origin, capped by railEvidence, and only while it holds.
+  const AT = { baselineEvidence: "report", baselineAttested: true };
+  const pulledAht = (origin, value = S.currentAHT) => ({ currentAHT: { value, origin, tool: "Cost per Contact" } });
+  ok("a pulled baseline with a Finance-grade origin grades no higher than the rail cap", g(AT, pulledAht("Finance-grade")).baselineGrade === CONF.railEvidence("Finance-grade"));
+  ok("a pulled baseline with no origin grades Directional", g(AT, pulledAht(null)).baselineGrade === "Directional");
+  ok("a pulled baseline with a Planning-grade origin grades Planning-grade", g(AT, pulledAht("Planning-grade")).baselineGrade === "Planning-grade");
+  ok("the reason names the tool and the origin", /handle time baseline came from Cost per Contact with an origin grade of Planning-grade/.test(g(AT, pulledAht("Planning-grade")).gradeObj.reasons.evidence));
+  ok("an edited pull is the reader's own and grades by the answer", (() => { const c = g({ ...AT, currentAHT: S.currentAHT + 30 }, pulledAht(null)); return c.baselinePulled.length === 0 && c.baselineGrade === "Finance-grade"; })());
+  ok("a pulled value at our default is not our default", (() => { const c = g({}, pulledAht("Planning-grade")); return c.baselinePulled.join() === "currentAHT" && c.baselineGrade === "Directional"; })());
+  ok("every baseline pulled leaves the answer out of the grade", (() => {
+    const rail = Object.fromEntries(BASELINE_FIELDS.map(([f]) => [f, { value: S[f], origin: "Planning-grade", tool: "Staffing" }]));
+    return g({}, rail).baselineGrade === "Planning-grade";
+  })());
+  ok("a pulled non-baseline field grades nothing here", g(AT, { agents: { value: S.agents, origin: null } }).baselineGrade === "Finance-grade");
+
+  // A/B over random cases: figures, realization and completeness never move, and evidence
+  // is exactly the weaker of the previous evidence and the baseline grade.
+  let seed = 9090; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  const pickOf = (a) => a[Math.floor(rnd() * a.length)];
+  let figs = true, axes = true, evid = true, expected = true, k = 0;
+  const seen = { Directional: 0, "Planning-grade": 0, "Finance-grade": 0 };
+  for (let i = 0; i < 6000; i++) {
+    const d0 = { ...S, agents: 20 + Math.round(rnd() * 1500), monthlyContacts: rnd() < 0.6 ? S.monthlyContacts : 5000 + Math.round(rnd() * 400000),
+      currentAHT: rnd() < 0.6 ? S.currentAHT : 180 + Math.round(rnd() * 600), currentFCR: rnd() < 0.6 ? S.currentFCR : 50 + Math.round(rnd() * 45),
+      avgHourly: rnd() < 0.6 ? S.avgHourly : 14 + Math.round(rnd() * 20), containment: Math.round(rnd() * 45), implementationCost: Math.round(rnd() * 4000000),
+      evidence: pickOf(["estimate", "quote", "proposal"]), bauEvidence: pickOf(["estimated", "reviewed"]) };
+    const before = { ...d0, baselineEvidence: "report", baselineAttested: true };
+    const after = { ...d0, baselineEvidence: pickOf(["defaults", "estimate", "report"]), baselineAttested: rnd() < 0.5 };
+    const st = pickOf(["conservative", "expected", "aggressive"]), mk = pickOf(MECH_ORDER);
+    const rb = computeCase(before, st, true, mk), ra = computeCase(after, st, true, mk);
+    const strip = (r) => JSON.stringify({ ...r, dg: { ...r.dg, baselineEvidence: 0, baselineAttested: 0 } });
+    if (strip(rb) !== strip(ra)) figs = false;
+    const cb = confidenceOf(before, rb, st), ca = confidenceOf(after, ra, st);
+    if (cb.voided || ca.voided) continue;
+    k++;
+    if (cb.realizationGrade !== ca.realizationGrade || cb.completenessGrade !== ca.completenessGrade || cb.costGrade !== ca.costGrade) axes = false;
+    if (ca.evidenceGrade !== CONF.weakerStream(cb.evidenceGrade, ca.baselineGrade)) evid = false;
+    const edited = BASELINE_FIELDS.some(([f]) => after[f] !== S[f]);
+    const ans = after.baselineEvidence === "defaults" && edited ? "estimate" : after.baselineEvidence;
+    const want = ans === "defaults" ? "Directional" : ans === "report" && after.baselineAttested ? "Finance-grade" : "Planning-grade";
+    if (ca.baselineGrade !== want) expected = false;
+    if (ca.grade !== minG([cb.grade, want])) expected = false;
+    seen[ca.baselineGrade]++;
+  }
+  ok("A/B: every figure is identical whatever the answer, on 6,000 cases", figs);
+  ok("A/B: cost stream, realization and completeness never move", axes, String(k));
+  ok("A/B: evidence is exactly the weaker of the previous evidence and the baseline grade", evid);
+  ok("A/B: the baseline grade and the headline equal the published rule on every case", expected);
+  ok("A/B: every baseline grade is reached", Object.values(seen).every(v => v > 100), JSON.stringify(seen));
+  ok("baseline grading never reads the return", (() => {
+    const cs = [400000, 6000000].map(ic => g({ implementationCost: ic, baselineEvidence: "estimate" }));
+    return cs[0].baselineGrade === cs[1].baselineGrade && cs[0].benefitGrade === cs[1].benefitGrade;
+  })());
+  ok("SOURCE the tool passes the pulled baselines to the grade", /confidenceOf\(d, r, stance, railBase\)/.test(SRC));
+  ok("SOURCE a scenario link credits no rail baseline", (() => { const a = SRC.indexOf("const sc = readScenario(TOOL_ID"); const b = SRC.indexOf("return;", a); const c = SRC.indexOf("setRailBase(base)"); return a > 0 && b > a && c > b; })());
 }
 
 section("13. Single-driver dominance");
