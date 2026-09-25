@@ -23,11 +23,12 @@ const engine  = slice("function computeCase(", "export default function");
 
 /* Dependency integrity. Import the real modules, do not rebuild them. A local copy of
    MECH drifts, and a local copy of pick would test a guard the tool does not run. */
-let MECH, MECH_ORDER, MECH_FALLBACK, createGuards, CONF;
+let MECH, MECH_ORDER, MECH_FALLBACK, createGuards, CONF, BENCH;
 try {
   ({ MECH, MECH_ORDER, MECH_FALLBACK } = await import("./src/lib/mech.js"));
   ({ createGuards } = await import("./src/lib/guards.js"));
   CONF = await import("./src/lib/confidence.js");
+  BENCH = await import("./src/lib/benchmarks.js");
 } catch (e) {
   console.error("BLOCKER: could not import ./src/lib/mech.js, ./src/lib/guards.js or ./src/lib/confidence.js.");
   console.error(String(e.message || e));
@@ -36,14 +37,14 @@ try {
 
 /* 11B: the engine grades through the shared confidence module. The real module is injected,
    so the harness tests the grading the tool ships. */
-const CONF_ARGS = ["emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK"];
-const CONF_VALS = () => [CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK];
+const CONF_ARGS = ["emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", "benchmark"];
+const CONF_VALS = () => [CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK, BENCH.benchmark];
 const mod = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards", ...CONF_ARGS,
   `${helpers}\n${consts}\n${engine}\n` +
   `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BCB_DOMAIN, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
 )(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, ...CONF_VALS());
 
-const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BCB_DOMAIN } = mod;
+const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS: SHIPPED_DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BCB_DOMAIN } = mod;
 
 /* The harness scenario set was written against a capacity action of "hiring", which was
    the silent signature default before 1-08 split the constant. The shipped UI has always
@@ -131,6 +132,12 @@ function methodologyBlock() {
 }
 function ex(name, fn) { try { ok(name, fn()); } catch (e) { ok(name, false, e.message); } }
 
+/* The fixtures below were verified at an $18 wage, the tool's opening value before the registry
+   (the tracker fixture, net $31,850, among them). They keep that wage so every pinned dollar
+   still tests the same arithmetic; the opening case now reads the BLS wage, checked here. */
+const DEFAULTS = { ...SHIPPED_DEFAULTS, avgHourly: 18 };
+ok("the opening wage is the shared BLS median and the load the shared benefits load", SHIPPED_DEFAULTS.avgHourly === BENCH.benchmark("market.wage.agent") && SHIPPED_DEFAULTS.benefitsPct === 30);
+ok("every other opening value reads the registry", Object.entries({ agents: "agents", monthlyContacts: "contacts", currentAHT: "aht", implementationCost: "implementation", newPlatformPerAgentMo: "platform" }).every(([k, id]) => SHIPPED_DEFAULTS[k] === BENCH.benchmark("bcb.default." + id)));
 const D = (over = {}) => ({ ...DEFAULTS, ...over });
 
 /* ------------------------------------------------------- reconciliation --- */

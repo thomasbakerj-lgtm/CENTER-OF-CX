@@ -674,7 +674,7 @@ export default function FCRLeakageDiagnostic() {
 
             <div style={card}>
               <h3 style={{ ...h3, marginBottom: 6 }}>Declare your FCR definition</h3>
-              <p style={{ fontSize: 12, color: MUTED, marginBottom: 16, lineHeight: 1.5 }}>FCR has no industry standard. Until you declare scope and method, the result stays Directional and is not comparable across centers.</p>
+              <p style={{ fontSize: 12, color: MUTED, marginBottom: 16, lineHeight: 1.5 }}>FCR has no industry standard. Until you declare scope and method, the result stays Directional and is not comparable across centers. Every formula, constant and a worked example are in the <a href="/methodology/fcr-leakage" style={{ color: NAVY, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
               <div className="g3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                 <Sel label="Resolution scope" value={R.scopeKey} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Voice only" }, { v: "cc", l: "CC cross-channel" }, { v: "digital", l: "Digital + assisted" }, { v: "enterprise", l: "Enterprise OCR" }]} />
                 <Sel label="Measurement method" value={method} onChange={setMethod} options={[{ v: "", l: "Select..." }, { v: "survey", l: "External post-call survey" }, { v: "internal", l: "Internal callback window" }]} />
@@ -966,6 +966,7 @@ export default function FCRLeakageDiagnostic() {
                   "Non-controllable leakage (complexity, structural, customer-driven) is excluded from savings.",
                   "Balancing metrics (reopen, transfer, escalation, AHT, confirmed containment, CSAT) must hold or the FCR gain is not real.",
                   "Interval staffing, multi-year board case, and contract penalties are out of scope and routed below.",
+                  "The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/fcr-leakage.",
                 ] },
                 /* The edge set lives in src/lib/journey.js, the same graph the tracked
                    "Run this next" card renders, so the page and the PDF cannot name

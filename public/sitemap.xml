@@ -133,6 +133,42 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/methodology/business-case-builder</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/methodology/attrition-cost</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/methodology/license-gap</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/methodology/tco-calculator</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/methodology/ai-deflection</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/methodology/fcr-leakage</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/methodology/channel-shift</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/methodology/cost-per-contact</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/methodology/staffing-calculator</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/tools/fcr-leakage</loc>
     <priority>0.8</priority>
   </url>

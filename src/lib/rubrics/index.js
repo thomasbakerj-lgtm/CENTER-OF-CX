@@ -19,6 +19,15 @@ import { SHRINKAGE_MODEL } from "./shrinkageModel.js";
 import { AHT_MODEL } from "./ahtModel.js";
 import { FORECAST_MODEL } from "./forecastModel.js";
 import { ADHERENCE_MODEL } from "./adherenceModel.js";
+import { BCB_MODEL } from "./bcbModel.js";
+import { ATTRITION_MODEL } from "./attritionModel.js";
+import { LICENSE_MODEL } from "./licenseGapModel.js";
+import { TCO_MODEL } from "./tcoModel.js";
+import { AID_MODEL } from "./aidModel.js";
+import { FCR_MODEL } from "./fcrModel.js";
+import { CHANNEL_MODEL } from "./channelModel.js";
+import { CPC_MODEL } from "./cpcModel.js";
+import { STAFFING_MODEL } from "./staffingModel.js";
 
 export const RUBRICS = {
   [CX_MATURITY.id]: CX_MATURITY,
@@ -35,5 +44,14 @@ export const RUBRICS = {
   [AHT_MODEL.id]: AHT_MODEL,
   [FORECAST_MODEL.id]: FORECAST_MODEL,
   [ADHERENCE_MODEL.id]: ADHERENCE_MODEL,
+  [BCB_MODEL.id]: BCB_MODEL,
+  [ATTRITION_MODEL.id]: ATTRITION_MODEL,
+  [LICENSE_MODEL.id]: LICENSE_MODEL,
+  [TCO_MODEL.id]: TCO_MODEL,
+  [AID_MODEL.id]: AID_MODEL,
+  [FCR_MODEL.id]: FCR_MODEL,
+  [CHANNEL_MODEL.id]: CHANNEL_MODEL,
+  [CPC_MODEL.id]: CPC_MODEL,
+  [STAFFING_MODEL.id]: STAFFING_MODEL,
 };
-export { CX_MATURITY, AI_READINESS, TRANSFORMATION_READINESS, CX_IT_ALIGNMENT, GOVERNANCE, QA_SCORECARD, PLATFORM_DECISION, CONTRACT_RISK, RFP_BUILDER, OCCUPANCY_MODEL, SHRINKAGE_MODEL, AHT_MODEL, FORECAST_MODEL, ADHERENCE_MODEL };
+export { CX_MATURITY, AI_READINESS, TRANSFORMATION_READINESS, CX_IT_ALIGNMENT, GOVERNANCE, QA_SCORECARD, PLATFORM_DECISION, CONTRACT_RISK, RFP_BUILDER, OCCUPANCY_MODEL, SHRINKAGE_MODEL, AHT_MODEL, FORECAST_MODEL, ADHERENCE_MODEL, STAFFING_MODEL };

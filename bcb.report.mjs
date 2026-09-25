@@ -24,7 +24,7 @@
 import { readFileSync } from "fs";
 
 const SRC = readFileSync("./BusinessCaseBuilder.jsx", "utf8");
-const { COLORS } = await import("./src/lib/benchmarks.js");
+const { COLORS, benchmark } = await import("./src/lib/benchmarks.js");
 /* The real bucket and the real boundary guard, never reconstructed. severityBucket
    decides the band and sanitizeProps decides whether it reaches the wire at all. */
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
@@ -252,7 +252,7 @@ function render(S) {
     ${helpers}
     ${consts}
     ${engine}
-    const d = { ...DEFAULTS, ...MUT() };
+    const d = { ...DEFAULTS, avgHourly: 18, ...MUT() }; /* the fixtures were verified at the pre-registry $18 wage */
     const stance = STANCE_KEY, rampOn = RAMP_ON, mech = MECH_KEY;
     const r = computeCase(d, stance, rampOn, mech);
     const g = r.dg;
@@ -286,12 +286,12 @@ function render(S) {
   const fn = new Function("COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "ICE", "WARM", "SLATE", "MUTED",
     "BORDER", "GREEN", "AMBER", "RED", "severityBucket", "MECH", "MECH_ORDER", "MECH_FALLBACK",
     "createGuards", "TOOL_LABELS", "MUT", "STANCE_KEY", "RAMP_ON", "MECH_KEY", "PULLED", "SOURCES", "TOOL_NAME",
-    "trackTool", "emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", preamble);
+    "trackTool", "emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", "benchmark", preamble);
   return fn(COLORS, COLORS.navy, "#061325", COLORS.electric, "#00AAFF", "#E8F4FD", "#F8FAFB", "#3A4F6A",
     COLORS.muted, "#D8E3ED", COLORS.green, COLORS.amber, COLORS.red, severityBucket,
     MECH, MECH_ORDER, MECH_FALLBACK, createGuards, TOOL_LABELS, S.mut, S.stance, S.rampOn, S.mech,
     S.pulled, S.sources, toolNameM[1], { nextStep: () => {}, pdf: () => {} },
-    CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK);
+    CONF.emitGrades, CONF.voidResult, CONF.weakerStream, CONF.realizationFromCred, CONF.GRADE_RANK, benchmark);
 }
 
 /* -------------------------------------------------------------- printing */

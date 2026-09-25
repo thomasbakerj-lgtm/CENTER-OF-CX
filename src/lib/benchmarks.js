@@ -391,11 +391,107 @@ const forecastEntries = {
    which is arithmetic. The one constant is the overtime multiplier, which is law in the
    United States; the tool lets a reader enter their own. */
 const adherenceEntries = {
-  "adh.ot.multiplier": { tool: "schedule-adherence", kind: "market", value: 1.5, unit: "multiple of the regular hourly rate", source: "US Fair Labor Standards Act, 29 U.S.C. 207(a): overtime beyond 40 hours in a workweek is paid at not less than one and one half times the regular rate. A legal minimum; contracts, other jurisdictions and state law can set more.", reviewed: REVIEWED, version: 1, rationale: "Prices the overtime hours it takes to hold the service level target when adherence falls." },
+  "adh.ot.multiplier": { tool: SHARED, kind: "market", value: 1.5, unit: "multiple of the regular hourly rate", source: "US Fair Labor Standards Act, 29 U.S.C. 207(a): overtime beyond 40 hours in a workweek is paid at not less than one and one half times the regular rate. A legal minimum; contracts, other jurisdictions and state law can set more.", reviewed: REVIEWED, version: 1, rationale: "Prices the overtime hours it takes to hold the service level target when adherence falls." },
+};
+
+/* Attrition Cost Calculator. Replacement cost is arithmetic on the inputs. The opening case
+   is a set of planning values, labelled heuristics, so the tool opens runnable; the wage is
+   the shared BLS median, the benefits load the shared load, and the overtime premium the
+   FLSA minimum. The cost-to-salary band is a planning check this platform sets, not a
+   published study, and it says so wherever it appears. */
+const ATTR = "attrition-cost";
+const ATTR_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const ATTR_DEF = "Default so the tool opens on a runnable case.";
+const atHeur = (value, unit, rationale) => ({ tool: ATTR, kind: "heuristic", value, unit, source: ATTR_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const atLine = (value, unit, rationale) => ({ tool: ATTR, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
+const attritionEntries = {
+  "attrition.default.agents": atHeur(200, "agents", ATTR_DEF),
+  "attrition.default.rate": atHeur(35, "percent a year", ATTR_DEF + " An attrition rate still at this value grades evidence Directional."),
+  "attrition.default.backfill": atHeur(100, "percent of departures replaced", ATTR_DEF),
+  "attrition.default.washout": atHeur(25, "percent of hires", ATTR_DEF + " Share of hires who leave before they are productive."),
+  "attrition.default.recruiting": atHeur(2500, "USD per hire", ATTR_DEF + " Sourcing, advertising and background checks."),
+  "attrition.default.screeningHours": atHeur(8, "hours per hire", ATTR_DEF),
+  "attrition.default.hrRate": atHeur(48, "USD per hour, loaded", ATTR_DEF),
+  "attrition.default.trainingWeeks": atHeur(6, "weeks", ATTR_DEF),
+  "attrition.default.trainerRate": atHeur(45, "USD per hour, loaded", ATTR_DEF),
+  "attrition.default.classSize": atHeur(12, "hires per class", ATTR_DEF),
+  "attrition.default.nestingWeeks": atHeur(4, "weeks", ATTR_DEF),
+  "attrition.default.nestingProductivity": atHeur(50, "percent of a tenured agent", ATTR_DEF),
+  "attrition.default.rampMonths": atHeur(3, "months after nesting", ATTR_DEF),
+  "attrition.default.rampProductivity": atHeur(75, "percent of a tenured agent", ATTR_DEF),
+  "attrition.default.supervisorHours": atHeur(10, "hours per new hire", ATTR_DEF),
+  "attrition.default.supervisorRate": atHeur(55, "USD per hour, loaded", ATTR_DEF),
+  "attrition.default.vacancyDays": atHeur(30, "days a seat stays open", ATTR_DEF),
+  "attrition.default.vacancyCoverage": atHeur(60, "percent of the vacancy covered by overtime", ATTR_DEF),
+  "attrition.time.workdaysMonth": atHeur(22, "working days a month", "Converts ramp months to hours: 22 days of 8 hours."),
+  "attrition.time.hoursDay": atHeur(8, "hours a day", "A full-time shift."),
+  "attrition.time.daysWeek": atHeur(5, "days a week", "Converts training and nesting weeks to days."),
+  "attrition.band.low": atLine(40, "percent of salary", "Lower edge of the planning band for a frontline replacement. All-in cost inside 40 to 60 percent of salary lets completeness reach Finance-grade. A planning check set by this platform, not a published study."),
+  "attrition.band.high": atLine(60, "percent of salary", "Upper edge of the planning band. Above it the page flags the case to validate; completeness holds Directional."),
+  "attrition.band.floor": atLine(30, "percent of salary", "Below this the cost basis sits outside the plausible range and completeness holds Directional. Between it and the band, Planning-grade."),
+  "attrition.band.ceiling": atLine(100, "percent of salary", "Above this the case reads as manager tier, implausible for a frontline agent; a high flag holds completeness Directional."),
+  "attrition.read.rateLow": atLine(10, "percent a year", "Attrition under this is low for a contact center; the page asks to check the denominator. Framing only."),
+  "attrition.read.rateHigh": atLine(50, "percent a year", "Attrition over this reads as severe churn. Framing only."),
+  "attrition.read.rateExtreme": atLine(100, "percent a year", "Attrition over this usually means a denominator error; a high flag holds completeness Directional."),
+  "attrition.read.trainingShare": atLine(0.40, "share of all-in cost", "Training above this share, as the largest line, is flagged to validate. Framing only."),
+  "attrition.read.trainingHigh": atLine(0.55, "share of all-in cost", "Training above this share is called high in the flag. Framing only."),
+  "attrition.read.dominance": atLine(0.55, "share of all-in cost", "Any other single line above this share is flagged as a likely overstated duration or rate. Framing only."),
+  "attrition.band.estimate": atHeur(0.25, "share of the figure", "Range printed around the cost when inputs are estimates. Display only."),
+  "attrition.band.hrdata": atHeur(0.15, "share of the figure", "Range printed when inputs come from HR data. Display only."),
+  "attrition.band.finance": atHeur(0.10, "share of the figure", "Range printed when inputs are finance-confirmed. Display only."),
+};
+
+/* Business Case Builder. Every saving is arithmetic on the inputs. The opening case, the
+   attribution stances and the target planning ranges are planning values set by this platform,
+   labelled heuristics wherever they appear. The wage is the shared BLS median and the benefits
+   load the shared load. */
+const BCB = "business-case-builder";
+const BCB_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
+const BCB_DEF = "Default so the tool opens on a runnable case.";
+const bHeur = (value, unit, rationale) => ({ tool: BCB, kind: "heuristic", value, unit, source: BCB_HEUR, reviewed: REVIEWED, version: 1, rationale });
+const bLine = (value, unit, rationale) => ({ tool: BCB, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
+const bcbStance = (k, c, h, f, a, what) => ({
+  [`bcb.stance.${k}.containment`]: bHeur(c, "share of the containment saving attributed", `${what} Containment.`),
+  [`bcb.stance.${k}.handleTime`]: bHeur(h, "share of the handle-time saving attributed", `${what} Handle time.`),
+  [`bcb.stance.${k}.fcr`]: bHeur(f, "share of the FCR saving attributed", `${what} First contact resolution.`),
+  [`bcb.stance.${k}.attrition`]: bHeur(a, "share of the attrition saving attributed", `${what} Attrition.`),
+});
+const bcbEntries = {
+  "bcb.default.agents": bHeur(200, "agents", BCB_DEF),
+  "bcb.default.contacts": bHeur(120000, "contacts a month", BCB_DEF),
+  "bcb.default.aht": bHeur(420, "seconds", BCB_DEF),
+  "bcb.default.acw": bHeur(45, "seconds", BCB_DEF),
+  "bcb.default.fcr": bHeur(72, "percent", BCB_DEF),
+  "bcb.default.attrition": bHeur(35, "percent a year", BCB_DEF),
+  "bcb.default.costPerContact": bHeur(7, "USD per contact, loaded", BCB_DEF),
+  "bcb.default.recruiting": bHeur(3500, "USD per hire", BCB_DEF),
+  "bcb.default.trainingDays": bHeur(21, "days", BCB_DEF),
+  "bcb.default.htReduction": bHeur(12, "percent of talk and hold", BCB_DEF),
+  "bcb.default.acwReduction": bHeur(30, "percent of after-call work", BCB_DEF),
+  "bcb.default.fcrImprovement": bHeur(8, "FCR points", BCB_DEF),
+  "bcb.default.attritionReduction": bHeur(20, "percent of the attrition rate", BCB_DEF),
+  "bcb.default.containment": bHeur(15, "percent of contacts", BCB_DEF),
+  "bcb.default.implementation": bHeur(750000, "USD one-time", BCB_DEF),
+  "bcb.default.platform": bHeur(135, "USD per agent per month", BCB_DEF),
+  "bcb.default.migrationMonths": bHeur(9, "months", BCB_DEF),
+  "bcb.default.rampMonths": bHeur(6, "months", BCB_DEF),
+  ...bcbStance("aggressive", 1, 1, 1, 1, "Aggressive stance: full modelled saving, no attribution haircut. Caps the benefit stream at Planning-grade."),
+  ...bcbStance("expected", 0.85, 0.90, 0.80, 0.65, "Expected stance: each lever discounted for real-world attribution."),
+  ...bcbStance("conservative", 0.70, 0.80, 0.65, 0.50, "Conservative stance: a heavy haircut on the soft levers."),
+  "bcb.target.containmentMax": bLine(25, "percent of contacts", "Top of the 10 to 25 percent internal planning range for containment without a proven pilot. Above it the benefit stream caps at Planning-grade."),
+  "bcb.target.handleTimeMax": bLine(15, "percent", "Top of the 8 to 15 percent internal planning range for handle-time reduction. Above it the benefit stream caps at Planning-grade."),
+  "bcb.target.fcrMax": bLine(10, "FCR points", "Top of the 5 to 10 point internal planning range for FCR improvement. Above it the benefit stream caps at Planning-grade."),
+  "bcb.target.attritionMax": bLine(25, "percent of the attrition rate", "Attrition reduction above this is hard to attribute to a platform. The benefit stream caps at Planning-grade."),
+  "bcb.read.typicalImplPerAgent": bHeur(3000, "USD per agent", "Implementation per agent used only for the comparison case the read prints beside yours. Feeds no figure of your case."),
+  "bcb.read.fragileSlack": bLine(0.15, "share of three-year benefit", "A paying case whose three-year net is under this share of its benefit is read as fragile. A property of the answer; it reaches no confidence axis."),
+  "bcb.read.marginalStale": bLine(0.10, "share of the derived marginal", "A pulled marginal cost more than this far from the one derived from handle time and wage is flagged as from a different operation."),
+  "bcb.time.trainingHoursDay": bHeur(8, "hours a training day", "Converts training days to paid hours."),
 };
 
 export const BENCHMARK_SOURCES = {
   ...SHARED_BENCHMARKS,
+  ...attritionEntries,
+  ...bcbEntries,
   ...occEntries,
   ...ahtEntries,
   ...forecastEntries,

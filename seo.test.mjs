@@ -606,7 +606,7 @@ section("I. server-side redirects and indexed demand URLs");
   ok("I2  it targets /tools/tco-calculator", r && r.destination === "/tools/tco-calculator");
   ok("I3  it is permanent (308)", r && r.permanent === true && !("statusCode" in r));
   const smLocs = [...readFileSync("./public/sitemap.xml", "utf8").matchAll(/<loc>(.*?)<\/loc>/g)].map((x) => x[1]);
-  ok("I4  the legacy path is not in the sitemap", !smLocs.some((u) => u.endsWith("/tco-calculator") && !u.includes("/tools/")));
+  ok("I4  the legacy path is not in the sitemap", !smLocs.some((u) => new URL(u).pathname === "/tco-calculator"));
   ok("I5  /research/ccaas-buyer-guide is in the sitemap", smLocs.includes("https://www.contactcentercx.com/research/ccaas-buyer-guide"));
   ok("I6  sitemap has no duplicate URLs", new Set(smLocs).size === smLocs.length);
   ok("I7  every sitemap URL is on the www host", smLocs.every((u) => u.startsWith("https://www.contactcentercx.com")));
