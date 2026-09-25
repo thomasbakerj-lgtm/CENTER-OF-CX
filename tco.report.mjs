@@ -222,8 +222,10 @@ const SETS = {
     mut: () => ({ costBasis: "invoiced" }) },
   G: { label: "Negative headcount through a scenario link: corrected and disclosed", stance: "expected",
     mut: () => ({ agents: -400, monthlyContacts: -250000 }) },
-  H: { label: "Heavy attrition against hard targets: the band moves up the scale", stance: "aggressive",
-    mut: () => ({ attrition: 0.85, targetAttrition: 0.02, targetContainment: 0.90, targetFcr: 0.97, targetAht: 120 }) },
+  /* Starts from 5% containment: at the marginal load (S23) the same targets from the 28% default
+     sit just under the moderate band, and this set exists to exercise the scale above the bottom two. */
+  H: { label: "Heavy attrition and low containment against hard targets: the band moves up the scale", stance: "aggressive",
+    mut: () => ({ attrition: 0.85, targetAttrition: 0.02, containment: 0.05, targetContainment: 0.90, targetFcr: 0.97, targetAht: 120 }) },
   I: { label: "Rail-legitimate extremes the form refuses: must pass uncorrected", stance: "expected",
     mut: () => ({ occupancy: 1.2, attrition: 1.5 }) },
   J: { label: "Out-of-domain shares, a collapsing escalator and a forged cost basis", stance: "expected",
@@ -307,6 +309,14 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: the analyst read is populated`, Array.isArray(doc.analyst) && doc.analyst.length >= 3);
   A(`${k}: the document carries a Methodology section`, !!sectionByTitle(doc, "Methodology"));
   A(`${k}: the document carries a Next Steps section`, !!sectionByTitle(doc, "Next Step"));
+}
+
+/* ---- marginal load disclosure (TB S23, Path B) ---- */
+console.log("\nmarginal load disclosure");
+{
+  const t = allText(DOCS.A);
+  A("A: the PDF states the marginal load the savings use and the benefits it leaves out", /wage times 1\.18, the marginal load, and unit costs at the loaded 1\.30\. Capturing the saving by not backfilling seats removes benefits too, about 10% more on those two levers\./.test(t));
+  A("A: the PDF prints the marginal cost per contact at the marginal load", t.includes("$" + DOCS.A.r.marginalPerContact.toFixed(2)) && Math.abs(DOCS.A.r.marginalPerContact - 2.5079) < 1e-4);
 }
 
 /* ---- 2. no impossible figure reaches the page ---- */

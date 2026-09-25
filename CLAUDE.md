@@ -361,7 +361,8 @@ Binding. None of this is in code comments beyond what is noted.
 
 **Rail and confidence**
 - TCO publishes `analystRead`, a verdict on the rail.
-- TCO `marginalPerContact` uses 1.30x; registry marginal is 1.18x. Decided S23: move to 1.18 (section 5, P3).
+- ~~TCO `marginalPerContact` uses 1.30x.~~ Moved to `load.marginal` 1.18 S23 (P3 10). Still at the loaded rate: TCO's AHT
+  lever and BCB's derived marginal (ask TB).
 - TCO, AHT Decomposition, Shrinkage Planner and Occupancy Risk publish origin grades. Staffing, CPC, FCR, AID, Channel read
   but publish none.
 - CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource` (self-read capable;
@@ -888,7 +889,14 @@ P3. Engine integrity (TB decided S23). PR #38 (task 8) merged 889c188, one next 
      Benefit stream = weaker of attribution caps and baseline grade. A/B 6,000 cases: figures, cost stream, realization,
      completeness unchanged. `bcb.test.mjs` 12i; older fixtures answer "report, attested". Changelog now keeps a
      method's earlier versions (`methods.test.mjs`: newest entry carries the current version). Suite 24,060.
-  10. TCO marginal load to `load.marginal` 1.18 with the disclosure line; A/B only savings move; method page and pins.
+  10. **Done S23 on the branch.** TCO method 1.1: `marginalPerContact` values handle-time labor at wage × `load.marginal`
+     1.18 (never above the loaded rate entered); containment and FCR savings follow; unit costs, grades, AHT and
+     attrition levers unchanged. One disclosure line in the read and PDF (`marginalLoadLine`: about 10% more when
+     seats are not backfilled). Opening case: marginal $2.75 to $2.51, savings $71K to $68K gross a month. `tco.test`
+     marginal-load section (A/B on 6,000 cases against the same engine at the old load), report pins, method pins,
+     changelog. Report set H now starts at 5% containment to keep the moderate band exercised. Open for TB: the AHT
+     lever still values freed minutes at the loaded rate, and BCB derives its marginal at 1 + benefits (J10 says a
+     saving is valued only on the marginal load).
   10b. BLS wage update (item 38).
 
 P4. Distribution launch (TB posts; site supplies assets).

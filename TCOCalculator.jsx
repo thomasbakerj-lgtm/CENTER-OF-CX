@@ -105,7 +105,7 @@ const INDUSTRY = {
    wage that is not the BLS figure. Both claims are retired. What the tool ships now is a
    sourced list for its market entries and a plain statement that everything else is an
    internal planning value. */
-const TCO_SHARED_IDS = ["load.benefits"];
+const TCO_SHARED_IDS = ["load.benefits", "load.marginal"];
 const BENCHMARK_SOURCES = (() => {
   const mine = benchmarksForTool("tco-calculator");
   const shared = benchmarksForTool("shared").filter((e) => TCO_SHARED_IDS.includes(e.id));
@@ -357,9 +357,13 @@ function computeTCO(dIn, stanceKey = "expected") {
 
   // Marginal (variable) cost of one handled contact: full handle-time labor plus the
   // per-minute telephony for the voice share. This is what deflecting a contact frees.
+  // The labor is valued at the shared marginal load (J10, TB S23 Path B), the only load a
+  // saving may be valued on; unit costs stay on the loaded rate. It never exceeds the
+  // loaded rate entered, so a benefits load below the marginal one is not raised.
+  const marginalLoad = Math.min(benchmark("load.marginal"), 1 + n(d.agentBenefitsPct));
   const handleMin = n(d.aht) / 60;
-  const loadedPerMin = loaded / 60;
-  const marginalPerContact = handleMin * loadedPerMin + (n(d.channelMixVoice) * (lineOpenSec / 60) * n(d.telephonyPerMin));
+  const marginalPerMin = n(d.agentHourly) * marginalLoad / 60;
+  const marginalPerContact = handleMin * marginalPerMin + (n(d.channelMixVoice) * (lineOpenSec / 60) * n(d.telephonyPerMin));
 
   // V3 behavior buckets for the 3-year projection. Exhaustive and non-overlapping, so
   // the buckets sum to monthly and Year 1 equals the annual snapshot (the views reconcile).
@@ -429,7 +433,7 @@ function computeTCO(dIn, stanceKey = "expected") {
   return {
     d, guards,
     loaded, labor, tech, overhead, monthly, annual, agents, contacts,
-    costPerContact, costPerResolution, costPerHuman, marginalPerContact, humanContacts,
+    costPerContact, costPerResolution, costPerHuman, marginalPerContact, marginalLoad, humanContacts,
     monthlyHires, attritionCost, voiceMinutes, perHire,
     laborPct: labor / (monthly || 1), techPct: tech / (monthly || 1), overheadPct: overhead / (monthly || 1),
     disp: buildDisplay(breakdown, monthly),
@@ -494,6 +498,15 @@ function buildOptimizations(d, r, stanceKey) {
   return { items: out, grossTotal, netTotal, occRisk };
 }
 
+/* The one disclosure line for the marginal load (TB S23 Path B). Deflection and repeat savings
+   are valued at the wage times the shared marginal load; capturing them by not backfilling
+   seats removes benefits too, which the line sizes from the loads actually used. */
+function marginalLoadLine(d, r) {
+  const full = 1 + n(d.agentBenefitsPct);
+  const more = r.marginalLoad > 0 ? Math.round((full / r.marginalLoad - 1) * 100) : 0;
+  return `Deflection and repeat savings value agent time at the wage times ${r.marginalLoad.toFixed(2)}, the marginal load, and unit costs at the loaded ${full.toFixed(2)}. Capturing the saving by not backfilling seats removes benefits too${more > 0 ? `, about ${more}% more on those two levers` : ""}.`;
+}
+
 function buildAnalystRead(d, r, opt, stanceKey) {
   const out = [];
   const resPremium = r.costPerResolution / r.costPerContact - 1;
@@ -519,6 +532,7 @@ function buildAnalystRead(d, r, opt, stanceKey) {
     out.push(`The ${stanceKey} stance values savings at ${fmtK(opt.netTotal)} per month (${fmtK(opt.netTotal * 12)} per year)${Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", the full theoretical capacity value with no haircut applied" : ", haircut from a theoretical " + fmtK(opt.grossTotal) + " per month"}. Levers are de-overlapped, each acting on what the prior one leaves, so the total is defensible rather than a sum of every lever at full loaded cost.`);
 
   out.push(`Savings are valued at marginal cost ($${r.marginalPerContact.toFixed(2)} per contact), not fully loaded ($${r.costPerContact.toFixed(2)}). Deflecting contacts frees agent time but not fixed tech and facilities, so capturing it as cash requires reducing or redeploying FTE. That is the conversation to have, not assume.`);
+  out.push(marginalLoadLine(d, r));
 
   if (opt.occRisk) out.push(`Occupancy at ${pct(d.occupancy)} is in the burnout zone (above ${pct0(BENCH.occupancy.cautionMax)}). That is a hidden cost, because it drives the very attrition inflating your overhead. Model it in the Occupancy Risk Simulator before assuming the savings above are free.`);
   else if (n(d.occupancy) > 0 && n(d.occupancy) < benchmark("tco.read.lowOccupancy")) out.push(`Occupancy at ${pct(d.occupancy)} sits below ${pct0(benchmark("tco.read.lowOccupancy"))}, so you already carry idle capacity. The savings above are real as freed capacity, but they will not become cash until you redeploy that time or reduce headcount, and the first question is why occupancy is this low. Pressure-test it in the Occupancy Risk Simulator and Staffing Calculator before booking these numbers.`);

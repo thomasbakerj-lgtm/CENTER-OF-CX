@@ -1,4 +1,4 @@
-/* TCO Calculator, version 1.0. A calculator method (kind "calc").
+/* TCO Calculator, version 1.1. A calculator method (kind "calc").
  *
  * Published at /methodology/tco-calculator from this object. The engine lives inside
  * TCOCalculator.jsx, so this page carries its worked example as pins, and
@@ -16,10 +16,10 @@ const b = (id) => benchmark(id);
    costs as estimates). Each is recomputed from the engine. */
 export const TCO_PINS = {
   loaded: 24.7, agentLabor: 854620, labor: 1089467.5, tech: 106317.5, overhead: 78547.2, monthly: 1274332.2,
-  annual: 15291986.4, costPerContact: 10.6194, costPerResolution: 13.8053, marginalPerContact: 2.7549,
+  annual: 15291986.4, costPerContact: 10.6194, costPerResolution: 13.8053, marginalPerContact: 2.5079,
   monthlyHires: 7, perHire: 7649.6, attritionCost: 53547.2, telephony: 9487.5, seats: 229,
   y2: 15851130.17, y3: 16431820.92, threeYear: 47574937.49, perAgentMonth: 6371.66,
-  optGross: 71000, optNet: 51000,
+  optGross: 68000, optNet: 48000,
 };
 const P = TCO_PINS;
 const STANCES = "none 0%, conservative 50%, expected 70%, aggressive 100%";
@@ -28,7 +28,7 @@ export const TCO_MODEL = {
   id: "tco-calculator",
   kind: "calc",
   title: "TCO Calculator",
-  version: "1.0",
+  version: "1.1",
   published: "2026-09-25",
   route: "/tools/tco-calculator",
   methodology: "/methodology/tco-calculator",
@@ -41,7 +41,7 @@ export const TCO_MODEL = {
     { name: "Telephony", formula: "Contacts × voice share × (AHT − after-call work) ÷ 60 × price per minute", note: "Billed on line-open minutes; the agent is still paid for after-call work." },
     { name: "Technology", formula: "Seats × (CCaaS + WEM + CRM seat prices) + AI usage + analytics + iPaaS + recording + knowledge + security + telephony", note: "Seats are agents, supervisors, QA and WFM." },
     { name: "Overhead", formula: "Cloud infrastructure + amortized professional services + facilities + attrition", note: "" },
-    { name: "Unit costs", formula: "Cost per contact = monthly TCO ÷ contacts. Cost per resolution = cost per contact × (2 − FCR). Marginal per contact = AHT minutes × loaded wage per minute + voice share × line-open minutes × telephony price", note: "Cost per resolution uses the one-plus-repeat model. Savings are valued at the marginal cost." },
+    { name: "Unit costs", formula: "Cost per contact = monthly TCO ÷ contacts. Cost per resolution = cost per contact × (2 − FCR). Marginal per contact = AHT minutes × wage × the marginal load (" + b("load.marginal") + ", never above the loaded rate entered) per minute + voice share × line-open minutes × telephony price", note: "Cost per resolution uses the one-plus-repeat model. Unit costs stay on the loaded rate; deflection and repeat savings are valued at the marginal cost. Capturing them by not backfilling seats removes benefits too, about " + Math.round((b("load.benefits") / b("load.marginal") - 1) * 100) + "% more at the opening loads." },
     { name: "Three years", formula: "Year one = annual. Years two and three escalate labor and attrition at the wage rate and contracted software at the license rate; telephony and facilities stay flat. Plus any one-time implementation, once", note: "A single blended rate is offered but misstates a labor-heavy base." },
     { name: "Optimizations", formula: "Containment: deflected contacts × marginal. FCR: avoided repeats on the handled pool × marginal. AHT: seconds saved × remaining handled contacts × loaded per minute. Attrition: fewer hires × cost per hire. Each × the stance", note: "Applied in order so no contact is counted twice; rounded to the nearest $1,000. Stances: " + STANCES + "." },
   ],
@@ -53,7 +53,7 @@ export const TCO_MODEL = {
   bandsNote: "The optimization total and the stance never cap a confidence axis.",
   constants: () => [
     ...benchmarksForTool("tco-calculator").map((e) => e.id),
-    "load.benefits",
+    "load.benefits", "load.marginal",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
     note: "Computed by the tool's own engine at its opening case: the cross-industry profile, the expected stance and costs as estimates.",
@@ -64,7 +64,7 @@ export const TCO_MODEL = {
       ["Technology", P.seats + " seats; telephony " + usd(P.telephony) + "; technology " + usd(P.tech)],
       ["Overhead", P.monthlyHires + " hires a month at " + usd2(P.perHire) + " = " + usd(P.attritionCost) + "; overhead " + usd(P.overhead)],
       ["Monthly and annual", usd(P.monthly) + " a month, " + usd(P.annual) + " a year, " + usd(P.perAgentMonth) + " per agent a month"],
-      ["Unit costs", usd2(P.costPerContact) + " per contact, " + usd2(P.costPerResolution) + " per resolution, " + usd2(P.marginalPerContact) + " marginal"],
+      ["Unit costs", usd2(P.costPerContact) + " per contact, " + usd2(P.costPerResolution) + " per resolution, " + usd2(P.marginalPerContact) + " marginal (6.5 handle minutes × $19 × " + b("load.marginal") + " ÷ 60, plus telephony)"],
       ["Three years", usd(P.annual) + " + " + usd(P.y2) + " + " + usd(P.y3) + " = " + usd(P.threeYear)],
       ["Optimizations", usd(P.optGross) + " a month gross, " + usd(P.optNet) + " at the expected 70%"],
     ],

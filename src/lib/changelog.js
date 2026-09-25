@@ -7,6 +7,15 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-25", methods: ["tco-calculator"], version: "1.1",
+    title: "TCO: deflection and repeat savings valued at the marginal load",
+    changes: [
+      "Containment and first contact resolution savings now value agent time at the wage times 1.18, the shared marginal load, instead of the 1.30 benefits load. The marginal rate never exceeds the loaded rate you enter.",
+      "At the opening case marginal cost per contact moves from $2.75 to $2.51, and modelled savings from $71,000 to $68,000 a month gross ($51,000 to $48,000 at the expected stance).",
+      "Every cost figure, unit cost, grade, and the handle-time and attrition savings are unchanged. One line now states that capturing the saving by not backfilling seats removes benefits too, about 10% more.",
+    ],
+  },
+  {
     date: "2026-09-25", methods: ["business-case-builder"], version: "1.1",
     title: "Business Case: the benefit stream grades where the baselines come from",
     changes: [
