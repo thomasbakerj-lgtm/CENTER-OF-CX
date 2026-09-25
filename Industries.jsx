@@ -103,7 +103,7 @@ function Hero() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Generic advice fails.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560 }}>
-              Ten verticals. 61 sub-verticals. 2,135 capability checkpoints. Each vertical has dedicated CX intelligence: benchmarks, failure modes, 7-layer technology stack mapping, vendor recommendations, and integration pitfalls built from real operational data.
+              Ten verticals. 61 sub-verticals. 2,135 capability checkpoints. Each vertical has dedicated CX intelligence: benchmarks, failure modes, 7-layer technology stack mapping, vendor recommendations, and integration pitfalls. Every figure is sourced, labelled as a planning assumption, or marked as having no public benchmark.
             </p>
           </div>
         </FadeIn>
@@ -154,8 +154,8 @@ function IndustryGrid() {
     { name: "Travel & Hospitality", href: "/industries/travel", subs: 6, checks: 210, sub: "Airlines · Hotels & Resorts · OTAs · Car Rental · Cruise Lines · Tours & Experiences", stat: "[[trv.dot.refund.card]] US card refund deadline", why: "Disruption volume spikes, multilingual support across timezones, GDS integration, and loyalty recognition failures." },
     { name: "Insurance", href: "/industries/insurance", subs: 6, checks: 210, sub: "Personal Lines P&C · Commercial · Life & Annuities · Workers' Comp · Specialty · Insurtech", stat: "[[ins.natcat.2025]] insured cat losses, 2025", why: "FNOL is the moment of truth. CAT surge capacity, state DOI compliance in every jurisdiction, and claims adjudication stakes." },
     { name: "Utilities & Energy", href: "/industries/utilities", subs: 6, checks: 210, sub: "Electric IOU · Natural Gas · Water · Municipal/Co-Op · Renewable/DER · Energy Retail", stat: "[[utl.eia.hours]] without power per customer, 2024", why: "Storm-driven volume swings, outage communication, PUC compliance, and payment difficulty as a public health issue." },
-    { name: "Government & Public Sector", href: "/industries/government", subs: 6, checks: 210, sub: "Federal · State · Local/Municipal · Courts & Justice · Public Safety/911 · Social Services", stat: "11 pts behind private sector", why: "FedRAMP, Section 508, Title VI language access, FERPA, CJIS: legal mandates before functionality is even evaluated." },
-    { name: "Manufacturing & Automotive", href: "/industries/manufacturing", subs: 6, checks: 210, sub: "Automotive OEM · Dealer/Retail · Industrial B2B · Consumer Electronics · Aerospace · Food & Beverage", stat: "30M+ vehicles recalled/yr", why: "Warranty adjudication, recall surge routing, connected vehicle telemetry, parts logistics, and NHTSA/ITAR compliance." },
+    { name: "Government & Public Sector", href: "/industries/government", subs: 6, checks: 210, sub: "Federal · State · Local/Municipal · Courts & Justice · Public Safety/911 · Social Services", stat: "[[gov.bench.fcr.gov]] FCR, government", why: "FedRAMP, StateRAMP, Section 508, Title VI language access, CJIS: legal mandates checked before functionality is evaluated." },
+    { name: "Manufacturing & Automotive", href: "/industries/manufacturing", subs: 6, checks: 210, sub: "Automotive OEM · Dealer/Retail · Industrial B2B · Consumer Electronics · Aerospace · Food & Beverage", stat: "[[mfg.nhtsa.recalled]] vehicles under recall, 2025", why: "Warranty adjudication, recall surge routing, connected vehicle telemetry, parts logistics, and NHTSA/ITAR compliance." },
     { name: "Education", href: "/industries/education", subs: 6, checks: 210, sub: "Undergrad Admissions · Graduate Programs · Financial Aid · Student Services · IT Help Desk · Online Education", stat: "[[edu.nsc.persist]] of fall 2024 starters still enrolled a year later", why: "FERPA governs every interaction. FAFSA season creates surges. Siloed departments create a runaround. Retention signals hidden in service data." },
   ];
 
@@ -184,7 +184,7 @@ function IndustryGrid() {
                     <div style={{ fontSize: 12, color: MUTED, marginBottom: 8 }}>{ind.sub}</div>
                     <p style={{ fontSize: 13.5, color: SLATE, lineHeight: 1.55, margin: 0 }}>{ind.why}</p>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0, maxWidth: "100%" }}>
                     <div style={{ background: WARM, borderRadius: 6, padding: "8px 14px", textAlign: "right" }}>
                       <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: ELECTRIC }}><ClaimText text={ind.stat} /></div>
                     </div>

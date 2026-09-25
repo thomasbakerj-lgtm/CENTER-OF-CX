@@ -7,7 +7,8 @@
  */
 import { claim, tokens, TESTS } from "./claims.js";
 
-const TAG = { fontSize: "0.72em", fontWeight: 600, marginLeft: 2, letterSpacing: 0.2, whiteSpace: "nowrap" };
+/* Tags wrap: a long publisher name must never widen the page on a phone. */
+const TAG = { fontSize: "0.72em", fontWeight: 600, marginLeft: 2, letterSpacing: 0.2, whiteSpace: "normal", overflowWrap: "anywhere" };
 
 function Mark({ c }) {
   if (c.research === "pending") return <sup style={{ ...TAG, color: "#B45309" }}>source pending</sup>;

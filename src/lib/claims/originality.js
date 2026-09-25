@@ -15,6 +15,10 @@ const INS_METHOD = "Every prose string extracted (615 segments across InsuranceV
 
 const UTL_METHOD = "No exact-phrase web search was possible: the session's search budget was spent and other engines ignored quotes or refused. Instead 73 pages were requested (every vendor named on the page at its own product or utilities page, each cited source, regulators and program pages, one utility communications trade article); 47 returned and 26 refused or were missing; with 4 source pages saved earlier, 51 pages were compared by script against every prose segment of the page and the hub card for shared runs of 6, 7 and 8 words. Result: no shared run of 8 words; the one 7 word run is the cited wording of 49 CFR 192.615. Uncited paraphrases of specific external findings were rewritten. 53 queued phrases (scratchpad utl main_phr.txt and sv_phr.txt) remain for a later exact-phrase search.";
 
+const GOV_METHOD = "Every prose string extracted (782 segments across GovernmentVertical.jsx, GovernmentSubVerticalData.js and the Government card in Industries.jsx). No exact-phrase web search was possible: the session's search budget was spent before this pass, and scraped search engines failed a positive control. Instead 55 pages were fetched and compared by script for shared runs of 8, 7 and 6 words: the product or public-sector pages of Genesys, NICE, Verint, Qualtrics, Medallia, Amazon Connect, Amazon Lex, Google Contact Center AI, Salesforce, Pega, Appian, Granicus (two pages), Login.gov, Cognigy, LivePerson, Sprinklr, Five9, Content Guru (two pages), SeeClickFix, Cityworks, Cartegraph, Tyler Technologies (three pages), Accela, Esri, Journal Technologies, Intrado (two pages), RapidSOS, Carbyne, Mark43, Merative Curam and NICE Public Safety; the government CX pages of FedRAMP, performance.gov, digital.gov, section508.gov, 211, the 988 Lifeline and the National Center for State Courts; and the sources read in full for the research pass (ACSI Federal Government Study 2025, NENA-STA-020.1-2020, MACPAC's Medicaid unwinding brief, three SQM Group pages, 28 CFR 35.200, 36 CFR 1194). Pages refused or unreachable: Cisco, ID.me, Ada, LexisNexis Risk, 8x8, Zetron, Hexagon, Motorola Solutions, Adobe, ServiceNow, nena.org, fcc.gov, lep.gov, and the NICE and Qualtrics public-sector pages (their home pages were compared instead). Result: no shared run of 8 or 7 words; one 6 word run, a proper name (OMB Circular A-11 Section 280). Sentences written during the research pass are our own wording of cited findings. Queued for a later exact-phrase search: 17 distinctive runs from the pre-existing prose (failure modes, layer pitfalls, the hub card).";
+
+const MFG_METHOD = "55 distinctive 8 to 12 word runs (main page and hub card 7, sub-pages 48) searched as exact quoted phrases on DuckDuckGo through headless Chromium (WebSearch budget spent; Bing from the sandbox returned unrelated results). Positive control passed: 4 of 4 known published phrases were found by the same route (an SQM KPI sentence twice, a 49 CFR 573.6 sentence, a Warranty Week sentence). 54 of 55 phrases returned no result; 1 did not load after two tries. Every prose segment of both files (629) was also compared by script for shared 8, 7 and 6 word runs against the cited sources as fetched (eCFR 49 CFR 573.6, 577.7; 16 CFR 314.4, 700.10, 1115.14; 21 CFR 7.3; 47 USC 227; 21 USC 350f, 379aa-1; Warranty Week report; two SQM pages): no 8 or 7 word run; one 6 word statutory phrase, now quoted and cited. Two uncited paraphrases of external findings retired.";
+
 export const ORIGINALITY = {
   "HealthcareVertical.jsx": { checked: "2026-09-25", method: METHOD, matches: [] },
   "HCSubVerticalData.js": {
@@ -80,4 +84,21 @@ export const ORIGINALITY = {
       { text: "satisfaction is 210 points higher (on 1,000-point scale) when customers receive 5+ outage communications", near: "J.D. Power electric utility residential study finding, uncited and not re-readable", kind: "paraphrase of a specific external finding", resolution: "rewritten" },
       { text: "PHMSA requires gas utilities to respond to gas odor reports within 60 minutes", near: "misstatement of 49 CFR 192.615, which sets no minute limit", kind: "paraphrase of a specific external finding", resolution: "rewritten" },
     ] },
+  "GovernmentVertical.jsx": { checked: "2026-09-25", method: GOV_METHOD, matches: [] },
+  "GovernmentSubVerticalData.js": { checked: "2026-09-25", method: GOV_METHOD, matches: [] },
+  "ManufacturingVertical.jsx": {
+    checked: "2026-09-25",
+    method: MFG_METHOD,
+    matches: [
+      { text: "will never buy from that brand again, and will tell 10 people", near: "the widely repeated TARP word-of-mouth finding that an unhappy customer tells about 10 people, uncited on the page", kind: "paraphrase", resolution: "rewritten" },
+    ],
+  },
+  "ManufacturingSubVerticalData.js": {
+    checked: "2026-09-25",
+    method: MFG_METHOD,
+    matches: [
+      { text: "A study by Lead Response Management found that responding to an internet lead within 5 minutes is 100x more effective than waiting 30 minutes", near: "Oldroyd and InsideSales.com Lead Response Management Study (2007), which measured contact and qualification odds", kind: "paraphrase", resolution: "rewritten" },
+      { text: "a reasonable probability of serious adverse health consequences or death", near: "21 U.S.C. 350f(a)(2) definition of reportable food", kind: "shared run (6 words, statutory term)", resolution: "quoted", url: "https://uscode.house.gov/view.xhtml?req=granuleid:USC-prelim-title21-section350f&num=0&edition=prelim" },
+    ],
+  },
 };
