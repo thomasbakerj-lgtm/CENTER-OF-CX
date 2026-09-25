@@ -1,4 +1,4 @@
-/* Business Case Builder, version 1.0. A calculator method (kind "calc").
+/* Business Case Builder, version 1.1. A calculator method (kind "calc").
  *
  * Published at /methodology/business-case-builder from this object. The engine lives inside
  * BusinessCaseBuilder.jsx, so this page carries its worked example as pins, and
@@ -27,7 +27,7 @@ export const BCB_MODEL = {
   id: "business-case-builder",
   kind: "calc",
   title: "Business Case Builder",
-  version: "1.0",
+  version: "1.1",
   published: "2026-09-25",
   route: "/tools/business-case",
   methodology: "/methodology/business-case-builder",
@@ -47,9 +47,10 @@ export const BCB_MODEL = {
   bands: [
     { label: "Target planning ranges", range: "Containment to " + b("bcb.target.containmentMax") + "%, handle time to " + b("bcb.target.handleTimeMax") + "%, FCR to " + b("bcb.target.fcrMax") + " points, attrition reduction to " + b("bcb.target.attritionMax") + "%", meaning: "Above any, the benefit stream caps at Planning-grade. Internal planning ranges, labelled." },
     { label: "Aggressive stance", range: "No attribution haircut", meaning: "The benefit stream caps at Planning-grade." },
+    { label: "Baseline evidence", range: "Handle time, FCR, contact volume and wage: our defaults; your estimate or an unattested system report; a system report you attest", meaning: "The benefit stream grades Directional, Planning-grade or Finance-grade. A baseline pulled from another tool grades by the origin grade it carries, never above Planning-grade. An unanswered question with a baseline edited reads as your estimate." },
     { label: "Fragile case", range: "Pays back, with three-year net under " + Math.round(b("bcb.read.fragileSlack") * 100) + "% of benefit", meaning: "A finding in the read. It never caps a confidence axis." },
   ],
-  bandsNote: "The return, payback and whether the case pays back never cap a confidence axis. Evidence is the weaker of the cost stream (the investment's evidence) and the benefit stream (stance and target ambition).",
+  bandsNote: "The return, payback and whether the case pays back never cap a confidence axis. Evidence is the weaker of the cost stream (the investment's evidence) and the benefit stream (stance, target ambition and where the baselines come from).",
   constants: () => [
     ...benchmarksForTool("business-case-builder").map((e) => e.id),
     "market.wage.agent", "load.benefits",
@@ -66,7 +67,7 @@ export const BCB_MODEL = {
     ],
   },
   limits: [
-    "Operational baselines (volume, handle time, FCR, wage) are graded on stance and target ambition only; they carry no evidence selector of their own yet.",
+    "The baseline answer is one question for four figures. A single baseline from a weaker source should be answered at that source's level; the tool cannot tell which figure came from where unless it was pulled from another tool.",
     "Freed agent time is not cash. The case shows it three ways: gross, attributed and realized, so the gap is visible.",
     "The ramp is linear after migration. A program that lands in steps pays back later than it shows.",
     "Each lever's target is yours. The planning ranges flag ambition; they do not say a target is wrong.",

@@ -170,7 +170,7 @@ comments and were never added to the tracker.
 | WS | Subject | State |
 |---|---|---|
 | WS0 | Hygiene and blockers | Closed. `SHIPPING.md` approved by TB 23 Sep |
-| WS1 | V3 engine integrity, nine rail tools | Closed S22. 1-09 walk complete, all nine on production. Benefit-stream DECIDE open |
+| WS1 | V3 engine integrity, nine rail tools | Closed S22. 1-09 walk complete, all nine on production. Benefit-stream baseline evidence built S23 (P3 9) |
 | WS2 | The other 21 tools | 2-01 triage is cheap and high leverage |
 | WS3 | Journey architecture | Graph in `src/lib/journey.js` (3-01 done) |
 | WS4 | Vendor data depth | 283 vendors, 28 genuinely deep |
@@ -880,8 +880,14 @@ P2. Measurement (before distribution scales). **Done S23.** P0 and P1 plus task 
      tool list), `floor.test.mjs` (every floor tool's sample carries one step on its edges), report harnesses read the
      composed PDF. Suite 24,024.
 
-P3. Engine integrity (TB decided S23).
-  9. BCB baseline evidence question (section 2 note), A/B only the evidence axis moves, harness pins, live PDFs.
+P3. Engine integrity (TB decided S23). PR #38 (task 8) merged 889c188, one next step checked on production.
+  9. **Done S23 on the branch.** BCB baseline evidence, Business Case method 1.1: `BASELINE_EVIDENCE` (defaults, estimate,
+     report) plus `baselineAttested`; handle time, FCR, volume and wage. Defaults Directional; estimate or unattested
+     report Planning-grade; attested report Finance-grade. Pulled baselines grade by `railEvidence(origin)` while they hold
+     the pulled value (`railBase`, never from a scenario link); unanswered with an edited baseline reads as an estimate.
+     Benefit stream = weaker of attribution caps and baseline grade. A/B 6,000 cases: figures, cost stream, realization,
+     completeness unchanged. `bcb.test.mjs` 12i; older fixtures answer "report, attested". Changelog now keeps a
+     method's earlier versions (`methods.test.mjs`: newest entry carries the current version). Suite 24,060.
   10. TCO marginal load to `load.marginal` 1.18 with the disclosure line; A/B only savings move; method page and pins.
   10b. BLS wage update (item 38).
 
