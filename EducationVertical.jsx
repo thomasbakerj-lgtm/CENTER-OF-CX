@@ -25,13 +25,10 @@ export default function EducationVertical() {
     { name: "IT Help Desk & Learning Technology", slug: "it-helpdesk", desc: "LMS support, WiFi, account access, device troubleshooting, and classroom technology. Critical during first week of classes and exam periods.", contact: "Surge at semester start and exam periods" },
     { name: "Online & Continuing Education", slug: "online-education", desc: "Enrollment, technical support, proctor scheduling, credential verification, and corporate partnership management. The fastest-growing segment with retention challenges.", contact: "Growing volume, churn-sensitive" },
   ];
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "72%", label: "Of students who don't re-enroll cite customer service as the reason", source: "ECSI 2024" },
-    { n: "18M", label: "Students enrolled in US colleges and universities", source: "HEP Inc 2025" },
-    { n: "89%", label: "Believe a positive CX influences their choice of institution", source: "Zipdo 2025" },
-    { n: "47%", label: "Would switch to a competitor due to poor customer service", source: "Zipdo 2025" },
-    { n: "53%", label: "Increased retention after revamping CX strategies", source: "Zipdo 2025" },
-    { n: "81%", label: "Expect quick responses from educational support services", source: "Zipdo 2025" },
+    { n: "19.4M", label: "Students enrolled in US postsecondary education, fall 2025", source: "National Student Clearinghouse Research Center, January 2026", url: "https://nscresearchcenter.org/final-fall-enrollment-trends/" },
   ];
   const failureModes = [
     { title: "Financial aid complexity is the #1 barrier to enrollment completion", desc: "A prospective student who can't understand their aid package, can't reach someone to explain it, or gets conflicting information from financial aid and billing will choose a different institution. FAFSA changes in 2024-2025 created additional confusion that many financial aid offices are still resolving." },
@@ -69,11 +66,11 @@ export default function EducationVertical() {
           </FadeIn>
         </div>
       </section>
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Six distinct education service models.</h2>

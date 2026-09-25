@@ -30,13 +30,11 @@ export default function TelecomVertical() {
     { name: "Fiber & Infrastructure", slug: "fiber-infrastructure", desc: "Installation scheduling, construction updates, service activation, and wholesale/carrier support. Long lead times with high customer anxiety.", contact: "Project-based, milestone-driven" },
   ];
 
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "31%", label: "Annual churn rate in telecommunications", source: "CustomerGauge 2025" },
-    { n: "14", label: "Global telecom NPS, lowest of any industry", source: "Simon Kucher 2025" },
-    { n: "36%", label: "First contact resolution for mobile and broadband support", source: "Simon Kucher Global Study" },
-    { n: "35%", label: "Of consumers satisfied with telecom customer service", source: "Plivo / Industry research" },
-    { n: "60%", label: "Of customer churn caused by poor service experience", source: "GITNUX 2025" },
-    { n: "70%", label: "Of consumers prioritize reliability over speed", source: "Plivo 2025" },
+    { n: "14", label: "Global telecom NPS, below the other industries measured (16 to 80)", source: "Simon-Kucher Global Telecommunications Study 2025" },
+    { n: "36 to 38%", label: "Of mobile and broadband support issues resolved on first contact", source: "Simon-Kucher Global Telecommunications Study 2025" },
   ];
 
   const failureModes = [
@@ -79,11 +77,11 @@ export default function TelecomVertical() {
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>

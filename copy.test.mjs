@@ -38,5 +38,25 @@ for (const f of files.filter(isPublic)) {
 }
 ok(`no retired phrase in ${files.filter(isPublic).length} public files`, hits.length === 0, hits.slice(0, 5).join(" | "));
 
+console.log("\n4. Industry-page statistics name a primary publisher (scan part 3)");
+const BAD_SRC = /zipdo|gitnux|wifi ?talents|industry composite|industry research|sprinklr|nextiva|liveagent|tidio|hubspot|dialoghealth|plivo|ttec|liferay|talkdesk|ecsi|insignia|bizzycar|customergauge|24\/7\.ai|language i\/o|shopify/i;
+ok("the source rule fires on an aggregator and a vendor blog", BAD_SRC.test("Zipdo, 2024") && BAD_SRC.test("CustomerGauge") && !BAD_SRC.test("J.D. Power 2025 U.S. Property Claims Satisfaction Study"));
+const verticals = files.filter((f) => /^[A-Za-z]+Vertical\.jsx$/.test(f));
+ok("ten industry pages checked", verticals.length === 10, String(verticals.length));
+for (const f of verticals) {
+  const s = readFileSync(f, "utf8");
+  const block = (s.match(/const stats = \[([\s\S]*?)\n  \];/) || [])[1];
+  ok(`${f}: stats block found`, block !== undefined);
+  const entries = (block || "").split("\n").filter((l) => l.includes("{ n:"));
+  for (const e of entries) {
+    const src = (e.match(/source: "([^"]*)"/) || [])[1] || "";
+    ok(`${f}: every stat names a source`, src.length > 8, e.slice(0, 80));
+    ok(`${f}: no aggregator or vendor-blog source`, !BAD_SRC.test(src), src);
+    const u = (e.match(/url: "([^"]*)"/) || [])[1];
+    ok(`${f}: a linked source is https`, u === undefined || /^https:\/\//.test(u), u);
+  }
+  ok(`${f}: an empty strip does not render`, /\{stats\.length > 0 && \(/.test(s));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

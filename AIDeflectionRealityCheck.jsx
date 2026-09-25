@@ -67,9 +67,9 @@ const BANDS = { estimate: benchmark("aid.band.estimate"), marketing: benchmark("
    The reviewer's non-negotiable, and the correct one: a rate without a denominator is
    not a benchmark, it is a rumor. These strings surface in the methodology block. */
 const SOURCES = {
-  eligible: "AI-eligible share of total demand. Starting estimate 55%. Varies widely, roughly 40% to 65%, by intent mix and knowledge coverage. Denominator: total inbound demand. Source: derived from Gartner 2025 self-service coverage ranges. Editable.",
-  resolution: "Apparent resolution rate among AI-involved conversations. Starting estimate 65%. Gartner 2025 puts mature RAG containment at 55% to 65% of involved; rule-based bots at 20% to 35%. Denominator: AI-involved conversations, not total demand. Source: Gartner Customer Service Technology Survey 2025; Forrester Total Economic Impact 2025. Editable.",
-  repeat: "Repeat and false-resolution rate among apparent resolutions. Starting estimate 18%. In early 2025, 62% of companies using non-agentic AI reported flat or worsening cost per resolution because deflected tickets still required a human. Gartner reports only 14% of issues are fully resolved in self-service. Denominator: apparent resolutions. Source: industry reporting 2025 to 2026. Editable.",
+  eligible: "AI-eligible share of total demand. Starting estimate 55%, an internal planning value: eligibility varies widely with intent mix and knowledge coverage. Denominator: total inbound demand. Replace it with your own intent-mix data.",
+  resolution: "Apparent resolution rate among AI-involved conversations. Starting estimate 65%, an internal planning value. Denominator: AI-involved conversations, never total demand. Replace it with a contracted floor or your own pilot data.",
+  repeat: "Repeat and false-resolution rate among apparent resolutions. Starting estimate 18%, an internal planning value. For context, Gartner found only 14% of customer service issues fully resolved in self-service (survey of 5,728 customers, December 2023; press release 19 August 2024). Denominator: apparent resolutions.",
   escalation: "Escalation premium on post-bot human contacts. Starting estimate 25%. No single published figure exists; failed-bot contacts carry longer handle time and context rebuilding. Directional by nature. Editable.",
 };
 

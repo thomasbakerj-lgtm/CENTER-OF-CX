@@ -30,13 +30,11 @@ export default function InsuranceVertical() {
     { name: "Insurtech & Digital Carriers", slug: "insurtech", desc: "Digital-first insurance with app-native service, instant quoting, and AI-driven claims. Speed and transparency define the brand promise.", contact: "Growing volume, digital-first channels" },
   ];
 
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "80%+", label: "CSAT benchmark: nearly 2x higher with clear communications", source: "J.D. Power / Nextiva" },
-    { n: "$146B", label: "Insured losses from natural catastrophes in 2025", source: "Swiss Re Institute" },
-    { n: "35%", label: "Increase in renewal likelihood from strong CX", source: "Industry composite" },
-    { n: "70%", label: "Average FCR in insurance: claims require follow-up", source: "Nextiva 2026" },
-    { n: "9 min", label: "Average handle time: coverage discussions can't be rushed", source: "Nextiva 2026" },
-    { n: "81%", label: "Increase in retention from well-tailored customer service", source: "LiveAgent" },
+    { n: "2x+", label: "Higher claims satisfaction when communicating with the insurer is very easy (777 versus 337)", source: "J.D. Power 2025 U.S. Property Claims Satisfaction Study", url: "https://www.jdpower.com/business/press-releases/2025-us-property-claims-satisfaction-study/" },
+    { n: "$107B", label: "Insured natural catastrophe losses worldwide in 2025", source: "Swiss Re Institute, sigma 1/2026", url: "https://www.swissre.com/institute/research/sigma-research/sigma-2026-01-natcat-2025-wildfire-storm-risk.html" },
   ];
 
   const failureModes = [
@@ -79,11 +77,11 @@ export default function InsuranceVertical() {
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>

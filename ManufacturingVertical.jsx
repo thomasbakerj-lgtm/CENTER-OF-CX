@@ -25,13 +25,10 @@ export default function ManufacturingVertical() {
     { name: "Aerospace & Defense", slug: "aerospace-defense", desc: "MRO support, parts logistics, AOG emergencies, regulatory compliance, and fleet operator technical services.", contact: "Low volume, mission-critical urgency" },
     { name: "Food & Beverage Manufacturing", slug: "food-beverage", desc: "Product quality complaints, allergen inquiries, recall management, retailer support, and consumer hotline.", contact: "Variable: recall-spike-driven" },
   ];
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "30M+", label: "Vehicles recalled in the US in 2025 across ~1,000 campaigns", source: "NHTSA / AutoInsurance.com" },
-    { n: "12M+", label: "Vehicles recalled in Q1 2026 alone, accelerating sharply", source: "BizzyCar Q1 2026" },
-    { n: "35%", label: "Of manufacturing churn: highest B2B churn rate by industry", source: "CustomerGauge" },
-    { n: "$50B+", label: "Annual US warranty claims cost across all manufacturers", source: "Industry composite" },
-    { n: "153", label: "Recalls by Ford alone in 2025: most of any manufacturer", source: "NHTSA" },
-    { n: "78%", label: "Of consumers say post-purchase service affects brand loyalty", source: "Industry research" },
+    { n: "29M+", label: "Vehicles recalled in the US in 2025", source: "NHTSA 2025 Annual Recalls Report, March 2026", url: "https://www.nhtsa.gov/sites/nhtsa.gov/files/2026-03/2025-annual-recalls-report.pdf" },
   ];
   const failureModes = [
     { title: "Recall campaigns create massive, unpredictable contact surges", desc: "A single safety recall affecting 2 million vehicles generates 200,000+ calls within weeks: owners asking if their vehicle is affected, how to schedule a repair, and whether it's safe to drive. Without proactive VIN-specific notification and self-service scheduling, every affected owner calls individually." },
@@ -69,11 +66,11 @@ export default function ManufacturingVertical() {
           </FadeIn>
         </div>
       </section>
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Six distinct manufacturing service models.</h2>

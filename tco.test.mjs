@@ -521,7 +521,7 @@ section("benchmark registry: every constant this tool ships is registered");
     readIds.filter((id) => !(id in BENCHMARK_SOURCES)).join(", "));
   ok("every id the tool reads is owned by this tool or shared",
     readIds.every((id) => [TOOL, "shared"].includes(BENCHMARK_SOURCES[id].tool)));
-  ok("the registry holds 16 entries for this tool", benchmarksForTool(TOOL).length === 16, `${benchmarksForTool(TOOL).length}`);
+  ok("the registry holds 23 entries for this tool", benchmarksForTool(TOOL).length === 23, `${benchmarksForTool(TOOL).length}`);
   ok("every heuristic is labelled as one", benchmarksForTool(TOOL).filter((e) => e.kind === "heuristic").every((e) => /heuristic/i.test(e.source)));
   ok("every threshold states a rationale", benchmarksForTool(TOOL).filter((e) => e.kind === "threshold").every((e) => e.rationale.length > 40));
   ok("the one market entry names its source and date", benchmarksForTool(TOOL).filter((e) => e.kind === "market").every((e) => /Bureau of Labor Statistics/.test(e.source)));

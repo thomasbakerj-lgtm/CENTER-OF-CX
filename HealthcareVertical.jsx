@@ -30,13 +30,9 @@ export default function HealthcareVertical() {
     { name: "Home Health & Post-Acute", slug: "home-health", desc: "Visit scheduling, caregiver coordination, supply management, and family communication. Vulnerable populations requiring empathy-first design.", contact: "Lower volume, highest emotional stakes" },
   ];
 
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "52%", label: "Average first contact resolution rate in healthcare", source: "DialogHealth" },
-    { n: "3.5", label: "Average calls per patient per scheduling need", source: "DialogHealth" },
-    { n: "4x", label: "More likely to switch after a negative phone interaction", source: "Industry research" },
-    { n: "7%", label: "Average call abandonment rate in healthcare", source: "Sprinklr / LiveAgent" },
-    { n: "40-45%", label: "Contact center agent turnover rate in healthcare", source: "Insignia Resource 2025" },
-    { n: "19%", label: "Call transfer rate, nearly 1 in 5 patients get passed", source: "DialogHealth" },
   ];
 
   const failureModes = [
@@ -83,11 +79,11 @@ export default function HealthcareVertical() {
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>

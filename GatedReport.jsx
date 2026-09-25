@@ -29,14 +29,12 @@ const reports = {
   "ccaas-buyer-guide": {
     title: "CCaaS Platform Buyer's Guide 2026",
     phase1: true,
-    subtitle: "28 CCaaS platforms scored across 27 weighted dimensions. Architecture fit, migration risk, hidden costs, and the RFP questions most evaluations skip.",
+    subtitle: "The Phase 1 assessment of 28 CCaaS platforms, dated April 2026. Migration risk, hidden costs, and the RFP questions most evaluations skip.",
     pages: "19 pages",
     published: "April 2026",
     highlights: [
-      "28 CCaaS platforms scored across 27 dimensions in 7 weighted capability domains",
-      "Tier placement from Strategic Foundation to Limited Fit, with every score shown",
+      "The Phase 1 assessment of 28 CCaaS platforms, dated April 2026. Its scores and tiers are withdrawn on the site while current research is published",
       "Assessments of the top 12 vendors, plus the four adjacent platforms that shape CCaaS decisions",
-      "Architecture fit: which platforms match which operating models",
       "Migration risk framework: the factors that predict a stall or an overrun",
       "Hidden costs vendors leave out of proposals, and the RFP questions that expose them",
       "A decision framework for building a defensible shortlist",
@@ -50,27 +48,6 @@ const reports = {
        and the harness reconciles it against that source. The full guide stays
        one click away; the email form is optional. */
     summary: {
-      domains: [
-        ["Core Platform and Routing", 20], ["AI and Automation", 18], ["Integration and Architecture", 15],
-        ["Security, Compliance and Enterprise", 13], ["Agent Experience and Desktop", 12],
-        ["Analytics and Intelligence", 12], ["Workforce Management", 10],
-      ],
-      dimensions: 27,
-      tiers: [
-        { name: "Strategic Foundation", band: "85 to 100", note: "Can anchor an enterprise CX operation. Default shortlist candidates for 500+ agents with complex requirements.", vendors: ["Genesys", "NICE CXone"] },
-        { name: "Strong Contender", band: "70 to 84", note: "Genuine strengths in specific operating models and verticals. Needs a fit assessment, not a blanket recommendation.", vendors: ["Five9", "Cisco", "Talkdesk", "Amazon Connect", "Content Guru", "Zoom", "RingCentral", "Bright Pattern"] },
-        { name: "Situational Specialist", band: "55 to 69", note: "Viable in defined contexts: vertical fit, installed base, regional strength, or price sensitivity.", vendors: ["8x8", "Odigo", "UJET", "Avaya", "Enghouse", "Dialpad", "Anywhere365", "Puzzel", "Alvaria", "Vonage"] },
-        { name: "Limited Fit", band: "below 55", note: "Narrow applicability for complex enterprise service environments.", vendors: ["Luware", "Nextiva", "Aircall", "GoTo"] },
-      ],
-      adjacent: ["Sprinklr", "Salesforce Service Cloud", "ServiceNow CX", "Zendesk"],
-      fit: [
-        ["Enterprise, voice-led, multi-site, regulated", "Genesys, NICE CXone", "Routing complexity, WEM depth, compliance controls, and global deployment."],
-        ["Mid-market, fast-deploying, digital-first", "Talkdesk, Five9, Bright Pattern", "Time to value, practical AI, and CRM integration outweigh maximum configurability."],
-        ["AWS-native, builder mentality", "Amazon Connect", "Fits teams with cloud engineering depth that want to own the architecture."],
-        ["UCaaS convergence, one vendor", "Zoom, RingCentral, Cisco, 8x8", "The driver is a single vendor for all communications."],
-        ["EMEA or public sector, data sovereignty", "Content Guru, Odigo, Puzzel", "European-origin platforms with a strong compliance posture."],
-        ["Installed base migration", "Avaya, Cisco", "Substantial on-premise investment makes the migration path the deciding factor."],
-      ],
       risks: [
         ["High", "Telephony porting complexity", "Number porting, SIP trunks, and carrier dependencies cause the most timeline slippage."],
         ["High", "Integration rebuild scope", "Every screen pop, WFM feed, and recording integration must be rebuilt. Undocumented ones surface mid-migration."],
@@ -79,7 +56,7 @@ const reports = {
         ["Medium", "Stakeholder alignment", "IT and operations misalignment is the most common organizational risk."],
         ["Low to medium", "Vendor professional services dependency", "Constrained vendor resources become your timeline risk. Build internal capability alongside."],
       ],
-      fullOnly: ["Every vendor's weighted score", "Top 12 vendor assessments with strengths, weaknesses, and red flags", "Hidden costs vendors omit from proposals", "The RFP questions that reveal what demos hide", "The shortlist decision framework"],
+      fullOnly: ["Top 12 vendor assessments with strengths, weaknesses, and red flags", "Hidden costs vendors omit from proposals", "The RFP questions that reveal what demos hide", "The shortlist decision framework"],
       next: [
         ["Model the full cost, not the seat price", "/tools/tco-calculator"],
         ["Build requirements into an RFP", "/tools/rfp-builder"],
@@ -130,44 +107,6 @@ function Summary({ report, onOpen }) {
     <section style={{ background: "#fff", padding: "72px 28px" }}>
       <div style={{ ...WRAP, maxWidth: 980 }}>
         <div style={block}>
-          <h2 style={h2}>How the {report.summary.tiers.reduce((n, t) => n + t.vendors.length, 0) + s.adjacent.length} platforms are scored</h2>
-          <p style={lead}>Each platform is scored 1 to 5 on {s.dimensions} dimensions. Each score is multiplied by its weight, for a maximum of 100. Weights sit in seven capability domains, prioritizing what matters after the demo.</p>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 420 }}>
-              <thead><tr><th style={{ ...cell, color: NAVY, fontWeight: 600 }}>Capability domain</th><th style={{ ...cell, color: NAVY, fontWeight: 600, textAlign: "right" }}>Weight</th></tr></thead>
-              <tbody>{s.domains.map(([d, w]) => <tr key={d}><td style={cell}>{d}</td><td style={{ ...cell, textAlign: "right", fontWeight: 600, color: NAVY }}>{w}%</td></tr>)}</tbody>
-            </table>
-          </div>
-        </div>
-
-        <div style={block}>
-          <h2 style={h2}>The four tiers</h2>
-          <p style={lead}>The distribution is intentionally harsh. Most of the market lands in the middle two tiers, and no vendor scores 100.</p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
-            {s.tiers.map((t) => (
-              <div key={t.name} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 18px", background: WARM }}>
-                <div style={{ fontSize: 16, fontWeight: 700, color: NAVY }}>{t.name}</div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, margin: "2px 0 10px" }}>Score {t.band}</div>
-                <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.55, margin: "0 0 10px" }}>{t.note}</p>
-                <div style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>{t.vendors.join(", ")}</div>
-              </div>
-            ))}
-          </div>
-          <p style={{ fontSize: 13, color: MUTED, marginTop: 14 }}>Scored as adjacent platforms that shape CCaaS decisions: {s.adjacent.join(", ")}.</p>
-        </div>
-
-        <div style={block}>
-          <h2 style={h2}>Match the platform to the operating model</h2>
-          <p style={lead}>The most common evaluation mistake is buying features instead of fit. A platform that suits a 200-agent retailer can be wrong for a 2,000-agent regulated operation.</p>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 640 }}>
-              <thead><tr>{["Operating model", "Best-fit platforms", "Why"].map((x) => <th key={x} style={{ ...cell, color: NAVY, fontWeight: 600 }}>{x}</th>)}</tr></thead>
-              <tbody>{s.fit.map(([m, p, w]) => <tr key={m}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{m}</td><td style={cell}>{p}</td><td style={cell}>{w}</td></tr>)}</tbody>
-            </table>
-          </div>
-        </div>
-
-        <div style={block}>
           <h2 style={h2}>What predicts a migration stall</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {s.risks.map(([lvl, f, d]) => (
@@ -180,7 +119,7 @@ function Summary({ report, onOpen }) {
         </div>
 
         <div style={{ ...block, background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, borderRadius: 12, padding: "32px 28px" }}>
-          <h2 style={{ ...h2, color: "#fff" }}>Only in the full guide</h2>
+          <h2 style={{ ...h2, color: "#fff" }}>In the full guide (Phase 1 edition)</h2>
           <ul style={{ margin: "0 0 22px", paddingLeft: 18, color: "rgba(255,255,255,0.7)", fontSize: 14, lineHeight: 1.8 }}>{s.fullOnly.map((x) => <li key={x}>{x}</li>)}</ul>
           <a href={report.pdf} target="_blank" rel="noopener noreferrer" onClick={onOpen} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Open the full guide (PDF, {report.pages}) →</a>
         </div>
@@ -192,7 +131,7 @@ function Summary({ report, onOpen }) {
               <a key={href} href={href} onClick={() => track("next_step_click", { from: "ccaas-buyer-guide", to: href.split("/").pop() })} style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "16px 16px", color: NAVY, fontSize: 14, fontWeight: 600, background: WARM }}>{label} →</a>
             ))}
           </div>
-          <p style={{ fontSize: 12, color: MUTED, marginTop: 20 }}>Published {report.published}. Scores come from public product documentation, analyst reports, customer reviews, deployment case studies, and direct product evaluation. Independent research. No vendor sponsorship. No pay-to-play.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginTop: 20 }}>Phase 1 edition, published {report.published}. The full guide keeps that assessment's scores and tiers as a dated record; the site no longer shows them while current research is published. No vendor sponsorship. No pay-to-play.</p>
         </div>
       </div>
     </section>

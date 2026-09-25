@@ -25,13 +25,11 @@ export default function GovernmentVertical() {
     { name: "Public Safety & 911", slug: "public-safety", desc: "Emergency dispatch, non-emergency reporting, community outreach, and crisis intervention. Life-safety interactions with zero tolerance for failure.", contact: "24/7, life-critical" },
     { name: "Social Services & Benefits", slug: "social-services", desc: "SNAP, Medicaid, TANF, housing assistance, child protective services, and disability. Vulnerable populations navigating complex eligibility and enrollment.", contact: "High volume, highest vulnerability" },
   ];
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "69.7", label: "ACSI federal government satisfaction score: highest in 7 years", source: "ACSI 2024" },
-    { n: "11 pts", label: "Behind private sector on Forrester's CX Index", source: "Forrester / Deloitte" },
-    { n: "9x", label: "More likely to trust government when digital services work well", source: "Liferay / research" },
-    { n: "70%", label: "Of government CIOs increasing CX investment by 2026", source: "Gartner" },
-    { n: "$200B", label: "Government IT spending projected for 2026", source: "Gartner" },
-    { n: "47%", label: "Of government employees struggle to find information they need", source: "Liferay" },
+    { n: "69.7", label: "ACSI federal government satisfaction score, a seven-year high", source: "ACSI Federal Government Study, November 2024" },
+    { n: "9x", label: "More likely to trust a government agency when satisfied with its service", source: "McKinsey Public Sector Journey Benchmark Survey, 2018", url: "https://www.mckinsey.com/industries/public-sector/our-insights/the-global-case-for-customer-experience-in-government" },
   ];
   const failureModes = [
     { title: "Citizens compare government to Amazon, not to other agencies", desc: "Taxpayers don't benchmark government CX against the DMV down the street: they benchmark against their last Amazon delivery, their banking app, and their Uber experience. The gap between private-sector CX and government CX creates frustration that erodes institutional trust." },
@@ -69,11 +67,11 @@ export default function GovernmentVertical() {
           </FadeIn>
         </div>
       </section>
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Six distinct government service models.</h2>
