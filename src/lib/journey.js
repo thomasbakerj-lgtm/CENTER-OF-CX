@@ -59,6 +59,7 @@ export const JOURNEY = {
       { to: "business-case-builder", why: "Carry the net automation number into a case with payback and risk." },
       { to: "tco-calculator", why: "Price the platform the deflection depends on over its full term." },
       { to: "ai-readiness", why: "Check the data and governance readiness the automation depends on." },
+      { to: "contract-risk", why: "Test the contract for a price or volume floor before counting the saving." },
     ],
   },
   "channel-shift": {
@@ -189,6 +190,8 @@ export const JOURNEY = {
       { to: "vendor-match", why: "Build a starting list of vendors to send the RFP to." },
       { to: "contract-risk", why: "Know the contract terms to negotiate before responses arrive." },
       { to: "license-gap", why: "Price the add-ons vendors need to meet your requirements." },
+      { to: "tco-calculator", why: "Price the vendors' offers over the full term." },
+      { to: "platform-decision", why: "Test the incumbent against the same requirements." },
     ],
   },
   "vendor-match": {
@@ -206,6 +209,9 @@ export const JOURNEY = {
     next: [
       { to: "ai-readiness", why: "Assess AI-specific readiness on the weakest dimensions." },
       { to: "transformation-readiness", why: "Test whether the organization can act on the gaps now." },
+      { to: "qa-scorecard", why: "Operations is your weakest area; check that quality scores measure what customers experience." },
+      { to: "platform-decision", why: "Technology is your weakest area; test the platform against the needs it must meet." },
+      { to: "fcr-leakage", why: "Analytics is your weakest area; measure the repeat demand your data should be catching." },
     ],
   },
   "ai-readiness": {
@@ -214,6 +220,10 @@ export const JOURNEY = {
     next: [
       { to: "ai-deflection", why: "Test how much demand automation can really absorb." },
       { to: "governance-model", why: "Define who owns AI decisions and guardrails." },
+      { to: "cx-it-alignment", why: "Check that CX and IT agree on the foundations automation needs." },
+      { to: "aht-decomposition", why: "Break handle time into its parts before automating any of it." },
+      { to: "platform-decision", why: "Test whether the platform can carry the automation you plan." },
+      { to: "attrition-cost", why: "Price the people side of the change before the technology side." },
     ],
   },
   "transformation-readiness": {
@@ -222,6 +232,11 @@ export const JOURNEY = {
     next: [
       { to: "roadmap-builder", why: "Sequence the program around the gaps you found." },
       { to: "governance-model", why: "Settle decision rights before the program starts." },
+      { to: "cx-it-alignment", why: "Check that CX and IT agree before committing budget." },
+      { to: "tco-calculator", why: "Price the full cost of the change before approval." },
+      { to: "staffing-calculator", why: "Size the people the change needs at your service level." },
+      { to: "vendor-match", why: "Build a starting list of platforms for the change." },
+      { to: "platform-decision", why: "Test whether the current platform can carry the change." },
     ],
   },
   "cx-it-alignment": {
@@ -231,6 +246,7 @@ export const JOURNEY = {
       { to: "governance-model", why: "Assign ownership where CX and IT disagree." },
       { to: "platform-decision", why: "Test the platform against the gaps CX and IT agree on." },
       { to: "cx-maturity", why: "Place the alignment gaps in the wider maturity picture." },
+      { to: "ai-readiness", why: "Check the readiness automation depends on where CX and IT diverge." },
     ],
   },
   "governance-model": {
@@ -250,6 +266,39 @@ export const JOURNEY = {
     ],
   },
 };
+
+/* NextDiagnostic (tracker 3-02, P2 task 8). One next step per result, from this graph only. A tool whose engine
+   chooses among its edges from the result (the weakest dimension, the renewal gate, the verdict) passes that choice,
+   `{ to, because }` or a tool id; every other tool gets its first edge. A choice outside the tool's edges is ignored,
+   so a page can never name a tool the graph does not route to, and journey.test.mjs proves every choice an engine
+   can make is an edge. ReportActions renders the one step on the page and in the PDF. */
+export function nextDiagnostic(toolId, choice = null) {
+  const edges = nextFor(toolId);
+  if (!edges.length) return null;
+  const to = choice && typeof choice === "object" ? choice.to : choice;
+  const picked = (to && edges.find((e) => e.to === to)) || edges[0];
+  const because = choice && typeof choice === "object" && typeof choice.because === "string" && choice.because ? choice.because : null;
+  return { ...picked, why: because || picked.why };
+}
+
+/* The PDF section for that one step. */
+export function nextSection(toolId, choice = null) {
+  const n = nextDiagnostic(toolId, choice);
+  return n ? { title: "Next Step", type: "next", items: [{ tool: n.name, href: n.href, reason: n.why }] } : null;
+}
+
+/* The sections a report exports: the tool's own, less any next-step section, plus the one step. ReportActions builds
+   the PDF with this, and the report harnesses read the same, so they check what the reader gets. */
+export function withNextStep(toolId, sections, choice = null) {
+  const s = nextSection(toolId, choice);
+  return [...(sections || []).filter((x) => x && x.type !== "next"), ...(s ? [s] : [])];
+}
+
+/* Tool id for a live route, for engines that chose by route. */
+export function toolAt(route) {
+  const hit = Object.entries(JOURNEY).find(([, n]) => n.route === route);
+  return hit ? hit[0] : null;
+}
 
 /* Resolved edges for one tool, in display order. Unknown tool or unknown
    target returns nothing, so a bad id renders no card rather than a dead link. */

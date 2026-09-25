@@ -228,7 +228,7 @@ export default function CXITAlignment() {
             </div>
 
             <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-              <ReportActions toolId={TOOL_ID} toolName="CX + IT Alignment Framework" subtitle={"Average CX to IT gap " + overallGap.toFixed(1) + " points, " + gapLevel.label} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS}
+              <ReportActions next={R.nextDiagnostic ? { to: R.nextDiagnostic.tool, because: next ? next.because + " has the largest gap." : null } : null} toolId={TOOL_ID} toolName="CX + IT Alignment Framework" subtitle={"Average CX to IT gap " + overallGap.toFixed(1) + " points, " + gapLevel.label} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS}
                 summary={[{ label: "Average CX to IT gap", value: overallGap.toFixed(1) + " pts" }, { label: "Alignment band", value: gapLevel.label }, { label: "Misaligned pairs", value: String(misaligned.length) }, { label: "Shared weaknesses", value: String(shared.length) }]}
                 sections={[
                   { title: "Alignment by Area", type: "table", rows: byGap.map(a => [a.name, "CX " + areaAvg(a.id, "cx").toFixed(1) + " / IT " + areaAvg(a.id, "it").toFixed(1) + ", gap " + areaGap(a.id).toFixed(1)]) },
@@ -244,7 +244,6 @@ export default function CXITAlignment() {
                     "A gap is the distance between how CX and IT rate the same capability. It measures agreement, never capability.",
                   ]},
                   { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ", " + (c.kind === "misaligned" ? "misaligned" : "shared weakness") + ": CX " + c.cx + ", IT " + c.it + " on \"" + c.texts.cx + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No pair reaches the gap line or the shared-weakness line, so the rubric raises no action.", detail: "The area with the largest gap is still the place to look first.", priority: "medium" }] },
-                  { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: next.because + " has the largest gap." }] : [] },
                   { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
                   { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each pair scores the gap between its CX and IT answers on a 1 to 5 scale; an area scores the average gap of its pairs and the overall score is the equally weighted average of the five areas. A pair " + RUBRIC.gapAt + " or more points apart is misaligned; a pair answered " + RUBRIC.failAt + " or below on both sides is a shared weakness. Both add their action to the checklist, largest area gap first." },
                 ]} />

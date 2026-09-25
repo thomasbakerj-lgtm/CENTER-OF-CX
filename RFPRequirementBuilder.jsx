@@ -136,7 +136,6 @@ export default function RFPRequirementBuilder() {
     { title: "Scoring Rules", type: "text", content: MODEL.weightsNote + " Credit: " + MODEL.responses.map((r) => r.label.toLowerCase() + " " + r.credit).join(", ") + ". Unanswered requirements are left out of the score and listed to clarify. A must-have claim is settled only when it is seen working in the demo." },
     { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
     { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". Published at contactcentercx.com" + MODEL.methodology + "." },
-    { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: "Because " + NEXT_WHY[R.next] + "." }] : [] },
   ];
 
   const ReqRow = ({ r, edit }) => (
@@ -270,7 +269,7 @@ export default function RFPRequirementBuilder() {
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 6 }}>Running this RFP and want help with the demos, references and negotiation? Use the review request below; your requirements and scores travel with it.</p>
           </div>
 
-          <ReportActions
+          <ReportActions next={R.next ? { to: R.next, because: "Because " + NEXT_WHY[R.next] + "." } : null}
             toolId={TOOL_ID}
             toolName="RFP Requirements Document"
             subtitle={`${vertical || "Any vertical"}, ${size || "any size"}, ${all.length} requirements${scoring ? ", " + R.vendors.length + " vendors scored" : ""}`}

@@ -196,7 +196,7 @@ export default function PlatformDecisionMatrix() {
         {next && <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, marginBottom: 24 }}>Next diagnostic: <a href={next.href} style={{ color: ELECTRIC, fontWeight: 600 }}>{next.name}</a>, because {NEXT_WHY[R.next.because]}.</p>}
         <p style={{ fontSize: 13, color: SLATE, marginBottom: 20 }}>Every rule, outcome and threshold is in the <a href={MODEL.methodology} style={{ color: ELECTRIC, fontWeight: 600 }}>published method</a>. <button onClick={() => { setPhase("assess"); setCurrentLayer(0); }} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", padding: 0 }}>Change your answers</button>.</p>
 
-        <ReportActions toolId={TOOL_ID} toolName="Platform Decision" subtitle="Renewal Gate" routePath={ROUTE} state={state} defaults={DEFAULTS}
+        <ReportActions next={R.next ? { to: R.next.tool, because: "Because " + NEXT_WHY[R.next.because] + "." } : null} toolId={TOOL_ID} toolName="Platform Decision" subtitle="Renewal Gate" routePath={ROUTE} state={state} defaults={DEFAULTS}
           summary={[
             { label: "Renewal gate", value: gateOf(R.gate).label },
             { label: "Must-have gaps", value: String(R.items.filter((x) => x.status === "gap").length) },
@@ -211,7 +211,6 @@ export default function PlatformDecisionMatrix() {
             { title: "Renewal Clock", type: "table", rows: [["Months to notice", R.clock.months === null ? "Not entered" : String(R.clock.months)], ["Term offered", R.clock.years === null ? "Not entered" : R.clock.years + " years"], ["Exit and data terms known", R.clock.exitKnown === null ? "Not sure yet" : R.clock.exitKnown ? "Yes" : "No"]] },
             { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
             { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". A must-have rated " + MODEL.thresholds.gapAt.value + " or below is a gap whatever the other ratings are; a rating you do not know is a proof request, never a low score; only needs that matter count. Published at contactcentercx.com" + MODEL.methodology + "." },
-            { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: "Because " + NEXT_WHY[R.next.because] + "." }] : [] },
           ]} />
       </div></section>)}
     </div>

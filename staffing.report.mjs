@@ -134,6 +134,9 @@ const subtitleExpr = subtitleAt < 0 ? null : balanced(SRC, subtitleAt + 9, "{", 
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
+/* P2 task 8: the report adds one next step from the journey graph (withNextStep), as ReportActions does. */
+const nextExpr = prop("next") || "null";
+globalThis.__withNextStep = (await import("./src/lib/journey.js")).withNextStep;
 const toolNameM = SRC.match(/toolName="([^"]+)"/);
 
 console.log("\n0. payload slices out of the shipped JSX");
@@ -274,7 +277,7 @@ function render(S) {
     const subtitle = ${subtitleExpr};
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
-    const sections = ${sectionsExpr};
+    const sections = globalThis.__withNextStep("staffing-calculator", ${sectionsExpr}, ${nextExpr});
     return { st, stG, guards, STAFFING_DOMAIN, guardStaffing, gradeStaffing, graded, gradeObj, confidence, staffingCost, buildInsights, solveNotice, fmtSL, fmtASA, fmtPW, SL_CEILING, r, cost, pair, valid, occInfo, shrinkInfo, insights, spike, aband, abandMeaningful,
              subtitle, summary, signals, sections };
   `;
@@ -328,7 +331,7 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: the subtitle is a non-empty string`, typeof doc.subtitle === "string" && doc.subtitle.length > 10);
   A(`${k}: the document carries a Methodology section`, !!sectionByTitle(doc, "Methodology"));
   A(`${k}: the document carries a Key Findings section`, !!sectionByTitle(doc, "Key Findings"));
-  A(`${k}: the document carries a Next Steps section`, !!sectionByTitle(doc, "Next Steps"));
+  A(`${k}: the document carries a Next Steps section`, !!sectionByTitle(doc, "Next Step"));
 }
 
 /* ---- 2. no impossible figure reaches the page ---- */

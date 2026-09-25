@@ -327,7 +327,7 @@ export default function QAScorecardBuilder() {
             </p>
           </div>
 
-          <ReportActions
+          <ReportActions next={R.next && R.next.tool ? { to: R.next.tool, because: "Test whether the scores track the repeat contacts they should prevent." } : null}
             toolId={TOOL_ID}
             toolName="QA Scorecard"
             subtitle={TEMPLATES[template].name + " Contact Type"}
@@ -354,7 +354,6 @@ export default function QAScorecardBuilder() {
               { title: "Next Step", type: "text", content: NEXT_TEXT[R.next.step] },
               { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
               { title: "Method", type: "text", content: MODEL.method.name + " " + MODEL.method.version + ". " + MODEL.method.summary + " Published at contactcentercx.com" + MODEL.methodology + "." },
-              { title: "Next Steps", type: "next", items: nextTool ? [{ tool: nextTool.name, href: nextTool.href, reason: "Test whether the scores track the repeat contacts they should prevent." }] : [] },
             ]}
           />
         </div>

@@ -175,10 +175,6 @@ export default function RoadmapBuilder() {
                   sections={[
                     { title: "Roadmap Phases", type: "table", rows: PHASES.map(p => [p.name, p.milestones.filter(m => getStatus(m.id) === "complete").length + " of " + p.milestones.length + " complete"]) },
                     { title: "At Risk or Blocked", type: "findings", items: atRiskCount ? allMilestones.filter(m => getStatus(m.id) === "at-risk" || getStatus(m.id) === "blocked").map(m => getStatusObj(m.id).label + ": " + m.text + (notes[m.id] ? " (" + notes[m.id] + ")" : "")) : ["No milestone is marked at risk or blocked."] },
-                    { title: "Next Steps", type: "next", items: [
-                      { tool: "Governance Model", reason: "Define who owns each roadmap phase" },
-                      { tool: "Business Case Builder", reason: "Build the case for the roadmap initiatives" },
-                    ]},
                   ]} />
                 <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
                 <a href="/tools/governance-model" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Map Governance →</a>

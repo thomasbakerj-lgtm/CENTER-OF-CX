@@ -9,7 +9,6 @@ import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
-import { nextFor } from "./src/lib/journey";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { emitGrades, voidResult, railEvidence, weakerStream } from "./src/lib/confidence";
 
@@ -783,7 +782,6 @@ function Calculator() {
 
 
 
-  const goNext = (toTool, href) => { trackTool.nextStep("tco-calculator", toTool); window.location.href = href; };
 
   const escLabel = r.single ? pctD(r.wEff) + "/yr blended" : "wage " + pctD(r.wEff) + " / license " + pctD(r.lEff);
   const confColor = G.voided ? RED : G.confidence === "Finance-grade" ? GREEN : G.confidence === "Planning-grade" ? AMBER : MUTED;
@@ -1155,21 +1153,6 @@ function Calculator() {
                 )}
 
                 {/* Live journey CTAs */}
-                <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "22px 24px", marginBottom: 20 }}>
-                  <h3 style={{ ...TYPE.h2, fontSize: 17, color: NAVY, margin: "0 0 4px" }}>What to test next</h3>
-                  <p style={{ fontSize: 12, color: MUTED, margin: "0 0 14px" }}>Take the drivers above into the tool that pressure-tests them. Your inputs carry across.</p>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="input-row">
-                    {/* The journey graph is the single source for what comes next. A hardcoded
-                        list drifts from the graph and from the routes, and one of these links
-                        already pointed at a tool the graph did not carry. */}
-                    {nextFor(TOOL_ID).map((c, i) => (
-                      <button key={i} onClick={() => goNext(c.to, c.href)} style={{ textAlign: "left", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", cursor: "pointer" }}>
-                        <div style={{ fontSize: 13, fontWeight: 700, color: ELECTRIC, marginBottom: 3 }}>{c.name}</div>
-                        <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.4 }}>{c.why}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
 
                 <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "28px 24px", textAlign: "center" }}>
                     <div>
@@ -1321,7 +1304,6 @@ function Calculator() {
                           { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: (() => { const rank = [...opt.items].sort((a, b) => b.net - a.net).findIndex(x => x === o); return rank === 0 ? "high" : rank === 1 ? "medium" : undefined; })() })) },
                           ]),
                           { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on ${benchmark("tco.hours.month")} paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage ${pctD(benchmark("tco.escalator.wage"))} and license ${pctD(benchmark("tco.escalator.license"))}); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by the ${STANCE[stance].label.toLowerCase()} realization stance, so totals are defensible rather than inflated.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/tco-calculator. ${BENCHMARK_SOURCES}` },
-                          { title: "Next Steps", type: "next", items: nextFor(TOOL_ID).map((e) => ({ tool: e.name, reason: e.why, href: e.href })) },
                         ]}
                         />
                         </span>

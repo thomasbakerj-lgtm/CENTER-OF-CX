@@ -169,6 +169,9 @@ const subtitleExpr = balanced(SRC, subtitleAt + 9, "{", "}").text.slice(1, -1);
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
+/* P2 task 8: the report adds one next step from the journey graph (withNextStep), as ReportActions does. */
+const nextExpr = prop("next") || "null";
+globalThis.__withNextStep = (await import("./src/lib/journey.js")).withNextStep;
 const toolNameM = SRC.match(/toolName="([^"]+)"/);
 
 console.log("\n0. payload slices out of the shipped JSX");
@@ -273,7 +276,7 @@ function render(S) {
       subtitle: \`${subtitleExpr.replace(/^`|`$/g, "")}\`,
       summary: ${summaryExpr},
       signals: ${signalsExpr},
-      sections: ${sectionsExpr},
+      sections: globalThis.__withNextStep("cost-per-contact", ${sectionsExpr}, ${nextExpr}),
     };`
     .replace(/\bD_IN\b/g, JSON.stringify(S.d))
     .replace(/\bMECH_KEY\b/g, JSON.stringify(S.mech))
@@ -343,7 +346,7 @@ for (const [key, S] of Object.entries(SETS)) {
   A(`${key}: the dividend table carries one row per modelled FCR step`, rows(find(P.sections, "FCR Dividend")).length === r.dividend.length);
   A(`${key}: the analyst read reaches the document intact`, find(P.sections, "Analyst Read").items.length === P.analyst.length);
   A(`${key}: methodology is present and states the C identity`, /C = FCR \+ \(1 - FCR\) x M/.test(find(P.sections, "Methodology").content));
-  A(`${key}: next steps are offered`, find(P.sections, "Next Steps").items.length === 3);
+  A(`${key}: one next step is offered, from the journey graph`, find(P.sections, "Next Step").items.length === 1 && find(P.sections, "Next Step").items[0].href === "/tools/fcr-leakage");
 
   /* --- every printed dollar reconciles to the engine --- */
   const mets = find(P.sections, "Cost Metrics").items;

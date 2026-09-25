@@ -672,6 +672,7 @@ export default function AttritionCostCalculator() {
           </div>
 
           <ReportActions
+            next={r.unbackfilled > 0 && !r.downsizing ? { to: "occupancy-risk", because: "Seats you do not refill under forced under-staffing are lost capacity this tool does not price; Occupancy Risk shows what that load does to the agents who remain." } : null}
             toolId={TOOL_ID}
             toolName="Attrition Cost Analysis"
             subtitle={`Total Cost of Agent Turnover. ${r.voided ? "EXPORT VOID, integrity invariant failed" : `${r.confidence}, bound by ${r.boundBy}`}`}
@@ -769,11 +770,6 @@ export default function AttritionCostCalculator() {
                 `Capacity realization: "${r.mechName}" credits ${Math.round(r.mech * 100)}% of freed capacity, read from the shared platform capacity-action table so the same mechanism means the same thing in every tool. Credit class ${r.cred}${r.voided ? "" : `, which sets the realization axis at ${r.grades.realization}`}. Cash out the door is never scaled by this factor.`,
                 `Plausibility check: the ${r.band.low} to ${r.band.high}% of salary frontline band is a planning check set by this platform, not a published study. Replace it with your own replacement-cost history where you have one. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/attrition-cost.`,
                 `Confidence: three named axes. Evidence is input provenance. Realization is whether modelled benefit converts to cash, read from the shared credit class. Completeness is whether the model is whole and internally consistent. The headline is the weakest of the three and the rationale names the binding axis. A failed integrity invariant voids the export rather than grading it down, because an impossible figure is not an uncertain one.${r.guards.length ? ` INPUTS CORRECTED: ${corrections.join(" ")} Every figure above was computed on the corrected values.` : ""}`,
-              ]},
-              { title: "Next Steps", type: "next", items: [
-                { tool: "Occupancy Risk Simulator", href: "/tools/occupancy-risk", reason: "Check whether occupancy is driving burnout-led exits" },
-                { tool: "FCR Leakage Diagnostic", href: "/tools/fcr-leakage", reason: "Quantify the new-hire rework and repeat-contact cost" },
-                { tool: "Business Case Builder", href: "/tools/business-case", reason: "Carry the turnover cost into a case with payback and risk" },
               ]},
             ].filter((sec) => !r.voided || ["Export Void", "Inputs Corrected Before Calculation", "Methodology", "Next Steps"].includes(sec.title))}
           />

@@ -166,7 +166,7 @@ export default function TransformationReadiness() {
         </div>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <ReportActions toolId={TOOL_ID} toolName="Transformation Readiness Scorecard" subtitle={"Score: " + overallScore.toFixed(1) + "/5, " + tier.tier} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS}
+          <ReportActions next={R.nextDiagnostic ? { to: R.nextDiagnostic.tool, because: next ? next.because + " is your lowest-scoring dimension." : null } : null} toolId={TOOL_ID} toolName="Transformation Readiness Scorecard" subtitle={"Score: " + overallScore.toFixed(1) + "/5, " + tier.tier} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS}
             summary={[{ label: "Readiness score", value: overallScore.toFixed(1) + "/5" }, { label: "Readiness band", value: tier.tier }, { label: "Gaps flagged", value: String(gaps.length) }]}
             sections={[
               { title: "Dimension Scores", type: "table", rows: byWeakest.map(d => [d.name, dimScore(d.id).toFixed(1) + "/5" + (flagOf(d.id) ? " (" + flagOf(d.id) + ")" : "")]) },
@@ -177,7 +177,6 @@ export default function TransformationReadiness() {
               { title: "Recommendation", type: "text", content: tier.desc },
               { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ": answered " + c.score + " of 5 to \"" + c.text + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No statement was answered at " + RUBRIC.failAt + " or below, so the rubric raises no action.", detail: "Your lowest dimension is still the place to look first.", priority: "medium" }] },
               { title: "Gaps to Close", type: "findings", items: gaps.length ? gaps.map(d => d.name + " (" + dimScore(d.id).toFixed(1) + "/5, " + flagOf(d.id).toLowerCase() + ")" + (toolOf(d.next) ? ": next, " + toolOf(d.next).name : "")) : ["No dimension scores below the Ready band."] },
-              { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: next.because + " is your lowest-scoring dimension." }] : [] },
               { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
               { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each dimension scores the mean of its statements on a 1 to 5 scale; the overall score is the equally weighted mean of the six dimensions. A dimension below 2.5 is marked Close this gap and one from 2.5 to below 3.5 is marked Monitor. Every statement answered at " + RUBRIC.failAt + " or below adds its action to the checklist, weakest dimension first." },
             ]} />

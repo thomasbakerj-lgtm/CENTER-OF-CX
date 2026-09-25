@@ -865,10 +865,20 @@ P1. Reach foundations. **Done S23 on the branch (PR #37).**
   fields per type on every URL; share cards; wiring), `seo.test.mjs` L and N; the live checker adds nine page types
   (body in the served HTML, hydration with no error, share card served): 254 of 254 locally.
 
-P2. Measurement (before distribution scales).
-  7. Event taxonomy freeze (11-01 to 11-03), UTM convention, PostHog funnels by channel, and 11-04: does a first
-     diagnostic lead to a second.
-  8. 3-02 NextDiagnostic: one next step per result, one source of truth (settles the rubric and ReportActions mismatch).
+P2. Measurement (before distribution scales). **Done S23.** P0 and P1 plus task 7 shipped in PR #37 (merged bc80fde,
+  production checked: bodies, JSON-LD, share cards and noindex served).
+  7. Taxonomy 1.0 frozen (`TAXONOMY_VERSION`, `track.test.mjs` P): new `session_landing` event (page type, UTM tags as
+     short slugs, referrer host only). `docs/MEASUREMENT.md`: events, properties, UTM convention per channel, five
+     PostHog funnels for TB to create, including 11-04.
+  8. 3-02 NextDiagnostic: `journey.js` `nextDiagnostic(toolId, choice)` returns one step, the engine's choice among the
+     tool's edges or the first edge; `withNextStep` puts that one step in the PDF. ReportActions renders it on the page
+     and in the PDF; no tool authors a next-step list (25 removed; they had drifted from the graph: Cost per Contact's
+     PDF named Business Case where the page named AHT, Business Case's named tools outside its graph, Roadmap and Vendor
+     Match had no links). Engine tools pass their choice (rubric weakest dimension, governance, renewal gate, contract
+     reading, RFP state, QA, AI Deflection verdict, Attrition's unfilled seats to Occupancy Risk). Edges added for every
+     choice an engine can make. `journey.test.mjs` E (every choice is an edge, one step, fallback, PDF has one step, no
+     tool list), `floor.test.mjs` (every floor tool's sample carries one step on its edges), report harnesses read the
+     composed PDF. Suite 24,024.
 
 P3. Engine integrity (TB decided S23).
   9. BCB baseline evidence question (section 2 note), A/B only the evidence axis moves, harness pins, live PDFs.

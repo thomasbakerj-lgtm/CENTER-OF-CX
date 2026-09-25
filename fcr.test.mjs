@@ -625,7 +625,7 @@ console.log("\n14. 11B grading layer and registry");
 
   /* J7. Legacy next links. The graph is the only source of a next step. */
   A("J7: the untracked backward CTA is gone", !/Cost per Resolution →/.test(src) && !/<a href="\/tools\//.test(src));
-  A("J7: the PDF next steps read the journey graph", /type: "next", items: nextFor\(TOOL_ID\)\.map/.test(src));
+  A("J7: the tool lists no next steps of its own; ReportActions adds the one step from the graph", !/type: "next"/.test(src) && !/nextFor\(/.test(src));
   A("the fresh-session path is proportional, and DEFAULTS keeps the legacy value", /useState\("proportional"\)/.test(src) && /pathModel: "one",\n/.test(src));
   A("J7: the graph gives FCR two V3 next steps", JOURNEYMOD.nextFor(TOOL).map(e => e.to).join(",") === "ai-deflection,business-case-builder");
 

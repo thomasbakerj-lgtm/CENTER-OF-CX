@@ -203,10 +203,6 @@ export default function ShrinkagePlanner() {
               { title: "Shrinkage Breakdown", type: "table", rows: R.cats.map((c) => [c.name + " (" + c.type + ")", c.pct.toFixed(1) + "%"]).concat([["Total shrinkage", totalLabel]]) },
               { title: "Planning Assumptions", type: "findings", items: assumptions },
               { title: "Method", type: "text", content: "Total shrinkage is the sum of the categories, each a percent of paid hours. Agents on the queue are the roster times one minus shrinkage; agents to schedule are the need divided by one minus shrinkage, rounded up. Paid time off the queue is priced at the hourly rate, the full-time year and the benefits load. Published at contactcentercx.com" + METHOD + "." },
-              { title: "Next Steps", type: "next", items: [
-                { tool: "Staffing Calculator", href: "/tools/staffing-calculator", reason: "Size the agents needed on the queue for your service level" },
-                { tool: "Schedule Adherence Analyzer", href: "/tools/schedule-adherence", reason: "Break down the late and out-of-adherence share" },
-              ]},
             ]}
           />
         </div>

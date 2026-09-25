@@ -138,6 +138,9 @@ const subtitleExpr = subtitleAt < 0 ? null : balanced(SRC, subtitleAt + 9, "{", 
 const summaryExpr = prop("summary");
 const signalsExpr = prop("signals");
 const sectionsExpr = prop("sections");
+/* P2 task 8: the report adds one next step from the journey graph (withNextStep), as ReportActions does. */
+const nextExpr = prop("next") || "null";
+globalThis.__withNextStep = (await import("./src/lib/journey.js")).withNextStep;
 const toolNameM = SRC.match(/toolName="([^"]+)"/);
 
 console.log("\n0. payload slices out of the shipped JSX");
@@ -254,7 +257,7 @@ ${gradeLine}
     const subtitle = ${subtitleExpr};
     const summary = ${summaryExpr};
     const signals = ${signalsExpr};
-    const sections = ${sectionsExpr};
+    const sections = globalThis.__withNextStep("tco-calculator", ${sectionsExpr}, ${nextExpr});
     return { dRaw, d, r, opt, stance, analyst, escLabel, G, subtitle, summary, signals, sections, STANCE, INDUSTRY, TCO_DOMAIN, guardTCO, BASE };
   `;
   return new Function("BENCH", "COLORS", "NAVY", "DEEP", "ELECTRIC", "LIGHT", "WARM", "SLATE",
@@ -303,7 +306,7 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: the subtitle is a non-empty string`, typeof doc.subtitle === "string" && doc.subtitle.length > 10);
   A(`${k}: the analyst read is populated`, Array.isArray(doc.analyst) && doc.analyst.length >= 3);
   A(`${k}: the document carries a Methodology section`, !!sectionByTitle(doc, "Methodology"));
-  A(`${k}: the document carries a Next Steps section`, !!sectionByTitle(doc, "Next Steps"));
+  A(`${k}: the document carries a Next Steps section`, !!sectionByTitle(doc, "Next Step"));
 }
 
 /* ---- 2. no impossible figure reaches the page ---- */
@@ -652,7 +655,7 @@ console.log("\n8. the void document");
     A(`V: the ${t} section is withheld`, !sectionByTitle(V, t));
   A("V: the inputs are still shown so the cause can be found", !!sectionByTitle(V, "Organization Profile"));
   A("V: the methodology is still shown", !!sectionByTitle(V, "Methodology"));
-  A("V: the next steps are still shown", !!sectionByTitle(V, "Next Steps"));
+  A("V: the next steps are still shown", !!sectionByTitle(V, "Next Step"));
   A("V: the summary states the void and carries no figure", V.summary.some((x) => /^Void/.test(x.value)) && !V.summary.some((x) => /\$\d|NaN|Infinity/.test(String(x.value))));
   for (const p of ["severity", "booked_at_full_theoretical", "has_optimization_levers", "labor_dominant", "spend_band"])
     A(`V: the wire withholds ${p}, which reads a figure`, !(p in V.signals));

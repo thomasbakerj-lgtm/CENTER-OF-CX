@@ -492,11 +492,6 @@ export default function VendorMatchEngine() {
                 detail: `Strengths: ${v.strengths.join("; ")}. Risk: ${v.risks[0] || "N/A"}.${v.integrations && v.integrations.length > 0 ? ` Verified integrations: ${v.integrations.join(", ")}.` : ""}`,
                 priority: i === 0 ? "high" : undefined,
               })) },
-              { title: "Recommended Next Steps", type: "next", items: [
-                { tool: "Platform Decision", reason: "Assess your current platform across all 7 layers before committing" },
-                { tool: "Contract Risk Scanner", reason: "Analyze contract terms before signing with your top match" },
-                { tool: "Transformation Readiness", reason: "Confirm organizational readiness before starting implementation" },
-              ]},
               { title: "Important Note", type: "text", content: "This shortlist is generated from independently scored vendor data across 27 weighted dimensions. Vendor fit depends on details this tool cannot capture: integration complexity, contract terms, implementation timelines, and organizational readiness. Use this as a starting point for deeper evaluation, not as a final decision." },
             ]}
           />

@@ -100,7 +100,7 @@ export default function ContractRiskScanner() {
         {next && <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, margin: "20px 0" }}>Next diagnostic: <a href={next.href} style={{ color: ELECTRIC, fontWeight: 600 }}>{next.name}</a>, because {NEXT_WHY[R.next]}.</p>}
         <p style={{ fontSize: 13, color: SLATE, margin: "0 0 24px" }}>Want a second pair of eyes before you sign? Use the review request below: your answers travel with it.</p>
 
-        <ReportActions
+        <ReportActions next={R.next ? { to: R.next, because: "Because " + NEXT_WHY[R.next] + "." } : null}
           toolId={TOOL_ID}
           toolName="Contract Risk Scanner"
           subtitle={reading ? reading.label : "Not started"}
@@ -120,7 +120,6 @@ export default function ContractRiskScanner() {
             { title: "Negotiation Positions", type: "text", content: MODEL.positionsNote },
             { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
             { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". Each clause option carries a published severity; the reading is the most serious one present, and a clause you do not know is an item to find, never a pass. Published at contactcentercx.com" + MODEL.methodology + "." },
-            { title: "Next Steps", type: "next", items: next ? [{ tool: next.name, href: next.href, reason: "Because " + NEXT_WHY[R.next] + "." }] : [] },
           ]}
         />
       </div></section>
