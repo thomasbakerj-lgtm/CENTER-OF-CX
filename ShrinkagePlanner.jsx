@@ -5,6 +5,7 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine, money } from "./src/lib/guards";
 import { benchmark, BENCHMARK_SOURCES } from "./src/lib/benchmarks";
+import { publishToolResult } from "./src/lib/toolData";
 import { runShrinkage, SHRINK_PLANNED, SHRINK_UNPLANNED } from "./src/lib/shrinkage";
 
 /* Shrinkage Planner. The arithmetic lives in src/lib/shrinkage.js between engine markers;
@@ -73,6 +74,11 @@ export default function ShrinkagePlanner() {
   const R = runShrinkage(v, SHRINK_PARAMS);
   if (R.capped) guards.push({ label: "Total shrinkage (sum of categories)", entered: R.rawPct, used: R.totalPct, unit: "%" });
   const wageAtBenchmark = v.hourlyRate === benchmark("market.wage.agent");
+  /* Total shrinkage goes to the rail for the Staffing Calculator. It grades Directional while
+     every category is still the example or an input was corrected, and Planning-grade once
+     the categories are the reader's own: this tool has no document attestation path. */
+  const shrinkOrigin = guards.length || [...SHRINK_PLANNED, ...SHRINK_UNPLANNED].every(([k]) => v[k] === DEFAULTS[k]) ? "Directional" : "Planning-grade";
+  useEffect(() => { publishToolResult("shrinkage-planner", { shrinkage: R.totalPct / 100 }, { shrinkage: shrinkOrigin }); }, [R.totalPct, shrinkOrigin]);
   const totalLabel = R.totalPct.toFixed(1) + "%";
   const gapText = R.rosterGap > 0 ? `Your roster of ${v.agents} is ${R.rosterGap} short of that.` : R.rosterGap < 0 ? `Your roster of ${v.agents} is ${-R.rosterGap} above that.` : `Your roster of ${v.agents} is exactly that.`;
   const rangeText = `${Math.round(RANGE.low * 100)} to ${Math.round(RANGE.high * 100)}%`;

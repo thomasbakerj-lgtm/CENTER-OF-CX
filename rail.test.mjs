@@ -210,9 +210,12 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
 
   const b0 = run();
   eq("M1  baseline audit exits clean", b0.code, 0);
-  truthy("M2  TCO variable-map pulls enter the consumed contract", /attritionRate\s+pulled by 2/.test(b0.out) && /shrinkage\s+pulled by 1/.test(b0.out));
+  truthy("M2  TCO variable-map pulls enter the consumed contract (shrinkage: TCO and Staffing)", /attritionRate\s+pulled by 2/.test(b0.out) && /shrinkage\s+pulled by 2/.test(b0.out));
   truthy("M2b occupancy is published by Staffing and pulled by no tool", !/\n\s+occupancy\s+pulled by/.test(b0.out));
-  truthy("M3  a shorthand publish (Staffing aht) is read as a publisher", /aht\s+pulled by \d+\s+<-\s+published by StaffingCalculator\.jsx/.test(b0.out));
+  truthy("M3  a shorthand publish (Staffing aht) is read as a publisher", /aht\s+pulled by \d+\s+<-\s+published by [^\n]*StaffingCalculator\.jsx/.test(b0.out));
+  truthy("M3b a member access inside a publish (v.target) credits none of v's keys: Occupancy publishes no aht", /aht\s+pulled by \d+\s+<-\s+published by AHTDecomposition\.jsx, StaffingCalculator\.jsx, TCOCalculator\.jsx\n/.test(b0.out) && /occupancyCap\s+pulled by \d+\s+<-\s+published by OccupancyRiskSimulator\.jsx/.test(b0.out));
+  const memberBlind = AUDIT.replace("/(?<![.\\w$])([A-Za-z_$][A-Za-z0-9_$]*)\\b(?!\\s*[.[(])/g", "/\\b([A-Za-z_$][A-Za-z0-9_$]*)\\b/g");
+  truthy("M3c control: resolving member access again credits Occupancy with aht", memberBlind !== AUDIT && /published by AHTDecomposition\.jsx, OccupancyRiskSimulator\.jsx/.test(run({}, memberBlind).out));
 
   const m1 = run({ "TCOCalculator.jsx": sub('getExternalWithSource("attritionRate", TOOL_ID)', 'getExternalWithSource("attrition", TOOL_ID)') });
   truthy("M4  reverting TCO to the dead attrition key fails the audit", m1.code > 0);
@@ -230,10 +233,11 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   const m4 = run({ "TCOCalculator.jsx": sub("const next = {}; const got = {};", "const next = {}; const got = {}; const lone = zed; getExternalPrimitive(lone, \"tco-calculator\");") });
   truthy("M9  a bare variable pull with no map and no wrapper fails as unresolved", m4.code > 0 && /TCOCalculator\.jsx\s+getExternalPrimitive\(lone\)/.test(m4.out));
 
-  const m5 = run({ "StaffingCalculator.jsx": sub("volume: vol, intervalMin: intv, aht, shrinkage", "volume: vol, intervalMin: intv, shrinkage") });
-  truthy("M10 removing the only external aht publisher flags TCO as self-fed", m5.code > 0 && /aht\s+pulled by TCOCalculator\.jsx, which is its only publisher/.test(m5.out));
+  const dropAhtTool = sub('publishToolResult("aht-decomposition", { aht: R.total }, { aht: ahtOrigin })', 'publishToolResult("aht-decomposition", { ahtTotal: R.total }, { ahtTotal: ahtOrigin })');
+  const m5 = run({ "StaffingCalculator.jsx": sub("volume: vol, intervalMin: intv, aht, shrinkage", "volume: vol, intervalMin: intv, shrinkage"), "AHTDecomposition.jsx": dropAhtTool });
+  truthy("M10 removing the external aht publishers (Staffing, AHT Decomposition) flags TCO as self-fed", m5.code > 0 && /aht\s+pulled by TCOCalculator\.jsx, which is its only publisher/.test(m5.out));
   const noShort = AUDIT.replace("else if (d === 0 && c === \",\") { shorthand(seg, k); seg = k + 1; }", "else if (d === 0 && c === \",\") { seg = k + 1; }");
-  const m6 = run({}, noShort);
+  const m6 = run({ "AHTDecomposition.jsx": dropAhtTool }, noShort);
   truthy("M11 without shorthand reading, Staffing's aht vanishes and the self-fed rule catches it", m6.code > 0 && /aht\s+pulled by TCOCalculator\.jsx, which is its only publisher/.test(m6.out));
 }
 

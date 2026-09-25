@@ -49,10 +49,9 @@ section("2. Agents needed for the target equal the Staffing Calculator's solver"
 const SS = readFileSync("./StaffingCalculator.jsx", "utf8");
 const i0 = SS.indexOf("function erlangB("), i1 = SS.indexOf("function buildInsights(", i0);
 const ST = new Function("benchmark", `${SS.slice(i0, i1)}\nreturn { calc };`)(benchmark);
-/* Staffing starts its search at ceil(A) + 1, so for a load with a fraction it never tests
-   floor(A) + 1, which already exceeds the load. When that count meets the target this engine
-   answers it and Staffing answers one more. That is the only difference allowed; it is a
-   Staffing finding, recorded for the rail step, where Staffing's solver is revisited. */
+/* Staffing's search once started at ceil(A) + 1 and skipped floor(A) + 1 on a fractional
+   load, answering one agent more (4 of 3,000 queues). Fixed in the rail step; the count of
+   such cases must now be zero. */
 let agree = true, badS = null, skipped = 0;
 for (let i = 0; i < 3000; i++) {
   const v = randomInputs(); const A = v.callsPerHour * v.aht / 3600; if (A <= 0) continue;
@@ -61,7 +60,7 @@ for (let i = 0; i < 3000; i++) {
   if (explained) skipped++;
   if (!theirs.met || (mine !== theirs.raw && !explained)) { agree = false; badS = badS || { A, mine, theirs: theirs.raw }; }
 }
-ok(`3,000 queues: the fewest agents meeting the target equal Staffing's at the same inputs, except ${skipped} where Staffing's search starts above the first count that meets it${badS ? " " + JSON.stringify(badS) : ""}`, agree && skipped < 300);
+ok(`3,000 queues: the fewest agents meeting the target equal Staffing's at the same inputs, with no exception since Staffing's search starts at floor(A) + 1${badS ? " " + JSON.stringify(badS) : ""}`, agree && skipped === 0);
 ok("the solver is the fewest: one agent fewer misses the target", (() => { for (let i = 0; i < 2000; i++) { const v = randomInputs(); const A = v.callsPerHour * v.aht / 3600, t = v.slaTarget / 100; const n = E0.requiredOnQueue(A, t, v.slaTime, v.aht); if (n === null || E0.serviceLevel(n, A, v.slaTime, v.aht) < t || (n - 1 > A && E0.serviceLevel(n - 1, A, v.slaTime, v.aht) >= t)) return false; } return true; })());
 ok("a million calls an hour at ten minutes solves in under two seconds and stays finite", (() => { const t = Date.now(); const n = E0.requiredOnQueue(1000000 * 600 / 3600, 0.8, 20, 600); return Number.isFinite(n) && Date.now() - t < 2000; })());
 
