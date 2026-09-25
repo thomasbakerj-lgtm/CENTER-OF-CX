@@ -63,6 +63,11 @@ const subPages = files.filter((f) => /^[A-Za-z]+SubVerticalPage\.jsx$/.test(f));
 ok("ten sub-page files checked", subPages.length === 10, String(subPages.length));
 ok("the gate rule fires on the old page shape", /useState\("gate"\)/.test('const [phase, setPhase] = useState("gate");'));
 for (const f of subPages) {
+  const w = readFileSync(f, "utf8");
+  ok(`${f}: renders the shared sub-page and sends nothing itself`, /from "\.\/src\/lib\/SubVerticalPage\.jsx"/.test(w) && !/fetch\(/.test(w));
+}
+{
+  const f = "src/lib/SubVerticalPage.jsx";
   const s = readFileSync(f, "utf8");
   ok(`${f}: opens on the framework`, /useState\("framework"\)/.test(s) && !/useState\("gate"\)/.test(s) && !/handleGate/.test(s));
   const fetches = s.match(/fetch\(/g) || [];
