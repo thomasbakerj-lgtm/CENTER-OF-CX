@@ -181,7 +181,7 @@ function ContactPage() {
 
                   <div onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     {/* Hidden Formspree helper */}
-                    <input type="hidden" name="_subject" value="New Consultant Match Request — Center of CX" />
+                    <input type="hidden" name="_subject" value="New Consultant Match Request: Center of CX" />
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <div>

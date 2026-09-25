@@ -26,7 +26,7 @@ export default function GovernmentVertical() {
     { name: "Social Services & Benefits", slug: "social-services", desc: "SNAP, Medicaid, TANF, housing assistance, child protective services, and disability. Vulnerable populations navigating complex eligibility and enrollment.", contact: "High volume, highest vulnerability" },
   ];
   const stats = [
-    { n: "69.7", label: "ACSI federal government satisfaction score — highest in 7 years", source: "ACSI 2024" },
+    { n: "69.7", label: "ACSI federal government satisfaction score: highest in 7 years", source: "ACSI 2024" },
     { n: "11 pts", label: "Behind private sector on Forrester's CX Index", source: "Forrester / Deloitte" },
     { n: "9x", label: "More likely to trust government when digital services work well", source: "Liferay / research" },
     { n: "70%", label: "Of government CIOs increasing CX investment by 2026", source: "Gartner" },
@@ -34,9 +34,9 @@ export default function GovernmentVertical() {
     { n: "47%", label: "Of government employees struggle to find information they need", source: "Liferay" },
   ];
   const failureModes = [
-    { title: "Citizens compare government to Amazon, not to other agencies", desc: "Taxpayers don't benchmark government CX against the DMV down the street — they benchmark against their last Amazon delivery, their banking app, and their Uber experience. The gap between private-sector CX and government CX creates frustration that erodes institutional trust." },
-    { title: "Siloed agencies create siloed citizen experiences", desc: "A family applying for SNAP, Medicaid, and housing assistance interacts with three different agencies, three different systems, and three different eligibility processes — often providing the same documentation three times. The citizen sees one government; the government operates as fifty disconnected agencies." },
-    { title: "Accessibility is a legal obligation, not a feature", desc: "Section 508, ADA, Title VI language access, and WCAG 2.1 AA compliance aren't optional enhancements — they're legal requirements. Yet many government contact centers lack TTY/TDD support, multilingual agents, and accessible self-service portals. Every inaccessible touchpoint is a potential complaint and legal liability." },
+    { title: "Citizens compare government to Amazon, not to other agencies", desc: "Taxpayers don't benchmark government CX against the DMV down the street: they benchmark against their last Amazon delivery, their banking app, and their Uber experience. The gap between private-sector CX and government CX creates frustration that erodes institutional trust." },
+    { title: "Siloed agencies create siloed citizen experiences", desc: "A family applying for SNAP, Medicaid, and housing assistance interacts with three different agencies, three different systems, and three different eligibility processes, often providing the same documentation three times. The citizen sees one government; the government operates as fifty disconnected agencies." },
+    { title: "Accessibility is a legal obligation, not a feature", desc: "Section 508, ADA, Title VI language access, and WCAG 2.1 AA compliance aren't optional enhancements: they're legal requirements. Yet many government contact centers lack TTY/TDD support, multilingual agents, and accessible self-service portals. Every inaccessible touchpoint is a potential complaint and legal liability." },
     { title: "Legacy systems prevent digital transformation", desc: "Federal and state agencies run on COBOL-era mainframes, custom-built case management systems from the 1990s, and paper-based workflows that resist modernization. The contact center is often the human bridge between citizens and systems that can't serve them digitally." },
     { title: "Surge events overwhelm capacity without warning", desc: "A policy change, a benefit deadline, a natural disaster, or a pandemic creates call volumes that dwarf normal operations. Unemployment offices during COVID saw 1,000x normal volume. Government contact centers lack the commercial flexibility to scale rapidly because procurement takes months." },
   ];
@@ -50,12 +50,12 @@ export default function GovernmentVertical() {
     { layer: 1, name: "Data Access", vendors: "Salesforce Gov Cloud, Oracle, SAP, legacy mainframes", note: "Case management systems, eligibility databases, financial systems, identity verification (Login.gov), and inter-agency data sharing." },
   ];
   const benchmarks = [
-    { metric: "CSAT", avg: "69.7", cross: "78%", top: "78+", note: "Lowest of any sector — structural complexity and monopoly create persistent gaps" },
-    { metric: "FCR", avg: "55%", cross: "72%", top: "70%+", note: "Far below average — multi-agency issues and system limitations prevent resolution" },
-    { metric: "AHT", avg: "9:00", cross: "7:00", top: "6:30", note: "Above average — complex eligibility, multilingual interpretation, and system navigation" },
-    { metric: "Accessibility", avg: "Partial", cross: "N/A", top: "Full 508", note: "Most agencies have partial compliance — TTY available but digital channels lag" },
-    { metric: "Attrition", avg: "25%", cross: "35%", top: "15%", note: "Below average — government benefits and stability retain staff" },
-    { metric: "Digital Adoption", avg: "25%", cross: "30%", top: "50%+", note: "Below average — legacy systems and accessibility requirements slow digital deployment" },
+    { metric: "CSAT", avg: "69.7", cross: "78%", top: "78+", note: "Lowest of any sector: structural complexity and monopoly create persistent gaps" },
+    { metric: "FCR", avg: "55%", cross: "72%", top: "70%+", note: "Far below average: multi-agency issues and system limitations prevent resolution" },
+    { metric: "AHT", avg: "9:00", cross: "7:00", top: "6:30", note: "Above average: complex eligibility, multilingual interpretation, and system navigation" },
+    { metric: "Accessibility", avg: "Partial", cross: "N/A", top: "Full 508", note: "Most agencies have partial compliance: TTY available but digital channels lag" },
+    { metric: "Attrition", avg: "25%", cross: "35%", top: "15%", note: "Below average: government benefits and stability retain staff" },
+    { metric: "Digital Adoption", avg: "25%", cross: "30%", top: "50%+", note: "Below average: legacy systems and accessibility requirements slow digital deployment" },
   ];
   return (
     <div><Nav />
@@ -65,7 +65,7 @@ export default function GovernmentVertical() {
           <FadeIn><div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}><a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><a href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Industries</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Government & Public Sector</span></div></FadeIn>
           <FadeIn delay={0.05}>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>Government{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span></h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Citizen services, accessibility, multilingual support, case management, and trust define government CX. With an ACSI score nearly 11 points behind the private sector — and citizens who compare government services to Amazon — the public sector faces a CX gap that directly affects institutional trust. This is the vertical-specific intelligence layer for federal, state, local, courts, public safety, and social services.</p>
+            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Citizen services, accessibility, multilingual support, case management, and trust define government CX. With an ACSI score nearly 11 points behind the private sector, and citizens who compare government services to Amazon, the public sector faces a CX gap that directly affects institutional trust. This is the vertical-specific intelligence layer for federal, state, local, courts, public safety, and social services.</p>
           </FadeIn>
         </div>
       </section>

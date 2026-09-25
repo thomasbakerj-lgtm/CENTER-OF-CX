@@ -102,7 +102,7 @@ function Hero() {
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Generic advice fails.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560 }}>
-              Ten verticals. 61 sub-verticals. 2,135 capability checkpoints. Each vertical has dedicated CX intelligence — benchmarks, failure modes, 7-layer technology stack mapping, vendor recommendations, and integration pitfalls built from real operational data.
+              Ten verticals. 61 sub-verticals. 2,135 capability checkpoints. Each vertical has dedicated CX intelligence: benchmarks, failure modes, 7-layer technology stack mapping, vendor recommendations, and integration pitfalls built from real operational data.
             </p>
           </div>
         </FadeIn>
@@ -121,7 +121,7 @@ function StackModel() {
               <Label>The two-layer model</Label>
               <Title>Every vertical needs a CCaaS platform and a vertical CX overlay.</Title>
               <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, marginTop: 8 }}>
-                Layer 1 is the CCaaS platform that handles routing, voice, digital channels, and workforce management. Layer 2 is the vertical-specific CX stack — the overlays and adjacent solutions purpose-built for your industry's unique compliance, workflow, and customer interaction patterns.
+                Layer 1 is the CCaaS platform that handles routing, voice, digital channels, and workforce management. Layer 2 is the vertical-specific CX stack: the overlays and adjacent solutions purpose-built for your industry's unique compliance, workflow, and customer interaction patterns.
               </p>
               <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, marginTop: 12 }}>
                 Most organizations pick Layer 1 first and hope Layer 2 works itself out. The strongest operators evaluate both layers together because the integration points between them determine whether the system actually delivers.
@@ -129,11 +129,11 @@ function StackModel() {
             </div>
             <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, overflow: "hidden" }}>
               <div style={{ background: `${ELECTRIC}08`, padding: "20px 24px", borderBottom: `1px solid ${BORDER}` }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Layer 2 — Vertical CX Stack</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Layer 2: Vertical CX Stack</div>
                 <p style={{ fontSize: 13, color: SLATE, margin: 0 }}>Industry-specific overlays: digital service, AI, WEM, analytics, and bot platforms purpose-built for your vertical</p>
               </div>
               <div style={{ padding: "20px 24px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4, opacity: 0.5 }}>Layer 1 — CCaaS Platform</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4, opacity: 0.5 }}>Layer 1: CCaaS Platform</div>
                 <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>Full-suite contact center platform: routing, voice, digital channels, workforce management, core analytics</p>
               </div>
             </div>
@@ -153,7 +153,7 @@ function IndustryGrid() {
     { name: "Travel & Hospitality", href: "/industries/travel", subs: 6, checks: 210, sub: "Airlines · Hotels & Resorts · OTAs · Car Rental · Cruise Lines · Tours & Experiences", stat: "12% abandonment", why: "Disruption volume spikes of 10-50x, multilingual support across timezones, GDS integration, and loyalty recognition failures." },
     { name: "Insurance", href: "/industries/insurance", subs: 6, checks: 210, sub: "Personal Lines P&C · Commercial · Life & Annuities · Workers' Comp · Specialty · Insurtech", stat: "$146B CAT losses", why: "FNOL is the moment of truth. CAT surge capacity, state DOI compliance across 50 jurisdictions, and claims adjudication stakes." },
     { name: "Utilities & Energy", href: "/industries/utilities", subs: 6, checks: 210, sub: "Electric IOU · Natural Gas · Water · Municipal/Co-Op · Renewable/DER · Energy Retail", stat: "10-50x storm surges", why: "Most extreme volume variability of any industry. Outage communication, PUC compliance, payment difficulty as public health issue." },
-    { name: "Government & Public Sector", href: "/industries/government", subs: 6, checks: 210, sub: "Federal · State · Local/Municipal · Courts & Justice · Public Safety/911 · Social Services", stat: "11 pts behind private sector", why: "FedRAMP, Section 508, Title VI language access, FERPA, CJIS — legal mandates before functionality is even evaluated." },
+    { name: "Government & Public Sector", href: "/industries/government", subs: 6, checks: 210, sub: "Federal · State · Local/Municipal · Courts & Justice · Public Safety/911 · Social Services", stat: "11 pts behind private sector", why: "FedRAMP, Section 508, Title VI language access, FERPA, CJIS: legal mandates before functionality is even evaluated." },
     { name: "Manufacturing & Automotive", href: "/industries/manufacturing", subs: 6, checks: 210, sub: "Automotive OEM · Dealer/Retail · Industrial B2B · Consumer Electronics · Aerospace · Food & Beverage", stat: "30M+ vehicles recalled/yr", why: "Warranty adjudication, recall surge routing, connected vehicle telemetry, parts logistics, and NHTSA/ITAR compliance." },
     { name: "Education", href: "/industries/education", subs: 6, checks: 210, sub: "Undergrad Admissions · Graduate Programs · Financial Aid · Student Services · IT Help Desk · Online Education", stat: "72% cite service for not re-enrolling", why: "FERPA governs every interaction. FAFSA season creates 3-5x surges. Siloed departments create a runaround. Retention signals hidden in service data." },
   ];
@@ -165,7 +165,7 @@ function IndustryGrid() {
           <div style={{ maxWidth: 600, marginBottom: 48 }}>
             <Label>Ten verticals</Label>
             <Title>Each one mapped with sub-vertical frameworks, vendor stacks, and integration pitfalls.</Title>
-            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>Every vertical page includes sourced statistics, failure modes, 7-layer technology stack mapping, benchmark tables, BPO analysis, vendor recommendations, and 6-7 clickable sub-verticals — each with its own interactive CX stack assessment.</p>
+            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>Every vertical page includes sourced statistics, failure modes, 7-layer technology stack mapping, benchmark tables, BPO analysis, vendor recommendations, and 6-7 clickable sub-verticals: each with its own interactive CX stack assessment.</p>
           </div>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -211,10 +211,10 @@ function WhyVerticalMatters() {
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
           {[
-            { t: "Regulatory burden", d: "HIPAA, PCI, GDPR, state insurance regulations — compliance requirements reshape every technology and process decision." },
+            { t: "Regulatory burden", d: "HIPAA, PCI, GDPR, state insurance regulations: compliance requirements reshape every technology and process decision." },
             { t: "Customer emotion", d: "A patient calling about a diagnosis and a shopper tracking a package require fundamentally different service design." },
             { t: "Channel mix", d: "Banking skews voice and secure messaging. Retail skews chat and social. Utilities skew IVR and outbound. The right channel strategy varies by vertical." },
-            { t: "Data sensitivity", d: "Financial data, health records, payment information — the sensitivity level determines governance, authentication, and AI guardrail requirements." },
+            { t: "Data sensitivity", d: "Financial data, health records, payment information: the sensitivity level determines governance, authentication, and AI guardrail requirements." },
             { t: "Service urgency", d: "A power outage, a flight cancellation, and a subscription renewal have completely different time pressures and escalation needs." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.06}>
@@ -260,7 +260,7 @@ function CTA() {
           <div style={{ marginBottom: 20 }}>
             <Label>Vendors scored by vertical</Label>
             <Title>Find vendors matched to your industry.</Title>
-            <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, maxWidth: 560 }}>Every vendor category is scored for each vertical. Compliance requirements, integration dependencies, and vertical fit — all in one page.</p>
+            <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, maxWidth: 560 }}>Every vendor category is scored for each vertical. Compliance requirements, integration dependencies, and vertical fit, all in one page.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 6 }}>
             {verts.map(v => (

@@ -146,7 +146,7 @@ export default function HealthcareVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms strongest for healthcare.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
-            { name: "NICE CXone", score: 90, why: "Industry-leading compliance controls, WEM for healthcare staffing, and analytics depth for CAHPS alignment. Strong in payer and provider environments.", href: "/vendors/nice-cxone" },
+            { name: "NICE CXone", score: 90, why: "Compliance controls, WEM for healthcare staffing, and analytics depth for CAHPS alignment. Strong in payer and provider environments.", href: "/vendors/nice-cxone" },
             { name: "Genesys", score: 94, why: "Deepest routing for clinical vs administrative triage. Strong EHR integration ecosystem. Proven in large health systems.", href: "/vendors/genesys" },
             { name: "Talkdesk", score: 78, why: "Purpose-built Healthcare Experience Cloud with Epic integration, HIPAA compliance, and pre-built patient access workflows.", href: "/vendors/talkdesk" },
             { name: "Cisco", score: 78, why: "Enterprise security posture critical for healthcare networks. Strong in health systems with existing Cisco infrastructure.", href: "/vendors/cisco" },

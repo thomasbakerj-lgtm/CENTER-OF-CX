@@ -124,10 +124,10 @@ function HowWeWork() {
               <Title>We connect you with the right consultant for your challenge.</Title>
               <div style={{ fontSize: 15.5, color: SLATE, lineHeight: 1.8, marginTop: 12, fontFamily: "'DM Sans', sans-serif" }}>
                 <p style={{ marginBottom: 20 }}>
-                  We help CX and contact center leaders make better technology and strategy decisions. Our work focuses on the questions that matter before implementation begins — which platform fits your operating model, whether your organization is ready for AI at scale, which vendors deserve a deeper look, and which ones you should walk away from.
+                  We help CX and contact center leaders make better technology and strategy decisions. Our work focuses on the questions that matter before implementation begins, which platform fits your operating model, whether your organization is ready for AI at scale, which vendors deserve a deeper look, and which ones you should walk away from.
                 </p>
                 <p>
-                  We are the intelligence platform — not the consulting firm. When you need expert guidance on platform selection, AI strategy, or operational transformation, we match you with vetted consultants who specialize in your vertical and stack.
+                  We are the intelligence platform, not the consulting firm. When you need expert guidance on platform selection, AI strategy, or operational transformation, we match you with vetted consultants who specialize in your vertical and stack.
                 </p>
               </div>
             </div>
@@ -138,7 +138,7 @@ function HowWeWork() {
               {[
                 { step: "01", text: "You request a working session. We ask a few questions to understand your situation before we meet." },
                 { step: "02", text: "We hold a 60-minute strategy session. No pitch deck. No sales team. Just a direct conversation about your CX challenges." },
-                { step: "03", text: "We deliver a clear recommendation — what to do, what to evaluate, what to avoid, and why." },
+                { step: "03", text: "We deliver a clear recommendation: what to do, what to evaluate, what to avoid, and why." },
                 { step: "04", text: "If you need implementation support, we introduce you to vetted partners who fit your vertical and stack." },
               ].map((s, i) => (
                 <div key={i} style={{ display: "flex", gap: 14, padding: "14px 0", borderBottom: i < 3 ? `1px solid ${BORDER}` : "none" }}>
@@ -158,25 +158,25 @@ function Offerings() {
   const services = [
     {
       title: "Platform selection",
-      desc: "CCaaS evaluation, vendor shortlisting, and architecture-level comparison tailored to your operating model, vertical requirements, and integration landscape. We go deeper than feature matrices — we assess orchestration readiness, AI maturity, and long-term vendor trajectory.",
+      desc: "CCaaS evaluation, vendor shortlisting, and architecture-level comparison tailored to your operating model, vertical requirements, and integration landscape. We go deeper than feature matrices: we assess orchestration readiness, AI maturity, and long-term vendor trajectory.",
       who: "CX leaders, CIOs, and transformation leads evaluating CCaaS platforms",
       output: "Vendor shortlist with scored evaluation, architecture fit analysis, and negotiation guidance",
     },
     {
       title: "AI readiness assessment",
-      desc: "A structured evaluation of whether your data, workflows, governance, and team structure are ready for AI-driven service delivery. Covers conversational AI, agent assist, autonomous agents, and QA automation — with an honest assessment of what's realistic on your timeline.",
+      desc: "A structured evaluation of whether your data, workflows, governance, and team structure are ready for AI-driven service delivery. Covers conversational AI, agent assist, autonomous agents, and QA automation, with an honest assessment of what's realistic on your timeline.",
       who: "CX and IT leaders planning AI pilots or scaling existing AI programs",
       output: "Readiness scorecard, gap analysis, phased rollout recommendation, and risk map",
     },
     {
       title: "Vendor shortlisting",
-      desc: "You tell us what you need. We draw on our 350+ vendor assessment library to produce a shortlist of 3-5 vendors that fit your situation — with honest assessments of where each one excels and where each one will create friction.",
+      desc: "You tell us what you need. We draw on our 350+ vendor assessment library to produce a shortlist of 3-5 vendors that fit your situation, with honest assessments of where each one excels and where each one will create friction.",
       who: "Procurement leads, CX directors, and operations executives running vendor evaluations",
       output: "Curated vendor shortlist with strengths, weaknesses, competitive context, and red flags",
     },
     {
       title: "Operating model design",
-      desc: "How your CX organization should be structured to support modern service delivery — including the relationship between centralized strategy, contact center operations, digital channels, AI governance, and workforce management.",
+      desc: "How your CX organization should be structured to support modern service delivery, including the relationship between centralized strategy, contact center operations, digital channels, AI governance, and workforce management.",
       who: "SVPs of CX, COOs, and transformation leaders redesigning service operations",
       output: "Operating model blueprint, RACI framework, governance structure, and change roadmap",
     },
@@ -294,7 +294,7 @@ function Boundaries() {
 function WhoItsFor() {
   const scenarios = [
     { trigger: "You're evaluating CCaaS platforms", detail: "and the vendor demos are starting to blur together. You need someone who's seen 50+ implementations to tell you which three actually fit your operating model." },
-    { trigger: "Your AI pilot isn't scaling", detail: "and leadership wants to know why. You need a structured assessment of what's blocking scale — data quality, workflow gaps, governance holes, or the wrong vendor." },
+    { trigger: "Your AI pilot isn't scaling", detail: "and leadership wants to know why. You need a structured assessment of what's blocking scale: data quality, workflow gaps, governance holes, or the wrong vendor." },
     { trigger: "You inherited a fragmented stack", detail: "from a previous team and need to decide what stays, what goes, and how to sequence the transition without disrupting service levels." },
     { trigger: "Your board is asking about AI in CX", detail: "and you need an executive briefing that's grounded in operational reality, with clear recommendations they can act on." },
     { trigger: "CX and IT can't align", detail: "on technology priorities. You need a facilitated workshop that gets both teams to a shared roadmap with clear ownership and sequencing." },

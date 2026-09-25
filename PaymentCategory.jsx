@@ -46,7 +46,7 @@ export default function PaymentCategory() {
               Payment Technology{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>
-              {all.length} payment providers scored across 8 capability dimensions and evaluated through 5 C-suite lenses — CFO, CTO, CIO, COO, and CX. Covering unified commerce, digital-first processors, enterprise in-store, orchestration layers, regional wallets, and specialty providers.
+              {all.length} payment providers scored across 8 capability dimensions and evaluated through 5 C-suite lenses: CFO, CTO, CIO, COO, and CX. Covering unified commerce, digital-first processors, enterprise in-store, orchestration layers, regional wallets, and specialty providers.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -132,7 +132,7 @@ export default function PaymentCategory() {
                         <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{v.name}</span>
                         <span style={{ fontSize: 9, color: catColor, background: `${catColor}10`, padding: "1px 5px", borderRadius: 3, fontWeight: 600 }}>{v.cat}</span>
                       </div>
-                      <p style={{ fontSize: 11, color: MUTED, margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.role} — {v.diff}</p>
+                      <p style={{ fontSize: 11, color: MUTED, margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.role}: {v.diff}</p>
                     </div>
 
                     {/* 8 capability scores */}
@@ -179,7 +179,7 @@ export default function PaymentCategory() {
             <div style={{ textAlign: "center", marginBottom: 40 }}>
               <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
               <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>8 capability dimensions. 5 C-suite lenses. Scale: H/M/L.</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is scored High (3), Medium (2), or Low (1) on 8 capability dimensions for a composite out of 24. Separately, each vendor is evaluated through 5 C-suite perspectives — the same provider can be high-fit for a CFO and low-fit for a CX leader depending on what the role prioritizes.</p>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is scored High (3), Medium (2), or Low (1) on 8 capability dimensions for a composite out of 24. Separately, each vendor is evaluated through 5 C-suite perspectives: the same provider can be high-fit for a CFO and low-fit for a CX leader depending on what the role prioritizes.</p>
             </div>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }} className="method-grid">

@@ -265,9 +265,8 @@ Instrumentation precedes proof: no tool is locked without its completion event.
 A DECIDE item that shapes a build is scheduled before it.
 
 **Language.** Retired: most conservative, only independent, survives the CFO,
-industry-leading. **No em-dashes or en-dashes** anywhere: prose, copy, comments,
-commit messages. Check with Python `s.count(chr(0x2014))` and `chr(0x2013)`.
-Roughly 361 remain across 61 files (13-03). No antithetical "X not Y" cadence in
+industry-leading, best-in-class, world-class, seamless. **No em-dashes or en-dashes** anywhere: prose, copy,
+comments, commit messages. `copy.test.mjs` enforces both on every tracked text file (13-03 closed S23). No antithetical "X not Y" cadence in
 public copy.
 
 ---
@@ -743,7 +742,9 @@ dashboard, the 12-phase growth program.
    private version strings retired to the shared table. `/changelog` (sitemap 448) from `src/lib/changelog.js`: method
    changes only (TB), starting with the Phase D rebuild; each method page lists its own changes. Chunk gate re-based
    with attribution (routes and SEO for 13 pages). Suite 20,968; local live check 227 of 227.
-33. **Next:** the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
+33. Done S23: full site scan part 1. All 1,437 dashes removed (13-03 closed) and 41 superlatives retired from public
+   copy; `copy.test.mjs` gates both on every tracked text file.
+34. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
    status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
    lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
    (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match

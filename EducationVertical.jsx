@@ -18,9 +18,9 @@ return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:
 export default function EducationVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   const subVerticals = [
-    { name: "Undergraduate Admissions & Enrollment", slug: "undergrad-admissions", desc: "Inquiry management, application support, yield campaigns, and enrollment onboarding. Every interaction is a recruitment moment — the contact center is the first human impression.", contact: "High seasonal volume, deadline-driven" },
+    { name: "Undergraduate Admissions & Enrollment", slug: "undergrad-admissions", desc: "Inquiry management, application support, yield campaigns, and enrollment onboarding. Every interaction is a recruitment moment: the contact center is the first human impression.", contact: "High seasonal volume, deadline-driven" },
     { name: "Graduate & Professional Programs", slug: "graduate-programs", desc: "Program inquiries, application guidance, cohort management, and career-focused advising. Higher-touch, higher-stakes recruitment with longer decision cycles.", contact: "Moderate volume, relationship-intensive" },
-    { name: "Financial Aid & Student Accounts", slug: "financial-aid", desc: "FAFSA support, aid packaging, billing inquiries, payment plans, and 1098-T. The most emotionally charged interactions in education — money determines access.", contact: "Very high volume, FAFSA-cycle surges" },
+    { name: "Financial Aid & Student Accounts", slug: "financial-aid", desc: "FAFSA support, aid packaging, billing inquiries, payment plans, and 1098-T. The most emotionally charged interactions in education: money determines access.", contact: "Very high volume, FAFSA-cycle surges" },
     { name: "Student Services & Campus Life", slug: "student-services", desc: "Housing, dining, health services, accessibility, counseling referrals, and Title IX. Support across the full student lifecycle from move-in to graduation.", contact: "Steady volume, broad service scope" },
     { name: "IT Help Desk & Learning Technology", slug: "it-helpdesk", desc: "LMS support, WiFi, account access, device troubleshooting, and classroom technology. Critical during first week of classes and exam periods.", contact: "Surge at semester start and exam periods" },
     { name: "Online & Continuing Education", slug: "online-education", desc: "Enrollment, technical support, proctor scheduling, credential verification, and corporate partnership management. The fastest-growing segment with retention challenges.", contact: "Growing volume, churn-sensitive" },
@@ -36,9 +36,9 @@ export default function EducationVertical() {
   const failureModes = [
     { title: "Financial aid complexity is the #1 barrier to enrollment completion", desc: "A prospective student who can't understand their aid package, can't reach someone to explain it, or gets conflicting information from financial aid and billing will choose a different institution. FAFSA changes in 2024-2025 created additional confusion that many financial aid offices are still resolving." },
     { title: "Siloed departments create a runaround that students can't navigate", desc: "A student with a registration hold needs to call financial aid (to clear a balance), student accounts (to set up a payment plan), the registrar (to lift the hold), and advising (to register for classes). Four departments, four phone numbers, four wait times. The student sees one university; the university operates as disconnected offices." },
-    { title: "Seasonal surges overwhelm capacity at the moments that matter most", desc: "Admissions yield season, FAFSA processing, fall registration, housing selection, and first-week-of-classes IT support all create 3-10x volume surges. These are the moments when the student's impression is formed — and they're the moments when wait times are longest." },
+    { title: "Seasonal surges overwhelm capacity at the moments that matter most", desc: "Admissions yield season, FAFSA processing, fall registration, housing selection, and first-week-of-classes IT support all create 3-10x volume surges. These are the moments when the student's impression is formed, and they're the moments when wait times are longest." },
     { title: "Students expect Amazon-level responsiveness from institutions running 1990s systems", desc: "Students who get instant confirmation from Amazon, real-time tracking from Uber, and 24/7 chat from their bank expect the same from their university. Instead they get office hours of 8-5 M-F, a phone tree that hasn't been updated since 2015, and an email response SLA of '3-5 business days.'" },
-    { title: "Retention signals are visible in service data but nobody connects them", desc: "A student who calls IT support 3 times about LMS issues, visits financial aid twice about a balance, and stops attending office hours is showing disengagement signals — but no one aggregates these touchpoints. By the time the retention team notices the student is gone, it's too late." },
+    { title: "Retention signals are visible in service data but nobody connects them", desc: "A student who calls IT support 3 times about LMS issues, visits financial aid twice about a balance, and stops attending office hours is showing disengagement signals, but no one aggregates these touchpoints. By the time the retention team notices the student is gone, it's too late." },
   ];
   const stackLayers = [
     { layer: 7, name: "Analytics & Governance", vendors: "NICE, Qualtrics, EAB, Salesforce", note: "Enrollment yield analytics, retention risk correlation with service interactions, CSAT by service area, and seasonal volume forecasting." },
@@ -50,12 +50,12 @@ export default function EducationVertical() {
     { layer: 1, name: "Data Access", vendors: "Ellucian Banner/Colleague, Workday, PeopleSoft, Slate, Salesforce", note: "SIS (Student Information System), admissions CRM, financial aid system, LMS (Canvas/Blackboard), and housing management." },
   ];
   const benchmarks = [
-    { metric: "CSAT", avg: "72%", cross: "78%", top: "85%+", note: "Below average — siloed departments and seasonal understaffing suppress scores" },
-    { metric: "FCR", avg: "55%", cross: "72%", top: "75%+", note: "Far below — cross-department issues and system limitations prevent resolution" },
-    { metric: "AHT", avg: "7:00", cross: "7:00", top: "5:00", note: "Average — but financial aid and billing calls run 12-15 minutes" },
-    { metric: "Abandonment", avg: "15%", cross: "6%", top: "4%", note: "Among the highest — FAFSA season and registration create mass abandonment" },
-    { metric: "Attrition", avg: "35%", cross: "35%", top: "20%", note: "Average — seasonal staff and student workers contribute to turnover" },
-    { metric: "Digital Adoption", avg: "35%", cross: "30%", top: "55%+", note: "Slightly above — students are digitally native but institutions lag" },
+    { metric: "CSAT", avg: "72%", cross: "78%", top: "85%+", note: "Below average: siloed departments and seasonal understaffing suppress scores" },
+    { metric: "FCR", avg: "55%", cross: "72%", top: "75%+", note: "Far below: cross-department issues and system limitations prevent resolution" },
+    { metric: "AHT", avg: "7:00", cross: "7:00", top: "5:00", note: "Average: but financial aid and billing calls run 12-15 minutes" },
+    { metric: "Abandonment", avg: "15%", cross: "6%", top: "4%", note: "Among the highest: FAFSA season and registration create mass abandonment" },
+    { metric: "Attrition", avg: "35%", cross: "35%", top: "20%", note: "Average: seasonal staff and student workers contribute to turnover" },
+    { metric: "Digital Adoption", avg: "35%", cross: "30%", top: "55%+", note: "Slightly above: students are digitally native but institutions lag" },
   ];
   return (
     <div><Nav />
@@ -92,7 +92,7 @@ export default function EducationVertical() {
       <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}><div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn><span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Technology Stack</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Seven orchestration layers, mapped for education.</h2>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 3 (Policy & Guardrails) carries disproportionate weight because FERPA governs every student interaction — who can access what information, what can be disclosed, and to whom. A FERPA violation isn't just a compliance issue; it's a trust breach with an entire student body.</p></FadeIn>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 3 (Policy & Guardrails) carries disproportionate weight because FERPA governs every student interaction, who can access what information, what can be disclosed, and to whom. A FERPA violation isn't just a compliance issue; it's a trust breach with an entire student body.</p></FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {stackLayers.map((sl, i) => (<FadeIn key={i} delay={i * 0.03}><div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "20px 22px", display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}><div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: LIGHT }}>{sl.layer}</span></div><div style={{ flex: 1, minWidth: 250 }}><h3 style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>{sl.name}</h3><p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 8px" }}>{sl.note}</p><div style={{ fontSize: 11, color: LIGHT }}>Key vendors: {sl.vendors}</div></div></div></FadeIn>))}
         </div>
@@ -111,7 +111,7 @@ export default function EducationVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms strongest for education.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
-            { name: "Genesys", score: 94, why: "Multi-department routing for complex university operations. Handles the breadth — admissions, financial aid, registrar, IT, housing — on one platform with separate SLAs.", href: "/vendors/genesys" },
+            { name: "Genesys", score: 94, why: "Multi-department routing for complex university operations. Handles the breadth, admissions, financial aid, registrar, IT, housing, on one platform with separate SLAs.", href: "/vendors/genesys" },
             { name: "NICE CXone", score: 90, why: "Strong WEM for managing seasonal education staffing. Student worker scheduling, surge capacity for FAFSA season, and compliance QA for FERPA.", href: "/vendors/nice-cxone" },
             { name: "Five9", score: 82, why: "Good fit for mid-size institutions. Outbound capability for yield campaigns. Salesforce integration for institutions using Salesforce Education Cloud.", href: "/vendors/five9" },
             { name: "8x8", score: 68, why: "Right-sized for smaller institutions combining phone system and contact center. UCaaS + CCaaS on one platform. Lower cost for 10-30 agent operations.", href: "/vendors" },
@@ -123,7 +123,7 @@ export default function EducationVertical() {
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
         <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating CX technology for education?</h2>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>SIS integration, FERPA compliance, seasonal staffing, and multi-department routing change which platforms are viable. We can help you build a shortlist weighted for your institution type — research university, community college, or online program.</p>
+          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>SIS integration, FERPA compliance, seasonal staffing, and multi-department routing change which platforms are viable. We can help you build a shortlist weighted for your institution type: research university, community college, or online program.</p>
           <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
             <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request an Education CX Briefing</a>
             <a href="/tools/cx-maturity" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Take the CX Maturity Assessment →</a>

@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
           <P>When you upload a company logo to the report generation feature, the logo is processed entirely in your browser. It is never sent to our servers or stored anywhere beyond your local session.</P>
 
           <S>How we use your information</S>
-          <P>We use your email address to deliver the tool results, reports, or guides you requested. If you subscribe to our newsletter, we use your email to send periodic CX intelligence updates. We may use your information to follow up with relevant resources based on the tools you used — for example, if you run the Staffing Calculator, we may send you related content about workforce optimization.</P>
+          <P>We use your email address to deliver the tool results, reports, or guides you requested. If you subscribe to our newsletter, we use your email to send periodic CX intelligence updates. We may use your information to follow up with relevant resources based on the tools you used, for example, if you run the Staffing Calculator, we may send you related content about workforce optimization.</P>
           <P>We do not sell, rent, or share your personal information with vendors, technology companies, or any third party for marketing purposes. This is a core commitment. No vendor pays to access your data. No vendor receives your information unless you explicitly request a consultant introduction through our matching service.</P>
 
           <S>Vendor independence</S>
@@ -53,9 +53,9 @@ export default function PrivacyPolicy() {
 
           <S>Third-party services</S>
           <P>We use the following third-party services to operate the site:</P>
-          <P>Formspree — processes form submissions (name, email, tool data). Their privacy policy is available at formspree.io/legal/privacy-policy.</P>
-          <P>Vercel — hosts the website and provides anonymized analytics. Their privacy policy is available at vercel.com/legal/privacy-policy.</P>
-          <P>GitHub — hosts our source code repository. No user data is stored in GitHub.</P>
+          <P>Formspree: processes form submissions (name, email, tool data). Their privacy policy is available at formspree.io/legal/privacy-policy.</P>
+          <P>Vercel: hosts the website and provides anonymized analytics. Their privacy policy is available at vercel.com/legal/privacy-policy.</P>
+          <P>GitHub: hosts our source code repository. No user data is stored in GitHub.</P>
 
           <S>Data retention</S>
           <P>Form submissions are retained in Formspree for as long as we need them to follow up with you. Newsletter subscriptions are retained until you unsubscribe. You can request deletion of your data at any time by emailing us at the address below.</P>

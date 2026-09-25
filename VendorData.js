@@ -49,9 +49,9 @@ export const vendors = {
   "nice-cxone": {
     name: "NICE CXone", slug: "nice-cxone", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Strategic Foundation", score: 90, website: "nice.com",
-    summary: "Best-in-class ops-heavy posture with AI, WEM, QA, analytics, and regulated-market strength. Following the Cognigy acquisition, NICE is building toward an AI orchestration layer that could redefine how digital and voice interactions are managed. The strongest platform for organizations where quality management, compliance, and interaction analytics are mission-critical.",
+    summary: "Ops-heavy posture with AI, WEM, QA, analytics, and regulated-market strength. Following the Cognigy acquisition, NICE is building toward an AI orchestration layer that could redefine how digital and voice interactions are managed. The strongest platform for organizations where quality management, compliance, and interaction analytics are mission-critical.",
     strengths: [
-      "Industry-leading interaction analytics, Enlighten AI provides automated QA scoring, sentiment analysis, and behavioral insights at scale",
+      "Interaction analytics, Enlighten AI provides automated QA scoring, sentiment analysis, and behavioral insights at scale",
       "Strongest WEM suite in the CCaaS market (WFM, QM, recording, coaching), often eliminates the need for standalone WEM vendors",
       "Mature skills-based and behavioral routing with AI-enhanced decisioning",
       "Post-Cognigy acquisition positions NICE as a serious conversational AI orchestration player",

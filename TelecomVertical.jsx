@@ -138,7 +138,7 @@ export default function TelecomVertical() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
             { name: "Genesys", score: 94, why: "Deepest routing for high-volume telecom operations. Predictive routing separates billing, tech support, sales, and retention. Proven at Tier 1 carriers globally.", href: "/vendors/genesys" },
-            { name: "NICE CXone", score: 90, why: "Industry-leading WEM for managing 1,000+ agent operations. Churn prediction and retention analytics. Strong compliance controls for CPNI.", href: "/vendors/nice-cxone" },
+            { name: "NICE CXone", score: 90, why: "WEM for managing 1,000+ agent operations. Churn prediction and retention analytics. Strong compliance controls for CPNI.", href: "/vendors/nice-cxone" },
             { name: "Cisco", score: 78, why: "Network infrastructure heritage creates natural fit for telecom. UCaaS/CCaaS convergence. Strong in carriers with existing Cisco network equipment.", href: "/vendors/cisco" },
             { name: "Avaya", score: 64, why: "Massive installed base in telecom. Many carriers run Avaya on-premise. Cloud migration path via Avaya Experience Platform.", href: "/vendors" },
             { name: "Five9", score: 82, why: "Strong mid-market fit for MVNOs and regional carriers. Reliable CCaaS with practical AI and CRM integration.", href: "/vendors/five9" },

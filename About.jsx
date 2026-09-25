@@ -122,7 +122,7 @@ function POV() {
                   The contact center stack has more layers, more vendors, and more AI promises than ever. Platform costs shift but don't disappear. Automation rises but complexity rises faster. And every vendor claims to be the answer.
                 </p>
                 <p>
-                  We exist to help leaders cut through that noise — with frameworks, vendor intelligence, and operational depth grounded in how contact centers actually run.
+                  We exist to help leaders cut through that noise, with frameworks, vendor intelligence, and operational depth grounded in how contact centers actually run.
                 </p>
               </div>
             </div>
@@ -156,10 +156,10 @@ function WhatWeDo() {
   const pillars = [
     { title: "Vendor intelligence", desc: "Scored, weighted assessments across 350+ vendors in nine technology categories. Operator-grade evaluation built on proprietary rubrics, structured scoring models, and maturity benchmarks." },
     { title: "Buying frameworks", desc: "Decision tools for CCaaS selection, AI readiness, platform vs point-solution math, and RFPs that don't fail. Built for the way real procurement decisions actually happen." },
-    { title: "Operational depth", desc: "TCO models, orchestration architecture, staffing implications, QA design, and governance frameworks. We go where most CX content stops — the queue, the SLA, the escalation path." },
+    { title: "Operational depth", desc: "TCO models, orchestration architecture, staffing implications, QA design, and governance frameworks. We go where most CX content stops: the queue, the SLA, the escalation path." },
     { title: "Industry-specific CX", desc: "Ten verticals, each with vertical-specific vendor maps, stack layer models, and specialization breakdowns. Because healthcare CX is nothing like retail CX." },
     { title: "Practical tools", desc: "TCO calculators, maturity assessments, AI readiness diagnostics, and planning templates. Tools that give you output you can bring to your next leadership meeting." },
-    { title: "Consultant Matching", desc: "We connect CX leaders with vetted consultants who specialize in platform selection, AI strategy, and contact center transformation. We are the intelligence layer — they are the implementation experts." },
+    { title: "Consultant Matching", desc: "We connect CX leaders with vetted consultants who specialize in platform selection, AI strategy, and contact center transformation. We are the intelligence layer: they are the implementation experts." },
   ];
   return (
     <section style={{ background: "#fff", padding: "96px 28px" }}>
@@ -232,7 +232,7 @@ function WhatWeWontDo() {
               <Label light>What we won't do</Label>
               <Title light>This site is not for everyone. That's the point.</Title>
               <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, marginTop: 8 }}>
-                If you're looking for generic "CX is important" content, vendor press releases repackaged as insight, or a directory where every vendor looks equal — you'll find that elsewhere. We have opinions. We back them with data. And we'd rather be useful to a focused audience than comfortable for a broad one.
+                If you're looking for generic "CX is important" content, vendor press releases repackaged as insight, or a directory where every vendor looks equal: you'll find that elsewhere. We have opinions. We back them with data. And we'd rather be useful to a focused audience than comfortable for a broad one.
               </p>
             </div>
           </FadeIn>
@@ -270,9 +270,9 @@ function Principles() {
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 32 }}>
           {[
-            { n: "01", t: "Editorially independent, commercially transparent", d: "Our research, scoring, and vendor evaluations are completely independent. No vendor pays for coverage or placement. When you need expert guidance, we connect you with vetted technology consultants — and we're transparent about how those relationships work." },
+            { n: "01", t: "Editorially independent, commercially transparent", d: "Our research, scoring, and vendor evaluations are completely independent. No vendor pays for coverage or placement. When you need expert guidance, we connect you with vetted technology consultants, and we're transparent about how those relationships work." },
             { n: "02", t: "Operator credibility", d: "Our frameworks are built by people who've managed queues, staffing models, SLAs, and QA programs. We understand what happens when the theory hits the floor." },
-            { n: "03", t: "Architecture over features", d: "We evaluate technology at the system level — orchestration layers, integration dependencies, governance requirements. Checkbox feature comparisons tell you what a platform can do. We tell you what it will do to your operations." },
+            { n: "03", t: "Architecture over features", d: "We evaluate technology at the system level: orchestration layers, integration dependencies, governance requirements. Checkbox feature comparisons tell you what a platform can do. We tell you what it will do to your operations." },
             { n: "04", t: "Vertical specificity", d: "We don't give the same advice to a hospital that we give to a retailer. Compliance burden, customer emotion, channel mix, and data sensitivity change every recommendation." },
           ].map((p, i) => (
             <FadeIn key={i} delay={i * 0.08}>
@@ -297,7 +297,7 @@ function CTA() {
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
             <Title>If this resonates, we should talk.</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px" }}>
-              Whether you're evaluating platforms, building an AI business case, or trying to make sense of a fragmented vendor landscape — we offer the clarity that vendor sales calls can't.
+              Whether you're evaluating platforms, building an AI business case, or trying to make sense of a fragmented vendor landscape: we offer the clarity that vendor sales calls can't.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Find a Consultant →</a>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Seven Layers of the Contact Center — Interactive Map</title>
+<title>Seven Layers of the Contact Center: Interactive Map</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -384,7 +384,7 @@
   </div>
   <div class="title-mini">
     <h1>Seven layers, <em>one</em> continuous flow</h1>
-    <span class="sub">— customer ↔ IVA ↔ agent, governed by manager + leader</span>
+    <span class="sub">customer ↔ IVA ↔ agent, governed by manager + leader</span>
   </div>
   <div class="role-tabs" id="roleTabs">
     <button class="role-tab active" data-lens="all">All</button>
@@ -400,7 +400,7 @@
   <div class="kpi"><div class="kpi-label mono">CSAT</div><div class="kpi-val" id="kpi-csat">4.6<span class="unit">/5</span></div><div class="kpi-delta up">▲ 0.1</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--good)" stroke-width="1.2" points="0,10 8,11 16,9 24,7 32,8 40,5"/></svg></div>
   <div class="kpi"><div class="kpi-label mono">Avg Handle</div><div class="kpi-val" id="kpi-aht">3<span class="unit">m 42s</span></div><div class="kpi-delta down">▼ 14s</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--good)" stroke-width="1.2" points="0,6 8,8 16,10 24,9 32,12 40,13"/></svg></div>
   <div class="kpi"><div class="kpi-label mono">Cost / Contact</div><div class="kpi-val" id="kpi-cost">$2.14</div><div class="kpi-delta down">▼ $0.18</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--good)" stroke-width="1.2" points="0,5 8,7 16,9 24,8 32,11 40,13"/></svg></div>
-  <div class="kpi"><div class="kpi-label mono">SLA · 80/20</div><div class="kpi-val" id="kpi-sla">91<span class="unit">%</span></div><div class="kpi-delta flat">— steady</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--ink-faint)" stroke-width="1.2" points="0,8 8,7 16,9 24,8 32,7 40,8"/></svg></div>
+  <div class="kpi"><div class="kpi-label mono">SLA · 80/20</div><div class="kpi-val" id="kpi-sla">91<span class="unit">%</span></div><div class="kpi-delta flat">steady</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--ink-faint)" stroke-width="1.2" points="0,8 8,7 16,9 24,8 32,7 40,8"/></svg></div>
   <div class="kpi highlight"><div class="kpi-label mono">Live Now</div><div class="kpi-val" id="kpi-live">284<span class="unit">convos</span></div><div class="kpi-delta up">▲ 12 · 5m</div><svg class="kpi-spark" viewBox="0 0 40 18"><polyline fill="none" stroke="var(--accent-2)" stroke-width="1.2" points="0,10 8,8 16,9 24,6 32,4 40,3"/></svg></div>
 </div>
 
@@ -499,7 +499,7 @@
         </div>
         <div class="suggestion">
           <div class="kind mono">Draft reply</div>
-          "Good news — your package is 2 stops out and should arrive by 4:30pm today."
+          "Good news: your package is 2 stops out and should arrive by 4:30pm today."
           <div class="suggestion-footer">
             <button>Send</button><button>Edit</button>
           </div>
@@ -519,7 +519,7 @@
 /* ─── LAYERS ─── */
 const LAYERS = {
   1: { tag:'L01', title:'Data Access', hue:'var(--h1)',
-    lede:'The foundation — unified reads across CRM, orders, billing, knowledge, and conversation history.',
+    lede:'The foundation: unified reads across CRM, orders, billing, knowledge, and conversation history.',
     levers:[
       ['source','Consolidated view across 9 systems of record'],
       ['freshness','Sub-second materialized cache for live reads'],
@@ -528,13 +528,13 @@ const LAYERS = {
     roles:{
       leader:['applicable','Approves data strategy, vendor consolidation, residency'],
       manager:['applicable','Monitors data freshness alerts, resolves outages'],
-      agent:['n/a','Benefits passively — accurate data surfaces in UI'],
+      agent:['n/a','Benefits passively: accurate data surfaces in UI'],
       iva:['applicable','Reads via governed APIs; no direct DB access'],
     }},
   2: { tag:'L02', title:'Workflow Execution', hue:'var(--h2)',
-    lede:'The hands — tool calls that read, write, and change the world. Idempotent, logged, reversible.',
+    lede:'The hands: tool calls that read, write, and change the world. Idempotent, logged, reversible.',
     levers:[
-      ['idempotency','Every write keyed — safe on retry'],
+      ['idempotency','Every write keyed: safe on retry'],
       ['reversal','One-click rollback for last 90 days of ops'],
       ['audit','Signed receipt per action · WORM storage'],
     ],
@@ -545,7 +545,7 @@ const LAYERS = {
       iva:['applicable','Executes low-risk workflows autonomously'],
     }},
   3: { tag:'L03', title:'Policy & Guardrails', hue:'var(--h3)',
-    lede:'Rules of engagement — PII redaction, refund caps, tone enforcement, escalation triggers.',
+    lede:'Rules of engagement: PII redaction, refund caps, tone enforcement, escalation triggers.',
     levers:[
       ['pii','Auto-redact 14 PII classes in transcripts'],
       ['refund cap','IVA $50 · Agent $500 · Manager unlimited'],
@@ -558,7 +558,7 @@ const LAYERS = {
       iva:['applicable','Obeys policies; flags for handoff when blocked'],
     }},
   4: { tag:'L04', title:'Reasoning & Planning', hue:'var(--h4)',
-    lede:'The brain — decomposing requests into steps, selecting tools, plotting shortest path to resolution.',
+    lede:'The brain: decomposing requests into steps, selecting tools, plotting shortest path to resolution.',
     levers:[
       ['model','Haiku for routing · Sonnet for complex reasoning'],
       ['tool set','47 tools · scoped by policy + agent tier'],
@@ -571,20 +571,20 @@ const LAYERS = {
       iva:['applicable','Generates + executes plans within guardrails'],
     }},
   5: { tag:'L05', title:'Conversation Management', hue:'var(--h5)',
-    lede:'Turn-by-turn dialogue across voice, chat, email — memory, interruption, language.',
+    lede:'Turn-by-turn dialogue across voice, chat, email: memory, interruption, language.',
     levers:[
       ['channels','Voice · Chat · Email · SMS · WhatsApp'],
       ['memory','30-day session memory · GDPR right-to-forget'],
       ['barge-in','Sub-200ms interruption for voice'],
     ],
     roles:{
-      leader:['n/a','Strategic only — selects channel investments'],
+      leader:['n/a','Strategic only: selects channel investments'],
       manager:['applicable','Staffs by channel load; tunes IVA persona'],
-      agent:['applicable','Lives here — speaks, listens, summarizes'],
-      iva:['applicable','Lives here — speaks, listens, summarizes'],
+      agent:['applicable','Lives here: speaks, listens, summarizes'],
+      iva:['applicable','Lives here: speaks, listens, summarizes'],
     }},
   6: { tag:'L06', title:'Routing & Orchestration', hue:'var(--h6)',
-    lede:'Who handles this, on what channel, and how seamless is the handoff? Warm-transfers AI→human with full context.',
+    lede:'Who handles this, on what channel, and how clean is the handoff? Warm-transfers AI→human with full context.',
     levers:[
       ['routing','Skill · language · value · sentiment · IVA confidence'],
       ['handoff','Full transcript + plan + state in < 300ms'],
@@ -597,14 +597,14 @@ const LAYERS = {
       iva:['applicable','Requests handoff when confidence drops below bar'],
     }},
   7: { tag:'L07', title:'Analytics, Feedback & Governance', hue:'var(--h7)',
-    lede:'Every interaction becomes evidence — QA, sentiment, drift, compliance, coaching — looped back into L3/L4/L6.',
+    lede:'Every interaction becomes evidence, QA, sentiment, drift, compliance, coaching, looped back into L3/L4/L6.',
     levers:[
       ['qa coverage','100% auto-scored · 5% human-sampled'],
       ['drift','Weekly eval vs gold set · alert on > 3% drop'],
       ['coaching','Per-agent deltas vs peer median'],
     ],
     roles:{
-      leader:['applicable','Primary home — ROI, containment, CSAT, vendor scorecards'],
+      leader:['applicable','Primary home: ROI, containment, CSAT, vendor scorecards'],
       manager:['applicable','Team + agent-level analytics, coaching loops'],
       agent:['applicable','Sees own scorecard; coaching nudges in-app'],
       iva:['applicable','Feeds its own retraining signal via labeled outcomes'],
@@ -675,7 +675,7 @@ for (let n = 1; n <= 7; n++) {
   stackIndex.appendChild(el);
 }
 
-/* Feedback loop SVG — arcs from L7 back to L3, L4, L6 */
+/* Feedback loop SVG: arcs from L7 back to L3, L4, L6 */
 function drawFeedback() {
   const svg = document.getElementById('feedbackSvg');
   const wrap = document.querySelector('.stack-wrap');
@@ -748,9 +748,9 @@ function renderFloor() {
       <span class="time mono">${q.t}</span>
     </div>
   `).join('');
-  // agents grid — 18 slots
+  // agents grid: 18 slots
   const states = ['busy','busy','busy','avail','busy','break','busy','avail','self','busy','busy','avail','busy','break','busy','busy','avail','busy'];
-  const inits = ['AM','JR','KT','—','DN','☕','BH','—','JO','LP','RY','—','MK','☕','TS','QN','—','ZV'];
+  const inits = ['AM','JR','KT','·','DN','☕','BH','·','JO','LP','RY','·','MK','☕','TS','QN','·','ZV'];
   agentsGrid.innerHTML = states.map((s, i) => `<div class="agent-chip ${s}">${inits[i]}</div>`).join('');
 }
 renderFloor();
@@ -780,7 +780,7 @@ function setRoleRow(key, appl, text) {
 function renderCopilot(step, owner) {
   if (!step) {
     copilotBody.innerHTML = `
-      <div class="suggestion kb"><div class="kind mono">Ready</div>Listening for customer signal — will surface KB, drafts, and sentiment in real-time.</div>
+      <div class="suggestion kb"><div class="kind mono">Ready</div>Listening for customer signal: will surface KB, drafts, and sentiment in real-time.</div>
     `;
     return;
   }
@@ -790,7 +790,7 @@ function renderCopilot(step, owner) {
   const items = [];
   if (step.n === 1) items.push({kind:'kb', text:'Identity verified · voiceprint · confidence 0.94'});
   if (step.n === 2) items.push({kind:'kb', text:`Tool queued: ${agentMode?'issue_refund($340)':'lookup_order() + fetch_tracking()'}`});
-  if (step.n === 3) items.push({kind:'warn', text: agentMode?'Cap override requires supervisor note':'Policy flagged — prepare handoff packet'});
+  if (step.n === 3) items.push({kind:'warn', text: agentMode?'Cap override requires supervisor note':'Policy flagged: prepare handoff packet'});
   if (step.n === 4) items.push({kind:'kb', text:`Plan: ${step.sys.replace(/^plan:\s*/,'')}`});
   if (step.n === 5) items.push({kind:'draft', text: agentMode?'Draft: "I understand. Let me apply the full refund now."':'Draft: "your package is 2 stops out, ETA 4:30pm"'});
   if (step.n === 6) items.push({kind:'kb', text: agentMode?'Context packet delivered · transcript + plan + state':'Routing: confidence high → keep on IVA'});

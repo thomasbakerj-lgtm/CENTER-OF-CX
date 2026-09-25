@@ -48,7 +48,7 @@ export default function AgentAssistCategory() {
               Agent Assist{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>
-              {all.length} vendors scored across 10 weighted dimensions — real-time assist depth, knowledge grounding, workflow actionability, coaching and compliance, integration architecture, analytics, and market proof. The category that sits where cost, quality, compliance, and employee experience collide.
+              {all.length} vendors scored across 10 weighted dimensions: real-time assist depth, knowledge grounding, workflow actionability, coaching and compliance, integration architecture, analytics, and market proof. The category that sits where cost, quality, compliance, and employee experience collide.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
@@ -111,7 +111,7 @@ export default function AgentAssistCategory() {
           {/* Dimension legend */}
           <FadeIn delay={0.03}>
             <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "10px 16px", background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}15`, borderRadius: 8, marginBottom: 24, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: SLATE, marginRight: 6 }}>Dimensions (1–5, weighted):</span>
+              <span style={{ fontSize: 10, fontWeight: 600, color: SLATE, marginRight: 6 }}>Dimensions (1 to 5, weighted):</span>
               {aaDimensions.map((d, i) => (
                 <span key={i} style={{ fontSize: 10, color: MUTED }}>
                   <span style={{ fontWeight: 700, color: NAVY }}>{d.abbr}</span>={d.name}{i < aaDimensions.length - 1 ? <span style={{ color: BORDER, margin: "0 3px" }}>·</span> : ""}
@@ -183,7 +183,7 @@ export default function AgentAssistCategory() {
             <div style={{ textAlign: "center", marginBottom: 40 }}>
               <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
               <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>10 dimensions. Weighted total. Intentionally harsh.</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is scored 1–5 on ten dimensions with weights reflecting operational importance. Real-Time Assist Depth carries the highest weight (14%), followed by Knowledge & Grounding, Workflow & Actionability, and Coaching & Compliance (12% each). Scores reflect agent assist depth and category fit, independent of brand recognition.</p>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is scored 1 to 5 on ten dimensions with weights reflecting operational importance. Real-Time Assist Depth carries the highest weight (14%), followed by Knowledge & Grounding, Workflow & Actionability, and Coaching & Compliance (12% each). Scores reflect agent assist depth and category fit, independent of brand recognition.</p>
             </div>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }} className="method-grid">
