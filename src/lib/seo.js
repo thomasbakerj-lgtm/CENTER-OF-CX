@@ -122,6 +122,10 @@ export const SEO_MAP = {
     title: `Schedule Adherence Method: Erlang C, Service Level and Overtime | ${SITE}`,
     desc: "The published method behind the Schedule Adherence Impact Calculator: adherence as agents on the queue, Erlang C service level and speed of answer, agents to schedule for the target, overtime priced at the FLSA minimum, and a worked example.",
   },
+  "/methodology/staffing-calculator": {
+    title: `Staffing Calculator Method: Erlang C, FTE and Cost | ${SITE}`,
+    desc: "The published method behind the Staffing Requirement Calculator: offered load, Erlang C by recurrence, the agents that meet a service level, occupancy ceilings, shrinkage to scheduled FTE, annual cost, pooling and abandonment checks, and two worked examples.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",

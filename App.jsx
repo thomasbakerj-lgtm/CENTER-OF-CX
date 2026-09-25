@@ -317,6 +317,7 @@ export default function App() {
         <Route path="/methodology/aht-decomposition" element={<RubricPage id="aht-decomposition" />} />
         <Route path="/methodology/forecast-accuracy" element={<RubricPage id="forecast-accuracy" />} />
         <Route path="/methodology/schedule-adherence" element={<RubricPage id="schedule-adherence" />} />
+        <Route path="/methodology/staffing-calculator" element={<RubricPage id="staffing-calculator" />} />
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />
