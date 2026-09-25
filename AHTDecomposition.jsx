@@ -5,6 +5,7 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine } from "./src/lib/guards";
 import { benchmark } from "./src/lib/benchmarks";
+import { publishToolResult } from "./src/lib/toolData";
 import { runAHT, AHT_COMPONENTS, AHT_LEVERS } from "./src/lib/aht";
 
 /* AHT Decomposition. The arithmetic lives in src/lib/aht.js between engine markers; every
@@ -94,6 +95,11 @@ export default function AHTDecomposition() {
     levers: Object.fromEntries(AHT_LEVERS.map((L) => [L.id, { on: d.levers[L.id].on === true, ...Object.fromEntries(L.targets.map((c) => [c, guard(`${L.name}, ${COMPONENT[c].name.toLowerCase()} removed`, d.levers[L.id][c], 0, 100, "%")])) }])),
   };
   const R = runAHT(v);
+  /* Handle time goes to the rail for the Staffing Calculator. It grades Directional while the
+     components are still an example profile or were corrected, and Planning-grade once they
+     are the reader's own: this tool has no document attestation path. */
+  const ahtOrigin = guards.length || Object.values(PRESETS).some((p) => AHT_COMPONENTS.every((c) => p[c] === v.values[c])) ? "Directional" : "Planning-grade";
+  useEffect(() => { publishToolResult("aht-decomposition", { aht: R.total }, { aht: ahtOrigin }); }, [R.total, ahtOrigin]);
   const selected = R.levers.filter((L) => L.on);
   const leverLine = (L) => L.targets.map((c) => `${L.pcts[c]}% of ${COMPONENT[c].name.toLowerCase()}`).join(" and ");
 

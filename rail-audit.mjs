@@ -164,8 +164,11 @@ function publishKeys(src) {
       if (!kk.has("sourceTool")) for (const x of kk) keys.add(x);
       j = oe;
     }
-    // identifier payloads resolved to their const definition
-    for (const idm of call.matchAll(/\b([A-Za-z_$][A-Za-z0-9_$]*)\b/g))
+    // identifier payloads resolved to their const definition. A member access (v.target)
+    // reads one field and publishes none of the object's other keys, so it is skipped:
+    // counting it credited Occupancy Risk with publishing aht, a false publisher that could
+    // hide a self-fed pull.
+    for (const idm of call.matchAll(/(?<![.\w$])([A-Za-z_$][A-Za-z0-9_$]*)\b(?!\s*[.[(])/g))
       if (consts.has(idm[1])) for (const x of consts.get(idm[1])) keys.add(x);
     i = end === -1 ? src.length : end;
   }

@@ -6,6 +6,7 @@ import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine, money } from "./src/lib/guards";
 import { BENCH, benchmark, benchmarksForTool, BENCHMARK_SOURCES } from "./src/lib/benchmarks";
 import { runOccupancy } from "./src/lib/occupancy";
+import { publishToolResult } from "./src/lib/toolData";
 
 /* Occupancy Risk Simulator. The arithmetic lives in src/lib/occupancy.js between engine
    markers; every constant it uses is read here from the registry and passed in. */
@@ -70,6 +71,11 @@ export default function OccupancyRiskSimulator() {
     target: guard("Target occupancy", d.target, 50, 99, "%"),
   };
   const R = runOccupancy(v, OCC_PARAMS);
+  /* The target occupancy goes to the rail as the Staffing Calculator's occupancy ceiling, the
+     same fact: the most occupancy the operation plans to run. It grades Directional while it
+     is the tool's default or was corrected, and Planning-grade once it is the reader's own. */
+  const capOrigin = guards.some((g) => /Target occupancy/.test(g.label)) || v.target === DEFAULTS.target ? "Directional" : "Planning-grade";
+  useEffect(() => { publishToolResult("occupancy-risk", { occupancyCap: v.target / 100 }, { occupancyCap: capOrigin }); }, [v.target, capOrigin]);
   const band = BAND[R.band];
   const occLabel = R.overloaded ? "Over 100%" : pct(R.occ);
   const wageAtBenchmark = v.hourlyRate === benchmark("market.wage.agent");

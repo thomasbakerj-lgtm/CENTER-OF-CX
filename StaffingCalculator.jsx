@@ -39,7 +39,10 @@ function erlangC(N, A) { if (N <= A) return 1; const B = erlangB(N, A); const rh
    published result (400/257s/80-20/85% cap -> 68 base, 98 FTE, 84.0% occ). */
 function calc(volume, ahtSec, intMin, slT, slSec, shrink, occCap) {
   const A = (volume * ahtSec) / (intMin * 60);
-  const minN = Math.ceil(A) + 1;
+  /* The first count above the offered load. floor(A) + 1 exceeds A for any load; the
+     earlier ceil(A) + 1 skipped it on a fractional load and could report one agent more
+     than the target needs (found against the Schedule Adherence solver). */
+  const minN = Math.floor(A) + 1;
   /* The search continues the Erlang B recursion one step per candidate instead of
      restarting it from one agent, so each step is constant time and every value is
      bit-identical to erlangB(n, A). Restarting cost 13.5 seconds for one solve at a
@@ -353,9 +356,16 @@ function guardStaffing(stIn) {
    Invariants void the export. Each is unreachable through the guards and the solver,
    and the harness proves it. If one fails, the arithmetic contradicts itself and no
    figure in the document can be trusted, so the report is voided and graded nowhere. */
+/* Display names for the tools whose values Staffing reads. */
+const RAIL_TOOL_NAMES = { "aht-decomposition": "AHT Decomposition", "shrinkage-planner": "Shrinkage Planner", "occupancy-risk": "Occupancy Risk Simulator", "tco-calculator": "TCO Calculator", "cost-per-contact": "Cost per Contact Calculator", "business-case-builder": "Business Case Builder" };
+
 const STAFFING_NA = "This tool prices the headcount a service level needs, which is cost. It credits no freed capacity, so there is nothing whose conversion to cash could be graded.";
 
-function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, railOrigin }) {
+/* pulled: handle time or shrinkage another tool published, as { value, origin, tool }. While
+   the field still holds the pulled value, that driver grades by the publisher's origin
+   through railEvidence, never higher, and is not compared with the operating profile. An
+   edit makes it the user's own entry again. */
+function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, railOrigin, pulled = {} }) {
   const invariants = [];
   if (![r.raw, r.sched, r.sl, r.occ, r.asa, r.pw, cost.annual].every(Number.isFinite)) invariants.push("an output is not a finite number");
   if (r.sched < r.raw) invariants.push("scheduled FTE is below base agents");
@@ -363,17 +373,26 @@ function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, rail
   if (r.sl < 0 || r.sl > 1) invariants.push("service level is outside 0 to 100 percent");
   if (cost.annual < 0) invariants.push("annual cost is below zero");
 
+  const fromRail = {
+    aht: pulled.aht && pulled.aht.value === aht ? pulled.aht : null,
+    shrink: pulled.shrink && pulled.shrink.value === shrink ? pulled.shrink : null,
+  };
   const defaultDrivers = [
     ...(vol === shipped.volume ? ["contact volume"] : []),
-    ...(aht === shipped.aht ? ["handle time"] : []),
-    ...(shrink === Math.round(shipped.shrink * 100) ? ["shrinkage"] : []),
+    ...(!fromRail.aht && aht === shipped.aht ? ["handle time"] : []),
+    ...(!fromRail.shrink && shrink === Math.round(shipped.shrink * 100) ? ["shrinkage"] : []),
   ];
-  const opsGrade = defaultDrivers.length ? "Directional" : "Planning-grade";
+  const railDrivers = [["handle time", fromRail.aht], ["shrinkage", fromRail.shrink]].filter(([, x]) => x);
+  const opsGrade = railDrivers.reduce((g, [, x]) => weakerStream(g, railEvidence(x.origin)), defaultDrivers.length ? "Directional" : "Planning-grade");
   const costGrade = cost.sourced ? railEvidence(railOrigin) : "Directional";
   const evidence = weakerStream(opsGrade, costGrade);
-  const opsWhy = defaultDrivers.length
-    ? `${defaultDrivers.length} driver${defaultDrivers.length > 1 ? "s are" : " is"} still at the ${shipped.label} operating profile (${defaultDrivers.join(", ")}). Enter your own figures to lift this stream`
-    : "Volume, handle time and shrinkage are your own entries. This tool has no document attestation path, so they stand at Planning-grade at most";
+  const railWhy = railDrivers.map(([name, x]) => `${name} came from ${x.toolName} ${x.origin ? `with an origin grade of ${x.origin}` : "with no recorded origin grade"}, and grades no higher than that`).join("; ");
+  const opsWhy = [
+    defaultDrivers.length
+      ? `${defaultDrivers.length} driver${defaultDrivers.length > 1 ? "s are" : " is"} still at the ${shipped.label} operating profile (${defaultDrivers.join(", ")}). Enter your own figures to lift this stream`
+      : railDrivers.length ? "" : "Volume, handle time and shrinkage are your own entries. This tool has no document attestation path, so they stand at Planning-grade at most",
+    railWhy,
+  ].filter(Boolean).join(". ");
   const costWhy = cost.sourced
     ? `The cost basis arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}. A rail value confers consistency, and evidence only as far as its origin`
     : `The cost basis is the BLS national median wage of $${BENCHMARK_HOURLY} an hour, loaded at ${FULL_LOAD_MULTIPLE}x. It is a market figure for the occupation and none of your own`;
@@ -446,18 +465,35 @@ export default function StaffingCalculator() {
   const [queuesIn, setQueues] = useState(DEFAULTS.queues);
   const [capOn, setCapOn] = useState(DEFAULTS.capOn), [capPctIn, setCapPct] = useState(DEFAULTS.capPct);
   const [showBench, setShowBench] = useState(false);
+  /* Handle time, shrinkage and the occupancy ceiling another tool published this session,
+     read once at mount. Each keeps its producer and origin grade for the grade and the label. */
+  const [pulled, setPulled] = useState({});
 
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  /* A scenario link is a deliberate act and outranks the stored preset. */
+  /* A scenario link is a deliberate act and outranks both the stored preset and the rail:
+     its values are entered values (D13), so nothing is pulled when one opens. Without one,
+     handle time, shrinkage and the occupancy ceiling come from the tool that last produced
+     them this session. Keys stay as string literals so rail-audit.mjs sees every pull. */
   useEffect(() => {
     const sc = readScenario(TOOL_ID, DEFAULTS);
-    if (!sc) return;
-    setVol(sc.vol); setAht(sc.aht); setSlT(sc.slT); setSlS(sc.slS);
-    setShrink(sc.shrink); setIntv(sc.intv); setPatience(sc.patience);
-    setCapOn(sc.capOn); setCapPct(sc.capPct); setQueues(sc.queues); setPreset(sc.preset);
-    clearScenarioParam();
+    if (sc) {
+      setVol(sc.vol); setAht(sc.aht); setSlT(sc.slT); setSlS(sc.slS);
+      setShrink(sc.shrink); setIntv(sc.intv); setPatience(sc.patience);
+      setCapOn(sc.capOn); setCapPct(sc.capPct); setQueues(sc.queues); setPreset(sc.preset);
+      clearScenarioParam();
+      return;
+    }
+    const from = (res) => ({ origin: res.railOrigin || null, tool: res.sourceTool || null, toolName: RAIL_TOOL_NAMES[res.sourceTool] || res.sourceTool || "another tool" });
+    const next = {};
+    const ahtRes = getExternalWithSource("aht", "staffing-calculator");
+    if (ahtRes && Number.isFinite(ahtRes.value) && ahtRes.value > 0) { next.aht = { value: +Number(ahtRes.value).toFixed(2), ...from(ahtRes) }; setAht(next.aht.value); }
+    const shrinkRes = getExternalWithSource("shrinkage", "staffing-calculator");
+    if (shrinkRes && Number.isFinite(shrinkRes.value) && shrinkRes.value >= 0 && shrinkRes.value < 1) { next.shrink = { value: +(shrinkRes.value * 100).toFixed(2), ...from(shrinkRes) }; setShrink(next.shrink.value); }
+    const capRes = getExternalWithSource("occupancyCap", "staffing-calculator");
+    if (capRes && Number.isFinite(capRes.value) && capRes.value > 0 && capRes.value <= 1) { next.capPct = { value: +(capRes.value * 100).toFixed(2), ...from(capRes) }; setCapOn(true); setCapPct(next.capPct.value); }
+    if (Object.keys(next).length) setPulled(next);
   }, []);
 
   const apply = (k) => { const p = PRESETS[k]; setPreset(k); setVol(p.volume); setAht(p.aht); setSlT(Math.round(p.slT * 100)); setSlS(p.slS); setShrink(Math.round(p.shrink * 100)); };
@@ -502,7 +538,10 @@ export default function StaffingCalculator() {
   const cost = staffingCost(r.sched, railPerAgent, railHourly);
   /* railOrigin is the origin grade the publisher recorded for the key behind the cost
      basis. Null when nothing came over the rail, which grades the stream Directional. */
-  const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin });
+  const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled });
+  /* A field shows where its value came from while it still holds the pulled value. */
+  const pulledNote = (key, val) => (pulled[key] && pulled[key].value === val ? `From ${pulled[key].toolName}${pulled[key].origin ? `, ${pulled[key].origin}` : ""}. Edit to use your own figure` : null);
+  const ahtFrom = pulledNote("aht", aht), shrinkFrom = pulledNote("shrink", shrink), capFrom = capOn ? pulledNote("capPct", capPct) : null;
   const { gradeObj, confidence } = graded;
   const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
   const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
@@ -569,20 +608,20 @@ export default function StaffingCalculator() {
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "22px 18px" }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, color: NAVY, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 14 }}>Inputs</h3>
             <NumField label="Voice contacts per interval" value={vol} onChange={setVol} hint="Inbound calls arriving in one interval. Voice only, see note below." min={1} />
-            <NumField label="Average Handle Time" value={aht} onChange={setAht} hint={`${fmtMS(aht)}, talk plus hold plus ACW`} suffix="sec" min={1} />
+            <NumField label="Average Handle Time" value={aht} onChange={setAht} hint={ahtFrom || `${fmtMS(aht)}, talk plus hold plus ACW`} suffix="sec" min={1} pulled={!!ahtFrom} />
             <NumField label="Interval length" value={intv} onChange={setIntv} suffix="min" min={5} max={240} step={5} hint="Erlang C needs an interval of roughly three times AHT or more." />
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
             <NumField label="Service Level Target" value={slT} onChange={setSlT} hint="Ceiling is 99%. Erlang C has no answer at 100: some share of callers waits at every headcount." suffix="%" min={1} max={99} />
             <NumField label="Answer Threshold" value={slS} onChange={setSlS} suffix="sec" min={1} />
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
-            <NumField label="Total Shrinkage" value={shrink} onChange={setShrink} hint="Breaks, training, PTO, absenteeism" suffix="%" min={0} max={70} />
+            <NumField label="Total Shrinkage" value={shrink} onChange={setShrink} hint={shrinkFrom || "Breaks, training, PTO, absenteeism"} suffix="%" min={0} max={70} pulled={!!shrinkFrom} />
 
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
             <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginBottom: capOn ? 8 : 0 }}>
               <input type="checkbox" checked={capOn} onChange={e => setCapOn(e.target.checked)} style={{ width: 15, height: 15, accentColor: ELECTRIC, cursor: "pointer" }} />
               <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Cap maximum occupancy</span>
             </label>
-            {capOn && <NumField label="Occupancy ceiling" value={capPct} onChange={setCapPct} hint="Adds agents so occupancy never exceeds this" suffix="%" min={50} max={100} />}
+            {capOn && <NumField label="Occupancy ceiling" value={capPct} onChange={setCapPct} hint={capFrom || "Adds agents so occupancy never exceeds this"} suffix="%" min={50} max={100} pulled={!!capFrom} />}
 
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
             <div style={{ height: 1, background: BORDER, margin: "14px 0" }} />
@@ -825,9 +864,9 @@ export default function StaffingCalculator() {
                   { title: "Input Parameters", type: "table", rows: [
                     ["Voice Contacts per Interval", vol.toString()],
                     ["Interval Length", `${intv} minutes`],
-                    ["Average Handle Time", `${fmtMS(aht)} (${aht}s)`],
+                    ["Average Handle Time", `${fmtMS(aht)} (${aht}s)${ahtFrom ? `, from ${pulled.aht.toolName}` : ""}`],
                     ["Service Level Target", `${slT}% in ${slS} seconds`],
-                    ["Total Shrinkage", `${shrink}%`],
+                    ["Total Shrinkage", `${shrink}%${shrinkFrom ? `, from ${pulled.shrink.toolName}` : ""}`],
                     ...(capOn ? [["Max Occupancy Cap", `${capPct}%`]] : []),
                     ...(patience ? [["Avg Caller Patience", `${patience}s (Erlang A check on)`]] : []),
                     ["Traffic Intensity", `${r.A.toFixed(1)} Erlangs`],

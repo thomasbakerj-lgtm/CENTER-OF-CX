@@ -258,7 +258,10 @@ function render(S) {
     const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
     const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
     const cost = staffingCost(r.sched, railPerAgent, railHourly);
-    const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin });
+    /* Nothing pulled in the standalone document: no field carries a rail value or label. */
+    const pulled = {};
+    const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled });
+    const ahtFrom = null, shrinkFrom = null, capFrom = null;
     const { gradeObj, confidence } = graded;
     const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
     const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
@@ -543,7 +546,7 @@ const CORR = "\u26a0 Inputs Corrected Before Calculation";
     "const { st: stG, guards } = guardStaffing(st);",
     "const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;",
     "const cost = staffingCost(r.sched, railPerAgent, railHourly);",
-    "const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin });",
+    "const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled });",
     "const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= benchmark(\"staffing.aband.material\") || (r.raw - adjR.raw) >= benchmark(\"staffing.aband.agents\"));",
     "const spike = calc(Math.round(vol * SPIKE), aht, intv, slT / 100, slS, shrink / 100, occCap);",
     "const ahtDown = calc(vol, Math.round(aht * (1 - AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);",
