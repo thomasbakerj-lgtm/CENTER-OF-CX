@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { trackTool, toolIdFromPath, claimView } from "./src/lib/track"
+import { trackTool, toolIdFromPath, claimView, trackLanding } from "./src/lib/track"
 import { BASE, resolveSeo } from './src/lib/seo.js'
 import { Component, useEffect, useState, lazy as reactLazy, Suspense } from 'react'
 
@@ -211,6 +211,8 @@ function SEOManager() {
  * already collected by <Analytics />, which works on the current plan. */
 function Journey() {
   const { pathname } = useLocation();
+  /* The session's first page and its channel (P2 task 7): once per session, whatever page it is. */
+  useEffect(() => { trackLanding(); }, []);
   useEffect(() => {
     const id = toolIdFromPath(pathname);
     if (id && claimView(pathname)) trackTool.view(id);

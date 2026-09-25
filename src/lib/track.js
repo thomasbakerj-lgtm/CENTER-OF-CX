@@ -77,6 +77,7 @@ export const isConfigured = () => !!CONFIG.key;
    absent from this object is refused, so a typo produces no data rather than a
    second silent funnel nobody knows to look at. */
 export const EV = {
+  SESSION_LANDING: "session_landing",  // the first page of a session, with its channel (P2 task 7)
   TOOL_VIEW: "tool_view",              // a tool route was opened
   TOOL_COMPLETE: "tool_complete",      // a result rendered, with a confidence grade
   REPORT_EXPORT: "report_export",      // the PDF was generated. Highest intent action on the site.
@@ -89,6 +90,10 @@ export const EV = {
 };
 
 const EVENT_NAMES = new Set(Object.values(EV));
+
+/* Frozen taxonomy (11-01 to 11-03, P2 task 7). Event names and property keys do not change without a new version,
+   a line in docs/MEASUREMENT.md and the pins in track.test.mjs; PostHog funnels are built on these names. */
+export const TAXONOMY_VERSION = "1.0";
 
 /* ---------------------------------------------------------------- severity */
 
@@ -137,6 +142,14 @@ const isSlug = (v) => typeof v === "string" && SLUG.test(v);
 const isBool = (v) => typeof v === "boolean";
 const isSmallCount = (v) => typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 99;
 const isOneOf = (set) => (v) => typeof v === "string" && set.has(v);
+/* UTM values follow the convention in docs/MEASUREMENT.md: lowercase slugs, 40 characters at most. Anything else,
+   including a name or an address someone pasted into a link, is dropped. */
+const UTM = /^[a-z0-9][a-z0-9._-]{0,39}$/;
+const isUtm = (v) => typeof v === "string" && UTM.test(v);
+/* The referring site's host name only, never its path or query. */
+const HOST = /^(?=.{3,60}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
+const isHost = (v) => typeof v === "string" && HOST.test(v);
+export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "vendor", "research", "other"]);
 
 /* Confidence grades are a closed vocabulary in the epistemic standard. Lower
    cased at the boundary so "Directional" and "directional" cannot split one
@@ -179,6 +192,11 @@ export const ALLOWED_PROPS = {
   depth: isSmallCount,                        // how many tools deep in this session
   via_rail: isBool,                           // arrived at this tool after another one
   repeat: isBool,                             // this browser has been here before
+  page_type: isOneOf(PAGE_TYPES),             // landing: the kind of page a session started on
+  utm_source: isUtm,                          // landing: where the link was posted (linkedin, substack, ...)
+  utm_medium: isUtm,                          // landing: the kind of channel (social, newsletter, ...)
+  utm_campaign: isUtm,                        // landing: the asset or week (2026-10-healthcare-benchmarks, ...)
+  ref: isHost,                                // landing: the referring site's host, when there is one
 };
 
 export const ALLOWED_PROP_KEYS = Object.keys(ALLOWED_PROPS);
@@ -212,6 +230,7 @@ function normalise(key, value) {
      any literal severity value outside this allowlist, because a drop here is
      otherwise completely silent. */
   if (key === "severity") return SEVERITY_SYNONYMS[v] || v;
+  if (key.startsWith("utm_")) return v.replace(/\s+/g, "-");
   if (key === "tool" || key === "from" || key === "to") {
     return v.replace(/[^a-z0-9_-]+/g, "-").replace(/^-+/, "").replace(/-+$/, "");
   }
@@ -477,6 +496,47 @@ export function track(event, props = {}) {
     });
     if (payload) send(payload);
   } catch { /* telemetry must never break a tool */ }
+}
+
+/* ---------------------------------------------------------------- landing */
+
+/* The kind of page a path is, for the landing event. */
+export function pageType(pathname) {
+  const p = String(pathname || "/");
+  if (p === "/") return "home";
+  if (p.startsWith("/tools/")) return "tool";
+  if (p.startsWith("/methodology/") || p === "/changelog") return "method";
+  if (p.startsWith("/industries")) return "industry";
+  if (p.startsWith("/vendors")) return "vendor";
+  if (p.startsWith("/research")) return "research";
+  return "other";
+}
+
+/* Properties of the landing event, from the first page's location and the referrer. Pure, so the harness can check
+   the channel rules without a browser. A referrer on this site's own host is not a channel and is left out. */
+export function landingProps(pathname, search, referrer, ownHost) {
+  const q = new URLSearchParams(search || "");
+  const props = { page_type: pageType(pathname) };
+  for (const k of ["utm_source", "utm_medium", "utm_campaign"]) { const v = q.get(k); if (v) props[k] = v; }
+  try {
+    const host = new URL(referrer).hostname.toLowerCase().replace(/^www\./, "");
+    const own = String(ownHost || "").toLowerCase().replace(/^www\./, "");
+    if (host && host !== own) props.ref = host;
+  } catch { /* no referrer, or not a URL */ }
+  return props;
+}
+
+const LANDED = "coc:landed";
+/* Fires once per session, on the first page rendered. */
+export function trackLanding() {
+  try {
+    if (typeof window === "undefined") return;
+    const s = window.sessionStorage;
+    if (s && s.getItem(LANDED)) return;
+    if (s) s.setItem(LANDED, "1");
+    const l = window.location;
+    track(EV.SESSION_LANDING, landingProps(l.pathname, l.search, typeof document !== "undefined" ? document.referrer : "", l.hostname));
+  } catch { /* telemetry must never break a page */ }
 }
 
 export const trackTool = {
