@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { getHCSubVertical } from "./HCSubVerticalData";
 import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
-import { claimIds } from "./src/lib/claims.js";
+import { claimIds, claim, TESTS } from "./src/lib/claims.js";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1000, margin: "0 auto", padding: "0 28px" };
@@ -96,7 +96,13 @@ export default function FSSubVerticalPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 28 }}>
               {sv.kpis.map((k, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "12px 8px", textAlign: "center" }}>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: LIGHT }}><ClaimText text={k.avg} /></div>
+                  {(() => {
+                    const ids = claimIds([k.avg]); const c = ids.length === 1 ? claim(ids[0]) : null; const t = c && TESTS[c.test];
+                    if (c && c.kind === "none") return (
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.4, marginBottom: 2 }}>No public benchmark{t && <><br /><a href={t.href} aria-label={`Measure your ${k.metric} in ${t.label}`} style={{ color: LIGHT, textDecoration: "underline", fontSize: 11 }}>Measure yours</a></>}</div>
+                    );
+                    return <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: LIGHT }}><ClaimText text={k.avg} /></div>;
+                  })()}
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{k.metric}</div>
                 </div>
               ))}

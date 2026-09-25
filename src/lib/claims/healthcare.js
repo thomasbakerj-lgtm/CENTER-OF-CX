@@ -1,25 +1,32 @@
 /* Healthcare claims (pilot). See src/lib/claims.js for the kinds. `draft` holds the figure the page printed before the
  * scan; `lead` says where the research pass looks first. A pending entry cannot ship. */
 
-const pend = (draft, label, lead, test) => ({ kind: "fact", research: "pending", value: draft, label, lead, test });
 
-const BENCH = {
-  csat:      ["76%", "78%", "88%+", "Customer satisfaction"],
-  fcr:       ["52%", "72%", "82%+", "First contact resolution"],
-  aht:       ["6:36", "7:00", "5:20", "Average handle time"],
-  abandon:   ["7%", "6%", "3%", "Abandon rate"],
-  attrition: ["42%", "35%", "20%", "Annual agent attrition"],
-  transfer:  ["19%", "15%", "8%", "Transfer rate"],
+/* Research pass 2026-09-25. The pre-scan table printed three columns (healthcare, all industries, top quartile) of
+ * unsourced figures; most traced to SQM Group's all-industry figures placed in healthcare cells. The top quartile
+ * column is gone (no public source for any cell). One healthcare figure is published: SQM's health insurance FCR. */
+const SQM_FCR_2026 = { publisher: "SQM Group", title: "First Call Resolution Benchmark: Measure, Benchmark, and Improve with AI (chart: FCR Benchmarking by Industry 2026)", year: 2026, url: "https://www.sqmgroup.com/resources/library/blog/fcr-metric-operating-philosophy" };
+const SQM_KPI_2023 = { publisher: "SQM Group", title: "What Are the Industry Standards For the Top Call Center KPIs?", year: 2023, url: "https://www.sqmgroup.com/resources/library/blog/industry-standards-top-call-center-kpis" };
+const SQM_FCR_2024 = { publisher: "SQM Group", title: "Call Center FCR Benchmark 2024 Results by Industry", year: 2025, url: "https://www.sqmgroup.com/resources/library/blog/call-center-fcr-benchmark-2024-results-by-industry" };
+const SQM_POP = "SQM's benchmarked North American inbound customer service call centers, measured by post-call survey";
+const fact = (value, label, source, test) => ({ kind: "fact", value, label, source, checked: "2026-09-25", ...(test ? { test } : {}) });
+const none = (label, reason, draft, test) => ({ kind: "none", label, reason, draft, ...(test ? { test } : {}) });
+const NO_HC = "No free public source publishes this metric for healthcare contact centers; the only public healthcare breakout (SQM Group) covers first contact resolution in health insurance.";
+
+const bench = {
+  "hc.bench.fcr.hc": fact("69%", `First contact resolution, health insurance call centers, average (range 51% to 91%); ${SQM_POP}`, SQM_FCR_2026, "fcr"),
+  "hc.bench.fcr.cross": fact("71%", `First contact resolution, all industries, average (range 40% to 91%); ${SQM_POP}`, SQM_FCR_2026, "fcr"),
+  "hc.bench.csat.hc": none("Customer satisfaction, healthcare contact centers", NO_HC, "76%"),
+  "hc.bench.csat.cross": fact("78%", `Customer satisfaction, all industries, share of customers very satisfied (top box); ${SQM_POP}`, SQM_KPI_2023),
+  "hc.bench.aht.hc": none("Average handle time, healthcare contact centers", NO_HC, "6:36", "aht"),
+  "hc.bench.aht.cross": fact("11:37", "Average handle time (697 seconds, talk plus wrap), SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "aht"),
+  "hc.bench.abandon.hc": none("Abandon rate, healthcare contact centers", NO_HC, "7%", "staffing"),
+  "hc.bench.abandon.cross": fact("6%", "Abandon rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "staffing"),
+  "hc.bench.attrition.hc": none("Annual agent attrition, healthcare contact centers", `${NO_HC} BLS JOLTS quits for health care and social assistance cover every worker in the sector, not agents.`, "42%", "attrition"),
+  "hc.bench.attrition.cross": fact("34%", "Annual agent turnover, SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "attrition"),
+  "hc.bench.transfer.hc": none("Transfer rate, healthcare contact centers", NO_HC, "19%", "fcr"),
+  "hc.bench.transfer.cross": fact("19%", "Transfer rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "fcr"),
 };
-const BENCH_TEST = { csat: "qa", fcr: "fcr", aht: "aht", abandon: "staffing", attrition: "attrition", transfer: "fcr" };
-const BENCH_LEAD = "SQM Group FCR by industry; ContactBabel US Contact Center Decision-Makers' Guide (healthcare breakdown); ACSI hospitals and health insurance indexes (index, not CSAT %); BLS JOLTS quits, health care and social assistance (economy-wide, not agent-specific)";
-
-const bench = {};
-for (const [m, [hc, cross, top, label]] of Object.entries(BENCH)) {
-  bench[`hc.bench.${m}.hc`] = pend(hc, `${label}, healthcare contact centers`, BENCH_LEAD, BENCH_TEST[m]);
-  bench[`hc.bench.${m}.cross`] = pend(cross, `${label}, all industries`, BENCH_LEAD, BENCH_TEST[m]);
-  bench[`hc.bench.${m}.top`] = pend(top, `${label}, healthcare top quartile`, BENCH_LEAD, BENCH_TEST[m]);
-}
 
 const SV = {
   "health-systems":       { aht: "7:20", fcr: "48%", csat: "74%", containment: "18%" },

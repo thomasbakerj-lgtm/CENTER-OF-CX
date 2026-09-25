@@ -89,7 +89,7 @@ export const hcSubVerticals = {
   "health-insurance": {
     name: "Health Insurance (Payers)", parent: "Healthcare",
     tagline: "Benefits verification, claims status, prior authorization, provider search, and enrollment.",
-    intro: "Payer contact centers handle the highest volume and most complex journeys in healthcare CX. A single member call about a denied claim can involve benefits interpretation, provider network rules, clinical criteria, appeals rights, and financial obligations, all governed by state and federal regulations that change annually.",
+    intro: "Payer contact centers handle long, many-step journeys. A single member call about a denied claim can involve benefits interpretation, provider network rules, clinical criteria, appeals rights, and financial obligations, all governed by state and federal regulations that change annually.",
     kpis: [
       { metric: "AHT", avg: "[[hc.sv.health-insurance.aht]]", note: "Driven by benefits explanations and claims questions" },
       { metric: "FCR", avg: "[[hc.sv.health-insurance.fcr]]", note: "Claims disputes and prior authorization often need several parties" },

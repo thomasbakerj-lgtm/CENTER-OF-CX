@@ -767,7 +767,37 @@ dashboard, the 12-phase growth program.
    nothing, a copy button keeps the profile, and a labelled optional review request is the only send (`copy.test.mjs` 5).
    The Healthcare claims pilot is on local branch `claims-wip` and was reverted out of this PR; it returns by reverting
    the revert once its research lands (needs a session with the widened network policy).
-36. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
+36. Done S23 (on the branch): full site scan part 4, Healthcare research and originality pass. The pilot returned by reverting
+   the revert. Egress: eCFR, PubMed (eutils), CMS, SQM Group and federalregister.gov read directly; bls.gov refuses curl and
+   headless Chromium (Akamai 403) and the unregistered BLS API quota is spent from this IP, but WebFetch reaches bls.gov;
+   hhs.gov, theacsi.org and Cochrane refuse. Every fact below was read on the publisher's own page (the SQM health insurance
+   average from SQM's own chart image).
+   - Claims model: `src/lib/claims.js`, `src/lib/claims/healthcare.js`, `ClaimText.jsx`, `claims/originality.js`,
+     `claims.test.mjs` (in `run-all.mjs`). Kind `none` keeps the pre-scan figure as `draft` for lineage; it never renders.
+   - Benchmark table: most pre-scan cells were SQM Group all-industry figures placed in healthcare cells, and its 52%
+     healthcare FCR contradicts SQM's own 69% (health insurance, 2026 chart, range 51 to 91%). Now two columns: Healthcare
+     (FCR 69% health insurance, the only published figure; the other five say "No public benchmark" and link the tool that
+     measures yours) and All industries (SQM, each labelled with what it measures). Top quartile column removed (no public
+     source for any cell). Intro rewritten to what the sources show; notes no longer compare. Industries hub card reads
+     "69% FCR, health insurance".
+   - Regulatory: HIPAA penalty was the 2009 statutory "$100 to $50,000"; now $145 to $73,011 per violation (45 CFR 102.3,
+     2025 adjustment). Medicare Advantage grievance sentence was wrong: 30 days from receipt (extendable 14), 24 hours only
+     for the two expedited kinds (42 CFR 422.564); the "72 hours" alert fell after the 24 hour limit.
+   - Prose: reminders lower hospital non-attendance by 29% of baseline (Hasvold and Wootton 2011, 29 studies); 34.8% of
+     primary care referral scheduling attempts ended in a documented appointment (Patel et al. 2018). Retired with no source:
+     3.5 calls per scheduling need, 40% turnover, 20 to 30% referral leakage, 30% gone after two weeks, 30 to 50% admin
+     workload, 60 to 70% tech check, 30 to 40% proactive updates. Four relabelled as planning assumptions.
+   - All 24 sub-page KPI tiles: no public source for any healthcare segment; compact "No public benchmark, Measure yours"
+     tiles; notes rewritten as drivers. CMS publishes Medicare plan call center hold time, disconnects and interpreter
+     availability (Display Measures and Star Ratings technical notes); a labelled strip on the health insurance page is an
+     option for TB, not built.
+   - Originality: 668 segments, 62 exact-phrase searches, 24 pages compared: no shared run of 8 words. Three close
+     paraphrases rewritten (Carevoyant superlative, uncited "4-6 systems", a trade cliche). Gate now also catches count
+     ranges and counted nouns ("50-500 agents", "20 visits"); five more bare figures rewritten. Suite 21,412.
+   - Open for TB: BLS OEWS now shows May 2025; the site wage (`market.wage.agent`, J11) is May 2024. Updating moves every
+     wage-driven figure; schedule it as its own change.
+   - Next: the other nine industries on the same pattern, one shared sub-page component (the 10 files are near identical).
+37. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
    status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
    lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
    (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match

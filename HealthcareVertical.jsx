@@ -56,12 +56,12 @@ export default function HealthcareVertical() {
   ];
 
   const benchmarks = [
-    { metric: "CSAT", hc: "[[hc.bench.csat.hc]]", cross: "[[hc.bench.csat.cross]]", top: "[[hc.bench.csat.top]]", note: "Below cross-industry, driven by emotionally charged interactions and process friction" },
-    { metric: "FCR", hc: "[[hc.bench.fcr.hc]]", cross: "[[hc.bench.fcr.cross]]", top: "[[hc.bench.fcr.top]]", note: "Significantly below average, multi-system scheduling and auth requirements prevent single-call resolution" },
-    { metric: "AHT", hc: "[[hc.bench.aht.hc]]", cross: "[[hc.bench.aht.cross]]", top: "[[hc.bench.aht.top]]", note: "Slightly faster but misleading, simple scheduling calls mask very long complex interactions" },
-    { metric: "Abandon Rate", hc: "[[hc.bench.abandon.hc]]", cross: "[[hc.bench.abandon.cross]]", top: "[[hc.bench.abandon.top]]", note: "Slightly above average, staffing gaps during peak hours drive abandonment" },
-    { metric: "Attrition", hc: "[[hc.bench.attrition.hc]]", cross: "[[hc.bench.attrition.cross]]", top: "[[hc.bench.attrition.top]]", note: "Well above average, emotional labor and burnout are the primary drivers" },
-    { metric: "Transfer Rate", hc: "[[hc.bench.transfer.hc]]", cross: "[[hc.bench.transfer.cross]]", top: "[[hc.bench.transfer.top]]", note: "Highest of any vertical, clinical/administrative routing gaps force transfers" },
+    { metric: "CSAT", hc: "[[hc.bench.csat.hc]]", cross: "[[hc.bench.csat.cross]]", note: "Moves with emotionally charged interactions and process friction" },
+    { metric: "FCR", hc: "[[hc.bench.fcr.hc]]", cross: "[[hc.bench.fcr.cross]]", note: "Multi-system scheduling and authorization requirements stand in the way of single-call resolution" },
+    { metric: "AHT", hc: "[[hc.bench.aht.hc]]", cross: "[[hc.bench.aht.cross]]", note: "An average hides the spread: simple scheduling calls sit beside long clinical and billing calls" },
+    { metric: "Abandon Rate", hc: "[[hc.bench.abandon.hc]]", cross: "[[hc.bench.abandon.cross]]", note: "Driven by staffing gaps at peak hours" },
+    { metric: "Attrition", hc: "[[hc.bench.attrition.hc]]", cross: "[[hc.bench.attrition.cross]]", note: "Emotional labor and burnout are the drivers to watch" },
+    { metric: "Transfer Rate", hc: "[[hc.bench.transfer.hc]]", cross: "[[hc.bench.transfer.cross]]", note: "Driven by routing gaps between clinical and administrative teams" },
   ];
 
   return (
@@ -120,11 +120,11 @@ export default function HealthcareVertical() {
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How healthcare compares.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Healthcare underperforms cross-industry on FCR, transfer rate, and attrition. The root cause is system fragmentation and emotional labor, both addressable with the right technology and operating model.</p>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>The one published healthcare figure is SQM Group's first contact resolution for health insurance call centers, close to its all-industry average. No free public source reports the other metrics for healthcare; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.</p>
         </FadeIn>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "HC Average", "Cross-Industry", "Top Quartile", "Why It Differs"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
-            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.hc} /></td><td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td><td style={{ padding: "12px 14px", color: NAVY, fontWeight: 600 }}><ClaimText text={b.top} /></td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Healthcare", "All Industries", "What Drives It"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
+            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.hc} /></td><td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
           </table>
         </div>
         <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your own cost per contact →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your healthcare TCO →</a></div></FadeIn>
