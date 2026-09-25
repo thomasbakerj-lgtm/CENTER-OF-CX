@@ -144,11 +144,10 @@ are identical to the local run; the void review payload carries `confidence: VOI
   $1,722,000, the tracker fixture); the Finance-grade case that does not return prints
   Finance-grade with the finding; the void PDF is 2 pages with no figure; the guard case
   discloses and grades Directional.
-- **Open for TB (DECIDE):** BCB has no evidence selector for its operational baselines
-  (AHT, FCR, volume, wage), and rail-pulled values are not origin-graded, so the benefit
-  stream grades attribution and target ambition only, exactly as before. Honest per-field
-  grading (as TCO does) would move most BCB cases to Directional. Decide before 1-10 or
-  1-11 touch the engine.
+- **Decided S23 (TB):** BCB baseline evidence. One question, "Where do your baselines come from?" (our defaults,
+  your estimate, a system report, a system report attested by checkbox), graded Directional, Planning-grade,
+  Planning-grade, Finance-grade; a rail-pulled baseline grades by its origin (`railEvidence`). Closes the gap where the
+  benefit stream could grade Finance-grade on default AHT, FCR, volume and wage. See section 11, P3.
 
 ---
 
@@ -332,6 +331,19 @@ Binding. None of this is in code comments beyond what is noted.
 - A new external host (script, font, API) must be added to the policy in `vercel.json` in the same change, or it is
   blocked in production and `security.test.mjs` fails.
 
+**TB decisions, 25 Sep 2026 (S23)**
+- **TCO marginal load (Path B):** deflection and repeat savings value at the shared `load.marginal` 1.18 (J10), not
+  the benefits load. One disclosure line: capturing the saving by not backfilling seats removes benefits too, about
+  10% more. Unit costs stay on the loaded rate. A/B: only the savings figures move.
+- **BCB baseline evidence:** one question graded per the section 2 note.
+- **Market Position Index (Path 3):** ranking only inside competitive class; a category-wide map of class by position
+  band with no order, no rank and no composite. Presentation only; separation law unchanged. Build at Stage 5.
+- **CCaaS-by-industry pages:** a concept build; rebuild at research Stage 3. Until then noindex (like the other 70
+  category-by-vertical pages), still live for visitors.
+- **Distribution:** omni-channel (owned site and newsletter, social, earned, product-led), one research asset per week
+  reused everywhere, free channels only, UTM convention and PostHog funnels first.
+- **Design:** a separate design chat, briefed by `docs/DESIGN_HANDOFF.md`.
+
 **Standing engineering rules**
 - Each tool serves its own goal. No generic shared ranges or one-size logic. If the
   same key means a different fact in another tool, do not prefill (TCO does not pull
@@ -349,7 +361,7 @@ Binding. None of this is in code comments beyond what is noted.
 
 **Rail and confidence**
 - TCO publishes `analystRead`, a verdict on the rail.
-- TCO `marginalPerContact` uses 1.30x; registry marginal is 1.18x. Undecided.
+- TCO `marginalPerContact` uses 1.30x; registry marginal is 1.18x. Decided S23: move to 1.18 (section 5, P3).
 - TCO, AHT Decomposition, Shrinkage Planner and Occupancy Risk publish origin grades. Staffing, CPC, FCR, AID, Channel read
   but publish none.
 - CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource` (self-read capable;
@@ -360,9 +372,7 @@ Binding. None of this is in code comments beyond what is noted.
 
 **Live defects**
 - ~~`guardVal` money rendering in CPC.~~ Fixed S23: `money()` in `guards.js` (grouped, to the cent); set G pins it.
-- 8-04 vendor titles from `titleCase(slug)` on roughly 255 of 283 pages.
-- Sprinklr duplicate slug (CCaaS and IVA) hides the IVA profile.
-- Homepage claims methodology pages that do not exist.
+- ~~8-04 vendor titles, Sprinklr duplicate slug, homepage methodology claim.~~ Fixed (item 5; method pages published in E1).
 - `VendorMatchEngine.jsx` 24-vendor CCaaS-only fork, does not import `VendorData.js`.
 - ~~Bundle 2.9 MB single chunk.~~ Stale. `npm run build` on 23 Sep 2026: lazy route
   chunks, 237 KB entry, 77 KB gzip. Re-scope 10-01 to 10-03 before scheduling.
@@ -388,8 +398,7 @@ Binding. None of this is in code comments beyond what is noted.
 - Non-rail tools carry floor only: no engine markers, harness pairs, claim-class
   language review or registry constants yet (step 3). Heuristics named in copy where
   seen (Occupancy multipliers, AHT reduction factors, adherence abandonment steps).
-- Occupancy Risk "Critical Threshold Warning" panel uses an unsourced 0.15 turnover
-  factor; AHT benchmark ranges and Contract Risk "gap runs 40-100%" are unsourced.
+- ~~Occupancy 0.15 turnover factor, AHT benchmark ranges, Contract Risk "40-100%".~~ Retired in Phases C and D.
 - ~~Staffing's solver started at ceil(A)+1 and could report one agent more on a fractional load.~~ Fixed S23 in the
   Phase D rail step (starts at floor(A)+1; A/B in `wfmrail.test.mjs`).
 - TCO guard case (1 agent, 120,000 contacts) prints marginal cost per contact above
@@ -437,8 +446,7 @@ Binding. None of this is in code comments beyond what is noted.
   and category extension registry (`VENDOR_RECORD_SCHEMA_V2.md` in repo); unfork
   scoring out of `VendorMatchEngine.jsx` into `VendorData.js`; completion-gate and
   score-change-control suite gates; class-scoped Vendor Match rebuild.
-- Open TB decision: Market Position Index inside competitive class only (locked) or
-  also category-wide.
+- Decided S23 (TB): Market Position Index Path 3, class-scoped ranking plus a category-wide map with no order.
 
 ---
 
@@ -791,16 +799,60 @@ dashboard, the 12-phase growth program.
    - Merged separately first (PR #36): the sub-page ungate. This pilot was reverted out of that PR and restored on the
      branch by reverting the revert. Follow-up for reach and answer engines: prerender writes only the head; page bodies
      are client-rendered.
-37. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
-   status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
-   lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
-   (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match
-   V3 remain gated on the corpus.
+37. Done S23: full site sweep closed (parts 1 to 4 plus the ungate). TB approved a new priority list, below. It
+   supersedes the older "Next" lines and the reachability batch note. Work top down; one item per session where large.
+
+**PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
+
+P0. Start here in a new session (the old session's egress refused publisher hosts).
+  1. Healthcare claims research and originality pass (item 36): confirm `bls.gov` and `ecfr.gov` fetch, check every
+     pending figure on its publisher's page, write both originality records, rewrite the Healthcare intro to what the
+     sourced figures show, suite green, ship, verify live.
+  2. Roll the claims pattern to the other nine industries, one per session, with one shared sub-page component.
+
+P1. Reach foundations (can run in parallel with P0 in another session).
+  3. Full-page prerender: page bodies in the HTML for all 448 sitemap URLs (today only the head is written). Crawlers,
+     answer engines and link previews read it. Gate: prerendered HTML carries each page's h1 and main text.
+  4. Structured data by page type: tools WebApplication; method pages TechArticle and HowTo; industry pages Article with
+     citations; FAQ only where real.
+  5. Share cards: a build-time preview image per tool, method and industry page (self-hosted, no new host).
+  6. Noindex the 10 CCaaS-by-industry pages until their Stage 3 rebuild.
+
+P2. Measurement (before distribution scales).
+  7. Event taxonomy freeze (11-01 to 11-03), UTM convention, PostHog funnels by channel, and 11-04: does a first
+     diagnostic lead to a second.
+  8. 3-02 NextDiagnostic: one next step per result, one source of truth (settles the rubric and ReportActions mismatch).
+
+P3. Engine integrity (TB decided S23).
+  9. BCB baseline evidence question (section 2 note), A/B only the evidence axis moves, harness pins, live PDFs.
+  10. TCO marginal load to `load.marginal` 1.18 with the disclosure line; A/B only savings move; method page and pins.
+
+P4. Distribution launch (TB posts; site supplies assets).
+  11. LinkedIn newsletter or Substack from the method changelog and each sourced industry page; weekly asset cadence
+      (finding, chart, "test yours" link); practitioner communities; podcasts, guest posts, live events.
+
+P5. Design.
+  12. Design chat from `docs/DESIGN_HANDOFF.md` (TB), then one design system applied once; includes the CCaaS-by-industry
+      rebuild at Stage 3, the 45 content pages on the old fonts, text and fill colour variants, link tap targets, the
+      nine rail tools onto ToolShell, and the "X, not Y" copy pass (about 440).
+
+P6. Remaining debt.
+  13. Unsourced figures on Human Premium, Research, Advisory, Platforms, About and the Industries hub (claims pattern).
+  14. TCO and BCB publish verdicts on the rail (`analystRead`, `confidence`); publish facts only.
+  15. CPC, Channel, FCR, AID to external getters; Staffing, CPC, FCR, AID, Channel publish origin grades.
+  16. BCB next steps to `nextFor` (3-03); `MECH_INITIAL` F2; TCO guard-case wording; ReportActions `Field` labels.
+  17. Roadmap anonymous sequence capture; Attrition root-cause layer from the Agent Experience content.
+  18. WS10 performance re-scope and Core Web Vitals; delete root `download` once TB confirms.
+
+P7. Gated on TB or the corpus.
+  19. Research Stage 1 loader (full CCaaS corpus and Research Strategy Handoff), Stage 3 Vendor Intelligence pages,
+      Stage 4 Vendor Match V3 (interim: 5-01 unfork and ceiling cap), Stage 5 Market Position Index (Path 3).
+  20. Opt-in anonymous benchmark exchange, the start of owned research; needs consent design and a storage decision
+      (section 10 trigger).
+
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
 vendors are complete, when the site-enhancement work starts.
-
-Then the reachability batch.
 
 Prove behavior first. Ration effort as strictly as money. Reachability precedes
 rigor. Instrumentation precedes proof. Quality is the moat. Independence is the product.
