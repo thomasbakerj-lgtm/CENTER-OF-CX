@@ -30,6 +30,13 @@ the answer is right depends on the inputs, and every input shows where it came f
 Commercial line: monetize confidence in decisions, never access to vendors.
 Independence is the product.
 
+**Audience goal (TB, S23):** 100,000 people. For now the site stands on published sources to build trust, users,
+data, feedback and a large community; the long-term aim is to create and own original research.
+
+**Never plagiarize (TB, S23).** Content that is not our own is sourced. A quotation is quoted and credited with a link;
+a paraphrase of someone else's finding is cited; everything else is written in our own words. Every converted page
+carries an originality record (`src/lib/claims/originality.js`).
+
 **Zero incremental spend is the current constraint.** No paid ads, paid data, new
 SaaS, backend, databases, accounts or auth. Prove behavior first, manually learn
 second, invest third, automate last.
@@ -757,7 +764,32 @@ dashboard, the 12-phase growth program.
    and flag levels unchanged). Unused `ToolGate.jsx` deleted. Deferred to the aesthetic rebuild copy pass (TB): the
    "X, not Y" cadence (about 440 occurrences), page by page. Still open: unsourced figures in sub-vertical prose
    ("catches 95%", "40 to 60% of the time"); sub-vertical pages post their Stack Framework form to Formspree directly.
-36. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
+36. In progress S23: full site scan part 4, industry pages one at a time, Healthcare first (TB approved: research every
+   figure, numbers and "why it differs" both kept; the claims model for prose). Built on the branch, not merged:
+   - `src/lib/claims.js` (registry, `[[id]]` tokens, `claimIds`, `plain`), per-industry data in `src/lib/claims/`,
+     `src/lib/ClaimText.jsx` (inline marker per kind, `ClaimSources` page section), `src/lib/claims/originality.js`.
+   - Kinds: fact (publisher, title, year, https url, date checked), assumption (reasoning plus a "test yours" tool),
+     example (the sentence itself, `text`), none ("No public benchmark", "measure yours"). Unknown is never shown as weak.
+   - Healthcare converted: benchmark table (18 cells), failure modes, BPO risks, Industries hub card, and all six
+     sub-pages (24 KPI tiles, every figure in the text). One dash-removal garble repaired ("tech check to 15-25 minutes").
+   - `claims.test.mjs` (in `run-all.mjs`) fails while any converted page uses a `research: "pending"` entry or lacks an
+     originality record. The branch suite is red on purpose until the research lands: 21 pending on the main page, 36 on
+     the sub-pages (each entry carries a `lead`), two originality records.
+   - Blocker: this session's egress still refused publisher hosts (bls.gov, ecfr.gov, sqmgroup.com, pubmed) after TB
+     widened network access; a new session should pick up the new policy. WebSearch summaries are not verification, and
+     cannot prove text is original: fetch the publisher's page, and for originality fetch the top matches for
+     distinctive sentences and flag any verbatim run of 8+ words.
+   - Research rules: a figure becomes a fact only when read on the publisher's own page (no aggregators, no vendor
+     blogs); a figure with no public source becomes an assumption (labelled, reasoning, test link) or none; a vendor
+     claim is kept only as the vendor's stated claim with the vendor's page linked, or retired. Regulatory figures are read
+     on eCFR and the regulator's own page (HIPAA tiers are inflation adjusted). The main page intro sentence
+     ("underperforms cross-industry on FCR, transfer rate, and attrition") must be rewritten to what the sourced
+     figures show.
+   - Then the other nine industries on the same pattern, one shared sub-page component (the 10 files are near
+     identical).
+   - Open for TB: the 61 sub-pages are behind an email gate posting to Formspree; search engines index only the gate.
+     Recommendation: ungate the framework for reach (100k goal) and keep an optional "email me my stack profile".
+37. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
    status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
    lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
    (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match
