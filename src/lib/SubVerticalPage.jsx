@@ -109,6 +109,21 @@ export default function SubVerticalPage({ industry, href, getSubVertical }) {
               ))}
             </div>
 
+            {sv.measures && (
+              <div style={{ maxWidth: 620, margin: "0 auto 28px", textAlign: "left" }}>
+                <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "rgba(255,255,255,0.7)", margin: "0 0 6px", textAlign: "center" }}>{sv.measures.title}</h2>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, margin: "0 0 8px" }}>
+                  {sv.measures.items.map((m, i) => (
+                    <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "12px 10px", textAlign: "center" }}>
+                      <div style={{ fontSize: 20, color: LIGHT, fontWeight: 600 }}><ClaimText text={m.value} /></div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{m.metric}</div>
+                    </div>
+                  ))}
+                </div>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, margin: 0 }}>{sv.measures.note}</p>
+              </div>
+            )}
+
             <a href="#framework" style={{ display: "inline-block", padding: "14px 28px", borderRadius: 8, background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600 }}>Map your stack ↓</a>
           </div>
         </section>

@@ -52,6 +52,8 @@ for (const [slug, kpis] of Object.entries(SV)) for (const [m, v] of Object.entri
   if (v) sv[`hc.sv.${slug}.${m}`] = { kind: "none", label: `${SV_LABEL[m]}, ${slug.replace(/-/g, " ")} contact centers`, reason: SV_REASON[m], draft: v, ...(SV_TEST[m] ? { test: SV_TEST[m] } : {}) };
 }
 
+const CMS_DISPLAY = { publisher: "CMS", title: "2026 Part C and D Display Measures Technical Notes, Attachment A (in the 2026 display measures download)", year: 2025, url: "https://www.cms.gov/files/zip/2026-display-measures.zip" };
+
 export default {
   ...bench,
   ...sv,
@@ -68,6 +70,9 @@ export default {
   "hc.temp.training": { kind: "assumption", value: "2 weeks", label: "Typical training for seasonal temporary agents", rationale: "From practice; not a published figure.", test: "staffing" },
   "hc.cms.grievance": { kind: "fact", value: "30 days", label: "Medicare Advantage grievance decision limit from receipt, extendable by up to 14 days (42 CFR 422.564(e))", source: { publisher: "CMS, eCFR", title: "42 CFR 422.564, Grievance procedures", year: 2026, url: "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-B/part-422/subpart-M/section-422.564" }, checked: "2026-09-25" },
   "hc.cms.expedited": { kind: "fact", value: "24 hours", label: "Medicare Advantage expedited grievance response limit, for a complaint about an extension or a refused expedited request (42 CFR 422.564(f))", source: { publisher: "CMS, eCFR", title: "42 CFR 422.564, Grievance procedures", year: 2026, url: "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-B/part-422/subpart-M/section-422.564" }, checked: "2026-09-25" },
+  "hc.cms.hold": { kind: "fact", value: "0:32", label: "Average hold after the phone menu before a live person, Medicare Advantage customer service lines, CMS test calls January to June 2025 (CMS compliance standard 2:00)", source: CMS_DISPLAY, checked: "2026-09-25", test: "staffing" },
+  "hc.cms.disconnect": { kind: "fact", value: "1.01%", label: "Calls unexpectedly dropped by the plan, Medicare Advantage customer service lines, CMS test calls January to June 2025 (CMS compliance standard 5%)", source: CMS_DISPLAY, checked: "2026-09-25" },
+  "hc.cms.interpreter": { kind: "fact", value: "97%", label: "Interpreter and TTY contacts completed on Medicare Advantage prospective member lines, CMS test calls February to May 2025 (2026 Star Ratings measure C33)", source: { publisher: "CMS", title: "Medicare 2026 Part C and D Star Ratings Technical Notes, Attachment C", year: 2025, url: "https://www.cms.gov/files/document/2026-star-ratings-technical-notes.pdf" }, checked: "2026-09-25" },
   "hc.cms.alerts": { kind: "assumption", value: "day 20 and hour 12", label: "Escalation alert points ahead of the standard and expedited grievance limits", rationale: "A design choice that leaves a third to a half of each limit as working time; set your own." },
   "hc.referral.window": { kind: "assumption", value: "24 hours", label: "Referral-to-appointment service target", rationale: "A service target from practice; set it against your own referral data.", test: "fcr" },
   "hc.ex.referral-fax": { kind: "example", value: "3 days and 2 weeks", label: "Illustrative referral delay in a fax-based workflow", rationale: "A scenario, not a measured delay.", text: "A PCP refers a patient to cardiology; the referral sits in a fax queue for 3 days; someone manually enters it into the scheduling system; the patient gets called 2 weeks later." },
