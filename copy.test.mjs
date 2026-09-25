@@ -8,6 +8,7 @@
  * Each rule is proven to fire on a planted sample before it is trusted.
  */
 import { readFileSync } from "node:fs";
+import { CLAIMS } from "./src/lib/claims.js";
 import { execSync } from "node:child_process";
 
 let pass = 0, fail = 0;
@@ -49,6 +50,15 @@ for (const f of verticals) {
   ok(`${f}: stats block found`, block !== undefined);
   const entries = (block || "").split("\n").filter((l) => l.includes("{ n:"));
   for (const e of entries) {
+    /* A stat that is one claim token takes its source from the registry; the claim must be a fact with a publisher and
+     * an https url (claims.test.mjs checks the rest). */
+    const tok = (e.match(/n: "\[\[([a-z0-9.\-]+)\]\]"/) || [])[1];
+    if (tok && !/source: "/.test(e)) {
+      const c = CLAIMS[tok];
+      ok(`${f}: a tokenized stat is a sourced fact`, !!c && c.kind === "fact" && !!c.source && /^https:\/\//.test(c.source.url || ""), tok);
+      ok(`${f}: no aggregator or vendor-blog source`, !!c && !BAD_SRC.test(`${c.source?.publisher} ${c.source?.title}`), tok);
+      continue;
+    }
     const src = (e.match(/source: "([^"]*)"/) || [])[1] || "";
     ok(`${f}: every stat names a source`, src.length > 8, e.slice(0, 80));
     ok(`${f}: no aggregator or vendor-blog source`, !BAD_SRC.test(src), src);

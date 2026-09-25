@@ -31,8 +31,9 @@ export const TESTS = {
 };
 
 import healthcare from "./claims/healthcare.js";
+import retail from "./claims/retail.js";
 
-export const CLAIMS = { ...healthcare };
+export const CLAIMS = { ...healthcare, ...retail };
 
 /* Throws on an unknown id, so a typo in page text cannot render as a silent blank. */
 export function claim(id) {

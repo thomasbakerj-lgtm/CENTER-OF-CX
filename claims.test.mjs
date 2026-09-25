@@ -19,6 +19,8 @@ const ok = (name, cond, detail = "") => { if (cond) pass++; else { fail++; conso
 const CONVERTED = [
   { file: "HealthcareVertical.jsx", kind: "jsx" },
   { file: "HCSubVerticalData.js", kind: "data", exportName: "hcSubVerticals", page: "src/lib/SubVerticalPage.jsx" },
+  { file: "RetailVertical.jsx", kind: "jsx" },
+  { file: "RetailSubVerticalData.js", kind: "data", exportName: "retailSubVerticals", page: "src/lib/SubVerticalPage.jsx" },
 ];
 
 const FIGURE = /\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|x\b|percent\b|times\b|minutes?\b|seconds?\b|hours?\b|days?\b|weeks?\b|months?\b|years?\b)|\b\d+:\d\d\b|(?<!level )\b\d+\s?(?:-|to)\s?\d+\s+[a-z]|\b\d+\s+(?:agents?|visits?|systems?|calls?|patients?|members?|steps?|studies)\b/i;
