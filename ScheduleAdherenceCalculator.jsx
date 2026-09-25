@@ -1,188 +1,201 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
+import { ToolNav, ToolHero } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
-import { createGuards, guardLine } from "./src/lib/guards";
+import { createGuards, guardLine, money } from "./src/lib/guards";
+import { benchmark } from "./src/lib/benchmarks";
+import { runAdherence } from "./src/lib/adherence";
+
+/* Schedule Adherence Impact Calculator. The arithmetic lives in src/lib/adherence.js between
+   engine markers. */
 
 const TOOL_ID = "schedule-adherence";
 const ROUTE = "/tools/schedule-adherence";
-export const DEFAULTS = { agents: 100, currentAdherence: 92, callsPerHour: 200, aht: 360, slaTarget: 80, slaTime: 20, hourlyRate: 18, otMultiplier: 1.5 };
+const METHOD = "/methodology/schedule-adherence";
+/* The opening case: 820 calls an hour at 6 minutes on 100 scheduled agents at 92%
+   adherence, a queue that meets 80% in 20 seconds with little room, so each point of loss
+   shows. An example, not a benchmark. The open hours and days are the previous tool's
+   fixed 8 and 250, now inputs. */
+export const DEFAULTS = { agents: 100, currentAdherence: 92, callsPerHour: 820, aht: 360, slaTarget: 80, slaTime: 20, hourlyRate: benchmark("market.wage.agent"), otMultiplier: benchmark("adh.ot.multiplier"), hoursPerDay: 8, daysPerYear: 250 };
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = "#0B1D3A"; const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
-function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
-function Input({label,value,onChange,suffix,hint}){return<div><label style={{fontSize:12,fontWeight:600,color:NAVY,display:"block",marginBottom:4}}>{label}</label><div style={{display:"flex",alignItems:"center",gap:4}}><input aria-label={label} type="number" value={value} onChange={e=>onChange(Number(e.target.value))} style={{width:"100%",padding:"10px 12px",fontSize:14,border:`1px solid ${BORDER}`,borderRadius:6,background:"#fff",color:NAVY,outline:"none"}} onFocus={e=>e.target.style.borderColor=ELECTRIC} onBlur={e=>e.target.style.borderColor=BORDER}/>{suffix&&<span style={{fontSize:12,color:MUTED,flexShrink:0}}>{suffix}</span>}</div>{hint&&<span style={{fontSize:12,color:MUTED,marginTop:2,display:"block"}}>{hint}</span>}</div>}
+const pc = (x, d = 1) => (x * 100).toFixed(d) + "%";
+const usd = (x) => "$" + Math.round(x).toLocaleString("en-US");
+const secs = (x) => (x === null ? "no answer (queue overloaded)" : Math.round(x) + "s");
+
+function Input({ label, value, onChange, suffix, hint }) {
+  return (
+    <div>
+      <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>{label}</label>
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <input aria-label={label} type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} />
+        {suffix && <span style={{ fontSize: 12, color: MUTED, flexShrink: 0 }}>{suffix}</span>}
+      </div>
+      {hint && <span style={{ fontSize: 12, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
+    </div>
+  );
+}
+
+function Tile({ label, value, note, dark }) {
+  return (
+    <div style={{ background: dark ? `linear-gradient(135deg, ${NAVY}, ${DEEP})` : WARM, border: dark ? "none" : `1px solid ${BORDER}`, borderRadius: 10, padding: 20, textAlign: "center" }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: dark ? LIGHT : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 30, color: dark ? "#fff" : NAVY }}>{value}</div>
+      <div style={{ fontSize: 12, color: dark ? "rgba(255,255,255,0.78)" : MUTED }}>{note}</div>
+    </div>
+  );
+}
 
 export default function ScheduleAdherenceCalculator() {
-  const [d, setD] = useState(() => readScenario(TOOL_ID, DEFAULTS) || DEFAULTS);
+  const [d, setD] = useState(() => ({ ...DEFAULTS, ...(readScenario(TOOL_ID, DEFAULTS) || {}) }));
   useEffect(() => { window.scrollTo(0, 0); clearScenarioParam(); }, []);
-  const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
+  const set = (k, x) => setD((prev) => ({ ...prev, [k]: x }));
 
-  /* Every input is clamped at the engine boundary and every correction is
-     disclosed on screen and in the PDF. A scenario link can carry any value. */
+  /* Every input is clamped at the engine boundary and every correction is disclosed on
+     screen and in the PDF. A scenario link can carry any value. */
   const { guards, guard } = createGuards();
   const v = {
     agents: guard("Agents scheduled", d.agents, 1, 100000, ""),
     currentAdherence: guard("Current adherence", d.currentAdherence, 1, 100, "%"),
     callsPerHour: guard("Calls per hour", d.callsPerHour, 0, 1000000, ""),
     aht: guard("AHT", d.aht, 1, 36000, " sec"),
-    slaTarget: guard("SLA target", d.slaTarget, 1, 100, "%"),
-    slaTime: guard("SLA time", d.slaTime, 1, 3600, " sec"),
+    slaTarget: guard("Service level target", d.slaTarget, 1, 99, "%"),
+    slaTime: guard("Answer within", d.slaTime, 1, 3600, " sec"),
     hourlyRate: guard("Hourly rate", d.hourlyRate, 0, 1000, "$"),
-    otMultiplier: guard("OT multiplier", d.otMultiplier, 1, 5, "x"),
+    otMultiplier: guard("Overtime multiplier", d.otMultiplier, 1, 5, "x"),
+    hoursPerDay: guard("Open hours a day", d.hoursPerDay, 1, 24, ""),
+    daysPerYear: guard("Open days a year", d.daysPerYear, 1, 366, ""),
   };
+  const R = runAdherence(v);
+  const B = R.base, M = R.firstMiss;
+  const wageAtBenchmark = v.hourlyRate === benchmark("market.wage.agent");
+  const tgt = `${v.slaTarget}% within ${v.slaTime} seconds`;
+  const otLine = (r) => (r.extra === null ? "the target cannot be held by scheduling" : r.extra === 0 ? "no overtime" : `${r.extra} more agents, ${Math.round(r.otHours).toLocaleString("en-US")} overtime hours, ${usd(r.otCost)} a year`);
 
-  // Model: each point of adherence loss = fewer effective agents on queue
-  const intensity = (v.callsPerHour * v.aht) / 3600;
-  const drops = [0, 1, 2, 3, 4, 5, 7, 10];
-  
-  // Simple Erlang C approximation
-  /* Erlang C through the Erlang B recurrence. The previous form built A^N / N!
-     directly, which overflows to NaN above roughly 170 agents; the recurrence is
-     the same quantity and stays finite at any size. */
-  function erlC(agents, A) {
-    const N = Math.floor(agents);
-    if (N <= A || N <= 0) return 1;
-    let B = 1;
-    for (let k = 1; k <= N; k++) B = (A * B) / (k + A * B);
-    return Math.max(0, Math.min(1, (N * B) / (N - A * (1 - B))));
-  }
-  function calcSL(agents, A, targetSec, ahtSec) {
-    const pW = erlC(agents, A);
-    const N = Math.floor(agents);
-    if (N <= A) return 0;
-    return Math.max(0, Math.min(1, 1 - pW * Math.exp(-(N - A) * targetSec / ahtSec)));
-  }
-  function calcASA(agents, A, ahtSec) {
-    const pW = erlC(agents, A);
-    const N = Math.floor(agents);
-    if (N <= A) return 999;
-    return (pW * ahtSec) / (N - A);
-  }
-
-  const scenarios = drops.map(drop => {
-    const adhPct = Math.max(0, v.currentAdherence - drop);
-    const effectiveAgents = Math.round(v.agents * (adhPct / 100));
-    const sl = calcSL(effectiveAgents, intensity, v.slaTime, v.aht) * 100;
-    const asaVal = calcASA(effectiveAgents, intensity, v.aht);
-    const occ = effectiveAgents > 0 ? (intensity / effectiveAgents) * 100 : 100;
-    
-    // Abandonment estimate: rough model based on ASA
-    const abandonPct = asaVal > 120 ? 15 : asaVal > 60 ? 8 : asaVal > 30 ? 4 : asaVal > 15 ? 2 : 1;
-    
-    // OT cost: agents lost * hours to cover * OT rate
-    const agentsLost = v.agents - effectiveAgents;
-    const dailyOTHours = agentsLost * 8; // full shift equivalent
-    const dailyOTCost = dailyOTHours * v.hourlyRate * v.otMultiplier;
-    const annualOTCost = dailyOTCost * 250;
-
-    return { drop, adhPct, effectiveAgents, sl, asaVal, occ, abandonPct, agentsLost, annualOTCost };
-  });
+  const findings = [
+    `At ${B.adh}% adherence, ${B.onQueue} of ${v.agents} scheduled agents are on the queue. Erlang C gives ${pc(B.sl)} answered within ${v.slaTime} seconds (target ${v.slaTarget}%, ${B.meets ? "met" : "missed"}) and an average speed of answer of ${secs(B.asa)}.`,
+    R.need === null
+      ? `Holding ${tgt} cannot be reached within the search range at this load.`
+      : `Holding ${tgt} takes ${R.need} agents on the queue. ` + (!B.meets ? "The target is already missed at today's adherence." : M ? `Service level first falls below target at ${M.adh}% adherence (${M.drop} points lower), where it is ${pc(M.sl)}.` : "Service level stays at or above target through 10 points of loss."),
+    ...(M && M.extra ? [`At ${M.adh}% adherence, holding the target means scheduling ${M.toSchedule} agents, ${M.extra} more than the roster: about ${Math.round(M.otHours).toLocaleString("en-US")} overtime hours, ${usd(M.otCost)} a year at ${v.otMultiplier} × ${money(v.hourlyRate)} an hour.`] : []),
+    `Overtime assumes the ${v.callsPerHour.toLocaleString("en-US")} calls an hour hold across ${v.hoursPerDay} open hours a day and ${v.daysPerYear} days a year. Erlang C assumes every caller waits until answered; with abandonment, measured service level runs higher than this model shows.`,
+  ];
 
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.ag{grid-template-columns:1fr!important}}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.ag{grid-template-columns:1fr 1fr!important}.tiles{grid-template-columns:1fr!important}}`}</style>
       <ToolNav wrap={WRAP} />
       <ToolHero wrap={WRAP} eyebrow="WFM + Staffing" title="Schedule Adherence Impact Calculator"
-        intro="Adherence is the share of scheduled time agents spend doing what the schedule says. Enter your queue inputs to see how each point of adherence loss changes the service level an Erlang C model predicts, and the overtime it takes to recover." />
+        intro="Adherence is the share of scheduled time agents spend doing what the schedule says. Enter your queue to see the service level an Erlang C model gives at today's adherence and at each point of loss, the agents it takes to hold your target, and the overtime that costs.">
+        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every formula and assumption is in the <a href={METHOD} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
+      </ToolHero>
 
-      <>
-          <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
-            <div style={WRAP}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="ag">
-                <Input label="Agents scheduled" value={d.agents} onChange={v => set("agents", v)} />
-                <Input label="Current adherence" value={d.currentAdherence} onChange={v => set("currentAdherence", v)} suffix="%" />
-                <Input label="Calls per hour" value={d.callsPerHour} onChange={v => set("callsPerHour", v)} />
-                <Input label="AHT" value={d.aht} onChange={v => set("aht", v)} suffix="sec" />
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginTop: 12 }} className="ag">
-                <Input label="SLA target" value={d.slaTarget} onChange={v => set("slaTarget", v)} suffix="%" />
-                <Input label="SLA time" value={d.slaTime} onChange={v => set("slaTime", v)} suffix="sec" />
-                <Input label="Hourly rate" value={d.hourlyRate} onChange={v => set("hourlyRate", v)} suffix="$/hr" />
-                <Input label="OT multiplier" value={d.otMultiplier} onChange={v => set("otMultiplier", v)} suffix="x" />
-              </div>
+      <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
+        <div style={WRAP}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="ag">
+            <Input label="Agents scheduled" value={d.agents} onChange={(x) => set("agents", x)} />
+            <Input label="Current adherence" value={d.currentAdherence} onChange={(x) => set("currentAdherence", x)} suffix="%" />
+            <Input label="Calls per hour" value={d.callsPerHour} onChange={(x) => set("callsPerHour", x)} />
+            <Input label="AHT" value={d.aht} onChange={(x) => set("aht", x)} suffix="sec" />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginTop: 12 }} className="ag">
+            <Input label="Service level target" value={d.slaTarget} onChange={(x) => set("slaTarget", x)} suffix="%" />
+            <Input label="Answer within" value={d.slaTime} onChange={(x) => set("slaTime", x)} suffix="sec" />
+            <Input label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? "BLS median, May 2024" : undefined} />
+            <Input label="Overtime multiplier" value={d.otMultiplier} onChange={(x) => set("otMultiplier", x)} suffix="x" hint={v.otMultiplier === benchmark("adh.ot.multiplier") ? "US FLSA minimum" : undefined} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginTop: 12 }} className="ag">
+            <Input label="Open hours a day" value={d.hoursPerDay} onChange={(x) => set("hoursPerDay", x)} />
+            <Input label="Open days a year" value={d.daysPerYear} onChange={(x) => set("daysPerYear", x)} />
+          </div>
+        </div>
+      </section>
+
+      <section style={{ background: "#fff", padding: "40px 28px" }}>
+        <div style={WRAP}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="tiles">
+            <Tile dark label="Service level today" value={pc(B.sl)} note={`Target ${v.slaTarget}%, ${B.meets ? "met" : "missed"}`} />
+            <Tile label="On the queue" value={String(B.onQueue)} note={`Of ${v.agents} at ${B.adh}% adherence`} />
+            <Tile label="Needed for target" value={R.need === null ? "n/a" : String(R.need)} note="Agents on the queue" />
+            <Tile label="At 3 points lower" value={pc(R.row3.sl)} note={R.row3.extra ? `${usd(R.row3.otCost)} a year to hold target` : "No overtime to hold target"} />
+          </div>
+
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Each point of adherence</h2>
+          <div style={{ overflowX: "auto", marginBottom: 24 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+              <thead>
+                <tr style={{ background: DEEP, color: "#fff" }}>
+                  {["Adherence", "On the queue", "Service level", "Speed of answer", "Target", "To schedule", "Overtime to hold target"].map((h) => (
+                    <th key={h} style={{ padding: "10px 12px", textAlign: "right", fontSize: 12, fontWeight: 600 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {R.rows.map((r, i) => (
+                  <tr key={r.drop} style={{ background: i % 2 === 0 ? "#fff" : WARM, borderBottom: `1px solid ${BORDER}`, fontWeight: i === 0 ? 600 : 400 }}>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: NAVY }}>{r.adh}%{i === 0 ? " (today)" : ` (-${r.drop})`}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: NAVY }}>{r.onQueue}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: NAVY }}>{pc(r.sl)}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: SLATE }}>{r.asa === null ? "overloaded" : Math.round(r.asa) + "s"}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: NAVY }}>{r.meets ? "Met" : "Missed"}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: NAVY }}>{r.toSchedule === null ? "n/a" : r.toSchedule}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "right", color: NAVY }}>{r.otCost === null ? "n/a" : r.otCost === 0 ? "None" : usd(r.otCost)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 24 }}>
+            {findings.map((f, i) => <p key={i} style={{ fontSize: 14, color: i < 3 ? "#fff" : "rgba(255,255,255,0.8)", lineHeight: 1.6, margin: i ? "10px 0 0" : 0 }}>{f}</p>)}
+          </div>
+
+          {guards.length > 0 && (
+            <div style={{ background: "#FFF7E6", border: "1px solid #F59E0B", borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Inputs corrected. Every figure above was computed on the corrected values.</div>
+              {guards.map((g, i) => <div key={i} style={{ fontSize: 12, color: SLATE }}>{guardLine(g)}</div>)}
             </div>
-          </section>
-
-          <section style={{ background: "#fff", padding: "40px 28px" }}>
-            <div style={WRAP}>
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Adherence Cascade: What Each Point Costs You</h3>
-              <div style={{ overflowX: "auto", marginBottom: 24 }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                  <thead>
-                    <tr style={{ background: DEEP, color: "#fff" }}>
-                      {["Adherence", "Drop", "Effective Agents", "Service Level", "ASA", "Est. Abandon", "Annual OT Cost"].map(h => (
-                        <th key={h} style={{ padding: "10px 12px", textAlign: "right", fontSize: 12, fontWeight: 600 }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scenarios.map((s, i) => {
-                      const slColor = s.sl >= v.slaTarget ? GREEN : s.sl >= v.slaTarget - 5 ? AMBER : RED;
-                      return (
-                        <tr key={i} style={{ background: i === 0 ? `${GREEN}10` : i % 2 === 0 ? "#fff" : WARM, borderBottom: `1px solid ${BORDER}`, fontWeight: i === 0 ? 600 : 400 }}>
-                          <td style={{ padding: "10px 12px", textAlign: "right", fontFamily: FONT, fontSize: 16, color: i === 0 ? GREEN : NAVY }}>{s.adhPct}%</td>
-                          <td style={{ padding: "10px 12px", textAlign: "right", color: i === 0 ? GREEN : RED }}>{i === 0 ? "Baseline" : `-${s.drop} pts`}</td>
-                          <td style={{ padding: "10px 12px", textAlign: "right", color: NAVY }}>{s.effectiveAgents}</td>
-                          <td style={{ padding: "10px 12px", textAlign: "right", color: slColor, fontWeight: 600 }}>{s.sl.toFixed(1)}%</td>
-                          <td style={{ padding: "10px 12px", textAlign: "right", color: SLATE }}>{s.asaVal < 999 ? s.asaVal.toFixed(0) + "s" : "N/A"}</td>
-                          <td style={{ padding: "10px 12px", textAlign: "right", color: s.abandonPct > 5 ? RED : SLATE }}>{s.abandonPct}%</td>
-                          <td style={{ padding: "10px 12px", textAlign: "right", color: s.annualOTCost > 500000 ? RED : NAVY, fontWeight: 500 }}>${(s.annualOTCost / 1000).toFixed(0)}K</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, margin: 0 }}>
-                  <strong style={{ color: "#fff" }}>Why this matters:</strong> Schedule adherence is the multiplier on every other WFM metric. A 3-point adherence drop during peak does not cost 3% more. It costs disproportionately more because the relationship between staffing and service level is non-linear. Best-in-class operations target 92-95% adherence. Below 88%, the cascade into SLA misses, overtime, and agent burnout becomes self-reinforcing.
-                </p>
-              </div>
-
-              {guards.length > 0 && (
-                <div style={{ background: "#FFF7E6", border: `1px solid ${AMBER}`, borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Inputs corrected. Every figure above was computed on the corrected values.</div>
-                  {guards.map((g, i) => <div key={i} style={{ fontSize: 12, color: SLATE }}>{guardLine(g)}</div>)}
-                </div>
-              )}
-              <ReportActions
-                toolId={TOOL_ID}
-                toolName="Schedule Adherence Impact Analysis"
-                subtitle="Adherence Cascade Model"
-                routePath={ROUTE}
-                state={d}
-                defaults={DEFAULTS}
-                summary={[
-                  { label: "Baseline adherence", value: scenarios[0].adhPct + "%" },
-                  { label: "Service level at baseline", value: scenarios[0].sl.toFixed(1) + "%" },
-                  { label: "Service level at 3 points of loss", value: scenarios[3].sl.toFixed(1) + "%" },
-                  { label: "Annual OT at 3 points of loss", value: "$" + Math.round(scenarios[3].annualOTCost).toLocaleString() },
-                ]}
-                sections={[
-                    { title: "Adherence Cascade", type: "table", rows: scenarios.map(s => [s.adhPct + "% adherence" + (s.drop ? " (-" + s.drop + " pts)" : " (baseline)"), "SL " + s.sl.toFixed(1) + "%, ASA " + (s.asaVal < 999 ? s.asaVal.toFixed(0) + "s" : "N/A") + ", OT $" + Math.round(s.annualOTCost).toLocaleString()]) },
-                    { title: "Cascade Impact at 3 Points of Loss", type: "metrics", items: [
-                      { label: "Service Level", value: scenarios[3].sl.toFixed(1) + "%", color: scenarios[3].sl >= v.slaTarget ? GREEN : RED, sub: "baseline " + scenarios[0].sl.toFixed(1) + "%" },
-                      { label: "Est. Abandon", value: scenarios[3].abandonPct + "%", color: AMBER, sub: "baseline " + scenarios[0].abandonPct + "%" },
-                      { label: "Annual OT Cost", value: "$" + Math.round(scenarios[3].annualOTCost).toLocaleString(), color: RED },
-                    ]},
-                    ...(guards.length ? [{ title: "Inputs Corrected", type: "findings", items: guards.map(guardLine) }] : []),
-                    { title: "Key Findings", type: "findings", items: [
-                      "At " + scenarios[0].adhPct + "% adherence the model gives a " + scenarios[0].sl.toFixed(1) + "% service level. Losing 3 points takes it to " + scenarios[3].sl.toFixed(1) + "%.",
-                      "Covering 3 points of lost adherence with overtime costs about $" + Math.round(scenarios[3].annualOTCost).toLocaleString() + " a year at " + v.otMultiplier + "x, assuming a full 8-hour shift equivalent per lost agent over 250 days.",
-                      "Abandonment here is a stepped planning heuristic keyed to ASA, not a measured rate.",
-                    ]},
-                    { title: "Next Steps", type: "next", items: [
-                      { tool: "Staffing Calculator", reason: "Model the FTE buffer needed to absorb adherence variance" },
-                      { tool: "Occupancy Risk Simulator", reason: "Check whether adherence gaps are creating occupancy spikes" },
-                    ]},
-                  ]}
-              />
-            </div>
-          </section>
-      </>
+          )}
+          <ReportActions
+            toolId={TOOL_ID}
+            toolName="Schedule Adherence Impact Analysis"
+            subtitle="Service Level and Overtime by Point of Adherence"
+            routePath={ROUTE}
+            state={d}
+            defaults={DEFAULTS}
+            summary={[
+              { label: "Service level today", value: pc(B.sl) },
+              { label: "Agents needed on the queue", value: R.need === null ? "n/a" : String(R.need) },
+              { label: "Service level at 3 points lower", value: pc(R.row3.sl) },
+              { label: "Overtime at 3 points lower", value: R.row3.otCost === null ? "n/a" : usd(R.row3.otCost) },
+            ]}
+            sections={[
+              { title: "Adherence Impact", type: "metrics", items: [
+                { label: "Service Level Today", value: pc(B.sl), color: NAVY, sub: `target ${v.slaTarget}%, ${B.meets ? "met" : "missed"}` },
+                { label: "On the Queue", value: String(B.onQueue), color: NAVY, sub: `of ${v.agents}` },
+                { label: "Needed for Target", value: R.need === null ? "n/a" : String(R.need), color: NAVY },
+                { label: "At 3 Points Lower", value: pc(R.row3.sl), color: NAVY, sub: otLine(R.row3) },
+              ]},
+              ...(guards.length ? [{ title: "Inputs Corrected", type: "findings", items: guards.map(guardLine) }] : []),
+              { title: "Key Findings", type: "findings", items: findings },
+              { title: "Each Point of Adherence", type: "table", rows: R.rows.map((r) => [r.adh + "% adherence" + (r.drop ? " (-" + r.drop + ")" : " (today)"), `${r.onQueue} on the queue, service level ${pc(r.sl)} (${r.meets ? "met" : "missed"}), speed of answer ${r.asa === null ? "overloaded" : Math.round(r.asa) + "s"}, ${otLine(r)}`]) },
+              { title: "Planning Assumptions", type: "findings", items: [
+                "Adherence is taken as the share of scheduled agents on the queue at any moment.",
+                `Overtime multiplier ${v.otMultiplier}x${v.otMultiplier === benchmark("adh.ot.multiplier") ? ", the US Fair Labor Standards Act minimum" : ", entered by you"}; hourly rate ${wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024" : "entered by you"}.`,
+                `The call rate is taken to hold across ${v.hoursPerDay} open hours a day and ${v.daysPerYear} days a year.`,
+                "Erlang C assumes no caller abandons, so the service level it gives sits below what abandonment would produce.",
+              ]},
+              { title: "Method", type: "text", content: "Erlang C through the Erlang B recurrence gives service level and speed of answer for the agents on the queue at each adherence. Agents needed on the queue are the fewest that meet the target; agents to schedule are that number divided by adherence, rounded up; overtime prices any agents beyond the roster for the open hours and days entered. Published at contactcentercx.com" + METHOD + "." },
+              { title: "Next Steps", type: "next", items: [
+                { tool: "Staffing Calculator", href: "/tools/staffing-calculator", reason: "Size the roster with shrinkage and an occupancy ceiling" },
+                { tool: "Occupancy Risk Simulator", href: "/tools/occupancy-risk", reason: "Check the occupancy that adherence loss creates" },
+              ]},
+            ]}
+          />
+        </div>
+      </section>
     </div>
   );
 }

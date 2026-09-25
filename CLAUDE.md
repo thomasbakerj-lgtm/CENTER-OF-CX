@@ -385,6 +385,9 @@ Binding. None of this is in code comments beyond what is noted.
   seen (Occupancy multipliers, AHT reduction factors, adherence abandonment steps).
 - Occupancy Risk "Critical Threshold Warning" panel uses an unsourced 0.15 turnover
   factor; AHT benchmark ranges and Contract Risk "gap runs 40-100%" are unsourced.
+- Staffing's solver starts its search at ceil(A)+1, so on a fractional load it never tests floor(A)+1, which already
+  exceeds the load; when that count meets the target Staffing reports one agent more (4 of 3,000 random queues in
+  `adherence.test.mjs`). Fix in the Phase D rail step with an A/B across Staffing's harnesses.
 - TCO guard case (1 agent, 120,000 contacts) prints marginal cost per contact above
   cost per contact, unflagged, and its open-issues text says "treat the output as void"
   while grading Directional. Low.
@@ -707,7 +710,13 @@ dashboard, the 12-phase growth program.
    99.8% "Excellent"); MAPE beside it; misses ranked by contacts; tracking signal against the cited plus or minus 4
    (`forecast.ts.limit`); unsourced grades retired; optional AHT gives workload hours and agents busy. `CalcPage` example
    note. `/methodology/forecast-accuracy` (sitemap 437). `forecast.test.mjs` 32, `forecast.report.mjs` 37.
-28. **Next:** Phase D continues: Schedule Adherence, then the rail into Staffing. Research Stage 3 and Vendor Match
+28. Done S23: Phase D step 5, Schedule Adherence to V3-Full (TB approved six calls). Engine `src/lib/adherence.js`; opening
+   case 820 calls an hour (the old one printed 100% service level everywhere); stepped abandonment retired; overtime prices
+   the agents needed to hold the target over entered open hours and days; FLSA multiplier registered (`adh.ot.multiplier`);
+   Erlang C pinned to published tables and agrees with Staffing's solver. `/methodology/schedule-adherence` (sitemap 438).
+   `adherence.test.mjs` 37, `adherence.report.mjs` 35. All five WFM engines done.
+29. **Next:** Phase D rail step: Occupancy target, Shrinkage and AHT into Staffing with origin grades; fix Staffing's
+   solver start (see carried debt). Research Stage 3 and Vendor Match
    V3 remain gated on the corpus.
 Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
 the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS

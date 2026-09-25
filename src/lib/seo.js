@@ -118,6 +118,10 @@ export const SEO_MAP = {
     title: `Forecast Accuracy Method: WAPE, MAPE and the Tracking Signal | ${SITE}`,
     desc: "The published method behind the Forecast Accuracy Tracker: WAPE as the headline, MAPE beside it, total-volume accuracy and why interval errors cancel in it, bias, the tracking signal and its limit, and workload from contacts missed.",
   },
+  "/methodology/schedule-adherence": {
+    title: `Schedule Adherence Method: Erlang C, Service Level and Overtime | ${SITE}`,
+    desc: "The published method behind the Schedule Adherence Impact Calculator: adherence as agents on the queue, Erlang C service level and speed of answer, agents to schedule for the target, overtime priced at the FLSA minimum, and a worked example.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",

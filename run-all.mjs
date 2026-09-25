@@ -90,6 +90,8 @@ const INFRA = [
   { name: "aht.report.mjs", covers: "V3-Full: AHT PDF reconciled to the engine on four links; method example is the default case" },
   { name: "forecast.test.mjs", covers: "V3-Full: Forecast Accuracy engine against an oracle, A/B with the previous tool, WAPE and tracking signal laws, registry" },
   { name: "forecast.report.mjs", covers: "V3-Full: Forecast Accuracy PDF reconciled to the engine on four links; method example is the engine's" },
+  { name: "adherence.test.mjs", covers: "V3-Full: Schedule Adherence engine, Erlang C against published tables and an oracle, agreement with Staffing, A/B with the previous tool" },
+  { name: "adherence.report.mjs", covers: "V3-Full: Schedule Adherence PDF reconciled to the engine on four links; method example is the default case" },
   { name: "rfp.test.mjs", covers: "V3-Framework: RFP requirements and response scoring against an oracle, GA-only credit, unanswered is never a zero" },
   { name: "terms.test.mjs", covers: "V3-Framework: Contract Risk clauses, reading rule against an oracle, unknown is never a pass" },
   { name: "renewal.test.mjs", covers: "V3-Framework: Platform Decision renewal gate, every rule against an oracle, the no-average and unknown-is-not-weak laws" },
