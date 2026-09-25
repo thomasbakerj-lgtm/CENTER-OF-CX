@@ -7,10 +7,10 @@ export const hcSubVerticals = {
     tagline: "Patient access, scheduling, billing, care coordination, and discharge follow-up.",
     intro: "Health system contact centers are the front door to the clinical enterprise. They schedule across dozens of specialties, explain some of the most confusing bills in any industry, coordinate referrals, results, and post-discharge follow-up, and triage urgent symptoms. HIPAA governs every word and every data transfer, which shapes what can be automated and how.",
     kpis: [
-      { metric: "AHT", avg: "[[hc.sv.health-systems.aht]]", note: "Longer than average: scheduling requires provider matching, insurance verification, and prep instructions" },
-      { metric: "FCR", avg: "[[hc.sv.health-systems.fcr]]", note: "Very low: scheduling changes, billing disputes, and multi-provider coordination require callbacks" },
-      { metric: "CSAT", avg: "[[hc.sv.health-systems.csat]]", note: "Below average: driven by scheduling friction and billing confusion" },
-      { metric: "Containment", avg: "[[hc.sv.health-systems.containment]]", note: "Low: patients prefer human confirmation for appointments and clinical questions" },
+      { metric: "AHT", avg: "[[hc.sv.health-systems.aht]]", note: "Driven by provider matching, insurance verification, and prep instructions on scheduling calls" },
+      { metric: "FCR", avg: "[[hc.sv.health-systems.fcr]]", note: "Scheduling changes, billing disputes, and multi-provider coordination often need a callback" },
+      { metric: "CSAT", avg: "[[hc.sv.health-systems.csat]]", note: "Moves with scheduling friction and billing confusion" },
+      { metric: "Containment", avg: "[[hc.sv.health-systems.containment]]", note: "Limited where patients want a person to confirm appointments or answer clinical questions" },
     ],
     layers: [
       { layer: 7, name: "Analytics & Governance",
@@ -37,7 +37,7 @@ export const hcSubVerticals = {
         capabilities: ["Secure patient messaging integrated with the patient portal","Appointment reminders and confirmations via SMS and email","Video visits for telehealth scheduling and technical support","Chat for billing inquiries with PHI redaction","Post-discharge follow-up messaging with care plan instructions"],
         vendors: "Hyro.ai, Glia, LivePerson, Well Health", risk: "PHI exposure in unsecured messaging channels",
         stack: [
-          { name: "Well Health", role: "Patient Communications", why: "Purpose-built healthcare messaging. Appointment reminders, recall campaigns, referral coordination, and post-visit follow-up. Integrates with Epic, Cerner, athenahealth. Reduces no-show rates by [[hc.noshow.reminders]].", href: "/vendors/digital-engagement" },
+          { name: "Well Health", role: "Patient Communications", why: "Purpose-built healthcare messaging. Appointment reminders, recall campaigns, referral coordination, and post-visit follow-up. Integrates with Epic, Cerner, athenahealth. In a systematic review, automated reminders lowered hospital non-attendance by [[hc.noshow.reminders]]; manual phone calls did better.", href: "/vendors/digital-engagement" },
           { name: "Hyro.ai", role: "Conversational AI", why: "Healthcare-specific conversational AI for patient access. Handles scheduling, provider search, and FAQ across web, phone, and chat. Plugs into EHR scheduling APIs.", href: "/vendors/iva" },
           { name: "Glia", role: "Digital Patient Service", why: "Secure co-browsing for patient portal navigation. Video for telehealth support. Chat with PHI controls. Patients don't leave the portal during the interaction.", href: "/vendors/digital-engagement" },
         ],
@@ -71,7 +71,7 @@ export const hcSubVerticals = {
           { name: "ServiceNow Health", role: "Workflow Platform", why: "Enterprise workflow automation for healthcare operations. Patient access workflows, prior authorization tracking, and IT service management on one platform.", href: "/vendors" },
           { name: "UiPath", role: "RPA", why: "Automates the EHR tasks agents do manually, scheduling in Epic, eligibility checks in payer portals, referral submissions. Bridges the gap while EHR APIs mature.", href: "/vendors" },
         ],
-        pitfall: "Health systems automate scheduling but leave referral coordination manual. [[hc.ex.referral-fax]] By then, [[hc.referral.gone]] of patients have scheduled elsewhere or given up. Automate the referral-to-appointment pipeline end-to-end, or accept that you're losing patients in the gap."
+        pitfall: "Health systems automate scheduling but leave referral coordination manual. [[hc.ex.referral-fax]] Every day of that delay is a day the patient can book elsewhere or give up; one large health system study found longer specialist waits went with fewer completed referral appointments. Automate the referral-to-appointment pipeline end-to-end, or accept that you're losing patients in the gap."
       },
       { layer: 1, name: "Data Access",
         capabilities: ["EHR integration (Epic, Cerner/Oracle Health) for scheduling and patient data","Practice management system connectivity for billing and insurance","Patient portal integration for session continuity","Revenue cycle system access for billing inquiries and payment processing","Insurance eligibility verification in real-time during scheduling"],
@@ -91,10 +91,10 @@ export const hcSubVerticals = {
     tagline: "Benefits verification, claims status, prior authorization, provider search, and enrollment.",
     intro: "Payer contact centers handle the highest volume and most complex journeys in healthcare CX. A single member call about a denied claim can involve benefits interpretation, provider network rules, clinical criteria, appeals rights, and financial obligations, all governed by state and federal regulations that change annually.",
     kpis: [
-      { metric: "AHT", avg: "[[hc.sv.health-insurance.aht]]", note: "Long: benefits explanations and claims adjudication are inherently complex" },
-      { metric: "FCR", avg: "[[hc.sv.health-insurance.fcr]]", note: "Very low: claims disputes and prior auth require multi-party coordination" },
-      { metric: "CSAT", avg: "[[hc.sv.health-insurance.csat]]", note: "Lowest in healthcare: members associate their insurer with denied claims and confusing EOBs" },
-      { metric: "Containment", avg: "[[hc.sv.health-insurance.containment]]", note: "Benefits lookup and claims status are automatable; disputes require humans" },
+      { metric: "AHT", avg: "[[hc.sv.health-insurance.aht]]", note: "Driven by benefits explanations and claims questions" },
+      { metric: "FCR", avg: "[[hc.sv.health-insurance.fcr]]", note: "Claims disputes and prior authorization often need several parties" },
+      { metric: "CSAT", avg: "[[hc.sv.health-insurance.csat]]", note: "Moves with denied claims and hard-to-read explanations of benefits" },
+      { metric: "Containment", avg: "[[hc.sv.health-insurance.containment]]", note: "Benefits lookup and claims status can be automated; disputes need a person" },
     ],
     layers: [
       { layer: 7, name: "Analytics & Governance",
@@ -122,7 +122,7 @@ export const hcSubVerticals = {
           { name: "Pypestream", role: "Digital Member Engagement", why: "Purpose-built for health insurance. Guided conversations for benefits lookup, claims status, and provider search. Reduces call volume by resolving digital-first.", href: "/vendors/digital-engagement" },
           { name: "Relay Network", role: "Member Communications", why: "Proactive member engagement platform. Delivers personalized benefits reminders, care gap notifications, and claims updates via secure messaging.", href: "/vendors" },
         ],
-        pitfall: "Open enrollment creates a [[hc.oe.spike]] volume spike that most payer contact centers handle by hiring temp agents with [[hc.temp.training]] of training. These agents handle benefits questions for the most confusing product decision a member makes all year. The result: incorrect plan guidance that members discover when they need care. Invest in self-service for plan comparison during OEP, and restrict temp agents to simple administrative tasks."
+        pitfall: "Open enrollment creates a [[hc.oe.spike]] volume spike that payer contact centers often handle by hiring temp agents with [[hc.temp.training]] of training. These agents handle benefits questions for the most confusing product decision a member makes all year. The result: incorrect plan guidance that members discover when they need care. Invest in self-service for plan comparison during OEP, and restrict temp agents to simple administrative tasks."
       },
       { layer: 4, name: "Reasoning & Planning",
         capabilities: ["Benefits verification bots with real-time eligibility and copay data","Claims status bots with denial reason codes and appeal guidance","Provider search bots with network, specialty, and availability filtering","Prior authorization status bots with clinical criteria transparency","ID card request and replacement automation"],
@@ -157,7 +157,7 @@ export const hcSubVerticals = {
         stack: [
           { name: "HealthEdge (Source)", role: "Claims Platform", why: "Modern claims adjudication replacing legacy Facets and QNXT implementations. Real-time APIs for member service. Faster claims processing means faster answers for members.", href: "/vendors" },
           { name: "Facets (TriZetto/Cognizant)", role: "Claims Platform", why: "Still powers many of the largest commercial and Medicare payers. Legacy but deeply embedded. Your CX integration depends on which Facets version and what middleware sits in front of it.", href: "/vendors" },
-          { name: "Salesforce Health Cloud", role: "Member CRM", why: "The CRM layer that unifies claims, benefits, enrollment, and interaction data. Without a CRM, agents toggle between 4-6 systems per call.", href: "/vendors/ccaas" },
+          { name: "Salesforce Health Cloud", role: "Member CRM", why: "The CRM layer that unifies claims, benefits, enrollment, and interaction data. Without a CRM, agents look up claims, benefits, enrollment and past contacts in separate systems on the same call.", href: "/vendors/ccaas" },
         ],
         pitfall: "Payer claims systems process adjudication in batch cycles, often nightly. When a member calls at 2pm about a claim submitted at 9am, the system may show 'received' but not 'processed.' The agent says 'it's still processing': which the member hears as 'nobody's looked at it.' Push for real-time or near-real-time adjudication status, or at minimum, give agents visibility into where the claim sits in the processing queue."
       },
@@ -169,10 +169,10 @@ export const hcSubVerticals = {
     tagline: "Appointment scheduling, prescription refills, referrals, billing, and patient communications.",
     intro: "Multi-site provider groups operate contact centers that serve dozens to hundreds of locations, each with different providers, schedules, specialties, and sometimes different EHR instances. The CX challenge is providing centralized service with local knowledge: a patient calling about their doctor at the Oak Street clinic expects the agent to know that location's hours, providers, and services.",
     kpis: [
-      { metric: "AHT", avg: "[[hc.sv.provider-groups.aht]]", note: "Shorter than health systems: simpler scheduling and fewer service lines" },
-      { metric: "FCR", avg: "[[hc.sv.provider-groups.fcr]]", note: "Better than hospitals but still limited by multi-location scheduling complexity" },
-      { metric: "CSAT", avg: "[[hc.sv.provider-groups.csat]]", note: "Higher than hospitals: smaller scale creates more responsive service" },
-      { metric: "Containment", avg: "[[hc.sv.provider-groups.containment]]", note: "Scheduling and refill requests are automatable" },
+      { metric: "AHT", avg: "[[hc.sv.provider-groups.aht]]", note: "Driven by scheduling across providers and locations" },
+      { metric: "FCR", avg: "[[hc.sv.provider-groups.fcr]]", note: "Limited by scheduling across several locations" },
+      { metric: "CSAT", avg: "[[hc.sv.provider-groups.csat]]", note: "Moves with how quickly the practice answers and follows up" },
+      { metric: "Containment", avg: "[[hc.sv.provider-groups.containment]]", note: "Scheduling and refill requests can be automated" },
     ],
     layers: [
       { layer: 7, name: "Analytics & Governance",
@@ -188,7 +188,7 @@ export const hcSubVerticals = {
         capabilities: ["Location-based routing matching patients to their home clinic","Specialty routing across multiple practice locations","Urgent care vs routine scheduling routing","Provider-specific routing for established patient relationships","After-hours answering service integration with clinical escalation"],
         vendors: "NICE CXone, Talkdesk, Five9, RingCentral", risk: "Patients calling one location and being unable to schedule at another",
         stack: [
-          { name: "Talkdesk Healthcare", role: "CCaaS", why: "Pre-built healthcare routing with multi-location scheduling logic. Epic and athenahealth integrations. Good for groups with 50-500 agents.", href: "/vendors/talkdesk" },
+          { name: "Talkdesk Healthcare", role: "CCaaS", why: "Pre-built healthcare routing with multi-location scheduling logic. Epic and athenahealth integrations. Suited to mid-size groups.", href: "/vendors/talkdesk" },
           { name: "RingCentral", role: "UCaaS/CCaaS", why: "Unified communications for multi-site groups where front desk staff and contact center agents need to collaborate. Phone system and contact center on one platform.", href: "/vendors" },
         ],
         pitfall: "Centralized scheduling across multiple locations requires real-time visibility into every location's schedule. If the contact center can see Dr. Smith's availability at the Oak Street location but not the Elm Street location, the agent can't offer alternatives when Oak Street is full. This is an EHR integration problem, not a routing problem, but it surfaces as a routing failure."
@@ -208,7 +208,7 @@ export const hcSubVerticals = {
         vendors: "Hyro.ai, Ada, Notable Health", risk: "Scheduling bots booking appointments without insurance verification",
         stack: [
           { name: "Hyro.ai", role: "Healthcare AI", why: "Conversational AI for scheduling with real-time EHR integration. Handles the full scheduling flow: provider search, availability check, insurance verification, booking. Purpose-built for healthcare.", href: "/vendors/iva" },
-          { name: "Notable Health", role: "Patient Automation", why: "AI-powered intake and scheduling. Pre-visit forms, insurance capture, and appointment reminders automated end-to-end. Reduces staff workload on administrative tasks by [[hc.admin.workload]].", href: "/vendors" },
+          { name: "Notable Health", role: "Patient Automation", why: "AI-powered intake and scheduling. Pre-visit forms, insurance capture, and appointment reminders automated end-to-end. Aimed at reducing staff time on administrative tasks.", href: "/vendors" },
         ],
         pitfall: "Online scheduling without insurance verification creates downstream chaos. A patient books online, arrives for their appointment, and discovers their insurance isn't accepted at that location, or their plan requires a referral they don't have. Every scheduling bot and online booking tool must verify insurance eligibility before confirming the appointment. This is harder than it sounds because eligibility APIs are inconsistent across payers."
       },
@@ -227,7 +227,7 @@ export const hcSubVerticals = {
           { name: "Luma Health", role: "Workflow Platform", why: "Referral management, waitlist filling, and recall campaigns automated across locations. Reduces referral leakage and no-show rates.", href: "/vendors" },
           { name: "Salesforce Health Cloud", role: "Patient CRM", why: "Patient relationship management across locations. Tracks the full patient lifecycle from first call through referral through follow-up.", href: "/vendors/ccaas" },
         ],
-        pitfall: "Referral leakage is the silent revenue killer for provider groups. [[hc.ex.referral-ortho]] Automate referral-to-appointment conversion within [[hc.referral.window]] or accept that [[hc.referral.leak]] of internal referrals will leak to competitors."
+        pitfall: "Referral leakage costs provider groups revenue that rarely shows up in any report. [[hc.ex.referral-ortho]] Automate referral-to-appointment conversion within [[hc.referral.window]]. In one large US health system, only [[hc.referral.closed]] of primary care referral scheduling attempts ended in a documented completed appointment."
       },
       { layer: 1, name: "Data Access",
         capabilities: ["EHR integration across all practice locations (may be multiple systems)","Practice management system for scheduling, billing, and insurance","Patient portal integration for online scheduling and messaging","Insurance eligibility verification in real-time","Provider directory with credentials, locations, and availability"],
@@ -236,7 +236,7 @@ export const hcSubVerticals = {
           { name: "athenahealth", role: "Cloud EHR/PM", why: "Most common EHR for multi-site provider groups. Cloud-native with modern APIs. athenaCollector (PM) and athenaClinicals (EHR) on one platform simplifies CX integration.", href: "/vendors" },
           { name: "eClinicalWorks", role: "EHR/PM", why: "Large market share in ambulatory groups. healow portal for patient engagement. Growing API capabilities but integration quality varies by version.", href: "/vendors" },
         ],
-        pitfall: "Provider groups formed through acquisition often run 2-3 different EHR systems across locations. The contact center needs to schedule across all of them. Without middleware that normalizes scheduling across EHR instances, agents must learn multiple systems, and errors multiply. Invest in a scheduling abstraction layer (Luma Health, QueueDr) that presents a unified view across all EHR instances."
+        pitfall: "Provider groups formed through acquisition often run more than one EHR system across locations. The contact center needs to schedule across all of them. Without middleware that normalizes scheduling across EHR instances, agents must learn multiple systems, and errors multiply. Invest in a scheduling abstraction layer (Luma Health, QueueDr) that presents a unified view across all EHR instances."
       },
     ],
   },
@@ -246,10 +246,10 @@ export const hcSubVerticals = {
     tagline: "Platform support, virtual visit scheduling, technical troubleshooting, and care navigation.",
     intro: "Digital health contact centers support patients who expect the speed and simplicity of a consumer app applied to healthcare. The CX challenge is resolving technical issues (video connectivity, app navigation, device pairing) alongside clinical access needs (scheduling, prescriptions, care navigation): two fundamentally different support models under one roof.",
     kpis: [
-      { metric: "AHT", avg: "[[hc.sv.digital-health.aht]]", note: "Shorter: digital-native users and simpler issue resolution" },
-      { metric: "FCR", avg: "[[hc.sv.digital-health.fcr]]", note: "Better than traditional HC: fewer multi-party dependencies" },
-      { metric: "CSAT", avg: "[[hc.sv.digital-health.csat]]", note: "Higher than traditional HC: self-selected digital-savvy population" },
-      { metric: "Containment", avg: "[[hc.sv.digital-health.containment]]", note: "Higher: FAQ, scheduling, and technical troubleshooting are automatable" },
+      { metric: "AHT", avg: "[[hc.sv.digital-health.aht]]", note: "Driven by account, visit, and technical questions" },
+      { metric: "FCR", avg: "[[hc.sv.digital-health.fcr]]", note: "Depends on how many issues need a clinician or a third party" },
+      { metric: "CSAT", avg: "[[hc.sv.digital-health.csat]]", note: "Moves with app reliability and time to a visit" },
+      { metric: "Containment", avg: "[[hc.sv.digital-health.containment]]", note: "Questions, scheduling, and technical troubleshooting can be automated" },
     ],
     layers: [
       { layer: 7, name: "Analytics & Governance", capabilities: ["App experience monitoring with support trigger correlation","Virtual visit completion rate analytics with technical failure tracking","Patient satisfaction by visit type, provider, and platform","Support volume correlation to app releases and outages","Regulatory compliance tracking for telehealth-specific requirements"], vendors: "Amplitude, NICE, Qualtrics", risk: "Technical issues causing visit abandonment without root cause visibility",
@@ -262,7 +262,7 @@ export const hcSubVerticals = {
       },
       { layer: 5, name: "Conversation Management", capabilities: ["In-app messaging as primary support channel","Pre-visit technical readiness checks (camera, mic, bandwidth)","Video visit technical support during live sessions","Post-visit care plan delivery and follow-up messaging","Connected device support for remote patient monitoring"], vendors: "Intercom, Twilio, Ada, Glia", risk: "Technical support friction preventing patients from accessing care",
         stack: [{ name: "Twilio", role: "Communications Platform", why: "Powers the video, voice, and messaging infrastructure for most telehealth platforms. When video fails, Twilio's diagnostics data tells you why: network, device, or platform.", href: "/vendors" }],
-        pitfall: "Pre-visit tech checks are the single highest-ROI investment in digital health CX. An automated camera, microphone and bandwidth test sent shortly before the visit prevents [[hc.tele.techcheck]] of 'I can't connect' calls. Most telehealth platforms skip this step and absorb the support volume instead."
+        pitfall: "Pre-visit tech checks are a direct lever on support volume. An automated camera, microphone and bandwidth test sent shortly before the visit catches connection problems before they become 'I can't connect' calls. A platform that skips this step absorbs the support volume instead; count those calls before and after to size it."
       },
       { layer: 4, name: "Reasoning & Planning", capabilities: ["Technical troubleshooting bots for common connectivity issues","Appointment scheduling bots for virtual and in-person visits","Prescription status and pharmacy routing bots","Device pairing and setup bots for RPM equipment","Symptom checker bots with appropriate clinical escalation"], vendors: "Ada, Intercom Fin, Hyro.ai", risk: "Bot providing clinical guidance without proper protocols",
         stack: [{ name: "Ada (Support)", role: "AI Agent", why: "Handles technical troubleshooting (camera permissions, bandwidth, app updates) without engineering escalation. Pre-built healthcare content for scheduling and FAQ.", href: "/vendors/iva" }],
@@ -288,10 +288,10 @@ export const hcSubVerticals = {
     tagline: "Patient support programs, co-pay assistance, adverse event reporting, and HCP inquiries.",
     intro: "Pharmaceutical contact centers serve two audiences with completely different needs: patients (support programs, co-pay cards, side effect questions) and healthcare providers (medical information, formulary status, sample requests). Both require absolute accuracy because incorrect information can affect treatment decisions and patient safety.",
     kpis: [
-      { metric: "AHT", avg: "[[hc.sv.pharma-life-sciences.aht]]", note: "Long: adverse event reports and medical information requests require detailed documentation" },
-      { metric: "FCR", avg: "[[hc.sv.pharma-life-sciences.fcr]]", note: "Higher than expected: specialized agents with deep product knowledge" },
-      { metric: "CSAT", avg: "[[hc.sv.pharma-life-sciences.csat]]", note: "High: patients in support programs appreciate the personal attention" },
-      { metric: "Containment", avg: "[[hc.sv.pharma-life-sciences.containment]]", note: "Low: regulatory requirements limit what automation can handle" },
+      { metric: "AHT", avg: "[[hc.sv.pharma-life-sciences.aht]]", note: "Driven by the documentation adverse event reports and medical information requests require" },
+      { metric: "FCR", avg: "[[hc.sv.pharma-life-sciences.fcr]]", note: "Depends on agents' product knowledge and access to medical information" },
+      { metric: "CSAT", avg: "[[hc.sv.pharma-life-sciences.csat]]", note: "Moves with the continuity of support program contacts" },
+      { metric: "Containment", avg: "[[hc.sv.pharma-life-sciences.containment]]", note: "Limited by what regulation lets automation handle" },
     ],
     layers: [
       { layer: 7, name: "Analytics & Governance", capabilities: ["Adverse event reporting completeness and timeline monitoring","Patient support program enrollment and adherence analytics","Medical information inquiry tracking with response accuracy","HCP engagement analytics across channels","Regulatory compliance audit readiness for FDA and EMA requirements"], vendors: "NICE, Verint, IQVIA", risk: "FDA audit findings from incomplete adverse event documentation",
@@ -330,10 +330,10 @@ export const hcSubVerticals = {
     tagline: "Visit scheduling, caregiver coordination, supply management, and family communication.",
     intro: "Home health contact centers serve the most vulnerable patient populations: elderly, post-surgical, chronically ill, and disabled individuals receiving care in their homes. The CX challenge is coordinating a mobile clinical workforce (nurses, therapists, aides) with patients and family caregivers who are often anxious, overwhelmed, and navigating the healthcare system for the first time.",
     kpis: [
-      { metric: "AHT", avg: "[[hc.sv.home-health.aht]]", note: "Moderate: scheduling and caregiver coordination are the primary call drivers" },
-      { metric: "FCR", avg: "[[hc.sv.home-health.fcr]]", note: "Low: visit changes require clinician coordination that can't happen in real-time" },
-      { metric: "CSAT", avg: "[[hc.sv.home-health.csat]]", note: "Higher than expected: patients and families value the personal touch" },
-      { metric: "Containment", avg: "[[hc.sv.home-health.containment]]", note: "Very low: vulnerable populations strongly prefer human interaction" },
+      { metric: "AHT", avg: "[[hc.sv.home-health.aht]]", note: "Driven by scheduling and caregiver coordination" },
+      { metric: "FCR", avg: "[[hc.sv.home-health.fcr]]", note: "Visit changes often need a clinician who cannot be reached during the call" },
+      { metric: "CSAT", avg: "[[hc.sv.home-health.csat]]", note: "Moves with continuity of caregivers and communication with families" },
+      { metric: "Containment", avg: "[[hc.sv.home-health.containment]]", note: "Limited where patients and families need a person" },
     ],
     layers: [
       { layer: 7, name: "Analytics & Governance", capabilities: ["Patient satisfaction tracking with family/caregiver perspective included","Visit completion rate analytics with no-show and cancellation reasons","OASIS assessment compliance monitoring","Clinician utilization and scheduling efficiency analytics","Rehospitalization risk correlation with care plan adherence"], vendors: "NICE, MatrixCare Analytics, WellSky", risk: "CMS quality reporting gaps affecting star ratings and reimbursement",
@@ -341,12 +341,12 @@ export const hcSubVerticals = {
         pitfall: "Home health quality metrics (OASIS, star ratings) are clinical measures, but the contact center directly influences them through scheduling timeliness, care plan communication, and follow-up completion. Connect your contact center metrics to clinical quality outcomes: a missed scheduling call today becomes a missed visit tomorrow and a rehospitalization next week."
       },
       { layer: 6, name: "Routing & Orchestration", capabilities: ["Patient/family vs clinician routing with different service models","Urgent clinical concern routing to on-call nurse or supervisor","Visit scheduling and rescheduling routing to scheduling coordinators","Supply and equipment request routing to supply chain team","Referral intake routing for new patient admissions"], vendors: "NICE CXone, 8x8, RingCentral", risk: "Urgent clinical concerns routed to administrative staff",
-        stack: [{ name: "8x8", role: "UCaaS/CCaaS", why: "Unified communications and contact center for mid-size home health agencies. Mobile app keeps field clinicians connected to the office. Right-sized for 20-100 agent operations.", href: "/vendors" }],
+        stack: [{ name: "8x8", role: "UCaaS/CCaaS", why: "Unified communications and contact center for mid-size home health agencies. Mobile app keeps field clinicians connected to the office. Suited to small and mid-size operations.", href: "/vendors" }],
         pitfall: "Home health contact centers receive calls from patients, family members, referring physicians, hospital discharge planners, insurance companies, and field clinicians, all on the same number. Without caller identification and routing, a discharge planner with a time-sensitive referral waits behind a family member asking about tomorrow's visit schedule. Implement dedicated lines or IVR paths for referral sources and clinical staff."
       },
       { layer: 5, name: "Conversation Management", capabilities: ["Family/caregiver communication updates on visit schedule and care plan","Clinician-to-office messaging for real-time visit updates","Patient education materials delivered via simple channels (SMS, print)","Visit confirmation and preparation reminders","Telehealth integration for virtual check-ins between in-person visits"], vendors: "CarePort, WellSky, Forcura", risk: "Family caregivers not receiving updates and calling repeatedly for status",
         stack: [{ name: "Forcura", role: "Healthcare Communications", why: "Referral and document management for post-acute care. Streamlines the intake process and clinician communication. Reduces fax-based workflows.", href: "/vendors" }],
-        pitfall: "Family caregivers, often adult children managing a parent's care, are the most frequent callers to home health contact centers. They call because they don't have visibility into the care schedule or care plan. Proactive communication to family caregivers (visit confirmations, clinician notes summaries, care plan updates) reduces call volume by [[hc.home.proactive]]. But most home health agencies don't have the family caregiver's contact info in a structured field: it's buried in clinical notes."
+        pitfall: "Family caregivers, often adult children managing a parent's care, are frequent callers to home health contact centers. They call because they don't have visibility into the care schedule or care plan. Proactive communication to family caregivers (visit confirmations, clinician notes summaries, care plan updates) should reduce the calls that ask for that information; measure call volume before and after. But agencies often do not have the family caregiver's contact info in a structured field: it's buried in clinical notes."
       },
       { layer: 4, name: "Reasoning & Planning", capabilities: ["Visit schedule lookup and confirmation bots","Supply reorder bots for recurring medical supplies","New patient referral intake bots collecting required information","FAQ bots for agency services, coverage, and intake requirements","Post-visit satisfaction survey bots"], vendors: "Ada, basic IVR automation", risk: "Bots frustrating elderly patients who need simple, patient human interaction",
         stack: [{ name: "Simple IVR + SMS", role: "Basic Automation", why: "Home health patients are predominantly elderly. Complex bots frustrate them. Simple IVR confirmations ('press 1 to confirm your visit tomorrow at 2pm') and SMS reminders are the right level of automation for this population.", href: "/vendors" }],
@@ -358,7 +358,7 @@ export const hcSubVerticals = {
       },
       { layer: 2, name: "Workflow Execution", capabilities: ["New patient referral intake and admission workflow","Visit scheduling and clinician assignment workflow","Authorization tracking and re-authorization request workflow","Supply ordering and delivery coordination workflow","Discharge planning and care transition workflow"], vendors: "WellSky, MatrixCare, Axxess, Homecare Homebase", risk: "Authorization expiration causing visit interruptions",
         stack: [{ name: "WellSky (Kinnser)", role: "Home Health Platform", why: "End-to-end home health operations: referral intake, scheduling, clinical documentation, and billing. The operational backbone that the contact center integrates with.", href: "/vendors" }, { name: "Axxess", role: "Home Health Software", why: "Cloud-based home health platform growing in mid-market agencies. Scheduling, clinical documentation, and billing. Modern interface compared to legacy systems.", href: "/vendors" }],
-        pitfall: "Authorization management is the most operationally critical workflow in home health. Insurance authorizes 20 visits; the agency schedules them; the authorization expires before all visits are completed; the patient's care is interrupted while re-authorization is processed. Your workflow engine must track authorization utilization and trigger re-auth requests at [[hc.home.reauth]] utilization, not after the authorization expires."
+        pitfall: "In home health, a lapsed authorization stops care, so the authorization clock needs the same attention as the visit schedule. Insurance authorizes a set number of visits; the agency schedules them; the authorization expires before all visits are completed; the patient's care is interrupted while re-authorization is processed. Your workflow engine must track authorization utilization and trigger re-auth requests at [[hc.home.reauth]] utilization, not after the authorization expires."
       },
       { layer: 1, name: "Data Access", capabilities: ["Home health EMR integration (WellSky, MatrixCare, Homecare Homebase)","Referral source systems (hospital discharge planning, physician offices)","Insurance authorization and eligibility systems","Supply management and DME ordering systems","Clinician scheduling and mobile workforce management"], vendors: "WellSky, MatrixCare, Axxess, Homecare Homebase", risk: "Field clinician data entered on mobile devices not syncing to office systems in real-time",
         stack: [{ name: "WellSky/Kinnser", role: "Home Health EMR", why: "Clinical documentation, scheduling, and billing. Field clinicians document at the point of care; office staff need real-time visibility into visit completion and patient status.", href: "/vendors" }, { name: "MatrixCare", role: "Home Health EMR", why: "Strong in skilled nursing and home health. Post-acute care-specific workflows. Integration with hospital referral systems for streamlined admissions.", href: "/vendors" }],

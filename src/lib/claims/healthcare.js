@@ -29,43 +29,47 @@ const SV = {
   "pharma-life-sciences": { aht: "10:00", fcr: "72%", csat: "81%", containment: "15%" },
   "home-health":          { aht: "6:00", fcr: "55%", csat: "79%", containment: "10%" },
 };
-const SV_TEST = { aht: "aht", fcr: "fcr", csat: "qa", containment: "deflection" };
+/* Research pass 2026-09-25: no free public source publishes these four metrics for any healthcare segment. CMS test
+ * calls measure hold time, dropped calls and interpreter availability; CAHPS, ACSI and J.D. Power publish index scores.
+ * `draft` keeps the figure the page printed before, for lineage; it never renders. */
+const SV_TEST = { aht: "aht", fcr: "fcr", containment: "deflection" };
+const SV_LABEL = { aht: "Average handle time", fcr: "First contact resolution", csat: "Customer satisfaction", containment: "Self-service containment" };
+const SV_REASON = {
+  aht: "No regulator or trade body publishes handle time for this segment; CMS call center monitoring measures hold time, not handle time.",
+  fcr: "No regulator or trade body publishes first contact resolution for this segment.",
+  csat: "No public CSAT percentage exists for this segment; CAHPS, ACSI and J.D. Power publish index scores on other scales.",
+  containment: "No regulator or trade body publishes self-service containment for this segment.",
+};
 const sv = {};
 for (const [slug, kpis] of Object.entries(SV)) for (const [m, v] of Object.entries(kpis)) {
-  if (v) sv[`hc.sv.${slug}.${m}`] = pend(v, `${m.toUpperCase()}, ${slug.replace(/-/g, " ")}`, "Sub-segment benchmarks are rarely public; expect none unless a trade body or regulator publishes one", SV_TEST[m]);
+  if (v) sv[`hc.sv.${slug}.${m}`] = { kind: "none", label: `${SV_LABEL[m]}, ${slug.replace(/-/g, " ")} contact centers`, reason: SV_REASON[m], draft: v, ...(SV_TEST[m] ? { test: SV_TEST[m] } : {}) };
 }
 
 export default {
   ...bench,
   ...sv,
 
-  "hc.sched.calls": pend("3.5 times", "Calls per scheduling need", "Origin unknown; search the figure verbatim; likely retire", "fcr"),
-  "hc.turnover": pend("40%", "Annual healthcare contact center agent turnover", "Same sources as the attrition benchmark", "attrition"),
   "hc.hipaa.penalty": { kind: "fact", value: "$145 to $73,011", label: "HIPAA civil money penalty per violation, 2025 inflation adjusted, lowest tier minimum to highest per violation maximum (45 CFR 160.404(b)(2) as adjusted; calendar year cap $2,190,294)", source: { publisher: "HHS, eCFR", title: "45 CFR 102.3, Penalty adjustment and table", year: 2025, url: "https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-A/part-102/section-102.3" }, checked: "2026-09-25" },
-  "hc.noshow.reminders": pend("25 to 40%", "Reduction in no-show rates from automated reminders", "Peer-reviewed reviews of SMS and call reminders (PubMed, Cochrane)", "channel"),
+  "hc.noshow.reminders": { kind: "fact", value: "29% of the baseline rate", label: "Relative reduction in hospital appointment non-attendance from automated reminders, weighted mean across a systematic review of 29 studies (manual phone calls: 39%)", source: { publisher: "Journal of Telemedicine and Telecare (Hasvold and Wootton)", title: "Use of telephone and SMS reminders to improve attendance at hospital appointments: a systematic review", year: 2011, url: "https://pubmed.ncbi.nlm.nih.gov/21933898/" }, checked: "2026-09-25", test: "channel" },
+  "hc.referral.closed": { kind: "fact", value: "34.8%", label: "Primary care referral scheduling attempts that ended in a documented completed specialist appointment, one large US health system (103,737 attempts, 20 specialties, 2015 to 2016)", source: { publisher: "Journal of General Internal Medicine (Patel et al.)", title: "Closing the Referral Loop: an Analysis of Primary Care Referrals to Specialists in a Large Health System", year: 2018, url: "https://pubmed.ncbi.nlm.nih.gov/29532299/" }, checked: "2026-09-25", test: "fcr" },
   "hc.epic.share": { kind: "assumption", value: "70%+", label: "Share of patient access interactions whose data sits in Cadence, MyChart and Resolute", rationale: "From practice in Epic health systems; varies by module adoption. Not a published figure.", test: "aht" },
-  "hc.referral.leak": pend("20 to 30%", "Internal referrals lost when not scheduled promptly", "Published referral leakage studies (health services research)", "fcr"),
-  "hc.referral.delay": pend("2 to 3 week", "Specialist access delay from manual referral coordination", "Referral cycle time studies; likely a planning assumption", "fcr"),
-  "hc.referral.gone": pend("30%", "Referred patients who schedule elsewhere or give up after a two-week delay", "Referral leakage studies; likely an example", "fcr"),
+  "hc.referral.delay": { kind: "assumption", value: "2 to 3 week", label: "Specialist access delay from manual referral coordination", rationale: "From practice; no published cycle time for manual referral coordination. Time your own referral to appointment interval.", test: "fcr" },
   "hc.fcr.stuck": { kind: "assumption", value: "50%", label: "FCR ceiling for health systems at Level 2 integration", rationale: "From practice; an illustration of where FCR stalls without EHR write-back. Not a published figure.", test: "fcr" },
   "hc.idcard.aht": { kind: "example", value: "90 seconds", label: "Illustrative handle time of an ID card request", rationale: "Contrasts a simple call with a prior authorization call." },
   "hc.admin.share": { kind: "assumption", value: "40%", label: "Specialist time spent on simple calls without intent segmentation", rationale: "From practice; depends on plan mix and routing. Not a published figure.", test: "aht" },
-  "hc.oe.spike": pend("2 to 4x", "Open enrollment volume against a normal month", "CMS open enrollment call volume reports; payer investor disclosures", "forecast"),
+  "hc.oe.spike": { kind: "assumption", value: "2 to 4x", label: "Open enrollment volume against a normal month", rationale: "From practice; CMS publishes federal Marketplace call volume only during open enrollment, with no payer baseline. Forecast from your own past enrollment periods.", test: "forecast" },
   "hc.temp.training": { kind: "assumption", value: "2 weeks", label: "Typical training for seasonal temporary agents", rationale: "From practice; not a published figure.", test: "staffing" },
   "hc.cms.grievance": { kind: "fact", value: "30 days", label: "Medicare Advantage grievance decision limit from receipt, extendable by up to 14 days (42 CFR 422.564(e))", source: { publisher: "CMS, eCFR", title: "42 CFR 422.564, Grievance procedures", year: 2026, url: "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-B/part-422/subpart-M/section-422.564" }, checked: "2026-09-25" },
   "hc.cms.expedited": { kind: "fact", value: "24 hours", label: "Medicare Advantage expedited grievance response limit, for a complaint about an extension or a refused expedited request (42 CFR 422.564(f))", source: { publisher: "CMS, eCFR", title: "42 CFR 422.564, Grievance procedures", year: 2026, url: "https://www.ecfr.gov/current/title-42/chapter-IV/subchapter-B/part-422/subpart-M/section-422.564" }, checked: "2026-09-25" },
   "hc.cms.alerts": { kind: "assumption", value: "day 20 and hour 12", label: "Escalation alert points ahead of the standard and expedited grievance limits", rationale: "A design choice that leaves a third to a half of each limit as working time; set your own." },
-  "hc.admin.workload": pend("30 to 50%", "Reduction in administrative staff workload", "Vendor-stated; find the vendor's own claim or retire", "aht"),
   "hc.referral.window": { kind: "assumption", value: "24 hours", label: "Referral-to-appointment service target", rationale: "A service target from practice; set it against your own referral data.", test: "fcr" },
   "hc.ex.referral-fax": { kind: "example", value: "3 days and 2 weeks", label: "Illustrative referral delay in a fax-based workflow", rationale: "A scenario, not a measured delay.", text: "A PCP refers a patient to cardiology; the referral sits in a fax queue for 3 days; someone manually enters it into the scheduling system; the patient gets called 2 weeks later." },
   "hc.ex.referral-ortho": { kind: "example", value: "48 hours", label: "Illustrative window before a referred patient books elsewhere", rationale: "A scenario, not a measured window.", text: "A PCP refers a patient to the group's orthopedist; the contact center does not schedule the appointment within 48 hours; the patient searches 'orthopedist near me' and books with a competitor." },
   "hc.ex.copay": { kind: "example", value: "$40 and $60", label: "Illustrative copay quoted by a bot against the true copay", rationale: "Shows why a bot must read the deductible state before quoting.", text: "If a bot tells a member their specialist copay is $40 but the actual copay is $60 because they have not met their deductible, the member will rely on that $40 figure." },
   "hc.tele.support": { kind: "example", value: "15% and 8%", label: "Illustrative pre-visit support and visit abandonment rates", rationale: "A worked scenario; measure your own support contacts per visit.", text: "If 15% of patients call support before their visit and 8% of those abandon the visit entirely, you have a technical barrier to care that only shows up in support data." },
-  "hc.tele.techcheck": pend("60 to 70%", "Share of connection calls prevented by a pre-visit tech check", "Telehealth vendor case studies or peer-reviewed telehealth access studies", "channel"),
   "hc.onboard.time": { kind: "assumption", value: "15 to 25 minutes", label: "Digital health onboarding time before a first visit", rationale: "From practice; count your own steps and time them.", test: "channel" },
-  "hc.onboard.loss": pend("5 to 10%", "Patients lost at each added onboarding step", "Digital funnel drop-off studies; likely a planning assumption", "channel"),
-  "hc.pharma.loss": pend("10 to 15%", "Eligible patients lost at each added enrollment step", "Patient support program enrollment studies; likely a planning assumption", "channel"),
-  "hc.home.proactive": pend("30 to 40%", "Call volume reduction from proactive caregiver updates", "Home health operator case studies; likely a planning assumption", "channel"),
+  "hc.onboard.loss": { kind: "assumption", value: "5 to 10%", label: "Patients lost at each added onboarding step", rationale: "From practice; no published per-step drop-off for digital health onboarding. Measure completion at each step of your own funnel.", test: "channel" },
+  "hc.pharma.loss": { kind: "assumption", value: "10 to 15%", label: "Eligible patients lost at each added support program enrollment step", rationale: "From practice; no public per-step figure for patient support program enrollment. Measure completion at each step of your own program.", test: "channel" },
   "hc.home.containment": { kind: "assumption", value: "10 to 15%", label: "Containment target for home health, against 40% elsewhere", rationale: "From practice; a vulnerable, high-stakes population keeps more contacts with people.", test: "deflection" },
   "hc.home.reauth": { kind: "assumption", value: "70 to 80%", label: "Authorization use at which to trigger re-authorization", rationale: "A design choice that leaves lead time before visits run out; set your own." },
 };

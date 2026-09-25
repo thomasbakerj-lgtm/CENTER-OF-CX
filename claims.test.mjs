@@ -21,7 +21,7 @@ const CONVERTED = [
   { file: "HCSubVerticalData.js", kind: "data", exportName: "hcSubVerticals", page: "HCSubVerticalPage.jsx" },
 ];
 
-const FIGURE = /\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|x\b|percent\b|times\b|minutes?\b|seconds?\b|hours?\b|days?\b|weeks?\b|months?\b|years?\b)|\b\d+:\d\d\b/i;
+const FIGURE = /\$\s?\d|\b\d+(?:\.\d+)?\s?(?:%|x\b|percent\b|times\b|minutes?\b|seconds?\b|hours?\b|days?\b|weeks?\b|months?\b|years?\b)|\b\d+:\d\d\b|(?<!level )\b\d+\s?(?:-|to)\s?\d+\s+[a-z]|\b\d+\s+(?:agents?|visits?|systems?|calls?|patients?|members?|steps?|studies)\b/i;
 const TOKEN = /\[\[[a-z0-9.\-]+\]\]/g;
 const bare = (text) => FIGURE.test(String(text).replace(TOKEN, ""));
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -32,6 +32,8 @@ ok("a bare percentage is caught", bare("Reduces no-show rates 25-40%."));
 ok("a bare dollar figure and a handle time are caught", bare("costs $40 a call") && bare("AHT of 6:36"));
 ok("a figure inside a token passes", !bare("Reduces no-show rates by [[hc.noshow.reminders]]."));
 ok("plain prose passes", !bare("Map your capabilities across all 7 orchestration layers."));
+ok("a count range and a counted noun are caught", bare("Good for groups with 50-500 agents.") && bare("agents toggle between 4 to 6 systems") && bare("Insurance authorizes 20 visits"));
+ok("a maturity level range passes", !bare("Push for Level 3-4 integration."));
 ok("tokens split in order", JSON.stringify(tokens("a [[x.y]] b")) === JSON.stringify([{ text: "a " }, { id: "x.y" }, { text: " b" }]));
 
 console.log("\n2. Every entry is complete for its kind");
