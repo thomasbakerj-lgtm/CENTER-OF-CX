@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import { claimIds } from "./src/lib/claims.js";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
@@ -22,9 +24,9 @@ export default function TelecomVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const subVerticals = [
-    { name: "Mobile / Wireless Carriers", slug: "mobile-wireless", desc: "Plan changes, billing disputes, device support, network coverage complaints, and retention. The highest-volume, highest-churn sub-vertical in all of CX.", contact: "Extreme volume, churn-driven" },
-    { name: "Broadband / ISP", slug: "broadband-isp", desc: "Service activation, speed complaints, outage management, billing, and technical troubleshooting. Customers who call their ISP are rarely happy.", contact: "High volume, high frustration" },
-    { name: "Cable & Pay TV", slug: "cable-tv", desc: "Package management, billing, equipment troubleshooting, content disputes, and cord-cutting retention. A declining market fighting to keep every subscriber.", contact: "Declining volume, high save urgency" },
+    { name: "Mobile / Wireless Carriers", slug: "mobile-wireless", desc: "Plan changes, billing disputes, device support, network coverage complaints, and retention. High volume in a market where switching carriers is easy.", contact: "Extreme volume, churn-driven" },
+    { name: "Broadband / ISP", slug: "broadband-isp", desc: "Service activation, speed complaints, outage management, billing, and technical troubleshooting. Calls usually start with a service problem.", contact: "High volume, high frustration" },
+    { name: "Cable & Pay TV", slug: "cable-tv", desc: "Package management, billing, equipment troubleshooting, content disputes, and cord-cutting retention. A shrinking market working to keep every subscriber.", contact: "Declining volume, high save urgency" },
     { name: "Enterprise & Business Communications", slug: "enterprise-comms", desc: "UCaaS/SD-WAN support, SLA management, provisioning, circuit troubleshooting, and account management. B2B with revenue-critical uptime requirements.", contact: "Lower volume, very high revenue per account" },
     { name: "Managed Service Providers", slug: "managed-services", desc: "NOC support, incident management, SLA reporting, change requests, and multi-vendor coordination. Technical depth defines the service quality.", contact: "Technical volume, SLA-driven" },
     { name: "Fiber & Infrastructure", slug: "fiber-infrastructure", desc: "Installation scheduling, construction updates, service activation, and wholesale/carrier support. Long lead times with high customer anxiety.", contact: "Project-based, milestone-driven" },
@@ -33,16 +35,17 @@ export default function TelecomVertical() {
   /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
      and uncited figures were removed. */
   const stats = [
-    { n: "14", label: "Global telecom NPS, below the other industries measured (16 to 80)", source: "Simon-Kucher Global Telecommunications Study 2025" },
-    { n: "36 to 38%", label: "Of mobile and broadband support issues resolved on first contact", source: "Simon-Kucher Global Telecommunications Study 2025" },
+    { n: "[[tel.bench.nps.tel]]", label: "Global telecom NPS; other industries Simon-Kucher compares: [[tel.bench.nps.cross]]", source: "Simon-Kucher Global Telecommunications Study 2025", url: "https://www.simon-kucher.com/en/insights/leveraging-customer-happiness-drive-growth-key-insights-global-telecommunications-study" },
+    { n: "[[tel.stat.fcr]]", label: "Of mobile and broadband support issues resolved on first contact, as consumers report it", source: "Simon-Kucher Global Telecommunications Study 2025", url: "https://www.simon-kucher.com/en/insights/leveraging-customer-happiness-drive-growth-key-insights-global-telecommunications-study" },
+    { n: "[[tel.bench.fcr.tel]]", label: "First contact resolution in telco call centers, by post-call survey (all industries: [[tel.bench.fcr.cross]])", source: "SQM Group FCR Benchmarking by Industry 2026", url: "https://www.sqmgroup.com/resources/library/blog/fcr-metric-operating-philosophy" },
   ];
 
   const failureModes = [
-    { title: "Billing complexity creates the majority of contact volume", desc: "Promotional pricing that expires, hidden fees, prorated charges, device installments, and taxes create bills that customers cannot understand. 30-40% of inbound calls are billing-related, and the agent often can't explain the bill either because the billing system logic is opaque." },
+    { title: "Billing complexity drives a large share of contact volume", desc: "Promotional pricing that expires, hidden fees, prorated charges, device installments, and taxes create bills that customers cannot understand. Billing can account for [[tel.billing.share]] of inbound calls, and the agent often can't explain the bill either because the billing system logic is opaque." },
     { title: "Retention offers reward disloyalty over loyalty", desc: "Customers who threaten to cancel receive better pricing than loyal customers who never complain. This creates a perverse incentive: the best way to get a good deal is to call and threaten to leave. Savvy customers learn the retention playbook and call quarterly for discounts, consuming agent time without genuine churn risk." },
-    { title: "Technical support and billing share a queue", desc: "A customer with no internet service (urgent, technical) waits behind a customer disputing a $3 charge (low urgency, billing). Without intent-based routing, urgent service issues compete with routine billing inquiries for the same agents." },
+    { title: "Technical support and billing share a queue", desc: "A customer with no internet service (urgent, technical) waits behind a customer disputing a small charge (low urgency, billing). Without intent-based routing, urgent service issues compete with routine billing inquiries for the same agents." },
     { title: "Outage communication is reactive instead of proactive", desc: "When a network outage occurs, thousands of customers call to report the same issue. Without proactive outage notifications and IVR intercepts, every affected customer generates a call the agent can't resolve, because the fix is in the network, not the contact center." },
-    { title: "Agent attrition is the highest in any industry", desc: "Telecom contact center agents face angry customers, complex systems, and constant pressure to upsell. The combination produces attrition rates of 40-50% annually, which means the average agent has less than 18 months of experience, handling the most complex billing and technical issues." },
+    { title: "Agent attrition drains experience from the hardest calls", desc: "Telecom contact center agents face angry customers, complex systems, and constant pressure to upsell. When that load drives turnover, the agents left handling complex billing and technical issues are often the least experienced. No public source reports telecom agent attrition; measure your own." },
   ];
 
   const stackLayers = [
@@ -56,12 +59,20 @@ export default function TelecomVertical() {
   ];
 
   const benchmarks = [
-    { metric: "CSAT", avg: "68%", cross: "78%", top: "82%+", note: "Lowest of any major industry, billing confusion, outages, and retention friction suppress scores" },
-    { metric: "FCR", avg: "36%", cross: "72%", top: "65%+", note: "Dramatically below average, multi-system complexity and cross-department handoffs prevent resolution" },
-    { metric: "AHT", avg: "8:30", cross: "7:00", top: "6:00", note: "Above average, billing explanations, technical troubleshooting, and retention negotiations are long" },
-    { metric: "NPS", avg: "14", cross: "32", top: "40+", note: "Lowest of any industry, structural customer frustration with pricing, reliability, and service" },
-    { metric: "Attrition", avg: "45%", cross: "35%", top: "20%", note: "Highest of any industry, angry customers, complex systems, and upsell pressure burn agents out" },
-    { metric: "Churn", avg: "31%", cross: "20%", top: "15%", note: "Among the highest, driven by competitive switching, price sensitivity, and service frustration" },
+    { metric: "CSAT", avg: "[[tel.bench.csat.tel]]", cross: "[[tel.bench.csat.cross]]", note: "Moves with billing confusion, outages, and retention friction" },
+    { metric: "FCR", avg: "[[tel.bench.fcr.tel]]", cross: "[[tel.bench.fcr.cross]]", note: "Multi-system complexity and cross-department handoffs stand in the way of single-contact resolution" },
+    { metric: "AHT", avg: "[[tel.bench.aht.tel]]", cross: "[[tel.bench.aht.cross]]", note: "Driven by billing explanations, technical troubleshooting, and retention negotiations" },
+    { metric: "NPS", avg: "[[tel.bench.nps.tel]]", cross: "[[tel.bench.nps.cross]]", note: "Moves with price and value perception, network reliability, and service" },
+    { metric: "Attrition", avg: "[[tel.bench.attrition.tel]]", cross: "[[tel.bench.attrition.cross]]", note: "Angry customers, complex systems, and upsell pressure are the drivers to watch" },
+  ];
+
+  const bpoRisks = [
+    "Retention and save conversations require authority and system access that BPO contracts often underspecify",
+    "Network troubleshooting above Tier 1 requires NOC access and engineering escalation paths",
+    "Enterprise and business accounts need deep product knowledge and SLA awareness",
+    "CPNI training gaps create regulatory exposure: FCC rules ([[tel.fcc.cpni]]) require authentication before any CPNI is disclosed on a customer call",
+    "The FCC has proposed limits on foreign call centers for telecom, wireless, VoIP, cable and satellite providers ([[tel.fcc.onshoring]]); track the rulemaking before moving work offshore",
+    "Complex billing disputes require system expertise that generic BPO training can't replicate",
   ];
 
   return (
@@ -72,21 +83,21 @@ export default function TelecomVertical() {
           <FadeIn><div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}><a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><a href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Industries</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Telecommunications</span></div></FadeIn>
           <FadeIn delay={0.05}>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>Telecommunications{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span></h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Telecom runs on support, retention, billing, service activation, and churn management. With the lowest NPS of any industry and the highest agent attrition, telecom CX operates under structural pressures that no amount of chatbot deflection can solve. This is the vertical-specific intelligence layer: benchmarks, failure modes, technology stack mapping, and vendor recommendations built for carriers, ISPs, and enterprise communications.</p>
+            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Telecom runs on support, retention, billing, service activation, and churn management. Simon-Kucher puts global telecom NPS below every other industry it compares, and telecom CX runs under structural pressures (billing complexity, network dependency, easy switching) that chatbot deflection alone does not fix. This is the vertical-specific intelligence layer: benchmarks, failure modes, technology stack mapping, and vendor recommendations built for carriers, ISPs, and enterprise communications.</p>
           </FadeIn>
         </div>
       </section>
 
       {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}><ClaimText text={s.n} /></div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}><ClaimText text={s.label} /></div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
       </FadeIn></div></section>)}
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Six distinct telecom service models.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>A wireless carrier managing 50 million subscribers and a managed service provider supporting 200 enterprise clients have fundamentally different CX requirements. The technology, staffing, and retention models diverge completely.</p></FadeIn>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>A national wireless carrier with tens of millions of subscribers and a managed service provider with a few hundred enterprise clients have fundamentally different CX requirements. The technology, staffing, and retention models diverge completely.</p></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
           {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><a href={`/industries/telecom/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span><div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div></a></FadeIn>))}
         </div>
@@ -96,14 +107,14 @@ export default function TelecomVertical() {
         <FadeIn><span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>What Breaks</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five failure modes unique to telecom CX.</h2></FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{fm.desc}</p></div></FadeIn>))}
+          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}><ClaimText text={fm.desc} /></p></div></FadeIn>))}
         </div>
       </div></section>
 
       <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}><div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn><span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Technology Stack</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Seven orchestration layers, mapped for telecom.</h2>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 1 (Data Access) and Layer 2 (Workflow Execution) carry disproportionate weight because telecom BSS/OSS complexity is the root cause of most CX failures. The billing system, the network inventory, and the order management system determine what the agent can actually do, not just see.</p></FadeIn>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 1 (Data Access) and Layer 2 (Workflow Execution) carry disproportionate weight because telecom BSS/OSS complexity is a frequent root cause of CX failures. The billing system, the network inventory, and the order management system determine what the agent can actually do, not just see.</p></FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {stackLayers.map((sl, i) => (<FadeIn key={i} delay={i * 0.03}><div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "20px 22px", display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}><div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: LIGHT }}>{sl.layer}</span></div><div style={{ flex: 1, minWidth: 250 }}><h3 style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>{sl.name}</h3><p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 8px" }}>{sl.note}</p><div style={{ fontSize: 11, color: LIGHT }}>Key vendors: {sl.vendors}</div></div></div></FadeIn>))}
         </div>
@@ -112,13 +123,18 @@ export default function TelecomVertical() {
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How telecom compares.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Telecom underperforms cross-industry on every major CX metric. The root causes are structural (billing complexity, network dependency, and competitive churn pressure) and require systemic solutions, not incremental improvements.</p></FadeIn>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Two published figures cover telecom: SQM Group's first contact resolution for telco call centers, measured by post-call survey and below its all-industry average, and Simon-Kucher's global telecom NPS, below the other industries it compares. No free public source reports the other metrics for telecom; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.</p></FadeIn>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Telecom Avg", "Cross-Industry", "Top Quartile", "Why It Differs"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
-            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: RED }}>{b.avg}</td><td style={{ padding: "12px 14px", color: MUTED }}>{b.cross}</td><td style={{ padding: "12px 14px", color: GREEN, fontWeight: 600 }}>{b.top}</td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Telecom", "All Industries", "What Drives It"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
+            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.avg} /></td><td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
           </table>
         </div>
-        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your cost per contact against these benchmarks →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your telecom TCO →</a></div></FadeIn>
+        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your own cost per contact →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your telecom TCO →</a></div></FadeIn>
+        <div id="sources" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h3>
+          <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark.</p>
+          <ClaimSources ids={claimIds([stats, benchmarks, failureModes, bpoRisks])} color={SLATE} accent={ELECTRIC} />
+        </div>
       </div></section>
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
@@ -126,7 +142,7 @@ export default function TelecomVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How outsourcing fits in telecom CX.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 24 }} className="sub-grid">
           <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Tier 1 billing inquiries and plan change requests: high volume, scriptable","Device activation and basic setup support","Outbound collections and payment arrangement calls","After-hours coverage for service disruption reporting","Seasonal scaling for product launches and promotional campaigns"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
-          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Retention and save conversations require authority and system access most BPO contracts underspecify","Network troubleshooting above Tier 1 requires NOC access and engineering escalation paths","Enterprise and business accounts need deep product knowledge and SLA awareness","CPNI compliance training gaps create regulatory exposure with FCC penalties","Complex billing disputes require system expertise that generic BPO training can't replicate"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>))}</div></div></FadeIn>
+          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{bpoRisks.map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}><ClaimText text={item} /></p>))}</div></div></FadeIn>
         </div>
       </div></section>
 
@@ -135,12 +151,12 @@ export default function TelecomVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms often evaluated for telecom.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
-            { name: "Genesys", why: "Deepest routing for high-volume telecom operations. Predictive routing separates billing, tech support, sales, and retention. Proven at Tier 1 carriers globally.", href: "/vendors/genesys" },
-            { name: "NICE CXone", why: "WEM for managing 1,000+ agent operations. Churn prediction and retention analytics. Strong compliance controls for CPNI.", href: "/vendors/nice-cxone" },
+            { name: "Genesys", why: "Routing for high-volume telecom operations. Predictive routing separates billing, tech support, sales, and retention.", href: "/vendors/genesys" },
+            { name: "NICE CXone", why: "WEM for large agent operations. Churn prediction and retention analytics. Strong compliance controls for CPNI.", href: "/vendors/nice-cxone" },
             { name: "Cisco", why: "Network infrastructure heritage creates natural fit for telecom. UCaaS/CCaaS convergence. Strong in carriers with existing Cisco network equipment.", href: "/vendors/cisco" },
-            { name: "Avaya", why: "Massive installed base in telecom. Many carriers run Avaya on-premise. Cloud migration path via Avaya Experience Platform.", href: "/vendors" },
+            { name: "Avaya", why: "Long-standing installed base in telecom, with many carriers running Avaya on premises. Cloud migration path via Avaya Experience Platform.", href: "/vendors" },
             { name: "Five9", why: "Strong mid-market fit for MVNOs and regional carriers. Reliable CCaaS with practical AI and CRM integration.", href: "/vendors/five9" },
-            { name: "Amazon Connect", why: "Pay-per-use pricing attractive for carriers with variable volume. AWS ecosystem integration. Best for carriers with cloud engineering depth.", href: "/vendors/amazon-connect" },
+            { name: "Amazon Connect", why: "Pay-per-use pricing attractive for carriers with variable volume. AWS ecosystem integration. Suits carriers with cloud engineering depth.", href: "/vendors/amazon-connect" },
           ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (<FadeIn key={i} delay={i * 0.04}><a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }} onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3></div><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p></a></FadeIn>))}
         </div>
         <FadeIn delay={0.2}><div style={{ textAlign: "center", marginTop: 24 }}><a href="/vendors/ccaas" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>See all CCaaS vendors →</a></div></FadeIn>
