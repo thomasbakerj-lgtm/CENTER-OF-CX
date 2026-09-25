@@ -387,11 +387,19 @@ const forecastEntries = {
   "forecast.ts.limit": { tool: "forecast-accuracy", kind: "threshold", value: 4, unit: "mean absolute errors", source: "The tracking signal and its control limits of plus or minus 4 mean absolute deviations, as taught in standard operations management texts (for example Heizer, Render and Munson, Operations Management, chapter on forecasting). A convention, not a law: some planners use 3 for tighter control.", reviewed: REVIEWED, version: 1, rationale: "Outside plus or minus 4 the errors lean one way more than random error would, so the forecast is read as biased. Inside it, bias is not distinguished from noise." },
 };
 
+/* Schedule Adherence Impact Calculator. Service level and speed of answer come from Erlang C,
+   which is arithmetic. The one constant is the overtime multiplier, which is law in the
+   United States; the tool lets a reader enter their own. */
+const adherenceEntries = {
+  "adh.ot.multiplier": { tool: "schedule-adherence", kind: "market", value: 1.5, unit: "multiple of the regular hourly rate", source: "US Fair Labor Standards Act, 29 U.S.C. 207(a): overtime beyond 40 hours in a workweek is paid at not less than one and one half times the regular rate. A legal minimum; contracts, other jurisdictions and state law can set more.", reviewed: REVIEWED, version: 1, rationale: "Prices the overtime hours it takes to hold the service level target when adherence falls." },
+};
+
 export const BENCHMARK_SOURCES = {
   ...SHARED_BENCHMARKS,
   ...occEntries,
   ...ahtEntries,
   ...forecastEntries,
+  ...adherenceEntries,
   "lbg.module.wem": mod(25, "Starting price for a WEM or WFM add-on so the default case shows a non-zero gap."),
   "lbg.module.qa": mod(15, "Starting price for a quality management add-on."),
   "lbg.module.recording": mod(10, "Starting price for recording, shipped as included, so it prices only if the user reclassifies it."),
