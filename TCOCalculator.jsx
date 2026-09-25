@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
+import { METHOD_VERSIONS } from "./src/lib/methodVersions";
 import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
@@ -19,7 +20,7 @@ const GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red;
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 const TOOL_ID = "tco-calculator";
 const ROUTE = "/tools/tco-calculator";
-const METHODOLOGY_VERSION = "tco-v3.2026.08";
+const METHODOLOGY_VERSION = METHOD_VERSIONS[TOOL_ID].version;
 
 
 function LogoMark({ size = 34, light = true }) {

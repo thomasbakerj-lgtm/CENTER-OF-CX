@@ -158,6 +158,10 @@ export const SEO_MAP = {
     title: `Business Case Method: Levers, Attribution, Realization and Return | ${SITE}`,
     desc: "The published method behind the Business Case Builder: the containment, handle-time, FCR and attrition levers, attribution by stance, realization by capacity action, the phased three-year cash flow, return and payback, every constant with its source, and a worked example.",
   },
+  "/changelog": {
+    title: `Method Changelog: What Changed in How the Tools Calculate | ${SITE}`,
+    desc: "Every change to a published method on ContactCenterCX: what moved, in which direction and by about how much, with links to each method.",
+  },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
     desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",

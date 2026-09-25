@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
+import { METHOD_VERSIONS, methodStamp } from "./src/lib/methodVersions";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
@@ -43,11 +44,6 @@ const EVIDENCE = {
   pilot:     { rank: 2, label: "Observed pilot or production data" },
 };
 const EVIDENCE_ORDER = ["estimate", "marketing", "proposal", "sla", "pilot"];
-
-/* Methodology and benchmark versioning. Exports carry these so a report can be traced
-   back to the model that produced it and the vintage of the constants inside it. */
-const METHODOLOGY_VERSION = "3.1";
-const BENCHMARK_VINTAGE = "2026-07";
 
 /* Registry. Every default and every constant that reaches a flag, a band or the
    verdict reads from benchmarks.js by template id. Set A is the graded set; set B is
@@ -465,6 +461,10 @@ function gradeAID({ I, r, pre, railOrigin }) {
 
 /* @engine-end */
 
+/* The published method version, the one ReportActions stamps on the page and the PDF cover.
+   The lead payload carries it so a report can be traced to the method that produced it. */
+const METHODOLOGY_VERSION = METHOD_VERSIONS[TOOL_ID].version;
+
 function buildAnalystRead(R) {
   const out = [];
   out.push(`The denominator is the whole game. The vendor quotes ${R.rp}% resolution, and that number is real, but it is measured on the conversations the bot is involved in. Against your total demand the bot durably removes ${R.netAutomationRate.toFixed(1)}%, because only ${R.ep}% of your volume is eligible and ${(R.RHO * 100).toFixed(0)}% of apparent resolutions come back. A CFO who signs against ${R.rp}% and is billed against ${R.netAutomationRate.toFixed(1)}% will notice the gap in the first quarter.`);
@@ -668,7 +668,7 @@ export default function AIDeflectionRealityCheck() {
       ["Open issues", R.flags.length === 0 ? "none" : R.flags.length + (R.flags.length === 1 ? " issue, listed below" : " issues, listed below")],
       ["Cross-tool consistency", consistent ? "Volume and both cost figures arrived from other tools this session. Consistency, not evidence." : "Inputs were entered here or defaulted."],
       ["What this grade is not", "Self-declared. It reflects the sources you named, not sources this tool inspected. No document, payroll file, or pilot dataset was reviewed in producing this report."],
-      ["Methodology version", METHODOLOGY_VERSION + ", benchmark vintage " + BENCHMARK_VINTAGE],
+      ["Method", methodStamp(TOOL_ID).text + ", contactcentercx.com/methodology/" + TOOL_ID],
     ]},
     { title: "Vendor Claim to Reality Bridge", type: "table", rows: R.waterfall.map((w) => [w.label, (w.value >= 0 ? "+" : "") + fmt(w.value)]).concat([["Net monthly savings", fmt(R.netSavings)]]) },
     { title: "Rail Handoff to Downstream Tools", type: "table", rows: R.railPublished ? [

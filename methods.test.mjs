@@ -214,5 +214,27 @@ section("Coverage");
   ok("every rail PDF names its published method", Object.entries(RAIL).every(([id, f]) => readFileSync("./" + f, "utf8").includes("contactcentercx.com/methodology/" + id)));
 }
 
+section("Version stamps and the changelog");
+{
+  const { METHOD_VERSIONS, methodStamp, longDate } = await import("./src/lib/methodVersions.js");
+  const { CHANGELOG, changesFor } = await import("./src/lib/changelog.js");
+  const methodIds = Object.keys(RUBRICS);
+  ok("the version table has exactly the published methods", Object.keys(METHOD_VERSIONS).sort().join() === methodIds.slice().sort().join());
+  ok("every stamp equals its method's own version and date", methodIds.every((id) => METHOD_VERSIONS[id].version === RUBRICS[id].version && METHOD_VERSIONS[id].published === RUBRICS[id].published));
+  ok("a stamp reads as the page and PDF print it", methodStamp("staffing-calculator").text === "Method 1.0, published 25 September 2026" && methodStamp("staffing-calculator").href === "/methodology/staffing-calculator");
+  ok("tools with no published method carry no stamp, and a hostile id finds none", methodStamp("roadmap-builder") === null && methodStamp("vendor-match") === null && methodStamp("__proto__") === null && methodStamp("toString") === null);
+  const RA = readFileSync("./ReportActions.jsx", "utf8"), RE = readFileSync("./ReportExport.jsx", "utf8");
+  ok("ReportActions prints the stamp on the page and passes it to the PDF", /methodStamp\(toolId\)/.test(RA) && /\{stamp\.text\}/.test(RA) && /method=\{stamp \?/.test(RA));
+  ok("the PDF cover prints the method, escaped", RE.includes("<strong>Method:</strong> ${e(method)}"));
+  const tools = [...readFileSync("./App.jsx", "utf8").matchAll(/<Route\s+path="\/tools\/[a-z0-9-]+"\s+element=\{<(\w+) \/>\}/g)].map((m) => m[1]);
+  ok("no tool keeps a private method version string", ["AIDeflectionRealityCheck.jsx", "StaffingCalculator.jsx", "TCOCalculator.jsx"].every((f) => /METHODOLOGY_VERSION = METHOD_VERSIONS\[TOOL_ID\]\.version/.test(readFileSync("./" + f, "utf8"))) && tools.length > 20);
+  ok("changelog entries name published methods, a version and at least one change", CHANGELOG.every((c) => /^\d{4}-\d{2}-\d{2}$/.test(c.date) && c.methods.length && c.methods.every((m) => RUBRICS[m]) && c.version === RUBRICS[c.methods[0]].version && c.changes.length && c.title));
+  ok("the changelog runs newest first", CHANGELOG.every((c, i) => i === 0 || c.date <= CHANGELOG[i - 1].date));
+  ok("every method rebuilt or published since the log began has an entry", ["occupancy-risk", "shrinkage-planner", "aht-decomposition", "forecast-accuracy", "schedule-adherence", "staffing-calculator", "cost-per-contact", "channel-shift", "fcr-leakage", "ai-deflection", "tco-calculator", "license-gap", "attrition-cost", "business-case-builder"].every((m) => changesFor(m).length > 0));
+  ok("no dash, noise or undefined in the changelog", !DASH.test(JSON.stringify(CHANGELOG)) && !NOISE.test(JSON.stringify(CHANGELOG)) && !/undefined|NaN/.test(JSON.stringify(CHANGELOG)));
+  ok("the changelog is routed, in the sitemap and titled", APP.includes('<Route path="/changelog" element={<RubricPage id="changelog" />} />') && MAP.includes("/changelog<") && SEO.includes('"/changelog": {'));
+  ok("dates print long form", longDate("2026-09-05") === "5 September 2026");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

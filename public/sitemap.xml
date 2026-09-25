@@ -133,6 +133,10 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/changelog</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/methodology/business-case-builder</loc>
     <priority>0.6</priority>
   </url>
