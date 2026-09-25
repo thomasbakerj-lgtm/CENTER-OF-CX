@@ -843,13 +843,27 @@ P0. Trust content. **Done on the branch (items 36 and 37, PR #37); ship and veri
   1. Healthcare claims research and originality pass.
   2. The other nine industries on the claims pattern, with one shared sub-page component (done in one session).
 
-P1. Reach foundations.
-  3. Full-page prerender: page bodies in the HTML for all 448 sitemap URLs (today only the head is written). Crawlers,
-     answer engines and link previews read it. Gate: prerendered HTML carries each page's h1 and main text.
-  4. Structured data by page type: tools WebApplication; method pages TechArticle and HowTo; industry pages Article with
-     citations; FAQ only where real.
-  5. Share cards: a build-time preview image per tool, method and industry page (self-hosted, no new host).
-  6. Noindex the 10 CCaaS-by-industry pages until their Stage 3 rebuild.
+P1. Reach foundations. **Done S23 on the branch (PR #37).**
+  3. Full-page prerender. `entry-server.jsx` (vite --ssr) renders every sitemap URL after all lazy chunks resolve;
+     `prerender.mjs` writes the body into `#root`; `main.jsx` hydrates a stateless page and renders fresh a tool page
+     with a query string or session state (rail, saved contact). The empty shell is `dist/spa.html` (the homepage owns
+     index.html) and `vercel.json` rewrites paths outside the sitemap to it. Found: React escapes `<style>` text the
+     browser reads raw, so every page failed hydration (the prerender decodes it, `src/lib/prerenderHtml.js`); claim
+     source links inside card links made nested links (`ClaimText links={false}`). Browser: 426 pages hydrate clean in
+     one session. Vercel serves `/about` its own `about/index.html` (checked on production).
+  4. Structured data from `seo.js structuredData` only, written by the prerender: tools WebApplication, method pages
+     TechArticle (version date), industry pages Article citing every source the page renders (the server render records
+     claims), homepage Organization and WebSite. No HowTo (no page is steps). The TCO FAQPage is retired: its questions
+     were not on the page and its answers carried unsourced figures. The browser adds no JSON-LD.
+  5. Share cards: 1200 x 630 PNG per tool, method and industry page (121 with the site card) from `src/lib/shareCard.js`,
+     drawn with `@resvg/resvg-js` (dev dependency) and the committed Archivo font (OFL, `assets/fonts`); og:image,
+     size, alt and twitter:image on every page. No new host.
+  6. All 80 category-by-industry pages noindex (CCaaS included) and out of the sitemap (448 to 426 URLs, including 12
+     the Search Console export had surfaced). The prerender writes robots from `seo.known` (it wrote index everywhere)
+     and refuses a non-indexable sitemap URL; the shell outside the sitemap is noindex.
+  Gates: `prerender.test.mjs` (39: every URL renders with h1, text, no inline script, no nested link; structured data
+  fields per type on every URL; share cards; wiring), `seo.test.mjs` L and N; the live checker adds nine page types
+  (body in the served HTML, hydration with no error, share card served): 254 of 254 locally.
 
 P2. Measurement (before distribution scales).
   7. Event taxonomy freeze (11-01 to 11-03), UTM convention, PostHog funnels by channel, and 11-04: does a first
