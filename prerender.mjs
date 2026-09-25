@@ -51,7 +51,7 @@ if (startIdx === -1 || endIdx === -1 || endIdx < startIdx) {
 
 if (!existsSync(SSR)) fail("dist-ssr/entry-server.js not found. Did the SSR build run?");
 if (shell.split(ROOT_DIV).length !== 2) fail(`${ROOT_DIV} must appear exactly once in index.html.`);
-const { render } = await import(pathToFileURL(SSR).href);
+const { render, citationsOf } = await import(pathToFileURL(SSR).href);
 
 const head = shell.slice(0, startIdx);
 const tail = shell.slice(endIdx + END.length);
@@ -63,7 +63,7 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-function buildHead(seo) {
+function buildHead(seo, extra) {
   const url = seo.path === "/" ? `${BASE}/` : `${BASE}${seo.path}`;
   const t = esc(seo.title);
   const d = esc(seo.desc);
@@ -83,7 +83,7 @@ function buildHead(seo) {
     `    <meta name="twitter:site" content="@centerofcx" />`,
     `    <meta name="twitter:title" content="${t}" />`,
     `    <meta name="twitter:description" content="${d}" />`,
-    ...structuredData(seo.path, seo).map(
+    ...structuredData(seo.path, seo, extra).map(
       (g) => `    <script type="application/ld+json">${JSON.stringify(g).replace(/</g, "\\u003c")}</script>`
     ),
     `    ${END}`,
@@ -120,9 +120,11 @@ for (const loc of locs) {
     if (fallbacks.length < 20) fallbacks.push(path);
   }
 
-  let body;
+  let body, extra;
   try {
-    body = await render(path);
+    const r = await render(path);
+    body = r.html;
+    extra = citationsOf(r.claims);
   } catch (err) {
     fail(`server render failed for ${path}: ${err && err.message}`);
   }
@@ -133,7 +135,7 @@ for (const loc of locs) {
     fail(`${path}: ${err.message}`);
   }
   if (nestedLinks(body) > 0) fail(`${path} renders a link inside a link; the browser would split it and hydration would fail.`);
-  const html = head + buildHead(seo) + tail.replace(ROOT_DIV, `<div id="root">${body}</div>`);
+  const html = head + buildHead(seo, extra) + tail.replace(ROOT_DIV, `<div id="root">${body}</div>`);
   const outDir = path === "/" ? DIST : join(DIST, path);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "index.html"), html, "utf8");

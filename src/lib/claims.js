@@ -43,6 +43,13 @@ import retail from "./claims/retail.js";
 
 export const CLAIMS = { ...healthcare, ...retail, ...tel, ...trv, ...edu, ...fs, ...ins, ...utl, ...gov, ...mfg };
 
+/* The build's prerender records every claim a page renders, so the page's structured data can cite exactly the
+   sources the reader sees (entry-server.jsx). In the browser nothing is recording and noteClaim does nothing. */
+let recording = null;
+export function recordClaims() { recording = new Set(); }
+export function recordedClaims() { const ids = recording ? [...recording] : []; recording = null; return ids; }
+export function noteClaim(id) { if (recording) recording.add(id); }
+
 /* Throws on an unknown id, so a typo in page text cannot render as a silent blank. */
 export function claim(id) {
   const c = CLAIMS[id];

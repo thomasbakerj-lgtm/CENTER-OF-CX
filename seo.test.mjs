@@ -31,7 +31,8 @@
 
 import { readFileSync, readdirSync } from "node:fs";
 import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE,
-         TOOL_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, VENDOR_PROFILE_COUNT, SEO_MAP } from "./src/lib/seo.js";
+         TOOL_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, VENDOR_PROFILE_COUNT, SEO_MAP, structuredData } from "./src/lib/seo.js";
+import * as SEO from "./src/lib/seo.js";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals.js";
 import { collectVendorNames, findCollisions, FILE_CATEGORY, collectSubVerticalNames, SUBVERTICAL_FILES } from "./gen-seo-names.mjs";
 
@@ -281,13 +282,15 @@ const SURFACES = {
   "Homepage.jsx": ["TOOL_COUNT", "CATEGORY_COUNT", "VENDOR_PROFILE_COUNT"],
   "Vendors.jsx": ["VENDOR_PROFILE_COUNT"],
   /* S22: the site-wide Organization JSON-LD read "283 vendors scored. 30 free
-     tools." after both pages above were fixed. Search engines read it on every route. */
-  "App.jsx": ["TOOL_COUNT", "CATEGORY_COUNT", "VENDOR_PROFILE_COUNT"],
+     tools." after both pages above were fixed. It moved from App.jsx into seo.js structuredData (P1 task 4). */
+  "src/lib/seo.js": ["TOOL_COUNT", "CATEGORY_COUNT", "VENDOR_PROFILE_COUNT"],
 };
 
 let li = 10;
 for (const [file, required] of Object.entries(SURFACES)) {
-  const src = readFileSync(`./${file}`, "utf8");
+  let src = readFileSync(`./${file}`, "utf8");
+  /* In seo.js only the structured data carries the site-wide counts; the page titles above it are held by section E. */
+  if (file === "src/lib/seo.js") src = src.slice(src.indexOf("export function structuredData"));
   const found = countLiterals(src);
   eq(`E${li}  ${file}: no hand-typed vendor, tool or category count [${found.join(", ")}]`,
      found.length, 0);
@@ -657,6 +660,22 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   ok("J15 the full guide opens with no form", /open \? \(<>[\s\S]*?href=\{report\.pdf\}/.test(gr));
   ok("J16 the summary renders only for reports that carry one", /\{open && <Summary report=\{report\} onOpen=\{onOpen\} \/>\}/.test(gr));
   ok("J17 no new dashes in the summary layer", !/[\u2013\u2014]/.test((gr.match(/function Summary\([\s\S]*?\n}\n/) || [""])[0] + blk));
+}
+
+/* S. Structured data by page type (P1 task 4). prerender.test.mjs checks every field on the rendered pages, industry
+   citations included; this pins the type each path gets and that no FAQ markup survives. */
+{
+  const sitemap = [...readFileSync("./public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
+  const typeOf = (p) => structuredData(p, resolveSeo(p)).map((g) => g["@type"]);
+  const wrong = [];
+  for (const p of sitemap) {
+    const t = typeOf(p);
+    const want = p === "/" ? ["Organization", "WebSite"] : p.startsWith("/tools/") ? ["WebApplication"] : p.startsWith("/methodology/") ? ["TechArticle"] : p.startsWith("/industries/") ? ["Article"] : [];
+    if (JSON.stringify(t) !== JSON.stringify(want)) wrong.push(`${p}: ${t.join(",")}`);
+  }
+  ok(`S1 every sitemap URL gets the structured data for its page type [${wrong.slice(0, 3).join(" | ")}]`, wrong.length === 0);
+  ok("S2 no FAQ markup and no hidden FAQ table (markup must match visible content)", !("TOOL_FAQ" in SEO) && sitemap.every((p) => !typeOf(p).includes("FAQPage")));
+  ok("S3 the browser adds no structured data; the prerender writes it", !/application\/ld\+json/.test(readFileSync("./App.jsx", "utf8")));
 }
 
 if (failures.length) {

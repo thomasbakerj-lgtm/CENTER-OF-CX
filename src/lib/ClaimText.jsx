@@ -5,7 +5,7 @@
  * and a missing benchmark says so and links the tool that measures the reader's own figure.
  * ClaimSources lists every claim on the page once, with source, date checked, reasoning and test.
  */
-import { claim, tokens, TESTS } from "./claims.js";
+import { claim, tokens, TESTS, noteClaim } from "./claims.js";
 
 /* Tags wrap: a long publisher name must never widen the page on a phone. */
 const TAG = { fontSize: "0.72em", fontWeight: 600, marginLeft: 2, letterSpacing: 0.2, whiteSpace: "normal", overflowWrap: "anywhere" };
@@ -30,6 +30,7 @@ function Mark({ c, links = true }) {
 
 export function Claim({ id, links = true }) {
   const c = claim(id);
+  noteClaim(id);
   if (c.kind === "none") {
     const t = TESTS[c.test];
     return <span><span style={{ opacity: 0.75 }}>No public benchmark</span>{t && links && <sup style={TAG}><a href={t.href} aria-label={`Measure yours in ${t.label}`} style={{ color: "inherit", textDecoration: "underline", opacity: 0.75 }}>measure yours</a></sup>}</span>;

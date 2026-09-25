@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { trackTool, toolIdFromPath, claimView } from "./src/lib/track"
-import { BASE, SITE, resolveSeo, VENDOR_PROFILE_COUNT, CATEGORY_COUNT, TOOL_COUNT } from './src/lib/seo.js'
+import { BASE, resolveSeo } from './src/lib/seo.js'
 import { Component, useEffect, useState, lazy as reactLazy, Suspense } from 'react'
 
 /* A route chunk that fails to load used to leave a blank page with no way back:
@@ -189,44 +189,7 @@ function SEOManager() {
     if (!canonical) { canonical = document.createElement("link"); canonical.setAttribute("rel", "canonical"); document.head.appendChild(canonical); }
     canonical.setAttribute("href", seo.path === "/" ? `${BASE}/` : `${BASE}${seo.path}`);
 
-    // JSON-LD structured data (homepage only)
-    if (pathname === "/") {
-      let script = document.querySelector('script[data-ld="org"]');
-      if (!script) {
-        script = document.createElement("script");
-        script.type = "application/ld+json";
-        script.setAttribute("data-ld", "org");
-        document.head.appendChild(script);
-      }
-      script.textContent = JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "The Center of CX",
-        "url": BASE,
-        "description": `Independent CX and contact center technology intelligence. ${VENDOR_PROFILE_COUNT} vendor profiles across ${CATEGORY_COUNT} categories. ${TOOL_COUNT} free tools. Consultant matching for platform selection and AI strategy.`,
-        "foundingDate": "2026",
-        "sameAs": [],
-        "knowsAbout": ["Contact Center Technology", "Customer Experience", "CCaaS", "IVA", "Conversational AI", "Workforce Management", "CX Analytics", "Digital Engagement"]
-      });
-    }
-
-    // JSON-LD WebSite for sitelinks search
-    if (pathname === "/") {
-      let ws = document.querySelector('script[data-ld="website"]');
-      if (!ws) {
-        ws = document.createElement("script");
-        ws.type = "application/ld+json";
-        ws.setAttribute("data-ld", "website");
-        document.head.appendChild(ws);
-      }
-      ws.textContent = JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "The Center of CX",
-        "url": BASE,
-        "description": "Independent CX technology intelligence for enterprise buyers. Vendor scoring, buyer guides, and interactive tools.",
-      });
-    }
+    // Structured data is written into each page's HTML at build time (seo.js structuredData, prerender.mjs).
 
   }, [pathname]);
 

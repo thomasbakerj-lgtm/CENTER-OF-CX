@@ -348,6 +348,7 @@ export const SEO_MAP = {
   },
 };
 import { CATEGORIES, VERTICALS, hasScoredVerticalFit } from "./verticals.js";
+import { METHOD_VERSIONS } from "./methodVersions.js";
 
 /* Derived counts. Every surface that states a tool or vendor count reads these
    rather than carrying its own literal, so a number on the homepage cannot
@@ -888,62 +889,65 @@ export function resolveSeo(rawPath) {
 }
 
 /* ------------------------------------------------------------------ AEO ----
-   Structured data for answer engines and AI assistants. Emitted into raw HTML
-   at build time by prerender.mjs, so engines that never execute JavaScript
-   still receive it. Two graphs per tool route: SoftwareApplication describes
-   what the tool is, FAQPage answers the methodology questions buyers actually
-   ask. The FAQ answers are deliberately the contrarian, checkable ones. An
-   answer engine has no reason to cite a page that repeats the consensus.
+   Structured data for search and answer engines, emitted into raw HTML at build time by prerender.mjs (the browser
+   adds none). One graph per page type, each describing what the reader actually sees:
+     /             Organization and WebSite
+     /tools/*      WebApplication: a free tool that runs in the browser
+     /methodology  TechArticle: the published method, with its version date
+     /industries/* Article, citing every published source the page renders (claims registry, recorded during the
+                   server render); dateModified is the latest date a cited figure was checked
+   No FAQPage: none of the site's pages shows a question and answer list, and markup must match visible content.
+   (The TCO FAQ answers carried unsourced figures and never appeared on the page; retired, P1 task 4.)
    ------------------------------------------------------------------------ */
 
-export const TOOL_FAQ = {
-  "/tools/tco-calculator": [
-    ["What does a contact center actually cost per agent per month?",
-     "Fully loaded, most operations land between $4,500 and $7,500 per agent per month once labor, technology, and overhead are counted together. Labor is normally 70 to 85 percent of the total, which is why trimming software rarely moves the number."],
-    ["Should savings be valued at cost per contact or marginal cost?",
-     "Marginal cost. Deflecting one contact frees the agent handle time for that contact, it does not remove a share of fixed technology, facilities, or supervision. Valuing deflection at fully loaded cost per contact overstates savings by a wide margin and is the single most common error in vendor ROI models."],
-    ["How is cost per resolution calculated?",
-     "Cost per contact multiplied by (2 minus FCR), the standard one-plus-repeat model. Dividing cost per contact by FCR is a frequent shortcut and it overstates the figure, because a 70 percent FCR means about 1.3 contacts per resolution, not 1.43."],
-    ["Does a 3-year TCO need one escalator or two?",
-     "Two. Labor and contracted software escalate at different rates, roughly 3.5 percent for wages against 6 percent for enterprise license renewals. A single blended rate misstates a cost base that is mostly labor, and finance teams notice."],
-    ["Does the one-time implementation cost belong in annual TCO?",
-     "No. Annual TCO is recurring run-rate. Implementation is a one-time cost that belongs in Year 1 cash and in the 3-year total, added once and never escalated. Folding it into the annual figure inflates every year of the projection."],
-    ["Do FCR, occupancy, and shrinkage change current cost?",
-     "No. They size the opportunity, they do not move today's total. Cost is driven by headcount, wages, contracted prices, and volume. A tool that shows your TCO falling when you improve FCR is modeling a future state, not your current cost."],
-  ],
-};
-
 const APP_ROUTES = /^\/tools\//;
+const ORG = { "@type": "Organization", name: SITE, url: BASE };
+const METHOD_PATH = /^\/methodology\/([a-z0-9-]+)$/;
+const INDUSTRY_PATH = /^\/industries\/[a-z0-9-]+(\/[a-z0-9-]+)?$/;
 
-export function structuredData(pathname, seo) {
+export function structuredData(pathname, seo, extra = {}) {
   const url = pathname === "/" ? `${BASE}/` : `${BASE}${pathname}`;
+  const name = seo.title.split(" | ")[0];
   const graphs = [];
 
-  if (APP_ROUTES.test(pathname)) {
+  if (pathname === "/") {
     graphs.push({
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      name: seo.title.split(" | ")[0],
-      description: seo.desc,
-      url,
-      applicationCategory: "BusinessApplication",
-      operatingSystem: "Any modern browser",
-      isAccessibleForFree: true,
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-      publisher: { "@type": "Organization", name: SITE, url: BASE },
+      "@context": "https://schema.org", "@type": "Organization", name: SITE, url: BASE, foundingDate: "2026",
+      description: `Independent CX and contact center technology intelligence. ${VENDOR_PROFILE_COUNT} vendor profiles across ${CATEGORY_COUNT} categories. ${TOOL_COUNT} free tools with published methods.`,
+      knowsAbout: ["Contact Center Technology", "Customer Experience", "CCaaS", "IVA", "Conversational AI", "Workforce Management", "CX Analytics", "Digital Engagement"],
+    });
+    graphs.push({
+      "@context": "https://schema.org", "@type": "WebSite", name: SITE, url: BASE,
+      description: "Independent CX technology intelligence for buyers: vendor profiles, buyer guides, and free decision tools with published methods.",
+      publisher: ORG,
     });
   }
 
-  const faq = TOOL_FAQ[pathname];
-  if (faq) {
+  if (APP_ROUTES.test(pathname)) {
     graphs.push({
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faq.map(([q, a]) => ({
-        "@type": "Question",
-        name: q,
-        acceptedAnswer: { "@type": "Answer", text: a },
-      })),
+      "@context": "https://schema.org", "@type": "WebApplication", name, description: seo.desc, url,
+      applicationCategory: "BusinessApplication", operatingSystem: "Any modern browser", browserRequirements: "Requires JavaScript",
+      isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, publisher: ORG,
+    });
+  }
+
+  const m = pathname.match(METHOD_PATH);
+  if (m) {
+    const v = METHOD_VERSIONS[m[1]];
+    graphs.push({
+      "@context": "https://schema.org", "@type": "TechArticle", headline: name, description: seo.desc, url,
+      author: ORG, publisher: ORG, isAccessibleForFree: true,
+      ...(v ? { version: v.version, datePublished: v.published, dateModified: v.published } : {}),
+    });
+  }
+
+  if (INDUSTRY_PATH.test(pathname)) {
+    const citation = extra.citation || [];
+    graphs.push({
+      "@context": "https://schema.org", "@type": "Article", headline: name, description: seo.desc, url,
+      author: ORG, publisher: ORG, isAccessibleForFree: true,
+      ...(extra.checked ? { dateModified: extra.checked } : {}),
+      ...(citation.length ? { citation } : {}),
     });
   }
 
