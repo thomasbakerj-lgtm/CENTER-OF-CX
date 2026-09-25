@@ -58,5 +58,18 @@ for (const f of verticals) {
   ok(`${f}: an empty strip does not render`, /\{stats\.length > 0 && \(/.test(s));
 }
 
+console.log("\n5. Industry sub-pages are open (TB, S23): no email gate, nothing sent unless the visitor asks");
+const subPages = files.filter((f) => /^[A-Za-z]+SubVerticalPage\.jsx$/.test(f));
+ok("ten sub-page files checked", subPages.length === 10, String(subPages.length));
+ok("the gate rule fires on the old page shape", /useState\("gate"\)/.test('const [phase, setPhase] = useState("gate");'));
+for (const f of subPages) {
+  const s = readFileSync(f, "utf8");
+  ok(`${f}: opens on the framework`, /useState\("framework"\)/.test(s) && !/useState\("gate"\)/.test(s) && !/handleGate/.test(s));
+  const fetches = s.match(/fetch\(/g) || [];
+  ok(`${f}: one send, inside the review request`, fetches.length === 1 && /const requestReview = async[\s\S]*?fetch\(/.test(s), String(fetches.length));
+  ok(`${f}: no false "saved" or "emailed" promise`, !/has been saved|sent to your email|emailed to you/i.test(s));
+  ok(`${f}: every review field has a label`, ["sv-review-email", "sv-review-name", "sv-review-company"].every((id) => s.includes(`htmlFor="${id}"`) && s.includes(`id="${id}"`)));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);
