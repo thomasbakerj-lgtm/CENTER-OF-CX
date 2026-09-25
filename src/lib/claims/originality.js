@@ -11,6 +11,8 @@ const EDU_METHOD = "Every prose string extracted (788 segments in EducationSubVe
 
 const FS_METHOD = "Every prose string extracted (807 segments across FinancialServicesVertical.jsx, FSSubVerticalData.js and the Financial Services card in Industries.jsx). Exact-phrase web search was unavailable in this session (search budget spent; engines refused scripted queries), so 61 pages the text most plausibly draws on were fetched and compared with all 807 segments for shared runs of 8, 7, 6 and 5 words: 50 vendor pages named in the blurbs and the 11 cited sources. 13 vendor pages refused the fetch and were not compared. Result: no shared run of 6 words; 5 word runs are generic phrases. 42 sentences are queued for exact-phrase search. Sentences written during the research pass that day are our own wording of cited findings.";
 
+const INS_METHOD = "Every prose string extracted (615 segments across InsuranceVertical.jsx, InsuranceSubVerticalData.js and the Insurance card in Industries.jsx). 42 distinctive sentences searched as exact phrases (full sentence or an 8 to 12 word run); 24 candidate pages fetched and compared with all 615 segments for shared runs of 8 and of 6 words. jdpower.com refused the fetch and was checked by exact-phrase search only. Result: no shared run of 8 words; two 6 word runs, a study title and the certificate sentence recorded on the sub-page file. Sentences written during the research pass that day are our own wording of cited findings.";
+
 export const ORIGINALITY = {
   "HealthcareVertical.jsx": { checked: "2026-09-25", method: METHOD, matches: [] },
   "HCSubVerticalData.js": {
@@ -52,4 +54,20 @@ export const ORIGINALITY = {
   },
   "FinancialServicesVertical.jsx": { checked: "2026-09-25", method: FS_METHOD, matches: [] },
   "FSSubVerticalData.js": { checked: "2026-09-25", method: FS_METHOD, matches: [] },
+  "InsuranceVertical.jsx": {
+    checked: "2026-09-25",
+    method: INS_METHOD,
+    matches: [
+      { text: "Claims cycle time drives satisfaction more than claims outcome ... is the primary driver of claims dissatisfaction.", near: "J.D. Power U.S. Property Claims Satisfaction Study findings on time to settle (publisher page refused the fetch)", kind: "uncited claim close to a published finding", resolution: "rewritten" },
+    ],
+  },
+  "InsuranceSubVerticalData.js": {
+    checked: "2026-09-25",
+    method: INS_METHOD,
+    matches: [
+      { text: "Certificate of insurance requests are the highest-volume, lowest-complexity interaction in commercial lines", near: "https://ustechautomations.com/resources/blog/certificate-of-insurance-automation-60-second-issuance", kind: "close paraphrase of a superlative (6 word shared run)", resolution: "rewritten" },
+      { text: "Life insurers lose policyholders not through dissatisfaction but through disengagement.", near: "https://www.insurancebusinessmag.com/us/news/life-insurance/why-life-insurers-are-losing-clients-they-already-won-590123.aspx", kind: "close paraphrase of a specific external finding (Capgemini and LIMRA)", resolution: "rewritten" },
+      { text: "Cyber breach response has a golden hour: the first 60 minutes after a breach is detected determine whether containment succeeds or the attack spreads.", near: "https://www.mprunderwriting.com/the-golden-hour-in-cyber-incident-response/", kind: "uncited trade claim with a specific figure", resolution: "rewritten" },
+    ],
+  },
 };
