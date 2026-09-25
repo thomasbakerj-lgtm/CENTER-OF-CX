@@ -258,9 +258,9 @@ function CTA() {
       <div style={WRAP}>
         <FadeIn>
           <div style={{ marginBottom: 20 }}>
-            <Label>Vendors scored by vertical</Label>
+            <Label>Vendors by vertical</Label>
             <Title>Find vendors matched to your industry.</Title>
-            <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, maxWidth: 560 }}>Every vendor category is scored for each vertical. Compliance requirements, integration dependencies, and vertical fit, all in one page.</p>
+            <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, maxWidth: 560 }}>Each vertical page lists the platforms often evaluated for it, with its compliance requirements and integration dependencies. Vendor scores are withdrawn until each category is researched under the current methodology.</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 6 }}>
             {verts.map(v => (

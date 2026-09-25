@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
-import { ccaasResearchLabel } from "./src/lib/researchStatus";
-import { getIVAVendor, ivaTierConfig, ivaScoringDimensions } from "./IVAData";
-import { getAgentAssistVendor, aaTierConfig, aaDimensions } from "./AgentAssistData";
-import { getWEMVendor, getWEMLeaderboardScores } from "./WEMData";
-import { getAnalyticsVendor, analyticsDimensions } from "./AnalyticsData";
-import { getACDVendor, acdDimensions } from "./ACDRoutingData";
-import { getDEVendor, deDimensions } from "./DigitalEngagementData";
-import { getPaymentVendor, paymentDimensions } from "./PaymentData";
+import { ccaasResearchLabel, phase1Label } from "./src/lib/researchStatus";
+import { getIVAVendor } from "./IVAData";
+import { getAgentAssistVendor } from "./AgentAssistData";
+import { getWEMVendor } from "./WEMData";
+import { getAnalyticsVendor } from "./AnalyticsData";
+import { getACDVendor } from "./ACDRoutingData";
+import { getDEVendor } from "./DigitalEngagementData";
+import { getPaymentVendor } from "./PaymentData";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -66,7 +66,6 @@ function Nav() {
     { name: "Vendors", href: "/vendors" },
     { name: "Tools", href: "/how-to-choose" },
     { name: "Research", href: "/research" },
-    { name: "Vendors", href: "/vendors" },
     { name: "The Human Premium", href: "/human-premium" },
   ];
   return (
@@ -95,17 +94,14 @@ function Nav() {
   );
 }
 
-function ScoreBadge({ score, tier }) {
-  const color = score >= 85 ? GREEN : score >= 70 ? ELECTRIC : score >= 55 ? AMBER : RED;
+/* Integrity freeze (TB, S23): a non-CCaaS profile shows its research status where the Phase 1
+   score badge stood. No score, tier, rank or fit rating renders on these pages. */
+function Phase1Badge() {
+  const L = phase1Label();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-      <div style={{ width: 64, height: 64, borderRadius: "50%", border: `3px solid ${color}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color }}>{score}</span>
-      </div>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 600, color, fontFamily: "'DM Sans', sans-serif" }}>{tier}</div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif" }}>Composite Score</div>
-      </div>
+    <div style={{ maxWidth: 280 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>{L.short}</div>
+      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.55, marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>{L.text}</div>
     </div>
   );
 }
@@ -156,13 +152,6 @@ export default function VendorProfile() {
   // ─── IVA VENDOR PROFILE ───
   if (ivaVendor) {
     const iv = ivaVendor;
-    const tierCfg = ivaTierConfig[iv.tier] || { color: MUTED, range: "n/a" };
-    const dims = [
-      { name: "Conversational Autonomy", score: iv.autonomy, desc: "End-to-end interaction management, intent resolution, and escalation" },
-      { name: "Multi-Channel Coverage", score: iv.multiChannel, desc: "Voice, chat, web, messaging, and cross-channel continuity" },
-      { name: "Orchestration Depth", score: iv.orchestration, desc: "Business action execution, workflow coordination, and backend integration" },
-      { name: "Analytics & Intelligence", score: iv.analytics, desc: "Reporting, conversation analytics, intent insights, and closed-loop learning" },
-    ];
     return (
       <div><Nav />
         <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
@@ -188,38 +177,13 @@ export default function VendorProfile() {
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{iv.summary}</p>
               </div>
               <div style={{ flexShrink: 0 }}>
-                <ScoreBadge score={iv.score} tier={iv.tier} />
+                <Phase1Badge />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Dimension Scores */}
-        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
-          <div style={WRAP}>
-            <FadeIn>
-              <Section label="Scoring Dimensions" title="Four dimensions, equally weighted.">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="profile-grid">
-                  {dims.map((d, i) => {
-                    const color = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED;
-                    return (
-                      <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                          <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: 0 }}>{d.name}</h3>
-                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color }}>{d.score}<span style={{ fontSize: 13, color: MUTED }}>/5</span></span>
-                        </div>
-                        <div style={{ width: "100%", height: 6, background: `${BORDER}`, borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
-                          <div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
-                        </div>
-                        <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>{d.desc}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Section>
-            </FadeIn>
-          </div>
-        </section>
+        
 
         {/* Key Attributes */}
         <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
@@ -233,7 +197,7 @@ export default function VendorProfile() {
                     { label: "AI Origin", value: iv.origin },
                     { label: "Modality", value: iv.modality },
                     { label: "Market Segment", value: iv.segment },
-                    { label: "Tier", value: `${iv.tier} (${tierCfg.range})` },
+                    { label: "Research status", value: "Phase 1 context" },
                   ].map((attr, i) => (
                     <div key={i} style={{ background: WARM, borderRadius: 8, padding: "16px 18px" }}>
                       <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>{attr.label}</div>
@@ -246,12 +210,12 @@ export default function VendorProfile() {
           </div>
         </section>
 
-        {/* Tier Context */}
+        {/* Research status */}
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
           <div style={WRAP}>
             <FadeIn>
-              <Section label="Market Position" title={`${iv.tier} tier, ${tierCfg.range} score range.`} dark>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>{tierCfg.desc}</p>
+              <Section label="Research status" title="Phase 1 context." dark>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.7, marginBottom: 20 }}>{phase1Label().text}</p>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                   <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to IVA Market Intelligence</a>
                   
@@ -305,8 +269,6 @@ export default function VendorProfile() {
   // ─── AGENT ASSIST VENDOR PROFILE ───
   if (aaVendor) {
     const aa = aaVendor;
-    const tierCfg = aaTierConfig[aa.tier] || { color: MUTED, range: "n/a" };
-    const dimScores = aaDimensions.map(d => ({ ...d, score: aa[d.abbr.toLowerCase()] }));
     return (
       <div><Nav />
         <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
@@ -323,12 +285,11 @@ export default function VendorProfile() {
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{aa.type}</span>
                   <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>Agent Assist & Knowledge</span>
-                  {aa.momentum === "Up" && <span style={{ fontSize: 11, fontWeight: 600, color: GREEN, background: `${GREEN}15`, padding: "3px 10px", borderRadius: 4 }}>↑ Momentum</span>}
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{aa.name}</h1>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{aa.bestFor}. {tierCfg.desc}</p>
+                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{aa.bestFor}.</p>
               </div>
-              <div style={{ flexShrink: 0 }}><ScoreBadge score={aa.score} tier={aa.tier} /></div>
+              <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
           </div>
         </section>
@@ -367,32 +328,7 @@ export default function VendorProfile() {
           </div>
         </section>
 
-        {/* 10 Dimension Scores */}
-        <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
-          <div style={WRAP}>
-            <FadeIn>
-              <Section label="Scoring Dimensions" title="Ten weighted dimensions.">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} className="profile-grid">
-                  {dimScores.map((d, i) => {
-                    const color = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED;
-                    return (
-                      <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                          <div><span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{d.name}</span><span style={{ fontSize: 10, color: MUTED, marginLeft: 6 }}>{d.weight}%</span></div>
-                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color }}>{d.score}<span style={{ fontSize: 12, color: MUTED }}>/5</span></span>
-                        </div>
-                        <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden" }}>
-                          <div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
-                        </div>
-                        <p style={{ fontSize: 11, color: MUTED, margin: "6px 0 0" }}>{d.desc}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Section>
-            </FadeIn>
-          </div>
-        </section>
+        
 
         {/* Best Fit */}
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
@@ -450,15 +386,11 @@ export default function VendorProfile() {
   // ─── WEM/QM VENDOR PROFILE ───
   if (wemVendor) {
     const wv = wemVendor;
-    const lbScores = getWEMLeaderboardScores(wv.vendor);
     const nativeColor = wv.native === "Native" ? GREEN : wv.native === "Mixed" ? AMBER : LIGHT;
     const attrs = [
       { label: "Market Layer", value: wv.layerName },
       { label: "Segment", value: wv.segment },
       { label: "Architecture", value: wv.native },
-      { label: "Enterprise Depth", value: `${wv.entDepth}/5` },
-      { label: "AI-QA Maturity", value: `${wv.aiQA}/5` },
-      { label: "BPO Support", value: `${wv.bpo}/5` },
     ];
     return (
       <div><Nav />
@@ -480,77 +412,14 @@ export default function VendorProfile() {
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{wv.vendor}</h1>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{wv.rec}</p>
               </div>
-              <div style={{ flexShrink: 0, textAlign: "center" }}>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Rank in layer</div>
-                <div style={{ width: 64, height: 64, borderRadius: "50%", border: `3px solid ${ELECTRIC}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: ELECTRIC }}>#{wv.rank}</span>
-                </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>of {wv.layerKey === "fullSuiteWEM" ? 12 : wv.layerKey === "wfmSpecialists" ? 6 : 7}</div>
-              </div>
+              <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
           </div>
         </section>
 
-        {/* Dimension Scores */}
-        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
-          <div style={WRAP}><FadeIn>
-            <Section label="Vendor Dimensions" title="Three core scores.">
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="profile-grid">
-                {[
-                  { name: "Enterprise Depth", score: wv.entDepth, desc: "Suitability for large, complex, multi-site, multi-skill, compliance-heavy operations" },
-                  { name: "AI-QA Maturity", score: wv.aiQA, desc: "Credibility of 100% interaction review, auto-scoring, coaching workflows, and operational usability" },
-                  { name: "BPO Support", score: wv.bpo, desc: "Multi-client fit, role separation, governance, and reporting isolation" },
-                ].map((d, i) => {
-                  const color = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED;
-                  return (
-                    <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                        <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: 0 }}>{d.name}</h3>
-                        <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color }}>{d.score}<span style={{ fontSize: 13, color: MUTED }}>/5</span></span>
-                      </div>
-                      <div style={{ width: "100%", height: 6, background: BORDER, borderRadius: 3, overflow: "hidden", marginBottom: 8 }}>
-                        <div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
-                      </div>
-                      <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>{d.desc}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </Section>
-          </FadeIn></div>
-        </section>
+        
 
-        {/* Leaderboard Positions */}
-        {Object.keys(lbScores).length > 0 && (
-          <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
-            <div style={WRAP}><FadeIn>
-              <Section label="Weighted Rankings" title="How they score across decision modes.">
-                <p style={{ fontSize: 13, color: MUTED, marginBottom: 20 }}>The same vendor scores differently depending on what you're buying. These are weighted totals out of 5.0 using the scoring framework with mode-specific criteria weights.</p>
-                <div style={{ display: "grid", gridTemplateColumns: `repeat(${Object.keys(lbScores).length}, 1fr)`, gap: 16 }} className="profile-grid">
-                  {Object.entries(lbScores).map(([mode, entry], i) => {
-                    const pct = (entry.score / 5) * 100;
-                    const color = entry.score >= 4.5 ? GREEN : entry.score >= 3.5 ? ELECTRIC : entry.score >= 2.5 ? AMBER : RED;
-                    return (
-                      <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px" }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>{entry.modeName}</div>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
-                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color }}>#{entry.rank}</span>
-                          <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: MUTED }}>{entry.score.toFixed(2)}/5</span>
-                        </div>
-                        <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden", marginBottom: 6 }}>
-                          <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 3 }} />
-                        </div>
-                        <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>{entry.read}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Section>
-            </FadeIn></div>
-          </section>
-        )}
-
-        {/* Key Attributes */}
+                {/* Key Attributes */}
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
           <div style={WRAP}><FadeIn>
             <Section label="Vendor Profile" title="Key attributes." dark>
@@ -604,18 +473,6 @@ export default function VendorProfile() {
   // ─── ANALYTICS VENDOR PROFILE ───
   if (anaVendor) {
     const av = anaVendor;
-    const maxScore = 42;
-    const pct = Math.round((av.score / maxScore) * 100);
-    const scoreColor = av.score >= 35 ? GREEN : av.score >= 28 ? ELECTRIC : av.score >= 20 ? AMBER : RED;
-    const dims = [
-      { name: "Intelligence Depth", score: av.intel, desc: "NLU maturity, topic discovery, sentiment, entity extraction, and reasoning quality" },
-      { name: "Auto-QA", score: av.autoQA, desc: "Automated quality evaluation, scoring, calibration, and 100% interaction review" },
-      { name: "Operational Workflow", score: av.opsWF, desc: "Supervisor tools, alerts, action triggers, and operational decision support" },
-      { name: "WFM Alignment", score: av.wfm, desc: "Forecasting, scheduling, adherence, and workforce optimization integration" },
-      { name: "Product Insights", score: av.prodIns, desc: "Ability to surface product, process, and journey improvement insights from interaction data" },
-      { name: "Integration & Data", score: av.intData, desc: "API depth, CRM/CCaaS/data platform connectivity, and data export flexibility" },
-      { name: "Scale & Governance", score: av.scaleGov, desc: "Enterprise deployment scale, security, compliance, and administrative governance" },
-    ];
     return (
       <div><Nav />
         <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
@@ -636,46 +493,18 @@ export default function VendorProfile() {
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{av.summary}</p>
               </div>
-              <div style={{ flexShrink: 0, textAlign: "center" }}>
-                <div style={{ width: 72, height: 72, borderRadius: "50%", border: `3px solid ${scoreColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: scoreColor }}>{av.score}</span>
-                </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>of {maxScore}</div>
-              </div>
+              <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
           </div>
         </section>
 
-        {/* 7 Dimension Scores */}
-        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
-          <div style={WRAP}><FadeIn>
-            <Section label="Scoring Dimensions" title="Seven dimensions, each scored 2 to 6.">
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }} className="profile-grid">
-                {dims.map((d, i) => {
-                  const color = d.score >= 6 ? GREEN : d.score >= 5 ? ELECTRIC : d.score >= 4 ? AMBER : RED;
-                  return (
-                    <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{d.name}</span>
-                        <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color }}>{d.score}<span style={{ fontSize: 12, color: MUTED }}>/6</span></span>
-                      </div>
-                      <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden", marginBottom: 6 }}>
-                        <div style={{ width: `${(d.score / 6) * 100}%`, height: "100%", background: color, borderRadius: 3 }} />
-                      </div>
-                      <p style={{ fontSize: 11, color: MUTED, margin: 0 }}>{d.desc}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </Section>
-          </FadeIn></div>
-        </section>
+        
 
         {/* Category Context */}
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
           <div style={WRAP}><FadeIn>
             <Section label="Market Position" title={`${av.catLabel}, ${av.segment}`} dark>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Scores are most meaningful when compared within the same platform category, a CCaaS platform and an AI-native overlay serve different buying motions.</p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Vendors are best compared within the same platform category: a CCaaS platform and an AI-native overlay serve different buying motions.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Analytics Intelligence</a>
                 
@@ -718,12 +547,6 @@ export default function VendorProfile() {
   // ─── ACD/ROUTING VENDOR PROFILE ───
   if (acdVendor) {
     const av = acdVendor;
-    const scoreColor = av.score >= 4.0 ? GREEN : av.score >= 3.5 ? ELECTRIC : av.score >= 3.0 ? AMBER : RED;
-    const dims = [
-      { name: "Routing Logic", score: av.rl }, { name: "Data Inputs", score: av.di }, { name: "Latency Under Load", score: av.lat },
-      { name: "Queue Architecture", score: av.qa }, { name: "Failover / Redundancy", score: av.fo }, { name: "Observability", score: av.obs },
-      { name: "AI/LLM Routing", score: av.ai }, { name: "Integrations", score: av.int }, { name: "WEM Alignment", score: av.wem }, { name: "Global Scale", score: av.glo },
-    ];
     return (
       <div><Nav />
         <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
@@ -739,39 +562,17 @@ export default function VendorProfile() {
               <div style={{ maxWidth: 620 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{av.segment}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{av.tier}</span>
-                  {av.quadrant && <span style={{ fontSize: 11, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{av.quadrant}</span>}
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{av.profile}</p>
               </div>
-              <div style={{ flexShrink: 0, textAlign: "center" }}>
-                <div style={{ width: 72, height: 72, borderRadius: "50%", border: `3px solid ${scoreColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: scoreColor }}>{av.score}</span>
-                </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>out of 5.0</div>
-              </div>
+              <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
           </div>
         </section>
-        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-          <Section label="Scoring Dimensions" title="Ten routing and orchestration dimensions.">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }} className="profile-grid">
-              {dims.map((d, i) => { const c = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED; return (
-                <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>{d.name}</span>
-                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: c }}>{d.score}<span style={{ fontSize: 11, color: MUTED }}>/5</span></span>
-                  </div>
-                  <div style={{ width: "100%", height: 4, background: BORDER, borderRadius: 2, overflow: "hidden" }}><div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: c, borderRadius: 2 }} /></div>
-                </div>
-              ); })}
-            </div>
-          </Section>
-        </FadeIn></div></section>
+        
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
-          <Section label="Market Position" title={`${av.tier}, ${av.segment}`} dark>
-            {av.rmi && <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginBottom: 16 }}>Routing Maturity Index: {av.rmi}</p>}
+          <Section label="Market Position" title={av.segment} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to ACD/Routing Intelligence</a>
               
@@ -786,7 +587,7 @@ export default function VendorProfile() {
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
                 <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {av.name}? Share what you've seen.</h3>
-                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't.</p>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
             </div>
@@ -811,12 +612,6 @@ export default function VendorProfile() {
   // ─── DIGITAL ENGAGEMENT VENDOR PROFILE ───
   if (deVendor) {
     const dv = deVendor;
-    const scoreColor = dv.score >= 85 ? GREEN : dv.score >= 70 ? ELECTRIC : dv.score >= 55 ? AMBER : RED;
-    const dims = [
-      { name: "Channel Breadth", score: dv.ch }, { name: "AI & Automation", score: dv.ai }, { name: "Agent Desktop", score: dv.desk },
-      { name: "Orchestration", score: dv.orch }, { name: "Integrations", score: dv.intg }, { name: "Analytics", score: dv.anl },
-      { name: "Enterprise Readiness", score: dv.ent }, { name: "Cost Model", score: dv.cost },
-    ];
     return (
       <div><Nav />
         <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
@@ -832,7 +627,6 @@ export default function VendorProfile() {
               <div style={{ maxWidth: 620 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{dv.archetype}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{dv.tier}</span>
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{dv.name}</h1>
                 <div style={{ display: "flex", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
@@ -840,27 +634,13 @@ export default function VendorProfile() {
                   <div><span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>Weakness: </span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{dv.weakness}</span></div>
                 </div>
               </div>
-              <div style={{ flexShrink: 0 }}><ScoreBadge score={dv.score} tier={dv.tier} /></div>
+              <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
           </div>
         </section>
-        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-          <Section label="Scoring Dimensions" title="Eight digital engagement dimensions.">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }} className="profile-grid">
-              {dims.map((d, i) => { const c = d.score >= 5 ? GREEN : d.score >= 4 ? ELECTRIC : d.score >= 3 ? AMBER : RED; return (
-                <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{d.name}</span>
-                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: c }}>{d.score}<span style={{ fontSize: 12, color: MUTED }}>/5</span></span>
-                  </div>
-                  <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${(d.score / 5) * 100}%`, height: "100%", background: c, borderRadius: 3 }} /></div>
-                </div>
-              ); })}
-            </div>
-          </Section>
-        </FadeIn></div></section>
+        
         <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
-          <Section label="Market Position" title={`${dv.tier}, ${dv.archetype}`} dark>
+          <Section label="Market Position" title={dv.archetype} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Digital Engagement Intelligence</a>
               
@@ -875,7 +655,7 @@ export default function VendorProfile() {
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
                 <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {dv.name}? Share what you've seen.</h3>
-                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't.</p>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
             </div>
@@ -900,16 +680,6 @@ export default function VendorProfile() {
   // ─── PAYMENTS VENDOR PROFILE ───
   if (payVendor) {
     const pv = payVendor;
-    const maxScore = 24;
-    const scoreColor = pv.score >= 20 ? GREEN : pv.score >= 15 ? ELECTRIC : pv.score >= 10 ? AMBER : RED;
-    const dims = [
-      { name: "Online / E-commerce", score: pv.onl }, { name: "POS / In-Store", score: pv.pos }, { name: "Kiosk / Self-Serve", score: pv.kio },
-      { name: "Handheld / mPOS", score: pv.hh }, { name: "Payment Orchestration", score: pv.orch }, { name: "Alt-Pay / Wallets", score: pv.alt },
-      { name: "Global Reach", score: pv.glob }, { name: "Enterprise Fit", score: pv.ent },
-    ];
-    const csuite = [
-      { role: "CFO", fit: pv.cfo }, { role: "CTO", fit: pv.cto }, { role: "CIO", fit: pv.cio }, { role: "COO", fit: pv.coo }, { role: "CX", fit: pv.cx },
-    ].filter(c => c.fit);
     return (
       <div><Nav />
         <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
@@ -930,30 +700,11 @@ export default function VendorProfile() {
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{pv.name}</h1>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{pv.diff}</p>
               </div>
-              <div style={{ flexShrink: 0, textAlign: "center" }}>
-                <div style={{ width: 72, height: 72, borderRadius: "50%", border: `3px solid ${scoreColor}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, color: scoreColor }}>{pv.score}</span>
-                </div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>of {maxScore}</div>
-              </div>
+              <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
           </div>
         </section>
-        <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-          <Section label="Capability Dimensions" title="Eight payment capability dimensions.">
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }} className="profile-grid">
-              {dims.map((d, i) => { const c = d.score >= 3 ? GREEN : d.score >= 2 ? AMBER : RED; return (
-                <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{d.name}</span>
-                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 18, color: c }}>{d.score}<span style={{ fontSize: 12, color: MUTED }}>/3</span></span>
-                  </div>
-                  <div style={{ width: "100%", height: 5, background: BORDER, borderRadius: 3, overflow: "hidden" }}><div style={{ width: `${(d.score / 3) * 100}%`, height: "100%", background: c, borderRadius: 3 }} /></div>
-                </div>
-              ); })}
-            </div>
-          </Section>
-        </FadeIn></div></section>
+        
         <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="profile-grid">
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
@@ -966,22 +717,7 @@ export default function VendorProfile() {
             </div>
           </div>
         </FadeIn></div></section>
-        {csuite.length > 0 && (
-          <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
-            <Section label="C-Suite Lens" title="Who cares most about this vendor." dark>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                {csuite.map((c, i) => (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "12px 18px", textAlign: "center", minWidth: 80 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: LIGHT }}>{c.role}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{c.fit}</div>
-                  </div>
-                ))}
-              </div>
-            </Section>
-          </FadeIn></div></section>
-        )}
-
-        {/* Back navigation */}
+                {/* Back navigation */}
         <section style={{ background: WARM, padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
             <a href="/vendors/payments" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>← Back to Payments Intelligence</a>
@@ -995,7 +731,7 @@ export default function VendorProfile() {
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
                 <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {pv.name}? Share what you've seen.</h3>
-                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't.</p>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
               <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
             </div>

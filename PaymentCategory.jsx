@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { getAllPayments, paymentDimensions, paymentCats, csuiteLenses } from "./PaymentData";
+import { getAllPayments, paymentCats } from "./PaymentData";
+import { ScoresWithdrawn, Phase1Directory } from "./src/lib/Phase1Directory.jsx";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
@@ -19,11 +20,12 @@ return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:
 <a href="/contact" style={{color:"#fff",fontSize:13,fontWeight:600,background:ELECTRIC,padding:"9px 20px",borderRadius:6}}>Subscribe</a>
 </div></div></nav></>)}
 
-const sc = (v) => v >= 3 ? GREEN : v >= 2 ? AMBER : RED;
-const fc = (v) => v === "H" ? GREEN : v === "M" ? AMBER : RED;
 
 export default function PaymentCategory() {
-  const all = getAllPayments().sort((a, b) => b.score - a.score);
+  const all = getAllPayments();
+  /* Integrity freeze (TB, S23): grouped by segment, listed by name, no score or fit rating. */
+  const segs = [...paymentCats.map((c) => c.name), ...[...new Set(all.map((v) => v.cat))].filter((c) => !paymentCats.some((x) => x.name === c)).sort()];
+  const groups = segs.map((name) => ({ name, desc: (paymentCats.find((c) => c.name === name) || {}).desc, vendors: all.filter((v) => v.cat === name).map((v) => ({ slug: v.slug, name: v.name, line: v.role })) })).filter((g) => g.vendors.length);
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
@@ -46,12 +48,12 @@ export default function PaymentCategory() {
               Payment Technology{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>
-              {all.length} payment providers scored across 8 capability dimensions and evaluated through 5 C-suite lenses: CFO, CTO, CIO, COO, and CX. Covering unified commerce, digital-first processors, enterprise in-store, orchestration layers, regional wallets, and specialty providers.
+              {all.length} payment providers across unified commerce, digital-first processors, enterprise in-store, orchestration layers, regional wallets and specialty providers. Listed by segment and name; scores are withdrawn until this category is researched under the current methodology.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 20, marginTop: 32, flexWrap: "wrap" }}>
-              {[{ n: all.length, l: "Vendors scored" },{ n: "8", l: "Capability dimensions" },{ n: "5", l: "C-suite lenses" },{ n: "24", l: "Max score" }].map((s, i) => (
+              {[{ n: all.length, l: "Vendors listed" },{ n: new Set(all.map((v) => v.cat)).size, l: "Segments" }].map((s, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "14px 20px", textAlign: "center", minWidth: 100 }}>
                   <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: LIGHT }}>{s.n}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{s.l}</div>
@@ -62,138 +64,8 @@ export default function PaymentCategory() {
         </div>
       </section>
 
-      {/* C-Suite Lenses */}
-      <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 28 }}>
-              <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>5 Executive Lenses</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0 4px" }}>Payment decisions cut across every executive function.</h2>
-              <p style={{ fontSize: 13, color: MUTED, maxWidth: 520, margin: "0 auto" }}>Each vendor is evaluated through five C-suite perspectives. The same vendor can score differently depending on whose priorities drive the decision.</p>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
-              {csuiteLenses.map((l, i) => (
-                <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "18px 16px" }}>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: ELECTRIC, marginBottom: 4 }}>{l.abbr}</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: NAVY, marginBottom: 4 }}>{l.name}</div>
-                  <div style={{ fontSize: 11, color: MUTED, lineHeight: 1.4 }}>{l.desc}</div>
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Full Directory */}
-      <section style={{ background: "#fff", padding: "80px 28px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Complete Directory</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 24px" }}>All {all.length} providers, ranked by composite capability score.</h2>
-          </FadeIn>
-
-          {/* Dimension legend */}
-          <FadeIn delay={0.03}>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "10px 16px", background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}15`, borderRadius: 8, marginBottom: 12, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: SLATE, marginRight: 6 }}>Capability (H/M/L → 3/2/1):</span>
-              {paymentDimensions.map((d, i) => (
-                <span key={i} style={{ fontSize: 10, color: MUTED }}>
-                  <span style={{ fontWeight: 700, color: NAVY }}>{d.abbr}</span>={d.name}{i < paymentDimensions.length - 1 ? <span style={{ color: BORDER, margin: "0 3px" }}>·</span> : ""}
-                </span>
-              ))}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "10px 16px", background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}15`, borderRadius: 8, marginBottom: 28, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: SLATE, marginRight: 6 }}>C-suite fit:</span>
-              {csuiteLenses.map((l, i) => (
-                <span key={i} style={{ fontSize: 10, color: MUTED }}>
-                  <span style={{ fontWeight: 700, color: NAVY }}>{l.abbr}</span>={l.name}{i < csuiteLenses.length - 1 ? <span style={{ color: BORDER, margin: "0 3px" }}>·</span> : ""}
-                </span>
-              ))}
-              <span style={{ fontSize: 10, color: MUTED, marginLeft: 8 }}>(<span style={{ color: GREEN, fontWeight: 700 }}>H</span>=High <span style={{ color: AMBER, fontWeight: 700 }}>M</span>=Med <span style={{ color: RED, fontWeight: 700 }}>L</span>=Low)</span>
-            </div>
-          </FadeIn>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-            {all.map((v, vi) => {
-              const catObj = paymentCats.find(c => c.name === v.cat);
-              const catColor = catObj ? catObj.color : MUTED;
-              return (
-                <FadeIn key={vi} delay={Math.min(vi * 0.02, 0.5)}>
-                  <a href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "all 0.2s", textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                    onMouseOver={e => { e.currentTarget.style.borderColor = catColor; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                    onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
-
-                    <div style={{ width: 38, height: 38, borderRadius: "50%", border: `2px solid ${catColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 13, color: catColor }}>{v.score}</span>
-                    </div>
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{v.name}</span>
-                        <span style={{ fontSize: 9, color: catColor, background: `${catColor}10`, padding: "1px 5px", borderRadius: 3, fontWeight: 600 }}>{v.cat}</span>
-                      </div>
-                      <p style={{ fontSize: 11, color: MUTED, margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.role}: {v.diff}</p>
-                    </div>
-
-                    {/* 8 capability scores */}
-                    <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
-                      {[
-                        { l: "ONL", s: v.onl }, { l: "POS", s: v.pos }, { l: "KIO", s: v.kio }, { l: "HH", s: v.hh },
-                        { l: "ORC", s: v.orch }, { l: "ALT", s: v.alt }, { l: "GLB", s: v.glob }, { l: "ENT", s: v.ent },
-                      ].map((d, di) => (
-                        <div key={di} style={{ textAlign: "center", minWidth: 18 }}>
-                          <div style={{ fontSize: 6.5, color: MUTED }}>{d.l}</div>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: sc(d.s) }}>{d.s}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Divider */}
-                    <div style={{ width: 1, height: 28, background: BORDER, flexShrink: 0 }} />
-
-                    {/* C-suite fit */}
-                    <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
-                      {[
-                        { l: "CFO", s: v.cfo }, { l: "CTO", s: v.cto }, { l: "CIO", s: v.cio }, { l: "COO", s: v.coo }, { l: "CX", s: v.cx },
-                      ].map((d, di) => (
-                        <div key={di} style={{ textAlign: "center", minWidth: 18 }}>
-                          <div style={{ fontSize: 6.5, color: MUTED }}>{d.l}</div>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: fc(d.s) }}>{d.s}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, flexShrink: 0 }}>→</span>
-                  </a>
-                </FadeIn>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Scoring Methodology */}
-      <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}>
-        <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 40 }}>
-              <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>8 capability dimensions. 5 C-suite lenses. Scale: H/M/L.</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto" }}>Each vendor is scored High (3), Medium (2), or Low (1) on 8 capability dimensions for a composite out of 24. Separately, each vendor is evaluated through 5 C-suite perspectives: the same provider can be high-fit for a CFO and low-fit for a CX leader depending on what the role prioritizes.</p>
-            </div>
-          </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }} className="method-grid">
-            {paymentDimensions.map((d, i) => (
-              <FadeIn key={i} delay={i * 0.04}>
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "16px 14px" }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: LIGHT }}>{d.abbr}</span>
-                  <h4 style={{ fontSize: 12, fontWeight: 600, color: "#fff", margin: "2px 0 0" }}>{d.name}</h4>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ScoresWithdrawn category="payment technology" />
+      <Phase1Directory groups={groups} />
 
       {/* CTA */}
       <section style={{ background: WARM, padding: "80px 28px" }}>

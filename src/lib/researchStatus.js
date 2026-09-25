@@ -69,3 +69,33 @@ export function ccaasResearchLabel(slug) {
 }
 
 export const CCAAS_COMPLETE_COUNT = Object.keys(CCAAS_RESEARCH.complete).length;
+
+/* Integrity freeze, extended to the seven other categories (TB, S23). No category beyond
+   CCaaS has current research yet, so every vendor there is Phase 1 context and carries the
+   same label. The categories follow the research program's order after CCaaS. */
+export const PHASE1_CATEGORIES = {
+  iva: "IVA and Conversational AI",
+  "agent-assist": "Agent Assist",
+  "wem-qm": "WFM and QM",
+  analytics: "Experience Analytics and VoC",
+  "digital-engagement": "Digital Engagement",
+  payments: "Payments, Identity and Trust",
+  "acd-routing": "ACD and Routing",
+};
+
+/** Research status for any vendor: CCaaS reads the registry; every other category is Phase 1. */
+export function researchStatus(category, slug) {
+  return category === "ccaas" ? ccaasResearchStatus(slug) : "phase1";
+}
+
+/** The one label for a non-CCaaS vendor, so no page words it differently. */
+export function phase1Label() {
+  return {
+    status: "phase1",
+    short: "Phase 1 context",
+    text: "Phase 1 context, not yet researched under the current methodology. Numeric scores, tiers and rankings are withdrawn until this category is researched and class-specific ratings are validated.",
+  };
+}
+
+/** Name order, the only order a list of unresearched vendors carries. */
+export const byName = (a, b) => String(a.name).localeCompare(String(b.name));

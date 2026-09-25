@@ -179,7 +179,7 @@ for (const [slug, actual] of Object.entries(ACTUAL)) {
      CATEGORIES[slug].vendorCount, actual);
 
   const title = resolveSeo(`/vendors/${slug}`).title;
-  /* CCaaS says Profiled since the S22 integrity freeze withdrew its Phase 1 scores. */
+  /* Every category says Profiled: the S22 freeze withdrew CCaaS Phase 1 scores, the S23 freeze the other seven. */
   const claim = title.match(/(\d+)\s+(?:Vendors?|Platforms?)\s+(?:Scored|Profiled)/i);
   ok(`E2  ${slug}: title states a vendor count`, !!claim);
   if (claim) eq(`E3  ${slug}: title count matches the data file`, Number(claim[1]), actual);

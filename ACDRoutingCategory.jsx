@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { getAllACD, acdTierConfig, acdDimensions, acdQuadrants } from "./ACDRoutingData";
+import { getAllACD } from "./ACDRoutingData";
+import { ScoresWithdrawn, Phase1Directory } from "./src/lib/Phase1Directory.jsx";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -38,12 +39,12 @@ function Nav() {
 
 export default function ACDRoutingCategory() {
   const all = getAllACD();
-  const tierNames = ["Elite", "Strong", "Mid-Market", "Basic", "Entry"];
-  const tiers = tierNames.map(t => ({ name: t, vendors: all.filter(v => v.tier === t), ...acdTierConfig[t] }));
+  /* Integrity freeze (TB, S23): grouped by segment, listed by name; no score, tier or quadrant. */
+  const segs = [...new Set(all.map((v) => v.segment))].sort();
+  const groups = segs.map((t) => ({ name: t, vendors: all.filter((v) => v.segment === t).map((v) => ({ slug: v.slug, name: v.name })) }));
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const qColors = [GREEN, ELECTRIC, AMBER, RED];
 
   return (
     <div>
@@ -65,12 +66,12 @@ export default function ACDRoutingCategory() {
               ACD & Routing{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 620 }}>
-              {all.length} vendors scored across 10 dimensions, routing logic, data inputs, latency, queue architecture, failover, observability, AI routing, integrations, WEM alignment, and global scale. Scored 1 to 5 per dimension with weighted averages on a 0 to 5 scale. The operator's truth about who can actually route.
+              {all.length} ACD and routing vendors: routing logic, data inputs, queue architecture, failover, observability, AI routing, integrations and global scale. Listed by segment and name; scores are withdrawn until this category is researched under the current methodology.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 20, marginTop: 32, flexWrap: "wrap" }}>
-              {[{ n: all.length, l: "Vendors scored" },{ n: "10", l: "Scoring dimensions" },{ n: "5", l: "Maturity tiers" },{ n: "4", l: "Quadrant positions" }].map((s, i) => (
+              {[{ n: all.length, l: "Vendors listed" },{ n: segs.length, l: "Segments" }].map((s, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "14px 20px", textAlign: "center", minWidth: 100 }}>
                   <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, color: LIGHT }}>{s.n}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{s.l}</div>
@@ -81,165 +82,8 @@ export default function ACDRoutingCategory() {
         </div>
       </section>
 
-      {/* Quadrant Matrix */}
-      <section style={{ background: WARM, padding: "80px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Routing Depth vs AI Routing Readiness</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0 4px" }}>Four quadrants. Four fundamentally different buyer conversations.</h2>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, maxWidth: 800, margin: "0 auto" }} className="quad-grid">
-              {acdQuadrants.map((q, i) => (
-                <div key={i} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 20px", borderTop: `4px solid ${qColors[i]}` }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: qColors[i], letterSpacing: 0.5, margin: "0 0 4px" }}>{q.name}</h3>
-                  <div style={{ fontSize: 11, color: MUTED, marginBottom: 12 }}>{q.position}</div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 12 }}>
-                    {q.vendors.map((v, j) => (
-                      <span key={j} style={{ fontSize: 11.5, fontWeight: 500, color: SLATE, background: WARM, padding: "2px 8px", borderRadius: 4, border: `1px solid ${BORDER}` }}>{v}</span>
-                    ))}
-                  </div>
-                  <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.5, margin: 0 }}>{q.desc}</p>
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Bell Curve */}
-      <section style={{ background: "#fff", padding: "80px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Bell Curve Distribution</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: "8px 0 4px" }}>8 to 10 vendors compete at real routing depth. 20+ are ceiling-limited.</h2>
-            </div>
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }} className="bell-tiers">
-              {tiers.map((t, i) => {
-                const heights = [200, 280, 200, 220, 80];
-                return (
-                  <div key={i} style={{ flex: 1, minWidth: 140 }}>
-                    <div style={{ background: `${t.color}08`, border: `1px solid ${t.color}20`, borderRadius: "10px 10px 0 0", padding: "12px 10px", minHeight: heights[i], display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-                      <div style={{ fontSize: 9, fontWeight: 700, color: t.color, letterSpacing: 1, textTransform: "uppercase", marginBottom: 5 }}>
-                        {t.name} <span style={{ fontWeight: 400, opacity: 0.7 }}>({t.range})</span>
-                      </div>
-                      {t.vendors.map((v, j) => (
-                        <a key={j} href={`/vendors/${v.slug}`} style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", fontSize: 11, color: SLATE, borderBottom: j < t.vendors.length - 1 ? `1px solid ${BORDER}` : "none", textDecoration: "none", transition: "color 0.15s" }}
-                          onMouseOver={e => e.currentTarget.style.color = ELECTRIC}
-                          onMouseOut={e => e.currentTarget.style.color = SLATE}>
-                          <span style={{ fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{v.name}</span>
-                          <span style={{ fontWeight: 700, color: t.color, fontSize: 10.5 }}>{v.score}</span>
-                        </a>
-                      ))}
-                    </div>
-                    <div style={{ background: t.color, color: "#fff", textAlign: "center", padding: "4px", borderRadius: "0 0 6px 6px", fontSize: 10, fontWeight: 700 }}>{t.vendors.length}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Full Directory */}
-      <section style={{ background: WARM, padding: "80px 28px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Complete Directory</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 24px" }}>All {all.length} vendors, ranked by weighted score.</h2>
-          </FadeIn>
-
-          {/* Dimension legend */}
-          <FadeIn delay={0.03}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, padding: "10px 16px", background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}15`, borderRadius: 8, marginBottom: 24, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 10, fontWeight: 600, color: SLATE, marginRight: 6 }}>Dimensions:</span>
-              {acdDimensions.map((d, i) => (
-                <span key={i} style={{ fontSize: 10, color: MUTED }}>
-                  <span style={{ fontWeight: 700, color: NAVY }}>{d.abbr}</span>={d.name}{i < acdDimensions.length - 1 ? <span style={{ color: BORDER, margin: "0 3px" }}>·</span> : ""}
-                </span>
-              ))}
-            </div>
-          </FadeIn>
-
-          {tiers.map((t, ti) => (
-            <FadeIn key={ti} delay={ti * 0.04}>
-              <div style={{ marginBottom: 36 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                  <div style={{ width: 4, height: 22, borderRadius: 2, background: t.color }} />
-                  <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: 0 }}>Tier {ti + 1}: {t.name}</h3>
-                  <span style={{ fontSize: 10, color: MUTED, background: "#fff", padding: "2px 7px", borderRadius: 4, border: `1px solid ${BORDER}` }}>{t.range}</span>
-                </div>
-                <p style={{ fontSize: 12, color: MUTED, marginBottom: 14, maxWidth: 680 }}>{t.desc}</p>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  {t.vendors.map((v, vi) => (
-                    <a key={vi} href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, transition: "all 0.2s", textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                      onMouseOver={e => { e.currentTarget.style.borderColor = t.color; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                      onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
-
-                      <div style={{ width: 40, height: 40, borderRadius: "50%", border: `2px solid ${t.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 15, color: t.color }}>{v.score}</span>
-                      </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{v.name}</span>
-                          <span style={{ fontSize: 10, color: MUTED, background: WARM, padding: "1px 6px", borderRadius: 3, border: `1px solid ${BORDER}` }}>{v.segment}</span>
-                          <span style={{ fontSize: 10, color: t.color === GREEN ? GREEN : MUTED, background: `${t.color}08`, padding: "1px 6px", borderRadius: 3 }}>{v.quadrant}</span>
-                        </div>
-                        <p style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.4, margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.profile}</p>
-                      </div>
-
-                      {/* 10 dimension mini-scores */}
-                      <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-                        {[
-                          { l: "RL", s: v.rl }, { l: "DI", s: v.di }, { l: "LAT", s: v.lat }, { l: "QA", s: v.qa }, { l: "FO", s: v.fo },
-                          { l: "OBS", s: v.obs }, { l: "AI", s: v.ai }, { l: "INT", s: v.int }, { l: "WEM", s: v.wem }, { l: "GLO", s: v.glo },
-                        ].map((d, di) => (
-                          <div key={di} style={{ textAlign: "center", minWidth: 22 }}>
-                            <div style={{ fontSize: 7, color: MUTED, letterSpacing: 0.3 }}>{d.l}</div>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: d.s >= 5 ? GREEN : d.s >= 4 ? ELECTRIC : d.s >= 3 ? AMBER : RED }}>{d.s}</div>
-                          </div>
-                        ))}
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, flexShrink: 0 }}>→</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </section>
-
-      {/* Scoring Methodology */}
-      <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "30%", right: "-5%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.04) 0%, transparent 70%)" }} />
-        <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-          <FadeIn>
-            <div style={{ textAlign: "center", marginBottom: 40 }}>
-              <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Scoring Methodology</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: "#fff", margin: "8px 0 8px" }}>10 dimensions. Weighted average. Scale of 1 to 5.</h2>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", maxWidth: 540, margin: "0 auto" }}>Each vendor is scored 1 to 5 on real-world operational maturity. Scores reflect production routing capability as observed in deployment, independent of vendor marketing claims. The weighted average produces a composite on a 0 to 5 scale.</p>
-            </div>
-          </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }} className="method-grid">
-            {acdDimensions.map((d, i) => (
-              <FadeIn key={i} delay={i * 0.04}>
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "18px 16px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: LIGHT }}>{d.abbr}</span>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{d.weight}</span>
-                  </div>
-                  <h4 style={{ fontSize: 13, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>{d.name}</h4>
-                  <p style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", lineHeight: 1.4, margin: 0 }}>{d.desc}</p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ScoresWithdrawn category="ACD and routing" />
+      <Phase1Directory groups={groups} />
 
       {/* CTA */}
       <section style={{ background: WARM, padding: "80px 28px" }}>

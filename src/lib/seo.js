@@ -47,28 +47,28 @@ export const SEO_MAP = {
     desc: "24 CCaaS vendors and 4 adjacent suites, listed by research status. Where each platform fits, where it breaks, and the evidence behind it. Numeric scores withdrawn until class-specific ratings are validated.",
   },
   "/vendors/iva": {
-    title: `IVA + Conversational AI Market Intelligence: 50 Vendors Scored Across 7 Categories | ${SITE}`,
-    desc: "50 IVA and conversational AI vendors scored across 7 market categories: Enterprise IVA, Voice-Native, Helpdesk AI, CCaaS-Native, Agent Assist, Ecommerce, and CRM/Workflow. 100-point scoring model. Use-case shortlists. Phase 1 + Phase 2 research.",
+    title: `IVA + Conversational AI: 50 Vendors Profiled Across 7 Categories | ${SITE}`,
+    desc: "50 IVA and conversational AI vendors across 7 market categories: enterprise IVA, voice-native, helpdesk AI, CCaaS-native, agent assist, ecommerce and CRM/workflow. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
   },
   "/vendors/acd-routing": {
-    title: `ACD + Routing Market Intelligence: 44 Vendors Scored | ${SITE}`,
-    desc: "44 ACD/Routing vendors scored across 10 dimensions including routing logic, AI readiness, failover, and global scale. Quadrant matrix and tier rankings.",
+    title: `ACD + Routing: 44 Vendors Profiled | ${SITE}`,
+    desc: "44 ACD and routing vendors by segment: routing logic, AI routing, failover and global scale. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
   },
   "/vendors/analytics": {
-    title: `Advanced Analytics Market Intelligence: 41 Vendors Scored | ${SITE}`,
-    desc: "41 analytics vendors across 6 platform categories scored on 7 dimensions. CCaaS-embedded, AI-native, WEM, LLM infrastructure, agent assist, and product analytics.",
+    title: `Advanced Analytics: 41 Vendors Profiled | ${SITE}`,
+    desc: "41 analytics vendors across 6 platform categories: CCaaS-embedded, AI-native, WEM, LLM infrastructure, agent assist and product analytics. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
   },
   "/vendors/payments": {
-    title: `Payment Technology Market Intelligence: 33 Vendors Scored | ${SITE}`,
-    desc: "33 payment providers scored across 8 capability dimensions and evaluated through 5 C-suite lenses: CFO, CTO, CIO, COO, and CX.",
+    title: `Payment Technology: 33 Vendors Profiled | ${SITE}`,
+    desc: "33 payment providers by segment: unified commerce, digital-first, enterprise in-store, orchestration, regional and specialty. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
   },
   "/vendors/digital-engagement": {
-    title: `Digital Engagement Market Intelligence: 46 Platforms Scored | ${SITE}`,
-    desc: "46 digital engagement platforms scored across 8 dimensions. The first operator-grade classification of the market: CCaaS-native, messaging, social care, AI automation, and helpdesk.",
+    title: `Digital Engagement: 46 Platforms Profiled | ${SITE}`,
+    desc: "46 digital engagement platforms by archetype: CCaaS-native, messaging, social care, AI automation and helpdesk. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
   },
   "/vendors/agent-assist": {
-    title: `Agent Assist Market Intelligence: 15 Vendors Scored | ${SITE}`,
-    desc: "15 agent assist vendors scored across 10 weighted dimensions. Real-time guidance, knowledge grounding, workflow execution, coaching, compliance, and market proof.",
+    title: `Agent Assist: 15 Vendors Profiled | ${SITE}`,
+    desc: "15 agent assist vendors by type: real-time guidance, knowledge grounding, workflow execution, coaching and compliance. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
   },
   "/cx-ecosystem": {
     title: `CX Industry Ecosystem: 15 Essential Publications + Communities | ${SITE}`,
@@ -216,11 +216,11 @@ export const SEO_MAP = {
   },
   "/research/iva-buyer-guide": {
     title: `IVA + Conversational AI Buyer's Guide 2026 | ${SITE}`,
-    desc: "50 vendors scored across 7 categories. The Human Premium framework. Market forecasts through 2029. Independent research. No vendor sponsorship.",
+    desc: "Phase 1 edition: 50 vendors across 7 categories, the Human Premium framework and market forecasts through 2029. Its scores are withdrawn on the site until the category is researched under the current methodology.",
   },
   "/research/ccaas-buyer-guide": {
     title: `CCaaS Platform Buyer's Guide 2026 | ${SITE}`,
-    desc: "28 CCaaS platforms scored on 27 weighted dimensions. Tiers, fit, and migration risk for every major platform.",
+    desc: "Phase 1 edition, April 2026: 28 CCaaS platforms on 27 weighted dimensions, operating-model fit and migration risk. Its scores and tiers are withdrawn on the site while current research is published.",
   },
   "/human-premium": {
     title: `The Human Premium: Why the Best CX Operations Invest More in People | ${SITE}`,
@@ -315,8 +315,8 @@ export const SEO_MAP = {
     desc: "Terms governing use of The Center of CX. Tool disclaimers, vendor assessment independence, intellectual property, and liability limitations.",
   },
   "/vendors/wem-qm": {
-    title: `Workforce + Quality Management: 25 Vendors Scored | ${SITE}`,
-    desc: "WEM, WFM, and QA vendor intelligence across 3 market layers and 3 scoring modes. NICE, Verint, Calabrio, Observe.AI, CallMiner, Cresta and 19 more scored on 8 weighted criteria.",
+    title: `Workforce + Quality Management: 25 Vendors Profiled | ${SITE}`,
+    desc: "WEM, WFM and QA vendors across 3 market layers, with the demo gates every vendor should pass. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
   },
   "/industries/education": {
     title: `Education CX Intelligence | ${SITE}`,
@@ -344,7 +344,7 @@ export const SEO_MAP = {
   },
   "/tools/tco-calculator": {
     title: `TCO Calculator | ${SITE}`,
-    desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a scored breakdown and connect with a consultant.",
+    desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a cost breakdown and connect with a consultant.",
   },
 };
 import { CATEGORIES, VERTICALS, hasScoredVerticalFit } from "./verticals.js";
@@ -361,6 +361,11 @@ import { CATEGORIES, VERTICALS, hasScoredVerticalFit } from "./verticals.js";
    data files, so a vendor added or removed fails the suite before it ships a
    claim a buyer can disprove. */
 export const TOOL_COUNT = Object.keys(SEO_MAP).filter((p) => p.startsWith("/tools/")).length;
+/* The tools hub states the live count, never a hand-written one (it said 30 after the retirements). */
+Object.assign(SEO_MAP, { "/how-to-choose": {
+  title: `CX Pro Tools | ${TOOL_COUNT} Free Interactive Tools for Contact Center Professionals | ${SITE}`,
+  desc: `${TOOL_COUNT} free tools for CX operators. Staffing calculators, TCO models, QA scorecards, vendor matching, AHT decomposition, and more. Immediate output. No sales call required.`,
+} });
 export const CATEGORY_COUNT = Object.keys(CATEGORIES).length;
 export const ADJACENT_PROFILE_COUNT = 4;
 export const VENDOR_PROFILE_COUNT =
@@ -815,7 +820,7 @@ export function resolveSeo(rawPath) {
 
   const seo = {
     title: `${SITE} | Independent CX Technology Intelligence`,
-    desc: "Independent CX and contact center technology intelligence. Vendor scoring, buyer frameworks, and consultant matching.",
+    desc: "Independent CX and contact center technology intelligence. Vendor research, buyer frameworks, and consultant matching.",
     path: pathname,
     known: false,
   };
@@ -852,8 +857,8 @@ export function resolveSeo(rawPath) {
         : `${vendorName} | Vendor Profile | ${SITE}`;
       seo.known = true;
       seo.desc = vendorCat
-        ? `Independent assessment of ${vendorName} in ${vendorCat}. Scores, strengths, weaknesses, competitive context, and community reviews.`
-        : `Independent assessment of ${vendorName}. Scores, strengths, weaknesses, competitive context, and community reviews.`;
+        ? `Independent assessment of ${vendorName} in ${vendorCat}. Strengths, weaknesses, where it fits and its research status.`
+        : `Independent assessment of ${vendorName}. Strengths, weaknesses, where it fits and its research status.`;
     }
     return seo;
   }

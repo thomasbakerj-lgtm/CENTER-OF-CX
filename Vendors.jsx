@@ -117,7 +117,7 @@ function Hero() {
                   { n: String(VENDOR_PROFILE_COUNT), l: "Vendors assessed" },
                   { n: "9", l: "Decision domains" },
                   { n: "7", l: "Orchestration layers" },
-                  { n: "27", l: "Scoring dimensions" },
+                  { n: "8", l: "Vendor categories" },
                 ].map((s, i) => (
                   <div key={i} style={{ textAlign: "center", padding: "12px 0" }}>
                     <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: LIGHT }}>{s.n}</div>
@@ -252,9 +252,9 @@ function HowWeEvaluate() {
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           {[
-            { t: "Architecture-level scoring", d: "We evaluate at the orchestration layer level. Routing dependencies, data fabric requirements, API maturity, event-driven capability, and governance overhead. Feature checklists miss what matters. We go deeper." },
+            { t: "Architecture-level evaluation", d: "We evaluate at the orchestration layer level. Routing dependencies, data fabric requirements, API maturity, event-driven capability, and governance overhead. Feature checklists miss what matters. We go deeper." },
             { t: "Category-specific rubrics", d: "Each category is evaluated on criteria built for it. CCaaS has moved to the current research method: atomic claims with dated evidence, comparison only within a competitive class, and numeric ratings withheld until each class has enough validated peers." },
-            { t: "Research status on every profile", d: "Each CCaaS profile states whether current research is complete or the page still reflects the earlier Phase 1 assessment. Phase 1 CCaaS scores and tiers are withdrawn." },
+            { t: "Research status on every profile", d: "Each CCaaS profile states whether current research is complete or the page still reflects the earlier Phase 1 assessment. Phase 1 scores, tiers and rankings are withdrawn in every category until it is researched under the current methodology." },
             { t: "Vertical and buyer context", d: "A vendor that's strong for retail may break in healthcare. Our evaluations include vertical fit signals, regulated-readiness indicators, and buyer-type alignment (enterprise vs mid-market vs SMB)." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.08}>
@@ -287,11 +287,11 @@ function VendorPagePreview() {
           <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "40px 36px", maxWidth: 700, margin: "0 auto" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {[
-                { label: "What they do well", desc: "Core strengths backed by our scoring data. Where the platform genuinely excels and which buyer profiles benefit most." },
+                { label: "What they do well", desc: "Core strengths from the assessment on file. Where the platform genuinely excels and which buyer profiles benefit most." },
                 { label: "Where they break", desc: "Honest assessment of limitations, integration challenges, vertical gaps, and the scenarios where the platform struggles." },
                 { label: "Best-fit customers", desc: "The operating model, vertical, and scale profile where this vendor delivers the strongest outcomes." },
                 { label: "Red flags", desc: "Contract terms, pricing traps, implementation risks, and the patterns we've seen cause problems for buyers." },
-                { label: "Competitive context", desc: "How this vendor compares to direct alternatives, including head-to-head scoring on the dimensions that matter for your situation." },
+                { label: "Competitive context", desc: "How this vendor compares to direct alternatives on the dimensions that matter for your situation." },
                 { label: "Advisory intro", desc: "If this vendor fits your needs, we connect you with a vetted technology partner who specializes in their deployment." },
               ].map((item, i) => (
                 <div key={i} style={{ display: "flex", gap: 16, padding: "12px 0", borderBottom: i < 5 ? `1px solid ${BORDER}` : "none" }}>

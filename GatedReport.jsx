@@ -8,6 +8,7 @@ const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 const reports = {
   "iva-buyer-guide": {
     title: "IVA & Conversational AI Platform Buyer's Guide 2026",
+    phase1: true,
     subtitle: "50 vendors scored across 7 market categories. The Human Premium workforce framework. Market forecasts through 2029.",
     pages: "25 pages",
     highlights: [
@@ -27,6 +28,7 @@ const reports = {
   },
   "ccaas-buyer-guide": {
     title: "CCaaS Platform Buyer's Guide 2026",
+    phase1: true,
     subtitle: "28 CCaaS platforms scored across 27 weighted dimensions. Architecture fit, migration risk, hidden costs, and the RFP questions most evaluations skip.",
     pages: "19 pages",
     published: "April 2026",
@@ -307,7 +309,8 @@ export default function GatedReport() {
                 <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{report.pages}</span>
               </div>
               <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 3.5vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 16px" }}>{report.title}</h1>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 28 }}>{report.subtitle}</p>
+              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: report.phase1 ? 12 : 28 }}>{report.subtitle}</p>
+              {report.phase1 && <p style={{ fontSize: 13, color: LIGHT, lineHeight: 1.6, marginBottom: 28, maxWidth: 620 }}>Phase 1 edition. This report predates the current research methodology. Its scores and tiers are withdrawn everywhere else on the site and stay here only as a dated record of that assessment.</p>}
 
               <div style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>What's inside</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

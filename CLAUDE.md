@@ -366,10 +366,8 @@ Binding. None of this is in code comments beyond what is noted.
   Phase 2 research or set noindex like the other 70 category-by-vertical pages.
 - Vendor Match still ranks on its 24-vendor Phase 1 fork and prints fit scores (Stage 4,
   5-01).
-- Seven non-CCaaS categories still show Phase 1 scores and tiers as current.
 - BCB publishes `analystRead` and `confidence` on the rail (verdicts), like TCO's
   `analystRead`. BCB next steps are a hardcoded list, not `nextFor` (3-03).
-- CCaaS vendor profile nav renders "Vendors" twice. Pre-existing, cosmetic.
 - ~~`scenarioUrl` `__proto__` assignment.~~ Fixed S23: a link could swap a decoded state's prototype; unsafe names
   are now dropped in both directions (`track.test.mjs` M). `track.js` was already allowlisted.
 - ~~`ReportExport.jsx` wrote section strings into the PDF window as raw HTML.~~ Fixed S23: a crafted scenario link could
@@ -744,7 +742,14 @@ dashboard, the 12-phase growth program.
    with attribution (routes and SEO for 13 pages). Suite 20,968; local live check 227 of 227.
 33. Done S23: full site scan part 1. All 1,437 dashes removed (13-03 closed) and 41 superlatives retired from public
    copy; `copy.test.mjs` gates both on every tracked text file.
-34. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
+34. Done S23: full site scan part 2, the integrity freeze on every category (TB: yes). No Phase 1 score, tier, rank,
+   quadrant, leaderboard or fit rating renders for the seven non-CCaaS categories: shared `Phase1Directory.jsx` on the
+   category pages, `Phase1Badge` on the profiles, `researchStatus(category, slug)` and `phase1Label()`. CCaaS gap closed on
+   the ten industry pages (they printed Genesys 94). Scored claims removed from SEO and copy. `freeze.test.mjs` section 7.
+   Open for TB: the two Phase 1 buyer guides (landing pages and PDFs) still carry scores, labelled Phase 1 edition; and
+   60 headline statistics on the industry pages, many sourced to aggregators (Zipdo, GITNUX, WiFi Talents) or to
+   "industry composite".
+35. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
    status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
    lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
    (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match
