@@ -98,6 +98,8 @@ ok("build runs the client build, the server build, then the prerender", /vite bu
 const pre = readFileSync("prerender.mjs", "utf8");
 ok("prerender keeps the empty shell as spa.html", /join\(DIST, "spa\.html"\)/.test(pre) && /writeFileSync\(SHELL,/.test(pre));
 ok("prerender refuses a page with no h1 or a nested link", /has no h1/.test(pre) && /nestedLinks\(body\) > 0/.test(pre));
+ok("each page's robots tag follows seo.js, and a sitemap URL that is not indexable fails the build", /seo\.known \? "index, follow/.test(pre) && /is in the sitemap but not indexable/.test(pre));
+ok("the empty shell served outside the sitemap is noindex", /content="noindex, follow"/.test(pre) && /writeFileSync\(SHELL, shellHtml/.test(pre));
 const vercel = JSON.parse(readFileSync("vercel.json", "utf8"));
 ok("paths outside the sitemap are rewritten to the empty shell", vercel.rewrites.length === 1 && vercel.rewrites[0].destination === "/spa.html");
 const main = readFileSync("main.jsx", "utf8");

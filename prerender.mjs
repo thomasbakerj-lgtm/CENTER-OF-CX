@@ -37,7 +37,10 @@ function fail(msg) {
 
 if (!existsSync(SHELL)) {
   if (!existsSync(INDEX)) fail("dist/index.html not found. Did vite build run?");
-  writeFileSync(SHELL, readFileSync(INDEX, "utf8"), "utf8");
+  /* A path outside the sitemap is not a page to index; the browser sets the same once it renders. */
+  const shellHtml = readFileSync(INDEX, "utf8").replace('<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />', '<meta name="robots" content="noindex, follow" />');
+  if (!/<meta name="robots" content="noindex, follow" \/>/.test(shellHtml)) fail("could not set noindex on the empty shell.");
+  writeFileSync(SHELL, shellHtml, "utf8");
 }
 if (!existsSync(SITEMAP)) fail("public/sitemap.xml not found.");
 
@@ -71,7 +74,7 @@ function buildHead(seo, extra) {
     START,
     `    <title>${t}</title>`,
     `    <meta name="description" content="${d}" />`,
-    `    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />`,
+    `    <meta name="robots" content="${seo.known ? "index, follow, max-snippet:-1, max-image-preview:large" : "noindex, follow"}" />`,
     `    <link rel="canonical" href="${url}" />`,
     `    <meta property="og:type" content="${seo.path === "/" ? "website" : "article"}" />`,
     `    <meta property="og:site_name" content="The Center of CX" />`,
@@ -129,6 +132,7 @@ for (const loc of locs) {
     fail(`server render failed for ${path}: ${err && err.message}`);
   }
   if (!/<h1[\s>]/.test(body)) fail(`server render of ${path} has no h1.`);
+  if (!seo.known) fail(`${path} is in the sitemap but not indexable; take it out of the sitemap.`);
   try {
     body = rawStyles(body);
   } catch (err) {

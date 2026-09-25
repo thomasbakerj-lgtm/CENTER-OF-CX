@@ -831,14 +831,14 @@ export function resolveSeo(rawPath) {
     if (parts.length === 2) {
       const cName = catName(parts[0]) || titleCase(parts[0]);
       const vName = vertName(parts[1]) || titleCase(parts[1]);
-      /* Only CCaaS carries per-vendor vertical fit scoring, so only the ten CCaaS
-         pages contain analysis that differs by category. The other seventy render
-         the same vertical context under a different heading, which is a doorway
-         pattern. They stay reachable and crawlable but noindex until real
-         per-category scoring exists. Removing them from the sitemap is not enough:
-         internal links will surface them regardless. */
+      /* Every category-by-industry page is noindex (TB, S23). The seventy outside CCaaS
+         render the same vertical context under a different heading, a doorway pattern.
+         The ten CCaaS pages lost their vendor fit scores in the integrity freeze and
+         are a concept build until research Stage 3 rebuilds them. All stay reachable
+         for visitors and crawlable, but out of the sitemap, and the prerendered HTML
+         carries the noindex (P1 task 6). */
       const scored = hasScoredVerticalFit(parts[0]) && !!vertName(parts[1]);
-      seo.known = !!scored;
+      seo.known = false;
       seo.title = scored
         ? `${cName} for ${vName} | Vendors + Vertical Requirements | ${SITE}`
         : `${cName} for ${vName} | ${SITE}`;

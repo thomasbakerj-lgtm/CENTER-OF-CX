@@ -615,13 +615,15 @@ section("I. server-side redirects and indexed demand URLs");
   ok("I7  every sitemap URL is on the www host", smLocs.every((u) => u.startsWith("https://www.contactcentercx.com")));
   /* The 12 category-vertical pages Google indexed on its own, from the 16 Sep GSC
      export. Each must be a real category and vertical pair, or it renders the
-     not-found message with a 200. */
+     not-found message with a 200. Since P1 task 6 (TB, S23) every category-vertical
+     page is noindex, so these stay reachable but leave the sitemap: a noindex URL
+     in the sitemap sends search engines two opposite signals. */
   const INDEXED_CV = ["analytics/utilities", "analytics/education", "analytics/travel", "analytics/financial-services",
     "payments/healthcare", "payments/telecom", "digital-engagement/education", "digital-engagement/retail",
     "agent-assist/manufacturing", "agent-assist/healthcare", "iva/government", "iva/insurance"];
   for (const cv of INDEXED_CV) {
     const [c, v] = cv.split("/");
-    ok(`I8  /vendors/${cv} is in the sitemap`, smLocs.includes(`https://www.contactcentercx.com/vendors/${cv}`));
+    ok(`I8  /vendors/${cv} is noindex and out of the sitemap`, !smLocs.includes(`https://www.contactcentercx.com/vendors/${cv}`) && resolveSeo(`/vendors/${cv}`).known === false);
     ok(`I9  /vendors/${cv} is a valid category and vertical`, !!CATEGORIES[c] && !!VERTICALS[v]);
   }
   const cvLocs = smLocs.map((u) => u.replace("https://www.contactcentercx.com", "")).filter((p) => p.split("/").length === 4 && p.startsWith("/vendors/"));
@@ -662,7 +664,7 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   ok("J17 no new dashes in the summary layer", !/[\u2013\u2014]/.test((gr.match(/function Summary\([\s\S]*?\n}\n/) || [""])[0] + blk));
 }
 
-/* S. Structured data by page type (P1 task 4). prerender.test.mjs checks every field on the rendered pages, industry
+/* L. Structured data by page type (P1 task 4). prerender.test.mjs checks every field on the rendered pages, industry
    citations included; this pins the type each path gets and that no FAQ markup survives. */
 {
   const sitemap = [...readFileSync("./public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
@@ -673,9 +675,21 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
     const want = p === "/" ? ["Organization", "WebSite"] : p.startsWith("/tools/") ? ["WebApplication"] : p.startsWith("/methodology/") ? ["TechArticle"] : p.startsWith("/industries/") ? ["Article"] : [];
     if (JSON.stringify(t) !== JSON.stringify(want)) wrong.push(`${p}: ${t.join(",")}`);
   }
-  ok(`S1 every sitemap URL gets the structured data for its page type [${wrong.slice(0, 3).join(" | ")}]`, wrong.length === 0);
-  ok("S2 no FAQ markup and no hidden FAQ table (markup must match visible content)", !("TOOL_FAQ" in SEO) && sitemap.every((p) => !typeOf(p).includes("FAQPage")));
-  ok("S3 the browser adds no structured data; the prerender writes it", !/application\/ld\+json/.test(readFileSync("./App.jsx", "utf8")));
+  ok(`L1 every sitemap URL gets the structured data for its page type [${wrong.slice(0, 3).join(" | ")}]`, wrong.length === 0);
+  ok("L2 no FAQ markup and no hidden FAQ table (markup must match visible content)", !("TOOL_FAQ" in SEO) && sitemap.every((p) => !typeOf(p).includes("FAQPage")));
+  ok("L3 the browser adds no structured data; the prerender writes it", !/application\/ld\+json/.test(readFileSync("./App.jsx", "utf8")));
+}
+
+/* N. Category-by-industry pages are noindex until research Stage 3 (TB, S23; P1 task 6): all eighty, CCaaS included,
+   reachable but out of the sitemap, and every sitemap URL is indexable. */
+{
+  const sitemap = [...readFileSync("./public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
+  const pairs = Object.keys(CATEGORIES).flatMap((c) => Object.keys(VERTICALS).map((v) => `/vendors/${c}/${v}`));
+  ok(`N1 all ${pairs.length} category-by-industry pages are noindex`, pairs.length === 80 && pairs.every((p) => resolveSeo(p).known === false));
+  ok("N2 none of them is in the sitemap", !sitemap.some((p) => /^\/vendors\/[a-z-]+\/[a-z-]+$/.test(p)));
+  const noindexed = sitemap.filter((p) => !resolveSeo(p).known);
+  ok(`N3 every sitemap URL is indexable [${noindexed.slice(0, 3).join(" ")}]`, noindexed.length === 0);
+  ok("N4 the pages keep their titles for visitors", pairs.every((p) => / for /.test(resolveSeo(p).title)));
 }
 
 if (failures.length) {
