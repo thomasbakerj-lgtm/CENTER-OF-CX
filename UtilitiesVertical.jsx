@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
+import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import { claimIds } from "./src/lib/claims.js";
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+/* The hero sentence carries a claim token; listed here so the Sources block includes it. */
+const HERO_TOKENS = "[[utl.eia.hours]]";
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 function useInView(t=.1){const ref=useRef(null);const[v,setV]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){setV(true);o.unobserve(el)}},{threshold:t});o.observe(el);return()=>o.disconnect()},[]);return[ref,v]}
 function FadeIn({children,delay=0,style={}}){const[ref,v]=useInView();return<div ref={ref} style={{...style,opacity:v?1:0,transform:v?"translateY(0)":"translateY(22px)",transition:`opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`}}>{children}</div>}
@@ -18,27 +22,27 @@ return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:
 export default function UtilitiesVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   const subVerticals = [
-    { name: "Electric Utilities (IOU)", slug: "electric-iou", desc: "Outage management, billing, service activation, energy efficiency programs, and storm response. The most CX-intensive utility type with the highest public visibility.", contact: "High volume, storm-driven surges" },
+    { name: "Electric Utilities (IOU)", slug: "electric-iou", desc: "Outage management, billing, service activation, energy efficiency programs, and storm response. Storm exposure and public visibility make it the most demanding utility type for the contact center.", contact: "High volume, storm-driven surges" },
     { name: "Natural Gas", slug: "natural-gas", desc: "Gas leaks, service connections, billing, appliance programs, and safety. Every gas-related call carries potential safety urgency.", contact: "Moderate volume, safety-critical" },
     { name: "Water & Wastewater", slug: "water", desc: "Billing, service quality, conservation programs, main breaks, and boil-water advisories. Essential service with public health implications.", contact: "Moderate volume, public health sensitivity" },
     { name: "Municipal & Co-Op Utilities", slug: "municipal-coop", desc: "Community-owned service with direct accountability to residents. Smaller operations with higher trust expectations and political visibility.", contact: "Lower volume, community accountability" },
-    { name: "Renewable Energy & DER", slug: "renewable-der", desc: "Solar interconnection, battery storage, EV charging, net metering, and distributed energy resource management. The fastest-growing segment.", contact: "Growing volume, technical complexity" },
+    { name: "Renewable Energy & DER", slug: "renewable-der", desc: "Solar interconnection, battery storage, EV charging, net metering, and distributed energy resource management. A growing share of utility contacts.", contact: "Growing volume, technical complexity" },
     { name: "Energy Retail / Competitive Supply", slug: "energy-retail", desc: "Plan selection, rate comparison, contract management, and switching. Competitive markets where CX directly determines customer acquisition and retention.", contact: "Sales-driven, churn-sensitive" },
   ];
-  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
-     and uncited figures were removed. */
+  /* Verified statistics only (TB, S23): each is a fact claim checked on the publisher's own page (research pass 2026-09-25).
+     The ACSI and J.D. Power figures printed before could not be re-read on theacsi.com or jdpower.com and were retired. */
   const stats = [
-    { n: "73", label: "ACSI energy utilities satisfaction score, down 1%", source: "ACSI Energy Utilities Study, March 2026" },
-    { n: "55%", label: "Of utility customers experienced a power outage in 2025", source: "J.D. Power Utilities Outlook 2026" },
-    { n: "$189", label: "Average monthly electricity bill in 2025, the highest J.D. Power has measured", source: "J.D. Power Utilities Outlook 2026" },
-    { n: "22%", label: "Of customers unable to pay their full bill or carrying a balance", source: "J.D. Power Utilities Outlook 2026" },
+    { n: "[[utl.eia.hours]]", label: "Average time without power per U.S. electricity customer in 2024"  },
+    { n: "[[utl.eia.major]]", label: "Of hours without power in 2024 came from major events such as hurricanes"  },
+    { n: "[[utl.eia.routine]]", label: "Without power per customer each year from routine interruptions, outside major events"  },
+    { n: "[[utl.eia.saifi]]", label: "Power interruptions per customer in 2024"  },
   ];
   const failureModes = [
-    { title: "Storm events create 10-50x call volume that collapses the contact center", desc: "A major storm knocks out power for 200,000 customers. Every one of them calls to report the outage and ask when power will be restored. Without proactive outage notifications, IVR storm messaging, and automated restoration updates, the contact center is overwhelmed within minutes, and every agent can only say 'we're aware of the outage and working to restore service.'" },
-    { title: "Bill complexity makes every billing call longer than it needs to be", desc: "Demand charges, tiered rates, time-of-use pricing, fuel surcharges, regulatory riders, and taxes create bills that most customers, and many agents, cannot explain. The average billing call involves 3-5 minutes of the agent interpreting the bill before addressing the actual concern." },
-    { title: "Field service coordination is disconnected from customer communication", desc: "A customer calls about a downed power line. The contact center creates a ticket. A crew is dispatched. But the customer receives no updates: they call back 2 hours later, 4 hours later, the next morning. The field operations system and the contact center system don't share real-time status." },
-    { title: "Payment difficulty is a public health and safety issue", desc: "22% of utility customers can't pay their full bill. Unlike other industries, utilities can't simply disconnect: disconnection rules, winter moratoriums, and medical protection protocols create complex decision trees. Agents handling payment difficulty need social services training alongside billing system skills." },
-    { title: "Customers spend only 8 minutes per year interacting with their utility", desc: "When they do interact, it's because something is wrong. Every touchpoint is a complaint or a problem: there's no positive engagement equivalent. This means every interaction carries disproportionate weight in shaping the customer's perception of the utility." },
+    { title: "Storm events multiply call volume within hours", desc: "Major events such as hurricanes caused [[utl.eia.major]] of U.S. customer hours without power in 2024, and Hurricane Helene alone cut power to [[utl.eia.helene]]. [[utl.ex.storm]] Without proactive outage notifications, IVR storm messaging, and automated restoration updates, the queue fills faster than any staffing plan can respond, and agents can only say 'we're aware of the outage and working to restore service.'" },
+    { title: "Bill complexity makes every billing call longer than it needs to be", desc: "Demand charges, tiered rates, time-of-use pricing, fuel surcharges, regulatory riders, and taxes create bills that many customers, and some agents, struggle to explain. A billing call can spend [[utl.bill.explain]] on interpreting the bill before it reaches the actual concern." },
+    { title: "Field service coordination is disconnected from customer communication", desc: "A customer calls about a downed power line. The contact center creates a ticket. A crew is dispatched. [[utl.ex.callbacks]] The field operations system and the contact center system don't share real-time status." },
+    { title: "Payment difficulty is a public health and safety issue", desc: "Some customers cannot pay their full bill, and utilities cannot simply disconnect them: disconnection rules, winter moratoriums, and medical protection protocols create complex decision trees. Agents handling payment difficulty need social services training alongside billing system skills." },
+    { title: "Customers rarely contact their utility, and usually because something is wrong", desc: "Contact tends to start with an outage, a high bill or a service problem, with few routine positive moments in between. Each interaction therefore weighs heavily in how the customer sees the utility." },
   ];
   const stackLayers = [
     { layer: 7, name: "Analytics & Governance", vendors: "NICE Nexidia, Verint, J.D. Power, Qualtrics", note: "J.D. Power satisfaction tracking, outage communication effectiveness, billing complaint root cause, and regulatory compliance reporting." },
@@ -50,12 +54,12 @@ export default function UtilitiesVertical() {
     { layer: 1, name: "Data Access", vendors: "Oracle CC&B, SAP IS-U, Itron, Salesforce Energy", note: "CIS (customer information system), OMS (outage management), MDMS (meter data), GIS (network mapping), and field service management." },
   ];
   const benchmarks = [
-    { metric: "CSAT", avg: "73", cross: "78%", top: "80+", note: "Below average: driven by outage frustration and bill increases customers can't control" },
-    { metric: "FCR", avg: "65%", cross: "72%", top: "78%+", note: "Below average: outages and field service coordination require follow-up" },
-    { metric: "AHT", avg: "7:30", cross: "7:00", top: "5:30", note: "Slightly above: bill explanations and payment difficulty conversations are long" },
-    { metric: "NPS", avg: "15", cross: "32", top: "35+", note: "Bottom 20% of all industries: monopoly structure limits competitive motivation" },
-    { metric: "Attrition", avg: "30%", cross: "35%", top: "20%", note: "Below average: better benefits and stability offset lower excitement" },
-    { metric: "Storm Volume", avg: "10-50x", cross: "N/A", top: "2-3x", note: "Most extreme volume variability of any industry: normal day to crisis in hours" },
+    { metric: "CSAT", utl: "[[utl.bench.csat.utl]]", cross: "[[utl.bench.csat.cross]]", note: "Moves with outage communication and with bill increases customers cannot control" },
+    { metric: "FCR", utl: "[[utl.bench.fcr.utl]]", cross: "[[utl.bench.fcr.cross]]", note: "Outages and field work often need a follow-up the agent cannot close on the call" },
+    { metric: "AHT", utl: "[[utl.bench.aht.utl]]", cross: "[[utl.bench.aht.cross]]", note: "Bill explanations and payment difficulty conversations run long; outage reports are short" },
+    { metric: "Abandon Rate", utl: "[[utl.bench.abandon.utl]]", cross: "[[utl.bench.abandon.cross]]", note: "Driven by staffing against storm and high-bill peaks" },
+    { metric: "Attrition", utl: "[[utl.bench.attrition.utl]]", cross: "[[utl.bench.attrition.cross]]", note: "Moves with pay, schedule stability and the strain of storm and collections work" },
+    { metric: "Storm Volume", utl: "[[utl.bench.storm.utl]]", cross: "Not applicable", note: "Set by storm size, outage duration and how well proactive notifications answer the question before customers call" },
   ];
   return (
     <div><Nav />
@@ -65,19 +69,19 @@ export default function UtilitiesVertical() {
           <FadeIn><div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}><a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><a href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Industries</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Utilities & Energy</span></div></FadeIn>
           <FadeIn delay={0.05}>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>Utilities & Energy{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span></h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Outages, billing complexity, field service coordination, payment difficulty, and storm response define utility CX. With an ACSI score of 73, declining, and the most extreme volume variability of any industry, utility contact centers must prepare for crisis while delivering on everyday service. This is the vertical-specific intelligence layer for electric, gas, water, municipal, renewable, and competitive energy.</p>
+            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}><ClaimText text="Outages, billing complexity, field service coordination, payment difficulty, and storm response define utility CX. U.S. electricity customers averaged [[utl.eia.hours]] without power in 2024, most of it from major storms, so utility contact centers must prepare for crisis while delivering on everyday service. This is the vertical-specific intelligence layer for electric, gas, water, municipal, renewable, and competitive energy." /></p>
           </FadeIn>
         </div>
       </section>
       {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}><ClaimText text={s.n} /></div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.source && (s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>)}</div>))}
         </div>
       </FadeIn></div></section>)}
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Six distinct utility service models.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>An investor-owned electric utility serving 4 million customers and a municipal water utility serving 50,000 residents have fundamentally different regulatory, operational, and CX requirements. Monopoly vs competitive, regulated vs market-driven, storm-exposed vs weather-independent.</p></FadeIn>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>A large investor-owned electric utility and a small municipal water utility have fundamentally different regulatory, operational, and CX requirements. Monopoly vs competitive, regulated vs market-driven, storm-exposed vs weather-independent.</p></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
           {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><a href={`/industries/utilities/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span><div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div></a></FadeIn>))}
         </div>
@@ -86,7 +90,7 @@ export default function UtilitiesVertical() {
         <FadeIn><span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>What Breaks</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five failure modes unique to utilities CX.</h2></FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{fm.desc}</p></div></FadeIn>))}
+          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}><ClaimText text={fm.desc} /></p></div></FadeIn>))}
         </div>
       </div></section>
       <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}><div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
@@ -99,11 +103,18 @@ export default function UtilitiesVertical() {
       </div></section>
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How utilities compare.</h2></FadeIn>
+          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How utilities compare.</h2>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>The one published utilities figure is SQM Group's first contact resolution for energy call centers, close to its all-industry average. No free public source reports the other metrics for utility contact centers; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.</p></FadeIn>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Utilities Avg", "Cross-Industry", "Top Quartile", "Why It Differs"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
-            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: AMBER }}>{b.avg}</td><td style={{ padding: "12px 14px", color: MUTED }}>{b.cross}</td><td style={{ padding: "12px 14px", color: GREEN, fontWeight: 600 }}>{b.top}</td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Utilities", "All Industries", "What Drives It"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
+            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.utl} /></td><td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
           </table>
+        </div>
+        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your own cost per contact →</a><a href="/tools/forecast-accuracy" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Check your storm forecast accuracy →</a></div></FadeIn>
+        <div id="sources" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h3>
+          <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, a worked example, or marked as having no public benchmark.</p>
+          <ClaimSources ids={claimIds([HERO_TOKENS, stats, failureModes, benchmarks])} color={SLATE} accent={ELECTRIC} />
         </div>
       </div></section>
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
@@ -111,7 +122,7 @@ export default function UtilitiesVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How outsourcing fits in utility CX.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 24 }} className="sub-grid">
           <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Storm overflow: surge capacity for outage reporting and status during weather events","After-hours service for outage reporting and emergency gas leak calls","Payment arrangement processing and collections outreach","Move/start/stop service transactions: high volume, scriptable","Energy efficiency program enrollment and appointment scheduling"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
-          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Gas leak and safety-related calls require utility-controlled protocols and dispatch authority","Disconnection and reconnection decisions involve PUC regulations BPO agents may not know","Payment difficulty conversations require social services knowledge and program eligibility assessment","High-bill complaints during rate increases carry political and regulatory sensitivity","Field dispatch coordination requires OMS access most BPO contracts don't include"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>))}</div></div></FadeIn>
+          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Gas leak and safety-related calls require utility-controlled protocols and dispatch authority","Disconnection and reconnection decisions involve PUC regulations BPO agents may not know","Payment difficulty conversations require social services knowledge and program eligibility assessment","High-bill complaints during rate increases carry political and regulatory sensitivity","Field dispatch coordination requires OMS access that BPO contracts often leave out"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>))}</div></div></FadeIn>
         </div>
       </div></section>
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
@@ -119,11 +130,11 @@ export default function UtilitiesVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms often evaluated for utilities.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
-            { name: "Genesys", why: "Deepest routing for storm surge management. OMS integration for real-time outage status in the agent desktop. Proven at the largest IOUs.", href: "/vendors/genesys" },
+            { name: "Genesys", why: "Routing built for storm surge management. OMS integration for real-time outage status in the agent desktop. Used by large IOUs.", href: "/vendors/genesys" },
             { name: "NICE CXone", why: "WEM for managing seasonal and storm-driven volume variability. Strong compliance controls for PUC-regulated interactions.", href: "/vendors/nice-cxone" },
             { name: "Cisco", why: "Strong installed base in utilities. Network infrastructure heritage. SCADA/OT network familiarity creates natural fit.", href: "/vendors/cisco" },
-            { name: "Avaya", why: "Massive legacy installed base in utilities. Many IOUs run Avaya on-premise. Cloud migration path critical for modernization.", href: "/vendors" },
-            { name: "Amazon Connect", why: "Pay-per-use pricing ideal for storm-driven volume variability. AWS IoT integration for smart meter and grid data.", href: "/vendors/amazon-connect" },
+            { name: "Avaya", why: "Large legacy installed base in utilities, often on premises. The cloud migration path matters for modernization.", href: "/vendors" },
+            { name: "Amazon Connect", why: "Pay-per-use pricing suits storm-driven volume swings. AWS IoT integration for smart meter and grid data.", href: "/vendors/amazon-connect" },
             { name: "Five9", why: "Strong mid-market fit for municipal and co-op utilities. Reliable routing with practical AI for bill explanation and outage status.", href: "/vendors/five9" },
           ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (<FadeIn key={i} delay={i * 0.04}><a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }} onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3></div><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p></a></FadeIn>))}
         </div>

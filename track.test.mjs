@@ -25,7 +25,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import {
   EV, CONFIG, isConfigured, buildPayload, sanitizeProps, severityBucket,
-  SEVERITY_BANDS, SEVERITY_SYNONYMS, ALLOWED_PROP_KEYS, toolIdFromPath,
+  SEVERITY_BANDS, SEVERITY_SYNONYMS, ALLOWED_PROP_KEYS, toolIdFromPath, TAXONOMY_VERSION, landingProps, pageType,
   trackTool, track,
 } from "./src/lib/track.js";
 
@@ -103,7 +103,7 @@ eq("B5  a poisoned payload carries only framework properties",
 const full = buildPayload(EV.TOOL_COMPLETE, {
   tool: "tco-calculator", from: "fcr-leakage", to: "business-case",
   grade: "Directional", bound_axis: "evidence+completeness", severity: "high", real: true, depth: 3,
-  via_rail: true, repeat: true,
+  via_rail: true, repeat: true, page_type: "tool", utm_source: "linkedin", utm_medium: "social", utm_campaign: "2026-10-healthcare", ref: "linkedin.com",
 }, CTX);
 for (const k of ALLOWED_PROP_KEYS) {
   ok(`B6  allowed key "${k}" survives when valid`, Object.prototype.hasOwnProperty.call(full.properties, k));
@@ -537,6 +537,34 @@ section("M. A scenario link cannot reach an object's prototype or plant a key");
   const back = decodeScenario("?s=" + encodeScenario("x", S, D), "x", D);
   eq("M an ordinary state round-trips exactly", JSON.stringify(back), JSON.stringify(S));
   eq("M a state carrying an unsafe key encodes without it", JSON.stringify(decodeScenario("?s=" + encodeScenario("x", JSON.parse('{"agents":1,"constructor":{"x":1}}'), D), "x", D)), JSON.stringify({ ...D, agents: 1 }));
+}
+
+/* ------------------------------------------ P. frozen taxonomy and landing */
+/* P2 task 7: the names PostHog funnels are built on. Changing one means a new TAXONOMY_VERSION, a line in
+   docs/MEASUREMENT.md, and these pins; a silent rename would break every funnel that uses it. */
+section("P. The taxonomy is frozen at 1.0, and the landing event reads the channel");
+{
+  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.0");
+  eq("P2 event names are frozen", JSON.stringify(EV), JSON.stringify({
+    SESSION_LANDING: "session_landing", TOOL_VIEW: "tool_view", TOOL_COMPLETE: "tool_complete", REPORT_EXPORT: "report_export",
+    REPORT_COPY: "report_copy_requested", REVIEW_OPENED: "review_form_opened", REVIEW_SUBMIT: "expert_read_submit",
+    NEXT_STEP: "next_step_click", SCENARIO_SHARE: "scenario_shared", SCENARIO_LOAD: "scenario_loaded" }));
+  eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref"]));
+  const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
+  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.0"));
+
+  const L = landingProps("/tools/staffing-calculator", "?utm_source=LinkedIn&utm_medium=social&utm_campaign=2026 10 Healthcare&s=abc", "https://www.linkedin.com/feed/update/123?x=1", "www.contactcentercx.com");
+  const sent = buildPayload(EV.SESSION_LANDING, L, CTX).properties;
+  eq("P5 a tagged LinkedIn landing carries page type, UTMs (normalised) and the referrer host", JSON.stringify([sent.page_type, sent.utm_source, sent.utm_medium, sent.utm_campaign, sent.ref]), JSON.stringify(["tool", "linkedin", "social", "2026-10-healthcare", "linkedin.com"]));
+  ok("P6 the referrer's path and query never leave", !JSON.stringify(sent).includes("feed") && !JSON.stringify(sent).includes("123"));
+  ok("P7 the scenario parameter is not a channel", !("s" in L));
+  ok("P8 a referrer on the site itself is not a channel", !("ref" in landingProps("/", "", "https://www.contactcentercx.com/about", "www.contactcentercx.com")));
+  const pasted = buildPayload(EV.SESSION_LANDING, landingProps("/", "?utm_source=jane.doe@example.com&utm_campaign=" + "x".repeat(80), "", "x"), CTX).properties;
+  ok("P9 a UTM value that is not a short slug (an address, an overlong value) is dropped", !("utm_source" in pasted) && !("utm_campaign" in pasted));
+  ok("P10 no referrer, no ref", !("ref" in landingProps("/", "", "", "x")));
+  eq("P11 page types", ["/", "/tools/tco-calculator", "/methodology/tco-calculator", "/changelog", "/industries/healthcare/health-insurance", "/vendors/genesys", "/research/ccaas-buyer-guide", "/about"].map(pageType).join(","), "home,tool,method,method,industry,vendor,research,other");
+  const app = readFileSync("./App.jsx", "utf8");
+  ok("P12 the app fires the landing once per session, on mount", /useEffect\(\(\) => \{ trackLanding\(\); \}, \[\]\)/.test(app) && /coc:landed/.test(readFileSync("./src/lib/track.js", "utf8")));
 }
 
 /* ------------------------------------------------------------------ report */

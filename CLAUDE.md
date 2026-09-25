@@ -30,6 +30,13 @@ the answer is right depends on the inputs, and every input shows where it came f
 Commercial line: monetize confidence in decisions, never access to vendors.
 Independence is the product.
 
+**Audience goal (TB, S23):** 100,000 people. For now the site stands on published sources to build trust, users,
+data, feedback and a large community; the long-term aim is to create and own original research.
+
+**Never plagiarize (TB, S23).** Content that is not our own is sourced. A quotation is quoted and credited with a link;
+a paraphrase of someone else's finding is cited; everything else is written in our own words. Every converted page
+carries an originality record (`src/lib/claims/originality.js`).
+
 **Zero incremental spend is the current constraint.** No paid ads, paid data, new
 SaaS, backend, databases, accounts or auth. Prove behavior first, manually learn
 second, invest third, automate last.
@@ -137,11 +144,10 @@ are identical to the local run; the void review payload carries `confidence: VOI
   $1,722,000, the tracker fixture); the Finance-grade case that does not return prints
   Finance-grade with the finding; the void PDF is 2 pages with no figure; the guard case
   discloses and grades Directional.
-- **Open for TB (DECIDE):** BCB has no evidence selector for its operational baselines
-  (AHT, FCR, volume, wage), and rail-pulled values are not origin-graded, so the benefit
-  stream grades attribution and target ambition only, exactly as before. Honest per-field
-  grading (as TCO does) would move most BCB cases to Directional. Decide before 1-10 or
-  1-11 touch the engine.
+- **Decided S23 (TB):** BCB baseline evidence. One question, "Where do your baselines come from?" (our defaults,
+  your estimate, a system report, a system report attested by checkbox), graded Directional, Planning-grade,
+  Planning-grade, Finance-grade; a rail-pulled baseline grades by its origin (`railEvidence`). Closes the gap where the
+  benefit stream could grade Finance-grade on default AHT, FCR, volume and wage. See section 11, P3.
 
 ---
 
@@ -325,6 +331,19 @@ Binding. None of this is in code comments beyond what is noted.
 - A new external host (script, font, API) must be added to the policy in `vercel.json` in the same change, or it is
   blocked in production and `security.test.mjs` fails.
 
+**TB decisions, 25 Sep 2026 (S23)**
+- **TCO marginal load (Path B):** deflection and repeat savings value at the shared `load.marginal` 1.18 (J10), not
+  the benefits load. One disclosure line: capturing the saving by not backfilling seats removes benefits too, about
+  10% more. Unit costs stay on the loaded rate. A/B: only the savings figures move.
+- **BCB baseline evidence:** one question graded per the section 2 note.
+- **Market Position Index (Path 3):** ranking only inside competitive class; a category-wide map of class by position
+  band with no order, no rank and no composite. Presentation only; separation law unchanged. Build at Stage 5.
+- **CCaaS-by-industry pages:** a concept build; rebuild at research Stage 3. Until then noindex (like the other 70
+  category-by-vertical pages), still live for visitors.
+- **Distribution:** omni-channel (owned site and newsletter, social, earned, product-led), one research asset per week
+  reused everywhere, free channels only, UTM convention and PostHog funnels first.
+- **Design:** a separate design chat, briefed by `docs/DESIGN_HANDOFF.md`.
+
 **Standing engineering rules**
 - Each tool serves its own goal. No generic shared ranges or one-size logic. If the
   same key means a different fact in another tool, do not prefill (TCO does not pull
@@ -342,7 +361,7 @@ Binding. None of this is in code comments beyond what is noted.
 
 **Rail and confidence**
 - TCO publishes `analystRead`, a verdict on the rail.
-- TCO `marginalPerContact` uses 1.30x; registry marginal is 1.18x. Undecided.
+- TCO `marginalPerContact` uses 1.30x; registry marginal is 1.18x. Decided S23: move to 1.18 (section 5, P3).
 - TCO, AHT Decomposition, Shrinkage Planner and Occupancy Risk publish origin grades. Staffing, CPC, FCR, AID, Channel read
   but publish none.
 - CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource` (self-read capable;
@@ -353,9 +372,7 @@ Binding. None of this is in code comments beyond what is noted.
 
 **Live defects**
 - ~~`guardVal` money rendering in CPC.~~ Fixed S23: `money()` in `guards.js` (grouped, to the cent); set G pins it.
-- 8-04 vendor titles from `titleCase(slug)` on roughly 255 of 283 pages.
-- Sprinklr duplicate slug (CCaaS and IVA) hides the IVA profile.
-- Homepage claims methodology pages that do not exist.
+- ~~8-04 vendor titles, Sprinklr duplicate slug, homepage methodology claim.~~ Fixed (item 5; method pages published in E1).
 - `VendorMatchEngine.jsx` 24-vendor CCaaS-only fork, does not import `VendorData.js`.
 - ~~Bundle 2.9 MB single chunk.~~ Stale. `npm run build` on 23 Sep 2026: lazy route
   chunks, 237 KB entry, 77 KB gzip. Re-scope 10-01 to 10-03 before scheduling.
@@ -381,8 +398,7 @@ Binding. None of this is in code comments beyond what is noted.
 - Non-rail tools carry floor only: no engine markers, harness pairs, claim-class
   language review or registry constants yet (step 3). Heuristics named in copy where
   seen (Occupancy multipliers, AHT reduction factors, adherence abandonment steps).
-- Occupancy Risk "Critical Threshold Warning" panel uses an unsourced 0.15 turnover
-  factor; AHT benchmark ranges and Contract Risk "gap runs 40-100%" are unsourced.
+- ~~Occupancy 0.15 turnover factor, AHT benchmark ranges, Contract Risk "40-100%".~~ Retired in Phases C and D.
 - ~~Staffing's solver started at ceil(A)+1 and could report one agent more on a fractional load.~~ Fixed S23 in the
   Phase D rail step (starts at floor(A)+1; A/B in `wfmrail.test.mjs`).
 - TCO guard case (1 agent, 120,000 contacts) prints marginal cost per contact above
@@ -430,8 +446,7 @@ Binding. None of this is in code comments beyond what is noted.
   and category extension registry (`VENDOR_RECORD_SCHEMA_V2.md` in repo); unfork
   scoring out of `VendorMatchEngine.jsx` into `VendorData.js`; completion-gate and
   score-change-control suite gates; class-scoped Vendor Match rebuild.
-- Open TB decision: Market Position Index inside competitive class only (locked) or
-  also category-wide.
+- Decided S23 (TB): Market Position Index Path 3, class-scoped ranking plus a category-wide map with no order.
 
 ---
 
@@ -760,16 +775,129 @@ dashboard, the 12-phase growth program.
    nothing, a copy button keeps the profile, and a labelled optional review request is the only send (`copy.test.mjs` 5).
    The Healthcare claims pilot is on local branch `claims-wip` and was reverted out of this PR; it returns by reverting
    the revert once its research lands (needs a session with the widened network policy).
-36. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
-   status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
-   lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
-   (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match
-   V3 remain gated on the corpus.
-Research Stage 1 waits on TB: the CCaaS corpus shared in S22 is an example. TB shares
-the raw corpus and the category Research Strategy Handoff once all 40 to 50 CCaaS
-vendors are complete, when the site-enhancement work starts.
+36. Done S23 (on the branch): full site scan part 4, Healthcare research and originality pass. The pilot returned by reverting
+   the revert. Egress: eCFR, PubMed (eutils), CMS, SQM Group and federalregister.gov read directly; bls.gov refuses curl and
+   headless Chromium (Akamai 403) and the unregistered BLS API quota is spent from this IP, but WebFetch reaches bls.gov;
+   hhs.gov, theacsi.org and Cochrane refuse. Every fact below was read on the publisher's own page (the SQM health insurance
+   average from SQM's own chart image).
+   - Claims model: `src/lib/claims.js`, `src/lib/claims/healthcare.js`, `ClaimText.jsx`, `claims/originality.js`,
+     `claims.test.mjs` (in `run-all.mjs`). Kind `none` keeps the pre-scan figure as `draft` for lineage; it never renders.
+   - Benchmark table: most pre-scan cells were SQM Group all-industry figures placed in healthcare cells, and its 52%
+     healthcare FCR contradicts SQM's own 69% (health insurance, 2026 chart, range 51 to 91%). Now two columns: Healthcare
+     (FCR 69% health insurance, the only published figure; the other five say "No public benchmark" and link the tool that
+     measures yours) and All industries (SQM, each labelled with what it measures). Top quartile column removed (no public
+     source for any cell). Intro rewritten to what the sources show; notes no longer compare. Industries hub card reads
+     "69% FCR, health insurance".
+   - Regulatory: HIPAA penalty was the 2009 statutory "$100 to $50,000"; now $145 to $73,011 per violation (45 CFR 102.3,
+     2025 adjustment). Medicare Advantage grievance sentence was wrong: 30 days from receipt (extendable 14), 24 hours only
+     for the two expedited kinds (42 CFR 422.564); the "72 hours" alert fell after the 24 hour limit.
+   - Prose: reminders lower hospital non-attendance by 29% of baseline (Hasvold and Wootton 2011, 29 studies); 34.8% of
+     primary care referral scheduling attempts ended in a documented appointment (Patel et al. 2018). Retired with no source:
+     3.5 calls per scheduling need, 40% turnover, 20 to 30% referral leakage, 30% gone after two weeks, 30 to 50% admin
+     workload, 60 to 70% tech check, 30 to 40% proactive updates. Four relabelled as planning assumptions.
+   - All 24 sub-page KPI tiles: no public source for any healthcare segment; compact "No public benchmark, Measure yours"
+     tiles; notes rewritten as drivers. CMS publishes Medicare plan call center hold time, disconnects and interpreter
+     availability (Display Measures and Star Ratings technical notes); a labelled strip on the health insurance page is an
+     option for TB, not built.
+   - Originality: 668 segments, 62 exact-phrase searches, 24 pages compared: no shared run of 8 words. Three close
+     paraphrases rewritten (Carevoyant superlative, uncited "4-6 systems", a trade cliche). Gate now also catches count
+     ranges and counted nouns ("50-500 agents", "20 visits"); five more bare figures rewritten. Suite 21,412.
+   - CMS strip (TB: yes): the health insurance page shows CMS test-call measures for Medicare plan call centers (hold
+     0:32 against a 2:00 standard, 1.01% dropped against 5%, interpreter and TTY 97%), labelled as not handle time.
+37. Done S23 (on the branch): full site scan part 4, the other nine industries (TB: go). One shared sub-page component
+   (`src/lib/SubVerticalPage.jsx`; the ten industry files are wrappers). Nine research agents, one per industry, on one
+   brief; the lead verified headline sources on the publisher's page and integrated. Every figure on all ten main pages,
+   61 sub-pages and the hub cards is now a fact, a labelled assumption, an example, or "No public benchmark"
+   (`claims.test.mjs` 2,748; suite 23,870; browser sweep 144 runs clean at desktop and phone).
+   - Pattern across industries: the benchmark tables' industry cells were mostly SQM all-industry figures or unsourced;
+     each industry now shows SQM's own 2026 chart figure where one exists (Retail 77, Telecom 56, Utilities 70, Insurance
+     75, Financial 70, Government 70, Health Insurance 69), else none. Top quartile columns removed everywhere.
+   - Regulatory corrections (read on eCFR, statute or regulator): FTC click-to-cancel vacated (ROSCA stands); PHMSA sets
+     no 60 minute gas response limit; recall reports are due in 5 working days, not 24 hours; FERPA covers attendees, not
+     applicants; Clery, not Title IX, for campus crime statistics; Section 508 is WCAG 2.0 AA, ADA Title II is 2.1 AA; EU261
+     scope follows departure airport and carrier; Florida claim acknowledgment is 7 days; no FCC rule bars cable retention
+     offers; 99.9% uptime is about 43 minutes a month, not 87.
+   - Hub stats replaced: $146B cat losses (no source; Munich Re 2025 is $108bn insured), 30M+ recalls (29.3M, our sum of
+     NHTSA's own recall file, reproduced), 72% of students (a consultant's claim), 11 points behind (unverified).
+   - Stats strip entries may be a claim token or `{ id }`; the source comes from the registry (`copy.test.mjs` 4).
+   - Claim source tags wrap (a long publisher name widened phone pages).
+   - Originality: no shared run of 8 words on any page. The session's web search budget ran out mid-pass, so coverage
+     differs by industry and each record says what ran: full phrase searches (Healthcare, Retail, Insurance,
+     Manufacturing after a positive control), partial (Telecom 33, Education 32, Travel 20 of 40), none possible
+     (Financial Services, Utilities, Government: word-run comparison against 51 to 61 fetched pages instead). Queued
+     phrases are in each agent's notes; run them in a session with search budget.
+   - Two sources read off the publisher's own site, disclosed in the claim: ACSI federal figures from ACSI's study PDF
+     hosted by FedScoop (theacsi sites refuse this network). Government CSAT row sets ACSI's index (65) beside SQM's
+     top-box 78%, with the scale difference stated.
+38. **Scheduled (TB: yes):** BLS wage update, its own change after the site scan. OEWS now publishes May 2025; the site
+   wage (`market.wage.agent`, $20.59, J11) is May 2024. Read the May 2025 national row for SOC 43-4051 first (bls.gov
+   refuses this sandbox; WebFetch reaches only index pages; the national XLSX or TB can supply it), then move the registry
+   entry and its review date, and A/B every wage-driven tool (figures move by the wage ratio, grades unchanged).
+39. Done S23: full site sweep closed (parts 1 to 4 plus the ungate). TB approved a new priority list, below. It
+   supersedes the older "Next" lines and the reachability batch note. Work top down; one item per session where large.
 
-Then the reachability batch.
+**PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
+Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
+
+P0. Trust content. **Done on the branch (items 36 and 37, PR #37); ship and verify live.**
+  1. Healthcare claims research and originality pass.
+  2. The other nine industries on the claims pattern, with one shared sub-page component (done in one session).
+
+P1. Reach foundations. **Done S23 on the branch (PR #37).**
+  3. Full-page prerender. `entry-server.jsx` (vite --ssr) renders every sitemap URL after all lazy chunks resolve;
+     `prerender.mjs` writes the body into `#root`; `main.jsx` hydrates a stateless page and renders fresh a tool page
+     with a query string or session state (rail, saved contact). The empty shell is `dist/spa.html` (the homepage owns
+     index.html) and `vercel.json` rewrites paths outside the sitemap to it. Found: React escapes `<style>` text the
+     browser reads raw, so every page failed hydration (the prerender decodes it, `src/lib/prerenderHtml.js`); claim
+     source links inside card links made nested links (`ClaimText links={false}`). Browser: 426 pages hydrate clean in
+     one session. Vercel serves `/about` its own `about/index.html` (checked on production).
+  4. Structured data from `seo.js structuredData` only, written by the prerender: tools WebApplication, method pages
+     TechArticle (version date), industry pages Article citing every source the page renders (the server render records
+     claims), homepage Organization and WebSite. No HowTo (no page is steps). The TCO FAQPage is retired: its questions
+     were not on the page and its answers carried unsourced figures. The browser adds no JSON-LD.
+  5. Share cards: 1200 x 630 PNG per tool, method and industry page (121 with the site card) from `src/lib/shareCard.js`,
+     drawn with `@resvg/resvg-js` (dev dependency) and the committed Archivo font (OFL, `assets/fonts`); og:image,
+     size, alt and twitter:image on every page. No new host.
+  6. All 80 category-by-industry pages noindex (CCaaS included) and out of the sitemap (448 to 426 URLs, including 12
+     the Search Console export had surfaced). The prerender writes robots from `seo.known` (it wrote index everywhere)
+     and refuses a non-indexable sitemap URL; the shell outside the sitemap is noindex.
+  Gates: `prerender.test.mjs` (39: every URL renders with h1, text, no inline script, no nested link; structured data
+  fields per type on every URL; share cards; wiring), `seo.test.mjs` L and N; the live checker adds nine page types
+  (body in the served HTML, hydration with no error, share card served): 254 of 254 locally.
+
+P2. Measurement (before distribution scales).
+  7. Event taxonomy freeze (11-01 to 11-03), UTM convention, PostHog funnels by channel, and 11-04: does a first
+     diagnostic lead to a second.
+  8. 3-02 NextDiagnostic: one next step per result, one source of truth (settles the rubric and ReportActions mismatch).
+
+P3. Engine integrity (TB decided S23).
+  9. BCB baseline evidence question (section 2 note), A/B only the evidence axis moves, harness pins, live PDFs.
+  10. TCO marginal load to `load.marginal` 1.18 with the disclosure line; A/B only savings move; method page and pins.
+  10b. BLS wage update (item 38).
+
+P4. Distribution launch (TB posts; site supplies assets).
+  11. LinkedIn newsletter or Substack from the method changelog and each sourced industry page; weekly asset cadence
+      (finding, chart, "test yours" link); practitioner communities; podcasts, guest posts, live events.
+
+P5. Design.
+  12. Design chat from `docs/DESIGN_HANDOFF.md` (TB), then one design system applied once; includes the CCaaS-by-industry
+      rebuild at Stage 3, the 45 content pages on the old fonts, text and fill colour variants, link tap targets, the
+      nine rail tools onto ToolShell, and the "X, not Y" copy pass (about 440).
+
+P6. Remaining debt.
+  13. Unsourced figures on Human Premium, Research, Advisory, Platforms, About (the Industries hub is done in item 37).
+  13b. Queued originality phrase searches for Telecom, Education, Travel, Financial Services, Utilities, Government.
+  14. TCO and BCB publish verdicts on the rail (`analystRead`, `confidence`); publish facts only.
+  15. CPC, Channel, FCR, AID to external getters; Staffing, CPC, FCR, AID, Channel publish origin grades.
+  16. BCB next steps to `nextFor` (3-03); `MECH_INITIAL` F2; TCO guard-case wording; ReportActions `Field` labels.
+  17. Roadmap anonymous sequence capture; Attrition root-cause layer from the Agent Experience content.
+  18. WS10 performance re-scope and Core Web Vitals; delete root `download` once TB confirms.
+
+P7. Gated on TB or the corpus.
+  19. Research Stage 1 loader (full CCaaS corpus and Research Strategy Handoff), Stage 3 Vendor Intelligence pages,
+      Stage 4 Vendor Match V3 (interim: 5-01 unfork and ceiling cap), Stage 5 Market Position Index (Path 3).
+  20. Opt-in anonymous benchmark exchange, the start of owned research; needs consent design and a storage decision
+      (section 10 trigger).
 
 Prove behavior first. Ration effort as strictly as money. Reachability precedes
 rigor. Instrumentation precedes proof. Quality is the moat. Independence is the product.

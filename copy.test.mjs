@@ -8,6 +8,7 @@
  * Each rule is proven to fire on a planted sample before it is trusted.
  */
 import { readFileSync } from "node:fs";
+import { CLAIMS } from "./src/lib/claims.js";
 import { execSync } from "node:child_process";
 
 let pass = 0, fail = 0;
@@ -47,8 +48,17 @@ for (const f of verticals) {
   const s = readFileSync(f, "utf8");
   const block = (s.match(/const stats = \[([\s\S]*?)\n  \];/) || [])[1];
   ok(`${f}: stats block found`, block !== undefined);
-  const entries = (block || "").split("\n").filter((l) => l.includes("{ n:"));
+  const entries = (block || "").split("\n").filter((l) => l.includes("{ n:") || l.includes("{ id:"));
   for (const e of entries) {
+    /* A stat that is one claim token takes its source from the registry; the claim must be a fact with a publisher and
+     * an https url (claims.test.mjs checks the rest). */
+    const tok = (e.match(/n: "\[\[([a-z0-9.\-]+)\]\]"/) || e.match(/\{ id: "([a-z0-9.\-]+)"/) || [])[1];
+    if (tok && !/source: "/.test(e)) {
+      const c = CLAIMS[tok];
+      ok(`${f}: a tokenized stat is a sourced fact`, !!c && c.kind === "fact" && !!c.source && /^https:\/\//.test(c.source.url || ""), tok);
+      ok(`${f}: no aggregator or vendor-blog source`, !!c && !BAD_SRC.test(`${c.source?.publisher} ${c.source?.title}`), tok);
+      continue;
+    }
     const src = (e.match(/source: "([^"]*)"/) || [])[1] || "";
     ok(`${f}: every stat names a source`, src.length > 8, e.slice(0, 80));
     ok(`${f}: no aggregator or vendor-blog source`, !BAD_SRC.test(src), src);
@@ -63,6 +73,11 @@ const subPages = files.filter((f) => /^[A-Za-z]+SubVerticalPage\.jsx$/.test(f));
 ok("ten sub-page files checked", subPages.length === 10, String(subPages.length));
 ok("the gate rule fires on the old page shape", /useState\("gate"\)/.test('const [phase, setPhase] = useState("gate");'));
 for (const f of subPages) {
+  const w = readFileSync(f, "utf8");
+  ok(`${f}: renders the shared sub-page and sends nothing itself`, /from "\.\/src\/lib\/SubVerticalPage\.jsx"/.test(w) && !/fetch\(/.test(w));
+}
+{
+  const f = "src/lib/SubVerticalPage.jsx";
   const s = readFileSync(f, "utf8");
   ok(`${f}: opens on the framework`, /useState\("framework"\)/.test(s) && !/useState\("gate"\)/.test(s) && !/handleGate/.test(s));
   const fetches = s.match(/fetch\(/g) || [];

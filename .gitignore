@@ -5,3 +5,5 @@ dist
 # Not committed: Vercel resolves from package.json today. Pinning is a separate decision.
 package-lock.json
 audit-out/
+dist-ssr
+.prerender-test-ssr

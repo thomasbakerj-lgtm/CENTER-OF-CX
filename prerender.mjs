@@ -3,8 +3,9 @@
 // public/sitemap.xml writes dist/<path>/index.html with the correct
 // title, description, canonical, Open Graph, and Twitter tags injected.
 //
-// Body content is still client-rendered. This fixes the head only, which is
-// what crawlers and social scrapers read without executing JavaScript.
+// It also server-renders each page's body into <div id="root"> through the SSR
+// build of entry-server.jsx (dist-ssr), so crawlers, answer engines and link
+// previews read the page without executing JavaScript. The client hydrates it.
 //
 // Fails the build loudly rather than shipping wrong canonicals silently.
 
@@ -12,11 +13,21 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BASE, resolveSeo, structuredData } from "./src/lib/seo.js";
+import { pathToFileURL } from "node:url";
+import { rawStyles, nestedLinks } from "./src/lib/prerenderHtml.js";
+import { cardSvg, cardKind, cardFile, firstSentence, CARD_W, CARD_H } from "./src/lib/shareCard.js";
+import { Resvg } from "@resvg/resvg-js";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DIST = join(ROOT, "dist");
-const SHELL = join(DIST, "index.html");
+const INDEX = join(DIST, "index.html");
+/* The empty app shell. The homepage's prerender overwrites dist/index.html, so the shell is kept as dist/spa.html and
+   vercel.json rewrites every path outside the sitemap to it: such a page renders fresh instead of hydrating against
+   the homepage's HTML. Reading from spa.html also makes a second run of this script safe. */
+const SHELL = join(DIST, "spa.html");
 const SITEMAP = join(ROOT, "public", "sitemap.xml");
+const SSR = join(ROOT, "dist-ssr", "entry-server.js");
+const ROOT_DIV = '<div id="root"></div>';
 
 const START = "<!-- SEO_START -->";
 const END = "<!-- SEO_END -->";
@@ -26,7 +37,13 @@ function fail(msg) {
   process.exit(1);
 }
 
-if (!existsSync(SHELL)) fail("dist/index.html not found. Did vite build run?");
+if (!existsSync(SHELL)) {
+  if (!existsSync(INDEX)) fail("dist/index.html not found. Did vite build run?");
+  /* A path outside the sitemap is not a page to index; the browser sets the same once it renders. */
+  const shellHtml = readFileSync(INDEX, "utf8").replace('<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />', '<meta name="robots" content="noindex, follow" />');
+  if (!/<meta name="robots" content="noindex, follow" \/>/.test(shellHtml)) fail("could not set noindex on the empty shell.");
+  writeFileSync(SHELL, shellHtml, "utf8");
+}
 if (!existsSync(SITEMAP)) fail("public/sitemap.xml not found.");
 
 const shell = readFileSync(SHELL, "utf8");
@@ -35,6 +52,33 @@ const endIdx = shell.indexOf(END);
 
 if (startIdx === -1 || endIdx === -1 || endIdx < startIdx) {
   fail(`markers ${START} / ${END} missing from index.html. Nothing was injected.`);
+}
+
+if (!existsSync(SSR)) fail("dist-ssr/entry-server.js not found. Did the SSR build run?");
+if (shell.split(ROOT_DIV).length !== 2) fail(`${ROOT_DIV} must appear exactly once in index.html.`);
+const { render, citationsOf } = await import(pathToFileURL(SSR).href);
+
+/* Share cards (P1 task 5): one PNG per tool, method and industry page, the site card for the rest, drawn with the
+   committed Archivo font so the build fetches nothing. */
+const OG = join(DIST, "og");
+mkdirSync(OG, { recursive: true });
+const FONTS = [join(ROOT, "assets/fonts/Archivo-Regular.ttf"), join(ROOT, "assets/fonts/Archivo-Bold.ttf")];
+const cardsWritten = new Set();
+function writeCard(path, seo) {
+  const file = cardFile(path);
+  if (cardsWritten.has(file)) return file;
+  const site = file === "site.png";
+  const svg = cardSvg({
+    kind: site ? null : cardKind(path),
+    title: site ? "Decision intelligence for contact center and CX technology" : seo.title.split(" | ")[0],
+    summary: site ? "Vendor profiles, buyer guides and free tools with published methods." : firstSentence(seo.desc),
+    path: site ? "/" : path,
+  });
+  const png = new Resvg(svg, { font: { fontFiles: FONTS, loadSystemFonts: false, defaultFontFamily: "Archivo" } }).render();
+  if (png.width !== CARD_W || png.height !== CARD_H) fail(`share card for ${path} is ${png.width}x${png.height}.`);
+  writeFileSync(join(OG, file), png.asPng());
+  cardsWritten.add(file);
+  return file;
 }
 
 const head = shell.slice(0, startIdx);
@@ -47,7 +91,7 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-function buildHead(seo) {
+function buildHead(seo, extra, card) {
   const url = seo.path === "/" ? `${BASE}/` : `${BASE}${seo.path}`;
   const t = esc(seo.title);
   const d = esc(seo.desc);
@@ -55,7 +99,7 @@ function buildHead(seo) {
     START,
     `    <title>${t}</title>`,
     `    <meta name="description" content="${d}" />`,
-    `    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large" />`,
+    `    <meta name="robots" content="${seo.known ? "index, follow, max-snippet:-1, max-image-preview:large" : "noindex, follow"}" />`,
     `    <link rel="canonical" href="${url}" />`,
     `    <meta property="og:type" content="${seo.path === "/" ? "website" : "article"}" />`,
     `    <meta property="og:site_name" content="The Center of CX" />`,
@@ -67,7 +111,12 @@ function buildHead(seo) {
     `    <meta name="twitter:site" content="@centerofcx" />`,
     `    <meta name="twitter:title" content="${t}" />`,
     `    <meta name="twitter:description" content="${d}" />`,
-    ...structuredData(seo.path, seo).map(
+    `    <meta property="og:image" content="${BASE}/og/${card}" />`,
+    `    <meta property="og:image:width" content="${CARD_W}" />`,
+    `    <meta property="og:image:height" content="${CARD_H}" />`,
+    `    <meta property="og:image:alt" content="${t}" />`,
+    `    <meta name="twitter:image" content="${BASE}/og/${card}" />`,
+    ...structuredData(seo.path, seo, extra).map(
       (g) => `    <script type="application/ld+json">${JSON.stringify(g).replace(/</g, "\\u003c")}</script>`
     ),
     `    ${END}`,
@@ -104,14 +153,30 @@ for (const loc of locs) {
     if (fallbacks.length < 20) fallbacks.push(path);
   }
 
-  const html = head + buildHead(seo) + tail;
+  let body, extra;
+  try {
+    const r = await render(path);
+    body = r.html;
+    extra = citationsOf(r.claims);
+  } catch (err) {
+    fail(`server render failed for ${path}: ${err && err.message}`);
+  }
+  if (!/<h1[\s>]/.test(body)) fail(`server render of ${path} has no h1.`);
+  if (!seo.known) fail(`${path} is in the sitemap but not indexable; take it out of the sitemap.`);
+  try {
+    body = rawStyles(body);
+  } catch (err) {
+    fail(`${path}: ${err.message}`);
+  }
+  if (nestedLinks(body) > 0) fail(`${path} renders a link inside a link; the browser would split it and hydration would fail.`);
+  const html = head + buildHead(seo, extra, writeCard(path, seo)) + tail.replace(ROOT_DIV, `<div id="root">${body}</div>`);
   const outDir = path === "/" ? DIST : join(DIST, path);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "index.html"), html, "utf8");
   written++;
 }
 
-console.log(`prerender: wrote ${written} route files from ${locs.length} sitemap URLs.`);
+console.log(`prerender: wrote ${written} route files from ${locs.length} sitemap URLs, and ${cardsWritten.size} share cards.`);
 if (fallbackCount > 0) {
   console.warn(
     `prerender: ${fallbackCount} route(s) used the generic default title. Sample: ${fallbacks.join(", ")}`

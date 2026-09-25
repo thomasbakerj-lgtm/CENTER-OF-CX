@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import { claimIds, plain } from "./src/lib/claims.js";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
@@ -27,21 +29,25 @@ export default function RetailVertical() {
     { name: "Subscription & Membership", slug: "subscription-membership", desc: "Billing cycles, cancellation and retention, membership benefits, and recurring order management. Every interaction carries churn risk.", contact: "Moderate volume, high retention stakes" },
     { name: "Marketplace Sellers", slug: "marketplace", desc: "Seller support, buyer disputes, listing issues, payment holds, and policy enforcement. Two-sided marketplace dynamics create unique CX challenges.", contact: "Dual audience, policy-heavy resolution" },
     { name: "Luxury & Specialty", slug: "luxury-specialty", desc: "Concierge-style service, product expertise, after-purchase care, and VIP client management. Experience quality directly influences purchase decisions.", contact: "Lower volume, very high value per interaction" },
-    { name: "Grocery & Delivery", slug: "grocery-delivery", desc: "Substitution issues, delivery windows, order modifications, refunds, and real-time logistics communication. Speed and accuracy are non-negotiable.", contact: "High volume, time-sensitive, real-time logistics" },
+    { name: "Grocery & Delivery", slug: "grocery-delivery", desc: "Substitution issues, delivery windows, order modifications, refunds, and real-time logistics communication. Speed and accuracy carry the experience.", contact: "High volume, time-sensitive, real-time logistics" },
   ];
 
-  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
-     and uncited figures were removed. */
+  /* Verified statistics only (TB, S23): each is a fact claim read on the publisher's own page (src/lib/claims/retail.js). Research pass
+     2026-09-25: the Qualtrics 2024 "$3.7T" (global, all industries) moved URL and was superseded by the publisher's 2026 estimate; the strip now
+     carries retail figures. */
   const stats = [
-    { n: "$3.7T", label: "Of 2024 global sales at risk from bad customer experiences", source: "Qualtrics XM Institute, 2024", url: "https://www.xminstitute.com/blog/trillion-sales-at-risk-2024/" },
+    { n: "[[retail.stat.ecom-share]]", label: "E-commerce share of US retail sales, Q2 2026", source: "US Census Bureau, 2026", url: "https://www.census.gov/retail/ecommerce.html" },
+    { n: "[[retail.returns.online]]", label: "Online sales retailers expect to be returned, 2025", source: "NRF and Happy Returns, 2025", url: "https://nrf.com/media-center/press-releases/consumers-expected-to-return-nearly-850-billion-in-merchandise-in-2025" },
+    { n: "[[retail.stat.cut-spend]]", label: "Bad online retail experiences after which consumers cut spending", source: "Qualtrics XM Institute, 2025", url: "https://www.qualtrics.com/articles/customer-experience/3-trillion-risk-due-bad-customer-experiences-2026/" },
+    { n: "[[retail.stat.cart]]", label: "Average documented cart abandonment rate across published studies", source: "Baymard Institute, 2025", url: "https://baymard.com/lists/cart-abandonment-rate" },
   ];
 
   const failureModes = [
-    { title: "Returns and fulfillment create 40-60% of contact volume", desc: "\"Where is my order\" and \"how do I return this\" dominate retail contact centers. Without real-time OMS integration and proactive shipping notifications, agents spend most of their time on status lookups that automation should handle." },
-    { title: "Seasonal staffing spikes destroy quality", desc: "Retail contact centers can see 3-5x volume during peak seasons. Rapid hiring of temporary agents with minimal training creates inconsistent service quality at the exact moment customer expectations are highest." },
-    { title: "Channel fragmentation loses the customer", desc: "Only 31% of eCommerce retailers support more than 2 channels. Customers who start on chat, call about the same issue, and email a follow-up experience the same problem three different ways. Context dies at every channel boundary." },
+    { title: "Order status and returns crowd out everything else", desc: "\"Where is my order\" and \"how do I return this\" make up much of the work in a retail contact center. Retailers told NRF they expect [[retail.returns.rate]] of 2025 sales to come back, and [[retail.returns.online]] of online sales. Without real-time order data and proactive shipping notices, agents spend their day on status lookups that automation could answer." },
+    { title: "Seasonal staffing spikes erode quality", desc: "Peak season can bring [[retail.peak.spike]] a normal month's contact volume, and the returns wave follows it: [[retail.returns.seasonal]] of retailers surveyed by NRF planned to hire seasonal staff for holiday returns. Temporary agents hired fast with little training give uneven service just when customers are least patient." },
+    { title: "Channel fragmentation loses the customer", desc: "A customer who starts on chat, phones about the same order, then emails a follow-up often meets three separate records of one problem. Each channel switch drops the context the last agent had." },
     { title: "Revenue-generating interactions get buried in service queues", desc: "Pre-purchase product questions, cart recovery opportunities, and upsell moments sit in the same queue as complaint handling. Without intent-based routing, revenue conversations wait behind refund requests." },
-    { title: "Self-service deflects but doesn't resolve", desc: "Retailers invest in FAQ bots and help centers, but if the self-service path hits a wall (wrong tracking info, policy exception, damaged item), the handoff to a human agent loses all context. The customer starts over, angrier than before." },
+    { title: "Self-service deflects but doesn't resolve", desc: "Retailers invest in FAQ bots and help centers, but when the self-service path hits a wall (wrong tracking data, a policy exception, a damaged item), the handoff to a person often carries none of what the customer already said. They start over, and they are more annoyed than when they began." },
   ];
 
   const stackLayers = [
@@ -55,12 +61,12 @@ export default function RetailVertical() {
   ];
 
   const benchmarks = [
-    { metric: "CSAT", avg: "76%", cross: "78%", top: "88%+", note: "Below cross-industry, returns friction and fulfillment issues suppress satisfaction" },
-    { metric: "FCR", avg: "75%", cross: "72%", top: "82%+", note: "Above average, many retail issues are transactional and resolvable in one contact" },
-    { metric: "AHT", avg: "5:40", cross: "7:00", top: "4:00", note: "Faster than average, high volume of simple status and returns queries" },
-    { metric: "Abandon Rate", avg: "5%", cross: "6%", top: "3%", note: "Slightly better, digital channels reduce phone dependency" },
-    { metric: "Attrition", avg: "42%", cross: "35%", top: "20%", note: "Well above average, seasonal hiring patterns, low wages, and repetitive work drive turnover" },
-    { metric: "Containment", avg: "30%", cross: "25%", top: "40%+", note: "Above average, order status and tracking are highly automatable" },
+    { metric: "CSAT", retail: "[[retail.bench.csat.retail]]", cross: "[[retail.bench.csat.cross]]", note: "Moves with returns friction and delivery problems as much as with the service contact itself" },
+    { metric: "FCR", retail: "[[retail.bench.fcr.retail]]", cross: "[[retail.bench.fcr.cross]]", note: "Many retail contacts are single transactions (order status, a return, a refund) that one contact can close" },
+    { metric: "AHT", retail: "[[retail.bench.aht.retail]]", cross: "[[retail.bench.aht.cross]]", note: "Driven by the mix of quick status checks against disputes, exchanges and product advice" },
+    { metric: "Abandon Rate", retail: "[[retail.bench.abandon.retail]]", cross: "[[retail.bench.abandon.cross]]", note: "Driven by staffing against promotion and holiday peaks, and by how much volume digital channels take" },
+    { metric: "Attrition", retail: "[[retail.bench.attrition.retail]]", cross: "[[retail.bench.attrition.cross]]", note: "Seasonal hiring, pay and repetitive work are the drivers to watch" },
+    { metric: "Containment", retail: "[[retail.bench.containment.retail]]", cross: "[[retail.bench.containment.cross]]", note: "Depends on whether bots read live order, carrier and returns data" },
   ];
 
   return (
@@ -75,14 +81,14 @@ export default function RetailVertical() {
           </div></FadeIn>
           <FadeIn delay={0.05}>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>Retail & eCommerce{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span></h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Speed, volume, and seasonality define retail CX. Every delayed response is a lost sale. Every unresolved return is a lost customer. This is the vertical-specific intelligence layer: benchmarks, technology stack mapping, failure modes, and vendor recommendations built for eCommerce, omnichannel retail, subscription, and marketplace operations.</p>
+            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Speed, volume, and seasonality shape retail CX. A slow answer can cost a sale, and a return handled badly can cost the customer. This page covers what is published about retail contact centers, how the technology stack maps to retail work, where operations break, and which platforms retail buyers often evaluate, across eCommerce, omnichannel, subscription, marketplace, luxury and grocery.</p>
           </FadeIn>
         </div>
       </section>
 
       {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{plain(s.n)}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a></div>))}
         </div>
       </FadeIn></div></section>)}
 
@@ -100,14 +106,14 @@ export default function RetailVertical() {
         <FadeIn><span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>What Breaks</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five failure modes unique to retail CX.</h2></FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{fm.desc}</p></div></FadeIn>))}
+          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}><ClaimText text={fm.desc} /></p></div></FadeIn>))}
         </div>
       </div></section>
 
       <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}><div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn><span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Technology Stack</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Seven orchestration layers, mapped for retail.</h2>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 5 (Conversation Management) carries disproportionate weight because retail is digital-first, chat, messaging, and social are primary channels. Retailers who over-invest in voice infrastructure at the expense of digital engagement are fighting yesterday's battle.</p>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 5 (Conversation Management) carries extra weight in retail because chat, messaging and social are primary channels for many retailers. A plan that puts most of the budget into voice and little into digital engagement leaves the busiest channels underbuilt.</p>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {stackLayers.map((sl, i) => (<FadeIn key={i} delay={i * 0.03}><div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "20px 22px", display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}><div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: LIGHT }}>{sl.layer}</span></div><div style={{ flex: 1, minWidth: 250 }}><h3 style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>{sl.name}</h3><p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 8px" }}>{sl.note}</p><div style={{ fontSize: 11, color: LIGHT }}>Key vendors: {sl.vendors}</div></div></div></FadeIn>))}
@@ -116,13 +122,20 @@ export default function RetailVertical() {
 
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How retail compares.</h2></FadeIn>
+          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How retail compares.</h2>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>The one published retail figure is SQM Group's first contact resolution for retail call centers, above its all-industry average; SQM attributes the gap to less complex calls. No free public source reports the other metrics for retail; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.</p>
+        </FadeIn>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Retail Avg", "Cross-Industry", "Top Quartile", "Why It Differs"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
-            <tbody>{benchmarks.map((b, i) => { const better = ["AHT","Abandon Rate","Attrition"].includes(b.metric) ? parseFloat(b.avg) < parseFloat(b.cross) : parseFloat(b.avg) > parseFloat(b.cross); return (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: better ? GREEN : AMBER }}>{b.avg}</td><td style={{ padding: "12px 14px", color: MUTED }}>{b.cross}</td><td style={{ padding: "12px 14px", color: GREEN, fontWeight: 600 }}>{b.top}</td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>); })}</tbody>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Retail", "All Industries", "What Drives It"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
+            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.retail} /></td><td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
           </table>
         </div>
-        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your cost per contact against these benchmarks →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your retail TCO →</a></div></FadeIn>
+        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your own cost per contact →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your retail TCO →</a></div></FadeIn>
+        <div id="sources" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h3>
+          <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark.</p>
+          <ClaimSources ids={claimIds([stats, benchmarks, failureModes])} color={SLATE} accent={ELECTRIC} />
+        </div>
       </div></section>
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
@@ -139,12 +152,12 @@ export default function RetailVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Platforms often evaluated for retail CX.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
-            { name: "Genesys", why: "Strongest routing and orchestration for high-volume, multi-channel retail operations. Proven in large omnichannel environments with complex fulfillment workflows.", href: "/vendors/genesys" },
+            { name: "Genesys", why: "Routing and orchestration for high-volume, multi-channel retail operations. Used in large omnichannel environments with complex fulfillment workflows.", href: "/vendors/genesys" },
             { name: "NICE CXone", why: "WEM for seasonal staffing management. Strong analytics for returns root cause and agent quality during peak periods.", href: "/vendors/nice-cxone" },
-            { name: "Talkdesk", why: "Purpose-built Retail Experience Cloud with Shopify and Salesforce Commerce integrations. Strong for mid-market to enterprise retail.", href: "/vendors/talkdesk" },
-            { name: "Five9", why: "Reliable CCaaS with strong CRM integration. Good fit for retail operations scaling from mid-market to enterprise.", href: "/vendors/five9" },
-            { name: "Gladly", adj: true, why: "Customer-timeline-first approach built for retail. Excellent agent experience for omnichannel service. Strong Shopify and commerce integrations.", href: "/vendors" },
-            { name: "Gorgias", adj: true, why: "Ecommerce-native helpdesk. Deep Shopify integration with order management, returns, and revenue-driving CX built into the agent workflow.", href: "/vendors" },
+            { name: "Talkdesk", why: "Retail Experience Cloud with Shopify and Salesforce Commerce integrations. Aimed at mid-market to enterprise retail.", href: "/vendors/talkdesk" },
+            { name: "Five9", why: "CCaaS with CRM integration, often shortlisted by retail operations moving from mid-market to enterprise scale.", href: "/vendors/five9" },
+            { name: "Gladly", adj: true, why: "Customer-timeline-first design aimed at retail: one running conversation per customer across channels, with Shopify and commerce integrations.", href: "/vendors" },
+            { name: "Gorgias", adj: true, why: "Helpdesk built for ecommerce. Shopify integration puts order management, returns and sales actions inside the agent workflow.", href: "/vendors" },
           ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (<FadeIn key={i} delay={i * 0.04}><a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }} onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3>{v.adj && <span style={{ fontSize: 10, color: AMBER, fontWeight: 600 }}>Adjacent</span>}</div><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p></a></FadeIn>))}
         </div>
         <FadeIn delay={0.2}><div style={{ textAlign: "center", marginTop: 24 }}><a href="/vendors/ccaas" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>See all CCaaS vendors →</a></div></FadeIn>

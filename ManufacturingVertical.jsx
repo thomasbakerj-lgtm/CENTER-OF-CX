@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import { claimIds } from "./src/lib/claims.js";
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 function useInView(t=.1){const ref=useRef(null);const[v,setV]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){setV(true);o.unobserve(el)}},{threshold:t});o.observe(el);return()=>o.disconnect()},[]);return[ref,v]}
@@ -18,7 +20,7 @@ return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:
 export default function ManufacturingVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   const subVerticals = [
-    { name: "Automotive OEM", slug: "automotive-oem", desc: "Recalls, warranty, connected vehicle support, EV ownership, and brand loyalty. 30+ million vehicles recalled annually with NHTSA oversight.", contact: "High volume, recall-driven surges" },
+    { name: "Automotive OEM", slug: "automotive-oem", desc: "Recalls, warranty, connected vehicle support, EV ownership, and brand loyalty. [[mfg.nhtsa.recalled]] vehicles under safety recall in the US in 2025, with NHTSA oversight.", contact: "High volume, recall-driven surges" },
     { name: "Automotive Dealer & Retail", slug: "automotive-dealer", desc: "BDC operations, service scheduling, sales follow-up, F&I support, and CSI management. The dealer is the brand experience for most owners.", contact: "Moderate volume, revenue-driven" },
     { name: "Industrial & B2B Manufacturing", slug: "industrial-b2b", desc: "Parts ordering, warranty claims, technical support, field service coordination, and distributor/channel support.", contact: "Lower volume, high technical complexity" },
     { name: "Consumer Electronics & Appliances", slug: "consumer-electronics", desc: "Product setup, troubleshooting, warranty claims, returns, and smart home integration. Post-purchase experience defines repurchase.", contact: "High volume, product complexity varies" },
@@ -28,14 +30,15 @@ export default function ManufacturingVertical() {
   /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
      and uncited figures were removed. */
   const stats = [
-    { n: "29M+", label: "Vehicles recalled in the US in 2025", source: "NHTSA 2025 Annual Recalls Report, March 2026", url: "https://www.nhtsa.gov/sites/nhtsa.gov/files/2026-03/2025-annual-recalls-report.pdf" },
+    { n: "[[mfg.nhtsa.recalled]]", label: "Vehicles under safety recall in the US, 2025 campaigns", source: "NHTSA recall data", url: "https://static.nhtsa.gov/odi/ffdd/rcl/FLAT_RCL_POST_2010.zip" },
+    { n: "[[mfg.warranty.claims]]", label: "Warranty claims paid in 2025 by US-based, publicly traded manufacturers", source: "Warranty Week, April 2026", url: "https://www.warrantyweek.com/archive/ww20260416.html" },
   ];
   const failureModes = [
-    { title: "Recall campaigns create massive, unpredictable contact surges", desc: "A single safety recall affecting 2 million vehicles generates 200,000+ calls within weeks: owners asking if their vehicle is affected, how to schedule a repair, and whether it's safe to drive. Without proactive VIN-specific notification and self-service scheduling, every affected owner calls individually." },
-    { title: "Warranty claim disputes erode brand loyalty permanently", desc: "A customer whose $800 repair is denied as 'not covered under warranty' will never buy from that brand again, and will tell 10 people. Warranty agents making coverage decisions under time pressure with incomplete vehicle history create the most consequential CX moments in manufacturing." },
-    { title: "Connected vehicle and EV support requires a new agent profile", desc: "A Tesla owner calling about over-the-air update failures and a Ford owner calling about a Mustang Mach-E charging issue need agents with software and electrical engineering knowledge, not traditional automotive call center training. The industry hasn't caught up." },
+    { title: "Recall campaigns create massive, unpredictable contact surges", desc: "[[mfg.ex.recall-surge]]: owners asking if their vehicle is affected, how to schedule a repair, and whether it's safe to drive. Without proactive VIN-specific notification and self-service scheduling, every affected owner calls individually." },
+    { title: "Warranty claim disputes erode brand loyalty permanently", desc: "A customer whose repair is denied as 'not covered under warranty' may not buy from that brand again, and tells friends and family why. Warranty agents deciding coverage under time pressure with incomplete vehicle history handle some of the most consequential moments in manufacturing CX." },
+    { title: "Connected vehicle and EV support requires a new agent profile", desc: "A Tesla owner calling about over-the-air update failures and a Ford owner calling about a Mustang Mach-E charging issue need agents with software and electrical engineering knowledge, which traditional automotive call center training does not cover. Training programs are still catching up." },
     { title: "Dealer and OEM support are disconnected", desc: "The customer sees one brand. The OEM and dealer operate as separate businesses with separate systems and separate incentives. An owner who calls the OEM about a bad dealer experience gets 'that's the dealer's responsibility.' An owner who calls the dealer about a product defect gets 'call the manufacturer.' Nobody owns the full experience." },
-    { title: "B2B manufacturers treat support as cost center, not competitive advantage", desc: "Industrial manufacturers with 48-hour part delivery SLAs and $10,000/hour production line downtime still run support through email ticketing systems with 24-hour response times. The disconnect between the customer's urgency and the manufacturer's response creates channel conflict: customers call their sales rep directly because support is too slow." },
+    { title: "B2B manufacturers run support as a cost center", desc: "Some industrial manufacturers still run support through email ticketing with next-day response targets, while each hour a customer's line sits idle costs that customer output. The disconnect between the customer's urgency and the manufacturer's response creates channel conflict: customers call their sales rep directly because support is too slow." },
   ];
   const stackLayers = [
     { layer: 7, name: "Analytics & Governance", vendors: "NICE, Verint, Medallia, J.D. Power", note: "Warranty cost analytics, recall completion tracking, CSI/SSI scoring, connected vehicle issue trending, and NPS by product line." },
@@ -47,12 +50,11 @@ export default function ManufacturingVertical() {
     { layer: 1, name: "Data Access", vendors: "SAP, Oracle, Salesforce Mfg Cloud, DMS (CDK, Reynolds)", note: "ERP/MRP, warranty management, CRM, parts inventory, connected vehicle telemetry, and dealer management systems." },
   ];
   const benchmarks = [
-    { metric: "CSAT", avg: "76%", cross: "78%", top: "85%+", note: "Near average: warranty and recall friction offset by product enthusiasm" },
-    { metric: "FCR", avg: "60%", cross: "72%", top: "78%+", note: "Below average: warranty decisions, parts availability, and technical complexity require follow-up" },
-    { metric: "AHT", avg: "8:30", cross: "7:00", top: "6:00", note: "Above average: VIN lookup, warranty verification, and technical diagnosis are time-intensive" },
-    { metric: "Churn (B2B)", avg: "35%", cross: "20%", top: "12%", note: "Highest B2B churn: commoditized products with undifferentiated service" },
-    { metric: "Attrition", avg: "30%", cross: "35%", top: "18%", note: "Below average: technical specialization and product knowledge create retention" },
-    { metric: "Recall Volume", avg: "30M/yr", cross: "N/A", top: "N/A", note: "Unique to manufacturing: single recalls can drive 100K+ inbound calls" },
+    { metric: "CSAT", mfg: "[[mfg.bench.csat.mfg]]", cross: "[[mfg.bench.csat.cross]]", note: "Moves with warranty decisions, recall communication and product quality" },
+    { metric: "FCR", mfg: "[[mfg.bench.fcr.mfg]]", cross: "[[mfg.bench.fcr.cross]]", note: "Warranty decisions, parts availability and technical diagnosis often need follow-up" },
+    { metric: "AHT", mfg: "[[mfg.bench.aht.mfg]]", cross: "[[mfg.bench.aht.cross]]", note: "VIN or serial lookup, warranty verification and technical diagnosis add time" },
+    { metric: "Attrition", mfg: "[[mfg.bench.attrition.mfg]]", cross: "[[mfg.bench.attrition.cross]]", note: "Technical specialization and product knowledge are the drivers to watch" },
+    { metric: "Vehicles under recall (US)", mfg: "[[mfg.nhtsa.recalled]]", cross: "Not applicable", note: "Recall campaigns drive surges in owner contacts" },
   ];
   return (
     <div><Nav />
@@ -62,28 +64,28 @@ export default function ManufacturingVertical() {
           <FadeIn><div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}><a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><a href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Industries</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Manufacturing & Automotive</span></div></FadeIn>
           <FadeIn delay={0.05}>
             <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>Manufacturing & Automotive{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span></h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Warranty, recalls, technical support, parts logistics, and post-purchase service define manufacturing CX. With 30+ million vehicles recalled annually, $50B+ in warranty claims, and the highest B2B churn rate of any industry, the contact center is where product quality meets customer loyalty, or doesn't.</p>
+            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Warranty, recalls, technical support, parts logistics, and post-purchase service define manufacturing CX. <ClaimText text="In 2025, [[mfg.nhtsa.recalled]] vehicles in the US were covered by safety recalls, and US-based, publicly traded manufacturers paid [[mfg.warranty.claims]] in warranty claims. The contact center is where product quality meets customer loyalty." /></p>
           </FadeIn>
         </div>
       </section>
       {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}><ClaimText text={s.n} /></div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
       </FadeIn></div></section>)}
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Six distinct manufacturing service models.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>An automotive OEM managing 10 million warranty-covered vehicles and an industrial pump manufacturer supporting 5,000 B2B accounts have fundamentally different CX requirements. Consumer vs B2B, recalls vs parts logistics, brand vs channel.</p></FadeIn>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>An automotive OEM with millions of vehicles under warranty and an industrial pump maker supporting a few thousand business accounts have different CX requirements. Consumer vs B2B, recalls vs parts logistics, brand vs channel.</p></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
-          {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><a href={`/industries/manufacturing/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span><div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div></a></FadeIn>))}
+          {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><a href={`/industries/manufacturing/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}><ClaimText text={sv.desc} links={false} /></p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span><div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div></a></FadeIn>))}
         </div>
       </div></section>
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>What Breaks</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five failure modes unique to manufacturing CX.</h2></FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{fm.desc}</p></div></FadeIn>))}
+          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}><ClaimText text={fm.desc} /></p></div></FadeIn>))}
         </div>
       </div></section>
       <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}><div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
@@ -96,11 +98,17 @@ export default function ManufacturingVertical() {
       </div></section>
       <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How manufacturing compares.</h2></FadeIn>
+          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How manufacturing compares.</h2>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>No free public source reports contact center metrics for manufacturing or automotive; SQM Group's by-industry breakouts do not include it. Measure yours with the linked tools. The all-industry figures are labelled with what they measure. The published manufacturing figure is NHTSA's own recall count.</p></FadeIn>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Mfg Avg", "Cross-Industry", "Top Quartile", "Why It Differs"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
-            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: AMBER }}>{b.avg}</td><td style={{ padding: "12px 14px", color: MUTED }}>{b.cross}</td><td style={{ padding: "12px 14px", color: GREEN, fontWeight: 600 }}>{b.top}</td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Manufacturing", "All Industries", "What Drives It"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
+            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.mfg} /></td><td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
           </table>
+        </div>
+        <div id="sources" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h3>
+          <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a worked example, or marked as having no public benchmark.</p>
+          <ClaimSources ids={claimIds([stats, subVerticals, failureModes, benchmarks, "[[mfg.warranty.claims]]"])} color={SLATE} accent={ELECTRIC} />
         </div>
       </div></section>
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
@@ -116,12 +124,12 @@ export default function ManufacturingVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms often evaluated for manufacturing.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
           {[
-            { name: "Genesys", why: "Deepest routing for multi-product, multi-channel manufacturing operations. VIN-based routing for automotive. Proven at global OEM scale.", href: "/vendors/genesys" },
+            { name: "Genesys", why: "Deep routing for multi-product, multi-channel manufacturing operations. VIN-based routing for automotive. Used at global OEM scale.", href: "/vendors/genesys" },
             { name: "NICE CXone", why: "Strong WEM for manufacturing operations with variable volume driven by recalls and product launches. Compliance QA for warranty and safety interactions.", href: "/vendors/nice-cxone" },
             { name: "Five9", why: "Good mid-market fit for manufacturing companies scaling from email-based support to omnichannel. Practical AI for parts lookup and warranty status.", href: "/vendors/five9" },
-            { name: "Amazon Connect", why: "Pay-per-use ideal for recall-driven volume spikes. AWS IoT integration for connected product telemetry. Custom AI for product-specific troubleshooting.", href: "/vendors/amazon-connect" },
+            { name: "Amazon Connect", why: "Pay-per-use pricing suits recall-driven volume spikes. AWS IoT integration for connected product telemetry. Custom AI for product-specific troubleshooting.", href: "/vendors/amazon-connect" },
             { name: "Talkdesk", why: "Fast deployment for manufacturers modernizing from on-premise systems. Good Salesforce integration for manufacturers using Salesforce Manufacturing Cloud.", href: "/vendors/talkdesk" },
-            { name: "Salesforce Service Cloud", adj: true, why: "Not a CCaaS but the dominant CRM for manufacturing service. Warranty management, case management, and field service on one platform.", href: "/vendors/ccaas" },
+            { name: "Salesforce Service Cloud", adj: true, why: "A CRM rather than a CCaaS, widely used for manufacturing service. Warranty management, case management, and field service on one platform.", href: "/vendors/ccaas" },
           ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (<FadeIn key={i} delay={i * 0.04}><a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }} onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3>{v.adj && <span style={{ fontSize: 10, color: AMBER, fontWeight: 600 }}>Adjacent</span>}</div><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p></a></FadeIn>))}
         </div>
       </div></section>
