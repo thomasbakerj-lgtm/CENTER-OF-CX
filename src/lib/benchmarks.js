@@ -188,7 +188,7 @@ const channelDefaultEntries = Object.fromEntries(Object.entries(CHS_DEFAULTS).ma
    page cites in its methodology, and are held as labelled heuristics because no single
    figure carries their denominator. Session 16, 11B. */
 const AID = "ai-deflection";
-const AID_HEUR = "Internal planning heuristic set by ContactCenterCX, informed by published self-service ranges. Not a cited benchmark. Replace with your own figures.";
+const AID_HEUR = "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.";
 const aHeur = (value, unit, rationale) => ({ tool: AID, kind: "heuristic", value, unit, source: AID_HEUR, reviewed: REVIEWED, version: 1, rationale });
 const aLine = (value, unit, rationale) => ({ tool: AID, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
 const AID_DEF = "Default so the tool opens on a runnable case.";
@@ -280,7 +280,7 @@ const fcrEntries = {
   "fcr.sens.aggStep": fHeur(0.4, "multiple of a first contact", "Step above the entered multiplier for the aggressive sensitivity row. Display only."),
   "fcr.read.margNearLoaded": fLine(0.85, "share of loaded cost", "Marginal cost at or above this share of loaded usually means loaded cost was entered as marginal. Disclosed, and holds completeness Directional."),
   "fcr.read.margFarBelow": fLine(0.35, "share of loaded cost", "Marginal cost at or below this share of loaded is outside the usual 50 to 75 percent range and burden scales with it. Disclosed, and holds completeness Directional."),
-  "fcr.read.multHigh": fLine(2.5, "multiple of a first contact", "A repeat multiplier above this sits beyond most published estimates of 1.5x to 2x. Disclosed, and holds completeness Directional until validated."),
+  "fcr.read.multHigh": fLine(2.5, "multiple of a first contact", "A repeat multiplier above this sits above the planning range of 1.0x to 2.0x, a threshold set by this platform. Disclosed, and holds completeness Directional until validated."),
   "fcr.read.multElevated": fLine(2, "multiple of a first contact", "A repeat multiplier above this is elevated and noted on the page. Display only. It reaches no confidence axis."),
   "fcr.read.measuredMax": fLine(0.6, "share of volume", "A measured repeat share above this is outside the plausible range. Disclosed, and holds completeness Directional."),
   "fcr.read.windowShort": fLine(7, "days", "An internal callback window shorter than this undercounts return contacts and reads FCR high. Disclosed, and holds completeness Directional."),
@@ -339,6 +339,13 @@ const tcoEntries = {
   "tco.check.perAgentCeiling": tLine(25000, "USD per agent per month", "Plausibility guard on input coding. A cost per agent per month above this sits outside any real operation and almost always means an annual or total figure was entered as monthly. Holds completeness Directional."),
   "tco.check.domShareMax": tLine(0.80, "share of the software bucket", "A single software line above this share of software cost is the signature of a miscategorized or mis-scaled input. Holds completeness Directional. AI usage is exempt, because usage pricing legitimately dominates."),
   "tco.check.spanMax": tLine(20, "agents per supervisor", "Span of control above this understates supervision cost and usually means supervisors were undercounted. Holds completeness Directional."),
+  "tco.read.lowOccupancy": tLine(0.70, "occupancy", "Occupancy below this is noted as idle capacity already on hand, so freed capacity is redeployment before it is cash. Framing only."),
+  "tco.read.resPremium": tLine(0.12, "share above cost per contact", "Cost per resolution above cost per contact by more than this reads as rework cost worth naming. Framing only."),
+  "tco.read.laborHeavy": tLine(0.80, "labor share of TCO", "Labor above this share reads as a people-cost operation in the analyst read. Framing only."),
+  "tco.read.laborSplit": tLine(0.60, "labor share of TCO", "Labor above this share prompts the read to explain the separate wage and license escalators. Framing only."),
+  "tco.band.estimate": tHeur(0.25, "share of the total", "Range printed around annual and three-year cost when costs are estimates. Display only."),
+  "tco.band.quoted": tHeur(0.15, "share of the total", "Range printed when costs come from vendor quotes. Display only."),
+  "tco.band.invoiced": tHeur(0.10, "share of the total", "Range printed when costs come from invoices. Display only."),
   "tco.check.mixTol": tLine(0.005, "share of volume", "Tolerance on the channel mix totalling one. The voice share prices telephony, so a mix that does not total 100 percent misprices the usage bucket. Holds completeness Directional."),
   "tco.wage.general": tWage(19, "cross-industry"),
   "tco.wage.financial": tWage(22, "financial services"),

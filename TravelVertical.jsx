@@ -30,13 +30,9 @@ export default function TravelVertical() {
     { name: "Tours & Experiences", slug: "tours-experiences", desc: "Activity booking, schedule changes, group coordination, weather cancellations, and local guide communication. Real-time support in unfamiliar destinations.", contact: "Time-zone spanning, multilingual" },
   ];
 
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "66%", label: "Of travelers feel less than positive about calling a travel brand", source: "Language I/O 2025" },
-    { n: "86%", label: "Willing to pay more for a better customer experience", source: "GITNUX 2025" },
-    { n: "55%", label: "Would abandon a booking if customer service is poor", source: "GITNUX 2025" },
-    { n: "56%", label: "Of business travelers book at the last minute", source: "24/7.ai 2025" },
-    { n: "72%", label: "More likely to return if staff remembered their preferences", source: "WiFi Talents 2026" },
-    { n: "69%", label: "Expect fast response via messaging apps", source: "GITNUX 2025" },
   ];
 
   const failureModes = [
@@ -79,11 +75,11 @@ export default function TravelVertical() {
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>

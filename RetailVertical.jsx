@@ -30,13 +30,10 @@ export default function RetailVertical() {
     { name: "Grocery & Delivery", slug: "grocery-delivery", desc: "Substitution issues, delivery windows, order modifications, refunds, and real-time logistics communication. Speed and accuracy are non-negotiable.", contact: "High volume, time-sensitive, real-time logistics" },
   ];
 
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "93%", label: "Of customers make repeat purchases from companies with excellent service", source: "HubSpot" },
-    { n: "$3.7T", label: "Lost globally each year due to poor customer experiences", source: "Qualtrics XM Institute" },
-    { n: "75%", label: "Average FCR rate in eCommerce contact centers", source: "Sprinklr" },
-    { n: "78%", label: "Of Gen Z shoppers try to resolve issues independently first", source: "Shopify" },
-    { n: "42%", label: "Annual agent attrition rate in retail contact centers", source: "Industry composite" },
-    { n: "12x", label: "Cost difference: $0.50 per AI interaction vs $6.00 per human agent", source: "Tidio" },
+    { n: "$3.7T", label: "Of 2024 global sales at risk from bad customer experiences", source: "Qualtrics XM Institute, 2024", url: "https://www.xminstitute.com/blog/trillion-sales-at-risk-2024/" },
   ];
 
   const failureModes = [
@@ -83,11 +80,11 @@ export default function RetailVertical() {
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>

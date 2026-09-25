@@ -138,7 +138,7 @@ const DEFS = {
   loaded: "Your hourly wage plus benefits and employer burden (payroll tax, paid time off, insurance). The tool keeps loaded and marginal cost separate because loaded cost belongs in unit metrics, while only marginal cost should value savings.",
   marginal: "The variable cost that actually disappears when one contact goes away: the handle-time labor plus any per-minute telephony. Savings are valued here, not at fully loaded cost, because fixed tech and facilities do not fall when volume drops.",
   wageEsc: "The annual rate at which labor cost rises. Defaulted to 3.5 percent from current wage-growth data, and applied only to the labor bucket because wages and contracted license inflate at different rates.",
-  licenseEsc: "The annual uplift on contracted recurring software at renewal. Defaulted to 6 percent, the enterprise middle of the 3 to 10 percent range, and applied only to license because a single blended rate misstates a labor-heavy base.",
+  licenseEsc: "The annual uplift on contracted recurring software at renewal. Defaulted to 6 percent, an internal planning value (enter your contract's renewal cap), and applied only to license because a single blended rate misstates a labor-heavy base.",
   stance: "How much freed capacity you assume converts to real cash. It is a haircut on theoretical savings, and None books $0 so the tool can be honest when no mechanism is committed.",
   costBasis: "Whether your cost inputs are estimates, vendor quotes, or actual invoices. It sets the sensitivity range and gates the confidence label, because a number from an invoice is far more bookable than one from a guess.",
   targets: "The improvement level each lever is measured against. These are yours to set, not fixed by the tool, so the opportunity reflects your own goals rather than an assumed target.",
@@ -147,7 +147,7 @@ const DEFS = {
   fcr: "First Contact Resolution, the share of contacts resolved without a repeat. It sets cost per resolution, since a lower FCR means paying to handle the same issue more than once, and it sizes the repeat-contact savings lever.",
   containment: "The share of contacts fully handled by self-service or a bot with no agent. This is not FCR (never reaching an agent versus not calling back), and it is an outcome, not the self-service entry channel, which the tool models separately. Raising it deflects volume, valued at marginal cost.",
   costPerResolution: "Total cost per issue actually resolved, estimated as cost per contact times the contacts each issue takes (about 2 minus FCR under the standard one-plus-repeat model). A lower FCR raises it because more issues need a second contact. If you track an observed recontact rate, that is the more precise figure.",
-  occupancy: "The share of logged-in time agents spend actively handling contacts. Above about 90 percent it drives burnout and attrition, so the tool warns when capturing a saving by cutting heads would push it higher.",
+  occupancy: "The share of logged-in time agents spend actively handling contacts. The tool warns when capturing a saving by cutting heads would push it above the platform's caution line.",
   shrinkage: "The share of paid time agents are not available to handle contacts (training, breaks, meetings, absence). The tool uses it to translate 173 paid hours into productive hours, though labor cost is still computed on paid hours because you pay for shrinkage.",
   attrition: "Annual agent turnover as a share of headcount. It sets how many replacement hires you fund each month, and therefore the recruiting, training, and ramp cost carried in the model.",
   seatBasis: "A per-seat monthly software fee. The tool multiplies it by all licensed seats (agents plus supervisors, QA, and WFM), not just agents, and escalates it at the license renewal rate in the 3-year view.",
@@ -392,16 +392,16 @@ function computeTCO(dIn, stanceKey = "expected") {
 
   const flags = [];
   for (const g of guards) flags.push({ level: "block", msg: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the range this model can compute. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.` });
-  if (perAgentMonth > 25000) flags.push({ level: "block", msg: `Cost per agent per month is ${fmt(perAgentMonth)}, beyond any real operation (ceiling $25,000). Check the wage and seat inputs. Finance-grade is blocked until this is sane.` });
-  if (domShare > 0.80 && domKey !== "AI usage") flags.push({ level: "flag", msg: `${domKey} is ${pct(domShare)} of the software bucket. One line dominating usually means a miscategorized or mis-scaled input. Confirm it before treating this as Finance-grade.` });
-  if (domShare > 0.80 && domKey === "AI usage") flags.push({ level: "note", msg: `AI usage is ${pct(domShare)} of the software bucket. That is legitimate for a usage-heavy AI contract and is not penalized, but confirm it is genuinely usage-metered.` });
+  if (perAgentMonth > TCO_CHECKS.perAgentCeiling) flags.push({ level: "block", msg: `Cost per agent per month is ${fmt(perAgentMonth)}, above the tool's plausibility ceiling of ${fmt(TCO_CHECKS.perAgentCeiling)}. Check the wage and seat inputs. Finance-grade is blocked until this is sane.` });
+  if (domShare > TCO_CHECKS.domShareMax && domKey !== "AI usage") flags.push({ level: "flag", msg: `${domKey} is ${pct(domShare)} of the software bucket. One line dominating usually means a miscategorized or mis-scaled input. Confirm it before treating this as Finance-grade.` });
+  if (domShare > TCO_CHECKS.domShareMax && domKey === "AI usage") flags.push({ level: "note", msg: `AI usage is ${pct(domShare)} of the software bucket. That is legitimate for a usage-heavy AI contract and is not penalized, but confirm it is genuinely usage-metered.` });
   if (n(d.psAmortized) > 0 && n(d.implementationOneTime) > 0) flags.push({ level: "note", msg: `Both amortized professional services (recurring) and a one-time implementation are set. Confirm you are not entering the same cost twice: amortized PS is a recurring monthly line, the one-time figure is a separate upfront cost added once.` });
   const agentsPerSup = n(d.agents) / Math.max(1, n(d.supervisors));
-  if (agentsPerSup > 20) flags.push({ level: "flag", msg: `Span of control is ${Math.round(agentsPerSup)} agents per supervisor, well above the 10 to 15 norm. Thin supervision understates labor cost. Confirm the supervisor count before treating this as Finance-grade.` });
+  if (agentsPerSup > TCO_CHECKS.spanMax) flags.push({ level: "flag", msg: `Span of control is ${Math.round(agentsPerSup)} agents per supervisor, above the tool's check line of ${TCO_CHECKS.spanMax}. Thin supervision understates labor cost. Confirm the supervisor count before treating this as Finance-grade.` });
   // Cross-metric coherence: operational sanity, not just financial. These surface as items to
   // confirm and shape the analyst read; they do not block the cost-input grade.
   const occ = n(d.occupancy);
-  if (occ > 0 && occ < 0.70) flags.push({ level: "note", msg: `Occupancy is ${pct0(occ)}, below the 83 to 87 percent target, so idle capacity already exists. Freeing more capacity through deflection or AHT is a redeployment or hiring-avoidance opportunity, not immediate cash, until you address why occupancy is low (overstaffing, interval mismatch, or measurement).` });
+  if (occ > 0 && occ < benchmark("tco.read.lowOccupancy")) flags.push({ level: "note", msg: `Occupancy is ${pct0(occ)}, below ${pct0(benchmark("tco.read.lowOccupancy"))}, so idle capacity already exists. Freeing more capacity through deflection or AHT is a redeployment or hiring-avoidance opportunity, not immediate cash, until you address why occupancy is low (overstaffing, interval mismatch, or measurement).` });
   if (n(d.abandonRate) > 0.05 && n(d.avgSpeedAnswer) > 0 && n(d.avgSpeedAnswer) < 15) flags.push({ level: "note", msg: `Abandonment is ${pct0(d.abandonRate)} while answer speed is ${Math.round(n(d.avgSpeedAnswer))} seconds. High abandon with fast answer is unusual; check for short-abandon counting, interval volatility, or a blended-channel measure.` });
   if (n(d.fcr) > 0.75 && n(d.csat) > 0 && n(d.csat) < 3.5) flags.push({ level: "note", msg: `FCR is ${pct0(d.fcr)} but CSAT is ${n(d.csat).toFixed(1)} of 5. High resolution with low satisfaction suggests resolution does not equal a good experience, or FCR is measured loosely. Confirm the FCR definition.` });
   const ahtCut = n(d.aht) > 0 ? (n(d.aht) - n(d.targetAht)) / n(d.aht) : 0;
@@ -411,7 +411,7 @@ function computeTCO(dIn, stanceKey = "expected") {
 
   // The cost basis sets the sensitivity band only. The grade is gradeTCO's, below.
   const basisRank = { estimate: 0, quoted: 1, invoiced: 2 }[d.costBasis || "estimate"];
-  const sensPct = basisRank === 2 ? 0.10 : basisRank === 1 ? 0.15 : 0.25;
+  const sensPct = benchmark(`tco.band.${["estimate", "quoted", "invoiced"][basisRank]}`);
   const sensitivity = { pct: sensPct, annualLow: annual * (1 - sensPct), annualHigh: annual * (1 + sensPct), threeLow: threeYear * (1 - sensPct), threeHigh: threeYear * (1 + sensPct) };
 
   const openIssues = [];
@@ -501,17 +501,17 @@ function buildAnalystRead(d, r, opt, stanceKey) {
   /* At a cost per contact of zero the premium is zero over zero. Say so plainly. */
   if (!(r.costPerContact > 0))
     out.push(`Cost per contact computes to $${(r.costPerContact || 0).toFixed(2)} at these inputs, so no resolution premium can be stated. Check the corrected inputs first.`);
-  else if (resPremium > 0.12)
+  else if (resPremium > benchmark("tco.read.resPremium"))
     out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) runs ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}). At ${pct(d.fcr)} FCR a share of issues take more than one contact to close (this uses the standard one plus repeat-rate model, about ${(2 - n(d.fcr)).toFixed(2)} contacts per resolution), and that gap is where rework cost sits.`);
   else
     out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) is ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}), a small gap at ${pct(d.fcr)} FCR, so rework is not a major cost driver here. The cost story is volume and labor.`);
 
-  if (r.laborPct > 0.80)
+  if (r.laborPct > benchmark("tco.read.laborHeavy"))
     out.push(`Labor is ${r.disp.laborPctStr} of TCO, so this is a people-cost operation. The highest-leverage moves are deflection and AHT, which free agent capacity, rather than trimming the ${r.disp.techPctStr} tech line. Cutting tech here barely moves the total.`);
   else
     out.push(`Labor is ${r.disp.laborPctStr} of TCO with tech at ${r.disp.techPctStr}, an unusually tech-heavy structure. Worth auditing platform overlap in the License Gap Checker before adding more tooling.`);
 
-  if (!r.single && r.laborPct > 0.60)
+  if (!r.single && r.laborPct > benchmark("tco.read.laborSplit"))
     out.push(`The 3-year view escalates labor at ${pctD(r.wEff)} and contracted license at ${pctD(r.lEff)}, with usage and facilities held flat. A single blended rate would misstate a base that is ${r.disp.laborPctStr} labor, which is why the two rates are separated.`);
 
   if (stanceKey === "none")
@@ -522,7 +522,7 @@ function buildAnalystRead(d, r, opt, stanceKey) {
   out.push(`Savings are valued at marginal cost ($${r.marginalPerContact.toFixed(2)} per contact), not fully loaded ($${r.costPerContact.toFixed(2)}). Deflecting contacts frees agent time but not fixed tech and facilities, so capturing it as cash requires reducing or redeploying FTE. That is the conversation to have, not assume.`);
 
   if (opt.occRisk) out.push(`Occupancy at ${pct(d.occupancy)} is in the burnout zone (above ${pct0(BENCH.occupancy.cautionMax)}). That is a hidden cost, because it drives the very attrition inflating your overhead. Model it in the Occupancy Risk Simulator before assuming the savings above are free.`);
-  else if (n(d.occupancy) > 0 && n(d.occupancy) < 0.70) out.push(`Occupancy at ${pct(d.occupancy)} sits well below the 83 to 87 percent target, so you already carry idle capacity. The savings above are real as freed capacity, but they will not become cash until you redeploy that time or reduce headcount, and the first question is why occupancy is this low. Pressure-test it in the Occupancy Risk Simulator and Staffing Calculator before booking these numbers.`);
+  else if (n(d.occupancy) > 0 && n(d.occupancy) < benchmark("tco.read.lowOccupancy")) out.push(`Occupancy at ${pct(d.occupancy)} sits below ${pct0(benchmark("tco.read.lowOccupancy"))}, so you already carry idle capacity. The savings above are real as freed capacity, but they will not become cash until you redeploy that time or reduce headcount, and the first question is why occupancy is this low. Pressure-test it in the Occupancy Risk Simulator and Staffing Calculator before booking these numbers.`);
   return out;
 }
 /* ---- Grading. Three axes, doctrine section 5. ----

@@ -746,10 +746,18 @@ dashboard, the 12-phase growth program.
    quadrant, leaderboard or fit rating renders for the seven non-CCaaS categories: shared `Phase1Directory.jsx` on the
    category pages, `Phase1Badge` on the profiles, `researchStatus(category, slug)` and `phase1Label()`. CCaaS gap closed on
    the ten industry pages (they printed Genesys 94). Scored claims removed from SEO and copy. `freeze.test.mjs` section 7.
-   Open for TB: the two Phase 1 buyer guides (landing pages and PDFs) still carry scores, labelled Phase 1 edition; and
-   60 headline statistics on the industry pages, many sourced to aggregators (Zipdo, GITNUX, WiFi Talents) or to
-   "industry composite".
-35. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
+   Both open items settled in part 3.
+35. Done S23: full site scan part 3 (TB approved three calls). CCaaS buyer guide page no longer shows the Phase 1 scoring
+   model, tiers or fit table; both PDFs stay downloadable as dated Phase 1 editions (seo J). Industry-page statistics: 60
+   cut to 16, each checked against its primary publisher; aggregator, vendor-blog, stale and uncited figures removed
+   (Healthcare and Travel now show none, the strip hides); six sources link the publisher's own page. `copy.test.mjs`
+   section 4 gates the sources. Unsourced figures inside tools relabelled as internal planning values and registered:
+   AI Deflection source claims (only Gartner's 14% self-service resolution kept), FCR's "published 1.5x to 2x", BCB's
+   "most centers", TCO's check lines, read lines and sensitivity bands (7 registry entries; A/B on 12,000 cases, figures
+   and flag levels unchanged). Unused `ToolGate.jsx` deleted. Deferred to the aesthetic rebuild copy pass (TB): the
+   "X, not Y" cadence (about 440 occurrences), page by page. Still open: unsourced figures in sub-vertical prose
+   ("catches 95%", "40 to 60% of the time"); sub-vertical pages post their Stack Framework form to Formspree directly.
+36. **Next:** the rest of the full site scan (TB, S23): read all public text, dashes, retired language, unsourced claims, research
    status on vendor pages, and the non-CCaaS Phase 1 freeze (TB said yes). Then the aesthetic rebuild once TB's brief
    lands. Per section 12 the aesthetic rebuild comes after C and D and starts from TB's brief
    (3 to 5 reference sites); Phase E (reference fixtures, version stamps, public changelog) follows it. Research Stage 3 and Vendor Match

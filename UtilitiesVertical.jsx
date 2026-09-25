@@ -25,13 +25,13 @@ export default function UtilitiesVertical() {
     { name: "Renewable Energy & DER", slug: "renewable-der", desc: "Solar interconnection, battery storage, EV charging, net metering, and distributed energy resource management. The fastest-growing segment.", contact: "Growing volume, technical complexity" },
     { name: "Energy Retail / Competitive Supply", slug: "energy-retail", desc: "Plan selection, rate comparison, contract management, and switching. Competitive markets where CX directly determines customer acquisition and retention.", contact: "Sales-driven, churn-sensitive" },
   ];
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "73", label: "ACSI customer satisfaction score: dropped 1% in 2026", source: "ACSI 2026" },
-    { n: "55%", label: "Of utility customers experienced an outage in 2025", source: "J.D. Power 2026" },
-    { n: "$189", label: "Average monthly electricity bill: record highs in 2025", source: "J.D. Power 2026" },
-    { n: "40%", label: "Reduction in storm call volume from proactive outage notifications", source: "WiFi Talents 2026" },
-    { n: "15", label: "Average utility NPS: bottom 20% of all industries", source: "WiFi Talents 2026" },
-    { n: "22%", label: "Of customers unable to pay their full utility bill", source: "J.D. Power 2026" },
+    { n: "73", label: "ACSI energy utilities satisfaction score, down 1%", source: "ACSI Energy Utilities Study, March 2026" },
+    { n: "55%", label: "Of utility customers experienced a power outage in 2025", source: "J.D. Power Utilities Outlook 2026" },
+    { n: "$189", label: "Average monthly electricity bill in 2025, the highest J.D. Power has measured", source: "J.D. Power Utilities Outlook 2026" },
+    { n: "22%", label: "Of customers unable to pay their full bill or carrying a balance", source: "J.D. Power Utilities Outlook 2026" },
   ];
   const failureModes = [
     { title: "Storm events create 10-50x call volume that collapses the contact center", desc: "A major storm knocks out power for 200,000 customers. Every one of them calls to report the outage and ask when power will be restored. Without proactive outage notifications, IVR storm messaging, and automated restoration updates, the contact center is overwhelmed within minutes, and every agent can only say 'we're aware of the outage and working to restore service.'" },
@@ -69,11 +69,11 @@ export default function UtilitiesVertical() {
           </FadeIn>
         </div>
       </section>
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div><div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div></div>))}
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
+          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
         </div>
-      </FadeIn></div></section>
+      </FadeIn></div></section>)}
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Six distinct utility service models.</h2>

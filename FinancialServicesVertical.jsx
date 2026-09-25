@@ -31,13 +31,10 @@ export default function FinancialServicesVertical() {
     { name: "Payments & Processing", slug: "payments-processing", desc: "Merchant support, transaction disputes, terminal troubleshooting, settlement inquiries, and integration support. B2B and B2C service models coexist.", contact: "Mixed B2B and B2C, technical support needs" },
   ];
 
+  /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
+     and uncited figures were removed. */
   const stats = [
-    { n: "79%", label: "Average CSAT in financial services contact centers", source: "Sprinklr / industry composite" },
-    { n: "46%", label: "Of adults open to switching banks or using multiple institutions", source: "TTEC / industry research" },
-    { n: "73%", label: "Of consumers expect smooth channel transitions", source: "CX Today" },
-    { n: "13%", label: "Of consumers feel their financial institution meets that expectation", source: "CX Today" },
-    { n: "1.3x", label: "Longer hold times than cross-industry average", source: "Talkdesk" },
-    { n: "55%", label: "Of banks globally report FCR below 70%", source: "Capgemini" },
+    { n: "55%", label: "Of banks worldwide report first contact resolution below 70%", source: "Capgemini, World Retail Banking Report 2024" },
   ];
 
   const failureModes = [
@@ -94,21 +91,21 @@ export default function FinancialServicesVertical() {
       </section>
 
       {/* Stats bar */}
-      <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
+      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <FadeIn>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16 }} className="stat-grid">
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
               {stats.map((s, i) => (
                 <div key={i} style={{ textAlign: "center", padding: "12px 8px" }}>
                   <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div>
                   <div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>{s.source}</div>
+                  {s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}
                 </div>
               ))}
             </div>
           </FadeIn>
         </div>
-      </section>
+      </section>)}
 
       {/* Sub-verticals */}
       <section style={{ background: WARM, padding: "80px 28px" }}>
