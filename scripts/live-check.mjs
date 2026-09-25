@@ -161,6 +161,9 @@ for (const path of ["/", "/about", "/industries", "/industries/healthcare", "/in
   const body = (raw.match(/<div id="root">([\s\S]*)<\/div>/) || [])[1] || "";
   report(/<h1[\s>]/.test(body) && body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").length > 250, `${path} is served with its body in the HTML`, body ? "" : "empty root");
   report(v.errors.length === 0 && v.text.length > 150, `${path} hydrates with no error`, v.errors[0] || "");
+  const og = (raw.match(/<meta property="og:image" content="([^"]+)"/) || [])[1] || "";
+  const img = og ? await v.ctx.request.get(og.replace(/^https:\/\/www\.contactcentercx\.com/, ORIGIN)).catch(() => null) : null;
+  report(!!img && img.status() === 200 && /image\/png/.test(img.headers()["content-type"] || "") && (await img.body()).length > 10000, `${path} share card is served`, og || "no og:image");
   await v.ctx.close();
 }
 

@@ -15,6 +15,8 @@ import { fileURLToPath } from "node:url";
 import { BASE, resolveSeo, structuredData } from "./src/lib/seo.js";
 import { pathToFileURL } from "node:url";
 import { rawStyles, nestedLinks } from "./src/lib/prerenderHtml.js";
+import { cardSvg, cardKind, cardFile, firstSentence, CARD_W, CARD_H } from "./src/lib/shareCard.js";
+import { Resvg } from "@resvg/resvg-js";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DIST = join(ROOT, "dist");
@@ -56,6 +58,29 @@ if (!existsSync(SSR)) fail("dist-ssr/entry-server.js not found. Did the SSR buil
 if (shell.split(ROOT_DIV).length !== 2) fail(`${ROOT_DIV} must appear exactly once in index.html.`);
 const { render, citationsOf } = await import(pathToFileURL(SSR).href);
 
+/* Share cards (P1 task 5): one PNG per tool, method and industry page, the site card for the rest, drawn with the
+   committed Archivo font so the build fetches nothing. */
+const OG = join(DIST, "og");
+mkdirSync(OG, { recursive: true });
+const FONTS = [join(ROOT, "assets/fonts/Archivo-Regular.ttf"), join(ROOT, "assets/fonts/Archivo-Bold.ttf")];
+const cardsWritten = new Set();
+function writeCard(path, seo) {
+  const file = cardFile(path);
+  if (cardsWritten.has(file)) return file;
+  const site = file === "site.png";
+  const svg = cardSvg({
+    kind: site ? null : cardKind(path),
+    title: site ? "Decision intelligence for contact center and CX technology" : seo.title.split(" | ")[0],
+    summary: site ? "Vendor profiles, buyer guides and free tools with published methods." : firstSentence(seo.desc),
+    path: site ? "/" : path,
+  });
+  const png = new Resvg(svg, { font: { fontFiles: FONTS, loadSystemFonts: false, defaultFontFamily: "Archivo" } }).render();
+  if (png.width !== CARD_W || png.height !== CARD_H) fail(`share card for ${path} is ${png.width}x${png.height}.`);
+  writeFileSync(join(OG, file), png.asPng());
+  cardsWritten.add(file);
+  return file;
+}
+
 const head = shell.slice(0, startIdx);
 const tail = shell.slice(endIdx + END.length);
 
@@ -66,7 +91,7 @@ const esc = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-function buildHead(seo, extra) {
+function buildHead(seo, extra, card) {
   const url = seo.path === "/" ? `${BASE}/` : `${BASE}${seo.path}`;
   const t = esc(seo.title);
   const d = esc(seo.desc);
@@ -86,6 +111,11 @@ function buildHead(seo, extra) {
     `    <meta name="twitter:site" content="@centerofcx" />`,
     `    <meta name="twitter:title" content="${t}" />`,
     `    <meta name="twitter:description" content="${d}" />`,
+    `    <meta property="og:image" content="${BASE}/og/${card}" />`,
+    `    <meta property="og:image:width" content="${CARD_W}" />`,
+    `    <meta property="og:image:height" content="${CARD_H}" />`,
+    `    <meta property="og:image:alt" content="${t}" />`,
+    `    <meta name="twitter:image" content="${BASE}/og/${card}" />`,
     ...structuredData(seo.path, seo, extra).map(
       (g) => `    <script type="application/ld+json">${JSON.stringify(g).replace(/</g, "\\u003c")}</script>`
     ),
@@ -139,14 +169,14 @@ for (const loc of locs) {
     fail(`${path}: ${err.message}`);
   }
   if (nestedLinks(body) > 0) fail(`${path} renders a link inside a link; the browser would split it and hydration would fail.`);
-  const html = head + buildHead(seo, extra) + tail.replace(ROOT_DIV, `<div id="root">${body}</div>`);
+  const html = head + buildHead(seo, extra, writeCard(path, seo)) + tail.replace(ROOT_DIV, `<div id="root">${body}</div>`);
   const outDir = path === "/" ? DIST : join(DIST, path);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "index.html"), html, "utf8");
   written++;
 }
 
-console.log(`prerender: wrote ${written} route files from ${locs.length} sitemap URLs.`);
+console.log(`prerender: wrote ${written} route files from ${locs.length} sitemap URLs, and ${cardsWritten.size} share cards.`);
 if (fallbackCount > 0) {
   console.warn(
     `prerender: ${fallbackCount} route(s) used the generic default title. Sample: ${fallbacks.join(", ")}`

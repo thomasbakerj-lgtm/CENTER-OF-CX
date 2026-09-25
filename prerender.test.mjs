@@ -92,6 +92,25 @@ try {
   rmSync(out, { recursive: true, force: true });
 }
 
+console.log("\n2b. Share cards (P1 task 5)");
+{
+  const { cardSvg, cardKind, cardFile, wrap, firstSentence, CARD_W, CARD_H } = await import("./src/lib/shareCard.js");
+  const { Resvg } = await import("@resvg/resvg-js");
+  ok("the wrap rule keeps to its line limit and marks a cut", (() => { const l = wrap("word ".repeat(200), 60, 1040, 3); return l.length === 3 && l[2].endsWith("…"); })());
+  ok("a short title stays whole", JSON.stringify(wrap("Staffing Calculator", 60, 1040, 3)) === JSON.stringify(["Staffing Calculator"]));
+  ok("card text is escaped", /A &amp; B &lt;x&gt;/.test(cardSvg({ kind: "Free tool", title: "A & B <x>", summary: "", path: "/tools/x" })));
+  ok("the summary is the first sentence", firstSentence("One thing. Two things.") === "One thing.");
+  const sitemap = [...readFileSync("public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
+  const own = sitemap.filter((p) => cardKind(p));
+  ok("every tool, method and industry page has its own card; the rest use the site card", own.length > 100 && own.every((p) => cardFile(p) !== "site.png") && sitemap.filter((p) => !cardKind(p)).every((p) => cardFile(p) === "site.png"), `${own.length} own cards`);
+  ok("card file names are unique per page", new Set(own.map(cardFile)).size === own.length);
+  const png = new Resvg(cardSvg({ kind: "Free tool", title: "Staffing Requirement Calculator", summary: "Volume to agents.", path: "/tools/staffing-calculator" }),
+    { font: { fontFiles: ["assets/fonts/Archivo-Regular.ttf", "assets/fonts/Archivo-Bold.ttf"], loadSystemFonts: false, defaultFontFamily: "Archivo" } }).render();
+  const bytes = png.asPng();
+  ok(`a card renders at ${CARD_W} x ${CARD_H} as PNG with the committed font`, png.width === CARD_W && png.height === CARD_H && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes.length > 10000, `${png.width}x${png.height}, ${bytes.length} bytes`);
+  ok("the font is committed with its license", readFileSync("assets/fonts/OFL.txt", "utf8").includes("SIL Open Font License"));
+}
+
 console.log("\n3. Wiring");
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
 ok("build runs the client build, the server build, then the prerender", /vite build && vite build --ssr entry-server\.jsx --outDir dist-ssr && node prerender\.mjs/.test(pkg.scripts.build), pkg.scripts.build);
@@ -100,6 +119,7 @@ ok("prerender keeps the empty shell as spa.html", /join\(DIST, "spa\.html"\)/.te
 ok("prerender refuses a page with no h1 or a nested link", /has no h1/.test(pre) && /nestedLinks\(body\) > 0/.test(pre));
 ok("each page's robots tag follows seo.js, and a sitemap URL that is not indexable fails the build", /seo\.known \? "index, follow/.test(pre) && /is in the sitemap but not indexable/.test(pre));
 ok("the empty shell served outside the sitemap is noindex", /content="noindex, follow"/.test(pre) && /writeFileSync\(SHELL, shellHtml/.test(pre));
+ok("every page carries og:image and twitter:image with the card's size, drawn by the prerender", /og:image" content="\$\{BASE\}\/og\/\$\{card\}"/.test(pre) && /twitter:image/.test(pre) && /og:image:width/.test(pre) && /png\.width !== CARD_W/.test(pre));
 const vercel = JSON.parse(readFileSync("vercel.json", "utf8"));
 ok("paths outside the sitemap are rewritten to the empty shell", vercel.rewrites.length === 1 && vercel.rewrites[0].destination === "/spa.html");
 const main = readFileSync("main.jsx", "utf8");
