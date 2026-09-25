@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import { claimIds } from "./src/lib/claims.js";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
@@ -37,8 +39,8 @@ export default function HealthcareVertical() {
 
   const failureModes = [
     { title: "HIPAA creates handoff friction that patients feel", desc: "Protected health information rules require identity verification at every channel switch. A patient who authenticated on the phone must re-authenticate in chat. Context cannot flow freely across systems without consent and audit trail controls." },
-    { title: "Scheduling consumes agent capacity without resolution", desc: "Patients call 3.5 times per scheduling need on average. The root cause is often system fragmentation: the scheduling system, EHR, and contact center platform operate independently, forcing agents to navigate multiple screens per booking." },
-    { title: "Empathy-intensive interactions accelerate burnout", desc: "Healthcare agents handle calls involving fear, grief, financial stress, and medical uncertainty. Without structured coaching, wellness support, and call-type rotation, turnover rates exceed 40% annually, well above cross-industry averages." },
+    { title: "Scheduling consumes agent capacity without resolution", desc: "Patients call [[hc.sched.calls]] per scheduling need on average. The root cause is often system fragmentation: the scheduling system, EHR, and contact center platform operate independently, forcing agents to navigate multiple screens per booking." },
+    { title: "Empathy-intensive interactions accelerate burnout", desc: "Healthcare agents handle calls involving fear, grief, financial stress, and medical uncertainty. Without structured coaching, wellness support, and call-type rotation, turnover rates exceed [[hc.turnover]] a year." },
     { title: "Prior authorization creates the worst patient journey", desc: "Prior auth workflows involve the patient, provider, payer, and pharmacy, each with different systems, timelines, and information needs. The contact center absorbs the frustration of a process it cannot control." },
     { title: "After-hours coverage creates clinical risk", desc: "Triaging urgent clinical calls outside business hours requires protocols that most generic contact center platforms cannot enforce. Routing a billing question and a symptom-escalation call through the same queue creates patient safety risk." },
   ];
@@ -54,12 +56,12 @@ export default function HealthcareVertical() {
   ];
 
   const benchmarks = [
-    { metric: "CSAT", avg: "76%", cross: "78%", top: "88%+", note: "Below cross-industry, driven by emotionally charged interactions and process friction" },
-    { metric: "FCR", avg: "52%", cross: "72%", top: "82%+", note: "Significantly below average, multi-system scheduling and auth requirements prevent single-call resolution" },
-    { metric: "AHT", avg: "6:36", cross: "7:00", top: "5:20", note: "Slightly faster but misleading, simple scheduling calls mask very long complex interactions" },
-    { metric: "Abandon Rate", avg: "7%", cross: "6%", top: "3%", note: "Slightly above average, staffing gaps during peak hours drive abandonment" },
-    { metric: "Attrition", avg: "42%", cross: "35%", top: "20%", note: "Well above average, emotional labor and burnout are the primary drivers" },
-    { metric: "Transfer Rate", avg: "19%", cross: "15%", top: "8%", note: "Highest of any vertical, clinical/administrative routing gaps force transfers" },
+    { metric: "CSAT", hc: "[[hc.bench.csat.hc]]", cross: "[[hc.bench.csat.cross]]", top: "[[hc.bench.csat.top]]", note: "Below cross-industry, driven by emotionally charged interactions and process friction" },
+    { metric: "FCR", hc: "[[hc.bench.fcr.hc]]", cross: "[[hc.bench.fcr.cross]]", top: "[[hc.bench.fcr.top]]", note: "Significantly below average, multi-system scheduling and auth requirements prevent single-call resolution" },
+    { metric: "AHT", hc: "[[hc.bench.aht.hc]]", cross: "[[hc.bench.aht.cross]]", top: "[[hc.bench.aht.top]]", note: "Slightly faster but misleading, simple scheduling calls mask very long complex interactions" },
+    { metric: "Abandon Rate", hc: "[[hc.bench.abandon.hc]]", cross: "[[hc.bench.abandon.cross]]", top: "[[hc.bench.abandon.top]]", note: "Slightly above average, staffing gaps during peak hours drive abandonment" },
+    { metric: "Attrition", hc: "[[hc.bench.attrition.hc]]", cross: "[[hc.bench.attrition.cross]]", top: "[[hc.bench.attrition.top]]", note: "Well above average, emotional labor and burnout are the primary drivers" },
+    { metric: "Transfer Rate", hc: "[[hc.bench.transfer.hc]]", cross: "[[hc.bench.transfer.cross]]", top: "[[hc.bench.transfer.top]]", note: "Highest of any vertical, clinical/administrative routing gaps force transfers" },
   ];
 
   return (
@@ -101,7 +103,7 @@ export default function HealthcareVertical() {
           <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Healthcare contact centers absorb the friction of fragmented systems, regulatory constraints, and emotionally charged interactions. These are the patterns that generic CX strategies consistently miss.</p>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{fm.desc}</p></div></FadeIn>))}
+          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}><ClaimText text={fm.desc} /></p></div></FadeIn>))}
         </div>
       </div></section>
 
@@ -122,10 +124,15 @@ export default function HealthcareVertical() {
         </FadeIn>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "HC Average", "Cross-Industry", "Top Quartile", "Why It Differs"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
-            <tbody>{benchmarks.map((b, i) => { const worse = ["FCR","CSAT"].includes(b.metric) ? parseFloat(b.avg) < parseFloat(b.cross) : parseFloat(b.avg) > parseFloat(b.cross); return (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: worse ? RED : GREEN }}>{b.avg}</td><td style={{ padding: "12px 14px", color: MUTED }}>{b.cross}</td><td style={{ padding: "12px 14px", color: GREEN, fontWeight: 600 }}>{b.top}</td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>); })}</tbody>
+            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.hc} /></td><td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td><td style={{ padding: "12px 14px", color: NAVY, fontWeight: 600 }}><ClaimText text={b.top} /></td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
           </table>
         </div>
-        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your cost per contact against these benchmarks →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your healthcare TCO →</a></div></FadeIn>
+        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your own cost per contact →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your healthcare TCO →</a></div></FadeIn>
+        <div id="sources" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h3>
+          <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark.</p>
+          <ClaimSources ids={claimIds([benchmarks, failureModes, "[[hc.hipaa.penalty]]"])} color={SLATE} accent={ELECTRIC} />
+        </div>
       </div></section>
 
       <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
@@ -133,7 +140,7 @@ export default function HealthcareVertical() {
           <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How outsourcing fits in healthcare CX.</h2></FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 24 }} className="sub-grid">
           <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Appointment scheduling and confirmation calls", "Insurance verification and eligibility checks", "Patient satisfaction surveys and follow-up", "After-hours triage (with clinical oversight protocols)", "Revenue cycle: billing inquiries and payment collections"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
-          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Clinical triage requires licensed professionals and institutional protocols", "HIPAA training gaps create compliance exposure, violations cost $100-$50,000 per incident", "PHI handling across offshore locations introduces data residency complexity", "Care coordination requires EHR access that most BPO contracts underspecify", "Patient empathy in crisis moments (diagnosis, end-of-life) requires institutional depth"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>))}</div></div></FadeIn>
+          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Clinical triage requires licensed professionals and institutional protocols", "HIPAA training gaps create compliance exposure, violations cost [[hc.hipaa.penalty]] per violation", "PHI handling across offshore locations introduces data residency complexity", "Care coordination requires EHR access that most BPO contracts underspecify", "Patient empathy in crisis moments (diagnosis, end-of-life) requires institutional depth"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}><ClaimText text={item} /></p>))}</div></div></FadeIn>
         </div>
       </div></section>
 
