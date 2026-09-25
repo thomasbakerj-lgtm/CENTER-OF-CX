@@ -13,6 +13,8 @@ const FS_METHOD = "Every prose string extracted (807 segments across FinancialSe
 
 const INS_METHOD = "Every prose string extracted (615 segments across InsuranceVertical.jsx, InsuranceSubVerticalData.js and the Insurance card in Industries.jsx). 42 distinctive sentences searched as exact phrases (full sentence or an 8 to 12 word run); 24 candidate pages fetched and compared with all 615 segments for shared runs of 8 and of 6 words. jdpower.com refused the fetch and was checked by exact-phrase search only. Result: no shared run of 8 words; two 6 word runs, a study title and the certificate sentence recorded on the sub-page file. Sentences written during the research pass that day are our own wording of cited findings.";
 
+const UTL_METHOD = "No exact-phrase web search was possible: the session's search budget was spent and other engines ignored quotes or refused. Instead 73 pages were requested (every vendor named on the page at its own product or utilities page, each cited source, regulators and program pages, one utility communications trade article); 47 returned and 26 refused or were missing; with 4 source pages saved earlier, 51 pages were compared by script against every prose segment of the page and the hub card for shared runs of 6, 7 and 8 words. Result: no shared run of 8 words; the one 7 word run is the cited wording of 49 CFR 192.615. Uncited paraphrases of specific external findings were rewritten. 53 queued phrases (scratchpad utl main_phr.txt and sv_phr.txt) remain for a later exact-phrase search.";
+
 export const ORIGINALITY = {
   "HealthcareVertical.jsx": { checked: "2026-09-25", method: METHOD, matches: [] },
   "HCSubVerticalData.js": {
@@ -70,4 +72,12 @@ export const ORIGINALITY = {
       { text: "Cyber breach response has a golden hour: the first 60 minutes after a breach is detected determine whether containment succeeds or the attack spreads.", near: "https://www.mprunderwriting.com/the-golden-hour-in-cyber-incident-response/", kind: "uncited trade claim with a specific figure", resolution: "rewritten" },
     ],
   },
+  "UtilitiesVertical.jsx": { checked: "2026-09-25", method: UTL_METHOD, matches: [
+      { text: "Customers spend only 8 minutes per year interacting with their utility", near: "a widely repeated consulting finding on minutes per year of utility interaction, uncited", kind: "paraphrase of a specific external finding", resolution: "rewritten" },
+      { text: "22% of utility customers can't pay their full bill", near: "J.D. Power Utilities Outlook 2026 finding, uncited in the text and not re-readable", kind: "paraphrase of a specific external finding", resolution: "rewritten" },
+    ] },
+  "UtilitiesSubVerticalData.js": { checked: "2026-09-25", method: UTL_METHOD, matches: [
+      { text: "satisfaction is 210 points higher (on 1,000-point scale) when customers receive 5+ outage communications", near: "J.D. Power electric utility residential study finding, uncited and not re-readable", kind: "paraphrase of a specific external finding", resolution: "rewritten" },
+      { text: "PHMSA requires gas utilities to respond to gas odor reports within 60 minutes", near: "misstatement of 49 CFR 192.615, which sets no minute limit", kind: "paraphrase of a specific external finding", resolution: "rewritten" },
+    ] },
 };
