@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import { claimIds } from "./src/lib/claims.js";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
@@ -22,7 +24,7 @@ export default function FinancialServicesVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const subVerticals = [
-    { name: "Retail Banking", slug: "retail-banking", desc: "Account servicing, fraud alerts, card disputes, loan inquiries, and branch-to-digital migration. The highest volume sub-vertical with the broadest channel mix.", contact: "High volume, moderate complexity" },
+    { name: "Retail Banking", slug: "retail-banking", desc: "Account servicing, fraud alerts, card disputes, loan inquiries, and branch-to-digital migration. High volume with a broad channel mix.", contact: "High volume, moderate complexity" },
     { name: "Credit Unions", slug: "credit-unions", desc: "Member-centric service with relationship depth. Smaller operations but higher trust expectations and community accountability.", contact: "Lower volume, higher relationship intensity" },
     { name: "Insurance (P&C, Life, Health)", slug: "insurance", desc: "Claims intake (FNOL), policy servicing, renewals, underwriting support, and high-emotion service journeys. Compliance and empathy are equally critical.", contact: "Moderate volume, high complexity per interaction" },
     { name: "Wealth Management & Advisory", slug: "wealth-management", desc: "Portfolio inquiries, advisor scheduling, compliance-sensitive communications, and high-value client retention. Every interaction carries revenue risk.", contact: "Low volume, very high value per interaction" },
@@ -34,15 +36,15 @@ export default function FinancialServicesVertical() {
   /* Verified statistics only (TB, S23): each names its primary publisher, linked where checked on the publisher's own page. Aggregator, vendor-blog
      and uncited figures were removed. */
   const stats = [
-    { n: "55%", label: "Of banks worldwide report first contact resolution below 70%", source: "Capgemini, World Retail Banking Report 2024" },
+    { n: "[[fs.stat.fcr-below-70]]", label: "Of banks worldwide report first contact resolution below the level Capgemini treats as the industry benchmark", source: "Capgemini, World Retail Banking Report 2024", url: "https://www.capgemini.com/wp-content/uploads/2024/03/WRBR_2024_web.pdf" },
   ];
 
   const failureModes = [
-    { title: "Authentication friction kills digital adoption", desc: "Customers must re-authenticate when switching channels, creating abandonment at the exact moment they need help most. Identity verification adds 45-90 seconds per interaction in regulated environments." },
+    { title: "Authentication friction kills digital adoption", desc: "Customers must re-authenticate when switching channels, creating abandonment at the exact moment they need help most. Identity verification adds [[fs.auth.time]] per interaction in regulated environments." },
     { title: "Compliance recording creates agent cognitive load", desc: "Mandatory disclosures, consent language, and call recording requirements add process steps that increase AHT and reduce the agent's ability to focus on resolution." },
     { title: "Fraud and service use the same queue", desc: "Fraud alerts requiring immediate action compete with routine balance inquiries for agent attention. Without intent-based routing, high-urgency interactions wait behind low-complexity ones." },
     { title: "Branch-to-digital handoffs lose context", desc: "When a customer starts a mortgage conversation in-branch and follows up through the contact center, context is lost. The agent sees the account but has no visibility into the branch interaction." },
-    { title: "Retention save workflows burn agents out", desc: "Agents handling cancellation and retention calls face emotional labor that accelerates attrition. These interactions require negotiation skills most training programs underinvest in." },
+    { title: "Retention save workflows burn agents out", desc: "Agents handling cancellation and retention calls face emotional labor that accelerates attrition. These interactions require negotiation skills that training programs often underinvest in." },
   ];
 
   const stackLayers = [
@@ -56,12 +58,12 @@ export default function FinancialServicesVertical() {
   ];
 
   const benchmarks = [
-    { metric: "CSAT", fsAvg: "79%", crossIndustry: "78%", topQuartile: "88%+", note: "FS tracks close to cross-industry average despite higher interaction complexity" },
-    { metric: "FCR", fsAvg: "68%", crossIndustry: "72%", topQuartile: "82%+", note: "Lower than average, compliance steps and multi-system lookups reduce first-contact resolution" },
-    { metric: "AHT", fsAvg: "6:40", crossIndustry: "7:00", topQuartile: "5:20", note: "Slightly faster than average due to transactional inquiry volume, but complex interactions skew higher" },
-    { metric: "Abandon Rate", fsAvg: "12%", crossIndustry: "6%", topQuartile: "3%", note: "Significantly higher than average, driven by authentication friction and hold time" },
-    { metric: "Attrition", fsAvg: "28%", crossIndustry: "35%", topQuartile: "20%", note: "Lower than average, better compensation offsets emotional labor of fraud and retention work" },
-    { metric: "Containment", fsAvg: "20%", crossIndustry: "25%", topQuartile: "40%+", note: "Below average, security and compliance requirements limit what automation can handle independently" },
+    { metric: "CSAT", fs: "[[fs.bench.csat.fs]]", cross: "[[fs.bench.csat.cross]]", note: "Moves with authentication friction, hold time and whether the issue is resolved" },
+    { metric: "FCR", fs: "[[fs.bench.fcr.fs]]", cross: "[[fs.bench.fcr.cross]]", note: "Compliance steps and lookups across several systems stand in the way of single-contact resolution" },
+    { metric: "AHT", fs: "[[fs.bench.aht.fs]]", cross: "[[fs.bench.aht.cross]]", note: "An average hides the spread: quick transactional calls sit beside long dispute, claims and advisory calls" },
+    { metric: "Abandon Rate", fs: "[[fs.bench.abandon.fs]]", cross: "[[fs.bench.abandon.cross]]", note: "Driven by authentication friction, hold time and staffing gaps at peak" },
+    { metric: "Attrition", fs: "[[fs.bench.attrition.fs]]", cross: "[[fs.bench.attrition.cross]]", note: "Emotional labor on fraud, collections and retention calls is the driver to watch" },
+    { metric: "Containment", fs: "[[fs.bench.containment.fs]]", cross: "[[fs.bench.containment.cross]]", note: "Security and compliance requirements set what automation can handle on its own" },
   ];
 
   return (
@@ -97,7 +99,7 @@ export default function FinancialServicesVertical() {
             <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
               {stats.map((s, i) => (
                 <div key={i} style={{ textAlign: "center", padding: "12px 8px" }}>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}>{s.n}</div>
+                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}><ClaimText text={s.n} /></div>
                   <div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>
                   {s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}
                 </div>
@@ -145,7 +147,7 @@ export default function FinancialServicesVertical() {
               <FadeIn key={i} delay={i * 0.04}>
                 <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}>
                   <h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3>
-                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{fm.desc}</p>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}><ClaimText text={fm.desc} /></p>
                 </div>
               </FadeIn>
             ))}
@@ -186,41 +188,40 @@ export default function FinancialServicesVertical() {
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How financial services compares.</h2>
-            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Financial services outperforms cross-industry on attrition but underperforms on abandon rate and containment, a direct result of compliance constraints and authentication friction.</p>
+            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>SQM Group publishes first contact resolution and customer satisfaction for its financial services clients as one group, both close to its all-industry figures, and Capgemini publishes abandon rates from its survey of retail bank employees. No free public source reports handle time, attrition or containment for financial services; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.</p>
           </FadeIn>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr style={{ borderBottom: `2px solid ${NAVY}` }}>
-                  {["Metric", "FS Average", "Cross-Industry", "Top Quartile", "Why It Differs"].map(h => (
+                  {["Metric", "Financial Services", "All Industries", "What Drives It"].map(h => (
                     <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {benchmarks.map((b, i) => {
-                  const fsNum = parseFloat(b.fsAvg);
-                  const ciNum = parseFloat(b.crossIndustry);
-                  const better = b.metric === "Abandon Rate" || b.metric === "Attrition" ? fsNum < ciNum : fsNum > ciNum;
-                  return (
-                    <tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}>
-                      <td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td>
-                      <td style={{ padding: "12px 14px", fontWeight: 700, color: better ? GREEN : AMBER }}>{b.fsAvg}</td>
-                      <td style={{ padding: "12px 14px", color: MUTED }}>{b.crossIndustry}</td>
-                      <td style={{ padding: "12px 14px", color: GREEN, fontWeight: 600 }}>{b.topQuartile}</td>
-                      <td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td>
-                    </tr>
-                  );
-                })}
+                {benchmarks.map((b, i) => (
+                  <tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}>
+                    <td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td>
+                    <td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.fs} /></td>
+                    <td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td>
+                    <td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}>
-              <a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your cost per contact against these benchmarks →</a>
+              <a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your own cost per contact →</a>
               <a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your FS TCO →</a>
             </div>
           </FadeIn>
+          <div id="sources" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h3>
+            <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark.</p>
+            <ClaimSources ids={claimIds([stats, benchmarks, failureModes])} color={SLATE} accent={ELECTRIC} />
+          </div>
         </div>
       </section>
 
@@ -266,12 +267,12 @@ export default function FinancialServicesVertical() {
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
             {[
-              { name: "Genesys", why: "Deepest routing, strongest compliance controls, proven in Tier 1 banks globally. Enterprise-grade security and multi-region deployment.", href: "/vendors/genesys" },
+              { name: "Genesys", why: "Advanced routing and compliance controls for large banks. Enterprise-grade security and multi-region deployment.", href: "/vendors/genesys" },
               { name: "NICE CXone", why: "WEM and QA for regulated environments. Strong analytics for compliance review and dispute resolution workflows.", href: "/vendors/nice-cxone" },
               { name: "Talkdesk", why: "Purpose-built Financial Services Experience Cloud with pre-built banking workflows, PCI compliance, and vertical-specific AI.", href: "/vendors/talkdesk" },
               { name: "Five9", why: "Strong Salesforce Financial Services Cloud integration. Proven in mid-market banking and lending operations.", href: "/vendors/five9" },
               { name: "Cisco", why: "Enterprise security posture and networking heritage. Strong fit for banks with existing Cisco infrastructure investments.", href: "/vendors/cisco" },
-              { name: "Amazon Connect", why: "Pay-per-use pricing with strong AI capabilities. Best for banks with AWS cloud maturity and builder teams.", href: "/vendors/amazon-connect" },
+              { name: "Amazon Connect", why: "Pay-per-use pricing with AI capabilities. Suits banks with AWS cloud maturity and builder teams.", href: "/vendors/amazon-connect" },
             ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }}

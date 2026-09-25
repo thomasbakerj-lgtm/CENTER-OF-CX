@@ -19,6 +19,8 @@ const ok = (name, cond, detail = "") => { if (cond) pass++; else { fail++; conso
 const CONVERTED = [
   { file: "HealthcareVertical.jsx", kind: "jsx" },
   { file: "HCSubVerticalData.js", kind: "data", exportName: "hcSubVerticals", page: "src/lib/SubVerticalPage.jsx" },
+  { file: "FinancialServicesVertical.jsx", kind: "jsx" },
+  { file: "FSSubVerticalData.js", kind: "data", exportName: "fsSubVerticals", page: "src/lib/SubVerticalPage.jsx" },
   { file: "EducationVertical.jsx", kind: "jsx" },
   { file: "EducationSubVerticalData.js", kind: "data", exportName: "educationSubVerticals", page: "src/lib/SubVerticalPage.jsx" },
   { file: "TravelVertical.jsx", kind: "jsx" },

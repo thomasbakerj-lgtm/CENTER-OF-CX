@@ -9,6 +9,8 @@ const TRV_METHOD = "Every prose string extracted (735 segments across TravelVert
 
 const EDU_METHOD = "Every prose string extracted (788 segments in EducationSubVerticalData.js, the string literals of EducationVertical.jsx, and the Education card in Industries.jsx). 32 distinctive sentences searched as exact phrases (full sentence or an 8 to 12 word run) before the session search budget ran out; 23 candidate pages (education contact center vendors and BPOs, admissions and melt articles, Slate, Mongoose, EAB, NICE, Salesforce, Ivy.ai, FERPA chatbot guides) fetched and compared with every segment for shared runs of 8 and of 6 words; Anthology Ocelot, Talkdesk, Five9 and Genesys education pages returned 404 and ServiceNow refused. Result: no shared run of 8 words outside one generic list of departments (Voiso); one 6 word run, a generic phrase. Sentences written during the research pass that day are our own wording of cited findings.";
 
+const FS_METHOD = "Every prose string extracted (807 segments across FinancialServicesVertical.jsx, FSSubVerticalData.js and the Financial Services card in Industries.jsx). Exact-phrase web search was unavailable in this session (search budget spent; engines refused scripted queries), so 61 pages the text most plausibly draws on were fetched and compared with all 807 segments for shared runs of 8, 7, 6 and 5 words: 50 vendor pages named in the blurbs and the 11 cited sources. 13 vendor pages refused the fetch and were not compared. Result: no shared run of 6 words; 5 word runs are generic phrases. 42 sentences are queued for exact-phrase search. Sentences written during the research pass that day are our own wording of cited findings.";
+
 export const ORIGINALITY = {
   "HealthcareVertical.jsx": { checked: "2026-09-25", method: METHOD, matches: [] },
   "HCSubVerticalData.js": {
@@ -48,4 +50,6 @@ export const ORIGINALITY = {
       { text: "Inquiries contacted within 5 minutes convert 100x better", near: "InsideSales.com and MIT Lead Response Management Study (sales leads, not education; seen quoted, not fetched)", kind: "uncited figure close to a published finding", resolution: "rewritten" },
     ],
   },
+  "FinancialServicesVertical.jsx": { checked: "2026-09-25", method: FS_METHOD, matches: [] },
+  "FSSubVerticalData.js": { checked: "2026-09-25", method: FS_METHOD, matches: [] },
 };

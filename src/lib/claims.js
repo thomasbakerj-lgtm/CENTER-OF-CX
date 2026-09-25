@@ -31,12 +31,13 @@ export const TESTS = {
 };
 
 import healthcare from "./claims/healthcare.js";
+import fs from "./claims/fs.js";
 import edu from "./claims/edu.js";
 import trv from "./claims/trv.js";
 import tel from "./claims/tel.js";
 import retail from "./claims/retail.js";
 
-export const CLAIMS = { ...healthcare, ...retail, ...tel, ...trv, ...edu };
+export const CLAIMS = { ...healthcare, ...retail, ...tel, ...trv, ...edu, ...fs };
 
 /* Throws on an unknown id, so a typo in page text cannot render as a silent blank. */
 export function claim(id) {
