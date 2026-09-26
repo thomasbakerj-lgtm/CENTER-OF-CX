@@ -836,6 +836,10 @@ dashboard, the 12-phase growth program.
    entry and its review date, and A/B every wage-driven tool (figures move by the wage ratio, grades unchanged).
 39. Done S23: full site sweep closed (parts 1 to 4 plus the ungate). TB approved a new priority list, below. It
    supersedes the older "Next" lines and the reachability batch note. Work top down; one item per session where large.
+40. Done S24 (26 Sep 2026): design program closed its concept rounds. TB adopted Brand Guide 1.0 (`docs/BRAND_GUIDE.md`:
+   IBM Plex Sans, five pillar colours, layer colours on the stack, colourless grades, evidence mark and readout, special
+   editions, icons, components, page patterns) and the phased build order in `docs/REDESIGN_PLAN.md` (P5 design now runs by that
+   plan). Canvas: private artifact "Center of CX Design Concepts", page "Brand kit V5"; concepts on its archive page.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1029,13 +1033,14 @@ Never allow a lower-authority artifact to silently override a higher-authority a
 
 - Schema: v1.0.
 - Schema status: locked after three-vendor calibration.
-- Current checkpoint: `PRODUCTION_COHORT2_DIALPAD_COMPLETE`.
-- 12 vendors completed: 3 calibration + 5 Production Cohort 1 + 4 Production Cohort 2.
-- Production Cohort 2 is 4/5 complete: Zoom, 8x8, Odigo, Dialpad.
-- Cohort 2 vendor 5 is **not yet locked**. Do not infer or choose it in code.
-- Phase 2 numeric ratings remain locked/unapplied.
-- After vendor 5: run the required five-vendor normalization gate before any methodology/rating change.
-- No schema change was approved for Dialpad.
+- Current checkpoint: `PRODUCTION_COHORT3_NORMALIZED` (corpus generated 2026-09-23, received S24 on 26 Sep 2026; system of record
+  `CCaaS_Master_Research_Corpus_v1.0_Production_Cohort3_Normalized_1.json`, kept outside the repository).
+- 18 vendors completed (VEN-CC-0001 to 0018): the 12 above plus Puzzel, Avaya, Enghouse Interactive, UJET, Bright Pattern, Vonage.
+  `src/lib/researchStatus.js` still lists 12; updating it is Phase 0 of `docs/REDESIGN_PLAN.md`.
+- Cohort 3 five-vendor normalization gate passed: no schema, criterion or class change; CLS-CC-004 not split.
+- Phase 2 numeric ratings remain locked/unapplied (peer-class coverage thin in CLS-CC-002, 003, 005, 006).
+- Next research vendor: AnywhereNow (Cohort 4), one at a time under schema v1.0.
+- Two evidence objects are `INTERNAL_RESEARCH_ONLY`; never render them or their existence.
 - Do not silently change competitive-class status/definitions. In the current corpus, classes 001 to 003 are calibrated/locked; later classes may still carry draft metadata pending normalization.
 
 ### System of record
