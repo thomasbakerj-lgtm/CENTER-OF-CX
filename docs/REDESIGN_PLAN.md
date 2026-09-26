@@ -20,7 +20,7 @@ Definition of done for every build phase: suite green (currently over 24,000 ass
 security tests, visual audit at desktop and 390 pixels, live checker on production, screenshot comparison before and after, no
 URL changes (or a 301 for every one), CLAUDE.md and tracker updated.
 
-## Phase 0. Inputs and decisions (now, one session)
+## Phase 0. Inputs and decisions (session 1, 26 September 2026: Claude's items done; TB's four in `docs/PHASE0_DECISIONS.md`)
 
 | Item | Owner | Why it matters |
 |---|---|---|

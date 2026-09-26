@@ -840,6 +840,10 @@ dashboard, the 12-phase growth program.
    IBM Plex Sans, five pillar colours, layer colours on the stack, colourless grades, evidence mark and readout, special
    editions, icons, components, page patterns) and the phased build order in `docs/REDESIGN_PLAN.md` (P5 design now runs by that
    plan). Canvas: private artifact "Center of CX Design Concepts", page "Brand kit V5"; concepts on its archive page.
+41. Done S24, redesign session 1 (Phase 0): research status registry to Cohort 3 (18 CCaaS complete; freeze test 332);
+   taxonomy 1.1 drafted in `docs/MEASUREMENT.md` (freezes at Phase 5); TB decisions D1 to D4 drafted in
+   `docs/PHASE0_DECISIONS.md` (corpus in a private repo read at build time, vendor corrections, contributor rules, test
+   group), all open. Suite 24,105 green. Next: Phase 1, design the final desktop tool page.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1036,7 +1040,7 @@ Never allow a lower-authority artifact to silently override a higher-authority a
 - Current checkpoint: `PRODUCTION_COHORT3_NORMALIZED` (corpus generated 2026-09-23, received S24 on 26 Sep 2026; system of record
   `CCaaS_Master_Research_Corpus_v1.0_Production_Cohort3_Normalized_1.json`, kept outside the repository).
 - 18 vendors completed (VEN-CC-0001 to 0018): the 12 above plus Puzzel, Avaya, Enghouse Interactive, UJET, Bright Pattern, Vonage.
-  `src/lib/researchStatus.js` still lists 12; updating it is Phase 0 of `docs/REDESIGN_PLAN.md`.
+  `src/lib/researchStatus.js` lists all 18 (S24 redesign session 1); 10 CCaaS and adjacent profiles remain Phase 1 context.
 - Cohort 3 five-vendor normalization gate passed: no schema, criterion or class change; CLS-CC-004 not split.
 - Phase 2 numeric ratings remain locked/unapplied (peer-class coverage thin in CLS-CC-002, 003, 005, 006).
 - Next research vendor: AnywhereNow (Cohort 4), one at a time under schema v1.0.
