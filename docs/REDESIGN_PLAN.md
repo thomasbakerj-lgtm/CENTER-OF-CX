@@ -38,8 +38,9 @@ Designs approved before their build phase begins; order follows the build.
 1. Tool shell, desktop, final (Cost per Contact as the pattern) with the evidence mark, route sidebar and report audience picker.
    Designed in session 2, 26 September 2026; awaiting TB approval.
 2. Vendor profile with real research (Vonage, from the Cohort 3 corpus) and its Phase 1 variant.
-   Designed in session 3, 26 September 2026 (Vonage and Aircall); awaiting TB approval.
+   Designed in session 3, 26 September 2026 (Vonage and Aircall); approved by TB.
 3. Homepage final, desktop and phone, with the five doors and taxonomy 1.1 events marked.
+   Designed in session 4, 26 September 2026; awaiting TB approval.
 4. CCaaS category page: class explained, vendors A to Z within each class, research status, no order by merit.
 5. Industry page and sub-page with the seven layer map.
 6. Method page, contributor article and profile, Market Watch item, Research landing (coming soon), email and newsletter, share card.

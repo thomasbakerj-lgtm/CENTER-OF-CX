@@ -855,7 +855,17 @@ dashboard, the 12-phase growth program.
    Market Watch kept separate; report an error. No score, rank, tier or count of states. Not yet researched (Aircall): no
    class, no claim, a research status track, an anonymous "ask us to research" count, four tools to test it, and the
    questions the 18 researched vendors kept returning to. Recommendation for TB: Phase 1 prose (strengths, weaknesses,
-   beats, loses to) leaves public profiles in the rebuild; it stays in data for lineage. Awaits TB approval.
+   beats, loses to) leaves public profiles in the rebuild; it stays in data for lineage. TB approved both designs and the
+   recommendation (26 Sep, "go").
+44. Done S24, redesign session 4 (Phase 1, design 3 of 6): homepage, desktop and phone, on the canvas. Hero "Diagnose before
+   you buy." beside the stack; step 1 five doors, step 2 the door's question and a route card (steps, time, possible endings,
+   one start button). A stack layer opens its plain name, what it does, and the tool and vendor category Platform Decision's
+   published model already maps to it (no new mapping). Routes lift only the layer that model names (AI proposal L4,
+   staffing L6); cost, renewal, readiness and RFP light all seven. Below: the evidence mark explained, three proof tiles
+   (23 methods, 18 researched vendors, A to Z), what changed from the method changelog, the contributor invitation. Phone:
+   doors as a list, step 2 as a bottom sheet with the start button pinned; no stack on the phone home. A "Show events"
+   design note marks door_select, route_select, route_start and layer_select. Taxonomy 1.1 draft gains action `request`
+   (vendor research request on the not yet researched profile). Awaits TB approval.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

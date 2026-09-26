@@ -122,7 +122,7 @@ New properties, and one added to existing events
 | `vendor` | Vendor slug. A vendor name is public data about a company, never about the reader |
 | `category` | Vendor category slug |
 | `status` | `complete` or `phase1`, from `researchStatus.js` |
-| `action` | `test-it`, `rfp`, `brief`, `method`, `peer` |
+| `action` | `test-it`, `rfp`, `brief`, `method`, `peer`, `request` (asks for a not yet researched vendor to be researched; one anonymous count) |
 | `audience` | Added to `report_export` and `report_copy_requested`: `finance`, `operations`, `it`, `executive`, `advisor` |
 | `page_type` | Gains `category` |
 
