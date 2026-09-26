@@ -844,6 +844,10 @@ dashboard, the 12-phase growth program.
    taxonomy 1.1 drafted in `docs/MEASUREMENT.md` (freezes at Phase 5); TB decisions D1 to D4 drafted in
    `docs/PHASE0_DECISIONS.md` (corpus in a private repo read at build time, vendor corrections, contributor rules, test
    group), all open. Suite 24,105 green. Next: Phase 1, design the final desktop tool page.
+42. Done S24, redesign session 2 (Phase 1, design 1 of 6): final desktop tool page on the canvas page "Phase 1 designs"
+   (Cost per Contact as the pattern): five-pillar nav, route sidebar, two question groups with sourced inputs and
+   hold-to-speed steppers, live result with the evidence mark and each axis's lift, what it means, what would change it,
+   one next step and Stop here, report audience picker (finance, operations, IT, executive, advisor). Awaits TB approval.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
