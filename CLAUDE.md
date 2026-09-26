@@ -848,6 +848,14 @@ dashboard, the 12-phase growth program.
    (Cost per Contact as the pattern): five-pillar nav, route sidebar, two question groups with sourced inputs and
    hold-to-speed steppers, live result with the evidence mark and each axis's lift, what it means, what would change it,
    one next step and Stop here, report audience picker (finance, operations, IT, executive, advisor). Awaits TB approval.
+43. Done S24, redesign session 3 (Phase 1, design 2 of 6): vendor profiles on the canvas. Researched (Vonage): six questions
+   switch the view (fit and products, 61 findings, breaks, effort and cost, proof and contract terms, sources); findings come
+   from the corpus by criterion with plain labels, a state filter and each finding's public sources (title, publisher, tier,
+   dates); who published the evidence (Vonage 32, AVANT 2, Ericsson 1); class marked draft; practitioner perspectives and
+   Market Watch kept separate; report an error. No score, rank, tier or count of states. Not yet researched (Aircall): no
+   class, no claim, a research status track, an anonymous "ask us to research" count, four tools to test it, and the
+   questions the 18 researched vendors kept returning to. Recommendation for TB: Phase 1 prose (strengths, weaknesses,
+   beats, loses to) leaves public profiles in the rebuild; it stays in data for lineage. Awaits TB approval.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
