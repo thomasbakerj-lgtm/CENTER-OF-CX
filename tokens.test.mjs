@@ -148,7 +148,7 @@ section("4. Every tool reads Plex through type.js; the report is on Plex");
   const src = readFileSync("./src/lib/type.js", "utf8");
   ok("type.js names no retired family", !/Archivo|DM Sans|Instrument Serif/.test(src));
   const re = readFileSync("./ReportExport.jsx", "utf8");
-  ok("the report window loads Plex", re.includes("family=IBM+Plex+Sans") && !/Archivo/.test(re));
+  ok("the report window loads Plex from the site's own files", /FONT_FILES/.test(re) && /\/fonts\/\$\{e\(f\.file\)\}/.test(re) && !/googleapis|gstatic|Archivo/.test(re));
   ok("every type token uses the Plex stack", Object.values(TY.TYPE).every((t) => t.fontFamily === TY.FONT));
 }
 

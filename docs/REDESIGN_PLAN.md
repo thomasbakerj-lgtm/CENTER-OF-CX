@@ -62,7 +62,7 @@ made just before the phases that build them, so nothing waits on pages that ship
   icons, `tokens.test.mjs` (289). Found on the way: three pages scrolled sideways on a phone (a method table, the shared number
   field, a Channel Shift panel); fixed, 112 page loads clean at 390 and 1440 pixels.
 
-## Phase 3. Core components and the report (two sessions)
+## Phase 3. Core components and the report (two sessions; the report done in session 7)
 
 - Button, Input with source, Stepper, Result, Grade badge, Evidence mark, Readout, Stack, Claim marker, Finding, Next step, Byline,
   Door, Route card, States.

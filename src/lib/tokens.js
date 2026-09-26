@@ -56,6 +56,16 @@ export const ARCS = {
   completeness: "#EAF0F7",
 };
 
+// The same mark on paper (reports and print), where mist would vanish: each arc keeps 3:1
+// against white; the track is decoration and a not applicable axis is dotted and labelled.
+export const ARCS_PRINT = {
+  evidence: "#2F8FD0",
+  realization: "#0072BB",
+  completeness: "#0B1D3A",
+  track: "#E4E9EF",
+  na: "#5B6B80",
+};
+
 // Findings, inside tools and reports only, always with a word and an icon (Brand Guide
 // section 6). Critical and clear are fills with ink text on dark and white text on paper;
 // high is an outline; unknown is a dashed outline and never red.

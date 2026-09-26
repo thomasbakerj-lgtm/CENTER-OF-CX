@@ -154,7 +154,8 @@ One family of arcs, two instruments that never look alike.
 - **Evidence mark: how sure.** Always three arcs with fixed colours: Evidence #6CC8FF, Realization #0088DD, Completeness #EAF0F7.
   Colour names the question, never the answer. A not applicable axis draws as a dotted ring. A void result shows no mark and no
   figure. Small, labelled "How sure", on every figure-producing tool and report. The headline grade is the weakest axis, and the
-  line beneath names it.
+  line beneath names it. On paper the arcs print Evidence #2F8FD0, Realization #0072BB, Completeness #0B1D3A on a #E4E9EF
+  track, each at 3:1 or better against white; a not applicable axis is a dotted #5B6B80 ring.
 - **Grades** (Directional, Planning-grade, Finance-grade) carry weight and fill, never colour. A grade describes evidence and
   never grades the reader.
 - **Readout: your result.** Assessments only. One thin arc per part of the assessment, the score where the X would be, labelled

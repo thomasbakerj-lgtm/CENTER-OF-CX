@@ -1,48 +1,69 @@
 import { useState, useRef } from "react";
 import { trackTool, toolIdFromPath } from "./src/lib/track";
+import { HOUSE, PILLARS, ARCS_PRINT, FINDINGS, FONT_FILES } from "./src/lib/tokens";
 
-const NAVY = "#0B1D3A";
-const ELECTRIC = "#0088DD";
-const LIGHT = "#00AAFF";
-const MUTED = "#6B7F99";
-const BORDER = "#D8E3ED";
-const GREEN = "#10B981";
+/* The paper palette (Brand Guide 1.0, sections 6 and 7): ink on white, the Diagnostics
+   on-light blue for labels, the action blue for links, the print finding red only beside
+   its word. Colour never marks a figure: a tool's metric colour is not printed. */
+const INK = HOUSE.paperInk;
+const PANEL = HOUSE.paper2;
+const LABEL = PILLARS.diagnostics.onLight;
+const LINK = HOUSE.action;
 const SLATE = "#3A4F6A";
+const QUIET = "#5B6B80";
+const RULE = "#E4E9EF";
+const HIGH = FINDINGS.high.print;
+const NAVY = HOUSE.navy;
+const ELECTRIC = HOUSE.electric;
+const MUTED = QUIET;
+const BORDER = "#D8E3ED";
 
 /**
- * ReportExport, reusable report generation component
+ * ReportExport: the light paper report every tool downloads (redesign Phase 3).
  *
- * Usage in any tool:
+ * Tools do not render this directly; ReportActions passes the sections, the method stamp
+ * and `how` (the headline grade, the axis that holds it and the three axes) for the
+ * evidence mark on the cover. Section types: table, metrics, findings, actions, next, text.
+ * Next-step items support an optional `href`, resolved against the live origin so it works
+ * in the preview window and stays clickable in the saved PDF.
  *
- * <ReportExport
- *   toolName="Staffing Requirement Calculator"
- *   subtitle="Erlang C Staffing Analysis"
- *   userName={name}
- *   userEmail={email}
- *   sections={[
- *     { title: "Inputs", type: "table", rows: [["Volume", "45,000"], ["AHT", "6:35"]] },
- *     { title: "Results", type: "metrics", items: [{ label: "Required FTE", value: "127", color: "#0088DD" }] },
- *     { title: "Key Findings", type: "findings", items: ["Finding 1", "Finding 2"] },
- *     { title: "Recommended Actions", type: "actions", items: [{ action: "Do this", detail: "Because...", priority: "high" }] },
- *     { title: "Next Steps", type: "next", items: [{ tool: "Shrinkage Planner", reason: "Your shrinkage is above benchmark", href: "/tools/shrinkage-planner" }] },
- *   ]}
- * />
- *
- * Next-step items support an optional `href`. When present, the tool renders as a
- * clickable link (absolute URL, so it works in the popup preview and the saved PDF).
+ * The reader chooses who the report is written for before download. The choice changes
+ * the order of the sections and one reading line on the cover; it never changes a figure.
  */
+
+/* Who a report is written for, and what they read first. Order lists section types; any
+   type not listed keeps its place after the listed ones, in the tool's own order. */
+export const AUDIENCES = [
+  { id: "finance", label: "Finance", short: "finance", title: "Finance review", read: "Start with the result and how sure it is, then check every input and its source.", order: ["metrics", "confidence", "table", "findings", "actions", "text", "next"] },
+  { id: "operations", label: "Operations", short: "operations", title: "Operations", read: "Start with the findings and actions, then the inputs you can change.", order: ["metrics", "findings", "actions", "table", "confidence", "text", "next"] },
+  { id: "it", label: "IT and platform", short: "IT and platform", title: "IT and platform", read: "Start with the inputs and the method, then the findings.", order: ["table", "text", "metrics", "findings", "actions", "confidence", "next"] },
+  { id: "executive", label: "Executive sponsor", short: "executive", title: "Executive sponsor", read: "The result, how sure it is and the next step come first. The detail follows for whoever checks it.", order: ["metrics", "confidence", "next", "findings", "actions", "table", "text"] },
+  { id: "advisor", label: "Advisor or consultant", short: "advisor", title: "Advisor review", read: "Every section in the order the tool produced it, with the method link for your own check.", order: [] },
+];
+
+/* Sections in the chosen reader's order. The confidence section is the one ReportActions
+   builds (title "Confidence"); it sorts as its own kind. Stable: ties keep the tool's order. */
+export function orderSections(sections, audience) {
+  const a = AUDIENCES.find((x) => x.id === audience) || AUDIENCES[AUDIENCES.length - 1];
+  const kind = (s) => (s && s.title === "Confidence" ? "confidence" : s && s.type);
+  const rank = (s) => { const i = a.order.indexOf(kind(s)); return i < 0 ? a.order.length : i; };
+  return sections.map((s, i) => [s, i]).sort((x, y) => rank(x[0]) - rank(y[0]) || x[1] - y[1]).map(([s]) => s);
+}
 
 /* The report as one HTML document. Every string a tool, a user or a scenario link can
    set is escaped here, so section text always renders as text: a criterion name or a
    roadmap item carrying markup cannot run in the report window. Pure, so the harness
    can build it without a browser. */
 const e = (v) => String(v === undefined || v === null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "", method = "" }) {
+export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "", method = "", audience = "advisor", how = null }) {
   // Resolve relative next-step links against the live origin so they work in the
   // popup preview (whose own URL is about:blank) and remain clickable in the PDF.
   const absUrl = (href) => !href ? null : (/^https?:\/\//i.test(href) ? href : origin + (href.startsWith("/") ? href : "/" + href));
+  const reader = AUDIENCES.find((x) => x.id === audience) || AUDIENCES[AUDIENCES.length - 1];
+  const fontFaces = FONT_FILES.filter((f) => f.family !== "IBM Plex Sans Condensed").map((f) => `@font-face{font-family:'${e(f.family)}';font-style:${e(f.style)};font-weight:${e(f.weight)};font-display:swap;src:url(${e(origin)}/fonts/${e(f.file)}) format('woff2')}`).join("");
+  const fontSrc = origin ? `'self' ${e(origin)}` : "'self'";
 
-  const renderSection = (s, i) => {
+  const renderSection = (s) => {
     if (s.type === "table") {
       return `<div class="section">
         <h3>${e(s.title)}</h3>
@@ -50,24 +71,20 @@ export function reportHtml({ toolName, subtitle, reportName, company, logo, toda
       </div>`;
     }
     if (s.type === "metrics") {
-      // Six 22pt serif figures do not fit one row. Wrap by count, and shrink the
-      // face size to the longest value so a dollar figure is never clipped.
+      // Wrap by count so the last row is never a lone card (9 items become 3x3), and size
+      // each card to its own value so one long figure does not shrink the others.
       const nItems = s.items.length;
-      // Balance the grid so the last row is not a lone orphan card.
-      // 9 items become 3x3, not 4+4+1.
       const cols = nItems <= 4 ? nItems
         : nItems % 3 === 0 ? 3
         : nItems % 4 === 0 ? 4
         : nItems <= 6 ? 3 : 4;
-      // Size each card to its OWN value. One verbose card must not shrink the
-      // headline figures beside it.
-      const sizeOf = (v) => { const len = String(v).replace(/<[^>]*>/g, "").length;
+      const sizeOf = (v) => { const len = String(v).length;
         return len <= 8 ? "sz-l" : len <= 12 ? "sz-m" : len <= 18 ? "sz-s" : "sz-xs"; };
       return `<div class="section">
         <h3>${e(s.title)}</h3>
         <div class="metrics cols-${cols}">${s.items.map(m => `
           <div class="metric">
-            <div class="metric-value ${sizeOf(m.value)}" style="color:${e(m.color || ELECTRIC)}">${e(m.value)}</div>
+            <div class="metric-value ${sizeOf(m.value)}">${e(m.value)}</div>
             <div class="metric-label">${e(m.label)}</div>
             ${m.sub ? `<div class="metric-sub">${e(m.sub)}</div>` : ""}
           </div>`).join("")}
@@ -77,23 +94,17 @@ export function reportHtml({ toolName, subtitle, reportName, company, logo, toda
     if (s.type === "findings") {
       return `<div class="section">
         <h3>${e(s.title)}</h3>
-        <div class="findings">${s.items.map((f, fi) => `
-          <div class="finding">
-            <span class="finding-num">${fi + 1}</span>
-            <span>${e(f)}</span>
-          </div>`).join("")}
-        </div>
+        <ol class="findings">${s.items.map((f, fi) => `
+          <li class="finding"><span class="finding-num">${fi + 1}</span><span>${e(f)}</span></li>`).join("")}
+        </ol>
       </div>`;
     }
     if (s.type === "actions") {
       return `<div class="section">
         <h3>${e(s.title)}</h3>
         <div class="actions">${s.items.map(a => `
-          <div class="action ${e(a.priority || "")}">
-            <div class="action-header">
-              ${a.priority === "high" ? '<span class="priority high">High Priority</span>' : a.priority === "medium" ? '<span class="priority medium">Medium</span>' : ""}
-              <strong>${e(a.action)}</strong>
-            </div>
+          <div class="action ${a.priority === "high" ? "high" : a.priority === "medium" ? "medium" : ""}">
+            <div class="action-header">${a.priority === "high" ? '<span class="priority high">High priority</span>' : a.priority === "medium" ? '<span class="priority medium">Medium priority</span>' : ""}<strong>${e(a.action)}</strong></div>
             <p>${e(a.detail)}</p>
           </div>`).join("")}
         </div>
@@ -118,266 +129,115 @@ export function reportHtml({ toolName, subtitle, reportName, company, logo, toda
     return "";
   };
 
+  const markSvg = `<svg class="mark" width="26" height="26" viewBox="-60 -60 120 120" aria-hidden="true"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round" opacity="0.45"/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linecap="round" opacity="0.7"/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><line x1="-13" y1="-13" x2="13" y2="13" stroke="${LINK}" stroke-width="7" stroke-linecap="round"/><line x1="13" y1="-13" x2="-13" y2="13" stroke="${LINK}" stroke-width="7" stroke-linecap="round"/></svg>`;
+  const howBlock = !how ? "" : how.void
+    ? `<div class="how void"><div class="how-label">How sure</div><div class="how-grade">No figure</div><div class="how-line">${e(how.reason || "The inputs made a figure impossible, so none is printed.")}</div></div>`
+    : `<div class="how">${evidenceMark(how.axes || {})}<div class="how-text"><div class="how-label">How sure${how.label ? `, ${e(how.label)}` : ""}</div><div class="how-grade">${e(how.headline || "Not stated")}</div>${how.boundBy ? `<div class="how-line">Held by ${e(how.boundBy)}</div>` : ""}</div></div>`;
+
   return `<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'unsafe-inline'; font-src ${fontSrc}; img-src data:; base-uri 'none'; form-action 'none'">
 <title>${e(toolName)}, Report</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap');
-
+${fontFaces}
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
 @page { margin: 0.6in 0.7in; size: letter; }
+body { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; color: ${INK}; background: #fff; font-size: 10pt; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-body {
-  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-variant-numeric: tabular-nums;
-  color: ${NAVY};
-  font-size: 10pt;
-  line-height: 1.5;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
+.masthead { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid ${RULE}; margin-bottom: 20px; font-size: 8.5pt; color: ${QUIET}; }
+.brand { display: flex; align-items: center; gap: 8px; font-weight: 600; color: ${INK}; font-size: 9.5pt; }
+.cover { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 18px; }
+.cover-left { flex: 1; min-width: 0; }
+.cover h1 { font-size: 22pt; font-weight: 700; letter-spacing: -0.02em; line-height: 1.12; margin-bottom: 4px; }
+.cover .subtitle { font-size: 11pt; color: ${SLATE}; margin-bottom: 10px; }
+.cover .meta { font-size: 8.5pt; color: ${QUIET}; line-height: 1.6; }
+.cover .meta strong { color: ${INK}; font-weight: 600; }
+.company-logo { max-width: 150px; max-height: 56px; object-fit: contain; display: block; margin-bottom: 10px; }
+.reader { display: flex; gap: 14px; align-items: baseline; padding: 10px 14px; background: ${PANEL}; border-radius: 8px; margin-bottom: 22px; }
+.reader .who { font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; color: ${LABEL}; white-space: nowrap; }
+.reader .who strong { display: block; font-size: 10pt; letter-spacing: 0; text-transform: none; color: ${INK}; }
+.reader p { font-size: 9pt; color: ${SLATE}; }
 
-/* Cover header */
-.cover {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding-bottom: 20px;
-  border-bottom: 2px solid ${ELECTRIC};
-  margin-bottom: 24px;
-}
-.cover-left { flex: 1; }
-.cover-right { text-align: right; }
-.cover h1 {
-  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
-  letter-spacing: -0.7px;
-  font-size: 21pt;
-  font-weight: 600;
-  color: ${NAVY};
-  line-height: 1.15;
-  margin-bottom: 4px;
-}
-.cover .subtitle {
-  font-size: 11pt;
-  color: ${MUTED};
-  margin-bottom: 12px;
-}
-.cover .meta {
-  font-size: 8.5pt;
-  color: ${MUTED};
-  line-height: 1.6;
-}
-.cover .meta strong { color: ${NAVY}; }
-.company-logo {
-  max-width: 160px;
-  max-height: 60px;
-  object-fit: contain;
-  margin-bottom: 8px;
-}
-.site-mark {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-}
-.site-mark span {
-  font-size: 8pt;
-  color: ${MUTED};
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-.site-mark .cx { color: ${LIGHT}; }
+.how { display: flex; align-items: center; gap: 12px; min-width: 210px; }
+.how.void { flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border: 1.5px dashed ${INK}; border-radius: 8px; max-width: 240px; }
+.how-label { font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; color: ${QUIET}; }
+.how-grade { font-size: 13pt; font-weight: 700; }
+.how-line { font-size: 8.5pt; color: ${SLATE}; }
+.arcs { flex-shrink: 0; }
 
-/* Sections */
-.section {
-  margin-bottom: 22px;
-  page-break-inside: avoid;
-}
-.section h3 {
-  font-size: 10pt;
-  font-weight: 700;
-  color: ${ELECTRIC};
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 10px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #E8F0F6;
-}
+.section { margin-bottom: 20px; page-break-inside: avoid; }
+.section h3 { font-size: 8pt; font-weight: 600; color: ${LABEL}; text-transform: uppercase; letter-spacing: 0.16em; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid ${RULE}; }
 
-/* Tables */
 table { width: 100%; border-collapse: collapse; }
-td { padding: 6px 10px; border-bottom: 1px solid #F0F3F7; font-size: 9.5pt; }
-td.label { color: ${SLATE}; width: 45%; }
-td.value { font-weight: 600; color: ${NAVY}; text-align: right; }
+td { padding: 6px 8px; border-bottom: 1px solid ${RULE}; font-size: 9.5pt; vertical-align: top; }
+td.label { color: ${SLATE}; width: 48%; }
+td.value { font-weight: 600; text-align: right; }
 
-/* Metrics */
-.metrics {
-  display: grid;
-  gap: 12px;
-}
+.metrics { display: grid; gap: 10px; }
 .metrics.cols-1 { grid-template-columns: 1fr; }
 .metrics.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .metrics.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .metrics.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.metric {
-  min-width: 0;
-  background: #F8FAFB;
-  border: 1px solid #E8F0F6;
-  border-radius: 6px;
-  padding: 12px 10px;
-  text-align: center;
-  overflow: hidden;
-}
-.metric-value {
-  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
-  font-weight: 600;
-  letter-spacing: -0.5px;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.12;
-  overflow-wrap: anywhere;
-  word-break: normal;
-}
-.metric-value.sz-l  { font-size: 22pt; }
-.metric-value.sz-m  { font-size: 17pt; }
-.metric-value.sz-s  { font-size: 13.5pt; }
+.metric { min-width: 0; background: ${PANEL}; border-radius: 10px; padding: 12px; overflow: hidden; }
+.metric-value { font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; overflow-wrap: anywhere; }
+.metric-value.sz-l { font-size: 22pt; }
+.metric-value.sz-m { font-size: 17pt; }
+.metric-value.sz-s { font-size: 13.5pt; }
 .metric-value.sz-xs { font-size: 11.5pt; }
-.metric-label { font-size: 8.5pt; color: ${MUTED}; margin-top: 2px; }
-.metric-sub { font-size: 8pt; color: ${MUTED}; opacity: 0.7; }
+.metric-label { font-size: 8.5pt; color: ${SLATE}; margin-top: 4px; }
+.metric-sub { font-size: 8pt; color: ${QUIET}; }
 
-/* Findings */
-.findings { display: flex; flex-direction: column; gap: 6px; }
-.finding {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 10px;
-  background: #F8FAFB;
-  border-radius: 4px;
-  font-size: 9.5pt;
-  color: ${SLATE};
-  line-height: 1.45;
-}
-.finding-num {
-  background: ${ELECTRIC};
-  color: #fff;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 8pt;
-  font-weight: 700;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
+.findings { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.finding { display: flex; align-items: flex-start; gap: 10px; font-size: 9.5pt; color: ${INK}; line-height: 1.45; padding: 2px 0; }
+.finding-num { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid ${INK}; display: flex; align-items: center; justify-content: center; font-size: 8pt; font-weight: 600; flex-shrink: 0; }
 
-/* Actions */
 .actions { display: flex; flex-direction: column; gap: 8px; }
-.action {
-  padding: 10px 12px;
-  border-left: 3px solid #D8E3ED;
-  background: #FAFBFC;
-  border-radius: 0 4px 4px 0;
-}
-.action.high { border-left-color: #EF4444; background: #FEF7F7; }
-.action.medium { border-left-color: #F59E0B; background: #FFFCF5; }
-.action-header { margin-bottom: 4px; font-size: 9.5pt; }
+.action { padding: 8px 12px; border-left: 3px solid ${RULE}; }
+.action.high { border-left-color: ${HIGH}; }
+.action.medium { border-left-color: ${QUIET}; }
+.action-header { margin-bottom: 3px; font-size: 9.5pt; }
 .action p { font-size: 9pt; color: ${SLATE}; line-height: 1.5; }
-.priority {
-  font-size: 7.5pt;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  padding: 1px 6px;
-  border-radius: 3px;
-  margin-right: 6px;
-}
-.priority.high { background: #FEE2E2; color: #DC2626; }
-.priority.medium { background: #FEF3C7; color: #D97706; }
+.priority { font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-right: 8px; }
+.priority.high { color: ${HIGH}; }
+.priority.medium { color: ${QUIET}; }
 
-/* Next tools */
-.next-section { margin-top: 16px; }
+.next-section { margin-top: 14px; }
 .next-tools { display: flex; flex-direction: column; gap: 6px; }
-.next-tool {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 10px;
-  background: #F0F9FF;
-  border: 1px solid #DBEAFE;
-  border-radius: 4px;
-  font-size: 9pt;
-}
-.next-tool strong { color: ${NAVY}; }
-.next-tool span { color: ${MUTED}; }
-.next-link { text-decoration: none; color: inherit; transition: background 0.15s, border-color 0.15s; }
-.next-link strong { color: ${ELECTRIC}; }
-.next-arrow { color: ${ELECTRIC}; font-weight: 700; }
-.next-link:hover { background: #E3F2FD; border-color: ${ELECTRIC}; }
+.next-tool { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1.5px solid ${LINK}; border-radius: 10px; font-size: 9pt; }
+.next-tool strong { font-size: 10.5pt; }
+.next-tool span { color: ${SLATE}; }
+.next-link { text-decoration: none; color: ${INK}; }
+.next-link strong, .next-arrow { color: ${LINK}; }
 
 .text-block { font-size: 9.5pt; color: ${SLATE}; line-height: 1.6; }
 
-/* Footer */
-.report-footer {
-  margin-top: 28px;
-  padding-top: 12px;
-  border-top: 1px solid #E8F0F6;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 7.5pt;
-  color: #A0AEC0;
-}
+.report-footer { margin-top: 26px; padding-top: 10px; border-top: 1px solid ${RULE}; font-size: 7.5pt; color: ${QUIET}; display: flex; flex-direction: column; gap: 3px; }
+.report-footer .row { display: flex; justify-content: space-between; gap: 12px; }
 
-/* Print button, hidden on print */
-.print-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: ${NAVY};
-  padding: 12px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 100;
-}
-.print-bar span { color: rgba(255,255,255,0.6); font-size: 12px; }
-.print-bar button {
-  background: ${ELECTRIC};
-  color: #fff;
-  border: none;
-  padding: 8px 24px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: 'IBM Plex Sans', sans-serif;
-}
-@media print {
-  .print-bar { display: none !important; }
-  body { padding-top: 0 !important; }
-  .next-link { background: #F0F9FF !important; }
-}
-@media screen {
-  body { padding: 56px 32px 32px; max-width: 800px; margin: 0 auto; }
-}
+.print-bar { position: fixed; top: 0; left: 0; right: 0; background: ${NAVY}; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; z-index: 100; }
+.print-bar span { color: #C5D2E2; font-size: 12px; }
+.print-bar button { background: ${LINK}; color: #fff; border: none; padding: 9px 22px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; min-height: 40px; }
+@media print { .print-bar { display: none !important; } body { padding-top: 0 !important; } }
+@media screen { body { padding: 64px 32px 40px; max-width: 820px; margin: 0 auto; } }
 </style>
 </head>
 <body>
 
 <div class="print-bar">
-<span>Report preview. Save as PDF or print</span>
-<button id="print-report" type="button">Download PDF ↓</button>
+<span>Report preview. Save as PDF or print.</span>
+<button id="print-report" type="button">Download PDF</button>
+</div>
+
+<div class="masthead">
+<span class="brand">${markSvg}The Center of CX</span>
+<span>contactcentercx.com</span>
 </div>
 
 <div class="cover">
 <div class="cover-left">
+  ${logo ? `<img src="${e(logo)}" class="company-logo" alt="Company logo" />` : ""}
   <h1>${e(toolName)}</h1>
   ${subtitle ? `<div class="subtitle">${e(subtitle)}</div>` : ""}
   <div class="meta">
@@ -387,32 +247,45 @@ td.value { font-weight: 600; color: ${NAVY}; text-align: right; }
     ${method ? `<div><strong>Method:</strong> ${e(method)}</div>` : ""}
   </div>
 </div>
-<div class="cover-right">
-  ${logo ? `<img src="${e(logo)}" class="company-logo" alt="Company logo" />` : ""}
-  <div class="site-mark">
-    <svg width="18" height="18" viewBox="0 0 120 120"><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="${NAVY}" stroke-width="2" opacity="0.3"/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="${NAVY}" stroke-width="3" opacity="0.5"/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="${NAVY}" stroke-width="4.5"/><line x1="-14" y1="-14" x2="14" y2="14" stroke="${LIGHT}" stroke-width="5" stroke-linecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke="${LIGHT}" stroke-width="5" stroke-linecap="round"/></g></svg>
-    <span>THE CENTER OF <span class="cx">CX</span></span>
-  </div>
-</div>
+${howBlock}
 </div>
 
-${sections.map((s, i) => renderSection(s, i)).join("\n")}
+<div class="reader"><div class="who">Written for<strong>${e(reader.title)}</strong></div><p>${e(reader.read)}</p></div>
+
+${orderSections(sections, reader.id).map((s) => renderSection(s)).join("\n")}
 
 <div class="report-footer">
-<span>Generated by The Center of CX. contactcentercx.com</span>
-<span>${e(today)}</span>
+<div class="row"><span>The Center of CX. Diagnose before you buy.</span><span>${e(today)}</span></div>
+<div>Every figure is computed from the inputs listed, under the assumptions stated. Change an input and the figure moves with it.</div>
 </div>
 
 </body>
 </html>`;
 }
 
-export default function ReportExport({ toolId, grade, toolName, subtitle, userName, userEmail, sections = [], method = "" }) {
+/* The evidence mark on paper: three 240 degree arcs, filled by grade (Directional a third,
+   Planning-grade two thirds, Finance-grade whole); a not applicable axis is a dotted ring.
+   The grade words are fixed, so every number drawn here comes from this table. */
+const FILL = { "Directional": 1 / 3, "Planning-grade": 2 / 3, "Finance-grade": 1 };
+function evidenceMark(axes) {
+  const ring = (r, grade, color) => {
+    const c = 2 * Math.PI * r, arc = c * 240 / 360;
+    const f = FILL[grade];
+    const base = `<circle r="${r}" fill="none" stroke="${ARCS_PRINT.track}" stroke-width="7" stroke-dasharray="${arc.toFixed(2)} ${c.toFixed(2)}" stroke-linecap="round"/>`;
+    if (f === undefined) return `<circle r="${r}" fill="none" stroke="${ARCS_PRINT.na}" stroke-width="2" stroke-dasharray="2 5" />`;
+    return base + `<circle r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-dasharray="${(arc * f).toFixed(2)} ${c.toFixed(2)}" stroke-linecap="round"/>`;
+  };
+  return `<svg class="arcs" width="64" height="64" viewBox="-64 -64 128 128" role="img" aria-label="Evidence mark"><g transform="rotate(60)">${ring(56, axes.evidence, ARCS_PRINT.evidence)}${ring(42, axes.realization, ARCS_PRINT.realization)}${ring(28, axes.completeness, ARCS_PRINT.completeness)}</g></svg>`;
+}
+
+export default function ReportExport({ toolId, grade, toolName, subtitle, userName, userEmail, sections = [], method = "", how = null }) {
   const [showModal, setShowModal] = useState(false);
   const [logo, setLogo] = useState(null);
   const [reportName, setReportName] = useState(userName || "");
   const [company, setCompany] = useState("");
+  const [audience, setAudience] = useState("finance");
   const fileRef = useRef(null);
+  const reader = AUDIENCES.find((a) => a.id === audience) || AUDIENCES[0];
 
   const handleLogo = (e) => {
     const file = e.target.files[0];
@@ -432,7 +305,8 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
        Fired before the popup opens, because the popup can steal focus and the
        beacon transport is what survives that. The tool id falls back to the
        route slug, so the twenty-two tools that render this component directly
-       and pass no id are covered without touching twenty-two files. */
+       and pass no id are covered without touching twenty-two files. The reader
+       choice joins the event with taxonomy 1.1 (redesign Phase 5). */
     trackTool.pdf(
       toolId || toolIdFromPath(typeof window !== "undefined" && window.location ? window.location.pathname : ""),
       { grade }
@@ -442,7 +316,7 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
     if (!win) { alert("Please allow pop-ups to download your report."); return; }
 
     const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "";
-    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin, method });
+    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin, method, audience, how });
 
     win.document.write(html);
     win.document.close();
@@ -454,65 +328,69 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
     try { win.opener = null; } catch (err) { /* already detached */ }
   };
 
+  const field = { width: "100%", boxSizing: "border-box", minHeight: 44, padding: "10px 12px", fontSize: 15, border: `1px solid ${BORDER}`, borderRadius: 12, color: INK, fontFamily: "inherit" };
+  const label = { fontSize: 13, fontWeight: 600, color: INK, display: "block", marginBottom: 6 };
+
   return (
     <>
-      <button onClick={() => setShowModal(true)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", fontSize: 14, fontWeight: 600, background: NAVY, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", transition: "opacity 0.15s" }}
-        onMouseOver={e => e.currentTarget.style.opacity = 0.9}
-        onMouseOut={e => e.currentTarget.style.opacity = 1}>
-        <span style={{ fontSize: 16 }}>↓</span> Download Report
+      <button onClick={() => setShowModal(true)} style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 44, padding: "12px 22px", fontSize: 15, fontWeight: 600, background: LINK, color: "#fff", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "inherit" }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11 M7 10l5 5 5-5 M5 20h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        Download Report
       </button>
 
       {showModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(6,19,37,0.7)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+        <div style={{ position: "fixed", inset: 0, background: "rgba(7,17,31,0.72)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
-          <div style={{ background: "#fff", borderRadius: 14, width: "100%", maxWidth: 480, padding: "32px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
-            <h3 style={{ fontFamily: "'IBM Plex Sans', -apple-system, sans-serif", fontSize: 21, fontWeight: 600, letterSpacing: "-0.4px", color: NAVY, margin: "0 0 4px" }}>Generate Your Report</h3>
-            <p style={{ fontSize: 13, color: MUTED, marginBottom: 24 }}>Add your branding. We will format everything into a clean, presentation-ready document.</p>
+          <div role="dialog" aria-modal="true" aria-labelledby="report-dialog-title" style={{ background: "#fff", borderRadius: 18, width: "100%", maxWidth: 520, maxHeight: "92vh", overflowY: "auto", padding: 28, boxShadow: "0 24px 64px rgba(0,0,0,0.35)", color: INK }}>
+            <h3 id="report-dialog-title" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em", margin: "0 0 4px" }}>Who is this report for?</h3>
+            <p style={{ fontSize: 14, color: SLATE, margin: "0 0 16px", lineHeight: 1.5 }}>The order and the reading line follow your choice. Every figure stays the same.</p>
 
-            {/* Logo upload */}
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 6 }}>Company Logo (optional)</label>
+            <div role="radiogroup" aria-label="Who is this report for" style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 20 }}>
+              {AUDIENCES.map((a) => {
+                const on = a.id === audience;
+                return (
+                  <button key={a.id} type="button" role="radio" aria-checked={on} onClick={() => setAudience(a.id)}
+                    style={{ textAlign: "left", minHeight: 44, padding: "10px 14px", borderRadius: 12, cursor: "pointer", fontFamily: "inherit", color: INK,
+                      background: on ? PANEL : "#fff", border: on ? `2px solid ${LINK}` : `1px solid ${BORDER}` }}>
+                    <span style={{ display: "block", fontSize: 15, fontWeight: 600 }}>{a.label}</span>
+                    <span style={{ display: "block", fontSize: 13, color: SLATE, lineHeight: 1.45 }}>{a.read}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ marginBottom: 14 }}>
+              <span style={label}>Company logo (optional)</span>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 {logo ? (
-                  <div style={{ position: "relative" }}>
-                    <img src={logo} alt="Logo" style={{ maxWidth: 120, maxHeight: 48, objectFit: "contain", border: `1px solid ${BORDER}`, borderRadius: 6, padding: 6 }} />
-                    <button onClick={() => { setLogo(null); if (fileRef.current) fileRef.current.value = ""; }} style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#EF4444", color: "#fff", border: "none", fontSize: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
-                  </div>
+                  <>
+                    <img src={logo} alt="Your logo" style={{ maxWidth: 120, maxHeight: 48, objectFit: "contain", border: `1px solid ${BORDER}`, borderRadius: 8, padding: 6 }} />
+                    <button type="button" onClick={() => { setLogo(null); if (fileRef.current) fileRef.current.value = ""; }} style={{ minHeight: 44, padding: "0 14px", fontSize: 14, color: INK, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, cursor: "pointer", fontFamily: "inherit" }}>Remove logo</button>
+                  </>
                 ) : (
-                  <button onClick={() => fileRef.current?.click()} style={{ padding: "10px 20px", fontSize: 13, color: MUTED, border: `1px dashed ${BORDER}`, borderRadius: 8, background: "#FAFBFC", cursor: "pointer", transition: "border-color 0.15s" }}
-                    onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
-                    onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
-                    Upload logo (PNG, JPG, SVG)
+                  <button type="button" onClick={() => fileRef.current?.click()} style={{ minHeight: 44, padding: "0 18px", fontSize: 14, color: SLATE, border: `1.5px dashed ${BORDER}`, borderRadius: 12, background: PANEL, cursor: "pointer", fontFamily: "inherit" }}>
+                    Upload a logo (PNG, JPG or SVG)
                   </button>
                 )}
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleLogo} style={{ display: "none" }} />
+                <input ref={fileRef} type="file" accept="image/*" onChange={handleLogo} aria-label="Company logo file" style={{ display: "none" }} />
               </div>
             </div>
 
-            {/* Name */}
             <div style={{ marginBottom: 12 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>Your Name</label>
-              <input type="text" value={reportName} onChange={e => setReportName(e.target.value)} placeholder="Name for the report cover" style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none", color: NAVY }} />
+              <label htmlFor="report-name" style={label}>Your name</label>
+              <input id="report-name" type="text" value={reportName} onChange={e => setReportName(e.target.value)} placeholder="Name for the report cover" style={field} />
             </div>
 
-            {/* Company */}
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>Organization</label>
-              <input type="text" value={company} onChange={e => setCompany(e.target.value)} placeholder="Company name (optional)" style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, outline: "none", color: NAVY }} />
+            <div style={{ marginBottom: 20 }}>
+              <label htmlFor="report-org" style={label}>Organization</label>
+              <input id="report-org" type="text" value={company} onChange={e => setCompany(e.target.value)} placeholder="Company name (optional)" style={field} />
             </div>
 
-            {/* Preview info */}
-            <div style={{ background: "#F8FAFB", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 16px", marginBottom: 24 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>Report Preview</div>
-              <div style={{ fontSize: 13, color: NAVY, fontWeight: 600 }}>{toolName}</div>
-              {subtitle && <div style={{ fontSize: 12, color: MUTED }}>{subtitle}</div>}
-              <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>{sections.length} sections · Generated {today}</div>
-            </div>
+            <p style={{ fontSize: 13, color: QUIET, margin: "0 0 16px" }}>{toolName}{subtitle ? `, ${subtitle}` : ""}. {sections.length} sections, dated {today}. The report opens in a new window for you to save; its contents stay in your browser.</p>
 
-            {/* Actions */}
-            <div style={{ display: "flex", gap: 10 }}>
-              <button onClick={generateReport} style={{ flex: 1, padding: "12px", fontSize: 14, fontWeight: 600, background: NAVY, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Generate + Download PDF</button>
-              <button onClick={() => setShowModal(false)} style={{ padding: "12px 20px", fontSize: 14, fontWeight: 600, color: MUTED, background: "#F8FAFB", border: `1px solid ${BORDER}`, borderRadius: 8, cursor: "pointer" }}>Cancel</button>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button type="button" onClick={generateReport} style={{ flex: "1 1 240px", minHeight: 48, padding: "12px", fontSize: 15, fontWeight: 600, background: LINK, color: "#fff", border: "none", borderRadius: 12, cursor: "pointer", fontFamily: "inherit" }}>Generate the {reader.short} report</button>
+              <button type="button" onClick={() => setShowModal(false)} style={{ minHeight: 48, padding: "12px 20px", fontSize: 15, fontWeight: 600, color: INK, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
             </div>
           </div>
         </div>

@@ -2225,7 +2225,7 @@ section("I. The shared type system");
 
   ok("I the PDF runs on the same family as the page (IBM Plex Sans since redesign Phase 2)", (() => {
     const RE = readFileSync(new URL("./ReportExport.jsx", import.meta.url), "utf8");
-    return RE.includes("family=IBM+Plex+Sans") && RE.includes("tabular-nums")
+    return RE.includes("FONT_FILES") && RE.includes("'IBM Plex Sans'") && !RE.includes("googleapis") && RE.includes("tabular-nums")
       && !RE.includes("Instrument Serif") && !RE.includes("DM Sans");
   })());
 

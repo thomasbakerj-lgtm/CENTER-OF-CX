@@ -895,6 +895,20 @@ dashboard, the 12-phase growth program.
      serves `dist/<path>/index.html`, else `spa.html`).
    Suite 24,394 green, rail audit clean, chunk 25 of 25, build and prerender green (426 pages, 121 cards), local live check
    under the production policy 254 of 254. Next: Phase 3, the components and the light report.
+47. S24, redesign session 7, Phase 3 part 1: the light paper report. PR #41 opened for Phase 2 (TB: go). `ReportExport.jsx`
+   rebuilt to Brand Guide section 13: masthead with the mark, title, the evidence mark on the cover (three print arcs filled
+   by grade, a dotted ring for not applicable, "Held by" the binding axis; a void prints "No figure" and its failed invariant,
+   no mark, no grade; a tool without grades prints no mark), a "Written for" line, sections, and a footer stating how figures
+   are made. Paper palette from tokens (new `ARCS_PRINT`: #2F8FD0, #0072BB, ink, track #E4E9EF, n/a #5B6B80; recorded in the
+   guide); a tool's metric colour is no longer printed (colour never marks a figure); high priority prints its word beside
+   the print red. Plex now self-hosted in the report too: fonts from the site origin, report policy `font-src 'self' <origin>`,
+   no Google host left in the report. Reader picker in the download dialog (Finance default, Operations, IT and platform,
+   Executive sponsor, Advisor): `orderSections` reorders sections by reader and never alters one; the button reads "Generate
+   the finance report". ReportActions passes `how`. `export.test.mjs` 51 (escaping allowlist explicit; readers keep every
+   section once and every figure once; mark fills by grade; void and no-grades draw no mark; fonts and policy; print arcs
+   3:1). The `audience` event property waits for taxonomy 1.1 at Phase 5. Harness note: Playwright request routing (context
+   or opener page) stalls a document.write popup's font loads, so report screenshots run without routing; the live checker's
+   text read is unaffected. Suite 24,434 green; live check 254 of 254. Next: Phase 3 part 2, the component library.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
