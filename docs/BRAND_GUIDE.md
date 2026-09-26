@@ -119,7 +119,7 @@ Navy holds the house. Colour marks territory, sparingly: under one tenth of any 
 | Light blue | #00AAFF / #6CC8FF | The X; links on dark (10.2:1) |
 | Paper | #FFFFFF / #F2F5F9 | Reports, print |
 
-**Pillars.** Ink text on every fill; every pair passes WCAG AA, the lowest at 4.8:1.
+**Pillars.** Ink text on every fill; every pair passes WCAG AA, the lowest at 5.0:1.
 
 | Pillar | Meaning | Fill | On dark | On light |
 |---|---|---|---|---|

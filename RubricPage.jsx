@@ -40,7 +40,7 @@ export default function RubricPage({ id }) {
 
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
@@ -134,7 +134,7 @@ function OwnershipPage({ r }) {
   const need = (it) => (it.involve || []).map((e) => (typeof e === "string" ? role(e) : role(e.role) + (e.severity === "high" ? " (high if missing)" : ""))).join(", ");
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
@@ -213,7 +213,7 @@ function QAPage({ r }) {
   const next = JOURNEY[r.next.tool];
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
@@ -286,7 +286,7 @@ function RenewalPage({ r }) {
   const link = (id) => (JOURNEY[id] ? <a href={JOURNEY[id].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[id].name}</a> : id);
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
@@ -357,7 +357,7 @@ function TermsPage({ r }) {
   const link = (id) => (JOURNEY[id] ? <a href={JOURNEY[id].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[id].name}</a> : id);
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
@@ -425,7 +425,7 @@ function RfpPage({ r }) {
   const total = r.layers.reduce((s, l) => s + l.reqs.length, 0);
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
@@ -490,7 +490,7 @@ function CalcPage({ r }) {
   const kindLabel = { market: "Published source", heuristic: "Heuristic, no published source", threshold: "Threshold" };
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
@@ -560,7 +560,7 @@ function ChangelogPage() {
   const byDate = CHANGELOG.reduce((m, c) => { (m[c.date] = m[c.date] || []).push(c); return m; }, {});
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <nav style={{ background: DEEP, padding: "16px 0" }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>

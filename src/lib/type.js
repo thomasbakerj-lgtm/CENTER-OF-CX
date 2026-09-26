@@ -2,31 +2,27 @@
 //
 // The type system. One file, so a brand change is one edit rather than thirty.
 //
-// Archivo is a single-family system: there is no serif to carry hierarchy, so
-// hierarchy comes entirely from size, weight, letterspacing, and colour. Those
-// four have to be decided once here, or thirty tool files will each improvise
-// and drift apart. Import the tokens; do not hand-write font-family anywhere.
-//
-// Archivo was drawn for high performance at small sizes and in dense settings,
-// which is most of this interface: 11px uppercase card labels, 12px input
-// hints, 12px table rows. It also ships width variants (Narrow, Expanded) that
-// are the same design, so wide comparison tables and display headlines can
-// stay in one voice later without adding a second typeface.
+// IBM Plex Sans (Brand Guide 1.0, section 9; adopted in redesign Phase 2). One
+// family carries the hierarchy through size, weight, letterspacing and colour, decided
+// once here so thirty tool files do not each improvise. Import the tokens; do not
+// hand-write font-family anywhere. Plex Sans Condensed serves wide tables; Plex Mono
+// serves formulas. The files are self-hosted in public/fonts (see src/lib/tokens.js).
+
+import { FONT_SANS, FONT_CONDENSED, FONT_MONO, fontFaceCss } from "./tokens.js";
 
 /* ------------------------------------------------------------------ stacks */
 
-export const FONT = "'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+export const FONT = FONT_SANS;
 
 // Reserved for wide tables that need to fit more columns. Same design, narrower.
-export const FONT_NARROW = "'Archivo Narrow', 'Archivo', -apple-system, sans-serif";
+export const FONT_NARROW = FONT_CONDENSED;
 
-// The single @import every page and the PDF share. Weights are deliberately
-// limited: five is enough for a full hierarchy and every extra weight is
-// download the user pays for.
-export const FONT_IMPORT =
-  "https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@400;600&display=swap";
+// Formulas and code-like figures on method pages.
+export const FONT_MONO_STACK = FONT_MONO;
 
-export const FONT_IMPORT_CSS = `@import url('${FONT_IMPORT}');`;
+// The @font-face rules every page's stylesheet carries. Same-origin files, so no page
+// asks a font host for anything. index.html carries the same rules for first paint.
+export const FONT_IMPORT_CSS = fontFaceCss();
 
 /* ------------------------------------------------------------------ weights */
 

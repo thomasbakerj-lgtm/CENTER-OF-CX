@@ -64,7 +64,7 @@ second, invest third, automate last.
 | `src/lib/confidence.js` | cd405788506e7970ad581cfcb9a84997 |
 | `src/lib/metrics.js` | 37f924dfd1387e52f7da749537d1f940 |
 | `src/lib/guards.js` | a640b502cbee94ebd08687656ba7d681 |
-| `src/lib/type.js` | fde48210b6eac47c307681b3b90adba9 |
+| `src/lib/type.js` | see git (S24: IBM Plex, redesign Phase 2) |
 | `TCOCalculator.jsx` | 5329c88fa10063473c9710f8acfbbd27 (S22, on `main`) |
 | `BusinessCaseBuilder.jsx` | eb43e3f4bf9d7a806ff3799a6635ef22 (S22 11B retrofit) |
 | `StaffingCalculator.jsx` | 6f956589657ea7bfe8b7a3a7dab76dc1 |
@@ -872,7 +872,29 @@ dashboard, the 12-phase growth program.
    filtering the list; vendors A to Z inside each class with "Compared on" from the class boundary, validation date and
    the vendor's first publishable best-when statement from the corpus; the 6 not yet researched vendors with no class and
    an anonymous research request (AnywhereNow marked researching next). No score, rank, tier or order by merit. Class
-   names, jobs and boundaries restated in plain words from the corpus (presentation only). Awaits TB approval.
+   names, jobs and boundaries restated in plain words from the corpus (presentation only). TB approved (26 Sep).
+46. S24 (26 Sep), TB: skip the practitioner feedback rounds, commit to the new design, build now (tools are V3 and hardened;
+   research continues on its own clock). Designs 5 (industry) and 6 (method, contributor, Market Watch, Research, email)
+   move to the start of the phases that build them. Done, redesign session 6, Phase 2 foundations:
+   - `src/lib/tokens.js`: Brand Guide 1.0 as data (house, pillars, layers, arcs, findings, type scale, space, radius,
+     motion, contrast helpers). `scripts/tokens-css.mjs` writes the font rules and `--cx-` CSS variables into index.html
+     (TOKENS markers) from `src/lib/tokensBlock.js`.
+   - IBM Plex self-hosted in `public/fonts` (Sans 400/400i/500/600/700, Condensed 400/600, Mono 400/600; OFL.txt), two
+     weights preloaded, cached a year. No new host: `font-src 'self'` already allowed. `type.js` FONT is Plex, so every tool
+     changes font on merge; the 36 content pages stay on DM Sans until Phases 8 and 9. The report window loads Plex from
+     Google Fonts (its existing allowed host) until Phase 3 rebuilds the report.
+   - `src/lib/Icon.jsx`, the 32 icons (24 grid, 2px stroke, currentColor, hidden unless labelled).
+   - `tokens.test.mjs` (289): every value against the guide's tables, WCAG AA for every text pairing (lowest pillar pair
+     5.02:1; the guide said 4.8, corrected to 5.0), fonts present and woff2, index.html block current, type.js and the
+     report on Plex, icon set equal to the guide's list, no colour literal in migrated files (list starts with Icon.jsx).
+   - Phone overflow found and fixed (pre-existing on main): the shared `NumField` input lacked border-box sizing (AI
+     Deflection scrolled 7px), Channel Shift's guardrail panel stayed two columns, rubric method tables were wider than
+     a phone. Sweep: 112 page loads at 390 and 1440, no overflow, no page error.
+   - Tooling note: `vite preview` serves the homepage HTML for `/tools/x` (no trailing slash), so every tool fails hydration
+     (React 425) locally while production is clean. Serve dist with the Vercel rules instead (scratchpad `serve.mjs`: a path
+     serves `dist/<path>/index.html`, else `spa.html`).
+   Suite 24,394 green, rail audit clean, chunk 25 of 25, build and prerender green (426 pages, 121 cards), local live check
+   under the production policy 254 of 254. Next: Phase 3, the components and the light report.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

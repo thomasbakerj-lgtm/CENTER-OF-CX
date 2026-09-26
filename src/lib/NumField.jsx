@@ -94,7 +94,7 @@ export default function NumField({ label, value, onChange, hint, prefix, suffix,
           onFocus={e => { focusedRef.current = true; e.target.style.borderColor = ELECTRIC; }}
           onChange={onType}
           onBlur={e => { e.target.style.borderColor = BORDER; onBlurField(); }}
-          style={{ width: "100%", padding: compact ? "8px 10px" : "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 24 : (compact ? 10 : 12), paddingRight: 40, outline: "none" }} />
+          style={{ width: "100%", boxSizing: "border-box", padding: compact ? "8px 10px" : "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 24 : (compact ? 10 : 12), paddingRight: 40, outline: "none" }} />
         {suffix && <span style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: MUTED, pointerEvents: "none" }}>{suffix}</span>}
         <div style={{ position: "absolute", right: 3, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 1 }}>
           <button type="button" className="stepper" tabIndex={-1} aria-label={`Increase ${label}`} style={btn} onPointerDown={e => { e.preventDefault(); start(1); }}>▲</button>

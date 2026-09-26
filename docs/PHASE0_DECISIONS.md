@@ -85,7 +85,7 @@ Draft invitation for TB to send:
 > technology decisions. Would you give me three 30 minute sessions over the next few weeks to react to the designs?
 > No preparation, no selling, and your name stays out of anything published.
 
-Decision needed: send the invitations; the design side is ready for Checkpoint A once Phase 1 finishes. Status: open.
+Decision: skipped by TB on 26 September 2026. No practitioner rounds; the design is committed and the build proceeds.
 
 ## Done in this session without a decision
 

@@ -125,14 +125,14 @@ export function reportHtml({ toolName, subtitle, reportName, company, logo, toda
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'">
 <title>${e(toolName)}, Report</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Narrow:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 @page { margin: 0.6in 0.7in; size: letter; }
 
 body {
-  font-family: 'Archivo', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   font-variant-numeric: tabular-nums;
   color: ${NAVY};
   font-size: 10pt;
@@ -153,7 +153,7 @@ body {
 .cover-left { flex: 1; }
 .cover-right { text-align: right; }
 .cover h1 {
-  font-family: 'Archivo', -apple-system, sans-serif;
+  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
   letter-spacing: -0.7px;
   font-size: 21pt;
   font-weight: 600;
@@ -233,7 +233,7 @@ td.value { font-weight: 600; color: ${NAVY}; text-align: right; }
   overflow: hidden;
 }
 .metric-value {
-  font-family: 'Archivo', -apple-system, sans-serif;
+  font-family: 'IBM Plex Sans', -apple-system, sans-serif;
   font-weight: 600;
   letter-spacing: -0.5px;
   font-variant-numeric: tabular-nums;
@@ -357,7 +357,7 @@ td.value { font-weight: 600; color: ${NAVY}; text-align: right; }
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  font-family: 'Archivo', sans-serif;
+  font-family: 'IBM Plex Sans', sans-serif;
 }
 @media print {
   .print-bar { display: none !important; }
@@ -466,7 +466,7 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
         <div style={{ position: "fixed", inset: 0, background: "rgba(6,19,37,0.7)", backdropFilter: "blur(6px)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
           onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}>
           <div style={{ background: "#fff", borderRadius: 14, width: "100%", maxWidth: 480, padding: "32px", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
-            <h3 style={{ fontFamily: "'Archivo', -apple-system, sans-serif", fontSize: 21, fontWeight: 600, letterSpacing: "-0.4px", color: NAVY, margin: "0 0 4px" }}>Generate Your Report</h3>
+            <h3 style={{ fontFamily: "'IBM Plex Sans', -apple-system, sans-serif", fontSize: 21, fontWeight: 600, letterSpacing: "-0.4px", color: NAVY, margin: "0 0 4px" }}>Generate Your Report</h3>
             <p style={{ fontSize: 13, color: MUTED, marginBottom: 24 }}>Add your branding. We will format everything into a clean, presentation-ready document.</p>
 
             {/* Logo upload */}
