@@ -865,7 +865,14 @@ dashboard, the 12-phase growth program.
    (23 methods, 18 researched vendors, A to Z), what changed from the method changelog, the contributor invitation. Phone:
    doors as a list, step 2 as a bottom sheet with the start button pinned; no stack on the phone home. A "Show events"
    design note marks door_select, route_select, route_start and layer_select. Taxonomy 1.1 draft gains action `request`
-   (vendor research request on the not yet researched profile). Awaits TB approval.
+   (vendor research request on the not yet researched profile). TB approved (26 Sep, "go").
+45. Done S24, redesign session 5 (Phase 1, design 4 of 6): CCaaS category page on the canvas. What the category covers and
+   where it ends; where the research stands (18 researched, 6 not yet, 6 classes, validated 19 to 23 Sep, ratings locked);
+   "Start with the job you need done": six class cards (plain name, job, typical buyer, calibrated or draft, count), each
+   filtering the list; vendors A to Z inside each class with "Compared on" from the class boundary, validation date and
+   the vendor's first publishable best-when statement from the corpus; the 6 not yet researched vendors with no class and
+   an anonymous research request (AnywhereNow marked researching next). No score, rank, tier or order by merit. Class
+   names, jobs and boundaries restated in plain words from the corpus (presentation only). Awaits TB approval.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
