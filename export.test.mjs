@@ -52,8 +52,20 @@ section("3. Every interpolation is escaped or fixed");
 const SRC = readFileSync("./ReportExport.jsx", "utf8");
 const body = SRC.slice(SRC.indexOf("export function reportHtml"), SRC.indexOf("export default function ReportExport"));
 /* Every ${...} at every depth. A hole that holds a nested template is composite: its own
-   holes are collected and checked in turn. Any other hole must be e(...) or a fixed value. */
-const FIXED = /^(a\.priority === "high" \? '<span class="priority high">High Priority<\/span>' : a\.priority === "medium" \? '<span class="priority medium">Medium<\/span>' : ""|url \? ' <span class="next-arrow">&rarr;<\/span>' : ""|NAVY|ELECTRIC|LIGHT|MUTED|BORDER|SLATE|GREEN|cols|fi \+ 1|sizeOf\(m\.value\)|inner|sections\.map\(\(s, i\) => renderSection\(s, i\)\)\.join\("\\n"\))$/;
+   holes are collected and checked in turn. Any other hole must be e(...) or a fixed value:
+   a palette constant, a number the renderer computes, or a block built in this file from
+   escaped parts (whose own holes are checked here too). */
+const FIXED_SET = new Set([
+  'a.priority === "high" ? "high" : a.priority === "medium" ? "medium" : ""',
+  `a.priority === "high" ? '<span class="priority high">High priority</span>' : a.priority === "medium" ? '<span class="priority medium">Medium priority</span>' : ""`,
+  `url ? ' <span class="next-arrow">&rarr;</span>' : ""`,
+  "INK", "LINK", "RULE", "QUIET", "PANEL", "LABEL", "HIGH", "SLATE", "NAVY",
+  "cols", "fi + 1", "sizeOf(m.value)", "inner", "fontSrc", "fontFaces", "markSvg", "howBlock",
+  "evidenceMark(how.axes || {})", 'orderSections(sections, reader.id).map((s) => renderSection(s)).join("\\n")',
+  "r", "color", "ARCS_PRINT.track", "ARCS_PRINT.na", "arc.toFixed(2)", "c.toFixed(2)", "(arc * f).toFixed(2)",
+  "ring(56, axes.evidence, ARCS_PRINT.evidence)", "ring(42, axes.realization, ARCS_PRINT.realization)", "ring(28, axes.completeness, ARCS_PRINT.completeness)",
+]);
+const FIXED = { test: (h) => FIXED_SET.has(h) };
 const holes = [], stack = [];
 for (let i = 0; i < body.length; i++) {
   if (body[i] === "$" && body[i + 1] === "{") { stack.push({ start: i + 2, depth: 1 }); i++; continue; }
@@ -65,6 +77,60 @@ for (let i = 0; i < body.length; i++) {
 const leaf = holes.filter((h) => !/^e\(/.test(h) && !FIXED.test(h) && !h.includes("`"));
 ok(`every one of ${holes.length} interpolations is escaped or fixed${leaf.length ? " (" + leaf.join(" | ") + ")" : ""}`, leaf.length === 0 && holes.length > 30);
 ok("the popup builds its document from reportHtml only", /const html = reportHtml\(/.test(SRC) && (SRC.match(/document\.write\(/g) || []).length === 1);
+
+section("4. The light report (redesign Phase 3)");
+{
+  const { AUDIENCES, orderSections } = mod.exports;
+  const T = await import("./src/lib/tokens.js");
+  const S = [
+    { title: "Inputs", type: "table", rows: [["Agents", "40"]] },
+    { title: "Confidence", type: "findings", items: ["Headline: Directional."] },
+    { title: "Result", type: "metrics", items: [{ label: "Cost per contact", value: "$6.78", color: "#00AAFF" }] },
+    { title: "Findings", type: "findings", items: ["People are 82% of cost."] },
+    { title: "Actions", type: "actions", items: [{ action: "Attest the invoice", detail: "Lifts evidence.", priority: "high" }] },
+    { title: "Method", type: "text", content: "Loaded wage times handle time." },
+    { title: "Next step", type: "next", items: [{ tool: "FCR Leakage", reason: "What repeats add.", href: "/tools/fcr-leakage" }] },
+  ];
+  ok("five readers: finance, operations, IT, executive, advisor", AUDIENCES.map((a) => a.id).join() === "finance,operations,it,executive,advisor");
+  for (const a of AUDIENCES) {
+    const o = orderSections(S, a.id);
+    ok(`${a.id}: every section kept once, none altered`, o.length === S.length && S.every((x) => o.filter((y) => y === x).length === 1));
+    const h = reportHtml({ toolName: "Cost per Contact", today: "26 September 2026", sections: S, audience: a.id });
+    ok(`${a.id}: the cover says who it is written for`, h.includes(`Written for<strong>${a.title}</strong>`) && h.includes(a.read));
+    ok(`${a.id}: every figure prints exactly once`, (h.match(/\$6\.78/g) || []).length === 1 && (h.match(/>40</g) || []).length === 1);
+  }
+  ok("advisor keeps the tool's order", orderSections(S, "advisor").every((x, i) => x === S[i]));
+  ok("finance reads the result, then how sure, then the inputs", orderSections(S, "finance").slice(0, 3).map((x) => x.title).join() === "Result,Confidence,Inputs");
+  ok("executive puts the next step third", orderSections(S, "executive")[2].title === "Next step");
+  ok("an unknown reader falls back to the tool's order", orderSections(S, "__proto__").every((x, i) => x === S[i]));
+  const base = reportHtml({ toolName: "t", today: "d", sections: S, origin: "https://www.contactcentercx.com" });
+  ok("no metric colour is printed: colour never marks a figure", !base.includes("#00AAFF") && !/metric-value[^>]*style=/.test(base));
+  ok("fonts come from the site, not a font host", !/googleapis|gstatic/.test(base) && base.includes("url(https://www.contactcentercx.com/fonts/plex-sans-400.woff2)"));
+  ok("the report policy allows only the site's fonts", /font-src 'self' https:\/\/www\.contactcentercx\.com;/.test(base) && /script-src 'none'/.test(base));
+  const hostileOrigin = reportHtml({ toolName: "t", today: "d", sections: [], origin: `x" onload="alert(1)` });
+  ok("a hostile origin cannot break out of the policy or a font rule", !/onload="alert/.test(hostileOrigin));
+  ok("the paper palette comes from the tokens", base.includes(T.HOUSE.paperInk) && base.includes(T.PILLARS.diagnostics.onLight) && base.includes(T.FINDINGS.high.print));
+  ok("a high priority action prints its word beside the colour", base.includes('<span class="priority high">High priority</span>'));
+  ok("the footer states how figures are made", base.includes("Every figure is computed from the inputs listed, under the assumptions stated."));
+  ok("no dash in the report", ![String.fromCharCode(0x2013), String.fromCharCode(0x2014)].some((d) => base.includes(d)));
+
+  const mark = (axes) => reportHtml({ toolName: "t", today: "d", sections: [], how: { headline: "Directional", boundBy: "completeness", axes } });
+  const arcs = (h) => [...h.matchAll(/<circle r="(\d+)" fill="none" stroke="(#[0-9A-F]{6})" stroke-width="7" stroke-dasharray="([\d.]+) ([\d.]+)"/g)].map((m) => [+m[1], m[2], +m[3], +m[4]]);
+  const full = arcs(mark({ evidence: "Finance-grade", realization: "Planning-grade", completeness: "Directional" }));
+  const lit = full.filter((a) => a[1] !== T.ARCS_PRINT.track);
+  const len = (r, f) => +(2 * Math.PI * r * 240 / 360 * f).toFixed(2);
+  ok("the mark draws three arcs over three tracks", full.length === 6 && lit.length === 3);
+  ok("evidence at Finance-grade fills its whole arc", lit.some((a) => a[0] === 56 && a[1] === T.ARCS_PRINT.evidence && a[2] === len(56, 1)));
+  ok("realization at Planning-grade fills two thirds", lit.some((a) => a[0] === 42 && a[1] === T.ARCS_PRINT.realization && a[2] === len(42, 2 / 3)));
+  ok("completeness at Directional fills a third", lit.some((a) => a[0] === 28 && a[1] === T.ARCS_PRINT.completeness && a[2] === len(28, 1 / 3)));
+  const na = mark({ evidence: "Planning-grade", realization: null, completeness: "Directional" });
+  ok("a not applicable axis is a dotted ring", /<circle r="42" fill="none" stroke="#5B6B80" stroke-width="2" stroke-dasharray="2 5"/.test(na) && arcs(na).length === 4);
+  ok("the cover names the grade and the axis that holds it", /How sure<\/div><div class="how-grade">Directional<\/div><div class="how-line">Held by completeness<\/div>/.test(mark({ evidence: "Directional", realization: null, completeness: "Directional" })));
+  const v = reportHtml({ toolName: "t", today: "d", sections: [], how: { void: true, reason: "Agents must be above zero. Enter the agents you staff" } });
+  ok("a void report draws no mark and claims no grade", !/class="arcs"/.test(v) && /No figure/.test(v) && !/Directional|Planning-grade|Finance-grade/.test(v) && v.includes("Agents must be above zero"));
+  ok("a report with no grades draws no mark", !/class="arcs"/.test(reportHtml({ toolName: "t", today: "d", sections: [] })));
+  for (const [k, c] of Object.entries(T.ARCS_PRINT)) if (k !== "track") ok(`print arc ${k} holds 3:1 against white`, T.contrast(c, "#FFFFFF") >= 3);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

@@ -64,7 +64,7 @@ second, invest third, automate last.
 | `src/lib/confidence.js` | cd405788506e7970ad581cfcb9a84997 |
 | `src/lib/metrics.js` | 37f924dfd1387e52f7da749537d1f940 |
 | `src/lib/guards.js` | a640b502cbee94ebd08687656ba7d681 |
-| `src/lib/type.js` | fde48210b6eac47c307681b3b90adba9 |
+| `src/lib/type.js` | see git (S24: IBM Plex, redesign Phase 2) |
 | `TCOCalculator.jsx` | 5329c88fa10063473c9710f8acfbbd27 (S22, on `main`) |
 | `BusinessCaseBuilder.jsx` | eb43e3f4bf9d7a806ff3799a6635ef22 (S22 11B retrofit) |
 | `StaffingCalculator.jsx` | 6f956589657ea7bfe8b7a3a7dab76dc1 |
@@ -836,6 +836,79 @@ dashboard, the 12-phase growth program.
    entry and its review date, and A/B every wage-driven tool (figures move by the wage ratio, grades unchanged).
 39. Done S23: full site sweep closed (parts 1 to 4 plus the ungate). TB approved a new priority list, below. It
    supersedes the older "Next" lines and the reachability batch note. Work top down; one item per session where large.
+40. Done S24 (26 Sep 2026): design program closed its concept rounds. TB adopted Brand Guide 1.0 (`docs/BRAND_GUIDE.md`:
+   IBM Plex Sans, five pillar colours, layer colours on the stack, colourless grades, evidence mark and readout, special
+   editions, icons, components, page patterns) and the phased build order in `docs/REDESIGN_PLAN.md` (P5 design now runs by that
+   plan). Canvas: private artifact "Center of CX Design Concepts", page "Brand kit V5"; concepts on its archive page.
+41. Done S24, redesign session 1 (Phase 0): research status registry to Cohort 3 (18 CCaaS complete; freeze test 332);
+   taxonomy 1.1 drafted in `docs/MEASUREMENT.md` (freezes at Phase 5); TB decisions D1 to D4 drafted in
+   `docs/PHASE0_DECISIONS.md` (corpus in a private repo read at build time, vendor corrections, contributor rules, test
+   group), all open. Suite 24,105 green. Next: Phase 1, design the final desktop tool page.
+42. Done S24, redesign session 2 (Phase 1, design 1 of 6): final desktop tool page on the canvas page "Phase 1 designs"
+   (Cost per Contact as the pattern): five-pillar nav, route sidebar, two question groups with sourced inputs and
+   hold-to-speed steppers, live result with the evidence mark and each axis's lift, what it means, what would change it,
+   one next step and Stop here, report audience picker (finance, operations, IT, executive, advisor). Awaits TB approval.
+43. Done S24, redesign session 3 (Phase 1, design 2 of 6): vendor profiles on the canvas. Researched (Vonage): six questions
+   switch the view (fit and products, 61 findings, breaks, effort and cost, proof and contract terms, sources); findings come
+   from the corpus by criterion with plain labels, a state filter and each finding's public sources (title, publisher, tier,
+   dates); who published the evidence (Vonage 32, AVANT 2, Ericsson 1); class marked draft; practitioner perspectives and
+   Market Watch kept separate; report an error. No score, rank, tier or count of states. Not yet researched (Aircall): no
+   class, no claim, a research status track, an anonymous "ask us to research" count, four tools to test it, and the
+   questions the 18 researched vendors kept returning to. Recommendation for TB: Phase 1 prose (strengths, weaknesses,
+   beats, loses to) leaves public profiles in the rebuild; it stays in data for lineage. TB approved both designs and the
+   recommendation (26 Sep, "go").
+44. Done S24, redesign session 4 (Phase 1, design 3 of 6): homepage, desktop and phone, on the canvas. Hero "Diagnose before
+   you buy." beside the stack; step 1 five doors, step 2 the door's question and a route card (steps, time, possible endings,
+   one start button). A stack layer opens its plain name, what it does, and the tool and vendor category Platform Decision's
+   published model already maps to it (no new mapping). Routes lift only the layer that model names (AI proposal L4,
+   staffing L6); cost, renewal, readiness and RFP light all seven. Below: the evidence mark explained, three proof tiles
+   (23 methods, 18 researched vendors, A to Z), what changed from the method changelog, the contributor invitation. Phone:
+   doors as a list, step 2 as a bottom sheet with the start button pinned; no stack on the phone home. A "Show events"
+   design note marks door_select, route_select, route_start and layer_select. Taxonomy 1.1 draft gains action `request`
+   (vendor research request on the not yet researched profile). TB approved (26 Sep, "go").
+45. Done S24, redesign session 5 (Phase 1, design 4 of 6): CCaaS category page on the canvas. What the category covers and
+   where it ends; where the research stands (18 researched, 6 not yet, 6 classes, validated 19 to 23 Sep, ratings locked);
+   "Start with the job you need done": six class cards (plain name, job, typical buyer, calibrated or draft, count), each
+   filtering the list; vendors A to Z inside each class with "Compared on" from the class boundary, validation date and
+   the vendor's first publishable best-when statement from the corpus; the 6 not yet researched vendors with no class and
+   an anonymous research request (AnywhereNow marked researching next). No score, rank, tier or order by merit. Class
+   names, jobs and boundaries restated in plain words from the corpus (presentation only). TB approved (26 Sep).
+46. S24 (26 Sep), TB: skip the practitioner feedback rounds, commit to the new design, build now (tools are V3 and hardened;
+   research continues on its own clock). Designs 5 (industry) and 6 (method, contributor, Market Watch, Research, email)
+   move to the start of the phases that build them. Done, redesign session 6, Phase 2 foundations:
+   - `src/lib/tokens.js`: Brand Guide 1.0 as data (house, pillars, layers, arcs, findings, type scale, space, radius,
+     motion, contrast helpers). `scripts/tokens-css.mjs` writes the font rules and `--cx-` CSS variables into index.html
+     (TOKENS markers) from `src/lib/tokensBlock.js`.
+   - IBM Plex self-hosted in `public/fonts` (Sans 400/400i/500/600/700, Condensed 400/600, Mono 400/600; OFL.txt), two
+     weights preloaded, cached a year. No new host: `font-src 'self'` already allowed. `type.js` FONT is Plex, so every tool
+     changes font on merge; the 36 content pages stay on DM Sans until Phases 8 and 9. The report window loads Plex from
+     Google Fonts (its existing allowed host) until Phase 3 rebuilds the report.
+   - `src/lib/Icon.jsx`, the 32 icons (24 grid, 2px stroke, currentColor, hidden unless labelled).
+   - `tokens.test.mjs` (289): every value against the guide's tables, WCAG AA for every text pairing (lowest pillar pair
+     5.02:1; the guide said 4.8, corrected to 5.0), fonts present and woff2, index.html block current, type.js and the
+     report on Plex, icon set equal to the guide's list, no colour literal in migrated files (list starts with Icon.jsx).
+   - Phone overflow found and fixed (pre-existing on main): the shared `NumField` input lacked border-box sizing (AI
+     Deflection scrolled 7px), Channel Shift's guardrail panel stayed two columns, rubric method tables were wider than
+     a phone. Sweep: 112 page loads at 390 and 1440, no overflow, no page error.
+   - Tooling note: `vite preview` serves the homepage HTML for `/tools/x` (no trailing slash), so every tool fails hydration
+     (React 425) locally while production is clean. Serve dist with the Vercel rules instead (scratchpad `serve.mjs`: a path
+     serves `dist/<path>/index.html`, else `spa.html`).
+   Suite 24,394 green, rail audit clean, chunk 25 of 25, build and prerender green (426 pages, 121 cards), local live check
+   under the production policy 254 of 254. Next: Phase 3, the components and the light report.
+47. S24, redesign session 7, Phase 3 part 1: the light paper report. PR #41 opened for Phase 2 (TB: go). `ReportExport.jsx`
+   rebuilt to Brand Guide section 13: masthead with the mark, title, the evidence mark on the cover (three print arcs filled
+   by grade, a dotted ring for not applicable, "Held by" the binding axis; a void prints "No figure" and its failed invariant,
+   no mark, no grade; a tool without grades prints no mark), a "Written for" line, sections, and a footer stating how figures
+   are made. Paper palette from tokens (new `ARCS_PRINT`: #2F8FD0, #0072BB, ink, track #E4E9EF, n/a #5B6B80; recorded in the
+   guide); a tool's metric colour is no longer printed (colour never marks a figure); high priority prints its word beside
+   the print red. Plex now self-hosted in the report too: fonts from the site origin, report policy `font-src 'self' <origin>`,
+   no Google host left in the report. Reader picker in the download dialog (Finance default, Operations, IT and platform,
+   Executive sponsor, Advisor): `orderSections` reorders sections by reader and never alters one; the button reads "Generate
+   the finance report". ReportActions passes `how`. `export.test.mjs` 51 (escaping allowlist explicit; readers keep every
+   section once and every figure once; mark fills by grade; void and no-grades draw no mark; fonts and policy; print arcs
+   3:1). The `audience` event property waits for taxonomy 1.1 at Phase 5. Harness note: Playwright request routing (context
+   or opener page) stalls a document.write popup's font loads, so report screenshots run without routing; the live checker's
+   text read is unaffected. Suite 24,434 green; live check 254 of 254. Next: Phase 3 part 2, the component library.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1029,13 +1102,14 @@ Never allow a lower-authority artifact to silently override a higher-authority a
 
 - Schema: v1.0.
 - Schema status: locked after three-vendor calibration.
-- Current checkpoint: `PRODUCTION_COHORT2_DIALPAD_COMPLETE`.
-- 12 vendors completed: 3 calibration + 5 Production Cohort 1 + 4 Production Cohort 2.
-- Production Cohort 2 is 4/5 complete: Zoom, 8x8, Odigo, Dialpad.
-- Cohort 2 vendor 5 is **not yet locked**. Do not infer or choose it in code.
-- Phase 2 numeric ratings remain locked/unapplied.
-- After vendor 5: run the required five-vendor normalization gate before any methodology/rating change.
-- No schema change was approved for Dialpad.
+- Current checkpoint: `PRODUCTION_COHORT3_NORMALIZED` (corpus generated 2026-09-23, received S24 on 26 Sep 2026; system of record
+  `CCaaS_Master_Research_Corpus_v1.0_Production_Cohort3_Normalized_1.json`, kept outside the repository).
+- 18 vendors completed (VEN-CC-0001 to 0018): the 12 above plus Puzzel, Avaya, Enghouse Interactive, UJET, Bright Pattern, Vonage.
+  `src/lib/researchStatus.js` lists all 18 (S24 redesign session 1); 10 CCaaS and adjacent profiles remain Phase 1 context.
+- Cohort 3 five-vendor normalization gate passed: no schema, criterion or class change; CLS-CC-004 not split.
+- Phase 2 numeric ratings remain locked/unapplied (peer-class coverage thin in CLS-CC-002, 003, 005, 006).
+- Next research vendor: AnywhereNow (Cohort 4), one at a time under schema v1.0.
+- Two evidence objects are `INTERNAL_RESEARCH_ONLY`; never render them or their existence.
 - Do not silently change competitive-class status/definitions. In the current corpus, classes 001 to 003 are calibrated/locked; later classes may still carry draft metadata pending normalization.
 
 ### System of record

@@ -521,7 +521,7 @@ export default function ChannelShiftModel() {
 
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}select,input,button{font-family:inherit}@media(max-width:760px){.cg{grid-template-columns:1fr 1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}}`}</style>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}select,input,button{font-family:inherit}@media(max-width:760px){.cg1{grid-template-columns:1fr!important}.cg{grid-template-columns:1fr 1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}}`}</style>
       <Nav />
 
       <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "52px 28px 32px" }}>
@@ -661,7 +661,7 @@ export default function ChannelShiftModel() {
       <section style={{ background: "#fff", padding: "32px 28px" }}>
         <div style={WRAP}>
           {/* Capacity action + risk guardrails */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }} className="cg">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }} className="cg1">
             <div style={{ background: WARM, border: `1px solid ${mechKey === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>Capacity action<InfoDot text={DEFS.capacity} title="Capacity action" /></div>
               <div style={{ fontSize: 12, color: mechKey === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[mechKey].note}</div>

@@ -238,6 +238,13 @@ export default function ReportActions({
   const headline = voided ? null : (derived ? derived.headline : (confidence || null));
   const boundAxis = derived && derived.boundAxes.length ? derived.boundAxes.join("+") : undefined;
   const eventGrade = voided ? "Void" : headline;
+  /* The evidence mark on the report cover (redesign Phase 3): the headline, the axis that
+     holds it and the three axes, or a void notice with its failed invariant. A tool with no
+     grades prints no mark. */
+  const reportHow = voided
+    ? { void: true, reason: primary ? [primary.invariant, primary.remedy].filter(Boolean).join(". ") : "" }
+    : (derived ? { headline, boundBy: derived.boundBy, label: isDual(grades) ? grades.costLabel : null,
+        axes: { evidence: primary.evidence, realization: primary.realization, completeness: primary.completeness } } : null);
 
   /* tool_complete fires here, once, and nowhere else.
      ReportActions renders only when a tool has produced a result, and it is
@@ -447,6 +454,7 @@ export default function ReportActions({
             userEmail={email || copyEmail}
             sections={exportSections}
             method={stamp ? `${stamp.text}, contactcentercx.com${stamp.href}` : ""}
+            how={reportHow}
           /></span>
 
           {link ? (

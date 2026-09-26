@@ -391,7 +391,7 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("type: no hand-written font stack survives", src.indexOf('fontFamily: "') < 0);
   A("type: Instrument Serif is gone", src.indexOf("Instrument Serif") < 0);
   A("type: DM Sans is gone", src.indexOf("DM Sans") < 0);
-  A("type: the Archivo import is loaded on the page", src.indexOf("FONT_IMPORT_CSS") >= 0);
+  A("type: the shared font rules are loaded on the page", src.indexOf("FONT_IMPORT_CSS") >= 0);
   A("type: zero em-dashes", src.indexOf(String.fromCharCode(0x2014)) < 0);
 }
 

@@ -92,3 +92,47 @@ Create these as saved insights (Product analytics, New insight, Funnels), conver
 - Never send a figure the reader entered, a result value, a name, an email address or a company.
 - Measurement stays on the PostHog free tier (CLAUDE.md section 10: paid analytics waits until free-tier limits are
   actually hit).
+
+## Taxonomy 1.1, draft (redesign Phase 0, 26 September 2026)
+
+Status: draft for TB approval. It freezes, with code, validators and pins, at the start of redesign Phase 5 (homepage).
+Nothing in 1.0 is renamed or removed; 1.1 only adds. Every rule above applies unchanged.
+
+New events
+
+| Event | When it fires | Properties |
+|---|---|---|
+| `door_select` | A homepage door (step 1) is chosen | `pillar`, `repeat` |
+| `route_select` | A step 2 option is chosen | `pillar`, `route`, `repeat` |
+| `route_start` | The route's start button is pressed | `pillar`, `route`, `to`, `repeat` |
+| `stop_here` | The reader takes the honest exit on a result | `tool`, `grade`, `repeat` |
+| `layer_select` | A stack layer is chosen anywhere it is interactive | `layer`, `surface`, `repeat` |
+| `vendor_view` | A vendor profile is opened | `vendor`, `category`, `status`, `repeat` |
+| `vendor_action` | An action on a vendor profile is taken | `vendor`, `action`, `repeat` |
+
+New properties, and one added to existing events
+
+| Property | Values |
+|---|---|
+| `pillar` | `diagnostics`, `vendors`, `industries`, `research`, `market-watch` |
+| `route` | The step 2 option slug: `cost`, `ai-proposal`, `renewal`, `staffing`, `readiness`, `rfp`, `category`, `vendor`, `starting-list`, or an industry slug |
+| `to` | Destination tool id, or a page type from `page_type` |
+| `layer` | `l1` to `l7` |
+| `surface` | `home`, `tool`, `vendor`, `industry` |
+| `vendor` | Vendor slug. A vendor name is public data about a company, never about the reader |
+| `category` | Vendor category slug |
+| `status` | `complete` or `phase1`, from `researchStatus.js` |
+| `action` | `test-it`, `rfp`, `brief`, `method`, `peer`, `request` (asks for a not yet researched vendor to be researched; one anonymous count) |
+| `audience` | Added to `report_export` and `report_copy_requested`: `finance`, `operations`, `it`, `executive`, `advisor` |
+| `page_type` | Gains `category` |
+
+New funnels
+
+6. **Door to first result.** `door_select` then `route_start` then `tool_complete` where `depth = 1`, broken down by
+   `pillar`. Shows which doors lead to a finished diagnostic.
+7. **Vendor to test.** `vendor_view` then `vendor_action` where `action = test-it` then `tool_complete`, broken down by
+   `status`. Shows whether research pages send readers into their own numbers.
+8. **Honest exit.** Trend of `stop_here` against `tool_complete`, by `tool`. A high rate is not failure: it is the
+   buy-nothing outcome working.
+9. **Report audience.** `report_export` broken down by `audience`, then `expert_read_submit`. Shows who the reports are
+   for in practice.

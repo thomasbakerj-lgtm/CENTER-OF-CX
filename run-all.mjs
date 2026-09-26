@@ -102,6 +102,7 @@ const INFRA = [
   { name: "terms.test.mjs", covers: "V3-Framework: Contract Risk clauses, reading rule against an oracle, unknown is never a pass" },
   { name: "renewal.test.mjs", covers: "V3-Framework: Platform Decision renewal gate, every rule against an oracle, the no-average and unknown-is-not-weak laws" },
   { name: "qa.test.mjs", covers: "V3-Framework: QA form checks and blind calibration, alpha and AC1 pinned to published examples" },
+  { name: "tokens.test.mjs", covers: "Redesign foundations: Brand Guide tokens, WCAG AA pairings, self-hosted Plex, the 32 icons, no colour literal in migrated files" },
 ];
 
 /* ---------------------------------------------------------------- utilities */

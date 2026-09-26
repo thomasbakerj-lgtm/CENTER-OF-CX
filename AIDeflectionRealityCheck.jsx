@@ -517,7 +517,7 @@ function Nav() {
   return <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13, textDecoration: "none" }}>Back to Tools</a></div></nav>;
 }
 
-const sel = { width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, fontFamily: FONT };
+const sel = { width: "100%", boxSizing: "border-box", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, fontFamily: FONT };
 const lbl = { fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 };
 const cardStyle = { background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "20px 22px", marginBottom: 20 };
 

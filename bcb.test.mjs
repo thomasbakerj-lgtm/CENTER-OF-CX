@@ -2192,7 +2192,7 @@ section("H. Scenario link round trip");
 }
 
 /* ------------------------------------------------------------------------ */
-section("I. Archivo type system");
+section("I. The shared type system");
 {
   const RA2 = readFileSync(new URL("./ReportActions.jsx", import.meta.url), "utf8");
 
@@ -2223,9 +2223,9 @@ section("I. Archivo type system");
     return n >= 5;
   })(), String((SRC.match(/\.\.\.NUM \}/g) || []).length));
 
-  ok("I the PDF already runs on the same family and needs no change", (() => {
+  ok("I the PDF runs on the same family as the page (IBM Plex Sans since redesign Phase 2)", (() => {
     const RE = readFileSync(new URL("./ReportExport.jsx", import.meta.url), "utf8");
-    return RE.includes("family=Archivo") && RE.includes("tabular-nums")
+    return RE.includes("FONT_FILES") && RE.includes("'IBM Plex Sans'") && !RE.includes("googleapis") && RE.includes("tabular-nums")
       && !RE.includes("Instrument Serif") && !RE.includes("DM Sans");
   })());
 
