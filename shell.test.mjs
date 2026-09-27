@@ -88,8 +88,8 @@ section("5. One shell for the whole site");
   ok("App renders the header and the footer once, around every route", (APP.match(/<ShellHeader \/>/g) || []).length === 1 && (APP.match(/<SiteFooter \/>/g) || []).length === 1
     && APP.indexOf("<ShellHeader />") < APP.indexOf("<Routes>") && APP.indexOf("<SiteFooter />") > APP.indexOf("</Routes>"));
   const files = readdirSync(".").filter((f) => f.endsWith(".jsx")).map((f) => "./" + f).concat(readdirSync("./src/lib").filter((f) => f.endsWith(".jsx") && f !== "Shell.jsx").map((f) => "./src/lib/" + f));
-  const own = files.filter((f) => /<nav\b|<footer\b/.test(readFileSync(f, "utf8")));
-  ok("no page draws its own navigation bar or footer", own.length === 0, own.join(" "));
+  const own = files.filter((f) => /<nav\b(?![^>]*aria-label="Breadcrumb")|<footer\b/.test(readFileSync(f, "utf8")));
+  ok("no page draws its own navigation bar or footer (a breadcrumb trail is allowed)", own.length === 0, own.join(" "));
   const toolNav = files.filter((f) => /\bToolNav\b/.test(readFileSync(f, "utf8")));
   ok("the retired ToolNav is gone", toolNav.length === 0, toolNav.join(" "));
   const src = readFileSync("./src/lib/Shell.jsx", "utf8").split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");

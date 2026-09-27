@@ -281,6 +281,23 @@ export function nextDiagnostic(toolId, choice = null) {
   return { ...picked, why: because || picked.why };
 }
 
+/* The route the tool frame's rail shows (redesign Phase 4): this tool, then the one next step the page names (the
+   engine's choice, so the rail and the next step always agree), then first edges, stopping on arriving at the decision node, at
+   a tool already on the route, or at `max` steps. Each step is a live node; an unknown tool gets no route. */
+export function routeFrom(toolId, choice = null, max = 3) {
+  if (!Object.prototype.hasOwnProperty.call(JOURNEY, toolId)) return [];
+  const steps = [{ to: toolId, name: JOURNEY[toolId].name, href: JOURNEY[toolId].route }];
+  let at = toolId, pick = choice;
+  while (steps.length < max) {
+    const n = nextDiagnostic(at, pick);
+    if (!n || steps.some((s) => s.to === n.to)) break;
+    steps.push({ to: n.to, name: n.name, href: n.href, why: n.why });
+    if (n.to === DECISION_NODE) break;
+    at = n.to; pick = null;
+  }
+  return steps;
+}
+
 /* The PDF section for that one step. */
 export function nextSection(toolId, choice = null) {
   const n = nextDiagnostic(toolId, choice);
