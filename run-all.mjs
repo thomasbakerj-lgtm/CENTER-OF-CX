@@ -103,6 +103,7 @@ const INFRA = [
   { name: "renewal.test.mjs", covers: "V3-Framework: Platform Decision renewal gate, every rule against an oracle, the no-average and unknown-is-not-weak laws" },
   { name: "qa.test.mjs", covers: "V3-Framework: QA form checks and blind calibration, alpha and AC1 pinned to published examples" },
   { name: "tokens.test.mjs", covers: "Redesign foundations: Brand Guide tokens, WCAG AA pairings, self-hosted Plex, the 32 icons, no colour literal in migrated files" },
+  { name: "components.test.mjs", covers: "Redesign components: every shared component renders with its accessible name, contrast and Brand Guide rule" },
 ];
 
 /* ---------------------------------------------------------------- utilities */
