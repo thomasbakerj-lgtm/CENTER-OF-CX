@@ -1,22 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import IndustryPage from "./src/lib/IndustryPage.jsx";
 import { claimIds } from "./src/lib/claims.js";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
-const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-
-function useInView(t=.1){const ref=useRef(null);const[v,setV]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){setV(true);o.unobserve(el)}},{threshold:t});o.observe(el);return()=>o.disconnect()},[]);return[ref,v]}
-function FadeIn({children,delay=0,style={}}){const[ref,v]=useInView();return<div ref={ref} style={{...style,opacity:v?1:0,transform:v?"translateY(0)":"translateY(22px)",transition:`opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`}}>{children}</div>}
-function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
-
-function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
-const links=[{name:"Platforms & Tech",href:"/platforms-and-tech"},{name:"How to Choose",href:"/how-to-choose"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"Advisory",href:"/advisory"}];
-return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.stat-grid{grid-template-columns:1fr 1fr!important}.sub-grid{grid-template-columns:1fr!important}}`}</style>
-</>)}
-
+/* Telecom industry page: the content, as data. IndustryPage renders it (redesign Phase 8 part 2); every claim token still
+   renders through ClaimText and is listed once through ClaimSources. */
 export default function TelecomVertical() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-
   const subVerticals = [
     { name: "Mobile / Wireless Carriers", slug: "mobile-wireless", desc: "Plan changes, billing disputes, device support, network coverage complaints, and retention. High volume in a market where switching carriers is easy.", contact: "Extreme volume, churn-driven" },
     { name: "Broadband / ISP", slug: "broadband-isp", desc: "Service activation, speed complaints, outage management, billing, and technical troubleshooting. Calls usually start with a service problem.", contact: "High volume, high frustration" },
@@ -69,107 +56,23 @@ export default function TelecomVertical() {
     "Complex billing disputes require system expertise that generic BPO training can't replicate",
   ];
 
+
   return (
-    <div><Nav />
-      <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 80px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-        <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-          <FadeIn><div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}><a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><a href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Industries</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span><span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Telecommunications</span></div></FadeIn>
-          <FadeIn delay={0.05}>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>Telecommunications{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span></h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>Telecom runs on support, retention, billing, service activation, and churn management. Simon-Kucher puts global telecom NPS below every other industry it compares, and telecom CX runs under structural pressures (billing complexity, network dependency, easy switching) that chatbot deflection alone does not fix. This is the vertical-specific intelligence layer: benchmarks, failure modes, technology stack mapping, and vendor recommendations built for carriers, ISPs, and enterprise communications.</p>
-          </FadeIn>
-        </div>
-      </section>
-
-      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
-          {stats.map((s, i) => (<div key={i} style={{ textAlign: "center", padding: "12px 8px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}><ClaimText text={s.n} /></div><div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}><ClaimText text={s.label} /></div>{s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}</div>))}
-        </div>
-      </FadeIn></div></section>)}
-
-      <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
-        <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Six distinct telecom service models.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>A national wireless carrier with tens of millions of subscribers and a managed service provider with a few hundred enterprise clients have fundamentally different CX requirements. The technology, staffing, and retention models diverge completely.</p></FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 14 }} className="sub-grid">
-          {subVerticals.map((sv, i) => (<FadeIn key={i} delay={i * 0.04}><a href={`/industries/telecom/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }} onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC} onMouseOut={e => e.currentTarget.style.borderColor = BORDER}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p><span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span><div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div></a></FadeIn>))}
-        </div>
-      </div></section>
-
-      <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
-        <FadeIn><span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>What Breaks</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five failure modes unique to telecom CX.</h2></FadeIn>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {failureModes.map((fm, i) => (<FadeIn key={i} delay={i * 0.04}><div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}><h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}><ClaimText text={fm.desc} /></p></div></FadeIn>))}
-        </div>
-      </div></section>
-
-      <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}><div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-        <FadeIn><span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Technology Stack</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Seven orchestration layers, mapped for telecom.</h2>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Layer 1 (Data Access) and Layer 2 (Workflow Execution) carry disproportionate weight because telecom BSS/OSS complexity is a frequent root cause of CX failures. The billing system, the network inventory, and the order management system determine what the agent can actually do, not just see.</p></FadeIn>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {stackLayers.map((sl, i) => (<FadeIn key={i} delay={i * 0.03}><div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "20px 22px", display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}><div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: LIGHT }}>{sl.layer}</span></div><div style={{ flex: 1, minWidth: 250 }}><h3 style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>{sl.name}</h3><p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 8px" }}>{sl.note}</p><div style={{ fontSize: 11, color: LIGHT }}>Key vendors: {sl.vendors}</div></div></div></FadeIn>))}
-        </div>
-      </div></section>
-
-      <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
-        <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How telecom compares.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Two published figures cover telecom: SQM Group's first contact resolution for telco call centers, measured by post-call survey and below its all-industry average, and Simon-Kucher's global telecom NPS, below the other industries it compares. No free public source reports the other metrics for telecom; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.</p></FadeIn>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}><thead><tr style={{ borderBottom: `2px solid ${NAVY}` }}>{["Metric", "Telecom", "All Industries", "What Drives It"].map(h => (<th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>))}</tr></thead>
-            <tbody>{benchmarks.map((b, i) => (<tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}><td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td><td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.avg} /></td><td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td><td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td></tr>))}</tbody>
-          </table>
-        </div>
-        <FadeIn delay={0.1}><div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}><a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your own cost per contact →</a><a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your telecom TCO →</a></div></FadeIn>
-        <div id="sources" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h3>
-          <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark.</p>
-          <ClaimSources ids={claimIds([stats, benchmarks, failureModes, bpoRisks])} color={SLATE} accent={ELECTRIC} />
-        </div>
-      </div></section>
-
-      <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}>
-        <FadeIn><span style={{ color: AMBER, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>The BPO Question</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How outsourcing fits in telecom CX.</h2></FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 24 }} className="sub-grid">
-          <FadeIn delay={0.04}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{["Tier 1 billing inquiries and plan change requests: high volume, scriptable","Device activation and basic setup support","Outbound collections and payment arrangement calls","After-hours coverage for service disruption reporting","Seasonal scaling for product launches and promotional campaigns"].map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>))}</div></div></FadeIn>
-          <FadeIn delay={0.08}><div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}><h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{bpoRisks.map((item, i) => (<p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}><ClaimText text={item} /></p>))}</div></div></FadeIn>
-        </div>
-      </div></section>
-
-      <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}>
-        <FadeIn><span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Vendor Intelligence</span>
-          <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms often evaluated for telecom.</h2></FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 14, marginTop: 24 }} className="sub-grid">
-          {[
-            { name: "Genesys", why: "Routing for high-volume telecom operations. Predictive routing separates billing, tech support, sales, and retention.", href: "/vendors/genesys" },
-            { name: "NICE CXone", why: "WEM for large agent operations. Churn prediction and retention analytics. Strong compliance controls for CPNI.", href: "/vendors/nice-cxone" },
-            { name: "Cisco", why: "Network infrastructure heritage creates natural fit for telecom. UCaaS/CCaaS convergence. Strong in carriers with existing Cisco network equipment.", href: "/vendors/cisco" },
-            { name: "Avaya", why: "Long-standing installed base in telecom, with many carriers running Avaya on premises. Cloud migration path via Avaya Experience Platform.", href: "/vendors" },
-            { name: "Five9", why: "Strong mid-market fit for MVNOs and regional carriers. Reliable CCaaS with practical AI and CRM integration.", href: "/vendors/five9" },
-            { name: "Amazon Connect", why: "Pay-per-use pricing attractive for carriers with variable volume. AWS ecosystem integration. Suits carriers with cloud engineering depth.", href: "/vendors/amazon-connect" },
-          ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (<FadeIn key={i} delay={i * 0.04}><a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }} onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}><h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3></div><p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p></a></FadeIn>))}
-        </div>
-        <FadeIn delay={0.2}><div style={{ textAlign: "center", marginTop: 24 }}><a href="/vendors/ccaas" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>See all CCaaS vendors →</a></div></FadeIn>
-      </div></section>
-
-      <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
-        <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating CX technology for telecom?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>BSS/OSS integration, churn prediction, and retention routing change which platforms are viable. We can help you build a shortlist weighted for your sub-vertical: wireless carrier, broadband, enterprise, or managed services.</p>
-            <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Telecom CX Briefing</a>
-              <a href="/tools/cx-maturity" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Take the CX Maturity Assessment →</a>
-            </div>
-          </div>
-        </div>
-      </FadeIn></div></section>
-
-      
-    </div>
+    <IndustryPage
+      slug="telecom"
+      name="Telecommunications"
+      intro={"Telecom runs on support, retention, billing, service activation, and churn management. Simon-Kucher puts global telecom NPS below every other industry it compares, and telecom CX runs under structural pressures (billing complexity, network dependency, easy switching) that chatbot deflection alone does not fix. This is the vertical-specific intelligence layer: benchmarks, failure modes, technology stack mapping, and vendor recommendations built for carriers, ISPs, and enterprise communications."}
+      stats={stats}
+      segments={{ title: "Six distinct telecom service models.", intro: "A national wireless carrier with tens of millions of subscribers and a managed service provider with a few hundred enterprise clients have fundamentally different CX requirements. The technology, staffing, and retention models diverge completely.", items: subVerticals }}
+      failures={{ title: "Five failure modes unique to telecom CX.", items: failureModes }}
+      stack={{ title: "Seven orchestration layers, mapped for telecom.", intro: "Layer 1 (Data Access) and Layer 2 (Workflow Execution) carry disproportionate weight because telecom BSS/OSS complexity is a frequent root cause of CX failures. The billing system, the network inventory, and the order management system determine what the agent can actually do, not just see.", items: stackLayers }}
+      benchmarks={{ title: "How telecom compares.", intro: "Two published figures cover telecom: SQM Group's first contact resolution for telco call centers, measured by post-call survey and below its all-industry average, and Simon-Kucher's global telecom NPS, below the other industries it compares. No free public source reports the other metrics for telecom; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.", columns: ["Telecom", "All Industries"], keys: ["avg", "cross"], rows: benchmarks,
+        links: [["/tools/cost-per-contact", "Price your own cost per contact"], ["/tools/tco-calculator", "Model your telecom TCO"]] }}
+      bpo={{ title: "How outsourcing fits in telecom CX.", value: ["Tier 1 billing inquiries and plan change requests: high volume, scriptable","Device activation and basic setup support","Outbound collections and payment arrangement calls","After-hours coverage for service disruption reporting","Seasonal scaling for product launches and promotional campaigns"], risk: bpoRisks }}
+      vendors={{ items: [{ name: "Genesys", href: "/vendors/genesys" }, { name: "NICE CXone", href: "/vendors/nice-cxone" }, { name: "Cisco", href: "/vendors/cisco" }, { name: "Avaya", href: "/vendors" }, { name: "Five9", href: "/vendors/five9" }, { name: "Amazon Connect", href: "/vendors/amazon-connect" }] }}
+      sources={{ ids: claimIds([stats, benchmarks, failureModes, bpoRisks]), note: "Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark." }}
+      cta={{ title: "Evaluating CX technology for telecom?", text: "BSS/OSS integration, churn prediction, and retention routing change which platforms are viable. We can help you build a shortlist weighted for your sub-vertical: wireless carrier, broadband, enterprise, or managed services.",
+        links: [["/contact", "Request a Telecom CX Briefing"], ["/tools/cx-maturity", "Take the CX Maturity Assessment"]] }}
+    />
   );
 }
