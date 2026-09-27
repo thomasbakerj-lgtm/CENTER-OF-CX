@@ -259,7 +259,7 @@ function Principles() {
           ].map((p, i) => (
             <FadeIn key={i} delay={i * 0.08}>
               <div>
-                <span style={{ fontFamily: FONT, fontSize: 32, color: `${ELECTRIC}30` }}>{p.n}</span>
+                <span style={{ fontFamily: FONT, fontSize: 32, color: ELECTRIC }}>{p.n}</span>
                 <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 400, color: NAVY, margin: "4px 0 8px" }}>{p.t}</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, margin: 0 }}>{p.d}</p>
               </div>

@@ -115,7 +115,7 @@ export default function IndustryPage({ slug, name, accent = "CX Intelligence", i
         {benchmarks && (
           <section aria-labelledby="benchmarks" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <Head id="benchmarks" kicker="Benchmarks" title={benchmarks.title} intro={benchmarks.intro} />
-            <div style={{ overflowX: "auto", border: `1px solid ${K.hair}`, borderRadius: RADIUS.card }}>
+            <div role="region" aria-label="Benchmark table, scrolls sideways" tabIndex={0} style={{ overflowX: "auto", border: `1px solid ${K.hair}`, borderRadius: RADIUS.card }}>
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 560 }}>
                 <thead><tr>{["Metric", ...benchmarks.columns, "What drives it"].map((h) => <th key={h} scope="col" style={{ ...K.kicker, textAlign: "left", padding: "12px 14px", borderBottom: `1px solid ${K.firm}` }}>{h}</th>)}</tr></thead>
                 <tbody>{benchmarks.rows.map((b, i) => (

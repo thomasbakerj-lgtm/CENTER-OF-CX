@@ -8,9 +8,10 @@
 // Placement: `fixed` keeps the header over the page, for pages whose first section already
 // clears a fixed bar; the default sits in the flow and sticks to the top as the page scrolls.
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_SANS, alpha, LINE } from "./tokens.js";
 import { Icon } from "./Icon.jsx";
+import { editionFor, todayUtc } from "./editions.js";
 
 export const HEADER_HEIGHT = 64;
 
@@ -34,14 +35,18 @@ export const FOOTER = [
 
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
 
-export function Mark({ size = 30 }) {
+/** The mark. `edition` (src/lib/editions.js) colours the three arcs and the X on its dates; without one, the everyday
+ *  mist arcs. */
+export function Mark({ size = 30, edition = null }) {
+  const arc = (i, fade) => (edition ? { stroke: edition.arcs[i], opacity: 1 } : { stroke: HOUSE.mist, opacity: fade });
+  const x = edition ? edition.x : HOUSE.sky;
   return (
     <svg width={size} height={size} viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
-      <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={HOUSE.mist} strokeWidth="3" strokeLinecap="round" opacity="0.45" />
-      <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={HOUSE.mist} strokeWidth="4.5" strokeLinecap="round" opacity="0.7" />
-      <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={HOUSE.mist} strokeWidth="6" strokeLinecap="round" />
-      <line x1="-13" y1="-13" x2="13" y2="13" stroke={HOUSE.sky} strokeWidth="7" strokeLinecap="round" />
-      <line x1="13" y1="-13" x2="-13" y2="13" stroke={HOUSE.sky} strokeWidth="7" strokeLinecap="round" />
+      <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" {...arc(0, 0.45)} strokeWidth="3" strokeLinecap="round" />
+      <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" {...arc(1, 0.7)} strokeWidth="4.5" strokeLinecap="round" />
+      <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" {...arc(2, 1)} strokeWidth="6" strokeLinecap="round" />
+      <line x1="-13" y1="-13" x2="13" y2="13" stroke={x} strokeWidth="7" strokeLinecap="round" />
+      <line x1="13" y1="-13" x2="-13" y2="13" stroke={x} strokeWidth="7" strokeLinecap="round" />
     </svg>
   );
 }
@@ -57,6 +62,9 @@ const CSS = `body{margin:0}.cx-nav{display:flex}.cx-menu-btn{display:none}
 /** The header. `active` is a pillar id; `fixed` places it over the page. */
 export function SiteHeader({ active = null, fixed = false }) {
   const [open, setOpen] = useState(false);
+  /* A special edition switches in after the page loads, so the prerendered header and the first render always match. */
+  const [edition, setEdition] = useState(null);
+  useEffect(() => { try { setEdition(editionFor(todayUtc())); } catch { setEdition(null); } }, []);
   const place = fixed ? { position: "fixed", top: 0, left: 0, right: 0 } : { position: "sticky", top: 0 };
   const item = (n, mobile) => {
     const on = n.id === active;
@@ -71,8 +79,8 @@ export function SiteHeader({ active = null, fixed = false }) {
     <header style={{ ...place, zIndex: 1000, background: HOUSE.ink, borderBottom: `1px solid ${hair}`, fontFamily: FONT_SANS }}>
       <style>{CSS}</style>
       <div style={{ maxWidth: 1280, margin: "0 auto", height: HEADER_HEIGHT, padding: "0 20px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 28 }}>
-        <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: HOUSE.mist, minHeight: TOUCH }}>
-          <Mark size={30} /><span style={{ fontSize: 16, fontWeight: 600, whiteSpace: "nowrap" }}>The Center of CX</span>
+        <a href="/" title={edition ? `${edition.name}: ${edition.why}` : undefined} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: HOUSE.mist, minHeight: TOUCH }}>
+          <Mark size={30} edition={edition} /><span style={{ fontSize: 16, fontWeight: 600, whiteSpace: "nowrap" }}>The Center of CX</span>
         </a>
         <nav aria-label="Primary" className="cx-nav" style={{ alignItems: "center", gap: 22 }}>{NAV.map((n) => item(n, false))}</nav>
         <div style={{ flexGrow: 1 }} />

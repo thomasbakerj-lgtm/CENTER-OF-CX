@@ -117,7 +117,7 @@ export default function ScheduleAdherenceCalculator() {
 
       <section aria-label="Each point of adherence" style={K.panel}>
         <h2 style={K.h2}>Each point of adherence</h2>
-        <div style={{ overflowX: "auto" }}>
+        <div role="region" aria-label="Adherence table, scrolls sideways" tabIndex={0} style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", ...K.small, color: K.body.color, ...K.num }}>
             <thead>
               <tr style={{ ...K.kicker, letterSpacing: "0.08em" }}>

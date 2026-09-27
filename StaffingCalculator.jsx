@@ -750,7 +750,7 @@ export default function StaffingCalculator() {
           <span aria-hidden="true" style={{ fontSize: 18, color: HOUSE.muted }}>{showBench ? "-" : "+"}</span>
         </button>
         {showBench && (
-          <div style={{ marginTop: 12, overflowX: "auto" }}>
+          <div role="region" aria-label="Staffing table, scrolls sideways" tabIndex={0} style={{ marginTop: 12, overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, color: HOUSE.body, ...NUM }}>
               <thead><tr style={{ textAlign: "left", ...kicker }}>
                 <th style={{ padding: "6px 8px 6px 0" }}>Industry</th><th style={{ padding: 6 }}>AHT</th><th style={{ padding: 6 }}>Shrinkage</th><th style={{ padding: 6 }}>SL Target</th><th style={{ padding: 6 }}>Calls/agent/hr*</th>

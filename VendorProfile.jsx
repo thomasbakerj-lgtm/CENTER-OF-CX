@@ -1028,8 +1028,8 @@ export default function VendorProfile() {
                   <input type="hidden" name="_subject" value={`Community Review: ${v.name}, Center of CX`} />
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 6, fontFamily: FONT }}>Your overall score</label>
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <span id="rv-score" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 6, fontFamily: FONT }}>Your overall score</span>
+                    <div role="radiogroup" aria-labelledby="rv-score" style={{ display: "flex", gap: 8 }}>
                       {[1,2,3,4,5].map(num => (
                         <label key={num} style={{ flex: 1 }}>
                           <input type="radio" name="score" value={num} style={{ display: "none" }} />
@@ -1045,8 +1045,8 @@ export default function VendorProfile() {
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Your role</label>
-                      <select name="role" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
+                      <label htmlFor="rv-role" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Your role</label>
+                      <select id="rv-role" name="role" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
                         <option value="" disabled selected>Select</option>
                         <option value="CX Leader / VP">CX Leader / VP</option>
                         <option value="Contact Center Director">Contact Center Director</option>
@@ -1058,8 +1058,8 @@ export default function VendorProfile() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Company size</label>
-                      <select name="company_size" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
+                      <label htmlFor="rv-company_size" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Company size</label>
+                      <select id="rv-company_size" name="company_size" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
                         <option value="" disabled selected>Select</option>
                         <option value="Under 50 agents">Under 50 agents</option>
                         <option value="50 to 200 agents">50 to 200 agents</option>
@@ -1071,8 +1071,8 @@ export default function VendorProfile() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>How long have you used {v.name}?</label>
-                    <select name="tenure" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
+                    <label htmlFor="rv-tenure" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>How long have you used {v.name}?</label>
+                    <select id="rv-tenure" name="tenure" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
                       <option value="" disabled selected>Select</option>
                       <option value="Less than 6 months">Less than 6 months</option>
                       <option value="6 to 12 months">6 to 12 months</option>
@@ -1084,18 +1084,18 @@ export default function VendorProfile() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>What works well?</label>
-                    <textarea name="what_works" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, resize: "vertical" }} placeholder="Specific capabilities, support quality, implementation experience, daily operations..." />
+                    <label htmlFor="rv-what_works" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>What works well?</label>
+                    <textarea id="rv-what_works" name="what_works" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, resize: "vertical" }} placeholder="Specific capabilities, support quality, implementation experience, daily operations..." />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>What would you change?</label>
-                    <textarea name="what_to_change" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, resize: "vertical" }} placeholder="Gaps, frustrations, missing features, support issues, pricing concerns..." />
+                    <label htmlFor="rv-what_to_change" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>What would you change?</label>
+                    <textarea id="rv-what_to_change" name="what_to_change" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, resize: "vertical" }} placeholder="Gaps, frustrations, missing features, support issues, pricing concerns..." />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Would you recommend {v.name} to a peer?</label>
-                    <div style={{ display: "flex", gap: 10 }}>
+                    <span id="rv-recommend" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Would you recommend {v.name} to a peer?</span>
+                    <div role="radiogroup" aria-labelledby="rv-recommend" style={{ display: "flex", gap: 10 }}>
                       {["Yes", "With caveats", "No"].map(opt => (
                         <label key={opt} style={{ flex: 1 }}>
                           <input type="radio" name="recommend" value={opt} style={{ display: "none" }} />
@@ -1109,13 +1109,13 @@ export default function VendorProfile() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional, displayed as first name + last initial)</span></label>
-                    <input name="reviewer_name" style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY }} placeholder="Jane S." />
+                    <label htmlFor="rv-reviewer_name" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional, displayed as first name + last initial)</span></label>
+                    <input id="rv-reviewer_name" name="reviewer_name" style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY }} placeholder="Jane S." />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Email <span style={{ fontWeight: 400, color: MUTED }}>(private, for verification only)</span></label>
-                    <input name="email" type="email" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY }} placeholder="jane@company.com" />
+                    <label htmlFor="rv-email" style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Email <span style={{ fontWeight: 400, color: MUTED }}>(private, for verification only)</span></label>
+                    <input id="rv-email" name="email" type="email" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY }} placeholder="jane@company.com" />
                   </div>
 
                   <button

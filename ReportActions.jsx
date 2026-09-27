@@ -498,10 +498,10 @@ export default function ReportActions({
             </div>
           ) : (
             <>
-              <label style={labelStyle}>Also email me a copy (optional)</label>
+              <label htmlFor="ra-copy-email" style={labelStyle}>Also email me a copy (optional)</label>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
-                  aria-label="Email me a copy" type="email" value={copyEmail} placeholder="you@company.com" autoComplete="email"
+                  id="ra-copy-email" aria-label="Email me a copy" type="email" value={copyEmail} placeholder="you@company.com" autoComplete="email"
                   onChange={(e) => setCopyEmail(e.target.value)}
                   style={{ ...inputStyle(false), flex: 1 }}
                 />

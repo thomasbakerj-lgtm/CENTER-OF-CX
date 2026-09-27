@@ -133,23 +133,23 @@ function SubscribePage() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
                   <div>
-                    <label style={{ ...labelStyle, color: HOUSE.body }}>First name</label>
-                    <input name="first_name" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Jane" />
+                    <label htmlFor="sub-first_name" style={{ ...labelStyle, color: HOUSE.body }}>First name</label>
+                    <input id="sub-first_name" name="first_name" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Jane" />
                   </div>
                   <div>
-                    <label style={{ ...labelStyle, color: HOUSE.body }}>Last name</label>
-                    <input name="last_name" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Smith" />
+                    <label htmlFor="sub-last_name" style={{ ...labelStyle, color: HOUSE.body }}>Last name</label>
+                    <input id="sub-last_name" name="last_name" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Smith" />
                   </div>
                 </div>
 
                 <div style={{ marginBottom: 14 }}>
-                  <label style={{ ...labelStyle, color: HOUSE.body }}>Company</label>
-                  <input name="company" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Acme Corp" />
+                  <label htmlFor="sub-company" style={{ ...labelStyle, color: HOUSE.body }}>Company</label>
+                  <input id="sub-company" name="company" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Acme Corp" />
                 </div>
 
                 <div style={{ marginBottom: 24 }}>
-                  <label style={{ ...labelStyle, color: HOUSE.body }}>Work email</label>
-                  <input name="email" type="email" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="jane@company.com" />
+                  <label htmlFor="sub-email" style={{ ...labelStyle, color: HOUSE.body }}>Work email</label>
+                  <input id="sub-email" name="email" type="email" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="jane@company.com" />
                 </div>
 
                 <button

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import ReportActions from "./ReportActions";
 import InfoDot from "./src/lib/InfoDot";
 import NumField from "./src/lib/NumField";
@@ -42,10 +42,11 @@ const DEFS = {
 
 
 function Sel({ label, value, onChange, options, info, infoTitle, align, disabled, note }) {
+  const id = useId();
   return (
     <div>
-      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: disabled ? HOUSE.muted : HOUSE.mist, marginBottom: 4 }}>{label}{info && <InfoDot text={info} title={infoTitle} align={align} />}</label>
-      <select className="fcr-sel" aria-label={typeof label === "string" ? label : undefined} value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} style={{ width: "100%", minHeight: TOUCH, padding: "0 12px", fontSize: 15, fontWeight: 600, color: disabled ? HOUSE.muted : HOUSE.mist, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, background: HOUSE.navy, outline: "none", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.7 : 1, fontFamily: FONT }}>
+      <label htmlFor={id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: disabled ? HOUSE.muted : HOUSE.mist, marginBottom: 4 }}>{label}{info && <InfoDot text={info} title={infoTitle} align={align} />}</label>
+      <select id={id} className="fcr-sel" aria-label={typeof label === "string" ? label : undefined} value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} style={{ width: "100%", minHeight: TOUCH, padding: "0 12px", fontSize: 15, fontWeight: 600, color: disabled ? HOUSE.muted : HOUSE.mist, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, background: HOUSE.navy, outline: "none", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.7 : 1, fontFamily: FONT }}>
         {options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
       </select>
       {note && <p style={{ fontSize: 13, color: HOUSE.muted, lineHeight: 1.45, margin: "6px 0 0" }}>{note}</p>}

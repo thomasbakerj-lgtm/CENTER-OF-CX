@@ -749,14 +749,14 @@ export default function AIDeflectionRealityCheck() {
         </div>
         <div style={{ ...grid(240), marginTop: 16 }}>
           <div>
-            <label style={lbl}>Where does the resolution rate come from<InfoDot text={DEFS.evidence.text} title={DEFS.evidence.title} /></label>
-            <select aria-label="Evidence for the containment rate" value={s.evidence} onChange={(e) => set("evidence", e.target.value)} className="aid-sel" style={sel}>
+            <label htmlFor="aid-evidence" style={lbl}>Where does the resolution rate come from<InfoDot text={DEFS.evidence.text} title={DEFS.evidence.title} /></label>
+            <select id="aid-evidence" aria-label="Evidence for the containment rate" value={s.evidence} onChange={(e) => set("evidence", e.target.value)} className="aid-sel" style={sel}>
               {EVIDENCE_ORDER.map((k) => <option key={k} value={k}>{EVIDENCE[k].label}</option>)}
             </select>
           </div>
           <div>
-            <label style={lbl}>Capacity action<InfoDot text={DEFS.mech.text} title={DEFS.mech.title} align="right" /></label>
-            <select aria-label="Realization mechanism" value={s.mech} onChange={(e) => set("mech", e.target.value)} className="aid-sel" style={sel}>
+            <label htmlFor="aid-mech" style={lbl}>Capacity action<InfoDot text={DEFS.mech.text} title={DEFS.mech.title} align="right" /></label>
+            <select id="aid-mech" aria-label="Realization mechanism" value={s.mech} onChange={(e) => set("mech", e.target.value)} className="aid-sel" style={sel}>
               {MECH_ORDER.map((k) => <option key={k} value={k}>{MECH[k].label}{k === "none" ? " ($0)" : "  (" + Math.round(MECH[k].f * 100) + "%)"}</option>)}
             </select>
           </div>

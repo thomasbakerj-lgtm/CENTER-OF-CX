@@ -165,6 +165,11 @@ made just before the phases that build them, so nothing waits on pages that ship
   moved to a file, its invented figures labelled); the not found, loading and route error states on tokens; tool pages at
   WCAG AA (colourless grade chips, paper tokens in ReportActions, onFill on filled numbers and choices, InfoDot on
   tokens); dead scenario.js removed. Next: performance, accessibility audit, special edition switch, measurement review.
+- Part 2 done (S24, 27 Sep 2026): performance budget (`scripts/perf-check.mjs`, nightly on production: LCP and FCP within
+  2.5 s, CLS under 0.1, script within 300 KB compressed on a throttled phone; all ten page kinds within it); axe-core audit of
+  every sitemap page at 1440 and 390 with its findings fixed and `a11y.test.mjs` gating the patterns; special edition switch
+  (`src/lib/editions.js`, header only, switches after load; schedule empty until TB sets dates). Open: the measurement review
+  needs TB's PostHog numbers. **Phase 11 complete** once that review is done.
 
 ## Running alongside
 

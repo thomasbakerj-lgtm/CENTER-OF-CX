@@ -135,7 +135,7 @@ export default function OccupancyRiskSimulator() {
 
       <section aria-label="The occupancy ladder" style={K.panel}>
         <h2 style={K.h2}>The occupancy ladder</h2>
-        <div style={{ overflowX: "auto" }}>
+        <div role="region" aria-label="Occupancy table, scrolls sideways" tabIndex={0} style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", ...K.small, color: K.body.color, ...K.num }}>
             <thead><tr style={{ ...K.kicker, textAlign: "left" }}>
               {["Occupancy", "Agents", "Idle a hour", "Band", "Attrition", "Turnover a year"].map((h) => <th key={h} scope="col" style={{ padding: "6px 8px 6px 0", fontWeight: 500 }}>{h}</th>)}

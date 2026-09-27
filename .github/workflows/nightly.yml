@@ -26,3 +26,7 @@ jobs:
           npx playwright-core install --with-deps chromium
       - name: Live check against production
         run: node scripts/live-check.mjs https://www.contactcentercx.com
+      # The performance budget (redesign Phase 11): paint, layout shift and script weight on a throttled phone.
+      - name: Performance budget against production
+        if: always()
+        run: node scripts/perf-check.mjs https://www.contactcentercx.com
