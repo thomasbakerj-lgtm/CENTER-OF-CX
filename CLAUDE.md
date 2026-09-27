@@ -949,6 +949,24 @@ dashboard, the 12-phase growth program.
    wraps below). Gates: `toolframe.test.mjs` (22), `journey.test.mjs` F (route laws on every tool and all 80 engine
    choices), shell rule allows a breadcrumb nav. Suite 24,620; sweep of all 426 pages clean; live check 254 of 254. No
    tool moved yet; Phase 6 moves them onto the frame. Next: Phase 5, the homepage.
+51. S24, redesign session 11. PR #43 (tool frame) merged by TB's instruction (cdced89). Phase 5, the homepage (TB: go), held
+   from merge until TB supplies the PostHog first-to-second-tool baseline or waives it. `Homepage.jsx` to the approved
+   design: hero "Diagnose before you buy." beside the stack; five doors; each door's question with one route card; the
+   evidence mark explained; three proof tiles; the four newest method changes. `src/lib/home.js` derives every figure:
+   tool, profile, category and segment counts from `seo.js` (new `SEGMENT_COUNT`, 61, equal to the sitemap), CCaaS
+   researched from `researchStatus.js`, methods from `methodVersions.js`, route steps from the journey graph, industry FCR
+   from the claims registry with its source (Education, Manufacturing and Travel show no public benchmark), the stack's
+   layer to tool and category map from Platform Decision's published model, what changed from the changelog. Departures
+   from the design, each because the design would have claimed what the data cannot: no minutes on routes (never
+   measured; a route says how many tools), vendor steps describe today's profiles (no findings or proof tests until Phase
+   7), no search box (none exists), no contributor invitation (D3 open). Phone: no stack, step 2 in the page. The homepage
+   header now sits in the flow. Taxonomy 1.1 frozen (`TAXONOMY_VERSION` 1.1, `track.test.mjs` Q, `docs/MEASUREMENT.md`):
+   seven events and nine properties added, page type `category`; the homepage fires door, route, start and layer events,
+   and `report_export` carries `audience`. Found by the privacy harness: a global `vendor` key would have let a tool leak
+   the reader's own current vendor, so every 1.1 key travels only on the events that own it (`EVENT_SCOPED`, B7 and B8).
+   `Button` now passes `onClick` on links; `RouteCard` takes `onStart` and a figure slot. Gates: `home.test.mjs` (33),
+   seo E surfaces and J13 retargeted to `home.js`, shell and tool frame pins updated. Suite 24,692; 426-page sweep clean;
+   live check 254 of 254.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

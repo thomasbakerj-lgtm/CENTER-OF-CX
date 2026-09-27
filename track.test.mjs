@@ -105,8 +105,21 @@ const full = buildPayload(EV.TOOL_COMPLETE, {
   grade: "Directional", bound_axis: "evidence+completeness", severity: "high", real: true, depth: 3,
   via_rail: true, repeat: true, page_type: "tool", utm_source: "linkedin", utm_medium: "social", utm_campaign: "2026-10-healthcare", ref: "linkedin.com",
 }, CTX);
+const OWNED = { pillar: ["door_select", "vendors"], route: ["route_select", "cost"], layer: ["layer_select", "l4"], surface: ["layer_select", "home"],
+  vendor: ["vendor_view", "five9"], category: ["vendor_view", "ccaas"], status: ["vendor_view", "complete"], action: ["vendor_action", "request"], audience: ["report_export", "finance"] };
 for (const k of ALLOWED_PROP_KEYS) {
-  ok(`B6  allowed key "${k}" survives when valid`, Object.prototype.hasOwnProperty.call(full.properties, k));
+  const props = OWNED[k] ? buildPayload(OWNED[k][0], { [k]: OWNED[k][1] }, CTX).properties : full.properties;
+  ok(`B6  allowed key "${k}" survives when valid${OWNED[k] ? " on its own event" : ""}`, Object.prototype.hasOwnProperty.call(props, k));
+}
+{
+  const T = await import("./src/lib/track.js");
+  const leaks = [];
+  for (const [k, evs] of Object.entries(T.EVENT_SCOPED)) for (const e of Object.values(EV)) {
+    const got = Object.prototype.hasOwnProperty.call(buildPayload(e, { [k]: OWNED[k][1] }, CTX).properties, k);
+    if (got !== evs.includes(e)) leaks.push(`${k} on ${e}`);
+  }
+  ok(`B7  a 1.1 key travels only on the events that own it [${leaks.slice(0, 4).join(", ")}]`, leaks.length === 0);
+  ok("B8  the reader's own vendor on a tool event never leaves, even as a slug", !("vendor" in buildPayload(EV.TOOL_COMPLETE, { vendor: "genesys" }, CTX).properties));
 }
 
 /* The person profile must never be built. Identified events would create a
@@ -542,16 +555,18 @@ section("M. A scenario link cannot reach an object's prototype or plant a key");
 /* ------------------------------------------ P. frozen taxonomy and landing */
 /* P2 task 7: the names PostHog funnels are built on. Changing one means a new TAXONOMY_VERSION, a line in
    docs/MEASUREMENT.md, and these pins; a silent rename would break every funnel that uses it. */
-section("P. The taxonomy is frozen at 1.0, and the landing event reads the channel");
+section("P. The taxonomy is frozen (1.1, which kept every 1.0 name), and the landing event reads the channel");
 {
-  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.0");
+  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.1");
   eq("P2 event names are frozen", JSON.stringify(EV), JSON.stringify({
     SESSION_LANDING: "session_landing", TOOL_VIEW: "tool_view", TOOL_COMPLETE: "tool_complete", REPORT_EXPORT: "report_export",
     REPORT_COPY: "report_copy_requested", REVIEW_OPENED: "review_form_opened", REVIEW_SUBMIT: "expert_read_submit",
-    NEXT_STEP: "next_step_click", SCENARIO_SHARE: "scenario_shared", SCENARIO_LOAD: "scenario_loaded" }));
-  eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref"]));
+    NEXT_STEP: "next_step_click", SCENARIO_SHARE: "scenario_shared", SCENARIO_LOAD: "scenario_loaded",
+    DOOR_SELECT: "door_select", ROUTE_SELECT: "route_select", ROUTE_START: "route_start", STOP_HERE: "stop_here",
+    LAYER_SELECT: "layer_select", VENDOR_VIEW: "vendor_view", VENDOR_ACTION: "vendor_action" }));
+  eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref", "pillar", "route", "layer", "surface", "vendor", "category", "status", "action", "audience"]));
   const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
-  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.0"));
+  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.1"));
 
   const L = landingProps("/tools/staffing-calculator", "?utm_source=LinkedIn&utm_medium=social&utm_campaign=2026 10 Healthcare&s=abc", "https://www.linkedin.com/feed/update/123?x=1", "www.contactcentercx.com");
   const sent = buildPayload(EV.SESSION_LANDING, L, CTX).properties;
@@ -562,9 +577,28 @@ section("P. The taxonomy is frozen at 1.0, and the landing event reads the chann
   const pasted = buildPayload(EV.SESSION_LANDING, landingProps("/", "?utm_source=jane.doe@example.com&utm_campaign=" + "x".repeat(80), "", "x"), CTX).properties;
   ok("P9 a UTM value that is not a short slug (an address, an overlong value) is dropped", !("utm_source" in pasted) && !("utm_campaign" in pasted));
   ok("P10 no referrer, no ref", !("ref" in landingProps("/", "", "", "x")));
-  eq("P11 page types", ["/", "/tools/tco-calculator", "/methodology/tco-calculator", "/changelog", "/industries/healthcare/health-insurance", "/vendors/genesys", "/research/ccaas-buyer-guide", "/about"].map(pageType).join(","), "home,tool,method,method,industry,vendor,research,other");
+  eq("P11 page types", ["/", "/tools/tco-calculator", "/methodology/tco-calculator", "/changelog", "/industries/healthcare/health-insurance", "/vendors/genesys", "/research/ccaas-buyer-guide", "/about", "/vendors/ccaas", "/vendors/payments/"].map(pageType).join(","), "home,tool,method,method,industry,vendor,research,other,category,category");
   const app = readFileSync("./App.jsx", "utf8");
   ok("P12 the app fires the landing once per session, on mount", /useEffect\(\(\) => \{ trackLanding\(\); \}, \[\]\)/.test(app) && /coc:landed/.test(readFileSync("./src/lib/track.js", "utf8")));
+}
+
+/* Taxonomy 1.1 (redesign Phase 5). Closed vocabularies, the homepage helpers, audience on the export. */
+section("Q. Taxonomy 1.1: new events carry only closed, reader-free values");
+{
+  const T = await import("./src/lib/track.js");
+  const V = await import("./src/lib/verticals.js");
+  eq("Q1 category page slugs equal the category registry", [...T.CATEGORY_SLUGS].sort().join(), Object.keys(V.CATEGORIES).sort().join());
+  eq("Q2 pillars", [...T.PILLAR_IDS].join(), "diagnostics,vendors,industries,research,market-watch");
+  const all = T.sanitizeProps({ pillar: "vendors", route: "starting-list", layer: "l4", surface: "home", vendor: "five9", category: "ccaas", status: "phase1", action: "request", audience: "finance", to: "cost-per-contact" });
+  eq("Q3 valid 1.1 values pass", Object.keys(all).sort().join(), "action,audience,category,layer,pillar,route,status,surface,to,vendor");
+  const bad = T.sanitizeProps({ pillar: "vendor", layer: "l8", surface: "email", status: "scored", action: "buy", audience: "ceo@example.com", route: "Healthcare 69%", vendor: "Five9 Inc." });
+  eq("Q4 anything outside the closed sets, or not a slug, is dropped", Object.keys(bad).join(), "");
+  ok("Q5 no 1.1 property can carry a number or free text", !("route" in T.sanitizeProps({ route: 42 })) && !("vendor" in T.sanitizeProps({ vendor: "x".repeat(80) })));
+  const src = readFileSync("./src/lib/track.js", "utf8");
+  ok("Q6 the homepage helpers send only their named properties", /door: \(pillar\) => track\(EV\.DOOR_SELECT, \{ pillar \}\)/.test(src) && /start: \(pillar, route, to\) => track\(EV\.ROUTE_START, \{ pillar, route, to \}\)/.test(src) && /layer: \(layer, surface = "home"\) => track\(EV\.LAYER_SELECT, \{ layer, surface \}\)/.test(src));
+  ok("Q7 the report export carries the reader choice", /\{ grade, audience \}/.test(readFileSync("./ReportExport.jsx", "utf8")) && /pdf: \(toolId, \{ grade, bound_axis, audience \} = \{\}\)/.test(src));
+  const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
+  ok("Q8 the measurement doc records 1.1 as frozen", /## Taxonomy 1\.1 \(drafted[^\n]*frozen/.test(doc) && !/Status: draft for TB approval/.test(doc));
 }
 
 /* ------------------------------------------------------------------ report */

@@ -1,6 +1,7 @@
 # Measurement: event taxonomy, UTM convention and funnels
 
-Taxonomy version 1.0, frozen 25 September 2026 (P2 task 7, tracker 11-01 to 11-03). Source of truth in code:
+Taxonomy version 1.1, frozen 27 September 2026 (redesign Phase 5; 1.0 frozen 25 September 2026, P2 task 7, tracker
+11-01 to 11-03). The sections below are 1.0; section "Taxonomy 1.1" lists what 1.1 adds. Source of truth in code:
 `src/lib/track.js`; pins in `track.test.mjs` section P. PostHog (free tier) is the event store; Vercel Analytics counts
 page views only.
 
@@ -93,10 +94,13 @@ Create these as saved insights (Product analytics, New insight, Funnels), conver
 - Measurement stays on the PostHog free tier (CLAUDE.md section 10: paid analytics waits until free-tier limits are
   actually hit).
 
-## Taxonomy 1.1, draft (redesign Phase 0, 26 September 2026)
+## Taxonomy 1.1 (drafted in redesign Phase 0; frozen 27 September 2026 at Phase 5 by TB's go)
 
-Status: draft for TB approval. It freezes, with code, validators and pins, at the start of redesign Phase 5 (homepage).
-Nothing in 1.0 is renamed or removed; 1.1 only adds. Every rule above applies unchanged.
+Status: frozen, with code, validators and pins (`track.test.mjs` section Q). Nothing in 1.0 is renamed or removed; 1.1
+only adds. Every rule above applies unchanged. Wired at freeze: the four homepage events (`door_select`,
+`route_select`, `route_start`, `layer_select` with surface `home`) and `audience` on `report_export`. The others fire as
+their surfaces are built: `stop_here` with the tool frame in Phase 6, `vendor_view` and `vendor_action` with the vendor
+profiles. `report_copy_requested` carries no `audience`: the copy request has no reader choice.
 
 New events
 
@@ -123,7 +127,7 @@ New properties, and one added to existing events
 | `category` | Vendor category slug |
 | `status` | `complete` or `phase1`, from `researchStatus.js` |
 | `action` | `test-it`, `rfp`, `brief`, `method`, `peer`, `request` (asks for a not yet researched vendor to be researched; one anonymous count) |
-| `audience` | Added to `report_export` and `report_copy_requested`: `finance`, `operations`, `it`, `executive`, `advisor` |
+| `audience` | Added to `report_export`: `finance`, `operations`, `it`, `executive`, `advisor` |
 | `page_type` | Gains `category` |
 
 New funnels

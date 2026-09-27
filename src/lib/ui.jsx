@@ -33,7 +33,7 @@ export function Button({ kind = "primary", pillar, href, onClick, children, icon
   const body = <>{icon && <Icon name={icon} size={18} />}{children}</>;
   const s = { ...base, ...look, ...style };
   return href
-    ? <a href={href} style={s} aria-disabled={disabled || undefined} {...rest}>{body}</a>
+    ? <a href={href} onClick={onClick} style={s} aria-disabled={disabled || undefined} {...rest}>{body}</a>
     : <button type={type} onClick={onClick} disabled={disabled} style={s} {...rest}>{body}</button>;
 }
 
@@ -360,14 +360,16 @@ export function Door({ pillar, number, line, meta, selected, onSelect }) {
 
 /* --------------------------------------------------------------- Route card */
 
-/** Up to three steps and a possible ending, with one start button. */
-export function RouteCard({ kicker, time, title, steps = [], ending, cta, href, pillar = "diagnostics" }) {
+/** Up to three steps and a possible ending, with one start button. `children` sits under the title (an industry's
+ *  sourced figure); `onStart` fires as the start button is followed. */
+export function RouteCard({ kicker, time, title, steps = [], ending, cta, href, pillar = "diagnostics", onStart, children }) {
   const p = PILLARS[pillar] || PILLARS.diagnostics;
   const shown = steps.slice(0, 3);
   return (
     <section aria-label={`Your route: ${title}`} style={{ padding: 24, borderRadius: RADIUS.card, background: HOUSE.ink, border: `1px solid ${soft}`, display: "flex", flexDirection: "column", gap: 16, boxShadow: `0 24px 60px ${alpha(HOUSE.ink, 0.6)}` }}>
       <span style={{ display: "flex", justifyContent: "space-between" }}><span style={{ ...labelStyle, color: p.onDark }}>{kicker}</span><span style={{ fontSize: 12, color: HOUSE.muted }}>{time}</span></span>
       <span style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.25, color: HOUSE.mist }}>{title}</span>
+      {children}
       <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
         {shown.map((s, i) => (
           <li key={s.name} style={{ display: "grid", gridTemplateColumns: "28px 1fr", gap: 12 }}>
@@ -377,7 +379,7 @@ export function RouteCard({ kicker, time, title, steps = [], ending, cta, href, 
         ))}
       </ol>
       {ending && <span style={{ fontSize: 13, lineHeight: 1.5, color: HOUSE.body, paddingTop: 12, borderTop: `1px solid ${hair}` }}><strong style={{ color: HOUSE.mist, marginRight: 5 }}>Possible endings.</strong>{ending}</span>}
-      <Button kind="pillar" pillar={pillar} href={href} style={{ minHeight: 50 }}>{cta}</Button>
+      <Button kind="pillar" pillar={pillar} href={href} onClick={onStart} style={{ minHeight: 50 }}>{cta}</Button>
     </section>
   );
 }

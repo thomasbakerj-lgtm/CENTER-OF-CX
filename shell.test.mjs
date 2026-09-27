@@ -59,7 +59,7 @@ section("2. The pillar a path belongs to");
   for (const [p, want] of Object.entries(cases)) ok(`${p} is ${want}`, S.pillarFor(p) === want, String(S.pillarFor(p)));
   // The header sits over the pages that were built to clear a fixed bar, and in the flow
   // everywhere else (a sub-vertical page, a floor tool and a method page carry no clearance).
-  const fixedCases = { "/": true, "/vendors": true, "/vendors/ccaas": true, "/vendors/five9": true, "/vendors/ccaas/healthcare": true,
+  const fixedCases = { "/": false, "/vendors": true, "/vendors/ccaas": true, "/vendors/five9": true, "/vendors/ccaas/healthcare": true,
     "/industries": true, "/industries/healthcare": true, "/industries/healthcare/payer": false, "/research/ccaas-migration-costs": true,
     "/tools/tco-calculator": true, "/tools/cost-per-contact": false, "/methodology/staffing": false, "/changelog": false };
   for (const [p, want] of Object.entries(fixedCases)) ok(`${p} header ${want ? "over the page" : "in the flow"}`, S.headerFixed(p) === want);

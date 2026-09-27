@@ -782,6 +782,8 @@ const SUBVERTICAL_NAMES = {
   "utilities/water": "Water & Wastewater",
 };
 /* SUBVERTICAL_NAMES_END */
+/* Industry segments with a page (the homepage states the count). */
+export const SEGMENT_COUNT = Object.keys(SUBVERTICAL_NAMES).length;
 
 /* Hand-written meta descriptions for the anchor sub-vertical of each vertical,
    the first entry in each data file. The template below stays the fallback for

@@ -85,9 +85,11 @@ section("2. The route rail");
 section("3. The privacy line stays true");
 {
   // The rail says the reader's numbers stay in the tab. That holds while analytics can carry no input: the allowlist
-  // is ids, grades, bands, flags, counts and landing tags. A new key here must be read against the line first.
+  // is ids, grades, bands, flags, counts, landing tags and closed 1.1 vocabularies scoped to their own events.
+  // A new key here must be read against the line first.
   const keys = [...TR.ALLOWED_PROP_KEYS].sort().join();
-  ok("the analytics allowlist is the reviewed set", keys === "bound_axis,depth,from,grade,page_type,real,ref,repeat,severity,to,tool,utm_campaign,utm_medium,utm_source,via_rail", keys);
+  ok("the analytics allowlist is the reviewed set (1.1 adds pillar, route, layer, surface, vendor, category, status, action, audience)", keys === "action,audience,bound_axis,category,depth,from,grade,layer,page_type,pillar,real,ref,repeat,route,severity,status,surface,to,tool,utm_campaign,utm_medium,utm_source,vendor,via_rail", keys);
+  ok("none of the 1.1 keys can ride a tool event", ["tool_view", "tool_complete", "next_step_click"].every((e) => Object.keys(TR.scopeProps(e, { pillar: "vendors", route: "cost", layer: "l4", surface: "home", vendor: "x", category: "ccaas", status: "complete", action: "request", audience: "finance" })).length === 0));
   ok("a number passed to analytics is dropped", Object.keys(TR.sanitizeProps({ tool: "cost-per-contact", agents: 120, wage: 20.59, cpc: 7 })).join() === "tool");
 }
 

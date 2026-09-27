@@ -1,453 +1,198 @@
-import { useState, useEffect, useRef } from "react";
-import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
-import { TOOL_COUNT, CATEGORY_COUNT, VENDOR_PROFILE_COUNT } from "./src/lib/seo.js";
-import { CATEGORIES } from "./src/lib/verticals.js";
+// Homepage.jsx
+//
+// Redesign Phase 5, to the approved homepage design (canvas "Phase 1 designs": Homepage, desktop and phone).
+// Hero beside the stack; step 1, five doors; step 2, the door's question and one route card; the evidence mark
+// explained; proof from the registries; what changed. Every figure comes from src/lib/home.js, which derives it;
+// this file types no count. Tokens only. Events are taxonomy 1.1: door_select, route_select, route_start and
+// layer_select (surface home). The initial state is fixed, so the prerendered page and the first client render agree.
 
-const NAVY = "#0B1D3A";
-const DEEP_NAVY = "#061325";
-const ELECTRIC = "#0088DD";
-const LIGHT_BLUE = "#00AAFF";
-const ICE = "#E8F4FD";
-const WARM = "#F8FAFB";
-const SLATE = "#3A4F6A";
-const MUTED = "#5B6E88";
-const BORDER = "#D8E3ED";
-const AMBER = "#F59E0B";
-const GREEN = "#10B981";
-const RED = "#EF4444";
+import React, { useState } from "react";
+import { HOUSE, PILLARS, LAYERS, RADIUS, TOUCH, FONT_SANS, TYPE_SCALE, alpha, LINE } from "./src/lib/tokens.js";
+import { Door, RouteCard, Stack, EvidenceMark, GradeBadge } from "./src/lib/ui.jsx";
+import { Icon } from "./src/lib/Icon.jsx";
+import { DOORS, LAYER_INFO, PROOFS, CHANGES } from "./src/lib/home.js";
+import { trackHome } from "./src/lib/track.js";
 
-function useInView(threshold = 0.12) {
-  const ref = useRef(null);
-  const [v, setV] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); obs.unobserve(el); } }, { threshold });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return [ref, v];
-}
+const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
+const WRAP = { maxWidth: 1280, margin: "0 auto", padding: "0 20px", boxSizing: "border-box" };
+const LABEL = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
+const LAYER_BY_ID = Object.fromEntries(LAYERS.map((l) => [l.id, l]));
 
-function FadeIn({ children, delay = 0, className, style = {} }) {
-  const [ref, v] = useInView();
-  return (
-    <div ref={ref} className={className} style={{ ...style, opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(18px)", transition: `opacity 0.5s ease ${delay}s, transform 0.5s ease ${delay}s` }}>
-      {children}
-    </div>
-  );
-}
+const CSS = `.cx-home-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:48px;align-items:center}
+.cx-home-doors{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.cx-home-step2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:start}
+.cx-home-opts{display:grid;gap:10px}
+.cx-home-three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.cx-home-opt:focus-visible,.cx-home a:focus-visible{outline:2px solid ${HOUSE.electric};outline-offset:2px}
+@media (max-width:1100px){.cx-home-doors{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){.cx-home-hero,.cx-home-step2{grid-template-columns:minmax(0,1fr)}.cx-home-stack{display:none}.cx-home-three{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.cx-home-doors{grid-template-columns:minmax(0,1fr)}.cx-home-doors>button{min-height:0 !important}.cx-home-opts{grid-template-columns:minmax(0,1fr) !important}}`;
 
-function SectionLabel({ children }) {
-  return <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 10 }}>{children}</span>;
-}
-
-const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-
-// ─── NAV ─────────────────────────────────────────────
-function Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
-  useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
-  const links = [
-    { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
-    { name: "Industries", href: "/industries" },
-    { name: "Research", href: "/research" },
-    { name: "The Human Premium", href: "/human-premium" },
-  ];
-  const bg = scrolled ? "rgba(6,19,37,0.97)" : "transparent";
-  return (
-    <>
-      <style>{`
-        ${FONT_IMPORT_CSS}
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-family: ${FONT}; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
-        a { text-decoration: none; }
-        @media (max-width: 860px) {
-          .nav-links { display: none !important; }
-          .mob-btn { display: flex !important; }
-          .hero-paths { grid-template-columns: 1fr !important; }
-          .role-grid { grid-template-columns: 1fr 1fr !important; }
-          .cat-grid { grid-template-columns: 1fr !important; }
-          .tools-grid { grid-template-columns: 1fr !important; }
-          .quick-bar { flex-wrap: wrap !important; }
-          .footer-grid { grid-template-columns: 1fr 1fr !important; }
-        }
-      `}</style>
-      
-    </>
-  );
-}
-
-// ─── HERO: COMPACT, FUNCTIONAL ──────────────────────
-function Hero() {
-  return (
-    <section style={{ background: `linear-gradient(168deg, ${DEEP_NAVY} 0%, ${NAVY} 60%, #0F2847 100%)`, padding: "100px 28px 48px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-      <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.06) 0%, transparent 70%)" }} />
-
-      <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-        <div style={{ maxWidth: 680, marginBottom: 36 }}>
-          <h1 style={{ fontFamily: FONT, fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 600, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 14px" }}>
-            {TOOL_COUNT} free tools. {VENDOR_PROFILE_COUNT} vendor profiles.{" "}
-            <span style={{ color: "rgba(255,255,255,0.72)" }}>Zero vendor sponsorship.</span>
-          </h1>
-          <p style={{ fontSize: "clamp(14px, 1.5vw, 16px)", color: "rgba(255,255,255,0.72)", lineHeight: 1.6, maxWidth: 520 }}>
-            The resource for CX operators. Independent vendor intelligence, operational calculators, and buyer frameworks for contact center professionals.
-          </p>
-        </div>
-
-        {/* Three paths, immediately visible */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="hero-paths">
-          {[
-            { label: "Look up a vendor", sub: `${VENDOR_PROFILE_COUNT} profiles across ${CATEGORY_COUNT} categories`, href: "/vendors" },
-            { label: "Run a calculator", sub: `${TOOL_COUNT} tools: staffing, TCO, AHT, QA`, href: "/how-to-choose" },
-            { label: "Read the research", sub: "Buyer guides, articles, frameworks", href: "/research" },
-          ].map((p, i) => (
-            <a key={i} href={p.href} style={{ display: "block", padding: "20px 18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, transition: "all 0.2s", textDecoration: "none" }}
-              onMouseOver={e => { e.currentTarget.style.background = "rgba(0,136,221,0.06)"; e.currentTarget.style.borderColor = "rgba(0,136,221,0.2)"; }}
-              onMouseOut={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: "#fff", marginBottom: 4 }}>{p.label}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{p.sub}</div>
-            </a>
-          ))}
-        </div>
+/** The panel beside the stack: the chosen layer, or what the current route touches. */
+function LayerPanel({ layer, door }) {
+  if (door.soon) {
+    return <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: HOUSE.body }}>{PILLARS[door.pillar].name} is coming. The stack lights up again when you choose a door that is open today.</p>;
+  }
+  if (!layer) {
+    return (
+      <div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{door.pillar === "industries" ? "All seven layers, for your sector" : "The stack every contact center runs on"}</div>
+        <p style={{ margin: "6px 0 0", fontSize: 14, lineHeight: 1.55, color: HOUSE.body }}>Seven layers, from customer data to governance. Choose a layer to see what it does and the tool that tests it.</p>
       </div>
-    </section>
-  );
-}
-
-// ─── QUICK ACCESS BAR ────────────────────────────────
-function QuickBar() {
-  const tools = [
-    { name: "Staffing Calculator", href: "/tools/staffing-calculator" },
-    { name: "TCO Calculator", href: "/tco-calculator" },
-    { name: "Vendor Match", href: "/tools/vendor-match" },
-    { name: "AHT Decomposition", href: "/tools/aht-decomposition" },
-    { name: "AI Deflection Check", href: "/tools/ai-deflection" },
-    { name: "Contract Scanner", href: "/tools/contract-risk" },
-  ];
-  return (
-    <div style={{ background: DEEP_NAVY, borderBottom: "1px solid rgba(255,255,255,0.05)", padding: "10px 28px" }}>
-      <div style={{ ...WRAP, display: "flex", alignItems: "center", gap: 6, overflow: "hidden" }} className="quick-bar">
-        <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.72)", letterSpacing: 1.5, textTransform: "uppercase", marginRight: 8, flexShrink: 0 }}>Popular</span>
-        {tools.map(t => (
-          <a key={t.name} href={t.href} style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", padding: "4px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", transition: "all 0.15s", flexShrink: 0, whiteSpace: "nowrap" }}
-            onMouseOver={e => { e.target.style.color = "#fff"; e.target.style.borderColor = "rgba(0,136,221,0.3)"; }}
-            onMouseOut={e => { e.target.style.color = "rgba(255,255,255,0.5)"; e.target.style.borderColor = "rgba(255,255,255,0.06)"; }}>{t.name}</a>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── ROLE-BASED PATHS ────────────────────────────────
-function RolePaths() {
-  const roles = [
-    { role: "I'm evaluating platforms", color: ELECTRIC, tools: [
-      { name: "Vendor Match Engine", href: "/tools/vendor-match" },
-      { name: "RFP Requirement Builder", href: "/tools/rfp-builder" },
-      { name: "Platform Decision", href: "/tools/platform-decision" },
-      { name: "Contract Risk Scanner", href: "/tools/contract-risk" },
-    ]},
-    { role: "I'm running operations", color: AMBER, tools: [
-      { name: "Staffing Calculator", href: "/tools/staffing-calculator" },
-      { name: "AHT Decomposition", href: "/tools/aht-decomposition" },
-      { name: "QA Scorecard Builder", href: "/tools/qa-scorecard" },
-      { name: "FCR Leakage Diagnostic", href: "/tools/fcr-leakage" },
-    ]},
-    { role: "I'm building a business case", color: RED, tools: [
-      { name: "TCO Calculator", href: "/tco-calculator" },
-      { name: "Attrition Cost Calculator", href: "/tools/attrition-cost" },
-      { name: "AI Deflection Reality Check", href: "/tools/ai-deflection" },
-      { name: "Business Case Builder", href: "/tools/business-case" },
-    ]},
-    { role: "I'm growing my career", color: GREEN, tools: [
-      { name: "The Human Premium", href: "/human-premium" },
-      { name: "Four New CX Roles", href: "/human-premium" },
-      { name: "Certifications Guide", href: "/human-premium" },
-      { name: "Five Career Paths", href: "/human-premium" },
-    ]},
-  ];
-  return (
-    <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: MUTED, marginBottom: 16 }}>What brings you here?</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }} className="role-grid">
-          {roles.map((r, ri) => (
-            <div key={ri} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden" }}>
-              <div style={{ padding: "14px 16px", borderBottom: `1px solid ${BORDER}`, background: `${r.color}04` }}>
-                <div style={{ fontSize: 13.5, fontWeight: 600, color: NAVY }}>{r.role}</div>
-              </div>
-              <div>
-                {r.tools.map((t, ti) => (
-                  <a key={ti} href={t.href} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", fontSize: 13, color: SLATE, borderBottom: ti < r.tools.length - 1 ? `1px solid ${BORDER}` : "none", transition: "background 0.15s", textDecoration: "none" }}
-                    onMouseOver={e => e.currentTarget.style.background = ICE}
-                    onMouseOut={e => e.currentTarget.style.background = "transparent"}>
-                    <span>{t.name}</span>
-                    <span style={{ color: r.color, fontSize: 14 }}>→</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── FEATURED TOOLS (SPOTLIGHT) ──────────────────────
-function FeaturedTools() {
-  const featured = [
-    { name: "Vendor Match Engine", desc: `Tell us your environment, priorities, and constraints. Get a shortlist of CCaaS vendors with fit reasoning and integration data.`, href: "/tools/vendor-match", accent: ELECTRIC, tag: "Most used" },
-    { name: "Staffing Calculator", desc: "Erlang C model. Volume, AHT, SLA target, and shrinkage to required FTE. Sensitivity analysis and industry presets included.", href: "/tools/staffing-calculator", accent: AMBER, tag: "Operations" },
-    { name: "TCO Calculator", desc: "What your platform stack actually costs per agent, per contact, per resolved task. Including the costs your vendor quote left out.", href: "/tco-calculator", accent: RED, tag: "Economics" },
-  ];
-  return (
-    <section style={{ background: WARM, padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Featured tools</div>
-          <a href="/how-to-choose" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>All {TOOL_COUNT} tools →</a>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="tools-grid">
-          {featured.map((t, i) => (
-            <a key={i} href={t.href} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "22px 20px", transition: "all 0.2s", textDecoration: "none", color: "inherit" }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = t.accent; e.currentTarget.style.boxShadow = `0 4px 18px ${t.accent}12`; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: t.accent, letterSpacing: 1.2, textTransform: "uppercase" }}>{t.tag}</span>
-                <span style={{ color: t.accent, fontSize: 16 }}>→</span>
-              </div>
-              <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{t.name}</h3>
-              <p style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.55, margin: 0 }}>{t.desc}</p>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── VENDOR INTELLIGENCE (CONDENSED) ─────────────────
-function VendorIntel() {
-  /* Counts come from CATEGORIES so a tile cannot advertise a number the page
-     behind it contradicts. Six of these eight were hand-typed and wrong: Agent
-     Assist claimed 38 against 15, WEM 32 against 25, Analytics 45 against 41,
-     ACD 28 against 44, Digital 36 against 46, Payments 30 against 33. The
-     short tag and heading stay local because CATEGORIES carries no short form
-     and the kicker already renders the category abbreviation. seo.test.mjs
-     section E holds CATEGORIES to the live data files. */
-  const cats = [
-    { k: "ccaas", s: "CCaaS", t: "Core CX Platforms" },
-    { k: "iva", s: "IVA", t: "Customer Automation" },
-    { k: "agent-assist", s: "Agent Assist", t: "Agent Assist + Knowledge" },
-    { k: "wem-qm", s: "WEM + QM", t: "Workforce + Quality" },
-    { k: "analytics", s: "Analytics", t: "Experience Analytics" },
-    { k: "acd-routing", s: "ACD", t: "Routing + Orchestration" },
-    { k: "digital-engagement", s: "Digital", t: "Digital Engagement" },
-    { k: "payments", s: "Payments", t: "Payments + Identity" },
-  ].map((c) => ({ ...c, n: `${CATEGORIES[c.k].vendorCount} vendors`, h: CATEGORIES[c.k].page }));
-  return (
-    <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <FadeIn>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Vendor intelligence</span>
-              <span style={{ fontSize: 12, color: "rgba(107,127,153,0.6)", marginLeft: 12 }}>{VENDOR_PROFILE_COUNT} vendors · {CATEGORY_COUNT} categories · independent research</span>
-            </div>
-            <a href="/vendors" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Browse all vendors →</a>
-          </div>
-        </FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }} className="role-grid">
-          {cats.map((c, i) => (
-            <FadeIn key={i} delay={i * 0.03}>
-              <a href={c.h} style={{ display: "block", padding: "18px 16px", border: `1px solid ${BORDER}`, borderRadius: 8, transition: "all 0.2s", textDecoration: "none", color: "inherit" }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 4 }}>{c.s}</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 3 }}>{c.t}</div>
-                <div style={{ fontSize: 12, color: MUTED }}>{c.n} vendors →</div>
-              </a>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── BUYER GUIDES (COMPACT) ─────────────────────────
-function BuyerGuides() {
-  const guides = [
-    { t: "CCaaS Buyer Guide", p: "19 pages", href: "/research/ccaas-buyer-guide", live: true },
-    { t: "IVA + Conversational AI Guide", p: "25 pages", href: "/research/iva-buyer-guide", live: true },
-    { t: "7-Layer Orchestration Framework", p: "11 pages", href: "/research/orchestration-framework", live: true },
-    { t: "WEM + Quality Management Guide", p: "Q2 2026", live: false },
-  ];
-  return (
-    <section style={{ background: `linear-gradient(168deg, ${DEEP_NAVY}, ${NAVY})`, padding: "48px 28px" }}>
-      <div style={WRAP}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.72)" }}>Buyer guides + frameworks</span>
-          <a href="/research" style={{ fontSize: 13, fontWeight: 600, color: LIGHT_BLUE }}>All research →</a>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10 }} className="role-grid">
-          {guides.map((g, i) => (
-            g.live ? (
-              <a key={i} href={g.href} style={{ display: "block", padding: "18px 16px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, transition: "background 0.15s", textDecoration: "none" }}
-                onMouseOver={e => e.currentTarget.style.background = "rgba(0,136,221,0.05)"}
-                onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,0.025)"}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 4 }}>{g.t}</div>
-                <div style={{ fontSize: 12, color: LIGHT_BLUE }}>{g.p} · Download →</div>
-              </a>
-            ) : (
-              <div key={i} style={{ padding: "18px 16px", background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.03)", borderRadius: 8, opacity: 0.5 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.72)", marginBottom: 4 }}>{g.t}</div>
-                <div style={{ fontSize: 12, color: AMBER }}>{g.p}</div>
-              </div>
-            )
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── INDUSTRIES (CONDENSED) ──────────────────────────
-function Industries() {
-  const verts = [
-    { n: "Financial Services", sub: "7 sub-verticals", h: "/industries/financial-services" },
-    { n: "Healthcare", sub: "6 sub-verticals", h: "/industries/healthcare" },
-    { n: "Retail + eCommerce", sub: "6 sub-verticals", h: "/industries/retail" },
-    { n: "Insurance", sub: "5 sub-verticals", h: "/industries/insurance" },
-    { n: "Telecom", sub: "5 sub-verticals", h: "/industries/telecom" },
-    { n: "Government", sub: "6 sub-verticals", h: "/industries/government" },
-    { n: "Travel + Hospitality", sub: "5 sub-verticals", h: "/industries/travel" },
-    { n: "Utilities", sub: "4 sub-verticals", h: "/industries/utilities" },
-    { n: "Manufacturing", sub: "5 sub-verticals", h: "/industries/manufacturing" },
-    { n: "Education", sub: "5 sub-verticals", h: "/industries/education" },
-  ];
-  return (
-    <section style={{ background: WARM, padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Industry intelligence</span>
-            <span style={{ fontSize: 12, color: "rgba(107,127,153,0.6)", marginLeft: 12 }}>10 verticals · 61 sub-verticals · 2,135 capability checkpoints</span>
-          </div>
-          <a href="/industries" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>All industries →</a>
-        </div>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {verts.map((v, i) => (
-            <a key={i} href={v.h} style={{ padding: "10px 16px", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", fontSize: 13, fontWeight: 500, color: NAVY, transition: "all 0.15s", textDecoration: "none" }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = NAVY; }}>
-              {v.n}
-              <span style={{ fontSize: 12, color: MUTED, marginLeft: 6 }}>{v.sub}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── RESEARCH (COMPACT) ─────────────────────────────
-function Research() {
-  const pieces = [
-    { tag: "Reality Check", t: "Why Your CCaaS Migration Didn't Cut Costs", read: "8 min", href: "/research/ccaas-migration-costs" },
-    { tag: "Market Map", t: "Agent Assist: Who's Real vs Who's Marketing", read: "12 min" },
-    { tag: "Operator Briefing", t: "What 50 to 70% Automation Actually Requires", read: "10 min" },
-  ];
-  return (
-    <section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Latest research</span>
-          <a href="/research" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>All articles →</a>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="tools-grid">
-          {pieces.map((p, i) => {
-            const Tag = p.href ? "a" : "div";
-            const linkProps = p.href ? { href: p.href } : {};
-            return (
-              <FadeIn key={i} delay={i * 0.05}>
-                <Tag {...linkProps} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "18px 16px", transition: "all 0.2s", textDecoration: "none", color: "inherit", cursor: "pointer" }}
-                  onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; }}
-                  onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase" }}>{p.tag}</span>
-                    <span style={{ fontSize: 12, color: MUTED }}>{p.read}</span>
-                  </div>
-                  <h3 style={{ fontFamily: FONT, fontSize: 17, fontWeight: 600, color: NAVY, margin: 0, lineHeight: 1.3 }}>{p.t}</h3>
-                </Tag>
-              </FadeIn>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ─── WHAT THIS IS (NOT "About Us", just a line) ────
-function WhatThis() {
-  return (
-    <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={{ ...WRAP, maxWidth: 700, textAlign: "center" }}>
-        <p style={{ fontFamily: FONT, fontSize: 17, color: NAVY, lineHeight: 1.65, margin: 0, opacity: 0.7 }}>
-          Built by operators for operators. No vendor pays to be here. No vendor pays to rank higher. The scores, the tools, and the research exist because CX professionals deserve a resource that is not trying to sell them something.
-        </p>
-      </div>
-    </section>
-  );
-}
-
-// ─── ADVISORY (WHISPER, NOT SHOUT) ──────────────────
-function AdvisoryNote() {
-  return (
-    <section style={{ background: "#fff", padding: "36px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-        <div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>Need expert guidance?</span>
-          <span style={{ fontSize: 14, color: MUTED, marginLeft: 8 }}>We connect CX leaders with vetted consultants who specialize in platform selection, AI, and contact center transformation.</span>
-        </div>
-        <a href="/contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, padding: "8px 20px", border: `1px solid ${ELECTRIC}`, borderRadius: 6, transition: "all 0.15s", flexShrink: 0 }}
-          onMouseOver={e => { e.target.style.background = ELECTRIC; e.target.style.color = "#fff"; }}
-          onMouseOut={e => { e.target.style.background = "transparent"; e.target.style.color = ELECTRIC; }}>Find a consultant →</a>
-      </div>
-    </section>
-  );
-}
-
-// ─── FOOTER ──────────────────────────────────────────
-function Footer() {
-  return (
-    null
-  );
-}
-
-// ─── APP ─────────────────────────────────────────────
-export default function CenterOfCX() {
+    );
+  }
+  const L = LAYER_BY_ID[layer], info = LAYER_INFO[layer];
   return (
     <div>
-      <Nav />
-      <Hero />
-      <QuickBar />
-      <RolePaths />
-      <FeaturedTools />
-      <VendorIntel />
-      <BuyerGuides />
-      <Industries />
-      <Research />
-      <WhatThis />
-      <AdvisoryNote />
-      <Footer />
+      <div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}><span style={{ color: L.color }}>L{L.n}</span> {L.name}</div>
+      <p style={{ margin: "6px 0 10px", fontSize: 14, lineHeight: 1.55, color: HOUSE.body }}>{info.what} {info.technical}.</p>
+      <div style={{ display: "flex", columnGap: 20, flexWrap: "wrap" }}>
+        <a href={info.tool.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark, textDecoration: "none" }}>Test it: {info.tool.name}<Icon name="next" size={16} /></a>
+        <a href={info.category.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.vendors.onDark, textDecoration: "none" }}>{info.category.name}<Icon name="next" size={16} /></a>
+      </div>
     </div>
+  );
+}
+
+/** An industry's figure on its route card: the published claim with its source, or no public benchmark. */
+function IndustryFact({ fact }) {
+  if (fact.value) {
+    return (
+      <div style={{ padding: 16, borderRadius: RADIUS.field, background: HOUSE.navy, border: `1px solid ${hair}` }}>
+        <div style={{ fontSize: 40, fontWeight: 700, lineHeight: 1, color: HOUSE.mist }}>{fact.value}</div>
+        <div style={{ fontSize: 13, lineHeight: 1.5, color: HOUSE.body, marginTop: 6 }}>{fact.label}</div>
+        <a href={fact.url} rel="noopener noreferrer" target="_blank" style={{ display: "inline-flex", alignItems: "center", gap: 4, minHeight: 36, fontSize: 12, fontWeight: 600, color: HOUSE.mist, textDecoration: "none" }}>{fact.source}, {fact.year}<Icon name="external" size={12} /></a>
+      </div>
+    );
+  }
+  return (
+    <div style={{ padding: 16, borderRadius: RADIUS.field, border: `1px dashed ${soft}` }}>
+      <div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>No public benchmark</div>
+      <div style={{ fontSize: 13, lineHeight: 1.5, color: HOUSE.body, marginTop: 4 }}>{fact.label}</div>
+      <a href={fact.test.href} style={{ display: "inline-flex", alignItems: "center", gap: 4, minHeight: 36, fontSize: 13, fontWeight: 600, color: PILLARS.diagnostics.onDark, textDecoration: "none" }}>Measure yours<Icon name="next" size={14} /></a>
+    </div>
+  );
+}
+
+function Option({ route, on, pillar, onPick, compact }) {
+  const p = PILLARS[pillar];
+  return (
+    <button type="button" role="radio" aria-checked={on} onClick={onPick} className="cx-home-opt"
+      style={{ minHeight: compact ? 54 : 72, padding: "12px 16px", borderRadius: RADIUS.field, cursor: "pointer", display: "flex", flexDirection: "column", justifyContent: "center", gap: 4,
+        textAlign: "left", fontFamily: "inherit", color: HOUSE.mist, background: on ? alpha(p.fill, 0.16) : "transparent", border: on ? `1.5px solid ${p.fill}` : `1px solid ${soft}` }}>
+      <span style={{ fontSize: 15, fontWeight: 600 }}>{route.label}</span>
+      {route.sub && <span style={{ fontSize: 13, color: HOUSE.muted }}>{route.sub}</span>}
+    </button>
+  );
+}
+
+export default function Homepage() {
+  const [doorIx, setDoor] = useState(0);
+  const [routeIx, setRoute] = useState(0);
+  const [picked, setPicked] = useState(null);
+  const door = DOORS[doorIx];
+  const route = door.routes ? door.routes[Math.min(routeIx, door.routes.length - 1)] : null;
+  const layer = picked || (route && route.layer) || null;
+  const pillar = PILLARS[door.pillar];
+
+  const pickDoor = (i) => { setDoor(i); setRoute(0); setPicked(null); trackHome.door(DOORS[i].event); };
+  const pickRoute = (i) => { setRoute(i); setPicked(null); trackHome.route(door.event, door.routes[i].id); };
+  const pickLayer = (id) => { setPicked(id); if (id) trackHome.layer(id, "home"); };
+
+  const card = route
+    ? <RouteCard pillar={door.pillar} kicker={route.kicker} time={route.time} title={route.title} steps={route.steps} ending={route.ending} cta={route.cta} href={route.href}
+        onStart={() => trackHome.start(door.event, route.id, route.to)}>{route.fact && <IndustryFact fact={route.fact} />}</RouteCard>
+    : <RouteCard pillar={door.pillar} kicker={pillar.name} time="Coming soon" title="Follow it as it is built" steps={door.soon.rules.map((r) => ({ name: r }))} cta={door.soon.cta} href={door.soon.href} />;
+
+  return (
+    <main className="cx-home" style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT_SANS }}>
+      <style>{CSS}</style>
+
+      <section style={{ ...WRAP, padding: "56px 20px 40px" }}>
+        <div className="cx-home-hero">
+          <div>
+            <span style={{ ...LABEL, color: pillar.onDark, display: "block", marginBottom: 16 }}>Independent intelligence for contact center and CX technology</span>
+            <h1 style={{ margin: 0, fontSize: `clamp(44px, 6.4vw, ${TYPE_SCALE.display.size}px)`, fontWeight: TYPE_SCALE.display.weight, letterSpacing: TYPE_SCALE.display.tracking, lineHeight: TYPE_SCALE.display.line }}>Diagnose before you buy.</h1>
+            <p style={{ margin: "20px 0 0", fontSize: 19, lineHeight: 1.55, color: HOUSE.body, maxWidth: 620 }}>Run the numbers on your own operation, read vendor profiles, and check what your industry demands. Every figure says where it came from and how sure it is.</p>
+            <p style={{ margin: "18px 0 0", fontSize: 14, color: HOUSE.muted }}>No sign in. No email. Every report free. Vendors cannot pay to appear.</p>
+          </div>
+          <div className="cx-home-stack"><div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            {/* The plates draw below the component's box; the margin keeps the panel clear of the bottom layer. */}
+            <div style={{ marginBottom: 56 }}><Stack active={door.soon ? null : layer} onSelect={pickLayer} width={340} /></div>
+            <div style={{ width: "100%", maxWidth: 440, padding: 16, borderRadius: RADIUS.card, background: alpha(HOUSE.navy, 0.8), border: `1px solid ${hair}`, minHeight: 120, boxSizing: "border-box" }}>
+              <LayerPanel layer={door.soon ? null : layer} door={door} />
+            </div>
+          </div></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="cx-step1" style={{ ...WRAP, padding: "24px 20px 16px" }}>
+        <span style={LABEL}>Step 1 of 2</span>
+        <h2 id="cx-step1" style={{ margin: "8px 0 20px", fontSize: TYPE_SCALE.h2.size, fontWeight: TYPE_SCALE.h2.weight }}>Where would you like to begin?</h2>
+        <div role="radiogroup" aria-labelledby="cx-step1" className="cx-home-doors">
+          {DOORS.map((d, i) => <Door key={d.pillar} pillar={d.pillar} number={`0${i + 1}`} line={d.line} meta={d.meta} selected={i === doorIx} onSelect={() => pickDoor(i)} />)}
+        </div>
+      </section>
+
+      <section aria-labelledby="cx-step2" style={{ ...WRAP, padding: "32px 20px 56px" }}>
+        <div className="cx-home-step2">
+          <div>
+            <span style={{ ...LABEL, color: pillar.onDark }}>{pillar.name} · Step 2 of 2</span>
+            <h2 id="cx-step2" style={{ margin: "8px 0 20px", fontSize: TYPE_SCALE.h2.size, fontWeight: TYPE_SCALE.h2.weight }}>{door.question || `${pillar.name} is coming`}</h2>
+            {door.routes ? (
+              <div role="radiogroup" aria-labelledby="cx-step2" className="cx-home-opts" style={{ gridTemplateColumns: `repeat(${door.cols}, minmax(0, 1fr))` }}>
+                {door.routes.map((r, i) => <Option key={r.id} route={r} on={r === route} pillar={door.pillar} compact={door.cols > 2} onPick={() => pickRoute(i)} />)}
+              </div>
+            ) : (
+              <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: HOUSE.body, maxWidth: 620 }}>{door.soon.body}</p>
+            )}
+          </div>
+          {card}
+        </div>
+      </section>
+
+      <section aria-labelledby="cx-sure" style={{ borderTop: `1px solid ${hair}`, background: HOUSE.navy }}>
+        <div style={{ ...WRAP, padding: "48px 20px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(300px, 100%), 1fr))", gap: 32, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+            <EvidenceMark axes={{ evidence: "Planning-grade", realization: "Planning-grade", completeness: "Directional" }} size={110} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span style={LABEL}>Example</span>
+              <GradeBadge grade="Directional" heldBy="completeness" />
+              <span style={{ fontSize: 13, color: HOUSE.body }}>Two inputs are still our defaults.</span>
+            </div>
+          </div>
+          <div>
+            <h2 id="cx-sure" style={{ margin: 0, fontSize: TYPE_SCALE.h2.size, fontWeight: TYPE_SCALE.h2.weight }}>Every number says how sure it is.</h2>
+            <p style={{ margin: "12px 0 0", fontSize: 16, lineHeight: 1.6, color: HOUSE.body }}>Three arcs grade every result: how good the evidence is, how likely the value is to be realized, and how complete your inputs are. The weakest arc sets the grade, and the line beneath it says what would raise it. When a number cannot be trusted, we show no number.</p>
+          </div>
+        </div>
+      </section>
+
+      <section aria-label="What the site stands on" style={{ ...WRAP, padding: "48px 20px" }}>
+        <div className="cx-home-three">
+          {PROOFS.map((p) => (
+            <div key={p.link} style={{ padding: 24, borderRadius: RADIUS.card, border: `1px solid ${hair}`, display: "flex", flexDirection: "column", gap: 10 }}>
+              <span style={{ fontSize: 40, fontWeight: 700, lineHeight: 1 }}>{p.n}</span>
+              <span style={{ fontSize: 15, lineHeight: 1.55, color: HOUSE.body, flexGrow: 1 }}>{p.text}</span>
+              <a href={p.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: HOUSE.sky2, textDecoration: "none" }}>{p.link}<Icon name="next" size={16} /></a>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="cx-changed" style={{ ...WRAP, padding: "8px 20px 64px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, flexWrap: "wrap", marginBottom: 12 }}>
+          <h2 id="cx-changed" style={{ margin: 0, fontSize: TYPE_SCALE.h2.size, fontWeight: TYPE_SCALE.h2.weight }}>What changed</h2>
+          <a href="/changelog" style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: HOUSE.sky2, textDecoration: "none" }}>Method changelog<Icon name="next" size={16} /></a>
+        </div>
+        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {CHANGES.map((c) => (
+            <li key={c.title} style={{ display: "grid", gridTemplateColumns: "minmax(0,160px) minmax(0,1fr)", gap: 16, padding: "14px 0", borderTop: `1px solid ${hair}`, fontSize: 15 }}>
+              <span style={{ color: HOUSE.muted }}>{c.date}</span><span style={{ color: HOUSE.mist }}>{c.title}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </main>
   );
 }
