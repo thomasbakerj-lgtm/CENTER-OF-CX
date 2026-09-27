@@ -101,7 +101,7 @@ section("4. Layout and house rules");
   ok("the frame computes nothing: it imports only react, tokens, the shell, the journey graph and icons", imports === "./Icon.jsx,./Shell.jsx,./journey.js,./tokens.js,react", imports);
   const code = SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
   ok("no colour literal", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(code));
-  ok("no dash characters", !/[–—]/.test(SRC));
+  ok("no dash characters", !new RegExp("[" + String.fromCharCode(0x2013, 0x2014) + "]").test(SRC));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
