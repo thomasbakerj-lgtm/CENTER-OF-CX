@@ -103,7 +103,7 @@ section("4. CCaaS surfaces render no score, tier or fit number");
   ok("profile: vertical fit shows no number", !/\.map\(\(\[vert, score\]\)/.test(branch) && !/>\{score\}</.test(branch));
   ok("profile: vertical fit is not sorted by score", !/verticalFit\)\.sort\(\(a, b\) => b\[1\] - a\[1\]\)/.test(branch));
 
-  const CV = readFileSync("./CategoryVerticalPage.jsx", "utf8");
+  const CV = readFileSync("./CategoryVerticalPage.jsx", "utf8") + readFileSync("./CCaaSIndustry.jsx", "utf8");
   ok("industry page: no fit score, composite or tier", !/vertFit|CCAAS_VERTICAL_FIT|\{v\.score\}|\{v\.tier\}|fitLabel|fitColor/.test(CV));
   ok("industry page: no recommended or limited-fit bands", !/Recommended for|Conditionally Qualified|Limited Fit/.test(CV));
   ok("industry page: lists by research status", /ccaasResearchStatus\(v\.slug\)/.test(CV));
@@ -142,7 +142,7 @@ section("5. Public copy makes no claim the freeze made false");
 
 /* ------------------------------------------------------------ 6. dashes */
 section("6. Every file this freeze touched carries no dash");
-for (const f of ["CCaaSCategory.jsx", "CategoryVerticalPage.jsx", "src/lib/researchStatus.js", "freeze.test.mjs", "Homepage.jsx", "HowToChoose.jsx", "src/lib/Phase1Directory.jsx", "VendorProfile.jsx", "IVACategory.jsx", "WEMCategory.jsx"]) {
+for (const f of ["CCaaSCategory.jsx", "CategoryVerticalPage.jsx", "CCaaSIndustry.jsx", "src/lib/researchStatus.js", "freeze.test.mjs", "Homepage.jsx", "HowToChoose.jsx", "src/lib/Phase1Directory.jsx", "VendorProfile.jsx", "IVACategory.jsx", "WEMCategory.jsx"]) {
   ok(`${f}: no em-dash or en-dash`, noDash(readFileSync("./" + f, "utf8")));
 }
 

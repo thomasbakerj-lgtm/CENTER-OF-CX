@@ -1177,6 +1177,23 @@ dashboard, the 12-phase growth program.
    still Phase 1, reads no research yet). Vendor Match is linked, not fed: research law keeps Phase 1 scoring and
    research apart until Vendor Match V3 (Stage 4), where size served, UCaaS + CCaaS, public sector and where it runs
    become buyer filters. Suite 25,210; live check 255 of 255.
+   PR #56 merged by TB's instruction (6db98ee). TB on an interim Vendor Match filter: "wait" (Stage 4 takes the tags).
+65. S24, redesign session 20 (continued), Phase 7 part 4: the ten CCaaS by industry pages rebuilt from the research (TB:
+   "merge and go"). Truth surface: Vendor Intelligence; presentation only. The corpus has no industry field, so each page
+   gathers the research by published rules (`src/lib/research/ccaasIndustry.js` THEMES: healthcare EHR, HIPAA and
+   healthcare offers; government authorization and public sector; financial services collections, FINRA and PCI, banks and
+   packages; retail packages, PCI and order actions; insurance, travel and utilities packages; none yet for telecom,
+   manufacturing and education). A theme shows every published record (finding, decision, fit condition, product, break
+   trigger) whose words meet its rule, with its evidence state and date, vendors A to Z; nothing is picked by hand. The
+   research sync writes `industry.json` (34 KB). `research.test.mjs` proves the index equals a fresh build (and the corpus
+   derivation), each theme holds exactly the matching records, and every row carries its record's own words.
+   `CCaaSIndustry.jsx` (tokens): what the page is and how it gathers; themes; an industry with nothing says so and claims
+   nothing about the vendors; all 24 vendors with tags, notes and an introduction; RFP Builder opens with the industry
+   chosen; the sourced industry page linked for requirements. The unsourced vertical prose (handle time "20 to 30% longer",
+   "FedRAMP increasingly expected") no longer renders on CCaaS; the 70 other category by industry pages still show
+   `verticals.js` prose (P6 debt). `industry.test.mjs` (116). The pages stay noindex and out of the sitemap (TB decision
+   S23); indexing the three with substance (healthcare, government, financial services) is TB's call. Suite 25,331; live
+   check 255 of 255.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

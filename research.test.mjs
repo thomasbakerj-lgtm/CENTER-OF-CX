@@ -181,6 +181,22 @@ const DIR = "./src/data/research/ccaas";
   const vf = Object.fromEntries(files.map((f) => [f.replace(".json", ""), JSON.parse(readFileSync(DIR + "/vendors/" + f, "utf8"))]));
   ok("the category index equals a fresh build from the committed snapshot", readFileSync(DIR + "/category.json", "utf8") === categoryIndexJson(shared, vf));
   all += readFileSync(DIR + "/category.json", "utf8");
+  const { industryIndexJson, THEMES, recordsOf, matches } = await import("./src/lib/research/ccaasIndustry.js");
+  const { VERTICALS } = await import("./src/lib/verticals.js");
+  ok("the industry index equals a fresh build from the committed snapshot", readFileSync(DIR + "/industry.json", "utf8") === industryIndexJson(shared, vf));
+  ok("every industry has a theme list", JSON.stringify(Object.keys(THEMES).sort()) === JSON.stringify(Object.keys(VERTICALS).sort()));
+  const IND = JSON.parse(readFileSync(DIR + "/industry.json", "utf8"));
+  const allRecords = Object.values(vf).flatMap(recordsOf);
+  let complete = true, faithful = true;
+  for (const [ind, themes] of Object.entries(THEMES)) for (const t of themes) {
+    const shown = IND.industries.find((i) => i.industry === ind).themes.find((x) => x.id === t.id).rows;
+    const want = allRecords.filter((r) => matches(t, r)).map((r) => r.vendorId + r.id).sort();
+    if (JSON.stringify(shown.map((r) => r.vendorId + r.id).sort()) !== JSON.stringify(want)) complete = false;
+    for (const r of shown) { const f = vf[r.vendorId]; const src = recordsOf(f).find((x) => x.id === r.id); if (!src || src.text !== r.text) faithful = false; }
+  }
+  ok("every industry theme shows every published record that meets its rule, and only those", complete);
+  ok("every industry row carries its record's own words from its own vendor file", faithful);
+  all += readFileSync(DIR + "/industry.json", "utf8");
   ok("no score or rating field in the snapshot [14]", !/"(?!Rating_Layer|Score_Eligible)[A-Za-z_]*(Score|Rating)[A-Za-z_]*":/.test(all));
 }
 
@@ -211,7 +227,7 @@ section("11b. Vendor tags (size served, UCaaS + CCaaS) rest on published records
 section("12. Separation: nothing reads the snapshot outside the research layer yet [1] [3] [18]");
 {
   const tracked = execSync("git ls-files", { encoding: "utf8" }).split("\n").filter((f) => /\.(jsx?|mjs)$/.test(f));
-  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs"];
+  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs", "CCaaSIndustry.jsx", "industry.test.mjs"];
   const readers = tracked.filter((f) => !f.startsWith("src/lib/research/") && f !== "scripts/research-sync.mjs" && f !== "research.test.mjs" && !PAGES.includes(f) && /data\/research|lib\/research\//.test(readFileSync(f, "utf8")));
   ok(`only the research layer and the Vendor Intelligence pages (profile, category) read research data [${readers.join(", ")}]`, readers.length === 0);
   ok("Vendor Match reads no research snapshot, Market Position value or Phase 1 baseline file", !/data\/research|market.?position|phase1_baseline/i.test(readFileSync("./VendorMatchEngine.jsx", "utf8")));
@@ -228,6 +244,7 @@ if (process.env.RESEARCH_CORPUS && existsSync(process.env.RESEARCH_CORPUS)) {
   const fresh = splitByVendor(deriveSnapshot(JSON.parse(raw.toString("utf8")), { category: "ccaas", source: manifest.source }));
   ok("every vendor file equals a fresh derivation", Object.entries(fresh.vendors).every(([id, f]) => stableJson(f) === readFileSync(`${DIR}/vendors/${id}.json`, "utf8")) && stableJson(fresh.shared) === readFileSync(DIR + "/shared.json", "utf8"));
   ok("the category index equals a fresh derivation", (await import("./src/lib/research/categoryView.js")).categoryIndexJson(fresh.shared, fresh.vendors) === readFileSync(DIR + "/category.json", "utf8"));
+  ok("the industry index equals a fresh derivation", (await import("./src/lib/research/ccaasIndustry.js")).industryIndexJson(fresh.shared, fresh.vendors) === readFileSync(DIR + "/industry.json", "utf8"));
 } else console.log("  skipped: RESEARCH_CORPUS is not set (the private corpus is not in this repository)");
 
 console.log(`\n${pass} passed, ${fail} failed`);

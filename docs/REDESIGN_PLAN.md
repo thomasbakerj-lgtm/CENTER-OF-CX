@@ -123,6 +123,10 @@ made just before the phases that build them, so nothing waits on pages that ship
   Next: the CCaaS category page by competitive class.
 - Part 3 done (S24, 27 Sep 2026): the CCaaS category page by competitive class, from the snapshot's category index.
   Next: the CCaaS by industry pages (research Stage 3) and the vendor correction policy (D2).
+- Tags and caveats (S24, 27 Sep 2026): every researched vendor tagged by offer (UCaaS + CCaaS), sizes served and public
+  sector, each caveat on the tag; profiles link into the tools.
+- Part 4 done (S24, 27 Sep 2026): the ten CCaaS by industry pages rebuilt from the research by published rules.
+  Next: the vendor correction policy (D2), then Phase 8.
 
 ## Phase 8. Industry Insights (two sessions)
 

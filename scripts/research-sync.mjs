@@ -11,6 +11,7 @@ import { createHash } from "node:crypto";
 import { basename, join } from "node:path";
 import { deriveSnapshot, splitByVendor, stableJson } from "../src/lib/research/snapshot.js";
 import { categoryIndexJson } from "../src/lib/research/categoryView.js";
+import { industryIndexJson } from "../src/lib/research/ccaasIndustry.js";
 
 const arg = (k) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
 const path = arg("--corpus") || process.env.RESEARCH_CORPUS;
@@ -31,4 +32,6 @@ writeFileSync(join(dir, "shared.json"), stableJson(snap.shared));
 for (const [id, f] of Object.entries(snap.vendors)) writeFileSync(join(dir, "vendors", id + ".json"), stableJson(f));
 /* The category page's index: classes and each vendor's first best-when statement (categoryView.js). */
 writeFileSync(join(dir, "category.json"), categoryIndexJson(snap.shared, snap.vendors));
+/* The CCaaS by industry pages' index: every record each industry theme matches (ccaasIndustry.js). */
+if (category === "ccaas") writeFileSync(join(dir, "industry.json"), industryIndexJson(snap.shared, snap.vendors));
 console.log(`research-sync: ${category} ${snap.manifest.checkpoint}, ${Object.keys(snap.vendors).length} vendors, ${snap.manifest.counts.claims} claims, ${snap.manifest.counts.evidence} sources, withheld ${JSON.stringify(snap.manifest.withheld)}`);

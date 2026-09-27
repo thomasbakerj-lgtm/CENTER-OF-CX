@@ -13,7 +13,8 @@ import { Crumbs, HEADER_HEIGHT } from "./src/lib/Shell.jsx";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import { buildProfile, VIEWS, FILTERS, capability, evidence, words } from "./src/lib/research/profileView.js";
 import { fmtDate } from "./src/lib/researchStatus.js";
-import { tagsFor, CCAAS_TAGS, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
+import { CCAAS_TAGS, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
+import { Tags, TagNotes } from "./src/lib/VendorTags.jsx";
 import { encodeScenario } from "./src/lib/scenarioUrl.js";
 import { trackVendor } from "./src/lib/track.js";
 
@@ -68,25 +69,12 @@ function Claim({ c }) {
   );
 }
 
-/* What the vendor sells and who it is sold to: the tags and, under them, the research's own words they rest on. */
-function TagChips({ vendorId }) {
-  const t = tagsFor(vendorId);
-  if (!t) return null;
-  return (
-    <ul aria-label="Tags" style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: 0, padding: 0, listStyle: "none" }}>
-      <li style={{ ...chip, fontWeight: 700 }}>{t.category}</li>
-      {t.sizes.map((z) => <li key={z.size} style={{ ...chip, fontWeight: 500, borderStyle: z.selected ? "dashed" : "solid" }}>{z.label}</li>)}
-      {t.publicSector && <li style={{ ...chip, fontWeight: 500 }}>{PS_LABEL}</li>}
-    </ul>
-  );
-}
-
+/* What the vendor sells and who it is sold to: the tags, the caveats and the research's own words they rest on. */
 function SoldTo({ p }) {
   const id = p.vendor.Vendor_ID, t = CCAAS_TAGS[id];
   if (!t) return null;
   const said = (x) => { const pr = p.products.find((y) => y.id === x); if (pr) return `${pr.name}: ${pr.segment}`; const c = p.claimById.get(x); return c ? c.Publishable_Summary : null; };
   const core = p.products.find((y) => y.id === t.core);
-  const tags = tagsFor(id);
   const Quote = ({ label, ids }) => (<>
     <p style={{ ...K.small, marginTop: 10 }}>{label}</p>
     <ul style={{ ...K.small, margin: "4px 0 0", paddingLeft: 18 }}>{ids.map((x) => said(x) && <li key={x}>{said(x)}</li>)}</ul>
@@ -94,12 +82,8 @@ function SoldTo({ p }) {
   return (
     <section aria-label="Who it is sold to" style={K.panel}>
       <h2 style={K.h2}>Who it is sold to</h2>
-      <TagChips vendorId={id} />
-      {tags.notes.length > 0 && (
-        <ul style={{ ...K.body, margin: "10px 0 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
-          {tags.notes.map((n) => <li key={n.tag}><strong style={K.strong}>{n.tag}:</strong> {n.text}</li>)}
-        </ul>
-      )}
+      <Tags vendorId={id} />
+      <div style={{ marginTop: 10 }}><TagNotes vendorId={id} large /></div>
       {core && core.scope && <p style={{ ...K.body, marginTop: 10 }}><strong style={K.strong}>Where it runs:</strong> {core.scope}</p>}
       <Quote label="Sizes, in the research's words:" ids={t.from} />
       {t.uc && <Quote label={`${UC_LABEL}, in the research's words:`} ids={t.uc.from} />}
@@ -393,7 +377,7 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
           <span style={{ ...K.kicker, color: PILLARS.vendors.onDark }}>Current research complete · validated {fmtDate(v.Last_Validated_Date)}</span>
           <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>{v.Supplier_Name}</h1>
           <p style={{ ...K.body, maxWidth: 720 }}>{[v.Legal_Name, v.HQ, v.Ownership_Status].filter(Boolean).join(" · ")}</p>
-          <TagChips vendorId={v.Vendor_ID} />
+          <Tags vendorId={v.Vendor_ID} />
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <VendorIntro slug={slug} name={v.Supplier_Name} from="vendor" surface="vendor" />
             <a href="/contact" style={{ ...K.link, fontSize: 14 }}>Report an error</a>
