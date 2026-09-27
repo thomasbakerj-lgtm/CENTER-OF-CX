@@ -62,7 +62,7 @@ made just before the phases that build them, so nothing waits on pages that ship
   icons, `tokens.test.mjs` (289). Found on the way: three pages scrolled sideways on a phone (a method table, the shared number
   field, a Channel Shift panel); fixed, 112 page loads clean at 390 and 1440 pixels.
 
-## Phase 3. Core components and the report (two sessions; the report done in session 7)
+## Phase 3. Core components and the report (done: the report in session 7, merged in PR #41; the components in session 8)
 
 - Button, Input with source, Stepper, Result, Grade badge, Evidence mark, Readout, Stack, Claim marker, Finding, Next step, Byline,
   Door, Route card, States.
@@ -70,9 +70,12 @@ made just before the phases that build them, so nothing waits on pages that ship
   Keeps `reportHtml` escaping and `export.test.mjs` green.
 - Gate: every component has a harness assertion for its accessible name and contrast.
 
-## Phase 4. Shells (one session)
+## Phase 4. Shells (one session; the site shell done in session 9, the tool shell v2 next)
 
-- Site shell: five-pillar navigation with Research and Market Watch marked soon, footer, search entry.
+- Site shell: five-pillar navigation with Research and Market Watch marked soon, footer, search entry. Done in session 9
+  (`src/lib/Shell.jsx`, rendered once by App): 61 pages lost their own bars; back links survive as a breadcrumb row. The
+  search entry waits for a search to point at (none exists). The 37 pages built to clear a fixed bar keep the header over
+  the page (`headerFixed`) until Phases 8 and 9 rebuild them.
 - Tool shell v2: route sidebar, inputs, result, next step, exit; phone layout with pinned result and pinned next step. Replaces
   `ToolShell.jsx` and the nine rail tools' own headers.
 

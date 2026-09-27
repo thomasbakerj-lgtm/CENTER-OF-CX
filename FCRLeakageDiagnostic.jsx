@@ -651,7 +651,7 @@ export default function FCRLeakageDiagnostic() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff", color: NAVY }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}select{font-family:inherit}@media(max-width:700px){.g2{grid-template-columns:1fr!important}.g3{grid-template-columns:1fr!important}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}><div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}><a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}><LogoMark /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a><a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.72)", fontSize: 13, textDecoration: "none" }}>← Back to Tools</a></div></nav>
+      
 
       {phase === "setup" && (
         <section style={{ padding: "44px 28px 60px" }}>

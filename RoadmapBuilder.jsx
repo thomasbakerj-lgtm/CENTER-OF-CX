@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
+import { ToolHero, ToolStart } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -87,8 +87,6 @@ export default function RoadmapBuilder() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
-
-      <ToolNav wrap={WRAP} />
 
       {phase !== "intro" && <ToolHero compact wrap={WRAP} eyebrow="Frameworks + Planning" title="Transformation Roadmap Builder" />}
 

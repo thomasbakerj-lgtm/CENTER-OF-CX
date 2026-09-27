@@ -46,6 +46,7 @@ class RouteBoundary extends Component {
 }
 import { Analytics } from '@vercel/analytics/react'
 import { FONT } from './src/lib/type'
+import { SiteHeader, SiteFooter, pillarFor, headerFixed } from './src/lib/Shell.jsx'
 const Homepage = lazy(() => import('./Homepage'))
 const RubricPage = lazy(() => import('./RubricPage'))
 const PlatformsTech = lazy(() => import('./PlatformsTech'))
@@ -256,6 +257,12 @@ function RoutedBoundary({ children }) {
   return <RouteBoundary key={pathname}>{children}</RouteBoundary>;
 }
 
+/* The site header on every route (redesign Phase 4), marked with the pillar the path belongs to. */
+function ShellHeader() {
+  const { pathname } = useLocation();
+  return <SiteHeader active={pillarFor(pathname)} fixed={headerFixed(pathname)} />;
+}
+
 /* Everything inside the router. The browser wraps it in BrowserRouter (below); the build's prerender
    (entry-server.jsx) wraps it in a StaticRouter so every sitemap page ships its body in the HTML. */
 export function AppRoutes() {
@@ -264,6 +271,7 @@ export function AppRoutes() {
       <SEOManager />
       <Journey />
       <Analytics />
+      <ShellHeader />
       <RoutedBoundary>
       <Suspense fallback={<RouteFallback />}>
       <Routes>
@@ -372,6 +380,7 @@ export function AppRoutes() {
       </Routes>
       </Suspense>
       </RoutedBoundary>
+      <SiteFooter />
     </>
   )
 }

@@ -76,37 +76,7 @@ function Nav() {
           .footer-grid { grid-template-columns: 1fr 1fr !important; }
         }
       `}</style>
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: bg, backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid rgba(255,255,255,0.05)" : "none", transition: "all 0.35s ease", padding: scrolled ? "10px 0" : "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <svg width="30" height="30" viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
-              <g transform="translate(60,60)">
-                <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-                <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity="0.8"/>
-                <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
-                <line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT_BLUE} strokeWidth="5.5" strokeLinecap="round"/>
-                <line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT_BLUE} strokeWidth="5.5" strokeLinecap="round"/>
-              </g>
-            </svg>
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 14, letterSpacing: 0.4 }}>
-              THE CENTER OF <span style={{ color: LIGHT_BLUE }}>CX</span>
-            </span>
-          </a>
-          <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 26 }}>
-            {links.map(l => <a key={l.name} href={l.href} style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, fontWeight: 500, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.7)"}>{l.name}</a>)}
-            <a href="/subscribe" style={{ color: "#fff", fontSize: 12.5, fontWeight: 600, background: ELECTRIC, padding: "8px 18px", borderRadius: 6 }}>Subscribe</a>
-          </div>
-          <button className="mob-btn" onClick={() => setOpen(!open)} style={{ display: "none", flexDirection: "column", gap: 4, background: "none", border: "none", cursor: "pointer", padding: 8 }}>
-            {[0, 1, 2].map(i => <div key={i} style={{ width: 20, height: 2, background: "#fff", borderRadius: 2 }} />)}
-          </button>
-        </div>
-        {open && (
-          <div style={{ background: DEEP_NAVY, padding: "20px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
-            {links.map(l => <a key={l.name} href={l.href} style={{ color: "rgba(255,255,255,0.8)", fontSize: 15 }}>{l.name}</a>)}
-            <a href="/subscribe" style={{ color: "#fff", fontSize: 14, fontWeight: 600, background: ELECTRIC, padding: "12px 20px", borderRadius: 6, textAlign: "center" }}>Subscribe</a>
-          </div>
-        )}
-      </nav>
+      
     </>
   );
 }
@@ -458,61 +428,7 @@ function AdvisoryNote() {
 // ─── FOOTER ──────────────────────────────────────────
 function Footer() {
   return (
-    <footer style={{ background: DEEP_NAVY, padding: "48px 28px 32px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-      <div style={WRAP}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 48, marginBottom: 36 }} className="footer-grid">
-          <div>
-            <a href="/" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, textDecoration: "none" }}>
-              <svg width="24" height="24" viewBox="0 0 120 120">
-                <g transform="translate(60,60)">
-                  <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-                  <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity="0.7"/>
-                  <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
-                  <line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT_BLUE} strokeWidth="5.5" strokeLinecap="round"/>
-                  <line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT_BLUE} strokeWidth="5.5" strokeLinecap="round"/>
-                </g>
-              </svg>
-              <span style={{ color: "#fff", fontWeight: 600, fontSize: 12.5 }}>THE CENTER OF <span style={{ color: LIGHT_BLUE }}>CX</span></span>
-            </a>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.6, maxWidth: 280 }}>
-              Independent CX + contact center technology intelligence. The resource CX professionals use to make better decisions.
-            </p>
-          </div>
-          {[
-            { h: "Navigate", links: [
-              { name: "Vendors", href: "/vendors" },
-              { name: "Tools", href: "/how-to-choose" },
-              { name: "Industries", href: "/industries" },
-              { name: "Research", href: "/research" },
-              { name: "Platforms + Tech", href: "/platforms-and-tech" },
-            ]},
-            { h: "Resources", links: [
-              { name: "CCaaS Buyer Guide", href: "/research/ccaas-buyer-guide" },
-              { name: "IVA Buyer Guide", href: "/research/iva-buyer-guide" },
-              { name: "CX Ecosystem", href: "/cx-ecosystem" },
-              { name: "The Human Premium", href: "/human-premium" },
-              { name: "Newsletter", href: "/subscribe" },
-            ]},
-            { h: "Company", links: [
-              { name: "About", href: "/about" },
-              { name: "Advisory", href: "/advisory" },
-              { name: "Contact", href: "/contact" },
-            ]},
-          ].map((col, i) => (
-            <div key={i}>
-              <h4 style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.72)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>{col.h}</h4>
-              {col.links.map(l => <a key={l.name} href={l.href} style={{ display: "block", fontSize: 12.5, color: "rgba(255,255,255,0.72)", marginBottom: 8, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.35)"}>{l.name}</a>)}
-            </div>
-          ))}
-        </div>
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 20, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>© 2026 The Center of CX. All rights reserved.</span>
-          <div style={{ display: "flex", gap: 20 }}>
-            {[{n:"Privacy",h:"/privacy"},{n:"Terms",h:"/terms"}].map(l => <a key={l.n} href={l.h} style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "rgba(255,255,255,0.4)"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.2)"}>{l.n}</a>)}
-          </div>
-        </div>
-      </div>
-    </footer>
+    null
   );
 }
 

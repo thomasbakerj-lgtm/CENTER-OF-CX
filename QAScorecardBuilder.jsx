@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero } from "./src/lib/ToolShell";
+import { ToolHero } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam, encodeScenario } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -143,7 +143,6 @@ export default function QAScorecardBuilder() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <ToolNav wrap={WRAP} />
       <ToolHero wrap={WRAP} eyebrow="Performance + Quality" title="QA Scorecard Builder"
         intro="Build a weighted QA form for a contact type, check that it produces scores you can defend, and calibrate your evaluators blind: each scores the same calls alone, and nothing is compared until everyone has scored.">
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every rule, cut point and source is published in the <a href={MODEL.methodology} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>QA method</a>.</p>

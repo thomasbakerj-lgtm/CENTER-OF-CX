@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero } from "./src/lib/ToolShell";
+import { ToolHero } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -124,7 +124,6 @@ export default function AHTDecomposition() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}.crow{grid-template-columns:1fr 64px!important}.crow .wide{display:none}}`}</style>
-      <ToolNav wrap={WRAP} />
       <ToolHero wrap={WRAP} eyebrow="Performance + Quality" title="AHT Decomposition"
         intro="Average handle time is several components added together. Set talk, hold, after-call work, transfer, search and system time to see where the seconds go. Then choose the initiatives you are weighing, set how much of each component they remove, and see the handle time and agent hours that follow.">
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every formula and assumption is in the <a href={METHOD} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>

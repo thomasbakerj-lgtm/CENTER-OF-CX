@@ -10,13 +10,7 @@ function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:
 function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
 const links=[{name:"Platforms & Tech",href:"/platforms-and-tech"},{name:"How to Choose",href:"/how-to-choose"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"Advisory",href:"/advisory"}];
 return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.resource-grid{grid-template-columns:1fr!important}}`}</style>
-<nav style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:scrolled?"rgba(6,19,37,0.96)":"transparent",backdropFilter:scrolled?"blur(14px)":"none",borderBottom:scrolled?"1px solid rgba(255,255,255,0.05)":"none",transition:"all 0.35s",padding:scrolled?"12px 0":"20px 0"}}>
-<div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-<a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={34}/><span style={{color:"#fff",fontWeight:600,fontSize:14.5,letterSpacing:0.4}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a>
-<div className="nav-links" style={{display:"flex",alignItems:"center",gap:28}}>
-{links.map(l=><a key={l.name} href={l.href} style={{color:"rgba(255,255,255,0.7)",fontSize:13.5,fontWeight:500,transition:"color 0.2s"}} onMouseOver={e=>e.target.style.color="#fff"} onMouseOut={e=>e.target.style.color="rgba(255,255,255,0.7)"}>{l.name}</a>)}
-<a href="/contact" style={{color:"#fff",fontSize:13,fontWeight:600,background:ELECTRIC,padding:"9px 20px",borderRadius:6}}>Subscribe</a>
-</div></div></nav></>)}
+</>)}
 
 const resources = [
   // ═══ EDITORIAL & NEWS ═══
@@ -216,7 +210,7 @@ export default function CXEcosystem() {
             <p style={{ fontSize: 13, color: MUTED, marginBottom: 32, maxWidth: 600 }}>The publications covering CX strategy, contact center technology, and industry developments with editorial depth and consistent publishing.</p>
           </FadeIn>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }} className="resource-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(360px, 100%), 1fr))", gap: 16 }} className="resource-grid">
             {resources.filter(r => ["Editorial & Strategy","News","CX Tech & Contact Center","Enterprise Comms & CC","International CX","CRM & Service"].includes(r.tag)).map((r, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", transition: "all 0.2s", height: "100%" }}
@@ -249,7 +243,7 @@ export default function CXEcosystem() {
             <p style={{ fontSize: 13, color: MUTED, marginBottom: 32, maxWidth: 600 }}>The destinations built for people who manage queues, build WFM models, run QA programs, and develop contact center talent. Operational substance over thought leadership abstraction.</p>
           </FadeIn>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }} className="resource-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(360px, 100%), 1fr))", gap: 16 }} className="resource-grid">
             {resources.filter(r => ["Practitioner Operations","Long-form Operations","Training & Best Practices","Standards & Performance"].includes(r.tag)).map((r, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", transition: "all 0.2s", height: "100%" }}
@@ -282,7 +276,7 @@ export default function CXEcosystem() {
             <p style={{ fontSize: 13, color: MUTED, marginBottom: 32, maxWidth: 600 }}>The research hubs, analyst firms, and communities where CX professionals find benchmarks, primary research, and peer perspectives that shape strategy.</p>
           </FadeIn>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 16 }} className="resource-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(360px, 100%), 1fr))", gap: 16 }} className="resource-grid">
             {resources.filter(r => ["Research Hub","Enterprise Research","Community & Thought Leadership","Independent Research"].includes(r.tag)).map((r, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", transition: "all 0.2s", height: "100%" }}
@@ -323,16 +317,7 @@ export default function CXEcosystem() {
         </div>
       </section>
 
-      <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span>
-          <div style={{ display: "flex", gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Privacy</a>
-            <a href="/terms" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Terms</a>
-          </div>
-        </div></div>
-      </footer>
+      
     </div>
   );
 }

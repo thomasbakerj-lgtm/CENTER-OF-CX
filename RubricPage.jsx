@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Crumbs } from "./src/lib/Shell.jsx";
 import { FIXTURE_KIND, fixturesFor } from "./src/lib/fixtures.js";
 import { CHANGELOG, changesFor } from "./src/lib/changelog.js";
 import { longDate } from "./src/lib/methodVersions.js";
@@ -41,12 +42,7 @@ export default function RubricPage({ id }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
-          <a href={r.route} style={{ color: "rgba(255,255,255,0.6)", fontSize: 13 }}>Take the assessment</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Take the assessment", r.route]} />
 
       <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
@@ -135,12 +131,7 @@ function OwnershipPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
-          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published model</span>
@@ -214,12 +205,7 @@ function QAPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
-          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -287,12 +273,7 @@ function RenewalPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
-          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -358,12 +339,7 @@ function TermsPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
-          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -426,12 +402,7 @@ function RfpPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
-          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -491,12 +462,7 @@ function CalcPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
-          <a href={r.route} style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>Open the tool</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -561,12 +527,7 @@ function ChangelogPage() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <a href="/" style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></a>
-          <a href="/how-to-choose" style={{ color: "rgba(255,255,255,0.78)", fontSize: 13 }}>All tools</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method changelog"]]} />
       <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Method changelog</span>

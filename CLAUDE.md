@@ -909,6 +909,33 @@ dashboard, the 12-phase growth program.
    3:1). The `audience` event property waits for taxonomy 1.1 at Phase 5. Harness note: Playwright request routing (context
    or opener page) stalls a document.write popup's font loads, so report screenshots run without routing; the live checker's
    text read is unaffected. Suite 24,434 green; live check 254 of 254. Next: Phase 3 part 2, the component library.
+48. S24, redesign session 8. PR #41 (Phases 2 and 3 part 1) merged by TB's instruction (afe9bd2) and verified on production:
+   fonts served with the year cache, pages carry the token block, GitHub nightly live check on the merge commit green (every
+   tool and report window). From this sandbox 4 of 254 report checks failed; traced to the sandbox proxy returning 502 for the
+   main script (the page never hydrated), the same egress fault as S23; GitHub's runner saw none. Phase 3 part 2 done:
+   `src/lib/ui.jsx`, the Brand Guide section 12 components on tokens only (no colour literal; `alpha()` and `LINE` added to
+   tokens for translucency): Button (primary, secondary, text, pillar with `onFill` text), SourceInput (yours, default,
+   pulled, corrected), Stepper (`holdCurve`: 400 ms falling to 60 ms, tenfold steps after 20 repeats), EvidenceMark (dark
+   arcs by grade, dotted n/a, nothing on void), GradeBadge (weight and fill only), Result (counts to value, reduced motion
+   respected, void says why and shows no figure), Readout (layer colours, no score until every part is answered), Stack,
+   ClaimMarker, Finding (word and icon, unknown never red), NextStep (always with Stop here), Byline, Door, RouteCard (three
+   steps at most), Loading, Failure, Empty, SharedScenario. `components.test.mjs` 99. Gallery rendered and checked. Suite
+   24,534 green. Next: Phase 4, the site shell and tool shell built from these.
+
+49. S24, redesign session 9, Phase 4 part 1: the site shell. `src/lib/Shell.jsx` (tokens only): one header (mark, the five
+   pillars with the current one marked, Research and Market Watch tagged soon, Market Watch a label until it has a page,
+   Subscribe, a phone menu with 44px targets), one footer (four link columns, privacy, terms) and `Crumbs`, a breadcrumb row
+   with at most one action. App renders the header and footer once around every route. 61 pages lost their own bars (six
+   hand-built link sets) and 16 tools their `ToolNav`; method pages and sub-vertical pages keep their back links as crumbs.
+   The 37 pages whose old bar was fixed keep the header over the page (`headerFixed`); every other page has it in the flow.
+   Found and fixed: /about scrolled sideways on a phone (a 340px grid minimum; the same guard applied to 23 grids on 12
+   pages); /vendors and /about still said every vendor was scored with proprietary rubrics, across "350+ vendors in nine
+   categories" (now what the profiles are; `freeze.test.mjs` gates both). Gates: `shell.test.mjs` (55: header, pillars,
+   live footer links, crumbs, App wiring, no page draws its own bar, fixed or in flow per route, no grid wider than a
+   phone), `prerender.test.mjs` (every page has the shell once). Chunk gate re-based with attribution: the shell adds
+   10,457 bytes to the entry (Shell 7,506, Icon 2,117, tokens 715, App 95; no route or data file). Suite 24,593; all 426
+   sitemap pages at 390 and 1440 with no overflow, no page error, one header and one footer; local live check under the
+   production policy 254 of 254. Next: Phase 4 part 2, the tool shell v2.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

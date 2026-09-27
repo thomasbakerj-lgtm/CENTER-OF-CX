@@ -144,6 +144,19 @@ export function cssVars() {
   return `:root{${v.join(";")}}`;
 }
 
+/* ------------------------------------------------------------- translucency */
+
+// A token colour at an opacity, for hairlines, tints and glows. Components use this rather
+// than writing rgba() themselves, so every colour on a migrated page traces to a token.
+export function alpha(hex, a) {
+  const n = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16));
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// Hairlines on the house: dividers, card edges, control outlines.
+export const LINE = { hair: 0.08, soft: 0.14, firm: 0.3 };
+
 /* ---------------------------------------------------------------- contrast */
 
 // WCAG 2 relative luminance and contrast ratio, used by the token test and available

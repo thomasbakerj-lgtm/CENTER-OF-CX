@@ -185,7 +185,7 @@ section("6. Migrated files carry no hard-coded colour");
 {
   // A file joins this list when it moves onto the new design. It may use tokens.js or the
   // --cx- variables, never a colour literal of its own.
-  const MIGRATED = ["src/lib/Icon.jsx"];
+  const MIGRATED = ["src/lib/Icon.jsx", "src/lib/ui.jsx", "src/lib/Shell.jsx"];
   const COLOR = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/;
   for (const f of MIGRATED) {
     const code = readFileSync("./" + f, "utf8").split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
