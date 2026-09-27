@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { ToolHero } from "./src/lib/ToolShell";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result } from "./src/lib/ui.jsx";
+import { K, Group, Field, Tile, Corrections, Assumptions, Paper, frameMethod } from "./src/lib/frameKit.jsx";
+import { methodStamp } from "./src/lib/methodVersions.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
-import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine, money } from "./src/lib/guards";
 import { benchmark, BENCHMARK_SOURCES } from "./src/lib/benchmarks";
 import { publishToolResult } from "./src/lib/toolData";
@@ -26,36 +29,11 @@ export const SHRINK_PARAMS = {
   maxTotal: 99,
 };
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
-const PLANNED_FILL = "#0F766E"; const UNPLANNED_FILL = "#B45309";
-const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
+const ELECTRIC = "#0088DD";
 const pc = (x, d = 0) => (x * 100).toFixed(d) + "%";
 const usd = (x) => "$" + Math.round(x).toLocaleString("en-US");
 const RANGE = SHRINK_PARAMS.range;
 const POSITION = { below: "Below the planning range", within: "Within the planning range", above: "Above the planning range" };
-
-function Input({ label, value, onChange, suffix, hint }) {
-  return (
-    <div>
-      <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>{label}</label>
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <input aria-label={label} type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} />
-        {suffix && <span style={{ fontSize: 12, color: MUTED, flexShrink: 0 }}>{suffix}</span>}
-      </div>
-      {hint && <span style={{ fontSize: 12, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
-    </div>
-  );
-}
-
-function Tile({ label, value, note, dark }) {
-  return (
-    <div style={{ background: dark ? `linear-gradient(135deg, ${NAVY}, ${DEEP})` : WARM, border: dark ? "none" : `1px solid ${BORDER}`, borderRadius: 10, padding: 20, textAlign: "center" }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: dark ? LIGHT : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 30, color: dark ? "#fff" : NAVY }}>{value}</div>
-      <div style={{ fontSize: 12, color: dark ? "rgba(255,255,255,0.78)" : MUTED }}>{note}</div>
-    </div>
-  );
-}
 
 export default function ShrinkagePlanner() {
   const [d, setD] = useState(() => ({ ...DEFAULTS, ...(readScenario(TOOL_ID, DEFAULTS) || {}) }));
@@ -100,83 +78,85 @@ export default function ShrinkagePlanner() {
     `Hourly rate ${wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024." : "entered by you."}`,
   ];
 
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.sg{grid-template-columns:1fr!important}}`}</style>
-      <ToolHero wrap={WRAP} eyebrow="WFM + Staffing" title="Shrinkage Planner"
-        intro="Shrinkage is the share of paid agent time that never reaches the queue. Enter each category as a percent of paid hours. The planner totals them, shows how many agents your roster keeps on the queue, how many to schedule to keep the number you need there, and what the time off the queue is worth.">
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every formula and assumption is in the <a href={METHOD} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-      </ToolHero>
+  const result = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="Total shrinkage" value={totalLabel} change={`${POSITION[R.position]}. About ${R.onQueueRounded} of ${v.agents} agents on the queue at any moment.`} />
+      <div style={K.panel}>
+        <div style={{ ...K.row, borderTop: "none", paddingTop: 0 }}><span style={K.small}>To schedule for {v.needed}</span><span style={{ ...K.strong, ...K.num }}>{R.schedule}</span></div>
+        <div style={K.row}><span style={K.small}>Paid time off the queue, a year</span><span style={{ ...K.strong, ...K.num }}>{usd(R.offQueueValue)}</span></div>
+      </div>
+    </div>
+  );
+  const parts = [...R.cats.filter((c) => c.pct > 0)];
 
-      <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="sg">
-            <div>
-              <h2 style={{ fontSize: 12, fontWeight: 700, color: PLANNED_FILL, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Planned, booked ahead</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {SHRINK_PLANNED.map(([key, name]) => <Input key={key} label={name} value={d[key]} onChange={(x) => set(key, x)} suffix="%" />)}
-              </div>
-            </div>
-            <div>
-              <h2 style={{ fontSize: 12, fontWeight: 700, color: UNPLANNED_FILL, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Unplanned, on the day</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {SHRINK_UNPLANNED.map(([key, name]) => <Input key={key} label={name} value={d[key]} onChange={(x) => set(key, x)} suffix="%" />)}
-              </div>
+  return (
+    <ToolFrame toolId={TOOL_ID} section="Operations + Workforce" name="Shrinkage Planner" title="How much paid time never reaches the queue?"
+      lede="Shrinkage is the share of paid agent time that never reaches the queue. Enter each category as a percent of paid hours. The planner totals them, shows how many agents your roster keeps on the queue, how many to schedule to keep the number you need there, and what the time off the queue is worth."
+      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Total shrinkage", value: totalLabel }}>
+      <style>{FONT_IMPORT_CSS}</style>
+      <p style={K.small}>Every formula and assumption is in the <a href={METHOD} style={K.link}>published method</a>.</p>
+
+      <Group legend="Question 1 of 2 · Where paid time goes" note="Enter every category as a percent of paid hours, so they add.">
+        <div style={K.grid(260)}>
+          <div>
+            <h2 style={{ ...K.h2, fontSize: 16 }}>Planned, booked ahead</h2>
+            <div style={K.grid(140)}>
+              {SHRINK_PLANNED.map(([key, name]) => <Field key={key} label={name} value={d[key]} onChange={(x) => set(key, x)} suffix="%" />)}
             </div>
           </div>
-          <p style={{ fontSize: 12, color: SLATE, marginTop: 12 }}>Enter every category as a percent of paid hours, so they add.</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginTop: 16 }} className="sg">
-            <Input label="Agents on the roster" value={d.agents} onChange={(x) => set("agents", x)} />
-            <Input label="Agents needed on the queue" value={d.needed} onChange={(x) => set("needed", x)} hint="From your forecast or the Staffing Calculator" />
-            <Input label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? "BLS median, May 2024" : undefined} />
+          <div>
+            <h2 style={{ ...K.h2, fontSize: 16 }}>Unplanned, on the day</h2>
+            <div style={K.grid(140)}>
+              {SHRINK_UNPLANNED.map(([key, name]) => <Field key={key} label={name} value={d[key]} onChange={(x) => set(key, x)} suffix="%" />)}
+            </div>
           </div>
+        </div>
+      </Group>
+
+      <Group legend="Question 2 of 2 · Your roster">
+        <div style={K.grid(180)}>
+          <Field label="Agents on the roster" value={d.agents} onChange={(x) => set("agents", x)} />
+          <Field label="Agents needed on the queue" value={d.needed} onChange={(x) => set("needed", x)} hint="From your forecast or the Staffing Calculator" />
+          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? "BLS median, May 2024" : undefined} />
+        </div>
+      </Group>
+
+      <Corrections guards={guards} />
+
+      <div style={K.grid(160)}>
+        <Tile label="Total shrinkage" value={totalLabel} note={POSITION[R.position]} />
+        <Tile label="On the queue" value={String(R.onQueueRounded)} note={"Of " + v.agents + " on the roster"} />
+        <Tile label="To schedule" value={String(R.schedule)} note={"To keep " + v.needed + " on the queue"} />
+        <Tile label="Paid time off the queue" value={usd(R.offQueueValue)} note="A year, at the loaded rate" />
+      </div>
+
+      <section aria-label="Where paid hours go" style={K.panel}>
+        <h2 style={K.h2}>Where paid hours go</h2>
+        <div role="img" aria-label={`Planned ${R.plannedPct.toFixed(1)}%, unplanned ${R.unplannedPct.toFixed(1)}%, on the queue ${pc(R.avail)}`} style={{ display: "flex", height: 28, borderRadius: 4, overflow: "hidden", border: `1px solid ${K.hair}`, marginBottom: 10 }}>
+          {parts.map((c) => (
+            <div key={c.key} title={c.name + " " + c.pct + "%"} style={{ width: `${c.pct * (R.totalPct / (R.rawPct || 1))}%`, background: K.shade(c.type === "planned" ? 0 : 2), borderRight: `1px solid ${K.firm}` }} />
+          ))}
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ ...K.small, color: K.strong.color, fontWeight: 600 }}>On the queue {pc(R.avail)}</span>
+          </div>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 16, ...K.small }}>
+          <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: K.shade(0), marginRight: 6, verticalAlign: "middle" }} />Planned {R.plannedPct.toFixed(1)}%</span>
+          <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: K.shade(2), marginRight: 6, verticalAlign: "middle" }} />Unplanned {R.unplannedPct.toFixed(1)}%</span>
+          <span>One point of shrinkage: {R.pointAgents.toFixed(1)} agents, {usd(R.pointValue)} a year</span>
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "40px 28px" }}>
-        <div style={WRAP}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="sg">
-            <Tile label="Total shrinkage" value={totalLabel} note={POSITION[R.position]} />
-            <Tile label="On the queue" value={String(R.onQueueRounded)} note={"Of " + v.agents + " on the roster"} />
-            <Tile label="To schedule" value={String(R.schedule)} note={"To keep " + v.needed + " on the queue"} />
-            <Tile dark label="Paid time off the queue" value={usd(R.offQueueValue)} note="A year, at the loaded rate" />
-          </div>
+      <section aria-label="What it means" style={K.lead}>
+        <span style={K.kicker}>What this shows</span>
+        {findings.map((f, i) => <p key={i} style={{ ...K.body, marginTop: i ? 10 : 8 }}>{f}</p>)}
+      </section>
 
-          <div style={{ marginBottom: 28 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Where paid hours go</h2>
-            <div style={{ display: "flex", height: 32, borderRadius: 6, overflow: "hidden", marginBottom: 8 }}>
-              {R.cats.map((c) => c.pct > 0 && (
-                <div key={c.key} title={c.name + " " + c.pct + "%"} style={{ width: `${c.pct * (R.totalPct / (R.rawPct || 1))}%`, background: c.type === "planned" ? PLANNED_FILL : UNPLANNED_FILL, borderRight: "1px solid #fff" }} />
-              ))}
-              <div style={{ flex: 1, background: ELECTRIC, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 12, color: "#fff", fontWeight: 600 }}>On the queue {pc(R.avail)}</span>
-              </div>
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 12, color: SLATE }}>
-              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: PLANNED_FILL, marginRight: 4, verticalAlign: "middle" }} />Planned {R.plannedPct.toFixed(1)}%</span>
-              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: UNPLANNED_FILL, marginRight: 4, verticalAlign: "middle" }} />Unplanned {R.unplannedPct.toFixed(1)}%</span>
-              <span>One point of shrinkage: {R.pointAgents.toFixed(1)} agents, {usd(R.pointValue)} a year</span>
-            </div>
-          </div>
+      <Assumptions items={assumptions}>
+        <p style={{ ...K.small, marginTop: 6 }}>{BENCHMARK_SOURCES["shrinkage.range.low"].rationale}</p>
+      </Assumptions>
 
-          <div style={{ marginBottom: 24 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 10 }}>What this shows</h2>
-            {findings.map((f, i) => <p key={i} style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, marginBottom: 8 }}>{f}</p>)}
-          </div>
-
-          <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 20px", marginBottom: 24 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Planning assumptions on this page</div>
-            {assumptions.map((a, i) => <p key={i} style={{ fontSize: 12, color: SLATE, marginBottom: 4 }}>{a}</p>)}
-            <p style={{ fontSize: 12, color: SLATE }}>{BENCHMARK_SOURCES["shrinkage.range.low"].rationale}</p>
-          </div>
-
-          {guards.length > 0 && (
-            <div style={{ background: "#FFF7E6", border: "1px solid #F59E0B", borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Inputs corrected. Every figure above was computed on the corrected values.</div>
-              {guards.map((g, i) => <div key={i} style={{ fontSize: 12, color: SLATE }}>{guardLine(g)}</div>)}
-            </div>
-          )}
-
+      <Paper>
           <ReportActions
             toolId={TOOL_ID}
             toolName="Shrinkage Analysis"
@@ -204,8 +184,7 @@ export default function ShrinkagePlanner() {
               { title: "Method", type: "text", content: "Total shrinkage is the sum of the categories, each a percent of paid hours. Agents on the queue are the roster times one minus shrinkage; agents to schedule are the need divided by one minus shrinkage, rounded up. Paid time off the queue is priced at the hourly rate, the full-time year and the benefits load. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
-        </div>
-      </section>
-    </div>
+      </Paper>
+    </ToolFrame>
   );
 }

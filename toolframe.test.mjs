@@ -106,18 +106,28 @@ section("4. Layout and house rules");
   ok("no dash characters", !new RegExp("[" + String.fromCharCode(0x2013, 0x2014) + "]").test(SRC));
 }
 
-section("5. Tools on the frame (Phase 6, batches 1 and 2)");
+section("5. Tools on the frame (Phase 6, batches 1 to 3)");
 {
   // Each migrated tool renders inside the frame: the frame owns the one h1, the route rail and the result column.
   // The engine, grading and report payload stay where the tool's harnesses slice them.
   const MOVED = { "cost-per-contact": "CostPerContactCalculator.jsx", "fcr-leakage": "FCRLeakageDiagnostic.jsx", "ai-deflection": "AIDeflectionRealityCheck.jsx", "business-case-builder": "BusinessCaseBuilder.jsx",
-    "tco-calculator": "TCOCalculator.jsx", "license-gap": "LicenseBundleGapChecker.jsx", "staffing-calculator": "StaffingCalculator.jsx", "attrition-cost": "AttritionCostCalculator.jsx", "channel-shift": "ChannelShiftModel.jsx" };
+    "tco-calculator": "TCOCalculator.jsx", "license-gap": "LicenseBundleGapChecker.jsx", "staffing-calculator": "StaffingCalculator.jsx", "attrition-cost": "AttritionCostCalculator.jsx", "channel-shift": "ChannelShiftModel.jsx",
+    "occupancy-risk": "OccupancyRiskSimulator.jsx", "shrinkage-planner": "ShrinkagePlanner.jsx", "aht-decomposition": "AHTDecomposition.jsx", "forecast-accuracy": "ForecastAccuracyTracker.jsx", "schedule-adherence": "ScheduleAdherenceCalculator.jsx" };
   for (const [id, file] of Object.entries(MOVED)) {
     const T = readFileSync("./" + file, "utf8");
     ok(`${id}: renders in the frame with its own id, a result and no h1 of its own`, /import \{ ToolFrame \} from "\.\/src\/lib\/ToolFrame\.jsx";/.test(T) && /<ToolFrame toolId=\{TOOL_ID\}/.test(T) && /result=\{result\}/.test(T) && !/<h1/.test(T) && J.JOURNEY[id] != null);
-    ok(`${id}: the report stays on paper inside the frame`, /background: HOUSE\.paper, color: HOUSE\.paperInk[\s\S]*<ReportActions[\s\S]*<\/ToolFrame>/.test(T));
+    ok(`${id}: the report stays on paper inside the frame`, /(background: HOUSE\.paper, color: HOUSE\.paperInk|<Paper>)[\s\S]*<ReportActions[\s\S]*<\/ToolFrame>/.test(T));
     ok(`${id}: no scored vendor claim`, !/scored IVA vendors|\d+ scored/.test(T));
   }
+}
+
+section("6. The frame kit");
+{
+  const KIT = readFileSync("./src/lib/frameKit.jsx", "utf8");
+  const code = KIT.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+  ok("the kit is tokens only: no colour literal", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(code));
+  ok("the kit computes nothing: it imports only tokens, type, the components and the guard sentence", [...KIT.matchAll(/^import .* from "([^"]+)";/gm)].map((m) => m[1]).sort().join() === "./guards.js,./tokens.js,./type.js,./ui.jsx");
+  ok("a kit field hands the tool Number(value), the contract the tools' own inputs had", /onChange\(Number\(e\.target\.value\)\)/.test(KIT));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

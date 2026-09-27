@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { ToolHero } from "./src/lib/ToolShell";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result } from "./src/lib/ui.jsx";
+import { K, Group, Field, Tile, Choice, Corrections, Assumptions, Paper, frameMethod } from "./src/lib/frameKit.jsx";
+import { methodStamp } from "./src/lib/methodVersions.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
-import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine } from "./src/lib/guards";
 import { benchmark } from "./src/lib/benchmarks";
 import { publishToolResult } from "./src/lib/toolData";
@@ -28,15 +31,14 @@ const PRESET_NAMES = [["blended", "Blended"], ["billing", "Billing"], ["techSupp
 export const LEVER_DEFAULTS = Object.fromEntries(AHT_LEVERS.map((L) => [L.id, { on: true, ...Object.fromEntries(L.targets.map((c) => [c, Math.round(benchmark(`aht.lever.${L.id}.${c}`) * 100)])) }]));
 export const DEFAULTS = { values: PRESETS.blended, contactType: "blended", contacts: 20000, levers: LEVER_DEFAULTS };
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
-const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
+const ELECTRIC = "#0088DD";
 const COMPONENT = {
-  talk: { name: "Talk time", color: ELECTRIC, desc: "Conversation between the agent and the customer." },
-  hold: { name: "Hold time", color: "#B45309", desc: "The customer waits while the agent looks something up, consults or waits on an approval." },
-  wrap: { name: "After-call work", color: "#7C3AED", desc: "Notes, disposition, case updates and follow-up tasks after the contact ends." },
-  transfer: { name: "Transfer and conference", color: "#B91C1C", desc: "Starting, waiting on and completing warm or cold transfers." },
-  search: { name: "Knowledge search", color: "#0369A1", desc: "Searching the knowledge base or procedures, or asking a peer, during the contact." },
-  admin: { name: "System and admin", color: "#4B5563", desc: "Moving between applications, copying data, system latency and compliance steps." },
+  talk: { name: "Talk time", shade: 0, desc: "Conversation between the agent and the customer." },
+  hold: { name: "Hold time", shade: 1, desc: "The customer waits while the agent looks something up, consults or waits on an approval." },
+  wrap: { name: "After-call work", shade: 2, desc: "Notes, disposition, case updates and follow-up tasks after the contact ends." },
+  transfer: { name: "Transfer and conference", shade: 3, desc: "Starting, waiting on and completing warm or cold transfers." },
+  search: { name: "Knowledge search", shade: 4, desc: "Searching the knowledge base or procedures, or asking a peer, during the contact." },
+  admin: { name: "System and admin", shade: 5, desc: "Moving between applications, copying data, system latency and compliance steps." },
 };
 const LEVER_TAKES = {
   summarization: "Automatic summaries and disposition in the agent desktop.",
@@ -51,23 +53,13 @@ const hrs = (h) => Math.round(h).toLocaleString("en-US");
 function Slider({ id, value, onChange }) {
   const c = COMPONENT[id];
   return (
-    <div style={{ padding: "14px 16px", background: "#fff", borderRadius: 8, border: `1px solid ${BORDER}` }}>
+    <div style={K.box}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{c.name}</span>
-        <span style={{ fontSize: 20, color: NAVY }}>{value}s</span>
+        <span style={{ ...K.strong, fontSize: 14 }}>{c.name}</span>
+        <span style={{ ...K.strong, fontSize: 18, ...K.num }}>{value}s</span>
       </div>
-      <input type="range" aria-label={`${c.name}, seconds`} min={0} max={300} value={Math.min(300, Math.max(0, Number(value) || 0))} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", accentColor: c.color, height: 6, cursor: "pointer" }} />
-      <div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>{c.desc}</div>
-    </div>
-  );
-}
-
-function Tile({ label, value, note, dark }) {
-  return (
-    <div style={{ background: dark ? `linear-gradient(135deg, ${NAVY}, ${DEEP})` : WARM, border: dark ? "none" : `1px solid ${BORDER}`, borderRadius: 10, padding: 20, textAlign: "center" }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: dark ? LIGHT : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 30, color: dark ? "#fff" : NAVY }}>{value}</div>
-      <div style={{ fontSize: 12, color: dark ? "rgba(255,255,255,0.78)" : MUTED }}>{note}</div>
+      <input type="range" aria-label={`${c.name}, seconds`} min={0} max={300} value={Math.min(300, Math.max(0, Number(value) || 0))} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", accentColor: K.shade(0), height: 6, cursor: "pointer" }} />
+      <div style={{ ...K.small, marginTop: 4 }}>{c.desc}</div>
     </div>
   );
 }
@@ -121,98 +113,95 @@ export default function AHTDecomposition() {
     `The ${PRESET_NAMES.map(([, n]) => n.toLowerCase()).join(", ")} profiles are illustrative starting points, never benchmarks.`,
   ];
 
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}.crow{grid-template-columns:1fr 64px!important}.crow .wide{display:none}}`}</style>
-      <ToolHero wrap={WRAP} eyebrow="Performance + Quality" title="AHT Decomposition"
-        intro="Average handle time is several components added together. Set talk, hold, after-call work, transfer, search and system time to see where the seconds go. Then choose the initiatives you are weighing, set how much of each component they remove, and see the handle time and agent hours that follow.">
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every formula and assumption is in the <a href={METHOD} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-      </ToolHero>
+  const result = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="Handle time" value={fmt(R.total)} change={`Conversation is ${pc(R.talkShare)} of it; ${fmt(R.nonTalk)} is outside the conversation.`} />
+      <div style={K.panel}>
+        <div style={{ ...K.row, borderTop: "none", paddingTop: 0 }}><span style={K.small}>With selected levers</span><span style={{ ...K.strong, ...K.num }}>{fmt(R.combinedNew)}</span></div>
+        <p style={K.small}>{selected.length ? pc(R.combinedSavedPct, 1) + " lower, " + selected.length + " selected" : "No lever selected"}</p>
+      </div>
+    </div>
+  );
 
-      <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
-            <span style={{ fontSize: 12, color: SLATE }}>Example profiles, illustrative only:</span>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {PRESET_NAMES.map(([k, l]) => (
-                <button key={k} onClick={() => applyPreset(k)} style={{ minHeight: 44, padding: "6px 14px", fontSize: 13, fontWeight: 600, fontFamily: "inherit", borderRadius: 6, border: `1px solid ${d.contactType === k ? ELECTRIC : BORDER}`, background: d.contactType === k ? ELECTRIC : "#fff", color: d.contactType === k ? "#fff" : SLATE, cursor: "pointer" }}>{l}</button>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }} className="pg">
-            {AHT_COMPONENTS.map((c) => <Slider key={c} id={c} value={d.values[c]} onChange={(x) => setValue(c, x)} />)}
-          </div>
-          <div style={{ maxWidth: 320, marginTop: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>Contacts per month</label>
-            <input aria-label="Contacts per month" type="number" value={d.contacts} onChange={(e) => setD((p) => ({ ...p, contacts: Number(e.target.value) }))} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} />
-            <span style={{ fontSize: 12, color: MUTED, marginTop: 2, display: "block" }}>Optional. Turns seconds into agent hours a year.</span>
-          </div>
+  return (
+    <ToolFrame toolId={TOOL_ID} section="Performance + Quality" name="AHT Decomposition" title="Where do the seconds of handle time go?"
+      lede="Average handle time is several components added together. Set talk, hold, after-call work, transfer, search and system time to see where the seconds go. Then choose the initiatives you are weighing, set how much of each component they remove, and see the handle time and agent hours that follow."
+      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Handle time", value: fmt(R.total) }}>
+      <style>{FONT_IMPORT_CSS}</style>
+      <p style={K.small}>Every formula and assumption is in the <a href={METHOD} style={K.link}>published method</a>.</p>
+
+      <Group legend="Question 1 of 2 · Your handle time">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+          <span style={K.small}>Example profiles, illustrative only:</span>
+          <Choice label="Example profiles" options={PRESET_NAMES} value={d.contactType} onPick={applyPreset} />
         </div>
+        <div style={K.grid(240)}>
+          {AHT_COMPONENTS.map((c) => <Slider key={c} id={c} value={d.values[c]} onChange={(x) => setValue(c, x)} />)}
+        </div>
+        <div style={{ maxWidth: 320, marginTop: 16 }}>
+          <Field label="Contacts per month" value={d.contacts} onChange={(x) => setD((p) => ({ ...p, contacts: x }))} hint="Optional. Turns seconds into agent hours a year." />
+        </div>
+      </Group>
+
+      <Corrections guards={guards} />
+
+      <div style={K.grid(160)}>
+        <Tile label="Handle time" value={fmt(R.total)} note="Sum of the six components" />
+        <Tile label="Conversation" value={pc(R.talkShare)} note={fmt(v.values.talk) + " of talk"} />
+        <Tile label="Outside the conversation" value={fmt(R.nonTalk)} note={pc(R.nonTalkShare) + " of handle time"} />
+        <Tile label="With selected levers" value={fmt(R.combinedNew)} note={selected.length ? pc(R.combinedSavedPct, 1) + " lower, " + selected.length + " selected" : "No lever selected"} />
+      </div>
+
+      <section aria-label="Where the seconds go" style={K.panel}>
+        <h2 style={K.h2}>Where the seconds go</h2>
+        <div role="img" aria-label={AHT_COMPONENTS.map((c) => `${COMPONENT[c].name} ${pc(R.shares[c])}`).join(", ")} style={{ display: "flex", height: 28, borderRadius: 4, overflow: "hidden", border: `1px solid ${K.hair}`, marginBottom: 14 }}>
+          {AHT_COMPONENTS.map((c) => R.shares[c] > 0 && <div key={c} title={COMPONENT[c].name} style={{ width: pc(R.shares[c], 2), background: K.shade(COMPONENT[c].shade), borderRight: `1px solid ${K.firm}` }} />)}
+        </div>
+        {AHT_COMPONENTS.map((c) => (
+          <div key={c} style={{ ...K.row, alignItems: "flex-start" }}>
+            <span style={{ display: "flex", gap: 10, minWidth: 0 }}>
+              <span aria-hidden="true" style={{ flexShrink: 0, width: 10, height: 10, marginTop: 6, borderRadius: 2, background: K.shade(COMPONENT[c].shade) }} />
+              <span style={{ minWidth: 0 }}>
+                <span style={{ ...K.strong, fontSize: 14 }}>{COMPONENT[c].name} · {fmt(v.values[c])}</span>
+                <span style={{ ...K.small, display: "block" }}>{COMPONENT[c].desc}</span>
+              </span>
+            </span>
+            <span style={{ ...K.strong, ...K.num, flexShrink: 0 }}>{pc(R.shares[c])}</span>
+          </div>
+        ))}
       </section>
 
-      <section style={{ background: "#fff", padding: "40px 28px" }}>
-        <div style={WRAP}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="pg">
-            <Tile dark label="Handle time" value={fmt(R.total)} note="Sum of the six components" />
-            <Tile label="Conversation" value={pc(R.talkShare)} note={fmt(v.values.talk) + " of talk"} />
-            <Tile label="Outside the conversation" value={fmt(R.nonTalk)} note={pc(R.nonTalkShare) + " of handle time"} />
-            <Tile label="With selected levers" value={fmt(R.combinedNew)} note={selected.length ? pc(R.combinedSavedPct, 1) + " lower, " + selected.length + " selected" : "No lever selected"} />
-          </div>
-
-          <h2 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 8 }}>Where the seconds go</h2>
-          <div style={{ display: "flex", height: 32, borderRadius: 6, overflow: "hidden", marginBottom: 20 }}>
-            {AHT_COMPONENTS.map((c) => R.shares[c] > 0 && <div key={c} title={COMPONENT[c].name} style={{ width: pc(R.shares[c], 2), background: COMPONENT[c].color, borderRight: "1px solid #fff" }} />)}
-          </div>
-          <div style={{ display: "grid", gap: 6, marginBottom: 28 }}>
-            {AHT_COMPONENTS.map((c) => (
-              <div key={c} className="crow" style={{ display: "grid", gridTemplateColumns: "180px 64px 1fr", gap: 12, alignItems: "center", padding: "10px 14px", background: WARM, borderRadius: 6, borderLeft: `3px solid ${COMPONENT[c].color}` }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{COMPONENT[c].name} · {fmt(v.values[c])}</span>
-                <span style={{ fontSize: 16, color: NAVY }}>{pc(R.shares[c])}</span>
-                <span className="wide" style={{ fontSize: 12, color: SLATE }}>{COMPONENT[c].desc}</span>
+      <Group legend="Question 2 of 2 · Initiatives you are weighing" note="Each share opens at a planning heuristic. Set it to what a vendor can evidence or your own pilot measured, and select the levers you want in the combined figure.">
+        <div style={K.grid(260)}>
+          {R.levers.map((L) => (
+            <div key={L.id} style={{ ...K.box, border: `1px solid ${L.on ? K.firm : K.hair}` }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 44, cursor: "pointer" }}>
+                <input type="checkbox" checked={L.on} onChange={(e) => setLever(L.id, "on", e.target.checked)} style={{ width: 20, height: 20 }} />
+                <span style={{ ...K.strong, fontSize: 15, fontWeight: 700 }}>{L.name}</span>
+              </label>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", margin: "6px 0 8px" }}>
+                {L.targets.map((c) => (
+                  <label key={c} style={{ ...K.small, display: "flex", alignItems: "center", gap: 6 }}>
+                    <input aria-label={`${L.name}: share of ${COMPONENT[c].name.toLowerCase()} removed`} type="number" value={d.levers[L.id][c]} onChange={(e) => setLever(L.id, c, Number(e.target.value))} style={{ width: 72, minHeight: 44, padding: "0 8px", fontSize: 15, fontWeight: 600, border: `1px solid ${K.firm}`, borderRadius: 6, background: "transparent", color: K.strong.color }} />
+                    % of {COMPONENT[c].name.toLowerCase()}
+                  </label>
+                ))}
               </div>
-            ))}
-          </div>
-
-          <h2 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 6 }}>Initiatives you are weighing</h2>
-          <p style={{ fontSize: 13, color: SLATE, marginBottom: 12 }}>Each share opens at a planning heuristic. Set it to what a vendor can evidence or your own pilot measured, and select the levers you want in the combined figure.</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }} className="pg">
-            {R.levers.map((L) => (
-              <div key={L.id} style={{ background: L.on ? "#fff" : WARM, border: `1px solid ${L.on ? ELECTRIC : BORDER}`, borderRadius: 10, padding: "14px 16px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 10, minHeight: 44, cursor: "pointer" }}>
-                  <input type="checkbox" checked={L.on} onChange={(e) => setLever(L.id, "on", e.target.checked)} style={{ width: 20, height: 20 }} />
-                  <span style={{ fontSize: 14, fontWeight: 700, color: NAVY }}>{L.name}</span>
-                </label>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", margin: "6px 0 8px" }}>
-                  {L.targets.map((c) => (
-                    <label key={c} style={{ fontSize: 12, color: SLATE, display: "flex", alignItems: "center", gap: 6 }}>
-                      <input aria-label={`${L.name}: share of ${COMPONENT[c].name.toLowerCase()} removed`} type="number" value={d.levers[L.id][c]} onChange={(e) => setLever(L.id, c, Number(e.target.value))} style={{ width: 64, padding: "8px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6 }} />
-                      % of {COMPONENT[c].name.toLowerCase()}
-                    </label>
-                  ))}
-                </div>
-                <p style={{ fontSize: 13, color: NAVY, margin: "0 0 4px" }}>{fmt(L.saved)} a contact, handle time {fmt(L.newAHT)}{v.contacts > 0 ? `, about ${hrs(L.hours)} agent hours a year` : ""}</p>
-                <p style={{ fontSize: 12, color: MUTED, margin: 0 }}>What it takes: {LEVER_TAKES[L.id]}</p>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 24 }}>
-            {findings.slice(-2).map((f, i) => <p key={i} style={{ fontSize: 14, color: "#fff", lineHeight: 1.6, margin: i ? "10px 0 0" : 0 }}>{f}</p>)}
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", lineHeight: 1.6, margin: "12px 0 0" }}>Hold, search, system time and after-call work are where handle time can come out while the conversation stays whole. Talk time is where resolution happens, so protect it while working on the rest.</p>
-          </div>
-
-          <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 20px", marginBottom: 24 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Planning assumptions on this page</div>
-            {assumptions.map((a, i) => <p key={i} style={{ fontSize: 12, color: SLATE, marginBottom: 4 }}>{a}</p>)}
-          </div>
-
-          {guards.length > 0 && (
-            <div style={{ background: "#FFF7E6", border: "1px solid #F59E0B", borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Inputs corrected. Every figure above was computed on the corrected values.</div>
-              {guards.map((g, i) => <div key={i} style={{ fontSize: 12, color: SLATE }}>{guardLine(g)}</div>)}
+              <p style={{ ...K.body, fontSize: 14, margin: "0 0 4px" }}>{fmt(L.saved)} a contact, handle time {fmt(L.newAHT)}{v.contacts > 0 ? `, about ${hrs(L.hours)} agent hours a year` : ""}</p>
+              <p style={K.small}>What it takes: {LEVER_TAKES[L.id]}</p>
             </div>
-          )}
+          ))}
+        </div>
+      </Group>
 
+      <section aria-label="What it means" style={K.lead}>
+        {findings.slice(-2).map((f, i) => <p key={i} style={{ ...K.body, marginTop: i ? 10 : 0 }}>{f}</p>)}
+        <p style={{ ...K.small, marginTop: 12 }}>Hold, search, system time and after-call work are where handle time can come out while the conversation stays whole. Talk time is where resolution happens, so protect it while working on the rest.</p>
+      </section>
+
+      <Assumptions items={assumptions} />
+
+      <Paper>
           <ReportActions
             toolId={TOOL_ID}
             toolName="AHT Decomposition Analysis"
@@ -241,8 +230,7 @@ export default function AHTDecomposition() {
               { title: "Method", type: "text", content: "Handle time is the sum of its six components. Each lever removes its share of the components it targets; selected levers combine multiplicatively on a shared component. Agent hours are seconds saved times contacts a month times 12, over 3,600. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
-        </div>
-      </section>
-    </div>
+      </Paper>
+    </ToolFrame>
   );
 }

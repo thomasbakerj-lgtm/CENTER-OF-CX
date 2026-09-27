@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { ToolHero } from "./src/lib/ToolShell";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result } from "./src/lib/ui.jsx";
+import { K, Group, Field, Tile, Choice, Corrections, Paper, frameMethod } from "./src/lib/frameKit.jsx";
+import { methodStamp } from "./src/lib/methodVersions.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
-import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine } from "./src/lib/guards";
 import { benchmark } from "./src/lib/benchmarks";
 import { runForecast } from "./src/lib/forecast";
@@ -10,8 +13,7 @@ import { runForecast } from "./src/lib/forecast";
 /* Forecast Accuracy Tracker. The arithmetic lives in src/lib/forecast.js between engine
    markers. The intervals are 30 minutes, which FC_PARAMS states for the agent conversion. */
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
-const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
+const ELECTRIC = "#0088DD";
 const TOOL_ID = "forecast-accuracy";
 const ROUTE = "/tools/forecast-accuracy";
 const METHOD = "/methodology/forecast-accuracy";
@@ -40,16 +42,6 @@ const sampleRows = (ch, variancePct) => {
 /* An example handle time so the opening case shows workload hours. Replace it with yours. */
 export const DEFAULTS = { channel: "voice", variance: 8, rows: sampleRows("voice", 8), aht: 360 };
 export const FC_PARAMS = { tsLimit: benchmark("forecast.ts.limit"), intervalMin: 30 };
-
-function Tile({ label, value, note, dark }) {
-  return (
-    <div style={{ background: dark ? `linear-gradient(135deg, ${NAVY}, ${DEEP})` : WARM, border: dark ? "none" : `1px solid ${BORDER}`, borderRadius: 10, padding: 20, textAlign: "center" }}>
-      <div style={{ fontSize: 12, fontWeight: 700, color: dark ? LIGHT : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 30, color: dark ? "#fff" : NAVY }}>{value}</div>
-      <div style={{ fontSize: 12, color: dark ? "rgba(255,255,255,0.78)" : MUTED }}>{note}</div>
-    </div>
-  );
-}
 
 export default function ForecastAccuracyTracker() {
   const [init] = useState(() => ({ ...DEFAULTS, ...(readScenario(TOOL_ID, DEFAULTS) || {}) }));
@@ -111,119 +103,103 @@ export default function ForecastAccuracyTracker() {
   const maxVal = Math.max(...rows.map((r) => Math.max(r.forecast, r.actual)), 1);
   const chartW = 700; const chartH = 180; const barW = chartW / Math.max(rows.length, 1);
 
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.fg{grid-template-columns:1fr!important}.wrow{grid-template-columns:64px 1fr!important}.wrow .wide{display:none}}`}</style>
-      <ToolHero wrap={WRAP} eyebrow="WFM + Staffing" title="Forecast Accuracy Tracker"
-        intro="Compare forecast and actual contacts interval by interval. The tracker reports WAPE, the volume-weighted error staffing is planned on, beside MAPE, total-volume accuracy, bias and the tracking signal, and ranks the intervals by contacts missed. The table opens on a labelled sample; replace it with your own intervals.">
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every formula and line is in the <a href={METHOD} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-      </ToolHero>
+  const result = (
+    <Result label="Interval accuracy" value={pc(R.intervalAccuracy)} change={`1 minus WAPE of ${pc(R.wape)}. Total-volume accuracy ${pc(R.totalAccuracy)}, ${signed(R.delta)} contacts on the day.`} />
+  );
+  const cellInput = { width: 72, minHeight: 40, padding: "0 8px", border: `1px solid ${K.firm}`, borderRadius: 6, textAlign: "right", fontSize: 14, fontWeight: 600, background: "transparent", color: K.strong.color };
 
-      <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
-            {Object.entries(CHANNEL_DEFAULTS).map(([k, v]) => (
-              <button key={k} onClick={() => applyChannel(k)} style={{ minHeight: 44, padding: "6px 14px", fontSize: 13, fontWeight: 600, fontFamily: "inherit", borderRadius: 6, border: `1px solid ${channel === k ? ELECTRIC : BORDER}`, background: channel === k ? ELECTRIC : "#fff", color: channel === k ? "#fff" : SLATE, cursor: "pointer" }}>{v.label} sample</button>
-            ))}
-            <button onClick={anotherSample} style={{ minHeight: 44, padding: "6px 14px", fontSize: 13, fontWeight: 600, fontFamily: "inherit", borderRadius: 6, border: `1px solid ${BORDER}`, background: "#fff", color: SLATE, cursor: "pointer" }}>Another sample</button>
+  return (
+    <ToolFrame toolId={TOOL_ID} section="Operations + Workforce" name="Forecast Accuracy" title="How far off was the forecast, interval by interval?"
+      lede="Compare forecast and actual contacts interval by interval. The tracker reports WAPE, the volume-weighted error staffing is planned on, beside MAPE, total-volume accuracy, bias and the tracking signal, and ranks the intervals by contacts missed. The table opens on a labelled sample; replace it with your own intervals."
+      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Interval accuracy", value: pc(R.intervalAccuracy) }}>
+      <style>{FONT_IMPORT_CSS}</style>
+      <p style={K.small}>Every formula and line is in the <a href={METHOD} style={K.link}>published method</a>.</p>
+
+      <Group legend="Question 1 of 2 · Your intervals">
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 16 }}>
+          <Choice label="Sample channel" options={Object.entries(CHANNEL_DEFAULTS).map(([k, v]) => [k, v.label + " sample"])} value={channel} onPick={applyChannel} />
+          <button type="button" onClick={anotherSample} style={{ minHeight: 44, padding: "0 14px", fontSize: 14, fontWeight: 500, fontFamily: "inherit", borderRadius: 6, border: `1px solid ${K.firm}`, background: "transparent", color: K.strong.color, cursor: "pointer" }}>Another sample</button>
+        </div>
+        <div style={K.grid(220)}>
+          <label style={{ display: "block" }}>
+            <span style={{ ...K.strong, fontSize: 14, display: "block", marginBottom: 6 }}>Sample variance: {variance}%</span>
+            <input type="range" aria-label="Sample variance, percent" min="2" max="30" value={variance} onChange={(e) => setVariance(Number(e.target.value))} style={{ width: "100%", accentColor: K.shade(0), minHeight: 44 }} />
+            <span style={{ ...K.small, display: "block" }}>Shapes the sample only. Enter your own intervals in the table below.</span>
+          </label>
+          <Field label="AHT (seconds)" value={ahtIn} onChange={setAht} hint="Optional. Turns contacts missed into workload hours." />
+        </div>
+        <details style={{ marginTop: 16 }}>
+          <summary style={{ ...K.link, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Edit interval data</summary>
+          <div style={{ maxHeight: 400, overflow: "auto", border: `1px solid ${K.hair}`, borderRadius: 8, marginTop: 8 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", ...K.small, color: K.body.color, ...K.num }}>
+              <thead><tr style={{ ...K.kicker, letterSpacing: "0.08em" }}>
+                <th scope="col" style={{ padding: "8px 10px", textAlign: "left", fontWeight: 500 }}>Interval</th>
+                <th scope="col" style={{ padding: "8px 10px", textAlign: "right", fontWeight: 500 }}>Forecast</th>
+                <th scope="col" style={{ padding: "8px 10px", textAlign: "right", fontWeight: 500 }}>Actual</th>
+                <th scope="col" style={{ padding: "8px 10px", textAlign: "right", fontWeight: 500 }}>Difference</th>
+                <th scope="col" style={{ padding: "8px 10px", textAlign: "right", fontWeight: 500 }}>% of forecast</th>
+              </tr></thead>
+              <tbody>{R.perInterval.map((r, i) => (
+                <tr key={i} style={{ borderTop: `1px solid ${K.hair}` }}>
+                  <td style={{ padding: "4px 10px", fontWeight: 600, color: K.strong.color }}>{r.interval}</td>
+                  <td style={{ padding: "4px 10px", textAlign: "right" }}><input type="number" aria-label={`Forecast, ${r.interval}`} value={rawRows[i] ? rawRows[i].forecast : r.forecast} onChange={(e) => updateRow(i, "forecast", e.target.value)} style={cellInput} /></td>
+                  <td style={{ padding: "4px 10px", textAlign: "right" }}><input type="number" aria-label={`Actual, ${r.interval}`} value={rawRows[i] ? rawRows[i].actual : r.actual} onChange={(e) => updateRow(i, "actual", e.target.value)} style={cellInput} /></td>
+                  <td style={{ padding: "4px 10px", textAlign: "right" }}>{signed(r.err)}</td>
+                  <td style={{ padding: "4px 10px", textAlign: "right" }}>{r.pctErr === null ? "no forecast" : pc(r.pctErr)}</td>
+                </tr>
+              ))}</tbody>
+            </table>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }} className="fg">
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Sample variance: {variance}%</label>
-              <input type="range" aria-label="Sample variance, percent" min="2" max="30" value={variance} onChange={(e) => setVariance(Number(e.target.value))} style={{ width: "100%", marginTop: 4 }} />
-              <p style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>Shapes the sample only. Enter your own intervals in the table below.</p>
-            </div>
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>AHT (seconds)</label>
-              <input aria-label="AHT, seconds" type="number" value={ahtIn} onChange={(e) => setAht(Number(e.target.value))} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} />
-              <span style={{ fontSize: 12, color: MUTED, marginTop: 2, display: "block" }}>Optional. Turns contacts missed into workload hours.</span>
-            </div>
-          </div>
+        </details>
+        {!edited && <p style={{ ...K.small, marginTop: 12 }}>These are sample volumes. Enter your own forecast and actual volumes by interval in the table above for a result about your operation.</p>}
+      </Group>
+
+      <Corrections guards={guards} />
+
+      <div style={K.grid(160)}>
+        <Tile label="Interval accuracy" value={pc(R.intervalAccuracy)} note={"1 minus WAPE of " + pc(R.wape)} />
+        <Tile label="MAPE" value={pc(R.mape)} note="Mean of interval % errors" />
+        <Tile label="Total-volume accuracy" value={pc(R.totalAccuracy)} note={signed(R.delta) + " contacts on the day"} />
+        <Tile label="Tracking signal" value={R.trackingSignal.toFixed(1)} note={R.lean === "none" ? `Within plus or minus ${L}` : R.lean === "above" ? "Forecast running low" : "Forecast running high"} />
+      </div>
+
+      <section aria-label="Forecast and actual by interval" style={{ ...K.panel, overflowX: "auto" }}>
+        <h2 style={K.h2}>Forecast and actual by interval</h2>
+        <svg viewBox={`0 0 ${chartW} ${chartH + 24}`} style={{ width: "100%", maxWidth: chartW, minWidth: 320 }} role="img" aria-label="Forecast and actual contacts by interval">
+          {rows.map((r, i) => {
+            const fH = (r.forecast / maxVal) * chartH, aH = (r.actual / maxVal) * chartH, x = i * barW;
+            return (
+              <g key={i}>
+                <rect x={x + 2} y={chartH - fH} width={barW * 0.4} height={fH} fill={K.shade(3)} rx={2} />
+                <rect x={x + barW * 0.45} y={chartH - aH} width={barW * 0.4} height={aH} fill={K.shade(0)} rx={2} />
+                {i % 4 === 0 && <text x={x + barW / 2} y={chartH + 18} textAnchor="middle" fontSize="13" fill={K.small.color}>{r.interval}</text>}
+              </g>
+            );
+          })}
+        </svg>
+        <div style={{ display: "flex", gap: 16, ...K.small, marginTop: 4 }}>
+          <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: K.shade(3), marginRight: 6, verticalAlign: "middle" }} />Forecast</span>
+          <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: K.shade(0), marginRight: 6, verticalAlign: "middle" }} />Actual</span>
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "40px 28px" }}>
-        <div style={WRAP}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="fg">
-            <Tile dark label="Interval accuracy" value={pc(R.intervalAccuracy)} note={"1 minus WAPE of " + pc(R.wape)} />
-            <Tile label="MAPE" value={pc(R.mape)} note="Mean of interval % errors" />
-            <Tile label="Total-volume accuracy" value={pc(R.totalAccuracy)} note={signed(R.delta) + " contacts on the day"} />
-            <Tile label="Tracking signal" value={R.trackingSignal.toFixed(1)} note={R.lean === "none" ? `Within plus or minus ${L}` : R.lean === "above" ? "Forecast running low" : "Forecast running high"} />
+      <section aria-label="Largest misses" style={K.panel}>
+        <h2 style={K.h2}>Largest misses, by contacts</h2>
+        {R.worst.map((w) => (
+          <div key={w.i} style={{ ...K.row, alignItems: "flex-start" }}>
+            <span style={{ ...K.strong, flexShrink: 0, width: 56 }}>{w.interval}</span>
+            <span style={{ ...K.body, fontSize: 14, flex: 1 }}>{signed(w.err)} contacts ({w.err > 0 ? "above" : "below"} a forecast of {w.forecast})<span style={{ ...K.small, display: "block" }}>{aht > 0 ? `${h1(Math.abs(w.hours))} workload hours, about ${h1(Math.abs(w.agents))} agents busy` : "Enter an AHT for workload hours"}</span></span>
           </div>
+        ))}
+        {!R.worst.length && <p style={K.small}>Every interval matched its forecast.</p>}
+      </section>
 
-          <div style={{ marginBottom: 28, overflowX: "auto" }}>
-            <h2 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Forecast and actual by interval</h2>
-            <svg viewBox={`0 0 ${chartW} ${chartH + 24}`} style={{ width: "100%", maxWidth: chartW }} role="img" aria-label="Forecast and actual contacts by interval">
-              {rows.map((r, i) => {
-                const fH = (r.forecast / maxVal) * chartH, aH = (r.actual / maxVal) * chartH, x = i * barW;
-                return (
-                  <g key={i}>
-                    <rect x={x + 2} y={chartH - fH} width={barW * 0.4} height={fH} fill="#9CC9EC" rx={2} />
-                    <rect x={x + barW * 0.45} y={chartH - aH} width={barW * 0.4} height={aH} fill={NAVY} rx={2} />
-                    {i % 4 === 0 && <text x={x + barW / 2} y={chartH + 18} textAnchor="middle" fontSize="13" fill={MUTED}>{r.interval}</text>}
-                  </g>
-                );
-              })}
-            </svg>
-            <div style={{ display: "flex", gap: 16, fontSize: 12, color: SLATE, marginTop: 4 }}>
-              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: "#9CC9EC", marginRight: 4, verticalAlign: "middle" }} />Forecast</span>
-              <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: NAVY, marginRight: 4, verticalAlign: "middle" }} />Actual</span>
-            </div>
-          </div>
+      <section aria-label="What it means" style={K.lead}>
+        <span style={K.kicker}>What it means</span>
+        {findings.map((f, i) => <p key={i} style={{ ...K.body, marginTop: i ? 10 : 8 }}>{f}</p>)}
+      </section>
 
-          <div style={{ marginBottom: 28 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Largest misses, by contacts</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {R.worst.map((w, i) => (
-                <div key={w.i} className="wrow" style={{ display: "grid", gridTemplateColumns: "64px 1fr 1fr", gap: 8, padding: "10px 12px", background: i % 2 === 0 ? WARM : "#fff", borderRadius: 4, fontSize: 13, alignItems: "center" }}>
-                  <span style={{ fontWeight: 600, color: NAVY }}>{w.interval}</span>
-                  <span style={{ color: NAVY }}>{signed(w.err)} contacts ({w.err > 0 ? "above" : "below"} a forecast of {w.forecast})</span>
-                  <span className="wide" style={{ color: SLATE }}>{aht > 0 ? `${h1(Math.abs(w.hours))} workload hours, about ${h1(Math.abs(w.agents))} agents busy` : "Enter an AHT for workload hours"}</span>
-                </div>
-              ))}
-              {!R.worst.length && <p style={{ fontSize: 13, color: SLATE }}>Every interval matched its forecast.</p>}
-            </div>
-          </div>
-
-          <details style={{ marginBottom: 28 }}>
-            <summary style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, cursor: "pointer", marginBottom: 8, minHeight: 44 }}>Edit interval data</summary>
-            <div style={{ maxHeight: 400, overflowY: "auto", border: `1px solid ${BORDER}`, borderRadius: 8 }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                <thead><tr style={{ background: DEEP, color: "#fff" }}>
-                  <th style={{ padding: "8px 12px", textAlign: "left" }}>Interval</th>
-                  <th style={{ padding: "8px 12px", textAlign: "right" }}>Forecast</th>
-                  <th style={{ padding: "8px 12px", textAlign: "right" }}>Actual</th>
-                  <th style={{ padding: "8px 12px", textAlign: "right" }}>Difference</th>
-                  <th style={{ padding: "8px 12px", textAlign: "right" }}>% of forecast</th>
-                </tr></thead>
-                <tbody>{R.perInterval.map((r, i) => (
-                  <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : WARM }}>
-                    <td style={{ padding: "4px 12px", fontWeight: 500 }}>{r.interval}</td>
-                    <td style={{ padding: "4px 12px", textAlign: "right" }}><input type="number" aria-label={`Forecast, ${r.interval}`} value={rawRows[i] ? rawRows[i].forecast : r.forecast} onChange={(e) => updateRow(i, "forecast", e.target.value)} style={{ width: 64, padding: "6px", border: `1px solid ${BORDER}`, borderRadius: 4, textAlign: "right", fontSize: 12 }} /></td>
-                    <td style={{ padding: "4px 12px", textAlign: "right" }}><input type="number" aria-label={`Actual, ${r.interval}`} value={rawRows[i] ? rawRows[i].actual : r.actual} onChange={(e) => updateRow(i, "actual", e.target.value)} style={{ width: 64, padding: "6px", border: `1px solid ${BORDER}`, borderRadius: 4, textAlign: "right", fontSize: 12 }} /></td>
-                    <td style={{ padding: "4px 12px", textAlign: "right" }}>{signed(r.err)}</td>
-                    <td style={{ padding: "4px 12px", textAlign: "right" }}>{r.pctErr === null ? "no forecast" : pc(r.pctErr)}</td>
-                  </tr>
-                ))}</tbody>
-              </table>
-            </div>
-          </details>
-
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 24 }}>
-            {findings.map((f, i) => <p key={i} style={{ fontSize: 14, color: i < 2 ? "#fff" : "rgba(255,255,255,0.85)", lineHeight: 1.6, margin: i ? "10px 0 0" : 0 }}>{f}</p>)}
-          </div>
-
-          {!edited && (
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 16px", marginBottom: 16, fontSize: 12, color: SLATE }}>
-              These are sample volumes. Enter your own forecast and actual volumes by interval in the table above for a result about your operation.
-            </div>
-          )}
-          {guards.length > 0 && (
-            <div style={{ background: "#FFF7E6", border: "1px solid #F59E0B", borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Inputs corrected. Every figure above was computed on the corrected values.</div>
-              {guards.map((g, i) => <div key={i} style={{ fontSize: 12, color: SLATE }}>{guardLine(g)}</div>)}
-            </div>
-          )}
+      <Paper>
           <ReportActions
             toolId={TOOL_ID}
             toolName="Forecast Accuracy Analysis"
@@ -252,8 +228,7 @@ export default function ForecastAccuracyTracker() {
               { title: "Method", type: "text", content: "WAPE is the contacts missed in every interval over the actual contacts; interval accuracy is 1 minus WAPE. MAPE is the mean of interval percent errors over intervals with actual contacts. The tracking signal is the sum of errors over the mean absolute error, read against plus or minus " + L + ", a textbook control limit. Workload hours are contacts times AHT over 3,600; agents busy are that workload over the 30-minute interval. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
-        </div>
-      </section>
-    </div>
+      </Paper>
+    </ToolFrame>
   );
 }

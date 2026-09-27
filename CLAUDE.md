@@ -1004,6 +1004,18 @@ dashboard, the 12-phase growth program.
    Staffing's void now reaches the frame's Result; the shell's fixed-header list drops TCO.
    `toolframe.test.mjs` 5 covers all nine. Suite 24,718; live check 255 of 255. Next: Phase 6 batch 3, the WFM five.
    Known, unchanged: License Gap's page still shows its tiles on a void (the Result shows none).
+   PR #47 merged by TB's instruction (a2423b9).
+55. S24, redesign session 14, Phase 6 batch 3 (TB: "merge it and go"): the five WFM tools (Occupancy Risk, Shrinkage Planner,
+   AHT Decomposition, Forecast Accuracy, Schedule Adherence) moved from `ToolShell` onto `ToolFrame`. New `src/lib/frameKit.jsx`
+   (tokens only, computes nothing): dark text styles, panel, question group, number field (same `Number(value)` contract as the
+   tools' own inputs), tile, choice group, corrections notice, assumptions list, paper panel; later moves read it instead of
+   copying styles. Each tool's logic above the render is unchanged from `main` and every ReportActions prop is byte-equal; the
+   tools have no grade object, so their Result shows the headline figure with no evidence mark. Bands, bars and charts carry
+   words and one hue at graded strengths (colour never marks alone); Occupancy's band colours now print in the PDF only.
+   `floor.test.mjs` accepts ToolFrame or ToolHero; `toolframe.test.mjs` covers 14 tools plus the kit (tokens only, imports,
+   field contract). Suite 24,736; live check 255 of 255. Next: batch 4, the frameworks (CX Maturity, AI Readiness,
+   Transformation Readiness, CX IT Alignment, Governance), then procurement (QA, Platform Decision, RFP, Contract Risk),
+   Vendor Match and Roadmap.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
