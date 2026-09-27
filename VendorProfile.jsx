@@ -11,19 +11,21 @@ import { getAnalyticsVendor } from "./AnalyticsData";
 import { getACDVendor } from "./ACDRoutingData";
 import { getDEVendor } from "./DigitalEngagementData";
 import { getPaymentVendor } from "./PaymentData";
+import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+import { FONT } from "./src/lib/type.js";
 
-const NAVY = "#0B1D3A";
-const DEEP = "#061325";
-const ELECTRIC = "#0088DD";
-const LIGHT = "#00AAFF";
-const ICE = "#E8F4FD";
-const WARM = "#F8FAFB";
-const SLATE = "#3A4F6A";
-const MUTED = "#6B7F99";
-const BORDER = "#D8E3ED";
-const GREEN = "#10B981";
-const AMBER = "#F59E0B";
-const RED = "#EF4444";
+const NAVY = HOUSE.mist;
+const DEEP = HOUSE.ink;
+const ELECTRIC = PILLARS.vendors.onDark;
+const LIGHT = PILLARS.vendors.onDark;
+const ICE = HOUSE.navy;
+const WARM = HOUSE.navy;
+const SLATE = HOUSE.body;
+const MUTED = HOUSE.muted;
+const BORDER = alpha(HOUSE.mist, LINE.hair);
+const GREEN = HOUSE.mist;
+const AMBER = HOUSE.mist;
+const RED = HOUSE.mist;
 
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 
@@ -46,7 +48,7 @@ function FadeIn({ children, delay = 0, style = {} }) {
 }
 
 function LogoMark({ size = 34, light = true }) {
-  const arcColor = light ? "#fff" : NAVY;
+  const arcColor = HOUSE.mist;
   const xColor = light ? LIGHT : ELECTRIC;
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
@@ -73,10 +75,9 @@ function Nav() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
+        
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { font-family: 'DM Sans', sans-serif; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .profile-grid { grid-template-columns: 1fr !important; } .fit-grid { grid-template-columns: 1fr !important; } }
       `}</style>
@@ -91,8 +92,8 @@ function Phase1Badge() {
   const L = phase1Label();
   return (
     <div style={{ maxWidth: 280 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>{L.short}</div>
-      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.55, marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>{L.text}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT }}>{L.short}</div>
+      <div style={{ fontSize: 12, color: HOUSE.body, lineHeight: 1.55, marginTop: 6, fontFamily: FONT }}>{L.text}</div>
     </div>
   );
 }
@@ -101,8 +102,8 @@ function Section({ label, title, children, dark }) {
   return (
     <FadeIn>
       <div style={{ marginBottom: 32 }}>
-        <span style={{ color: dark ? LIGHT : ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>{label}</span>
-        <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: dark ? "#fff" : NAVY, margin: "0 0 16px" }}>{title}</h2>
+        <span style={{ color: dark ? LIGHT : ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 8 }}>{label}</span>
+        <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 16px" }}>{title}</h2>
         {children}
       </div>
     </FadeIn>
@@ -113,11 +114,11 @@ function VendorNotFound() {
   return (
     <div>
       <Nav />
-      <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "180px 28px 80px", textAlign: "center" }}>
+      <section style={{ background: HOUSE.navy, padding: "180px 28px 80px", textAlign: "center" }}>
         <div style={WRAP}>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 36, color: "#fff", margin: "0 0 16px" }}>Vendor profile coming soon.</h1>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", maxWidth: 480, margin: "0 auto 32px" }}>We're building out individual vendor assessments across all eight categories. This profile will be available shortly.</p>
-          <a href="/vendors" style={{ display: "inline-block", background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>← Back to Vendors</a>
+          <h1 style={{ fontFamily: FONT, fontSize: 36, color: HOUSE.mist, margin: "0 0 16px" }}>Vendor profile coming soon.</h1>
+          <p style={{ fontSize: 16, color: HOUSE.body, maxWidth: 480, margin: "0 auto 32px" }}>We're building out individual vendor assessments across all eight categories. This profile will be available shortly.</p>
+          <a href="/vendors" style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>← Back to Vendors</a>
         </div>
       </section>
     </div>
@@ -145,28 +146,28 @@ export default function VendorProfile() {
     const iv = ivaVendor;
     return (
       <div><Nav />
-        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+        <section style={{ background: HOUSE.navy, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
           <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a>
-              <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a>
-              <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors/iva" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>IVA</a>
-              <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a>
+              <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a>
+              <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/iva" style={{ color: HOUSE.body, fontSize: 13 }}>IVA</a>
+              <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{iv.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 600 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{iv.type}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{iv.modality}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{iv.segment}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{iv.type}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{iv.modality}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{iv.segment}</span>
                 </div>
-                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{iv.name}</h1>
+                <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{iv.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={iv.name} from="vendor" surface="vendor" /></div>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{iv.summary}</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7 }}>{iv.summary}</p>
               </div>
               <div style={{ flexShrink: 0 }}>
                 <Phase1Badge />
@@ -178,7 +179,7 @@ export default function VendorProfile() {
         
 
         {/* Key Attributes */}
-        <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+        <section style={{ background: HOUSE.ink, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
             <FadeIn>
               <Section label="Vendor Profile" title="Key attributes.">
@@ -203,13 +204,13 @@ export default function VendorProfile() {
         </section>
 
         {/* Research status */}
-        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
+        <section style={{ background: HOUSE.navy, padding: "64px 28px" }}>
           <div style={WRAP}>
             <FadeIn>
               <Section label="Research status" title="Phase 1 context." dark>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.7, marginBottom: 20 }}>{phase1Label().text}</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginBottom: 20 }}>{phase1Label().text}</p>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to IVA Market Intelligence</a>
+                  <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to IVA Market Intelligence</a>
                   
                 </div>
               </Section>
@@ -221,28 +222,28 @@ export default function VendorProfile() {
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
             <FadeIn>
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
                 <div style={{ maxWidth: 480 }}>
                   <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                  <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {iv.name}? Share what you've seen.</h3>
+                  <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {iv.name}? Share what you've seen.</h3>
                   <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
                 </div>
-                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", boxShadow: "0 4px 18px rgba(0,136,221,0.2)", flexShrink: 0 }}>Share Your Experience</a>
+                <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", boxShadow: "none", flexShrink: 0 }}>Share Your Experience</a>
               </div>
             </FadeIn>
           </div>
         </section>
 
         {/* CTA */}
-        <section style={{ background: "#fff", padding: "80px 28px" }}>
+        <section style={{ background: HOUSE.ink, padding: "80px 28px" }}>
           <div style={WRAP}>
             <FadeIn>
-              <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {iv.name} for your organization?</h2>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {iv.name} fits your operating model, vertical requirements, and integration landscape.</p>
+              <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+                <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {iv.name} for your organization?</h2>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {iv.name} fits your operating model, vertical requirements, and integration landscape.</p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-                  <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Request a Vendor Briefing</a>
-                  <a href="/vendors/iva" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All IVA Vendors →</a>
+                  <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
+                  <a href="/vendors/iva" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All IVA Vendors →</a>
                 </div>
               </div>
             </FadeIn>
@@ -259,24 +260,24 @@ export default function VendorProfile() {
     const aa = aaVendor;
     return (
       <div><Nav />
-        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+        <section style={{ background: HOUSE.navy, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
           <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors/agent-assist" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Agent Assist</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/agent-assist" style={{ color: HOUSE.body, fontSize: 13 }}>Agent Assist</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{aa.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 600 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{aa.type}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>Agent Assist & Knowledge</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{aa.type}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>Agent Assist & Knowledge</span>
                 </div>
-                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{aa.name}</h1>
+                <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{aa.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={aa.name} from="vendor" surface="vendor" /></div>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{aa.bestFor}.</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7 }}>{aa.bestFor}.</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
@@ -292,7 +293,7 @@ export default function VendorProfile() {
                   <Section label="Assessment" title="What they do well.">
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {[aa.strength1, aa.strength2, aa.strength3].map((s, i) => (
-                        <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8 }}>
+                        <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
                           <div style={{ width: 22, height: 22, borderRadius: 6, background: `${GREEN}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}><span style={{ color: GREEN, fontSize: 12, fontWeight: 700 }}>+</span></div>
                           <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55 }}>{s}</span>
                         </div>
@@ -304,7 +305,7 @@ export default function VendorProfile() {
                   <Section label="Honest assessment" title="Where to probe.">
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {[aa.weakness1, aa.weakness2, aa.watchout].filter(Boolean).map((w, i) => (
-                        <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8 }}>
+                        <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
                           <div style={{ width: 22, height: 22, borderRadius: 6, background: `${AMBER}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}><span style={{ color: AMBER, fontSize: 12, fontWeight: 700 }}>!</span></div>
                           <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55 }}>{w}</span>
                         </div>
@@ -320,21 +321,21 @@ export default function VendorProfile() {
         
 
         {/* Best Fit */}
-        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
+        <section style={{ background: HOUSE.navy, padding: "64px 28px" }}>
           <div style={WRAP}>
             <FadeIn>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="profile-grid">
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "28px 24px" }}>
+                <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 12, padding: "28px 24px" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Best-fit scenario</div>
-                  <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, margin: 0 }}>{aa.bestFor}</p>
+                  <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.65, margin: 0 }}>{aa.bestFor}</p>
                 </div>
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "28px 24px" }}>
+                <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 12, padding: "28px 24px" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Watch out for</div>
-                  <p style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", lineHeight: 1.65, margin: 0 }}>{aa.watchout}</p>
+                  <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.65, margin: 0 }}>{aa.watchout}</p>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-                <a href="/vendors/agent-assist" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Agent Assist Intelligence</a>
+                <a href="/vendors/agent-assist" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to Agent Assist Intelligence</a>
                 
               </div>
             </FadeIn>
@@ -344,25 +345,25 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {aa.name} for agent assist? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {aa.name} for agent assist? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
               </div>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
 
         {/* CTA */}
-        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {aa.name} for agent assist?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {aa.name} fits your operating model, vertical requirements, and integration landscape.</p>
+        <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {aa.name} for agent assist?</h2>
+            <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {aa.name} fits your operating model, vertical requirements, and integration landscape.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Request a Vendor Briefing</a>
-              <a href="/vendors/agent-assist" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Agent Assist Vendors →</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
+              <a href="/vendors/agent-assist" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Agent Assist Vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -383,24 +384,24 @@ export default function VendorProfile() {
     ];
     return (
       <div><Nav />
-        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+        <section style={{ background: HOUSE.navy, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
           <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors/wem-qm" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>WEM/QM</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/wem-qm" style={{ color: HOUSE.body, fontSize: 13 }}>WEM/QM</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{wv.vendor}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 620 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{wv.segment}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{wv.segment}</span>
                   <span style={{ fontSize: 11, fontWeight: 600, color: nativeColor, background: `${nativeColor}15`, padding: "3px 10px", borderRadius: 4 }}>{wv.native}</span>
                 </div>
-                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{wv.vendor}</h1>
+                <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{wv.vendor}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={wv.vendor} from="vendor" surface="vendor" /></div>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{wv.rec}</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7 }}>{wv.rec}</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
@@ -410,19 +411,19 @@ export default function VendorProfile() {
         
 
                 {/* Key Attributes */}
-        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
+        <section style={{ background: HOUSE.navy, padding: "64px 28px" }}>
           <div style={WRAP}><FadeIn>
             <Section label="Vendor Profile" title="Key attributes." dark>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="profile-grid">
                 {attrs.map((a, i) => (
-                  <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "14px 16px" }}>
+                  <div key={i} style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 8, padding: "14px 16px" }}>
                     <div style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>{a.label}</div>
-                    <div style={{ fontSize: 14, fontWeight: 500, color: "#fff" }}>{a.value}</div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: HOUSE.mist }}>{a.value}</div>
                   </div>
                 ))}
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-                <a href="/vendors/wem-qm" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to WEM/QM Intelligence</a>
+                <a href="/vendors/wem-qm" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to WEM/QM Intelligence</a>
                 
               </div>
             </Section>
@@ -432,25 +433,25 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {wv.vendor} for WEM/WFM/QM? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {wv.vendor} for WEM/WFM/QM? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
               </div>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
 
         {/* CTA */}
-        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {wv.vendor} for workforce or quality management?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>The right shortlist depends on whether you're buying a workforce control plane, a balanced WEM suite, or a QA modernization overlay. We can help.</p>
+        <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {wv.vendor} for workforce or quality management?</h2>
+            <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>The right shortlist depends on whether you're buying a workforce control plane, a balanced WEM suite, or a QA modernization overlay. We can help.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Request a WEM/QM Briefing</a>
-              <a href="/vendors/wem-qm" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All WEM/QM Vendors →</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a WEM/QM Briefing</a>
+              <a href="/vendors/wem-qm" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All WEM/QM Vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -465,24 +466,24 @@ export default function VendorProfile() {
     const av = anaVendor;
     return (
       <div><Nav />
-        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+        <section style={{ background: HOUSE.navy, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
           <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors/analytics" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Analytics</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/analytics" style={{ color: HOUSE.body, fontSize: 13 }}>Analytics</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{av.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 620 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{av.catLabel}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{av.segment}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{av.catLabel}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{av.segment}</span>
                 </div>
-                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
+                <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={av.name} from="vendor" surface="vendor" /></div>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{av.summary}</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7 }}>{av.summary}</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
@@ -492,12 +493,12 @@ export default function VendorProfile() {
         
 
         {/* Category Context */}
-        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
+        <section style={{ background: HOUSE.navy, padding: "64px 28px" }}>
           <div style={WRAP}><FadeIn>
             <Section label="Market Position" title={`${av.catLabel}, ${av.segment}`} dark>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Vendors are best compared within the same platform category: a CCaaS platform and an AI-native overlay serve different buying motions.</p>
+              <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Vendors are best compared within the same platform category: a CCaaS platform and an AI-native overlay serve different buying motions.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Analytics Intelligence</a>
+                <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to Analytics Intelligence</a>
                 
               </div>
             </Section>
@@ -507,25 +508,25 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {av.name} for analytics? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {av.name} for analytics? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
               </div>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
 
         {/* CTA */}
-        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {av.name} for analytics?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your analytics architecture and operational workflow requirements.</p>
+        <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {av.name} for analytics?</h2>
+            <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your analytics architecture and operational workflow requirements.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "0 4px 18px rgba(0,136,221,0.25)" }}>Request a Vendor Briefing</a>
-              <a href="/vendors/analytics" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Analytics Vendors →</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
+              <a href="/vendors/analytics" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Analytics Vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -540,33 +541,33 @@ export default function VendorProfile() {
     const av = acdVendor;
     return (
       <div><Nav />
-        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+        <section style={{ background: HOUSE.navy, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
           <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors/acd-routing" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>ACD/Routing</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/acd-routing" style={{ color: HOUSE.body, fontSize: 13 }}>ACD/Routing</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{av.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 620 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{av.segment}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{av.segment}</span>
                 </div>
-                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
+                <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={av.name} from="vendor" surface="vendor" /></div>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{av.profile}</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7 }}>{av.profile}</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
           </div>
         </section>
         
-        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
+        <section style={{ background: HOUSE.navy, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
           <Section label="Market Position" title={av.segment} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to ACD/Routing Intelligence</a>
+              <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to ACD/Routing Intelligence</a>
               
             </div>
           </Section>
@@ -575,24 +576,24 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {av.name}? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {av.name}? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
 
-        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {av.name}?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your routing architecture and orchestration requirements.</p>
+        <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {av.name}?</h2>
+            <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your routing architecture and orchestration requirements.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
-              <a href="/vendors/acd-routing" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All ACD/Routing Vendors →</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
+              <a href="/vendors/acd-routing" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All ACD/Routing Vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -606,25 +607,25 @@ export default function VendorProfile() {
     const dv = deVendor;
     return (
       <div><Nav />
-        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+        <section style={{ background: HOUSE.navy, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
           <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors/digital-engagement" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Digital Engagement</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/digital-engagement" style={{ color: HOUSE.body, fontSize: 13 }}>Digital Engagement</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{dv.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 620 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{dv.archetype}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{dv.archetype}</span>
                 </div>
-                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{dv.name}</h1>
+                <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{dv.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={dv.name} from="vendor" surface="vendor" /></div>
                 <div style={{ display: "flex", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
-                  <div><span style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>Strength: </span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{dv.strength}</span></div>
-                  <div><span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>Weakness: </span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{dv.weakness}</span></div>
+                  <div><span style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>Strength: </span><span style={{ fontSize: 13, color: HOUSE.body }}>{dv.strength}</span></div>
+                  <div><span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>Weakness: </span><span style={{ fontSize: 13, color: HOUSE.body }}>{dv.weakness}</span></div>
                 </div>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
@@ -632,10 +633,10 @@ export default function VendorProfile() {
           </div>
         </section>
         
-        <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
+        <section style={{ background: HOUSE.navy, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
           <Section label="Market Position" title={dv.archetype} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: "rgba(255,255,255,0.06)", padding: "8px 16px", borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)" }}>← Back to Digital Engagement Intelligence</a>
+              <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to Digital Engagement Intelligence</a>
               
             </div>
           </Section>
@@ -644,24 +645,24 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {dv.name}? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {dv.name}? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
 
-        <section style={{ background: "#fff", padding: "80px 28px" }}><div style={WRAP}><FadeIn>
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {dv.name}?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {dv.name} fits your digital engagement and channel strategy.</p>
+        <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
+          <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {dv.name}?</h2>
+            <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {dv.name} fits your digital engagement and channel strategy.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
-              <a href="/vendors/digital-engagement" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Digital Engagement Vendors →</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
+              <a href="/vendors/digital-engagement" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Digital Engagement Vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -675,31 +676,31 @@ export default function VendorProfile() {
     const pv = payVendor;
     return (
       <div><Nav />
-        <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
+        <section style={{ background: HOUSE.navy, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
           <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Vendors</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/vendors/payments" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Payments</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/payments" style={{ color: HOUSE.body, fontSize: 13 }}>Payments</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{pv.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 620 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{pv.cat}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{pv.role}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{pv.cat}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{pv.role}</span>
                 </div>
-                <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{pv.name}</h1>
+                <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{pv.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={pv.name} from="vendor" surface="vendor" /></div>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{pv.diff}</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7 }}>{pv.diff}</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
             </div>
           </div>
         </section>
         
-        <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
+        <section style={{ background: HOUSE.ink, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}><div style={WRAP}><FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="profile-grid">
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Best-fit scenario</div>
@@ -719,26 +720,26 @@ export default function VendorProfile() {
         </section>
 
         {/* Community */}
-        <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+        <section style={{ background: HOUSE.ink, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
             <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
               <div style={{ maxWidth: 480 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {pv.name}? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {pv.name}? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "0 4px 18px rgba(0,136,221,0.2)" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
 
         <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating {pv.name}?</h2>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {pv.name} fits your payment architecture, PCI requirements, and channel strategy.</p>
+          <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {pv.name}?</h2>
+            <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {pv.name} fits your payment architecture, PCI requirements, and channel strategy.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
-              <a href="/vendors/payments" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Payment Vendors →</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
+              <a href="/vendors/payments" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Payment Vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -755,7 +756,7 @@ export default function VendorProfile() {
   const researched = CCAAS_RESEARCH.complete[slug] && researchedProfile(CCAAS_RESEARCH.complete[slug].vendorId);
   if (researched) {
     const Researched = researched;
-    return <Suspense fallback={<div style={{ minHeight: "100vh", background: "#061325" }} />}><Researched slug={slug} /></Suspense>;
+    return <Suspense fallback={<div style={{ minHeight: "100vh", background: HOUSE.ink }} />}><Researched slug={slug} /></Suspense>;
   }
 
   const v = vendor;
@@ -765,33 +766,33 @@ export default function VendorProfile() {
       <Nav />
 
       {/* Hero */}
-      <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-        <div style={{ position: "absolute", bottom: "-15%", right: "-8%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.05) 0%, transparent 70%)" }} />
+      <section style={{ background: HOUSE.navy, padding: "130px 28px 60px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
+        <div style={{ position: "absolute", bottom: "-15%", right: "-8%", width: 500, height: 500, borderRadius: "50%", background: "none" }} />
         <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-            <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Home</a>
-            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-            <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Vendors</a>
-            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-            <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>{v.name}</span>
+            <a href="/" style={{ color: HOUSE.body, fontSize: 13, fontFamily: FONT }}>Home</a>
+            <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+            <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13, fontFamily: FONT }}>Vendors</a>
+            <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+            <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600, fontFamily: FONT }}>{v.name}</span>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
             <div style={{ maxWidth: 600 }}>
               <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{v.category}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{v.segment}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{v.category}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, fontFamily: FONT, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{v.segment}</span>
               </div>
-              <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{v.name}</h1>
+              <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{v.name}</h1>
               <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={v.name} from="vendor" surface="vendor" /></div>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>{v.summary}</p>
+              <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, fontFamily: FONT }}>{v.summary}</p>
             </div>
             {/* Integrity freeze (23 Sep 2026): the Phase 1 composite score and tier no longer
                 render. The page states its research status instead. */}
-            <div style={{ flexShrink: 0, maxWidth: 300, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: "14px 16px" }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ccaasResearchLabel(v.slug).status === "complete" ? GREEN : LIGHT, marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>{ccaasResearchLabel(v.slug).short}</div>
-              <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.6)", lineHeight: 1.55, fontFamily: "'DM Sans', sans-serif" }}>{ccaasResearchLabel(v.slug).text}</div>
+            <div style={{ flexShrink: 0, maxWidth: 300, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 10, padding: "14px 16px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: ccaasResearchLabel(v.slug).status === "complete" ? GREEN : LIGHT, marginBottom: 6, fontFamily: FONT }}>{ccaasResearchLabel(v.slug).short}</div>
+              <div style={{ fontSize: 12.5, color: HOUSE.body, lineHeight: 1.55, fontFamily: FONT }}>{ccaasResearchLabel(v.slug).text}</div>
             </div>
           </div>
         </div>
@@ -803,11 +804,11 @@ export default function VendorProfile() {
           <Section label="Assessment" title="What they do well.">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {v.strengths.map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8 }}>
+                <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
                   <div style={{ width: 22, height: 22, borderRadius: 6, background: `${GREEN}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                     <span style={{ color: GREEN, fontSize: 12, fontWeight: 700 }}>+</span>
                   </div>
-                  <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55, fontFamily: "'DM Sans', sans-serif" }}>{s}</span>
+                  <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55, fontFamily: FONT }}>{s}</span>
                 </div>
               ))}
             </div>
@@ -816,7 +817,7 @@ export default function VendorProfile() {
       </section>
 
       {/* Weaknesses */}
-      <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+      <section style={{ background: HOUSE.ink, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <Section label="Honest assessment" title="Where they break.">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -825,7 +826,7 @@ export default function VendorProfile() {
                   <div style={{ width: 22, height: 22, borderRadius: 6, background: `${AMBER}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                     <span style={{ color: AMBER, fontSize: 12, fontWeight: 700 }}>!</span>
                   </div>
-                  <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55, fontFamily: "'DM Sans', sans-serif" }}>{w}</span>
+                  <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55, fontFamily: FONT }}>{w}</span>
                 </div>
               ))}
             </div>
@@ -838,13 +839,13 @@ export default function VendorProfile() {
         <div style={WRAP}>
           <FadeIn>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }} className="fit-grid">
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, fontFamily: "'DM Sans', sans-serif" }}>Best-fit customers</div>
-                <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.65, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.bestFit}</p>
+              <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, fontFamily: FONT }}>Best-fit customers</div>
+                <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.65, margin: 0, fontFamily: FONT }}>{v.bestFit}</p>
               </div>
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, fontFamily: "'DM Sans', sans-serif" }}>Likely not the right fit</div>
-                <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.65, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.notFit}</p>
+              <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12, fontFamily: FONT }}>Likely not the right fit</div>
+                <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.65, margin: 0, fontFamily: FONT }}>{v.notFit}</p>
               </div>
             </div>
           </FadeIn>
@@ -852,16 +853,16 @@ export default function VendorProfile() {
       </section>
 
       {/* Red flags */}
-      <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "64px 28px" }}>
+      <section style={{ background: HOUSE.navy, padding: "64px 28px" }}>
         <div style={WRAP}>
           <Section label="Buyer warnings" title="Red flags to watch for." dark>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {v.redFlags.map((r, i) => (
-                <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8 }}>
+                <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 8 }}>
                   <div style={{ width: 22, height: 22, borderRadius: 6, background: `${RED}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                     <span style={{ color: RED, fontSize: 12, fontWeight: 700 }}>⚠</span>
                   </div>
-                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", lineHeight: 1.55, fontFamily: "'DM Sans', sans-serif" }}>{r}</span>
+                  <span style={{ fontSize: 14, color: HOUSE.body, lineHeight: 1.55, fontFamily: FONT }}>{r}</span>
                 </div>
               ))}
             </div>
@@ -870,21 +871,21 @@ export default function VendorProfile() {
       </section>
 
       {/* Competitive context */}
-      <section style={{ background: "#fff", padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
+      <section style={{ background: HOUSE.ink, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <Section label="Competitive landscape" title="How they compare.">
-            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.75, margin: "0 0 24px", fontFamily: "'DM Sans', sans-serif" }}>{v.competitiveContext}</p>
+            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.75, margin: "0 0 24px", fontFamily: FONT }}>{v.competitiveContext}</p>
 
             {/* Beats / Loses To */}
             {(v.beats || v.losesTo) && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }} className="cg">
                 {v.beats && <div style={{ background: `${GREEN}06`, border: `1px solid ${GREEN}25`, borderRadius: 8, padding: "14px 16px" }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Tends to win against</div>
-                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.beats}</p>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: FONT }}>{v.beats}</p>
                 </div>}
                 {v.losesTo && <div style={{ background: `${RED}06`, border: `1px solid ${RED}20`, borderRadius: 8, padding: "14px 16px" }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Tends to lose to</div>
-                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.losesTo}</p>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: FONT }}>{v.losesTo}</p>
                 </div>}
               </div>
             )}
@@ -894,11 +895,11 @@ export default function VendorProfile() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 20 }} className="cg">
                 {v.whyShortlists && <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Why they make shortlists</div>
-                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.whyShortlists}</p>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: FONT }}>{v.whyShortlists}</p>
                 </div>}
                 {v.knockoutRisk && <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Early knockout trigger</div>
-                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{v.knockoutRisk}</p>
+                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.5, margin: 0, fontFamily: FONT }}>{v.knockoutRisk}</p>
                 </div>}
               </div>
             )}
@@ -906,7 +907,7 @@ export default function VendorProfile() {
             {v.lossPattern && (
               <div style={{ background: `${AMBER}06`, border: `1px solid ${AMBER}20`, borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 1, textTransform: "uppercase" }}>Loss Pattern: </span>
-                <span style={{ fontSize: 13, color: SLATE, fontFamily: "'DM Sans', sans-serif" }}>{v.lossPattern}</span>
+                <span style={{ fontSize: 13, color: SLATE, fontFamily: FONT }}>{v.lossPattern}</span>
               </div>
             )}
 
@@ -915,13 +916,13 @@ export default function VendorProfile() {
                 const compSlug = c.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
                 const exists = getAllSlugs().includes(compSlug);
                 return exists ? (
-                  <a key={i} href={`/vendors/${compSlug}`} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: `${ELECTRIC}08`, padding: "6px 14px", borderRadius: 6, border: `1px solid ${ELECTRIC}20`, fontFamily: "'DM Sans', sans-serif", transition: "background 0.2s" }}
+                  <a key={i} href={`/vendors/${compSlug}`} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: `${ELECTRIC}08`, padding: "6px 14px", borderRadius: 6, border: `1px solid ${ELECTRIC}20`, fontFamily: FONT, transition: "background 0.2s" }}
                     onMouseOver={e => e.target.style.background = `${ELECTRIC}15`}
                     onMouseOut={e => e.target.style.background = `${ELECTRIC}08`}>
                     {c} →
                   </a>
                 ) : (
-                  <span key={i} style={{ fontSize: 13, fontWeight: 500, color: MUTED, background: WARM, padding: "6px 14px", borderRadius: 6, border: `1px solid ${BORDER}`, fontFamily: "'DM Sans', sans-serif" }}>{c}</span>
+                  <span key={i} style={{ fontSize: 13, fontWeight: 500, color: MUTED, background: WARM, padding: "6px 14px", borderRadius: 6, border: `1px solid ${BORDER}`, fontFamily: FONT }}>{c}</span>
                 );
               })}
             </div>
@@ -935,9 +936,9 @@ export default function VendorProfile() {
           <div style={WRAP}>
             {v.verticalFit && (
               <div style={{ marginBottom: v.integrations ? 32 : 0 }}>
-                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>Vertical Fit</span>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px", lineHeight: 1.2 }}>Industry pages.</h2>
-                {v.verticalSummary && <p style={{ fontSize: 13, color: MUTED, marginBottom: 14, fontFamily: "'DM Sans', sans-serif" }}>{v.verticalSummary}</p>}
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 8 }}>Vertical Fit</span>
+                <h2 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px", lineHeight: 1.2 }}>Industry pages.</h2>
+                {v.verticalSummary && <p style={{ fontSize: 13, color: MUTED, marginBottom: 14, fontFamily: FONT }}>{v.verticalSummary}</p>}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {/* Phase 1 vertical fit scores are withdrawn with the composite. Industry
                       links stay, alphabetical, with no score and no fit colour. */}
@@ -945,7 +946,7 @@ export default function VendorProfile() {
                     const c = ELECTRIC;
                     const vSlug = vert.toLowerCase().replace(/ \+ /g, "-").replace(/\s+/g, "-");
                     return (
-                      <a key={vert} href={`/vendors/ccaas/${vSlug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "#fff", border: `1px solid ${c}30`, borderRadius: 6, fontSize: 12, fontFamily: "'DM Sans', sans-serif", transition: "border-color 0.15s" }}
+                      <a key={vert} href={`/vendors/ccaas/${vSlug}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", background: HOUSE.ink, border: `1px solid ${c}30`, borderRadius: 6, fontSize: 12, fontFamily: FONT, transition: "border-color 0.15s" }}
                         onMouseOver={e => e.currentTarget.style.borderColor = c}
                         onMouseOut={e => e.currentTarget.style.borderColor = `${c}30`}>
                         <span style={{ color: NAVY, fontWeight: 500 }}>{vert}</span>
@@ -958,11 +959,11 @@ export default function VendorProfile() {
 
             {v.integrations && v.integrations.length > 0 && (
               <div>
-                <span style={{ color: GREEN, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>Verified Integrations</span>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 12px", lineHeight: 1.2 }}>Native integration coverage.</h2>
+                <span style={{ color: GREEN, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 8 }}>Verified Integrations</span>
+                <h2 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 12px", lineHeight: 1.2 }}>Native integration coverage.</h2>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {v.integrations.map((ig, i) => (
-                    <span key={i} style={{ fontSize: 12, padding: "5px 12px", borderRadius: 5, background: `${GREEN}08`, border: `1px solid ${GREEN}20`, color: GREEN, fontWeight: 500, fontFamily: "'DM Sans', sans-serif" }}>{ig}</span>
+                    <span key={i} style={{ fontSize: 12, padding: "5px 12px", borderRadius: 5, background: `${GREEN}08`, border: `1px solid ${GREEN}20`, color: GREEN, fontWeight: 500, fontFamily: FONT }}>{ig}</span>
                   ))}
                 </div>
               </div>
@@ -971,7 +972,7 @@ export default function VendorProfile() {
             {v.recommendedUse && (
               <div style={{ marginTop: 20, padding: "12px 16px", background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}15`, borderRadius: 8 }}>
                 <span style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase" }}>Recommended use: </span>
-                <span style={{ fontSize: 13, color: SLATE, fontFamily: "'DM Sans', sans-serif" }}>{v.recommendedUse}</span>
+                <span style={{ fontSize: 13, color: SLATE, fontFamily: FONT }}>{v.recommendedUse}</span>
               </div>
             )}
           </div>
@@ -979,9 +980,9 @@ export default function VendorProfile() {
       )}
 
       {/* Back navigation */}
-      <section style={{ background: "#fff", padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
+      <section style={{ background: HOUSE.ink, padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
-          <a href="/vendors/ccaas" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif" }}>← Back to CCaaS Platform Intelligence</a>
+          <a href="/vendors/ccaas" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT }}>← Back to CCaaS Platform Intelligence</a>
         </div>
       </section>
 
@@ -989,13 +990,13 @@ export default function VendorProfile() {
       <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <FadeIn>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
               <div style={{ maxWidth: 480 }}>
-                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {v.name}? Share what you've seen.</h3>
-                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't. Every review is attributed by role and company size.</p>
+                <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 8 }}>Community Intelligence</span>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {v.name}? Share what you've seen.</h3>
+                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, fontFamily: FONT }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't. Every review is attributed by role and company size.</p>
               </div>
-              <button onClick={() => setShowReview(true)} style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)`, flexShrink: 0 }}>Share Your Experience</button>
+              <button onClick={() => setShowReview(true)} style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: FONT, boxShadow: "none", flexShrink: 0 }}>Share Your Experience</button>
             </div>
           </FadeIn>
         </div>
@@ -1004,8 +1005,8 @@ export default function VendorProfile() {
       {/* Review Modal */}
       {showReview && (
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setShowReview(false)}>
-          <div style={{ position: "absolute", inset: 0, background: "rgba(6,19,37,0.7)", backdropFilter: "blur(6px)" }} />
-          <div onClick={e => e.stopPropagation()} style={{ position: "relative", background: "#fff", borderRadius: 16, padding: "36px 32px", maxWidth: 560, width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 24px 80px rgba(0,0,0,0.25)" }}>
+          <div style={{ position: "absolute", inset: 0, background: HOUSE.navy, backdropFilter: "blur(6px)" }} />
+          <div onClick={e => e.stopPropagation()} style={{ position: "relative", background: HOUSE.ink, borderRadius: 16, padding: "36px 32px", maxWidth: 560, width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "none" }}>
             <button onClick={() => setShowReview(false)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", fontSize: 20, color: MUTED, cursor: "pointer", lineHeight: 1 }}>×</button>
 
             {reviewSent ? (
@@ -1013,13 +1014,13 @@ export default function VendorProfile() {
                 <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${GREEN}12`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
                   <span style={{ color: GREEN, fontSize: 22 }}>✓</span>
                 </div>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: NAVY, margin: "0 0 8px" }}>Review submitted. Thank you.</h3>
-                <p style={{ fontSize: 14, color: MUTED, fontFamily: "'DM Sans', sans-serif" }}>Your experience helps the CX community make better technology decisions.</p>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, color: NAVY, margin: "0 0 8px" }}>Review submitted. Thank you.</h3>
+                <p style={{ fontSize: 14, color: MUTED, fontFamily: FONT }}>Your experience helps the CX community make better technology decisions.</p>
               </div>
             ) : (
               <div>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, color: NAVY, margin: "0 0 4px" }}>Review {v.name}</h3>
-                <p style={{ fontSize: 13, color: MUTED, margin: "0 0 24px", fontFamily: "'DM Sans', sans-serif" }}>Your feedback is visible to the community and our editorial team. All fields are required unless marked optional.</p>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, color: NAVY, margin: "0 0 4px" }}>Review {v.name}</h3>
+                <p style={{ fontSize: 13, color: MUTED, margin: "0 0 24px", fontFamily: FONT }}>Your feedback is visible to the community and our editorial team. All fields are required unless marked optional.</p>
 
                 <div id="review-form" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <input type="hidden" name="vendor" value={v.name} />
@@ -1027,13 +1028,13 @@ export default function VendorProfile() {
                   <input type="hidden" name="_subject" value={`Community Review: ${v.name}, Center of CX`} />
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 6, fontFamily: "'DM Sans', sans-serif" }}>Your overall score</label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 6, fontFamily: FONT }}>Your overall score</label>
                     <div style={{ display: "flex", gap: 8 }}>
                       {[1,2,3,4,5].map(num => (
                         <label key={num} style={{ flex: 1 }}>
                           <input type="radio" name="score" value={num} style={{ display: "none" }} />
-                          <div className="score-opt" style={{ textAlign: "center", padding: "12px 0", borderRadius: 8, border: `1px solid ${BORDER}`, cursor: "pointer", transition: "all 0.15s", fontFamily: "'DM Sans', sans-serif" }}
-                            onClick={e => { e.currentTarget.parentElement.querySelector('input').checked = true; document.querySelectorAll('.score-opt').forEach(el => { el.style.background = '#fff'; el.style.borderColor = BORDER; el.style.color = SLATE; }); e.currentTarget.style.background = `${ELECTRIC}10`; e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}>
+                          <div className="score-opt" style={{ textAlign: "center", padding: "12px 0", borderRadius: 8, border: `1px solid ${BORDER}`, cursor: "pointer", transition: "all 0.15s", fontFamily: FONT }}
+                            onClick={e => { e.currentTarget.parentElement.querySelector('input').checked = true; document.querySelectorAll('.score-opt').forEach(el => { el.style.background = HOUSE.ink; el.style.borderColor = BORDER; el.style.color = SLATE; }); e.currentTarget.style.background = `${ELECTRIC}10`; e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}>
                             <div style={{ fontSize: 18, fontWeight: 700 }}>{num}</div>
                             <div style={{ fontSize: 10, color: MUTED }}>{["Poor","Below avg","Average","Strong","Excellent"][num-1]}</div>
                           </div>
@@ -1044,8 +1045,8 @@ export default function VendorProfile() {
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Your role</label>
-                      <select name="role" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Your role</label>
+                      <select name="role" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
                         <option value="" disabled selected>Select</option>
                         <option value="CX Leader / VP">CX Leader / VP</option>
                         <option value="Contact Center Director">Contact Center Director</option>
@@ -1057,8 +1058,8 @@ export default function VendorProfile() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Company size</label>
-                      <select name="company_size" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Company size</label>
+                      <select name="company_size" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
                         <option value="" disabled selected>Select</option>
                         <option value="Under 50 agents">Under 50 agents</option>
                         <option value="50 to 200 agents">50 to 200 agents</option>
@@ -1070,8 +1071,8 @@ export default function VendorProfile() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>How long have you used {v.name}?</label>
-                    <select name="tenure" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>How long have you used {v.name}?</label>
+                    <select name="tenure" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, cursor: "pointer" }}>
                       <option value="" disabled selected>Select</option>
                       <option value="Less than 6 months">Less than 6 months</option>
                       <option value="6 to 12 months">6 to 12 months</option>
@@ -1083,23 +1084,23 @@ export default function VendorProfile() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>What works well?</label>
-                    <textarea name="what_works" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, resize: "vertical" }} placeholder="Specific capabilities, support quality, implementation experience, daily operations..." />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>What works well?</label>
+                    <textarea name="what_works" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, resize: "vertical" }} placeholder="Specific capabilities, support quality, implementation experience, daily operations..." />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>What would you change?</label>
-                    <textarea name="what_to_change" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, resize: "vertical" }} placeholder="Gaps, frustrations, missing features, support issues, pricing concerns..." />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>What would you change?</label>
+                    <textarea name="what_to_change" required rows={3} style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY, resize: "vertical" }} placeholder="Gaps, frustrations, missing features, support issues, pricing concerns..." />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Would you recommend {v.name} to a peer?</label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Would you recommend {v.name} to a peer?</label>
                     <div style={{ display: "flex", gap: 10 }}>
                       {["Yes", "With caveats", "No"].map(opt => (
                         <label key={opt} style={{ flex: 1 }}>
                           <input type="radio" name="recommend" value={opt} style={{ display: "none" }} />
-                          <div className="rec-opt" style={{ textAlign: "center", padding: "10px 0", borderRadius: 6, border: `1px solid ${BORDER}`, cursor: "pointer", fontSize: 13, fontWeight: 500, color: SLATE, fontFamily: "'DM Sans', sans-serif", transition: "all 0.15s" }}
-                            onClick={e => { e.currentTarget.parentElement.querySelector('input').checked = true; document.querySelectorAll('.rec-opt').forEach(el => { el.style.background = '#fff'; el.style.borderColor = BORDER; el.style.color = SLATE; }); e.currentTarget.style.background = `${ELECTRIC}10`; e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}>
+                          <div className="rec-opt" style={{ textAlign: "center", padding: "10px 0", borderRadius: 6, border: `1px solid ${BORDER}`, cursor: "pointer", fontSize: 13, fontWeight: 500, color: SLATE, fontFamily: FONT, transition: "all 0.15s" }}
+                            onClick={e => { e.currentTarget.parentElement.querySelector('input').checked = true; document.querySelectorAll('.rec-opt').forEach(el => { el.style.background = HOUSE.ink; el.style.borderColor = BORDER; el.style.color = SLATE; }); e.currentTarget.style.background = `${ELECTRIC}10`; e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}>
                             {opt}
                           </div>
                         </label>
@@ -1108,13 +1109,13 @@ export default function VendorProfile() {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional, displayed as first name + last initial)</span></label>
-                    <input name="reviewer_name" style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} placeholder="Jane S." />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Your name <span style={{ fontWeight: 400, color: MUTED }}>(optional, displayed as first name + last initial)</span></label>
+                    <input name="reviewer_name" style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY }} placeholder="Jane S." />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: "'DM Sans', sans-serif" }}>Email <span style={{ fontWeight: 400, color: MUTED }}>(private, for verification only)</span></label>
-                    <input name="email" type="email" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: "'DM Sans', sans-serif", border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} placeholder="jane@company.com" />
+                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4, fontFamily: FONT }}>Email <span style={{ fontWeight: 400, color: MUTED }}>(private, for verification only)</span></label>
+                    <input name="email" type="email" required style={{ width: "100%", padding: "10px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: HOUSE.ink, color: NAVY }} placeholder="jane@company.com" />
                   </div>
 
                   <button
@@ -1135,11 +1136,11 @@ export default function VendorProfile() {
                       }).then(res => { if (res.ok) setReviewSent(true); setReviewSending(false); })
                       .catch(() => setReviewSending(false));
                     }}
-                    style={{ width: "100%", background: reviewSending ? SLATE : ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: reviewSending ? "wait" : "pointer", fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>
+                    style={{ width: "100%", background: HOUSE.action, color: HOUSE.paper, opacity: reviewSending ? 0.6 : 1, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: reviewSending ? "wait" : "pointer", fontFamily: FONT, boxShadow: "none" }}>
                     {reviewSending ? "Submitting..." : "Submit Review"}
                   </button>
 
-                  <p style={{ fontSize: 11, color: MUTED, textAlign: "center", margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Your email stays private. Reviews may be edited for clarity.</p>
+                  <p style={{ fontSize: 11, color: MUTED, textAlign: "center", margin: 0, fontFamily: FONT }}>Your email stays private. Reviews may be edited for clarity.</p>
                 </div>
               </div>
             )}
@@ -1151,18 +1152,18 @@ export default function VendorProfile() {
       <section style={{ background: WARM, padding: "80px 28px" }}>
         <div style={WRAP}>
           <FadeIn>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.08) 0%, transparent 70%)" }} />
+            <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "none" }} />
               <div style={{ position: "relative", zIndex: 1 }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>
+                <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>
                   Evaluating {v.name} for your organization?
                 </h2>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px", fontFamily: "'DM Sans', sans-serif" }}>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px", fontFamily: FONT }}>
                   We can help you evaluate whether {v.name} fits your operating model, vertical requirements, and integration landscape. We'll come prepared with competitive context and the questions you should be asking.
                 </p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-                  <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.25)` }}>Request a Vendor Briefing</a>
-                  <a href="/vendors/ccaas" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif" }}>See All CCaaS Vendors →</a>
+                  <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT, boxShadow: "none" }}>Request a Vendor Briefing</a>
+                  <a href="/vendors/ccaas" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8, fontFamily: FONT }}>See All CCaaS Vendors →</a>
                 </div>
               </div>
             </div>

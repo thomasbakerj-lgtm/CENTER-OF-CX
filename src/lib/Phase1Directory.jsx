@@ -8,10 +8,12 @@
  */
 import { phase1Label, byName } from "./researchStatus.js";
 import { VendorIntroLink } from "./VendorIntro.jsx";
+import { HOUSE, PILLARS, LINE, alpha } from "./tokens.js";
+import { FONT } from "./type.js";
 
-const NAVY = "#0B1D3A"; const ELECTRIC = "#0088DD"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
+const NAVY = HOUSE.mist; const ELECTRIC = PILLARS.vendors.onDark; const WARM = HOUSE.navy; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair);
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-const SERIF = { fontFamily: "'Instrument Serif', Georgia, serif", fontWeight: 400 };
+const SERIF = { fontFamily: FONT, fontWeight: 400 };
 
 export function ScoresWithdrawn({ category }) {
   return (
@@ -31,7 +33,7 @@ export function Phase1Directory({ groups }) {
   const label = phase1Label();
   const total = groups.reduce((s, g) => s + g.vendors.length, 0);
   return (
-    <section style={{ background: "#fff", padding: "72px 28px" }}>
+    <section style={{ background: HOUSE.ink, padding: "72px 28px" }}>
       <div style={WRAP}>
         <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Directory</span>
         <h2 style={{ ...SERIF, fontSize: 32, color: NAVY, margin: "0 0 8px" }}>All {total} vendors, by name.</h2>

@@ -66,7 +66,6 @@ function Nav() {
         
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        ; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .feat-grid { grid-template-columns: 1fr !important; } .cat-tabs { flex-wrap: wrap !important; } }
       `}</style>

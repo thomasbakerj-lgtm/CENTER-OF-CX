@@ -1,23 +1,24 @@
 import { useState, useEffect } from "react";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
 
-const NAVY = "#0B1D3A";
-const DEEP = "#061325";
-const ELECTRIC = "#0088DD";
-const LIGHT = "#00AAFF";
-const ICE = "#E8F4FD";
-const WARM = "#F8FAFB";
-const SLATE = "#3A4F6A";
-const MUTED = "#5B6E88";
-const BORDER = "#D8E3ED";
-const GREEN = "#10B981";
-const AMBER = "#F59E0B";
-const RED = "#EF4444";
+const NAVY = HOUSE.mist;
+const DEEP = HOUSE.ink;
+const ELECTRIC = PILLARS.diagnostics.onDark;
+const LIGHT = PILLARS.diagnostics.onDark;
+const ICE = HOUSE.navy;
+const WARM = HOUSE.navy;
+const SLATE = HOUSE.body;
+const MUTED = HOUSE.muted;
+const BORDER = alpha(HOUSE.mist, LINE.hair);
+const GREEN = HOUSE.mist;
+const AMBER = HOUSE.mist;
+const RED = HOUSE.mist;
 
 const WRAP = { maxWidth: 1080, margin: "0 auto", padding: "0 28px" };
 
 function LogoMark({ size = 28, light = true }) {
-  const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC;
+  const a = HOUSE.mist, x = light ? LIGHT : ELECTRIC;
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>;
 }
 
@@ -39,7 +40,7 @@ const CATEGORIES = [
       { title: "Channel Shift Economics", desc: "What really happens to staffing when voice migrates to chat or bot.", href: "/tools/channel-shift" },
       { title: "License Bundle Gap Checker", desc: "Quoted seat price vs what you actually pay: add-ons, usage and commits.", href: "/tools/license-gap" },
     ]},
-  { id: "quality", label: "Performance + Quality", color: "#7C3AED", desc: "Measure what actually drives outcomes",
+  { id: "quality", label: "Performance + Quality", color: PILLARS.research.onDark, desc: "Measure what actually drives outcomes",
     tools: [
       { title: "AHT Decomposition", desc: "Break AHT into talk, hold, wrap, transfer, search, admin.", href: "/tools/aht-decomposition", popular: true },
       { title: "QA Scorecard Builder", desc: "Weighted QA forms by contact type, checked for defensibility, with blind evaluator calibration under a published method.", href: "/tools/qa-scorecard" },
@@ -58,7 +59,7 @@ const CATEGORIES = [
       { title: "CX Maturity Assessment", desc: "Strategy, ops, tech, analytics, governance. 25 questions. Tier classification.", href: "/tools/cx-maturity" },
       { title: "AI Readiness Diagnostic", desc: "Whether your data, workflows, and governance are ready for AI.", href: "/tools/ai-readiness" },
     ]},
-  { id: "framework", label: "Frameworks + Planning", color: "#0099CC", desc: "Build the plan, not just the score",
+  { id: "framework", label: "Frameworks + Planning", color: HOUSE.sky2, desc: "Build the plan, not just the score",
     tools: [
       { title: "CX-IT Alignment Framework", desc: "Bridge the gap between experience vision and tech execution.", href: "/tools/cx-it-alignment" },
       { title: "Governance + Operating Model", desc: "Who owns what across CX strategy, ops, and AI.", href: "/tools/governance-model" },
@@ -87,7 +88,6 @@ export default function HowToChoose() {
       <style>{`
         ${FONT_IMPORT_CSS}
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: ${FONT}; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .mob-btn { display: flex !important; } .cat-jump { flex-wrap: wrap !important; } }
       `}</style>
@@ -100,19 +100,19 @@ export default function HowToChoose() {
         <div style={WRAP}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <h1 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>CX Pro Tools</h1>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)" }}>{totalTools} tools across {CATEGORIES.length} categories. Free. Immediate output.</p>
+              <h1 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 600, color: HOUSE.mist, margin: "0 0 4px" }}>CX Pro Tools</h1>
+              <p style={{ fontSize: 13, color: HOUSE.body }}>{totalTools} tools across {CATEGORIES.length} categories. Free. Immediate output.</p>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              <a href="/research/ccaas-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.1)" }}>CCaaS Guide ↓</a>
-              <a href="/research/iva-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.1)" }}>IVA Guide ↓</a>
+              <a href="/research/ccaas-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>CCaaS Guide ↓</a>
+              <a href="/research/iva-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>IVA Guide ↓</a>
             </div>
           </div>
         </div>
       </section>
 
       {/* Category jump bar */}
-      <section style={{ background: "#fff", borderBottom: `1px solid ${BORDER}`, padding: "0 28px", position: "sticky", top: 46, zIndex: 100 }}>
+      <section style={{ background: HOUSE.ink, borderBottom: `1px solid ${BORDER}`, padding: "0 28px", position: "sticky", top: 46, zIndex: 100 }}>
         <div style={{ ...WRAP, display: "flex", gap: 2, padding: "8px 0", overflow: "auto" }} className="cat-jump">
           {CATEGORIES.map(c => (
             <a key={c.id} href={`#${c.id}`} style={{ padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 5, color: MUTED, border: `1px solid ${BORDER}`, whiteSpace: "nowrap", transition: "all 0.15s" }}
@@ -125,7 +125,7 @@ export default function HowToChoose() {
       </section>
 
       {/* Categories with tools */}
-      <section style={{ background: "#fff", padding: "20px 28px 48px" }}>
+      <section style={{ background: HOUSE.ink, padding: "20px 28px 48px" }}>
         <div style={WRAP}>
           {CATEGORIES.map((cat, ci) => (
             <div key={cat.id} id={cat.id} style={{ marginBottom: ci < CATEGORIES.length - 1 ? 36 : 0, scrollMarginTop: 100 }}>
@@ -169,7 +169,7 @@ export default function HowToChoose() {
       <section style={{ background: WARM, padding: "24px 28px", borderTop: `1px solid ${BORDER}` }}>
         <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <span style={{ fontSize: 13, color: MUTED }}>Need help interpreting results? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Connect with a consultant →</a></span>
-          <span style={{ fontSize: 12, color: "rgba(107,127,153,0.5)" }}>All tools are free. No sales call required.</span>
+          <span style={{ fontSize: 12, color: HOUSE.body }}>All tools are free. No sales call required.</span>
         </div>
       </section>
 

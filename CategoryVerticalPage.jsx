@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals";
 import CCaaSIndustry from "./CCaaSIndustry.jsx";
+import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+import { FONT } from "./src/lib/type.js";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = HOUSE.mist; const DEEP = HOUSE.ink; const ELECTRIC = PILLARS.vendors.onDark; const LIGHT = PILLARS.vendors.onDark; const WARM = HOUSE.navy; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair); const GREEN = HOUSE.mist; const AMBER = HOUSE.mist; const RED = HOUSE.mist;
 const WRAP = { maxWidth: 1080, margin: "0 auto", padding: "0 28px" };
-function LogoMark({size=28,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
+function LogoMark({size=28,light=true}){const a=HOUSE.mist,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
 export default function CategoryVerticalPage() {
   const { categorySlug, verticalSlug } = useParams();
@@ -31,32 +33,32 @@ export default function CategoryVerticalPage() {
   ];
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.mob-btn{display:flex!important}.pg{grid-template-columns:1fr!important}}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.mob-btn{display:flex!important}.pg{grid-template-columns:1fr!important}}`}</style>
 
       
 
       {/* Hero */}
-      <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "80px 28px 36px" }}>
+      <section style={{ background: HOUSE.navy, padding: "80px 28px 36px" }}>
         <div style={WRAP}>
           <div style={{ display: "flex", gap: 6, marginBottom: 16, fontSize: 13 }}>
-            <a href="/vendors" style={{ color: "rgba(255,255,255,0.4)" }}>Vendors</a>
-            <span style={{ color: "rgba(255,255,255,0.2)" }}>/</span>
-            <a href={cat.page} style={{ color: "rgba(255,255,255,0.4)" }}>{cat.name}</a>
-            <span style={{ color: "rgba(255,255,255,0.2)" }}>/</span>
+            <a href="/vendors" style={{ color: HOUSE.body }}>Vendors</a>
+            <span style={{ color: HOUSE.body }}>/</span>
+            <a href={cat.page} style={{ color: HOUSE.body }}>{cat.name}</a>
+            <span style={{ color: HOUSE.body }}>/</span>
             <span style={{ color: LIGHT, fontWeight: 600 }}>{vert.name}</span>
           </div>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.12, margin: "0 0 12px" }}>
+          <h1 style={{ fontFamily: FONT, fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.12, margin: "0 0 12px" }}>
             {cat.name} for{" "}
             <span style={{ color: LIGHT }}>{vert.name}</span>
           </h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 600 }}>
+          <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 600 }}>
             {`${cat.name} vendors evaluated for ${vert.name} requirements.`} Compliance, integration, and operational considerations specific to this vertical.
           </p>
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
-            <a href={cat.page} style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.12)" }}>All {cat.name} vendors →</a>
-            <a href={vert.industryPage} style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.12)" }}>{vert.name} industry page →</a>
-            <a href="/tools/vendor-match" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.12)" }}>Vendor Match Engine →</a>
+            <a href={cat.page} style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>All {cat.name} vendors →</a>
+            <a href={vert.industryPage} style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>{vert.name} industry page →</a>
+            <a href="/tools/vendor-match" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>Vendor Match Engine →</a>
           </div>
         </div>
       </section>
@@ -94,7 +96,7 @@ export default function CategoryVerticalPage() {
               { name: "Platform Decision", desc: "The renewal gate for your current platform", href: "/tools/platform-decision" },
               { name: "Contract Risk Scanner", desc: "Analyze terms before signing", href: "/tools/contract-risk" },
             ].map((t, i) => (
-              <a key={i} href={t.href} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px", borderLeft: `3px solid ${ELECTRIC}`, transition: "all 0.15s" }}
+              <a key={i} href={t.href} style={{ display: "block", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "14px 16px", borderLeft: `3px solid ${ELECTRIC}`, transition: "all 0.15s" }}
                 onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.borderLeftColor = ELECTRIC; }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: NAVY, marginBottom: 3 }}>{t.name}</div>
@@ -109,7 +111,7 @@ export default function CategoryVerticalPage() {
       </section>
 
       {/* Other verticals for this category */}
-      <section style={{ background: "#fff", padding: "28px 28px", borderTop: `1px solid ${BORDER}` }}>
+      <section style={{ background: HOUSE.ink, padding: "28px 28px", borderTop: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <h3 style={{ fontSize: 13, fontWeight: 600, color: MUTED, marginBottom: 10 }}>{cat.name} for other industries</h3>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -130,7 +132,7 @@ export default function CategoryVerticalPage() {
           <h3 style={{ fontSize: 13, fontWeight: 600, color: MUTED, marginBottom: 10 }}>{vert.name} across all technology categories</h3>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {Object.entries(CATEGORIES).filter(([k]) => k !== categorySlug).map(([k, c]) => (
-              <a key={k} href={`/vendors/${k}/${verticalSlug}`} style={{ fontSize: 12, color: SLATE, padding: "6px 14px", borderRadius: 5, border: `1px solid ${BORDER}`, background: "#fff", transition: "all 0.15s" }}
+              <a key={k} href={`/vendors/${k}/${verticalSlug}`} style={{ fontSize: 12, color: SLATE, padding: "6px 14px", borderRadius: 5, border: `1px solid ${BORDER}`, background: HOUSE.ink, transition: "all 0.15s" }}
                 onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = SLATE; }}>
                 {c.name}

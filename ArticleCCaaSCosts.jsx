@@ -1,20 +1,22 @@
 import { useState, useEffect, useRef } from "react";
+import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+import { FONT } from "./src/lib/type.js";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
+const NAVY = HOUSE.mist; const DEEP = HOUSE.ink; const ELECTRIC = PILLARS.research.onDark; const LIGHT = PILLARS.research.onDark; const WARM = HOUSE.navy; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair); const GREEN = HOUSE.mist; const AMBER = HOUSE.mist; const RED = HOUSE.mist;
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 const NARROW = { maxWidth: 720, margin: "0 auto", padding: "0 28px" };
 function useInView(t=.12){const ref=useRef(null);const[v,setV]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){setV(true);o.unobserve(el)}},{threshold:t});o.observe(el);return()=>o.disconnect()},[]);return[ref,v]}
 function FadeIn({children,delay=0,style={}}){const[ref,v]=useInView();return<div ref={ref} style={{...style,opacity:v?1:0,transform:v?"translateY(0)":"translateY(22px)",transition:`opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`}}>{children}</div>}
-function LogoMark({size=34}){return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={0.6}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={0.8}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
+function LogoMark({size=34}){return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={HOUSE.mist} strokeWidth="2" strokeLinecap="round" opacity={0.6}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={HOUSE.mist} strokeWidth="3.2" strokeLinecap="round" opacity={0.8}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={HOUSE.mist} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
 const links=[{name:"Platforms + Tech",href:"/platforms-and-tech"},{name:"How to Choose",href:"/how-to-choose"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"The Human Premium",href:"/human-premium"},{name:"Advisory",href:"/advisory"}];
-return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}}`}</style>
+return(<><style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}}`}</style>
 </>)}
 
 const P = ({ children }) => <p style={{ fontSize: 16.5, color: SLATE, lineHeight: 1.85, margin: "0 0 20px" }}>{children}</p>;
-const H2 = ({ children }) => <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: NAVY, lineHeight: 1.25, margin: "40px 0 16px" }}>{children}</h2>;
+const H2 = ({ children }) => <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: NAVY, lineHeight: 1.25, margin: "40px 0 16px" }}>{children}</h2>;
 const Callout = ({ children }) => <div style={{ background: WARM, borderLeft: `3px solid ${ELECTRIC}`, padding: "20px 24px", margin: "28px 0", borderRadius: "0 8px 8px 0" }}><p style={{ fontSize: 14, color: SLATE, lineHeight: 1.7, margin: 0 }}>{children}</p></div>;
-const Stat = ({ n, label }) => <div style={{ textAlign: "center", padding: "20px 16px" }}><div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: ELECTRIC }}>{n}</div><div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>{label}</div></div>;
+const Stat = ({ n, label }) => <div style={{ textAlign: "center", padding: "20px 16px" }}><div style={{ fontFamily: FONT, fontSize: 32, color: ELECTRIC }}>{n}</div><div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>{label}</div></div>;
 
 export default function ArticleCCaaSCosts() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -24,22 +26,22 @@ export default function ArticleCCaaSCosts() {
       <Nav />
 
       {/* Header */}
-      <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "140px 28px 60px" }}>
+      <section style={{ background: HOUSE.navy, padding: "140px 28px 60px" }}>
         <div style={NARROW}>
           <FadeIn>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/research" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Research</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/research" style={{ color: HOUSE.body, fontSize: 13 }}>Research</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>CX Reality Check</span>
             </div>
             <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(239,68,68,0.1)", padding: "3px 10px", borderRadius: 4 }}>CX Reality Check</span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", padding: "3px 0" }}>8 min read</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>CX Reality Check</span>
+              <span style={{ fontSize: 11, color: HOUSE.body, padding: "3px 0" }}>8 min read</span>
             </div>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "0 0 20px" }}>
+            <h1 style={{ fontFamily: FONT, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.15, margin: "0 0 20px" }}>
               Why Your CCaaS Migration Didn't Cut Costs
             </h1>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.45)", lineHeight: 1.7 }}>
+            <p style={{ fontSize: 16, color: HOUSE.body, lineHeight: 1.7 }}>
               The pitch was compelling. The math looked clean. Two years later, most organizations are spending the same or more. I have been part of five CCaaS migrations. Here is where the money actually went.
             </p>
           </FadeIn>
@@ -47,7 +49,7 @@ export default function ArticleCCaaSCosts() {
       </section>
 
       {/* Article Body */}
-      <section style={{ background: "#fff", padding: "56px 28px 80px" }}>
+      <section style={{ background: HOUSE.ink, padding: "56px 28px 80px" }}>
         <div style={NARROW}>
           <FadeIn>
 
@@ -102,9 +104,9 @@ export default function ArticleCCaaSCosts() {
             <H2>The data that confirms you are not alone</H2>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: BORDER, borderRadius: 10, overflow: "hidden", margin: "24px 0" }}>
-              <div style={{ background: "#fff" }}><Stat n="< 40%" label="Of companies meet desired outcomes from cloud migration (Forrester)" /></div>
-              <div style={{ background: "#fff" }}><Stat n="62%" label="Cite integration challenges as primary cause of delays (Blackchair)" /></div>
-              <div style={{ background: "#fff" }}><Stat n="3.9" label="Average number of contact center technologies per org (Puzzel, 2026)" /></div>
+              <div style={{ background: HOUSE.ink }}><Stat n="< 40%" label="Of companies meet desired outcomes from cloud migration (Forrester)" /></div>
+              <div style={{ background: HOUSE.ink }}><Stat n="62%" label="Cite integration challenges as primary cause of delays (Blackchair)" /></div>
+              <div style={{ background: HOUSE.ink }}><Stat n="3.9" label="Average number of contact center technologies per org (Puzzel, 2026)" /></div>
             </div>
 
             <P>
@@ -192,7 +194,7 @@ export default function ArticleCCaaSCosts() {
             </div>
 
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 32 }}>
-              <a href="/vendors/ccaas" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>See Our CCaaS Vendor Scores</a>
+              <a href="/vendors/ccaas" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>See Our CCaaS Vendor Scores</a>
               <a href="/research/ccaas-buyer-guide" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Download CCaaS Buyer Guide</a>
               <a href="/tco-calculator" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Use TCO Calculator</a>
             </div>

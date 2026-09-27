@@ -1274,6 +1274,16 @@ dashboard, the 12-phase growth program.
    for exactly that kind of problem." `privacy.test.mjs` (13): every Formspree endpoint in the code and every third-party
    host in the security policy must be named in the policy, so a new service cannot ship without it. Not legal advice:
    worth a lawyer's read before relying on it.
+   PR #63 merged by TB's instruction (a112364).
+72. S24, redesign session 24, Phase 9 part 2 (TB: "merge and go"): the remaining old-design pages onto the dark design on
+   tokens only: Vendors hub, the seven non-CCaaS category pages and the shared `Phase1Directory`, the Phase 1 vendor profile
+   (`VendorProfile`), the category by industry pages, Human Premium, CX Ecosystem, Platforms and Tech (layer colours from
+   `LAYERS`), Subscribe, the CCaaS cost article, the gated report and How to Choose. Buttons on action with paper text; no
+   page loads its own Google font or body rule (the house base in index.html owns them; stray CSS remnants removed from
+   eleven pages). Presentation only: no data, list order, research or Phase 1 label changed. `tokens.test.mjs` migrated list
+   covers every converted file. Contrast sweep of all 429 sitemap pages at 1440 and 390: no overflow, no serif, no AA
+   failure outside the tools' grade chips (known debt, 25 tool pages). Suite 25,605; live check 255 of 255. **Phase 9
+   complete.** Next: Phase 10.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
