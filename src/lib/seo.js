@@ -343,7 +343,7 @@ export const SEO_MAP = {
     desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a cost breakdown and connect with a consultant.",
   },
 };
-import { CATEGORIES, VERTICALS, hasScoredVerticalFit } from "./verticals.js";
+import { CATEGORIES, VERTICALS, hasScoredVerticalFit, CCAAS_INDEXED_INDUSTRIES } from "./verticals.js";
 import { METHOD_VERSIONS } from "./methodVersions.js";
 
 /* Derived counts. Every surface that states a tool or vendor count reads these
@@ -837,6 +837,14 @@ export function resolveSeo(rawPath) {
          for visitors and crawlable, but out of the sitemap, and the prerendered HTML
          carries the noindex (P1 task 6). */
       const scored = hasScoredVerticalFit(parts[0]) && !!vertName(parts[1]);
+      /* Research Stage 3 rebuilt the ten CCaaS pages from the research; the three with substance are indexable
+         (TB, 27 Sep 2026). */
+      if (parts[0] === "ccaas" && CCAAS_INDEXED_INDUSTRIES.includes(parts[1])) {
+        seo.known = true;
+        seo.title = `Contact Center Platforms for ${vName} | What the Research Says | ${SITE}`;
+        seo.desc = `What current research on CCaaS platforms says about ${vName}: every finding, decision, product and break that bears on it, in the research's own words, dated, with vendors A to Z.`;
+        return seo;
+      }
       seo.known = false;
       seo.title = scored
         ? `${cName} for ${vName} | Vendors + Vertical Requirements | ${SITE}`
@@ -903,6 +911,7 @@ const APP_ROUTES = /^\/tools\//;
 const ORG = { "@type": "Organization", name: SITE, url: BASE };
 const METHOD_PATH = /^\/methodology\/([a-z0-9-]+)$/;
 const INDUSTRY_PATH = /^\/industries\/[a-z0-9-]+(\/[a-z0-9-]+)?$/;
+const CCAAS_INDUSTRY_PATH = /^\/vendors\/ccaas\/([a-z0-9-]+)$/;
 
 export function structuredData(pathname, seo, extra = {}) {
   const url = pathname === "/" ? `${BASE}/` : `${BASE}${pathname}`;
@@ -948,6 +957,12 @@ export function structuredData(pathname, seo, extra = {}) {
       ...(extra.checked ? { dateModified: extra.checked } : {}),
       ...(citation.length ? { citation } : {}),
     });
+  }
+
+  /* A rebuilt CCaaS by industry page open to search: an Article gathering the research, published by the site. */
+  const ci = pathname.match(CCAAS_INDUSTRY_PATH);
+  if (ci && CCAAS_INDEXED_INDUSTRIES.includes(ci[1])) {
+    graphs.push({ "@context": "https://schema.org", "@type": "Article", headline: name, description: seo.desc, url, author: ORG, publisher: ORG, isAccessibleForFree: true });
   }
 
   return graphs;

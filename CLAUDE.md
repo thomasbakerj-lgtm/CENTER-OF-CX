@@ -1194,6 +1194,13 @@ dashboard, the 12-phase growth program.
    `verticals.js` prose (P6 debt). `industry.test.mjs` (116). The pages stay noindex and out of the sitemap (TB decision
    S23); indexing the three with substance (healthcare, government, financial services) is TB's call. Suite 25,331; live
    check 255 of 255.
+   PR #57 merged by TB's instruction (8dfa53f).
+66. S24 (27 Sep). TB: "index the three." Healthcare, government and financial services CCaaS by industry pages are
+   indexable (`CCAAS_INDEXED_INDUSTRIES` in `verticals.js`): in the sitemap (428 URLs), prerendered with their research,
+   titled "Contact Center Platforms for X | What the Research Says", an Article in structured data. The other 77 category
+   by industry pages stay noindex and out of the sitemap. `seo.test.mjs` N (the three indexable and in the sitemap, the
+   77 not), L1 (Article), `industry.test.mjs` (an indexed page carries at least 20 research records). Suite 25,356; live
+   check 255 of 255.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

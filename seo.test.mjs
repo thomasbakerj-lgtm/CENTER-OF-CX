@@ -33,7 +33,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE,
          TOOL_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, VENDOR_PROFILE_COUNT, SEO_MAP, structuredData } from "./src/lib/seo.js";
 import * as SEO from "./src/lib/seo.js";
-import { CATEGORIES, VERTICALS } from "./src/lib/verticals.js";
+import { CATEGORIES, VERTICALS, CCAAS_INDEXED_INDUSTRIES } from "./src/lib/verticals.js";
 import { collectVendorNames, findCollisions, FILE_CATEGORY, collectSubVerticalNames, SUBVERTICAL_FILES } from "./gen-seo-names.mjs";
 
 import { vendors } from "./VendorData.js";
@@ -677,7 +677,7 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   const wrong = [];
   for (const p of sitemap) {
     const t = typeOf(p);
-    const want = p === "/" ? ["Organization", "WebSite"] : p.startsWith("/tools/") ? ["WebApplication"] : p.startsWith("/methodology/") ? ["TechArticle"] : p.startsWith("/industries/") ? ["Article"] : [];
+    const want = p === "/" ? ["Organization", "WebSite"] : p.startsWith("/tools/") ? ["WebApplication"] : p.startsWith("/methodology/") ? ["TechArticle"] : p.startsWith("/industries/") || /^\/vendors\/ccaas\/[a-z-]+$/.test(p) ? ["Article"] : [];
     if (JSON.stringify(t) !== JSON.stringify(want)) wrong.push(`${p}: ${t.join(",")}`);
   }
   ok(`L1 every sitemap URL gets the structured data for its page type [${wrong.slice(0, 3).join(" | ")}]`, wrong.length === 0);
@@ -690,8 +690,11 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
 {
   const sitemap = [...readFileSync("./public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
   const pairs = Object.keys(CATEGORIES).flatMap((c) => Object.keys(VERTICALS).map((v) => `/vendors/${c}/${v}`));
-  ok(`N1 all ${pairs.length} category-by-industry pages are noindex`, pairs.length === 80 && pairs.every((p) => resolveSeo(p).known === false));
-  ok("N2 none of them is in the sitemap", !sitemap.some((p) => /^\/vendors\/[a-z-]+\/[a-z-]+$/.test(p)));
+  /* TB, 27 Sep 2026: the three CCaaS by industry pages with research substance are indexable; the other 77 are not. */
+  const open = CCAAS_INDEXED_INDUSTRIES.map((v) => `/vendors/ccaas/${v}`);
+  ok(`N1 all ${pairs.length - open.length} other category-by-industry pages are noindex`, pairs.length === 80 && pairs.filter((p) => !open.includes(p)).every((p) => resolveSeo(p).known === false));
+  ok("N2 only the three indexed CCaaS industry pages are in the sitemap", JSON.stringify(sitemap.filter((p) => /^\/vendors\/[a-z-]+\/[a-z-]+$/.test(p)).sort()) === JSON.stringify([...open].sort()));
+  ok("N2b the three are indexable, titled from the research and claim no score", open.length === 3 && open.every((p) => resolveSeo(p).known === true && /What the Research Says/.test(resolveSeo(p).title) && !/scored|fit score|ranking of/i.test(resolveSeo(p).desc)));
   const noindexed = sitemap.filter((p) => !resolveSeo(p).known);
   ok(`N3 every sitemap URL is indexable [${noindexed.slice(0, 3).join(" ")}]`, noindexed.length === 0);
   ok("N4 the pages keep their titles for visitors", pairs.every((p) => / for /.test(resolveSeo(p).title)));
