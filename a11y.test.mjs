@@ -40,6 +40,9 @@ for (const f of files) {
   if (FADED.test(s)) hits.faded.push(f);
 }
 ok("every sideways scroll region is reachable and named", hits.scroll.length === 0, hits.scroll.slice(0, 4).join(" | "));
+/* A stylesheet that makes tables scroll (method pages on a phone) needs every table focusable. */
+const cssScroll = files.filter((f) => { const t = readFileSync(f, "utf8"); return /table\{[^}]*overflow-x: ?auto/.test(t) && /<table(?![^>]*tabIndex=\{0\})[\s>]/.test(t); });
+ok("tables that scroll through CSS are focusable", cssScroll.length === 0, cssScroll.join(", "));
 ok("no text colour carries an alpha suffix", hits.alpha.length === 0, hits.alpha.join(", "));
 ok("every form label names or wraps its field", hits.label.length === 0, hits.label.slice(0, 4).join(" | "));
 ok("no text is faded below 0.6", hits.faded.length === 0, hits.faded.join(", "));

@@ -1331,6 +1331,25 @@ dashboard, the 12-phase growth program.
      sideways for about 300 ms before layout settles (202 px at 1440); the served HTML is clean.
    Next: Phase 11 part 2 (performance against the budget, full accessibility audit, special edition switch); the
    measurement review needs TB's PostHog numbers.
+   PR #66 merged by TB's instruction (5fc11f6), with CX Dive repointed to customerexperiencedive.com (TB; every other
+   ecosystem link checked).
+75. S24, redesign session 27, Phase 11 part 2 (TB: "merge and go").
+   - Performance: `scripts/perf-check.mjs` holds ten page kinds to LCP and FCP within 2.5 s, CLS under 0.1 and 300 KB of
+     compressed script on a throttled phone (390, 4x CPU, 1.6 Mbps). Production: all ten within budget (LCP 0.5 to 1.1 s,
+     script 116 to 250 KB, Genesys the heaviest at CLS 0.049). Runs nightly after the live check.
+   - Accessibility: axe-core (WCAG 2.2 A and AA) on all 432 sitemap pages at 1440 and 390. Found and fixed: the Contact
+     topic menu and, beyond what axe saw, every Contact, Subscribe, gated report, vendor review and ReportActions label
+     unbound (fields named only by placeholder or aria-label); the review form's two radio groups unnamed; sideways
+     scroll regions not reachable by keyboard (Schedule Adherence, Occupancy, RFP, Staffing, Forecast, industry
+     benchmarks, and every method page table on a phone); step numbers and counts faded to 1.6 and 2.3:1 (Advisory,
+     About, How to Choose). Re-audit: 0 violations. `a11y.test.mjs` gates each pattern, each rule proven to fire.
+   - Found by tracing the Staffing overflow noted in item 74: the shared `Result` count-up showed raw floats mid-animation
+     ("129.2584297154897" at 64 px) and announced every frame to screen readers. It now rounds to the figure's own
+     places and one hidden live region announces the settled value.
+   - Special editions: `src/lib/editions.js` (Pillar edition: magenta, amber, teal arcs, sky X; each 3:1 on the house),
+     a dated schedule (empty until TB sets one), the header switches after load so the prerender never differs;
+     `editions.test.mjs` (24). Open for TB: Customer Service Week and CX Day, 5 to 9 October 2026.
+   Suite 25,812; live check 256 of 256. Phase 11 complete except the measurement review (needs TB's PostHog numbers).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
