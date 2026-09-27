@@ -127,9 +127,9 @@ export function pillarFor(pathname = "") {
 }
 
 /* Pages built before the shell whose first section clears a fixed bar (37 files carried
-   their own fixed navigation). They keep the header over the page until Phases 8 and 9
+   their own fixed navigation; the homepage left the list when Phase 5 rebuilt it). They keep the header over the page until Phases 8 and 9
    rebuild them; every other page has the header in the flow. */
-const FIXED_EXACT = new Set(["/", "/about", "/advisory", "/contact", "/cx-ecosystem", "/how-to-choose", "/human-premium",
+const FIXED_EXACT = new Set(["/about", "/advisory", "/contact", "/cx-ecosystem", "/how-to-choose", "/human-premium",
   "/industries", "/platforms-and-tech", "/privacy", "/terms", "/research", "/subscribe", "/tools/tco-calculator", "/vendors"]);
 export function headerFixed(pathname = "") {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;

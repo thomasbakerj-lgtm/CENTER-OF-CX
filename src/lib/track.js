@@ -87,13 +87,22 @@ export const EV = {
   NEXT_STEP: "next_step_click",        // clicked a journey CTA into another tool
   SCENARIO_SHARE: "scenario_shared",
   SCENARIO_LOAD: "scenario_loaded",
+  // Taxonomy 1.1 (redesign Phase 5): added, nothing renamed or removed.
+  DOOR_SELECT: "door_select",          // a homepage door (step 1) was chosen
+  ROUTE_SELECT: "route_select",        // a step 2 option was chosen
+  ROUTE_START: "route_start",          // the route's start button was pressed
+  STOP_HERE: "stop_here",              // the reader took the honest exit on a result
+  LAYER_SELECT: "layer_select",        // a stack layer was chosen wherever it is interactive
+  VENDOR_VIEW: "vendor_view",          // a vendor profile was opened
+  VENDOR_ACTION: "vendor_action",      // an action on a vendor profile was taken
 };
 
 const EVENT_NAMES = new Set(Object.values(EV));
 
 /* Frozen taxonomy (11-01 to 11-03, P2 task 7). Event names and property keys do not change without a new version,
-   a line in docs/MEASUREMENT.md and the pins in track.test.mjs; PostHog funnels are built on these names. */
-export const TAXONOMY_VERSION = "1.0";
+   a line in docs/MEASUREMENT.md and the pins in track.test.mjs; PostHog funnels are built on these names. 1.1 (redesign
+   Phase 5) adds the homepage, stack, honest exit and vendor profile events; every 1.0 name is unchanged. */
+export const TAXONOMY_VERSION = "1.1";
 
 /* ---------------------------------------------------------------- severity */
 
@@ -149,7 +158,16 @@ const isUtm = (v) => typeof v === "string" && UTM.test(v);
 /* The referring site's host name only, never its path or query. */
 const HOST = /^(?=.{3,60}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 const isHost = (v) => typeof v === "string" && HOST.test(v);
-export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "vendor", "research", "other"]);
+export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "category", "vendor", "research", "other"]);
+/* Taxonomy 1.1 vocabularies. Closed sets: a value outside them is dropped. */
+export const PILLAR_IDS = new Set(["diagnostics", "vendors", "industries", "research", "market-watch"]);
+export const LAYER_IDS = new Set(["l1", "l2", "l3", "l4", "l5", "l6", "l7"]);
+export const SURFACES = new Set(["home", "tool", "vendor", "industry"]);
+export const RESEARCH_STATES = new Set(["complete", "phase1"]);
+export const VENDOR_ACTIONS = new Set(["test-it", "rfp", "brief", "method", "peer", "request"]);
+export const AUDIENCES = new Set(["finance", "operations", "it", "executive", "advisor"]);
+/* The vendor category slugs, for the category page type. Kept here, not imported, so the tracker loads nothing else. */
+export const CATEGORY_SLUGS = new Set(["ccaas", "iva", "agent-assist", "wem-qm", "analytics", "digital-engagement", "acd-routing", "payments"]);
 
 /* Confidence grades are a closed vocabulary in the epistemic standard. Lower
    cased at the boundary so "Directional" and "directional" cannot split one
@@ -197,6 +215,16 @@ export const ALLOWED_PROPS = {
   utm_medium: isUtm,                          // landing: the kind of channel (social, newsletter, ...)
   utm_campaign: isUtm,                        // landing: the asset or week (2026-10-healthcare-benchmarks, ...)
   ref: isHost,                                // landing: the referring site's host, when there is one
+  // Taxonomy 1.1. A vendor or category slug is public data about a company, never about the reader.
+  pillar: isOneOf(PILLAR_IDS),                // door and route: which of the five pillars
+  route: isSlug,                              // route: the step 2 option slug
+  layer: isOneOf(LAYER_IDS),                  // layer_select: l1 to l7
+  surface: isOneOf(SURFACES),                 // layer_select: where the stack was
+  vendor: isSlug,                             // vendor events: the profile's slug
+  category: isSlug,                           // vendor events: the category slug
+  status: isOneOf(RESEARCH_STATES),           // vendor events: research status
+  action: isOneOf(VENDOR_ACTIONS),            // vendor_action: what was done
+  audience: isOneOf(AUDIENCES),               // report events: who the report was written for
 };
 
 export const ALLOWED_PROP_KEYS = Object.keys(ALLOWED_PROPS);
@@ -237,6 +265,27 @@ function normalise(key, value) {
   return v;
 }
 
+/* Taxonomy 1.1 keys travel only on the events that own them. A second layer behind the validators: a tool that
+   passed the reader's own current vendor, or a reader label, on a tool event would still send nothing, because
+   `vendor` belongs to the vendor profile events alone. 1.0 keys keep their global allowance. */
+export const EVENT_SCOPED = {
+  pillar: ["door_select", "route_select", "route_start"],
+  route: ["route_select", "route_start"],
+  layer: ["layer_select"],
+  surface: ["layer_select"],
+  vendor: ["vendor_view", "vendor_action"],
+  category: ["vendor_view"],
+  status: ["vendor_view"],
+  action: ["vendor_action"],
+  audience: ["report_export"],
+};
+
+export function scopeProps(event, props) {
+  const out = {};
+  for (const [k, v] of Object.entries(props)) if (!EVENT_SCOPED[k] || EVENT_SCOPED[k].includes(event)) out[k] = v;
+  return out;
+}
+
 export function sanitizeProps(props) {
   const out = {};
   if (!props || typeof props !== "object") return out;
@@ -269,7 +318,7 @@ export function buildPayload(event, props, ctx = {}) {
     event,
     distinct_id: distinct,
     properties: {
-      ...sanitizeProps(props),
+      ...scopeProps(event, sanitizeProps(props)),
       /* Anonymous by construction. Without this the capture API treats every
          event as identified, which builds a person profile this platform
          neither needs nor has any business holding. */
@@ -507,6 +556,8 @@ export function pageType(pathname) {
   if (p.startsWith("/tools/")) return "tool";
   if (p.startsWith("/methodology/") || p === "/changelog") return "method";
   if (p.startsWith("/industries")) return "industry";
+  const cat = p.match(/^\/vendors\/([a-z0-9-]+)\/?$/);
+  if (cat && CATEGORY_SLUGS.has(cat[1])) return "category";
   if (p.startsWith("/vendors")) return "vendor";
   if (p.startsWith("/research")) return "research";
   return "other";
@@ -548,11 +599,20 @@ export const trackTool = {
     track(EV.TOOL_COMPLETE, {
       tool: toolId, real, depth: Math.max(1, sessionDepth()), grade, severity, bound_axis,
     }),
-  pdf: (toolId, { grade, bound_axis } = {}) => track(EV.REPORT_EXPORT, { tool: toolId, grade, bound_axis }),
+  pdf: (toolId, { grade, bound_axis, audience } = {}) => track(EV.REPORT_EXPORT, { tool: toolId, grade, bound_axis, audience }),
   copy: (toolId, { grade, bound_axis } = {}) => track(EV.REPORT_COPY, { tool: toolId, grade, bound_axis }),
   reviewOpened: (toolId) => track(EV.REVIEW_OPENED, { tool: toolId }),
   expertRead: (toolId, { grade, bound_axis } = {}) => track(EV.REVIEW_SUBMIT, { tool: toolId, grade, bound_axis }),
   nextStep: (fromTool, toTool) => track(EV.NEXT_STEP, { from: fromTool, to: toTool }),
   scenarioShare: (toolId) => track(EV.SCENARIO_SHARE, { tool: toolId }),
   scenarioLoad: (toolId) => track(EV.SCENARIO_LOAD, { tool: toolId }),
+  stopHere: (toolId, { grade } = {}) => track(EV.STOP_HERE, { tool: toolId, grade }),
+};
+
+/* Taxonomy 1.1: the homepage's two steps and the stack. `repeat` rides every event through track(). */
+export const trackHome = {
+  door: (pillar) => track(EV.DOOR_SELECT, { pillar }),
+  route: (pillar, route) => track(EV.ROUTE_SELECT, { pillar, route }),
+  start: (pillar, route, to) => track(EV.ROUTE_START, { pillar, route, to }),
+  layer: (layer, surface = "home") => track(EV.LAYER_SELECT, { layer, surface }),
 };

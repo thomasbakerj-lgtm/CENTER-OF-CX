@@ -309,7 +309,7 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
        choice joins the event with taxonomy 1.1 (redesign Phase 5). */
     trackTool.pdf(
       toolId || toolIdFromPath(typeof window !== "undefined" && window.location ? window.location.pathname : ""),
-      { grade }
+      { grade, audience }
     );
 
     const win = window.open("", "_blank");

@@ -279,7 +279,9 @@ const COUNT_LITERAL = [
 const countLiterals = (src) => COUNT_LITERAL.flatMap((r) => src.match(r) || []);
 
 const SURFACES = {
-  "Homepage.jsx": ["TOOL_COUNT", "CATEGORY_COUNT", "VENDOR_PROFILE_COUNT"],
+  /* Redesign Phase 5: the homepage renders from src/lib/home.js, which derives every count; the page itself types none. */
+  "Homepage.jsx": [],
+  "src/lib/home.js": ["TOOL_COUNT", "CATEGORY_COUNT", "VENDOR_PROFILE_COUNT"],
   "Vendors.jsx": ["VENDOR_PROFILE_COUNT"],
   /* S22: the site-wide Organization JSON-LD read "283 vendors scored. 30 free
      tools." after both pages above were fixed. It moved from App.jsx into seo.js structuredData (P1 task 4). */
@@ -657,7 +659,10 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   const seoDesc = (seoSrc.match(/"\/research\/ccaas-buyer-guide": \{[\s\S]*?desc: "([^"]*)"/) || ["", ""])[1];
   ok("J11 seo description names the Phase 1 edition and its withdrawn scores", /Phase 1 edition/.test(seoDesc) && /withdrawn/.test(seoDesc));
   ok("J12 Research card states the PDF page count", readFileSync("./Research.jsx", "utf8").includes(`read: "${pdfPages} pages",\n      title: "CCaaS Platform Buyer's Guide 2026"`));
-  ok("J13 Homepage card states the PDF page count", readFileSync("./Homepage.jsx", "utf8").includes(`p: "${pdfPages} pages", href: "/research/ccaas-buyer-guide"`));
+  /* Redesign Phase 5 retired the homepage's report card; the guide stays on the Research page (J12). Should the homepage
+     name the guide again, it must state the true page count. */
+  const homeSrc = readFileSync("./Homepage.jsx", "utf8") + readFileSync("./src/lib/home.js", "utf8");
+  ok("J13 the homepage states the PDF page count wherever it names the buyer guide", !/ccaas-buyer-guide/.test(homeSrc) || homeSrc.includes(`${pdfPages} pages`));
   ok("J14 open reports skip the unlock page", /if \(unlocked && !open\)/.test(gr));
   ok("J15 the full guide opens with no form", /open \? \(<>[\s\S]*?href=\{report\.pdf\}/.test(gr));
   ok("J16 the summary renders only for reports that carry one", /\{open && <Summary report=\{report\} onOpen=\{onOpen\} \/>\}/.test(gr));

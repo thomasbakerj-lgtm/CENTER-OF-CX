@@ -83,10 +83,15 @@ made just before the phases that build them, so nothing waits on pages that ship
   inputs, a sticky result column; on a phone the question first, then the result and the rail, with the headline pinned to
   the bottom of the screen. Tools move onto it in Phase 6; ToolShell and the rail tools' headers retire as they do.
 
-## Phase 5. Homepage (one session)
+## Phase 5. Homepage (one session; built in session 11, held for the baseline)
 
 - The two-question flow, the stack, the five pillar strip, the three arcs. Taxonomy 1.1 events live.
 - A PostHog baseline for first tool to second tool, taken before the new homepage ships.
+- Built in session 11 (`Homepage.jsx`, data in `src/lib/home.js`, gated by `home.test.mjs`); taxonomy 1.1 frozen with each
+  new property scoped to the events that own it. Departures from the design: no time estimates (none measured), vendor
+  steps describe today's profiles (findings and proof tests arrive in Phase 7), no search (none exists), no contributor
+  invitation (D3 open), and on a phone step 2 follows the doors in the page rather than in a bottom sheet. Held from
+  merge until TB supplies the baseline or waives it.
 
 ## Phase 6. Tools onto the shell (four to six sessions, batches of four)
 
