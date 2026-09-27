@@ -105,6 +105,7 @@ made just before the phases that build them, so nothing waits on pages that ship
   batch 3, the WFM five.
 - Batch 3 done (S24, 27 Sep 2026): the WFM five on the frame, with the shared `frameKit.jsx`. Next: batch 4, the frameworks.
 - Batch 4 done (S24, 27 Sep 2026): the five frameworks on the frame; the kit gains Scale, StatementStep and DimensionBars. Next: batch 5, procurement (QA, Platform Decision, RFP, Contract Risk), then Vendor Match and Roadmap.
+- Batch 5 done (S24, 27 Sep 2026): the procurement four on the frame; the kit gains numInput. Next: batch 6, Vendor Match and Roadmap, then retire ToolShell.
 
 ## Phase 7. Research Stage 1 and Vendor Intelligence (three to four sessions)
 

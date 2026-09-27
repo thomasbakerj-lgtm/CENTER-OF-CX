@@ -46,6 +46,9 @@ export function Group({ legend, note, children }) {
   );
 }
 
+/** The dark number input style, for a tool that keeps its own input handler. */
+export const numInput = { display: "block", width: "100%", minWidth: 0, boxSizing: "border-box", minHeight: TOUCH, marginTop: 6, padding: "0 12px", fontFamily: FONT, fontSize: 16, fontWeight: 600, border: `1px solid ${firm}`, borderRadius: RADIUS.field, background: HOUSE.navy, color: HOUSE.mist, fontVariantNumeric: "tabular-nums" };
+
 /** A number field. onChange receives Number(value), the same contract the tools' own inputs had. */
 export function Field({ label, value, onChange, suffix, hint }) {
   return (
