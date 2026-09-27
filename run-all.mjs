@@ -105,6 +105,7 @@ const INFRA = [
   { name: "tokens.test.mjs", covers: "Redesign foundations: Brand Guide tokens, WCAG AA pairings, self-hosted Plex, the 32 icons, no colour literal in migrated files" },
   { name: "components.test.mjs", covers: "Redesign components: every shared component renders with its accessible name, contrast and Brand Guide rule" },
   { name: "shell.test.mjs", covers: "Redesign shell: one header and footer for every page, five pillars, live links, phone menu, breadcrumbs, no page draws its own" },
+  { name: "toolframe.test.mjs", covers: "Redesign tool frame: route rail from the journey graph, one h1, result region, phone bar, privacy line against the analytics allowlist" },
 ];
 
 /* ---------------------------------------------------------------- utilities */

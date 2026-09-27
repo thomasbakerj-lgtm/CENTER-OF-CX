@@ -154,7 +154,7 @@ export function GradeBadge({ grade, heldBy, lift }) {
 /* ------------------------------------------------------------------- Result */
 
 /** The figure counts to its value; one line under it states the change; the evidence
- *  mark sits beside it. A void result shows no figure and says which input made it
+ *  mark sits beside it, or below it in a narrow column. A void result shows no figure and says which input made it
  *  impossible. */
 export function Result({ label, value, format = (v) => String(v), change, how, voidReason }) {
   const [shown, setShown] = useState(value);
@@ -178,8 +178,8 @@ export function Result({ label, value, format = (v) => String(v), change, how, v
     );
   }
   return (
-    <section aria-label={label} style={{ padding: 24, borderRadius: RADIUS.card, background: HOUSE.navy, display: "flex", gap: 24, alignItems: "center", boxShadow: `0 24px 60px ${alpha(HOUSE.ink, 0.5)}` }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
+    <section aria-label={label} style={{ padding: 24, borderRadius: RADIUS.card, background: HOUSE.navy, display: "flex", flexWrap: "wrap", gap: 24, alignItems: "center", boxShadow: `0 24px 60px ${alpha(HOUSE.ink, 0.5)}` }}>
+      <div style={{ flex: "1 1 220px", minWidth: 0 }}>
         <div style={labelStyle}>{label}</div>
         <div aria-live="polite" style={{ fontSize: 64, fontWeight: 700, letterSpacing: T.figure.tracking, lineHeight: 1, color: HOUSE.mist, fontVariantNumeric: "tabular-nums", marginTop: 8 }}>{format(typeof value === "number" ? shown : value)}</div>
         {change && <div style={{ fontSize: 15, color: HOUSE.body, marginTop: 8 }}>{change}</div>}

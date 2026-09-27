@@ -70,7 +70,7 @@ made just before the phases that build them, so nothing waits on pages that ship
   Keeps `reportHtml` escaping and `export.test.mjs` green.
 - Gate: every component has a harness assertion for its accessible name and contrast.
 
-## Phase 4. Shells (one session; the site shell done in session 9, the tool shell v2 next)
+## Phase 4. Shells (done: the site shell in session 9, merged in PR #42; the tool frame in session 10)
 
 - Site shell: five-pillar navigation with Research and Market Watch marked soon, footer, search entry. Done in session 9
   (`src/lib/Shell.jsx`, rendered once by App): 61 pages lost their own bars; back links survive as a breadcrumb row. The
@@ -78,6 +78,10 @@ made just before the phases that build them, so nothing waits on pages that ship
   the page (`headerFixed`) until Phases 8 and 9 rebuild them.
 - Tool shell v2: route sidebar, inputs, result, next step, exit; phone layout with pinned result and pinned next step. Replaces
   `ToolShell.jsx` and the nine rail tools' own headers.
+  Done in session 10 as `src/lib/ToolFrame.jsx`: route rail from the journey graph (`routeFrom`, whose step 2 is always the
+  page's one next step), breadcrumb row with the method stamp and the report action, the question as the one h1, the tool's
+  inputs, a sticky result column; on a phone the question first, then the result and the rail, with the headline pinned to
+  the bottom of the screen. Tools move onto it in Phase 6; ToolShell and the rail tools' headers retire as they do.
 
 ## Phase 5. Homepage (one session)
 

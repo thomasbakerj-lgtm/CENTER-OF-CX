@@ -1,0 +1,108 @@
+/* toolframe.test.mjs
+ *
+ * Redesign Phase 4, the tool frame (src/lib/ToolFrame.jsx). The route rail, the breadcrumb row with the method
+ * stamp, the question as the one h1, the result column and the phone's pinned headline. Checks the rail against the
+ * journey graph for every tool and every step an engine can choose, that the privacy line stays true against the
+ * analytics allowlist, and that the frame computes nothing and carries no colour literal. journey.test.mjs F checks
+ * routeFrom itself.
+ *
+ * Run from repo root: node toolframe.test.mjs
+ */
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { build } from "esbuild";
+
+const require = createRequire(import.meta.url);
+const React = require("react");
+const { renderToStaticMarkup } = require("react-dom/server");
+const J = await import("./src/lib/journey.js");
+const TR = await import("./src/lib/track.js");
+
+let pass = 0, fail = 0;
+const ok = (name, cond, detail) => { if (cond) pass++; else { fail++; console.log("  FAIL:", name, detail ? "(" + detail + ")" : ""); } };
+const section = (t) => console.log("\n" + t);
+
+const r = await build({ entryPoints: ["./src/lib/ToolFrame.jsx"], bundle: true, write: false, format: "cjs", platform: "node",
+  jsx: "automatic", external: ["react", "react-dom"], logLevel: "silent" });
+const mod = { exports: {} };
+new Function("module", "exports", "require", r.outputFiles[0].text)(mod, mod.exports, require);
+const F = mod.exports;
+const h = (C, p) => renderToStaticMarkup(React.createElement(C, p));
+const APP = readFileSync("./App.jsx", "utf8");
+const live = new Set([...APP.matchAll(/<Route\s+path="([^"]+)"/g)].map((m) => m[1]));
+const SRC = readFileSync("./src/lib/ToolFrame.jsx", "utf8");
+
+const base = { toolId: "cost-per-contact", section: "Cost and staffing", name: "Cost per Contact", title: "What does one contact cost you?",
+  lede: "Four answers, about five minutes.", method: { version: "1.0", date: "25 Sep 2026", href: "/methodology/cost-per-contact" },
+  actions: React.createElement("button", { type: "button" }, "Download report"),
+  result: React.createElement("p", null, "RESULT-NODE"), pinned: { label: "Cost per contact", value: "$7.00" } };
+
+section("1. The page");
+{
+  const p = h(F.ToolFrame, { ...base, children: React.createElement("div", null, "INPUTS-NODE") });
+  ok("exactly one h1, and it is the question", (p.match(/<h1/g) || []).length === 1 && /<h1[^>]*>What does one contact cost you\?<\/h1>/.test(p));
+  ok("the tool's inputs and result render where the tool put them", p.includes("INPUTS-NODE") && p.includes("RESULT-NODE") && p.indexOf("INPUTS-NODE") < p.indexOf("RESULT-NODE"));
+  ok("the result is a named region the phone bar can jump to", new RegExp(`<section id="${F.RESULT_ID}" aria-label="Result"`).test(p) && p.includes(`href="#${F.RESULT_ID}"`));
+  ok("the breadcrumb starts at Diagnostics and names the section", /aria-label="Breadcrumb"[\s\S]*href="\/how-to-choose"[^>]*>Diagnostics[\s\S]*Cost and staffing/.test(p));
+  ok("the method stamp links the published method with its version and date", /href="\/methodology\/cost-per-contact"[^>]*>Method 1.0, 25 Sep 2026/.test(p) && live.has("/methodology/cost-per-contact"));
+  ok("the report action sits in the breadcrumb row", p.indexOf("Download report") < p.indexOf("<h1"));
+  const bare = h(F.ToolFrame, { ...base, method: null, pinned: null, lede: null, name: null });
+  ok("no method, no stamp; no pinned value, no phone bar", !/Method 1\.0/.test(bare) && !/cx-tf-pin"/.test(bare) && !/See the result/.test(bare));
+  ok("an empty pinned value draws no bar", !/See the result/.test(h(F.ToolFrame, { ...base, pinned: { label: "x", value: "" } })));
+  ok("the phone bar shows the label and the value", /Cost per contact<\/span><span[^>]*>\$7\.00</.test(p));
+  const unk = h(F.ToolFrame, { ...base, toolId: "not-a-tool" });
+  ok("an unknown tool renders the frame with no rail", !/aria-label="Your route"/.test(unk) && /<h1/.test(unk));
+}
+
+section("2. The route rail");
+{
+  const ids = Object.keys(J.JOURNEY);
+  const bad = [];
+  for (const id of ids) {
+    const html = h(F.RouteRail, { toolId: id });
+    const steps = J.routeFrom(id);
+    const hrefs = [...html.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]).filter((x) => x.startsWith("/tools/"));
+    if (!/<aside aria-label="Your route"/.test(html)) bad.push(`${id} no aside`);
+    if ((html.match(/aria-current="step"/g) || []).length !== 1) bad.push(`${id} current`);
+    if (!new RegExp(`aria-current="step"[\\s\\S]*?${J.JOURNEY[id].name.replace(/[+]/g, "\\+")}`).test(html)) bad.push(`${id} current is not this tool`);
+    if (hrefs.includes(J.JOURNEY[id].route)) bad.push(`${id} links to itself`);
+    if (hrefs.join() !== steps.slice(1).map((s) => s.href).join()) bad.push(`${id} links differ from the route`);
+    if (!hrefs.every((x) => live.has(x))) bad.push(`${id} dead link`);
+    if (!html.includes(F.PRIVACY) || !/href="\/how-to-choose"[^>]*>Change route/.test(html)) bad.push(`${id} privacy or change route`);
+  }
+  ok(`every tool's rail: one current step (this tool, not a link), the rest link the route's live steps, change route and the privacy line (${ids.length} tools) [${bad.slice(0, 4).join("; ")}]`, bad.length === 0);
+  let n = 0; const off = [];
+  for (const id of ids) for (const e of J.nextFor(id)) {
+    n++;
+    const html = h(F.RouteRail, { toolId: id, choice: e.to });
+    const first = [...html.matchAll(/<a href="(\/tools\/[^"]+)"/g)].map((m) => m[1])[0];
+    if (first !== e.href) off.push(`${id}>${e.to}`);
+  }
+  ok(`the rail's next step is the step the engine chose, for every edge (${n}) [${off.slice(0, 4).join(", ")}]`, off.length === 0 && n > 40);
+  ok("steps are numbered as a list, the numbers hidden from screen readers", /<ol/.test(h(F.RouteRail, { toolId: "cost-per-contact" })) && /aria-hidden="true"[^>]*>1</.test(h(F.RouteRail, { toolId: "cost-per-contact" })));
+}
+
+section("3. The privacy line stays true");
+{
+  // The rail says the reader's numbers stay in the tab. That holds while analytics can carry no input: the allowlist
+  // is ids, grades, bands, flags, counts and landing tags. A new key here must be read against the line first.
+  const keys = [...TR.ALLOWED_PROP_KEYS].sort().join();
+  ok("the analytics allowlist is the reviewed set", keys === "bound_axis,depth,from,grade,page_type,real,ref,repeat,severity,to,tool,utm_campaign,utm_medium,utm_source,via_rail", keys);
+  ok("a number passed to analytics is dropped", Object.keys(TR.sanitizeProps({ tool: "cost-per-contact", agents: 120, wage: 20.59, cpc: 7 })).join() === "tool");
+}
+
+section("4. Layout and house rules");
+{
+  ok("the result sticks below the site header", SRC.includes("top:${HEADER_HEIGHT + 16}px"));
+  ok("three columns on a desktop, two on a laptop, one on a phone", /grid-template-columns:232px minmax\(0,1fr\) 360px/.test(SRC) && /max-width:1180px\)\{\.cx-tf\{grid-template-columns:minmax\(0,1fr\) 340px/.test(SRC) && /max-width:760px\)\{\.cx-tf\{grid-template-columns:minmax\(0,1fr\)/.test(SRC));
+  ok("on a phone the question comes first and the rail follows the result", /760px[\s\S]*\.cx-tf-rail\{order:3\}/.test(SRC));
+  ok("the phone bar shows only on a phone, and the page leaves room for it", /\.cx-tf-pin\{display:none\}/.test(SRC) && /760px[\s\S]*\.cx-tf-pin\{display:flex\}[\s\S]*\.cx-tf-pad\{height/.test(SRC));
+  const imports = [...SRC.matchAll(/^import .* from "([^"]+)";/gm)].map((m) => m[1]).sort().join();
+  ok("the frame computes nothing: it imports only react, tokens, the shell, the journey graph and icons", imports === "./Icon.jsx,./Shell.jsx,./journey.js,./tokens.js,react", imports);
+  const code = SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
+  ok("no colour literal", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(code));
+  ok("no dash characters", !/[–—]/.test(SRC));
+}
+
+console.log(`\n${pass} passed, ${fail} failed`);
+if (fail > 0) process.exit(1);

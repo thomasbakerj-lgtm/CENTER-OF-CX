@@ -11,7 +11,7 @@
  */
 
 import { readFileSync, readdirSync } from "node:fs";
-import { JOURNEY, PROVING_JOURNEY, DECISION_NODE, nextFor, nextDiagnostic, nextSection, withNextStep, toolAt } from "./src/lib/journey.js";
+import { JOURNEY, PROVING_JOURNEY, DECISION_NODE, nextFor, nextDiagnostic, nextSection, withNextStep, toolAt, routeFrom } from "./src/lib/journey.js";
 import { RUBRICS } from "./src/lib/rubrics/index.js";
 
 let pass = 0, fail = 0;
@@ -140,6 +140,34 @@ section("E. One next diagnostic per result, and it is an edge of the graph");
   const engineTools = ["CXMaturity.jsx", "AIReadiness.jsx", "TransformationReadiness.jsx", "CXITAlignment.jsx", "GovernanceModel.jsx", "PlatformDecisionMatrix.jsx", "ContractRiskScanner.jsx", "RFPRequirementBuilder.jsx", "QAScorecardBuilder.jsx", "AIDeflectionRealityCheck.jsx", "AttritionCostCalculator.jsx"];
   const noChoice = engineTools.filter((f) => !/<ReportActions[\s\S]{0,80}next=\{/.test(readFileSync(f, "utf8")));
   ok(`E9  every tool whose result chooses a step passes that choice [${noChoice.join(", ")}]`, noChoice.length === 0);
+}
+
+section("F. The route the tool frame shows");
+{
+  const bad = [];
+  for (const id of ids) {
+    const r = routeFrom(id);
+    if (!r.length || r[0].to !== id) bad.push(`${id} does not start at itself`);
+    if (r.length > 3) bad.push(`${id} longer than three steps`);
+    if (new Set(r.map((s) => s.to)).size !== r.length) bad.push(`${id} repeats a tool`);
+    if (!r.every((s) => liveRoutes.has(s.href))) bad.push(`${id} names a dead route`);
+    const n = nextDiagnostic(id);
+    if (n && r.length > 1 && r[1].to !== n.to) bad.push(`${id} step 2 differs from the next step`);
+    if (n && r.length < 2) bad.push(`${id} has a next step but no step 2`);
+    for (let i = 1; i < r.length; i++) if (!nextFor(r[i - 1].to).some((e) => e.to === r[i].to)) bad.push(`${id} step ${i + 1} is not an edge`);
+  }
+  ok(`F1  every tool's route starts at itself, is at most three live steps, never repeats, walks edges, and its step 2 is the page's next step [${bad.slice(0, 4).join("; ")}]`, bad.length === 0);
+  let chose = 0, disagree = [];
+  for (const id of ids) for (const e of nextFor(id)) {
+    chose++;
+    const r = routeFrom(id, e.to);
+    if (!r[1] || r[1].to !== e.to) disagree.push(`${id}>${e.to}`);
+    const w = routeFrom(id, { to: e.to, because: "x" });
+    if (!w[1] || w[1].to !== e.to) disagree.push(`${id}>${e.to} object`);
+  }
+  ok(`F2  whatever step the engine chooses, the route's step 2 is that step (${chose} edges) [${disagree.slice(0, 4).join(", ")}]`, disagree.length === 0 && chose > 40);
+  ok("F3  a route stops at the decision", routeFrom(DECISION_NODE).length >= 1 && routeFrom("ai-deflection").map((s) => s.to).join() === `ai-deflection,${DECISION_NODE}`);
+  ok("F4  an unknown tool gets no route", routeFrom("nope").length === 0 && routeFrom("__proto__").length === 0);
 }
 
 /* ------------------------------------------------------------ report */

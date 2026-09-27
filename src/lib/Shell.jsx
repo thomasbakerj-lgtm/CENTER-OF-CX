@@ -50,7 +50,7 @@ const SoonTag = ({ id }) => (
 );
 
 const CSS = `body{margin:0}.cx-nav{display:flex}.cx-menu-btn{display:none}
-@media (max-width:900px){.cx-nav{display:none}.cx-menu-btn{display:flex}}
+@media (max-width:1100px){.cx-nav{display:none}.cx-menu-btn{display:flex}}
 .cx-nav a:hover,.cx-foot a:hover{color:${HOUSE.paper}}`;
 
 /** The header. `active` is a pillar id; `fixed` places it over the page. */
@@ -59,7 +59,7 @@ export function SiteHeader({ active = null, fixed = false }) {
   const place = fixed ? { position: "fixed", top: 0, left: 0, right: 0 } : { position: "sticky", top: 0 };
   const item = (n, mobile) => {
     const on = n.id === active;
-    const style = { display: "flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: mobile ? 17 : 14, fontWeight: on ? 600 : 500,
+    const style = { display: "flex", alignItems: "center", gap: 6, minHeight: TOUCH, whiteSpace: "nowrap", fontSize: mobile ? 17 : 14, fontWeight: on ? 600 : 500,
       color: on ? HOUSE.paper : HOUSE.body, textDecoration: "none", borderBottom: mobile ? `1px solid ${hair}` : `2px solid ${on ? PILLARS[n.id].fill : "transparent"}`,
       padding: mobile ? "0 4px" : "0 2px" };
     return n.href

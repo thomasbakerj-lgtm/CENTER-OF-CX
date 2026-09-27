@@ -936,6 +936,19 @@ dashboard, the 12-phase growth program.
    10,457 bytes to the entry (Shell 7,506, Icon 2,117, tokens 715, App 95; no route or data file). Suite 24,593; all 426
    sitemap pages at 390 and 1440 with no overflow, no page error, one header and one footer; local live check under the
    production policy 254 of 254. Next: Phase 4 part 2, the tool shell v2.
+50. S24, redesign session 10. PR #42 (components and site shell) merged by TB's instruction (29af17b); GitHub live check on
+   production green on the merge commit, and production serves the shell and the corrected /vendors copy. Phase 4 part 2:
+   `src/lib/ToolFrame.jsx` (tokens only, computes nothing, reads no engine). Route rail: this tool and the next steps from
+   `journey.js` `routeFrom(toolId, choice)` (new; step 2 is the engine's choice, so the rail and the page's one next step
+   always agree; then first edges, stopping on arriving at Business Case, on a repeat, or at three steps), change route,
+   and "Your numbers stay in this browser tab unless you ask for a review." (true while the analytics allowlist carries no
+   input; the frame harness pins the allowlist). Breadcrumb row with the method stamp and the report action; the question
+   as the one h1; the result sticky beside the work; on a phone the question first, result, then the rail, with the
+   headline pinned to the bottom and a jump to the result. Found while proving it: the header nav wrapped between 901 and
+   1100px (the menu now takes over at 1100); `Result` squeezed its figure into its evidence mark in a narrow column (now
+   wraps below). Gates: `toolframe.test.mjs` (22), `journey.test.mjs` F (route laws on every tool and all 80 engine
+   choices), shell rule allows a breadcrumb nav. Suite 24,620; sweep of all 426 pages clean; live check 254 of 254. No
+   tool moved yet; Phase 6 moves them onto the frame. Next: Phase 5, the homepage.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
