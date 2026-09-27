@@ -51,6 +51,7 @@ const Homepage = lazy(() => import('./Homepage'))
 const RubricPage = lazy(() => import('./RubricPage'))
 const PlatformsTech = lazy(() => import('./PlatformsTech'))
 const About = lazy(() => import('./About'))
+const Corrections = lazy(() => import('./Corrections'))
 const Advisory = lazy(() => import('./Advisory'))
 const Contact = lazy(() => import('./Contact'))
 const Subscribe = lazy(() => import('./Subscribe'))
@@ -348,6 +349,7 @@ export function AppRoutes() {
         <Route path="/tools/contract-risk" element={<ContractRiskScanner />} />
         <Route path="/tools/transformation-readiness" element={<TransformationReadiness />} />
         <Route path="/tools/rfp-builder" element={<RFPRequirementBuilder />} />
+        <Route path="/corrections" element={<Corrections />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/vendors/:categorySlug/:verticalSlug" element={<CategoryVerticalPage />} />

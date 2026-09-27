@@ -28,7 +28,7 @@ export const FOOTER = [
   { head: "Diagnostics", links: [["All tools", "/how-to-choose"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },
   { head: "Vendor Intelligence", links: [["All categories", "/vendors"], ["Contact center platforms", "/vendors/ccaas"], ["Conversational AI", "/vendors/iva"]] },
   { head: "Industry Insights", links: [["All industries", "/industries"], ["Healthcare", "/industries/healthcare"], ["Financial Services", "/industries/financial-services"]] },
-  { head: "The Center of CX", links: [["About", "/about"], ["Advisory", "/advisory"], ["The Human Premium", "/human-premium"], ["Subscribe", "/subscribe"], ["Contact", "/contact"]] },
+  { head: "The Center of CX", links: [["About", "/about"], ["Advisory", "/advisory"], ["The Human Premium", "/human-premium"], ["Subscribe", "/subscribe"], ["Corrections", "/corrections"], ["Contact", "/contact"]] },
 ];
 
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);

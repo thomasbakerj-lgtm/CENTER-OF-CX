@@ -302,6 +302,10 @@ export const SEO_MAP = {
     title: `RFP Requirement Builder | Weighted Requirements by Layer | ${SITE}`,
     desc: "Build weighted RFP requirements by layer for your vertical and size, then score vendor responses: must-haves met, generally available only, what to verify in each demo and where the choice is decided.",
   },
+  "/corrections": {
+    title: `How Corrections Work | Vendor Research | ${SITE}`,
+    desc: "How anyone, including a vendor, can report an error in our vendor research: what to send, when we answer, and why only public, citable evidence changes a finding. No vendor pays, previews or approves.",
+  },
   "/privacy": {
     title: `Privacy Policy | ${SITE}`,
     desc: "How The Center of CX handles your data. No vendor access to user data. No advertising cookies. No third-party tracking.",

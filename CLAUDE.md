@@ -1201,6 +1201,17 @@ dashboard, the 12-phase growth program.
    by industry pages stay noindex and out of the sitemap. `seo.test.mjs` N (the three indexable and in the sitemap, the
    77 not), L1 (Article), `industry.test.mjs` (an indexed page carries at least 20 research records). Suite 25,356; live
    check 255 of 255.
+   PR #58 merged by TB's instruction (20146ea).
+67. S24 (27 Sep), decision D2 (TB): the vendor correction policy, points 1 to 5, no vendor response block; accepted
+   corrections noted on the vendor's page. `/corrections` (sitemap 429, footer link): the policy (anyone reports with a
+   public source; acknowledge in 5 working days, decide in 20; only public, citable evidence changes a finding, through
+   the research process; every accepted change shown, every rejection answered; no vendor pays, previews or approves) and
+   a report form (statement, what the source shows, a required https link, email, whether the reporter represents the
+   vendor) posting to the existing Formspree inbox. Profiles: "Report an error" opens the form for that vendor (only a
+   known slug travels); a corrections note on every researched profile lists accepted corrections with date, what
+   changed and the source, or says none has been made. The log is `src/lib/research/corrections.js` (empty; an entry is
+   added when a correction passes the research process and the snapshot is re-synced). `corrections.test.mjs` (35);
+   `research.test.mjs` 11c validates the log. Suite 25,398; live check 255 of 255.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
