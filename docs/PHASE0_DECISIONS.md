@@ -61,7 +61,7 @@ Vendor pages will be disputed. A published, even-handed process protects indepen
 6. A vendor may add a short, clearly labelled vendor response to a page, shown separately from the research, once per
    research cycle.
 
-Decision needed: approve, change the response times, or remove point 6. Status: open.
+**Decided (TB, 27 Sep 2026):** points 1 to 5 as drafted; point 6 (vendor response block) removed; accepted corrections noted on the vendor's page. Published at `/corrections`; built in `src/lib/research/corrections.js` and `Corrections.jsx`, gated by `corrections.test.mjs`.
 
 ## D3. Contributor rules
 

@@ -16,6 +16,7 @@ import { fmtDate } from "./src/lib/researchStatus.js";
 import { CCAAS_TAGS, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
 import { Tags, TagNotes } from "./src/lib/VendorTags.jsx";
 import { encodeScenario } from "./src/lib/scenarioUrl.js";
+import { correctionsFor, correctionHref } from "./src/lib/research/corrections.js";
 import { trackVendor } from "./src/lib/track.js";
 
 const tab = (on) => ({ minHeight: TOUCH, padding: "0 14px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer",
@@ -89,6 +90,22 @@ function SoldTo({ p }) {
       {t.uc && <Quote label={`${UC_LABEL}, in the research's words:`} ids={t.uc.from} />}
       {t.publicSector && <Quote label={`${PS_LABEL}, in the research's words:`} ids={t.publicSector.from} />}
       <p style={{ ...K.small, marginTop: 10 }}>A size is the buyer size the research says the platform is sold to. Where a tag holds only for some buyers, the note says which. It describes the offer and carries no grade.</p>
+    </section>
+  );
+}
+
+/* Accepted corrections to this vendor's research, newest first, and how to report one (decision D2). */
+export function CorrectionsNote({ vendorId, slug, log }) {
+  const list = correctionsFor(vendorId, log);
+  return (
+    <section aria-label="Corrections" style={{ ...K.box, display: "flex", flexDirection: "column", gap: 8 }}>
+      {list.length > 0 && (<>
+        <h2 style={{ ...K.h2, margin: 0, fontSize: 16 }}>Corrections to this page</h2>
+        <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
+          {list.map((c) => <li key={c.date + c.record} style={K.small}><strong style={K.strong}>{fmtDate(c.date)}:</strong> {c.changed} <a href={c.source} target="_blank" rel="noopener noreferrer" style={K.link}>Source</a></li>)}
+        </ul>
+      </>)}
+      <p style={K.small}>{list.length ? "" : "No correction has been made to this page. "}Found an error? <a href={correctionHref(slug)} style={K.link}>Report it</a>. <a href="/corrections" style={K.link}>How corrections work</a>.</p>
     </section>
   );
 }
@@ -380,7 +397,7 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
           <Tags vendorId={v.Vendor_ID} />
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <VendorIntro slug={slug} name={v.Supplier_Name} from="vendor" surface="vendor" />
-            <a href="/contact" style={{ ...K.link, fontSize: 14 }}>Report an error</a>
+            <a href={correctionHref(slug)} style={{ ...K.link, fontSize: 14 }}>Report an error</a>
           </div>
         </header>
         <div role="tablist" aria-label="Questions about this vendor" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -392,6 +409,7 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
         {view === "effort" && <EffortView p={p} />}
         {view === "ask" && <AskView p={p} />}
         {view === "sources" && <SourcesView p={p} manifestDate={manifestDate} />}
+        <CorrectionsNote vendorId={v.Vendor_ID} slug={slug} />
       </div>
     </div>
   );

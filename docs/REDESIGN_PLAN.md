@@ -127,6 +127,8 @@ made just before the phases that build them, so nothing waits on pages that ship
   sector, each caveat on the tag; profiles link into the tools.
 - Part 4 done (S24, 27 Sep 2026): the ten CCaaS by industry pages rebuilt from the research by published rules.
   Next: the vendor correction policy (D2), then Phase 8.
+- D2 done (S24, 27 Sep 2026): `/corrections`, the report form and the corrections note on every researched profile.
+  **Phase 7 complete.** Next: Phase 8, Industry Insights.
 
 ## Phase 8. Industry Insights (two sessions)
 
