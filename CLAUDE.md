@@ -967,6 +967,8 @@ dashboard, the 12-phase growth program.
    `Button` now passes `onClick` on links; `RouteCard` takes `onStart` and a figure slot. Gates: `home.test.mjs` (33),
    seo E surfaces and J13 retargeted to `home.js`, shell and tool frame pins updated. Suite 24,692; 426-page sweep clean;
    live check 254 of 254.
+   TB waived the baseline ("skip the baseline, merge"); PR #44 merged (d8193af). Next: Phase 6, tools onto the frame,
+   first batch Cost per Contact, FCR Leakage, AI Deflection, Business Case.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

@@ -83,7 +83,7 @@ made just before the phases that build them, so nothing waits on pages that ship
   inputs, a sticky result column; on a phone the question first, then the result and the rail, with the headline pinned to
   the bottom of the screen. Tools move onto it in Phase 6; ToolShell and the rail tools' headers retire as they do.
 
-## Phase 5. Homepage (one session; built in session 11, held for the baseline)
+## Phase 5. Homepage (done in session 11; merged in PR #44, the baseline waived by TB)
 
 - The two-question flow, the stack, the five pillar strip, the three arcs. Taxonomy 1.1 events live.
 - A PostHog baseline for first tool to second tool, taken before the new homepage ships.
