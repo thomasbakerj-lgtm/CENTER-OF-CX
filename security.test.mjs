@@ -40,6 +40,20 @@ ok("base-uri and form-action are pinned", !!CSP["base-uri"] && !!CSP["form-actio
 ok("no wildcard host anywhere in the policy", !Object.values(CSP).flat().some((x) => x === "*" || /^https?:\/\/\*/.test(x) || x === "https:"));
 ok("nosniff, a referrer policy and a permissions policy", H["x-content-type-options"] === "nosniff" && !!H["referrer-policy"] && /camera=\(\)/.test(H["permissions-policy"] || ""));
 
+/* The static pages in public/ are served under the same policy. An inline script there is blocked in production (the
+   seven layer map's was, from the day the policy shipped, until Phase 11 moved it to its own file), and a font or style
+   host the policy does not allow fails to load. */
+{
+  const { readdirSync } = await import("node:fs");
+  const pages = readdirSync("./public").filter((f) => f.endsWith(".html"));
+  const inline = pages.filter((f) => [...readFileSync(`./public/${f}`, "utf8").matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].some(([, attrs, body]) => !/\bsrc=/.test(attrs) && !/application\/(ld\+)?json/.test(attrs) && body.trim()));
+  ok(`no static page carries an inline script (${inline.join(", ") || "none"})`, pages.length > 0 && inline.length === 0);
+  ok("the rule fires on a planted inline script", /<script\b([^>]*)>([\s\S]*?)<\/script>/i.test("<script>alert(1)</script>"));
+  const remote = pages.filter((f) => /<link[^>]+href="https:\/\/(?!www\.contactcentercx\.com)[^"]+"[^>]*rel="stylesheet"|<link[^>]+rel="stylesheet"[^>]+href="https:\/\/(?!www\.contactcentercx\.com)/i.test(readFileSync(`./public/${f}`, "utf8")));
+  ok(`no static page loads a stylesheet or font from another host (${remote.join(", ") || "none"})`, remote.length === 0);
+  ok("the policy allows fonts and styles from the site only", (CSP["font-src"] || []).join(" ") === "'self'" && !(CSP["style-src"] || []).some((x) => x.startsWith("https://")));
+}
+
 /* ------------------------------------------------------------ 2. hosts */
 section("2. Every external host the shipped code contacts is allowed, and only those");
 const fetched = new Set(), styled = new Set();

@@ -161,6 +161,10 @@ made just before the phases that build them, so nothing waits on pages that ship
 
 - Retire old styles and dead components; performance pass against the budget; full accessibility audit; special edition switch;
   measurement review against the Phase 5 baseline.
+- Part 1 done (S24, 27 Sep 2026): Google Fonts retired (the seven layer map self-hosts Plex, its blocked inline script
+  moved to a file, its invented figures labelled); the not found, loading and route error states on tokens; tool pages at
+  WCAG AA (colourless grade chips, paper tokens in ReportActions, onFill on filled numbers and choices, InfoDot on
+  tokens); dead scenario.js removed. Next: performance, accessibility audit, special edition switch, measurement review.
 
 ## Running alongside
 

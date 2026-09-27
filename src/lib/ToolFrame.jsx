@@ -12,7 +12,7 @@
 // (tokens.test.mjs refuses a colour literal here); checked by toolframe.test.mjs.
 
 import React from "react";
-import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_SANS, FONT_MONO, TYPE_SCALE, alpha, LINE } from "./tokens.js";
+import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_SANS, FONT_MONO, TYPE_SCALE, alpha, LINE, onFill } from "./tokens.js";
 import { HEADER_HEIGHT } from "./Shell.jsx";
 import { routeFrom } from "./journey.js";
 import { Icon } from "./Icon.jsx";
@@ -43,7 +43,7 @@ export function RouteRail({ toolId, choice = null }) {
           const inner = (
             <>
               <span aria-hidden="true" style={{ width: 26, height: 26, flexShrink: 0, borderRadius: RADIUS.pill, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: FONT_MONO, fontSize: 13,
-                background: here ? D.fill : "transparent", color: here ? HOUSE.paper : HOUSE.body, border: here ? "none" : `1px solid ${soft}` }}>{i + 1}</span>
+                background: here ? D.fill : "transparent", color: here ? onFill(D.fill) : HOUSE.body, border: here ? "none" : `1px solid ${soft}` }}>{i + 1}</span>
               <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ fontSize: 15, fontWeight: here ? 600 : 500, color: here ? HOUSE.mist : HOUSE.body }}>{s.name}</span>
                 <span style={{ fontSize: 13, color: HOUSE.muted }}>{here ? "You are here" : i === 1 ? "Next" : "Then"}</span>

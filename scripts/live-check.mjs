@@ -160,6 +160,14 @@ for (const m of METHODOLOGY) {
   report(v.errors.length === 0 && /\d{1,2} [A-Z][a-z]+ 20\d\d/.test(v.text) && /noindex/.test(robots || "") && !BAD.test(v.text), "/internal/method-log renders, noindex", v.errors[0] || robots || badAt(v.text));
   await v.ctx.close();
 }
+/* The static seven layer map: its script is its own file (inline, the policy had blocked it on production), so the
+   layer grid it draws is present, and every figure on it is labelled an invented example. */
+{
+  const v = await open("/seven-layers-map.html", /Illustration/);
+  const cells = await v.page.locator(".layer-cell").count().catch(() => 0);
+  report(v.errors.length === 0 && cells > 0 && /invented example/.test(v.text), "/seven-layers-map.html runs its script and labels its figures", v.errors[0] || (cells ? "" : "no layer grid drawn"));
+  await v.ctx.close();
+}
 /* Full-page prerender (P1 task 3): the served HTML carries the page body before any script runs, and the page then
    hydrates with no error (a hydration mismatch surfaces as a page error). One of each page type. */
 for (const path of ["/", "/about", "/industries", "/industries/healthcare", "/industries/healthcare/health-insurance", "/vendors/ccaas", "/vendors/genesys", "/methodology/staffing-calculator", "/tools/staffing-calculator"]) {

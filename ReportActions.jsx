@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useId } from "react";
 import ReportExport from "./ReportExport";
 import { scenarioLink, inputsMoved } from "./src/lib/scenarioUrl";
 import { FONT, TYPE } from "./src/lib/type";
+import { HOUSE, PILLARS, FINDINGS, alpha } from "./src/lib/tokens.js";
 import { trackTool, track, EV } from "./src/lib/track";
 import { gradeConfidence, isVoid, isDual, AXES, AXIS_EXPLAINER } from "./src/lib/confidence";
 import { nextDiagnostic, withNextStep } from "./src/lib/journey";
@@ -55,14 +56,17 @@ import { methodStamp } from "./src/lib/methodVersions";
  * decides where it goes, so the same explanation cannot appear twice in one PDF.
  */
 
-const NAVY = "#0B1D3A";
-const ELECTRIC = "#0088DD";
-const MUTED = "#5B6E88";
-const BORDER = "#D8E3ED";
-const GREEN = "#10B981";
-const RED = "#EF4444";
-const WARM = "#F8FAFB";
-const SLATE = "#3A4F6A";
+/* The report actions sit on a paper panel, so every colour is a paper token (Brand Guide sections 4 and 13): ink text,
+   the Diagnostics text colour for links, the action blue for the one button, and the print colours of the findings for
+   sent and failed. A grade is never a colour: it is a word in weight and fill (GRADE_CHIP). */
+const NAVY = HOUSE.paperInk;
+const ELECTRIC = PILLARS.diagnostics.onLight;
+const MUTED = alpha(HOUSE.paperInk, 0.72);
+const BORDER = alpha(HOUSE.paperInk, 0.18);
+const GREEN = FINDINGS.clear.print;
+const RED = FINDINGS.critical.print;
+const WARM = HOUSE.paper2;
+const SLATE = alpha(HOUSE.paperInk, 0.8);
 
 const FORMSPREE = "https://formspree.io/f/maqlvwne";
 const CONTACT_KEY = "coc:contact";
@@ -110,7 +114,7 @@ const labelStyle = { fontSize: 12, fontWeight: 600, color: NAVY, display: "block
 const inputStyle = (bad) => ({
   width: "100%", padding: "10px 12px", fontSize: 14, color: NAVY,
   border: `1px solid ${bad ? RED : BORDER}`, borderRadius: 6, outline: "none",
-  fontFamily: FONT, background: "#fff",
+  fontFamily: FONT, background: HOUSE.paper,
 });
 
 function Field({ label, value, onChange, placeholder, type = "text", required, bad, autoComplete }) {
@@ -139,7 +143,16 @@ function Field({ label, value, onChange, placeholder, type = "text", required, b
  */
 const AXIS_ORDER = AXES;
 const AXIS_LABEL = { evidence: "Evidence", realization: "Realization", completeness: "Completeness" };
-const AXIS_COLOR = (g) => g === "Finance-grade" ? GREEN : g === "Planning-grade" ? ELECTRIC : g == null ? MUTED : "#F59E0B";
+/* A grade in weight and fill only: Finance-grade filled, Planning-grade a heavy outline, Directional a light outline,
+   not applicable dashed. A void is the critical print colour with its word. */
+const GRADE_CHIP = (g) => {
+  const base = { ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.8px", padding: "2px 7px", borderRadius: 4, color: NAVY, background: "transparent" };
+  if (g === "Void") return { ...base, color: HOUSE.paper, background: RED };
+  if (g === "Finance-grade") return { ...base, color: HOUSE.paper, background: NAVY, fontWeight: 700 };
+  if (g === "Planning-grade") return { ...base, border: `2px solid ${NAVY}`, fontWeight: 700 };
+  if (g == null) return { ...base, color: MUTED, border: `1px dashed ${MUTED}` };
+  return { ...base, border: `1px solid ${NAVY}`, fontWeight: 500 };
+};
 
 function AxisStrip({ grades, confidence, label }) {
   return (
@@ -148,7 +161,7 @@ function AxisStrip({ grades, confidence, label }) {
       {AXIS_ORDER.map((a) => (
         <span key={a} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: MUTED }}>{AXIS_LABEL[a]}</span>
-          <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.8px", color: AXIS_COLOR(grades[a]), background: `${AXIS_COLOR(grades[a])}1a`, padding: "2px 7px", borderRadius: 4 }}>
+          <span style={GRADE_CHIP(grades[a])}>
             {grades[a] == null ? "N/A" : grades[a]}
           </span>
         </span>
@@ -156,7 +169,7 @@ function AxisStrip({ grades, confidence, label }) {
       {confidence && (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: MUTED }}>Headline</span>
-          <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.8px", color: "#fff", background: confidence === "Void" ? RED : AXIS_COLOR(confidence), padding: "2px 7px", borderRadius: 4 }}>{confidence}</span>
+          <span style={GRADE_CHIP(confidence)}>{confidence}</span>
         </span>
       )}
     </div>
@@ -393,7 +406,7 @@ export default function ReportActions({
   };
 
   const card = {
-    background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12,
+    background: HOUSE.paper, border: `1px solid ${BORDER}`, borderRadius: 12,
     padding: "22px 22px 20px", flex: 1, minWidth: 300,
   };
   // Archivo is a single-family system, so panel hierarchy comes from size and weight
@@ -407,9 +420,9 @@ export default function ReportActions({
     fontFamily: FONT,
   };
   const primaryBtn = (disabled) => ({
-    width: "100%", padding: "13px", fontSize: 14, fontWeight: 600, color: "#fff",
-    background: disabled ? SLATE : ELECTRIC, border: "none", borderRadius: 8,
-    cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.55 : 1,
+    width: "100%", padding: "13px", fontSize: 14, fontWeight: 600, color: disabled ? MUTED : HOUSE.paper,
+    background: disabled ? WARM : HOUSE.action, border: disabled ? `1px dashed ${BORDER}` : "none", borderRadius: 8,
+    cursor: disabled ? "not-allowed" : "pointer",
     fontFamily: FONT,
   });
 
@@ -496,10 +509,9 @@ export default function ReportActions({
                   onClick={sendCopy}
                   disabled={copyState === "sending" || !validEmail(copyEmail)}
                   style={{
-                    padding: "10px 18px", fontSize: 13, fontWeight: 600, color: "#fff",
-                    background: validEmail(copyEmail) ? NAVY : SLATE, border: "none", borderRadius: 6,
-                    cursor: validEmail(copyEmail) ? "pointer" : "not-allowed",
-                    opacity: validEmail(copyEmail) ? 1 : 0.5, whiteSpace: "nowrap",
+                    padding: "10px 18px", fontSize: 13, fontWeight: 600, color: validEmail(copyEmail) ? HOUSE.paper : MUTED,
+                    background: validEmail(copyEmail) ? NAVY : WARM, border: validEmail(copyEmail) ? "none" : `1px dashed ${BORDER}`, borderRadius: 6,
+                    cursor: validEmail(copyEmail) ? "pointer" : "not-allowed", whiteSpace: "nowrap",
                     fontFamily: FONT,
                   }}>
                   {copyState === "sending" ? "Sending" : "Send"}

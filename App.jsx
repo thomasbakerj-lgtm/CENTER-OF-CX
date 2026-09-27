@@ -36,16 +36,17 @@ class RouteBoundary extends Component {
   render() {
     if (!this.state.failed) return this.props.children
     return (
-      <div style={{ maxWidth: 560, margin: '80px auto', padding: '0 24px', fontFamily: 'Archivo, -apple-system, sans-serif', color: '#0B1D3A' }}>
+      <div style={{ maxWidth: 560, margin: '80px auto', padding: '0 24px', fontFamily: FONT, color: HOUSE.mist }}>
         <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 12 }}>This page did not load.</h1>
-        <p style={{ fontSize: 15, lineHeight: 1.6, color: '#3A4F6A', marginBottom: 20 }}>Part of the page failed to download, usually because of a dropped connection or a site update while the page was open. Nothing you entered was sent anywhere.</p>
-        <a href={typeof window !== 'undefined' ? window.location.href : '/'} style={{ display: 'inline-block', background: '#0088DD', color: '#fff', fontSize: 14, fontWeight: 600, padding: '12px 22px', borderRadius: 8, textDecoration: 'none' }}>Reload the page</a>
+        <p style={{ fontSize: 15, lineHeight: 1.6, color: HOUSE.body, marginBottom: 20 }}>Part of the page failed to download, usually because of a dropped connection or a site update while the page was open. Nothing you entered was sent anywhere.</p>
+        <a href={typeof window !== 'undefined' ? window.location.href : '/'} style={{ display: 'inline-flex', alignItems: 'center', minHeight: TOUCH, background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: '0 22px', borderRadius: RADIUS.field, textDecoration: 'none' }}>Reload the page</a>
       </div>
     )
   }
 }
 import { Analytics } from '@vercel/analytics/react'
 import { FONT } from './src/lib/type'
+import { HOUSE, RADIUS, TOUCH, alpha, LINE } from './src/lib/tokens.js'
 import { SiteHeader, SiteFooter, pillarFor, headerFixed } from './src/lib/Shell.jsx'
 const Homepage = lazy(() => import('./Homepage'))
 const RubricPage = lazy(() => import('./RubricPage'))
@@ -127,17 +128,20 @@ const RoadmapBuilder = lazy(() => import('./RoadmapBuilder'))
 const BusinessCaseBuilder = lazy(() => import('./BusinessCaseBuilder'))
 
 
+/* The not found page, on the house colours (Phase 11: it still used the light palette, so the heading was navy on ink). */
+const NF_LINK = { display: "inline-flex", alignItems: "center", minHeight: TOUCH, fontSize: 15, fontWeight: 500, padding: "0 26px", borderRadius: RADIUS.field, textDecoration: "none" };
+
 function NotFound() {
   return (
     <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "160px 28px 80px", textAlign: "center", fontFamily: FONT }}>
-      <h1 style={{ fontFamily: FONT, fontSize: 40, fontWeight: 600, color: "#0B1D3A", margin: "0 0 12px" }}>Page not found.</h1>
-      <p style={{ fontSize: 16, color: "#5B6E88", maxWidth: 520, lineHeight: 1.7, margin: "0 0 28px" }}>
+      <h1 style={{ fontFamily: FONT, fontSize: 40, fontWeight: 600, color: HOUSE.mist, margin: "0 0 12px" }}>Page not found.</h1>
+      <p style={{ fontSize: 16, color: HOUSE.body, maxWidth: 520, lineHeight: 1.7, margin: "0 0 28px" }}>
         That address does not exist on The Center of CX. The tools, vendor profiles, and research are all reachable from the links below.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-        <a href="/how-to-choose" style={{ background: "#0088DD", color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 26px", borderRadius: 8, textDecoration: "none" }}>Browse the tools</a>
-        <a href="/vendors" style={{ background: "#F8FAFB", border: "1px solid #D8E3ED", color: "#0B1D3A", fontSize: 15, fontWeight: 500, padding: "14px 26px", borderRadius: 8, textDecoration: "none" }}>Vendor intelligence</a>
-        <a href="/" style={{ background: "#F8FAFB", border: "1px solid #D8E3ED", color: "#0B1D3A", fontSize: 15, fontWeight: 500, padding: "14px 26px", borderRadius: 8, textDecoration: "none" }}>Home</a>
+        <a href="/how-to-choose" style={{ ...NF_LINK, background: HOUSE.action, color: HOUSE.paper, fontWeight: 600 }}>Browse the tools</a>
+        <a href="/vendors" style={{ ...NF_LINK, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist }}>Vendor intelligence</a>
+        <a href="/" style={{ ...NF_LINK, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist }}>Home</a>
       </div>
     </div>
   );
@@ -250,7 +254,7 @@ function RouteFallback() {
   return (
     <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "160px 28px 80px" }}>
       {show ? (
-        <p style={{ fontFamily: FONT, fontSize: 15, color: "#5B6E88", margin: 0 }}>Loading.</p>
+        <p style={{ fontFamily: FONT, fontSize: 15, color: HOUSE.muted, margin: 0 }}>Loading.</p>
       ) : null}
     </div>
   );

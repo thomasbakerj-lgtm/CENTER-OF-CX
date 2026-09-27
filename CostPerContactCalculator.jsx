@@ -12,7 +12,7 @@ import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, resultHow } from "./src/lib/ui.jsx";
-import { HOUSE, PILLARS, FINDINGS, RADIUS, TOUCH, FONT_MONO, alpha, LINE } from "./src/lib/tokens.js";
+import { HOUSE, PILLARS, FINDINGS, RADIUS, TOUCH, FONT_MONO, alpha, LINE, onFill } from "./src/lib/tokens.js";
 import { methodStamp } from "./src/lib/methodVersions.js";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -421,7 +421,7 @@ export default function CostPerContactCalculator() {
   const fig = { fontSize: 28, fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist, fontVariantNumeric: "tabular-nums" };
   const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))`, gap: 14 });
   const seg = (active) => ({ flex: 1, minHeight: TOUCH, fontSize: 14, fontWeight: 600, padding: "0 12px", borderRadius: RADIUS.chip, border: "none", cursor: "pointer",
-    background: active ? PILLARS.diagnostics.fill : "transparent", color: active ? HOUSE.paper : HOUSE.body });
+    background: active ? PILLARS.diagnostics.fill : "transparent", color: active ? onFill(PILLARS.diagnostics.fill) : HOUSE.body });
   const mathRow = (label, val) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: `1px solid ${hair}`, fontSize: 13 }}><span style={{ color: HOUSE.body, fontFamily: FONT_MONO }}>{label}</span><span style={{ color: HOUSE.mist, fontWeight: 600, textAlign: "right" }}>{val}</span></div>;
   const row = (k, v, sub) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 0", borderTop: `1px solid ${hair}` }}><span style={small}>{k}{sub && <span style={{ display: "block" }}>{sub}</span>}</span><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{v}</span></div>;
 
