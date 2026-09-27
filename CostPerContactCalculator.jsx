@@ -555,7 +555,7 @@ export default function CostPerContactCalculator() {
       </section>
 
       <div style={{ ...card, padding: 0, overflow: "hidden" }}>
-        <button type="button" aria-expanded={showMath} onClick={() => setShowMath(s => !s)} style={{ width: "100%", minHeight: TOUCH, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", background: "transparent", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 600, color: HOUSE.mist, fontFamily: "inherit" }}>
+        <button type="button" aria-expanded={showMath} onClick={() => setShowMath(s => !s)} style={{ width: "100%", minHeight: TOUCH, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", background: "transparent", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 600, color: HOUSE.mist, fontFamily: FONT }}>
           <span>Show the math, every formula, every value</span><span style={{ color: HOUSE.muted }}>{showMath ? "−" : "+"}</span>
         </button>
         {showMath && (

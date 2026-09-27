@@ -10,6 +10,11 @@ import { severityBucket } from "./src/lib/track";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
+import { Icon } from "./src/lib/Icon.jsx";
+import { HOUSE, PILLARS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
+import { methodStamp } from "./src/lib/methodVersions.js";
 
 const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, muted: MUTED } = COLORS;
 const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const BORDER = "#D8E3ED";
@@ -39,17 +44,17 @@ const DEFS = {
 function Sel({ label, value, onChange, options, info, infoTitle, align, disabled, note }) {
   return (
     <div>
-      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: disabled ? MUTED : SLATE, marginBottom: 6 }}>{label}{info && <InfoDot text={info} title={infoTitle} align={align} />}</label>
-      <select aria-label={typeof label === "string" ? label : undefined} value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} style={{ width: "100%", padding: "11px 12px", fontSize: 14, fontWeight: 600, color: disabled ? MUTED : NAVY, border: `1px solid ${BORDER}`, borderRadius: 8, background: disabled ? WARM : "#fff", outline: "none", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.7 : 1 }}>
+      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: disabled ? HOUSE.muted : HOUSE.mist, marginBottom: 4 }}>{label}{info && <InfoDot text={info} title={infoTitle} align={align} />}</label>
+      <select className="fcr-sel" aria-label={typeof label === "string" ? label : undefined} value={value} onChange={(e) => onChange(e.target.value)} disabled={disabled} style={{ width: "100%", minHeight: TOUCH, padding: "0 12px", fontSize: 15, fontWeight: 600, color: disabled ? HOUSE.muted : HOUSE.mist, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, background: HOUSE.navy, outline: "none", cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.7 : 1, fontFamily: FONT }}>
         {options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
       </select>
-      {note && <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.45, margin: "6px 0 0" }}>{note}</p>}
+      {note && <p style={{ fontSize: 13, color: HOUSE.muted, lineHeight: 1.45, margin: "6px 0 0" }}>{note}</p>}
     </div>
   );
 }
 
-function Tag({ text, color }) {
-  return <span style={{ fontSize: 12, fontWeight: 700, color, background: `${color}16`, padding: "1px 6px", borderRadius: 4, letterSpacing: 0.4, textTransform: "uppercase" }}>{text}</span>;
+function Tag({ text }) {
+  return <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, border: `1px solid ${alpha(HOUSE.mist, LINE.soft)}`, padding: "1px 6px", borderRadius: RADIUS.chip, letterSpacing: "0.06em", textTransform: "uppercase", marginLeft: 4 }}>{text}</span>;
 }
 
 const DIMS = [
@@ -645,213 +650,251 @@ export default function FCRLeakageDiagnostic() {
     });
   }, [phase, R.burdenYr, R.realizableYr, R.payback, G.confidence]);
 
-  const card = { border: `1px solid ${BORDER}`, borderRadius: 12, padding: "22px", marginBottom: 18 };
-  const h3 = { fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 16, letterSpacing: 0.3 };
+  const stamp = methodStamp(TOOL_ID);
+  const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
+  const card = { background: HOUSE.navy, border: `1px solid ${hair}`, borderRadius: RADIUS.card, padding: 20 };
+  const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
+  const h2 = { fontSize: 20, fontWeight: 600, lineHeight: 1.3, color: HOUSE.mist, margin: "0 0 6px" };
+  const body = { fontSize: 15, lineHeight: 1.6, color: HOUSE.body, margin: 0 };
+  const small = { fontSize: 13, lineHeight: 1.5, color: HOUSE.muted, margin: 0 };
+  const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))`, gap: 16 });
+  const link = { color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
+  const note = (level, text) => <Finding level={level} title={level === "high" ? "Check this assumption" : "Note"}>{text}</Finding>;
+  const row = (k, v, sub) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 0", borderTop: `1px solid ${hair}` }}><span style={small}>{k}{sub && <span style={{ display: "block" }}>{sub}</span>}</span><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{v}</span></div>;
+  const answered = DIMS.filter((d) => dimComplete(d.id)).length;
+  const blockList = [...(G.voided ? [`Export void: ${G.invariants.join("; ")}.`] : []), ...R.flags.filter((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped|was held at/.test(f))];
+  const { how } = resultHow(G.gradeObj);
+
+  const steps = [["Your numbers and definition", phase !== "setup"], [`Root-cause diagnostic, ${answered} of ${DIMS.length} areas answered`, allComplete], ["The economics", false]];
+  const result = phase !== "results" ? (
+    <div style={{ ...card, display: "flex", flexDirection: "column", gap: 12 }}>
+      <span style={kicker}>Three steps to a result</span>
+      <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+        {steps.map(([t, done], i) => (
+          <li key={t} style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 15, color: done ? HOUSE.mist : HOUSE.body }}>
+            <span aria-hidden="true" style={{ width: 24, height: 24, flexShrink: 0, borderRadius: RADIUS.pill, border: `1.5px solid ${done ? PILLARS.diagnostics.onDark : soft}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>{done ? <Icon name="check" size={14} /> : i + 1}</span>{t}
+          </li>
+        ))}
+      </ol>
+      <p style={small}>The burden, what is controllable, what converts to cash, and whether the project pays back appear once the diagnostic is complete.</p>
+    </div>
+  ) : blocked ? (
+    <Result label="Annual repeat burden" value={0} voidReason={`The engine produced a physically impossible value, so no result is shown. ${blockList.join(" ")}`} />
+  ) : (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="Annual repeat burden" value={R.burdenYr} format={money} change={`Year-1 net ${money(R.year1Net)}, payback ${R.paybackLabel}`} how={how} />
+      <p style={small}>This grade is self-declared: no payroll file, finance record or repeat-contact dataset was inspected.</p>
+      <div style={card}>
+        <span style={kicker}>Burden to cash</span>
+        <div style={{ marginTop: 8 }}>
+          {row("Controllable burden", money(R.controllableBurdenYr), "Not savings until a mechanism converts it")}
+          {row("Realizable a year", money(R.realizableYr), `At ${pct(R.target)} FCR`)}
+          {row("Year-1 net", money(R.year1Net))}
+          {row("Year-2 net", money(R.year2Net))}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff", color: NAVY }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}select{font-family:inherit}@media(max-width:700px){.g2{grid-template-columns:1fr!important}.g3{grid-template-columns:1fr!important}}`}</style>
-      
+    <ToolFrame toolId={TOOL_ID} section="Performance + Quality" name="FCR Leakage" title="What do repeat contacts cost you, and what can you get back?"
+      lede="Repeat contacts are the leakage. This separates the burden you carry, the portion that is realistically controllable, and the part that converts to actual cash. It will tell you when a project does not pay back."
+      method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
+      result={result} pinned={phase === "results" && !blocked ? { label: "Annual repeat burden", value: money(R.burdenYr) } : null}>
+      <style>{`${FONT_IMPORT_CSS}.fcr-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
 
-      {phase === "setup" && (
-        <section style={{ padding: "44px 28px 60px" }}>
-          <div style={{ ...WRAP, maxWidth: 760 }}>
-            <span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Performance + Quality</span>
-            <h1 style={{ ...TYPE.display, margin: "10px 0 10px" }}>FCR Leakage Diagnostic</h1>
-            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.6, marginBottom: 12, maxWidth: 620 }}>Repeat contacts are the leakage. This tool separates the burden you carry, the portion that is realistically controllable, and the part that converts to actual cash. It will tell you when a project does not pay back.</p>
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 26, fontSize: 12, color: MUTED }}><span>1. Burden</span><span>2. Controllable opportunity</span><span>3. Realizable cash</span><span>4. Confidence</span><span>5. Next operating test</span></div>
-
-            <div style={card}>
-              <h3 style={h3}>Volume + Economics</h3>
-              <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <NumField label="Monthly contacts" value={M} onChange={setM} step={500} min={0} pulled={pulledM} />
-                <NumField label="Current FCR" value={fcrPct} onChange={onFcr} suffix="%" step={1} min={1} max={99} pulled={pulledFcr} info={DEFS.fcrDef.text} infoTitle={DEFS.fcrDef.title} />
-                <NumField label="Marginal cost / contact" value={mCPC} onChange={setMCPC} prefix="$" step={0.25} min={0} pulled={pulledMcpc} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
-                <NumField label="Loaded cost / contact" value={lCPC} onChange={setLCPC} prefix="$" step={0.25} min={0} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} infoAlign="right" />
-              </div>
-            </div>
-
-            <div style={card}>
-              <h3 style={{ ...h3, marginBottom: 6 }}>Declare your FCR definition</h3>
-              <p style={{ fontSize: 12, color: MUTED, marginBottom: 16, lineHeight: 1.5 }}>FCR has no industry standard. Until you declare scope and method, the result stays Directional and is not comparable across centers. Every formula, constant and a worked example are in the <a href="/methodology/fcr-leakage" style={{ color: NAVY, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-              <div className="g3" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                <Sel label="Resolution scope" value={R.scopeKey} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Voice only" }, { v: "cc", l: "CC cross-channel" }, { v: "digital", l: "Digital + assisted" }, { v: "enterprise", l: "Enterprise OCR" }]} />
-                <Sel label="Measurement method" value={method} onChange={setMethod} options={[{ v: "", l: "Select..." }, { v: "survey", l: "External post-call survey" }, { v: "internal", l: "Internal callback window" }]} />
-                {method === "internal" ? <NumField label="Callback window" value={windowDays} onChange={setWindowDays} suffix=" days" step={1} min={1} max={30} /> : <div />}
-              </div>
-              {scope === "voice" && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Voice-only scope is the most generous definition. It usually inflates FCR and understates leakage, because a customer who failed in chat or a bot before calling is not counted.</p>}
-              {method === "internal" && N.windowDays < WINDOW_SHORT && <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>A {N.windowDays}-day callback window is short. It captures fewer return contacts, so internal FCR tends to read high and the true leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, since customers often return through another channel days later. Common practice is 7 to 30 days depending on issue type.</p>}
-            </div>
-
-            <div style={card}>
-              <h3 style={h3}>Leakage Model</h3>
-              <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <Sel label="Repeat-behavior model" value={repeatModel} onChange={setRepeatModel} info={DEFS.repeatModel.text} infoTitle={DEFS.repeatModel.title} options={[{ v: "one", l: "One callback then resolved" }, { v: "geometric", l: "Geometric (callbacks can fail)" }, { v: "measured", l: "I have my measured repeat rate" }]} />
-                <NumField label="Repeat complexity multiplier" value={repeatMult} onChange={setRepeatMult} suffix="x" step={0.1} min={0.5} max={3} info={DEFS.repeatMult.text} infoTitle={DEFS.repeatMult.title} infoAlign="right" />
-                {repeatModel === "measured" && <NumField label="Measured current repeat share" value={measuredPct} onChange={setMeasuredPct} suffix="%" step={1} min={0} max={60} />}
-                {repeatModel === "measured" && <NumField label="Measured target repeat share (0 = model it)" value={measuredTargetPct} onChange={setMeasuredTargetPct} suffix="%" step={1} min={0} max={60} infoAlign="right" />}
-                {/* The improvement-path selector was removed. Two of its three options
-                    switched bases against a measured baseline and invented savings.
-                    `pathModel` stays in the scenario contract so legacy links still
-                    decode, and the engine flags them. */}
-                <NumField label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} infoAlign="right" />
-              </div>
-              {N.repeatMult > MULT_HIGH ? <p style={{ fontSize: 12, color: RED, marginTop: 12, lineHeight: 1.5 }}>High assumption at {fmtX(N.repeatMult)}x, above the tool's planning range. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.</p> : N.repeatMult > MULT_ELEVATED ? <p style={{ fontSize: 12, color: AMBER, marginTop: 12, lineHeight: 1.5 }}>Elevated at {fmtX(N.repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.</p> : null}
-            </div>
-
-            <div style={card}>
-              <h3 style={h3}>Realization + Investment</h3>
-              <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <Sel label="Sourcing model" value={sourcing} onChange={setSourcing} info={DEFS.sourcing.text} infoTitle={DEFS.sourcing.title} options={[{ v: "inhouse", l: "In-house (capacity, needs mechanism)" }, { v: "bpo", l: "Outsourced per-contact (direct cash)" }]} />
-                <Sel label="Realization mechanism" value={R.mechKey} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} disabled={sourcing === "bpo"} note={sourcing === "bpo" ? "Not used. On a per-contact contract the invoice falls with volume, so savings convert at 100% without a capacity mechanism. Switch to in-house sourcing to apply one." : null} />
-                <NumField label="One-time cost to achieve" value={investOneTime} onChange={setInvestOneTime} prefix="$" step={10000} min={0} info={DEFS.invest.text} infoTitle={DEFS.invest.title} />
-                <NumField label="Recurring annual cost" value={investRecurring} onChange={setInvestRecurring} prefix="$" step={5000} min={0} infoAlign="right" />
-                <Sel label="Cost basis" value={costBasis} onChange={setCostBasis} info={DEFS.confidence.text} infoTitle={DEFS.confidence.title} options={[{ v: "estimate", l: "Estimate (±25%)" }, { v: "ops", l: "Operations data (±15%)" }, { v: "finance", l: "Finance-confirmed (±10%)" }]} />
-              </div>
-            </div>
-
-            <button onClick={() => setPhase("diagnostic")} style={{ padding: "14px 28px", fontSize: 15, fontWeight: 600, background: ELECTRIC, color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Diagnose the root cause →</button>
+      {phase === "setup" && (<>
+        <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 4 · Volume and economics</legend>
+          <div style={grid(220)}>
+            <NumField tone="dark" label="Monthly contacts" value={M} onChange={setM} step={500} min={0} pulled={pulledM} />
+            <NumField tone="dark" label="Current FCR" value={fcrPct} onChange={onFcr} suffix="%" step={1} min={1} max={99} pulled={pulledFcr} info={DEFS.fcrDef.text} infoTitle={DEFS.fcrDef.title} />
+            <NumField tone="dark" label="Marginal cost / contact" value={mCPC} onChange={setMCPC} prefix="$" step={0.25} min={0} pulled={pulledMcpc} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
+            <NumField tone="dark" label="Loaded cost / contact" value={lCPC} onChange={setLCPC} prefix="$" step={0.25} min={0} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} infoAlign="right" />
           </div>
-        </section>
-      )}
+        </fieldset>
 
-      {phase === "diagnostic" && (
-        <section style={{ padding: "40px 28px 60px" }}>
-          <div style={{ ...WRAP, maxWidth: 700 }}>
-            <div style={{ display: "flex", gap: 4, marginBottom: 28, flexWrap: "wrap" }}>
-              {DIMS.map((d, i) => <button key={d.id} onClick={() => setCurrentDim(i)} style={{ padding: "8px 13px", fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: "pointer", border: `1px solid ${i === currentDim ? d.color : dimComplete(d.id) ? GREEN : BORDER}`, background: i === currentDim ? `${d.color}12` : dimComplete(d.id) ? `${GREEN}08` : "#fff", color: i === currentDim ? d.color : dimComplete(d.id) ? GREEN : MUTED }}>{dimComplete(d.id) ? "✓ " : ""}{d.icon} {d.name.split("+")[0].trim()}</button>)}
-            </div>
-            {(() => { const d = DIMS[currentDim]; return (
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}><span style={{ fontSize: 22 }}>{d.icon}</span><h2 style={{ ...TYPE.h1, margin: 0 }}>{d.name}</h2><Tag text={d.ownerClass} color={SLATE} /></div>
-                <p style={{ fontSize: 13, color: MUTED, marginBottom: 22, maxWidth: 560, lineHeight: 1.5 }}>{d.desc}</p>
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {d.qs.map((q, qi) => (
-                    <div key={qi} style={{ background: WARM, border: `1px solid ${scores[`${d.id}-${qi}`] ? d.color + "30" : BORDER}`, borderRadius: 10, padding: "16px 18px" }}>
-                      <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 12px" }}>{q}</p>
-                      <div style={{ display: "flex", gap: 6 }}>{[1, 2, 3, 4, 5].map((v) => <button key={v} onClick={() => setScore(d.id, qi, v)} style={{ flex: 1, padding: "8px 4px", fontSize: 12, fontWeight: 600, borderRadius: 6, cursor: "pointer", border: `1px solid ${scores[`${d.id}-${qi}`] === v ? d.color : BORDER}`, background: scores[`${d.id}-${qi}`] === v ? d.color : "#fff", color: scores[`${d.id}-${qi}`] === v ? "#fff" : MUTED }}>{LABELS[v]}</button>)}</div>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
-                  <button onClick={() => currentDim === 0 ? setPhase("setup") : setCurrentDim(currentDim - 1)} style={{ padding: "10px 20px", fontSize: 13, fontWeight: 600, borderRadius: 6, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>← {currentDim === 0 ? "Inputs" : "Previous"}</button>
-                  {currentDim < DIMS.length - 1 ? <button onClick={() => setCurrentDim(currentDim + 1)} style={{ padding: "10px 20px", fontSize: 13, fontWeight: 600, borderRadius: 6, border: "none", background: d.color, color: "#fff", cursor: "pointer" }}>Next →</button> : <button onClick={() => setPhase("results")} disabled={!allComplete} style={{ padding: "10px 24px", fontSize: 13, fontWeight: 600, borderRadius: 6, border: "none", background: allComplete ? GREEN : MUTED, color: "#fff", cursor: "pointer", opacity: allComplete ? 1 : 0.5 }}>{allComplete ? "See the economics →" : "Complete all dimensions"}</button>}
-                </div>
-              </div>
-            ); })()}
+        <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          <legend style={{ ...kicker, padding: "0 6px" }}>Question 2 of 4 · Your FCR definition</legend>
+          <p style={body}>FCR has no industry standard. Until you declare scope and method, the result stays Directional and is not comparable across centers. Every formula, constant and a worked example are in the <a href="/methodology/fcr-leakage" style={link}>published method</a>.</p>
+          <div style={grid(200)}>
+            <Sel label="Resolution scope" value={R.scopeKey} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Voice only" }, { v: "cc", l: "CC cross-channel" }, { v: "digital", l: "Digital + assisted" }, { v: "enterprise", l: "Enterprise OCR" }]} />
+            <Sel label="Measurement method" value={method} onChange={setMethod} options={[{ v: "", l: "Select..." }, { v: "survey", l: "External post-call survey" }, { v: "internal", l: "Internal callback window" }]} />
+            {method === "internal" ? <NumField tone="dark" label="Callback window" value={windowDays} onChange={setWindowDays} suffix=" days" step={1} min={1} max={30} /> : <div />}
           </div>
-        </section>
-      )}
+          {scope === "voice" && note("high", "Voice-only scope is the most generous definition. It usually inflates FCR and understates leakage, because a customer who failed in chat or a bot before calling is not counted.")}
+          {method === "internal" && N.windowDays < WINDOW_SHORT && note("high", `A ${N.windowDays}-day callback window is short. It captures fewer return contacts, so internal FCR tends to read high and the true leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, since customers often return through another channel days later. Common practice is 7 to 30 days depending on issue type.`)}
+        </fieldset>
 
-      {phase === "results" && (
-        <section style={{ padding: "40px 28px 60px" }}>
-          <div style={WRAP}>
-            {blocked && (
-              <div>
-                <div style={{ background: `${RED}0A`, border: `2px solid ${RED}`, borderRadius: 12, padding: "26px 28px", marginBottom: 20 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1.5, textTransform: "uppercase" }}>Result blocked: invalid inputs</span>
-                  <p style={{ fontSize: 14, color: NAVY, lineHeight: 1.6, margin: "10px 0 14px" }}>The engine produced a physically impossible value, so no result is shown. An invalid result is not a low-confidence result. Correct the inputs below and the economics will return.</p>
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>{[...(G.voided ? [`Export void: ${G.invariants.join("; ")}.`] : []), ...R.flags.filter((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped|was held at/.test(f))].map((f, i) => <li key={i} style={{ fontSize: 13, color: RED, lineHeight: 1.5, marginBottom: 4 }}>{f}</li>)}</ul>
-                </div>
-                <button onClick={() => setPhase("setup")} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, border: "none", cursor: "pointer" }}>Adjust inputs</button>
-              </div>
-            )}
-            {!blocked && (<>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "12px 16px", marginBottom: 20 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: confColor(G.confidence), letterSpacing: 1, textTransform: "uppercase" }}>{G.confidence}</span>
-              <span style={{ fontSize: 12, color: SLATE }}>Evidence <strong style={{ color: confColor(G.evidence) }}>{G.evidence}</strong></span>
-              <span style={{ fontSize: 12, color: SLATE }}>Realization <strong style={{ color: confColor(G.realization) }}>{G.realization}</strong></span>
-              <span style={{ fontSize: 12, color: SLATE }}>Completeness <strong style={{ color: confColor(G.completeness) }}>{G.completeness}</strong></span>
-              <InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} />
-              <div style={{ flexBasis: "100%", fontSize: 12, color: SLATE, lineHeight: 1.5, marginTop: 2 }}>{G.gradeWhy}</div>
-              <div style={{ flexBasis: "100%", fontSize: 12, color: MUTED, lineHeight: 1.5 }}>This grade is self-declared. It reflects what you told this tool about your sources. No payroll file, finance record or repeat-contact dataset was inspected.</div>
+        <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          <legend style={{ ...kicker, padding: "0 6px" }}>Question 3 of 4 · Leakage model</legend>
+          <div style={grid(220)}>
+            <Sel label="Repeat-behavior model" value={repeatModel} onChange={setRepeatModel} info={DEFS.repeatModel.text} infoTitle={DEFS.repeatModel.title} options={[{ v: "one", l: "One callback then resolved" }, { v: "geometric", l: "Geometric (callbacks can fail)" }, { v: "measured", l: "I have my measured repeat rate" }]} />
+            <NumField tone="dark" label="Repeat complexity multiplier" value={repeatMult} onChange={setRepeatMult} suffix="x" step={0.1} min={0.5} max={3} info={DEFS.repeatMult.text} infoTitle={DEFS.repeatMult.title} infoAlign="right" />
+            {repeatModel === "measured" && <NumField tone="dark" label="Measured current repeat share" value={measuredPct} onChange={setMeasuredPct} suffix="%" step={1} min={0} max={60} />}
+            {repeatModel === "measured" && <NumField tone="dark" label="Measured target repeat share (0 = model it)" value={measuredTargetPct} onChange={setMeasuredTargetPct} suffix="%" step={1} min={0} max={60} infoAlign="right" />}
+            {/* The improvement-path selector was removed. Two of its three options
+                switched bases against a measured baseline and invented savings.
+                `pathModel` stays in the scenario contract so legacy links still
+                decode, and the engine flags them. */}
+            <NumField tone="dark" label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} infoAlign="right" />
+          </div>
+          {N.repeatMult > MULT_HIGH ? note("high", `High assumption at ${fmtX(N.repeatMult)}x, above the tool's planning range. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.`) : N.repeatMult > MULT_ELEVATED ? note("unknown", `Elevated at ${fmtX(N.repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.`) : null}
+        </fieldset>
+
+        <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+          <legend style={{ ...kicker, padding: "0 6px" }}>Question 4 of 4 · Realization and investment</legend>
+          <div style={grid(220)}>
+            <Sel label="Sourcing model" value={sourcing} onChange={setSourcing} info={DEFS.sourcing.text} infoTitle={DEFS.sourcing.title} options={[{ v: "inhouse", l: "In-house (capacity, needs mechanism)" }, { v: "bpo", l: "Outsourced per-contact (direct cash)" }]} />
+            <Sel label="Realization mechanism" value={R.mechKey} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} disabled={sourcing === "bpo"} note={sourcing === "bpo" ? "Not used. On a per-contact contract the invoice falls with volume, so savings convert at 100% without a capacity mechanism. Switch to in-house sourcing to apply one." : null} />
+            <NumField tone="dark" label="One-time cost to achieve" value={investOneTime} onChange={setInvestOneTime} prefix="$" step={10000} min={0} info={DEFS.invest.text} infoTitle={DEFS.invest.title} />
+            <NumField tone="dark" label="Recurring annual cost" value={investRecurring} onChange={setInvestRecurring} prefix="$" step={5000} min={0} infoAlign="right" />
+            <Sel label="Cost basis" value={costBasis} onChange={setCostBasis} info={DEFS.confidence.text} infoTitle={DEFS.confidence.title} options={[{ v: "estimate", l: "Estimate (±25%)" }, { v: "ops", l: "Operations data (±15%)" }, { v: "finance", l: "Finance-confirmed (±10%)" }]} />
+          </div>
+        </fieldset>
+
+        <div><Button onClick={() => setPhase("diagnostic")} icon="next">Diagnose the root cause</Button></div>
+      </>)}
+
+      {phase === "diagnostic" && (<>
+        <div role="tablist" aria-label="Diagnostic areas" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {DIMS.map((d, i) => {
+            const on = i === currentDim, done = dimComplete(d.id);
+            return <button key={d.id} role="tab" aria-selected={on} onClick={() => setCurrentDim(i)} style={{ minHeight: TOUCH, padding: "0 14px", fontSize: 14, fontWeight: 600, borderRadius: RADIUS.field, cursor: "pointer", fontFamily: FONT,
+              border: `1px solid ${on ? PILLARS.diagnostics.fill : done ? soft : hair}`, background: on ? alpha(PILLARS.diagnostics.fill, 0.16) : "transparent", color: on || done ? HOUSE.mist : HOUSE.body }}>{done ? "✓ " : ""}{d.name.split("+")[0].trim()}</button>;
+          })}
+        </div>
+        {(() => { const d = DIMS[currentDim]; return (
+          <section aria-label={d.name} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div>
+              <span style={kicker}>Area {currentDim + 1} of {DIMS.length} · {d.ownerClass}</span>
+              <h2 style={{ ...h2, fontSize: 24, marginTop: 6 }}>{d.name}</h2>
+              <p style={body}>{d.desc}</p>
             </div>
-
-            <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-              <div style={{ background: `${RED}06`, border: `1px solid ${RED}22`, borderRadius: 12, padding: "22px 24px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Annual repeat burden</span><Tag text={R.shareBasis} color={RED} /><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
-                <div style={{ ...TYPE.statValueLg, color: RED }}>{money(R.burdenYr)}</div>
-                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{Math.round(R.repeats).toLocaleString()} repeats/mo at {pct(R.repeatShare)} of volume ({R.shareSource}), valued at {money2(R.repeatCPC)} repeat-adjusted marginal cost ({money2(N.mCPC)} base times {fmtX(N.repeatMult)}x complexity). Burden ceiling, not recoverable. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
+            {d.qs.map((q, qi) => (
+              <div key={qi} role="radiogroup" aria-label={q} style={{ ...card, padding: 16 }}>
+                <p style={{ ...body, color: HOUSE.mist, margin: "0 0 12px" }}>{q}</p>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(96px, 100%), 1fr))", gap: 6 }}>{[1, 2, 3, 4, 5].map((v) => {
+                  const on = scores[`${d.id}-${qi}`] === v;
+                  return <button key={v} role="radio" aria-checked={on} onClick={() => setScore(d.id, qi, v)} style={{ minHeight: TOUCH, padding: "6px 6px", fontSize: 13, fontWeight: 600, borderRadius: RADIUS.chip, cursor: "pointer", fontFamily: FONT,
+                    border: `1px solid ${on ? PILLARS.diagnostics.fill : soft}`, background: on ? PILLARS.diagnostics.fill : "transparent", color: on ? HOUSE.paper : HOUSE.body }}>{LABELS[v]}</button>;
+                })}</div>
               </div>
-              <div style={{ background: `${GREEN}06`, border: `1px solid ${GREEN}22`, borderRadius: 12, padding: "22px 24px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}><span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase" }}>Year-1 net</span><Tag text="Assumed" color={GREEN} /><InfoDot text={DEFS.invest.text} title={DEFS.invest.title} /></div>
-                <div style={{ ...TYPE.statValueLg, color: R.year1Net >= 0 ? GREEN : RED }}>{money(R.year1Net)}</div>
-                <p style={{ fontSize: 12, color: SLATE, marginTop: 6, lineHeight: 1.5 }}>{money(R.realizableYr)}/yr realizable at steady state. Payback {R.paybackLabel}. Year-2 net {money(R.year2Net)}, two-year cumulative {money(R.cum2Yr)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
-              </div>
+            ))}
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <Button kind="secondary" onClick={() => currentDim === 0 ? setPhase("setup") : setCurrentDim(currentDim - 1)}>{currentDim === 0 ? "Back to your numbers" : "Previous area"}</Button>
+              {currentDim < DIMS.length - 1
+                ? <Button onClick={() => setCurrentDim(currentDim + 1)} icon="next">Next area</Button>
+                : <Button onClick={() => setPhase("results")} disabled={!allComplete} icon="next">{allComplete ? "See the economics" : "Complete all areas"}</Button>}
             </div>
+          </section>
+        ); })()}
+      </>)}
 
-            <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18 }}>
-              <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "16px 20px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>Burden split, not savings</span><InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}><span style={{ color: SLATE }}>Theoretical controllable burden <Tag text="Capped" color={AMBER} /></span><strong style={{ color: NAVY }}>{money(R.controllableBurdenYr)}</strong></div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}><span style={{ color: SLATE }}>Non-controllable <Tag text="Excluded" color={MUTED} /></span><strong style={{ color: MUTED }}>{money(R.nonControllableBurdenYr)}</strong></div>
-                <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.45, marginTop: 8 }}>Burden, not savings. The controllable slice is not cash-realizable unless the selected mechanism converts freed capacity, and only net of the cost to achieve it.</p>
+      {phase === "results" && (<>
+        {blocked && (
+          <section aria-label="Result blocked" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <Finding level="critical" title="Result blocked: invalid inputs">The engine produced a physically impossible value, so no result is shown. An invalid result is not a low-confidence result. Correct the inputs and the economics will return.</Finding>
+            {blockList.map((f, i) => <p key={i} style={{ ...card, ...body, padding: "12px 16px" }}>{f}</p>)}
+            <div><Button onClick={() => setPhase("setup")}>Adjust inputs</Button></div>
+          </section>
+        )}
+        {!blocked && (<>
+          <section aria-label="How sure" style={{ ...card, display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={kicker}>How sure, by axis <InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></span>
+            <p style={body}>Evidence <strong style={{ color: HOUSE.mist }}>{G.evidence}</strong> · Realization <strong style={{ color: HOUSE.mist }}>{G.realization}</strong> · Completeness <strong style={{ color: HOUSE.mist }}>{G.completeness}</strong></p>
+            <div style={small}>{G.gradeWhy}</div>
+          </section>
+
+          <div style={grid(260)}>
+            <section aria-label="Annual repeat burden" style={card}>
+              <span style={kicker}>Annual repeat burden <Tag text={R.shareBasis} /> <InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></span>
+              <div style={{ fontSize: 34, fontWeight: 700, color: HOUSE.mist, margin: "6px 0", fontVariantNumeric: "tabular-nums" }}>{money(R.burdenYr)}</div>
+              <p style={small}>{Math.round(R.repeats).toLocaleString()} repeats/mo at {pct(R.repeatShare)} of volume ({R.shareSource}), valued at {money2(R.repeatCPC)} repeat-adjusted marginal cost ({money2(N.mCPC)} base times {fmtX(N.repeatMult)}x complexity). Burden ceiling, not recoverable. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
+            </section>
+            <section aria-label="Year-1 net" style={card}>
+              <span style={kicker}>Year-1 net <Tag text="Assumed" /> <InfoDot text={DEFS.invest.text} title={DEFS.invest.title} /></span>
+              <div style={{ fontSize: 34, fontWeight: 700, color: HOUSE.mist, margin: "6px 0", fontVariantNumeric: "tabular-nums" }}>{money(R.year1Net)}</div>
+              <p style={small}>{money(R.realizableYr)}/yr realizable at steady state. Payback {R.paybackLabel}. Year-2 net {money(R.year2Net)}, two-year cumulative {money(R.cum2Yr)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
+            </section>
+          </div>
+
+          <div style={grid(260)}>
+            <section aria-label="Burden split" style={card}>
+              <span style={kicker}>Burden split, not savings <InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></span>
+              <div style={{ marginTop: 8 }}>
+                {row(<>Theoretical controllable burden <Tag text="Capped" /></>, money(R.controllableBurdenYr))}
+                {row(<>Non-controllable <Tag text="Excluded" /></>, money(R.nonControllableBurdenYr))}
               </div>
-              <div style={{ background: NAVY, borderRadius: 12, padding: "16px 20px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}><span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>Opportunity times capture</span><InfoDot text={DEFS.ceiling.text} title={DEFS.ceiling.title} /></div>
-                <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.55, margin: 0 }}>Diagnostic {dScore.toFixed(1)}/5: opportunity {pct(R.opp, 0)}, capture {pct(R.cap, 0)}. Realistic FCR ceiling {pct(R.ceilingFCR)}, applied target {pct(R.target)}. {R.overCeiling ? "Your ask exceeded the ceiling and was capped." : "Your target is within the ceiling."}</p>
+              <p style={{ ...small, marginTop: 8 }}>Burden, not savings. The controllable slice is not cash-realizable unless the selected mechanism converts freed capacity, and only net of the cost to achieve it.</p>
+            </section>
+            <section aria-label="Opportunity times capture" style={card}>
+              <span style={kicker}>Opportunity times capture <InfoDot text={DEFS.ceiling.text} title={DEFS.ceiling.title} /></span>
+              <p style={{ ...body, marginTop: 8 }}>Diagnostic {dScore.toFixed(1)}/5: opportunity {pct(R.opp, 0)}, capture {pct(R.cap, 0)}. Realistic FCR ceiling {pct(R.ceilingFCR)}, applied target {pct(R.target)}. {R.overCeiling ? "Your ask exceeded the ceiling and was capped." : "Your target is within the ceiling."}</p>
+            </section>
+          </div>
+
+          {R.flags.length > 0 && (
+            <section aria-label="Integrity flags" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <h2 style={h2}>Integrity flags</h2>
+              {R.flags.map((f, i) => <Finding key={i} level="high" title="Check this">{f}</Finding>)}
+            </section>
+          )}
+
+          <section aria-label="Top leakage sources" style={card}>
+            <h2 style={h2}>Top leakage sources</h2>
+            <p style={{ ...small, marginBottom: 8 }}>Lowest scores first.</p>
+            {sorted.slice(0, 3).map((d, i) => (
+              <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: `1px solid ${hair}` }}>
+                <span style={{ fontSize: 20, fontWeight: 700, color: HOUSE.mist, width: 22 }}>{i + 1}</span>
+                <div style={{ flex: 1 }}><span style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist }}>{d.name}</span><div style={small}>Owner: {d.owner}</div></div>
+                <span style={{ fontSize: 20, fontWeight: 700, color: HOUSE.mist, fontVariantNumeric: "tabular-nums" }}>{dimScore(d.id).toFixed(1)}</span>
               </div>
+            ))}
+          </section>
+
+          <section aria-label="Your next 30-day operating test" style={{ ...card, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+            <h2 style={h2}>Your next 30-day operating test</h2>
+            <p style={{ ...body, margin: "0 0 10px" }}>Your leakage points first at <strong style={{ color: HOUSE.mist }}>{top.name}</strong>, owned by {top.owner}. Do not start with agent training unless the diagnostic points there.</p>
+            <div style={{ ...body, lineHeight: 1.8 }}>
+              <div><strong style={{ color: HOUSE.mist }}>First move:</strong> {top.test.move}.</div>
+              <div><strong style={{ color: HOUSE.mist }}>Leading indicator:</strong> {top.test.lead}.</div>
+              <div><strong style={{ color: HOUSE.mist }}>Lagging indicator:</strong> {top.test.lag}.</div>
+              <div><strong style={{ color: HOUSE.mist }}>Stop condition:</strong> {top.test.stop}.</div>
             </div>
+          </section>
 
-            {R.flags.length > 0 && (
-              <div style={{ background: `${AMBER}08`, border: `1px solid ${AMBER}30`, borderRadius: 10, padding: "14px 18px", marginBottom: 18 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: AMBER, letterSpacing: 1, textTransform: "uppercase" }}>Integrity flags</span>
-                <ul style={{ margin: "8px 0 0", paddingLeft: 18 }}>{R.flags.map((f, i) => <li key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5, marginBottom: 3 }}>{f}</li>)}</ul>
+          <div style={grid(260)}>
+            <section aria-label="Do not let FCR get gamed" style={card}>
+              <h2 style={{ ...h2, fontSize: 17 }}>Do not let FCR get gamed</h2>
+              <p style={{ ...body, marginBottom: 8 }}>FCR rises falsely if agents mark issues resolved, callbacks get recoded, or bots contain without resolving. Track these alongside it:</p>
+              <p style={small}>{GAMING.join(" · ")}</p>
+            </section>
+            <section aria-label="Containment is not resolution" style={card}>
+              <h2 style={{ ...h2, fontSize: 17 }}>Containment is not resolution</h2>
+              <p style={body}>A bot can contain a conversation without resolving it, and a customer who gives up looks like a success. Use confirmed resolution, repeat contact, escalation, and CSAT as balancing checks before crediting AI deflection. Benchmarks run 50% to 90% by industry and complexity, so your own trend and definition consistency matter more than the market average.</p>
+            </section>
+          </div>
+
+          <section aria-label="Assumption sensitivity" style={card}>
+            <h2 style={h2}>Assumption sensitivity <InfoDot text="Repeat-contact cost premiums run 1.5x to 2x in published research, and repeat behavior can be one-callback or geometric. This shows how those two assumptions swing year-one net, holding your FCR, target, mechanism, and costs constant, so you can see which assumptions matter most before acting." title="Assumption sensitivity" /></h2>
+            <p style={{ ...small, marginBottom: 8 }}>Same FCR, target, mechanism, and costs. Only the repeat-behavior model and cost premium change.</p>
+            {[
+              { k: "Conservative", d: "one-callback, 1.0x cost", r: sensLo },
+              { k: "Current model", d: `${repeatModel === "geometric" ? "geometric" : repeatModel === "measured" ? "measured" : "one-callback"}, ${fmtX(N.repeatMult)}x cost`, r: R, cur: true },
+              { k: "Aggressive", d: `geometric, ${fmtX(aggMult)}x cost`, r: sensHi },
+            ].map((rw, i) => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "minmax(0,1.1fr) minmax(0,1.4fr) minmax(0,1fr)", gap: 10, alignItems: "center", padding: "10px 0", borderTop: `1px solid ${hair}` }}>
+                <span style={{ fontSize: 14, fontWeight: rw.cur ? 700 : 600, color: HOUSE.mist }}>{rw.k}{rw.cur ? " (yours)" : ""}</span>
+                <span style={small}>{rw.d}, burden {money(rw.r.burdenYr)}</span>
+                <span style={{ fontSize: 17, fontWeight: 600, color: HOUSE.mist, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{money(rw.r.year1Net)}</span>
               </div>
-            )}
+            ))}
+            <p style={{ ...small, marginTop: 8 }}>Rightmost column is year-one net. If the sign flips across these rows, your repeat-cost assumption is the deciding factor and is worth measuring before you commit.</p>
+          </section>
 
-            <div style={{ background: `${RED}06`, border: `1px solid ${RED}20`, borderRadius: 12, padding: "20px 24px", marginBottom: 18 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: RED, marginBottom: 10 }}>Top leakage sources (lowest scores)</h3>
-              {sorted.slice(0, 3).map((d, i) => (
-                <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: i < 2 ? `1px solid ${RED}15` : "none" }}>
-                  <span style={{ ...TYPE.h2, ...NUM, color: RED, width: 22 }}>{i + 1}</span>
-                  <div style={{ flex: 1 }}><span style={{ fontSize: 13, fontWeight: 600 }}>{d.icon} {d.name}</span><div style={{ fontSize: 12, color: MUTED }}>Owner: {d.owner}</div></div>
-                  <span style={{ ...TYPE.h2, ...NUM, color: RED }}>{dimScore(d.id).toFixed(1)}</span>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 18 }}>
-              <h3 style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Your next 30-day operating test</h3>
-              <p style={{ fontSize: 13.5, color: "#fff", lineHeight: 1.6, margin: "0 0 10px" }}>Your leakage points first at <strong>{top.name}</strong>, owned by {top.owner}. Do not start with agent training unless the diagnostic points there.</p>
-              <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.7 }}>
-                <div><strong style={{ color: "rgba(255,255,255,0.9)" }}>First move:</strong> {top.test.move}.</div>
-                <div><strong style={{ color: "rgba(255,255,255,0.9)" }}>Leading indicator:</strong> {top.test.lead}.</div>
-                <div><strong style={{ color: "rgba(255,255,255,0.9)" }}>Lagging indicator:</strong> {top.test.lag}.</div>
-                <div><strong style={{ color: "rgba(255,255,255,0.9)" }}>Stop condition:</strong> {top.test.stop}.</div>
-              </div>
-            </div>
-
-            <div className="g2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 18 }}>
-              <div style={{ border: `1px solid ${AMBER}30`, borderRadius: 12, padding: "16px 20px", background: `${AMBER}06` }}>
-                <h4 style={{ fontSize: 12, fontWeight: 700, color: AMBER, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Do not let FCR get gamed</h4>
-                <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, marginBottom: 8 }}>FCR rises falsely if agents mark issues resolved, callbacks get recoded, or bots contain without resolving. Track these alongside it:</p>
-                <div style={{ fontSize: 12, color: SLATE, lineHeight: 1.7 }}>{GAMING.join(" · ")}</div>
-              </div>
-              <div style={{ border: `1px solid ${ELECTRIC}30`, borderRadius: 12, padding: "16px 20px", background: `${ELECTRIC}06` }}>
-                <h4 style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>Containment is not resolution</h4>
-                <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55 }}>A bot can contain a conversation without resolving it, and a customer who gives up looks like a success. Use confirmed resolution, repeat contact, escalation, and CSAT as balancing checks before crediting AI deflection. Benchmarks run 50% to 90% by industry and complexity, so your own trend and definition consistency matter more than the market average.</p>
-              </div>
-            </div>
-
-            <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px 22px", marginBottom: 18 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}><h3 style={{ fontSize: 13, fontWeight: 700, color: NAVY, margin: 0 }}>Assumption sensitivity</h3><InfoDot text="Repeat-contact cost premiums run 1.5x to 2x in published research, and repeat behavior can be one-callback or geometric. This shows how those two assumptions swing year-one net, holding your FCR, target, mechanism, and costs constant, so you can see which assumptions matter most before acting." title="Assumption sensitivity" /></div>
-              <p style={{ fontSize: 12, color: MUTED, marginBottom: 12, lineHeight: 1.5 }}>Same FCR, target, mechanism, and costs. Only the repeat-behavior model and cost premium change.</p>
-              {[
-                { k: "Conservative", d: "one-callback, 1.0x cost", r: sensLo },
-                { k: "Current model", d: `${repeatModel === "geometric" ? "geometric" : repeatModel === "measured" ? "measured" : "one-callback"}, ${fmtX(N.repeatMult)}x cost`, r: R, cur: true },
-                { k: "Aggressive", d: `geometric, ${fmtX(aggMult)}x cost`, r: sensHi },
-              ].map((row, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < 2 ? `1px solid ${BORDER}` : "none", background: row.cur ? `${ELECTRIC}06` : "transparent" }}>
-                  <span style={{ fontSize: 12.5, fontWeight: row.cur ? 700 : 600, color: row.cur ? ELECTRIC : NAVY, width: 120 }}>{row.k}</span>
-                  <span style={{ fontSize: 12, color: MUTED, flex: 1 }}>{row.d}</span>
-                  <span style={{ fontSize: 12, color: SLATE }}>burden {money(row.r.burdenYr)}</span>
-                  <span style={{ ...TYPE.h3, ...NUM, fontWeight: W.semibold, color: row.r.year1Net >= 0 ? GREEN : RED, width: 110, textAlign: "right" }}>{money(row.r.year1Net)}</span>
-                </div>
-              ))}
-              <p style={{ fontSize: 12, color: MUTED, marginTop: 8 }}>Rightmost column is year-one net. If the sign flips across these rows, your repeat-cost assumption is the deciding factor and is worth measuring before you commit.</p>
-            </div>
-
+          {/* The report is paper (Brand Guide section 13). */}
+          <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
             <ReportActions
               toolId={TOOL_ID}
               toolName="FCR Leakage Diagnostic"
@@ -972,16 +1015,15 @@ export default function FCRLeakageDiagnostic() {
                    different next steps. */
               ]}
             />
-
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
-              <button onClick={() => { setCurrentDim(DIMS.length - 1); setPhase("diagnostic"); }} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>← Back to diagnostic</button>
-              <button onClick={() => setPhase("setup")} style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8, cursor: "pointer" }}>Adjust inputs</button>
-            </div>
-            </>)}
           </div>
-        </section>
-      )}
-    </div>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Button kind="secondary" onClick={() => { setCurrentDim(DIMS.length - 1); setPhase("diagnostic"); }}>Back to diagnostic</Button>
+            <Button kind="secondary" onClick={() => setPhase("setup")}>Adjust inputs</Button>
+          </div>
+        </>)}
+      </>)}
+    </ToolFrame>
   );
 }
 
