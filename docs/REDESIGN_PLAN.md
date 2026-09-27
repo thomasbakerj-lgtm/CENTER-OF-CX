@@ -143,6 +143,9 @@ made just before the phases that build them, so nothing waits on pages that ship
 
 - Method, rubric and changelog pages; About, Contact, Advisory, Research landing, legal pages.
 
+- Part 1 done (S24, 27 Sep 2026): method pages, About, Contact, Advisory, Research, Privacy, Terms; the house base in
+  index.html. Next: the remaining old-design pages.
+
 ## Phase 10. Contributors, Research, Market Watch v1 (two to three sessions, zero spend)
 
 - Contributor profile and article templates; submissions through the existing review request path; published as static pages.

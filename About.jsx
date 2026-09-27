@@ -1,14 +1,16 @@
 import { useState, useEffect, useRef } from "react";
+import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+import { FONT } from "./src/lib/type.js";
 
-const NAVY = "#0B1D3A";
-const DEEP = "#061325";
-const ELECTRIC = "#0088DD";
-const LIGHT = "#00AAFF";
-const ICE = "#E8F4FD";
-const WARM = "#F8FAFB";
-const SLATE = "#3A4F6A";
-const MUTED = "#6B7F99";
-const BORDER = "#D8E3ED";
+const NAVY = HOUSE.mist;
+const DEEP = HOUSE.ink;
+const ELECTRIC = PILLARS.research.onDark;
+const LIGHT = PILLARS.research.onDark;
+const ICE = HOUSE.navy;
+const WARM = HOUSE.navy;
+const SLATE = HOUSE.body;
+const MUTED = HOUSE.muted;
+const BORDER = alpha(HOUSE.mist, LINE.hair);
 
 function useInView(t = 0.1) {
   const ref = useRef(null);
@@ -29,8 +31,8 @@ function FadeIn({ children, delay = 0, style = {} }) {
 }
 
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-const Label = ({ children, light }) => <span style={{ color: light ? LIGHT : ELECTRIC, fontSize: 11.5, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 12 }}>{children}</span>;
-const Title = ({ children, light }) => <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, color: light ? "#fff" : NAVY, lineHeight: 1.15, margin: "0 0 16px", letterSpacing: "-0.015em" }}>{children}</h2>;
+const Label = ({ children, light }) => <span style={{ color: light ? LIGHT : ELECTRIC, fontSize: 11.5, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 12 }}>{children}</span>;
+const Title = ({ children, light }) => <h2 style={{ fontFamily: FONT, fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.15, margin: "0 0 16px", letterSpacing: "-0.015em" }}>{children}</h2>;
 
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -45,10 +47,10 @@ function Nav() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
+        
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { font-family: 'DM Sans', sans-serif; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
+        ; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .split-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
       `}</style>
@@ -59,24 +61,24 @@ function Nav() {
 
 function Hero() {
   return (
-    <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "140px 28px 80px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-      <div style={{ position: "absolute", bottom: "-20%", right: "-10%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.05) 0%, transparent 70%)" }} />
+    <section style={{ background: HOUSE.navy, padding: "140px 28px 80px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
+      <div style={{ position: "absolute", bottom: "-20%", right: "-10%", width: 500, height: 500, borderRadius: "50%", background: "none" }} />
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-            <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a>
-            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
+            <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a>
+            <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
             <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>About</span>
           </div>
         </FadeIn>
         <FadeIn delay={0.05}>
           <div style={{ maxWidth: 680 }}>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
+            <h1 style={{ fontFamily: FONT, fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
               We understand both the{" "}
               <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>boardroom and the queue.</span>
             </h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560 }}>
+            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 560 }}>
               The Center of CX is a strategy and intelligence platform for contact center and CX leaders who need more than vendor marketing and recycled best practices.
             </p>
           </div>
@@ -109,7 +111,7 @@ function POV() {
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "32px 28px" }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "32px 28px" }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 20 }}>What we believe</div>
               {[
                 "Technology matters, but tools aren't the strategy.",
@@ -143,7 +145,7 @@ function WhatWeDo() {
     { title: "Consultant Matching", desc: "We connect CX leaders with vetted consultants who specialize in platform selection, AI strategy, and contact center transformation. We are the intelligence layer: they are the implementation experts." },
   ];
   return (
-    <section style={{ background: "#fff", padding: "96px 28px" }}>
+    <section style={{ background: HOUSE.ink, padding: "96px 28px" }}>
       <div style={WRAP}>
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
@@ -157,7 +159,7 @@ function WhatWeDo() {
               <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "28px 24px", transition: "border-color 0.2s", height: "100%" }}
                 onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
                 onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>{p.title}</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>{p.title}</h3>
                 <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.6, margin: 0 }}>{p.desc}</p>
               </div>
             </FadeIn>
@@ -188,9 +190,9 @@ function WhoItsFor() {
         <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
           {audiences.map((a, i) => (
             <FadeIn key={i} delay={i * 0.06}>
-              <div style={{ display: "flex", alignItems: "start", gap: 24, padding: "24px 28px", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: i === 0 ? "10px 10px 0 0" : i === audiences.length - 1 ? "0 0 10px 10px" : 0, borderTop: i > 0 ? "none" : undefined, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "start", gap: 24, padding: "24px 28px", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: i === 0 ? "10px 10px 0 0" : i === audiences.length - 1 ? "0 0 10px 10px" : 0, borderTop: i > 0 ? "none" : undefined, flexWrap: "wrap" }}>
                 <div style={{ minWidth: 200 }}>
-                  <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 19, fontWeight: 400, color: NAVY, margin: 0 }}>{a.role}</h3>
+                  <h3 style={{ fontFamily: FONT, fontSize: 19, fontWeight: 400, color: NAVY, margin: 0 }}>{a.role}</h3>
                 </div>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, flex: 1, minWidth: 280 }}>{a.needs}</p>
               </div>
@@ -204,15 +206,15 @@ function WhoItsFor() {
 
 function WhatWeWontDo() {
   return (
-    <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "96px 28px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", top: "30%", left: "-5%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.04) 0%, transparent 70%)" }} />
+    <section style={{ background: HOUSE.navy, padding: "96px 28px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "30%", left: "-5%", width: 400, height: 400, borderRadius: "50%", background: "none" }} />
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64 }} className="split-grid">
           <FadeIn>
             <div>
               <Label light>What we won't do</Label>
               <Title light>This site is not for everyone. That's the point.</Title>
-              <p style={{ fontSize: 15, color: "rgba(255,255,255,0.45)", lineHeight: 1.7, marginTop: 8 }}>
+              <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginTop: 8 }}>
                 If you're looking for generic "CX is important" content, vendor press releases repackaged as insight, or a directory where every vendor looks equal: you'll find that elsewhere. We have opinions. We back them with data. And we'd rather be useful to a focused audience than comfortable for a broad one.
               </p>
             </div>
@@ -226,9 +228,9 @@ function WhatWeWontDo() {
                 { no: "Implementation services", why: "We are the intelligence platform, not the implementor. We connect you with the right consultants. Keeping intelligence and delivery separate protects the integrity of both." },
                 { no: "AI hype", why: "We show how AI restructures routing, QA, role design, knowledge, and governance. The operational implications are what matter." },
               ].map((item, i) => (
-                <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "18px 20px" }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 4 }}>We don't do: {item.no}</div>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>{item.why}</div>
+                <div key={i} style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 8, padding: "18px 20px" }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, marginBottom: 4 }}>We don't do: {item.no}</div>
+                  <div style={{ fontSize: 13, color: HOUSE.body, lineHeight: 1.5 }}>{item.why}</div>
                 </div>
               ))}
             </div>
@@ -241,7 +243,7 @@ function WhatWeWontDo() {
 
 function Principles() {
   return (
-    <section style={{ background: "#fff", padding: "96px 28px", borderTop: `1px solid ${BORDER}` }}>
+    <section style={{ background: HOUSE.ink, padding: "96px 28px", borderTop: `1px solid ${BORDER}` }}>
       <div style={WRAP}>
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto 56px" }}>
@@ -258,8 +260,8 @@ function Principles() {
           ].map((p, i) => (
             <FadeIn key={i} delay={i * 0.08}>
               <div>
-                <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: `${ELECTRIC}30` }}>{p.n}</span>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: "4px 0 8px" }}>{p.t}</h3>
+                <span style={{ fontFamily: FONT, fontSize: 32, color: `${ELECTRIC}30` }}>{p.n}</span>
+                <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 400, color: NAVY, margin: "4px 0 8px" }}>{p.t}</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, margin: 0 }}>{p.d}</p>
               </div>
             </FadeIn>
@@ -281,8 +283,8 @@ function CTA() {
               Whether you're evaluating platforms, building an AI business case, or trying to make sense of a fragmented vendor landscape: we offer the clarity that vendor sales calls can't.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Find a Consultant →</a>
-              <a href="/platforms-and-tech" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Explore the Platform</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Find a Consultant →</a>
+              <a href="/platforms-and-tech" style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Explore the Platform</a>
             </div>
           </div>
         </FadeIn>
@@ -299,7 +301,7 @@ function Footer() {
 
 function EcosystemCallout() {
   return (
-    <section style={{ background: "#fff", padding: "48px 28px", borderTop: `1px solid ${BORDER}` }}>
+    <section style={{ background: HOUSE.ink, padding: "48px 28px", borderTop: `1px solid ${BORDER}` }}>
       <div style={WRAP}>
         <FadeIn>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>

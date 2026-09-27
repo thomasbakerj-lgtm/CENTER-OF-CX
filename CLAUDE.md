@@ -1243,6 +1243,23 @@ dashboard, the 12-phase growth program.
    by the A/B and the harnesses. `industrypage.test.mjs` (156); copy, claims and freeze pins moved to the shared
    component. Browser: hub and ten pages at 1440 and 390, no overflow or error. Suite 25,568; live check 255 of 255.
    Next: Phase 9, methods and the rest.
+   PR #61 merged by TB's instruction (b5e70fa). **Phase 8 complete.**
+70. S24, redesign session 23, Phase 9 part 1 (TB: "merge and go"): the method pages, About, Contact, Advisory, Research,
+   Privacy and Terms on the dark design. `RubricPage.jsx` (all eight method page kinds and the internal method log): the
+   old palette names map onto tokens, so every kind moved at once, with no colour literal left. The six content pages were
+   converted by one mechanical rule set (palette constants to tokens, gradients to the navy surface, white to ink and mist,
+   translucent white by role, Google font import and per-page body rules removed, solid buttons to action and paper),
+   then fixed by hand where the rules could not decide (the Contact submit button, focus ring and error border; Research's
+   tag colours, now one accent with the tag word). `index.html` gains the house base: body font, ink page and mist text,
+   so a page on the new design never falls back to a serif; pages still on the old design keep their own body rule, which
+   wins. Checked on all 429 sitemap pages against the old defaults: no page gets worse. The contrast problems that remain
+   are on the old-design pages (Phase 9 part 2) and in the tools' coloured grade chips (known debt). `tokens.test.mjs`
+   migrated list adds the seven files. Suite 25,569; live check 255 of 255. Found and flagged for TB, not changed (legal
+   text): the Privacy Policy says vendor scores are "independently assigned" (withdrawn since S22), names only Vercel
+   Analytics (PostHog receives tool events) and describes email collection for guides and tools (gates removed S23);
+   Contact promises a "vetted consultant". Next: Phase 9 part 2, the old-design pages (vendor hub, seven category pages,
+   Phase 1 profiles, category by industry outside CCaaS, Human Premium, CX Ecosystem, Platforms, Subscribe, the article,
+   the gated report).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

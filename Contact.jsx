@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from "react";
 import { readIntro, INTRO_TOPIC } from "./src/lib/intro.js";
 import { trackVendor } from "./src/lib/track.js";
+import { HOUSE, PILLARS, LINE, FINDINGS, alpha } from "./src/lib/tokens.js";
+import { FONT } from "./src/lib/type.js";
 
-const NAVY = "#0B1D3A";
-const DEEP = "#061325";
-const ELECTRIC = "#0088DD";
-const LIGHT = "#00AAFF";
-const ICE = "#E8F4FD";
-const WARM = "#F8FAFB";
-const SLATE = "#3A4F6A";
-const MUTED = "#6B7F99";
-const BORDER = "#D8E3ED";
+const NAVY = HOUSE.mist;
+const DEEP = HOUSE.ink;
+const ELECTRIC = PILLARS.research.onDark;
+const LIGHT = PILLARS.research.onDark;
+const ICE = HOUSE.navy;
+const WARM = HOUSE.navy;
+const SLATE = HOUSE.body;
+const MUTED = HOUSE.muted;
+const BORDER = alpha(HOUSE.mist, LINE.hair);
 
 function useInView(t = 0.1) {
   const ref = useRef(null);
@@ -33,7 +35,7 @@ function FadeIn({ children, delay = 0, style = {} }) {
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 
 function LogoMark({ size = 34, light = true }) {
-  const arcColor = light ? "#fff" : NAVY;
+  const arcColor = HOUSE.mist;
   const xColor = light ? LIGHT : ELECTRIC;
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
@@ -61,13 +63,13 @@ function Nav() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
+        
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { font-family: 'DM Sans', sans-serif; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
+        ; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: ${ELECTRIC} !important; box-shadow: 0 0 0 3px rgba(0,136,221,0.1); }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: ${ELECTRIC} !important; box-shadow: 0 0 0 3px ${alpha(HOUSE.electric, LINE.firm)}; }
       `}</style>
       
     </>
@@ -104,14 +106,14 @@ function ContactPage() {
   };
 
   const inputStyle = {
-    width: "100%", padding: "13px 16px", fontSize: 14, fontFamily: "'DM Sans', sans-serif",
-    border: `1px solid ${BORDER}`, borderRadius: 8, background: "#fff", color: NAVY,
+    width: "100%", padding: "13px 16px", fontSize: 14, fontFamily: FONT,
+    border: `1px solid ${BORDER}`, borderRadius: 8, background: HOUSE.ink, color: NAVY,
     transition: "border-color 0.2s, box-shadow 0.2s",
   };
 
   const labelStyle = {
     fontSize: 13, fontWeight: 600, color: NAVY, display: "block", marginBottom: 6,
-    fontFamily: "'DM Sans', sans-serif",
+    fontFamily: FONT,
   };
 
   return (
@@ -122,15 +124,15 @@ function ContactPage() {
           <FadeIn>
             <div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-                <a href="/" style={{ color: MUTED, fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Home</a>
+                <a href="/" style={{ color: MUTED, fontSize: 13, fontFamily: FONT }}>Home</a>
                 <span style={{ color: BORDER, fontSize: 13 }}>/</span>
-                <span style={{ color: ELECTRIC, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>Contact</span>
+                <span style={{ color: ELECTRIC, fontSize: 13, fontWeight: 600, fontFamily: FONT }}>Contact</span>
               </div>
 
-              <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 400, color: NAVY, lineHeight: 1.12, margin: "0 0 20px", letterSpacing: "-0.015em" }}>
+              <h1 style={{ fontFamily: FONT, fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 400, color: NAVY, lineHeight: 1.12, margin: "0 0 20px", letterSpacing: "-0.015em" }}>
                 Tell us your challenge. We will connect you with a vetted consultant.
               </h1>
-              <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: "0 0 40px", fontFamily: "'DM Sans', sans-serif" }}>
+              <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: "0 0 40px", fontFamily: FONT }}>
                 60 minutes with someone who understands both the strategy and the operations. Tell us about your situation, and we'll come prepared with relevant context from our vendor intelligence and frameworks.
               </p>
 
@@ -141,14 +143,14 @@ function ContactPage() {
                   { q: "What should I prepare?", a: "A clear description of your current challenge is enough. If you have vendor shortlists, architecture diagrams, or RFPs in progress, bring those too." },
                 ].map((faq, i) => (
                   <div key={i}>
-                    <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: "0 0 4px", fontFamily: "'DM Sans', sans-serif" }}>{faq.q}</h3>
-                    <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{faq.a}</p>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: "0 0 4px", fontFamily: FONT }}>{faq.q}</h3>
+                    <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55, margin: 0, fontFamily: FONT }}>{faq.a}</p>
                   </div>
                 ))}
               </div>
 
               <div style={{ marginTop: 40, padding: "20px 0", borderTop: `1px solid ${BORDER}` }}>
-                <p style={{ fontSize: 13, color: MUTED, fontFamily: "'DM Sans', sans-serif" }}>
+                <p style={{ fontSize: 13, color: MUTED, fontFamily: FONT }}>
                   Prefer email? Reach us directly at{" "}
                   <a href="mailto:hello@contactcentercx.com" style={{ color: ELECTRIC, fontWeight: 600 }}>hello@contactcentercx.com</a>
                 </p>
@@ -158,22 +160,22 @@ function ContactPage() {
 
           {/* Right column - form */}
           <FadeIn delay={0.1}>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "36px 32px", boxShadow: "0 4px 24px rgba(0,0,0,0.03)" }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "36px 32px", boxShadow: "none" }}>
               {submitted ? (
                 <div style={{ textAlign: "center", padding: "40px 0" }}>
                   <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${ELECTRIC}12`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
                     <span style={{ color: ELECTRIC, fontSize: 22 }}>✓</span>
                   </div>
-                  <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>We've received your request.</h2>
-                  <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>
+                  <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>We've received your request.</h2>
+                  <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.6, fontFamily: FONT }}>
                     We'll review your submission and respond within one business day. Talk soon.
                   </p>
                 </div>
               ) : (
                 <div>
-                  <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>{intro ? `Request an introduction to ${intro.name}.` : "Tell us about your situation."}</h2>
-                  {intro && <p style={{ fontSize: 14, color: SLATE, margin: "0 0 8px", lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>Tell us what you want to see and who should join. We arrange the introduction and a demo run on your scenarios.</p>}
-                  <p style={{ fontSize: 13, color: MUTED, margin: "0 0 28px", fontFamily: "'DM Sans', sans-serif" }}>All fields are required unless marked optional.</p>
+                  <h2 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>{intro ? `Request an introduction to ${intro.name}.` : "Tell us about your situation."}</h2>
+                  {intro && <p style={{ fontSize: 14, color: SLATE, margin: "0 0 8px", lineHeight: 1.6, fontFamily: FONT }}>Tell us what you want to see and who should join. We arrange the introduction and a demo run on your scenarios.</p>}
+                  <p style={{ fontSize: 13, color: MUTED, margin: "0 0 28px", fontFamily: FONT }}>All fields are required unless marked optional.</p>
 
                   <div onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     {intro && <input type="hidden" name="intro_vendor" value={intro.name} />}
@@ -260,23 +262,23 @@ function ContactPage() {
                         } else {
                           inputs.forEach(input => {
                             if (!input.value || input.value === "") {
-                              input.style.borderColor = "#e74c3c";
+                              input.style.borderColor = FINDINGS.high.dark;
                             }
                           });
                         }
                       }}
                       disabled={sending}
                       style={{
-                        background: sending ? SLATE : ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600,
+                        background: HOUSE.action, color: HOUSE.paper, opacity: sending ? 0.6 : 1, fontSize: 15, fontWeight: 600,
                         padding: "15px 32px", borderRadius: 8, border: "none", cursor: sending ? "wait" : "pointer",
-                        fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)`,
+                        fontFamily: FONT, boxShadow: "none",
                         transition: "background 0.2s", width: "100%",
                       }}
                     >
                       {sending ? "Sending..." : "Submit Request"}
                     </button>
 
-                    <p style={{ fontSize: 12, color: MUTED, textAlign: "center", margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
+                    <p style={{ fontSize: 12, color: MUTED, textAlign: "center", margin: 0, fontFamily: FONT }}>
                       We'll respond within one business day. No spam, no vendor hand-offs without your permission.
                     </p>
                   </div>

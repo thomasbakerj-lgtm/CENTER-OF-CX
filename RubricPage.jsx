@@ -4,6 +4,7 @@ import { FIXTURE_KIND, fixturesFor } from "./src/lib/fixtures.js";
 import { CHANGELOG } from "./src/lib/changelog.js";
 import { longDate } from "./src/lib/methodVersions.js";
 import { FONT, FONT_IMPORT_CSS, TYPE } from "./src/lib/type";
+import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
 import { RUBRICS } from "./src/lib/rubrics";
 import { JOURNEY } from "./src/lib/journey";
 import { qaAgreement, qaThresholdVars } from "./src/lib/qa";
@@ -13,8 +14,10 @@ import { renewalVars } from "./src/lib/renewal";
    It renders from the same rubric object the scoring engine reads, so what this page
    says is exactly how the assessment scores. Nothing here is written by hand per tool. */
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF";
-const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
+/* Redesign Phase 9: the method pages on the dark reading design. The old palette names map onto tokens, so every page
+   kind moves together and no page carries a colour literal. */
+const NAVY = HOUSE.mist; const ELECTRIC = PILLARS.diagnostics.onDark; const LIGHT = PILLARS.diagnostics.onDark;
+const WARM = HOUSE.navy; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair);
 const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 24px" };
 
 const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
@@ -40,16 +43,16 @@ export default function RubricPage({ id }) {
   const cell = { ...TYPE.cell, color: SLATE, padding: "10px 12px", borderBottom: `1px solid ${BORDER}`, verticalAlign: "top", textAlign: "left" };
 
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Take the assessment", r.route]} />
 
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+      <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published rubric</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how it scores</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.6)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", marginTop: 14 }}>Rubric version {r.version}, published {r.published}. {r.dims.length} {paired ? "areas" : "dimensions"}, {statements} statements{paired ? ` in ${statements / 2} pairs` : ""}.</p>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: how it scores</h1>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: HOUSE.body, marginTop: 14 }}>Rubric version {r.version}, published {r.published}. {r.dims.length} {paired ? "areas" : "dimensions"}, {statements} statements{paired ? ` in ${statements / 2} pairs` : ""}.</p>
         </div>
       </header>
 
@@ -88,14 +91,14 @@ export default function RubricPage({ id }) {
               <span style={{ ...TYPE.caption, color: MUTED }}>Weight {d.weight} of {totalWeight}. {paired ? "If largest gap" : "If lowest"}, next diagnostic: {JOURNEY[d.next] ? <a href={JOURNEY[d.next].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[d.next].name}</a> : d.next}</span>
             </div>
             {paired ? (
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
               <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY }}>{sideLabel(0)}</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>{sideLabel(1)}</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>If {r.gapAt}+ points apart</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>If both at {r.failAt} or below</th></tr></thead>
               <tbody>{d.pairs.map((p, i) => (
                 <tr key={i}><td style={cell}>{p[r.sides[0].id]}</td><td style={cell}>{p[r.sides[1].id]}</td><td style={cell}>{p.align}</td><td style={cell}>{p.build}</td></tr>
               ))}</tbody>
             </table>
             ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
               <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY, width: "45%" }}>Statement</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Action if answered {r.failAt} or below</th></tr></thead>
               <tbody>{d.criteria.map((c, i) => (
                 <tr key={i}><td style={cell}>{c.text}</td><td style={cell}>{c.action}</td></tr>
@@ -109,7 +112,7 @@ export default function RubricPage({ id }) {
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((l, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{l}</li>)}</ul>
 
         <div style={{ marginTop: 36 }}>
-          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Take the {r.title}</a>
+          <a href={r.route} style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Take the {r.title}</a>
         </div>
       </main>
     </div>
@@ -129,15 +132,15 @@ function OwnershipPage({ r }) {
   const bottleneckAt = Math.ceil((2 * total) / r.roles.length);
   const need = (it) => (it.involve || []).map((e) => (typeof e === "string" ? role(e) : role(e.role) + (e.severity === "high" ? " (high if missing)" : ""))).join(", ");
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+      <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published model</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how it reads your map</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.domains.length} domains, {total} decisions, {r.roles.length} roles.</p>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: how it reads your map</h1>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: HOUSE.body, marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.domains.length} domains, {total} decisions, {r.roles.length} roles.</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -155,7 +158,7 @@ function OwnershipPage({ r }) {
         {r.domains.map((d) => (
           <section key={d.id} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
             <h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 10 }}>{d.name}</h3>
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
               <thead><tr><th style={{ ...th, width: "45%" }}>Decision</th><th style={th}>Common owner</th><th style={th}>Must involve</th></tr></thead>
               <tbody>{d.items.map((it, i) => (
                 <tr key={i}><td style={cell}>{it.text}</td><td style={cell}>{role(it.common)}</td><td style={cell}>{need(it) || "None required"}</td></tr>
@@ -166,7 +169,7 @@ function OwnershipPage({ r }) {
         <h2 style={H2}>What this assessment cannot tell you</h2>
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((l, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{l}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
-          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Map your {r.title}</a>
+          <a href={r.route} style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Map your {r.title}</a>
         </div>
       </main>
     </div>
@@ -203,15 +206,15 @@ function QAPage({ r }) {
   const kappa = (g.pa - peK) / (1 - peK);
   const next = JOURNEY[r.next.tool];
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+      <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how forms are checked and evaluators calibrated</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.method.name} {r.method.version}.</p>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: how forms are checked and evaluators calibrated</h1>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: HOUSE.body, marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.method.name} {r.method.version}.</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -250,7 +253,7 @@ function QAPage({ r }) {
         <h2 style={H2}>What this tool cannot tell you</h2>
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((l, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{l}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
-          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Build and calibrate a QA form</a>
+          <a href={r.route} style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Build and calibrate a QA form</a>
         </div>
       </main>
     </div>
@@ -271,15 +274,15 @@ function RenewalPage({ r }) {
   const total = r.layers.reduce((s, l) => s + l.needs.length, 0);
   const link = (id) => (JOURNEY[id] ? <a href={JOURNEY[id].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[id].name}</a> : id);
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+      <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how the renewal gate reads your platform</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} needs. {r.truthType}</p>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: how the renewal gate reads your platform</h1>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: HOUSE.body, marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} needs. {r.truthType}</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -319,7 +322,7 @@ function RenewalPage({ r }) {
         <h2 style={H2}>What this tool cannot tell you</h2>
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
-          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Run the renewal check</a>
+          <a href={r.route} style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Run the renewal check</a>
         </div>
       </main>
     </div>
@@ -337,15 +340,15 @@ function TermsPage({ r }) {
   const lvl = (id) => (r.levels.find((l) => l.id === id) || {}).label || id;
   const link = (id) => (JOURNEY[id] ? <a href={JOURNEY[id].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[id].name}</a> : id);
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+      <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how each clause is rated</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.terms.length} clauses. {r.truthType}</p>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: how each clause is rated</h1>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: HOUSE.body, marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.terms.length} clauses. {r.truthType}</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -368,7 +371,7 @@ function TermsPage({ r }) {
             <p style={{ ...P, fontSize: 14 }}>{t.why}</p>
             {/* One block per option instead of a four-column table, so the page reads on a phone. */}
             {t.options.map((o) => (
-              <div key={o.val} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", marginTop: 8 }}>
+              <div key={o.val} style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 12px", marginTop: 8 }}>
                 <div style={{ ...TYPE.label, color: NAVY }}>{o.val} <span style={{ color: SLATE, fontWeight: 600 }}>· {lvl(o.level)}</span></div>
                 <p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{o.note}{o.negotiate ? " Ask for: " + o.negotiate : ""}</p>
               </div>
@@ -378,7 +381,7 @@ function TermsPage({ r }) {
         <h2 style={H2}>What this tool cannot tell you</h2>
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
-          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Scan a contract</a>
+          <a href={r.route} style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Scan a contract</a>
         </div>
       </main>
     </div>
@@ -400,15 +403,15 @@ function RfpPage({ r }) {
   const link = (id) => (JOURNEY[id] ? <a href={JOURNEY[id].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[id].name}</a> : id);
   const total = r.layers.reduce((s, l) => s + l.reqs.length, 0);
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+      <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how requirements are built and responses scored</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} requirements, plus requirements for {Object.keys(r.verticalReqs).length} verticals. {r.truthType}</p>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: how requirements are built and responses scored</h1>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: HOUSE.body, marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} requirements, plus requirements for {Object.keys(r.verticalReqs).length} verticals. {r.truthType}</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -429,7 +432,7 @@ function RfpPage({ r }) {
         {r.layers.map((l) => (
           <section key={l.n} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
             <h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 10 }}>L{l.n} {l.name}</h3>
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
               <thead><tr><th style={{ ...th, width: "58%" }}>Requirement</th><th style={th}>Default priority</th><th style={th}>Included for</th></tr></thead>
               <tbody>{l.reqs.map((q, i) => <tr key={i}><td style={cell}>{q.text}</td><td style={cell}>{pri(q.priority)}</td><td style={cell}>{q.tags.map(tag).join(", ")}</td></tr>)}</tbody>
             </table>
@@ -443,7 +446,7 @@ function RfpPage({ r }) {
         <h2 style={H2}>What this tool cannot tell you</h2>
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
-          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Build your RFP</a>
+          <a href={r.route} style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Build your RFP</a>
         </div>
       </main>
     </div>
@@ -460,15 +463,15 @@ function CalcPage({ r }) {
   const box = { border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, background: WARM };
   const kindLabel = { market: "Published source", heuristic: "Heuristic, no published source", threshold: "Threshold" };
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
       <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+      <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: formulas, assumptions and a worked example</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Method version {r.version}, published {r.published}.</p>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>{r.title}: formulas, assumptions and a worked example</h1>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>{r.what}</p>
+          <p style={{ ...TYPE.caption, color: HOUSE.body, marginTop: 14 }}>Method version {r.version}, published {r.published}.</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -504,7 +507,7 @@ function CalcPage({ r }) {
         <h2 style={H2}>What this tool cannot tell you</h2>
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
         <div style={{ marginTop: 36 }}>
-          <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Open the {r.title}</a>
+          <a href={r.route} style={{ display: "inline-block", background: HOUSE.action, color: HOUSE.paper, ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Open the {r.title}</a>
         </div>
       </main>
     </div>
@@ -521,13 +524,13 @@ function MethodLogPage() {
   const box = { border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, background: WARM };
   const byDate = CHANGELOG.reduce((m, c) => { (m[c.date] = m[c.date] || []).push(c); return m; }, {});
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+      <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Internal method log</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>Method log</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>Internal documentation, not linked from the site. Every change to a published method: what moved, in which direction and by about how much, behind the version each tool page and report names.</p>
+          <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>Method log</h1>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>Internal documentation, not linked from the site. Every change to a published method: what moved, in which direction and by about how much, behind the version each tool page and report names.</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
