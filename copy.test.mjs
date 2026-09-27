@@ -79,7 +79,7 @@ for (const f of subPages) {
 {
   const f = "src/lib/SubVerticalPage.jsx";
   const s = readFileSync(f, "utf8");
-  ok(`${f}: opens on the framework`, /useState\("framework"\)/.test(s) && !/useState\("gate"\)/.test(s) && !/handleGate/.test(s));
+  ok(`${f}: opens on the framework`, /useState\((initial\.phase \|\| )?"framework"\)/.test(s) && !/useState\("gate"\)/.test(s) && !/handleGate/.test(s));
   const fetches = s.match(/fetch\(/g) || [];
   ok(`${f}: one send, inside the review request`, fetches.length === 1 && /const requestReview = async[\s\S]*?fetch\(/.test(s), String(fetches.length));
   ok(`${f}: no false "saved" or "emailed" promise`, !/has been saved|sent to your email|emailed to you/i.test(s));

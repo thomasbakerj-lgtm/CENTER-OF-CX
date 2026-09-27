@@ -134,6 +134,9 @@ made just before the phases that build them, so nothing waits on pages that ship
 
 - Industry and sub-page templates carry all 71 pages; claim markers and sources unchanged.
 
+- Part 1 done (S24, 27 Sep 2026): the 61 segment pages on the shared component, new design; named vendors relabelled as
+  examples with introductions. Next: the ten industry pages and the hub.
+
 ## Phase 9. Methods and the rest (two sessions)
 
 - Method, rubric and changelog pages; About, Contact, Advisory, Research landing, legal pages.
