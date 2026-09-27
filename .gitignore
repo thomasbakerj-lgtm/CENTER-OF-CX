@@ -7,3 +7,4 @@ package-lock.json
 audit-out/
 dist-ssr
 .prerender-test-ssr
+.research/

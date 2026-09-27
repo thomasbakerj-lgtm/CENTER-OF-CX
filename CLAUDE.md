@@ -1073,6 +1073,32 @@ dashboard, the 12-phase growth program.
    D1 (corpus location): recommendation revised in `docs/PHASE0_DECISIONS.md`: raw corpus in a private repository, a sync
    job writes a publishable per-category snapshot with a provenance manifest and opens a pull request; the site builds from
    the snapshot only. Awaiting TB's go and the four setup steps.
+   PR #51 merged by TB's instruction (d59de08). **Phase 6 complete on production.**
+60. S24, redesign session 18, Phase 7 part 1: research Stage 1 (TB: "merge it and go", which decided D1). Truth surface:
+   Vendor Intelligence. Authority read: section 13, the Cohort 3 corpus metadata and its `surface_permissions` table.
+   Checkpoint `PRODUCTION_COHORT3_NORMALIZED`, schema 1.0 locked, `phase2_ratings_locked` true. Presentation only: no
+   methodology or schema change. `src/lib/research/snapshot.js` (`deriveSnapshot`, `splitByVendor`, `stableJson`):
+   refuses a wrong category, schema or a corpus not marked system of record; publishes only gated vendors; evidence only
+   when PUBLIC with a publishable permission state (unknown treated as confidential), review aggregations excluded;
+   claims only when Vendor Intelligence may read them, active, with a publishable summary and at least one public
+   citation (a limiting or context source counts: an unverified finding is still a finding); derived records keep only
+   their own vendor's published claims and are withheld if none remain; governance and hypothesis tables (Phase 1,
+   migration, score deltas, gates, normalization, framework, calibration, refresh, permissions, Market Position) and
+   internal fields (notes, researcher, raw claim text, excerpts, confidence notes, lineage, internal owner) never publish;
+   dashes become commas (1,117 replaced, ids untouched); stale sources flag a claim, never remove it.
+   `scripts/research-sync.mjs` writes `src/data/research/ccaas/` (manifest with checkpoint and source SHA-256, shared
+   classes and criteria, one file per vendor, one record per line so a checkpoint is a readable diff). Snapshot: 18
+   vendors, 1,205 claims, 621 sources, 118 products; withheld 17 claims, 40 sources, 6 products and the records listed
+   in the manifest. `research.test.mjs` (72, 74 with the corpus): a synthetic corpus attacks every rule (restricted ids and titles absent,
+   gate, derived records, withheld tables and fields, UNKNOWN and PREVIEW preserved, stale flag, determinism, no rating
+   field) and the committed snapshot is checked (registry of 18, every link resolves in its own file, no restricted
+   string, no dash, under 900 KB a file, nothing outside the research layer reads it); with `RESEARCH_CORPUS` set it
+   re-derives and requires byte equality. `.github/workflows/research-sync.yml` runs the same from the private repository
+   once TB adds it and the `RESEARCH_TOKEN` secret. Corpus findings for the research program in
+   `docs/research/CORPUS_FINDINGS_COHORT3.md`: 14 Avaya claims and 6 products rest only on the internal-only sources;
+   four G2 and Peer Insights review sources withheld (three claims rest on them alone); six Genesys records link Content
+   Guru claims (lineage error). No UI change. Suite 24,874. Next: Phase 7 part 2, the researched vendor profile on the
+   snapshot (approved design, redesign session 3).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

@@ -117,6 +117,9 @@ made just before the phases that build them, so nothing waits on pages that ship
 - CCaaS category page by competitive class; CCaaS by industry pages rebuilt (research Stage 3).
 - Vendor correction policy live (decision D2).
 
+- Part 1 done (S24, 27 Sep 2026): Stage 1 loader, committed CCaaS snapshot, research harness, sync workflow (D1 decided).
+  Next: the researched vendor profile on the snapshot.
+
 ## Phase 8. Industry Insights (two sessions)
 
 - Industry and sub-page templates carry all 71 pages; claim markers and sources unchanged.
