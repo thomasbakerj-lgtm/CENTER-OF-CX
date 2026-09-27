@@ -1140,6 +1140,20 @@ dashboard, the 12-phase growth program.
    each filter exact, the not yet researched carry no class, the page's own words carry no score, rank, tier, grade or
    count (a mutation adding "Ranked first" fails it), tokens only, no dash. Browser: 1440 and 390 no overflow, no page
    error, filter and hash link work. Suite 25,017; live check 255 of 255. Next: Phase 7 part 4, the CCaaS by industry pages (research Stage 3).
+   PR #54 merged by TB's instruction (64c7202).
+63. S24, redesign session 20 (continued). TB: "Each vendor should be tagged to their respective categories UCaaS + CCaaS
+   and whether they are true enterprise or midmarket or smb." Built as presentation of the research, never new research:
+   `src/lib/research/ccaasTags.js` gives each of the 18 researched vendors "UCaaS + CCaaS" or "CCaaS" and the sizes the
+   research says the platform is sold to (SMB, Midmarket, Enterprise; "Enterprise, selected use" where the research calls
+   it selective: 8x8, Dialpad, UJET). Every tag cites the published records it rests on (a product's
+   Primary_Target_Segment or Product_Type, or a claim), and `research.test.mjs` 11b proves each citation is published in
+   that vendor's file and that each size is tagged exactly when its records state it (mutations caught). UCaaS + CCaaS:
+   Cisco, 8x8, Dialpad, RingCentral, Vonage, Zoom, Avaya (Avaya on its Government Cloud UC and contact center product).
+   The research lists no UCaaS product for the other eleven. Category page: chips on every researched vendor, filters
+   for size served and UCaaS + CCaaS (they narrow, never reorder; a class with no match says so); the not yet researched
+   show their Phase 1 segment labelled as such. Profile: chips under the name and a "Who it is sold to" panel quoting the
+   research's own words. No size feeds Vendor Match, an order or a grade. `category.test.mjs` 155, `profile.test.mjs`
+   pins the chips. Suite 25,151; live check 255 of 255.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

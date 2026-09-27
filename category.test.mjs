@@ -92,13 +92,37 @@ walk(INDEX);
 strings.sort((a, b) => b.length - a.length);
 let own = t;
 for (const x of strings) own = own.split(x).join(" ");
-own = own.replace("Phase 1 scores and tiers are withdrawn", "").replace("nothing on this page ranks them", "").split("no quality grade").join("").split("never a quality grade").join("");
+own = own.replace("Phase 1 scores and tiers are withdrawn", "").replace("nothing on this page ranks them", "").split("no quality grade").join("").split("never a quality grade").join("").split("carries no grade").join("");
 ok(`no score, rank, tier, leader or grade word [${(own.match(/.{0,30}\b(scores?|rank\w*|tiers?|leader\w*|grade|top \d+|best-in)\b.{0,20}/i) || [""])[0]}]`, !/\b(scores?|rank\w*|tiers?|leader\w*|grade|top \d+|best-in)\b/i.test(own));
 ok("no count of states", !/\b\d+\s+(findings?|claims?)\b/i.test(own));
 ok("no weakness word", !/\bweak/i.test(own.replace("It is never counted as a weakness", "")));
 ok("a mutation adding a score is caught", /\bscores?\b/i.test(own + " score 4"));
 ok("no Phase 1 prose", core.every((v) => !(v.summary && v.summary.length > 30 && t.includes(norm(v.summary)))));
 ok("the index carries no rating or Phase 1 field", !/"(?![A-Za-z]*Rating_Layer)[A-Za-z_]*(score|rating|tier|rank|phase1)[A-Za-z_]*":/i.test(JSON.stringify(INDEX)));
+
+section("4b. Tags: what each vendor sells and the sizes it is sold to");
+{
+  const { tagsFor, SIZES, UC_LABEL } = await import("./src/lib/research/ccaasTags.js");
+  const vendorsIn = (h) => INDEX.classes.flatMap((c) => c.vendors).filter((v) => h.includes(`href="/vendors/${SLUG[v.id]}"`)).map((v) => v.id).sort();
+  for (const c of INDEX.classes) for (const v of c.vendors) {
+    const tg = tagsFor(v.id);
+    const i = t.indexOf(v.name + " " + tg.category);
+    ok(`${v.name}: shows ${tg.category} and ${tg.sizes.map((z) => z.label).join(", ")}`, i > 0 && t.slice(i, i + 200).includes(tg.sizes.map((z) => z.label).join(" ")));
+  }
+  const all = INDEX.classes.flatMap((c) => c.vendors).map((v) => v.id).sort();
+  for (const z of SIZES) {
+    const h = renderToString(React.createElement(Page, { initialSize: z }));
+    const want = all.filter((id) => tagsFor(id).sizes.some((x) => x.size === z));
+    ok(`size filter ${z} keeps exactly the vendors sold to ${z} (${want.length})`, JSON.stringify(vendorsIn(h)) === JSON.stringify(want));
+  }
+  const hu = renderToString(React.createElement(Page, { initialUc: true }));
+  const wantUc = all.filter((id) => tagsFor(id).uc);
+  ok(`${UC_LABEL} filter keeps exactly those vendors (${wantUc.length})`, JSON.stringify(vendorsIn(hu)) === JSON.stringify(wantUc) && wantUc.length > 0);
+  const hp = renderToString(React.createElement(Page, { initialSize: "SMB", initialClass: "CLS-CC-003" }));
+  ok("a class with no match after filtering says so", text(hp).includes("No researched vendor in this class matches these filters") || vendorsIn(hp).length > 0);
+  ok("filters never reorder: a filtered class keeps A to Z", INDEX.classes.every((c) => { const h = text(renderToString(React.createElement(Page, { initialClass: c.id, initialSize: "Midmarket" }))); const names = c.vendors.filter((v) => tagsFor(v.id).sizes.some((x) => x.size === "Midmarket")).map((v) => v.name); let at = 0; return names.every((n) => { const k = h.indexOf(n, at); if (k < 0) return false; at = k; return true; }); }));
+  ok("the not yet researched carry the Phase 1 description, labelled", core.filter((v) => ccaasResearchStatus(v.slug) !== "complete" && v.segment).every((v) => t.includes(`Earlier Phase 1 description: ${v.segment}`)));
+}
 
 section("5. Introductions, links and tokens");
 const intros = (html.match(/href="\/contact\?intro=[^"&]+&amp;from=category"/g) || []).length;

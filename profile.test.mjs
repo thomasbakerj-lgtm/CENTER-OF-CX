@@ -64,8 +64,10 @@ for (const [slug, { vendorId }] of bySlug) {
   const head = views.fit.t;
   if (!head.includes(file.vendor.Supplier_Name) || !/Current research complete/.test(head)) problems.push(`${slug} header`);
   if (!views.fit.html.includes(`href="/contact?intro=${slug}&amp;from=vendor"`)) problems.push(`${slug} introduction`);
+  { const tg = (await import("./src/lib/research/ccaasTags.js")).tagsFor(file.vendor.Vendor_ID);
+    if (!tg || !head.includes(tg.category) || !tg.sizes.every((z) => head.includes(z.label)) || !head.includes("Who it is sold to") || !head.includes("Sizes as the research states them")) problems.push(`${slug} tags`); }
   // research law: no score, rank, tier word or composite; tier appears only as an evidence tier on a source
-  if (/\bscore|\branked?\b|\bleader(board)?\b|Strategic Foundation|Strong Contender|Enterprise Core|\bgrade\b/i.test(own.replace(/never a quality grade/g, ""))) problems.push(`${slug} score or tier word: ${(own.match(/.{0,40}(score|rank|leader|grade).{0,20}/i) || [""])[0]}`);
+  if (/\bscore|\branked?\b|\bleader(board)?\b|Strategic Foundation|Strong Contender|Enterprise Core|\bgrade\b/i.test(own.replace(/never a quality grade|carries no grade/g, ""))) problems.push(`${slug} score or tier word: ${(own.match(/.{0,40}(score|rank|leader|grade).{0,20}/i) || [""])[0]}`);
   if (/\b\d+\s+(findings? )?(meet|meets|partly|not yet proven|not offered)\b/i.test(own)) problems.push(`${slug} counts states`);
   if (/\bweak/i.test(own.replace(/it is not a weakness/g, ""))) problems.push(`${slug} calls something weak`);
   // Phase 1 prose stays out

@@ -13,6 +13,7 @@ import { Crumbs, HEADER_HEIGHT } from "./src/lib/Shell.jsx";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import { buildProfile, VIEWS, FILTERS, capability, evidence, words } from "./src/lib/research/profileView.js";
 import { fmtDate } from "./src/lib/researchStatus.js";
+import { tagsFor, CCAAS_TAGS, UC_LABEL } from "./src/lib/research/ccaasTags.js";
 
 const tab = (on) => ({ minHeight: TOUCH, padding: "0 14px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer",
   border: `${on ? 2 : 1}px solid ${on ? PILLARS.vendors.onDark : K.firm}`, background: "transparent", color: HOUSE.mist });
@@ -65,6 +66,37 @@ function Claim({ c }) {
   );
 }
 
+/* What the vendor sells and who it is sold to: the tags and, under them, the research's own words they rest on. */
+function TagChips({ vendorId }) {
+  const t = tagsFor(vendorId);
+  if (!t) return null;
+  return (
+    <ul aria-label="Tags" style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: 0, padding: 0, listStyle: "none" }}>
+      <li style={{ ...chip, fontWeight: 700 }}>{t.category}</li>
+      {t.sizes.map((z) => <li key={z.size} style={{ ...chip, fontWeight: 500, borderStyle: z.selected ? "dashed" : "solid" }}>{z.label}</li>)}
+    </ul>
+  );
+}
+
+function SoldTo({ p }) {
+  const id = p.vendor.Vendor_ID, t = CCAAS_TAGS[id];
+  if (!t) return null;
+  const said = (x) => { const pr = p.products.find((y) => y.id === x); if (pr) return `${pr.name}: ${pr.segment}`; const c = p.claimById.get(x); return c ? c.Publishable_Summary : null; };
+  return (
+    <section aria-label="Who it is sold to" style={K.panel}>
+      <h2 style={K.h2}>Who it is sold to</h2>
+      <TagChips vendorId={id} />
+      <p style={{ ...K.small, marginTop: 10 }}>Sizes as the research states them:</p>
+      <ul style={{ ...K.small, margin: "4px 0 0", paddingLeft: 18 }}>{t.from.map((x) => said(x) && <li key={x}>{said(x)}</li>)}</ul>
+      {t.uc && (<>
+        <p style={{ ...K.small, marginTop: 10 }}>{UC_LABEL}, from the research:</p>
+        <ul style={{ ...K.small, margin: "4px 0 0", paddingLeft: 18 }}>{t.uc.map((x) => said(x) && <li key={x}>{said(x)}</li>)}</ul>
+      </>)}
+      <p style={{ ...K.small, marginTop: 10 }}>A size is the buyer size the research says the platform is sold to. It describes the offer and carries no grade.</p>
+    </section>
+  );
+}
+
 function FitView({ p }) {
   return (<>
     {p.klass && (
@@ -107,6 +139,7 @@ function FitView({ p }) {
         </ul>
       </section>
     ))}
+    <SoldTo p={p} />
     <section aria-label="Products" style={K.panel}>
       <h2 style={K.h2}>Products researched</h2>
       <ul style={{ padding: 0, margin: 0, ...K.grid(240) }}>
@@ -316,6 +349,7 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
           <span style={{ ...K.kicker, color: PILLARS.vendors.onDark }}>Current research complete · validated {fmtDate(v.Last_Validated_Date)}</span>
           <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>{v.Supplier_Name}</h1>
           <p style={{ ...K.body, maxWidth: 720 }}>{[v.Legal_Name, v.HQ, v.Ownership_Status].filter(Boolean).join(" · ")}</p>
+          <TagChips vendorId={v.Vendor_ID} />
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             <VendorIntro slug={slug} name={v.Supplier_Name} from="vendor" surface="vendor" />
             <a href="/contact" style={{ ...K.link, fontSize: 14 }}>Report an error</a>
