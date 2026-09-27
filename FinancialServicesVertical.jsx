@@ -12,13 +12,7 @@ function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:
 function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
 const links=[{name:"Platforms & Tech",href:"/platforms-and-tech"},{name:"How to Choose",href:"/how-to-choose"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"Advisory",href:"/advisory"}];
 return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.stat-grid{grid-template-columns:1fr 1fr!important}.stack-grid{grid-template-columns:1fr!important}.sub-grid{grid-template-columns:1fr!important}}`}</style>
-<nav style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,background:scrolled?"rgba(6,19,37,0.96)":"transparent",backdropFilter:scrolled?"blur(14px)":"none",borderBottom:scrolled?"1px solid rgba(255,255,255,0.05)":"none",transition:"all 0.35s",padding:scrolled?"12px 0":"20px 0"}}>
-<div style={{...WRAP,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-<a href="/" style={{display:"flex",alignItems:"center",gap:10}}><LogoMark size={34}/><span style={{color:"#fff",fontWeight:600,fontSize:14.5,letterSpacing:0.4}}>THE CENTER OF <span style={{color:LIGHT}}>CX</span></span></a>
-<div className="nav-links" style={{display:"flex",alignItems:"center",gap:28}}>
-{links.map(l=><a key={l.name} href={l.href} style={{color:"rgba(255,255,255,0.7)",fontSize:13.5,fontWeight:500}}>{l.name}</a>)}
-<a href="/contact" style={{color:"#fff",fontSize:13,fontWeight:600,background:ELECTRIC,padding:"9px 20px",borderRadius:6}}>Subscribe</a>
-</div></div></nav></>)}
+</>)}
 
 export default function FinancialServicesVertical() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -117,7 +111,7 @@ export default function FinancialServicesVertical() {
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Financial services is seven verticals in one.</h2>
             <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>A retail banking contact center and a wealth management advisory desk have fundamentally different service models, compliance requirements, and technology needs. Treating them as one vertical is the first evaluation mistake.</p>
           </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 14 }} className="sub-grid">
             {subVerticals.map((sv, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <a href={`/industries/financial-services/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }}
@@ -265,7 +259,7 @@ export default function FinancialServicesVertical() {
             <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms often evaluated for financial services.</h2>
             <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Platforms often evaluated for compliance controls, security posture, integration with core banking systems and regulated deployment. Listed by name. The notes are Phase 1 context; scores are withdrawn until each vendor is researched under the current methodology.</p>
           </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }} className="sub-grid">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 14 }} className="sub-grid">
             {[
               { name: "Genesys", why: "Advanced routing and compliance controls for large banks. Enterprise-grade security and multi-region deployment.", href: "/vendors/genesys" },
               { name: "NICE CXone", why: "WEM and QA for regulated environments. Strong analytics for compliance review and dispute resolution workflows.", href: "/vendors/nice-cxone" },
@@ -313,16 +307,7 @@ export default function FinancialServicesVertical() {
         </div>
       </section>
 
-      <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-        <div style={WRAP}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={28} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span>
-          <div style={{ display: "flex", gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Privacy</a>
-            <a href="/terms" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Terms</a>
-          </div>
-        </div></div>
-      </footer>
+      
     </div>
   );
 }

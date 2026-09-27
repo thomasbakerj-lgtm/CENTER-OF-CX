@@ -104,6 +104,7 @@ const INFRA = [
   { name: "qa.test.mjs", covers: "V3-Framework: QA form checks and blind calibration, alpha and AC1 pinned to published examples" },
   { name: "tokens.test.mjs", covers: "Redesign foundations: Brand Guide tokens, WCAG AA pairings, self-hosted Plex, the 32 icons, no colour literal in migrated files" },
   { name: "components.test.mjs", covers: "Redesign components: every shared component renders with its accessible name, contrast and Brand Guide rule" },
+  { name: "shell.test.mjs", covers: "Redesign shell: one header and footer for every page, five pillars, live links, phone menu, breadcrumbs, no page draws its own" },
 ];
 
 /* ---------------------------------------------------------------- utilities */

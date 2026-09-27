@@ -183,6 +183,11 @@ section("7. S23: the seven other categories, their profiles and the industry pag
   const GR = readFileSync("./GatedReport.jsx", "utf8");
   ok("both Phase 1 buyer guides carry the Phase 1 edition notice", (GR.match(/phase1: true/g) || []).length === 2 && /report\.phase1 && <p/.test(GR));
   ok("the default and vendor profile descriptions claim no scores", !/Vendor scoring|Scores, strengths/.test(readFileSync("./src/lib/seo.js", "utf8")));
+  // Found in redesign Phase 4: the vendor hub and About still described every vendor as scored.
+  for (const f of ["./Vendors.jsx", "./About.jsx"]) {
+    const t = readFileSync(f, "utf8");
+    ok(`${f.slice(2)} claims no scoring of vendors`, !/scoring rubric|scoring model|Scored, weighted|Vendors assessed|Mapped and evaluated|350\+ vendors/i.test(t));
+  }
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

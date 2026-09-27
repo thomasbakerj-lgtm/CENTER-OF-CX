@@ -39,7 +39,7 @@ try {
   const { render, citationsOf } = await import(pathToFileURL(join(out, "entry-server.js")).href);
   const paths = [...readFileSync("public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
   ok("sitemap parsed", paths.length > 400, String(paths.length));
-  const bad = { render: [], h1: [], text: [], script: [], nested: [], style: [] };
+  const bad = { render: [], h1: [], text: [], script: [], nested: [], style: [], shell: [] };
   const ld = { app: [], tech: [], article: [], cite: [], faq: [], headline: [], home: [], main: [] };
   let articles = 0, cited = 0;
   for (const p of paths) {
@@ -70,6 +70,7 @@ try {
     if (visibleText(html).length < 250) bad.text.push(p);
     if (/<script/i.test(html)) bad.script.push(p);
     if (nestedLinks(html) > 0) bad.nested.push(p);
+    if ((html.match(/<nav aria-label="Primary"/g) || []).length !== 1 || (html.match(/<footer/g) || []).length !== 1 || (html.match(/<header/g) || []).length < 1) bad.shell.push(p);
     try { rawStyles(html); } catch { bad.style.push(p); }
   }
   ok(`all ${paths.length} URLs render`, bad.render.length === 0, bad.render.slice(0, 3).join(" | "));
@@ -78,6 +79,7 @@ try {
   ok("no page renders an inline script", bad.script.length === 0, bad.script.slice(0, 5).join(" "));
   ok("no page renders a link inside a link", bad.nested.length === 0, bad.nested.slice(0, 5).join(" "));
   ok("every style block decodes safely", bad.style.length === 0, bad.style.slice(0, 5).join(" "));
+  ok("every page carries the site shell once: one primary navigation and one footer", bad.shell.length === 0, bad.shell.slice(0, 5).join(" "));
   ok("every tool page is a WebApplication with name, description, category and a zero price", ld.app.length === 0, ld.app.slice(0, 5).join(" "));
   ok("every method page is a TechArticle with author, publisher and its version date", ld.tech.length === 0, ld.tech.slice(0, 5).join(" "));
   ok("every industry page is an Article with author and publisher", ld.article.length === 0, ld.article.slice(0, 5).join(" "));

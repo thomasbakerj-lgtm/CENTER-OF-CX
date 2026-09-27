@@ -71,18 +71,7 @@ function Nav() {
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .split-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
       `}</style>
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: scrolled ? "rgba(6,19,37,0.96)" : "transparent", backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid rgba(255,255,255,0.05)" : "none", transition: "all 0.35s", padding: scrolled ? "12px 0" : "20px 0" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <LogoMark size={34} />
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 14.5, letterSpacing: 0.4, fontFamily: "'DM Sans', sans-serif" }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span>
-          </a>
-          <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
-            {links.map(l => <a key={l.name} href={l.href} style={{ color: l.name === "Vendors" ? "#fff" : "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: l.name === "Vendors" ? 600 : 500, fontFamily: "'DM Sans', sans-serif", transition: "color 0.2s", borderBottom: l.name === "Vendors" ? `2px solid ${ELECTRIC}` : "2px solid transparent", paddingBottom: 2 }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = l.name === "Vendors" ? "#fff" : "rgba(255,255,255,0.7)"}>{l.name}</a>)}
-            <a href="/contact" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6, fontFamily: "'DM Sans', sans-serif" }}>Subscribe</a>
-          </div>
-        </div>
-      </nav>
+      
     </>
   );
 }
@@ -105,16 +94,16 @@ function Hero() {
             <div>
               <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
                 {VENDOR_PROFILE_COUNT} vendors.{" "}
-                <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Mapped and evaluated.</span>
+                <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Mapped by category.</span>
               </h1>
               <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 520, fontFamily: "'DM Sans', sans-serif" }}>
-                Every vendor is assessed at the architecture level using proprietary scoring rubrics. We evaluate orchestration readiness, AI maturity, vertical fit, and operational impact. Inclusion requires demonstrated capability.
+                Every vendor is mapped to its category and to the layers of the stack it serves. Contact center platforms are researched finding by finding against a published method; the other categories are marked Phase 1 context until their research is complete.
               </p>
             </div>
             <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "28px 24px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 {[
-                  { n: String(VENDOR_PROFILE_COUNT), l: "Vendors assessed" },
+                  { n: String(VENDOR_PROFILE_COUNT), l: "Vendor profiles" },
                   { n: "9", l: "Decision domains" },
                   { n: "7", l: "Orchestration layers" },
                   { n: "8", l: "Vendor categories" },
@@ -141,7 +130,7 @@ function Stance() {
           <div style={{ display: "flex", alignItems: "center", gap: 16, maxWidth: 800 }}>
             <div style={{ width: 4, height: 48, background: ELECTRIC, borderRadius: 2, flexShrink: 0 }} />
             <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
-              This directory is curated. Vendors earn coverage through demonstrated capability, assessed through our proprietary scoring rubrics. We evaluate architecture, orchestration readiness, AI maturity, and operational fit. Every assessment is editorially independent.
+              Profiles describe what each vendor sells and where it sits in the stack. No vendor pays to appear, and no profile carries a score or a rank.
             </p>
           </div>
         </FadeIn>
@@ -335,21 +324,7 @@ function CTA() {
 
 function Footer() {
   return (
-    <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-      <div style={WRAP}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <LogoMark size={28} />
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span>
-          </a>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", fontFamily: "'DM Sans', sans-serif" }}>© 2026 The Center of CX. All rights reserved.</span>
-          <div style={{ display: "flex", gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Privacy</a>
-            <a href="/terms" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Terms</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+    null
   );
 }
 

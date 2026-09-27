@@ -59,18 +59,7 @@ function Nav() {
         input[type=number] { -moz-appearance: textfield; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .results-grid { grid-template-columns: 1fr !important; } .kpi-grid { grid-template-columns: 1fr 1fr !important; } .input-row { grid-template-columns: 1fr 1fr !important; } }
       `}</style>
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(6,19,37,0.96)", backdropFilter: "blur(14px)", borderBottom: "1px solid rgba(255,255,255,0.05)", padding: "12px 0" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <LogoMark size={34} />
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 14.5, letterSpacing: 0.4 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span>
-          </a>
-          <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
-            {links.map(l => <a key={l.name} href={l.href} style={{ color: "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: 500 }}>{l.name}</a>)}
-            <a href="/subscribe" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6 }}>Subscribe</a>
-          </div>
-        </div>
-      </nav>
+      
     </>
   );
 }
@@ -1336,21 +1325,7 @@ function Calculator() {
 
 function Footer() {
   return (
-    <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-      <div style={WRAP}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <LogoMark size={28} />
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span>
-          </a>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>2026 The Center of CX. All rights reserved.</span>
-          <div style={{ display: "flex", gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Privacy</a>
-            <a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Terms</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+    null
   );
 }
 

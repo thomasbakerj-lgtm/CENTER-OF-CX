@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero } from "./src/lib/ToolShell";
+import { ToolHero } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -86,7 +86,6 @@ export default function ScheduleAdherenceCalculator() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.ag{grid-template-columns:1fr 1fr!important}.tiles{grid-template-columns:1fr!important}}`}</style>
-      <ToolNav wrap={WRAP} />
       <ToolHero wrap={WRAP} eyebrow="WFM + Staffing" title="Schedule Adherence Impact Calculator"
         intro="Adherence is the share of scheduled time agents spend doing what the schedule says. Enter your queue to see the service level an Erlang C model gives at today's adherence and at each point of loss, the agents it takes to hold your target, and the overtime that costs.">
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every formula and assumption is in the <a href={METHOD} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>

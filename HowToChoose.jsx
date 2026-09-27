@@ -93,17 +93,7 @@ export default function HowToChoose() {
       `}</style>
 
       {/* Nav */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: scrolled ? "rgba(6,19,37,0.97)" : DEEP, backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "all 0.3s", padding: "10px 0" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark /><span style={{ color: "#fff", fontWeight: 600, fontSize: 13.5 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 26 }}>
-            {navLinks.map(l => <a key={l.name} href={l.href} style={{ color: l.name === "Tools" ? "#fff" : "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: l.name === "Tools" ? 600 : 500, borderBottom: l.name === "Tools" ? `2px solid ${ELECTRIC}` : "2px solid transparent", paddingBottom: 2, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = l.name === "Tools" ? "#fff" : "rgba(255,255,255,0.6)"}>{l.name}</a>)}
-            <a href="/subscribe" style={{ color: "#fff", fontSize: 12, fontWeight: 600, background: ELECTRIC, padding: "7px 16px", borderRadius: 5 }}>Subscribe</a>
-          </div>
-          <button className="mob-btn" onClick={() => setOpen(!open)} style={{ display: "none", flexDirection: "column", gap: 4, background: "none", border: "none", cursor: "pointer", padding: 8 }}>{[0,1,2].map(i => <div key={i} style={{ width: 18, height: 2, background: "#fff", borderRadius: 1 }} />)}</button>
-        </div>
-        {open && <div style={{ background: DEEP, padding: "16px 28px", display: "flex", flexDirection: "column", gap: 14 }}>{navLinks.map(l => <a key={l.name} href={l.href} style={{ color: "rgba(255,255,255,0.8)", fontSize: 15 }}>{l.name}</a>)}</div>}
-      </nav>
+      
 
       {/* Header */}
       <section style={{ background: DEEP, padding: "72px 28px 20px" }}>
@@ -184,16 +174,7 @@ export default function HowToChoose() {
       </section>
 
       {/* Footer */}
-      <footer style={{ background: DEEP, padding: "32px 28px 20px" }}>
-        <div style={{ ...WRAP, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}><LogoMark size={22} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 12 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>© 2026 The Center of CX</span>
-          <div style={{ display: "flex", gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Privacy</a>
-            <a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Terms</a>
-          </div>
-        </div>
-      </footer>
+      
     </div>
   );
 }

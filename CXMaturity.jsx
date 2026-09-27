@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
+import { ToolHero, ToolStart } from "./src/lib/ToolShell";
 import { scoreRubric, bandFor } from "./src/lib/rubric";
 import { CX_MATURITY as RUBRIC } from "./src/lib/rubrics/cxMaturity";
 import { JOURNEY } from "./src/lib/journey";
@@ -61,8 +61,6 @@ export default function CXMaturity() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
-
-      <ToolNav wrap={WRAP} />
 
       {/* ═══ GATE ═══ */}
       {phase !== "intro" && <ToolHero compact wrap={WRAP} eyebrow="Assessments + Scorecards" title="CX Maturity Assessment" />}

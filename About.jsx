@@ -52,26 +52,7 @@ function Nav() {
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .split-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
       `}</style>
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: scrolled ? "rgba(6,19,37,0.96)" : "transparent", backdropFilter: scrolled ? "blur(14px)" : "none", borderBottom: scrolled ? "1px solid rgba(255,255,255,0.05)" : "none", transition: "all 0.35s", padding: scrolled ? "12px 0" : "20px 0" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <svg width="34" height="34" viewBox="0 0 120 120">
-              <g transform="translate(60,60)">
-                <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-                <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity="0.8"/>
-                <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
-                <line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/>
-                <line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/>
-              </g>
-            </svg>
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 14.5, letterSpacing: 0.4 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span>
-          </a>
-          <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: 28 }}>
-            {links.map(l => <a key={l.name} href={l.href} style={{ color: "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: 500, transition: "color 0.2s" }} onMouseOver={e => e.target.style.color = "#fff"} onMouseOut={e => e.target.style.color = "rgba(255,255,255,0.7)"}>{l.name}</a>)}
-            <a href="/contact" style={{ color: "#fff", fontSize: 13, fontWeight: 600, background: ELECTRIC, padding: "9px 20px", borderRadius: 6 }}>Subscribe</a>
-          </div>
-        </div>
-      </nav>
+      
     </>
   );
 }
@@ -154,7 +135,7 @@ function POV() {
 
 function WhatWeDo() {
   const pillars = [
-    { title: "Vendor intelligence", desc: "Scored, weighted assessments across 350+ vendors in nine technology categories. Operator-grade evaluation built on proprietary rubrics, structured scoring models, and maturity benchmarks." },
+    { title: "Vendor intelligence", desc: "Vendor profiles across eight technology categories. Contact center platforms are researched finding by finding, each with its public sources and validation date; the other categories are marked Phase 1 context until their research is complete." },
     { title: "Buying frameworks", desc: "Decision tools for CCaaS selection, AI readiness, platform vs point-solution math, and RFPs that don't fail. Built for the way real procurement decisions actually happen." },
     { title: "Operational depth", desc: "TCO models, orchestration architecture, staffing implications, QA design, and governance frameworks. We go where most CX content stops: the queue, the SLA, the escalation path." },
     { title: "Industry-specific CX", desc: "Ten verticals, each with vertical-specific vendor maps, stack layer models, and specialization breakdowns. Because healthcare CX is nothing like retail CX." },
@@ -170,7 +151,7 @@ function WhatWeDo() {
             <Title>Six pillars that make this different from everything else.</Title>
           </div>
         </FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 20 }}>
           {pillars.map((p, i) => (
             <FadeIn key={i} delay={i * 0.05}>
               <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "28px 24px", transition: "border-color 0.2s", height: "100%" }}
@@ -312,29 +293,7 @@ function CTA() {
 
 function Footer() {
   return (
-    <footer style={{ background: DEEP, padding: "56px 28px 36px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-      <div style={WRAP}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <svg width="28" height="28" viewBox="0 0 120 120">
-              <g transform="translate(60,60)">
-                <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-                <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity="0.7"/>
-                <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
-                <line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/>
-                <line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/>
-              </g>
-            </svg>
-            <span style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span>
-          </a>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>© 2026 The Center of CX. All rights reserved.</span>
-          <div style={{ display: "flex", gap: 16 }}>
-            <a href="/privacy" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Privacy</a>
-            <a href="/terms" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>Terms</a>
-          </div>
-        </div>
-      </div>
-    </footer>
+    null
   );
 }
 

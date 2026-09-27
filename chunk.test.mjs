@@ -48,7 +48,16 @@ const section = (s) => console.log(`\n${s}`);
  *
  * The numbers are argued, not rounded.
  *
- * Measured entry on 25 September 2026, Phase E3 (method changelog): 248,077 bytes raw,
+ * Measured entry on 27 September 2026, redesign Phase 4 (the site shell): 262,340 bytes raw,
+ * 84,782 gzipped. Reset from 248,077 raw, 80,341 gzipped (25 September, Phase E3). Attributed
+ * module by module against a sourcemapped build of main (251,926 raw at afe9bd2; the 3,849
+ * before that were Phase 2's font rules and tokens). The shell adds 10,457: src/lib/Shell.jsx
+ * 7,506 (one header, footer and breadcrumb row for every page, replacing the navigation each
+ * lazy page carried), src/lib/Icon.jsx 2,117 (the header's menu and breadcrumb icons, so the
+ * icon set now loads with the shell), src/lib/tokens.js 715 (alpha and LINE), App.jsx 95.
+ * No route component or data file entered the chunk.
+ *
+ * Before that, measured on 25 September 2026, Phase E3 (method changelog): 248,077 bytes raw,
  * 80,341 gzipped. Reset from 242,088 raw, 78,883 gzipped (24 September, Phase D step 2).
  * The 5,989 raw bytes between them are App.jsx routes and src/lib/seo.js metadata for 13
  * published pages: the AHT, Forecast and Adherence methods, the nine rail calculator methods
@@ -95,12 +104,12 @@ const section = (s) => console.log(`\n${s}`);
  * this paragraph. Do not raise it to make a build pass. A run that reports this
  * harness UNPARSED has not measured anything and is a failure, never a pass.
  */
-const BASE_RAW = 248077;
-const BASE_GZ = 80341;
+const BASE_RAW = 262340;
+const BASE_GZ = 84782;
 const SMALLEST_SPLIT_RAW = 8931;
 const SMALLEST_SPLIT_GZ = 3100;
-const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 254,031
-const GZ_CEILING = BASE_GZ + Math.floor((SMALLEST_SPLIT_GZ * 2) / 3);      // 82,407
+const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 268,294
+const GZ_CEILING = BASE_GZ + Math.floor((SMALLEST_SPLIT_GZ * 2) / 3);      // 86,848
 
 /* ----------------------------------------------------------------- measure */
 

@@ -922,6 +922,20 @@ dashboard, the 12-phase growth program.
    steps at most), Loading, Failure, Empty, SharedScenario. `components.test.mjs` 99. Gallery rendered and checked. Suite
    24,534 green. Next: Phase 4, the site shell and tool shell built from these.
 
+49. S24, redesign session 9, Phase 4 part 1: the site shell. `src/lib/Shell.jsx` (tokens only): one header (mark, the five
+   pillars with the current one marked, Research and Market Watch tagged soon, Market Watch a label until it has a page,
+   Subscribe, a phone menu with 44px targets), one footer (four link columns, privacy, terms) and `Crumbs`, a breadcrumb row
+   with at most one action. App renders the header and footer once around every route. 61 pages lost their own bars (six
+   hand-built link sets) and 16 tools their `ToolNav`; method pages and sub-vertical pages keep their back links as crumbs.
+   The 37 pages whose old bar was fixed keep the header over the page (`headerFixed`); every other page has it in the flow.
+   Found and fixed: /about scrolled sideways on a phone (a 340px grid minimum; the same guard applied to 23 grids on 12
+   pages); /vendors and /about still said every vendor was scored with proprietary rubrics, across "350+ vendors in nine
+   categories" (now what the profiles are; `freeze.test.mjs` gates both). Gates: `shell.test.mjs` (55: header, pillars,
+   live footer links, crumbs, App wiring, no page draws its own bar, fixed or in flow per route, no grid wider than a
+   phone), `prerender.test.mjs` (every page has the shell once). Chunk gate re-based with attribution: the shell adds
+   10,457 bytes to the entry (Shell 7,506, Icon 2,117, tokens 715, App 95; no route or data file). Suite 24,593; all 426
+   sitemap pages at 390 and 1440 with no overflow, no page error, one header and one footer; local live check under the
+   production policy 254 of 254. Next: Phase 4 part 2, the tool shell v2.
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
 

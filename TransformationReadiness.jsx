@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero, ToolStart } from "./src/lib/ToolShell";
+import { ToolHero, ToolStart } from "./src/lib/ToolShell";
 import { scoreRubric, bandFor } from "./src/lib/rubric";
 import { TRANSFORMATION_READINESS as RUBRIC } from "./src/lib/rubrics/transformationReadiness";
 import { JOURNEY } from "./src/lib/journey";
@@ -60,7 +60,6 @@ export default function TransformationReadiness() {
   return(
     <div style={{fontFamily:FONT,minHeight:"100vh"}}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <ToolNav wrap={WRAP} />
 
       {phase !== "intro" && <ToolHero compact wrap={WRAP} eyebrow="Assessments + Scorecards" title="Transformation Readiness Scorecard" />}
 

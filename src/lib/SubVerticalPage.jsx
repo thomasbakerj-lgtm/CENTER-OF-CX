@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Crumbs } from "./Shell.jsx";
 import { useParams } from "react-router-dom";
 import ClaimText, { ClaimSources } from "./ClaimText.jsx";
 import { claimIds, claim, TESTS } from "./claims.js";
@@ -9,7 +10,6 @@ const LAYER_COLORS = ["#2c5f3f", "#1a6b4a", "#0e7a5e", "#0e8c7f", "#1a7f9e", "#1
 
 function useInView(t=.1){const ref=useRef(null);const[v,setV]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){setV(true);o.unobserve(el)}},{threshold:t});o.observe(el);return()=>o.disconnect()},[]);return[ref,v]}
 function FadeIn({children,delay=0}){const[ref,v]=useInView();return<div ref={ref} style={{opacity:v?1:0,transform:v?"translateY(0)":"translateY(22px)",transition:`opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`}}>{children}</div>}
-function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
 const STATUS_OPTS = [
   { label: "Have", color: GREEN, icon: "✓" },
@@ -78,12 +78,7 @@ export default function SubVerticalPage({ industry, href, getSubVertical }) {
     <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
 
-      <nav style={{ background: DEEP, padding: "16px 0" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="/" style={{ display: "flex", alignItems: "center", gap: 10 }}><LogoMark size={30} /><span style={{ color: "#fff", fontWeight: 600, fontSize: 14 }}>THE CENTER OF <span style={{ color: LIGHT }}>CX</span></span></a>
-          <a href={href} style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>← {industry}</a>
-        </div>
-      </nav>
+      <Crumbs items={[["Industry Insights", "/industries"], [industry, href], [sv.name || "Segment"]]} />
 
       {/* GATE */}
       {phase === "framework" && (

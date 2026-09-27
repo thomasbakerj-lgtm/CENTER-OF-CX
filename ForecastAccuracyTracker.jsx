@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ToolNav, ToolHero } from "./src/lib/ToolShell";
+import { ToolHero } from "./src/lib/ToolShell";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -114,7 +114,6 @@ export default function ForecastAccuracyTracker() {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.fg{grid-template-columns:1fr!important}.wrow{grid-template-columns:64px 1fr!important}.wrow .wide{display:none}}`}</style>
-      <ToolNav wrap={WRAP} />
       <ToolHero wrap={WRAP} eyebrow="WFM + Staffing" title="Forecast Accuracy Tracker"
         intro="Compare forecast and actual contacts interval by interval. The tracker reports WAPE, the volume-weighted error staffing is planned on, beside MAPE, total-volume accuracy, bias and the tracking signal, and ranks the intervals by contacts missed. The table opens on a labelled sample; replace it with your own intervals.">
         <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every formula and line is in the <a href={METHOD} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
