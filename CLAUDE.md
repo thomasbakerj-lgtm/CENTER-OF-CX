@@ -1029,6 +1029,17 @@ dashboard, the 12-phase growth program.
    `main`; rubric, ownership, floor and journey harnesses pass. `toolframe.test.mjs` 5 covers 19 tools. Suite 24,751;
    live check 255 of 255. Next: batch 5, procurement (QA Scorecard, Platform Decision, RFP Builder, Contract Risk), then
    Vendor Match and Roadmap.
+   PR #49 merged by TB's instruction (b1c12bb).
+57. S24, redesign session 16, Phase 6 batch 5 (TB: "merge it and go"): the procurement four (QA Scorecard, Platform Decision,
+   RFP Builder, Contract Risk) moved from `ToolShell` onto `ToolFrame`. The kit gains `numInput`, the dark input style for a
+   tool that keeps its own input handler (Platform Decision's clock, RFP weights, QA text fields). Option groups use the
+   kit's `Choice`; severities, priorities, grades and outcomes are words on outlined chips (critical heavier, unknown and
+   note dashed); nothing is colour-coded on the page. Platform Decision keeps its start screen; Contract Risk and QA open
+   on the work with the result beside it; RFP keeps its three steps and the scoring table (it scrolls inside its panel on
+   a phone). The logic above the render and every ReportActions prop are byte-equal to `main` (RFP's two render helpers,
+   `ReqRow` and `Groups`, restyled; everything before them unchanged). terms, renewal, rfp, qa, floor and journey
+   harnesses pass; `toolframe.test.mjs` 5 covers 23 tools. Suite 24,763; live check 255 of 255. Next: batch 6, Vendor
+   Match and Roadmap, then retire `ToolShell`.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

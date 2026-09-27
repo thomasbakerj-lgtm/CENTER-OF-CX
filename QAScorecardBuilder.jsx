@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
-import { ToolHero } from "./src/lib/ToolShell";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Button } from "./src/lib/ui.jsx";
+import { K, Paper, Group, Choice, numInput, selectStyle, optionCss, frameMethod } from "./src/lib/frameKit.jsx";
+import { methodStamp } from "./src/lib/methodVersions.js";
+import { TOUCH, RADIUS } from "./src/lib/tokens.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam, encodeScenario } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -7,14 +11,14 @@ import { JOURNEY } from "./src/lib/journey";
 import { QA_SCORECARD as MODEL } from "./src/lib/rubrics/qaScorecard";
 import { qaCriteria, qaFormKey, scoreEvaluation, encodeSubmission, reviewQA, qaThresholdVars } from "./src/lib/qa";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
-const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
-const SEV_STYLE = { critical: { label: "Critical", color: RED }, high: { label: "High", color: "#C2410C" }, medium: { label: "Medium", color: "#B45309" }, info: { label: "Note", color: SLATE } };
-const GRADE = { reliable: { label: "Reliable", color: "#047857" }, tentative: { label: "Tentative", color: "#B45309" }, unreliable: { label: "Not reliable", color: "#B91C1C" }, inconclusive: { label: "Inconclusive", color: "#B45309" }, unanimous: { label: "Unanimous", color: "#047857" }, undefined: { label: "Not measurable", color: SLATE } };
+/* A severity or a grade is a word on the page. The PDF's metric tiles keep their one colour. */
+const ELECTRIC = "#0088DD";
+const SEV_STYLE = { critical: { label: "Critical" }, high: { label: "High" }, medium: { label: "Medium" }, info: { label: "Note" } };
+const GRADE = { reliable: { label: "Reliable" }, tentative: { label: "Tentative" }, unreliable: { label: "Not reliable" }, inconclusive: { label: "Inconclusive" }, unanimous: { label: "Unanimous" }, undefined: { label: "Not measurable" } };
 const TV = qaThresholdVars(MODEL);
 const fill = (t) => t.replace(/\{(\w+)\}/g, (_, k) => (TV[k] === undefined ? "" : String(TV[k])));
 const whyOf = (f) => f.title + ": " + fill(MODEL.rules[f.rule].test) + (MODEL.rules[f.rule].heuristic ? " Heuristic threshold." : "");
-const gradeOf = (m) => m.grade ? GRADE[m.grade] : { label: "Not graded", color: SLATE };
+const gradeOf = (m) => m.grade ? GRADE[m.grade] : { label: "Not graded" };
 const num = (v) => (v === null || v === undefined ? "n/a" : v.toFixed(2));
 
 const TEMPLATES = MODEL.templates;
@@ -59,17 +63,17 @@ const cleanState = (sc) => {
   return { template, categories, evalScores, evaluator: label(sc && sc.evaluator), call: label(sc && sc.call), session };
 };
 
-const inputStyle = { padding: "6px 10px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 4, background: "#fff", color: NAVY };
-const H2 = { fontSize: 20, fontWeight: 700, color: NAVY, marginBottom: 8 };
-const P = { fontSize: 14, color: SLATE, lineHeight: 1.6, marginBottom: 12 };
+const inputStyle = { ...numInput, marginTop: 0, fontVariantNumeric: "normal", fontWeight: 500, fontSize: 15 };
+const textLink = { ...K.link, background: "none", border: "none", cursor: "pointer", padding: 0, font: "inherit" };
+const chip = (sv) => ({ display: "inline-block", fontFamily: FONT, fontSize: 13, fontWeight: 700, padding: "3px 10px", borderRadius: RADIUS.chip, border: `${sv === "critical" ? 2 : 1}px ${sv === "info" ? "dashed" : "solid"} ${sv === "critical" || sv === "high" ? K.strong.color : K.firm}`, color: K.strong.color, flexShrink: 0, minWidth: 72, textAlign: "center" });
 
 function Finding({ f }) {
   return (
-    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderBottom: `1px solid ${BORDER}` }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: SEV_STYLE[f.severity].color, padding: "2px 8px", borderRadius: 4, flexShrink: 0, minWidth: 64, textAlign: "center" }}>{SEV_STYLE[f.severity].label}</span>
+    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderTop: `1px solid ${K.hair}` }}>
+      <span style={chip(f.severity)}>{SEV_STYLE[f.severity].label}</span>
       <div>
-        <div style={{ fontSize: 14, color: NAVY, fontWeight: 600 }}>{f.action}</div>
-        <div style={{ fontSize: 12, color: SLATE, marginTop: 2 }}>{whyOf(f)}</div>
+        <div style={{ ...K.strong, fontSize: 15, lineHeight: "22px" }}>{f.action}</div>
+        <div style={{ ...K.small, marginTop: 3 }}>{whyOf(f)}</div>
       </div>
     </div>
   );
@@ -140,192 +144,189 @@ export default function QAScorecardBuilder() {
   const sevCount = (s) => R.bySeverity[s];
   const pct = (w) => (L.total > 0 ? Math.round((w / L.total) * 100) : 0) + "%";
 
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <ToolHero wrap={WRAP} eyebrow="Performance + Quality" title="QA Scorecard Builder"
-        intro="Build a weighted QA form for a contact type, check that it produces scores you can defend, and calibrate your evaluators blind: each scores the same calls alone, and nothing is compared until everyone has scored.">
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every rule, cut point and source is published in the <a href={MODEL.methodology} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>QA method</a>.</p>
-      </ToolHero>
+  const result = <Result label="Next step" value={STEP_LABEL[R.next.step]} change={`${L.criteria} criteria, ${L.findings.length} form finding${L.findings.length === 1 ? "" : "s"}. Calibration: ${CR ? CR.measures.map(m => gradeOf(m).label).join(", ") : C.calls ? "sealed" : "not run"}.`} />;
 
-      <section style={{ background: WARM, padding: "32px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 14 }}>
-            {Object.entries(TEMPLATES).map(([k, v]) => (
-              <button key={k} aria-pressed={template === k} onClick={() => applyTemplate(k)} style={{ padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${template === k ? GREEN : BORDER}`, background: template === k ? GREEN : "#fff", color: template === k ? "#fff" : MUTED, cursor: "pointer" }}>{v.name}</button>
+  return (
+    <ToolFrame toolId={TOOL_ID} choice={R.next.tool || null} section="Performance + Quality" name="QA Scorecard Builder" title="Does your QA form produce scores you can defend?"
+      lede="Build a weighted QA form for a contact type, check that it produces scores you can defend, and calibrate your evaluators blind: each scores the same calls alone, and nothing is compared until everyone has scored."
+      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Next step", value: STEP_LABEL[R.next.step] }}>
+      <style>{FONT_IMPORT_CSS + optionCss("qa-sel")}</style>
+      <p style={K.small}>Every rule, cut point and source is published in the <a href={MODEL.methodology} style={K.link}>QA method</a>.</p>
+
+      <Group legend="Start from a contact type">
+        <Choice label="Form template" options={Object.entries(TEMPLATES).map(([k, v]) => [k, v.name])} value={template} onPick={applyTemplate} />
+        <p style={{ ...K.strong, fontSize: 14, marginTop: 12 }}>Total weight: {L.total}%{L.total !== 100 ? ". Must equal 100%." : ""}</p>
+      </Group>
+
+      <section aria-label="1. The form" style={K.panel}>
+        <h2 style={K.h2}>1. The form</h2>
+        <p style={{ ...K.body, marginBottom: 14 }}>Each criterion needs a definition of what earns a yes, a tag for what it measures, and, if it is an auto-fail, the reason it must be one.</p>
+        {categories.map((cat, ci) => (
+          <div key={ci} style={{ ...K.box, marginBottom: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", paddingBottom: 10, borderBottom: `1px solid ${K.hair}` }}>
+              <input type="text" aria-label={`Category ${ci + 1} name`} value={cat.name} onChange={e => updateCatName(ci, e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 180, fontWeight: 600 }} />
+              <label style={{ ...K.small, display: "flex", alignItems: "center", gap: 6 }}>Weight
+                <input type="number" aria-label={`${cat.name} weight, percent`} value={cat.weight} onChange={e => updateWeight(ci, e.target.value)} style={{ ...inputStyle, width: 76, textAlign: "center", fontVariantNumeric: "tabular-nums" }} /> %
+              </label>
+              <button type="button" aria-label={`Remove category ${cat.name}`} onClick={() => removeCategory(ci)} style={{ ...textLink, minHeight: TOUCH }}>Remove</button>
+            </div>
+            {cat.criteria.map((cr, cri) => (
+              <div key={cri} style={{ padding: "10px 0", borderBottom: cri < cat.criteria.length - 1 ? `1px solid ${K.hair}` : "none" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <input type="text" aria-label={`${cat.name} criterion ${cri + 1}`} value={cr.text} onChange={e => updateCriterion(ci, cri, "text", e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 180 }} />
+                  <label style={{ ...K.small, color: K.strong.color, fontWeight: cr.critical ? 700 : 500, display: "flex", alignItems: "center", gap: 6, cursor: "pointer", minHeight: TOUCH, flexShrink: 0 }}>
+                    <input type="checkbox" checked={cr.critical} onChange={e => updateCriterion(ci, cri, "critical", e.target.checked)} style={{ width: 18, height: 18 }} /> Auto-fail
+                  </label>
+                  <button type="button" aria-label={`Remove ${cat.name} criterion ${cri + 1}`} onClick={() => removeCriterion(ci, cri)} style={{ ...textLink, minWidth: TOUCH, minHeight: TOUCH, fontSize: 18 }}>×</button>
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+                  <input type="text" aria-label={`${cat.name} criterion ${cri + 1} definition`} placeholder="What earns a yes" value={cr.def} onChange={e => updateCriterion(ci, cri, "def", e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 200, fontSize: 14 }} />
+                  <select className="qa-sel" aria-label={`${cat.name} criterion ${cri + 1} measures`} value={cr.focus} onChange={e => updateCriterion(ci, cri, "focus", e.target.value)} style={{ ...selectStyle, width: "auto", fontSize: 14 }}>
+                    <option value="">Measures...</option>
+                    {MODEL.focus.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+                  </select>
+                  {cr.critical && (
+                    <select className="qa-sel" aria-label={`${cat.name} criterion ${cri + 1} auto-fail reason`} value={cr.reason} onChange={e => updateCriterion(ci, cri, "reason", e.target.value)} style={{ ...selectStyle, width: "auto", fontSize: 14 }}>
+                      <option value="">Auto-fail reason...</option>
+                      {MODEL.reasons.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                    </select>
+                  )}
+                </div>
+              </div>
             ))}
+            <button type="button" onClick={() => addCriterion(ci)} style={{ ...textLink, minHeight: TOUCH, marginTop: 4 }}>+ Add criterion</button>
           </div>
-          <span style={{ fontSize: 12, fontWeight: 600, color: L.total === 100 ? "#047857" : RED }}>Total weight: {L.total}%{L.total !== 100 ? ". Must equal 100%." : ""}</span>
-        </div>
+        ))}
+        <Button kind="secondary" onClick={addCategory} style={{ width: "100%" }}>+ Add Category</Button>
       </section>
 
-      <section style={{ background: "#fff", padding: "36px 28px" }}>
-        <div style={WRAP}>
-          <h2 style={H2}>1. The form</h2>
-          <p style={P}>Each criterion needs a definition of what earns a yes, a tag for what it measures, and, if it is an auto-fail, the reason it must be one.</p>
-          {categories.map((cat, ci) => (
-            <div key={ci} style={{ marginBottom: 20, background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden" }}>
-              <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                <input type="text" aria-label={`Category ${ci + 1} name`} value={cat.name} onChange={e => updateCatName(ci, e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 200, fontSize: 14, fontWeight: 600 }} />
-                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span style={{ fontSize: 12, color: MUTED }}>Weight:</span>
-                  <input type="number" aria-label={`${cat.name} weight, percent`} value={cat.weight} onChange={e => updateWeight(ci, e.target.value)} style={{ ...inputStyle, width: 56, textAlign: "center" }} />
-                  <span style={{ fontSize: 12, color: MUTED }}>%</span>
-                </div>
-                <button aria-label={`Remove category ${cat.name}`} onClick={() => removeCategory(ci)} style={{ fontSize: 12, color: "#B91C1C", background: "none", border: "none", cursor: "pointer" }}>Remove</button>
-              </div>
-              <div style={{ padding: "8px 18px 14px" }}>
-                {cat.criteria.map((cr, cri) => (
-                  <div key={cri} style={{ padding: "10px 0", borderBottom: cri < cat.criteria.length - 1 ? `1px solid ${BORDER}` : "none" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <input type="text" aria-label={`${cat.name} criterion ${cri + 1}`} value={cr.text} onChange={e => updateCriterion(ci, cri, "text", e.target.value)} style={{ ...inputStyle, flex: 1 }} />
-                      <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: cr.critical ? "#B91C1C" : MUTED, cursor: "pointer", flexShrink: 0 }}>
-                        <input type="checkbox" checked={cr.critical} onChange={e => updateCriterion(ci, cri, "critical", e.target.checked)} /> Auto-fail
-                      </label>
-                      <button aria-label={`Remove ${cat.name} criterion ${cri + 1}`} onClick={() => removeCriterion(ci, cri)} style={{ fontSize: 14, color: MUTED, background: "none", border: "none", cursor: "pointer", padding: "0 4px" }}>×</button>
-                    </div>
-                    <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-                      <input type="text" aria-label={`${cat.name} criterion ${cri + 1} definition`} placeholder="What earns a yes" value={cr.def} onChange={e => updateCriterion(ci, cri, "def", e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 220, fontSize: 12, color: SLATE }} />
-                      <select aria-label={`${cat.name} criterion ${cri + 1} measures`} value={cr.focus} onChange={e => updateCriterion(ci, cri, "focus", e.target.value)} style={{ ...inputStyle, fontSize: 12 }}>
-                        <option value="">Measures...</option>
-                        {MODEL.focus.map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
-                      </select>
-                      {cr.critical && (
-                        <select aria-label={`${cat.name} criterion ${cri + 1} auto-fail reason`} value={cr.reason} onChange={e => updateCriterion(ci, cri, "reason", e.target.value)} style={{ ...inputStyle, fontSize: 12 }}>
-                          <option value="">Auto-fail reason...</option>
-                          {MODEL.reasons.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
-                        </select>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                <button onClick={() => addCriterion(ci)} style={{ fontSize: 12, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", marginTop: 6, fontWeight: 600 }}>+ Add criterion</button>
-              </div>
+      <section aria-label="2. Form check" style={K.panel}>
+        <h2 style={K.h2}>2. Form check</h2>
+        <p style={{ ...K.body, marginBottom: 12 }}>What this form measures, by share of its weight. This is shown as a fact: no source says what the right mix is.</p>
+        <div style={{ ...K.grid(150), marginBottom: 14 }}>
+          {L.mix.map(m => (
+            <div key={m.focus} style={K.box}>
+              <div style={{ ...K.strong, ...K.num, fontSize: 24 }}>{pct(m.weight)}</div>
+              <div style={K.small}>{m.label}</div>
             </div>
           ))}
-          <button onClick={addCategory} style={{ padding: "10px 20px", fontSize: 13, fontWeight: 600, borderRadius: 6, border: `1px dashed ${ELECTRIC}`, background: "transparent", color: ELECTRIC, cursor: "pointer", width: "100%", marginBottom: 32 }}>+ Add Category</button>
+        </div>
+        {L.findings.length ? L.findings.map((f, i) => <Finding key={i} f={f} />) : <p style={{ ...K.body, color: K.strong.color, fontWeight: 600 }}>The form passes every published check.</p>}
+      </section>
 
-          <h2 style={H2}>2. Form check</h2>
-          <p style={P}>What this form measures, by share of its weight. This is shown as a fact: no source says what the right mix is.</p>
-          <div className="pg" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 14 }}>
-            {L.mix.map(m => (
-              <div key={m.focus} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: NAVY }}>{pct(m.weight)}</div>
-                <div style={{ fontSize: 12, color: SLATE }}>{m.label}</div>
-              </div>
-            ))}
-          </div>
-          {L.findings.length ? L.findings.map((f, i) => <Finding key={i} f={f} />) : <p style={{ ...P, color: "#047857", fontWeight: 600 }}>The form passes every published check.</p>}
-
-          <h2 id="score" style={{ ...H2, marginTop: 36 }}>3. Score a call</h2>
-          <p style={P}>For each evaluator in a calibration session: enter your initials and the call ID, mark every criterion, then send your submission code to your QA lead. You see only your own score. Nobody sees how it compares until every evaluator has scored every call.</p>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
-            <input type="text" aria-label="Your initials" placeholder="Your initials" value={evaluator} onChange={e => setEvaluator(e.target.value.replace(/[^A-Za-z0-9 ._-]/g, "").slice(0, 24))} style={{ ...inputStyle, width: 160 }} />
-            <input type="text" aria-label="Call ID" placeholder="Call ID" value={call} onChange={e => setCall(e.target.value.replace(/[^A-Za-z0-9 ._-]/g, "").slice(0, 24))} style={{ ...inputStyle, width: 160 }} />
-          </div>
-          <div style={{ background: `${GREEN}05`, border: `1px solid ${GREEN}30`, borderRadius: 12, padding: "20px 24px", marginBottom: 28 }}>
-            {categories.map((cat, ci) => (
-              <div key={ci} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>{cat.name} ({cat.weight}%)</div>
-                {cat.criteria.map((cr, cri) => {
-                  const v = evalScores[`${ci}-${cri}`];
-                  return (
-                    <div key={cri} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
-                      <span style={{ flex: 1, fontSize: 13, color: NAVY }}>{cr.critical && <span style={{ color: "#B91C1C", fontWeight: 700, marginRight: 4 }} title="Auto-fail">*</span>}{cr.text}{cr.def && <span style={{ display: "block", fontSize: 12, color: MUTED }}>{cr.def}</span>}</span>
-                      <div style={{ display: "flex", gap: 4 }}>
-                        <button aria-pressed={v === true} aria-label={`${cr.text}: yes`} onClick={() => setEval(ci, cri, true)} style={{ padding: "4px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${v === true ? GREEN : BORDER}`, background: v === true ? GREEN : "#fff", color: v === true ? "#fff" : SLATE, cursor: "pointer" }}>Yes</button>
-                        <button aria-pressed={v === false} aria-label={`${cr.text}: no`} onClick={() => setEval(ci, cri, false)} style={{ padding: "4px 12px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: `1px solid ${v === false ? RED : BORDER}`, background: v === false ? RED : "#fff", color: v === false ? "#fff" : SLATE, cursor: "pointer" }}>No</button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-            {!own && <p style={{ fontSize: 13, color: SLATE }}>{markedCount} of {crit.length} criteria marked. Your score and submission code appear once every criterion is marked.</p>}
-            {own && (
-              <div style={{ background: "#fff", border: `1px solid ${own.autoFail ? RED : BORDER}`, borderRadius: 8, padding: "16px", marginTop: 8 }}>
-                <div style={{ fontSize: 30, fontWeight: 700, color: own.autoFail ? "#B91C1C" : NAVY }}>{own.autoFail ? "Auto-fail" : `${own.score.toFixed(0)}%`}</div>
-                <div style={{ fontSize: 12, color: SLATE }}>{own.autoFail ? `An auto-fail criterion was missed. Weighted score before the auto-fail: ${own.score.toFixed(0)}%.` : "Weighted score."} Any pass mark is your program's own; this tool sets none.</div>
-                {code ? (
-                  <div style={{ marginTop: 12 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }} htmlFor="qa-code">Your submission code. Send it to your QA lead.</label>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <input id="qa-code" readOnly value={code} onFocus={e => e.target.select()} style={{ ...inputStyle, flex: 1, fontFamily: "monospace", fontSize: 12 }} />
-                      <button onClick={copy} style={{ padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 4, border: "none", background: NAVY, color: "#fff", cursor: "pointer" }}>{copied ? "Copied" : "Copy"}</button>
-                    </div>
-                    <p style={{ fontSize: 12, color: SLATE, marginTop: 8 }}>One code per call. To score another call, change the call ID and mark the criteria again. If you are also the QA lead, <button onClick={addMine} style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", padding: 0 }}>{added ? "added to your session in step 4" : "add this code to your session in step 4"}</button>.</p>
+      <section aria-label="3. Score a call" style={K.panel}>
+        <h2 id="score" style={K.h2}>3. Score a call</h2>
+        <p style={{ ...K.body, marginBottom: 12 }}>For each evaluator in a calibration session: enter your initials and the call ID, mark every criterion, then send your submission code to your QA lead. You see only your own score. Nobody sees how it compares until every evaluator has scored every call.</p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+          <input type="text" aria-label="Your initials" placeholder="Your initials" value={evaluator} onChange={e => setEvaluator(e.target.value.replace(/[^A-Za-z0-9 ._-]/g, "").slice(0, 24))} style={{ ...inputStyle, width: 170 }} />
+          <input type="text" aria-label="Call ID" placeholder="Call ID" value={call} onChange={e => setCall(e.target.value.replace(/[^A-Za-z0-9 ._-]/g, "").slice(0, 24))} style={{ ...inputStyle, width: 170 }} />
+        </div>
+        {categories.map((cat, ci) => (
+          <div key={ci} style={{ marginBottom: 14 }}>
+            <div style={{ ...K.kicker, marginBottom: 6 }}>{cat.name} ({cat.weight}%)</div>
+            {cat.criteria.map((cr, cri) => {
+              const v = evalScores[`${ci}-${cri}`];
+              return (
+                <div key={cri} style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", flexWrap: "wrap" }}>
+                  <span style={{ ...K.body, color: K.strong.color, flex: 1, minWidth: 200 }}>{cr.critical && <strong title="Auto-fail" style={{ marginRight: 4 }}>Auto-fail:</strong>}{cr.text}{cr.def && <span style={{ ...K.small, display: "block" }}>{cr.def}</span>}</span>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {[[true, "Yes"], [false, "No"]].map(([val, l]) => (
+                      <button key={l} type="button" aria-pressed={v === val} aria-label={`${cr.text}: ${l.toLowerCase()}`} onClick={() => setEval(ci, cri, val)} style={{ minHeight: TOUCH, minWidth: 64, padding: "0 12px", fontFamily: FONT, fontSize: 14, fontWeight: v === val ? 700 : 500, borderRadius: RADIUS.field, border: `${v === val ? 2 : 1}px solid ${v === val ? K.strong.color : K.firm}`, background: v === val ? K.shade(0) : "transparent", color: K.strong.color, cursor: "pointer" }}>{v === val ? "\u2713 " : ""}{l}</button>
+                    ))}
                   </div>
-                ) : <p style={{ fontSize: 12, color: SLATE, marginTop: 10 }}>Enter your initials and the call ID to get your submission code.</p>}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+        {!own && <p style={K.small}>{markedCount} of {crit.length} criteria marked. Your score and submission code appear once every criterion is marked.</p>}
+        {own && (
+          <div style={{ ...K.box, border: `${own.autoFail ? 2 : 1}px solid ${own.autoFail ? K.strong.color : K.hair}`, marginTop: 8 }}>
+            <div style={{ ...K.stat }}>{own.autoFail ? "Auto-fail" : `${own.score.toFixed(0)}%`}</div>
+            <div style={K.small}>{own.autoFail ? `An auto-fail criterion was missed. Weighted score before the auto-fail: ${own.score.toFixed(0)}%.` : "Weighted score."} Any pass mark is your program's own; this tool sets none.</div>
+            {code ? (
+              <div style={{ marginTop: 12 }}>
+                <label style={{ ...K.strong, fontSize: 14, display: "block", marginBottom: 6 }} htmlFor="qa-code">Your submission code. Send it to your QA lead.</label>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <input id="qa-code" readOnly value={code} onFocus={e => e.target.select()} style={{ ...inputStyle, flex: 1, minWidth: 200, fontFamily: "monospace", fontSize: 13 }} />
+                  <Button kind="secondary" onClick={copy}>{copied ? "Copied" : "Copy"}</Button>
+                </div>
+                <p style={{ ...K.small, marginTop: 8 }}>One code per call. To score another call, change the call ID and mark the criteria again. If you are also the QA lead, <button type="button" onClick={addMine} style={textLink}>{added ? "added to your session in step 4" : "add this code to your session in step 4"}</button>.</p>
               </div>
-            )}
+            ) : <p style={{ ...K.small, marginTop: 10 }}>Enter your initials and the call ID to get your submission code.</p>}
           </div>
+        )}
+      </section>
 
-          <h2 style={H2}>4. Calibration session</h2>
-          <p style={P}>For the QA lead. A session runs in four steps:</p>
-          <ol style={{ ...P, paddingLeft: 22 }}>
-            <li>Pick 3 or more calls that range from weak to strong. The method measures whether evaluators separate good calls from weak ones, so a set of similar calls reads as low agreement.</li>
-            <li>Send each evaluator this form: <button onClick={copyLink} style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", padding: 0 }}>{linkCopied ? "evaluator link copied" : "copy the evaluator link"}</button>. It opens this form at step 3, with nothing marked.</li>
-            <li>Each evaluator enters their initials and the call ID, marks every criterion, and sends you the code that appears. One code per evaluator per call.</li>
-            <li>Paste every code below, one per line. Results stay sealed until every evaluator has scored every call.</li>
-          </ol>
-          <p style={{ fontSize: 13, color: SLATE, marginBottom: 10 }}>To see how results read first, <button onClick={loadSample} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", padding: 0 }}>load a sample session</button>: three evaluators on three calls, on the General Inbound form.</p>
-          <textarea aria-label="Submission codes, one per line" value={session.codes.join("\n")} onChange={e => setSession(s => ({ ...s, codes: e.target.value.split("\n").slice(0, 400) }))} rows={5} style={{ ...inputStyle, width: "100%", fontFamily: "monospace", fontSize: 12, marginBottom: 10 }} placeholder={"One code per line. Each looks like:\n" + example} />
-          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
-            <label htmlFor="qa-ref" style={{ fontSize: 13, color: SLATE }}>Reference evaluator (optional, measures accuracy):</label>
-            <select id="qa-ref" value={session.reference} onChange={e => setSession(s => ({ ...s, reference: e.target.value }))} style={{ ...inputStyle, fontSize: 12 }}>
-              <option value="">None</option>
-              {C.names.map(e => <option key={e} value={e}>{e}</option>)}
-            </select>
+      <section aria-label="4. Calibration session" style={K.panel}>
+        <h2 style={K.h2}>4. Calibration session</h2>
+        <p style={K.body}>For the QA lead. A session runs in four steps:</p>
+        <ol style={{ ...K.body, paddingLeft: 22, margin: "8px 0 12px" }}>
+          <li>Pick 3 or more calls that range from weak to strong. The method measures whether evaluators separate good calls from weak ones, so a set of similar calls reads as low agreement.</li>
+          <li>Send each evaluator this form: <button type="button" onClick={copyLink} style={textLink}>{linkCopied ? "evaluator link copied" : "copy the evaluator link"}</button>. It opens this form at step 3, with nothing marked.</li>
+          <li>Each evaluator enters their initials and the call ID, marks every criterion, and sends you the code that appears. One code per evaluator per call.</li>
+          <li>Paste every code below, one per line. Results stay sealed until every evaluator has scored every call.</li>
+        </ol>
+        <p style={{ ...K.small, marginBottom: 10 }}>To see how results read first, <button type="button" onClick={loadSample} style={textLink}>load a sample session</button>: three evaluators on three calls, on the General Inbound form.</p>
+        <textarea aria-label="Submission codes, one per line" value={session.codes.join("\n")} onChange={e => setSession(s => ({ ...s, codes: e.target.value.split("\n").slice(0, 400) }))} rows={5} style={{ ...inputStyle, width: "100%", padding: "10px 12px", fontFamily: "monospace", fontSize: 13, marginBottom: 10 }} placeholder={"One code per line. Each looks like:\n" + example} />
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
+          <label htmlFor="qa-ref" style={K.small}>Reference evaluator (optional, measures accuracy):</label>
+          <select id="qa-ref" className="qa-sel" value={session.reference} onChange={e => setSession(s => ({ ...s, reference: e.target.value }))} style={{ ...selectStyle, width: "auto", fontSize: 14 }}>
+            <option value="">None</option>
+            {C.names.map(e => <option key={e} value={e}>{e}</option>)}
+          </select>
+        </div>
+        <p style={{ ...K.small, marginBottom: 8 }}>{C.accepted} codes accepted from {C.evaluators} evaluators on {C.calls} calls{C.rejected.length ? `; ${C.rejected.length} set aside` : ""}.</p>
+        {C.rejected.map((r, i) => <p key={i} style={{ ...K.small, color: K.strong.color }}><strong>Set aside.</strong> Line {r.index + 1}: {r.reason}.</p>)}
+        {C.rejected.length > 0 && <p style={{ ...K.small, marginBottom: 8 }}>Codes come from step 3: an evaluator marks every criterion for one call and the code appears under their score. A code starts with QA1 and carries this form's fingerprint, {qaFormKey(form)}, so a code scored on a different form is set aside.</p>}
+        {!CR && C.calls > 0 && (
+          <div style={{ ...K.box, margin: "10px 0 0" }}>
+            <p style={{ ...K.strong, fontSize: 14, marginBottom: 6 }}>Sealed. Results appear once every evaluator has scored every call{C.raters < MODEL.thresholds.minEvaluators.value ? `, with at least ${MODEL.thresholds.minEvaluators.value} evaluators besides any reference` : ""}.</p>
+            {C.status.map(st => <p key={st.call} style={K.small}>Call {st.call}: {st.scored} of {st.of} evaluators.</p>)}
           </div>
-          <p style={{ fontSize: 13, color: SLATE, marginBottom: 8 }}>{C.accepted} codes accepted from {C.evaluators} evaluators on {C.calls} calls{C.rejected.length ? `; ${C.rejected.length} set aside` : ""}.</p>
-          {C.rejected.map((r, i) => <p key={i} style={{ fontSize: 12, color: "#B91C1C" }}>Line {r.index + 1}: {r.reason}.</p>)}
-          {C.rejected.length > 0 && <p style={{ fontSize: 12, color: SLATE, marginBottom: 8 }}>Codes come from step 3: an evaluator marks every criterion for one call and the code appears under their score. A code starts with QA1 and carries this form's fingerprint, {qaFormKey(form)}, so a code scored on a different form is set aside.</p>}
-          {!CR && C.calls > 0 && (
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 16px", margin: "10px 0 24px" }}>
-              <p style={{ fontSize: 13, color: NAVY, fontWeight: 600, marginBottom: 6 }}>Sealed. Results appear once every evaluator has scored every call{C.raters < MODEL.thresholds.minEvaluators.value ? `, with at least ${MODEL.thresholds.minEvaluators.value} evaluators besides any reference` : ""}.</p>
-              {C.status.map(s => <p key={s.call} style={{ fontSize: 12, color: SLATE }}>Call {s.call}: {s.scored} of {s.of} evaluators.</p>)}
+        )}
+        {CR && (
+          <div style={{ marginTop: 10 }}>
+            <p style={{ ...K.small, marginBottom: 10 }}>{MODEL.method.name} {MODEL.method.version}. Intervals are {Math.round(MODEL.bootstrap.level * 100)}% bootstrap intervals over calls.{CR.graded ? "" : ` Fewer than ${MODEL.thresholds.minCalls.value} calls: shown, not graded.`}</p>
+            <div style={{ ...K.grid(180), marginBottom: 14 }}>
+              {CR.measures.map(m => (
+                <div key={m.id} style={K.box}>
+                  <div style={{ ...K.strong, fontSize: 13 }}>{m.label}</div>
+                  <div style={{ ...K.strong, ...K.num, fontSize: 24 }}>{num(m.value)}</div>
+                  <div style={{ ...K.strong, fontSize: 13 }}>{gradeOf(m).label}</div>
+                  <div style={{ ...K.small, marginTop: 4 }}>{m.interval ? `Interval ${num(m.interval.low)} to ${num(m.interval.high)}. ` : ""}Percent agreement {m.agreement === null ? "n/a" : Math.round(m.agreement * 100) + "%"}{m.id === "score" ? " (identical totals)" : ""}.</div>
+                </div>
+              ))}
             </div>
-          )}
-          {CR && (
-            <div style={{ margin: "10px 0 24px" }}>
-              <p style={{ fontSize: 12, color: SLATE, marginBottom: 10 }}>{MODEL.method.name} {MODEL.method.version}. Intervals are {Math.round(MODEL.bootstrap.level * 100)}% bootstrap intervals over calls.{CR.graded ? "" : ` Fewer than ${MODEL.thresholds.minCalls.value} calls: shown, not graded.`}</p>
-              <div className="pg" style={{ display: "grid", gridTemplateColumns: `repeat(${CR.measures.length}, 1fr)`, gap: 10, marginBottom: 14 }}>
-                {CR.measures.map(m => (
-                  <div key={m.id} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{m.label}</div>
-                    <div style={{ fontSize: 24, fontWeight: 700, color: gradeOf(m).color }}>{num(m.value)}</div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: gradeOf(m).color }}>{gradeOf(m).label}</div>
-                    <div style={{ fontSize: 12, color: SLATE, marginTop: 4 }}>{m.interval ? `Interval ${num(m.interval.low)} to ${num(m.interval.high)}. ` : ""}Percent agreement {m.agreement === null ? "n/a" : Math.round(m.agreement * 100) + "%"}{m.id === "score" ? " (identical totals)" : ""}.</div>
-                  </div>
-                ))}
+            <div style={K.grid(240)}>
+              <div style={K.box}>
+                <div style={{ ...K.strong, fontSize: 13, marginBottom: 6 }}>Evaluator bias, points against the others</div>
+                {CR.bias.map(b => <p key={b.evaluator} style={K.body}>{b.evaluator}: {b.bias >= 0 ? "+" : ""}{b.bias.toFixed(1)}</p>)}
+                {CR.accuracy.map(a => <p key={a.evaluator} style={K.small}>{a.evaluator} matches the reference on {Math.round(a.match * 100)}% of marks.</p>)}
               </div>
-              <div className="pg" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Evaluator bias, points against the others</div>
-                  {CR.bias.map(b => <p key={b.evaluator} style={{ fontSize: 13, color: SLATE }}>{b.evaluator}: {b.bias >= 0 ? "+" : ""}{b.bias.toFixed(1)}</p>)}
-                  {CR.accuracy.map(a => <p key={a.evaluator} style={{ fontSize: 12, color: SLATE }}>{a.evaluator} matches the reference on {Math.round(a.match * 100)}% of marks.</p>)}
-                </div>
-                <div style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Score range by call</div>
-                  {CR.spread.map(s => <p key={s.call} style={{ fontSize: 13, color: s.wide ? "#B45309" : SLATE }}>Call {s.call}: {Math.round(s.low)} to {Math.round(s.high)}</p>)}
-                </div>
+              <div style={K.box}>
+                <div style={{ ...K.strong, fontSize: 13, marginBottom: 6 }}>Score range by call</div>
+                {CR.spread.map(sp => <p key={sp.call} style={{ ...K.body, fontWeight: sp.wide ? 700 : 400 }}>Call {sp.call}: {Math.round(sp.low)} to {Math.round(sp.high)}{sp.wide ? ", wide" : ""}</p>)}
               </div>
             </div>
-          )}
-
-          <h2 style={H2}>5. Findings and next step</h2>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
-            {Object.keys(SEV_STYLE).map(sv => <span key={sv} style={{ fontSize: 12, fontWeight: 700, color: sevCount(sv) ? "#fff" : SLATE, background: sevCount(sv) ? SEV_STYLE[sv].color : WARM, border: `1px solid ${BORDER}`, padding: "4px 10px", borderRadius: 6 }}>{sevCount(sv)} {SEV_STYLE[sv].label.toLowerCase()}</span>)}
           </div>
-          {R.findings.map((f, i) => <Finding key={i} f={f} />)}
-          <p style={{ ...P, marginTop: 14, fontWeight: 600, color: NAVY }}>Next step: {NEXT_TEXT[R.next.step]}{nextTool && <> <a href={nextTool.href} style={{ color: ELECTRIC }}>Open {nextTool.name}</a>.</>}</p>
+        )}
+      </section>
 
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", margin: "24px 0" }}>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", lineHeight: 1.65, margin: 0 }}>
-              <strong style={{ color: "#fff" }}>One form per contact type.</strong> A password reset and a billing dispute call for different criteria. One form for every contact type is either too generic for complex calls or penalizes simple calls for criteria that do not apply. Build a form for each contact type, complexity or risk level, and weight what matters for each.
-            </p>
-          </div>
+      <section aria-label="5. Findings and next step" style={K.panel}>
+        <h2 style={K.h2}>5. Findings and next step</h2>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+          {Object.keys(SEV_STYLE).map(sv => <span key={sv} style={chip(sv)}>{sevCount(sv)} {SEV_STYLE[sv].label.toLowerCase()}</span>)}
+        </div>
+        {R.findings.map((f, i) => <Finding key={i} f={f} />)}
+        <p style={{ ...K.body, marginTop: 14, fontWeight: 600, color: K.strong.color }}>Next step: {NEXT_TEXT[R.next.step]}{nextTool && <> <a href={nextTool.href} style={K.link}>Open {nextTool.name}</a>.</>}</p>
+      </section>
 
+      <section aria-label="One form per contact type" style={K.lead}>
+        <p style={K.body}><strong style={{ color: K.strong.color }}>One form per contact type.</strong> A password reset and a billing dispute call for different criteria. One form for every contact type is either too generic for complex calls or penalizes simple calls for criteria that do not apply. Build a form for each contact type, complexity or risk level, and weight what matters for each.</p>
+      </section>
+
+      <Paper>
           <ReportActions next={R.next && R.next.tool ? { to: R.next.tool, because: "Test whether the scores track the repeat contacts they should prevent." } : null}
             toolId={TOOL_ID}
             toolName="QA Scorecard"
@@ -355,8 +356,7 @@ export default function QAScorecardBuilder() {
               { title: "Method", type: "text", content: MODEL.method.name + " " + MODEL.method.version + ". " + MODEL.method.summary + " Published at contactcentercx.com" + MODEL.methodology + "." },
             ]}
           />
-        </div>
-      </section>
-    </div>
+      </Paper>
+    </ToolFrame>
   );
 }

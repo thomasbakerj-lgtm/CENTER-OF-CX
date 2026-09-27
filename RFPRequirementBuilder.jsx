@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { ToolHero } from "./src/lib/ToolShell";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Button } from "./src/lib/ui.jsx";
+import { K, Paper, Group, Choice, numInput, selectStyle, optionCss, frameMethod } from "./src/lib/frameKit.jsx";
+import { methodStamp } from "./src/lib/methodVersions.js";
+import { TOUCH, RADIUS } from "./src/lib/tokens.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -11,13 +15,10 @@ import { rfpRequirements, scoreRfp } from "./src/lib/rfp";
    the published model (src/lib/rubrics/rfpBuilder.js) and the engine (src/lib/rfp.js);
    this file only presents them. */
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
-const WRAP = { maxWidth: 960, margin: "0 auto", padding: "0 28px" };
-const PRI_COLOR = { must: "#B91C1C", should: "#B45309", nice: MUTED };
+/* A priority or a severity is a word on the page; the PDF prints its label. */
 const PRI_LABEL = Object.fromEntries(MODEL.priorities.map((p) => [p.id, p.label]));
-const SEV_STYLE = { critical: { label: "Critical", color: "#B91C1C" }, high: { label: "High", color: "#C2410C" }, medium: { label: "Medium", color: "#B45309" }, info: { label: "Insight", color: "#1D4ED8" } };
+const SEV_STYLE = { critical: { label: "Critical" }, high: { label: "High" }, medium: { label: "Medium" }, info: { label: "Insight" } };
 const RESP = Object.fromEntries(MODEL.responses.map((r) => [r.id, r]));
-const LAYER_COLOR = Object.fromEntries(MODEL.layers.map((l) => [l.n, l.color]));
 const toolOf = (id) => (JOURNEY[id] ? { name: JOURNEY[id].name, href: JOURNEY[id].route } : null);
 
 const TOOL_ID = "rfp-builder";
@@ -69,15 +70,15 @@ const cleanState = (sc) => {
   return { vertical, size, activeTags: tags.includes("all") ? tags : ["all", ...tags], reqs, vendors, responses, verified, weights };
 };
 
-const btn = (on, color) => ({ padding: "4px 9px", fontSize: 12, fontWeight: 600, borderRadius: 4, cursor: "pointer", border: `1px solid ${on ? color : BORDER}`, background: on ? color : "#fff", color: on ? "#fff" : SLATE });
-const H2 = { fontFamily: FONT, fontSize: 22, fontWeight: 700, color: NAVY, margin: "32px 0 8px" };
-const P = { fontSize: 14, color: SLATE, lineHeight: 1.6, marginBottom: 12 };
+const chip = (sv) => ({ display: "inline-block", fontFamily: FONT, fontSize: 13, fontWeight: 700, padding: "3px 10px", borderRadius: RADIUS.chip, border: `${sv === "critical" ? 2 : 1}px ${sv === "info" ? "dashed" : "solid"} ${sv === "critical" || sv === "high" ? K.strong.color : K.firm}`, color: K.strong.color, flexShrink: 0, minWidth: 72, textAlign: "center" });
+const tabStyle = (on) => ({ minHeight: TOUCH, padding: "0 12px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer", border: `1px solid ${on ? K.strong.color : K.firm}`, background: "transparent", color: K.strong.color });
+const cellSelect = { ...selectStyle, fontSize: 13, padding: "0 8px" };
 
 function Finding({ f }) {
   return (
-    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderBottom: `1px solid ${BORDER}` }}>
-      <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: SEV_STYLE[f.severity].color, padding: "2px 8px", borderRadius: 4, flexShrink: 0, minWidth: 64, textAlign: "center" }}>{SEV_STYLE[f.severity].label}</span>
-      <div><div style={{ fontSize: 14, color: NAVY, fontWeight: 600 }}>{f.action}</div><div style={{ fontSize: 12, color: SLATE, marginTop: 2 }}>{f.title}.</div></div>
+    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 0", borderTop: `1px solid ${K.hair}` }}>
+      <span style={chip(f.severity)}>{SEV_STYLE[f.severity].label}</span>
+      <div><div style={{ ...K.strong, fontSize: 15, lineHeight: "22px" }}>{f.action}</div><div style={{ ...K.small, marginTop: 3 }}>{f.title}.</div></div>
     </div>
   );
 }
@@ -139,101 +140,106 @@ export default function RFPRequirementBuilder() {
   ];
 
   const ReqRow = ({ r, edit }) => (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 14px", borderTop: `1px solid ${BORDER}`, fontSize: 13, color: SLATE, flexWrap: "wrap" }}>
-      <span style={{ flex: 1, minWidth: 220 }}>{r.text}</span>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: `1px solid ${K.hair}`, flexWrap: "wrap" }}>
+      <span style={{ ...K.body, flex: 1, minWidth: 200 }}>{r.text}</span>
       {edit
-        ? <div role="group" aria-label={`${r.text}: priority`} style={{ display: "flex", gap: 3 }}>{MODEL.priorities.map((p) => <button key={p.id} aria-pressed={r.priority === p.id} onClick={() => setReq(r.key, p.id)} style={btn(r.priority === p.id, PRI_COLOR[p.id])}>{p.label.split(" ")[0]}</button>)}</div>
-        : <span style={{ fontSize: 12, fontWeight: 700, color: PRI_COLOR[r.priority] }}>{PRI_LABEL[r.priority]}</span>}
+        ? <Choice label={`${r.text}: priority`} options={MODEL.priorities.map((p) => [p.id, p.label.split(" ")[0]])} value={r.priority} onPick={(v) => setReq(r.key, v)} />
+        : <span style={{ ...K.strong, fontSize: 13, fontWeight: r.priority === "must" ? 700 : 500 }}>{PRI_LABEL[r.priority]}</span>}
     </div>
   );
   const Groups = ({ edit }) => groups.map((g) => (
-    <div key={g.n} style={{ marginBottom: 16, border: `1px solid ${BORDER}`, borderRadius: 8, overflow: "hidden" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: WARM }}>
-        <span style={{ width: 22, height: 22, borderRadius: 4, background: g.n ? LAYER_COLOR[g.n] : GREEN, color: "#fff", fontSize: 12, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>{g.n || "V"}</span>
-        <span style={{ fontSize: 14, fontWeight: 700, color: NAVY }}>{g.n ? `L${g.n} ${g.name}` : `${g.name} requirements`}</span>
-        <span style={{ fontSize: 12, color: MUTED }}>({g.reqs.length})</span>
-      </div>
+    <section key={g.n} aria-label={g.n ? `L${g.n} ${g.name}` : `${g.name} requirements`} style={K.panel}>
+      <h2 style={{ ...K.h2, fontSize: 17 }}>{g.n ? `L${g.n} ${g.name}` : `${g.name} requirements`} <span style={K.small}>({g.reqs.length})</span></h2>
       {g.reqs.map((r) => <ReqRow key={r.key} r={r} edit={edit} />)}
-    </div>
+    </section>
   ));
 
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
-      <ToolHero wrap={WRAP} eyebrow="Vendor Selection" title="RFP Requirement Builder"
-        intro="Build weighted requirements for your platform RFP by layer, then score each vendor's response: who meets every must-have, where the choice is actually decided, what to script in each demo, and which claims still need proof.">
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every requirement, weight and scoring rule is in the <a href={MODEL.methodology} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-      </ToolHero>
+  const met = R.vendors.filter((v) => v.status === "meets").length;
+  const result = phase === "results"
+    ? <Result label={scoring ? "Vendors meeting every must-have" : "Requirements"} value={scoring ? `${met} of ${R.vendors.length}` : String(all.length)} change={scoring ? `${all.length} requirements, ${R.counts.must} must-haves.` : `${R.counts.must} must, ${R.counts.should} should, ${R.counts.nice} nice to have. Add vendors to score their responses.`} />
+    : <Result label="Requirements so far" value={String(all.length)} change="Set your environment and focus areas, then review the priorities." />;
 
-      {phase === "input" && (
-        <section style={{ background: "#fff", padding: "48px 28px" }}><div style={{ ...WRAP, maxWidth: 760 }}>
-          <div style={{ display: "flex", gap: 4, marginBottom: 28 }}>
-            {["Environment", "Focus Areas", "Review + Customize"].map((s, i) => <button key={s} aria-pressed={step === i} onClick={() => setStep(i)} style={{ flex: 1, padding: "10px", border: "none", borderBottom: `3px solid ${step === i ? ELECTRIC : BORDER}`, background: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, color: step === i ? NAVY : MUTED }}>{s}</button>)}
-          </div>
-          {step === 0 && (<div>
-            <h2 style={{ ...H2, marginTop: 0 }}>Your environment</h2>
-            <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", margin: "12px 0 4px" }} htmlFor="rfp-vertical">Industry vertical</label>
-            <select id="rfp-vertical" value={vertical} onChange={(e) => setVertical(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, color: NAVY }}><option value="">Select...</option>{MODEL.verticals.map((v) => <option key={v} value={v}>{v}</option>)}</select>
-            <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", margin: "12px 0 4px" }} htmlFor="rfp-size">Operation size</label>
-            <select id="rfp-size" value={size} onChange={(e) => setSize(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, color: NAVY }}><option value="">Select...</option>{MODEL.sizes.map((s) => <option key={s} value={s}>{s}</option>)}</select>
-            <button onClick={() => setStep(1)} disabled={!vertical || !size} style={{ marginTop: 24, padding: "12px 28px", fontSize: 14, fontWeight: 600, borderRadius: 8, border: "none", background: vertical && size ? ELECTRIC : MUTED, color: "#fff", cursor: "pointer" }}>Next: Focus Areas</button>
-          </div>)}
-          {step === 1 && (<div>
-            <h2 style={{ ...H2, marginTop: 0 }}>What are your focus areas?</h2>
-            <p style={P}>Selected from your environment. Add or remove as needed.</p>
-            <div className="pg" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+  return (
+    <ToolFrame toolId={TOOL_ID} choice={R.next || null} section="Vendor Selection" name="RFP Requirement Builder" title="What should your RFP require, and how did each vendor answer?"
+      lede="Build weighted requirements for your platform RFP by layer, then score each vendor's response: who meets every must-have, where the choice is actually decided, what to script in each demo, and which claims still need proof."
+      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={phase === "results" ? (scoring ? { label: "Meet every must-have", value: `${met} of ${R.vendors.length}` } : { label: "Requirements", value: String(all.length) }) : null}>
+      <style>{FONT_IMPORT_CSS + optionCss("rfp-sel")}</style>
+      <p style={K.small}>Every requirement, weight and scoring rule is in the <a href={MODEL.methodology} style={K.link}>published method</a>.</p>
+
+      {phase === "input" && (<>
+        <div role="tablist" aria-label="Steps" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          {["Environment", "Focus Areas", "Review + Customize"].map((st, i) => <button key={st} type="button" role="tab" aria-selected={step === i} onClick={() => setStep(i)} style={tabStyle(step === i)}>{i + 1}. {st}</button>)}
+        </div>
+        {step === 0 && (
+          <Group legend="Your environment">
+            <div style={K.grid(220)}>
+              <label style={{ ...K.strong, fontSize: 14 }} htmlFor="rfp-vertical">Industry vertical
+                <select id="rfp-vertical" className="rfp-sel" value={vertical} onChange={(e) => setVertical(e.target.value)} style={{ ...selectStyle, marginTop: 6 }}><option value="">Select...</option>{MODEL.verticals.map((v) => <option key={v} value={v}>{v}</option>)}</select>
+              </label>
+              <label style={{ ...K.strong, fontSize: 14 }} htmlFor="rfp-size">Operation size
+                <select id="rfp-size" className="rfp-sel" value={size} onChange={(e) => setSize(e.target.value)} style={{ ...selectStyle, marginTop: 6 }}><option value="">Select...</option>{MODEL.sizes.map((sz) => <option key={sz} value={sz}>{sz}</option>)}</select>
+              </label>
+            </div>
+            <div style={{ marginTop: 18 }}><Button onClick={() => setStep(1)} disabled={!vertical || !size}>Next: Focus Areas</Button></div>
+          </Group>
+        )}
+        {step === 1 && (
+          <Group legend="What are your focus areas?" note="Selected from your environment. Add or remove as needed.">
+            <div style={K.grid(240)}>
               {MODEL.tags.map((t) => { const on = activeTags.includes(t.id); return (
-                <button key={t.id} aria-pressed={on} onClick={() => t.id !== "all" && toggleTag(t.id)} style={{ padding: "14px 16px", textAlign: "left", borderRadius: 8, cursor: t.id === "all" ? "default" : "pointer", border: `1px solid ${on ? ELECTRIC : BORDER}`, background: on ? `${ELECTRIC}0D` : "#fff" }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{on ? "✓ " : ""}{t.label}</div>
-                  <div style={{ fontSize: 12, color: MUTED }}>{t.desc}</div>
+                <button key={t.id} type="button" aria-pressed={on} onClick={() => t.id !== "all" && toggleTag(t.id)} style={{ ...K.box, textAlign: "left", cursor: t.id === "all" ? "default" : "pointer", border: `${on ? 2 : 1}px solid ${on ? K.strong.color : K.hair}`, fontFamily: FONT }}>
+                  <div style={{ ...K.strong, fontSize: 14 }}>{on ? "\u2713 " : ""}{t.label}</div>
+                  <div style={K.small}>{t.desc}</div>
                 </button>
               ); })}
             </div>
-            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-              <button onClick={() => setStep(0)} style={{ padding: "12px 24px", fontSize: 14, fontWeight: 600, borderRadius: 8, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>Back</button>
-              <button onClick={() => setStep(2)} style={{ padding: "12px 28px", fontSize: 14, fontWeight: 600, borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", cursor: "pointer" }}>Review Requirements</button>
+            <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
+              <Button kind="secondary" onClick={() => setStep(0)}>Back</Button>
+              <Button onClick={() => setStep(2)}>Review Requirements</Button>
             </div>
-          </div>)}
-          {step === 2 && (<div>
-            <h2 style={{ ...H2, marginTop: 0 }}>Review and set priorities</h2>
-            <p style={P}>{R.counts.must} must, {R.counts.should} should, {R.counts.nice} nice to have, {all.length} in all. Change any priority; your vertical's own requirements are included and start as must-haves.</p>
-            <Groups edit />
-            <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-              <button onClick={() => setStep(1)} style={{ padding: "12px 24px", fontSize: 14, fontWeight: 600, borderRadius: 8, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>Back</button>
-              <button onClick={() => setPhase("results")} style={{ padding: "12px 28px", fontSize: 14, fontWeight: 600, borderRadius: 8, border: "none", background: GREEN, color: "#fff", cursor: "pointer" }}>Generate RFP Document</button>
-            </div>
-          </div>)}
-        </div></section>
-      )}
-
-      {phase === "results" && (
-        <section style={{ background: "#fff", padding: "40px 28px 56px" }}><div style={WRAP}>
-          <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#047857", letterSpacing: 2, textTransform: "uppercase" }}>Your RFP requirements are ready</span>
-            <h2 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 700, color: NAVY, margin: "8px 0" }}>{all.length} requirements across {groups.length} groups</h2>
-            <p style={{ fontSize: 13, color: SLATE }}>{vertical} · {size} · {R.counts.must} must · {R.counts.should} should · {R.counts.nice} nice to have · <button onClick={() => { setPhase("input"); setStep(2); }} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: "none", border: "none", cursor: "pointer", padding: 0 }}>edit</button></p>
+          </Group>
+        )}
+        {step === 2 && (<>
+          <section aria-label="Review and set priorities" style={K.lead}>
+            <h2 style={K.h2}>Review and set priorities</h2>
+            <p style={K.body}>{R.counts.must} must, {R.counts.should} should, {R.counts.nice} nice to have, {all.length} in all. Change any priority; your vertical's own requirements are included and start as must-haves.</p>
+          </section>
+          <Groups edit />
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <Button kind="secondary" onClick={() => setStep(1)}>Back</Button>
+            <Button onClick={() => setPhase("results")}>Generate RFP Document</Button>
           </div>
-          <Groups />
+        </>)}
+      </>)}
 
-          <h2 style={H2}>Score the vendor responses</h2>
-          <p style={P}>When responses come back, add each vendor you sent the RFP to, on this site or not, and record what they answered. Only a generally available capability earns full credit; preview and roadmap earn none; an unanswered line is a question to send back, never a zero. Tick "seen" once a must-have works in the demo.</p>
+      {phase === "results" && (<>
+        <section aria-label="Your RFP requirements" style={K.lead}>
+          <span style={K.kicker}>Your RFP requirements are ready</span>
+          <div style={K.stat}>{all.length} requirements across {groups.length} groups</div>
+          <p style={K.small}>{vertical} · {size} · {R.counts.must} must · {R.counts.should} should · {R.counts.nice} nice to have · <button type="button" onClick={() => { setPhase("input"); setStep(2); }} style={{ ...K.link, background: "none", border: "none", cursor: "pointer", padding: 0, font: "inherit" }}>edit</button></p>
+        </section>
+        <Groups />
+
+        <section aria-label="Score the vendor responses" style={K.panel}>
+          <h2 style={K.h2}>Score the vendor responses</h2>
+          <p style={{ ...K.body, marginBottom: 12 }}>When responses come back, add each vendor you sent the RFP to, on this site or not, and record what they answered. Only a generally available capability earns full credit; preview and roadmap earn none; an unanswered line is a question to send back, never a zero. Tick "seen" once a must-have works in the demo.</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-            {vendors.map((v, vi) => <input key={vi} type="text" aria-label={`Vendor ${vi + 1} name`} placeholder={`Vendor ${vi + 1}`} value={v} onChange={(e) => setVendorName(vi, e.target.value)} style={{ padding: "8px 10px", fontSize: 13, border: `1px solid ${BORDER}`, borderRadius: 6, width: 150 }} />)}
-            {vendors.length < MODEL.thresholds.maxVendors.value && <button onClick={addVendor} style={{ padding: "8px 14px", fontSize: 13, fontWeight: 600, borderRadius: 6, border: `1px dashed ${ELECTRIC}`, background: "none", color: ELECTRIC, cursor: "pointer" }}>+ Add a vendor</button>}
+            {vendors.map((v, vi) => <input key={vi} type="text" aria-label={`Vendor ${vi + 1} name`} placeholder={`Vendor ${vi + 1}`} value={v} onChange={(e) => setVendorName(vi, e.target.value)} style={{ ...numInput, marginTop: 0, width: 170, fontVariantNumeric: "normal" }} />)}
+            {vendors.length < MODEL.thresholds.maxVendors.value && <Button kind="secondary" onClick={addVendor}>+ Add a vendor</Button>}
           </div>
           {scoring && (
-            <div style={{ overflowX: "auto", border: `1px solid ${BORDER}`, borderRadius: 8, marginBottom: 12 }}>
+            <div style={{ overflowX: "auto", border: `1px solid ${K.hair}`, borderRadius: RADIUS.field, marginBottom: 12 }}>
               <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 360 + R.vendors.length * 170 }}>
-                <thead><tr><th style={{ textAlign: "left", padding: "10px 12px", fontSize: 12, color: NAVY, background: WARM }}>Requirement</th>{R.vendors.map((v) => <th key={v.index} style={{ textAlign: "left", padding: "10px 12px", fontSize: 12, color: NAVY, background: WARM }}>{v.name}</th>)}</tr></thead>
+                <thead><tr><th scope="col" style={{ ...K.kicker, textAlign: "left", padding: "10px 12px" }}>Requirement</th>{R.vendors.map((v) => <th key={v.index} scope="col" style={{ ...K.strong, fontSize: 13, textAlign: "left", padding: "10px 12px" }}>{v.name}</th>)}</tr></thead>
                 <tbody>{all.map((r) => (
-                  <tr key={r.key} style={{ borderTop: `1px solid ${BORDER}` }}>
-                    <td style={{ padding: "8px 12px", fontSize: 12, color: SLATE }}><span style={{ fontWeight: 700, color: PRI_COLOR[r.priority] }}>{PRI_LABEL[r.priority].split(" ")[0]}</span> {r.text}</td>
+                  <tr key={r.key} style={{ borderTop: `1px solid ${K.hair}` }}>
+                    <td style={{ ...K.small, padding: "8px 12px", color: K.body.color }}><strong style={{ color: K.strong.color }}>{PRI_LABEL[r.priority].split(" ")[0]}</strong> {r.text}</td>
                     {R.vendors.map((v) => { const c = v.cells.find((x) => x.key === r.key); return (
                       <td key={v.index} style={{ padding: "6px 10px", verticalAlign: "top" }}>
-                        <select aria-label={`${v.name}: ${r.text}`} value={c.response || ""} onChange={(e) => setResponse(v.index, r.key, e.target.value)} style={{ width: "100%", padding: "5px 6px", fontSize: 12, border: `1px solid ${BORDER}`, borderRadius: 4, color: NAVY }}>
+                        <select className="rfp-sel" aria-label={`${v.name}: ${r.text}`} value={c.response || ""} onChange={(e) => setResponse(v.index, r.key, e.target.value)} style={cellSelect}>
                           <option value="">Not answered</option>{MODEL.responses.map((x) => <option key={x.id} value={x.id}>{x.label}</option>)}
                         </select>
-                        {r.priority === "must" && c.response && RESP[c.response].meets && <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: SLATE, marginTop: 4 }}><input type="checkbox" checked={c.verified} onChange={(e) => setVer(v.index, r.key, e.target.checked)} /> seen in demo</label>}
+                        {r.priority === "must" && c.response && RESP[c.response].meets && <label style={{ ...K.small, display: "flex", alignItems: "center", gap: 6, marginTop: 4, minHeight: 32 }}><input type="checkbox" checked={c.verified} onChange={(e) => setVer(v.index, r.key, e.target.checked)} style={{ width: 18, height: 18 }} /> seen in demo</label>}
                       </td>
                     ); })}
                   </tr>
@@ -241,33 +247,39 @@ export default function RFPRequirementBuilder() {
               </table>
             </div>
           )}
-          {scoring && (<>
-            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", fontSize: 13, color: SLATE, marginBottom: 8 }}>
-              <span>Weights (defaults, set your own):</span>
-              {MODEL.priorities.map((p) => <label key={p.id} style={{ display: "flex", alignItems: "center", gap: 4 }}>{p.label} <input type="number" min={0} max={10} aria-label={`${p.label} weight`} value={R.weights[p.id]} onChange={(e) => setWeights((w) => ({ ...w, [p.id]: Math.max(0, Math.min(10, Number(e.target.value) || 0)) }))} style={{ width: 52, padding: "4px 6px", border: `1px solid ${BORDER}`, borderRadius: 4 }} /></label>)}
+          {scoring && (
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+              <span style={{ ...K.small, alignSelf: "center" }}>Weights (defaults, set your own):</span>
+              {MODEL.priorities.map((p) => <label key={p.id} style={{ ...K.small, color: K.strong.color, width: 110 }}>{p.label}<input type="number" min={0} max={10} aria-label={`${p.label} weight`} value={R.weights[p.id]} onChange={(e) => setWeights((w) => ({ ...w, [p.id]: Math.max(0, Math.min(10, Number(e.target.value) || 0)) }))} style={numInput} /></label>)}
             </div>
+          )}
+        </section>
 
-            <h2 style={H2}>Analyst read</h2>
-            <div className="pg" style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(3, R.vendors.length)}, 1fr)`, gap: 10, marginBottom: 16 }}>
+        {scoring && (
+          <section aria-label="Analyst read" style={K.panel}>
+            <h2 style={K.h2}>Analyst read</h2>
+            <div style={{ ...K.grid(200), marginBottom: 14 }}>
               {R.vendors.map((v) => { const o = R.order.find((x) => x.vendor === v.index); return (
-                <div key={v.index} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 16px" }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: NAVY }}>{v.name}</div>
-                  <div style={{ fontSize: 26, fontWeight: 700, color: NAVY, margin: "4px 0" }}>{v.coverage === null ? "n/a" : v.coverage.toFixed(1) + "%"}</div>
-                  <div style={{ fontSize: 12, color: SLATE }}>{o ? "Position " + o.position + (o.tied ? ", tied" : "") : "Not ordered: " + (R.notOrdered.find((x) => x.vendor === v.index) || {}).reason}</div>
-                  <div style={{ fontSize: 12, color: SLATE, marginTop: 6 }}>{v.unmet.length} unmet · {v.notGA.length} not GA · {v.open.length} to clarify · {v.unverified.length} to verify</div>
+                <div key={v.index} style={K.box}>
+                  <div style={{ ...K.strong, fontSize: 15 }}>{v.name}</div>
+                  <div style={{ ...K.strong, ...K.num, fontSize: 26, margin: "4px 0" }}>{v.coverage === null ? "n/a" : v.coverage.toFixed(1) + "%"}</div>
+                  <div style={K.small}>{o ? "Position " + o.position + (o.tied ? ", tied" : "") : "Not ordered: " + (R.notOrdered.find((x) => x.vendor === v.index) || {}).reason}</div>
+                  <div style={{ ...K.small, marginTop: 6 }}>{v.unmet.length} unmet · {v.notGA.length} not GA · {v.open.length} to clarify · {v.unverified.length} to verify</div>
                 </div>
               ); })}
             </div>
             {R.findings.map((f, i) => <Finding key={i} f={f} />)}
-          </>)}
+          </section>
+        )}
 
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", margin: "28px 0" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase" }}>Next move</div>
-            {next && <p style={{ fontSize: 15, color: "#fff", margin: "8px 0", lineHeight: 1.6 }}><a href={next.href} style={{ color: "#fff", fontWeight: 700, textDecoration: "underline" }}>{next.name}</a>, because {NEXT_WHY[R.next]}.</p>}
-            {R.next !== "vendor-match" && toolOf("vendor-match") && <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)" }}>Looking for more vendors to send this to? <a href={toolOf("vendor-match").href} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>Vendor Match</a> builds a starting list from your operation.</p>}
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 6 }}>Running this RFP and want help with the demos, references and negotiation? Use the review request below; your requirements and scores travel with it.</p>
-          </div>
+        <section aria-label="Next move" style={K.lead}>
+          <span style={K.kicker}>Next move</span>
+          {next && <p style={{ ...K.body, color: K.strong.color, margin: "8px 0" }}><a href={next.href} style={K.link}>{next.name}</a>, because {NEXT_WHY[R.next]}.</p>}
+          {R.next !== "vendor-match" && toolOf("vendor-match") && <p style={K.small}>Looking for more vendors to send this to? <a href={toolOf("vendor-match").href} style={K.link}>Vendor Match</a> builds a starting list from your operation.</p>}
+          <p style={{ ...K.small, marginTop: 6 }}>Running this RFP and want help with the demos, references and negotiation? Use the review request below; your requirements and scores travel with it.</p>
+        </section>
 
+        <Paper>
           <ReportActions next={R.next ? { to: R.next, because: "Because " + NEXT_WHY[R.next] + "." } : null}
             toolId={TOOL_ID}
             toolName="RFP Requirements Document"
@@ -283,11 +295,9 @@ export default function RFPRequirementBuilder() {
             ]}
             sections={reportSections}
           />
-          <div style={{ marginTop: 20, textAlign: "center" }}>
-            <span style={{ fontSize: 13, color: MUTED }}>Want expert eyes on this? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Connect with a consultant</a></span>
-          </div>
-        </div></section>
-      )}
-    </div>
+        </Paper>
+        <p style={K.small}>Want expert eyes on this? <a href="/contact" style={K.link}>Connect with a consultant</a></p>
+      </>)}
+    </ToolFrame>
   );
 }

@@ -106,14 +106,15 @@ section("4. Layout and house rules");
   ok("no dash characters", !new RegExp("[" + String.fromCharCode(0x2013, 0x2014) + "]").test(SRC));
 }
 
-section("5. Tools on the frame (Phase 6, batches 1 to 4)");
+section("5. Tools on the frame (Phase 6, batches 1 to 5)");
 {
   // Each migrated tool renders inside the frame: the frame owns the one h1, the route rail and the result column.
   // The engine, grading and report payload stay where the tool's harnesses slice them.
   const MOVED = { "cost-per-contact": "CostPerContactCalculator.jsx", "fcr-leakage": "FCRLeakageDiagnostic.jsx", "ai-deflection": "AIDeflectionRealityCheck.jsx", "business-case-builder": "BusinessCaseBuilder.jsx",
     "tco-calculator": "TCOCalculator.jsx", "license-gap": "LicenseBundleGapChecker.jsx", "staffing-calculator": "StaffingCalculator.jsx", "attrition-cost": "AttritionCostCalculator.jsx", "channel-shift": "ChannelShiftModel.jsx",
     "occupancy-risk": "OccupancyRiskSimulator.jsx", "shrinkage-planner": "ShrinkagePlanner.jsx", "aht-decomposition": "AHTDecomposition.jsx", "forecast-accuracy": "ForecastAccuracyTracker.jsx", "schedule-adherence": "ScheduleAdherenceCalculator.jsx",
-    "cx-maturity": "CXMaturity.jsx", "ai-readiness": "AIReadiness.jsx", "transformation-readiness": "TransformationReadiness.jsx", "cx-it-alignment": "CXITAlignment.jsx", "governance-model": "GovernanceModel.jsx" };
+    "cx-maturity": "CXMaturity.jsx", "ai-readiness": "AIReadiness.jsx", "transformation-readiness": "TransformationReadiness.jsx", "cx-it-alignment": "CXITAlignment.jsx", "governance-model": "GovernanceModel.jsx",
+    "qa-scorecard": "QAScorecardBuilder.jsx", "platform-decision": "PlatformDecisionMatrix.jsx", "rfp-builder": "RFPRequirementBuilder.jsx", "contract-risk": "ContractRiskScanner.jsx" };
   for (const [id, file] of Object.entries(MOVED)) {
     const T = readFileSync("./" + file, "utf8");
     ok(`${id}: renders in the frame with its own id, a result and no h1 of its own`, /import \{ ToolFrame \} from "\.\/src\/lib\/ToolFrame\.jsx";/.test(T) && /<ToolFrame toolId=\{TOOL_ID\}/.test(T) && /result=\{result\}/.test(T) && !/<h1/.test(T) && J.JOURNEY[id] != null);
