@@ -183,8 +183,9 @@ const DIR = "./src/data/research/ccaas";
 section("12. Separation: nothing reads the snapshot outside the research layer yet [1] [3] [18]");
 {
   const tracked = execSync("git ls-files", { encoding: "utf8" }).split("\n").filter((f) => /\.(jsx?|mjs)$/.test(f));
-  const readers = tracked.filter((f) => !f.startsWith("src/lib/research/") && f !== "scripts/research-sync.mjs" && f !== "research.test.mjs" && /data\/research|lib\/research\//.test(readFileSync(f, "utf8")));
-  ok(`only the research layer reads research data (Stage 3 adds the pages) [${readers.join(", ")}]`, readers.length === 0);
+  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs"];
+  const readers = tracked.filter((f) => !f.startsWith("src/lib/research/") && f !== "scripts/research-sync.mjs" && f !== "research.test.mjs" && !PAGES.includes(f) && /data\/research|lib\/research\//.test(readFileSync(f, "utf8")));
+  ok(`only the research layer and the Vendor Intelligence profile read research data [${readers.join(", ")}]`, readers.length === 0);
   ok("Vendor Match reads no research snapshot, Market Position value or Phase 1 baseline file", !/data\/research|market.?position|phase1_baseline/i.test(readFileSync("./VendorMatchEngine.jsx", "utf8")));
   console.log("  note: [2] [7] [15] [17] apply when Vendor Match V3 (Stage 4) and the Market Position Index (Stage 5) exist.");
 }

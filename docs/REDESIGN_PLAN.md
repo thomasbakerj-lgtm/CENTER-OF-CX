@@ -119,6 +119,8 @@ made just before the phases that build them, so nothing waits on pages that ship
 
 - Part 1 done (S24, 27 Sep 2026): Stage 1 loader, committed CCaaS snapshot, research harness, sync workflow (D1 decided).
   Next: the researched vendor profile on the snapshot.
+- Part 2 done (S24, 27 Sep 2026): the researched vendor profile for the 18 CCaaS vendors, six views, from the snapshot.
+  Next: the CCaaS category page by competitive class.
 
 ## Phase 8. Industry Insights (two sessions)
 
