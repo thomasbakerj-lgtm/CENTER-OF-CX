@@ -349,6 +349,12 @@ Binding. None of this is in code comments beyond what is noted.
   One component (`VendorIntro`, `VendorIntroLink`), one link format (`introHref`), one event (`vendor_action` intro,
   `intro_submit`). An introduction never changes a list's order, a score or a research finding.
 
+**Vendor tags (TB, S24, 27 Sep)**
+- Be as comprehensive as possible: show a tag when the research supports it for any buyer, and caveat every intricacy
+  (US public sector, government, region, separate offer, selective use) on the tag itself. A scope that limits a tag to one
+  kind of buyer goes in the tag's label. Every tag and caveat cites its published records and is checked by a harness.
+  Tags describe; they never order, grade or feed Vendor Match until V3 (Stage 4) takes them as buyer filters.
+
 **Standing engineering rules**
 - Each tool serves its own goal. No generic shared ranges or one-size logic. If the
   same key means a different fact in another tool, do not prefill (TCO does not pull
@@ -1154,6 +1160,23 @@ dashboard, the 12-phase growth program.
    show their Phase 1 segment labelled as such. Profile: chips under the name and a "Who it is sold to" panel quoting the
    research's own words. No size feeds Vendor Match, an order or a grade. `category.test.mjs` 155, `profile.test.mjs`
    pins the chips. Suite 25,151; live check 255 of 255.
+   PR #55 merged by TB's instruction (effa5d8).
+64. S24, redesign session 20 (continued). TB: "This site should be comprehensive as possible. In the avaya and cisco,
+   zoom etc. instances, it's okay to note or caveat US public sector, gov, etc. Rule holds true for all intricacies we run
+   into. We can include this on their vendor page which should tie into the vendor match engine and applicable tools,
+   assessments, research." Built: every tag keeps its caveat (`ccaasTags.js`: `uc.note`, `uc.scope`, `sizeNote`,
+   `publicSector`, `core`). A scope that limits a tag to one kind of buyer is in the tag's own label (Avaya "UCaaS +
+   CCaaS (US public sector)"); notes say what a tag rests on (Cisco, Zoom, Dialpad: findings, no separate UC product
+   listed; RingCentral: RingCX terms require a RingEX account). New tag "Public sector offer" exactly when a GA product
+   is sold to government or public sector (Content Guru, Talkdesk, Cisco, Zoom, Avaya). `research.test.mjs` 11b adds:
+   the scope rule, the public sector rule both ways, every note present, the core product published. Category page:
+   notes under each vendor's chips and a public sector filter. Profile: "Who it is sold to" moved up under the class,
+   with the notes, where it runs (the core product's Geographic_Scope) and the research's own words; a "Take it further"
+   panel links RFP Builder with the vendor already entered (a relative scenario link; RFP Builder now says "Carried
+   over: X" on arrival), the class peers, Platform Decision, Contract Risk, TCO, License Gap and Vendor Match (labelled:
+   still Phase 1, reads no research yet). Vendor Match is linked, not fed: research law keeps Phase 1 scoring and
+   research apart until Vendor Match V3 (Stage 4), where size served, UCaaS + CCaaS, public sector and where it runs
+   become buyer filters. Suite 25,210; live check 255 of 255.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

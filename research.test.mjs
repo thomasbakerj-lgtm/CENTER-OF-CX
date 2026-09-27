@@ -186,18 +186,23 @@ const DIR = "./src/data/research/ccaas";
 
 section("11b. Vendor tags (size served, UCaaS + CCaaS) rest on published records and say what they say");
 {
-  const { CCAAS_TAGS, SIZES, SIZE_TEST, SELECTED_TEST, UC_TEST, tagsFor } = await import("./src/lib/research/ccaasTags.js");
+  const { CCAAS_TAGS, SIZES, SIZE_TEST, SELECTED_TEST, UC_TEST, PS_TEST, tagsFor } = await import("./src/lib/research/ccaasTags.js");
   const ids = Object.values(CCAAS_RESEARCH.complete).map((v) => v.vendorId).sort();
   ok("every researched vendor has tags, and only they do", JSON.stringify(Object.keys(CCAAS_TAGS).sort()) === JSON.stringify(ids));
   for (const [id, t] of Object.entries(CCAAS_TAGS)) {
     const f = JSON.parse(readFileSync(`${DIR}/vendors/${id}.json`, "utf8"));
     const rec = (x) => { const p = f.products.find((y) => y.Product_ID === x); if (p) return `${p.Primary_Target_Segment} ; ${p.Product_Type} ; ${p.Product_or_SKU}`; const c = f.claims.find((y) => y.Claim_ID === x); return c ? c.Publishable_Summary : null; };
-    const cited = [...t.from, ...(t.uc || [])];
+    const cited = [...t.from, ...(t.uc ? t.uc.from : []), ...(t.publicSector ? t.publicSector.from : []), t.core];
     ok(`${id}: every cited record is published in its own file`, cited.every((x) => rec(x) !== null));
     const txt = t.from.map(rec).join(" ; ");
     ok(`${id}: each size is tagged exactly when its records state it`, SIZES.every((z) => !!t.segments[z] === SIZE_TEST[z].test(txt)) && Object.keys(t.segments).every((z) => SIZES.includes(z)));
     ok(`${id}: enterprise is marked selected exactly when the research says so`, (t.segments.Enterprise === "selected") === SELECTED_TEST.test(txt));
-    ok(`${id}: a UCaaS + CCaaS tag rests on records that show it`, !t.uc || (t.uc.length > 0 && t.uc.every((x) => UC_TEST.test(rec(x) || ""))));
+    ok(`${id}: a UCaaS + CCaaS tag rests on records that show it, with a caveat`, !t.uc || (t.uc.from.length > 0 && t.uc.from.every((x) => UC_TEST.test(rec(x) || "")) && !!t.uc.note));
+    const usPublicOnly = t.uc && t.uc.from.every((x) => /U\.S\. public sector|United States government/i.test(rec(x) || ""));
+    ok(`${id}: a UCaaS tag the research limits to US public sector says so in its own label`, !usPublicOnly || /US public sector/.test(tagsFor(id).category));
+    ok(`${id}: the core product is published and carries where it runs`, !!f.products.find((p) => p.Product_ID === t.core && p.Geographic_Scope));
+    const psRecords = f.products.filter((p) => /^GA/.test(p.GA_Status) && PS_TEST.test(p.Primary_Target_Segment || ""));
+    ok(`${id}: a public sector tag exactly when a GA product is sold to government or public sector`, !!t.publicSector === psRecords.length > 0 && (!t.publicSector || (t.publicSector.from.every((x) => PS_TEST.test(rec(x) || "")) && !!t.publicSector.note)));
     ok(`${id}: a CCaaS-only tag has no UCaaS product in the research`, !!t.uc || !f.products.some((p) => /UCaaS|UC\/contact-center/i.test(p.Product_Type)));
     ok(`${id}: tags carry no grade`, !/score|rank|tier|grade|best/i.test(JSON.stringify(tagsFor(id))));
   }

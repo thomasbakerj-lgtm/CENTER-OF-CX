@@ -65,7 +65,7 @@ for (const [slug, { vendorId }] of bySlug) {
   if (!head.includes(file.vendor.Supplier_Name) || !/Current research complete/.test(head)) problems.push(`${slug} header`);
   if (!views.fit.html.includes(`href="/contact?intro=${slug}&amp;from=vendor"`)) problems.push(`${slug} introduction`);
   { const tg = (await import("./src/lib/research/ccaasTags.js")).tagsFor(file.vendor.Vendor_ID);
-    if (!tg || !head.includes(tg.category) || !tg.sizes.every((z) => head.includes(z.label)) || !head.includes("Who it is sold to") || !head.includes("Sizes as the research states them")) problems.push(`${slug} tags`); }
+    if (!tg || !head.includes(tg.category) || !tg.sizes.every((z) => head.includes(z.label)) || !head.includes("Who it is sold to") || !head.includes("Sizes, in the research's words") || !head.includes("Where it runs") || !head.includes("Take it further") || !tg.notes.every((n) => head.includes(n.text))) problems.push(`${slug} tags`); }
   // research law: no score, rank, tier word or composite; tier appears only as an evidence tier on a source
   if (/\bscore|\branked?\b|\bleader(board)?\b|Strategic Foundation|Strong Contender|Enterprise Core|\bgrade\b/i.test(own.replace(/never a quality grade|carries no grade/g, ""))) problems.push(`${slug} score or tier word: ${(own.match(/.{0,40}(score|rank|leader|grade).{0,20}/i) || [""])[0]}`);
   if (/\b\d+\s+(findings? )?(meet|meets|partly|not yet proven|not offered)\b/i.test(own)) problems.push(`${slug} counts states`);
@@ -93,6 +93,25 @@ for (const [slug, { vendorId }] of bySlug) {
   if (p.klass && p.klass.draft && !/Draft class/.test(views.fit.t)) problems.push(`${slug} draft class unmarked`);
 }
 ok(`18 researched vendors render all six views cleanly [${problems.slice(0, 4).join("; ")}]`, bySlug.length === 18 && problems.length === 0);
+
+section("1b. Take it further: tool links from the profile");
+{
+  const { decodeScenario } = await import("./src/lib/scenarioUrl.js");
+  const bad = [];
+  for (const [slug, { vendorId }] of bySlug) {
+    const file = JSON.parse(readFileSync(`${DIR}/vendors/${vendorId}.json`, "utf8"));
+    const href = mod.exports.rfpHref(file.vendor.Supplier_Name);
+    const st = decodeScenario(href.slice(href.indexOf("?")), "rfp-builder", { vendors: [] });
+    if (!st || st.vendors.length !== 1 || st.vendors[0] !== file.vendor.Supplier_Name) bad.push(slug);
+    const html = renderToString(React.createElement(Page, { slug, file, shared, manifestDate: "2026-09-23", initialView: "fit" }));
+    for (const path of ["/tools/platform-decision", "/tools/contract-risk", "/tools/tco-calculator", "/tools/license-gap", "/tools/vendor-match"]) if (!html.includes(`href="${path}"`)) bad.push(slug + path);
+    if (!html.includes(`href="/vendors/ccaas#${file.vendor.Competitive_Class_ID.toLowerCase()}"`)) bad.push(slug + " peers");
+    if (!/does not read this research yet/.test(html)) bad.push(slug + " vendor match note");
+  }
+  ok(`every profile links RFP Builder with the vendor entered, its peers and the tools [${bad.slice(0, 3).join(", ")}]`, bad.length === 0);
+  const APP = readFileSync("./App.jsx", "utf8");
+  ok("every linked tool route exists", ["rfp-builder", "platform-decision", "contract-risk", "tco-calculator", "license-gap", "vendor-match"].every((t) => APP.includes(`path="/tools/${t}"`)));
+}
 
 section("2. The state filter narrows findings and counts nothing");
 {
