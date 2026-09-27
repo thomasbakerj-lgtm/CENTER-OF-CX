@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { ToolHero } from "./src/lib/ToolShell";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result } from "./src/lib/ui.jsx";
+import { K, Group, Field, Tile, Corrections, Assumptions, Paper, frameMethod } from "./src/lib/frameKit.jsx";
+import { methodStamp } from "./src/lib/methodVersions.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
-import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine, money } from "./src/lib/guards";
 import { BENCH, benchmark, benchmarksForTool, BENCHMARK_SOURCES } from "./src/lib/benchmarks";
 import { runOccupancy } from "./src/lib/occupancy";
@@ -27,8 +30,8 @@ export const OCC_PARAMS = {
   hoursYear: benchmark("time.hours.year"),
 };
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
-const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
+const ELECTRIC = "#0088DD";
+/* Band colours print in the PDF only; on the page the band is a word. */
 const BAND = { healthy: { label: "Healthy", color: "#047857" }, caution: { label: "Caution", color: "#B45309" }, critical: { label: "Critical", color: "#B91C1C" } };
 const pct = (x, d = 1) => (x * 100).toFixed(d) + "%";
 const k = (x) => "$" + Math.round(x / 1000).toLocaleString("en-US") + "K";
@@ -38,19 +41,6 @@ const BAND_TEXT = {
   caution: `Above ${pct(B.healthyMax, 0)} and up to ${pct(B.cautionMax, 0)}, the caution band. Workable for peaks; as a steady state this model raises attrition ${OCC_PARAMS.mult.caution}x.`,
   critical: `Above ${pct(B.cautionMax, 0)}, the critical band. Recovery time between contacts is minimal; this model raises attrition ${OCC_PARAMS.mult.critical}x.`,
 };
-
-function Input({ label, value, onChange, suffix, hint }) {
-  return (
-    <div>
-      <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "block", marginBottom: 4 }}>{label}</label>
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        <input aria-label={label} type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }} />
-        {suffix && <span style={{ fontSize: 12, color: MUTED, flexShrink: 0 }}>{suffix}</span>}
-      </div>
-      {hint && <span style={{ fontSize: 12, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
-    </div>
-  );
-}
 
 export default function OccupancyRiskSimulator() {
   const [d, setD] = useState(() => ({ ...DEFAULTS, ...(readScenario(TOOL_ID, DEFAULTS) || {}) }));
@@ -92,92 +82,91 @@ export default function OccupancyRiskSimulator() {
     `The attrition multipliers (${OCC_PARAMS.mult.caution}x in the caution band, ${OCC_PARAMS.mult.critical}x in the critical band) are planning heuristics, not measured values for your operation. Your entered attrition is taken as the rate at or below the healthy band.`,
   ];
 
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.og{grid-template-columns:1fr!important}.ladder{grid-template-columns:48px 1fr 1fr!important}.ladder .wide{display:none}}`}</style>
-      <ToolHero wrap={WRAP} eyebrow="WFM + Staffing" title="Occupancy Risk Simulator"
-        intro="Occupancy is the share of logged-in time agents spend handling contacts. Enter your queue, attrition and cost inputs to see the occupancy they produce, the staffing it takes to reach your target, and the attrition cost a labelled planning model attaches to running above it.">
-        <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", marginTop: 12 }}>Every formula, band and assumption is in the <a href={METHOD} style={{ color: "#fff", fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-      </ToolHero>
+  const result = (
+    <Result label="Current occupancy" value={occLabel} change={`${band.label} band. ${R.intensity.toFixed(1)} Erlangs of workload over ${v.agents} agents.`} />
+  );
 
-      <section style={{ background: WARM, padding: "40px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <div className="og" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }}>
-            <Input label="Agents on queue" value={d.agents} onChange={(x) => set("agents", x)} />
-            <Input label="Calls per hour" value={d.callsPerHour} onChange={(x) => set("callsPerHour", x)} />
-            <Input label="AHT" value={d.aht} onChange={(x) => set("aht", x)} suffix="sec" />
-            <Input label="Target occupancy" value={d.target} onChange={(x) => set("target", x)} suffix="%" hint={`Default ${Math.round(B.healthyMax * 100)}%, the healthy band's ceiling`} />
-            <Input label="Current attrition" value={d.attritionRate} onChange={(x) => set("attritionRate", x)} suffix="%/yr" />
-            <Input label="Hiring cost per agent" value={d.hiringCost} onChange={(x) => set("hiringCost", x)} suffix="$" />
-            <Input label="Training ramp" value={d.trainingWeeks} onChange={(x) => set("trainingWeeks", x)} suffix="weeks" />
-            <Input label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? "BLS median, May 2024. Enter yours." : "Your figure"} />
-          </div>
+  return (
+    <ToolFrame toolId={TOOL_ID} section="Operations + Workforce" name="Occupancy Risk" title="How hard are your agents running, and what does it cost?"
+      lede="Occupancy is the share of logged-in time agents spend handling contacts. Enter your queue, attrition and cost inputs to see the occupancy they produce, the staffing it takes to reach your target, and the attrition cost a labelled planning model attaches to running above it."
+      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Occupancy", value: occLabel }}>
+      <style>{FONT_IMPORT_CSS}</style>
+      <p style={K.small}>Every formula, band and assumption is in the <a href={METHOD} style={K.link}>published method</a>.</p>
+
+      <Group legend="Question 1 of 2 · Your queue">
+        <div style={K.grid(170)}>
+          <Field label="Agents on queue" value={d.agents} onChange={(x) => set("agents", x)} />
+          <Field label="Calls per hour" value={d.callsPerHour} onChange={(x) => set("callsPerHour", x)} />
+          <Field label="AHT" value={d.aht} onChange={(x) => set("aht", x)} suffix="sec" />
+          <Field label="Target occupancy" value={d.target} onChange={(x) => set("target", x)} suffix="%" hint={`Default ${Math.round(B.healthyMax * 100)}%, the healthy band's ceiling`} />
         </div>
+      </Group>
+
+      <Group legend="Question 2 of 2 · Attrition and cost">
+        <div style={K.grid(170)}>
+          <Field label="Current attrition" value={d.attritionRate} onChange={(x) => set("attritionRate", x)} suffix="%/yr" />
+          <Field label="Hiring cost per agent" value={d.hiringCost} onChange={(x) => set("hiringCost", x)} suffix="$" />
+          <Field label="Training ramp" value={d.trainingWeeks} onChange={(x) => set("trainingWeeks", x)} suffix="weeks" />
+          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? "BLS median, May 2024. Enter yours." : "Your figure"} />
+        </div>
+      </Group>
+
+      <Corrections guards={guards} />
+
+      <section aria-label="Your current occupancy" style={K.lead}>
+        <span style={K.kicker}>Your current occupancy · {band.label}</span>
+        <div style={K.stat}>{occLabel}</div>
+        <p style={K.small}>{R.intensity.toFixed(1)} Erlangs of workload over {v.agents} agents</p>
+        <p style={{ ...K.body, marginTop: 10 }}>{R.overloaded ? "The offered load exceeds the agents staffed, so the queue grows without limit." : BAND_TEXT[R.band]}</p>
       </section>
 
-      <section style={{ background: "#fff", padding: "40px 28px" }}>
-        <div style={WRAP}>
-          <div style={{ background: WARM, border: `2px solid ${band.color}`, borderRadius: 12, padding: "24px 28px", marginBottom: 28, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: band.color, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>Your current occupancy · {band.label}</div>
-              <div style={{ fontFamily: FONT, fontSize: 42, fontWeight: 700, color: band.color }}>{occLabel}</div>
-              <div style={{ fontSize: 12, color: SLATE }}>{R.intensity.toFixed(1)} Erlangs of workload over {v.agents} agents</div>
-            </div>
-            <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, maxWidth: 420, margin: 0 }}>{R.overloaded ? "The offered load exceeds the agents staffed, so the queue grows without limit." : BAND_TEXT[R.band]}</p>
+      {R.aboveTarget && (
+        <section aria-label="Reaching your target" style={K.panel}>
+          <h2 style={K.h2}>Reaching your {v.target}% target</h2>
+          <div style={K.grid(170)}>
+            <Tile label="Agents to add" value={"+" + R.extraAgents} />
+            <Tile label="Staffing cost, loaded" value={k(R.staffingCost) + "/yr"} />
+            <Tile label="Attrition cost of today's occupancy" value={k(R.excessAttritionCost) + "/yr"} />
           </div>
+          <p style={{ ...K.small, marginTop: 12 }}>Staffing cost is the added agents at your hourly rate for a {OCC_PARAMS.hoursYear.toLocaleString("en-US")}-hour year with a {OCC_PARAMS.load}x benefits load. The attrition cost is a planning model, labelled below. Set them side by side with your own figures before you decide.</p>
+          <p style={{ ...K.small, marginTop: 10 }}><a href="/tools/staffing-calculator" style={K.link}>Staffing Calculator: staff to your target with service level</a> · <a href="/tools/attrition-cost" style={K.link}>Attrition Cost: price turnover in full</a></p>
+        </section>
+      )}
 
-          {R.aboveTarget && (
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 28 }}>
-              <h2 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 12 }}>Reaching your {v.target}% target</h2>
-              <div className="og" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
-                {[["Agents to add", "+" + R.extraAgents, "#fff"], ["Staffing cost, loaded", k(R.staffingCost) + "/yr", "#fff"], ["Attrition cost of today's occupancy", k(R.excessAttritionCost) + "/yr", "#fff"]].map(([l, x, c]) => (
-                  <div key={l} style={{ background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "12px", textAlign: "center" }}>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.78)" }}>{l}</div>
-                    <div style={{ fontFamily: FONT, fontSize: 24, fontWeight: 700, color: c }}>{x}</div>
-                  </div>
-                ))}
-              </div>
-              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.78)", lineHeight: 1.55 }}>Staffing cost is the added agents at your hourly rate for a {OCC_PARAMS.hoursYear.toLocaleString("en-US")}-hour year with a {OCC_PARAMS.load}x benefits load. The attrition cost is a planning model, labelled below. Set them side by side with your own figures before you decide.</p>
-              <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <a href="/tools/staffing-calculator" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.2)" }}>Staffing Calculator: staff to your target with service level</a>
-                <a href="/tools/attrition-cost" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.2)" }}>Attrition Cost: price turnover in full</a>
-              </div>
-            </div>
-          )}
+      <section aria-label="The occupancy ladder" style={K.panel}>
+        <h2 style={K.h2}>The occupancy ladder</h2>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", ...K.small, color: K.body.color, ...K.num }}>
+            <thead><tr style={{ ...K.kicker, textAlign: "left" }}>
+              {["Occupancy", "Agents", "Idle a hour", "Band", "Attrition", "Turnover a year"].map((h) => <th key={h} scope="col" style={{ padding: "6px 8px 6px 0", fontWeight: 500 }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {R.ladder.map((l) => {
+                const isCurrent = !R.overloaded && Math.abs(l.occ - R.occ * 100) < 1;
+                return (
+                  <tr key={l.occ} aria-current={isCurrent ? "true" : undefined} style={{ borderTop: `1px solid ${K.hair}`, fontWeight: isCurrent ? 700 : 400, color: isCurrent ? K.strong.color : undefined }}>
+                    <td style={{ padding: "8px 8px 8px 0" }}>{l.occ}%{isCurrent ? " (you)" : ""}</td>
+                    <td style={{ padding: "8px 8px 8px 0" }}>{l.agents} agents</td>
+                    <td style={{ padding: "8px 8px 8px 0" }}>{l.idleMin.toFixed(1)} min/hr idle</td>
+                    <td style={{ padding: "8px 8px 8px 0" }}>{BAND[l.band].label}</td>
+                    <td style={{ padding: "8px 8px 8px 0" }}>{l.attrition.toFixed(0)}% attrition</td>
+                    <td style={{ padding: "8px 0" }}>{k(l.turnoverCost)}/yr turnover</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p style={{ ...K.small, marginTop: 10 }}>Agents are the fewest that keep occupancy at or below each level; service level is the Staffing Calculator's job. Attrition and turnover cost use the planning multipliers below.</p>
+      </section>
 
-          <h2 style={{ fontSize: 16, fontWeight: 700, color: NAVY, marginBottom: 12 }}>The occupancy ladder</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 12 }}>
-            {R.ladder.map((l) => {
-              const isCurrent = !R.overloaded && Math.abs(l.occ - R.occ * 100) < 1;
-              const c = BAND[l.band].color;
-              return (
-                <div key={l.occ} className="ladder" style={{ display: "grid", gridTemplateColumns: "56px 90px 90px 90px 110px 1fr", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, border: `${isCurrent ? 2 : 1}px solid ${isCurrent ? c : BORDER}`, fontSize: 13 }}>
-                  <span style={{ fontWeight: 700, color: c }}>{l.occ}%</span>
-                  <span style={{ color: SLATE }}>{l.agents} agents</span>
-                  <span className="wide" style={{ color: SLATE }}>{l.idleMin.toFixed(1)} min/hr idle</span>
-                  <span style={{ color: c, fontWeight: 600 }}>{BAND[l.band].label}</span>
-                  <span className="wide" style={{ color: SLATE }}>{l.attrition.toFixed(0)}% attrition</span>
-                  <span className="wide" style={{ color: NAVY, fontWeight: 600 }}>{k(l.turnoverCost)}/yr turnover</span>
-                </div>
-              );
-            })}
-          </div>
-          <p style={{ fontSize: 12, color: SLATE, marginBottom: 28 }}>Agents are the fewest that keep occupancy at or below each level; service level is the Staffing Calculator's job. Attrition and turnover cost use the planning multipliers below.</p>
+      <Assumptions items={[
+        ...heuristics.map((e) => `${e.value.toLocaleString("en-US")} ${e.unit}: ${e.rationale} Heuristic, no published source.`),
+        `Paid hours: ${OCC_PARAMS.hoursWeek} a week and ${OCC_PARAMS.hoursYear.toLocaleString("en-US")} a year, the full-time definition.`,
+        `Benefits load ${OCC_PARAMS.load}x: ${BENCHMARK_SOURCES["load.benefits"].rationale} Bands: healthy to ${pct(B.healthyMax, 0)}, caution to ${pct(B.cautionMax, 0)}, the platform's shared occupancy bands.`,
+      ]} />
 
-          <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 20px", marginBottom: 24 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Planning assumptions on this page</div>
-            {heuristics.map((e) => <p key={e.id} style={{ fontSize: 12, color: SLATE, marginBottom: 4 }}>{e.value.toLocaleString("en-US")} {e.unit}: {e.rationale} Heuristic, no published source.</p>)}
-            <p style={{ fontSize: 12, color: SLATE, marginBottom: 4 }}>Paid hours: {OCC_PARAMS.hoursWeek} a week and {OCC_PARAMS.hoursYear.toLocaleString("en-US")} a year, the full-time definition.</p>
-            <p style={{ fontSize: 12, color: SLATE }}>Benefits load {OCC_PARAMS.load}x: {BENCHMARK_SOURCES["load.benefits"].rationale} Bands: healthy to {pct(B.healthyMax, 0)}, caution to {pct(B.cautionMax, 0)}, the platform's shared occupancy bands.</p>
-          </div>
-
-          {guards.length > 0 && (
-            <div style={{ background: "#FFF7E6", border: "1px solid #F59E0B", borderRadius: 8, padding: "12px 16px", marginBottom: 20 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Inputs corrected. Every figure above was computed on the corrected values.</div>
-              {guards.map((g, i) => <div key={i} style={{ fontSize: 12, color: SLATE }}>{guardLine(g)}</div>)}
-            </div>
-          )}
-
+      <Paper>
           <ReportActions
             toolId={TOOL_ID}
             toolName="Occupancy Risk Analysis"
@@ -205,8 +194,7 @@ export default function OccupancyRiskSimulator() {
               { title: "Method", type: "text", content: "Occupancy is offered load in Erlangs (calls per hour times AHT in hours) divided by agents. Bands are the platform's shared occupancy bands. Attrition multipliers are labelled planning heuristics. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
-        </div>
-      </section>
-    </div>
+      </Paper>
+    </ToolFrame>
   );
 }

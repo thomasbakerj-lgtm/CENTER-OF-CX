@@ -103,6 +103,7 @@ made just before the phases that build them, so nothing waits on pages that ship
   grading and report payloads byte-equal to `main`; `toolframe.test.mjs` section 5 gates each moved tool. Merged (PR #46).
 - Batch 2 done (S24, 27 Sep 2026): TCO, License Gap, Staffing, Attrition, Channel Shift. All nine rail tools on the frame. Next:
   batch 3, the WFM five.
+- Batch 3 done (S24, 27 Sep 2026): the WFM five on the frame, with the shared `frameKit.jsx`. Next: batch 4, the frameworks.
 
 ## Phase 7. Research Stage 1 and Vendor Intelligence (three to four sessions)
 
