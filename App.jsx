@@ -278,7 +278,8 @@ export function AppRoutes() {
         <Route path="/" element={<Homepage />} />
         <Route path="/platforms-and-tech" element={<PlatformsTech />} />
         <Route path="/about" element={<About />} />
-        <Route path="/changelog" element={<RubricPage id="changelog" />} />
+        {/* The method changelog page was removed (TB, 27 Sep 2026); old links land on the Diagnostics hub. */}
+        <Route path="/changelog" element={<LegacyRedirect to="/how-to-choose" />} />
         <Route path="/methodology/cx-maturity" element={<RubricPage id="cx-maturity" />} />
         <Route path="/methodology/ai-readiness" element={<RubricPage id="ai-readiness" />} />
         <Route path="/methodology/transformation-readiness" element={<RubricPage id="transformation-readiness" />} />

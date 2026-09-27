@@ -4,17 +4,16 @@
 // about each layer. Every count and figure is derived from the registry that owns it, never typed: tools and vendor
 // profiles from seo.js, researched vendors from researchStatus.js, methods from methodVersions.js, industries and
 // segments from verticals.js and seo.js, industry figures from the claims registry, the layer map from Platform
-// Decision's published model, and "What changed" from the method changelog. Route steps that are tools take their
+// Decision's published model. Route steps that are tools take their
 // names and links from the journey graph. home.test.mjs checks all of it.
 //
 // No time estimates: we have not measured how long a route takes, so a route says how many tools it has.
 
 import { TOOL_COUNT, VENDOR_PROFILE_COUNT, CATEGORY_COUNT, SEGMENT_COUNT } from "./seo.js";
 import { CCAAS_COMPLETE_COUNT } from "./researchStatus.js";
-import { METHOD_VERSIONS, longDate } from "./methodVersions.js";
+import { METHOD_VERSIONS } from "./methodVersions.js";
 import { VERTICALS, CATEGORIES } from "./verticals.js";
 import { CLAIMS, TESTS } from "./claims.js";
-import { CHANGELOG } from "./changelog.js";
 import { JOURNEY } from "./journey.js";
 import { PLATFORM_DECISION } from "./rubrics/platformDecision.js";
 
@@ -100,8 +99,8 @@ export const DOORS = [
     meta: `${INDUSTRY_COUNT} industries. ${SEGMENT_COUNT} segments.`, question: "Which industry are you in?", routes: INDUSTRY_ROUTES, cols: 5 },
   { pillar: "research", event: "research", line: "Original studies, with the data and the method published beside them.", meta: "In preparation",
     soon: { body: "Studies we run ourselves, starting from what professionals choose to share through the diagnostics. Nothing is collected until the consent design is published.",
-      rules: ["Every study publishes its data, its method and its limits.", "Participation is opt-in and anonymous.", "The first study is announced in the changelog."],
-      cta: "Read the changelog", href: "/changelog" } },
+      rules: ["Every study publishes its data, its method and its limits.", "Participation is opt-in and anonymous.", "The first study is announced on the Research page."],
+      cta: "Go to Research", href: "/research" } },
   { pillar: "marketWatch", event: "market-watch", line: "Launches, showcases and new entrants, each labelled for its source.", meta: "In preparation",
     soon: { body: "What is new in the market, kept apart from the research. A launch is news, a showcase is supplied by the vendor, and neither changes a research finding.",
       rules: ["Every item is labelled: news, supplied by the vendor, or verified.", "A showcase never changes a profile or a starting list.", "A new entrant gets a researched profile once it passes the research gate."],
@@ -130,5 +129,3 @@ export const PROOFS = [
   { n: "A to Z", text: "Vendor lists run alphabetically. No vendor can pay to appear or to move.", link: "About the site", href: "/about" },
 ];
 
-/* What changed: the newest four method changes. */
-export const CHANGES = [...CHANGELOG].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4).map((c) => ({ date: longDate(c.date), title: c.title }));

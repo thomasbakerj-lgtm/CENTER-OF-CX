@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import { Crumbs } from "./src/lib/Shell.jsx";
 import { FIXTURE_KIND, fixturesFor } from "./src/lib/fixtures.js";
-import { CHANGELOG, changesFor } from "./src/lib/changelog.js";
-import { longDate } from "./src/lib/methodVersions.js";
 import { FONT, FONT_IMPORT_CSS, TYPE } from "./src/lib/type";
 import { RUBRICS } from "./src/lib/rubrics";
 import { JOURNEY } from "./src/lib/journey";
@@ -23,7 +21,6 @@ const cut = (b, i, all) => (i === all.length - 1 ? `${fmt(b.min)} and above` : `
 export default function RubricPage({ id }) {
   const r = RUBRICS[id];
   useEffect(() => { window.scrollTo(0, 0); }, [id]);
-  if (id === "changelog") return <ChangelogPage />;
   if (!r) return null;
   if (r.kind === "ownership") return <OwnershipPage r={r} />;
   if (r.kind === "qa") return <QAPage r={r} />;
@@ -49,7 +46,7 @@ export default function RubricPage({ id }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published rubric</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how it scores</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.6)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", marginTop: 14 }}>Rubric version {r.version}, published {r.published}. {r.dims.length} {paired ? "areas" : "dimensions"}, {statements} statements{paired ? ` in ${statements / 2} pairs` : ""}. <a href="/changelog" style={{ color: LIGHT, textDecoration: "underline", textUnderlineOffset: 3 }}>Method changelog</a></p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", marginTop: 14 }}>Rubric version {r.version}, published {r.published}. {r.dims.length} {paired ? "areas" : "dimensions"}, {statements} statements{paired ? ` in ${statements / 2} pairs` : ""}.</p>
         </div>
       </header>
 
@@ -137,7 +134,7 @@ function OwnershipPage({ r }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published model</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how it reads your map</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.domains.length} domains, {total} decisions, {r.roles.length} roles. <a href="/changelog" style={{ color: LIGHT, textDecoration: "underline", textUnderlineOffset: 3 }}>Method changelog</a></p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.domains.length} domains, {total} decisions, {r.roles.length} roles.</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -211,7 +208,7 @@ function QAPage({ r }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how forms are checked and evaluators calibrated</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.method.name} {r.method.version}. <a href="/changelog" style={{ color: LIGHT, textDecoration: "underline", textUnderlineOffset: 3 }}>Method changelog</a></p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.method.name} {r.method.version}.</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -279,7 +276,7 @@ function RenewalPage({ r }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how the renewal gate reads your platform</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} needs. {r.truthType} <a href="/changelog" style={{ color: LIGHT, textDecoration: "underline", textUnderlineOffset: 3 }}>Method changelog</a></p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} needs. {r.truthType}</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -345,7 +342,7 @@ function TermsPage({ r }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how each clause is rated</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.terms.length} clauses. {r.truthType} <a href="/changelog" style={{ color: LIGHT, textDecoration: "underline", textUnderlineOffset: 3 }}>Method changelog</a></p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.terms.length} clauses. {r.truthType}</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -408,7 +405,7 @@ function RfpPage({ r }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: how requirements are built and responses scored</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} requirements, plus requirements for {Object.keys(r.verticalReqs).length} verticals. {r.truthType} <a href="/changelog" style={{ color: LIGHT, textDecoration: "underline", textUnderlineOffset: 3 }}>Method changelog</a></p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Model version {r.version}, published {r.published}. {r.layers.length} layers, {total} requirements, plus requirements for {Object.keys(r.verticalReqs).length} verticals. {r.truthType}</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -468,7 +465,7 @@ function CalcPage({ r }) {
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
           <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>{r.title}: formulas, assumptions and a worked example</h1>
           <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>{r.what}</p>
-          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Method version {r.version}, published {r.published}. <a href="/changelog" style={{ color: LIGHT, textDecoration: "underline", textUnderlineOffset: 3 }}>Method changelog</a></p>
+          <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.78)", marginTop: 14 }}>Method version {r.version}, published {r.published}.</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
@@ -496,11 +493,6 @@ function CalcPage({ r }) {
         <p style={P}>{r.example.note || "Computed by the tool's own engine at its default inputs, so this page and the calculator always agree."}</p>
         <div style={box}>{r.example.inputs.map(([a, b]) => <p key={a} style={{ ...P, fontSize: 14, margin: "2px 0" }}><strong style={{ color: NAVY }}>{a}:</strong> {b}</p>)}</div>
         {r.example.steps.map(([a, b]) => <div key={a} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{a}</div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{b}</p></div>)}
-        {changesFor(r.id).length > 0 && <>
-          <h2 style={H2}>Changes to this method</h2>
-          {changesFor(r.id).map((c) => <div key={c.date + c.title} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{longDate(c.date)} <span style={{ color: SLATE, fontWeight: 600 }}>· {c.title}</span></div>{c.changes.map((x, i) => <p key={i} style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{x}</p>)}</div>)}
-          <p style={P}>Every method change on the site is in the <a href="/changelog" style={{ color: ELECTRIC, fontWeight: 600 }}>method changelog</a>.</p>
-        </>}
         {fixturesFor(r.id).length > 0 && <>
           <h2 style={H2}>Checked against</h2>
           <p style={P}>Cases whose answer is known outside this site. The test suite computes each one with this tool's own engine on every change.</p>
@@ -511,44 +503,6 @@ function CalcPage({ r }) {
         <div style={{ marginTop: 36 }}>
           <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Open the {r.title}</a>
         </div>
-      </main>
-    </div>
-  );
-}
-
-/* The public method changelog: every change to a published method, newest first. Security and
-   crash fixes change no method and are not listed. Rendered from src/lib/changelog.js, the
-   same entries each method page lists as its own changes. */
-function ChangelogPage() {
-  const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
-  const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
-  const box = { border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, background: WARM };
-  const byDate = CHANGELOG.reduce((m, c) => { (m[c.date] = m[c.date] || []).push(c); return m; }, {});
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method changelog"]]} />
-      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
-        <div style={WRAP}>
-          <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Method changelog</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>What changed in how the tools calculate</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>Every change to a published method: what moved, in which direction and by about how much. A result that differs from one you ran before is explained here. Each tool page and report names the method version it used.</p>
-        </div>
-      </header>
-      <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
-        {Object.entries(byDate).map(([date, list]) => (
-          <section key={date}>
-            <h2 style={H2}>{longDate(date)}</h2>
-            {list.map((c) => (
-              <div key={c.title} style={box}>
-                <div style={{ ...TYPE.label, color: NAVY }}>{c.title} <span style={{ color: SLATE, fontWeight: 600 }}>· method {c.version}</span></div>
-                {c.changes.map((x, i) => <p key={i} style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{x}</p>)}
-                <p style={{ ...P, fontSize: 14, margin: "8px 0 0" }}>{c.methods.map((m, i) => <span key={m}>{i ? ", " : ""}<a href={`/methodology/${m}`} style={{ color: ELECTRIC, fontWeight: 600 }}>{RUBRICS[m] ? RUBRICS[m].title : m}</a></span>)}</p>
-              </div>
-            ))}
-          </section>
-        ))}
-        <p style={{ ...P, marginTop: 28 }}>The log starts with the rebuild of the workforce tools on 24 September 2026. Fixes to security or to a page that failed to load change no method and are not listed.</p>
       </main>
     </div>
   );

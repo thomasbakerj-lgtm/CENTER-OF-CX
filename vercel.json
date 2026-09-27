@@ -16,6 +16,11 @@
       "permanent": true
     },
     {
+      "source": "/changelog",
+      "destination": "/how-to-choose",
+      "permanent": true
+    },
+    {
       "source": "/tools/service-design",
       "destination": "/tools/cx-maturity",
       "permanent": true

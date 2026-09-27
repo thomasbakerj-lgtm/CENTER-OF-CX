@@ -554,7 +554,7 @@ export function pageType(pathname) {
   const p = String(pathname || "/");
   if (p === "/") return "home";
   if (p.startsWith("/tools/")) return "tool";
-  if (p.startsWith("/methodology/") || p === "/changelog") return "method";
+  if (p.startsWith("/methodology/")) return "method";
   if (p.startsWith("/industries")) return "industry";
   const cat = p.match(/^\/vendors\/([a-z0-9-]+)\/?$/);
   if (cat && CATEGORY_SLUGS.has(cat[1])) return "category";

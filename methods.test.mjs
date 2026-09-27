@@ -214,7 +214,7 @@ section("Coverage");
   ok("every rail PDF names its published method", Object.entries(RAIL).every(([id, f]) => readFileSync("./" + f, "utf8").includes("contactcentercx.com/methodology/" + id)));
 }
 
-section("Version stamps and the changelog");
+section("Version stamps; the change record renders nowhere");
 {
   const { METHOD_VERSIONS, methodStamp, longDate } = await import("./src/lib/methodVersions.js");
   const { CHANGELOG, changesFor } = await import("./src/lib/changelog.js");
@@ -234,7 +234,14 @@ section("Version stamps and the changelog");
   ok("the changelog runs newest first", CHANGELOG.every((c, i) => i === 0 || c.date <= CHANGELOG[i - 1].date));
   ok("every method rebuilt or published since the log began has an entry", ["occupancy-risk", "shrinkage-planner", "aht-decomposition", "forecast-accuracy", "schedule-adherence", "staffing-calculator", "cost-per-contact", "channel-shift", "fcr-leakage", "ai-deflection", "tco-calculator", "license-gap", "attrition-cost", "business-case-builder"].every((m) => changesFor(m).length > 0));
   ok("no dash, noise or undefined in the changelog", !DASH.test(JSON.stringify(CHANGELOG)) && !NOISE.test(JSON.stringify(CHANGELOG)) && !/undefined|NaN/.test(JSON.stringify(CHANGELOG)));
-  ok("the changelog is routed, in the sitemap and titled", APP.includes('<Route path="/changelog" element={<RubricPage id="changelog" />} />') && MAP.includes("/changelog<") && SEO.includes('"/changelog": {'));
+  /* The public changelog page and the method pages' change lists were removed (TB, 27 Sep 2026). The entries stay
+     in src/lib/changelog.js as the record behind each version stamp; nothing renders them. */
+  ok("the changelog page is gone: it redirects at the edge and in the app, and is out of the sitemap and metadata",
+    APP.includes('<Route path="/changelog" element={<LegacyRedirect to="/how-to-choose" />} />') && !MAP.includes("/changelog<") && !SEO.includes('"/changelog": {')
+    && JSON.parse(readFileSync("./vercel.json", "utf8")).redirects.some((r) => r.source === "/changelog" && r.destination === "/how-to-choose" && r.permanent));
+  const pages = ["./RubricPage.jsx", "./ReportActions.jsx", "./Homepage.jsx", "./src/lib/Shell.jsx", "./src/lib/home.js", "./src/lib/ToolFrame.jsx"];
+  const linked = pages.filter((f) => /\/changelog|Changes to this method|What changed/i.test(readFileSync(f, "utf8")));
+  ok(`no page renders a change list or links the changelog [${linked.join(", ")}]`, linked.length === 0);
   ok("dates print long form", longDate("2026-09-05") === "5 September 2026");
 }
 

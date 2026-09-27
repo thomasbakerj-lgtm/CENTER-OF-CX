@@ -969,6 +969,14 @@ dashboard, the 12-phase growth program.
    live check 254 of 254.
    TB waived the baseline ("skip the baseline, merge"); PR #44 merged (d8193af). Next: Phase 6, tools onto the frame,
    first batch Cost per Contact, FCR Leakage, AI Deflection, Business Case.
+52. S24 (27 Sep), TB: "What Changed on the home page and any other page should be removed." Removed every change list:
+   the homepage section, each method page's "Changes to this method", and the `/changelog` page (301 to `/how-to-choose`
+   at the edge and in the app; out of the sitemap, now 425, and the metadata). Links removed from the footer, the seven
+   method page captions and the tool report area; the Research door now points to `/research`. Version stamps ("Method
+   1.0, published ...") stay on tools, method pages and PDFs. `src/lib/changelog.js` stays as the record behind each
+   stamp (`methods.test.mjs` still checks each method's newest entry carries its version); nothing renders it.
+   `methods.test.mjs` and `home.test.mjs` prove the removal (both fail on the old tree); the live checker checks the
+   redirect. Suite 24,686; live check 254 of 254.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
