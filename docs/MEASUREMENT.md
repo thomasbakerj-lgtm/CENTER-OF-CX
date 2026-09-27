@@ -1,7 +1,8 @@
 # Measurement: event taxonomy, UTM convention and funnels
 
-Taxonomy version 1.1, frozen 27 September 2026 (redesign Phase 5; 1.0 frozen 25 September 2026, P2 task 7, tracker
-11-01 to 11-03). The sections below are 1.0; section "Taxonomy 1.1" lists what 1.1 adds. Source of truth in code:
+Taxonomy version 1.2, 27 September 2026 (1.1 frozen the same day at redesign Phase 5; 1.0 frozen 25 September 2026, P2
+task 7, tracker 11-01 to 11-03). The sections below are 1.0; sections "Taxonomy 1.1" and "Taxonomy 1.2" list what each
+adds. Source of truth in code:
 `src/lib/track.js`; pins in `track.test.mjs` section P. PostHog (free tier) is the event store; Vercel Analytics counts
 page views only.
 
@@ -140,3 +141,23 @@ New funnels
    buy-nothing outcome working.
 9. **Report audience.** `report_export` broken down by `audience`, then `expert_read_submit`. Shows who the reports are
    for in practice.
+
+## Taxonomy 1.2 (27 September 2026, vendor introductions; TB: every vendor surface offers one)
+
+1.2 only adds. Every 1.0 and 1.1 name keeps its meaning, so every funnel built on them keeps working.
+
+| Change | Detail |
+|---|---|
+| `action` gains `intro` | On `vendor_action`: the reader asked for an introduction to the vendor. Fires on the button, before the contact form |
+| `surface` gains `category` | A vendor list on a category or category by industry page |
+| New event `intro_submit` | The introduction request was accepted by the contact form's inbox. Carries `vendor` (profile slug, when there is one) |
+| `vendor_action` carries `surface` | Where the action was taken: `vendor` (profile), `tool` (Vendor Match, RFP Builder), `category` (a vendor list) |
+
+A vendor the reader typed into a tool, with no profile on the site, sends `action` and `surface` only: `vendor` takes a
+profile slug and nothing else.
+
+New funnel
+
+10. **Introductions.** `vendor_action` where `action = intro`, broken down by `surface` and `vendor`, then
+    `intro_submit`. Shows where introduction requests start and which vendors buyers ask to meet.
+

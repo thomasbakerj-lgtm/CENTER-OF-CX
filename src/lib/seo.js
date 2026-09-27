@@ -803,6 +803,7 @@ const SUBVERTICAL_DESC = {
    route in the sitemap. The category label is resolved through catName rather
    than stored, so the generated map can never disagree with the category page
    a reader lands on. */
+export const isVendorSlug = (slug) => typeof slug === "string" && !!own(VENDOR_NAMES, slug);
 export const vendorDisplayName = (slug) => (own(VENDOR_NAMES, slug) || [])[0] || titleCase(slug);
 export const vendorCategoryLabel = (slug) => {
   const entry = own(VENDOR_NAMES, slug);

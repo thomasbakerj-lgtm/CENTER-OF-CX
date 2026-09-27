@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { readIntro, INTRO_TOPIC } from "./src/lib/intro.js";
+import { trackVendor } from "./src/lib/track.js";
 
 const NAVY = "#0B1D3A";
 const DEEP = "#061325";
@@ -74,6 +76,10 @@ function Nav() {
 
 function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
+  /* A vendor introduction arrives as ?intro=<profile slug> or ?vendor=<name>, checked by readIntro. Read after the
+     first paint, so the prerendered page and the hydrated page match. */
+  const [intro, setIntro] = useState(null);
+  useEffect(() => { try { setIntro(readIntro(window.location.search)); } catch { setIntro(null); } }, []);
   const [sending, setSending] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -165,12 +171,16 @@ function ContactPage() {
                 </div>
               ) : (
                 <div>
-                  <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>Tell us about your situation.</h2>
+                  <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>{intro ? `Request an introduction to ${intro.name}.` : "Tell us about your situation."}</h2>
+                  {intro && <p style={{ fontSize: 14, color: SLATE, margin: "0 0 8px", lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif" }}>Tell us what you want to see and who should join. We arrange the introduction and a demo run on your scenarios.</p>}
                   <p style={{ fontSize: 13, color: MUTED, margin: "0 0 28px", fontFamily: "'DM Sans', sans-serif" }}>All fields are required unless marked optional.</p>
 
                   <div onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                    {intro && <input type="hidden" name="intro_vendor" value={intro.name} />}
+                    {intro && intro.slug && <input type="hidden" name="intro_profile" value={intro.slug} />}
+                    {intro && intro.from && <input type="hidden" name="intro_from" value={intro.from} />}
                     {/* Hidden Formspree helper */}
-                    <input type="hidden" name="_subject" value="New Consultant Match Request: Center of CX" />
+                    <input type="hidden" name="_subject" value={intro ? `Vendor introduction request: ${intro.name}` : "New Consultant Match Request: Center of CX"} />
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <div>
@@ -200,7 +210,7 @@ function ContactPage() {
 
                     <div>
                       <label style={labelStyle}>What are you working on?</label>
-                      <select name="topic" required defaultValue="" style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
+                      <select key={intro ? "intro" : "none"} name="topic" required defaultValue={intro ? INTRO_TOPIC : ""} style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
                         <option value="" disabled>Select a topic</option>
                         <option value="Platform selection / CCaaS evaluation">Platform selection / CCaaS evaluation</option>
                         <option value="AI readiness assessment">AI readiness assessment</option>
@@ -208,13 +218,14 @@ function ContactPage() {
                         <option value="Operating model design">Operating model design</option>
                         <option value="Executive briefing">Executive briefing</option>
                         <option value="Transformation workshop">Transformation workshop</option>
+                        <option value={INTRO_TOPIC}>{INTRO_TOPIC}</option>
                         <option value="General inquiry">General inquiry</option>
                       </select>
                     </div>
 
                     <div>
                       <label style={labelStyle}>Describe your situation <span style={{ fontWeight: 400, color: MUTED }}>(the more context, the better we can prepare)</span></label>
-                      <textarea name="message" required rows={5} style={{ ...inputStyle, resize: "vertical", minHeight: 120 }} placeholder="We're evaluating CCaaS platforms and need help narrowing from 8 vendors to 3. Currently on legacy Avaya with 400 agents across two sites..." />
+                      <textarea key={intro ? "intro" : "none"} name="message" required rows={5} style={{ ...inputStyle, resize: "vertical", minHeight: 120 }} placeholder={intro ? "What you want to see in the demo, your timeline, and who should join the call..." : "We're evaluating CCaaS platforms and need help narrowing from 8 vendors to 3. Currently on legacy Avaya with 400 agents across two sites..."} />
                     </div>
 
                     <div>
@@ -242,6 +253,7 @@ function ContactPage() {
                           }).then(res => {
                             if (res.ok) {
                               setSubmitted(true);
+                              if (intro) trackVendor.introSent(intro.slug || undefined);
                             }
                             setSending(false);
                           }).catch(() => setSending(false));

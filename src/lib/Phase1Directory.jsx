@@ -7,6 +7,7 @@
  * cannot erode one page at a time.
  */
 import { phase1Label, byName } from "./researchStatus.js";
+import { VendorIntroLink } from "./VendorIntro.jsx";
 
 const NAVY = "#0B1D3A"; const ELECTRIC = "#0088DD"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED";
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
@@ -41,11 +42,14 @@ export function Phase1Directory({ groups }) {
             {g.desc && <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.55, margin: "0 0 12px", maxWidth: 760 }}>{g.desc}</p>}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
               {[...g.vendors].sort(byName).map((v) => (
-                <a key={v.slug} href={`/vendors/${v.slug}`} style={{ display: "block", padding: "12px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
+                <div key={v.slug} style={{ display: "flex", flexDirection: "column" }}>
+                <a href={`/vendors/${v.slug}`} style={{ display: "block", padding: "12px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{v.name}</div>
                   {v.line && <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{v.line}</div>}
                   <div style={{ fontSize: 11, color: SLATE, marginTop: 6 }}>{label.short}</div>
                 </a>
+                <div style={{ padding: "0 14px" }}><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={NAVY} /></div>
+                </div>
               ))}
             </div>
           </div>

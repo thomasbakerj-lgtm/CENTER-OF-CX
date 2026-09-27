@@ -8,25 +8,38 @@ reply. Once approved, the decision is copied into CLAUDE.md section 5 and this f
 The repository is public, so the raw corpus is never committed (CLAUDE.md section 3, decision 5). Vendor Intelligence
 (redesign Phase 7) needs it at build time.
 
-**Recommended: a private GitHub repository, read at build time.**
+**Recommended (revised 27 September 2026, S24): a private repository for the raw corpus, and a committed, publishable
+snapshot that the site builds from.**
 
-1. Create a private repository, for example `center-of-cx-research`, holding the corpus JSON and XLSX, one folder per
-   category, one file per checkpoint. Free on GitHub.
-2. Create a fine-grained read-only token for that repository only. Store it as a Vercel environment variable
-   (`RESEARCH_TOKEN`) and as a GitHub Actions secret for the public repository.
-3. The Stage 1 loader fetches the named checkpoint during `npm run build`, checks the schema version, keeps only
-   publishable evidence and fields the surface-permission table grants to Vendor Intelligence, and writes derived view
-   data into the build output. Nothing raw reaches the public repository or the browser.
-4. Public tests run against a small synthetic corpus committed to the public repository (invented vendors, the real
-   schema), so every separation and publishability test runs on every pull request without the private data. A second
-   CI job, holding the secret, runs the same tests against the real checkpoint.
-5. Each new checkpoint is a commit in the private repository; the public site names the checkpoint it was built from.
+1. **Raw stays private.** A private repository, `center-of-cx-research`, holds the corpus JSON and XLSX, one folder per
+   category, one commit per checkpoint. Free on GitHub. The public repository never holds raw research.
+2. **A sync job makes the public snapshot.** `scripts/research-sync.mjs` reads a named checkpoint, checks the schema
+   version, drops everything the publication rules exclude (confidential and restricted evidence, the
+   `INTERNAL_RESEARCH_ONLY` objects, fields no public surface is allowed to read) and writes one derived file per category,
+   `src/data/research/<category>.json`, with a manifest: checkpoint name, schema version, SHA-256 of the source file,
+   loader version, date. A GitHub Action holding a read-only token runs it on demand and opens a pull request.
+3. **The site builds from the snapshot only.** Vercel needs no token, so every build and preview works, and a GitHub or
+   token outage cannot break a deploy.
+4. **Every change to what the public sees is a reviewed diff.** A new checkpoint arrives as a pull request: the suite
+   gates it (schema, publishability, separation tests), and the diff shows exactly which claims changed. Rollback is a
+   revert. The manifest hash ties each snapshot to the exact private checkpoint, so the audit trail is kept.
+5. **Tests run in public on synthetic data.** A small invented corpus with the real schema lives in the public repository,
+   so the 18 separation and publishability tests run on every pull request. The sync job also runs them on the real
+   checkpoint before it opens its pull request.
+6. **It scales by category.** Each of the eight categories gets its own adapter and derived file on the same loader; one
+   category's criteria never leak into another's.
 
-Cost: none. Alternatives considered: a private Vercel Blob store (usage-based, needs a paid plan beyond limits),
-committing derived data only (loses the audit trail back to the corpus), manual upload per build (error-prone).
+Why this over the earlier plan (fetch the private corpus during every Vercel build): the snapshot is exactly what the
+site publishes anyway, so committing it exposes nothing new, and it removes a secret and a network call from every build,
+makes each research update reviewable before it goes live, and lets previews work. Cost: none.
 
-Decision needed: approve the private repository, and create it and the token (Claude cannot create repositories or
-tokens from this session). Status: open.
+What TB does, about ten minutes, once:
+1. Create the private repository `center-of-cx-research` and upload the Cohort 3 corpus JSON (and the XLSX).
+2. Create a fine-grained personal access token: that repository only, Contents read-only.
+3. Add it to the public repository as an Actions secret named `RESEARCH_TOKEN`.
+4. Add the private repository to a Claude session (so the loader can be written and tested against the real file).
+
+Status: recommended, awaiting TB's go.
 
 ## D2. Vendor correction policy
 

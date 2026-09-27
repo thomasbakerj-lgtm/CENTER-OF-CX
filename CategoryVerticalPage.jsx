@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { VendorIntroLink } from "./src/lib/VendorIntro.jsx";
 import { useParams, Link } from "react-router-dom";
 import { getVendorsByCategory, getVendor } from "./VendorData";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals";
@@ -113,7 +114,8 @@ export default function CategoryVerticalPage() {
                 <h3 style={{ fontSize: 12, fontWeight: 700, color: g.color, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>{g.title}</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 24 }}>
                   {g.list.map(v => (
-                    <a key={v.slug} href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "border-color 0.15s" }}
+                    <div key={v.slug}>
+                    <a href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "border-color 0.15s" }}
                       onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
                       onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -122,6 +124,8 @@ export default function CategoryVerticalPage() {
                       </div>
                       <span style={{ color: ELECTRIC, fontSize: 12, flexShrink: 0 }}>View profile →</span>
                     </a>
+                    <div style={{ padding: "0 16px" }}><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={NAVY} /></div>
+                    </div>
                   ))}
                 </div>
               </div>

@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
-import { ToolHero, ToolStart } from "./src/lib/ToolShell";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Button } from "./src/lib/ui.jsx";
+import { K, Paper, Group, selectStyle, optionCss } from "./src/lib/frameKit.jsx";
+import { TOUCH, RADIUS } from "./src/lib/tokens.js";
+import { VendorIntro } from "./src/lib/VendorIntro.jsx";
+import { introHref } from "./src/lib/intro.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { getVendor } from "./VendorData";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
-const WRAP = { maxWidth: 960, margin: "0 auto", padding: "0 28px" };
-function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
+/* A fit band is a word on the page. The PDF's fit tiles keep the colours they printed. */
+const GREEN = "#10B981"; const AMBER = "#F59E0B"; const MUTED = "#5B6E88";
 
 const VERTICAL_COMPLIANCE = {
   "Financial Services": ["PCI DSS Level 1", "SOC 2 Type II", "FFIEC compliance", "GLBA data protection", "FINRA recordkeeping", "Multi-region data residency"],
@@ -249,7 +253,9 @@ const VENDORS = [
     addOns:"Win themes: Fast SMB-midmarket consolidation and cost control | Watch: Can lose once buyers compare to stronger midmarket-enterprise platforms | Best for: Use in SMB cost-sensitive reviews" },
 ];
 
-function Select({label,value,onChange,options,hint}){return<div><label style={{fontSize:12,fontWeight:600,color:NAVY,display:"block",marginBottom:4}}>{label}</label><select value={value} onChange={e=>onChange(e.target.value)} style={{width:"100%",padding:"10px 12px",fontSize:14,border:`1px solid ${BORDER}`,borderRadius:6,background:"#fff",color:NAVY,outline:"none",cursor:"pointer"}}><option value="">Select...</option>{options.map(o=>typeof o==="string"?<option key={o} value={o}>{o}</option>:<option key={o.value} value={o.value}>{o.label}</option>)}</select>{hint&&<span style={{fontSize:12,color:MUTED,marginTop:2,display:"block"}}>{hint}</span>}</div>}
+function Select({label,value,onChange,options,hint}){return<label style={{display:"block",minWidth:0,...K.strong,fontSize:14}}>{label}<select className="vm-sel" value={value} onChange={e=>onChange(e.target.value)} style={{...selectStyle,marginTop:6}}><option value="">Select...</option>{options.map(o=>typeof o==="string"?<option key={o} value={o}>{o}</option>:<option key={o.value} value={o.value}>{o.label}</option>)}</select>{hint&&<span style={{...K.small,display:"block",marginTop:4,fontWeight:400}}>{hint}</span>}</label>}
+const tabStyle = (on) => ({ minHeight: TOUCH, padding: "0 12px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer", border: `1px solid ${on ? K.strong.color : K.firm}`, background: "transparent", color: K.strong.color });
+const pickStyle = (on) => ({ ...K.box, textAlign: "left", cursor: "pointer", fontFamily: FONT, border: `${on ? 2 : 1}px solid ${on ? K.strong.color : K.hair}` });
 
 const TOOL_ID = "vendor-match";
 const ROUTE = "/tools/vendor-match";
@@ -316,149 +322,145 @@ export default function VendorMatchEngine() {
 
   const results = getResults();
 
+  const result = phase === "results"
+    ? <Result label="Vendors on the starting list" value={String(results.length)} change="Phase 1 CCaaS model, a starting list. How the scores are made is stated above the list." />
+    : <Result label="Steps answered" value={`${[d.vertical && d.size, d.priorities.length > 0].filter(Boolean).length} of 2`} change="Your environment and at least one priority build the shortlist." />;
+
   return (
-    <div style={{fontFamily:FONT,minHeight:"100vh"}}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.pg{grid-template-columns:1fr!important}}`}</style>
+    <ToolFrame toolId={TOOL_ID} section="Vendor Selection" name="Vendor Match" title="Which CCaaS vendors belong on your starting list?"
+      lede="Describe your environment, priorities and compliance needs to get a shortlist with the reasoning behind each fit. The ranking runs on the Phase 1 vendor model, and its method is disclosed with the results."
+      result={result} pinned={phase === "results" ? { label: "Vendors on the list", value: String(results.length) } : null}>
+      <style>{FONT_IMPORT_CSS + optionCss("vm-sel")}</style>
 
-      <ToolHero wrap={WRAP} eyebrow="Vendor Selection" title="Vendor Match"
-        intro="Describe your environment, priorities and compliance needs to get a shortlist with the reasoning behind each fit. The ranking runs on the Phase 1 vendor model, and its method is disclosed with the results." />
-
-      {phase==="input"&&(<section style={{background:"#fff",padding:"48px 28px 60px"}}><div style={{...WRAP,maxWidth:700}}>
-        <div style={{display:"flex",gap:4,marginBottom:32,flexWrap:"wrap"}}>
+      {phase==="input"&&(<>
+        <div role="tablist" aria-label="Steps" style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           {["Your Environment","What Matters","Compliance","Dimension Weighting"].map((s,i)=>(
-            <div key={i} style={{flex:1,textAlign:"center",padding:"10px 8px",borderBottom:`3px solid ${step===i?ELECTRIC:BORDER}`,cursor:"pointer",fontSize:12,fontWeight:600,color:step===i?NAVY:MUTED,minWidth:110}} onClick={()=>setStep(i)}>{s}</div>
+            <button key={i} type="button" role="tab" aria-selected={step===i} onClick={()=>setStep(i)} style={tabStyle(step===i)}>{i+1}. {s}</button>
           ))}
         </div>
 
-        {step===0&&(<div>
-          <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 20px"}}>Tell us about your environment</h2>
+        {step===0&&(<Group legend="Tell us about your environment">
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <Select label="Industry vertical" value={d.vertical} onChange={v=>{set("vertical",v);set("compliance",[]);}} options={VERTICALS}/>
             <Select label="Operation size" value={d.size} onChange={v=>set("size",v)} options={SIZES}/>
             <Select label="Current platform" value={d.currentPlatform} onChange={v=>set("currentPlatform",v)} options={PLATFORMS.map(p=>p.name)} hint="Helps identify migration-specific considerations"/>
           </div>
-          {platformData&&platformData.notes&&(<div style={{marginTop:20,background:`${ELECTRIC}06`,border:`1px solid ${ELECTRIC}20`,borderRadius:10,padding:"18px 20px"}}>
-            <div style={{fontSize:11,fontWeight:700,color:ELECTRIC,letterSpacing:1.5,textTransform:"uppercase",marginBottom:6}}>Platform Context: {platformData.name}</div>
-            <p style={{fontSize:13,color:SLATE,lineHeight:1.6,margin:0}}>{platformData.notes}</p>
+          {platformData&&platformData.notes&&(<div style={{...K.box,marginTop:16}}>
+            <div style={{...K.kicker,marginBottom:6}}>Platform Context: {platformData.name}</div>
+            <p style={K.body}>{platformData.notes}</p>
           </div>)}
-          <button onClick={()=>setStep(1)} disabled={!d.vertical||!d.size} style={{marginTop:24,padding:"12px 28px",fontSize:14,fontWeight:600,borderRadius:8,border:"none",background:d.vertical&&d.size?ELECTRIC:MUTED,color:"#fff",cursor:"pointer",opacity:d.vertical&&d.size?1:0.5}}>Next: What Matters →</button>
-        </div>)}
+          <div style={{marginTop:18}}><Button onClick={()=>setStep(1)} disabled={!d.vertical||!d.size}>Next: What Matters</Button></div>
+        </Group>)}
 
-        {step===1&&(<div>
-          <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>What matters to your operation?</h2>
-          <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Select all that apply. The more you select, the more nuanced the match.</p>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}} className="pg">
-            {PRIORITIES.map(p=>(<button key={p.id} onClick={()=>toggleArr("priorities",p.id)} style={{padding:"14px 16px",textAlign:"left",borderRadius:8,cursor:"pointer",border:`1px solid ${d.priorities.includes(p.id)?ELECTRIC:BORDER}`,background:d.priorities.includes(p.id)?`${ELECTRIC}06`:"#fff",color:"inherit"}}>
-              <div style={{fontSize:13,fontWeight:600,color:d.priorities.includes(p.id)?ELECTRIC:NAVY}}>{d.priorities.includes(p.id)?"✓ ":""}{p.name}</div>
-              <div style={{fontSize:12,color:MUTED,marginTop:2}}>{p.desc}</div>
-            </button>))}
+        {step===1&&(<Group legend="What matters to your operation?" note="Select all that apply. The more you select, the more nuanced the match.">
+          <div style={K.grid(240)}>
+            {PRIORITIES.map(p=>{const on=d.priorities.includes(p.id);return(<button key={p.id} type="button" aria-pressed={on} onClick={()=>toggleArr("priorities",p.id)} style={pickStyle(on)}>
+              <div style={{...K.strong,fontSize:14}}>{on?"\u2713 ":""}{p.name}</div>
+              <div style={{...K.small,marginTop:2}}>{p.desc}</div>
+            </button>);})}
           </div>
-          <div style={{display:"flex",gap:12,marginTop:24}}>
-            <button onClick={()=>setStep(0)} style={{padding:"12px 24px",fontSize:14,fontWeight:600,borderRadius:8,border:`1px solid ${BORDER}`,background:"#fff",color:NAVY,cursor:"pointer"}}>← Back</button>
-            <button onClick={()=>setStep(2)} disabled={d.priorities.length===0} style={{padding:"12px 28px",fontSize:14,fontWeight:600,borderRadius:8,border:"none",background:d.priorities.length>0?ELECTRIC:MUTED,color:"#fff",cursor:"pointer",opacity:d.priorities.length>0?1:0.5}}>Next: Compliance →</button>
+          <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>
+            <Button kind="secondary" onClick={()=>setStep(0)}>Back</Button>
+            <Button onClick={()=>setStep(2)} disabled={d.priorities.length===0}>Next: Compliance</Button>
           </div>
-        </div>)}
+        </Group>)}
 
-        {step===2&&(<div>
-          <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>Compliance Requirements</h2>
-          <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Based on your {d.vertical||"selected"} vertical. Select requirements that apply.</p>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}} className="pg">
-            {vertComp.map(req=>(<button key={req} onClick={()=>toggleArr("compliance",req)} style={{padding:"12px 16px",fontSize:13,textAlign:"left",borderRadius:8,cursor:"pointer",border:`1px solid ${d.compliance.includes(req)?RED:BORDER}`,background:d.compliance.includes(req)?`${RED}06`:"#fff",color:d.compliance.includes(req)?RED:SLATE,fontWeight:d.compliance.includes(req)?600:400}}>{d.compliance.includes(req)?"✓ ":""}{req}</button>))}
+        {step===2&&(<Group legend="Compliance Requirements" note={`Based on your ${d.vertical||"selected"} vertical. Select requirements that apply.`}>
+          <div style={K.grid(240)}>
+            {vertComp.map(req=>{const on=d.compliance.includes(req);return(<button key={req} type="button" aria-pressed={on} onClick={()=>toggleArr("compliance",req)} style={{...pickStyle(on),...K.strong,fontSize:14,fontWeight:on?700:500}}>{on?"\u2713 ":""}{req}</button>);})}
           </div>
-          <div style={{display:"flex",gap:12,marginTop:24}}>
-            <button onClick={()=>setStep(1)} style={{padding:"12px 24px",fontSize:14,fontWeight:600,borderRadius:8,border:`1px solid ${BORDER}`,background:"#fff",color:NAVY,cursor:"pointer"}}>← Back</button>
-            <button onClick={()=>setStep(3)} style={{padding:"12px 28px",fontSize:14,fontWeight:600,borderRadius:8,border:"none",background:ELECTRIC,color:"#fff",cursor:"pointer"}}>Next: Weighting →</button>
+          <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>
+            <Button kind="secondary" onClick={()=>setStep(1)}>Back</Button>
+            <Button onClick={()=>setStep(3)}>Next: Weighting</Button>
           </div>
-        </div>)}
+        </Group>)}
 
-        {step===3&&(<div>
-          <h2 style={{fontFamily:FONT,fontSize:24,fontWeight:400,color:NAVY,margin:"0 0 8px"}}>How important is each dimension?</h2>
-          <p style={{fontSize:13,color:MUTED,marginBottom:20}}>Rate your selected priorities: 1 = nice to have, 5 = critical.</p>
-          {selPriorities.map(dim=>(<div key={dim.id} style={{marginBottom:14,padding:"14px 16px",background:WARM,borderRadius:8,border:`1px solid ${BORDER}`}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <div><span style={{fontSize:13,fontWeight:600,color:NAVY}}>{dim.name}</span><span style={{fontSize:12,color:MUTED,display:"block"}}>{dim.desc}</span></div>
-              <span style={{fontFamily:FONT,fontSize:22,color:ELECTRIC}}>{d.importance[dim.id]||3}</span>
+        {step===3&&(<Group legend="How important is each dimension?" note="Rate your selected priorities: 1 = nice to have, 5 = critical.">
+          {selPriorities.map(dim=>(<div key={dim.id} style={{...K.box,marginBottom:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginBottom:6}}>
+              <div><span style={{...K.strong,fontSize:14}}>{dim.name}</span><span style={{...K.small,display:"block"}}>{dim.desc}</span></div>
+              <span style={{...K.strong,...K.num,fontSize:22}}>{d.importance[dim.id]||3}</span>
             </div>
-            <input type="range" min={1} max={5} value={d.importance[dim.id]||3} onChange={e=>setImp(dim.id,Number(e.target.value))} style={{width:"100%",accentColor:ELECTRIC}}/>
+            <input type="range" aria-label={`${dim.name} importance, 1 to 5`} min={1} max={5} value={d.importance[dim.id]||3} onChange={e=>setImp(dim.id,Number(e.target.value))} style={{width:"100%",minHeight:TOUCH,accentColor:K.strong.color}}/>
           </div>))}
-          <h3 style={{fontSize:14,fontWeight:600,color:NAVY,marginTop:28,marginBottom:12}}>Commercial Preferences</h3>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}} className="pg">
+          <h3 style={{...K.strong,fontSize:15,margin:"18px 0 10px"}}>Commercial Preferences</h3>
+          <div style={K.grid(200)}>
             <Select label="Budget sensitivity" value={d.budgetSensitivity} onChange={v=>set("budgetSensitivity",v)} options={[{value:"low",label:"Low (best platform wins)"},{value:"moderate",label:"Moderate (value matters)"},{value:"high",label:"High (cost-driven)"}]}/>
             <Select label="Billing preference" value={d.billingPreference} onChange={v=>set("billingPreference",v)} options={[{value:"monthly",label:"Monthly"},{value:"annual",label:"Annual (discount)"},{value:"consumption",label:"Consumption-based"}]}/>
             <Select label="Contract term" value={d.termLength} onChange={v=>set("termLength",v)} options={["1 year","3 years","5 years"]}/>
           </div>
-          <div style={{display:"flex",gap:12,marginTop:24}}>
-            <button onClick={()=>setStep(2)} style={{padding:"12px 24px",fontSize:14,fontWeight:600,borderRadius:8,border:`1px solid ${BORDER}`,background:"#fff",color:NAVY,cursor:"pointer"}}>← Back</button>
-            <button onClick={handleResults} style={{padding:"12px 28px",fontSize:14,fontWeight:600,borderRadius:8,border:"none",background:GREEN,color:"#fff",cursor:"pointer"}}>See My Matches →</button>
+          <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>
+            <Button kind="secondary" onClick={()=>setStep(2)}>Back</Button>
+            <Button onClick={handleResults}>See My Matches</Button>
           </div>
-        </div>)}
-      </div></section>)}
+        </Group>)}
+      </>)}
 
-      {phase==="results"&&(<section style={{background:"#fff",padding:"48px 28px 60px"}}><div style={WRAP}>
-        <div style={{background:WARM,border:`1px solid ${BORDER}`,borderRadius:8,padding:"12px 16px",marginBottom:24,fontSize:12,color:SLATE,lineHeight:1.6}}><strong style={{color:NAVY}}>How these scores are made. </strong>{METHOD_NOTE}</div>
-        <div style={{textAlign:"center",marginBottom:32}}>
-          <span style={{fontSize:11,fontWeight:700,color:ELECTRIC,letterSpacing:2,textTransform:"uppercase"}}>Your Vendor Shortlist</span>
-          <h2 style={{fontFamily:FONT,fontSize:28,fontWeight:400,color:NAVY,margin:"8px 0"}}>Ranked by fit for your environment</h2>
-          <p style={{fontSize:13,color:MUTED,maxWidth:560,margin:"0 auto"}}>{d.size} in {d.vertical||"your vertical"}{d.currentPlatform&&d.currentPlatform!=="None / Greenfield"?`, migrating from ${d.currentPlatform}`:""}. {d.priorities.length} priorities. {d.compliance.length} compliance requirements.</p>
-        </div>
+      {phase==="results"&&(<>
+        <section aria-label="How these scores are made" style={K.lead}>
+          <p style={K.body}><strong style={{color:K.strong.color}}>How these scores are made. </strong>{METHOD_NOTE}</p>
+        </section>
+        <section aria-label="Your vendor shortlist" style={K.panel}>
+          <span style={K.kicker}>Your Vendor Shortlist</span>
+          <h2 style={{...K.h2,marginTop:6}}>Ranked by fit for your environment</h2>
+          <p style={K.small}>{d.size} in {d.vertical||"your vertical"}{d.currentPlatform&&d.currentPlatform!=="None / Greenfield"?`, migrating from ${d.currentPlatform}`:""}. {d.priorities.length} priorities. {d.compliance.length} compliance requirements.</p>
+        </section>
 
-        <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:32}}>
+        <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {results.map((v,i)=>{
             const isTop=i<3;
-            const fc=v.score>=85?GREEN:v.score>=70?AMBER:v.score>=55?"#6B7280":RED;
             const fl=v.score>=85?"Strong Fit":v.score>=70?"Good Fit":v.score>=55?"Conditional Fit":"Weak Fit";
-            return(<div key={v.name} style={{background:isTop?"#fff":WARM,border:`1px solid ${isTop?fc+"40":BORDER}`,borderRadius:12,padding:isTop?"24px":"16px 20px",borderLeft:isTop?`4px solid ${fc}`:"4px solid transparent"}}>
+            return(<div key={v.name} style={{...(isTop?K.panel:K.box),border:`${isTop?2:1}px solid ${isTop?K.firm:K.hair}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap"}}>
                 <div style={{flex:1,minWidth:200}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-                    <span style={{fontFamily:FONT,fontSize:isTop?14:12,color:MUTED}}>#{i+1}</span>
-                    <a href={`/vendors/${v.slug}`} style={{fontFamily:FONT,fontSize:isTop?22:17,fontWeight:400,color:NAVY,borderBottom:`1px solid ${ELECTRIC}30`}}>{v.name}</a>
+                  <div style={{display:"flex",alignItems:"baseline",gap:10,marginBottom:4}}>
+                    <span style={K.small}>#{i+1}</span>
+                    <a href={`/vendors/${v.slug}`} style={{...K.link,fontSize:isTop?20:16}}>{v.name}</a>
                   </div>
                   {isTop&&(<>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:8,marginBottom:6}}>
-                      {v.strengths.map((s,si)=><span key={si} style={{fontSize:12,padding:"3px 8px",borderRadius:4,background:`${GREEN}10`,color:GREEN,fontWeight:500}}>✓ {s}</span>)}
-                    </div>
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:8}}>
-                      {v.risks.map((r,ri)=><span key={ri} style={{fontSize:12,padding:"3px 8px",borderRadius:4,background:`${RED}08`,color:RED}}>⚠ {r}</span>)}
-                    </div>
+                    <ul style={{listStyle:"none",padding:0,margin:"8px 0 4px"}}>
+                      {v.strengths.map((st,si)=><li key={si} style={K.body}><strong style={{color:K.strong.color}}>Strength:</strong> {st}</li>)}
+                    </ul>
+                    <ul style={{listStyle:"none",padding:0,margin:"0 0 6px"}}>
+                      {v.risks.map((r,ri)=><li key={ri} style={K.body}><strong style={{color:K.strong.color}}>Risk:</strong> {r}</li>)}
+                    </ul>
                   </>)}
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>
-                  <div style={{fontFamily:FONT,fontSize:isTop?36:24,color:fc}}>{v.score}</div>
-                  <div style={{fontSize:12,fontWeight:600,color:fc}}>{fl}</div>
+                  <div style={{...K.strong,...K.num,fontSize:isTop?32:22}}>{v.score}</div>
+                  <div style={{...K.small,fontWeight:600,color:K.strong.color}}>{fl}</div>
                 </div>
               </div>
               {isTop&&(<>
-                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:10,paddingTop:10,borderTop:`1px solid ${BORDER}`}}>
-                  {selPriorities.slice(0,6).map(p=>(<div key={p.id} style={{textAlign:"center",minWidth:70}}>
-                    <div style={{fontSize:12,color:MUTED,marginBottom:2}}>{p.name.split("+")[0].trim()}</div>
-                    <div style={{height:4,background:BORDER,borderRadius:2,overflow:"hidden",width:60}}>
-                      <div style={{height:"100%",width:`${v.dims[p.id]||50}%`,background:(v.dims[p.id]||50)>=80?GREEN:(v.dims[p.id]||50)>=65?AMBER:MUTED,borderRadius:2}}/>
+                <div style={{display:"flex",gap:14,flexWrap:"wrap",marginTop:10,paddingTop:10,borderTop:`1px solid ${K.hair}`}}>
+                  {selPriorities.slice(0,6).map(p=>(<div key={p.id} style={{minWidth:80}}>
+                    <div style={K.small}>{p.name.split("+")[0].trim()}</div>
+                    <div role="img" aria-label={`${p.name}: ${v.dims[p.id]||"n/a"}`} style={{height:4,background:K.hair,borderRadius:2,overflow:"hidden",width:70,margin:"3px 0"}}>
+                      <div style={{height:"100%",width:`${v.dims[p.id]||50}%`,background:K.shade(0),borderRadius:2}}/>
                     </div>
-                    <div style={{fontSize:12,fontWeight:600,color:SLATE,marginTop:1}}>{v.dims[p.id]||"n/a"}</div>
+                    <div style={{...K.strong,fontSize:13}}>{v.dims[p.id]||"n/a"}</div>
                   </div>))}
                 </div>
-                <details style={{marginTop:10}}><summary style={{fontSize:12,fontWeight:600,color:ELECTRIC,cursor:"pointer"}}>Market intelligence + competitive positioning</summary>
-                  <p style={{fontSize:12,color:SLATE,lineHeight:1.6,marginTop:6,padding:"10px 14px",background:WARM,borderRadius:6}}>{v.addOns}</p>
+                <details style={{marginTop:10}}><summary style={{...K.link,cursor:"pointer",minHeight:TOUCH,display:"flex",alignItems:"center"}}>Market intelligence + competitive positioning</summary>
+                  <p style={{...K.body,...K.box,marginTop:6}}>{v.addOns}</p>
                 </details>
                 {v.integrations&&v.integrations.length>0&&(
-                  <div style={{marginTop:8,padding:"8px 14px",background:`${GREEN}04`,border:`1px solid ${GREEN}15`,borderRadius:6}}>
-                    <div style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Verified Integrations</div>
-                    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
-                      {v.integrations.map((ig,igi)=><span key={igi} style={{fontSize:12,padding:"2px 8px",borderRadius:4,background:`${GREEN}10`,color:GREEN}}>{ig}</span>)}
-                    </div>
+                  <div style={{...K.box,marginTop:8}}>
+                    <div style={{...K.kicker,marginBottom:4}}>Verified Integrations</div>
+                    <p style={K.body}>{v.integrations.join(", ")}</p>
                   </div>
                 )}
-                <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"wrap"}}>
-                  <a href={`/vendors/${v.slug}`} style={{fontSize:12,fontWeight:600,color:ELECTRIC,padding:"6px 14px",borderRadius:5,border:`1px solid ${ELECTRIC}30`,background:`${ELECTRIC}06`}}>View Full Profile →</a>
+                <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:10}}>
+                  <VendorIntro slug={v.slug} name={v.name} from={TOOL_ID} surface="tool"/>
+                  <Button kind="secondary" href={`/vendors/${v.slug}`}>View Full Profile</Button>
                 </div>
               </>)}
+              {!isTop&&(<div style={{marginTop:8}}><VendorIntro slug={v.slug} name={v.name} from={TOOL_ID} surface="tool" kind="text"/></div>)}
             </div>);
           })}
         </div>
 
-        {/* Download report */}
-        <div style={{marginBottom:20}}>
+        <Paper>
           <ReportActions
             toolId={TOOL_ID}
             routePath={ROUTE}
@@ -494,30 +496,30 @@ export default function VendorMatchEngine() {
               { title: "Important Note", type: "text", content: "This shortlist is generated from independently scored vendor data across 27 weighted dimensions. Vendor fit depends on details this tool cannot capture: integration complexity, contract terms, implementation timelines, and organizational readiness. Use this as a starting point for deeper evaluation, not as a final decision." },
             ]}
           />
+        </Paper>
+
+        <div style={K.grid(260)}>
+          <a href="/contact" style={{...K.panel,display:"block",textDecoration:"none"}}>
+            <div style={{...K.kicker,marginBottom:8}}>Refine Your Shortlist</div>
+            <div style={{...K.strong,fontSize:18,marginBottom:8}}>Speak with a CX Consultant</div>
+            <p style={{...K.small,margin:"0 0 12px"}}>30 minutes to refine this shortlist based on integration complexity, contract terms, and organizational readiness.</p>
+            <span style={K.link}>Request Working Session</span>
+          </a>
+          <a href={introHref({slug:results[0].slug,from:TOOL_ID})} style={{...K.panel,display:"block",textDecoration:"none"}}>
+            <div style={{...K.kicker,marginBottom:8}}>See It In Action</div>
+            <div style={{...K.strong,fontSize:18,marginBottom:8}}>Request a Vendor Introduction</div>
+            <p style={{...K.small,margin:"0 0 12px"}}>We coordinate a tailored demo with your top match using your scenarios, not their standard pitch.</p>
+            <span style={K.link}>Request Introduction + Demo</span>
+          </a>
         </div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:24}} className="pg">
-          <a href="/contact" style={{display:"block",background:`linear-gradient(135deg,${NAVY},${DEEP})`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
-            <div style={{fontSize:11,fontWeight:700,color:LIGHT,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>Refine Your Shortlist</div>
-            <div style={{fontFamily:FONT,fontSize:20,color:"#fff",marginBottom:8}}>Speak with a CX Consultant</div>
-            <p style={{fontSize:12,color:"rgba(255,255,255,0.45)",lineHeight:1.5,margin:"0 0 12px"}}>30 minutes to refine this shortlist based on integration complexity, contract terms, and organizational readiness.</p>
-            <span style={{display:"inline-block",background:ELECTRIC,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Request Working Session →</span>
-          </a>
-          <a href="/contact" style={{display:"block",background:`${GREEN}06`,border:`1px solid ${GREEN}30`,borderRadius:12,padding:"28px 24px",textAlign:"center",textDecoration:"none"}}>
-            <div style={{fontSize:11,fontWeight:700,color:GREEN,letterSpacing:1.5,textTransform:"uppercase",marginBottom:8}}>See It In Action</div>
-            <div style={{fontFamily:FONT,fontSize:20,color:NAVY,marginBottom:8}}>Request a Vendor Introduction</div>
-            <p style={{fontSize:12,color:SLATE,lineHeight:1.5,margin:"0 0 12px"}}>We coordinate a tailored demo with your top match using your scenarios, not their standard pitch.</p>
-            <span style={{display:"inline-block",background:GREEN,color:"#fff",fontSize:13,fontWeight:600,padding:"10px 22px",borderRadius:6}}>Request Introduction + Demo →</span>
-          </a>
+        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+          <Button kind="secondary" href="/tools/platform-decision">Platform Decision</Button>
+          <Button kind="secondary" href="/tools/contract-risk">Contract Risk Scanner</Button>
+          <Button kind="secondary" href="/tools/transformation-readiness">Transformation Readiness</Button>
+          <Button kind="secondary" href="/how-to-choose">Explore all the tools</Button>
         </div>
-
-        <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-          <a href="/tools/platform-decision" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Platform Decision →</a>
-          <a href="/tools/contract-risk" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Contract Risk Scanner →</a>
-          <a href="/tools/transformation-readiness" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Transformation Readiness →</a>
-          <a href="/how-to-choose" style={{background:WARM,border:`1px solid ${BORDER}`,color:NAVY,fontSize:14,fontWeight:600,padding:"12px 24px",borderRadius:8}}>Explore All 29 Tools</a>
-        </div>
-      </div></section>)}
-    </div>
+      </>)}
+    </ToolFrame>
   );
 }
