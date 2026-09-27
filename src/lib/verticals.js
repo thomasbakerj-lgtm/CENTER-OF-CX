@@ -144,6 +144,11 @@ export const CATEGORY_SLUGS = Object.keys(CATEGORIES);
 
 /** Only CCaaS carries scored vendor fit, so only CCaaS-by-vertical pages are
     substantive enough to index. Used by seo.js and the prerender. */
+/* The CCaaS by industry pages open to search (TB, 27 Sep 2026: "index the three"): the industries where the research has
+   substance (industry.test.mjs holds each to it). The other seven CCaaS pages and the seventy in other categories stay
+   noindex and out of the sitemap. */
+export const CCAAS_INDEXED_INDUSTRIES = ["financial-services", "government", "healthcare"];
+
 export function hasScoredVerticalFit(categorySlug) {
   return categorySlug === "ccaas";
 }

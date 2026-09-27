@@ -69,6 +69,13 @@ for (const [slug, vert] of Object.entries(VERTICALS)) {
 }
 
 section("Source and wiring");
+{
+  const { CCAAS_INDEXED_INDUSTRIES } = await import("./src/lib/verticals.js");
+  for (const v of CCAAS_INDEXED_INDUSTRIES) {
+    const rows = INDEX.industries.find((i) => i.industry === v).themes.reduce((n, t) => n + t.rows.length, 0);
+    ok(`${v}: an indexed page carries research substance (${rows} records, at least 20)`, rows >= 20);
+  }
+}
 ok("every RFP industry name is one the RFP Builder knows", Object.values(mod.exports.RFP_VERTICAL).every((v) => (MODEL.verticals || []).includes(v)));
 ok("tokens only: no colour literal", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(SRC));
 ok("no dash", !/[\u2013\u2014]/.test(SRC + readFileSync("./src/data/research/ccaas/industry.json", "utf8") + readFileSync("./src/lib/research/ccaasIndustry.js", "utf8")));
