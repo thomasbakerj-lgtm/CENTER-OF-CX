@@ -1040,6 +1040,18 @@ dashboard, the 12-phase growth program.
    `ReqRow` and `Groups`, restyled; everything before them unchanged). terms, renewal, rfp, qa, floor and journey
    harnesses pass; `toolframe.test.mjs` 5 covers 23 tools. Suite 24,763; live check 255 of 255. Next: batch 6, Vendor
    Match and Roadmap, then retire `ToolShell`.
+   PR #50 merged by TB's instruction (31f95eb).
+58. S24, redesign session 17, Phase 6 batch 6 (TB: "merge it and go"): Vendor Match and Roadmap on `ToolFrame`, and
+   `src/lib/ToolShell.jsx` deleted. **Phase 6 complete:** all 25 tool routes render in the frame; `toolframe.test.mjs` counts
+   them from App.jsx and fails if ToolShell returns; `floor.test.mjs` now requires ToolFrame. Vendor Match: presentation only
+   (research law): its data tables, scoring, the Phase 1 method note and every ReportActions prop are unchanged; fit bands
+   are words, strengths and risks are labelled lines, the result column reads "Vendors on the starting list" (no rank or
+   score promoted into the headline). "Explore All 29 Tools" corrected to "Explore all the tools". Roadmap: statuses are
+   words, a flagged milestone has a heavier border, "Depends on" reads "Waiting on:", and the button that said "Save & Send
+   Roadmap" (nothing is sent) now reads "See the summary and report". Open for TB: Vendor Match's "Request a Vendor
+   Introduction" card ("we coordinate a tailored demo with your top match") sits uneasily with "never access to vendors";
+   kept as is. Suite 24,771; live check 255 of 255. Next: Phase 7 (Research Stage 1 and Vendor Intelligence), which needs
+   D1 (corpus location) decided first.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

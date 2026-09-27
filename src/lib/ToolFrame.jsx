@@ -1,7 +1,7 @@
 // src/lib/ToolFrame.jsx
 //
-// The tool frame (redesign Phase 4, Brand Guide page pattern "tool page"). Every tool moves onto it in Phase 6;
-// ToolShell.jsx and the rail tools' own headers retire as they do. Three parts on a desktop:
+// The tool frame (redesign Phase 4, Brand Guide page pattern "tool page"). Every tool renders in it (Phase 6);
+// the old ToolShell.jsx and the rail tools' own headers are retired. Three parts on a desktop:
 //   the route rail: this tool and the next steps the journey graph takes from it (routeFrom), so the rail and
 //     the page's one next step always name the same tool; a way to change route; what happens to the numbers;
 //   the work: a breadcrumb row with the method stamp and the report action, the question as the page's one h1,

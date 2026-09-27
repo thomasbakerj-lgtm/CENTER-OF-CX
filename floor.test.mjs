@@ -140,7 +140,7 @@ for (const t of TOOLS) {
   if (!RAIL.has(t.file)) {
     ok(`${tag} exports DEFAULTS`, /export const DEFAULTS\s*=/.test(src));
     ok(`${tag} reads the scenario on first paint`, /useState\(\s*\(\)\s*=>[^\n]*readScenario\(/.test(src));
-    ok(`${tag} opens with the shared tool frame (ToolFrame, or ToolHero until Phase 6 moves it; the site header comes from the shell)`, /<(ToolHero|ToolFrame)\b/.test(src) && !/<nav\b/.test(src) && !/<ToolNav\b/.test(src));
+    ok(`${tag} opens with the shared tool frame (ToolFrame; the site header comes from the shell)`, /<ToolFrame\b/.test(src) && !/<nav\b/.test(src) && !/<ToolNav\b/.test(src));
   }
   if (CALCULATORS.has(t.file)) ok(`${tag} routes inputs through the shared guard`, /createGuards\(\)/.test(src) && /guardLine/.test(src));
 }

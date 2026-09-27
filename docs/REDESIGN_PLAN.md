@@ -106,6 +106,7 @@ made just before the phases that build them, so nothing waits on pages that ship
 - Batch 3 done (S24, 27 Sep 2026): the WFM five on the frame, with the shared `frameKit.jsx`. Next: batch 4, the frameworks.
 - Batch 4 done (S24, 27 Sep 2026): the five frameworks on the frame; the kit gains Scale, StatementStep and DimensionBars. Next: batch 5, procurement (QA, Platform Decision, RFP, Contract Risk), then Vendor Match and Roadmap.
 - Batch 5 done (S24, 27 Sep 2026): the procurement four on the frame; the kit gains numInput. Next: batch 6, Vendor Match and Roadmap, then retire ToolShell.
+- Batch 6 done (S24, 27 Sep 2026): Vendor Match and Roadmap on the frame; `ToolShell.jsx` deleted. **Phase 6 complete:** all 25 tool routes render in ToolFrame (`toolframe.test.mjs` counts them from App.jsx). Next: Phase 7, which needs TB decision D1 (where the corpus lives) first.
 
 ## Phase 7. Research Stage 1 and Vendor Intelligence (three to four sessions)
 
