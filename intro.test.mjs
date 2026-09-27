@@ -53,7 +53,7 @@ section("2. Every vendor surface offers an introduction");
   ok("RFP Builder: each named vendor carries one", /<VendorIntro name=\{v\.name\} from=\{TOOL_ID\}/.test(read("RFPRequirementBuilder.jsx")));
   ok("CCaaS category: all three vendor lists carry one", (read("CCaaSCategory.jsx").match(/<VendorIntroLink slug=\{v\.slug\}/g) || []).length === 3);
   ok("the other categories' directory carries one", /<VendorIntroLink slug=\{v\.slug\}/.test(read("src/lib/Phase1Directory.jsx")));
-  ok("category by industry pages carry one", /<VendorIntroLink slug=\{v\.slug\}/.test(read("CategoryVerticalPage.jsx")));
+  ok("CCaaS by industry pages carry one on every vendor", (read("CCaaSIndustry.jsx").match(/<VendorIntroLink slug=\{v\.slug\}/g) || []).length === 2);
 }
 
 section("3. The contact form receives it");

@@ -17,6 +17,7 @@ import { ccaasResearchStatus, CCAAS_RESEARCH, fmtDate } from "./src/lib/research
 import { trackVendor } from "./src/lib/track.js";
 import INDEX from "./src/data/research/ccaas/category.json";
 import { tagsFor, SIZES, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
+import { Tags, TagNotes } from "./src/lib/VendorTags.jsx";
 
 const ACCENT = PILLARS.vendors.onDark;
 
@@ -44,31 +45,6 @@ const METHOD = [
   ["Where they break", "Each break names the buyer condition that triggers it, whether implementation can mitigate it, what that adds in cost and who owns it after go-live."],
   ["Unknown stays unknown", "Missing public evidence raises the proof burden. It is never counted as a weakness."],
 ];
-
-/* What the vendor sells and the sizes the research says it is sold to. A chip is a label, never a grade; a size the
-   research calls selective carries the words and a dashed edge. */
-export function Tags({ vendorId }) {
-  const t = tagsFor(vendorId);
-  if (!t) return null;
-  return (
-    <ul aria-label="Tags" style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: 0, padding: 0, listStyle: "none" }}>
-      <li style={{ ...chip, fontWeight: 700 }}>{t.category}</li>
-      {t.sizes.map((z) => <li key={z.size} style={{ ...chip, fontWeight: 500, borderStyle: z.selected ? "dashed" : "solid" }}>{z.label}</li>)}
-      {t.publicSector && <li style={{ ...chip, fontWeight: 500 }}>{PS_LABEL}</li>}
-    </ul>
-  );
-}
-
-/* Each caveat beside the tag it qualifies (TB: every intricacy is noted). */
-export function TagNotes({ vendorId }) {
-  const t = tagsFor(vendorId);
-  if (!t || !t.notes.length) return null;
-  return (
-    <ul aria-label="Notes on the tags" style={{ ...K.small, margin: 0, paddingLeft: 18 }}>
-      {t.notes.map((n) => <li key={n.tag}><strong style={K.strong}>{n.tag}:</strong> {n.text}</li>)}
-    </ul>
-  );
-}
 
 function Researched({ v, klass }) {
   const slug = SLUG_OF[v.id];

@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
-import { VendorIntroLink } from "./src/lib/VendorIntro.jsx";
 import { useParams, Link } from "react-router-dom";
-import { getVendorsByCategory, getVendor } from "./VendorData";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals";
-import { ccaasResearchStatus } from "./src/lib/researchStatus";
+import CCaaSIndustry from "./CCaaSIndustry.jsx";
 
 const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
 const WRAP = { maxWidth: 1080, margin: "0 auto", padding: "0 28px" };
@@ -18,16 +16,8 @@ export default function CategoryVerticalPage() {
   const cat = CATEGORIES[categorySlug];
   const vert = VERTICALS[verticalSlug];
   if (!cat || !vert) return <div style={{ padding: 100, textAlign: "center" }}>Category or vertical not found. <a href="/vendors" style={{ color: ELECTRIC }}>Browse all vendors →</a></div>;
-
-  // Get vendors for this category
-  const allCatVendors = categorySlug === "ccaas" ? getVendorsByCategory("ccaas") : [];
-  /* Integrity freeze (23 Sep 2026): Phase 1 vertical fit scores, composite scores, tiers
-     and the Recommended / Conditional / Limited bands no longer render. CCaaS vendors are
-     listed alphabetically, split only by research status. */
-  const byName = (a, b) => a.name.localeCompare(b.name);
-  const rankedVendors = categorySlug === "ccaas" ? [...allCatVendors].sort(byName) : [];
-  const researched = rankedVendors.filter(v => ccaasResearchStatus(v.slug) === "complete");
-  const phase1Only = rankedVendors.filter(v => ccaasResearchStatus(v.slug) !== "complete");
+  /* CCaaS by industry is rebuilt from the research (Phase 7 part 4); the other categories keep this page. */
+  if (categorySlug === "ccaas") return <CCaaSIndustry verticalSlug={verticalSlug} />;
 
   // For non-CCaaS categories, show leader slugs from vertical config
   const leaderSlugs = vert.ccaasLeaders || [];
@@ -61,7 +51,7 @@ export default function CategoryVerticalPage() {
             <span style={{ color: LIGHT }}>{vert.name}</span>
           </h1>
           <p style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, maxWidth: 600 }}>
-            {categorySlug === "ccaas" ? `${rankedVendors.length} CCaaS vendors, with the ${vert.name} requirements that shape the choice.` : `${cat.name} vendors evaluated for ${vert.name} requirements.`} Compliance, integration, and operational considerations specific to this vertical.
+            {`${cat.name} vendors evaluated for ${vert.name} requirements.`} Compliance, integration, and operational considerations specific to this vertical.
           </p>
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             <a href={cat.page} style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.12)" }}>All {cat.name} vendors →</a>
@@ -93,46 +83,6 @@ export default function CategoryVerticalPage() {
           </div>
         </div>
       </section>
-
-      {/* CCaaS vendors for this vertical, by research status */}
-      {categorySlug === "ccaas" && (
-        <section style={{ background: "#fff", padding: "32px 28px" }}>
-          <div style={WRAP}>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>CCaaS Vendors for {vert.name}</h2>
-            <p style={{ fontSize: 13, color: MUTED, marginBottom: 20, maxWidth: 720 }}>Vertical fit scores and rankings are withdrawn while vendors are re-researched under the current methodology, which compares platforms only within a competitive class. Use the requirements above to test each vendor, and read each profile for where it fits and where it breaks.</p>
-
-            <div style={{ background: `${ELECTRIC}04`, border: `1px solid ${ELECTRIC}15`, borderRadius: 10, padding: "16px 18px", marginBottom: 24 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>Category Evaluation Context</div>
-              <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{vert.ccaasContext}</p>
-            </div>
-
-            {[
-              { title: `Current research complete (${researched.length})`, color: GREEN, list: researched },
-              { title: `Phase 1 context, not yet researched (${phase1Only.length})`, color: MUTED, list: phase1Only },
-            ].filter(g => g.list.length > 0).map((g) => (
-              <div key={g.title}>
-                <h3 style={{ fontSize: 12, fontWeight: 700, color: g.color, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>{g.title}</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 24 }}>
-                  {g.list.map(v => (
-                    <div key={v.slug}>
-                    <a href={`/vendors/${v.slug}`} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, transition: "border-color 0.15s" }}
-                      onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
-                      onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{v.name}</span>
-                        {v.bestFit && <p style={{ fontSize: 12, color: MUTED, margin: "3px 0 0", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.bestFit.substring(0, 140)}</p>}
-                      </div>
-                      <span style={{ color: ELECTRIC, fontSize: 12, flexShrink: 0 }}>View profile →</span>
-                    </a>
-                    <div style={{ padding: "0 16px" }}><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={NAVY} /></div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Tools */}
       <section style={{ background: WARM, padding: "28px 28px", borderTop: `1px solid ${BORDER}` }}>
