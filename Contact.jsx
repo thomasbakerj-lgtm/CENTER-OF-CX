@@ -66,7 +66,6 @@ function Nav() {
         
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        ; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
         input:focus, textarea:focus, select:focus { outline: none; border-color: ${ELECTRIC} !important; box-shadow: 0 0 0 3px ${alpha(HOUSE.electric, LINE.firm)}; }

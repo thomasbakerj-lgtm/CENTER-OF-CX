@@ -145,6 +145,9 @@ made just before the phases that build them, so nothing waits on pages that ship
 
 - Part 1 done (S24, 27 Sep 2026): method pages, About, Contact, Advisory, Research, Privacy, Terms; the house base in
   index.html. Next: the remaining old-design pages.
+- Part 2 done (S24, 27 Sep 2026): Vendors hub, the seven Phase 1 category pages, Phase 1 profiles, category by industry
+  pages, Human Premium, CX Ecosystem, Platforms and Tech, Subscribe, the cost article, the gated report, How to Choose.
+  Open: tool grade chips below AA (Phase 11). **Phase 9 complete.** Next: Phase 10.
 
 ## Phase 10. Contributors, Research, Market Watch v1 (two to three sessions, zero spend)
 

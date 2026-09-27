@@ -2,16 +2,18 @@ import { useState, useEffect, useRef } from "react";
 import { getAllSlugs } from "./VendorData";
 import { VENDOR_PROFILE_COUNT } from "./src/lib/seo.js";
 import { CATEGORIES } from "./src/lib/verticals.js";
+import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+import { FONT } from "./src/lib/type.js";
 
-const NAVY = "#0B1D3A";
-const DEEP = "#061325";
-const ELECTRIC = "#0088DD";
-const LIGHT = "#00AAFF";
-const ICE = "#E8F4FD";
-const WARM = "#F8FAFB";
-const SLATE = "#3A4F6A";
-const MUTED = "#6B7F99";
-const BORDER = "#D8E3ED";
+const NAVY = HOUSE.mist;
+const DEEP = HOUSE.ink;
+const ELECTRIC = PILLARS.vendors.onDark;
+const LIGHT = PILLARS.vendors.onDark;
+const ICE = HOUSE.navy;
+const WARM = HOUSE.navy;
+const SLATE = HOUSE.body;
+const MUTED = HOUSE.muted;
+const BORDER = alpha(HOUSE.mist, LINE.hair);
 
 function useInView(t = 0.1) {
   const ref = useRef(null);
@@ -32,11 +34,11 @@ function FadeIn({ children, delay = 0, style = {} }) {
 }
 
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-const Label = ({ children, light }) => <span style={{ color: light ? LIGHT : ELECTRIC, fontSize: 11.5, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 12 }}>{children}</span>;
-const Title = ({ children, light }) => <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, color: light ? "#fff" : NAVY, lineHeight: 1.15, margin: "0 0 16px", letterSpacing: "-0.015em" }}>{children}</h2>;
+const Label = ({ children, light }) => <span style={{ color: light ? LIGHT : ELECTRIC, fontSize: 11.5, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 12 }}>{children}</span>;
+const Title = ({ children, light }) => <h2 style={{ fontFamily: FONT, fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.15, margin: "0 0 16px", letterSpacing: "-0.015em" }}>{children}</h2>;
 
 function LogoMark({ size = 34, light = true }) {
-  const arcColor = light ? "#fff" : NAVY;
+  const arcColor = HOUSE.mist;
   const xColor = light ? LIGHT : ELECTRIC;
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
@@ -64,10 +66,9 @@ function Nav() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
+        
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { font-family: 'DM Sans', sans-serif; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
         a { text-decoration: none; color: inherit; }
         @media (max-width: 860px) { .nav-links { display: none !important; } .split-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
       `}</style>
@@ -78,29 +79,29 @@ function Nav() {
 
 function Hero() {
   return (
-    <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "140px 28px 80px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-      <div style={{ position: "absolute", top: "-10%", right: "-5%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.05) 0%, transparent 70%)" }} />
+    <section style={{ background: HOUSE.navy, padding: "140px 28px 80px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
+      <div style={{ position: "absolute", top: "-10%", right: "-5%", width: 500, height: 500, borderRadius: "50%", background: "none" }} />
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-            <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Home</a>
-            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-            <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>Vendors</span>
+            <a href="/" style={{ color: HOUSE.body, fontSize: 13, fontFamily: FONT }}>Home</a>
+            <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+            <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600, fontFamily: FONT }}>Vendors</span>
           </div>
         </FadeIn>
         <FadeIn delay={0.05}>
           <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.7fr", gap: 64, alignItems: "center" }} className="split-grid">
             <div>
-              <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
+              <h1 style={{ fontFamily: FONT, fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
                 {VENDOR_PROFILE_COUNT} vendors.{" "}
                 <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Mapped by category.</span>
               </h1>
-              <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 520, fontFamily: "'DM Sans', sans-serif" }}>
+              <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 520, fontFamily: FONT }}>
                 Every vendor is mapped to its category and to the layers of the stack it serves. Contact center platforms are researched finding by finding against a published method; the other categories are marked Phase 1 context until their research is complete.
               </p>
             </div>
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 12, padding: "28px 24px" }}>
+            <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 12, padding: "28px 24px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 {[
                   { n: String(VENDOR_PROFILE_COUNT), l: "Vendor profiles" },
@@ -109,8 +110,8 @@ function Hero() {
                   { n: "8", l: "Vendor categories" },
                 ].map((s, i) => (
                   <div key={i} style={{ textAlign: "center", padding: "12px 0" }}>
-                    <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: LIGHT }}>{s.n}</div>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif" }}>{s.l}</div>
+                    <div style={{ fontFamily: FONT, fontSize: 28, color: LIGHT }}>{s.n}</div>
+                    <div style={{ fontSize: 12, color: HOUSE.body, fontFamily: FONT }}>{s.l}</div>
                   </div>
                 ))}
               </div>
@@ -129,7 +130,7 @@ function Stance() {
         <FadeIn>
           <div style={{ display: "flex", alignItems: "center", gap: 16, maxWidth: 800 }}>
             <div style={{ width: 4, height: 48, background: ELECTRIC, borderRadius: 2, flexShrink: 0 }} />
-            <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: 0, fontFamily: FONT }}>
               Profiles describe what each vendor sells and where it sits in the stack. No vendor pays to appear, and no profile carries a score or a rank.
             </p>
           </div>
@@ -188,7 +189,7 @@ function BrowseByCategory() {
   };
 
   return (
-    <section style={{ background: "#fff", padding: "96px 28px" }}>
+    <section style={{ background: HOUSE.ink, padding: "96px 28px" }}>
       <div style={WRAP}>
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
@@ -200,24 +201,24 @@ function BrowseByCategory() {
           {categories.map((c, i) => (
             <FadeIn key={i} delay={i * 0.04}>
               <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 28px", cursor: "pointer", transition: "all 0.22s" }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,136,221,0.06)"; }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "none"; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 20 }}>
                   <div style={{ flex: 1, minWidth: 280 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif" }}>{c.sub}</span>
-                      <span style={{ fontSize: 11, color: MUTED, background: WARM, padding: "2px 8px", borderRadius: 4, fontFamily: "'DM Sans', sans-serif" }}>{c.count} vendors</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT }}>{c.sub}</span>
+                      <span style={{ fontSize: 11, color: MUTED, background: WARM, padding: "2px 8px", borderRadius: 4, fontFamily: FONT }}>{c.count} vendors</span>
                     </div>
-                    <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>{c.title}</h3>
-                    <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55, margin: "0 0 12px", fontFamily: "'DM Sans', sans-serif" }}>{c.desc}</p>
-                    <p style={{ fontSize: 12.5, color: SLATE, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>
+                    <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>{c.title}</h3>
+                    <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55, margin: "0 0 12px", fontFamily: FONT }}>{c.desc}</p>
+                    <p style={{ fontSize: 12.5, color: SLATE, margin: 0, fontFamily: FONT }}>
                       <span style={{ fontWeight: 600 }}>Key vendors: </span>
                       {c.vendors.map((v, j) => (
                         <span key={j}><VendorLink v={v} />{j < c.vendors.length - 1 ? ", " : ""}</span>
                       ))}
                     </p>
                   </div>
-                  <a href={c.href || "/vendors"} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: "'DM Sans', sans-serif", flexShrink: 0, paddingTop: 4 }}>Explore →</a>
+                  <a href={c.href || "/vendors"} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT, flexShrink: 0, paddingTop: 4 }}>Explore →</a>
                 </div>
               </div>
             </FadeIn>
@@ -230,8 +231,8 @@ function BrowseByCategory() {
 
 function HowWeEvaluate() {
   return (
-    <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "96px 28px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", top: "30%", left: "-5%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.04) 0%, transparent 70%)" }} />
+    <section style={{ background: HOUSE.navy, padding: "96px 28px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "30%", left: "-5%", width: 400, height: 400, borderRadius: "50%", background: "none" }} />
       <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 56px" }}>
@@ -247,9 +248,9 @@ function HowWeEvaluate() {
             { t: "Vertical and buyer context", d: "A vendor that's strong for retail may break in healthcare. Our evaluations include vertical fit signals, regulated-readiness indicators, and buyer-type alignment (enterprise vs mid-market vs SMB)." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.08}>
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "28px 24px" }}>
-                <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 19, fontWeight: 400, color: "#fff", margin: "0 0 8px" }}>{item.t}</h3>
-                <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.6, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{item.d}</p>
+              <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 10, padding: "28px 24px" }}>
+                <h3 style={{ fontFamily: FONT, fontSize: 19, fontWeight: 400, color: HOUSE.mist, margin: "0 0 8px" }}>{item.t}</h3>
+                <p style={{ fontSize: 13.5, color: HOUSE.body, lineHeight: 1.6, margin: 0, fontFamily: FONT }}>{item.d}</p>
               </div>
             </FadeIn>
           ))}
@@ -267,13 +268,13 @@ function VendorPagePreview() {
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 48px" }}>
             <Label>Individual vendor pages</Label>
             <Title>Every vendor gets an honest assessment.</Title>
-            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4, fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4, fontFamily: FONT }}>
               Each vendor page follows a consistent structure designed to help buyers make decisions faster.
             </p>
           </div>
         </FadeIn>
         <FadeIn delay={0.1}>
-          <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 14, padding: "40px 36px", maxWidth: 700, margin: "0 auto" }}>
+          <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "40px 36px", maxWidth: 700, margin: "0 auto" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {[
                 { label: "What they do well", desc: "Core strengths from the assessment on file. Where the platform genuinely excels and which buyer profiles benefit most." },
@@ -288,8 +289,8 @@ function VendorPagePreview() {
                     <span style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC }}>{i + 1}</span>
                   </div>
                   <div>
-                    <h4 style={{ fontSize: 14.5, fontWeight: 600, color: NAVY, margin: "0 0 3px", fontFamily: "'DM Sans', sans-serif" }}>{item.label}</h4>
-                    <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.55, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>{item.desc}</p>
+                    <h4 style={{ fontSize: 14.5, fontWeight: 600, color: NAVY, margin: "0 0 3px", fontFamily: FONT }}>{item.label}</h4>
+                    <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.55, margin: 0, fontFamily: FONT }}>{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -303,17 +304,17 @@ function VendorPagePreview() {
 
 function CTA() {
   return (
-    <section style={{ background: "#fff", padding: "96px 28px", borderTop: `1px solid ${BORDER}` }}>
+    <section style={{ background: HOUSE.ink, padding: "96px 28px", borderTop: `1px solid ${BORDER}` }}>
       <div style={WRAP}>
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
             <Title>Need a shortlist tailored to your situation?</Title>
-            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px", fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px", fontFamily: FONT }}>
               Browsing {VENDOR_PROFILE_COUNT} vendors takes time. Tell us your operating model, vertical, and constraints. We deliver a shortlist of 3 to 5 vendors with honest assessments of each one.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif", boxShadow: `0 4px 18px rgba(0,136,221,0.2)` }}>Request a Vendor Shortlist</a>
-              <a href="/how-to-choose" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: "'DM Sans', sans-serif" }}>Browse Buyer Guides</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT, boxShadow: "none" }}>Request a Vendor Shortlist</a>
+              <a href="/how-to-choose" style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT }}>Browse Buyer Guides</a>
             </div>
           </div>
         </FadeIn>
