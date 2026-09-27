@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
-import { ccaasResearchLabel, phase1Label } from "./src/lib/researchStatus";
+import { ccaasResearchLabel, phase1Label, CCAAS_RESEARCH } from "./src/lib/researchStatus";
+import { researchedProfile } from "./src/lib/research/loadProfile.js";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import { getIVAVendor } from "./IVAData";
 import { getAgentAssistVendor } from "./AgentAssistData";
@@ -748,6 +749,14 @@ export default function VendorProfile() {
 
   // ─── CCaaS VENDOR PROFILE (existing) ───
   if (!vendor) return <VendorNotFound />;
+
+  /* A vendor whose current research passed its gate renders from the published research snapshot (redesign Phase 7).
+     The Phase 1 profile below stays for the vendors not yet researched. */
+  const researched = CCAAS_RESEARCH.complete[slug] && researchedProfile(CCAAS_RESEARCH.complete[slug].vendorId);
+  if (researched) {
+    const Researched = researched;
+    return <Suspense fallback={<div style={{ minHeight: "100vh", background: "#061325" }} />}><Researched slug={slug} /></Suspense>;
+  }
 
   const v = vendor;
 

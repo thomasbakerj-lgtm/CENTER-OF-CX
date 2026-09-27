@@ -1099,6 +1099,28 @@ dashboard, the 12-phase growth program.
    four G2 and Peer Insights review sources withheld (three claims rest on them alone); six Genesys records link Content
    Guru claims (lineage error). No UI change. Suite 24,874. Next: Phase 7 part 2, the researched vendor profile on the
    snapshot (approved design, redesign session 3).
+   PR #52 merged by TB's instruction (c599323).
+61. S24, redesign session 19, Phase 7 part 2: the researched vendor profile (TB: "merge it and go"; design approved 26 Sep).
+   Truth surface: Vendor Intelligence; presentation only. The 18 researched CCaaS vendors (`CCAAS_RESEARCH.complete`) render
+   `ResearchedProfile.jsx` from the snapshot; every other profile keeps the Phase 1 page. `src/lib/research/loadProfile.js`
+   loads each vendor's file as its own chunk (`import.meta.glob`, 130 to 360 KB, 17 to 57 KB gzip); the prerender waits,
+   so the served page carries the research. `src/lib/research/profileView.js` (`buildProfile`) is the pure view model:
+   plain words for states ("Not yet proven" for unknown, never weak), findings grouped by the corpus's rating layer so the
+   five decision layers stay separate, sources per finding, publisher counts. Six questions switch the view (linkable by
+   hash): Is it a fit? (class with job, typical buyer, comparison boundary and draft or calibrated status; best when, take
+   care when, rule it out when; fit improves and declines; products with their release state), What does it do? (every
+   finding by layer and criterion with capability and evidence words, conditions, stale flag, validation date and its
+   sources; a state filter with no counts), Where does it break? (trigger, who, mitigation, build and cost, day 2 owner, the
+   question to ask, when to walk away), What will it take? (implementation, SOW terms, after go-live, cost drivers,
+   integrations), What should I ask for? (proof, contract terms, AI controls, open questions), Where does this come from?
+   (who published the evidence, every source with publisher, tier and date; ratings locked note). The introduction button
+   and a Report an error link sit under the name. No score, rank, tier, count of states or Phase 1 prose. `profile.test.mjs`
+   (12): every vendor in all six views (one h1, the page's own words carry no score, rank, tier, weak, count or
+   NaN/undefined once the research's own strings are removed; every finding, source, break and decision reaches its view;
+   https links with noopener; publisher counts sum; draft class marked; the introduction link), the filter shows exactly
+   its findings, the route uses research for exactly the 18, tokens only. A mutation adding "score" to the page fails it.
+   Phone overflow fixed on the way (key and value grid stacks under 600px; long research strings wrap). Suite 24,886; live
+   check 255 of 255; 18 profiles at 1440 and 390 clean. Next: Phase 7 part 3, the CCaaS category page by competitive class.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
