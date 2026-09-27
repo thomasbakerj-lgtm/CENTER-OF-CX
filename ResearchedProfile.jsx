@@ -13,7 +13,9 @@ import { Crumbs, HEADER_HEIGHT } from "./src/lib/Shell.jsx";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import { buildProfile, VIEWS, FILTERS, capability, evidence, words } from "./src/lib/research/profileView.js";
 import { fmtDate } from "./src/lib/researchStatus.js";
-import { tagsFor, CCAAS_TAGS, UC_LABEL } from "./src/lib/research/ccaasTags.js";
+import { tagsFor, CCAAS_TAGS, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
+import { encodeScenario } from "./src/lib/scenarioUrl.js";
+import { trackVendor } from "./src/lib/track.js";
 
 const tab = (on) => ({ minHeight: TOUCH, padding: "0 14px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer",
   border: `${on ? 2 : 1}px solid ${on ? PILLARS.vendors.onDark : K.firm}`, background: "transparent", color: HOUSE.mist });
@@ -74,6 +76,7 @@ function TagChips({ vendorId }) {
     <ul aria-label="Tags" style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: 0, padding: 0, listStyle: "none" }}>
       <li style={{ ...chip, fontWeight: 700 }}>{t.category}</li>
       {t.sizes.map((z) => <li key={z.size} style={{ ...chip, fontWeight: 500, borderStyle: z.selected ? "dashed" : "solid" }}>{z.label}</li>)}
+      {t.publicSector && <li style={{ ...chip, fontWeight: 500 }}>{PS_LABEL}</li>}
     </ul>
   );
 }
@@ -82,17 +85,58 @@ function SoldTo({ p }) {
   const id = p.vendor.Vendor_ID, t = CCAAS_TAGS[id];
   if (!t) return null;
   const said = (x) => { const pr = p.products.find((y) => y.id === x); if (pr) return `${pr.name}: ${pr.segment}`; const c = p.claimById.get(x); return c ? c.Publishable_Summary : null; };
+  const core = p.products.find((y) => y.id === t.core);
+  const tags = tagsFor(id);
+  const Quote = ({ label, ids }) => (<>
+    <p style={{ ...K.small, marginTop: 10 }}>{label}</p>
+    <ul style={{ ...K.small, margin: "4px 0 0", paddingLeft: 18 }}>{ids.map((x) => said(x) && <li key={x}>{said(x)}</li>)}</ul>
+  </>);
   return (
     <section aria-label="Who it is sold to" style={K.panel}>
       <h2 style={K.h2}>Who it is sold to</h2>
       <TagChips vendorId={id} />
-      <p style={{ ...K.small, marginTop: 10 }}>Sizes as the research states them:</p>
-      <ul style={{ ...K.small, margin: "4px 0 0", paddingLeft: 18 }}>{t.from.map((x) => said(x) && <li key={x}>{said(x)}</li>)}</ul>
-      {t.uc && (<>
-        <p style={{ ...K.small, marginTop: 10 }}>{UC_LABEL}, from the research:</p>
-        <ul style={{ ...K.small, margin: "4px 0 0", paddingLeft: 18 }}>{t.uc.map((x) => said(x) && <li key={x}>{said(x)}</li>)}</ul>
-      </>)}
-      <p style={{ ...K.small, marginTop: 10 }}>A size is the buyer size the research says the platform is sold to. It describes the offer and carries no grade.</p>
+      {tags.notes.length > 0 && (
+        <ul style={{ ...K.body, margin: "10px 0 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
+          {tags.notes.map((n) => <li key={n.tag}><strong style={K.strong}>{n.tag}:</strong> {n.text}</li>)}
+        </ul>
+      )}
+      {core && core.scope && <p style={{ ...K.body, marginTop: 10 }}><strong style={K.strong}>Where it runs:</strong> {core.scope}</p>}
+      <Quote label="Sizes, in the research's words:" ids={t.from} />
+      {t.uc && <Quote label={`${UC_LABEL}, in the research's words:`} ids={t.uc.from} />}
+      {t.publicSector && <Quote label={`${PS_LABEL}, in the research's words:`} ids={t.publicSector.from} />}
+      <p style={{ ...K.small, marginTop: 10 }}>A size is the buyer size the research says the platform is sold to. Where a tag holds only for some buyers, the note says which. It describes the offer and carries no grade.</p>
+    </section>
+  );
+}
+
+/* Where to take the research next. Links only: no tool reads this research (Vendor Match V3 at research Stage 4 is where
+   the facts behind the tags become buyer filters). RFP Builder opens with this vendor already entered; the link is
+   relative so the prerendered page and the hydrated page match. */
+export function rfpHref(name) {
+  const enc = encodeScenario("rfp-builder", { vendors: [name] }, { vendors: [] });
+  return enc ? `/tools/rfp-builder?s=${enc}` : "/tools/rfp-builder";
+}
+
+function TakeItFurther({ p, slug }) {
+  const name = p.vendor.Supplier_Name;
+  const go = (action) => () => trackVendor.action(slug, action, "vendor");
+  const rows = [
+    [rfpHref(name), `Test ${name}'s answers against your requirements`, "RFP Builder, with this vendor already entered.", "rfp"],
+    [`/vendors/ccaas#${p.klass ? p.klass.id.toLowerCase() : ""}`, "See the peers it is compared with", "The other vendors researched for the same job.", "peer"],
+    ["/tools/platform-decision", "Decide whether to renew your current platform", "Platform Decision, layer by layer.", "test-it"],
+    ["/tools/contract-risk", "Check the contract before you sign", "Contract Risk: the clauses to find.", "test-it"],
+    ["/tools/tco-calculator", "Model the cost over the term", "TCO Calculator.", "test-it"],
+    ["/tools/license-gap", "Find what the bundle leaves out", "License Gap.", "test-it"],
+    ["/tools/vendor-match", "Build a starting list", "Vendor Match. It still runs on its Phase 1 model and does not read this research yet.", "test-it"],
+  ];
+  return (
+    <section aria-label="Take it further" style={K.panel}>
+      <h2 style={K.h2}>Take it further</h2>
+      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+        {rows.map(([href, label, sub, action]) => (
+          <li key={label}><a href={href} onClick={go(action)} style={{ ...K.link, fontSize: 15 }}>{label}</a><p style={K.small}>{sub}</p></li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -112,6 +156,7 @@ function FitView({ p }) {
         <p style={{ ...K.small, marginTop: 10 }}>The class is context for comparison, never a quality grade. {p.vendor.Class_Rationale}</p>
       </section>
     )}
+    <SoldTo p={p} />
     {p.decisions.map((g) => (
       <section key={g.id} aria-label={g.label} style={K.panel}>
         <h2 style={K.h2}>{g.label}</h2>
@@ -139,7 +184,6 @@ function FitView({ p }) {
         </ul>
       </section>
     ))}
-    <SoldTo p={p} />
     <section aria-label="Products" style={K.panel}>
       <h2 style={K.h2}>Products researched</h2>
       <ul style={{ padding: 0, margin: 0, ...K.grid(240) }}>
@@ -358,7 +402,7 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
         <div role="tablist" aria-label="Questions about this vendor" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {VIEWS.map((x) => <button key={x.id} type="button" role="tab" aria-selected={view === x.id} onClick={() => pick(x.id)} style={tab(view === x.id)}>{x.label}</button>)}
         </div>
-        {view === "fit" && <FitView p={p} />}
+        {view === "fit" && <><FitView p={p} /><TakeItFurther p={p} slug={slug} /></>}
         {view === "findings" && <FindingsView p={p} initialFilter={initialFilter} />}
         {view === "breaks" && <BreaksView p={p} />}
         {view === "effort" && <EffortView p={p} />}

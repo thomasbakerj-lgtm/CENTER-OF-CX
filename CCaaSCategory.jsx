@@ -16,7 +16,7 @@ import { getCoreVendors, getAdjacentVendors } from "./VendorData";
 import { ccaasResearchStatus, CCAAS_RESEARCH, fmtDate } from "./src/lib/researchStatus";
 import { trackVendor } from "./src/lib/track.js";
 import INDEX from "./src/data/research/ccaas/category.json";
-import { tagsFor, SIZES, UC_LABEL } from "./src/lib/research/ccaasTags.js";
+import { tagsFor, SIZES, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
 
 const ACCENT = PILLARS.vendors.onDark;
 
@@ -54,6 +54,18 @@ export function Tags({ vendorId }) {
     <ul aria-label="Tags" style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: 0, padding: 0, listStyle: "none" }}>
       <li style={{ ...chip, fontWeight: 700 }}>{t.category}</li>
       {t.sizes.map((z) => <li key={z.size} style={{ ...chip, fontWeight: 500, borderStyle: z.selected ? "dashed" : "solid" }}>{z.label}</li>)}
+      {t.publicSector && <li style={{ ...chip, fontWeight: 500 }}>{PS_LABEL}</li>}
+    </ul>
+  );
+}
+
+/* Each caveat beside the tag it qualifies (TB: every intricacy is noted). */
+export function TagNotes({ vendorId }) {
+  const t = tagsFor(vendorId);
+  if (!t || !t.notes.length) return null;
+  return (
+    <ul aria-label="Notes on the tags" style={{ ...K.small, margin: 0, paddingLeft: 18 }}>
+      {t.notes.map((n) => <li key={n.tag}><strong style={K.strong}>{n.tag}:</strong> {n.text}</li>)}
     </ul>
   );
 }
@@ -64,6 +76,7 @@ function Researched({ v, klass }) {
     <li style={{ ...K.box, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
       <a href={`/vendors/${slug}`} style={{ ...K.link, color: HOUSE.mist, fontSize: 17 }}>{v.name}</a>
       <Tags vendorId={v.id} />
+      <TagNotes vendorId={v.id} />
       {v.bestWhen
         ? <p style={K.body}><strong style={K.strong}>Where the research says it fits:</strong> {v.bestWhen.statement}</p>
         : <p style={K.small}>No best-when statement is published for this vendor yet. Its profile carries the full research.</p>}
@@ -95,7 +108,7 @@ function Requested({ v }) {
   );
 }
 
-export default function CCaaSCategory({ initialClass = "all", initialSize = "all", initialUc = false }) {
+export default function CCaaSCategory({ initialClass = "all", initialSize = "all", initialUc = false, initialPs = false }) {
   const core = getCoreVendors();
   const adjacent = getAdjacentVendors();
   const notYet = core.filter((v) => ccaasResearchStatus(v.slug) !== "complete").sort((a, b) => a.name.localeCompare(b.name));
@@ -108,7 +121,8 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
   const choose = (id) => { setPick(id); try { window.history.replaceState(null, "", id === "all" ? window.location.pathname : "#" + id.toLowerCase()); } catch { /* ignore */ } };
   const [size, setSize] = useState(initialSize);
   const [ucOnly, setUcOnly] = useState(initialUc);
-  const keep = (v) => { const t = tagsFor(v.id); return (!ucOnly || t.uc) && (size === "all" || t.sizes.some((z) => z.size === size)); };
+  const [psOnly, setPsOnly] = useState(initialPs);
+  const keep = (v) => { const t = tagsFor(v.id); return (!ucOnly || t.uc) && (!psOnly || t.publicSector) && (size === "all" || t.sizes.some((z) => z.size === size)); };
   const shown = (pick === "all" ? classes : classes.filter((c) => c.id === pick)).map((c) => ({ ...c, kept: c.vendors.filter(keep) }));
   const filterBtn = (on) => ({ ...btn(on), flexDirection: "row", alignItems: "center", padding: "0 14px", fontSize: 14, fontWeight: on ? 700 : 500 });
 
@@ -154,8 +168,9 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
             <span style={{ ...K.small, marginRight: 4 }}>Size served</span>
             {["all", ...SIZES].map((z) => <button key={z} type="button" aria-pressed={size === z} onClick={() => setSize(z)} style={filterBtn(size === z)}>{z === "all" ? "Any size" : z}</button>)}
             <button type="button" aria-pressed={ucOnly} onClick={() => setUcOnly(!ucOnly)} style={filterBtn(ucOnly)}>{UC_LABEL} only</button>
+            <button type="button" aria-pressed={psOnly} onClick={() => setPsOnly(!psOnly)} style={filterBtn(psOnly)}>{PS_LABEL}</button>
           </div>
-          <p style={K.small}>{UC_LABEL}: the research shows the vendor's own phone system sold with its contact center. A size is the buyer size the research says the platform is sold to; "selected use" means the research calls that size selective. A tag describes the offer and carries no grade.</p>
+          <p style={K.small}>{UC_LABEL}: the research shows the vendor's own phone system sold with its contact center. A size is the buyer size the research says the platform is sold to; "selected use" means the research calls that size selective. {PS_LABEL}: the research lists a product or offer sold to government or public sector. Where a tag holds only for some buyers, the note under it says which. A tag describes the offer and carries no grade.</p>
           {pick !== "all" && <div><button type="button" onClick={() => choose("all")} style={{ ...K.link, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: 14, minHeight: TOUCH }}>Show every class</button></div>}
         </section>
 

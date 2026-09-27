@@ -168,6 +168,7 @@ export default function RFPRequirementBuilder() {
       <p style={K.small}>Every requirement, weight and scoring rule is in the <a href={MODEL.methodology} style={K.link}>published method</a>.</p>
 
       {phase === "input" && (<>
+        {init.fromLink && vendors.some((v) => v.trim()) && <p role="status" style={K.small}>Carried over: {vendors.filter((v) => v.trim()).join(", ")}. {vendors.filter((v) => v.trim()).length === 1 ? "It appears" : "They appear"} in the response scorer once your requirements are ready.</p>}
         <div role="tablist" aria-label="Steps" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {["Environment", "Focus Areas", "Review + Customize"].map((st, i) => <button key={st} type="button" role="tab" aria-selected={step === i} onClick={() => setStep(i)} style={tabStyle(step === i)}>{i + 1}. {st}</button>)}
         </div>
