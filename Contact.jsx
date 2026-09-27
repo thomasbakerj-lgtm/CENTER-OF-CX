@@ -130,7 +130,7 @@ function ContactPage() {
               </div>
 
               <h1 style={{ fontFamily: FONT, fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 400, color: NAVY, lineHeight: 1.12, margin: "0 0 20px", letterSpacing: "-0.015em" }}>
-                Tell us your challenge. We will connect you with a vetted consultant.
+                Tell us your challenge. We will match you with a consultant we have vetted for exactly that kind of problem.
               </h1>
               <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: "0 0 40px", fontFamily: FONT }}>
                 60 minutes with someone who understands both the strategy and the operations. Tell us about your situation, and we'll come prepared with relevant context from our vendor intelligence and frameworks.
