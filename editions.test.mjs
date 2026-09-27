@@ -29,6 +29,7 @@ ok("the pillar edition is magenta, amber and teal with the sky X", E.EDITIONS.pi
 
 console.log("\n2. The schedule");
 ok("the published schedule is valid", E.scheduleProblems().length === 0, E.scheduleProblems().join("; "));
+ok("Customer Service Week and CX Day 2026 carry the Pillar edition (TB, 27 Sep 2026)", (E.editionFor("2026-10-05") || {}).id === "pillar" && (E.editionFor("2026-10-09") || {}).id === "pillar" && E.editionFor("2026-10-10") === null && E.editionFor("2026-09-28") === null);
 const GOOD = [{ edition: "pillar", start: "2026-10-05", end: "2026-10-09", why: "Customer Service Week, the week the profession marks its work." }];
 ok("a valid entry passes", E.scheduleProblems(GOOD).length === 0);
 const bad = {

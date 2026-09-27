@@ -19,9 +19,12 @@ export const EDITIONS = {
   },
 };
 
-/* Dated editions, UTC days inclusive: { edition, start: "YYYY-MM-DD", end: "YYYY-MM-DD", why }. Empty until TB schedules
-   one; a community edition also needs its colours drawn and checked with that community first. */
-export const SCHEDULE = [];
+/* Dated editions, UTC days inclusive: { edition, start: "YYYY-MM-DD", end: "YYYY-MM-DD", why }. TB sets the dates; a
+   community edition also needs its colours drawn and checked with that community first. */
+export const SCHEDULE = [
+  /* TB, 27 Sep 2026. */
+  { edition: "pillar", start: "2026-10-05", end: "2026-10-09", why: "Customer Service Week and CX Day, the week the profession marks the people who serve customers." },
+];
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 

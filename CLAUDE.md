@@ -1348,7 +1348,8 @@ dashboard, the 12-phase growth program.
      places and one hidden live region announces the settled value.
    - Special editions: `src/lib/editions.js` (Pillar edition: magenta, amber, teal arcs, sky X; each 3:1 on the house),
      a dated schedule (empty until TB sets one), the header switches after load so the prerender never differs;
-     `editions.test.mjs` (24). Open for TB: Customer Service Week and CX Day, 5 to 9 October 2026.
+     `editions.test.mjs` (25). TB (27 Sep): the Pillar edition runs 5 to 9 October 2026 for Customer Service Week and
+     CX Day; checked in a browser with the clock set (arcs switch on 6 Oct, everyday mark on 12 Oct, no hydration error).
    Suite 25,812; live check 256 of 256. Phase 11 complete except the measurement review (needs TB's PostHog numbers).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
