@@ -1,77 +1,109 @@
-import { useState, useEffect } from "react";
-import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+// PrivacyPolicy.jsx
+//
+// The privacy policy, rewritten for accuracy (TB, 27 Sep 2026): it names every service the site uses and every form
+// that collects personal information, matching the code (formspree endpoints, track.js, toolData.js, vercel.json).
+// privacy.test.mjs checks that every form endpoint and every allowed third-party host in the site's security policy is
+// named here, so a new service cannot ship without this page saying so. Tokens only.
+import { useEffect } from "react";
+import { HOUSE, PILLARS } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
 
-const NAVY = HOUSE.mist; const DEEP = HOUSE.ink; const ELECTRIC = PILLARS.research.onDark; const LIGHT = PILLARS.research.onDark; const WARM = HOUSE.navy; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair);
-const WRAP = { maxWidth: 760, margin: "0 auto", padding: "0 28px" };
-function LogoMark({size=28,light=true}){const a=HOUSE.mist,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
+const LINK = PILLARS.research.onDark;
+const WRAP = { maxWidth: 760, margin: "0 auto", padding: "0 20px", boxSizing: "border-box" };
 
-const S = ({ children }) => <h2 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 400, color: NAVY, margin: "32px 0 12px", lineHeight: 1.25 }}>{children}</h2>;
-const P = ({ children }) => <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.7, margin: "0 0 14px" }}>{children}</p>;
+const S = ({ children, id }) => <h2 id={id} style={{ fontFamily: FONT, fontSize: 20, fontWeight: 600, color: HOUSE.mist, margin: "36px 0 12px", lineHeight: 1.3 }}>{children}</h2>;
+const P = ({ children }) => <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, margin: "0 0 14px" }}>{children}</p>;
+const L = ({ items }) => <ul style={{ margin: "0 0 14px", paddingLeft: 20, display: "flex", flexDirection: "column", gap: 8 }}>{items.map((x, i) => <li key={i} style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.65 }}>{x}</li>)}</ul>;
+const A = ({ href, children }) => <a href={href} style={{ color: LINK, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}>{children}</a>;
+const B = ({ children }) => <strong style={{ color: HOUSE.mist, fontWeight: 600 }}>{children}</strong>;
+
+export const PRIVACY_UPDATED = "27 September 2026";
+
+/* Every form that sends personal information, as the policy names it. privacy.test.mjs holds this list to the code. */
+export const FORMS = [
+  { what: "Contact, consultant and vendor introduction requests", fields: "name, work email, company, role, the topic, your message, how you found us and the vendor you asked about", endpoint: "xvzvdnry" },
+  { what: "Research correction reports", fields: "the statement you question, what your source shows, its public link, your email and whether you represent the vendor", endpoint: "xvzvdnry" },
+  { what: "Report copies and review requests from a tool", fields: "your email and, as you choose, your name, company and role, and the tool's inputs and results you choose to send", endpoint: "maqlvwne" },
+  { what: "Industry stack framework reviews", fields: "your email, name and company, and the stack profile you marked", endpoint: "maqlvwne" },
+  { what: "Buyer guide downloads", fields: "name, job title and email", endpoint: "mgorkboe, myklwvjy, xojydbwe" },
+  { what: "Vendor reviews you submit on a profile", fields: "your name, email, role, company size, tenure with the vendor and your review", endpoint: "xjgplvkz" },
+  { what: "Newsletter sign-ups", fields: "first and last name, email and company", endpoint: "xnjolywk" },
+];
 
 export default function PrivacyPolicy() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   useEffect(() => { window.scrollTo(0, 0); }, []);
-
-  const navLinks = [{ name: "Vendors", href: "/vendors" },{ name: "Tools", href: "/how-to-choose" },{ name: "Industries", href: "/industries" },{ name: "Research", href: "/research" },{ name: "The Human Premium", href: "/human-premium" }];
-
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
-
-      
-
-      <section style={{ background: DEEP, padding: "72px 28px 24px" }}>
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
+      <section style={{ background: HOUSE.navy, padding: "88px 0 28px" }}>
         <div style={WRAP}>
-          <h1 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: HOUSE.mist, margin: "0 0 4px" }}>Privacy Policy</h1>
-          <p style={{ fontSize: 13, color: HOUSE.body }}>Last updated: May 2026</p>
+          <h1 style={{ fontFamily: FONT, fontSize: 34, fontWeight: 700, color: HOUSE.mist, margin: "0 0 6px" }}>Privacy Policy</h1>
+          <p style={{ fontSize: 14, color: HOUSE.body, margin: 0 }}>Last updated: {PRIVACY_UPDATED}</p>
         </div>
       </section>
 
-      <section style={{ background: HOUSE.ink, padding: "32px 28px 64px" }}>
+      <section style={{ padding: "24px 0 72px" }}>
         <div style={WRAP}>
-          <P>The Center of CX ("we," "us," "our") operates contactcentercx.com. This policy explains what data we collect, why, and how we handle it.</P>
+          <P>The Center of CX ("we", "us", "our") operates contactcentercx.com (the "Site"). This policy explains what information we collect, when and why we collect it, who processes it for us, how long we keep it and the choices you have. By using the Site you acknowledge this policy.</P>
 
-          <S>What we collect</S>
-          <P>When you use our interactive tools, download a buyer guide, or subscribe to our newsletter, we collect the information you provide: typically your name, email address, and optionally your company name. We collect this through Formspree, our form processing service.</P>
-          <P>We use Vercel Analytics to understand how visitors use the site. This collects anonymized usage data including pages visited, device type, and approximate location. Vercel Analytics does not use cookies and does not track individual users across sessions.</P>
-          <P>When you upload a company logo to the report generation feature, the logo is processed entirely in your browser. It is never sent to our servers or stored anywhere beyond your local session.</P>
+          <S id="summary">The short version</S>
+          <L items={[
+            <>Our tools run in your browser. You can use them without an account, and <B>most of the Site never asks for your email</B>.</>,
+            <>Your tool inputs stay in your browser unless you choose to send them, for example with a review request.</>,
+            <>When you ask us for something, such as a guide, a report copy, a review, an introduction or a consultation, we may require a valid email address and other contact details to fulfil it.</>,
+            <>We measure how the Site is used with privacy-minded analytics that never receive what you type into a tool.</>,
+            <>We do not sell your personal information, and no vendor pays us to see it.</>,
+          ]} />
 
-          <S>How we use your information</S>
-          <P>We use your email address to deliver the tool results, reports, or guides you requested. If you subscribe to our newsletter, we use your email to send periodic CX intelligence updates. We may use your information to follow up with relevant resources based on the tools you used, for example, if you run the Staffing Calculator, we may send you related content about workforce optimization.</P>
-          <P>We do not sell, rent, or share your personal information with vendors, technology companies, or any third party for marketing purposes. This is a core commitment. No vendor pays to access your data. No vendor receives your information unless you explicitly request a consultant introduction through our matching service.</P>
+          <S id="collect">Information we collect</S>
+          <P><B>When you use a tool.</B> Calculators, assessments and frameworks run in your browser. The numbers and answers you enter are not sent to us. To carry your results from one tool to the next during a visit, the Site keeps them in your browser's session storage, which clears when you close the tab. A scenario link you create holds your inputs in the link itself; it reaches anyone only if you share it. A logo you add to a report is processed in your browser and is not uploaded.</P>
+          <P><B>When you ask us for something.</B> Most tools and pages do not require an email address. For specific purposes that you start, such as downloading a guide or a report, reading gated written content, requesting a report copy or a consultant review, asking for a vendor introduction or a consultation, reporting a research error, submitting a vendor review or subscribing to our newsletter, we may ask for, and may require before we fulfil the request, a valid email address and other contact details relevant to that purpose, such as your name, job title, company, role and, where the request calls for it, a telephone number. You may decline; if you do, we may not be able to complete that request. Today these forms collect:</P>
+          <L items={FORMS.map((f) => <><B>{f.what}:</B> {f.fields}.</>)} />
+          <P><B>Automatically, when you visit.</B> Like most websites, our host records standard technical information when your browser requests a page, including your IP address, browser type and the page requested. We also use two analytics services:</P>
+          <L items={[
+            <><B>Vercel Web Analytics</B> counts page views in aggregate. It does not use cookies.</>,
+            <><B>PostHog</B> receives named events from a fixed list, such as which tool you opened or completed and the confidence grade it reached, together with the page, the site that referred you (its host name only) and any campaign tags in the link. It never receives the values you enter, your email or your company. To count visits, the Site stores a random identifier in your browser's local storage and a visit identifier in session storage; neither contains your name. PostHog may use your IP address to estimate an approximate location.</>,
+          ]} />
+          <P><B>Cookies and browser storage.</B> The Site does not set advertising or tracking cookies. It uses your browser's local and session storage for the purposes above, and to remember contact details you typed into a form so you need not type them again during the same visit. You can clear this storage at any time in your browser settings.</P>
 
-          <S>Vendor independence</S>
-          <P>No vendor pays to appear on this site. No vendor pays to rank higher. No vendor receives access to user data collected through our tools, forms, or subscriptions. Vendor scores are independently assigned based on published methodologies. This independence is foundational to our value and we will not compromise it.</P>
+          <S id="use">How we use your information</S>
+          <L items={[
+            "To fulfil what you asked for: send a guide or report, reply to a review or correction, arrange an introduction or a consultation.",
+            "To send our newsletter if you subscribed, and occasional related updates about resources connected to what you requested. Every email lets you unsubscribe.",
+            "To understand, in aggregate, which pages and tools are used and where visitors come from, so we can improve them.",
+            "To keep the Site secure, prevent abuse and meet legal obligations.",
+          ]} />
 
-          <S>Cookies and tracking</S>
-          <P>We do not use advertising cookies, remarketing pixels, or third-party tracking scripts. Vercel Analytics provides privacy-friendly site analytics without cookies. We do not run Google Analytics, Facebook Pixel, or any ad-network tracking.</P>
+          <S id="share">Who receives your information</S>
+          <P>We do not sell, rent or trade your personal information, and we do not share it for cross-context behavioural advertising. We share it only as follows:</P>
+          <L items={[
+            <><B>Service providers</B> that operate the Site for us, under their own privacy terms: Vercel (hosting and web analytics), PostHog (product analytics), Formspree (form processing and delivery to our inbox) and Google Fonts (some older pages load typefaces from Google, which receives your IP address when they do). GitHub hosts our source code and receives no visitor data.</>,
+            <><B>A vendor you ask to be introduced to.</B> When you request an introduction, we share the details needed to arrange it with that vendor. No vendor receives your information otherwise.</>,
+            <><B>A consultant</B> we connect you with at your request, for that engagement.</>,
+            <><B>Where the law requires</B>, or to protect our rights, our users or the public, and to a successor if the Site changes ownership, under this policy.</>,
+          ]} />
 
-          <S>Third-party services</S>
-          <P>We use the following third-party services to operate the site:</P>
-          <P>Formspree: processes form submissions (name, email, tool data). Their privacy policy is available at formspree.io/legal/privacy-policy.</P>
-          <P>Vercel: hosts the website and provides anonymized analytics. Their privacy policy is available at vercel.com/legal/privacy-policy.</P>
-          <P>GitHub: hosts our source code repository. No user data is stored in GitHub.</P>
+          <S id="independence">Independence</S>
+          <P>No vendor pays to appear on the Site, to be researched or for where it appears. Vendor research is built from public evidence, and a finding changes only through our published <A href="/corrections">correction policy</A>. A request for an introduction never changes a list's order, a research finding or anything else a reader sees.</P>
 
-          <S>Data retention</S>
-          <P>Form submissions are retained in Formspree for as long as we need them to follow up with you. Newsletter subscriptions are retained until you unsubscribe. You can request deletion of your data at any time by emailing us at the address below.</P>
+          <S id="retention">How long we keep it</S>
+          <P>Form submissions are kept for as long as we need them to handle your request and follow up, and then deleted on request or when no longer needed. Newsletter subscriptions are kept until you unsubscribe. Analytics events are kept by PostHog and Vercel under their retention settings and are not linked to your name or email.</P>
 
-          <S>Your rights</S>
-          <P>You can request access to, correction of, or deletion of your personal data at any time. You can unsubscribe from our newsletter using the link in any email. If you are located in the EU, you have additional rights under GDPR including the right to data portability and the right to lodge a complaint with a supervisory authority.</P>
+          <S id="rights">Your choices and rights</S>
+          <P>You can ask us to access, correct, export or delete the personal information we hold about you, or to stop sending you email, at any time. Depending on where you live, including the European Union, the United Kingdom and US states such as California, you may have further rights, including the right to object to or restrict processing and to complain to your data protection authority. Where we rely on consent you may withdraw it at any time. We will not discriminate against you for exercising these rights. You can also block analytics with your browser's privacy settings or an extension; the Site keeps working.</P>
 
-          <S>Children's privacy</S>
-          <P>This site is designed for business professionals. We do not knowingly collect information from anyone under 16 years of age.</P>
+          <S id="security">Security and transfers</S>
+          <P>The Site is served only over HTTPS under a strict content security policy, and it has no user accounts or passwords to protect. No method of transmission or storage is completely secure, and we cannot guarantee absolute security. Our service providers may process information in the United States and other countries; where the law requires, transfers rely on appropriate safeguards.</P>
 
-          <S>Changes to this policy</S>
-          <P>We may update this policy from time to time. The "Last updated" date at the top of this page reflects the most recent revision. Material changes will be noted on the site.</P>
+          <S id="children">Children</S>
+          <P>The Site is intended for business professionals. We do not knowingly collect personal information from anyone under 16. If you believe a child has sent us information, contact us and we will delete it.</P>
 
-          <S>Contact</S>
-          <P>Questions about this privacy policy or your data can be directed to: <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>contactcentercx.com/contact</a></P>
+          <S id="changes">Changes to this policy</S>
+          <P>We may update this policy as the Site changes. The date at the top shows the latest revision; material changes will be noted on the Site.</P>
+
+          <S id="contact">Contact</S>
+          <P>Questions or requests about this policy or your information: <A href="mailto:hello@contactcentercx.com">hello@contactcentercx.com</A>, or use the <A href="/contact">contact page</A>.</P>
         </div>
       </section>
-
-      
     </div>
   );
 }

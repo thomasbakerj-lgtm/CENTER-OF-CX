@@ -37,7 +37,7 @@ export default function TermsOfService() {
           <P>We make reasonable efforts to ensure tool calculations are accurate, but we do not warrant that any tool output is error-free or appropriate for your specific operational decisions. You are responsible for validating tool outputs against your own data and judgment before making business decisions based on them.</P>
 
           <S>Vendor assessments</S>
-          <P>Vendor scores, tier classifications, competitive intelligence, and assessments published on this Site are independently developed based on our published methodologies. No vendor pays to appear on this Site, to receive a higher score, or to influence their assessment. Our assessments represent our professional analysis at the time of publication and may be updated as market conditions and vendor capabilities change.</P>
+          <P>Vendor research, competitive classes, findings and other assessments published on this Site are developed independently from public evidence under our published methods and our correction policy (/corrections). Earlier Phase 1 vendor scores and tiers have been withdrawn. No vendor pays to appear on this Site, to be researched, or to influence a finding or where it appears. Our research represents our professional analysis at the time of publication and may be updated as evidence and vendor capabilities change.</P>
           <P>Vendor assessments are not endorsements or guarantees of vendor performance. They are analytical tools designed to help CX professionals make informed decisions. Your vendor selection should include your own evaluation, reference checks, and due diligence beyond what this Site provides.</P>
 
           <S>User-submitted content</S>

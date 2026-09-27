@@ -1260,6 +1260,20 @@ dashboard, the 12-phase growth program.
    Contact promises a "vetted consultant". Next: Phase 9 part 2, the old-design pages (vendor hub, seven category pages,
    Phase 1 profiles, category by industry outside CCaaS, Human Premium, CX Ecosystem, Platforms, Subscribe, the article,
    the gated report).
+   PR #62 merged by TB's instruction (5bfd11d).
+71. S24 (27 Sep), TB on the flagged text: "Privacy Policy: 1. Update for accuracy 2. Update all tools plug ins etc 3.
+   Adjust to legal savvy messaging" (most tools need no email; for specific purposes the user starts, we may require a
+   valid email and sometimes a phone); Contact: "vetted" is true, word it smarter. Privacy Policy rewritten from an
+   inventory of the code: every service (Vercel hosting and Web Analytics, PostHog events with what they carry and never
+   carry, Formspree, Google Fonts on older pages, GitHub with no visitor data), every form and its fields (seven forms,
+   `FORMS` in the page), browser storage in place of cookies, the user-initiated contact-details clause with phone and the
+   right to require it before fulfilling, sharing (providers, a vendor only on an introduction request, a consultant on
+   request), independence (no scores; the correction policy), retention, rights (EU, UK, US states, no sale or
+   cross-context advertising), security, transfers, children, contact. Terms: the "vendor scores ... published
+   methodologies" sentence corrected (scores withdrawn). Contact h1: "We will match you with a consultant we have vetted
+   for exactly that kind of problem." `privacy.test.mjs` (13): every Formspree endpoint in the code and every third-party
+   host in the security policy must be named in the policy, so a new service cannot ship without it. Not legal advice:
+   worth a lawyer's read before relying on it.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
