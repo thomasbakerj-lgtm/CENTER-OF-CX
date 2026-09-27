@@ -984,6 +984,16 @@ dashboard, the 12-phase growth program.
    `methods.test.mjs` (mounted, unlinked, out of sitemap and metadata, the edge header); the live checker opens it and
    reads its noindex. Suite 24,691; live check 255 of 255.
 
+53. S24, redesign session 12, Phase 6 batch 1 (TB: "merge it and go"): Cost per Contact, FCR Leakage, AI Deflection and
+   Business Case moved onto `ToolFrame`. Each page is the frame's question as the one h1, the route rail (AI Deflection's rail
+   follows its verdict), the result column (`Result` with the evidence mark from `resultHow(gradeObj)`; a void shows no figure),
+   dark inputs (`NumField tone="dark"`), findings with word and icon, and the report on a paper panel. No engine change: the
+   engine region, the component logic and every ReportActions prop are byte-equal to `main` (checked per file), and every tool
+   harness passes. Fixed on the way: AI Deflection linked "50 scored IVA vendors" (now "IVA vendor profiles"). Business Case pins
+   updated for the frame (selectors read the resolved keys on the shared choice group, the tiles share one helper).
+   `toolframe.test.mjs` section 5 gates each moved tool. Suite 24,703; live check 255 of 255. Next: batch 2 (TCO, License Gap,
+   Staffing, Attrition, Channel Shift).
+
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
 
