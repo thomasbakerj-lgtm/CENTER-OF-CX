@@ -173,7 +173,9 @@ section("7. S23: the seven other categories, their profiles and the industry pag
   const VERT = ["EducationVertical", "FinancialServicesVertical", "GovernmentVertical", "HealthcareVertical", "InsuranceVertical", "ManufacturingVertical", "RetailVertical", "TelecomVertical", "TravelVertical", "UtilitiesVertical"];
   for (const v of VERT) {
     const src = readFileSync(`./${v}.jsx`, "utf8");
-    ok(`${v}.jsx: the platform list carries no score and is sorted by name`, !/\{ name: "[^"]+", score:/.test(src) && !/v\.score/.test(src) && /\]\.sort\(\(a, b\) => a\.name\.localeCompare\(b\.name\)\)\.map\(\(v, i\)/.test(src) && !/strongest for|score highest|vendors scored/i.test(src));
+    const sorted = /\]\.sort\(\(a, b\) => a\.name\.localeCompare\(b\.name\)\)\.map\(\(v, i\)/.test(src)
+      || (/from "\.\/src\/lib\/IndustryPage\.jsx"/.test(src) && /\[\.\.\.vendors\.items\]\.sort\(\(a, b\) => a\.name\.localeCompare\(b\.name\)\)/.test(readFileSync("./src/lib/IndustryPage.jsx", "utf8")));
+    ok(`${v}.jsx: the platform list carries no score and is sorted by name`, !/\{ name: "[^"]+", score:/.test(src) && !/v\.score/.test(src) && sorted && !/strongest for|score highest|vendors scored/i.test(src));
   }
   const COPY = { "Industries.jsx": 0, "Research.jsx": 0, "Vendors.jsx": 0, "CXEcosystem.jsx": 0, "index.html": 0 };
   for (const f of Object.keys(COPY)) {

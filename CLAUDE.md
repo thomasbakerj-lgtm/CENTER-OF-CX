@@ -1225,6 +1225,24 @@ dashboard, the 12-phase growth program.
    `subpage.test.mjs` (all 61 in both phases, vendor lists open); `tokens.test.mjs` migrated list now covers the Phase 7
    pages and the sub-page; copy pin accepts the initial-state form. Browser: 61 pages at 1440 and 390, no overflow or
    error. Suite 25,410; live check 255 of 255. Next: Phase 8 part 2, the ten industry pages and the hub.
+   PR #60 merged by TB's instruction (f052f9e).
+69. S24, redesign session 22, Phase 8 part 2 (TB: "merge and go"): the ten industry pages and the hub on the new design.
+   **Phase 8 complete.** `src/lib/IndustryPage.jsx` (tokens only) renders every industry; each industry file keeps its
+   content as data, character for character (segments, stats, failure modes, stack, benchmarks, outsourcing, platforms,
+   sources, next step), and passes it. Claim tokens still render through ClaimText and every source is listed once;
+   stat labels may carry tokens; a stat with its own source line links the claim's source. A one-off A/B against main
+   on all ten: the only text lost is the relabelled section kickers, "Key vendors:" (now "Vendors in this layer
+   include"), the old breadcrumb "Home", and on purpose the vendor blurbs. The blurbs were Phase 1 prose presented as fact
+   ("Deepest routing", "Proven in large health systems", per-vendor FedRAMP levels with no source); platforms now show
+   A to Z by name with an introduction, their research tags when researched, a label where the page had one (Adjacent,
+   Education-specific), and a note that the list carries no ranking or recommendation, linking contact center platforms
+   for the industry where the research is gathered. The section title "often evaluated for" (an unsourced frequency)
+   became "Platforms named for X". Broken `/tco-calculator` links repointed to `/tools/tco-calculator`. Hub
+   (`Industries.jsx`): same text less "vendor recommendations" and "vetted"; cards state one sourced figure each; links to
+   contact center platforms by industry. The nine conversions were done by three parallel agents on one brief and checked
+   by the A/B and the harnesses. `industrypage.test.mjs` (156); copy, claims and freeze pins moved to the shared
+   component. Browser: hub and ten pages at 1440 and 390, no overflow or error. Suite 25,568; live check 255 of 255.
+   Next: Phase 9, methods and the rest.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

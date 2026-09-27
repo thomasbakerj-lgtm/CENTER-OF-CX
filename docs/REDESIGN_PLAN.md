@@ -136,6 +136,8 @@ made just before the phases that build them, so nothing waits on pages that ship
 
 - Part 1 done (S24, 27 Sep 2026): the 61 segment pages on the shared component, new design; named vendors relabelled as
   examples with introductions. Next: the ten industry pages and the hub.
+- Part 2 done (S24, 27 Sep 2026): the ten industry pages on `IndustryPage.jsx`, content as data; the hub on the new design.
+  **Phase 8 complete.** Next: Phase 9.
 
 ## Phase 9. Methods and the rest (two sessions)
 

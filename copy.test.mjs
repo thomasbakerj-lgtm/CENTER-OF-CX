@@ -65,7 +65,7 @@ for (const f of verticals) {
     const u = (e.match(/url: "([^"]*)"/) || [])[1];
     ok(`${f}: a linked source is https`, u === undefined || /^https:\/\//.test(u), u);
   }
-  ok(`${f}: an empty strip does not render`, /\{stats\.length > 0 && \(/.test(s));
+  ok(`${f}: an empty strip does not render`, /\{stats\.length > 0 && \(/.test(s) || (/stats=\{stats\}/.test(s) && /from "\.\/src\/lib\/IndustryPage\.jsx"/.test(s) && /\{stats\.length > 0 && \(/.test(readFileSync("src/lib/IndustryPage.jsx", "utf8"))));
 }
 
 console.log("\n5. Industry sub-pages are open (TB, S23): no email gate, nothing sent unless the visitor asks");

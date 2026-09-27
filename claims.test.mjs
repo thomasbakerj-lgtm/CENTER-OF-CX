@@ -88,7 +88,8 @@ for (const p of CONVERTED) {
     const strings = [...src.matchAll(/"((?:[^"\\\n]|\\.){12,})"/g)].map((m) => m[1]).filter((t) => /[a-z]{3,} [a-z]{2,}/i.test(t) && !/rgba|gradient|px|fonts\.googleapis|^[\w-]+:/.test(t));
     const jsxText = [...src.matchAll(/>([^<>{}]{12,})</g)].map((m) => m[1]).filter((t) => /[a-z]{3,} [a-z]{2,}/i.test(t));
     texts = [...strings, ...jsxText];
-    ok(`${p.file} renders through ClaimText`, /ClaimText/.test(src) && /ClaimSources/.test(src));
+    const viaShared = /from "\.\/src\/lib\/IndustryPage\.jsx"/.test(src) && /ClaimText/.test(readFileSync("src/lib/IndustryPage.jsx", "utf8")) && /ClaimSources/.test(readFileSync("src/lib/IndustryPage.jsx", "utf8"));
+    ok(`${p.file} renders through ClaimText`, (/ClaimText/.test(src) && /ClaimSources/.test(src)) || viaShared);
   }
   const bares = texts.filter(bare);
   ok(`${p.file}: no figure outside a claim token`, bares.length === 0, bares.slice(0, 4).map((t) => t.slice(0, 90)).join(" | "));

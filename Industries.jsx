@@ -1,140 +1,29 @@
-import { useState, useEffect, useRef } from "react";
+// Industries.jsx
+//
+// The Industry Insights hub (redesign Phase 8 part 2), on the new design. Each industry card states one sourced figure
+// through ClaimText (its source is on the industry page). Links go to the ten industry pages and to contact center
+// platforms by industry. Tokens only.
 import ClaimText from "./src/lib/ClaimText.jsx";
+import { Crumbs, HEADER_HEIGHT } from "./src/lib/Shell.jsx";
+import { CCAAS_COMPLETE_COUNT } from "./src/lib/researchStatus.js";
+import { HOUSE, PILLARS } from "./src/lib/tokens.js";
+import { FONT } from "./src/lib/type.js";
+import { K } from "./src/lib/frameKit.jsx";
+import { CCAAS_INDEXED_INDUSTRIES } from "./src/lib/verticals.js";
 
-const NAVY = "#0B1D3A";
-const DEEP = "#061325";
-const ELECTRIC = "#0088DD";
-const LIGHT = "#00AAFF";
-const WARM = "#F8FAFB";
-const SLATE = "#3A4F6A";
-const MUTED = "#6B7F99";
-const BORDER = "#D8E3ED";
+const ACCENT = PILLARS.industries.onDark;
+const WRAP = { maxWidth: 1080, margin: "0 auto", padding: "28px 20px 64px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 32 };
+const CSS = `.cx-hub p,.cx-hub a,.cx-hub span{overflow-wrap:anywhere}`;
 
-function useInView(t = 0.1) {
-  const ref = useRef(null);
-  const [v, setV] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); o.unobserve(el); } }, { threshold: t });
-    o.observe(el);
-    return () => o.disconnect();
-  }, []);
-  return [ref, v];
-}
+const DIMENSIONS = [
+            { t: "Regulatory burden", d: "HIPAA, PCI, GDPR, state insurance regulations: compliance requirements reshape every technology and process decision." },
+            { t: "Customer emotion", d: "A patient calling about a diagnosis and a shopper tracking a package require fundamentally different service design." },
+            { t: "Channel mix", d: "Banking skews voice and secure messaging. Retail skews chat and social. Utilities skew IVR and outbound. The right channel strategy varies by vertical." },
+            { t: "Data sensitivity", d: "Financial data, health records, payment information: the sensitivity level determines governance, authentication, and AI guardrail requirements." },
+            { t: "Service urgency", d: "A power outage, a flight cancellation, and a subscription renewal have completely different time pressures and escalation needs." },
+];
 
-function FadeIn({ children, delay = 0, style = {} }) {
-  const [ref, v] = useInView();
-  return <div ref={ref} style={{ ...style, opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(22px)", transition: `opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s` }}>{children}</div>;
-}
-
-const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-const Label = ({ children, light }) => <span style={{ color: light ? LIGHT : ELECTRIC, fontSize: 11.5, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: 12 }}>{children}</span>;
-const Title = ({ children, light }) => <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, color: light ? "#fff" : NAVY, lineHeight: 1.15, margin: "0 0 16px", letterSpacing: "-0.015em" }}>{children}</h2>;
-
-function LogoMark({ size = 34, light = true }) {
-  const arcColor = light ? "#fff" : NAVY;
-  const xColor = light ? LIGHT : ELECTRIC;
-  return (
-    <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
-      <g transform="translate(60,60)">
-        <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={arcColor} strokeWidth="2" strokeLinecap="round" opacity={light ? 0.6 : 0.3}/>
-        <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={arcColor} strokeWidth="3.2" strokeLinecap="round" opacity={light ? 0.8 : 0.5}/>
-        <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={arcColor} strokeWidth="5" strokeLinecap="round"/>
-        <line x1="-14" y1="-14" x2="14" y2="14" stroke={xColor} strokeWidth="5.5" strokeLinecap="round"/>
-        <line x1="14" y1="-14" x2="-14" y2="14" stroke={xColor} strokeWidth="5.5" strokeLinecap="round"/>
-      </g>
-    </svg>
-  );
-}
-
-function Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
-  const links = [
-    { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
-    { name: "Research", href: "/research" },
-    { name: "Vendors", href: "/vendors" },
-    { name: "The Human Premium", href: "/human-premium" },
-  ];
-  return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'DM Sans', sans-serif; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
-        a { text-decoration: none; color: inherit; }
-        @media (max-width: 860px) { .nav-links { display: none !important; } .model-grid { grid-template-columns: 1fr !important; } }
-      `}</style>
-      
-    </>
-  );
-}
-
-function Hero() {
-  return (
-    <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "140px 28px 80px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-      <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-        <FadeIn>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-            <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a>
-            <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-            <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Industries</span>
-          </div>
-        </FadeIn>
-        <FadeIn delay={0.05}>
-          <div style={{ maxWidth: 680 }}>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
-              CX changes by context.{" "}
-              <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Generic advice fails.</span>
-            </h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 560 }}>
-              Ten verticals. 61 sub-verticals. 2,135 capability checkpoints. Each vertical has dedicated CX intelligence: benchmarks, failure modes, 7-layer technology stack mapping, vendor recommendations, and integration pitfalls. Every figure is sourced, labelled as a planning assumption, or marked as having no public benchmark.
-            </p>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-function StackModel() {
-  return (
-    <section style={{ background: WARM, padding: "80px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }} className="model-grid">
-            <div>
-              <Label>The two-layer model</Label>
-              <Title>Every vertical needs a CCaaS platform and a vertical CX overlay.</Title>
-              <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, marginTop: 8 }}>
-                Layer 1 is the CCaaS platform that handles routing, voice, digital channels, and workforce management. Layer 2 is the vertical-specific CX stack: the overlays and adjacent solutions purpose-built for your industry's unique compliance, workflow, and customer interaction patterns.
-              </p>
-              <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.7, marginTop: 12 }}>
-                Most organizations pick Layer 1 first and hope Layer 2 works itself out. The strongest operators evaluate both layers together because the integration points between them determine whether the system actually delivers.
-              </p>
-            </div>
-            <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, overflow: "hidden" }}>
-              <div style={{ background: `${ELECTRIC}08`, padding: "20px 24px", borderBottom: `1px solid ${BORDER}` }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>Layer 2: Vertical CX Stack</div>
-                <p style={{ fontSize: 13, color: SLATE, margin: 0 }}>Industry-specific overlays: digital service, AI, WEM, analytics, and bot platforms purpose-built for your vertical</p>
-              </div>
-              <div style={{ padding: "20px 24px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4, opacity: 0.5 }}>Layer 1: CCaaS Platform</div>
-                <p style={{ fontSize: 13, color: MUTED, margin: 0 }}>Full-suite contact center platform: routing, voice, digital channels, workforce management, core analytics</p>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-function IndustryGrid() {
+export default function Industries() {
   const industries = [
     { name: "Financial Services", href: "/industries/financial-services", subs: 7, checks: 245, sub: "Retail Banking · Credit Unions · Insurance · Wealth · Lending · Fintech · Payments", stat: "[[fs.bench.fcr.fs]] FCR, financial", why: "Trust-sensitive, compliance-heavy, multi-system authentication, and core banking integration complexity that generic CCaaS deployments underestimate." },
     { name: "Healthcare", href: "/industries/healthcare", subs: 6, checks: 210, sub: "Health Systems · Health Insurance · Provider Groups · Digital Health · Pharma · Home Health", stat: "[[hc.bench.fcr.hc]] FCR, health insurance", why: "Emotionally charged patient interactions, HIPAA at every layer, EHR integration, and scheduling fragmentation across clinical and administrative systems." },
@@ -149,144 +38,74 @@ function IndustryGrid() {
   ];
 
   return (
-    <section style={{ background: "#fff", padding: "96px 28px" }}>
+    <div className="cx-hub" style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT, minHeight: "100vh", paddingTop: HEADER_HEIGHT }}>
+      <style>{CSS}</style>
+      <Crumbs items={[["Industry Insights"]]} />
       <div style={WRAP}>
-        <FadeIn>
-          <div style={{ maxWidth: 600, marginBottom: 48 }}>
-            <Label>Ten verticals</Label>
-            <Title>Each one mapped with sub-vertical frameworks, vendor stacks, and integration pitfalls.</Title>
-            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginTop: 8 }}>Every vertical page includes sourced statistics, failure modes, 7-layer technology stack mapping, benchmark tables, BPO analysis, vendor recommendations, and 6-7 clickable sub-verticals: each with its own interactive CX stack assessment.</p>
-          </div>
-        </FadeIn>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {industries.map((ind, i) => (
-            <FadeIn key={i} delay={i * 0.03}>
-              <a href={ind.href} style={{ display: "block", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 28px", cursor: "pointer", transition: "all 0.22s", textDecoration: "none", color: "inherit", background: "#fff" }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,136,221,0.06)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "translateY(0)"; }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
-                  <div style={{ flex: 1, minWidth: 280 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6, flexWrap: "wrap" }}>
-                      <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: NAVY, margin: 0 }}>{ind.name}</h3>
-                      <span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 600, background: `${ELECTRIC}08`, padding: "2px 8px", borderRadius: 4 }}>{ind.subs} sub-verticals · {ind.checks} checkpoints</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: MUTED, marginBottom: 8 }}>{ind.sub}</div>
-                    <p style={{ fontSize: 13.5, color: SLATE, lineHeight: 1.55, margin: 0 }}>{ind.why}</p>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0, maxWidth: "100%" }}>
-                    <div style={{ background: WARM, borderRadius: 6, padding: "8px 14px", textAlign: "right" }}>
-                      <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: ELECTRIC }}><ClaimText text={ind.stat} links={false} /></div>
-                    </div>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Explore vertical →</span>
-                  </div>
-                </div>
-              </a>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+        <header style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 760 }}>
+          <span style={{ ...K.kicker, color: ACCENT }}>Industry Insights</span>
+          <h1 style={{ margin: 0, fontSize: "clamp(32px, 4.5vw, 50px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>CX changes by context. Generic advice fails.</h1>
+          <p style={{ ...K.body, fontSize: 17, lineHeight: "28px" }}>Ten verticals. 61 sub-verticals. 2,135 capability checkpoints. Each vertical has dedicated CX intelligence: benchmarks, failure modes, 7-layer technology stack mapping, the platforms named, and integration pitfalls. Every figure is sourced, labelled as a planning assumption, or marked as having no public benchmark.</p>
+        </header>
 
-function WhyVerticalMatters() {
-  return (
-    <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "96px 28px", position: "relative", overflow: "hidden" }}>
-      <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-        <FadeIn>
-          <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 48px" }}>
-            <Label light>Why vertical specificity matters</Label>
-            <Title light>Five dimensions that change every recommendation.</Title>
+        <section aria-labelledby="model" style={{ ...K.panel, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))", gap: 24, alignItems: "center" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <span style={K.kicker}>The two-layer model</span>
+            <h2 id="model" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Every vertical needs a CCaaS platform and a vertical CX overlay.</h2>
+            <p style={K.body}>Layer 1 is the CCaaS platform that handles routing, voice, digital channels, and workforce management. Layer 2 is the vertical-specific CX stack: the overlays and adjacent solutions purpose-built for your industry's unique compliance, workflow, and customer interaction patterns.</p>
+            <p style={K.body}>Most organizations pick Layer 1 first and hope Layer 2 works itself out. The strongest operators evaluate both layers together because the integration points between them determine whether the system actually delivers.</p>
           </div>
-        </FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-          {[
-            { t: "Regulatory burden", d: "HIPAA, PCI, GDPR, state insurance regulations: compliance requirements reshape every technology and process decision." },
-            { t: "Customer emotion", d: "A patient calling about a diagnosis and a shopper tracking a package require fundamentally different service design." },
-            { t: "Channel mix", d: "Banking skews voice and secure messaging. Retail skews chat and social. Utilities skew IVR and outbound. The right channel strategy varies by vertical." },
-            { t: "Data sensitivity", d: "Financial data, health records, payment information: the sensitivity level determines governance, authentication, and AI guardrail requirements." },
-            { t: "Service urgency", d: "A power outage, a flight cancellation, and a subscription renewal have completely different time pressures and escalation needs." },
-          ].map((item, i) => (
-            <FadeIn key={i} delay={i * 0.06}>
-              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: "24px 20px" }}>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: "#fff", margin: "0 0 6px" }}>{item.t}</h3>
-                <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.55, margin: 0 }}>{item.d}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ ...K.box, borderLeft: `3px solid ${ACCENT}` }}><p style={{ ...K.kicker, color: ACCENT }}>Layer 2: Vertical CX Stack</p><p style={{ ...K.body, marginTop: 4 }}>Industry-specific overlays: digital service, AI, WEM, analytics, and bot platforms purpose-built for your vertical</p></div>
+            <div style={K.box}><p style={K.kicker}>Layer 1: CCaaS Platform</p><p style={{ ...K.body, marginTop: 4 }}>Full-suite contact center platform: routing, voice, digital channels, workforce management, core analytics</p></div>
+          </div>
+        </section>
 
-function CTA() {
-  const cats = [
-    { name: "CCaaS Platforms", slug: "ccaas" },
-    { name: "IVA + Conversational AI", slug: "iva" },
-    { name: "Agent Assist", slug: "agent-assist" },
-    { name: "WEM + Quality", slug: "wem-qm" },
-    { name: "Analytics", slug: "analytics" },
-    { name: "ACD + Routing", slug: "acd-routing" },
-    { name: "Digital Engagement", slug: "digital-engagement" },
-    { name: "Payments", slug: "payments" },
-  ];
-  const verts = [
-    { name: "Financial Services", slug: "financial-services" },
-    { name: "Healthcare", slug: "healthcare" },
-    { name: "Retail", slug: "retail" },
-    { name: "Insurance", slug: "insurance" },
-    { name: "Telecom", slug: "telecom" },
-    { name: "Government", slug: "government" },
-    { name: "Travel", slug: "travel" },
-    { name: "Utilities", slug: "utilities" },
-    { name: "Manufacturing", slug: "manufacturing" },
-    { name: "Education", slug: "education" },
-  ];
-  return (
-    <section style={{ background: "#fff", padding: "48px 28px", borderTop: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <FadeIn>
-          <div style={{ marginBottom: 20 }}>
-            <Label>Vendors by vertical</Label>
-            <Title>Find vendors matched to your industry.</Title>
-            <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, maxWidth: 560 }}>Each vertical page lists the platforms often evaluated for it, with its compliance requirements and integration dependencies. Vendor scores are withdrawn until each category is researched under the current methodology.</p>
+        <section aria-labelledby="ten" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: 760 }}>
+            <span style={K.kicker}>Ten verticals</span>
+            <h2 id="ten" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Each one mapped with sub-vertical frameworks, vendor stacks, and integration pitfalls.</h2>
+            <p style={K.body}>Every vertical page includes sourced statistics, failure modes, 7-layer technology stack mapping, benchmark tables, BPO analysis, the platforms named, and 6-7 clickable sub-verticals: each with its own interactive CX stack assessment.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 6 }}>
-            {verts.map(v => (
-              <a key={v.slug} href={`/vendors/ccaas/${v.slug}`} style={{ display: "block", padding: "12px 14px", border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 13, fontWeight: 500, color: NAVY, transition: "all 0.15s" }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.color = ELECTRIC; }}
-                onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.color = NAVY; }}>
-                {v.name} <span style={{ fontSize: 11, color: MUTED }}>→ CCaaS vendors</span>
+          <div style={K.grid(320)}>
+            {industries.map((ind) => (
+              <a key={ind.href} href={ind.href} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 8, textDecoration: "none", color: HOUSE.mist }}>
+                <span style={{ fontSize: 19, fontWeight: 700 }}>{ind.name}</span>
+                <span style={K.small}>{ind.subs} sub-verticals · {ind.checks} checkpoints</span>
+                <span style={K.small}>{ind.sub}</span>
+                <span style={K.body}>{ind.why}</span>
+                <span style={{ ...K.strong, fontSize: 15 }}><ClaimText text={ind.stat} links={false} /></span>
+                <span style={{ ...K.link, color: ACCENT, fontSize: 14 }}>Explore {ind.name}</span>
               </a>
             ))}
           </div>
-          <div style={{ marginTop: 20, textAlign: "center" }}>
-            <span style={{ fontSize: 13, color: MUTED }}>Need expert guidance? <a href="/contact" style={{ color: ELECTRIC, fontWeight: 600 }}>Connect with a vetted CX consultant →</a></span>
+        </section>
+
+        <section aria-labelledby="why" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={K.kicker}>Why vertical specificity matters</span>
+            <h2 id="why" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Five dimensions that change every recommendation.</h2>
           </div>
-        </FadeIn>
+          <div style={K.grid(200)}>
+            {DIMENSIONS.map((item) => (
+              <div key={item.t} style={K.box}><h3 style={{ ...K.h2, fontSize: 16, margin: "0 0 6px" }}>{item.t}</h3><p style={K.small}>{item.d}</p></div>
+            ))}
+          </div>
+        </section>
+
+        <section aria-labelledby="vendors-by" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 12 }}>
+          <span style={K.kicker}>Vendors by vertical</span>
+          <h2 id="vendors-by" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Contact center platforms by industry.</h2>
+          <p style={K.body}>For healthcare, government and financial services, the research on {CCAAS_COMPLETE_COUNT} platforms gathered for the industry. For every industry, the platforms named with their tags and an introduction. Vendor scores are withdrawn; nothing here ranks a vendor.</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {industries.map((ind) => {
+              const slug = ind.href.replace("/industries/", "");
+              return <a key={slug} href={`/vendors/ccaas/${slug}`} style={{ ...K.box, ...K.link, color: HOUSE.mist, fontSize: 14 }}>{ind.name}{CCAAS_INDEXED_INDUSTRIES.includes(slug) ? ": what the research says" : ""}</a>;
+            })}
+          </div>
+          <p style={K.small}>Need expert guidance? <a href="/contact" style={K.link}>Connect with a CX consultant</a>.</p>
+        </section>
       </div>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    null
-  );
-}
-
-export default function Industries() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-  return (
-    <div>
-      <Nav />
-      <Hero />
-      <StackModel />
-      <IndustryGrid />
-      <WhyVerticalMatters />
-      <CTA />
-      <Footer />
     </div>
   );
 }

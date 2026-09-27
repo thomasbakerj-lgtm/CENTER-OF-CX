@@ -1,22 +1,9 @@
-import { useState, useEffect, useRef } from "react";
-import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import IndustryPage from "./src/lib/IndustryPage.jsx";
 import { claimIds } from "./src/lib/claims.js";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
-const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-
-function useInView(t=.1){const ref=useRef(null);const[v,setV]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){setV(true);o.unobserve(el)}},{threshold:t});o.observe(el);return()=>o.disconnect()},[]);return[ref,v]}
-function FadeIn({children,delay=0,style={}}){const[ref,v]=useInView();return<div ref={ref} style={{...style,opacity:v?1:0,transform:v?"translateY(0)":"translateY(22px)",transition:`opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`}}>{children}</div>}
-function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
-
-function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
-const links=[{name:"Platforms & Tech",href:"/platforms-and-tech"},{name:"How to Choose",href:"/how-to-choose"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"Advisory",href:"/advisory"}];
-return(<><style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.stat-grid{grid-template-columns:1fr 1fr!important}.stack-grid{grid-template-columns:1fr!important}.sub-grid{grid-template-columns:1fr!important}}`}</style>
-</>)}
-
+/* Financial services industry page: the content, as data. IndustryPage renders it (redesign Phase 8 part 2); every claim token
+   still renders through ClaimText and is listed once through ClaimSources. */
 export default function FinancialServicesVertical() {
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-
   const subVerticals = [
     { name: "Retail Banking", slug: "retail-banking", desc: "Account servicing, fraud alerts, card disputes, loan inquiries, and branch-to-digital migration. High volume with a broad channel mix.", contact: "High volume, moderate complexity" },
     { name: "Credit Unions", slug: "credit-unions", desc: "Member-centric service with relationship depth. Smaller operations but higher trust expectations and community accountability.", contact: "Lower volume, higher relationship intensity" },
@@ -61,253 +48,21 @@ export default function FinancialServicesVertical() {
   ];
 
   return (
-    <div>
-      <Nav />
-
-      {/* Hero */}
-      <section style={{ background: `linear-gradient(168deg, ${DEEP} 0%, ${NAVY} 50%, #0F2847 100%)`, padding: "130px 28px 80px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,136,221,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(0,136,221,0.02) 1px, transparent 1px)", backgroundSize: "64px 64px" }} />
-        <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-          <FadeIn>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-              <a href="/" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Home</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <a href="/industries" style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>Industries</a><span style={{ color: "rgba(255,255,255,0.2)", fontSize: 13 }}>/</span>
-              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Financial Services</span>
-            </div>
-          </FadeIn>
-          <FadeIn delay={0.05}>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 20px" }}>
-              Financial Services{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CX Intelligence</span>
-            </h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.7, maxWidth: 640 }}>
-              Trust, compliance, and identity verification shape every interaction. Financial services CX operates under constraints that generic platforms and generic advice fail to address. This is the vertical-specific intelligence layer: benchmarks, technology stack mapping, failure modes, and vendor recommendations built for banking, insurance, lending, and wealth management.
-            </p>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Stats bar */}
-      {stats.length > 0 && (<section style={{ background: "#fff", padding: "48px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(stats.length, 6)}, 1fr)`, gap: 16 }} className="stat-grid">
-              {stats.map((s, i) => (
-                <div key={i} style={{ textAlign: "center", padding: "12px 8px" }}>
-                  <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, color: ELECTRIC }}><ClaimText text={s.n} /></div>
-                  <div style={{ fontSize: 11, color: SLATE, lineHeight: 1.4, marginTop: 4 }}>{s.label}</div>
-                  {s.url ? <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2, textDecoration: "underline" }}>{s.source}</a> : <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>{s.source}</div>}
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </section>)}
-
-      {/* Sub-verticals */}
-      <section style={{ background: WARM, padding: "80px 28px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sub-Verticals</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Financial services is seven verticals in one.</h2>
-            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>A retail banking contact center and a wealth management advisory desk have fundamentally different service models, compliance requirements, and technology needs. Treating them as one vertical is the first evaluation mistake.</p>
-          </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 14 }} className="sub-grid">
-            {subVerticals.map((sv, i) => (
-              <FadeIn key={i} delay={i * 0.04}>
-                <a href={`/industries/financial-services/${sv.slug}`} style={{ display: "block", background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", height: "100%", transition: "border-color 0.2s", textDecoration: "none", color: "inherit" }}
-                  onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
-                  onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{sv.name}</h3>
-                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{sv.desc}</p>
-                  <span style={{ fontSize: 11, color: ELECTRIC, fontWeight: 500 }}>{sv.contact}</span>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC, marginTop: 10 }}>Access CX Stack Framework →</div>
-                </a>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Failure Modes */}
-      <section style={{ background: "#fff", padding: "80px 28px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>What Breaks</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five failure modes unique to financial services CX.</h2>
-            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>These are the operational patterns that generic CX platforms and generic advice consistently miss. Each one creates measurable cost, risk, or attrition when left unaddressed.</p>
-          </FadeIn>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {failureModes.map((fm, i) => (
-              <FadeIn key={i} delay={i * 0.04}>
-                <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px 22px", borderLeft: `4px solid ${RED}` }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>{fm.title}</h3>
-                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}><ClaimText text={fm.desc} /></p>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Technology Stack */}
-      <section style={{ background: `linear-gradient(168deg, ${NAVY}, ${DEEP})`, padding: "80px 28px" }}>
-        <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-          <FadeIn>
-            <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Technology Stack</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Seven orchestration layers, mapped for financial services.</h2>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.45)", maxWidth: 600, marginBottom: 36 }}>Every layer manifests differently in financial services. Layer 3 (Policy & Guardrails) carries disproportionate weight because compliance failures create regulatory exposure that no amount of CSAT improvement can offset.</p>
-          </FadeIn>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {stackLayers.map((sl, i) => (
-              <FadeIn key={i} delay={i * 0.03}>
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "20px 22px", display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 16, color: LIGHT }}>{sl.layer}</span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 250 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: "0 0 4px" }}>{sl.name}</h3>
-                    <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", margin: "0 0 8px" }}>{sl.fsNote}</p>
-                    <div style={{ fontSize: 11, color: LIGHT }}>Key vendors: {sl.vendors}</div>
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Benchmarks */}
-      <section style={{ background: "#fff", padding: "80px 28px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Industry Benchmarks</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How financial services compares.</h2>
-            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>SQM Group publishes first contact resolution and customer satisfaction for its financial services clients as one group, both close to its all-industry figures, and Capgemini publishes abandon rates from its survey of retail bank employees. No free public source reports handle time, attrition or containment for financial services; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.</p>
-          </FadeIn>
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: `2px solid ${NAVY}` }}>
-                  {["Metric", "Financial Services", "All Industries", "What Drives It"].map(h => (
-                    <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontWeight: 700, color: NAVY, fontSize: 11, letterSpacing: 0.5, textTransform: "uppercase" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {benchmarks.map((b, i) => (
-                  <tr key={i} style={{ borderBottom: `1px solid ${BORDER}`, background: i % 2 === 0 ? "#fff" : WARM }}>
-                    <td style={{ padding: "12px 14px", fontWeight: 600, color: NAVY }}>{b.metric}</td>
-                    <td style={{ padding: "12px 14px", fontWeight: 700, color: NAVY }}><ClaimText text={b.fs} /></td>
-                    <td style={{ padding: "12px 14px", color: MUTED }}><ClaimText text={b.cross} /></td>
-                    <td style={{ padding: "12px 14px", color: SLATE, fontSize: 12 }}>{b.note}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <FadeIn delay={0.1}>
-            <div style={{ display: "flex", gap: 14, marginTop: 24, flexWrap: "wrap" }}>
-              <a href="/tools/cost-per-contact" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>Price your own cost per contact →</a>
-              <a href="/tco-calculator" style={{ fontSize: 13, fontWeight: 600, color: MUTED }}>Model your FS TCO →</a>
-            </div>
-          </FadeIn>
-          <div id="sources" style={{ marginTop: 40, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h3>
-            <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark.</p>
-            <ClaimSources ids={claimIds([stats, benchmarks, failureModes])} color={SLATE} accent={ELECTRIC} />
-          </div>
-        </div>
-      </section>
-
-      {/* BPO Role */}
-      <section style={{ background: WARM, padding: "80px 28px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <span style={{ color: AMBER, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>The BPO Question</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>How outsourcing fits in financial services CX.</h2>
-          </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 24 }} className="sub-grid">
-            <FadeIn delay={0.04}>
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: GREEN, margin: "0 0 8px" }}>Where BPOs add value</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {["After-hours and overflow coverage for transactional inquiries", "Collections and early-stage delinquency management", "Back-office processing (document verification, data entry)", "Seasonal scaling for open enrollment or tax season", "Multilingual support for diverse customer bases"].map((item, i) => (
-                    <p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${GREEN}30` }}>{item}</p>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-            <FadeIn delay={0.08}>
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "24px" }}>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: RED, margin: "0 0 8px" }}>Where BPOs create risk</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {["Fraud detection and identity verification require deep institutional knowledge", "Wealth management and advisory interactions demand licensed representatives", "Regulatory compliance varies by state and jurisdiction, BPO training gaps create exposure", "Complex dispute resolution requires system access and authority that BPOs often lack", "Data residency and privacy requirements may restrict offshore processing"].map((item, i) => (
-                    <p key={i} style={{ fontSize: 13, color: SLATE, margin: 0, lineHeight: 1.5, paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}>{item}</p>
-                  ))}
-                </div>
-              </div>
-            </FadeIn>
-          </div>
-        </div>
-      </section>
-
-      {/* Vendor recommendations */}
-      <section style={{ background: "#fff", padding: "80px 28px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Vendor Intelligence</span>
-            <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>CCaaS platforms often evaluated for financial services.</h2>
-            <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 32 }}>Platforms often evaluated for compliance controls, security posture, integration with core banking systems and regulated deployment. Listed by name. The notes are Phase 1 context; scores are withdrawn until each vendor is researched under the current methodology.</p>
-          </FadeIn>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 14 }} className="sub-grid">
-            {[
-              { name: "Genesys", why: "Advanced routing and compliance controls for large banks. Enterprise-grade security and multi-region deployment.", href: "/vendors/genesys" },
-              { name: "NICE CXone", why: "WEM and QA for regulated environments. Strong analytics for compliance review and dispute resolution workflows.", href: "/vendors/nice-cxone" },
-              { name: "Talkdesk", why: "Purpose-built Financial Services Experience Cloud with pre-built banking workflows, PCI compliance, and vertical-specific AI.", href: "/vendors/talkdesk" },
-              { name: "Five9", why: "Strong Salesforce Financial Services Cloud integration. Proven in mid-market banking and lending operations.", href: "/vendors/five9" },
-              { name: "Cisco", why: "Enterprise security posture and networking heritage. Strong fit for banks with existing Cisco infrastructure investments.", href: "/vendors/cisco" },
-              { name: "Amazon Connect", why: "Pay-per-use pricing with AI capabilities. Suits banks with AWS cloud maturity and builder teams.", href: "/vendors/amazon-connect" },
-            ].sort((a, b) => a.name.localeCompare(b.name)).map((v, i) => (
-              <FadeIn key={i} delay={i * 0.04}>
-                <a href={v.href} style={{ display: "block", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 22px", transition: "all 0.2s", height: "100%" }}
-                  onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                  onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.transform = "translateY(0)"; }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 600, color: NAVY, margin: 0 }}>{v.name}</h3>
-                  </div>
-                  <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>{v.why}</p>
-                </a>
-              </FadeIn>
-            ))}
-          </div>
-          <FadeIn delay={0.2}>
-            <div style={{ textAlign: "center", marginTop: 24 }}>
-              <a href="/vendors/ccaas" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>See all CCaaS vendors →</a>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ background: WARM, padding: "80px 28px" }}>
-        <div style={WRAP}>
-          <FadeIn>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "48px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,136,221,0.08) 0%, transparent 70%)" }} />
-              <div style={{ position: "relative", zIndex: 1 }}>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 26, fontWeight: 400, color: "#fff", margin: "0 0 12px" }}>Evaluating CX technology for financial services?</h2>
-                <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>Compliance, identity verification, and core banking integration change which platforms are viable and which are risky. We can help you build a shortlist weighted for your specific sub-vertical: retail banking, insurance, lending, or wealth management.</p>
-                <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-                  <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: `0 4px 18px rgba(0,136,221,0.25)` }}>Request a Financial Services Briefing</a>
-                  <a href="/tools/cx-maturity" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Take the CX Maturity Assessment →</a>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      
-    </div>
+    <IndustryPage
+      slug="financial-services"
+      name="Financial Services"
+      intro={"Trust, compliance, and identity verification shape every interaction. Financial services CX operates under constraints that generic platforms and generic advice fail to address. This is the vertical-specific intelligence layer: benchmarks, technology stack mapping, failure modes, and vendor recommendations built for banking, insurance, lending, and wealth management."}
+      stats={stats}
+      segments={{ title: "Financial services is seven verticals in one.", intro: "A retail banking contact center and a wealth management advisory desk have fundamentally different service models, compliance requirements, and technology needs. Treating them as one vertical is the first evaluation mistake.", items: subVerticals }}
+      failures={{ title: "Five failure modes unique to financial services CX.", intro: "These are the operational patterns that generic CX platforms and generic advice consistently miss. Each one creates measurable cost, risk, or attrition when left unaddressed.", items: failureModes }}
+      stack={{ title: "Seven orchestration layers, mapped for financial services.", intro: "Every layer manifests differently in financial services. Layer 3 (Policy & Guardrails) carries disproportionate weight because compliance failures create regulatory exposure that no amount of CSAT improvement can offset.", items: stackLayers.map((sl) => ({ ...sl, note: sl.fsNote })) }}
+      benchmarks={{ title: "How financial services compares.", intro: "SQM Group publishes first contact resolution and customer satisfaction for its financial services clients as one group, both close to its all-industry figures, and Capgemini publishes abandon rates from its survey of retail bank employees. No free public source reports handle time, attrition or containment for financial services; measure yours with the linked tools. Each all-industry figure is labelled with what it measures.", columns: ["Financial Services", "All Industries"], keys: ["fs", "cross"], rows: benchmarks,
+        links: [["/tools/cost-per-contact", "Price your own cost per contact"], ["/tools/tco-calculator", "Model your FS TCO"]] }}
+      bpo={{ title: "How outsourcing fits in financial services CX.", value: ["After-hours and overflow coverage for transactional inquiries", "Collections and early-stage delinquency management", "Back-office processing (document verification, data entry)", "Seasonal scaling for open enrollment or tax season", "Multilingual support for diverse customer bases"], risk: ["Fraud detection and identity verification require deep institutional knowledge", "Wealth management and advisory interactions demand licensed representatives", "Regulatory compliance varies by state and jurisdiction, BPO training gaps create exposure", "Complex dispute resolution requires system access and authority that BPOs often lack", "Data residency and privacy requirements may restrict offshore processing"] }}
+      vendors={{ items: [{ name: "Genesys", href: "/vendors/genesys" }, { name: "NICE CXone", href: "/vendors/nice-cxone" }, { name: "Talkdesk", href: "/vendors/talkdesk" }, { name: "Five9", href: "/vendors/five9" }, { name: "Cisco", href: "/vendors/cisco" }, { name: "Amazon Connect", href: "/vendors/amazon-connect" }] }}
+      sources={{ ids: claimIds([stats, benchmarks, failureModes]), note: "Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or marked as having no public benchmark." }}
+      cta={{ title: "Evaluating CX technology for financial services?", text: "Compliance, identity verification, and core banking integration change which platforms are viable and which are risky. We can help you build a shortlist weighted for your specific sub-vertical: retail banking, insurance, lending, or wealth management.",
+        links: [["/contact", "Request a Financial Services Briefing"], ["/tools/cx-maturity", "Take the CX Maturity Assessment"]] }}
+    />
   );
 }
