@@ -936,6 +936,7 @@ dashboard, the 12-phase growth program.
    10,457 bytes to the entry (Shell 7,506, Icon 2,117, tokens 715, App 95; no route or data file). Suite 24,593; all 426
    sitemap pages at 390 and 1440 with no overflow, no page error, one header and one footer; local live check under the
    production policy 254 of 254. Next: Phase 4 part 2, the tool shell v2.
+
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
 
