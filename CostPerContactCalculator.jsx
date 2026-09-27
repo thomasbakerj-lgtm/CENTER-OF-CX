@@ -10,6 +10,10 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Finding, resultHow } from "./src/lib/ui.jsx";
+import { HOUSE, PILLARS, FINDINGS, RADIUS, TOUCH, FONT_MONO, alpha, LINE } from "./src/lib/tokens.js";
+import { methodStamp } from "./src/lib/methodVersions.js";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -328,9 +332,6 @@ function gradeCPC({ d, r, pre, railOrigin }) {
 
 /* @engine-end */
 
-function Nav() {
-  return null;
-}
 export default function CostPerContactCalculator() {
   const [d, setD] = useState(() => clone(DEFAULTS.d));
   const [mech, setMech] = useState(DEFAULTS.mech);
@@ -392,7 +393,6 @@ export default function CostPerContactCalculator() {
   /* railOrigin is null because the rail carries no origin grade yet. See gradeCPC. */
   const graded = gradeCPC({ d, r, pre, railOrigin: null });
   const { gradeObj, confidence, gradeWhy } = graded;
-  const gradeColor = confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? AMBER : confidence === "Void" ? RED : MUTED;
 
   useEffect(() => {
     publishToolResult("cost-per-contact", normalizeForPublish({
@@ -410,202 +410,188 @@ export default function CostPerContactCalculator() {
   const cprColor = r.gapPct > GAP_RED ? RED : r.gapPct > GAP_AMBER ? AMBER : GREEN;
   const tierColor = (t) => t === "Operational" ? GREEN : t === "Root-cause work" ? AMBER : RED;
   const volLabel = d.denominator === "issues" ? "Monthly resolved issues" : "Monthly handled contacts";
-  const seg = (active) => ({ flex: 1, fontSize: 12, fontWeight: 600, padding: "7px 8px", borderRadius: 5, border: "none", cursor: "pointer", background: active ? ELECTRIC : "transparent", color: active ? "#fff" : SLATE });
-  const mathRow = (label, val) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "5px 0", borderBottom: `1px solid ${BORDER}`, fontSize: 12 }}><span style={{ color: SLATE, fontFamily: "monospace" }}>{label}</span><span style={{ color: NAVY, fontWeight: 600, textAlign: "right" }}>{val}</span></div>;
+  const stamp = methodStamp(TOOL_ID);
+  const { how, voidReason } = resultHow(gradeObj);
+  const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
+  const card = { background: HOUSE.navy, border: `1px solid ${hair}`, borderRadius: RADIUS.card, padding: 20 };
+  const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
+  const h2 = { fontSize: 20, fontWeight: 600, lineHeight: 1.3, color: HOUSE.mist, margin: "0 0 6px" };
+  const body = { fontSize: 15, lineHeight: 1.6, color: HOUSE.body, margin: 0 };
+  const small = { fontSize: 13, lineHeight: 1.5, color: HOUSE.muted };
+  const fig = { fontSize: 28, fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist, fontVariantNumeric: "tabular-nums" };
+  const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))`, gap: 14 });
+  const seg = (active) => ({ flex: 1, minHeight: TOUCH, fontSize: 14, fontWeight: 600, padding: "0 12px", borderRadius: RADIUS.chip, border: "none", cursor: "pointer",
+    background: active ? PILLARS.diagnostics.fill : "transparent", color: active ? HOUSE.paper : HOUSE.body });
+  const mathRow = (label, val) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "8px 0", borderBottom: `1px solid ${hair}`, fontSize: 13 }}><span style={{ color: HOUSE.body, fontFamily: FONT_MONO }}>{label}</span><span style={{ color: HOUSE.mist, fontWeight: 600, textAlign: "right" }}>{val}</span></div>;
+  const row = (k, v, sub) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 0", borderTop: `1px solid ${hair}` }}><span style={small}>{k}{sub && <span style={{ display: "block" }}>{sub}</span>}</span><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{v}</span></div>;
+
+  const result = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="Cost per resolution" value={r.cprLoaded} format={money} change={`${money(r.loaded)} per contact, ${r.C.toFixed(2)} contacts per issue`} how={how} voidReason={voidReason} />
+      {!voidReason && <p style={{ ...small, margin: 0 }}>{String(gradeWhy).replace(/^bound by [^.]*\.\s*/i, "")}</p>}
+      {!voidReason && (
+        <div style={card}>
+          <span style={kicker}>The four numbers</span>
+          <div style={{ marginTop: 8 }}>
+            {row("Cost per contact, fully loaded", money(r.loaded))}
+            {row("Cost per resolution", money(r.cprLoaded), `${r.C.toFixed(2)} contacts per issue, ${r.gapPct.toFixed(0)}% above`)}
+            {row("Repeat demand share", (r.repeatShare * 100).toFixed(0) + "%", `${r.repeatContacts.toLocaleString()} repeats a month`)}
+            {row("Repeat-demand burden", fmtK(r.burden) + "/mo", `Marginal ceiling, ${r.fteBurden.toFixed(1)} FTE`)}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}select,input,button{font-family:inherit}@media(max-width:760px){.cg{grid-template-columns:1fr 1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}}`}</style>
-      <Nav />
+    <ToolFrame toolId={TOOL_ID} section="Cost + Economics" name="Cost per Contact" title="What does a contact cost, and what does a resolution cost?"
+      lede="A $7 call that takes three contacts to resolve is a $21 resolution. This separates handle cost from resolution cost and keeps four things distinct that most ROI decks blur: cost reported, repeat-demand burden, capacity released, and savings realized."
+      method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
+      result={result} pinned={voidReason ? null : { label: "Cost per resolution", value: money(r.cprLoaded) }}>
+      <style>{`${FONT_IMPORT_CSS}.cpc-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
 
-      <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "52px 28px 32px" }}>
-        <div style={WRAP}>
-          <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "0 0 12px" }}>Cost per Contact vs Cost per Resolution</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, maxWidth: 680 }}>A $7 call that takes three contacts to resolve is a $21 resolution. This separates handle cost from resolution cost and keeps four things distinct that most ROI decks blur: cost reported, repeat-demand burden, capacity released, and savings realized.</p>
-          <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            {Object.keys(pulled).length > 0 && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}>
-                <span style={{ ...TYPE.caption, fontSize: 12, color: "#fff", fontWeight: W.semibold }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from {pullSources.length ? pullSources.join(", ") : "a previous tool"}.</span>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Editable.</span>
-              </div>
-            )}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 14px" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: gradeColor }} />
-              <span style={{ fontSize: 12, color: "#fff", fontWeight: 600 }}>{confidence}</span>
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{gradeWhy}</span>
-            </div>
+      {Object.keys(pulled).length > 0 && (
+        <p style={{ ...card, ...body, padding: "12px 16px" }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from {pullSources.length ? pullSources.join(", ") : "a previous tool"}. Every field stays editable.</p>
+      )}
+
+      <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 3 · Volume and resolution</legend>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={small}>Volume is</span>
+          <div role="group" aria-label="Volume basis" style={{ display: "flex", gap: 4, padding: 4, borderRadius: RADIUS.field, border: `1px solid ${soft}`, minWidth: 260 }}>
+            <button type="button" aria-pressed={d.denominator === "handled"} onClick={() => set("denominator", "handled")} style={seg(d.denominator === "handled")}>Handled contacts</button>
+            <button type="button" aria-pressed={d.denominator === "issues"} onClick={() => set("denominator", "issues")} style={seg(d.denominator === "issues")}>Resolved issues</button>
           </div>
+        </div>
+        <div style={grid(190)}>
+          <NumField tone="dark" label={volLabel} value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
+          <NumField tone="dark" label="FCR rate" value={d.fcrRate} onChange={v => set("fcrRate", v)} suffix="%" step={1} min={0} max={100} pulled={pulled.fcrRate} hint="First contact resolution" />
+          <NumField tone="dark" label="Non-FCR contacts to resolution (M)" value={d.contactsPerUnresolved} onChange={v => set("contactsPerUnresolved", v)} step={0.1} min={1} hint="TOTAL contacts when not resolved first time, incl. the first. 1 first + 2 follow-ups = 3.0" />
+        </div>
+      </fieldset>
+
+      <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 2 of 3 · Cost basis</legend>
+        <p style={{ ...small, margin: 0 }}>Pulled from TCO when available.</p>
+        <div style={grid(160)}>
+          <NumField tone="dark" label="Loaded cost / contact" value={d.loadedCPC} onChange={v => set("loadedCPC", v)} prefix="$" step={0.25} min={0} pulled={pulled.loadedCPC} hint="Fully-loaded unit cost" />
+          <NumField tone="dark" label="Marginal cost / contact" value={d.marginalCPC} onChange={v => set("marginalCPC", v)} prefix="$" step={0.25} min={0} pulled={pulled.marginalCPC} hint="Variable handle cost" />
+          <NumField tone="dark" label="Agent hourly" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" suffix="/hr" step={0.5} min={0} pulled={pulled.agentHourly} hint="For channel view" />
+          <NumField tone="dark" label="Productive hrs / FTE / mo" value={d.productiveHoursPerFTE} onChange={v => set("productiveHoursPerFTE", v)} suffix="hrs" step={5} min={1} hint={`After shrinkage (~${BASE.productiveHoursPerFTE})`} />
+        </div>
+      </fieldset>
+
+      <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 12, borderColor: mechKey === "none" ? FINDINGS.high.dark : hair }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 3 of 3 · Capacity action</legend>
+        <p style={{ ...body, margin: 0 }}>How freed time becomes value. {MECH[mechKey].note}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <select aria-label="Realization mechanism" value={mechKey} className="cpc-sel" onChange={e => setMech(e.target.value)} style={{ minHeight: TOUCH, fontSize: 15, fontWeight: 600, padding: "0 12px", borderRadius: RADIUS.field, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, background: HOUSE.navy, color: HOUSE.mist, cursor: "pointer" }}>
+            {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
+          </select>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: TOUCH, cursor: "pointer" }}>
+            <input type="checkbox" checked={d.validated} onChange={e => set("validated", e.target.checked)} style={{ width: 18, height: 18, accentColor: HOUSE.electric }} />
+            <span style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist }}>FCR & M validated from data</span>
+          </label>
+        </div>
+      </fieldset>
+
+      <p style={{ ...card, ...body, padding: "14px 16px" }}>
+        The <strong style={{ color: HOUSE.mist }}>burden</strong> is a ceiling, the marginal cost of all repeat demand, not a savings figure. You can't release all of it (FCR never hits 100%). Realistic releases from FCR improvement, and what's actually realizable given your capacity action, are below.
+      </p>
+
+      <section aria-label="Integrity checks" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <h2 style={h2}>Integrity checks</h2>
+        {r.flags.length === 0 && <Finding level="clear" title="Integrity checks passed">Marginal below loaded, channel mix at 100%, M consistent with FCR, capacity action set. Numbers are internally consistent.</Finding>}
+        {r.flags.map((f, i) => f.sev === "warn"
+          ? <Finding key={i} level="high" title="Check this input">{f.t}</Finding>
+          : <p key={i} style={{ ...card, ...body, padding: "12px 16px" }}>{f.t}</p>)}
+      </section>
+
+      <section aria-label="FCR improvement" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <h2 style={h2}>FCR improvement: capacity released, then realizable</h2>
+        <p style={body}>Released is incremental capacity at marginal cost ({money(r.marg)}). Realizable applies your capacity action ({MECH[mechKey].label}{mechKey !== "none" ? `, ${Math.round(r.mf * 100)}%` : ""}).</p>
+        <div style={grid(180)}>
+          {r.dividend.map((s, i) => (
+            <div key={i} style={card}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                <span style={{ ...kicker, color: HOUSE.mist }}>FCR +{s.p} to {s.newFCR.toFixed(0)}%</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, border: `1px solid ${soft}`, padding: "2px 8px", borderRadius: RADIUS.chip }}>{s.tier}</span>
+              </div>
+              <div style={small}>Released</div>
+              <div style={{ ...fig, fontSize: 22, color: HOUSE.body }}>{fmtK(s.released * 12)}/yr</div>
+              <div style={{ ...small, marginTop: 8 }}>Realizable ({Math.round(r.mf * 100)}%)</div>
+              <div style={fig}>{fmtK(s.realizable * 12)}/yr</div>
+              <div style={{ ...small, marginTop: 6 }}>{Math.round(s.avoided).toLocaleString()} avoided/mo · {s.fte.toFixed(1)} FTE</div>
+            </div>
+          ))}
         </div>
       </section>
 
-      <section style={{ background: WARM, padding: "28px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase" }}>Volume & resolution</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 12, color: MUTED }}>Volume is:</span>
-              <div style={{ display: "flex", gap: 3, background: "#fff", padding: 3, borderRadius: 7, border: `1px solid ${BORDER}`, width: 230 }}>
-                <button onClick={() => set("denominator", "handled")} style={seg(d.denominator === "handled")}>Handled contacts</button>
-                <button onClick={() => set("denominator", "issues")} style={seg(d.denominator === "issues")}>Resolved issues</button>
+      <section aria-label="Channel handle economics" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <h2 style={h2}>Channel handle economics</h2>
+        <p style={body}>Handle-labor only. Concurrency is why chat undercuts voice. Blended: <strong style={{ color: HOUSE.mist }}>{money(r.blendedHandle)}</strong>/contact. Averages hide complexity; shift only resolvable, low-complexity volume. Model it in <a href="/tools/channel-shift" style={{ color: PILLARS.diagnostics.onDark, fontWeight: 600 }}>Channel Shift</a>.</p>
+        <div style={grid(180)}>
+          {r.channels.map((ch, i) => (
+            <div key={i} style={card}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
+                <span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{ch.name}</span>
+                <span style={small}>{ch.pct}% of volume</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div><div style={small}>AHT</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{ch.aht}m</div></div>
+                <div><div style={small}>Effective (÷{ch.conc})</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{ch.effAHT.toFixed(1)}m</div></div>
+                <div><div style={small}>Handle cost</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{money(ch.handleCPC)}</div></div>
+                <div><div style={small}>Handle spend</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{fmtK(ch.spend)}</div></div>
               </div>
             </div>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="cg">
-            <NumField label={volLabel} value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
-            <NumField label="FCR rate" value={d.fcrRate} onChange={v => set("fcrRate", v)} suffix="%" step={1} min={0} max={100} pulled={pulled.fcrRate} hint="First contact resolution" />
-            <NumField label="Non-FCR contacts to resolution (M)" value={d.contactsPerUnresolved} onChange={v => set("contactsPerUnresolved", v)} step={0.1} min={1} hint="TOTAL contacts when not resolved first time, incl. the first. 1 first + 2 follow-ups = 3.0" />
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase", margin: "18px 0 12px" }}>Cost basis <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: MUTED }}>· pulled from TCO when available</span></div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
-            <NumField label="Loaded cost / contact" value={d.loadedCPC} onChange={v => set("loadedCPC", v)} prefix="$" step={0.25} min={0} pulled={pulled.loadedCPC} hint="Fully-loaded unit cost" />
-            <NumField label="Marginal cost / contact" value={d.marginalCPC} onChange={v => set("marginalCPC", v)} prefix="$" step={0.25} min={0} pulled={pulled.marginalCPC} hint="Variable handle cost" />
-            <NumField label="Agent hourly" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" suffix="/hr" step={0.5} min={0} pulled={pulled.agentHourly} hint="For channel view" />
-            <NumField label="Productive hrs / FTE / mo" value={d.productiveHoursPerFTE} onChange={v => set("productiveHoursPerFTE", v)} suffix="hrs" step={5} min={1} hint={`After shrinkage (~${BASE.productiveHoursPerFTE})`} />
-          </div>
+          ))}
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "32px 28px" }}>
-        <div style={WRAP}>
-          {/* Capacity action */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14, marginBottom: 24, background: WARM, border: `1px solid ${mechKey === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
-            <div style={{ flex: "1 1 300px" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>Capacity action <span style={{ fontWeight: 400, color: MUTED }}>· how freed time becomes value</span></div>
-              <div style={{ fontSize: 12, color: mechKey === "none" ? AMBER : MUTED }}>{MECH[mechKey].note}</div>
+      <section aria-label="What it means" style={{ ...card, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+        <h2 style={h2}>What it means</h2>
+        <span style={{ ...small, display: "block", marginBottom: 8 }}>Cost reported, capacity created and savings realized are three different numbers.</span>
+        {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
+      </section>
+
+      <div style={{ ...card, padding: 0, overflow: "hidden" }}>
+        <button type="button" aria-expanded={showMath} onClick={() => setShowMath(s => !s)} style={{ width: "100%", minHeight: TOUCH, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", background: "transparent", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 600, color: HOUSE.mist, fontFamily: "inherit" }}>
+          <span>Show the math, every formula, every value</span><span style={{ color: HOUSE.muted }}>{showMath ? "−" : "+"}</span>
+        </button>
+        {showMath && (
+          <div style={{ padding: "4px 20px 16px" }}>
+            {mathRow("Contacts per resolution  C = FCR + (1−FCR) × M", `${(r.C - (1 - n(d.fcrRate) / 100) * n(d.contactsPerUnresolved)).toFixed(2)} + ${(1 - n(d.fcrRate) / 100).toFixed(2)}×${n(d.contactsPerUnresolved)} = ${r.C.toFixed(3)}`)}
+            {mathRow(`Denominator = ${d.denominator}`, d.denominator === "issues" ? `handled = issues × C = ${r.handled.toLocaleString()}` : `resolutions = contacts / C = ${r.resolutions.toLocaleString()}`)}
+            {mathRow("Repeat contacts = handled − resolutions", `${r.handled.toLocaleString()} − ${r.resolutions.toLocaleString()} = ${r.repeatContacts.toLocaleString()}`)}
+            {mathRow("Repeat demand share = repeats / handled", `${(r.repeatShare * 100).toFixed(1)}%`)}
+            {mathRow("Cost per resolution = loaded × C", `${money(r.loaded)} × ${r.C.toFixed(3)} = ${money(r.cprLoaded)}`)}
+            {mathRow("Repeat-demand burden = repeats × marginal", `${r.repeatContacts.toLocaleString()} × ${money(r.marg)} = ${fmtK(r.burden)}/mo (ceiling)`)}
+            {mathRow(`Released (+${QUOTED_STEP} FCR) = issues × (C − C₁) × marginal`, `${fmtK(quoted(r).released)}/mo`)}
+            {mathRow(`Realizable = released × ${Math.round(r.mf * 100)}% (${MECH[mechKey].label})`, `${fmtK(quoted(r).realizable)}/mo`)}
+            {mathRow("FTE burden = repeats × blended eff. min / 60 / prod hrs", `${r.fteBurden.toFixed(1)}`)}
+            <p style={{ ...small, marginTop: 12 }}>M = total contacts an unresolved issue takes (incl. the first). Reported CPC/CPR are loaded; burden and released are marginal; realizable applies the capacity action. FTE is a capacity equivalent, not a headcount cut. Every formula, constant and a worked example are in the <a href="/methodology/cost-per-contact" style={{ color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
+          </div>
+        )}
+      </div>
+
+      <section aria-label="Vertical planning ranges" style={card}>
+        <h2 style={h2}>Vertical planning ranges</h2>
+        <p style={{ ...small, margin: "0 0 12px" }}>These are internal planning heuristics, not published benchmarks. Context only; no figure above uses them.</p>
+        <div style={grid(150)}>
+          {VBENCH.map((b, i) => (
+            <div key={i} style={{ borderRadius: RADIUS.field, padding: "10px 12px", border: `1px solid ${hair}` }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, marginBottom: 4 }}>{b.vert}</div>
+              <div style={small}>CPC: {b.cpc}</div>
+              <div style={small}>CPR: {b.cpr}</div>
+              <div style={small}>Avg FCR: {b.fcr}</div>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <select aria-label="Realization mechanism" value={mechKey} onChange={e => setMech(e.target.value)} style={{ fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
-                {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
-              </select>
-              <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-                <input type="checkbox" checked={d.validated} onChange={e => set("validated", e.target.checked)} style={{ width: 14, height: 14, accentColor: ELECTRIC }} />
-                <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>FCR & M validated from data</span>
-              </label>
-            </div>
-          </div>
+          ))}
+        </div>
+        {r.fcrPct < FCR_LEAK_LINK && <a href="/tools/fcr-leakage" style={{ display: "inline-flex", alignItems: "center", minHeight: TOUCH, marginTop: 8, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark }}>Run FCR Leakage to find why resolution fails</a>}
+      </section>
 
-          {/* Summary: burden is a ceiling, not a savings */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 12 }} className="s4">
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Contact</div>
-              <div style={{ ...TYPE.statValue, color: ELECTRIC }}>{money(r.loaded)}</div>
-              <div style={{ fontSize: 12, color: MUTED }}>fully-loaded</div>
-            </div>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: cprColor, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Cost per Resolution</div>
-              <div style={{ ...TYPE.statValue, color: "#fff" }}>{money(r.cprLoaded)}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{r.C.toFixed(2)} contacts/issue · +{r.gapPct.toFixed(0)}%</div>
-            </div>
-            <div style={{ background: WARM, border: `1px solid ${AMBER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Repeat Demand Share</div>
-              <div style={{ ...TYPE.statValue, color: AMBER }}>{(r.repeatShare * 100).toFixed(0)}%</div>
-              <div style={{ fontSize: 12, color: MUTED }}>{r.repeatContacts.toLocaleString()} repeats/mo</div>
-            </div>
-            <div style={{ background: WARM, border: `1px solid ${RED}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Repeat-Demand Burden</div>
-              <div style={{ ...TYPE.statValue, color: RED }}>{fmtK(r.burden)}<span style={{ fontSize: 13, color: MUTED }}>/mo</span></div>
-              <div style={{ fontSize: 12, color: MUTED }}>marginal ceiling · {r.fteBurden.toFixed(1)} FTE</div>
-            </div>
-          </div>
-          <p style={{ fontSize: 12, color: SLATE, marginBottom: 28, background: `${RED}06`, border: `1px solid ${RED}20`, borderRadius: 8, padding: "10px 14px", lineHeight: 1.5 }}>
-            The <strong>burden</strong> is a ceiling, the marginal cost of all repeat demand, not a savings figure. You can't release all of it (FCR never hits 100%). Realistic releases from FCR improvement, and what's actually realizable given your capacity action, are below.
-          </p>
-
-          {/* Integrity */}
-          <div style={{ border: `1px solid ${r.flags.some(f => f.sev === "warn") ? AMBER : BORDER}`, borderRadius: 12, padding: "16px 20px", marginBottom: 24, background: r.flags.some(f => f.sev === "warn") ? `${AMBER}06` : WARM }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: r.flags.some(f => f.sev === "warn") ? AMBER : GREEN, letterSpacing: 1, textTransform: "uppercase", marginBottom: r.flags.length ? 10 : 0 }}>{r.flags.length ? "⚠ Integrity checks" : "✓ Integrity checks passed"}</div>
-            {r.flags.map((f, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, marginTop: i ? 8 : 0 }}>
-                <span style={{ color: f.sev === "warn" ? AMBER : ELECTRIC, fontWeight: 700, fontSize: 13 }}>{f.sev === "warn" ? "!" : "i"}</span>
-                <span style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5 }}>{f.t}</span>
-              </div>
-            ))}
-            {!r.flags.length && <span style={{ fontSize: 12.5, color: SLATE }}>Marginal below loaded, channel mix at 100%, M consistent with FCR, capacity action set. Numbers are internally consistent.</span>}
-          </div>
-
-          {/* FCR dividend: released vs realizable */}
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>FCR Improvement: Capacity Released → Realizable</h3>
-          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Released is incremental capacity at marginal cost ({money(r.marg)}). Realizable applies your capacity action ({MECH[mechKey].label}{mechKey !== "none" ? `, ${Math.round(r.mf * 100)}%` : ""}).</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 28 }} className="s3">
-            {r.dividend.map((s, i) => (
-              <div key={i} style={{ background: `${GREEN}0A`, border: `1px solid ${GREEN}30`, borderRadius: 10, padding: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 0.5, textTransform: "uppercase" }}>FCR +{s.p} → {s.newFCR.toFixed(0)}%</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: tierColor(s.tier), background: `${tierColor(s.tier)}15`, padding: "2px 6px", borderRadius: 4 }}>{s.tier}</span>
-                </div>
-                <div style={{ fontSize: 12, color: MUTED }}>Released</div>
-                <div style={{ ...TYPE.h2, ...NUM, color: SLATE }}>{fmtK(s.released * 12)}/yr</div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>Realizable ({Math.round(r.mf * 100)}%)</div>
-                <div style={{ ...TYPE.statValue, fontSize: 22, color: GREEN }}>{fmtK(s.realizable * 12)}/yr</div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 3 }}>{Math.round(s.avoided).toLocaleString()} avoided/mo · {s.fte.toFixed(1)} FTE</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Channel */}
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 4 }}>Channel Handle Economics</h3>
-          <p style={{ fontSize: 12, color: MUTED, marginBottom: 12 }}>Handle-labor only. Concurrency is why chat undercuts voice. Blended: <strong style={{ color: NAVY }}>{money(r.blendedHandle)}</strong>/contact. Averages hide complexity; shift only resolvable, low-complexity volume. Model it in Channel Shift.</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 28 }} className="s3">
-            {r.channels.map((ch, i) => (
-              <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: ch.color }}>{ch.name}</span>
-                  <span style={{ fontSize: 12, color: MUTED }}>{ch.pct}% of volume</span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                  <div><div style={{ fontSize: 12, color: MUTED }}>AHT</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{ch.aht}m</div></div>
-                  <div><div style={{ fontSize: 12, color: MUTED }}>Effective (÷{ch.conc})</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{ch.effAHT.toFixed(1)}m</div></div>
-                  <div><div style={{ fontSize: 12, color: MUTED }}>Handle cost</div><div style={{ fontSize: 14, fontWeight: 600, color: ch.color }}>{money(ch.handleCPC)}</div></div>
-                  <div><div style={{ fontSize: 12, color: MUTED }}>Handle spend</div><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{fmtK(ch.spend)}</div></div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Analyst */}
-          <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 24 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · cost reported ≠ capacity created ≠ savings realized</div>
-            {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
-          </div>
-
-          {/* Calculation drawer */}
-          <div style={{ border: `1px solid ${BORDER}`, borderRadius: 12, marginBottom: 24, overflow: "hidden" }}>
-            <button onClick={() => setShowMath(s => !s)} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", background: WARM, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, color: NAVY }}>
-              <span>Show the math, every formula, every value</span><span style={{ color: MUTED }}>{showMath ? "−" : "+"}</span>
-            </button>
-            {showMath && (
-              <div style={{ padding: "16px 20px" }}>
-                {mathRow("Contacts per resolution  C = FCR + (1−FCR) × M", `${(r.C - (1 - n(d.fcrRate) / 100) * n(d.contactsPerUnresolved)).toFixed(2)} + ${(1 - n(d.fcrRate) / 100).toFixed(2)}×${n(d.contactsPerUnresolved)} = ${r.C.toFixed(3)}`)}
-                {mathRow(`Denominator = ${d.denominator}`, d.denominator === "issues" ? `handled = issues × C = ${r.handled.toLocaleString()}` : `resolutions = contacts / C = ${r.resolutions.toLocaleString()}`)}
-                {mathRow("Repeat contacts = handled − resolutions", `${r.handled.toLocaleString()} − ${r.resolutions.toLocaleString()} = ${r.repeatContacts.toLocaleString()}`)}
-                {mathRow("Repeat demand share = repeats / handled", `${(r.repeatShare * 100).toFixed(1)}%`)}
-                {mathRow("Cost per resolution = loaded × C", `${money(r.loaded)} × ${r.C.toFixed(3)} = ${money(r.cprLoaded)}`)}
-                {mathRow("Repeat-demand burden = repeats × marginal", `${r.repeatContacts.toLocaleString()} × ${money(r.marg)} = ${fmtK(r.burden)}/mo (ceiling)`)}
-                {mathRow(`Released (+${QUOTED_STEP} FCR) = issues × (C − C₁) × marginal`, `${fmtK(quoted(r).released)}/mo`)}
-                {mathRow(`Realizable = released × ${Math.round(r.mf * 100)}% (${MECH[mechKey].label})`, `${fmtK(quoted(r).realizable)}/mo`)}
-                {mathRow("FTE burden = repeats × blended eff. min / 60 / prod hrs", `${r.fteBurden.toFixed(1)}`)}
-                <p style={{ fontSize: 12, color: MUTED, marginTop: 10, lineHeight: 1.5 }}>M = total contacts an unresolved issue takes (incl. the first). Reported CPC/CPR are loaded; burden and released are marginal; realizable applies the capacity action. FTE is a capacity equivalent, not a headcount cut. Every formula, constant and a worked example are in the <a href="/methodology/cost-per-contact" style={{ color: NAVY, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Benchmarks */}
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24 }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 10 }}>Vertical Planning Ranges <span style={{ fontWeight: 400, color: "rgba(255,255,255,0.72)" }}>· internal planning heuristics, not published benchmarks. Context only; no figure above uses them.</span></h3>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 14 }} className="s3">
-              {VBENCH.map((b, i) => (
-                <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: "10px 12px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.72)", marginBottom: 4 }}>{b.vert}</div>
-                  <div style={{ fontSize: 12, color: "#fff" }}>CPC: {b.cpc}</div>
-                  <div style={{ fontSize: 12, color: "#fff" }}>CPR: {b.cpr}</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Avg FCR: {b.fcr}</div>
-                </div>
-              ))}
-            </div>
-            {r.fcrPct < FCR_LEAK_LINK && <a href="/tools/fcr-leakage" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)", display: "inline-block" }}>→ Run FCR Leakage Diagnostic to find why resolution fails</a>}
-          </div>
-
+      {/* The report is paper (Brand Guide section 13): the actions sit on a paper panel until ReportActions moves onto the house in a later batch. */}
+      <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions
             toolId={TOOL_ID}
             toolName="Cost per Contact / Resolution"
@@ -667,13 +653,8 @@ export default function CostPerContactCalculator() {
               { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mechKey].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/cost-per-contact. Report grade: ${confidence}, ${gradeWhy}${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at ${Math.round(MARG_SHARE * 100)}% of loaded (${money(r.marg)}).` : ""}` },
             ]}
           />
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 20 }}>
-            <a href="/tools/tco-calculator" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>TCO Calculator →</a>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </ToolFrame>
   );
 }
 
