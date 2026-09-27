@@ -240,8 +240,20 @@ section("Version stamps; the change record renders nowhere");
     APP.includes('<Route path="/changelog" element={<LegacyRedirect to="/how-to-choose" />} />') && !MAP.includes("/changelog<") && !SEO.includes('"/changelog": {')
     && JSON.parse(readFileSync("./vercel.json", "utf8")).redirects.some((r) => r.source === "/changelog" && r.destination === "/how-to-choose" && r.permanent));
   const pages = ["./RubricPage.jsx", "./ReportActions.jsx", "./Homepage.jsx", "./src/lib/Shell.jsx", "./src/lib/home.js", "./src/lib/ToolFrame.jsx"];
-  const linked = pages.filter((f) => /\/changelog|Changes to this method|What changed/i.test(readFileSync(f, "utf8")));
+  const linked = pages.filter((f) => /["'`]\/changelog|Changes to this method|What changed/i.test(readFileSync(f, "utf8")));
   ok(`no page renders a change list or links the changelog [${linked.join(", ")}]`, linked.length === 0);
+  /* The record lives on as hidden internal documentation (TB, 27 Sep 2026): mounted, but linked from nowhere, outside
+     the sitemap and the metadata map (so the app and the shell mark it noindex), with X-Robots-Tag at the edge. */
+  const { readdirSync } = await import("node:fs");
+  ok("the internal method log is mounted", APP.includes('<Route path="/internal/method-log" element={<RubricPage id="method-log" />} />') && /if \(id === "method-log"\) return <MethodLogPage \/>/.test(readFileSync("./RubricPage.jsx", "utf8")));
+  ok("it is out of the sitemap and the metadata map", !MAP.includes("/internal/") && !SEO.includes('"/internal/'));
+  const files = readdirSync(".").filter((f) => /\.jsx?$/.test(f) && f !== "App.jsx").map((f) => "./" + f)
+    .concat(readdirSync("./src/lib").filter((f) => /\.jsx?$/.test(f)).map((f) => "./src/lib/" + f));
+  const linking = files.filter((f) => /\/internal\//.test(readFileSync(f, "utf8").replace(/^\s*(\/\/|\*|\/\*).*$/gm, "")));
+  ok(`no page links it [${linking.join(", ")}]`, linking.length === 0);
+  const hdr = JSON.parse(readFileSync("./vercel.json", "utf8")).headers.find((h) => h.source === "/internal/(.*)");
+  ok("the edge marks it noindex, nofollow", !!hdr && hdr.headers.some((x) => x.key === "X-Robots-Tag" && x.value === "noindex, nofollow"));
+  ok("an unknown path is noindex in the app", /seo\.known \? "index, follow[^"]*" : "noindex, follow"/.test(APP));
   ok("dates print long form", longDate("2026-09-05") === "5 September 2026");
 }
 

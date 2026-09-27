@@ -280,6 +280,8 @@ export function AppRoutes() {
         <Route path="/about" element={<About />} />
         {/* The method changelog page was removed (TB, 27 Sep 2026); old links land on the Diagnostics hub. */}
         <Route path="/changelog" element={<LegacyRedirect to="/how-to-choose" />} />
+        {/* Hidden internal documentation: unlinked, outside the sitemap and metadata (noindex), X-Robots-Tag at the edge. */}
+        <Route path="/internal/method-log" element={<RubricPage id="method-log" />} />
         <Route path="/methodology/cx-maturity" element={<RubricPage id="cx-maturity" />} />
         <Route path="/methodology/ai-readiness" element={<RubricPage id="ai-readiness" />} />
         <Route path="/methodology/transformation-readiness" element={<RubricPage id="transformation-readiness" />} />

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { Crumbs } from "./src/lib/Shell.jsx";
 import { FIXTURE_KIND, fixturesFor } from "./src/lib/fixtures.js";
+import { CHANGELOG } from "./src/lib/changelog.js";
+import { longDate } from "./src/lib/methodVersions.js";
 import { FONT, FONT_IMPORT_CSS, TYPE } from "./src/lib/type";
 import { RUBRICS } from "./src/lib/rubrics";
 import { JOURNEY } from "./src/lib/journey";
@@ -19,6 +21,7 @@ const fmt = (n) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 const cut = (b, i, all) => (i === all.length - 1 ? `${fmt(b.min)} and above` : `${fmt(b.min)} to below ${fmt(b.max)}`);
 
 export default function RubricPage({ id }) {
+  if (id === "method-log") return <MethodLogPage />;
   const r = RUBRICS[id];
   useEffect(() => { window.scrollTo(0, 0); }, [id]);
   if (!r) return null;
@@ -503,6 +506,44 @@ function CalcPage({ r }) {
         <div style={{ marginTop: 36 }}>
           <a href={r.route} style={{ display: "inline-block", background: ELECTRIC, color: "#fff", ...TYPE.label, fontSize: 14, padding: "12px 22px", borderRadius: 8 }}>Open the {r.title}</a>
         </div>
+      </main>
+    </div>
+  );
+}
+
+/* The internal method log (TB, 27 Sep 2026: the audience does not see the change log; keep it as hidden
+   documentation). Every change to a published method, newest first, from src/lib/changelog.js. Hidden: no link on
+   the site, not in the sitemap or the metadata map (so the page is noindex), and the edge sends X-Robots-Tag
+   noindex, nofollow for the internal path. Hidden is not private: the URL and the public repo both show it. */
+function MethodLogPage() {
+  const H2 = { ...TYPE.h2, color: NAVY, margin: "40px 0 12px" };
+  const P = { ...TYPE.body, color: SLATE, margin: "0 0 12px" };
+  const box = { border: `1px solid ${BORDER}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, background: WARM };
+  const byDate = CHANGELOG.reduce((m, c) => { (m[c.date] = m[c.date] || []).push(c); return m; }, {});
+  return (
+    <div style={{ fontFamily: FONT, minHeight: "100vh", background: "#fff" }}>
+      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
+      <header style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "56px 0 44px" }}>
+        <div style={WRAP}>
+          <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Internal method log</span>
+          <h1 style={{ ...TYPE.display, color: "#fff", margin: "10px 0 12px" }}>Method log</h1>
+          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.78)", maxWidth: 640 }}>Internal documentation, not linked from the site. Every change to a published method: what moved, in which direction and by about how much, behind the version each tool page and report names.</p>
+        </div>
+      </header>
+      <main style={{ ...WRAP, padding: "8px 24px 72px" }}>
+        {Object.entries(byDate).map(([date, list]) => (
+          <section key={date}>
+            <h2 style={H2}>{longDate(date)}</h2>
+            {list.map((c) => (
+              <div key={c.title} style={box}>
+                <div style={{ ...TYPE.label, color: NAVY }}>{c.title} <span style={{ color: SLATE, fontWeight: 600 }}>· method {c.version}</span></div>
+                {c.changes.map((x, i) => <p key={i} style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{x}</p>)}
+                <p style={{ ...P, fontSize: 14, margin: "8px 0 0" }}>{c.methods.map((m, i) => <span key={m}>{i ? ", " : ""}<a href={`/methodology/${m}`} style={{ color: ELECTRIC, fontWeight: 600 }}>{RUBRICS[m] ? RUBRICS[m].title : m}</a></span>)}</p>
+              </div>
+            ))}
+          </section>
+        ))}
+        <p style={{ ...P, marginTop: 28 }}>The log starts with the rebuild of the workforce tools on 24 September 2026. Fixes to security or to a page that failed to load change no method and are not listed.</p>
       </main>
     </div>
   );

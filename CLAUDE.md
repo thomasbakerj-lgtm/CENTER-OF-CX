@@ -977,6 +977,12 @@ dashboard, the 12-phase growth program.
    stamp (`methods.test.mjs` still checks each method's newest entry carries its version); nothing renders it.
    `methods.test.mjs` and `home.test.mjs` prove the removal (both fail on the old tree); the live checker checks the
    redirect. Suite 24,686; live check 254 of 254.
+   Then TB: "I don't want my audience to see the change log. We can create a page for documentation but hide it." The
+   record renders at `/internal/method-log` (`RubricPage` id `method-log`): linked from nowhere, not prerendered, outside
+   the sitemap and the metadata map (so the app and the shell mark it noindex), and `X-Robots-Tag: noindex, nofollow` at
+   the edge for `/internal/(.*)`. Hidden is not private: anyone with the URL can open it, and the repo is public. Gates in
+   `methods.test.mjs` (mounted, unlinked, out of sitemap and metadata, the edge header); the live checker opens it and
+   reads its noindex. Suite 24,691; live check 255 of 255.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

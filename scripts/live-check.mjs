@@ -153,6 +153,13 @@ for (const m of METHODOLOGY) {
   report(v.errors.length === 0 && /\/how-to-choose\/?$/.test(new URL(v.page.url()).pathname) && !/What changed in how the tools calculate/.test(v.text), "/changelog lands on the Diagnostics hub", v.errors[0] || v.page.url());
   await v.ctx.close();
 }
+/* The hidden internal method log: renders its dated changes, and tells search engines to stay out. */
+{
+  const v = await open("/internal/method-log", /Method log/);
+  const robots = await v.page.getAttribute('meta[name="robots"]', "content").catch(() => "");
+  report(v.errors.length === 0 && /\d{1,2} [A-Z][a-z]+ 20\d\d/.test(v.text) && /noindex/.test(robots || "") && !BAD.test(v.text), "/internal/method-log renders, noindex", v.errors[0] || robots || badAt(v.text));
+  await v.ctx.close();
+}
 /* Full-page prerender (P1 task 3): the served HTML carries the page body before any script runs, and the page then
    hydrates with no error (a hydration mismatch surfaces as a page error). One of each page type. */
 for (const path of ["/", "/about", "/industries", "/industries/healthcare", "/industries/healthcare/health-insurance", "/vendors/ccaas", "/vendors/genesys", "/methodology/staffing-calculator", "/tools/staffing-calculator"]) {
