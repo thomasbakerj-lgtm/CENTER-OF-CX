@@ -1212,6 +1212,19 @@ dashboard, the 12-phase growth program.
    changed and the source, or says none has been made. The log is `src/lib/research/corrections.js` (empty; an entry is
    added when a correction passes the research process and the snapshot is re-synced). `corrections.test.mjs` (35);
    `research.test.mjs` 11c validates the log. Suite 25,398; live check 255 of 255.
+   PR #59 merged by TB's instruction (5e0f9b9). **Phase 7 complete.**
+68. S24, redesign session 21, Phase 8 part 1 (TB: "merge and go"): the 61 industry segment pages on the new design through
+   the one shared component (`src/lib/SubVerticalPage.jsx`, tokens only). Same states, thresholds, claim tokens and one
+   send (the review request). Header, figure tiles (with each figure's note), the CMS strip, the 7-layer map with each
+   layer's colour as a border beside its words, Have, Need and Planned as words with a mark and a pressed state, the
+   results in words ("N of M capabilities in place", "What you marked Need"), the sources list. Found and fixed: the
+   "Recommended Technology Stack" label (a verdict the site does not make) is now "vendors named for this layer", labelled
+   as examples in our words, neither a research finding nor a recommendation; every named vendor offers an introduction
+   (profile slug when the link names a profile, else the name; guidance rows with role "None" get none); maturity
+   percentages and statuses no longer rely on red, amber and green; "highest-priority investments" copy removed.
+   `subpage.test.mjs` (all 61 in both phases, vendor lists open); `tokens.test.mjs` migrated list now covers the Phase 7
+   pages and the sub-page; copy pin accepts the initial-state form. Browser: 61 pages at 1440 and 390, no overflow or
+   error. Suite 25,410; live check 255 of 255. Next: Phase 8 part 2, the ten industry pages and the hub.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

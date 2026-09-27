@@ -1,41 +1,64 @@
-import { useState, useEffect, useRef } from "react";
+// SubVerticalPage.jsx
+//
+// One sub-page for every industry segment (site scan part 4; redesign Phase 8 part 1). Each industry file is a wrapper
+// that passes its name, its hub page and its data getter. Page text renders through ClaimText, so [[claim]] tokens show
+// their class, and every source is listed once at the foot. The stack map is the reader's own: nothing is sent unless
+// the reader asks for a consultant review. Vendors named for a layer are examples in our words, never a research
+// finding, a ranking or a recommendation; each offers an introduction. Tokens only; colour never marks a figure alone.
+import { useState, useEffect } from "react";
 import { Crumbs } from "./Shell.jsx";
 import { useParams } from "react-router-dom";
 import ClaimText, { ClaimSources } from "./ClaimText.jsx";
 import { claimIds, claim, TESTS } from "./claims.js";
+import { HOUSE, PILLARS, LAYERS, RADIUS, TOUCH } from "./tokens.js";
+import { FONT } from "./type.js";
+import { K } from "./frameKit.jsx";
+import { Button } from "./ui.jsx";
+import { VendorIntroLink } from "./VendorIntro.jsx";
+import { isVendorSlug } from "./seo.js";
+import { CATEGORIES } from "./verticals.js";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
-const WRAP = { maxWidth: 1000, margin: "0 auto", padding: "0 28px" };
-const LAYER_COLORS = ["#2c5f3f", "#1a6b4a", "#0e7a5e", "#0e8c7f", "#1a7f9e", "#1a6b8a", "#1a5276"];
+const ACCENT = PILLARS.industries.onDark;
+const PAGE = { background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT, minHeight: "100vh" };
+const H1 = { margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12, color: HOUSE.mist };
+const WRAP = { maxWidth: 1000, margin: "0 auto", padding: "28px 20px 64px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 20 };
+const CSS = `.cx-sv p,.cx-sv li,.cx-sv a,.cx-sv span{overflow-wrap:anywhere}`;
+const layerOf = (n) => LAYERS.find((l) => l.n === n) || null;
+const field = { width: "100%", boxSizing: "border-box", minHeight: TOUCH, padding: "10px 12px", fontFamily: FONT, fontSize: 15, color: HOUSE.mist, background: HOUSE.navy, border: `1px solid ${K.firm}`, borderRadius: RADIUS.field };
+const lbl = { ...K.small, fontWeight: 600, color: HOUSE.mist, display: "block", marginBottom: 6 };
 
-function useInView(t=.1){const ref=useRef(null);const[v,setV]=useState(false);useEffect(()=>{const el=ref.current;if(!el)return;const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){setV(true);o.unobserve(el)}},{threshold:t});o.observe(el);return()=>o.disconnect()},[]);return[ref,v]}
-function FadeIn({children,delay=0}){const[ref,v]=useInView();return<div ref={ref} style={{opacity:v?1:0,transform:v?"translateY(0)":"translateY(22px)",transition:`opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`}}>{children}</div>}
-
+/* Have, Need or Planned, as words with a mark; the chosen one is heavier and outlined. */
 const STATUS_OPTS = [
-  { label: "Have", color: GREEN, icon: "✓" },
-  { label: "Need", color: RED, icon: "✗" },
-  { label: "Planned", color: AMBER, icon: "◐" },
+  { label: "Have", icon: "\u2713" },
+  { label: "Need", icon: "\u2717" },
+  { label: "Planned", icon: "\u2192" },
 ];
 
-/* One sub-page for every industry (site scan part 4). Each industry file is a wrapper that passes its name, its hub
- * page and its data getter. Page text renders through ClaimText, so [[claim]] tokens show their class. */
-export default function SubVerticalPage({ industry, href, getSubVertical }) {
+/* A row whose role is "None" is guidance (for example "Minimal AI recommended"), not a vendor: it gets no introduction. */
+/* A named vendor's profile slug, when its link points at a profile (not a category page). */
+const profileSlug = (href) => {
+  const m = typeof href === "string" && href.match(/^\/vendors\/([a-z0-9-]+)$/);
+  return m && !CATEGORIES[m[1]] && isVendorSlug(m[1]) ? m[1] : null;
+};
+
+/* One sub-page for every industry (site scan part 4). */
+export default function SubVerticalPage({ industry, href, getSubVertical, initial = {} }) {
   const { slug } = useParams();
   const sv = getSubVertical(slug);
-  const [phase, setPhase] = useState("framework");
+  const [phase, setPhase] = useState(initial.phase || "framework");
   const [email, setEmail] = useState(""); const [name, setName] = useState(""); const [company, setCompany] = useState("");
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
   const [sent, setSent] = useState("");
-  const [statuses, setStatuses] = useState({});
-  const [expandedLayers, setExpandedLayers] = useState({});
+  const [statuses, setStatuses] = useState(initial.statuses || {});
+  const [expandedLayers, setExpandedLayers] = useState(initial.expanded || {});
   const toggleLayer = (li) => setExpandedLayers(prev => ({ ...prev, [li]: !prev[li] }));
 
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
 
   if (!sv) return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#fff", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ textAlign: "center" }}><h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, color: NAVY }}>Sub-vertical not found</h1><a href={href} style={{ color: ELECTRIC, fontSize: 14, fontWeight: 600 }}>← Back to {industry}</a></div>
+    <div style={{ ...PAGE, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ textAlign: "center" }}><h1 style={H1}>Segment not found</h1><a href={href} style={K.link}>Back to {industry}</a></div>
     </div>
   );
 
@@ -74,245 +97,206 @@ export default function SubVerticalPage({ industry, href, getSubVertical }) {
     setSending(false);
   };
 
-  return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
+  const tile = { ...K.box, display: "flex", flexDirection: "column", gap: 4 };
+  const statusBtn = (on) => ({ minHeight: TOUCH, minWidth: 92, padding: "0 12px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer",
+    border: `${on ? 2 : 1}px solid ${on ? ACCENT : K.firm}`, background: "transparent", color: HOUSE.mist });
 
+  return (
+    <div className="cx-sv" style={PAGE}>
+      <style>{CSS}</style>
       <Crumbs items={[["Industry Insights", "/industries"], [industry, href], [sv.name || "Segment"]]} />
 
-      {/* GATE */}
       {phase === "framework" && (
-        <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, display: "flex", alignItems: "center", padding: "72px 28px 56px" }}>
-          <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
-            <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>{sv.parent}: {sv.name}</span>
-            <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 400, color: "#fff", lineHeight: 1.15, margin: "12px 0 16px" }}>{sv.name} CX Stack Framework</h1>
-            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 auto 16px", maxWidth: 520 }}><ClaimText text={sv.intro} /></p>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", marginBottom: 32 }}>Map your current capabilities across all 7 orchestration layers. {totalCaps} checkpoints. Identify what you have, what you need, and where the gaps create the most risk.</p>
+        <div style={WRAP}>
+          <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <span style={{ ...K.kicker, color: ACCENT }}>{sv.parent}: {sv.name}</span>
+            <h1 style={H1}>{sv.name} CX Stack Framework</h1>
+            <p style={{ ...K.body, maxWidth: 760 }}><ClaimText text={sv.intro} /></p>
+            <p style={{ ...K.small, maxWidth: 760 }}>Map your current capabilities across all 7 layers: {totalCaps} checkpoints. Mark what you have, what you need and what is planned. Your answers stay in this browser tab.</p>
+          </header>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 10, marginBottom: 28 }}>
-              {sv.kpis.map((k, i) => (
-                <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "12px 8px", textAlign: "center" }}>
-                  {(() => {
-                    const ids = claimIds([k.avg]); const c = ids.length === 1 ? claim(ids[0]) : null; const t = c && TESTS[c.test];
-                    if (c && c.kind === "none") return (
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.4, marginBottom: 2 }}>No public benchmark{t && <><br /><a href={t.href} aria-label={`Measure your ${k.metric} in ${t.label}`} style={{ color: LIGHT, textDecoration: "underline", fontSize: 11 }}>Measure yours</a></>}</div>
-                    );
-                    return <div style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, color: LIGHT }}><ClaimText text={k.avg} /></div>;
-                  })()}
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{k.metric}</div>
+          <section aria-label="Figures for this segment" style={K.grid(200)}>
+            {sv.kpis.map((k, i) => {
+              const ids = claimIds([k.avg]); const c = ids.length === 1 ? claim(ids[0]) : null; const t = c && TESTS[c.test];
+              return (
+                <div key={i} style={tile}>
+                  <span style={K.kicker}>{k.metric}</span>
+                  {c && c.kind === "none"
+                    ? <p style={{ ...K.body, color: HOUSE.mist }}>No public benchmark{t && <><br /><a href={t.href} aria-label={`Measure your ${k.metric} in ${t.label}`} style={K.link}>Measure yours</a></>}</p>
+                    : <p style={{ ...K.stat, fontSize: 22 }}><ClaimText text={k.avg} /></p>}
+                  {k.note && <p style={K.small}><ClaimText text={k.note} /></p>}
                 </div>
-              ))}
-            </div>
+              );
+            })}
+          </section>
 
-            {sv.measures && (
-              <div style={{ maxWidth: 620, margin: "0 auto 28px", textAlign: "left" }}>
-                <h2 style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "rgba(255,255,255,0.7)", margin: "0 0 6px", textAlign: "center" }}>{sv.measures.title}</h2>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 10, margin: "0 0 8px" }}>
-                  {sv.measures.items.map((m, i) => (
-                    <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "12px 10px", textAlign: "center" }}>
-                      <div style={{ fontSize: 20, color: LIGHT, fontWeight: 600 }}><ClaimText text={m.value} /></div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{m.metric}</div>
-                    </div>
-                  ))}
-                </div>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5, margin: 0 }}>{sv.measures.note}</p>
+          {sv.measures && (
+            <section aria-label={sv.measures.title} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
+              <h2 style={{ ...K.h2, margin: 0 }}>{sv.measures.title}</h2>
+              <div style={K.grid(180)}>
+                {sv.measures.items.map((m, i) => (
+                  <div key={i} style={tile}><p style={{ ...K.stat, fontSize: 22 }}><ClaimText text={m.value} /></p><p style={K.small}>{m.metric}</p></div>
+                ))}
               </div>
-            )}
+              <p style={K.small}>{sv.measures.note}</p>
+            </section>
+          )}
 
-            <a href="#framework" style={{ display: "inline-block", padding: "14px 28px", borderRadius: 8, background: ELECTRIC, color: "#fff", fontSize: 15, fontWeight: 600 }}>Map your stack ↓</a>
-          </div>
-        </section>
-      )}
-
-      {/* FRAMEWORK */}
-      {phase === "framework" && (
-        <section id="framework" style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "40px 28px 80px" }}>
-          <div style={WRAP}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 12 }}>
+          <section id="framework" aria-labelledby="stack-h" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
               <div>
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 28, fontWeight: 400, color: NAVY, margin: 0 }}>{sv.name}: 7-Layer CX Stack</h2>
-                <p style={{ fontSize: 13, color: MUTED, marginTop: 4 }}>For each capability, mark whether you <strong style={{ color: GREEN }}>Have</strong> it, <strong style={{ color: RED }}>Need</strong> it, or have it <strong style={{ color: AMBER }}>Planned</strong>.</p>
+                <h2 id="stack-h" style={{ ...K.h2, margin: 0 }}>{sv.name}: the 7-layer CX stack</h2>
+                <p style={{ ...K.small, marginTop: 4 }}>For each capability, mark whether you have it, need it or have it planned.</p>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 12, color: MUTED }}>{assessed}/{totalCaps} assessed</span>
-                {assessed >= totalCaps * 0.7 && (
-                  <button onClick={handleResults} style={{ padding: "10px 20px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>View Stack Profile →</button>
-                )}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <span role="status" style={K.small}>{assessed} of {totalCaps} marked</span>
+                {assessed >= totalCaps * 0.7 && <Button onClick={handleResults}>View your stack profile</Button>}
               </div>
             </div>
 
             {sv.layers.map((layer, li) => {
-              const lc = LAYER_COLORS[li];
+              const L = layerOf(layer.layer);
               const layerHave = layer.capabilities.filter((_, ci) => getStatus(li, ci) === "Have").length;
-              const layerPct = Math.round((layerHave / layer.capabilities.length) * 100);
               return (
-                <FadeIn key={li} delay={li * 0.03}>
-                  <div style={{ marginBottom: 16 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", background: lc, borderRadius: "10px 10px 0 0" }}>
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 14, color: "#fff" }}>{layer.layer}</span>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <h3 style={{ fontSize: 14, fontWeight: 600, color: "#fff", margin: 0 }}>Layer {layer.layer}: {layer.name}</h3>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>Vendors: {layer.vendors}</div>
-                      </div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: "rgba(255,255,255,0.15)", padding: "2px 8px", borderRadius: 4 }}>{layerPct}%</span>
-                    </div>
-
-                    <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderTop: "none", borderRadius: "0 0 10px 10px", padding: "4px 0" }}>
-                      {layer.capabilities.map((cap, ci) => {
-                        const status = getStatus(li, ci);
-                        const sc = STATUS_OPTS.find(s => s.label === status);
-                        return (
-                          <div key={ci} style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, padding: "10px 18px", borderBottom: ci < layer.capabilities.length - 1 ? `1px solid ${BORDER}` : "none" }}>
-                            <div style={{ flex: 1 }}>
-                              <span style={{ fontSize: 13, color: status === "Have" ? GREEN : status === "Need" ? RED : status === "Planned" ? AMBER : NAVY, fontWeight: status ? 500 : 400 }}>{cap}</span>
-                            </div>
-                            <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                              {STATUS_OPTS.map(opt => (
-                                <button key={opt.label} onClick={() => setStatus(li, ci, opt.label)}
-                                  style={{ width: 56, padding: "4px 0", fontSize: 10, fontWeight: status === opt.label ? 700 : 400, borderRadius: 4, border: status === opt.label ? `2px solid ${opt.color}` : `1px solid ${BORDER}`, background: status === opt.label ? `${opt.color}12` : "#fff", color: status === opt.label ? opt.color : MUTED, cursor: "pointer" }}>
-                                  {opt.icon} {opt.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    {/* Vendor Stack */}
-                    {layer.stack && layer.stack.length > 0 && (
-                      <div style={{ background: "#fff", borderLeft: `1px solid ${BORDER}`, borderRight: `1px solid ${BORDER}` }}>
-                        <button onClick={() => toggleLayer(li)} style={{ width: "100%", padding: "10px 18px", background: `${ELECTRIC}04`, border: "none", borderTop: `1px solid ${BORDER}`, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: ELECTRIC }}>Recommended Technology Stack ({layer.stack.length} providers)</span>
-                          <span style={{ fontSize: 11, color: MUTED }}>{expandedLayers[li] ? "▾ Hide" : "▸ Show"}</span>
-                        </button>
-                        {expandedLayers[li] && (
-                          <div style={{ padding: "12px 18px 16px" }}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                              {layer.stack.map((v, vi) => (
-                                <div key={vi} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "10px 12px", background: WARM, borderRadius: 6, border: `1px solid ${BORDER}` }}>
-                                  <div style={{ width: 4, height: "100%", minHeight: 40, borderRadius: 2, background: ELECTRIC, flexShrink: 0 }} />
-                                  <div style={{ flex: 1 }}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-                                      {v.href ? <a href={v.href} style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{v.name}</a> : <span style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>{v.name}</span>}
-                                      <span style={{ fontSize: 9, fontWeight: 600, color: MUTED, background: "#fff", padding: "1px 6px", borderRadius: 3, border: `1px solid ${BORDER}` }}>{v.role}</span>
-                                    </div>
-                                    <p style={{ fontSize: 12, color: SLATE, margin: "2px 0 0", lineHeight: 1.5 }}><ClaimText text={v.why} /></p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            {layer.pitfall && (
-                              <div style={{ marginTop: 10, padding: "10px 12px", background: `${AMBER}06`, border: `1px solid ${AMBER}18`, borderRadius: 6 }}>
-                                <span style={{ fontSize: 10, fontWeight: 700, color: AMBER, letterSpacing: 0.5, textTransform: "uppercase" }}>Integration pitfall</span>
-                                <p style={{ fontSize: 12, color: SLATE, margin: "3px 0 0", lineHeight: 1.5 }}><ClaimText text={layer.pitfall} /></p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {layer.risk && (
-                      <div style={{ fontSize: 11, color: RED, padding: "6px 18px", background: `${RED}06`, borderRadius: "0 0 6px 6px", border: `1px solid ${RED}15`, borderTop: "none" }}>
-                        ⚠ Key risk: <ClaimText text={layer.risk} />
-                      </div>
-                    )}
+                <section key={li} aria-labelledby={`layer-${li}`} style={{ ...K.panel, borderLeft: `4px solid ${L ? L.color : ACCENT}`, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                    <h3 id={`layer-${li}`} style={{ ...K.h2, margin: 0 }}>Layer {layer.layer}: {layer.name}</h3>
+                    <span style={K.small}>{layerHave} of {layer.capabilities.length} in place</span>
                   </div>
-                </FadeIn>
+                  {L && <p style={K.small}>{L.name}. Vendors in this layer include {layer.vendors}.</p>}
+                  <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column" }}>
+                    {layer.capabilities.map((cap, ci) => {
+                      const status = getStatus(li, ci);
+                      return (
+                        <li key={ci} style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, padding: "10px 0", borderTop: ci ? `1px solid ${K.hair}` : "none" }}>
+                          <span style={{ ...K.body, flex: "1 1 260px", color: HOUSE.mist, fontWeight: status ? 600 : 400 }}>{cap}</span>
+                          <div role="group" aria-label={`Status of: ${cap}`} style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                            {STATUS_OPTS.map((opt) => (
+                              <button key={opt.label} type="button" aria-pressed={status === opt.label} onClick={() => setStatus(li, ci, opt.label)} style={statusBtn(status === opt.label)}>
+                                <span aria-hidden="true">{opt.icon}</span>&nbsp;{opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {layer.stack && layer.stack.length > 0 && (
+                    <div style={{ borderTop: `1px solid ${K.hair}`, paddingTop: 10 }}>
+                      <button type="button" aria-expanded={!!expandedLayers[li]} onClick={() => toggleLayer(li)}
+                        style={{ ...K.link, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: 14, minHeight: TOUCH }}>
+                        {expandedLayers[li] ? "Hide" : "Show"} the {layer.stack.length} vendors named for this layer
+                      </button>
+                      {expandedLayers[li] && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>
+                          <p style={K.small}>Named as examples of providers in this layer, in our words. This is neither a research finding nor a recommendation; researched vendors carry their findings on their profiles.</p>
+                          <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+                            {layer.stack.map((v, vi) => {
+                              const slug = profileSlug(v.href);
+                              return (
+                                <li key={vi} style={{ ...K.box, display: "flex", flexDirection: "column", gap: 4 }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap", alignItems: "baseline" }}>
+                                    {v.href ? <a href={v.href} style={{ ...K.link, color: HOUSE.mist }}>{v.name}</a> : <span style={K.strong}>{v.name}</span>}
+                                    <span style={K.small}>{v.role}</span>
+                                  </div>
+                                  <p style={K.small}><ClaimText text={v.why} /></p>
+                                  {v.role !== "None" && <div><VendorIntroLink slug={slug} name={v.name} from="industry" surface="industry" color={ACCENT} /></div>}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                          {layer.pitfall && <p style={K.small}><strong style={K.strong}>Integration pitfall:</strong> <ClaimText text={layer.pitfall} /></p>}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {layer.risk && <p style={K.small}><strong style={K.strong}>Key risk:</strong> <ClaimText text={layer.risk} /></p>}
+                </section>
               );
             })}
 
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
-              <button onClick={handleResults} disabled={assessed < totalCaps * 0.5} style={{ padding: "14px 28px", borderRadius: 8, border: "none", background: assessed >= totalCaps * 0.5 ? ELECTRIC : MUTED, color: "#fff", fontSize: 15, fontWeight: 600, cursor: assessed >= totalCaps * 0.5 ? "pointer" : "default", opacity: assessed >= totalCaps * 0.5 ? 1 : 0.5 }}>
-                {assessed >= totalCaps * 0.5 ? `View My Stack Profile (${assessed}/${totalCaps}) →` : `Assess at least ${Math.ceil(totalCaps * 0.5)} capabilities (${assessed}/${totalCaps})`}
-              </button>
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              {assessed < totalCaps * 0.5 && <span style={K.small}>Mark at least {Math.ceil(totalCaps * 0.5)} capabilities to see your profile ({assessed} of {totalCaps} so far).</span>}
+              <Button onClick={handleResults} disabled={assessed < totalCaps * 0.5}>View your stack profile ({assessed} of {totalCaps})</Button>
             </div>
+          </section>
 
-            {claimIds(sv).length > 0 && <div id="sources" style={{ marginTop: 48, paddingTop: 24, borderTop: `1px solid ${BORDER}` }}>
-              <h2 style={{ fontSize: 18, fontWeight: 600, color: NAVY, margin: "0 0 6px" }}>Sources and assumptions</h2>
-              <p style={{ fontSize: 13, color: MUTED, margin: "0 0 18px" }}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or a worked example.</p>
-              <ClaimSources ids={claimIds(sv)} color={SLATE} accent={ELECTRIC} />
-            </div>}
-          </div>
-        </section>
+          {claimIds(sv).length > 0 && (
+            <section id="sources" aria-labelledby="sources-h" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 8 }}>
+              <h2 id="sources-h" style={{ ...K.h2, margin: 0 }}>Sources and assumptions</h2>
+              <p style={K.small}>Every figure on this page is a published figure checked on the publisher's own page, a labelled planning assumption you can test with your own numbers, or a worked example.</p>
+              <ClaimSources ids={claimIds(sv)} color={HOUSE.body} accent={ACCENT} />
+            </section>
+          )}
+        </div>
       )}
 
-      {/* RESULTS */}
       {phase === "results" && (
-        <section style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "48px 28px 80px" }}>
-          <div style={WRAP}>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "40px 32px", textAlign: "center", marginBottom: 32 }}>
-              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>{sv.name} CX Stack Maturity</span>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 48, fontWeight: 400, color: maturityPct >= 70 ? GREEN : maturityPct >= 40 ? AMBER : RED, margin: "8px 0 4px" }}>{maturityPct}%</h2>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)" }}>of {totalCaps} capabilities in place</div>
-              <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 20 }}>
-                <div><span style={{ fontSize: 22, fontWeight: 700, color: GREEN }}>{haveCount}</span><div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Have</div></div>
-                <div><span style={{ fontSize: 22, fontWeight: 700, color: AMBER }}>{plannedCount}</span><div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Planned</div></div>
-                <div><span style={{ fontSize: 22, fontWeight: 700, color: RED }}>{needCount}</span><div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Need</div></div>
-              </div>
-            </div>
+        <div style={WRAP}>
+          <header style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <span style={{ ...K.kicker, color: ACCENT }}>{sv.name}: your stack profile</span>
+            <h1 style={H1}>{haveCount} of {totalCaps} capabilities in place</h1>
+            <p style={K.body}>{maturityPct}% in place. {plannedCount} planned. {needCount} marked Need. {totalCaps - assessed} not marked.</p>
+            <div><button type="button" onClick={() => setPhase("framework")} style={{ ...K.link, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: 14, minHeight: TOUCH }}>Back to the framework</button></div>
+          </header>
 
-            {/* Per-layer results */}
-            <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 16px" }}>Layer-by-Layer Maturity</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 32 }}>
-              {sv.layers.map((layer, li) => {
-                const have = layer.capabilities.filter((_, ci) => getStatus(li, ci) === "Have").length;
-                const need = layer.capabilities.filter((_, ci) => getStatus(li, ci) === "Need").length;
-                const pct = Math.round((have / layer.capabilities.length) * 100);
-                return (
-                  <div key={li} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 20px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>L{layer.layer}: {layer.name}</span>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        {need > 0 && <span style={{ fontSize: 10, color: RED, fontWeight: 600 }}>{need} gaps</span>}
-                        <span style={{ fontSize: 13, fontWeight: 700, color: pct >= 80 ? GREEN : pct >= 50 ? AMBER : RED }}>{pct}%</span>
-                      </div>
-                    </div>
-                    <div style={{ height: 6, background: `${BORDER}`, borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${pct}%`, background: pct >= 80 ? GREEN : pct >= 50 ? AMBER : RED, borderRadius: 3 }} />
-                    </div>
+          <section aria-labelledby="layers-h" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 12 }}>
+            <h2 id="layers-h" style={{ ...K.h2, margin: 0 }}>Layer by layer</h2>
+            {sv.layers.map((layer, li) => {
+              const have = layer.capabilities.filter((_, ci) => getStatus(li, ci) === "Have").length;
+              const need = layer.capabilities.filter((_, ci) => getStatus(li, ci) === "Need").length;
+              const pct = Math.round((have / layer.capabilities.length) * 100);
+              const L = layerOf(layer.layer);
+              return (
+                <div key={li} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                    <span style={K.strong}>Layer {layer.layer}: {layer.name}</span>
+                    <span style={K.small}>{have} of {layer.capabilities.length} in place ({pct}%){need > 0 ? `, ${need} marked Need` : ""}</span>
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Critical gaps */}
-            {needCount > 0 && (
-              <div style={{ background: `${RED}08`, border: `1px solid ${RED}20`, borderRadius: 10, padding: "20px 22px", marginBottom: 32 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: RED, letterSpacing: 1, textTransform: "uppercase" }}>Critical Gaps ({needCount})</span>
-                <p style={{ fontSize: 11, color: MUTED, margin: "4px 0 10px" }}>Capabilities marked as "Need" are the highest-priority investments for your {sv.name} CX stack.</p>
-                {sv.layers.map((layer, li) => layer.capabilities.map((cap, ci) => getStatus(li, ci) === "Need" ? (
-                  <p key={`${li}-${ci}`} style={{ fontSize: 12, color: NAVY, margin: "4px 0", paddingLeft: 12, borderLeft: `2px solid ${RED}30` }}><strong>L{layer.layer}:</strong> {cap}</p>
-                ) : null))}
-              </div>
-            )}
-
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 28px", textAlign: "center" }}>
-              <h3 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 22, fontWeight: 400, color: "#fff", margin: "0 0 10px" }}>Ready to close the gaps?</h3>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 auto 24px", maxWidth: 440 }}>Connect with a consultant and we'll map your gaps to specific vendor capabilities, build an implementation sequence, and help you prioritize based on operational impact.</p>
-              <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-                <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Connect with a Consultant →</a>
-                <a href="/vendors/ccaas" style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", fontSize: 14, fontWeight: 500, padding: "13px 24px", borderRadius: 8 }}>Browse CCaaS Platforms →</a>
-              </div>
-              <div style={{ maxWidth: 440, margin: "28px auto 0", textAlign: "left" }}>
-                <button onClick={copyProfile} style={{ width: "100%", padding: "12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "transparent", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>{copied ? "Profile copied" : "Copy my profile"}</button>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, margin: "20px 0 10px" }}>Want a consultant to review it? This sends your profile and details to The Center of CX so a consultant can reply. Nothing is sent until you press Send.</p>
-                <label htmlFor="sv-review-email" style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>Work email</label>
-                <input id="sv-review-email" value={email} onChange={e => setEmail(e.target.value)} style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14, marginBottom: 10 }} />
-                <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-                  <div style={{ flex: 1 }}><label htmlFor="sv-review-name" style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>Name</label><input id="sv-review-name" value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14 }} /></div>
-                  <div style={{ flex: 1 }}><label htmlFor="sv-review-company" style={{ display: "block", fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 4 }}>Company</label><input id="sv-review-company" value={company} onChange={e => setCompany(e.target.value)} style={{ width: "100%", padding: "12px 14px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.06)", color: "#fff", fontSize: 14 }} /></div>
+                  <div aria-hidden="true" style={{ height: 8, background: K.hair, borderRadius: RADIUS.pill, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${pct}%`, background: L ? L.color : ACCENT }} />
+                  </div>
                 </div>
-                <button onClick={requestReview} disabled={sending || !email.includes("@") || sent === "ok"} style={{ width: "100%", padding: "12px", borderRadius: 8, border: "none", background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer", opacity: sending || !email.includes("@") ? 0.6 : 1 }}>{sending ? "Sending..." : sent === "ok" ? "Sent" : "Send for review"}</button>
-                {sent === "ok" && <p role="status" style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", margin: "10px 0 0" }}>Sent. A consultant will reply to {email}.</p>}
-                {sent === "error" && <p role="alert" style={{ fontSize: 13, color: "#FCA5A5", margin: "10px 0 0" }}>That did not go through. Copy your profile and email it through the contact page instead.</p>}
-              </div>
+              );
+            })}
+          </section>
+
+          {needCount > 0 && (
+            <section aria-labelledby="need-h" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 8 }}>
+              <h2 id="need-h" style={{ ...K.h2, margin: 0 }}>What you marked Need ({needCount})</h2>
+              <p style={K.small}>The capabilities you said your {sv.name} stack is missing, by layer. Which to close first is your call; the tools below help size them.</p>
+              <ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
+                {sv.layers.map((layer, li) => layer.capabilities.map((cap, ci) => getStatus(li, ci) === "Need" ? (
+                  <li key={`${li}-${ci}`} style={K.body}><strong style={K.strong}>Layer {layer.layer}:</strong> {cap}</li>
+                ) : null))}
+              </ul>
+            </section>
+          )}
+
+          <section aria-labelledby="next-h" style={{ ...K.lead, display: "flex", flexDirection: "column", gap: 12 }}>
+            <h2 id="next-h" style={{ ...K.h2, margin: 0 }}>Where to go from here</h2>
+            <p style={K.body}>A consultant can map your gaps to vendor capabilities and an implementation sequence. Platform Decision tests whether your current platform can close them.</p>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <Button href="/contact">Talk to a consultant</Button>
+              <Button kind="secondary" href="/tools/platform-decision">Platform Decision</Button>
+              <Button kind="secondary" href="/vendors/ccaas">Contact center platforms</Button>
             </div>
-          </div>
-        </section>
+            <div style={{ maxWidth: 520, display: "flex", flexDirection: "column", gap: 10 }}>
+              <Button kind="secondary" onClick={copyProfile}>{copied ? "Profile copied" : "Copy your profile"}</Button>
+              <p style={K.small}>Want a consultant to review it? This sends your profile and details to The Center of CX so a consultant can reply. Nothing is sent until you press Send.</p>
+              <div><label htmlFor="sv-review-email" style={lbl}>Work email</label><input id="sv-review-email" value={email} onChange={e => setEmail(e.target.value)} style={field} /></div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <div style={{ flex: "1 1 180px" }}><label htmlFor="sv-review-name" style={lbl}>Name</label><input id="sv-review-name" value={name} onChange={e => setName(e.target.value)} style={field} /></div>
+                <div style={{ flex: "1 1 180px" }}><label htmlFor="sv-review-company" style={lbl}>Company</label><input id="sv-review-company" value={company} onChange={e => setCompany(e.target.value)} style={field} /></div>
+              </div>
+              <Button onClick={requestReview} disabled={sending || !email.includes("@") || sent === "ok"}>{sending ? "Sending" : sent === "ok" ? "Sent" : "Send for a consultant review"}</Button>
+              {sent === "ok" && <p role="status" style={K.small}>Sent. A consultant will reply to {email}.</p>}
+              {sent === "error" && <p role="alert" style={K.small}>That did not go through. Copy your profile and email it through the contact page instead.</p>}
+            </div>
+          </section>
+        </div>
       )}
     </div>
   );
