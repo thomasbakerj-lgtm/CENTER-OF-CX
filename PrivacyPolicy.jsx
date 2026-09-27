@@ -77,7 +77,7 @@ export default function PrivacyPolicy() {
           <S id="share">Who receives your information</S>
           <P>We do not sell, rent or trade your personal information, and we do not share it for cross-context behavioural advertising. We share it only as follows:</P>
           <L items={[
-            <><B>Service providers</B> that operate the Site for us, under their own privacy terms: Vercel (hosting and web analytics), PostHog (product analytics), Formspree (form processing and delivery to our inbox) and Google Fonts (some older pages load typefaces from Google, which receives your IP address when they do). GitHub hosts our source code and receives no visitor data.</>,
+            <><B>Service providers</B> that operate the Site for us, under their own privacy terms: Vercel (hosting and web analytics), PostHog (product analytics) and Formspree (form processing and delivery to our inbox). Our typefaces are served from the Site itself, so no font service receives your visit. GitHub hosts our source code and receives no visitor data.</>,
             <><B>A vendor you ask to be introduced to.</B> When you request an introduction, we share the details needed to arrange it with that vendor. No vendor receives your information otherwise.</>,
             <><B>A consultant</B> we connect you with at your request, for that engagement.</>,
             <><B>Where the law requires</B>, or to protect our rights, our users or the public, and to a successor if the Site changes ownership, under this policy.</>,

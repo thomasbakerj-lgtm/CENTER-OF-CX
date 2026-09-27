@@ -1310,6 +1310,27 @@ dashboard, the 12-phase growth program.
    attribution (270,220 raw; main had used the headroom). Suite 25,770; sweep of the new pages clean at 1440 and 390; live
    check 255 of 255. Open: the FCC TCPA item is a draft order (vote 30 Sep; update after); the EU item can move to
    verified once EUR-Lex is readable; deals were thin in the window.
+   PR #65 merged by TB's instruction (b14dc25).
+74. S24, redesign session 26, Phase 11 part 1 (TB: "merge and go"): old styles and dead code.
+   - Live defect found and fixed: `/seven-layers-map.html` (linked from Platforms and Tech) ran an inline script that the
+     site policy has blocked on production since it shipped (S23), so the map drew nothing; its script is now
+     `public/seven-layers-map.js`. The page showed invented dashboard figures ("LIVE NOW", containment, cost per
+     contact) with no label; a note now says every figure is an invented example. It loaded Inter, JetBrains Mono and
+     Instrument Serif from Google; now self-hosted Plex. Google Fonts is out of the policy (`font-src 'self'`, no style
+     host) and out of the Privacy Policy. `security.test.mjs` fails on any inline script or remote stylesheet in
+     `public/*.html`; the live checker opens the map and requires its grid to draw (256 checks).
+   - The not found page, the loading line and the route error screen still used the light palette on the dark site:
+     "Page not found." and "This page did not load." were navy on ink (1.13:1). Now on tokens.
+   - Contrast on every tool page (sweep of 25 tools at 1440 and 390, now 0): the report panel's grade chips are
+     colourless (Finance-grade filled, Planning-grade heavy outline, Directional light outline, not applicable dashed,
+     void the print red with its word); `ReportActions` is on paper tokens; the route rail's step number and two
+     tools' pressed choices use `onFill`; `InfoDot` is on tokens with a 32px hit area and a dark note; disabled send
+     buttons are solid. Dead code: `src/lib/scenario.js` (superseded by scenarioUrl) deleted. `tokens.test.mjs` adds
+     ReportActions, InfoDot and App.jsx. Suite 25,777; live check 256 of 256.
+   - Noted for the performance pass: arriving on Staffing from Shrinkage (a rail value pulled on load) scrolls the page
+     sideways for about 300 ms before layout settles (202 px at 1440); the served HTML is clean.
+   Next: Phase 11 part 2 (performance against the budget, full accessibility audit, special edition switch); the
+   measurement review needs TB's PostHog numbers.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

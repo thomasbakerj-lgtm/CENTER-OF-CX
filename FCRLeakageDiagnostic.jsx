@@ -13,7 +13,7 @@ import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
 import { Icon } from "./src/lib/Icon.jsx";
-import { HOUSE, PILLARS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
+import { HOUSE, PILLARS, RADIUS, TOUCH, alpha, LINE, onFill } from "./src/lib/tokens.js";
 import { methodStamp } from "./src/lib/methodVersions.js";
 
 const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, muted: MUTED } = COLORS;
@@ -777,7 +777,7 @@ export default function FCRLeakageDiagnostic() {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(96px, 100%), 1fr))", gap: 6 }}>{[1, 2, 3, 4, 5].map((v) => {
                   const on = scores[`${d.id}-${qi}`] === v;
                   return <button key={v} role="radio" aria-checked={on} onClick={() => setScore(d.id, qi, v)} style={{ minHeight: TOUCH, padding: "6px 6px", fontSize: 13, fontWeight: 600, borderRadius: RADIUS.chip, cursor: "pointer", fontFamily: FONT,
-                    border: `1px solid ${on ? PILLARS.diagnostics.fill : soft}`, background: on ? PILLARS.diagnostics.fill : "transparent", color: on ? HOUSE.paper : HOUSE.body }}>{LABELS[v]}</button>;
+                    border: `1px solid ${on ? PILLARS.diagnostics.fill : soft}`, background: on ? PILLARS.diagnostics.fill : "transparent", color: on ? onFill(PILLARS.diagnostics.fill) : HOUSE.body }}>{LABELS[v]}</button>;
                 })}</div>
               </div>
             ))}
