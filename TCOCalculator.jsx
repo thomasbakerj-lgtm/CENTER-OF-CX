@@ -11,6 +11,10 @@ import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { emitGrades, voidResult, railEvidence, weakerStream } from "./src/lib/confidence";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
+import { HOUSE, PILLARS, ARCS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
+import { methodStamp } from "./src/lib/methodVersions.js";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -34,33 +38,6 @@ function LogoMark({ size = 34, light = true }) {
         <line x1="14" y1="-14" x2="-14" y2="14" stroke={xColor} strokeWidth="5.5" strokeLinecap="round"/>
       </g>
     </svg>
-  );
-}
-
-function Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
-  const links = [
-    { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
-    { name: "Research", href: "/research" },
-    { name: "The Human Premium", href: "/human-premium" },
-  ];
-  return (
-    <>
-      <style>{`
-        ${FONT_IMPORT_CSS}
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-family: ${FONT}; background: #fff; color: ${NAVY}; -webkit-font-smoothing: antialiased; }
-        a { text-decoration: none; color: inherit; }
-        input:focus, select:focus { outline: none; border-color: ${ELECTRIC} !important; box-shadow: 0 0 0 3px rgba(0,136,221,0.1); }
-        input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-        @media (max-width: 860px) { .nav-links { display: none !important; } .results-grid { grid-template-columns: 1fr !important; } .kpi-grid { grid-template-columns: 1fr 1fr !important; } .input-row { grid-template-columns: 1fr 1fr !important; } }
-      `}</style>
-      
-    </>
   );
 }
 
@@ -666,6 +643,18 @@ function gradeTCO({ d, r, pre, railOrigin, stanceKey }) {
 
 /* @engine-end */
 
+const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft), firm = alpha(HOUSE.mist, LINE.firm);
+const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
+const h2 = { fontSize: 18, fontWeight: 600, lineHeight: 1.3, color: HOUSE.mist, margin: "0 0 8px" };
+const body = { fontSize: 15, lineHeight: 1.6, color: HOUSE.body, margin: 0 };
+const small = { fontSize: 13, lineHeight: 1.5, color: HOUSE.muted, margin: 0 };
+const figure = { fontSize: 18, fontWeight: 600, color: HOUSE.mist };
+const link = { color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
+const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))`, gap: 14 });
+const panel = { background: HOUSE.navy, border: `1px solid ${hair}`, borderRadius: RADIUS.card, padding: 20 };
+const box = { border: `1px solid ${hair}`, borderRadius: RADIUS.field, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" };
+const sel = { width: "100%", minHeight: TOUCH, padding: "0 12px", fontFamily: FONT, fontSize: 15, fontWeight: 600, border: `1px solid ${firm}`, borderRadius: RADIUS.field, background: HOUSE.navy, color: HOUSE.mist, cursor: "pointer" };
+
 function Calculator() {
   const [dRaw, setD] = useState({ ...BASE, ...INDUSTRY.general, industry: "general" });
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
@@ -787,383 +776,339 @@ function Calculator() {
 
 
   const escLabel = r.single ? pctD(r.wEff) + "/yr blended" : "wage " + pctD(r.wEff) + " / license " + pctD(r.lEff);
-  const confColor = G.voided ? RED : G.confidence === "Finance-grade" ? GREEN : G.confidence === "Planning-grade" ? AMBER : MUTED;
-
   const sections = ["Organization Profile", "Labor Costs", "Operational KPIs", "Channel Mix", "Technology Costs", "Overhead & Results"];
   const navBtn = (to, label, primary, disabled) => (
-    <button onClick={() => !disabled && setActiveSection(to)} disabled={disabled}
-      style={{ background: primary ? (disabled ? MUTED : ELECTRIC) : "#fff", border: primary ? "none" : `1px solid ${BORDER}`, color: primary ? "#fff" : SLATE, fontSize: 14, fontWeight: 600, padding: "10px 22px", borderRadius: 6, cursor: disabled ? "not-allowed" : "pointer" }}>{label}</button>
+    <Button kind={primary ? "primary" : "secondary"} disabled={disabled} onClick={() => !disabled && setActiveSection(to)}>{label}</Button>
+  );
+  const stamp = methodStamp(TOOL_ID);
+  const { how, voidReason } = resultHow(G.gradeObj);
+  const result = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="Annual total cost of ownership" value={voidReason ? null : r.annual} format={fmtK}
+        change={voidReason ? null : `3-year ${fmtK(r.threeYear)}. Range ${fmtK(r.sensitivity.annualLow)} to ${fmtK(r.sensitivity.annualHigh)}.`}
+        how={how} voidReason={voidReason} />
+      {!voidReason && (
+        <div style={panel}>
+          {[["Per agent a month", fmt(r.monthly / r.agents)], ["Per contact", "$" + r.costPerContact.toFixed(2)], ["Per resolution", "$" + r.costPerResolution.toFixed(2)], ["Labor share", r.disp.laborPctStr]].map(([k, v], i) => (
+            <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "9px 0", borderTop: i ? `1px solid ${hair}` : "none" }}>
+              <span style={small}>{k}</span><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist, ...NUM }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 
   return (
-    <section style={{ background: WARM, padding: "100px 28px 60px", minHeight: "100vh" }}>
-      <div style={WRAP}>
-        <div style={{ marginBottom: 40 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
-            <a href="/" style={{ color: MUTED, fontSize: 13 }}>Home</a><span style={{ color: BORDER, fontSize: 13 }}>/</span>
-            <a href="/how-to-choose" style={{ color: MUTED, fontSize: 13 }}>Tools</a><span style={{ color: BORDER, fontSize: 13 }}>/</span>
-            <span style={{ color: ELECTRIC, fontSize: 13, fontWeight: 600 }}>TCO Calculator</span>
-          </div>
-          <h1 style={{ ...TYPE.display, fontSize: "clamp(26px, 3.3vw, 37px)", color: NAVY, margin: "0 0 8px" }}>Contact Center TCO Calculator</h1>
-          <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.6, maxWidth: 700 }}>Total cost of ownership across labor, technology, 17 operational KPIs, and overhead, as a current-state X-ray and a 3-year projection. Every number is transparent, benchmarked, and valued at marginal cost so savings are realistic rather than inflated.</p>
-          {Object.keys(pulled).length > 0 && (
-            <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 8, background: ICE, border: `1px solid ${ELECTRIC}30`, borderRadius: 8, padding: "8px 14px" }}>
-              <span style={{ fontSize: 12, color: NAVY, fontWeight: 600 }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from your recent tools.</span>
-              <span style={{ fontSize: 12, color: MUTED }}>Every field is editable.</span>
-            </div>
-          )}
-        </div>
+    <ToolFrame toolId={TOOL_ID} section="Cost + Economics" name="TCO Calculator" title="What does your contact center cost to run, today and over three years?"
+      lede="Total cost of ownership across labor, technology, 17 operational KPIs, and overhead, as a current-state X-ray and a 3-year projection. Every number is transparent and valued at marginal cost so savings are realistic rather than inflated."
+      method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
+      result={result} pinned={voidReason ? null : { label: "Annual TCO", value: fmtK(r.annual) }}>
+      <style>{`${FONT_IMPORT_CSS}.tco-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
+      {Object.keys(pulled).length > 0 && <p style={small}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from your recent tools. Every field is editable.</p>}
 
-        <div style={{ display: "grid", gridTemplateColumns: "260px 1fr", gap: 28 }} className="results-grid">
-          <div>
-            <div style={{ position: "sticky", top: 80 }}>
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, overflow: "hidden", marginBottom: 20 }}>
-                {sections.map((s, i) => (
-                  <button key={i} onClick={() => setActiveSection(i)} style={{ display: "block", width: "100%", textAlign: "left", padding: "12px 16px", fontSize: 13, fontWeight: activeSection === i ? 600 : 400, color: activeSection === i ? ELECTRIC : SLATE, background: activeSection === i ? `${ELECTRIC}08` : "transparent", border: "none", borderBottom: i < sections.length - 1 ? `1px solid ${BORDER}` : "none", cursor: "pointer", borderLeft: activeSection === i ? `3px solid ${ELECTRIC}` : "3px solid transparent" }}>{s}</button>
-                ))}
-              </div>
-              <div style={{ background: NAVY, borderRadius: 10, padding: "20px 18px", color: "#fff" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", color: LIGHT, marginBottom: 14 }}>Live TCO</div>
-                {G.voided ? (
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>No figure computed. The model failed an internal check; see Overhead & Results.</div>
-                ) : (<>
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Annual</div>
-                  <div style={{ ...TYPE.statValue, fontSize: 25, color: LIGHT }}>{fmtK(r.annual)}</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>3-yr {fmtK(r.threeYear)}</div>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {[{ l: "Agent/Mo", v: fmt(r.monthly / r.agents) }, { l: "Per Contact", v: "$" + r.costPerContact.toFixed(2) }, { l: "Per Resolution", v: "$" + r.costPerResolution.toFixed(2) }, { l: "Labor %", v: r.disp.laborPctStr }].map((item, i) => (
-                    <div key={i}><div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{item.l}</div><div style={{ fontSize: 15, fontWeight: 600, color: "#fff" }}>{item.v}</div></div>
-                  ))}
-                </div>
-                </>)}
-                <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Export confidence</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: confColor }}>{G.confidence}</div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div role="group" aria-label="Calculator steps" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {sections.map((x, i) => (
+          <button key={i} type="button" aria-current={activeSection === i ? "step" : undefined} onClick={() => setActiveSection(i)} style={{ minHeight: TOUCH, padding: "0 12px", fontFamily: FONT, fontSize: 14, fontWeight: activeSection === i ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer", border: `1px solid ${activeSection === i ? HOUSE.electric : firm}`, background: activeSection === i ? alpha(HOUSE.electric, 0.22) : "transparent", color: HOUSE.mist }}>{i + 1}. {x}</button>
+        ))}
+      </div>
 
-          <div>
             {activeSection === 0 && (
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Organization Profile</h2>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                  <NumField label="Total Agents (FTE)" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} hint="Full-time and FTE-equivalent" pulled={pulled.agents} />
-                  <NumField label="Supervisors" value={d.supervisors} onChange={v => set("supervisors", v)} min={0} />
-                  <NumField label="QA Analysts" value={d.qaStaff} onChange={v => set("qaStaff", v)} min={0} />
-                  <NumField label="WFM Staff" value={d.wfmStaff} onChange={v => set("wfmStaff", v)} min={0} />
-                  <NumField label="Trainers" value={d.trainers} onChange={v => set("trainers", v)} min={0} />
-                  <NumField label="IT / Tech Support" value={d.itSupport} onChange={v => set("itSupport", v)} min={0} />
-                  <NumField label="Sites" value={d.sites} onChange={v => set("sites", v)} min={1} />
+              <fieldset style={{ ...panel, margin: 0 }}>
+                <legend style={{ ...kicker, padding: "0 6px" }}>Organization Profile</legend>
+                <div style={grid(190)}>
+                  <NumField label="Total Agents (FTE)" tone="dark" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} hint="Full-time and FTE-equivalent" pulled={pulled.agents} />
+                  <NumField label="Supervisors" tone="dark" value={d.supervisors} onChange={v => set("supervisors", v)} min={0} />
+                  <NumField label="QA Analysts" tone="dark" value={d.qaStaff} onChange={v => set("qaStaff", v)} min={0} />
+                  <NumField label="WFM Staff" tone="dark" value={d.wfmStaff} onChange={v => set("wfmStaff", v)} min={0} />
+                  <NumField label="Trainers" tone="dark" value={d.trainers} onChange={v => set("trainers", v)} min={0} />
+                  <NumField label="IT / Tech Support" tone="dark" value={d.itSupport} onChange={v => set("itSupport", v)} min={0} />
+                  <NumField label="Sites" tone="dark" value={d.sites} onChange={v => set("sites", v)} min={1} />
                   <div>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: SLATE, display: "block", marginBottom: 4 }}>Industry</label>
-                    <select aria-label="Industry" value={d.industry} onChange={e => loadIndustry(e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                    <label htmlFor="tco-industry" style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, display: "block", marginBottom: 6 }}>Industry</label>
+                    <select id="tco-industry" aria-label="Industry" value={d.industry} onChange={e => loadIndustry(e.target.value)} className="tco-sel" style={sel}>
                       {Object.entries(INDUSTRY).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                     </select>
-                    <div style={{ fontSize: 12, color: GREEN, marginTop: 3 }}>Prepopulated with {INDUSTRY[d.industry]?.label} benchmarks. Adjust any value.</div>
-                    <div style={{ fontSize: 12, color: MUTED, marginTop: 4, lineHeight: 1.4 }} title={BENCHMARK_SOURCES}>Industry profiles are internal planning values, not sourced benchmarks. Hover for what is sourced and what is not. Every formula, constant and a worked example are in the <a href="/methodology/tco-calculator" style={{ color: NAVY, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</div>
+                    <div style={{ ...small, marginTop: 4 }}>Prepopulated with {INDUSTRY[d.industry]?.label} benchmarks. Adjust any value.</div>
+                    <div style={{ ...small, marginTop: 4 }} title={BENCHMARK_SOURCES}>Industry profiles are internal planning values, not sourced benchmarks. Hover for what is sourced and what is not. Every formula, constant and a worked example are in the <a href="/methodology/tco-calculator" style={link}>published method</a>.</div>
                   </div>
-                  <NumField label="Monthly Contacts (gross demand)" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} hint={`All interactions initiated. About ${Math.round(n(d.monthlyContacts) * (1 - n(d.containment))).toLocaleString()} reach an agent at ${pct0(d.containment)} containment.`} />
+                  <NumField label="Monthly Contacts (gross demand)" tone="dark" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} hint={`All interactions initiated. About ${Math.round(n(d.monthlyContacts) * (1 - n(d.containment))).toLocaleString()} reach an agent at ${pct0(d.containment)} containment.`} />
                 </div>
-                <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}>{navBtn(1, "Next: Labor Costs", true)}</div>
-              </div>
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end", gap: 10 }}>{navBtn(1, "Next: Labor Costs", true)}</div>
+              </fieldset>
             )}
 
             {activeSection === 1 && (
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Labor Costs</h2>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                  <NumField label="Agent Hourly Rate" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" step={0.5} min={0} />
-                  <NumField label="Benefits & Burden" value={d.agentBenefitsPct} onChange={v => set("agentBenefitsPct", v)} suffix="%" factor={100} min={0} max={100} hint="Typically 25 to 35%" info={DEFS.loaded} infoTitle="Loaded rate" />
-                  <div style={{ background: ICE, borderRadius: 6, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                    <div style={{ fontSize: 12, color: MUTED }}>Loaded Rate</div>
-                    <div style={{ fontSize: 18, fontWeight: 600, color: NAVY }}>${r.loaded.toFixed(2)}/hr</div>
+              <fieldset style={{ ...panel, margin: 0 }}>
+                <legend style={{ ...kicker, padding: "0 6px" }}>Labor Costs</legend>
+                <div style={grid(190)}>
+                  <NumField label="Agent Hourly Rate" tone="dark" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" step={0.5} min={0} />
+                  <NumField label="Benefits & Burden" tone="dark" value={d.agentBenefitsPct} onChange={v => set("agentBenefitsPct", v)} suffix="%" factor={100} min={0} max={100} hint="Typically 25 to 35%" info={DEFS.loaded} infoTitle="Loaded rate" />
+                  <div style={box}>
+                    <div style={small}>Loaded Rate</div>
+                    <div style={figure}>${r.loaded.toFixed(2)}/hr</div>
                   </div>
-                  <NumField label="Supervisor Hourly" value={d.supHourly} onChange={v => set("supHourly", v)} prefix="$" step={0.5} min={0} />
-                  <NumField label="QA Analyst Hourly" value={d.qaHourly} onChange={v => set("qaHourly", v)} prefix="$" step={0.5} min={0} />
-                  <NumField label="WFM Analyst Hourly" value={d.wfmHourly} onChange={v => set("wfmHourly", v)} prefix="$" step={0.5} min={0} />
-                  <NumField label="Trainer Hourly" value={d.trainerHourly} onChange={v => set("trainerHourly", v)} prefix="$" step={0.5} min={0} />
-                  <NumField label="IT Support Hourly" value={d.itHourly} onChange={v => set("itHourly", v)} prefix="$" step={0.5} min={0} />
-                  <NumField label="Recruiting Cost/Hire" value={d.recruitingCostPerHire} onChange={v => set("recruitingCostPerHire", v)} prefix="$" step={100} min={0} />
+                  <NumField label="Supervisor Hourly" tone="dark" value={d.supHourly} onChange={v => set("supHourly", v)} prefix="$" step={0.5} min={0} />
+                  <NumField label="QA Analyst Hourly" tone="dark" value={d.qaHourly} onChange={v => set("qaHourly", v)} prefix="$" step={0.5} min={0} />
+                  <NumField label="WFM Analyst Hourly" tone="dark" value={d.wfmHourly} onChange={v => set("wfmHourly", v)} prefix="$" step={0.5} min={0} />
+                  <NumField label="Trainer Hourly" tone="dark" value={d.trainerHourly} onChange={v => set("trainerHourly", v)} prefix="$" step={0.5} min={0} />
+                  <NumField label="IT Support Hourly" tone="dark" value={d.itHourly} onChange={v => set("itHourly", v)} prefix="$" step={0.5} min={0} />
+                  <NumField label="Recruiting Cost/Hire" tone="dark" value={d.recruitingCostPerHire} onChange={v => set("recruitingCostPerHire", v)} prefix="$" step={100} min={0} />
                 </div>
-                <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "14px 18px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div><div style={{ fontSize: 12, color: MUTED }}>Monthly Labor</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.labor)}</div></div>
-                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 12, color: MUTED }}>Attrition Cost/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.attritionCost)}</div><div style={{ fontSize: 12, color: MUTED }}>{r.monthlyHires} hires/mo</div></div>
+                <div style={{ ...box, marginTop: 16, flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+                  <div><div style={small}>Monthly Labor</div><div style={{ ...figure, ...NUM }}>{fmtK(r.labor)}</div></div>
+                  <div style={{ textAlign: "right" }}><div style={small}>Attrition Cost/Mo</div><div style={{ ...figure, ...NUM }}>{fmtK(r.attritionCost)}</div><div style={small}>{r.monthlyHires} hires/mo</div></div>
                 </div>
-                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(0, "Back", false)}{navBtn(2, "Next: KPIs", true)}</div>
-              </div>
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>{navBtn(0, "Back", false)}{navBtn(2, "Next: KPIs", true)}</div>
+              </fieldset>
             )}
 
             {activeSection === 2 && (
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Operational KPIs</h2>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                  <NumField label="AHT (seconds)" value={d.aht} onChange={v => set("aht", v)} info={DEFS.aht} infoTitle="AHT" step={5} min={1} pulled={pulled.aht} hint={<span style={{ color: getBench(n(d.aht), 300, 600, true) }}>{mmss(d.aht)}, full handle time. Bench 5:00 to 7:00</span>} />
-                  <NumField label="ACW (seconds)" value={d.acw} onChange={v => set("acw", v)} info={DEFS.acw} infoTitle="ACW" step={5} min={0} hint="After-call work (within AHT, line closed)" />
-                  <NumField label="Hold Time (seconds)" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Within AHT (line open)" />
-                  <NumField label="FCR" value={d.fcr} onChange={v => set("fcr", v)} info={DEFS.fcr} infoTitle="FCR" suffix="%" factor={100} min={0} max={100} hint={<span style={{ color: getBench(n(d.fcr), 0.65, 0.85) }}>Bench 65 to 85%</span>} />
-                  <NumField label="Containment" value={d.containment} onChange={v => set("containment", v)} info={DEFS.containment} infoTitle="Containment" suffix="%" factor={100} min={0} max={100} hint={<span style={{ color: getBench(n(d.containment), 0.15, 0.45) }}>Bench 15 to 45%</span>} />
-                  <NumField label="Occupancy" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={150} hint={<span style={{ color: n(d.occupancy) > BENCH.occupancy.cautionMax ? RED : n(d.occupancy) > BENCH.occupancy.healthyMax ? AMBER : GREEN }}>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above is burnout</span>} />
-                  <NumField label="Shrinkage" value={d.shrinkage} onChange={v => set("shrinkage", v)} info={DEFS.shrinkage} infoTitle="Shrinkage" suffix="%" factor={100} min={0} max={100} pulled={pulled.shrinkage} hint="25 to 35%" />
-                  <NumField label="Annual Attrition" value={d.attrition} onChange={v => set("attrition", v)} info={DEFS.attrition} infoTitle="Attrition" suffix="%" factor={100} min={0} max={200} pulled={pulled.attrition} hint={<span style={{ color: getBench(n(d.attrition), 0.20, 0.55, true) }}>Bench 20 to 40%</span>} />
-                  <NumField label="Absenteeism" value={d.absenteeism} onChange={v => set("absenteeism", v)} suffix="%" factor={100} min={0} max={100} hint="5 to 10%" />
-                  <NumField label="Schedule Adherence" value={d.scheduleAdherence} onChange={v => set("scheduleAdherence", v)} suffix="%" factor={100} min={0} max={100} hint="Target 88 to 95%" />
-                  <NumField label="ASA (seconds)" value={d.avgSpeedAnswer} onChange={v => set("avgSpeedAnswer", v)} step={5} min={0} hint="Target under 30s" />
-                  <NumField label="Abandon Rate" value={d.abandonRate} onChange={v => set("abandonRate", v)} suffix="%" factor={100} min={0} max={100} hint="Target under 5%" />
-                  <NumField label="Transfer Rate" value={d.transferRate} onChange={v => set("transferRate", v)} suffix="%" factor={100} min={0} max={100} />
-                  <NumField label="QA Score" value={d.qualityScore} onChange={v => set("qualityScore", v)} suffix="%" factor={100} min={0} max={100} />
-                  <NumField label="CSAT (1 to 5)" value={d.csat} onChange={v => set("csat", v)} step={0.1} min={1} max={5} hint={<span style={{ color: getBench(n(d.csat), 3.5, 4.5) }}>Bench 3.8 to 4.5</span>} />
-                  <NumField label="NPS (-100 to 100)" value={d.nps} onChange={v => set("nps", v)} min={-100} max={100} />
-                  <NumField label="New Hire Training (days)" value={d.newHireTrainingDays} onChange={v => set("newHireTrainingDays", v)} min={0} />
+              <fieldset style={{ ...panel, margin: 0 }}>
+                <legend style={{ ...kicker, padding: "0 6px" }}>Operational KPIs</legend>
+                <div style={grid(190)}>
+                  <NumField label="AHT (seconds)" tone="dark" value={d.aht} onChange={v => set("aht", v)} info={DEFS.aht} infoTitle="AHT" step={5} min={1} pulled={pulled.aht} hint={<span>{mmss(d.aht)}, full handle time. Bench 5:00 to 7:00</span>} />
+                  <NumField label="ACW (seconds)" tone="dark" value={d.acw} onChange={v => set("acw", v)} info={DEFS.acw} infoTitle="ACW" step={5} min={0} hint="After-call work (within AHT, line closed)" />
+                  <NumField label="Hold Time (seconds)" tone="dark" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Within AHT (line open)" />
+                  <NumField label="FCR" tone="dark" value={d.fcr} onChange={v => set("fcr", v)} info={DEFS.fcr} infoTitle="FCR" suffix="%" factor={100} min={0} max={100} hint={<span>Bench 65 to 85%</span>} />
+                  <NumField label="Containment" tone="dark" value={d.containment} onChange={v => set("containment", v)} info={DEFS.containment} infoTitle="Containment" suffix="%" factor={100} min={0} max={100} hint={<span>Bench 15 to 45%</span>} />
+                  <NumField label="Occupancy" tone="dark" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={150} hint={<span>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above is burnout</span>} />
+                  <NumField label="Shrinkage" tone="dark" value={d.shrinkage} onChange={v => set("shrinkage", v)} info={DEFS.shrinkage} infoTitle="Shrinkage" suffix="%" factor={100} min={0} max={100} pulled={pulled.shrinkage} hint="25 to 35%" />
+                  <NumField label="Annual Attrition" tone="dark" value={d.attrition} onChange={v => set("attrition", v)} info={DEFS.attrition} infoTitle="Attrition" suffix="%" factor={100} min={0} max={200} pulled={pulled.attrition} hint={<span>Bench 20 to 40%</span>} />
+                  <NumField label="Absenteeism" tone="dark" value={d.absenteeism} onChange={v => set("absenteeism", v)} suffix="%" factor={100} min={0} max={100} hint="5 to 10%" />
+                  <NumField label="Schedule Adherence" tone="dark" value={d.scheduleAdherence} onChange={v => set("scheduleAdherence", v)} suffix="%" factor={100} min={0} max={100} hint="Target 88 to 95%" />
+                  <NumField label="ASA (seconds)" tone="dark" value={d.avgSpeedAnswer} onChange={v => set("avgSpeedAnswer", v)} step={5} min={0} hint="Target under 30s" />
+                  <NumField label="Abandon Rate" tone="dark" value={d.abandonRate} onChange={v => set("abandonRate", v)} suffix="%" factor={100} min={0} max={100} hint="Target under 5%" />
+                  <NumField label="Transfer Rate" tone="dark" value={d.transferRate} onChange={v => set("transferRate", v)} suffix="%" factor={100} min={0} max={100} />
+                  <NumField label="QA Score" tone="dark" value={d.qualityScore} onChange={v => set("qualityScore", v)} suffix="%" factor={100} min={0} max={100} />
+                  <NumField label="CSAT (1 to 5)" tone="dark" value={d.csat} onChange={v => set("csat", v)} step={0.1} min={1} max={5} hint={<span>Bench 3.8 to 4.5</span>} />
+                  <NumField label="NPS (-100 to 100)" tone="dark" value={d.nps} onChange={v => set("nps", v)} min={-100} max={100} />
+                  <NumField label="New Hire Training (days)" tone="dark" value={d.newHireTrainingDays} onChange={v => set("newHireTrainingDays", v)} min={0} />
                 </div>
-                <p style={{ fontSize: 12, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>Only headcount, wages, attrition, contract and usage prices, and AHT (through voice minutes) move the current TCO total. FCR, containment, occupancy, and shrinkage do not change current cost; they size the optimization opportunity and derived metrics. CSAT, NPS, QA, adherence, ASA, abandon, transfer, hold, and absenteeism are context for the analyst read and coherence checks.</p>
-                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(1, "Back", false)}{navBtn(3, "Next: Channel Mix", true)}</div>
-              </div>
+                <p style={{ ...small, marginTop: 12 }}>Only headcount, wages, attrition, contract and usage prices, and AHT (through voice minutes) move the current TCO total. FCR, containment, occupancy, and shrinkage do not change current cost; they size the optimization opportunity and derived metrics. CSAT, NPS, QA, adherence, ASA, abandon, transfer, hold, and absenteeism are context for the analyst read and coherence checks.</p>
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>{navBtn(1, "Back", false)}{navBtn(3, "Next: Channel Mix", true)}</div>
+              </fieldset>
             )}
 
             {activeSection === 3 && (
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Channel Mix</h2>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                  <NumField label="Voice" value={d.channelMixVoice} onChange={v => set("channelMixVoice", v)} suffix="%" factor={100} min={0} max={100} />
-                  <NumField label="Chat / Messaging" value={d.channelMixChat} onChange={v => set("channelMixChat", v)} suffix="%" factor={100} min={0} max={100} />
-                  <NumField label="Email" value={d.channelMixEmail} onChange={v => set("channelMixEmail", v)} suffix="%" factor={100} min={0} max={100} />
-                  <NumField label="Social" value={d.channelMixSocial} onChange={v => set("channelMixSocial", v)} suffix="%" factor={100} min={0} max={100} />
-                  <NumField label="Self-Service" value={d.channelMixSelfServe} onChange={v => set("channelMixSelfServe", v)} suffix="%" factor={100} min={0} max={100} />
-                  <div style={{ background: channelOK ? ICE : "#FEF2F2", borderRadius: 6, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", border: channelOK ? "none" : `1px solid ${RED}40` }}>
-                    <div style={{ fontSize: 12, color: MUTED }}>Total</div>
-                    <div style={{ fontSize: 18, fontWeight: 600, color: channelOK ? GREEN : RED , ...NUM }}>{pct(channelTotal)}</div>
-                    <div style={{ fontSize: 12, color: channelOK ? MUTED : RED }}>{channelOK ? "Balanced" : "Must equal 100%"}</div>
+              <fieldset style={{ ...panel, margin: 0 }}>
+                <legend style={{ ...kicker, padding: "0 6px" }}>Channel Mix</legend>
+                <div style={grid(190)}>
+                  <NumField label="Voice" tone="dark" value={d.channelMixVoice} onChange={v => set("channelMixVoice", v)} suffix="%" factor={100} min={0} max={100} />
+                  <NumField label="Chat / Messaging" tone="dark" value={d.channelMixChat} onChange={v => set("channelMixChat", v)} suffix="%" factor={100} min={0} max={100} />
+                  <NumField label="Email" tone="dark" value={d.channelMixEmail} onChange={v => set("channelMixEmail", v)} suffix="%" factor={100} min={0} max={100} />
+                  <NumField label="Social" tone="dark" value={d.channelMixSocial} onChange={v => set("channelMixSocial", v)} suffix="%" factor={100} min={0} max={100} />
+                  <NumField label="Self-Service" tone="dark" value={d.channelMixSelfServe} onChange={v => set("channelMixSelfServe", v)} suffix="%" factor={100} min={0} max={100} />
+                  <div style={{ ...box, border: channelOK ? `1px solid ${hair}` : `1.5px solid ${HOUSE.mist}` }}>
+                    <div style={small}>Total</div>
+                    <div style={{ ...figure, ...NUM }}>{pct(channelTotal)}</div>
+                    <div style={{ ...small, color: channelOK ? HOUSE.muted : HOUSE.mist, fontWeight: channelOK ? 400 : 700 }}>{channelOK ? "Balanced" : "Must equal 100%"}</div>
                   </div>
                 </div>
                 {!channelOK && (
-                  <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 12, background: "#FEF2F2", border: `1px solid ${RED}30`, borderRadius: 8, padding: "12px 16px" }}>
-                    <span style={{ fontSize: 13, color: NAVY, flex: 1 }}>Channel mix is at {pct(channelTotal)}. The TCO cannot be trusted until it sums to 100%.</span>
-                    <button onClick={normalizeChannels} style={{ background: ELECTRIC, color: "#fff", fontSize: 13, fontWeight: 600, padding: "8px 16px", borderRadius: 6, border: "none", cursor: "pointer" }}>Auto-balance to 100%</button>
+                  <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", border: `1.5px solid ${HOUSE.mist}`, borderRadius: RADIUS.field, padding: "12px 16px" }}>
+                    <span style={{ ...body, fontSize: 14, flex: 1 }}>Channel mix is at {pct(channelTotal)}. The TCO cannot be trusted until it sums to 100%.</span>
+                    <Button kind="secondary" onClick={normalizeChannels}>Auto-balance to 100%</Button>
                   </div>
                 )}
-                <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "14px 18px" }}>
-                  <div style={{ fontSize: 12, color: MUTED }}>Monthly Voice Minutes</div>
-                  <div style={{ fontSize: 18, fontWeight: 600, color: NAVY }}>{Math.round(r.voiceMinutes).toLocaleString()}</div>
+                <div style={{ ...box, marginTop: 16 }}>
+                  <div style={small}>Monthly Voice Minutes</div>
+                  <div style={figure}>{Math.round(r.voiceMinutes).toLocaleString()}</div>
                 </div>
-                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                   {navBtn(2, "Back", false)}
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    {!channelOK && <span style={{ fontSize: 12, color: RED }}>Balance the mix to continue</span>}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                    {!channelOK && <span style={{ ...small, color: HOUSE.mist }}>Balance the mix to continue</span>}
                     {navBtn(4, "Next: Technology", true, !channelOK)}
                   </div>
                 </div>
-              </div>
+              </fieldset>
             )}
 
             {activeSection === 4 && (
-              <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px" }}>
-                <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Technology Costs <span style={{ fontSize: 13, fontWeight: 400, color: MUTED }}>(monthly)</span></h2>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                  <NumField label="CCaaS Per Seat" value={d.ccaasSeat} onChange={v => set("ccaasSeat", v)} info={DEFS.seatBasis} infoTitle="Per-seat basis" prefix="$" step={5} min={0} />
-                  <NumField label="WEM Per Seat" value={d.wemSeat} onChange={v => set("wemSeat", v)} prefix="$" step={5} min={0} />
-                  <NumField label="CRM Per Seat" value={d.crmSeat} onChange={v => set("crmSeat", v)} prefix="$" step={5} min={0} />
-                  <NumField label="Telephony Per Min" value={d.telephonyPerMin} onChange={v => set("telephonyPerMin", v)} info={DEFS.telephony} infoTitle="Telephony" prefix="$" step={0.005} min={0} />
-                  <NumField label="IVA / Bot Platform" value={d.ivaMonthly} onChange={v => set("ivaMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="Agent Assist" value={d.agentAssistMonthly} onChange={v => set("agentAssistMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="RPA / Automation" value={d.rpaMonthly} onChange={v => set("rpaMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="Analytics Platform" value={d.analyticsMonthly} onChange={v => set("analyticsMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="iPaaS / Integration" value={d.ipaasMonthly} onChange={v => set("ipaasMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="Recording & Compliance" value={d.recordingMonthly} onChange={v => set("recordingMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="Knowledge Mgmt" value={d.knowledgeMgmt} onChange={v => set("knowledgeMgmt", v)} prefix="$" step={500} min={0} />
-                  <NumField label="Security & Compliance" value={d.securityCompliance} onChange={v => set("securityCompliance", v)} prefix="$" step={500} min={0} />
+              <fieldset style={{ ...panel, margin: 0 }}>
+                <legend style={{ ...kicker, padding: "0 6px" }}>Technology Costs <span style={{ textTransform: "none", letterSpacing: 0 }}>(monthly)</span></legend>
+                <div style={grid(190)}>
+                  <NumField label="CCaaS Per Seat" tone="dark" value={d.ccaasSeat} onChange={v => set("ccaasSeat", v)} info={DEFS.seatBasis} infoTitle="Per-seat basis" prefix="$" step={5} min={0} />
+                  <NumField label="WEM Per Seat" tone="dark" value={d.wemSeat} onChange={v => set("wemSeat", v)} prefix="$" step={5} min={0} />
+                  <NumField label="CRM Per Seat" tone="dark" value={d.crmSeat} onChange={v => set("crmSeat", v)} prefix="$" step={5} min={0} />
+                  <NumField label="Telephony Per Min" tone="dark" value={d.telephonyPerMin} onChange={v => set("telephonyPerMin", v)} info={DEFS.telephony} infoTitle="Telephony" prefix="$" step={0.005} min={0} />
+                  <NumField label="IVA / Bot Platform" tone="dark" value={d.ivaMonthly} onChange={v => set("ivaMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="Agent Assist" tone="dark" value={d.agentAssistMonthly} onChange={v => set("agentAssistMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="RPA / Automation" tone="dark" value={d.rpaMonthly} onChange={v => set("rpaMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="Analytics Platform" tone="dark" value={d.analyticsMonthly} onChange={v => set("analyticsMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="iPaaS / Integration" tone="dark" value={d.ipaasMonthly} onChange={v => set("ipaasMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="Recording & Compliance" tone="dark" value={d.recordingMonthly} onChange={v => set("recordingMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="Knowledge Mgmt" tone="dark" value={d.knowledgeMgmt} onChange={v => set("knowledgeMgmt", v)} prefix="$" step={500} min={0} />
+                  <NumField label="Security & Compliance" tone="dark" value={d.securityCompliance} onChange={v => set("securityCompliance", v)} prefix="$" step={500} min={0} />
                 </div>
-                <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "14px 18px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div><div style={{ fontSize: 12, color: MUTED }}>Monthly Tech Cost</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmtK(r.tech)}</div></div>
-                  <div style={{ textAlign: "right" }}><div style={{ fontSize: 12, color: MUTED }}>Tech Per Agent/Mo</div><div style={{ fontSize: 18, fontWeight: 600, color: NAVY , ...NUM }}>{fmt(r.techPerAgent)}</div></div>
+                <div style={{ ...box, marginTop: 16, flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+                  <div><div style={small}>Monthly Tech Cost</div><div style={{ ...figure, ...NUM }}>{fmtK(r.tech)}</div></div>
+                  <div style={{ textAlign: "right" }}><div style={small}>Tech Per Agent/Mo</div><div style={{ ...figure, ...NUM }}>{fmt(r.techPerAgent)}</div></div>
                 </div>
-                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>{navBtn(3, "Back", false)}{navBtn(5, "Next: Results", true)}</div>
-              </div>
+                <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>{navBtn(3, "Back", false)}{navBtn(5, "Next: Results", true)}</div>
+              </fieldset>
             )}
 
             {activeSection === 5 && (
-              <div>
-                <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px", marginBottom: 20 }}>
-                  <h2 style={{ ...TYPE.h1, fontSize: 21, color: NAVY, margin: "0 0 20px" }}>Overhead, Facilities & 3-Year Inputs</h2>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                    <NumField label="Cloud Infrastructure (mo)" value={d.cloudInfra} onChange={v => set("cloudInfra", v)} prefix="$" step={500} min={0} />
-                    <NumField label="Prof. Services Amortized (mo)" value={d.psAmortized} onChange={v => set("psAmortized", v)} info={DEFS.psAmortized} infoTitle="Amortized PS" prefix="$" step={500} min={0} hint="Recurring managed service" />
-                    <NumField label="Facilities (mo)" value={d.facilitiesCost} onChange={v => set("facilitiesCost", v)} prefix="$" step={500} min={0} />
-                    <NumField label="Implementation (one-time)" value={d.implementationOneTime} onChange={v => set("implementationOneTime", v)} info={DEFS.implementation} infoTitle="Implementation" prefix="$" step={5000} min={0} pulled={pulled.implementationOneTime} hint="Added once to 3-year. 0 if steady-state" />
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <fieldset style={{ ...panel, margin: 0 }}>
+                  <legend style={{ ...kicker, padding: "0 6px" }}>Overhead, Facilities & 3-Year Inputs</legend>
+                  <div style={grid(190)}>
+                    <NumField label="Cloud Infrastructure (mo)" tone="dark" value={d.cloudInfra} onChange={v => set("cloudInfra", v)} prefix="$" step={500} min={0} />
+                    <NumField label="Prof. Services Amortized (mo)" tone="dark" value={d.psAmortized} onChange={v => set("psAmortized", v)} info={DEFS.psAmortized} infoTitle="Amortized PS" prefix="$" step={500} min={0} hint="Recurring managed service" />
+                    <NumField label="Facilities (mo)" tone="dark" value={d.facilitiesCost} onChange={v => set("facilitiesCost", v)} prefix="$" step={500} min={0} />
+                    <NumField label="Implementation (one-time)" tone="dark" value={d.implementationOneTime} onChange={v => set("implementationOneTime", v)} info={DEFS.implementation} infoTitle="Implementation" prefix="$" step={5000} min={0} pulled={pulled.implementationOneTime} hint="Added once to 3-year. 0 if steady-state" />
                   </div>
 
-                  <div style={{ marginTop: 18, background: WARM, borderRadius: 10, padding: "16px 18px" }}>
+                  <div style={{ marginTop: 18, border: `1px solid ${hair}`, borderRadius: RADIUS.field, padding: "16px 18px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, display: "flex", alignItems: "center", gap: 6 }}>3-Year Escalators <InfoDot title="Two escalators" text="Labor and contracted license inflate at different rates, so the tool escalates them separately. Usage and facilities are held flat, and one-time cost is added once and never escalates." /></div>
-                      <button onClick={() => set("useSingleEscalator", !d.useSingleEscalator)} style={{ fontSize: 12, fontWeight: 600, padding: "6px 12px", borderRadius: 6, border: `1px solid ${BORDER}`, background: "#fff", color: SLATE, cursor: "pointer" }}>{d.useSingleEscalator ? "Using single blended rate" : "Using two rates"}</button>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 6 }}>3-Year Escalators <InfoDot title="Two escalators" text="Labor and contracted license inflate at different rates, so the tool escalates them separately. Usage and facilities are held flat, and one-time cost is added once and never escalates." /></div>
+                      <Button kind="secondary" onClick={() => set("useSingleEscalator", !d.useSingleEscalator)}>{d.useSingleEscalator ? "Using single blended rate" : "Using two rates"}</Button>
                     </div>
                     {d.useSingleEscalator ? (
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                        <NumField label="Blended Escalator" value={d.blendedEscalatorPct} onChange={v => set("blendedEscalatorPct", v)} suffix="%" factor={100} step={0.5} min={0} max={20} hint="One rate on all recurring cost" info={DEFS.wageEsc} infoTitle="Escalator" />
+                      <div style={grid(190)}>
+                        <NumField label="Blended Escalator" tone="dark" value={d.blendedEscalatorPct} onChange={v => set("blendedEscalatorPct", v)} suffix="%" factor={100} step={0.5} min={0} max={20} hint="One rate on all recurring cost" info={DEFS.wageEsc} infoTitle="Escalator" />
                       </div>
                     ) : (
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="input-row">
-                        <NumField label="Wage Growth (labor)" value={d.wageEscalatorPct} onChange={v => set("wageEscalatorPct", v)} suffix="%" factor={100} step={0.5} min={0} max={20} hint="Default 3.5%, applied to labor" info={DEFS.wageEsc} infoTitle="Wage growth" />
-                        <NumField label="License Renewal Uplift" value={d.licenseEscalatorPct} onChange={v => set("licenseEscalatorPct", v)} suffix="%" factor={100} step={0.5} min={0} max={20} hint="Default 6%, applied to software" info={DEFS.licenseEsc} infoTitle="Renewal uplift" />
-                        <div style={{ background: ICE, borderRadius: 6, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                          <div style={{ fontSize: 12, color: MUTED }}>Held flat</div>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>Usage + facilities</div>
-                          <div style={{ fontSize: 12, color: MUTED }}>one-time added once</div>
+                      <div style={grid(190)}>
+                        <NumField label="Wage Growth (labor)" tone="dark" value={d.wageEscalatorPct} onChange={v => set("wageEscalatorPct", v)} suffix="%" factor={100} step={0.5} min={0} max={20} hint="Default 3.5%, applied to labor" info={DEFS.wageEsc} infoTitle="Wage growth" />
+                        <NumField label="License Renewal Uplift" tone="dark" value={d.licenseEscalatorPct} onChange={v => set("licenseEscalatorPct", v)} suffix="%" factor={100} step={0.5} min={0} max={20} hint="Default 6%, applied to software" info={DEFS.licenseEsc} infoTitle="Renewal uplift" />
+                        <div style={box}>
+                          <div style={small}>Held flat</div>
+                          <div style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist }}>Usage + facilities</div>
+                          <div style={small}>one-time added once</div>
                         </div>
                       </div>
                     )}
                   </div>
 
-                  <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="input-row">
+                  <div style={{ ...grid(240), marginTop: 14 }}>
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Cost basis <InfoDot title="Cost basis" text={DEFS.costBasis} /></label>
-                      <select aria-label="Cost basis" value={d.costBasis} onChange={e => set("costBasis", e.target.value)} style={{ width: "100%", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, cursor: "pointer" }}>
+                      <label htmlFor="tco-basis" style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>Cost basis <InfoDot title="Cost basis" text={DEFS.costBasis} /></label>
+                      <select id="tco-basis" aria-label="Cost basis" value={d.costBasis} onChange={e => set("costBasis", e.target.value)} className="tco-sel" style={sel}>
                         <option value="estimate">Estimate (directional)</option>
                         <option value="quoted">Vendor quote</option>
                         <option value="invoiced">Actual invoice</option>
                       </select>
-                      <div style={{ fontSize: 12, color: MUTED, marginTop: 3 }}>Sets the sensitivity range and gates Finance-grade. Applies to cost inputs like wages and seat prices, not KPIs.</div>
+                      <div style={{ ...small, marginTop: 4 }}>Sets the sensitivity range and gates Finance-grade. Applies to cost inputs like wages and seat prices, not KPIs.</div>
                     </div>
-                    <div style={{ background: `${confColor}12`, border: `1px solid ${confColor}40`, borderRadius: 8, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                      <div style={{ fontSize: 12, color: MUTED }}>Export confidence</div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: confColor }}>{G.confidence}</div>
-                      <div style={{ fontSize: 12, color: MUTED }}>Headline range +/- {pct0(r.sensitivity.pct)}</div>
+                    <div style={box}>
+                      <div style={small}>Export confidence</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: HOUSE.mist }}>{G.confidence}</div>
+                      <div style={small}>Headline range +/- {pct0(r.sensitivity.pct)}</div>
                     </div>
                   </div>
-                </div>
+                </fieldset>
 
-                {/* Optimization targets (user-owned) */}
-                <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 22px", marginBottom: 20 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>Optimization targets <InfoDot title="Your targets" text={DEFS.targets} /></div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14 }} className="input-row">
-                    <NumField label="Target Containment" value={d.targetContainment} onChange={v => set("targetContainment", v)} suffix="%" factor={100} min={0} max={100} compact />
-                    <NumField label="Target FCR" value={d.targetFcr} onChange={v => set("targetFcr", v)} suffix="%" factor={100} min={0} max={100} compact />
-                    <NumField label="Target AHT (sec)" value={d.targetAht} onChange={v => set("targetAht", v)} step={5} min={0} compact hint={mmss(d.targetAht)} />
-                    <NumField label="Target Attrition" value={d.targetAttrition} onChange={v => set("targetAttrition", v)} suffix="%" factor={100} min={0} max={200} compact />
+                <fieldset style={{ ...panel, margin: 0 }}>
+                  <legend style={{ ...kicker, padding: "0 6px", display: "flex", alignItems: "center", gap: 6 }}>Optimization targets <InfoDot title="Your targets" text={DEFS.targets} /></legend>
+                  <div style={grid(150)}>
+                    <NumField label="Target Containment" tone="dark" value={d.targetContainment} onChange={v => set("targetContainment", v)} suffix="%" factor={100} min={0} max={100} compact />
+                    <NumField label="Target FCR" tone="dark" value={d.targetFcr} onChange={v => set("targetFcr", v)} suffix="%" factor={100} min={0} max={100} compact />
+                    <NumField label="Target AHT (sec)" tone="dark" value={d.targetAht} onChange={v => set("targetAht", v)} step={5} min={0} compact hint={mmss(d.targetAht)} />
+                    <NumField label="Target Attrition" tone="dark" value={d.targetAttrition} onChange={v => set("targetAttrition", v)} suffix="%" factor={100} min={0} max={200} compact />
                   </div>
-                </div>
+                </fieldset>
 
-
-                <div style={{ background: NAVY, borderRadius: 14, padding: "32px 28px", color: "#fff", marginBottom: 20 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.8, textTransform: "uppercase", color: LIGHT }}>Complete TCO Results</div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: confColor, background: "rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6, display: "inline-block" }}>{G.confidence}</div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 3 }}>cost inputs, not savings or KPIs</div>
-                    </div>
+                <section aria-label="Complete TCO results" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+                    <span style={kicker}>Complete TCO results</span>
+                    <span style={small}><strong style={{ color: HOUSE.mist }}>{G.confidence}</strong>, cost inputs, not savings or KPIs</span>
                   </div>
                   {G.voided ? (
-                    <div style={{ background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: 8, padding: "18px 16px" }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 6 }}>Result void. No figure is shown and no grade is claimed.</div>
-                      <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.55 }}>Failed check: {G.invariants.join("; ")}. Remedy: {G.gradeObj.remedy}</div>
-                    </div>
+                    <Finding level="critical" title="Result void. No figure is shown and no grade is claimed.">Failed check: {G.invariants.join("; ")}. Remedy: {G.gradeObj.remedy}</Finding>
                   ) : (<>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 24 }} className="kpi-grid">
-                    <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Annual TCO</div>
-                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: LIGHT }}>{fmtK(r.annual)}</div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Range {fmtK(r.sensitivity.annualLow)} to {fmtK(r.sensitivity.annualHigh)}</div>
+                  <div style={{ ...grid(170), marginBottom: 20 }}>
+                    <div>
+                      <div style={small}>Annual TCO</div>
+                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: HOUSE.mist }}>{fmtK(r.annual)}</div>
+                      <div style={small}>Range {fmtK(r.sensitivity.annualLow)} to {fmtK(r.sensitivity.annualHigh)}</div>
                     </div>
-                    <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>3-Year TCO</div>
-                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: "#fff" }}>{fmtK(r.threeYear)}</div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{n(d.implementationOneTime) > 0 ? fmtK(n(d.implementationOneTime)) + " impl + " : ""}{escLabel}</div>
+                    <div>
+                      <div style={small}>3-Year TCO</div>
+                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: HOUSE.mist }}>{fmtK(r.threeYear)}</div>
+                      <div style={small}>{n(d.implementationOneTime) > 0 ? fmtK(n(d.implementationOneTime)) + " impl + " : ""}{escLabel}</div>
                     </div>
-                    <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "18px 16px" }}>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Per Agent/Month</div>
-                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: getBench(r.monthly / r.agents, 4500, 7500, true) }}>{fmt(r.monthly / r.agents)}</div>
-                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Industry: $4.5K to $7.5K loaded</div>
+                    <div>
+                      <div style={small}>Per Agent/Month</div>
+                      <div style={{ ...TYPE.statValueLg, fontSize: 29, color: HOUSE.mist }}>{fmt(r.monthly / r.agents)}</div>
+                      <div style={small}>Industry: $4.5K to $7.5K loaded</div>
                     </div>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 24 }} className="kpi-grid">
+                  <div style={{ ...grid(130), marginBottom: 20 }}>
                     {[{ l: "Cost Per Contact", v: "$" + r.costPerContact.toFixed(2) }, { l: "Cost Per Resolution", v: "$" + r.costPerResolution.toFixed(2) }, { l: "Marginal / Contact", v: "$" + r.marginalPerContact.toFixed(2) }, { l: "Contacts / Agent/Mo", v: Math.round(r.contacts / r.agents).toLocaleString() }].map((item, i) => (
-                      <div key={i} style={{ textAlign: "center" }}><div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{item.l}</div><div style={{ fontSize: 20, fontWeight: 600, color: "#fff" }}>{item.v}</div></div>
+                      <div key={i}><div style={small}>{item.l}</div><div style={{ ...figure, ...NUM }}>{item.v}</div></div>
                     ))}
                   </div>
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginBottom: 6 }}>Cost Distribution</div>
-                    <div style={{ display: "flex", height: 24, borderRadius: 6, overflow: "hidden" }}>
-                      <div style={{ width: r.disp.laborPctStr, background: ELECTRIC, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>{r.disp.laborPctStr}</span></div>
-                      <div style={{ width: r.disp.techPctStr, background: LIGHT, display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>{r.disp.techPctStr}</span></div>
-                      <div style={{ width: r.disp.overheadPctStr, background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>{r.disp.overheadPctStr}</span></div>
+                  <div>
+                    <div style={{ ...small, marginBottom: 6 }}>Cost distribution</div>
+                    <div role="img" aria-label={`Labor ${r.disp.laborPctStr}, technology ${r.disp.techPctStr}, overhead ${r.disp.overheadPctStr}`} style={{ display: "flex", height: 24, borderRadius: RADIUS.chip, overflow: "hidden", border: `1px solid ${hair}` }}>
+                      <div style={{ width: r.disp.laborPctStr, background: alpha(ARCS.evidence, 0.9) }} />
+                      <div style={{ width: r.disp.techPctStr, background: alpha(ARCS.evidence, 0.5) }} />
+                      <div style={{ width: r.disp.overheadPctStr, background: alpha(ARCS.evidence, 0.2) }} />
                     </div>
                     <div style={{ display: "flex", gap: 16, marginTop: 6, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Labor {fmtK(r.labor)}/mo</span>
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Tech {fmtK(r.tech)}/mo</span>
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Overhead {fmtK(r.overhead)}/mo</span>
+                      <span style={small}>Labor {r.disp.laborPctStr}, {fmtK(r.labor)}/mo</span>
+                      <span style={small}>Tech {r.disp.techPctStr}, {fmtK(r.tech)}/mo</span>
+                      <span style={small}>Overhead {r.disp.overheadPctStr}, {fmtK(r.overhead)}/mo</span>
                     </div>
                   </div>
                   </>)}
-                </div>
+                </section>
 
                 {/* Self-audit flags */}
                 {!G.voided && r.flags.length > 0 && (
-                  <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "18px 22px", marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>Integrity checks</div>
-                    {r.flags.map((f, i) => {
-                      const c = f.level === "block" ? RED : f.level === "flag" ? AMBER : MUTED;
-                      const tag = f.level === "block" ? "BLOCK" : f.level === "flag" ? "CONFIRM" : "NOTE";
-                      return (
-                        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "8px 0", borderTop: i ? `1px solid ${BORDER}` : "none" }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: c, background: `${c}15`, padding: "2px 7px", borderRadius: 4, flexShrink: 0, marginTop: 1 }}>{tag}</span>
-                          <span style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5 }}>{f.msg}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  <section aria-label="Integrity checks" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <h2 style={h2}>Integrity checks</h2>
+                    {r.flags.map((f, i) => (
+                      <Finding key={i} level={f.level === "block" ? "critical" : f.level === "flag" ? "high" : "unknown"} title={f.level === "block" ? "Blocks the result" : f.level === "flag" ? "Confirm this" : "Note"}>{f.msg}</Finding>
+                    ))}
+                  </section>
                 )}
 
                 {/* Analyst Read. A void run has no figure to read, so it renders none. */}
-                {!G.voided && <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 20 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read, what these numbers mean</div>
-                  {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
-                </div>}
+                {!G.voided && <section aria-label="What it means" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+                  <span style={kicker}>What these numbers mean</span>
+                  {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "8px 0 0" }}>{t}</p>)}
+                </section>}
 
                 {/* Stance selector */}
-                <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 22px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-                  <div><div style={{ fontSize: 13, fontWeight: 700, color: NAVY, display: "flex", alignItems: "center", gap: 6 }}>Savings stance <InfoDot title="Realization stance" text={DEFS.stance} /></div><div style={{ fontSize: 12, color: MUTED }}>{STANCE[stance].note}</div></div>
-                  <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8, flexWrap: "wrap" }}>
+                <section aria-label="Savings stance" style={{ ...panel, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                  <div><div style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 6 }}>Savings stance <InfoDot title="Realization stance" text={DEFS.stance} /></div><div style={small}>{STANCE[stance].note}</div></div>
+                  <div role="group" aria-label="Savings stance" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                     {Object.entries(STANCE).map(([k, v]) => (
-                      <button key={k} onClick={() => setStance(k)} style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer", background: stance === k ? ELECTRIC : "transparent", color: stance === k ? "#fff" : SLATE }}>{v.label}</button>
+                      <button key={k} type="button" aria-pressed={stance === k} onClick={() => setStance(k)} style={{ minHeight: TOUCH, padding: "0 14px", fontFamily: FONT, fontSize: 14, fontWeight: stance === k ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer", border: `1px solid ${stance === k ? HOUSE.electric : firm}`, background: stance === k ? alpha(HOUSE.electric, 0.22) : "transparent", color: HOUSE.mist }}>{v.label}</button>
                     ))}
                   </div>
-                </div>
+                </section>
 
                 {!G.voided && opt.items.length > 0 && (
-                  <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px", marginBottom: 20 }}>
+                  <section aria-label="Optimization opportunities" style={panel}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
-                      <h3 style={{ ...TYPE.h2, fontSize: 19, color: NAVY, margin: 0 }}>Optimization Opportunities</h3>
-                      <div style={{ fontSize: 12, color: MUTED }}>{Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? "Booked at full theoretical value" : "Booked"} <strong style={{ color: GREEN }}>{fmtK(opt.netTotal)}/mo</strong> ({fmtK(opt.netTotal * 12)}/yr){Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", no haircut applied" : `, haircut from ${fmtK(opt.grossTotal)}/mo theoretical`}</div>
+                      <h2 style={{ ...h2, margin: 0 }}>Optimization opportunities</h2>
+                      <div style={small}>{Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? "Booked at full theoretical value" : "Booked"} <strong style={{ color: HOUSE.mist }}>{fmtK(opt.netTotal)}/mo</strong> ({fmtK(opt.netTotal * 12)}/yr){Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", no haircut applied" : `, haircut from ${fmtK(opt.grossTotal)}/mo theoretical`}</div>
                     </div>
-                    <p style={{ fontSize: 12, color: MUTED, margin: "0 0 12px", lineHeight: 1.5 }}>De-overlapped: each lever acts on the volume the prior leaves, valued at marginal cost, then scaled by the {STANCE[stance].label.toLowerCase()} stance. They do not double-count.</p>
+                    <p style={{ ...small, margin: "0 0 12px" }}>De-overlapped: each lever acts on the volume the prior leaves, valued at marginal cost, then scaled by the {STANCE[stance].label.toLowerCase()} stance. They do not double-count.</p>
                     {opt.items.map((o, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, padding: "12px 0", borderBottom: i < opt.items.length - 1 ? `1px solid ${BORDER}` : "none" }}>
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, padding: "12px 0", borderTop: `1px solid ${hair}` }}>
                         <div style={{ flex: 1 }}>
-                          <h4 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: "0 0 2px" }}>{o.title}</h4>
-                          <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.5, margin: 0 }}>{o.desc}</p>
+                          <h3 style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist, margin: "0 0 2px" }}>{o.title}</h3>
+                          <p style={small}>{o.desc}</p>
                         </div>
                         <div style={{ textAlign: "right", flexShrink: 0 }}>
-                          <div style={{ background: `${GREEN}15`, color: GREEN, fontSize: 13, fontWeight: 700, padding: "5px 10px", borderRadius: 6 }}>{fmtK(o.net)}/mo</div>
-                          {o.net !== o.gross && <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>gross {fmtK(o.gross)}</div>}
+                          <div style={{ fontSize: 15, fontWeight: 700, color: HOUSE.mist, ...NUM }}>{fmtK(o.net)}/mo</div>
+                          {o.net !== o.gross && <div style={small}>gross {fmtK(o.gross)}</div>}
                         </div>
                       </div>
                     ))}
-                    {opt.occRisk && <p style={{ fontSize: 12, color: AMBER, margin: "12px 0 0", fontWeight: 600 }}>Occupancy above {pct0(BENCH.occupancy.cautionMax)}. Capturing these savings by cutting heads will push occupancy higher and risk attrition. Re-staff to the 83 to 87% band rather than just trimming.</p>}
-                  </div>
+                    {opt.occRisk && <Finding level="high" title={`Occupancy above ${pct0(BENCH.occupancy.cautionMax)}`}>Capturing these savings by cutting heads will push occupancy higher and risk attrition. Re-staff to the 83 to 87% band rather than just trimming.</Finding>}
+                  </section>
                 )}
 
-                {/* Live journey CTAs */}
-
-                <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "28px 24px", textAlign: "center" }}>
-                    <div>
-                      <h3 style={{ ...TYPE.h2, fontSize: 19, color: "#fff", margin: "0 0 8px" }}>Take this to your team</h3>
-                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", margin: "0 0 20px" }}>Download the board-ready breakdown, share the exact scenario as a link, or send it to our advisory team for a free expert read of the highest-impact levers.</p>
-                      <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
-                        <span style={{ display: "inline-flex" }}>
-<ReportActions
+                {/* The report is paper (Brand Guide section 13). */}
+                <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
+                        <ReportActions
                           toolId={TOOL_ID}
                           toolName="Total Cost of Ownership Analysis"
                           subtitle={r.agents + " agents, " + (INDUSTRY[d.industry]?.label || d.industry) + ", " + STANCE[stance].label + " stance, " + G.confidence}
@@ -1309,34 +1254,15 @@ function Calculator() {
                           { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on ${benchmark("tco.hours.month")} paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage ${pctD(benchmark("tco.escalator.wage"))} and license ${pctD(benchmark("tco.escalator.license"))}); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by the ${STANCE[stance].label.toLowerCase()} realization stance, so totals are defensible rather than inflated.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/tco-calculator. ${BENCHMARK_SOURCES}` },
                         ]}
                         />
-                        </span>
-                      </div>
-                      <a href="/contact" style={{ display: "inline-block", marginTop: 14, color: "rgba(255,255,255,0.72)", fontSize: 12 }}>Prefer the full contact form?</a>
-                    </div>
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    null
+    </ToolFrame>
   );
 }
 
 export default function TCOCalculator() {
-  return (
-    <div>
-      <Nav />
-      <Calculator />
-      <Footer />
-    </div>
-  );
+  return <Calculator />;
 }
 
 /* The scenario-link defaults, exported for the live checker and the visual audit. */

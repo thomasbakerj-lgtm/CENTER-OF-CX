@@ -130,7 +130,7 @@ export function pillarFor(pathname = "") {
    their own fixed navigation; the homepage left the list when Phase 5 rebuilt it). They keep the header over the page until Phases 8 and 9
    rebuild them; every other page has the header in the flow. */
 const FIXED_EXACT = new Set(["/about", "/advisory", "/contact", "/cx-ecosystem", "/how-to-choose", "/human-premium",
-  "/industries", "/platforms-and-tech", "/privacy", "/terms", "/research", "/subscribe", "/tools/tco-calculator", "/vendors"]);
+  "/industries", "/platforms-and-tech", "/privacy", "/terms", "/research", "/subscribe", "/vendors"]);
 export function headerFixed(pathname = "") {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   return FIXED_EXACT.has(p) || /^\/vendors\//.test(p) || /^\/research\/[^/]+$/.test(p) || /^\/industries\/[^/]+$/.test(p);
