@@ -51,7 +51,7 @@ section("2. Every vendor surface offers an introduction");
   ok("Vendor Match: top matches and the rest of the list each carry one", /isTop&&\(<>[\s\S]*<VendorIntro slug=\{v\.slug\}/.test(VM) && /!isTop&&\(<div[^\n]*<VendorIntro slug=\{v\.slug\}/.test(VM));
   ok("Vendor Match: the introduction card names the top match", /href=\{introHref\(\{slug:results\[0\]\.slug,from:TOOL_ID\}\)\}/.test(VM));
   ok("RFP Builder: each named vendor carries one", /<VendorIntro name=\{v\.name\} from=\{TOOL_ID\}/.test(read("RFPRequirementBuilder.jsx")));
-  ok("CCaaS category: both vendor lists carry one", (read("CCaaSCategory.jsx").match(/<VendorIntroLink slug=\{v\.slug\}/g) || []).length === 2);
+  ok("CCaaS category: all three vendor lists carry one", (read("CCaaSCategory.jsx").match(/<VendorIntroLink slug=\{v\.slug\}/g) || []).length === 3);
   ok("the other categories' directory carries one", /<VendorIntroLink slug=\{v\.slug\}/.test(read("src/lib/Phase1Directory.jsx")));
   ok("category by industry pages carry one", /<VendorIntroLink slug=\{v\.slug\}/.test(read("CategoryVerticalPage.jsx")));
 }

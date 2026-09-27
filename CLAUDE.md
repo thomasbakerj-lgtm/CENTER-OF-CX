@@ -1121,6 +1121,25 @@ dashboard, the 12-phase growth program.
    its findings, the route uses research for exactly the 18, tokens only. A mutation adding "score" to the page fails it.
    Phone overflow fixed on the way (key and value grid stacks under 600px; long research strings wrap). Suite 24,886; live
    check 255 of 255; 18 profiles at 1440 and 390 clean. Next: Phase 7 part 3, the CCaaS category page by competitive class.
+   PR #53 merged by TB's instruction (fe24123).
+62. S24, redesign session 20, Phase 7 part 3: the CCaaS category page by competitive class (TB: "merge it and go"; design
+   approved 26 Sep). Truth surface: Vendor Intelligence; presentation only. `src/lib/research/categoryView.js`
+   (`buildCategoryIndex`) reads the snapshot's classes and vendors and each vendor's first published best-when statement
+   (Decision_ID order); `research-sync` writes it as `src/data/research/ccaas/category.json` (8.5 KB), so the page loads no
+   vendor file. `research.test.mjs` proves the committed index equals a fresh build from the committed snapshot (and from
+   the corpus when `RESEARCH_CORPUS` is set; re-synced from the Cohort 3 corpus, byte equal). `CCaaSCategory.jsx` rebuilt on
+   tokens: what the category covers and where it ends; where the research stands (18 of 24 researched, 6 classes, 3
+   calibrated and 3 draft, validated 19 to 23 Sep, ratings locked); "Start with the job you need done", six class cards
+   (plain name and job restated in `PLAIN`, the corpus buyer, calibrated or draft, vendor count) that filter the list and
+   link by hash (`#cls-cc-004`); each class with its research name and definition word for word and its vendors A to Z
+   with the best-when statement, "Compared on" (the class boundary) and validation date (Talkdesk publishes no best-when:
+   the page says so); the 6 not yet researched with no class, AnywhereNow marked "Researching next"
+   (`CCAAS_RESEARCH.next`), the others with "Ask us to research" (one anonymous `vendor_action` `request` event, no
+   count shown); adjacent suites; method; four tools. An introduction on every vendor (28). Phase 1 scores stay withdrawn
+   (freeze pins pass). `category.test.mjs` (130): every vendor once in its own class, order, statements, boundary, dates,
+   each filter exact, the not yet researched carry no class, the page's own words carry no score, rank, tier, grade or
+   count (a mutation adding "Ranked first" fails it), tokens only, no dash. Browser: 1440 and 390 no overflow, no page
+   error, filter and hash link work. Suite 25,017; live check 255 of 255. Next: Phase 7 part 4, the CCaaS by industry pages (research Stage 3).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
