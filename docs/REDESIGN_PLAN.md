@@ -99,6 +99,8 @@ made just before the phases that build them, so nothing waits on pages that ship
   Staffing, Attrition, Channel Shift, then the WFM five, the frameworks, the procurement tools, Vendor Match, Roadmap.
 - Readout added to assessments once the part to layer mapping is published.
 - No engine change in this phase: every A/B shows identical figures and grades.
+- Batch 1 done (S24, 27 Sep 2026): Cost per Contact, FCR Leakage, AI Deflection, Business Case on ToolFrame. Engine regions,
+  grading and report payloads byte-equal to `main`; `toolframe.test.mjs` section 5 gates each moved tool. Next: batch 2.
 
 ## Phase 7. Research Stage 1 and Vendor Intelligence (three to four sessions)
 

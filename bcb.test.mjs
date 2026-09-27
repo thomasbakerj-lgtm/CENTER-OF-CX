@@ -2212,15 +2212,16 @@ section("I. The shared type system");
   ok("I the stylesheet is generated from the shared import, not pasted",
      SRC.includes("${FONT_IMPORT_CSS}") && !SRC.includes("fonts.googleapis.com"));
 
+  /* Phase 6: the three headline tiles share one tile helper, and the page title is the tool frame's question. */
   ok("I the three headline tiles use the tabular stat token", (() => {
     const n = (SRC.match(/\.\.\.TYPE\.statValueLg, fontSize: 30/g) || []).length;
-    return n === 3;
+    return n === 1 && (SRC.match(/\{tile\(/g) || []).length === 3;
   })());
-  ok("I the page title uses the display token", SRC.includes("...TYPE.display"));
+  ok("I the page title is the tool frame's one h1", SRC.includes("<ToolFrame") && !/<h1/.test(SRC));
   ok("I alignment-critical numeric columns carry tabular figures", (() => {
-    // Savings-breakdown value column plus the four capacity-and-cash values.
+    // Savings-breakdown value and share columns, the savings basis and the capacity-and-cash rows (one map, four rows).
     const n = (SRC.match(/\.\.\.NUM \}/g) || []).length;
-    return n >= 5;
+    return n >= 4;
   })(), String((SRC.match(/\.\.\.NUM \}/g) || []).length));
 
   ok("I the PDF runs on the same family as the page (IBM Plex Sans since redesign Phase 2)", (() => {
@@ -2566,12 +2567,12 @@ section("K. Enum resolution, substitution and disclosure");
   A("the raw evidence default is gone", !/const evidence = d\.evidence \|\| "estimate";/.test(SRC));
   A("the raw truthy bauEvidence lookup is gone", !/BAU_EVIDENCE\[d\.bauEvidence\] \? d\.bauEvidence : "estimated"/.test(SRC));
   A("no component-path read still indexes STANCE by raw state", !/STANCE\[stance\]/.test(SRC));
-  A("the component reads the resolved stance", (SRC.match(/STANCE\[r\.stanceKey\]/g) || []).length === 11);
+  A("the component reads the resolved stance", (SRC.match(/STANCE\[r\.stanceKey\]/g) || []).length === 12); /* 12 since Phase 6: the result card names the stance */
   A("the capacity-action note reads the resolved mech key", /\{MECH\[r\.mechKey\]\.note\}/.test(SRC));
-  A("the capacity-action selector displays the resolved mech key", /<select (?:aria-label="[^"]*" )?value=\{r\.mechKey\}/.test(SRC));
-  A("the stance selector displays the resolved stance key", /background: r\.stanceKey === k \? ELECTRIC/.test(SRC));
-  A("the evidence selector displays the resolved evidence key", /background: conf\.evidence === k \? ELECTRIC/.test(SRC));
-  A("the displaced-spend selector displays the resolved key", /background: conf\.bauEvidence === k \? ELECTRIC/.test(SRC));
+  A("the capacity-action selector displays the resolved mech key", /<select (?:id="[^"]*" )?(?:aria-label="[^"]*" )?value=\{r\.mechKey\}/.test(SRC));
+  A("the stance selector displays the resolved stance key", /label="Case stance" options=\{[^}]*\} value=\{r\.stanceKey\}/.test(SRC));
+  A("the evidence selector displays the resolved evidence key", /label="Evidence basis" options=\{[^}]*\} value=\{conf\.evidence\}/.test(SRC));
+  A("the displaced-spend selector displays the resolved key", /label="Displaced spend evidence" options=\{[^}]*\} value=\{conf\.bauEvidence\}/.test(SRC));
   A("telemetry reports the resolved stance and the correction count",
     /stance_class: r\.stanceKey,/.test(SRC) && /inputs_corrected: conf\.corrections\.length \+ conf\.numericCorrections\.length \+ conf\.domainCorrections\.length,/.test(SRC));
   A("the correction cap is Directional and names its own domain",

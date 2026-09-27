@@ -153,6 +153,14 @@ export function GradeBadge({ grade, heldBy, lift }) {
 
 /* ------------------------------------------------------------------- Result */
 
+/** What Result shows for a tool's emitted grade object (src/lib/confidence.js): the three axes, the headline and the
+ *  axis holding it down, or, on a void, the failed invariant and its remedy and no grade at all. */
+export function resultHow(g) {
+  if (!g) return { how: null, voidReason: null };
+  if (g.void) return { how: null, voidReason: `${g.invariant} ${g.remedy}`.trim() };
+  return { how: { axes: { evidence: g.evidence, realization: g.realization, completeness: g.completeness }, headline: g.headline, heldBy: g.boundBy || null }, voidReason: null };
+}
+
 /** The figure counts to its value; one line under it states the change; the evidence
  *  mark sits beside it, or below it in a narrow column. A void result shows no figure and says which input made it
  *  impossible. */

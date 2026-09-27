@@ -15,12 +15,22 @@ import { useState, useEffect, useRef, useId } from "react";
 import InfoDot from "./InfoDot";
 import { COLORS } from "./benchmarks";
 import { parseEntry, isCleanEntry } from "./guards";
+import { HOUSE, PILLARS, RADIUS, alpha, LINE } from "./tokens.js";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, MUTED = COLORS.muted;
 const BORDER = "#D8E3ED", ICE = "#E8F4FD";
 const n = (v) => { const p = parseFloat(v); return isNaN(p) ? 0 : p; };
 
-export default function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, factor = 1, pulled, compact, info, infoTitle, infoAlign }) {
+/* Colours only. tone "dark" is the redesign's house (Brand Guide 1.0, redesign Phase 6): the same field, the same
+   parsing, clamping and stepper, on ink. Every tool keeps identical input behaviour whichever tone it renders. */
+const TONES = {
+  light: { label: NAVY, text: NAVY, muted: MUTED, border: BORDER, focus: ELECTRIC, bg: "#fff", badge: ELECTRIC, badgeBg: ICE, radius: 6, size: 14 },
+  dark: { label: HOUSE.mist, text: HOUSE.mist, muted: HOUSE.muted, border: alpha(HOUSE.mist, LINE.firm), focus: HOUSE.electric, bg: HOUSE.navy,
+    badge: PILLARS.diagnostics.onDark, badgeBg: alpha(PILLARS.diagnostics.fill, 0.16), radius: RADIUS.field, size: 16 },
+};
+
+export default function NumField({ label, value, onChange, hint, prefix, suffix, step = 1, min, max, factor = 1, pulled, compact, info, infoTitle, infoAlign, tone = "light" }) {
+  const T = TONES[tone] || TONES.light;
   const fieldId = useId();
   const fac = factor || 1;
   // A value that is not a clean number (a bad scenario link, a stale state) shows as
@@ -82,26 +92,26 @@ export default function NumField({ label, value, onChange, hint, prefix, suffix,
     holdRef.current = setTimeout(tick, delay); // acceleration begins only after the hold delay
   };
 
-  const btn = { width: 20, height: 14, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: MUTED, cursor: "pointer", padding: 0, fontSize: 12, userSelect: "none", touchAction: "none" };
+  const btn = { width: 20, height: 14, display: "flex", alignItems: "center", justifyContent: "center", border: "none", background: "transparent", color: T.muted, cursor: "pointer", padding: 0, fontSize: 12, userSelect: "none", touchAction: "none" };
   return (
     <div>
-      <label htmlFor={fieldId} style={{ fontSize: compact ? 11 : 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-        {label}{info && <InfoDot text={info} title={infoTitle || label} align={infoAlign} />}{pulled && <span style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, background: ICE, padding: "1px 5px", borderRadius: 4 }}>PULLED</span>}
+      <label htmlFor={fieldId} style={{ fontSize: compact ? 11 : 12, fontWeight: 600, color: T.label, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+        {label}{info && <InfoDot text={info} title={infoTitle || label} align={infoAlign} />}{pulled && <span style={{ fontSize: 12, fontWeight: 700, color: T.badge, background: T.badgeBg, padding: "1px 5px", borderRadius: 4 }}>PULLED</span>}
       </label>
       <div style={{ position: "relative" }}>
-        {prefix && <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: MUTED, pointerEvents: "none" }}>{prefix}</span>}
+        {prefix && <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: T.muted, pointerEvents: "none" }}>{prefix}</span>}
         <input id={fieldId} type="text" inputMode="decimal" value={local}
-          onFocus={e => { focusedRef.current = true; e.target.style.borderColor = ELECTRIC; }}
+          onFocus={e => { focusedRef.current = true; e.target.style.borderColor = T.focus; }}
           onChange={onType}
-          onBlur={e => { e.target.style.borderColor = BORDER; onBlurField(); }}
-          style={{ width: "100%", boxSizing: "border-box", padding: compact ? "8px 10px" : "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, paddingLeft: prefix ? 24 : (compact ? 10 : 12), paddingRight: 40, outline: "none" }} />
-        {suffix && <span style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: MUTED, pointerEvents: "none" }}>{suffix}</span>}
+          onBlur={e => { e.target.style.borderColor = T.border; onBlurField(); }}
+          style={{ width: "100%", boxSizing: "border-box", padding: compact ? "8px 10px" : "10px 12px", fontSize: T.size, border: `1px solid ${T.border}`, borderRadius: T.radius, background: T.bg, color: T.text, paddingLeft: prefix ? 24 : (compact ? 10 : 12), paddingRight: 40, outline: "none" }} />
+        {suffix && <span style={{ position: "absolute", right: 28, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: T.muted, pointerEvents: "none" }}>{suffix}</span>}
         <div style={{ position: "absolute", right: 3, top: 0, bottom: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 1 }}>
           <button type="button" className="stepper" tabIndex={-1} aria-label={`Increase ${label}`} style={btn} onPointerDown={e => { e.preventDefault(); start(1); }}>▲</button>
           <button type="button" className="stepper" tabIndex={-1} aria-label={`Decrease ${label}`} style={btn} onPointerDown={e => { e.preventDefault(); start(-1); }}>▼</button>
         </div>
       </div>
-      {hint && <span style={{ fontSize: 12, color: MUTED, marginTop: 2, display: "block" }}>{hint}</span>}
+      {hint && <span style={{ fontSize: 12, color: T.muted, marginTop: 2, display: "block" }}>{hint}</span>}
     </div>
   );
 }

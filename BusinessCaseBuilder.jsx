@@ -10,6 +10,10 @@ import { createGuards } from "./src/lib/guards";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { emitGrades, voidResult, weakerStream, realizationFromCred, GRADE_RANK } from "./src/lib/confidence";
 import { trackTool, severityBucket } from "./src/lib/track";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
+import { HOUSE, PILLARS, ARCS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
+import { methodStamp } from "./src/lib/methodVersions.js";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -67,11 +71,34 @@ const fmt2 = (v) => "$" + Number(v).toFixed(2);
 
 function LogoMark({ size = 34, light = true }) { const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC; return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>; }
 
-function Card({ children, accent }) {
-  return <div style={{ background: "#fff", border: `1px solid ${accent ? accent + "40" : BORDER}`, borderRadius: 10, padding: "24px 22px", marginBottom: 16 }}>{children}</div>;
+const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
+const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
+const body = { fontSize: 15, lineHeight: 1.6, color: HOUSE.body, margin: 0 };
+const small = { fontSize: 13, lineHeight: 1.5, color: HOUSE.muted, margin: 0 };
+const strong = { fontSize: 14, fontWeight: 600, color: HOUSE.mist };
+const link = { color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
+const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))`, gap: 14 });
+const panel = { background: HOUSE.navy, border: `1px solid ${hair}`, borderRadius: RADIUS.card, padding: 20 };
+/* A segmented choice: the chosen option is filled, the rest outlined. Weight and fill carry the state, never colour alone. */
+function Choice({ label, options, value, onPick }) {
+  return (
+    <div role="group" aria-label={label} style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      {options.map(([k, v, note]) => (
+        <button key={k} type="button" onClick={() => onPick(k)} aria-pressed={value === k} title={note}
+          style={{ minHeight: TOUCH, fontFamily: FONT, fontSize: 14, fontWeight: value === k ? 700 : 500, padding: "0 14px", borderRadius: RADIUS.field, cursor: "pointer",
+            border: `1px solid ${value === k ? HOUSE.electric : alpha(HOUSE.mist, LINE.firm)}`, background: value === k ? alpha(HOUSE.electric, 0.22) : "transparent", color: HOUSE.mist }}>{v}</button>
+      ))}
+    </div>
+  );
 }
-function H({ children, color }) {
-  return <h3 style={{ fontSize: 13, fontWeight: 700, color: color || ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 14 }}>{children}</h3>;
+function Card({ legend, note, children }) {
+  return (
+    <fieldset style={{ ...panel, margin: 0 }}>
+      <legend style={{ ...kicker, padding: "0 6px" }}>{legend}</legend>
+      {note && <p style={{ ...small, margin: "0 0 14px" }}>{note}</p>}
+      {children}
+    </fieldset>
+  );
 }
 
 // InfoDot definition strings. Two sentences each: what it is, then why the tool uses it.
@@ -1140,302 +1167,251 @@ export default function BusinessCaseBuilder() {
 
   const gradeColor = conf.voided ? RED : conf.grade === "Finance-grade" ? GREEN : conf.grade === "Planning-grade" ? AMBER : MUTED;
 
+  const stamp = methodStamp(TOOL_ID);
+  const { how, voidReason } = resultHow(conf.gradeObj);
+  const tile = (value, label, sub) => (
+    <div>
+      <div style={{ ...TYPE.statValueLg, fontSize: 30, color: HOUSE.mist }}>{value}</div>
+      <div style={{ ...small, color: HOUSE.body }}>{label}</div>
+      <div style={small}>{sub}</div>
+    </div>
+  );
+  const result = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="Realizable annual savings, run rate" value={voidReason ? null : r.net} format={fmtK}
+        change={voidReason ? null : `${STANCE[r.stanceKey].label} stance. ${r.payback > 0 ? `Pays back in month ${r.payback}` : "No payback inside three years"}${r.roiDefined ? `, ${Math.round(r.roi3)}% three-year return` : ""}.`}
+        how={how} voidReason={voidReason} />
+      {!voidReason && (
+        <div style={{ ...panel }}>
+          <span style={kicker}>Capacity and cash</span>
+          {[["Capacity released", `${Math.round(r.freedHoursAttributed).toLocaleString()} hrs/yr`, `${fmtK(r.capacityNet)} labor-equivalent`],
+            ["Converted to value", fmtK(r.capacityRealized), `${r.mechLabel}, ${Math.round(r.mf * 100)}%`],
+            ["Not converted", fmtK(r.unrealizedCapacity), "capacity, excluded from cash"],
+            ["Cash-releasing", fmtK(r.cashNet), "recruiting spend avoided"]].map(([k, v, sub]) => (
+            <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 0", borderTop: `1px solid ${hair}` }}>
+              <span style={small}>{k}<span style={{ display: "block" }}>{sub}</span></span>
+              <span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist, textAlign: "right", ...NUM }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", background: WARM }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}input[type=number]{-moz-appearance:textfield}@media(max-width:700px){.bc-grid{grid-template-columns:1fr!important}.bc-sum{grid-template-columns:1fr!important}}`}</style>
+    <ToolFrame toolId={TOOL_ID} section="Cost + Economics" name="Business Case" title="Does this transformation pay, and how sure is the case?"
+      lede="Model the return of a CX transformation on your own numbers. Every figure shows its inputs and its method, and the model does four things most return calculators do not."
+      method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
+      result={result} pinned={voidReason ? null : { label: "Realizable annual savings", value: fmtK(r.net) }}>
+      <style>{`${FONT_IMPORT_CSS}.bc-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
+      <ul style={{ ...body, fontSize: 14, paddingLeft: 18, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
+        <li><strong style={{ color: HOUSE.mist }}>Separates released capacity from cash.</strong> Avoided contacts release agent labor capacity valued at marginal cost, not at fully loaded cost per contact. Whether that capacity becomes financial benefit depends on the realization action you select, and until one is selected it converts to nothing.</li>
+        <li><strong style={{ color: HOUSE.mist }}>De-overlaps every lever.</strong> Deflection, handle-time, FCR, and attrition never claim the same minute or contact twice.</li>
+        <li><strong style={{ color: HOUSE.mist }}>Weights each lever separately.</strong> A stance discounts soft levers harder than defensible ones, so the case is not a single blanket haircut.</li>
+        <li><strong style={{ color: HOUSE.mist }}>Phases savings over a real J-curve.</strong> Nothing is earned during the build, so payback reflects migration and ramp instead of landing on day one.</li>
+      </ul>
 
-      
+      {Object.keys(pulled).length > 0 && (
+        <p style={{ ...panel, ...body, fontSize: 14, padding: "12px 16px" }}>
+          Baseline inherited from {sourceSummary}. Fields marked pulled carried over as shared facts and stay editable. Target improvements were left for you to author, because the transformation is the argument, not an inherited assumption.
+        </p>
+      )}
 
-      <section style={{ padding: "40px 28px 80px" }}>
-        <div style={WRAP}>
-          <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>Planning Tool</span>
-          <h1 style={{ ...TYPE.display, color: NAVY, margin: "6px 0 6px" }}>Business Case Builder</h1>
-          <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6, marginBottom: 10, maxWidth: 680 }}>Model the ROI of a CX transformation on your real numbers, live and with no sign-up. Every figure shows its inputs and its method, and the model does four things most ROI calculators do not.</p>
-          <ul style={{ fontSize: 13, color: SLATE, lineHeight: 1.7, marginBottom: 20, maxWidth: 680, paddingLeft: 18 }}>
-            <li><b>Separates released capacity from cash.</b> Avoided contacts release agent labor capacity valued at marginal cost, not at fully loaded cost per contact. Whether that capacity becomes financial benefit depends on the realization action you select, and until one is selected it converts to nothing.</li>
-            <li><b>De-overlaps every lever.</b> Deflection, handle-time, FCR, and attrition never claim the same minute or contact twice.</li>
-            <li><b>Weights each lever separately.</b> A stance discounts soft levers harder than defensible ones, so the case is not a single blanket haircut.</li>
-            <li><b>Phases savings over a real J-curve.</b> Nothing is earned during the build, so payback reflects migration and ramp instead of landing on day one.</li>
-          </ul>
-
-          {Object.keys(pulled).length > 0 && (
-            <div style={{ background: ICE, border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "10px 14px", marginBottom: 18, fontSize: 12.5, color: NAVY }}>
-              Baseline inherited from {sourceSummary}. Fields marked <span style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, background: "#fff", padding: "1px 5px", borderRadius: 4 }}>PULLED</span> carried over as shared facts and stay editable. Target improvements were left for you to author, because the transformation is the argument, not an inherited assumption.
-            </div>
-          )}
-
-          <Card>
-            <H>Current State</H>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="bc-grid">
-              <NumField label="Agent Count" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} pulled={pulled.agents} />
-              <NumField label="Avg Agent Hourly Rate" value={d.avgHourly} onChange={v => set("avgHourly", v)} prefix="$" step={0.5} min={0} pulled={pulled.avgHourly} />
-              <NumField label="Benefits & Burden" value={d.benefitsPct} onChange={v => set("benefitsPct", v)} suffix="%" hint="Internal planning range 25 to 35%, adjust to your evidence" min={0} max={100} />
-              <NumField label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
-              <NumField label="Current AHT (sec)" value={d.currentAHT} onChange={v => set("currentAHT", v)} step={5} min={1} hint={`${(n(g.currentAHT) / 60).toFixed(1)} min total`} pulled={pulled.currentAHT} />
-              <NumField label="Current ACW (sec)" value={d.currentACW} onChange={v => set("currentACW", v)} step={5} min={0} info={DEFS.acw} infoTitle="After-call work" hint="Part of AHT" />
-              <NumField label="Current FCR" value={d.currentFCR} onChange={v => set("currentFCR", v)} suffix="%" min={0} max={100} pulled={pulled.currentFCR} />
-              <NumField label="Same-Reason Repeat Contacts" value={d.repeatShare} onChange={v => set("repeatShare", v)} suffix="%" min={0} max={95} info={DEFS.repeatShare} infoTitle="Repeat-contact basis" hint="Optional. Blank derives it from FCR" />
-              <NumField label="Annual Attrition" value={d.currentAttrition} onChange={v => set("currentAttrition", v)} suffix="%" min={0} max={100} pulled={pulled.currentAttrition} />
-              <NumField label="Loaded Cost per Contact" value={d.costPerContact} onChange={v => set("costPerContact", v)} prefix="$" step={0.5} min={0} info={DEFS.loadedCPC} infoTitle="Loaded cost per contact" hint="Context only, not the savings basis" pulled={pulled.costPerContact} />
-              <NumField label="Recruiting Cost / Hire" value={d.recruitCostPerHire} onChange={v => set("recruitCostPerHire", v)} prefix="$" step={100} min={0} />
-              <NumField label="New Hire Training Days" value={d.trainingDays} onChange={v => set("trainingDays", v)} min={0} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Where do your baselines come from?</span>
-              <InfoDot text={DEFS.baseline} title="Baseline evidence" />
-              <div role="group" aria-label="Baseline evidence" style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8, flexWrap: "wrap" }}>
-                {Object.entries(BASELINE_EVIDENCE).map(([k, v]) => (
-                  <button key={k} onClick={() => set("baselineEvidence", k)} aria-pressed={conf.baselineEvidence === k} title={v.note} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: conf.baselineEvidence === k ? ELECTRIC : "transparent", color: conf.baselineEvidence === k ? "#fff" : SLATE }}>{v.label}</button>
-                ))}
-              </div>
-              {conf.baselineEvidence === "report" && (
-                <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                  <input type="checkbox" checked={d.baselineAttested === true} onChange={e => set("baselineAttested", e.target.checked)} style={{ width: 15, height: 15, accentColor: ELECTRIC, cursor: "pointer" }} />
-                  <span style={{ fontSize: 12, color: NAVY }}>I read handle time, FCR, volume and wage from our system reports</span>
-                </label>
-              )}
-            </div>
-            <div style={{ fontSize: 12, color: conf.baselineGrade === "Directional" ? AMBER : MUTED, marginTop: 6 }}>
-              Baselines grade {conf.baselineGrade}{conf.baselineInferred ? ": edited here with no stated source, read as your estimate" : ""}{conf.baselinePulled.length ? `; ${conf.baselinePulled.length} pulled from another tool grade${conf.baselinePulled.length > 1 ? "" : "s"} by that tool's origin grade` : ""}.
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "10px 14px", background: WARM, borderRadius: 8, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Savings basis</span>
-              <InfoDot text={DEFS.marginal} title="Marginal cost per contact" />
-              <span style={{ fontSize: 12, color: SLATE }}>avoided contacts valued at</span>
-              <span style={{ fontSize: 14, fontWeight: 700, color: ELECTRIC }}>{fmt2(r.marginal)}</span>
-              {r.marginalPulled
-                ? <>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: r.marginalStale ? AMBER : ELECTRIC, padding: "1px 5px", borderRadius: 4 }}>{marginalSource ? `FROM ${marginalSource.toUpperCase()}` : "PULLED"}</span>
-                    {r.marginalStale && <span style={{ fontSize: 12, color: AMBER, fontWeight: 600 }}>AHT and wage here imply {fmt2(r.derivedMarginal)}, a {Math.round(r.marginalGap * 100)}% gap</span>}
-                  </>
-                : <span style={{ fontSize: 12, color: MUTED }}>derived from AHT and loaded wage</span>}
-              <span style={{ fontSize: 12, color: MUTED }}>vs {fmt2(n(g.costPerContact))} fully loaded</span>
-            </div>
-          </Card>
-
-          <Card accent={GREEN}>
-            <H color={GREEN}>Target Improvements <span style={{ fontWeight: 500, color: MUTED, letterSpacing: 0, textTransform: "none" }}>you author these</span></H>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }} className="bc-grid">
-              <NumField label="Handle-time Reduction" value={d.htReduction} onChange={v => set("htReduction", v)} suffix="%" min={0} max={100} info={DEFS.ht} infoTitle="Handle-time reduction" hint="Applied to AHT minus ACW" />
-              <NumField label="ACW Reduction" value={d.acwReduction} onChange={v => set("acwReduction", v)} suffix="%" min={0} max={100} hint="Applied to ACW only" />
-              <NumField label="FCR Improvement" value={d.fcrImprovement} onChange={v => set("fcrImprovement", v)} suffix="pts" min={0} max={100} info={DEFS.fcr} infoTitle="FCR improvement" hint="Internal planning range 5 to 10 pts, adjust to your evidence" />
-              <NumField label="Attrition Reduction" value={d.attritionReduction} onChange={v => set("attritionReduction", v)} suffix="%" min={0} max={100} info={DEFS.attrition} infoTitle="Attrition reduction" hint="Internal planning range 15 to 25%, adjust to your evidence" />
-              <NumField label="Self-Service Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" min={0} max={100} info={DEFS.containment} infoTitle="Self-service containment" hint="Internal planning range 10 to 25%, adjust to your evidence" />
-            </div>
-            <p style={{ fontSize: 12, color: MUTED, marginTop: 12, lineHeight: 1.5 }}>ACW is modeled as a slice of AHT, so handle-time and ACW reductions never double-count the same minutes. Containment removes contacts from the handled pool before any per-contact saving is applied. Every formula, constant and a worked example are in the <a href="/methodology/business-case-builder" style={{ color: NAVY, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-          </Card>
-
-          <Card accent={AMBER}>
-            <H color={AMBER}>Investment</H>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }} className="bc-grid">
-              <NumField label="Implementation (one-time)" value={d.implementationCost} onChange={v => set("implementationCost", v)} prefix="$" step={5000} min={0} hint="PS, migration, integration" />
-              <NumField label="New Platform / Agent / Mo" value={d.newPlatformPerAgentMo} onChange={v => set("newPlatformPerAgentMo", v)} prefix="$" step={5} min={0} hint="Recurring solution cost" />
-              <NumField label="Migration Timeline" value={d.migrationMonths} onChange={v => set("migrationMonths", v)} suffix="mo" min={1} max={36} info={DEFS.phasing} infoTitle="Savings phasing" hint="Build phase, about 0% savings" />
-              <NumField label="Ramp to Full Savings" value={d.rampMonths} onChange={v => set("rampMonths", v)} suffix="mo" min={1} max={24} hint="Post-go-live climb to 100%" />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Evidence basis</span>
-              <InfoDot text={DEFS.confidence} title="Case confidence" />
-              <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8 }}>
-                {Object.entries(EVIDENCE).map(([k, v]) => (
-                  <button key={k} onClick={() => set("evidence", k)} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: conf.evidence === k ? ELECTRIC : "transparent", color: conf.evidence === k ? "#fff" : SLATE }}>{v.label}</button>
-                ))}
-              </div>
-            </div>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", marginBottom: 16 }}>
-              <input type="checkbox" checked={rampOn} onChange={e => setRampOn(e.target.checked)} style={{ width: 15, height: 15, accentColor: ELECTRIC, cursor: "pointer" }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Phase in savings over migration + ramp <span style={{ color: MUTED, fontWeight: 400 }}>(recommended for an honest payback)</span></span>
+      <Card legend="Question 1 of 4 · Current state">
+        <div style={grid(190)}>
+          <NumField tone="dark" label="Agent Count" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} pulled={pulled.agents} />
+          <NumField tone="dark" label="Avg Agent Hourly Rate" value={d.avgHourly} onChange={v => set("avgHourly", v)} prefix="$" step={0.5} min={0} pulled={pulled.avgHourly} />
+          <NumField tone="dark" label="Benefits & Burden" value={d.benefitsPct} onChange={v => set("benefitsPct", v)} suffix="%" hint="Internal planning range 25 to 35%, adjust to your evidence" min={0} max={100} />
+          <NumField tone="dark" label="Monthly Contact Volume" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
+          <NumField tone="dark" label="Current AHT (sec)" value={d.currentAHT} onChange={v => set("currentAHT", v)} step={5} min={1} hint={`${(n(g.currentAHT) / 60).toFixed(1)} min total`} pulled={pulled.currentAHT} />
+          <NumField tone="dark" label="Current ACW (sec)" value={d.currentACW} onChange={v => set("currentACW", v)} step={5} min={0} info={DEFS.acw} infoTitle="After-call work" hint="Part of AHT" />
+          <NumField tone="dark" label="Current FCR" value={d.currentFCR} onChange={v => set("currentFCR", v)} suffix="%" min={0} max={100} pulled={pulled.currentFCR} />
+          <NumField tone="dark" label="Same-Reason Repeat Contacts" value={d.repeatShare} onChange={v => set("repeatShare", v)} suffix="%" min={0} max={95} info={DEFS.repeatShare} infoTitle="Repeat-contact basis" hint="Optional. Blank derives it from FCR" />
+          <NumField tone="dark" label="Annual Attrition" value={d.currentAttrition} onChange={v => set("currentAttrition", v)} suffix="%" min={0} max={100} pulled={pulled.currentAttrition} />
+          <NumField tone="dark" label="Loaded Cost per Contact" value={d.costPerContact} onChange={v => set("costPerContact", v)} prefix="$" step={0.5} min={0} info={DEFS.loadedCPC} infoTitle="Loaded cost per contact" hint="Context only, not the savings basis" pulled={pulled.costPerContact} />
+          <NumField tone="dark" label="Recruiting Cost / Hire" value={d.recruitCostPerHire} onChange={v => set("recruitCostPerHire", v)} prefix="$" step={100} min={0} />
+          <NumField tone="dark" label="New Hire Training Days" value={d.trainingDays} onChange={v => set("trainingDays", v)} min={0} />
+        </div>
+        <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${hair}` }}>
+          <div style={{ ...strong, display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>Where do your baselines come from?<InfoDot text={DEFS.baseline} title="Baseline evidence" /></div>
+          <Choice label="Baseline evidence" options={Object.entries(BASELINE_EVIDENCE).map(([k, v]) => [k, v.label, v.note])} value={conf.baselineEvidence} onPick={(k) => set("baselineEvidence", k)} />
+          {conf.baselineEvidence === "report" && (
+            <label style={{ display: "flex", alignItems: "center", gap: 10, minHeight: TOUCH, cursor: "pointer", marginTop: 6 }}>
+              <input type="checkbox" checked={d.baselineAttested === true} onChange={e => set("baselineAttested", e.target.checked)} style={{ width: 18, height: 18, accentColor: HOUSE.electric, cursor: "pointer" }} />
+              <span style={{ ...body, fontSize: 14 }}>I read handle time, FCR, volume and wage from our system reports</span>
             </label>
+          )}
+          <p style={{ ...small, marginTop: 8 }}>
+            Baselines grade {conf.baselineGrade}{conf.baselineInferred ? ": edited here with no stated source, read as your estimate" : ""}{conf.baselinePulled.length ? `; ${conf.baselinePulled.length} pulled from another tool grade${conf.baselinePulled.length > 1 ? "" : "s"} by that tool's origin grade` : ""}.
+          </p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, padding: "12px 14px", border: `1px solid ${hair}`, borderRadius: RADIUS.field, flexWrap: "wrap" }}>
+          <span style={strong}>Savings basis</span>
+          <InfoDot text={DEFS.marginal} title="Marginal cost per contact" />
+          <span style={small}>avoided contacts valued at</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: HOUSE.mist, ...NUM }}>{fmt2(r.marginal)}</span>
+          {r.marginalPulled
+            ? <>
+                <span style={{ ...small, fontWeight: 600, color: PILLARS.diagnostics.onDark }}>{marginalSource ? `from ${marginalSource}` : "pulled"}</span>
+                {r.marginalStale && <span style={{ ...small, color: HOUSE.mist, fontWeight: 600 }}>Check: AHT and wage here imply {fmt2(r.derivedMarginal)}, a {Math.round(r.marginalGap * 100)}% gap</span>}
+              </>
+            : <span style={small}>derived from AHT and loaded wage</span>}
+          <span style={small}>vs {fmt2(n(g.costPerContact))} fully loaded</span>
+        </div>
+      </Card>
 
-            <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>
-                Capacity action <InfoDot text={DEFS.mech} title="Capacity action" />
-              </div>
-              <div style={{ fontSize: 12, color: r.mechKey === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[r.mechKey].note}</div>
-              <select aria-label="Realization mechanism" value={r.mechKey} onChange={e => setMech(e.target.value)} style={{ width: "100%", maxWidth: 420, padding: "10px 12px", fontSize: 13, fontWeight: 600, color: NAVY, background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 8, cursor: "pointer" }}>
-                {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
-              </select>
-              <div style={{ fontSize: 12, color: MUTED, marginTop: 8, lineHeight: 1.55, maxWidth: 640 }}>
-                Freed agent time is capacity, not money. This selects what converts it. Avoided recruiting and training spend is cash-releasing regardless and is never scaled by this factor. Neither are platform or implementation costs.
-              </div>
-            </div>
-          </Card>
+      <Card legend="Question 2 of 4 · Target improvements, which you author">
+        <div style={grid(190)}>
+          <NumField tone="dark" label="Handle-time Reduction" value={d.htReduction} onChange={v => set("htReduction", v)} suffix="%" min={0} max={100} info={DEFS.ht} infoTitle="Handle-time reduction" hint="Applied to AHT minus ACW" />
+          <NumField tone="dark" label="ACW Reduction" value={d.acwReduction} onChange={v => set("acwReduction", v)} suffix="%" min={0} max={100} hint="Applied to ACW only" />
+          <NumField tone="dark" label="FCR Improvement" value={d.fcrImprovement} onChange={v => set("fcrImprovement", v)} suffix="pts" min={0} max={100} info={DEFS.fcr} infoTitle="FCR improvement" hint="Internal planning range 5 to 10 pts, adjust to your evidence" />
+          <NumField tone="dark" label="Attrition Reduction" value={d.attritionReduction} onChange={v => set("attritionReduction", v)} suffix="%" min={0} max={100} info={DEFS.attrition} infoTitle="Attrition reduction" hint="Internal planning range 15 to 25%, adjust to your evidence" />
+          <NumField tone="dark" label="Self-Service Containment" value={d.containment} onChange={v => set("containment", v)} suffix="%" min={0} max={100} info={DEFS.containment} infoTitle="Self-service containment" hint="Internal planning range 10 to 25%, adjust to your evidence" />
+        </div>
+        <p style={{ ...small, marginTop: 14 }}>ACW is modeled as a slice of AHT, so handle-time and ACW reductions never double-count the same minutes. Containment removes contacts from the handled pool before any per-contact saving is applied. Every formula, constant and a worked example are in the <a href="/methodology/business-case-builder" style={link}>published method</a>.</p>
+      </Card>
 
-          <Card accent={ELECTRIC}>
-            <H color={ELECTRIC}>Business-as-Usual Counterfactual <span style={{ fontWeight: 500, color: MUTED, letterSpacing: 0, textTransform: "none" }}>optional, all zero by default</span></H>
-            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: 14 }}>
-              Without this, the whole new platform is treated as incremental cost. It usually is not. Displaced spend is credited as avoided cash on the benefit side, never netted out of the return denominator, so the ratio stays stable as the displaced figure grows. Leave every field at zero and the case is unchanged.
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }} className="bc-grid">
-              <NumField label="Current Annual Spend This Eliminates" value={d.bauEliminatedAnnual} onChange={v => set("bauEliminatedAnnual", v)} prefix="$" step={10000} min={0} hint="Only spend that ENDS because of this program" />
-              <NumField label="Dual-Run Period" value={d.bauOverlapMonths} onChange={v => set("bauOverlapMonths", v)} suffix="mo" min={0} max={120} hint={`Blank assumes ${r.M}mo, the migration length`} />
-              <NumField label="Current Spend Still Paid in Dual Run" value={d.bauOverlapShare} onChange={v => set("bauOverlapShare", v)} suffix="%" min={0} max={100} hint="Set 0% for a true day-one cutover" />
-              <NumField label="Exit and Decommissioning (one-time)" value={d.bauExitCost} onChange={v => set("bauExitCost", v)} prefix="$" step={5000} min={0} hint="Termination fees, data extraction" />
-              <NumField label="Incremental Cash Labor (one-time)" value={d.bauBackfillCash} onChange={v => set("bauBackfillCash", v)} prefix="$" step={5000} min={0} hint="Contractors, overtime, temporary backfill" />
-              <NumField label="Absorbed Internal Labor" value={d.bauAbsorbedHours} onChange={v => set("bauAbsorbedHours", v)} suffix="hrs" step={100} min={0} hint="Existing team time, disclosed not costed" />
-            </div>
-            <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.55, marginBottom: 14, maxWidth: 720 }}>
-              Only include costs that end because of this program. Exclude retained carrier, CRM, WEM, storage, network, support or any other service that continues. Entering a whole current stack when only part of it retires creates displacement that will not happen. Absorbed internal labor is existing salaried capacity, so it is shown as an hours burden and kept out of the cash return, on the same principle that unconverted freed agent capacity is kept out of the benefit.
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Displaced spend evidence</span>
-              <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8, flexWrap: "wrap" }}>
-                {Object.entries(BAU_EVIDENCE).map(([k, v]) => (
-                  <button key={k} onClick={() => set("bauEvidence", k)} style={{ fontSize: 12, fontWeight: 600, padding: "7px 12px", borderRadius: 6, border: "none", cursor: "pointer", background: conf.bauEvidence === k ? ELECTRIC : "transparent", color: conf.bauEvidence === k ? "#fff" : SLATE }}>{v.label}</button>
-                ))}
-              </div>
-            </div>
-            {r.bauAnnual > 0 && (
-              <div style={{ marginTop: 14, padding: "10px 14px", background: WARM, borderRadius: 8, fontSize: 12, color: SLATE, lineHeight: 1.55 }}>
-                Three-year benefit runs {Math.round((1 - r.displacementShare) * 100)}% operational improvement and <b style={{ color: r.displacementShare >= 0.5 ? AMBER : NAVY }}>{Math.round(r.displacementShare * 100)}% technology-cost displacement</b>. Displacement credit inside the horizon is {fmtK(r.displacement3)}, after {fmtK(r.overlapWithheld)} withheld during a {r.OL}-month dual run.
-              </div>
-            )}
-          </Card>
+      <Card legend="Question 3 of 4 · Investment">
+        <div style={grid(200)}>
+          <NumField tone="dark" label="Implementation (one-time)" value={d.implementationCost} onChange={v => set("implementationCost", v)} prefix="$" step={5000} min={0} hint="PS, migration, integration" />
+          <NumField tone="dark" label="New Platform / Agent / Mo" value={d.newPlatformPerAgentMo} onChange={v => set("newPlatformPerAgentMo", v)} prefix="$" step={5} min={0} hint="Recurring solution cost" />
+          <NumField tone="dark" label="Migration Timeline" value={d.migrationMonths} onChange={v => set("migrationMonths", v)} suffix="mo" min={1} max={36} info={DEFS.phasing} infoTitle="Savings phasing" hint="Build phase, about 0% savings" />
+          <NumField tone="dark" label="Ramp to Full Savings" value={d.rampMonths} onChange={v => set("rampMonths", v)} suffix="mo" min={1} max={24} hint="Post-go-live climb to 100%" />
+        </div>
+        <div style={{ marginTop: 16 }}>
+          <div style={{ ...strong, display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>Evidence basis<InfoDot text={DEFS.confidence} title="Case confidence" /></div>
+          <Choice label="Evidence basis" options={Object.entries(EVIDENCE).map(([k, v]) => [k, v.label])} value={conf.evidence} onPick={(k) => set("evidence", k)} />
+        </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 10, minHeight: TOUCH, cursor: "pointer", marginTop: 10 }}>
+          <input type="checkbox" checked={rampOn} onChange={e => setRampOn(e.target.checked)} style={{ width: 18, height: 18, accentColor: HOUSE.electric, cursor: "pointer" }} />
+          <span style={{ ...body, fontSize: 14 }}>Phase in savings over migration + ramp <span style={small}>(recommended for an honest payback)</span></span>
+        </label>
+        <div style={{ borderTop: `1px solid ${hair}`, paddingTop: 16, marginTop: 10 }}>
+          <label htmlFor="bc-mech" style={{ ...strong, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Capacity action <InfoDot text={DEFS.mech} title="Capacity action" /></label>
+          <p style={{ ...small, color: r.mechKey === "none" ? HOUSE.mist : HOUSE.muted, marginBottom: 10 }}>{MECH[r.mechKey].note}</p>
+          <select id="bc-mech" aria-label="Realization mechanism" value={r.mechKey} onChange={e => setMech(e.target.value)} className="bc-sel" style={{ width: "100%", maxWidth: 440, minHeight: TOUCH, padding: "0 12px", fontFamily: FONT, fontSize: 15, fontWeight: 600, color: HOUSE.mist, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, cursor: "pointer" }}>
+            {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
+          </select>
+          <p style={{ ...small, marginTop: 8 }}>
+            Freed agent time is capacity, not money. This selects what converts it. Avoided recruiting and training spend is cash-releasing regardless and is never scaled by this factor. Neither are platform or implementation costs.
+          </p>
+        </div>
+      </Card>
 
-          {/* Stance selector */}
-          <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 22px", marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>Case stance <InfoDot text={DEFS.stance} title="Case stance" /></div>
-                <div style={{ fontSize: 12, color: MUTED }}>{STANCE[r.stanceKey].note}</div>
-              </div>
-              <div style={{ display: "flex", gap: 6, background: WARM, padding: 4, borderRadius: 8 }}>
-                {Object.entries(STANCE).map(([k, v]) => (
-                  <button key={k} onClick={() => setStance(k)} style={{ fontSize: 12, fontWeight: 600, padding: "8px 14px", borderRadius: 6, border: "none", cursor: "pointer", background: r.stanceKey === k ? ELECTRIC : "transparent", color: r.stanceKey === k ? "#fff" : SLATE }}>{v.label}</button>
-                ))}
-              </div>
-            </div>
-          </div>
+      <Card legend="Question 4 of 4 · Business-as-usual counterfactual, optional and zero by default"
+        note="Without this, the whole new platform is treated as incremental cost. It usually is not. Displaced spend is credited as avoided cash on the benefit side, never netted out of the return denominator, so the ratio stays stable as the displaced figure grows. Leave every field at zero and the case is unchanged.">
+        <div style={grid(220)}>
+          <NumField tone="dark" label="Current Annual Spend This Eliminates" value={d.bauEliminatedAnnual} onChange={v => set("bauEliminatedAnnual", v)} prefix="$" step={10000} min={0} hint="Only spend that ENDS because of this program" />
+          <NumField tone="dark" label="Dual-Run Period" value={d.bauOverlapMonths} onChange={v => set("bauOverlapMonths", v)} suffix="mo" min={0} max={120} hint={`Blank assumes ${r.M}mo, the migration length`} />
+          <NumField tone="dark" label="Current Spend Still Paid in Dual Run" value={d.bauOverlapShare} onChange={v => set("bauOverlapShare", v)} suffix="%" min={0} max={100} hint="Set 0% for a true day-one cutover" />
+          <NumField tone="dark" label="Exit and Decommissioning (one-time)" value={d.bauExitCost} onChange={v => set("bauExitCost", v)} prefix="$" step={5000} min={0} hint="Termination fees, data extraction" />
+          <NumField tone="dark" label="Incremental Cash Labor (one-time)" value={d.bauBackfillCash} onChange={v => set("bauBackfillCash", v)} prefix="$" step={5000} min={0} hint="Contractors, overtime, temporary backfill" />
+          <NumField tone="dark" label="Absorbed Internal Labor" value={d.bauAbsorbedHours} onChange={v => set("bauAbsorbedHours", v)} suffix="hrs" step={100} min={0} hint="Existing team time, disclosed not costed" />
+        </div>
+        <p style={{ ...small, margin: "14px 0" }}>
+          Only include costs that end because of this program. Exclude retained carrier, CRM, WEM, storage, network, support or any other service that continues. Entering a whole current stack when only part of it retires creates displacement that will not happen. Absorbed internal labor is existing salaried capacity, so it is shown as an hours burden and kept out of the cash return, on the same principle that unconverted freed agent capacity is kept out of the benefit.
+        </p>
+        <div style={{ ...strong, marginBottom: 8 }}>Displaced spend evidence</div>
+        <Choice label="Displaced spend evidence" options={Object.entries(BAU_EVIDENCE).map(([k, v]) => [k, v.label])} value={conf.bauEvidence} onPick={(k) => set("bauEvidence", k)} />
+        {r.bauAnnual > 0 && (
+          <p style={{ ...body, fontSize: 14, marginTop: 14, padding: "12px 14px", border: `1px solid ${hair}`, borderRadius: RADIUS.field }}>
+            Three-year benefit runs {Math.round((1 - r.displacementShare) * 100)}% operational improvement and <strong style={{ color: HOUSE.mist }}>{Math.round(r.displacementShare * 100)}% technology-cost displacement</strong>{r.displacementShare >= 0.5 ? ", so the case leans on retiring spend more than on operations" : ""}. Displacement credit inside the horizon is {fmtK(r.displacement3)}, after {fmtK(r.overlapWithheld)} withheld during a {r.OL}-month dual run.
+          </p>
+        )}
+      </Card>
 
-          {/* A void case shows no figure and no reading of one. The failed check and the remedy
-              are stated here and again, once, by ReportActions (11B, doctrine 5.4). */}
-          {conf.voided ? (
-            <div style={{ background: `${RED}0D`, border: `1px solid ${RED}55`, borderRadius: 12, padding: "20px 22px", marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Case void. No figure is shown and no grade is claimed.</div>
-              <div style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6 }}>Failed check: {conf.invariants.join("; ")}. Remedy: {conf.gradeObj.remedy}</div>
-            </div>
-          ) : (<>
-          {/* Summary */}
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "32px 28px", marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase" }}>Business Case Summary <span style={{ color: "rgba(255,255,255,0.72)", fontWeight: 600 }}>· {STANCE[r.stanceKey].label} stance</span></h3>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", background: gradeColor, padding: "4px 10px", borderRadius: 20 }}>Case confidence: {conf.grade}</span>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 22 }} className="bc-sum">
-              <div style={{ textAlign: "center" }}>
-                <div style={{ ...TYPE.statValueLg, fontSize: 30, color: GREEN }}>{fmtK(r.net)}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Realizable Annual Savings <span style={{ opacity: 0.6 }}>· run-rate</span></div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{rampOn ? `year 1 ${fmtK(r.year1)} after ramp` : `gross ${fmtK(r.gross)} less ${fmtK(r.haircut)} haircut`}</div>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ ...TYPE.statValueLg, fontSize: 30, color: paybackColor }}>{paybackLabel}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>Payback Period <span style={{ opacity: 0.75 }}>· {STATUS_LABEL[stPayback]}</span></div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{rampOn ? `phased: ${r.M}mo build + ${r.R}mo ramp` : "idealized, phasing off"}</div>
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <div style={{ ...TYPE.statValueLg, fontSize: 30, color: roiColor }}>{r.roiDefined ? Math.round(r.roi3) + "%" : "n/a"}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>3-Year Return{r.roiDefined ? <span style={{ opacity: 0.75 }}> · {STATUS_LABEL[stRoi]}</span> : null}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{r.roiDefined ? `on ${fmtK(r.tco3)} ${r.bauEntered ? "gross transformation cash" : "modeled 3-yr cost"}` : "no investment entered"}</div>
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {bucketRows.map((item, i) => {
-                const pctv = r.gross > 0 ? item.val / r.gross * 100 : 0;
-                const pctLabel = r.pct[item.key];
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", flex: 1 }}>{item.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: GREEN, minWidth: 70, textAlign: "right", ...NUM }}>{fmtK(item.val)}</span>
-                    <div style={{ width: 80, height: 6, background: "rgba(255,255,255,0.1)", borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${pctv}%`, height: "100%", background: GREEN, borderRadius: 3 }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", minWidth: 30 }}>{pctLabel}%</span>
-                  </div>
-                );
-              })}
-            </div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 8, letterSpacing: 0.3 }}>Gross modeled benefit before attribution and realization. These four do not sum to the headline.</div>
+      <section aria-label="Case stance" style={{ ...panel, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <div style={{ ...strong, display: "flex", alignItems: "center", gap: 6 }}>Case stance <InfoDot text={DEFS.stance} title="Case stance" /></div>
+          <p style={small}>{STANCE[r.stanceKey].note}</p>
+        </div>
+        <Choice label="Case stance" options={Object.entries(STANCE).map(([k, v]) => [k, v.label])} value={r.stanceKey} onPick={setStance} />
+      </section>
 
-            <div style={{ marginTop: 18, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.10)", display: "flex", gap: 26, flexWrap: "wrap" }}>
-              <div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Capacity released</div>
-                <div style={{ fontSize: 17, fontWeight: 600, color: "rgba(255,255,255,0.85)", ...NUM }}>{Math.round(r.freedHoursAttributed).toLocaleString()} hrs/yr</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{fmtK(r.capacityNet)} labor-equivalent</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Converted to value</div>
-                <div style={{ fontSize: 17, fontWeight: 600, color: r.mechKey === "none" ? RED : GREEN, ...NUM }}>{fmtK(r.capacityRealized)}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>{r.mechLabel}, {Math.round(r.mf * 100)}%</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Not converted</div>
-                <div style={{ fontSize: 17, fontWeight: 600, color: r.unrealizedCapacity > 0 ? AMBER : "rgba(255,255,255,0.5)", ...NUM }}>{fmtK(r.unrealizedCapacity)}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>capacity, excluded from cash</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 3 }}>Cash-releasing</div>
-                <div style={{ fontSize: 17, fontWeight: 600, color: GREEN, ...NUM }}>{fmtK(r.cashNet)}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 2 }}>recruiting spend avoided</div>
-              </div>
-            </div>
-
-            {rampOn && (
-              <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.72)", letterSpacing: 1, textTransform: "uppercase" }}>Cumulative Cash Flow · 36 months</span>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{r.payback > 0 ? `Breaks even month ${r.payback}` : "No breakeven in 3 yrs"} · ends {fmtK(spark.end)}</span>
+      {/* A void case shows no figure and no reading of one. The failed check and the remedy
+          are stated here and again, once, by ReportActions (11B, doctrine 5.4). */}
+      {conf.voided ? (
+        <Finding level="critical" title="Case void. No figure is shown and no grade is claimed.">Failed check: {conf.invariants.join("; ")}. Remedy: {conf.gradeObj.remedy}</Finding>
+      ) : (<>
+      <section aria-label="Business case summary" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+        <span style={kicker}>Business case summary · {STANCE[r.stanceKey].label} stance · case confidence {conf.grade}</span>
+        <div style={{ ...grid(170), margin: "16px 0 20px" }}>
+          {tile(fmtK(r.net), "Realizable annual savings, run rate", rampOn ? `year 1 ${fmtK(r.year1)} after ramp` : `gross ${fmtK(r.gross)} less ${fmtK(r.haircut)} haircut`)}
+          {tile(paybackLabel, `Payback period, ${STATUS_LABEL[stPayback]}`, rampOn ? `phased: ${r.M}mo build + ${r.R}mo ramp` : "idealized, phasing off")}
+          {tile(r.roiDefined ? Math.round(r.roi3) + "%" : "n/a", r.roiDefined ? `3-Year Return, ${STATUS_LABEL[stRoi]}` : "3-Year Return", r.roiDefined ? `on ${fmtK(r.tco3)} ${r.bauEntered ? "gross transformation cash" : "modeled 3-yr cost"}` : "no investment entered")}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {bucketRows.map((item, i) => {
+            const pctv = r.gross > 0 ? item.val / r.gross * 100 : 0;
+            const pctLabel = r.pct[item.key];
+            return (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ ...small, color: HOUSE.body, flex: 1 }}>{item.label}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, minWidth: 70, textAlign: "right", ...NUM }}>{fmtK(item.val)}</span>
+                <div style={{ width: 80, height: 6, background: hair, borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${pctv}%`, height: "100%", background: ARCS.evidence, borderRadius: 3 }} />
                 </div>
-                <svg viewBox={`0 0 ${spark.W} ${spark.H}`} width="100%" height="88" preserveAspectRatio="none" style={{ display: "block", overflow: "visible" }}>
-                  <line x1="0" y1={spark.y0} x2={spark.W} y2={spark.y0} stroke="rgba(255,255,255,0.25)" strokeWidth="1" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
-                  {spark.pbx != null && <line x1={spark.pbx} y1="0" x2={spark.pbx} y2={spark.H} stroke={GREEN} strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />}
-                  <polyline points={spark.pts} fill="none" stroke={LIGHT} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-                  {spark.pbx != null && <circle cx={spark.pbx} cy={spark.y0} r="3.5" fill={GREEN} />}
-                </svg>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "rgba(255,255,255,0.72)", marginTop: 4 }}>
-                  <span>Month 0 · minus {fmtK(Math.abs(r.cumFlow[0]))}</span>
-                  <span>Migration {r.M}mo</span>
-                  <span>Month 36</span>
-                </div>
+                <span style={{ ...small, minWidth: 34, ...NUM }}>{pctLabel}%</span>
               </div>
-            )}
+            );
+          })}
+        </div>
+        <p style={{ ...small, marginTop: 8 }}>Gross modeled benefit before attribution and realization. These four do not sum to the headline.</p>
+
+        {rampOn && (
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${hair}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
+              <span style={kicker}>Cumulative cash flow · 36 months</span>
+              <span style={small}>{r.payback > 0 ? `Breaks even month ${r.payback}` : "No breakeven in 3 yrs"} · ends {fmtK(spark.end)}</span>
+            </div>
+            <svg role="img" aria-label="Cumulative cash flow over 36 months" viewBox={`0 0 ${spark.W} ${spark.H}`} width="100%" height="88" preserveAspectRatio="none" style={{ display: "block", overflow: "visible" }}>
+              <line x1="0" y1={spark.y0} x2={spark.W} y2={spark.y0} stroke={soft} strokeWidth="1" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+              {spark.pbx != null && <line x1={spark.pbx} y1="0" x2={spark.pbx} y2={spark.H} stroke={HOUSE.mist} strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />}
+              <polyline points={spark.pts} fill="none" stroke={ARCS.evidence} strokeWidth="2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+              {spark.pbx != null && <circle cx={spark.pbx} cy={spark.y0} r="3.5" fill={HOUSE.mist} />}
+            </svg>
+            <div style={{ display: "flex", justifyContent: "space-between", ...small, marginTop: 4 }}>
+              <span>Month 0 · minus {fmtK(Math.abs(r.cumFlow[0]))}</span>
+              <span>Migration {r.M}mo</span>
+              <span>Month 36</span>
+            </div>
           </div>
+        )}
+      </section>
 
-          {/* Confidence & open issues */}
-          <div style={{ background: "#fff", border: `1px solid ${gradeColor}55`, borderRadius: 12, padding: "16px 18px", marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: gradeColor, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Case confidence: {conf.grade} · evidence {conf.evidenceGrade} · realization {conf.realizationGrade} · completeness {conf.completenessGrade} · {EVIDENCE[conf.evidence].label}</div>
-            <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.55, marginBottom: (conf.open.length || conf.withheld.length || conf.findings.length) ? 8 : 0 }}>Three axes, and the badge shows the weakest, bound by {conf.gradeObj.boundBy}. Evidence rates how bookable the inputs are, as the weaker of the cost stream ({conf.costGrade}) and the benefit stream ({conf.benefitGrade}). Realization rates whether the modeled savings can be booked at all, from the capacity action committed. Completeness rates whether the case that ran is the case entered. None certifies that the organization can deliver the targets, which the Transformation Readiness tool assesses separately. Whether the case pays is a separate question again, and it is reported below without moving the grade: a well evidenced case that does not return is a confident negative answer, not an uncertain one.</p>
-            {conf.withheld.length > 0 && (
-              <div style={{ marginBottom: (conf.findings.length || conf.open.length) ? 10 : 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Limiting an axis, and not a cost-input defect:</div>
-                {conf.withheld.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: AMBER }}>&rsaquo;</span>{o}</div>)}
-              </div>
-            )}
-            {conf.findings.length > 0 && (
-              <div style={{ marginBottom: conf.open.length ? 10 : 0 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Findings on the return, which do not move the grade:</div>
-                {conf.findings.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: ELECTRIC }}>&rsaquo;</span>{o}</div>)}
-              </div>
-            )}
-            {conf.open.length > 0 && (
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Open items on the cost inputs, before the investment side is final:</div>
-                {conf.open.map((o, i) => <div key={i} style={{ fontSize: 12, color: SLATE, lineHeight: 1.5, paddingLeft: 12, position: "relative" }}><span style={{ position: "absolute", left: 0, color: gradeColor }}>›</span>{o}</div>)}
-              </div>
-            )}
+      <section aria-label="How sure" style={panel}>
+        <span style={kicker}>Case confidence: {conf.grade} · evidence {conf.evidenceGrade} · realization {conf.realizationGrade} · completeness {conf.completenessGrade} · {EVIDENCE[conf.evidence].label}</span>
+        <p style={{ ...body, fontSize: 14, margin: "10px 0 0" }}>Three axes, and the badge shows the weakest, bound by {conf.gradeObj.boundBy}. Evidence rates how bookable the inputs are, as the weaker of the cost stream ({conf.costGrade}) and the benefit stream ({conf.benefitGrade}). Realization rates whether the modeled savings can be booked at all, from the capacity action committed. Completeness rates whether the case that ran is the case entered. None certifies that the organization can deliver the targets, which the Transformation Readiness tool assesses separately. Whether the case pays is a separate question again, and it is reported below without moving the grade: a well evidenced case that does not return is a confident negative answer, not an uncertain one.</p>
+        {conf.withheld.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ ...strong, marginBottom: 6 }}>Limiting an axis, and not a cost-input defect:</div>
+            <ul style={{ ...body, fontSize: 14, paddingLeft: 18, margin: 0 }}>{conf.withheld.map((o, i) => <li key={i} style={{ marginTop: i ? 6 : 0 }}>{o}</li>)}</ul>
           </div>
-
-          {/* Decision Read */}
-          <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "18px 20px", marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Decision Read · what could change the conclusion</div>
-            {insights.map((t, i) => (
-              <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>
-            ))}
+        )}
+        {conf.findings.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ ...strong, marginBottom: 6 }}>Findings on the return, which do not move the grade:</div>
+            <ul style={{ ...body, fontSize: 14, paddingLeft: 18, margin: 0 }}>{conf.findings.map((o, i) => <li key={i} style={{ marginTop: i ? 6 : 0 }}>{o}</li>)}</ul>
           </div>
+        )}
+        {conf.open.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ ...strong, marginBottom: 6 }}>Open items on the cost inputs, before the investment side is final:</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{conf.open.map((o, i) => <Finding key={i} level="high" title="Open item">{o}</Finding>)}</div>
+          </div>
+        )}
+      </section>
 
-          </>)}
+      <section aria-label="What it means" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+        <span style={kicker}>Decision read · what could change the conclusion</span>
+        {insights.map((t, i) => (
+          <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "8px 0 0" }}>{t}</p>
+        ))}
+      </section>
+      </>)}
 
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ display: "inline-flex" }}>
+      {/* The report is paper (Brand Guide section 13). */}
+      <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
               <ReportActions
                 toolId={TOOL_ID}
                 toolName="Business Case"
@@ -1576,16 +1552,13 @@ export default function BusinessCaseBuilder() {
                     : " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: no business-as-usual counterfactual has been entered for this case, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. The tool models all of those, and they are all zero here. A full incremental comparison would move this figure in both directions.") + (r.stanceKey === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document is not conservative and should not be presented as such." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") + " The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/business-case-builder." },
                 ]}
               />
-            </span>
-            <a href="/contact" onClick={() => trackTool.nextStep(TOOL_ID, "contact")} style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8 }}>Connect with a Consultant</a>
-            <button onClick={() => goNext("tco-calculator", "/tools/tco-calculator")} style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "13px 22px", borderRadius: 8, cursor: "pointer" }}>TCO Calculator</button>
-          </div>
-          <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.6, marginTop: 10, maxWidth: 760 }}>Your results do not determine whether the consultant option appears, and nothing you entered is shared with anyone unless you ask us to. If a commercial relationship exists with any specialist we introduce, it is disclosed before an introduction is made. No vendor pays to appear here and this tool recommends no vendor.</div>
-        </div>
-      </section>
-
-      
-    </div>
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <Button kind="primary" href="/contact" onClick={() => trackTool.nextStep(TOOL_ID, "contact")}>Connect with a Consultant</Button>
+        <Button kind="secondary" onClick={() => goNext("tco-calculator", "/tools/tco-calculator")}>TCO Calculator</Button>
+      </div>
+      <p style={small}>Your results do not determine whether the consultant option appears, and nothing you entered is shared with anyone unless you ask us to. If a commercial relationship exists with any specialist we introduce, it is disclosed before an introduction is made. No vendor pays to appear here and this tool recommends no vendor.</p>
+    </ToolFrame>
   );
 }
 

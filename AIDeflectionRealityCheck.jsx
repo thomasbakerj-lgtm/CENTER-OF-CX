@@ -7,6 +7,9 @@ import InfoDot from "./src/lib/InfoDot";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
 import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
+import { HOUSE, PILLARS, ARCS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
 import { publishToolResult, getPrimitiveWithSource, getExternalPrimitive, sourcedExternally } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
@@ -513,28 +516,32 @@ function LogoMark({ size = 30 }) {
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={0.6} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={0.8} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
 }
 
-function Nav() {
-  return null;
-}
 
-const sel = { width: "100%", boxSizing: "border-box", padding: "10px 12px", fontSize: 14, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY, fontFamily: FONT };
-const lbl = { fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 };
-const cardStyle = { background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 12, padding: "20px 22px", marginBottom: 20 };
+const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
+const sel = { width: "100%", boxSizing: "border-box", minHeight: TOUCH, padding: "0 12px", fontSize: 15, fontWeight: 600, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, background: HOUSE.navy, color: HOUSE.mist, fontFamily: FONT };
+const lbl = { fontSize: 12, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 };
+const cardStyle = { background: HOUSE.navy, border: `1px solid ${hair}`, borderRadius: RADIUS.card, padding: 20, marginBottom: 20 };
+const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
+const h2 = { fontSize: 20, fontWeight: 600, lineHeight: 1.3, color: HOUSE.mist, margin: "0 0 6px" };
+const body = { fontSize: 15, lineHeight: 1.6, color: HOUSE.body, margin: 0 };
+const small = { fontSize: 13, lineHeight: 1.5, color: HOUSE.muted, margin: 0 };
+const link = { color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
+const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))`, gap: 14 });
 
 function VendorInputs({ v, onChange, compact }) {
   const f = (k) => (val) => onChange(k, val);
   return (
-    <div style={{ display: "grid", gridTemplateColumns: compact ? "minmax(0,1fr) minmax(0,1fr)" : "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 10 }} className="cg">
-      <NumField compact={compact} label="Apparent resolution" value={v.apparentResolutionRate} onChange={f("apparentResolutionRate")} suffix="%" step={1} min={0} max={100} hint="of AI-involved" info={DEFS.resolution.text} infoTitle={DEFS.resolution.title} />
-      <NumField compact={compact} label="Repeat / false resolution" value={v.repeatLeakRate} onChange={f("repeatLeakRate")} suffix="%" step={1} min={0} max={100} hint="of apparent resolutions" info={DEFS.repeat.text} infoTitle={DEFS.repeat.title} />
-      <NumField compact={compact} label="Escalation premium" value={v.escalationPenalty} onChange={f("escalationPenalty")} suffix="%" step={1} min={0} max={200} hint="post-bot contacts cost more" info={DEFS.escalation.text} infoTitle={DEFS.escalation.title} infoAlign="right" />
-      <NumField compact={compact} label="One-time implementation" value={v.implOneTime} onChange={f("implOneTime")} prefix="$" step={5000} min={0} hint="hits Year 1 only" info={DEFS.implOneTime.text} infoTitle={DEFS.implOneTime.title} infoAlign="right" />
-      <NumField compact={compact} label="Bot platform cost" value={v.botPlatformCost} onChange={f("botPlatformCost")} prefix="$" suffix="/mo" step={500} min={0} />
-      <NumField compact={compact} label="QA and monitoring" value={v.qaCost} onChange={f("qaCost")} prefix="$" suffix="/mo" step={250} min={0} />
-      <NumField compact={compact} label="Tuning hrs/mo" value={v.tuningHours} onChange={f("tuningHours")} suffix="hrs" step={5} min={0} />
-      <NumField compact={compact} label="Tuning rate" value={v.tuningRate} onChange={f("tuningRate")} prefix="$" suffix="/hr" step={5} min={0} />
-      <NumField compact={compact} label="Knowledge maint" value={v.knowledgeMaintHours} onChange={f("knowledgeMaintHours")} suffix="hrs/mo" step={5} min={0} />
-      <NumField compact={compact} label="Knowledge rate" value={v.knowledgeRate} onChange={f("knowledgeRate")} prefix="$" suffix="/hr" step={5} min={0} />
+    <div style={grid(compact ? 150 : 170)}>
+      <NumField tone="dark" compact={compact} label="Apparent resolution" value={v.apparentResolutionRate} onChange={f("apparentResolutionRate")} suffix="%" step={1} min={0} max={100} hint="of AI-involved" info={DEFS.resolution.text} infoTitle={DEFS.resolution.title} />
+      <NumField tone="dark" compact={compact} label="Repeat / false resolution" value={v.repeatLeakRate} onChange={f("repeatLeakRate")} suffix="%" step={1} min={0} max={100} hint="of apparent resolutions" info={DEFS.repeat.text} infoTitle={DEFS.repeat.title} />
+      <NumField tone="dark" compact={compact} label="Escalation premium" value={v.escalationPenalty} onChange={f("escalationPenalty")} suffix="%" step={1} min={0} max={200} hint="post-bot contacts cost more" info={DEFS.escalation.text} infoTitle={DEFS.escalation.title} infoAlign="right" />
+      <NumField tone="dark" compact={compact} label="One-time implementation" value={v.implOneTime} onChange={f("implOneTime")} prefix="$" step={5000} min={0} hint="hits Year 1 only" info={DEFS.implOneTime.text} infoTitle={DEFS.implOneTime.title} infoAlign="right" />
+      <NumField tone="dark" compact={compact} label="Bot platform cost" value={v.botPlatformCost} onChange={f("botPlatformCost")} prefix="$" suffix="/mo" step={500} min={0} />
+      <NumField tone="dark" compact={compact} label="QA and monitoring" value={v.qaCost} onChange={f("qaCost")} prefix="$" suffix="/mo" step={250} min={0} />
+      <NumField tone="dark" compact={compact} label="Tuning hrs/mo" value={v.tuningHours} onChange={f("tuningHours")} suffix="hrs" step={5} min={0} />
+      <NumField tone="dark" compact={compact} label="Tuning rate" value={v.tuningRate} onChange={f("tuningRate")} prefix="$" suffix="/hr" step={5} min={0} />
+      <NumField tone="dark" compact={compact} label="Knowledge maint" value={v.knowledgeMaintHours} onChange={f("knowledgeMaintHours")} suffix="hrs/mo" step={5} min={0} />
+      <NumField tone="dark" compact={compact} label="Knowledge rate" value={v.knowledgeRate} onChange={f("knowledgeRate")} prefix="$" suffix="/hr" step={5} min={0} />
     </div>
   );
 }
@@ -629,11 +636,11 @@ export default function AIDeflectionRealityCheck() {
   const toneColor = (t) => (t === "green" ? GREEN : t === "electric" ? ELECTRIC : t === "amber" ? AMBER : RED);
   const sensLow = R.netSavings * (1 - R.band), sensHigh = R.netSavings * (1 + R.band);
 
-  const card = (label, value, sub, color, dark) => (
-    <div style={{ background: dark ? `linear-gradient(135deg, ${NAVY}, ${DEEP})` : WARM, border: dark ? "none" : `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: dark ? color : MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>{label}</div>
-      <div style={{ ...TYPE.statValue, fontSize: 28, color: dark ? "#fff" : color }}>{value}</div>
-      <div style={{ fontSize: 12, color: dark ? "rgba(255,255,255,0.4)" : MUTED }}>{sub}</div>
+  const card = (label, value, sub) => (
+    <div style={{ ...cardStyle, marginBottom: 0, padding: 16 }}>
+      <div style={{ ...kicker }}>{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: HOUSE.mist, margin: "6px 0 2px", fontVariantNumeric: "tabular-nums" }}>{value}</div>
+      <div style={small}>{sub}</div>
     </div>
   );
 
@@ -701,282 +708,256 @@ export default function AIDeflectionRealityCheck() {
     { title: "Methodology", type: "text", content: `Three rates, three denominators, never interchanged. Coverage is AI-eligible demand over total demand. Apparent resolution is the vendor's headline, measured over AI-involved conversations. Net automation is durable resolutions over total demand, and it is the only one that maps to a budget. Durable resolutions, meaning apparent resolutions that do not recur, are valued at marginal cost, the variable handle-time labor that resolution actually frees, not at the fully loaded cost the vendor uses, because fixed platform, facilities, and supervision cost do not fall with volume. Loaded cost therefore moves the vendor's claim and moves net savings by exactly zero. Freed handle time is capacity, not cash, until an action converts it. Realized capacity is scaled by the selected capacity action, ${MECH[R.mechKey].label} at ${Math.round(MECH[R.mechKey].f * 100)}%, and "Not selected" realizes $0. Operating cost and the escalation premium are cash out the door and are never scaled by that action, which is why no action still shows a loss rather than a zero. The escalation premium applies to every post-bot human contact, both immediate escalations and false-resolution returns. Valuing resolution at 100% is headcount reduction, the assumption most vendor ROI slides make silently. Break-even thresholds are solved in closed form and verified against the engine's own zero crossings. The bridge reconciles exactly to net monthly savings. Every rate input is clamped to its physical domain before any arithmetic runs, so this engine cannot produce a net automation rate outside 0 to 100%, and cannot hand the rest of the suite a value that would be silently dropped or rescaled. Confidence is two-axis: evidence for what attests to the resolution rate and the cost basis, realization for whether finance can book the result. The headline is the weaker of the two. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/ai-deflection. Benchmark defaults, all editable: ${SOURCES.eligible} ${SOURCES.resolution} ${SOURCES.repeat} ${SOURCES.escalation}` },
   ];
 
-  return (
-    <div style={{ fontFamily: FONT, background: WARM, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}body{font-family:${FONT};-webkit-font-smoothing:antialiased}@media(max-width:720px){.cg{grid-template-columns:1fr 1fr !important}.s4{grid-template-columns:1fr 1fr !important}.s3{grid-template-columns:1fr !important}.env{grid-template-columns:1fr !important}}`}</style>
-      <Nav />
+  const stamp = methodStamp(TOOL_ID);
+  const { how, voidReason } = resultHow(G.gradeObj);
+  const next = R.verdictRoute ? toolAt(R.verdictRoute) : null;
+  const row = (k, v, sub) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 0", borderTop: `1px solid ${hair}` }}><span style={small}>{k}{sub && <span style={{ display: "block" }}>{sub}</span>}</span><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{v}</span></div>;
+  const result = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="Net savings a month" value={R.netSavings} format={fmt} change={`${R.netAutomationRate.toFixed(1)}% of total demand automated, against ${R.rp}% resolution claimed`} how={how} voidReason={voidReason} />
+      {!voidReason && (
+        <div style={{ ...cardStyle, marginBottom: 0 }}>
+          <span style={kicker}>The decision this protects</span>
+          <div style={{ fontSize: 20, fontWeight: 700, color: HOUSE.mist, margin: "6px 0" }}>{R.verdict}</div>
+          <div style={{ marginTop: 4 }}>
+            {row("Vendor claim a month", fmtK(R.vendorClaim), R.rp + "% at " + fmt2(R.cpc) + " loaded")}
+            {row("Year 1 net", fmtK(R.year1))}
+            {row("Payback", R.payback ? "Month " + R.payback : "None in 12 months")}
+            {row("Dollars realized", R.realizedDollarsPct.toFixed(0) + "%", "of the vendor's claim")}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
-      <section style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, padding: "48px 0 40px" }}>
-        <div style={WRAP}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.4, textTransform: "uppercase", marginBottom: 10 }}>Cost and Economics · Diagnose before you buy</div>
-          <h1 style={{ ...TYPE.display, fontSize: "clamp(26px, 3.3vw, 37px)", color: "#fff", margin: "0 0 12px" }}>AI Deflection Reality Check</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", maxWidth: 680, lineHeight: 1.65, margin: 0 }}>
-            A 70% AI resolution rate does not mean 70% of total customer demand disappeared. The denominator determines the truth. This tool separates coverage, resolution, and durable automation into three honest rates, then values what is left at the cost that actually leaves your budget. Run it before you approve an automation business case or commit to a resolution target. Sometimes the answer is that the program pays. Sometimes it is that the slide is inflated and the move is to renegotiate, fix the foundation first, or buy nothing.
-          </p>
-          {fromLink && <div style={{ marginTop: 18, display: "inline-block", background: "rgba(0,170,255,0.12)", border: "1px solid rgba(0,170,255,0.3)", borderRadius: 6, padding: "8px 14px", fontSize: 12.5, color: LIGHT }}>Loaded from a scenario link. These are the sender's inputs, not this session's.</div>}
+  return (
+    <ToolFrame toolId={TOOL_ID} choice={next} section="Cost + Economics" name="AI Deflection Reality Check" title="What does an AI resolution rate actually save you?"
+      lede="A 70% AI resolution rate does not mean 70% of total customer demand disappeared. The denominator determines the truth. This separates coverage, resolution, and durable automation into three honest rates, then values what is left at the cost that actually leaves your budget. Sometimes the program pays. Sometimes the slide is inflated and the move is to renegotiate, fix the foundation first, or buy nothing."
+      method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
+      result={result} pinned={voidReason ? null : { label: "Net savings a month", value: fmtK(R.netSavings) }}>
+      <style>{`${FONT_IMPORT_CSS}.aid-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
+      {fromLink && <p style={{ ...cardStyle, ...body, marginBottom: 0, padding: "12px 16px" }}>Loaded from a scenario link. These are the sender's inputs, not this session's.</p>}
+
+      <fieldset style={{ ...cardStyle, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 2 · Your environment</legend>
+        <p style={{ ...body, margin: "0 0 16px" }}>This tool is strongest after Cost per Contact, which supplies the cost basis. Eligibility is a property of your demand, not of the vendor, so it is shared across both assumption sets below. Marginal cost is the savings basis for everything on this page. Every formula, constant and a worked example are in the <a href="/methodology/ai-deflection" style={link}>published method</a>.</p>
+        <div style={grid(190)}>
+          <NumField tone="dark" label="Monthly contacts" value={s.M} onChange={(v) => set("M", v)} step={1000} min={0} pulled={pulled.M} />
+          <NumField tone="dark" label="Loaded cost per contact" value={s.cpc} onChange={(v) => set("cpc", v)} prefix="$" step={0.25} min={0} pulled={pulled.cpc} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} />
+          <NumField tone="dark" label="Marginal cost per contact" value={s.marg} onChange={(v) => set("marg", v)} prefix="$" step={0.25} min={0} pulled={pulled.marg} hint={R.margWasDefaulted ? "0 assumes 60% of loaded, " + fmt2(R.marg) : "the savings basis"} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
+          <NumField tone="dark" label="AI-eligible demand" value={s.eligibleRate} onChange={(v) => set("eligibleRate", v)} suffix="%" step={1} min={0} max={100} hint="of total, automatable" info={DEFS.eligible.text} infoTitle={DEFS.eligible.title} infoAlign="right" />
+        </div>
+        <div style={{ ...grid(240), marginTop: 16 }}>
+          <div>
+            <label style={lbl}>Where does the resolution rate come from<InfoDot text={DEFS.evidence.text} title={DEFS.evidence.title} /></label>
+            <select aria-label="Evidence for the containment rate" value={s.evidence} onChange={(e) => set("evidence", e.target.value)} className="aid-sel" style={sel}>
+              {EVIDENCE_ORDER.map((k) => <option key={k} value={k}>{EVIDENCE[k].label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={lbl}>Capacity action<InfoDot text={DEFS.mech.text} title={DEFS.mech.title} align="right" /></label>
+            <select aria-label="Realization mechanism" value={s.mech} onChange={(e) => set("mech", e.target.value)} className="aid-sel" style={sel}>
+              {MECH_ORDER.map((k) => <option key={k} value={k}>{MECH[k].label}{k === "none" ? " ($0)" : "  (" + Math.round(MECH[k].f * 100) + "%)"}</option>)}
+            </select>
+          </div>
+        </div>
+        <label style={{ display: "flex", gap: 10, alignItems: "flex-start", marginTop: 16, cursor: R.margWasDefaulted ? "not-allowed" : "pointer", opacity: R.margWasDefaulted ? 0.5 : 1 }}>
+          <input type="checkbox" checked={s.costConfirmed && !R.margWasDefaulted} disabled={R.margWasDefaulted} onChange={(e) => set("costConfirmed", e.target.checked)} style={{ marginTop: 4, width: 18, height: 18, accentColor: HOUSE.electric }} />
+          <span style={{ ...body, fontSize: 14 }}>
+            Marginal cost confirmed against payroll or finance data.
+            <span style={{ ...small, display: "block", marginTop: 2 }}>
+              {R.margWasDefaulted
+                ? `Disabled. There is nothing to confirm while the marginal cost is an assumed ${Math.round(MARG_SHARE * 100)}% of loaded.`
+                : margSource
+                  ? "This figure arrived from another tool on this site. That confers consistency, not evidence. It grades Directional until a recorded origin travels with it."
+                  : "Required for Planning-grade on the cost basis. A number typed into a calculator is an estimate until something attests to it. Self-attestation stops at Planning-grade."}
+            </span>
+          </span>
+        </label>
+      </fieldset>
+
+      <fieldset style={{ ...cardStyle, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 2 of 2 · {s.compareMode ? "Assumption set A" : "The claim being tested"}</legend>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", minHeight: TOUCH, ...body, fontSize: 14, cursor: "pointer", marginBottom: 8 }}>
+          <input type="checkbox" checked={s.compareMode} onChange={(e) => set("compareMode", e.target.checked)} style={{ width: 18, height: 18, accentColor: HOUSE.electric }} />
+          Compare two assumption sets
+        </label>
+        <VendorInputs v={s.vA} onChange={setVA} compact={s.compareMode} />
+        {s.compareMode && (
+          <div style={{ marginTop: 20, paddingTop: 18, borderTop: `1px solid ${hair}` }}>
+            <h2 style={{ ...h2, margin: "0 0 12px" }}>Assumption set B</h2>
+            <VendorInputs v={s.vB} onChange={setVB} compact />
+          </div>
+        )}
+        <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap", marginTop: 16, paddingTop: 14, borderTop: `1px solid ${hair}` }}>
+          <label style={{ display: "flex", gap: 8, alignItems: "center", minHeight: TOUCH, ...body, fontSize: 14, cursor: "pointer" }}>
+            <input type="checkbox" checked={s.rampOn} onChange={(e) => set("rampOn", e.target.checked)} style={{ width: 18, height: 18, accentColor: HOUSE.electric }} />
+            Resolution ramps over time
+          </label>
+          {s.rampOn && <div style={{ width: 190 }}><NumField tone="dark" compact label="Ramp to full (months)" value={s.rampMonths} onChange={(v) => set("rampMonths", v)} min={1} max={12} step={1} /></div>}
+        </div>
+      </fieldset>
+
+      <section aria-label="Coverage, resolution and net automation" style={{ ...cardStyle, marginBottom: 0 }}>
+        <h2 style={{ ...h2, display: "flex", alignItems: "center", gap: 6 }}>Coverage, resolution, and net automation<InfoDot text={DEFS.funnel.text} title={DEFS.funnel.title} /></h2>
+        <p style={{ ...body, margin: "0 0 18px" }}>Three different rates with three different denominators. The vendor's headline is apparent resolution. Your budget responds to durable net automation. Starting values are illustrative benchmarks, not a claim about your operation or any particular vendor. Replace them with your own figures.</p>
+        {funnelRows.map((f, i) => (
+          <div key={i} style={{ marginBottom: i === funnelRows.length - 1 ? 0 : 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist }}>{f.label}</span>
+              <span style={{ ...small, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{Math.round(f.val).toLocaleString()} / mo · {f.of}</span>
+            </div>
+            <div style={{ height: 22, background: HOUSE.ink, borderRadius: RADIUS.chip, overflow: "hidden", border: `1px solid ${hair}` }}>
+              <div style={{ width: Math.max(1, Math.min(100, f.pct)) + "%", height: "100%", background: ARCS.evidence, opacity: 0.3 + 0.2 * i }} />
+            </div>
+          </div>
+        ))}
+        <p style={{ ...body, fontSize: 14, marginTop: 16, padding: "12px 14px", borderRadius: RADIUS.field, border: `1px solid ${soft}` }}>
+          The vendor's <strong style={{ color: HOUSE.mist }}>{R.rp}% resolution</strong> is a share of AI-involved conversations. Against your total demand it is <strong style={{ color: HOUSE.mist }}>{R.netAutomationRate.toFixed(1)}%</strong>. A resolution rate is only meaningful with its denominator attached.
+        </p>
+      </section>
+
+      <div style={grid(150)}>
+        {card("Vendor claim", fmtK(R.vendorClaim), R.rp + "% at " + fmt2(R.cpc) + " loaded")}
+        {card("Net savings / mo", fmtK(R.netSavings), R.netSavings > 0 ? fmtK(R.steadyAnnual) + "/yr steady" : "net cost")}
+        {card("Net automation", R.netAutomationRate.toFixed(1) + "%", "of total demand")}
+        {card("Dollars realized", R.realizedDollarsPct.toFixed(0) + "%", "of the vendor's claim")}
+      </div>
+
+      <section aria-label="The decision this protects" style={{ ...cardStyle, marginBottom: 0, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+        <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 6 }}>The decision this protects<InfoDot text={DEFS.verdict.text} title={DEFS.verdict.title} /></span>
+        <h2 style={{ ...h2, fontSize: 26, margin: "8px 0" }}>{R.verdict}</h2>
+        <p style={{ ...body, margin: "0 0 10px" }}>{R.verdictWhy}</p>
+        <p style={{ ...small, marginBottom: 14 }}>What selected this: net {fmt(R.netSavings)}/mo, upside case {fmt(R.bestNet)}/mo, eligibility {R.ep}%, evidence {R.evidenceLabel.toLowerCase()}, capacity action {MECH[R.mechKey].label.toLowerCase()}. Change any of those and the verdict can change.</p>
+        <Button kind="secondary" href={R.verdictRoute} icon="next">{R.verdictRouteLabel}</Button>
+      </section>
+
+      <section aria-label="How sure" style={{ ...cardStyle, marginBottom: 0 }}>
+        <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 6 }}>How sure<InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></span>
+        <div style={{ ...grid(150), margin: "12px 0" }}>
+          {[["Evidence", G.voided ? "Void" : G.evidence, R.evidenceLabel], ["Realization", G.voided ? "Void" : G.realization, MECH[R.mechKey].label], ["Completeness", G.voided ? "Void" : G.completeness, G.blockers.length ? G.blockers.length + (G.blockers.length === 1 ? " check failed" : " checks failed") : "Model is whole"]].map(([k, g, sub]) => (
+            <div key={k} style={{ borderRadius: RADIUS.field, border: `1px solid ${hair}`, padding: "12px 14px" }}>
+              <div style={kicker}>{k}</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{g}</div>
+              <div style={small}>{sub}</div>
+            </div>
+          ))}
+        </div>
+        <p style={{ ...body, fontSize: 14, margin: "0 0 10px" }}>{G.gradeWhy} Net savings carry a plus or minus {Math.round(R.band * 100)}% band at this evidence level, {fmtK(sensLow)} to {fmtK(sensHigh)} per month.</p>
+        <p style={small}>This grade is self-declared. It reflects what you have told this tool about your sources, not anything this tool has inspected. No document, payroll file, or pilot dataset has been reviewed here. Independent validation of the underlying inputs is a separate exercise.</p>
+      </section>
+
+      <section aria-label="Rail handoff" style={{ ...cardStyle, marginBottom: 0 }}>
+        <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 6 }}>Rail handoff<InfoDot text={DEFS.rail.text} title={DEFS.rail.title} /></span>
+        {R.railPublished ? (
+          <>
+            <p style={{ ...body, margin: "8px 0 12px" }}>This is the only tool on the site that produces a realistic deflection rate. Two figures are now available to the rest of the suite, and they are not the same number.</p>
+            <div style={grid(200)}>
+              <div style={{ borderRadius: RADIUS.field, border: `1px solid ${hair}`, padding: "12px 14px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: HOUSE.mist }}>{R.netAutomationRate.toFixed(1)}% net automation</div>
+                <div style={{ ...small, marginTop: 3 }}>Share of your <strong>total</strong> contact volume the bot durably removes. The honest headline deflection number.</div>
+              </div>
+              <div style={{ borderRadius: RADIUS.field, border: `1px solid ${hair}`, padding: "12px 14px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: HOUSE.mist }}>{R.botResolutionRate.toFixed(1)}% bot resolution</div>
+                <div style={{ ...small, marginTop: 3 }}>Share of the volume you <strong>route to the bot</strong> that durably resolves. This is what Channel Shift needs to size the human pool.</div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div style={{ marginTop: 10 }}>
+            <Finding level="high" title="Nothing was published to the rest of the suite">{R.railReason} Channel Shift Economics will fall back to its own default bot resolution rate. That fallback is correct behavior, because a rate the rail cannot trust should never travel. It is also completely silent downstream. This panel is the only place it is visible.</Finding>
+          </div>
+        )}
+      </section>
+
+      {R.flags.length > 0 && (
+        <section aria-label="Integrity flags" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <h2 style={h2}>Integrity flags · {R.flags.length} {R.flags.length === 1 ? "issue" : "issues"}</h2>
+          {R.flags.map((f, i) => <Finding key={i} level={R.hardFlag ? "critical" : "high"} title={R.hardFlag ? "Invalid input" : "Check this"}>{f}</Finding>)}
+        </section>
+      )}
+
+      <section aria-label="Vendor claim to reality" style={{ ...cardStyle, marginBottom: 0 }}>
+        <h2 style={h2}>Vendor claim to reality</h2>
+        <p style={{ ...body, margin: "0 0 12px" }}>Every subtraction, in order, starting from the resolution rate applied to all volume at loaded cost. This reconciles exactly to net monthly savings.</p>
+        {R.waterfall.map((w, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "9px 0", borderBottom: `1px solid ${hair}` }}>
+            <span style={{ fontSize: 14, color: i === 0 ? HOUSE.mist : HOUSE.body, fontWeight: i === 0 ? 600 : 400 }}>{w.label}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }}>{(w.value >= 0 ? "+" : "") + fmt(w.value)}</span>
+          </div>
+        ))}
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "14px 0 0" }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: HOUSE.mist }}>Net monthly savings</span>
+          <span style={{ fontSize: 24, fontWeight: 700, color: HOUSE.mist, fontVariantNumeric: "tabular-nums" }}>{fmt(R.netSavings)}</span>
+        </div>
+        <p style={{ ...small, marginTop: 14, paddingTop: 12, borderTop: `1px solid ${hair}` }}>
+          The escalation premium is a directional constant, not a measured figure. At 0% it would be {fmt(R.netAtEscZero)} a month. At {R.escP * 2}%, double what you entered, it would be {fmt(R.netAtEscDouble)}. That is a {fmt(R.escSwing)} swing across the plausible range, so measure your own post-escalation handle time before leaning on this line.
+        </p>
+      </section>
+
+      <section aria-label="Year one, month by month" style={{ ...cardStyle, marginBottom: 0 }}>
+        <h2 style={{ ...h2, marginBottom: 14 }}>Year one, month by month</h2>
+        <div style={{ display: "flex", gap: 24, alignItems: "flex-end", flexWrap: "wrap" }}>
+          <div><div style={small}>Year 1 {R.rampOn ? "(ramped " + R.rampMonths + "mo)" : "(full)"}</div><div style={{ fontSize: 24, fontWeight: 700, color: HOUSE.mist }}>{fmtK(R.year1)}</div></div>
+          <div><div style={small}>Steady-state annual</div><div style={{ fontSize: 24, fontWeight: 700, color: HOUSE.mist }}>{fmtK(R.steadyAnnual)}</div></div>
+          <div><div style={small}>Payback</div><div style={{ fontSize: 24, fontWeight: 700, color: HOUSE.mist }}>{R.payback ? "Mo " + R.payback : "None"}</div></div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div role="img" aria-label="Net savings per month over year one" style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 48 }}>
+              {R.monthly.map((m, i) => { const mx = Math.max(...R.monthly.map(Math.abs), 1); return <div key={i} title={"Mo " + (i + 1) + ": " + fmtK(m)} style={{ flex: 1, height: Math.max(4, (Math.abs(m) / mx) * 100) + "%", background: m >= 0 ? ARCS.evidence : "transparent", border: m >= 0 ? "none" : `1.5px dashed ${HOUSE.mist}`, opacity: 0.45 + 0.55 * (i / 11), borderRadius: 2, boxSizing: "border-box" }} />; })}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", ...small, marginTop: 3 }}><span>Mo 1</span><span>net savings per month; dashed is a loss</span><span>Mo 12</span></div>
+          </div>
+        </div>
+        <div style={{ ...grid(150), marginTop: 18 }}>
+          <div style={{ borderRadius: RADIUS.field, border: `1px solid ${hair}`, padding: "12px 14px" }}><div style={small}>Break-even resolution</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{isFinite(R.beResPct) ? R.beResPct.toFixed(1) + "%" : "never"}</div><div style={small}>your figure is {R.rp}%</div></div>
+          <div style={{ borderRadius: RADIUS.field, border: `1px solid ${hair}`, padding: "12px 14px" }}><div style={small}>Max tolerable repeat</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{R.repeatTolPct != null ? R.repeatTolPct.toFixed(0) + "%" : "n/a"}</div><div style={small}>{R.repeatTolPct != null ? "you entered " + R.rhop + "%" : R.repeatNote}</div></div>
+          <div style={{ borderRadius: RADIUS.field, border: `1px solid ${hair}`, padding: "12px 14px" }}><div style={small}>Upside-case net</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{fmtK(R.bestNet)}/mo</div><div style={small}>better resolution, fewer repeats</div></div>
         </div>
       </section>
 
-      <section style={{ padding: "36px 0 72px" }}>
-        <div style={WRAP}>
-
-          {/* environment */}
-          <div style={cardStyle}>
-            <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Your environment</h3>
-            <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 16px", lineHeight: 1.6 }}>This tool is strongest after Cost per Contact, which supplies the cost basis. Eligibility is a property of your demand, not of the vendor, so it is shared across both assumption sets below. Marginal cost is the savings basis for everything on this page. Every formula, constant and a worked example are in the <a href="/methodology/ai-deflection" style={{ color: NAVY, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12 }} className="env">
-              <NumField label="Monthly contacts" value={s.M} onChange={(v) => set("M", v)} step={1000} min={0} pulled={pulled.M} />
-              <NumField label="Loaded cost per contact" value={s.cpc} onChange={(v) => set("cpc", v)} prefix="$" step={0.25} min={0} pulled={pulled.cpc} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} />
-              <NumField label="Marginal cost per contact" value={s.marg} onChange={(v) => set("marg", v)} prefix="$" step={0.25} min={0} pulled={pulled.marg} hint={R.margWasDefaulted ? "0 assumes 60% of loaded, " + fmt2(R.marg) : "the savings basis"} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
-              <NumField label="AI-eligible demand" value={s.eligibleRate} onChange={(v) => set("eligibleRate", v)} suffix="%" step={1} min={0} max={100} hint="of total, automatable" info={DEFS.eligible.text} infoTitle={DEFS.eligible.title} infoAlign="right" />
+      <section aria-label="Three scenarios" style={{ ...cardStyle, marginBottom: 0 }}>
+        <h2 style={h2}>Three scenarios, named assumptions</h2>
+        <p style={{ ...body, marginBottom: 14 }}>Not low, medium, and high with the same story. Each scenario states the eligibility, resolution, and repeat assumptions that move it, so you can see exactly what has to be true to reach it.</p>
+        <div style={grid(170)}>
+          {scenarios.map((x, i) => (
+            <div key={i} style={{ borderRadius: RADIUS.field, padding: "13px 15px", border: `1px solid ${i === 1 ? soft : hair}` }}>
+              <div style={{ ...kicker, marginBottom: 4 }}>{x.label}</div>
+              <div style={{ fontSize: 21, fontWeight: 700, color: HOUSE.mist }}>{fmtK(x.netSavings)}<span style={small}>/mo</span></div>
+              <div style={{ ...small, marginBottom: 8 }}>{x.netAutomationRate.toFixed(1)}% net automation of total</div>
+              <div style={small}>eligible {x.eligibleRate}% · resolution {x.apparentResolutionRate}% · repeat {x.repeatLeakRate}%</div>
             </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Button kind="secondary" href="/vendors/iva">IVA vendor profiles</Button>
+          <Button kind="secondary" href="/tools/channel-shift">Channel Shift Economics</Button>
+          <Button kind="secondary" href="/tools/cost-per-contact">Cost per Contact</Button>
+        </div>
+      </section>
 
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12, marginTop: 16 }} className="env">
-              <div>
-                <label style={lbl}>Where does the resolution rate come from<InfoDot text={DEFS.evidence.text} title={DEFS.evidence.title} /></label>
-                <select aria-label="Evidence for the containment rate" value={s.evidence} onChange={(e) => set("evidence", e.target.value)} style={sel}>
-                  {EVIDENCE_ORDER.map((k) => <option key={k} value={k}>{EVIDENCE[k].label}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={lbl}>Capacity action<InfoDot text={DEFS.mech.text} title={DEFS.mech.title} align="right" /></label>
-                <select aria-label="Realization mechanism" value={s.mech} onChange={(e) => set("mech", e.target.value)} style={sel}>
-                  {MECH_ORDER.map((k) => <option key={k} value={k}>{MECH[k].label}{k === "none" ? " ($0)" : "  (" + Math.round(MECH[k].f * 100) + "%)"}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <label style={{ display: "flex", gap: 9, alignItems: "flex-start", marginTop: 16, cursor: R.margWasDefaulted ? "not-allowed" : "pointer", opacity: R.margWasDefaulted ? 0.5 : 1 }}>
-              <input type="checkbox" checked={s.costConfirmed && !R.margWasDefaulted} disabled={R.margWasDefaulted} onChange={(e) => set("costConfirmed", e.target.checked)} style={{ marginTop: 3 }} />
-              <span style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.55 }}>
-                Marginal cost confirmed against payroll or finance data.
-                <span style={{ display: "block", fontSize: 12, color: MUTED, marginTop: 2 }}>
-                  {R.margWasDefaulted
-                    ? `Disabled. There is nothing to confirm while the marginal cost is an assumed ${Math.round(MARG_SHARE * 100)}% of loaded.`
-                    : margSource
-                      ? "This figure arrived from another tool on this site. That confers consistency, not evidence. It grades Directional until a recorded origin travels with it."
-                      : "Required for Planning-grade on the cost basis. A number typed into a calculator is an estimate until something attests to it. Self-attestation stops at Planning-grade."}
-                </span>
-              </span>
-            </label>
-          </div>
-
-          {/* vendors */}
-          <div style={cardStyle}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
-              <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: 0 }}>{s.compareMode ? "Assumption set A" : "The claim being tested"}</h3>
-              <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12.5, color: SLATE, cursor: "pointer" }}>
-                <input type="checkbox" checked={s.compareMode} onChange={(e) => set("compareMode", e.target.checked)} />
-                Compare two assumption sets
-              </label>
-            </div>
-            <VendorInputs v={s.vA} onChange={setVA} compact={s.compareMode} />
-            {s.compareMode && (
-              <div style={{ marginTop: 22, paddingTop: 20, borderTop: `1px solid ${BORDER}` }}>
-                <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 14px" }}>Assumption set B</h3>
-                <VendorInputs v={s.vB} onChange={setVB} compact />
-              </div>
-            )}
-            <div style={{ display: "flex", gap: 18, alignItems: "center", flexWrap: "wrap", marginTop: 16, paddingTop: 14, borderTop: `1px solid ${BORDER}` }}>
-              <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12.5, color: SLATE, cursor: "pointer" }}>
-                <input type="checkbox" checked={s.rampOn} onChange={(e) => set("rampOn", e.target.checked)} />
-                Resolution ramps over time
-              </label>
-              {s.rampOn && <div style={{ width: 150 }}><NumField compact label="Ramp to full (months)" value={s.rampMonths} onChange={(v) => set("rampMonths", v)} min={1} max={12} step={1} /></div>}
-            </div>
-          </div>
-
-          {/* the three rates */}
-          <div style={cardStyle}>
-            <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>Coverage, resolution, and net automation<InfoDot text={DEFS.funnel.text} title={DEFS.funnel.title} /></h3>
-            <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 18px" }}>Three different rates with three different denominators. The vendor's headline is apparent resolution. Your budget responds to durable net automation. Starting values are illustrative benchmarks, not a claim about your operation or any particular vendor. Replace them with your own figures.</p>
-            {funnelRows.map((f, i) => (
-              <div key={i} style={{ marginBottom: i === funnelRows.length - 1 ? 0 : 14 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, marginBottom: 4 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 600, color: NAVY }}>{f.label}</span>
-                  <span style={{ fontSize: 12, color: MUTED, textAlign: "right", ...NUM }}>{Math.round(f.val).toLocaleString()} / mo · {f.of}</span>
-                </div>
-                <div style={{ height: 22, background: WARM, borderRadius: 5, overflow: "hidden", border: `1px solid ${BORDER}` }}>
-                  <div style={{ width: Math.max(1, Math.min(100, f.pct)) + "%", height: "100%", background: f.color, opacity: i === 0 ? 0.35 : 0.85 }} />
-                </div>
+      {s.compareMode && (
+        <section aria-label="Assumption set A vs B" style={{ ...cardStyle, marginBottom: 0 }}>
+          <h2 style={h2}>Assumption set A vs B</h2>
+          <p style={{ ...body, margin: "0 0 14px" }}>Same volume, same cost basis, same eligibility and capacity action. Only the performance assumptions differ. This compares assumptions, not commercial proposals: pricing structures, committed volumes, overage terms, and contract exposure belong in Contract Risk Scanner.</p>
+          <div style={grid(220)}>
+            {[["A", R], ["B", RB]].map(([k, r]) => (
+              <div key={k} style={{ borderRadius: RADIUS.field, border: `1px solid ${winner === k ? PILLARS.diagnostics.fill : hair}`, padding: "14px 16px" }}>
+                <div style={kicker}>Set {k}{winner === k ? " · higher net" : ""}</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: HOUSE.mist, margin: "4px 0" }}>{fmtK(r.netSavings)}<span style={small}>/mo</span></div>
+                <div style={small}>Resolves {r.rp}% of involved, which is {r.netAutomationRate.toFixed(1)}% of total demand. Operating cost {fmtK(r.opexMonthly)}/mo. Verdict: {r.verdict}.</div>
               </div>
             ))}
-            <div style={{ marginTop: 16, background: ICE, borderRadius: 8, padding: "11px 14px", fontSize: 12, color: SLATE, lineHeight: 1.55 }}>
-              The vendor's <strong>{R.rp}% resolution</strong> is a share of AI-involved conversations. Against your total demand it is <strong>{R.netAutomationRate.toFixed(1)}%</strong>. A resolution rate is only meaningful with its denominator attached.
-            </div>
           </div>
+        </section>
+      )}
 
-          {/* headline */}
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12, marginBottom: 20 }} className="s4">
-            {card("Vendor Claim", fmtK(R.vendorClaim), R.rp + "% at " + fmt2(R.cpc) + " loaded", LIGHT, true)}
-            {card("Net Savings / mo", fmtK(R.netSavings), R.netSavings > 0 ? fmtK(R.steadyAnnual) + "/yr steady" : "net cost", R.netSavings > 0 ? GREEN : RED)}
-            {card("Net Automation", R.netAutomationRate.toFixed(1) + "%", "of total demand", realColor(R.netAutomationRate >= 25 ? 60 : R.netAutomationRate >= 15 ? 40 : 20))}
-            {card("Dollars Realized", R.realizedDollarsPct.toFixed(0) + "%", "of the vendor's claim", realColor(R.realizedDollarsPct))}
-          </div>
+      <section aria-label="What it means" style={{ ...cardStyle, marginBottom: 0, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+        <h2 style={h2}>What the vendor slide skips</h2>
+        {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "6px 0 0" }}>{t}</p>)}
+      </section>
 
-          {/* decision */}
-          <div style={{ ...cardStyle, borderLeft: `4px solid ${toneColor(R.verdictTone)}` }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>The decision this protects<InfoDot text={DEFS.verdict.text} title={DEFS.verdict.title} /></div>
-            <div style={{ ...TYPE.h1, fontSize: 26, color: toneColor(R.verdictTone), margin: "0 0 8px" }}>{R.verdict}</div>
-            <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.65, margin: "0 0 10px" }}>{R.verdictWhy}</p>
-            <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.6, marginBottom: 14, background: WARM, borderRadius: 8, padding: "10px 13px" }}>
-              What selected this: net {fmt(R.netSavings)}/mo, upside case {fmt(R.bestNet)}/mo, eligibility {R.ep}%, evidence {R.evidenceLabel.toLowerCase()}, capacity action {MECH[R.mechKey].label.toLowerCase()}. Change any of those and the verdict can change.
-            </div>
-            <a href={R.verdictRoute} style={{ display: "inline-block", fontSize: 12.5, fontWeight: 600, color: "#fff", background: toneColor(R.verdictTone), padding: "8px 16px", borderRadius: 6, textDecoration: "none" }}>{R.verdictRouteLabel}</a>
-          </div>
-
-          {/* confidence */}
-          <div style={{ ...cardStyle, borderLeft: `3px solid ${confColor(G.confidence)}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>Confidence<InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></div>
-              <div style={{ ...TYPE.h1, fontSize: 22, color: confColor(G.confidence) }}>{G.confidence}</div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12, margin: "14px 0" }} className="env">
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Evidence</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.evidence) }}>{G.voided ? "Void" : G.evidence}</div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{R.evidenceLabel}</div>
-              </div>
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Realization</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.realization) }}>{G.voided ? "Void" : G.realization}</div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{MECH[R.mechKey].label}</div>
-              </div>
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, color: MUTED, textTransform: "uppercase", letterSpacing: 1 }}>Completeness</div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: confColor(G.voided ? "Void" : G.completeness) }}>{G.voided ? "Void" : G.completeness}</div>
-                <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{G.blockers.length ? G.blockers.length + (G.blockers.length === 1 ? " check failed" : " checks failed") : "Model is whole"}</div>
-              </div>
-            </div>
-            <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: "0 0 10px" }}>{G.gradeWhy} Net savings carry a plus or minus {Math.round(R.band * 100)}% band at this evidence level, {fmtK(sensLow)} to {fmtK(sensHigh)} per month.</p>
-            <div style={{ background: WARM, borderRadius: 8, padding: "10px 13px", fontSize: 12, color: MUTED, lineHeight: 1.55 }}>
-              This grade is self-declared. It reflects what you have told this tool about your sources, not anything this tool has inspected. No document, payroll file, or pilot dataset has been reviewed here. Independent validation of the underlying inputs is a separate exercise.
-            </div>
-          </div>
-
-          {/* rail handoff */}
-          <div style={{ ...cardStyle, borderLeft: `3px solid ${R.railPublished ? ELECTRIC : RED}` }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: R.railPublished ? ELECTRIC : RED, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-              Rail handoff<InfoDot text={DEFS.rail.text} title={DEFS.rail.title} />
-            </div>
-            {R.railPublished ? (
-              <>
-                <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.65, margin: "0 0 12px" }}>
-                  This is the only tool on the site that produces a realistic deflection rate. Two figures are now available to the rest of the suite, and they are not the same number.
-                </p>
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12 }} className="env">
-                  <div style={{ background: ICE, borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{R.netAutomationRate.toFixed(1)}% net automation</div>
-                    <div style={{ fontSize: 12, color: SLATE, marginTop: 3, lineHeight: 1.5 }}>Share of your <strong>total</strong> contact volume the bot durably removes. The honest headline deflection number.</div>
-                  </div>
-                  <div style={{ background: ICE, borderRadius: 8, padding: "12px 14px" }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: NAVY }}>{R.botResolutionRate.toFixed(1)}% bot resolution</div>
-                    <div style={{ fontSize: 12, color: SLATE, marginTop: 3, lineHeight: 1.5 }}>Share of the volume you <strong>route to the bot</strong> that durably resolves. This is what Channel Shift needs to size the human pool.</div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.65, margin: "0 0 8px" }}><strong style={{ color: RED }}>Nothing was published to the rest of the suite.</strong> {R.railReason}</p>
-                <p style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: 0 }}>Channel Shift Economics will fall back to its own default bot resolution rate. That fallback is correct behavior, because a rate the rail cannot trust should never travel. It is also completely silent downstream. This panel is the only place it is visible.</p>
-              </>
-            )}
-          </div>
-
-          {/* integrity */}
-          {R.flags.length > 0 && (
-            <div style={{ ...cardStyle, borderLeft: `3px solid ${R.hardFlag ? RED : AMBER}` }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: R.hardFlag ? RED : AMBER, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 }}>
-                Integrity flags · {R.flags.length} {R.flags.length === 1 ? "issue" : "issues"}
-              </div>
-              {R.flags.map((f, i) => <p key={i} style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.6, margin: i ? "10px 0 0" : 0 }}>{f}</p>)}
-            </div>
-          )}
-
-          {/* bridge */}
-          <div style={cardStyle}>
-            <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Vendor claim to reality</h3>
-            <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 16px" }}>Every subtraction, in order, starting from the resolution rate applied to all volume at loaded cost. This reconciles exactly to net monthly savings.</p>
-            {R.waterfall.map((w, i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "9px 0", borderBottom: `1px solid ${BORDER}` }}>
-                <span style={{ fontSize: 12.5, color: i === 0 ? NAVY : SLATE, fontWeight: i === 0 ? 600 : 400 }}>{w.label}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: w.value >= 0 ? NAVY : RED, whiteSpace: "nowrap", ...NUM }}>{(w.value >= 0 ? "+" : "") + fmt(w.value)}</span>
-              </div>
-            ))}
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "14px 0 0" }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: NAVY }}>Net monthly savings</span>
-              <span style={{ ...TYPE.statValue, fontSize: 23, color: R.netSavings >= 0 ? GREEN : RED }}>{fmt(R.netSavings)}</span>
-            </div>
-            <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BORDER}`, fontSize: 12, color: MUTED, lineHeight: 1.6 }}>
-              The escalation premium is a directional constant, not a measured figure. At 0% it would be {fmt(R.netAtEscZero)} a month. At {R.escP * 2}%, double what you entered, it would be {fmt(R.netAtEscDouble)}. That is a {fmt(R.escSwing)} swing across the plausible range, so measure your own post-escalation handle time before leaning on this line.
-            </div>
-          </div>
-
-          {/* year one */}
-          <div style={cardStyle}>
-            <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 16px" }}>Year one, month by month</h3>
-            <div style={{ display: "flex", gap: 24, alignItems: "flex-end", flexWrap: "wrap" }}>
-              <div><div style={{ fontSize: 12, color: MUTED }}>Year 1 {R.rampOn ? "(ramped " + R.rampMonths + "mo)" : "(full)"}</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.year1 >= 0 ? GREEN : RED }}>{fmtK(R.year1)}</div></div>
-              <div><div style={{ fontSize: 12, color: MUTED }}>Steady-state annual</div><div style={{ ...TYPE.statValue, fontSize: 24, color: NAVY }}>{fmtK(R.steadyAnnual)}</div></div>
-              <div><div style={{ fontSize: 12, color: MUTED }}>Payback</div><div style={{ ...TYPE.statValue, fontSize: 24, color: R.payback ? NAVY : RED }}>{R.payback ? "Mo " + R.payback : "None"}</div></div>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 48 }}>
-                  {R.monthly.map((m, i) => { const mx = Math.max(...R.monthly.map(Math.abs), 1); return <div key={i} title={"Mo " + (i + 1) + ": " + fmtK(m)} style={{ flex: 1, height: Math.max(4, (Math.abs(m) / mx) * 100) + "%", background: m >= 0 ? GREEN : RED, opacity: 0.35 + 0.65 * (i / 11), borderRadius: 2 }} />; })}
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: MUTED, marginTop: 3 }}><span>Mo 1</span><span>net savings per month</span><span>Mo 12</span></div>
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 12, marginTop: 18 }} className="s3">
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 12, color: MUTED }}>Break-even resolution</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{isFinite(R.beResPct) ? R.beResPct.toFixed(1) + "%" : "never"}</div><div style={{ fontSize: 12, color: MUTED }}>your figure is {R.rp}%</div></div>
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 12, color: MUTED }}>Max tolerable repeat</div><div style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{R.repeatTolPct != null ? R.repeatTolPct.toFixed(0) + "%" : "n/a"}</div><div style={{ fontSize: 12, color: MUTED }}>{R.repeatTolPct != null ? "you entered " + R.rhop + "%" : R.repeatNote}</div></div>
-              <div style={{ background: WARM, borderRadius: 8, padding: "12px 14px" }}><div style={{ fontSize: 12, color: MUTED }}>Upside-case net</div><div style={{ fontSize: 15, fontWeight: 600, color: R.bestNet >= 0 ? GREEN : RED }}>{fmtK(R.bestNet)}/mo</div><div style={{ fontSize: 12, color: MUTED }}>better resolution, fewer repeats</div></div>
-            </div>
-          </div>
-
-          {/* scenarios */}
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "24px 28px", marginBottom: 20 }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Three scenarios, named assumptions</h3>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginBottom: 14 }}>Not low, medium, and high with the same story. Each scenario states the eligibility, resolution, and repeat assumptions that move it, so you can see exactly what has to be true to reach it.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)", gap: 10 }} className="s3">
-              {scenarios.map((x, i) => (
-                <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: "13px 15px", border: `1px solid ${i === 1 ? "rgba(0,170,255,0.4)" : "rgba(255,255,255,0.06)"}` }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.6)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.6 }}>{x.label}</div>
-                  <div style={{ ...TYPE.statValue, fontSize: 21, color: x.netSavings >= 0 ? "#fff" : RED }}>{fmtK(x.netSavings)}<span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>/mo</span></div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", marginBottom: 8 }}>{x.netAutomationRate.toFixed(1)}% net automation of total</div>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>eligible {x.eligibleRate}% · resolution {x.apparentResolutionRate}% · repeat {x.repeatLeakRate}%</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <a href="/vendors/iva" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)", textDecoration: "none" }}>50 scored IVA vendors</a>
-              <a href="/tools/channel-shift" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)", textDecoration: "none" }}>Channel Shift Economics</a>
-              <a href="/tools/cost-per-contact" style={{ fontSize: 12, fontWeight: 600, color: LIGHT, padding: "5px 14px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.15)", textDecoration: "none" }}>Cost per Contact</a>
-            </div>
-          </div>
-
-          {/* compare */}
-          {s.compareMode && (
-            <div style={cardStyle}>
-              <h3 style={{ ...TYPE.h2, fontSize: 20, color: NAVY, margin: "0 0 4px" }}>Assumption set A vs B</h3>
-              <p style={{ fontSize: 12.5, color: MUTED, margin: "0 0 14px" }}>Same volume, same cost basis, same eligibility and capacity action. Only the performance assumptions differ. This compares assumptions, not commercial proposals: pricing structures, committed volumes, overage terms, and contract exposure belong in Contract Risk Scanner.</p>
-              <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(0,1fr)", gap: 12 }} className="env">
-                {[["A", R], ["B", RB]].map(([k, r]) => (
-                  <div key={k} style={{ background: winner === k ? ICE : WARM, border: `1px solid ${winner === k ? ELECTRIC : BORDER}`, borderRadius: 8, padding: "14px 16px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase" }}>Set {k} {winner === k && <span style={{ color: ELECTRIC }}>· higher net</span>}</div>
-                    <div style={{ ...TYPE.statValue, fontSize: 24, color: r.netSavings >= 0 ? GREEN : RED, margin: "4px 0" }}>{fmtK(r.netSavings)}<span style={{ fontSize: 12, color: MUTED }}>/mo</span></div>
-                    <div style={{ fontSize: 12, color: SLATE, lineHeight: 1.55 }}>Resolves {r.rp}% of involved, which is {r.netAutomationRate.toFixed(1)}% of total demand. Operating cost {fmtK(r.opexMonthly)}/mo. Verdict: {r.verdict}.</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* analyst read */}
-          <div style={{ ...cardStyle, borderLeft: `3px solid ${ELECTRIC}` }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst read · what the vendor slide skips</div>
-            {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.65, margin: i ? "10px 0 0" : 0 }}>{t}</p>)}
-          </div>
-
+      {/* The report is paper (Brand Guide section 13). */}
+      <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions
             next={R.verdictRoute ? { to: toolAt(R.verdictRoute), because: R.verdictWhy } : null}
             toolId={TOOL_ID}
@@ -1058,10 +1039,8 @@ export default function AIDeflectionRealityCheck() {
             }}
             sections={reportSections}
           />
-
-        </div>
-      </section>
-    </div>
+      </div>
+    </ToolFrame>
   );
 }
 
