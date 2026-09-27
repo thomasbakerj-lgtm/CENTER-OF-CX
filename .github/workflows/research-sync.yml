@@ -1,0 +1,51 @@
+# Research sync (decision D1). Reads a checkpoint from the private research repository, derives the public snapshot,
+# runs the research harness against the real corpus, and opens a pull request with the changed files. Run by hand
+# from the Actions tab. Needs the RESEARCH_TOKEN secret: a fine-grained token, read-only, for the research repository.
+name: research-sync
+on:
+  workflow_dispatch:
+    inputs:
+      corpus:
+        description: "Corpus file path inside the research repository"
+        required: true
+        default: "ccaas/CCaaS_Master_Research_Corpus_v1.0_Production_Cohort3_Normalized_1.json"
+      category:
+        description: "Category slug"
+        required: true
+        default: "ccaas"
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: thomasbakerj-lgtm/center-of-cx-research
+          token: ${{ secrets.RESEARCH_TOKEN }}
+          path: .research
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/research-sync.mjs --corpus ".research/${{ inputs.corpus }}" --category "${{ inputs.category }}"
+      - run: node research.test.mjs
+        env:
+          RESEARCH_CORPUS: .research/${{ inputs.corpus }}
+      - run: rm -rf .research
+      - name: Open a pull request with the new snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- src/data/research; then echo "Snapshot unchanged."; exit 0; fi
+          branch="research-sync/${{ inputs.category }}-${{ github.run_id }}"
+          git config user.name "research-sync"
+          git config user.email "research-sync@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add src/data/research
+          git commit -m "Research snapshot: ${{ inputs.category }} from ${{ inputs.corpus }}"
+          git push origin "$branch"
+          gh pr create --title "Research snapshot: ${{ inputs.category }}" --body "Derived by research-sync from \`${{ inputs.corpus }}\`. The manifest names the checkpoint and the source hash; the research harness passed against the real corpus before this pull request opened."

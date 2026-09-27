@@ -105,6 +105,7 @@ const INFRA = [
   { name: "tokens.test.mjs", covers: "Redesign foundations: Brand Guide tokens, WCAG AA pairings, self-hosted Plex, the 32 icons, no colour literal in migrated files" },
   { name: "components.test.mjs", covers: "Redesign components: every shared component renders with its accessible name, contrast and Brand Guide rule" },
   { name: "shell.test.mjs", covers: "Redesign shell: one header and footer for every page, five pillars, live links, phone menu, breadcrumbs, no page draws its own" },
+  { name: "research.test.mjs", covers: "Research Stage 1: corpus loader refuses wrong schema, publishes only gated vendors and publishable evidence, withholds governance tables and internal fields, committed CCaaS snapshot resolves and stays separate" },
   { name: "intro.test.mjs", covers: "Vendor introductions: link carries only a known profile or a plain name, every vendor surface offers one, contact form receives it, no order moves" },
   { name: "toolframe.test.mjs", covers: "Redesign tool frame: route rail from the journey graph, one h1, result region, phone bar, privacy line against the analytics allowlist" },
   { name: "home.test.mjs", covers: "Redesign homepage: counts from registries, live routes on the journey graph, industry figures from the claims registry, the published layer map, taxonomy 1.1 events" },

@@ -39,7 +39,10 @@ What TB does, about ten minutes, once:
 3. Add it to the public repository as an Actions secret named `RESEARCH_TOKEN`.
 4. Add the private repository to a Claude session (so the loader can be written and tested against the real file).
 
-Status: recommended, awaiting TB's go.
+Status: **decided 27 September 2026 (TB: "merge it and go").** Built the same day: the loader, the committed CCaaS snapshot
+(derived locally from the Cohort 3 corpus TB uploaded to the session), the research harness, and the sync workflow
+(`.github/workflows/research-sync.yml`). The workflow runs once TB completes steps 1 to 3 above; until then a new checkpoint
+is synced by running `node scripts/research-sync.mjs --corpus <file>` in a session that has the corpus.
 
 ## D2. Vendor correction policy
 
