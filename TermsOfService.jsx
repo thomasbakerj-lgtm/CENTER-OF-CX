@@ -1,29 +1,31 @@
 import { useEffect } from "react";
+import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+import { FONT } from "./src/lib/type.js";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const SLATE = "#3A4F6A"; const MUTED = "#6B7F99"; const BORDER = "#D8E3ED";
+const NAVY = HOUSE.mist; const DEEP = HOUSE.ink; const ELECTRIC = PILLARS.research.onDark; const LIGHT = PILLARS.research.onDark; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair);
 const WRAP = { maxWidth: 760, margin: "0 auto", padding: "0 28px" };
-function LogoMark({size=28,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
+function LogoMark({size=28,light=true}){const a=HOUSE.mist,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
-const S = ({ children }) => <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 20, fontWeight: 400, color: NAVY, margin: "32px 0 12px", lineHeight: 1.25 }}>{children}</h2>;
+const S = ({ children }) => <h2 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 400, color: NAVY, margin: "32px 0 12px", lineHeight: 1.25 }}>{children}</h2>;
 const P = ({ children }) => <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.7, margin: "0 0 14px" }}>{children}</p>;
 
 export default function TermsOfService() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
-    <div style={{ fontFamily: "'DM Sans', sans-serif", minHeight: "100vh" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Instrument+Serif:ital@0;1&display=swap');*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'DM Sans',sans-serif;background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}`}</style>
+    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}`}</style>
 
       
 
       <section style={{ background: DEEP, padding: "72px 28px 24px" }}>
         <div style={WRAP}>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 32, fontWeight: 400, color: "#fff", margin: "0 0 4px" }}>Terms of Service</h1>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)" }}>Last updated: May 2026</p>
+          <h1 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: HOUSE.mist, margin: "0 0 4px" }}>Terms of Service</h1>
+          <p style={{ fontSize: 13, color: HOUSE.body }}>Last updated: May 2026</p>
         </div>
       </section>
 
-      <section style={{ background: "#fff", padding: "32px 28px 64px" }}>
+      <section style={{ background: HOUSE.ink, padding: "32px 28px 64px" }}>
         <div style={WRAP}>
           <P>These terms govern your use of contactcentercx.com ("the Site"), operated by The Center of CX ("we," "us," "our"). By accessing or using the Site, you agree to these terms.</P>
 
