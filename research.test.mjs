@@ -235,7 +235,7 @@ section("11c. The corrections log (decision D2)");
 section("12. Separation: nothing reads the snapshot outside the research layer yet [1] [3] [18]");
 {
   const tracked = execSync("git ls-files", { encoding: "utf8" }).split("\n").filter((f) => /\.(jsx?|mjs)$/.test(f));
-  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs", "CCaaSIndustry.jsx", "industry.test.mjs", "Corrections.jsx", "corrections.test.mjs"];
+  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs", "CCaaSIndustry.jsx", "industry.test.mjs", "Corrections.jsx", "corrections.test.mjs", "Research.jsx", "researchpage.test.mjs"];
   const readers = tracked.filter((f) => !f.startsWith("src/lib/research/") && f !== "scripts/research-sync.mjs" && f !== "research.test.mjs" && !PAGES.includes(f) && /data\/research|lib\/research\//.test(readFileSync(f, "utf8")));
   ok(`only the research layer and the Vendor Intelligence pages (profile, category) read research data [${readers.join(", ")}]`, readers.length === 0);
   ok("Vendor Match reads no research snapshot, Market Position value or Phase 1 baseline file", !/data\/research|market.?position|phase1_baseline/i.test(readFileSync("./VendorMatchEngine.jsx", "utf8")));

@@ -153,6 +153,9 @@ made just before the phases that build them, so nothing waits on pages that ship
 
 - Contributor profile and article templates; submissions through the existing review request path; published as static pages.
 - Research landing (coming soon, with the consent design once decided); Market Watch v1 as dated, labelled static items.
+- Done (S24, 27 Sep 2026): D3 approved; `/contribute`, `/perspectives` and the piece and profile templates (no piece yet);
+  Market Watch v1 with 12 researched, labelled items; the Research landing rebuilt from data. **Phase 10 complete** once a
+  first piece is published through the templates; the platform is built. Next: Phase 11.
 
 ## Phase 11. Finish (one to two sessions)
 

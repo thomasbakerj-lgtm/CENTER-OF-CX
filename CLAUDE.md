@@ -349,6 +349,11 @@ Binding. None of this is in code comments beyond what is noted.
   One component (`VendorIntro`, `VendorIntroLink`), one link format (`introHref`), one event (`vendor_action` intro,
   `intro_submit`). An introduction never changes a list's order, a score or a research finding.
 
+**Contributors and Market Watch (TB, S24, 27 Sep)**
+- D3 contributor rules approved as drafted. Perspectives never feed research, grades, tools or Vendor Match.
+- Market Watch items are researched by us from primary pages, labelled verified, news or vendor-supplied, written in our
+  own words (no shared run of 8 words with the source), facts only, at most two items per vendor in a set.
+
 **Vendor tags (TB, S24, 27 Sep)**
 - Be as comprehensive as possible: show a tag when the research supports it for any buyer, and caveat every intricacy
   (US public sector, government, region, separate offer, selective use) on the tag itself. A scope that limits a tag to one
@@ -1284,6 +1289,27 @@ dashboard, the 12-phase growth program.
    covers every converted file. Contrast sweep of all 429 sitemap pages at 1440 and 390: no overflow, no serif, no AA
    failure outside the tools' grade chips (known debt, 25 tool pages). Suite 25,605; live check 255 of 255. **Phase 9
    complete.** Next: Phase 10.
+   PR #64 merged by TB's instruction (99de2e0).
+73. S24, redesign session 25, Phase 10 (TB: D3 approved as drafted; Market Watch launch items researched by us). Contributor
+   platform: `/contribute` publishes the eight D3 rules, the house rules and the steps, with a proposal form (declared vendor
+   tie, originality and rules confirmations) to the existing Formspree inbox; `/perspectives` (honest empty state) and the
+   templates for a piece (`/perspectives/<slug>`: byline first, CONTRIBUTOR PERSPECTIVE, the declared tie, review date,
+   sources) and a profile (`/contributors/<slug>`). `src/lib/contributors.js` refuses a piece with a dash, promotion, an
+   undeclared tie, an unknown author or review after publication. To publish: add the author and piece, a SEO_MAP entry
+   each and the sitemap lines, then rebuild (the prerender passes the piece to structured data, so no piece rides in the
+   entry chunk). Market Watch v1 at `/market-watch`: 12 dated items (July to September 2026; 7 verified, 2 news, 3
+   vendor-supplied; regulation, product, deal, outage, pricing), each written from the page it cites and labelled by the
+   source it rests on; a machine check compared every item with 19 of its 20 cited pages for shared 8-word runs, three
+   matches rewritten (record in `claims/originality.js`; the Cisco page refuses this network). Filters by label and kind;
+   introductions for named vendors (taxonomy 1.3: surface and page type `market-watch`). Market Watch is live in the
+   header, footer and homepage door ("What is new in the market?"); Research stays marked soon until a study of our own.
+   Research landing rebuilt from data (vendor research by category in the section 13 order, methods, industries, Market
+   Watch, perspectives, the two reports that exist, studies to come); the old landing listed eight articles that were never
+   written and figures with no source. Gates: `contributors.test.mjs` (73), `marketwatch.test.mjs` (58),
+   `researchpage.test.mjs` (15), pins in tokens, shell, home, track, seo, research, methods. Chunk gate re-based with
+   attribution (270,220 raw; main had used the headroom). Suite 25,770; sweep of the new pages clean at 1440 and 390; live
+   check 255 of 255. Open: the FCC TCPA item is a draft order (vote 30 Sep; update after); the EU item can move to
+   verified once EUR-Lex is readable; deals were thin in the window.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

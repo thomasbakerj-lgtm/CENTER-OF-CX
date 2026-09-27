@@ -48,7 +48,18 @@ const section = (s) => console.log(`\n${s}`);
  *
  * The numbers are argued, not rounded.
  *
- * Measured entry on 27 September 2026, redesign Phase 4 (the site shell): 262,340 bytes raw,
+ * Measured entry on 27 September 2026, redesign Phase 10 (Market Watch, contributors, the Research landing): 270,220
+ * bytes raw, 87,478 gzipped. Reset from main at 99de2e0, which measured 267,708 raw (Phases 5 to 9 had used most of the
+ * headroom above the Phase 4 base with routes and metadata: the corrections page, the three indexed CCaaS by industry
+ * pages, the changelog redirect and the internal method log, taxonomy 1.1 and 1.2). Attributed module by module against
+ * sourcemapped builds of both: App.jsx 923 (five routes and three lazy imports: /market-watch, /perspectives and a piece,
+ * /contributors, /contribute), src/lib/seo.js 883 (metadata for three pages, the Research description, the structured
+ * data branch for a published piece), src/lib/Shell.jsx 256 (the Research footer column, the Market Watch link and its
+ * pillar mark), src/lib/track.js 144 (taxonomy 1.3), src/lib/tokens.js 18. Checked against the built entry: no Market
+ * Watch item, contributor rule or piece, and no research data is in it. Contributor data was taken out of seo.js for
+ * that reason: a published piece's body would otherwise ride in the entry; the prerender passes it instead.
+ *
+ * Before that, measured on 27 September 2026, redesign Phase 4 (the site shell): 262,340 bytes raw,
  * 84,782 gzipped. Reset from 248,077 raw, 80,341 gzipped (25 September, Phase E3). Attributed
  * module by module against a sourcemapped build of main (251,926 raw at afe9bd2; the 3,849
  * before that were Phase 2's font rules and tokens). The shell adds 10,457: src/lib/Shell.jsx
@@ -104,8 +115,8 @@ const section = (s) => console.log(`\n${s}`);
  * this paragraph. Do not raise it to make a build pass. A run that reports this
  * harness UNPARSED has not measured anything and is a failure, never a pass.
  */
-const BASE_RAW = 262340;
-const BASE_GZ = 84782;
+const BASE_RAW = 270220;
+const BASE_GZ = 87478;
 const SMALLEST_SPLIT_RAW = 8931;
 const SMALLEST_SPLIT_GZ = 3100;
 const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 268,294

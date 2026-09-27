@@ -13,6 +13,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { BASE, resolveSeo, structuredData } from "./src/lib/seo.js";
+import { CONTRIBUTORS, pieceBySlug } from "./src/lib/contributors.js";
 import { pathToFileURL } from "node:url";
 import { rawStyles, nestedLinks } from "./src/lib/prerenderHtml.js";
 import { cardSvg, cardKind, cardFile, firstSentence, CARD_W, CARD_H } from "./src/lib/shareCard.js";
@@ -158,6 +159,9 @@ for (const loc of locs) {
     const r = await render(path);
     body = r.html;
     extra = citationsOf(r.claims);
+    const per = path.match(/^\/perspectives\/([a-z0-9-]+)$/);
+    const piece = per && pieceBySlug(per[1]);
+    if (piece) extra = { ...extra, perspective: { piece, author: CONTRIBUTORS[piece.author] } };
   } catch (err) {
     fail(`server render failed for ${path}: ${err && err.message}`);
   }

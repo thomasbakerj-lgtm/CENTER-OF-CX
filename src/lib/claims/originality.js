@@ -19,7 +19,18 @@ const GOV_METHOD = "Every prose string extracted (782 segments across Government
 
 const MFG_METHOD = "55 distinctive 8 to 12 word runs (main page and hub card 7, sub-pages 48) searched as exact quoted phrases on DuckDuckGo through headless Chromium (WebSearch budget spent; Bing from the sandbox returned unrelated results). Positive control passed: 4 of 4 known published phrases were found by the same route (an SQM KPI sentence twice, a 49 CFR 573.6 sentence, a Warranty Week sentence). 54 of 55 phrases returned no result; 1 did not load after two tries. Every prose segment of both files (629) was also compared by script for shared 8, 7 and 6 word runs against the cited sources as fetched (eCFR 49 CFR 573.6, 577.7; 16 CFR 314.4, 700.10, 1115.14; 21 CFR 7.3; 47 USC 227; 21 USC 350f, 379aa-1; Warranty Week report; two SQM pages): no 8 or 7 word run; one 6 word statutory phrase, now quoted and cited. Two uncited paraphrases of external findings retired.";
 
+const MW_METHOD = "Market Watch launch set (12 items). Each headline and summary was written from the page it cites, then compared by machine against the text of every cited page for any shared run of 8 or more words (normalised case and punctuation). Pages were read with curl, headless Chromium or, for PDFs, extracted text. 19 of 20 cited pages were compared; the Cisco end of life page refuses every client from this network (Access Denied), so that item was written from a read of the page and could not be compared by machine.";
+
 export const ORIGINALITY = {
+  "src/lib/marketWatch.js": {
+    checked: "2026-09-27",
+    method: MW_METHOD,
+    matches: [
+      { text: "Regulation (EU) 2026/1744 was published in the Official Journal on 24 July 2026", near: "https://lawandtechnology.eu/en/digital-omnibus-on-ai-official-journal-regulation-2026-1744/", kind: "shared factual phrase", resolution: "rewritten" },
+      { text: "The FCC released a draft Report and Order in CG Docket 02-278", near: "https://www.insideglobaltech.com/2026/09/11/fcc-releases-draft-rules-and-proposals-on-tcpa-consent-revocation/", kind: "shared opening phrase", resolution: "rewritten" },
+      { text: "Avaya stopped selling Avaya Agent for Desktop (SIP and H.323) for new systems", near: "https://support.avaya.com/css/public/documents/101095497", kind: "product name and notice phrase", resolution: "rewritten" },
+    ],
+  },
   "HealthcareVertical.jsx": { checked: "2026-09-25", method: METHOD, matches: [] },
   "HCSubVerticalData.js": {
     checked: "2026-09-25",

@@ -1701,6 +1701,18 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/market-watch</loc>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/perspectives</loc>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/contribute</loc>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/privacy</loc>
     <priority>0.2</priority>
   </url>

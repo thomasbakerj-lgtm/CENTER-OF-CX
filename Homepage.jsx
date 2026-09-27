@@ -33,6 +33,9 @@ function LayerPanel({ layer, door }) {
   if (door.soon) {
     return <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: HOUSE.body }}>{PILLARS[door.pillar].name} is coming. The stack lights up again when you choose a door that is open today.</p>;
   }
+  if (door.page) {
+    return <p style={{ margin: 0, fontSize: 15, lineHeight: 1.55, color: HOUSE.body }}>{PILLARS[door.pillar].name} covers the whole market, so no single layer lights up. Choose a door with routes to see the layers it tests.</p>;
+  }
   if (!layer) {
     return (
       <div>
@@ -102,7 +105,9 @@ export default function Homepage() {
   const card = route
     ? <RouteCard pillar={door.pillar} kicker={route.kicker} time={route.time} title={route.title} steps={route.steps} ending={route.ending} cta={route.cta} href={route.href}
         onStart={() => trackHome.start(door.event, route.id, route.to)}>{route.fact && <IndustryFact fact={route.fact} />}</RouteCard>
-    : <RouteCard pillar={door.pillar} kicker={pillar.name} time="Coming soon" title="Follow it as it is built" steps={door.soon.rules.map((r) => ({ name: r }))} cta={door.soon.cta} href={door.soon.href} />;
+    : door.page
+      ? <RouteCard pillar={door.pillar} kicker={pillar.name} time={door.page.time} title="Dated, labelled, kept apart" steps={door.page.rules.map((r) => ({ name: r }))} cta={door.page.cta} href={door.page.href} />
+      : <RouteCard pillar={door.pillar} kicker={pillar.name} time="Coming soon" title="Follow it as it is built" steps={door.soon.rules.map((r) => ({ name: r }))} cta={door.soon.cta} href={door.soon.href} />;
 
   return (
     <main className="cx-home" style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT_SANS }}>
@@ -118,9 +123,9 @@ export default function Homepage() {
           </div>
           <div className="cx-home-stack"><div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
             {/* The plates draw below the component's box; the margin keeps the panel clear of the bottom layer. */}
-            <div style={{ marginBottom: 56 }}><Stack active={door.soon ? null : layer} onSelect={pickLayer} width={340} /></div>
+            <div style={{ marginBottom: 56 }}><Stack active={door.routes ? layer : null} onSelect={pickLayer} width={340} /></div>
             <div style={{ width: "100%", maxWidth: 440, padding: 16, borderRadius: RADIUS.card, background: alpha(HOUSE.navy, 0.8), border: `1px solid ${hair}`, minHeight: 120, boxSizing: "border-box" }}>
-              <LayerPanel layer={door.soon ? null : layer} door={door} />
+              <LayerPanel layer={door.routes ? layer : null} door={door} />
             </div>
           </div></div>
         </div>
@@ -144,7 +149,7 @@ export default function Homepage() {
                 {door.routes.map((r, i) => <Option key={r.id} route={r} on={r === route} pillar={door.pillar} compact={door.cols > 2} onPick={() => pickRoute(i)} />)}
               </div>
             ) : (
-              <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: HOUSE.body, maxWidth: 620 }}>{door.soon.body}</p>
+              <p style={{ margin: 0, fontSize: 17, lineHeight: 1.6, color: HOUSE.body, maxWidth: 620 }}>{(door.soon || door.page).body}</p>
             )}
           </div>
           {card}

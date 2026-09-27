@@ -41,13 +41,13 @@ section("1. Tokens equal the Brand Guide tables");
   ok("house light blue pair", hexes(row("Light blue")).join() === [T.HOUSE.sky, T.HOUSE.sky2].map(up).join());
   ok("house paper pair", hexes(row("Paper")).join() === [T.HOUSE.paper, T.HOUSE.paper2].map(up).join());
 
-  const pil = { diagnostics: "Diagnostics", vendors: "Vendor Intelligence", industries: "Industry Insights", research: "Research \\(soon\\)", marketWatch: "Market Watch \\(soon\\)" };
+  const pil = { diagnostics: "Diagnostics", vendors: "Vendor Intelligence", industries: "Industry Insights", research: "Research \\(soon\\)", marketWatch: "Market Watch" };
   for (const [k, g] of Object.entries(pil)) {
     const p = T.PILLARS[k];
     ok(`pillar ${k}: fill, on dark, on light`, hexes(row(g)).join() === [p.fill, p.onDark, p.onLight].map(up).join(), row(g));
   }
-  ok("two pillars are marked soon, Research and Market Watch",
-    Object.entries(T.PILLARS).filter(([, p]) => p.soon).map(([k]) => k).join() === "research,marketWatch");
+  ok("one pillar is marked soon, Research (Market Watch opened in Phase 10)",
+    Object.entries(T.PILLARS).filter(([, p]) => p.soon).map(([k]) => k).join() === "research");
 
   const layerLine = (GUIDE.match(/L7 #[\s\S]*?L1 #[0-9A-F]{6}/) || [""])[0];
   ok("layers, L7 to L1, equal the guide", T.LAYERS.map((l) => "L" + l.n + " " + up(l.color)).join(", ").replace(/,\s+/g, ", ") === layerLine.replace(/\s+/g, " ").replace(/,\s*/g, ", "), layerLine);
@@ -185,7 +185,7 @@ section("6. Migrated files carry no hard-coded colour");
 {
   // A file joins this list when it moves onto the new design. It may use tokens.js or the
   // --cx- variables, never a colour literal of its own.
-  const MIGRATED = ["src/lib/Icon.jsx", "src/lib/ui.jsx", "src/lib/Shell.jsx", "src/lib/ToolFrame.jsx", "Homepage.jsx", "src/lib/home.js", "src/lib/SubVerticalPage.jsx", "src/lib/VendorTags.jsx", "CCaaSCategory.jsx", "CCaaSIndustry.jsx", "ResearchedProfile.jsx", "Corrections.jsx", "src/lib/IndustryPage.jsx", "Industries.jsx", "RubricPage.jsx", "About.jsx", "Contact.jsx", "Advisory.jsx", "Research.jsx", "PrivacyPolicy.jsx", "TermsOfService.jsx", "Vendors.jsx", "ACDRoutingCategory.jsx", "AgentAssistCategory.jsx", "AnalyticsCategory.jsx", "DigitalEngagementCategory.jsx", "IVACategory.jsx", "PaymentCategory.jsx", "WEMCategory.jsx", "src/lib/Phase1Directory.jsx", "VendorProfile.jsx", "CategoryVerticalPage.jsx", "HumanPremium.jsx", "CXEcosystem.jsx", "PlatformsTech.jsx", "Subscribe.jsx", "ArticleCCaaSCosts.jsx", "GatedReport.jsx", "HowToChoose.jsx"];
+  const MIGRATED = ["src/lib/Icon.jsx", "src/lib/ui.jsx", "src/lib/Shell.jsx", "src/lib/ToolFrame.jsx", "Homepage.jsx", "src/lib/home.js", "src/lib/SubVerticalPage.jsx", "src/lib/VendorTags.jsx", "CCaaSCategory.jsx", "CCaaSIndustry.jsx", "ResearchedProfile.jsx", "Corrections.jsx", "src/lib/IndustryPage.jsx", "Industries.jsx", "RubricPage.jsx", "About.jsx", "Contact.jsx", "Advisory.jsx", "Research.jsx", "PrivacyPolicy.jsx", "TermsOfService.jsx", "Vendors.jsx", "ACDRoutingCategory.jsx", "AgentAssistCategory.jsx", "AnalyticsCategory.jsx", "DigitalEngagementCategory.jsx", "IVACategory.jsx", "PaymentCategory.jsx", "WEMCategory.jsx", "src/lib/Phase1Directory.jsx", "VendorProfile.jsx", "CategoryVerticalPage.jsx", "HumanPremium.jsx", "CXEcosystem.jsx", "PlatformsTech.jsx", "Subscribe.jsx", "ArticleCCaaSCosts.jsx", "GatedReport.jsx", "HowToChoose.jsx", "Contribute.jsx", "Perspectives.jsx", "MarketWatch.jsx"];
   const COLOR = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/;
   for (const f of MIGRATED) {
     const code = readFileSync("./" + f, "utf8").split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");

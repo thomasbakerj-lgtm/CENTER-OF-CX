@@ -1,7 +1,7 @@
 # Measurement: event taxonomy, UTM convention and funnels
 
-Taxonomy version 1.2, 27 September 2026 (1.1 frozen the same day at redesign Phase 5; 1.0 frozen 25 September 2026, P2
-task 7, tracker 11-01 to 11-03). The sections below are 1.0; sections "Taxonomy 1.1" and "Taxonomy 1.2" list what each
+Taxonomy version 1.3, 27 September 2026 (1.2 and 1.1 frozen the same day at redesign Phase 5; 1.0 frozen 25 September 2026, P2
+task 7, tracker 11-01 to 11-03). The sections below are 1.0; sections "Taxonomy 1.1" to "Taxonomy 1.3" list what each
 adds. Source of truth in code:
 `src/lib/track.js`; pins in `track.test.mjs` section P. PostHog (free tier) is the event store; Vercel Analytics counts
 page views only.
@@ -160,4 +160,14 @@ New funnel
 
 10. **Introductions.** `vendor_action` where `action = intro`, broken down by `surface` and `vendor`, then
     `intro_submit`. Shows where introduction requests start and which vendors buyers ask to meet.
+
+## Taxonomy 1.3 (27 September 2026, Market Watch and contributor pages, redesign Phase 10)
+
+1.3 only adds. Every earlier name keeps its meaning.
+
+| Change | Detail |
+|---|---|
+| `surface` gains `market-watch` | An introduction asked for from a Market Watch item that names the vendor |
+| `page_type` gains `market-watch` | A session that starts on `/market-watch`, so a Market Watch item shared on a channel can be counted as a landing |
+| `page_type` `research` widens | `/perspectives`, `/contributors/*` and `/contribute` count as Research landings |
 

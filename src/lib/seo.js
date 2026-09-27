@@ -36,7 +36,7 @@ export const SEO_MAP = {
   },
   "/research": {
     title: `Research + Insight | ${SITE}`,
-    desc: "Original research, market analysis, and operator briefings on CX technology, AI in the contact center, and workforce transformation.",
+    desc: "What The Center of CX has researched and how to check it: vendor research by category and its status, published methods, sourced industry pages, Market Watch and contributor perspectives.",
   },
   "/vendors": {
     title: `Vendor Intelligence | 282 Vendor Profiles Across 8 Categories | ${SITE}`,
@@ -301,6 +301,21 @@ export const SEO_MAP = {
   "/tools/rfp-builder": {
     title: `RFP Requirement Builder | Weighted Requirements by Layer | ${SITE}`,
     desc: "Build weighted RFP requirements by layer for your vertical and size, then score vendor responses: must-haves met, generally available only, what to verify in each demo and where the choice is decided.",
+  },
+  "/market-watch": {
+    title: `Market Watch | What Is New in Contact Center and CX Technology | ${SITE}`,
+    desc: "Dated items on launches, retirements, deals, outages and rules in contact center and CX technology, each written from the page it cites and labelled verified, news or vendor-supplied. Kept apart from the research.",
+  },
+  "/perspectives": {
+    title: `Contributor Perspectives | ${SITE}`,
+    desc: "Practitioners, consultants, analysts and academics writing under their own names, reviewed for facts, sources and disclosure. A perspective never changes a research finding, a grade or a tool's result.",
+  },
+  /* A published piece or contributor gets its own entry here when it is published ("/perspectives/<slug>": title with the
+     author, desc the piece's dek; "/contributors/<slug>"); contributors.test.mjs requires one for each and no other.
+     Any other slug under those paths is noindex. */
+  "/contribute": {
+    title: `Write for The Center of CX | Contributor Rules | ${SITE}`,
+    desc: "Publish under your own name: who may write, how review works, disclosure of vendor ties, no product promotion, you keep copyright, and how to propose a piece.",
   },
   "/corrections": {
     title: `How Corrections Work | Vendor Research | ${SITE}`,
@@ -961,6 +976,15 @@ export function structuredData(pathname, seo, extra = {}) {
       ...(extra.checked ? { dateModified: extra.checked } : {}),
       ...(citation.length ? { citation } : {}),
     });
+  }
+
+  /* A published contributor piece: an Article by its author, a person, published by the site. The prerender passes the
+     piece and its author (extra.perspective), so no contributor data rides in the entry chunk. */
+  if (/^\/perspectives\/[a-z0-9-]+$/.test(pathname) && extra.perspective) {
+    const { piece, author } = extra.perspective;
+    graphs.push({ "@context": "https://schema.org", "@type": "Article", headline: piece.title, description: piece.dek, url,
+      author: { "@type": "Person", name: author.name, jobTitle: author.role, worksFor: { "@type": "Organization", name: author.org } },
+      publisher: ORG, datePublished: piece.published, isAccessibleForFree: true });
   }
 
   /* A rebuilt CCaaS by industry page open to search: an Article gathering the research, published by the site. */
