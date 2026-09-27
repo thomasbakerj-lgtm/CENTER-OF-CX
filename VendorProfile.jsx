@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
 import { ccaasResearchLabel, phase1Label } from "./src/lib/researchStatus";
+import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import { getIVAVendor } from "./IVAData";
 import { getAgentAssistVendor } from "./AgentAssistData";
 import { getWEMVendor } from "./WEMData";
@@ -163,6 +164,7 @@ export default function VendorProfile() {
                   <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{iv.segment}</span>
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{iv.name}</h1>
+                <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={iv.name} from="vendor" surface="vendor" /></div>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{iv.summary}</p>
               </div>
               <div style={{ flexShrink: 0 }}>
@@ -272,6 +274,7 @@ export default function VendorProfile() {
                   <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>Agent Assist & Knowledge</span>
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{aa.name}</h1>
+                <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={aa.name} from="vendor" surface="vendor" /></div>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{aa.bestFor}.</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
@@ -395,6 +398,7 @@ export default function VendorProfile() {
                   <span style={{ fontSize: 11, fontWeight: 600, color: nativeColor, background: `${nativeColor}15`, padding: "3px 10px", borderRadius: 4 }}>{wv.native}</span>
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{wv.vendor}</h1>
+                <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={wv.vendor} from="vendor" surface="vendor" /></div>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{wv.rec}</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
@@ -476,6 +480,7 @@ export default function VendorProfile() {
                   <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{av.segment}</span>
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
+                <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={av.name} from="vendor" surface="vendor" /></div>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{av.summary}</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
@@ -549,6 +554,7 @@ export default function VendorProfile() {
                   <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{av.segment}</span>
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{av.name}</h1>
+                <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={av.name} from="vendor" surface="vendor" /></div>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{av.profile}</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
@@ -614,6 +620,7 @@ export default function VendorProfile() {
                   <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: "rgba(0,170,255,0.1)", padding: "3px 10px", borderRadius: 4 }}>{dv.archetype}</span>
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{dv.name}</h1>
+                <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={dv.name} from="vendor" surface="vendor" /></div>
                 <div style={{ display: "flex", gap: 24, marginBottom: 16, flexWrap: "wrap" }}>
                   <div><span style={{ fontSize: 11, color: GREEN, fontWeight: 600 }}>Strength: </span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{dv.strength}</span></div>
                   <div><span style={{ fontSize: 11, color: AMBER, fontWeight: 600 }}>Weakness: </span><span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)" }}>{dv.weakness}</span></div>
@@ -683,6 +690,7 @@ export default function VendorProfile() {
                   <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{pv.role}</span>
                 </div>
                 <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{pv.name}</h1>
+                <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={pv.name} from="vendor" surface="vendor" /></div>
                 <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>{pv.diff}</p>
               </div>
               <div style={{ flexShrink: 0 }}><Phase1Badge /></div>
@@ -767,6 +775,7 @@ export default function VendorProfile() {
                 <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans', sans-serif", background: "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 4 }}>{v.segment}</span>
               </div>
               <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: "#fff", lineHeight: 1.1, margin: "0 0 16px" }}>{v.name}</h1>
+              <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={v.name} from="vendor" surface="vendor" /></div>
               <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>{v.summary}</p>
             </div>
             {/* Integrity freeze (23 Sep 2026): the Phase 1 composite score and tier no longer

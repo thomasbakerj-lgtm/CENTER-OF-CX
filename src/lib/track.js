@@ -95,6 +95,8 @@ export const EV = {
   LAYER_SELECT: "layer_select",        // a stack layer was chosen wherever it is interactive
   VENDOR_VIEW: "vendor_view",          // a vendor profile was opened
   VENDOR_ACTION: "vendor_action",      // an action on a vendor profile was taken
+  // Taxonomy 1.2: added, nothing renamed or removed.
+  INTRO_SUBMIT: "intro_submit",        // a vendor introduction request reached the contact form's inbox
 };
 
 const EVENT_NAMES = new Set(Object.values(EV));
@@ -102,7 +104,7 @@ const EVENT_NAMES = new Set(Object.values(EV));
 /* Frozen taxonomy (11-01 to 11-03, P2 task 7). Event names and property keys do not change without a new version,
    a line in docs/MEASUREMENT.md and the pins in track.test.mjs; PostHog funnels are built on these names. 1.1 (redesign
    Phase 5) adds the homepage, stack, honest exit and vendor profile events; every 1.0 name is unchanged. */
-export const TAXONOMY_VERSION = "1.1";
+export const TAXONOMY_VERSION = "1.2";
 
 /* ---------------------------------------------------------------- severity */
 
@@ -162,9 +164,9 @@ export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "catego
 /* Taxonomy 1.1 vocabularies. Closed sets: a value outside them is dropped. */
 export const PILLAR_IDS = new Set(["diagnostics", "vendors", "industries", "research", "market-watch"]);
 export const LAYER_IDS = new Set(["l1", "l2", "l3", "l4", "l5", "l6", "l7"]);
-export const SURFACES = new Set(["home", "tool", "vendor", "industry"]);
+export const SURFACES = new Set(["home", "tool", "vendor", "industry", "category"]);
 export const RESEARCH_STATES = new Set(["complete", "phase1"]);
-export const VENDOR_ACTIONS = new Set(["test-it", "rfp", "brief", "method", "peer", "request"]);
+export const VENDOR_ACTIONS = new Set(["test-it", "rfp", "brief", "method", "peer", "request", "intro"]);
 export const AUDIENCES = new Set(["finance", "operations", "it", "executive", "advisor"]);
 /* The vendor category slugs, for the category page type. Kept here, not imported, so the tracker loads nothing else. */
 export const CATEGORY_SLUGS = new Set(["ccaas", "iva", "agent-assist", "wem-qm", "analytics", "digital-engagement", "acd-routing", "payments"]);
@@ -219,7 +221,7 @@ export const ALLOWED_PROPS = {
   pillar: isOneOf(PILLAR_IDS),                // door and route: which of the five pillars
   route: isSlug,                              // route: the step 2 option slug
   layer: isOneOf(LAYER_IDS),                  // layer_select: l1 to l7
-  surface: isOneOf(SURFACES),                 // layer_select: where the stack was
+  surface: isOneOf(SURFACES),                 // layer_select and vendor_action: where it happened
   vendor: isSlug,                             // vendor events: the profile's slug
   category: isSlug,                           // vendor events: the category slug
   status: isOneOf(RESEARCH_STATES),           // vendor events: research status
@@ -272,8 +274,8 @@ export const EVENT_SCOPED = {
   pillar: ["door_select", "route_select", "route_start"],
   route: ["route_select", "route_start"],
   layer: ["layer_select"],
-  surface: ["layer_select"],
-  vendor: ["vendor_view", "vendor_action"],
+  surface: ["layer_select", "vendor_action"],
+  vendor: ["vendor_view", "vendor_action", "intro_submit"],
   category: ["vendor_view"],
   status: ["vendor_view"],
   action: ["vendor_action"],
@@ -607,6 +609,13 @@ export const trackTool = {
   scenarioShare: (toolId) => track(EV.SCENARIO_SHARE, { tool: toolId }),
   scenarioLoad: (toolId) => track(EV.SCENARIO_LOAD, { tool: toolId }),
   stopHere: (toolId, { grade } = {}) => track(EV.STOP_HERE, { tool: toolId, grade }),
+};
+
+/* Taxonomy 1.2: an action on a vendor, wherever the vendor appears (profile, tool, category list). `vendor` is the
+   profile's slug, so a vendor the reader typed into a tool, with no profile, sends the action and surface only. */
+export const trackVendor = {
+  action: (vendor, action, surface) => track(EV.VENDOR_ACTION, { vendor, action, surface }),
+  introSent: (vendor) => track(EV.INTRO_SUBMIT, { vendor }),
 };
 
 /* Taxonomy 1.1: the homepage's two steps and the stack. `repeat` rides every event through track(). */

@@ -344,6 +344,11 @@ Binding. None of this is in code comments beyond what is noted.
   reused everywhere, free channels only, UTM convention and PostHog funnels first.
 - **Design:** a separate design chat, briefed by `docs/DESIGN_HANDOFF.md`.
 
+**Vendor introductions (TB, S24)**
+- Wherever a vendor appears, the reader can ask for an introduction; it is part of lead generation and monetization.
+  One component (`VendorIntro`, `VendorIntroLink`), one link format (`introHref`), one event (`vendor_action` intro,
+  `intro_submit`). An introduction never changes a list's order, a score or a research finding.
+
 **Standing engineering rules**
 - Each tool serves its own goal. No generic shared ranges or one-size logic. If the
   same key means a different fact in another tool, do not prefill (TCO does not pull
@@ -1052,6 +1057,22 @@ dashboard, the 12-phase growth program.
    Introduction" card ("we coordinate a tailored demo with your top match") sits uneasily with "never access to vendors";
    kept as is. Suite 24,771; live check 255 of 255. Next: Phase 7 (Research Stage 1 and Vendor Intelligence), which needs
    D1 (corpus location) decided first.
+59. S24, redesign session 17 (continued). TB: "If there is a vendor there should be a vendor introduction button. That is
+   part of the lead gen and monetization strategy." Built: `src/lib/intro.js` (`introHref`, `readIntro`: a link carries
+   a known profile slug, checked by `isVendorSlug` in seo.js, or a plain name of 60 characters at most; anything else
+   opens a plain contact form) and `src/lib/VendorIntro.jsx` (`VendorIntro` on the new design, `VendorIntroLink` for the
+   older light pages). On every vendor profile variant (8) under the name; every Vendor Match result (24) and the
+   "Request a Vendor Introduction" card (now pointed at the top match); each named vendor in RFP Builder; the CCaaS
+   category lists, the other categories' directory and the category by industry pages. The contact form reads it after
+   first paint, preselects the topic "Vendor introduction", titles the form and the email subject with the vendor, and
+   sends `intro_vendor`, `intro_profile` and `intro_from`. Taxonomy 1.2 (additive): `vendor_action` action `intro` with
+   `surface` (`vendor`, `tool`, `category`), new event `intro_submit` on a sent request; funnel 10 in MEASUREMENT.md.
+   Rule kept: an introduction never moves a vendor (no list order, score or research reads it; `intro.test.mjs` 4).
+   `intro.test.mjs` (23): every sitemap profile slug round-trips, hostile names dropped both ways, every surface offers
+   one, the form receives it, Vendor Match renders 25 introduction links. Suite 24,802; live check 255 of 255.
+   D1 (corpus location): recommendation revised in `docs/PHASE0_DECISIONS.md`: raw corpus in a private repository, a sync
+   job writes a publishable per-category snapshot with a provenance manifest and opens a pull request; the site builds from
+   the snapshot only. Awaiting TB's go and the four setup steps.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

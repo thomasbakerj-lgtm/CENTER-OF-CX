@@ -557,16 +557,16 @@ section("M. A scenario link cannot reach an object's prototype or plant a key");
    docs/MEASUREMENT.md, and these pins; a silent rename would break every funnel that uses it. */
 section("P. The taxonomy is frozen (1.1, which kept every 1.0 name), and the landing event reads the channel");
 {
-  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.1");
+  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.2");
   eq("P2 event names are frozen", JSON.stringify(EV), JSON.stringify({
     SESSION_LANDING: "session_landing", TOOL_VIEW: "tool_view", TOOL_COMPLETE: "tool_complete", REPORT_EXPORT: "report_export",
     REPORT_COPY: "report_copy_requested", REVIEW_OPENED: "review_form_opened", REVIEW_SUBMIT: "expert_read_submit",
     NEXT_STEP: "next_step_click", SCENARIO_SHARE: "scenario_shared", SCENARIO_LOAD: "scenario_loaded",
     DOOR_SELECT: "door_select", ROUTE_SELECT: "route_select", ROUTE_START: "route_start", STOP_HERE: "stop_here",
-    LAYER_SELECT: "layer_select", VENDOR_VIEW: "vendor_view", VENDOR_ACTION: "vendor_action" }));
+    LAYER_SELECT: "layer_select", VENDOR_VIEW: "vendor_view", VENDOR_ACTION: "vendor_action", INTRO_SUBMIT: "intro_submit" }));
   eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref", "pillar", "route", "layer", "surface", "vendor", "category", "status", "action", "audience"]));
   const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
-  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.1"));
+  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.2"));
 
   const L = landingProps("/tools/staffing-calculator", "?utm_source=LinkedIn&utm_medium=social&utm_campaign=2026 10 Healthcare&s=abc", "https://www.linkedin.com/feed/update/123?x=1", "www.contactcentercx.com");
   const sent = buildPayload(EV.SESSION_LANDING, L, CTX).properties;
@@ -599,6 +599,21 @@ section("Q. Taxonomy 1.1: new events carry only closed, reader-free values");
   ok("Q7 the report export carries the reader choice", /\{ grade, audience \}/.test(readFileSync("./ReportExport.jsx", "utf8")) && /pdf: \(toolId, \{ grade, bound_axis, audience \} = \{\}\)/.test(src));
   const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
   ok("Q8 the measurement doc records 1.1 as frozen", /## Taxonomy 1\.1 \(drafted[^\n]*frozen/.test(doc) && !/Status: draft for TB approval/.test(doc));
+}
+
+/* Taxonomy 1.2 (TB, S24): vendor introductions wherever a vendor appears. Additive only. */
+section("R. Taxonomy 1.2: vendor introductions carry only closed values");
+{
+  const T = await import("./src/lib/track.js");
+  ok("R1 intro is a vendor action and category a surface", T.VENDOR_ACTIONS.has("intro") && T.SURFACES.has("category"));
+  const p = T.scopeProps("vendor_action", T.sanitizeProps({ vendor: "five9", action: "intro", surface: "tool" }));
+  eq("R2 an introduction click keeps vendor, action and surface", Object.keys(p).sort().join(), "action,surface,vendor");
+  const q = T.scopeProps("intro_submit", T.sanitizeProps({ vendor: "five9", action: "intro", surface: "tool" }));
+  eq("R3 a sent introduction carries the vendor slug alone", Object.keys(q).join(), "vendor");
+  ok("R4 a typed vendor name never travels as the vendor", !("vendor" in T.sanitizeProps({ vendor: "Acme Contact Center Co" })));
+  ok("R5 surface stays off every other tool event", !("surface" in T.scopeProps("tool_complete", { surface: "tool" })));
+  const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
+  ok("R6 the measurement doc records 1.2", /## Taxonomy 1\.2 \(/.test(doc) && doc.includes("`intro_submit`"));
 }
 
 /* ------------------------------------------------------------------ report */

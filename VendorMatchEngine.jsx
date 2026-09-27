@@ -3,6 +3,8 @@ import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Button } from "./src/lib/ui.jsx";
 import { K, Paper, Group, selectStyle, optionCss } from "./src/lib/frameKit.jsx";
 import { TOUCH, RADIUS } from "./src/lib/tokens.js";
+import { VendorIntro } from "./src/lib/VendorIntro.jsx";
+import { introHref } from "./src/lib/intro.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -448,8 +450,12 @@ export default function VendorMatchEngine() {
                     <p style={K.body}>{v.integrations.join(", ")}</p>
                   </div>
                 )}
-                <div style={{marginTop:10}}><Button kind="secondary" href={`/vendors/${v.slug}`}>View Full Profile</Button></div>
+                <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:10}}>
+                  <VendorIntro slug={v.slug} name={v.name} from={TOOL_ID} surface="tool"/>
+                  <Button kind="secondary" href={`/vendors/${v.slug}`}>View Full Profile</Button>
+                </div>
               </>)}
+              {!isTop&&(<div style={{marginTop:8}}><VendorIntro slug={v.slug} name={v.name} from={TOOL_ID} surface="tool" kind="text"/></div>)}
             </div>);
           })}
         </div>
@@ -499,7 +505,7 @@ export default function VendorMatchEngine() {
             <p style={{...K.small,margin:"0 0 12px"}}>30 minutes to refine this shortlist based on integration complexity, contract terms, and organizational readiness.</p>
             <span style={K.link}>Request Working Session</span>
           </a>
-          <a href="/contact" style={{...K.panel,display:"block",textDecoration:"none"}}>
+          <a href={introHref({slug:results[0].slug,from:TOOL_ID})} style={{...K.panel,display:"block",textDecoration:"none"}}>
             <div style={{...K.kicker,marginBottom:8}}>See It In Action</div>
             <div style={{...K.strong,fontSize:18,marginBottom:8}}>Request a Vendor Introduction</div>
             <p style={{...K.small,margin:"0 0 12px"}}>We coordinate a tailored demo with your top match using your scenarios, not their standard pitch.</p>

@@ -4,6 +4,7 @@ import { Result, Button } from "./src/lib/ui.jsx";
 import { K, Paper, Group, Choice, numInput, selectStyle, optionCss, frameMethod } from "./src/lib/frameKit.jsx";
 import { methodStamp } from "./src/lib/methodVersions.js";
 import { TOUCH, RADIUS } from "./src/lib/tokens.js";
+import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -265,6 +266,7 @@ export default function RFPRequirementBuilder() {
                   <div style={{ ...K.strong, ...K.num, fontSize: 26, margin: "4px 0" }}>{v.coverage === null ? "n/a" : v.coverage.toFixed(1) + "%"}</div>
                   <div style={K.small}>{o ? "Position " + o.position + (o.tied ? ", tied" : "") : "Not ordered: " + (R.notOrdered.find((x) => x.vendor === v.index) || {}).reason}</div>
                   <div style={{ ...K.small, marginTop: 6 }}>{v.unmet.length} unmet · {v.notGA.length} not GA · {v.open.length} to clarify · {v.unverified.length} to verify</div>
+                  {(vendors[v.index] || "").trim() && <div style={{ marginTop: 8 }}><VendorIntro name={v.name} from={TOOL_ID} surface="tool" kind="text" label={`Request an introduction to ${v.name}`} /></div>}
                 </div>
               ); })}
             </div>

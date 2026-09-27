@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { VendorIntroLink } from "./src/lib/VendorIntro.jsx";
 import { getCoreVendors, getAdjacentVendors } from "./VendorData";
 import { ccaasResearchStatus, CCAAS_RESEARCH, fmtDate } from "./src/lib/researchStatus";
 
@@ -185,7 +186,8 @@ export default function CCaaSCategory() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {g.vendors.map((v, vi) => (
-                    <a key={vi} href={`/vendors/${v.slug}`}
+                    <div key={vi}>
+                    <a href={`/vendors/${v.slug}`}
                       style={{ display: "flex", alignItems: "center", gap: 16, padding: "18px 20px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, transition: "all 0.2s", cursor: "pointer" }}
                       onMouseOver={e => { e.currentTarget.style.borderColor = g.color; e.currentTarget.style.boxShadow = `0 4px 16px ${g.color}10`; }}
                       onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
@@ -198,6 +200,8 @@ export default function CCaaSCategory() {
                       </div>
                       <span style={{ fontSize: 14, color: ELECTRIC, flexShrink: 0 }}>→</span>
                     </a>
+                    <div style={{ padding: "2px 20px 0" }}><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={NAVY} /></div>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -214,7 +218,8 @@ export default function CCaaSCategory() {
               <p style={{ fontSize: 13, color: MUTED, marginBottom: 16, maxWidth: 700 }}>{ADJACENT_DESC}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {adjacent.map((v, i) => (
-                  <a key={i} href={`/vendors/${v.slug}`}
+                  <div key={i}>
+                  <a href={`/vendors/${v.slug}`}
                     style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, transition: "border-color 0.2s" }}
                     onMouseOver={e => e.currentTarget.style.borderColor = PURPLE}
                     onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
@@ -227,6 +232,8 @@ export default function CCaaSCategory() {
                     </div>
                     <span style={{ fontSize: 14, color: PURPLE, flexShrink: 0 }}>→</span>
                   </a>
+                  <div style={{ padding: "2px 20px 0" }}><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={NAVY} /></div>
+                  </div>
                 ))}
               </div>
             </div>
