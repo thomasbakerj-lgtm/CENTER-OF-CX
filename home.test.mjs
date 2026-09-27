@@ -50,7 +50,7 @@ section("1. Counts come from their registries");
 section("2. Doors and routes");
 {
   ok("five doors in pillar order", H.DOORS.map((d) => d.pillar).join() === "diagnostics,vendors,industries,research,marketWatch");
-  ok("Research and Market Watch are coming, with no routes; the other three have routes", H.DOORS.every((d) => (d.soon ? !d.routes : d.routes && d.routes.length)) && H.DOORS.filter((d) => d.soon).map((d) => d.pillar).join() === "research,marketWatch");
+  ok("Research is coming and Market Watch opens its page, neither with routes; the other three have routes", H.DOORS.every((d) => (d.soon || d.page ? !d.routes : d.routes && d.routes.length)) && H.DOORS.filter((d) => d.soon).map((d) => d.pillar).join() === "research" && H.DOORS.find((d) => d.pillar === "marketWatch").page.href === "/market-watch");
   ok("every door event is a taxonomy pillar", H.DOORS.every((d) => TR.PILLAR_IDS.has(d.event)));
   const bad = [];
   for (const { door, r } of allRoutes) {

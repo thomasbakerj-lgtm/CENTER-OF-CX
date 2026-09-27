@@ -81,7 +81,7 @@ Vendor pages will be disputed. A published, even-handed process protects indepen
    the Market Position Index.
 8. Removal: a contributor can ask for a piece to be withdrawn; we remove it and note the removal.
 
-Decision needed: approve or change. Legal wording of the licence may warrant a lawyer's read before launch. Status: open.
+**Decided (TB, 27 Sep 2026):** approved as drafted. Published at `/contribute` (rules in `src/lib/contributorRules.js`), pieces at `/perspectives` and profiles at `/contributors/<slug>`, gated by `contributors.test.mjs`. The licence wording may still warrant a lawyer's read before the first piece is published.
 
 ## D4. Practitioner test group
 

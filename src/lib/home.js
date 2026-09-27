@@ -11,12 +11,15 @@
 
 import { TOOL_COUNT, VENDOR_PROFILE_COUNT, CATEGORY_COUNT, SEGMENT_COUNT } from "./seo.js";
 import { CCAAS_COMPLETE_COUNT } from "./researchStatus.js";
-import { METHOD_VERSIONS } from "./methodVersions.js";
+import { METHOD_VERSIONS, longDate } from "./methodVersions.js";
 import { VERTICALS, CATEGORIES } from "./verticals.js";
 import { CLAIMS, TESTS } from "./claims.js";
 import { JOURNEY } from "./journey.js";
 import { PLATFORM_DECISION } from "./rubrics/platformDecision.js";
+import { publishedItems, latestDate } from "./marketWatch.js";
 
+const MW_COUNT = publishedItems().length;
+const MW_LATEST = latestDate();
 export const METHOD_COUNT = Object.keys(METHOD_VERSIONS).length;
 export const INDUSTRY_COUNT = Object.keys(VERTICALS).length;
 export { SEGMENT_COUNT };
@@ -101,10 +104,11 @@ export const DOORS = [
     soon: { body: "Studies we run ourselves, starting from what professionals choose to share through the diagnostics. Nothing is collected until the consent design is published.",
       rules: ["Every study publishes its data, its method and its limits.", "Participation is opt-in and anonymous.", "The first study is announced on the Research page."],
       cta: "Go to Research", href: "/research" } },
-  { pillar: "marketWatch", event: "market-watch", line: "Launches, showcases and new entrants, each labelled for its source.", meta: "In preparation",
-    soon: { body: "What is new in the market, kept apart from the research. A launch is news, a showcase is supplied by the vendor, and neither changes a research finding.",
-      rules: ["Every item is labelled: news, supplied by the vendor, or verified.", "A showcase never changes a profile or a starting list.", "A new entrant gets a researched profile once it passes the research gate."],
-      cta: "Browse vendors today", href: "/vendors" } },
+  { pillar: "marketWatch", event: "market-watch", line: "Launches, deals, outages and rules, each labelled for its source.",
+    meta: MW_COUNT ? `${MW_COUNT} items. Latest ${longDate(MW_LATEST)}.` : "Items appear as they are checked.", question: "What is new in the market?",
+    page: { body: "What is new in the contact center and CX technology market, kept apart from the research. Each item is dated, written in our words from the page it cites, and labelled for its source.",
+      rules: ["Every item is labelled: verified, news, or supplied by the vendor.", "An item never changes a profile, a finding or a starting list.", "A new entrant gets a researched profile once it passes the research gate."],
+      cta: "Read Market Watch", href: "/market-watch", time: MW_LATEST ? `Updated ${longDate(MW_LATEST)}` : "Open" } },
 ];
 
 /* The stack. Plain words for what each layer does; the tool and vendor category come from Platform Decision's

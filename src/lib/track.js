@@ -104,7 +104,7 @@ const EVENT_NAMES = new Set(Object.values(EV));
 /* Frozen taxonomy (11-01 to 11-03, P2 task 7). Event names and property keys do not change without a new version,
    a line in docs/MEASUREMENT.md and the pins in track.test.mjs; PostHog funnels are built on these names. 1.1 (redesign
    Phase 5) adds the homepage, stack, honest exit and vendor profile events; every 1.0 name is unchanged. */
-export const TAXONOMY_VERSION = "1.2";
+export const TAXONOMY_VERSION = "1.3";
 
 /* ---------------------------------------------------------------- severity */
 
@@ -160,11 +160,11 @@ const isUtm = (v) => typeof v === "string" && UTM.test(v);
 /* The referring site's host name only, never its path or query. */
 const HOST = /^(?=.{3,60}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 const isHost = (v) => typeof v === "string" && HOST.test(v);
-export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "category", "vendor", "research", "other"]);
+export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "category", "vendor", "research", "market-watch", "other"]);
 /* Taxonomy 1.1 vocabularies. Closed sets: a value outside them is dropped. */
 export const PILLAR_IDS = new Set(["diagnostics", "vendors", "industries", "research", "market-watch"]);
 export const LAYER_IDS = new Set(["l1", "l2", "l3", "l4", "l5", "l6", "l7"]);
-export const SURFACES = new Set(["home", "tool", "vendor", "industry", "category"]);
+export const SURFACES = new Set(["home", "tool", "vendor", "industry", "category", "market-watch"]);
 export const RESEARCH_STATES = new Set(["complete", "phase1"]);
 export const VENDOR_ACTIONS = new Set(["test-it", "rfp", "brief", "method", "peer", "request", "intro"]);
 export const AUDIENCES = new Set(["finance", "operations", "it", "executive", "advisor"]);
@@ -562,6 +562,9 @@ export function pageType(pathname) {
   if (cat && CATEGORY_SLUGS.has(cat[1])) return "category";
   if (p.startsWith("/vendors")) return "vendor";
   if (p.startsWith("/research")) return "research";
+  /* Taxonomy 1.3: Market Watch has its own page type; contributor pages belong to Research. */
+  if (p.startsWith("/market-watch")) return "market-watch";
+  if (/^\/(perspectives|contributors|contribute)(\/|$)/.test(p)) return "research";
   return "other";
 }
 

@@ -34,7 +34,7 @@ export const PILLARS = {
   vendors: { name: "Vendor Intelligence", fill: "#12B5A6", onDark: "#4FD8C9", onLight: "#0B766C", soon: false },
   industries: { name: "Industry Insights", fill: "#F5A524", onDark: "#FFC46B", onLight: "#8A5A00", soon: false },
   research: { name: "Research", fill: "#8B6CFF", onDark: "#B7A4FF", onLight: "#5B3FD1", soon: true },
-  marketWatch: { name: "Market Watch", fill: "#F0508C", onDark: "#FF8DB5", onLight: "#B01E58", soon: true },
+  marketWatch: { name: "Market Watch", fill: "#F0508C", onDark: "#FF8DB5", onLight: "#B01E58", soon: false },
 };
 
 // The seven layers, top of the stack first. Only on the stack, its legend and layer

@@ -52,6 +52,11 @@ const RubricPage = lazy(() => import('./RubricPage'))
 const PlatformsTech = lazy(() => import('./PlatformsTech'))
 const About = lazy(() => import('./About'))
 const Corrections = lazy(() => import('./Corrections'))
+const Contribute = lazy(() => import('./Contribute'))
+const Perspectives = lazy(() => import('./Perspectives'))
+const PerspectiveRoute = lazy(() => import('./Perspectives').then((m) => ({ default: m.PerspectiveRoute })))
+const ContributorRoute = lazy(() => import('./Perspectives').then((m) => ({ default: m.ContributorRoute })))
+const MarketWatch = lazy(() => import('./MarketWatch'))
 const Advisory = lazy(() => import('./Advisory'))
 const Contact = lazy(() => import('./Contact'))
 const Subscribe = lazy(() => import('./Subscribe'))
@@ -350,6 +355,11 @@ export function AppRoutes() {
         <Route path="/tools/transformation-readiness" element={<TransformationReadiness />} />
         <Route path="/tools/rfp-builder" element={<RFPRequirementBuilder />} />
         <Route path="/corrections" element={<Corrections />} />
+        <Route path="/contribute" element={<Contribute />} />
+        <Route path="/perspectives" element={<Perspectives />} />
+        <Route path="/perspectives/:slug" element={<PerspectiveRoute />} />
+        <Route path="/contributors/:slug" element={<ContributorRoute />} />
+        <Route path="/market-watch" element={<MarketWatch />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/vendors/:categorySlug/:verticalSlug" element={<CategoryVerticalPage />} />

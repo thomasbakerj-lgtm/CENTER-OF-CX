@@ -658,7 +658,8 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   const seoSrc = readFileSync("./src/lib/seo.js", "utf8");
   const seoDesc = (seoSrc.match(/"\/research\/ccaas-buyer-guide": \{[\s\S]*?desc: "([^"]*)"/) || ["", ""])[1];
   ok("J11 seo description names the Phase 1 edition and its withdrawn scores", /Phase 1 edition/.test(seoDesc) && /withdrawn/.test(seoDesc));
-  ok("J12 Research card states the PDF page count", readFileSync("./Research.jsx", "utf8").includes(`read: "${pdfPages} pages",\n      title: "CCaaS Platform Buyer's Guide 2026"`));
+  /* Phase 10 rebuilt the Research landing; its report list names the guide with its true page count. */
+  ok("J12 Research lists the guide with the PDF page count", /href: "\/research\/ccaas-buyer-guide", what: "[^"]*\b/.test(readFileSync("./Research.jsx", "utf8")) && new RegExp(`href: "/research/ccaas-buyer-guide", what: "[^"]*\\b${pdfPages} pages`).test(readFileSync("./Research.jsx", "utf8")));
   /* Redesign Phase 5 retired the homepage's report card; the guide stays on the Research page (J12). Should the homepage
      name the guide again, it must state the true page count. */
   const homeSrc = readFileSync("./Homepage.jsx", "utf8") + readFileSync("./src/lib/home.js", "utf8");

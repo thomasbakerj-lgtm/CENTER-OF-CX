@@ -14,20 +14,21 @@ import { Icon } from "./Icon.jsx";
 
 export const HEADER_HEIGHT = 64;
 
-/* The five pillars in order. Market Watch has no page yet, so it is a label, never a link
-   that goes nowhere. */
+/* The five pillars in order. Research stays marked soon until the first study of our own is published; its landing
+   gathers what exists today. A pillar without a page would be a label, never a link that goes nowhere. */
 export const NAV = [
   { id: "diagnostics", href: "/how-to-choose" },
   { id: "vendors", href: "/vendors" },
   { id: "industries", href: "/industries" },
   { id: "research", href: "/research" },
-  { id: "marketWatch", href: null },
+  { id: "marketWatch", href: "/market-watch" },
 ].map((n) => ({ ...n, name: PILLARS[n.id].name, soon: PILLARS[n.id].soon }));
 
 export const FOOTER = [
   { head: "Diagnostics", links: [["All tools", "/how-to-choose"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },
   { head: "Vendor Intelligence", links: [["All categories", "/vendors"], ["Contact center platforms", "/vendors/ccaas"], ["Conversational AI", "/vendors/iva"]] },
   { head: "Industry Insights", links: [["All industries", "/industries"], ["Healthcare", "/industries/healthcare"], ["Financial Services", "/industries/financial-services"]] },
+  { head: "Research", links: [["Research", "/research"], ["Market Watch", "/market-watch"], ["Contributor perspectives", "/perspectives"], ["Write for us", "/contribute"]] },
   { head: "The Center of CX", links: [["About", "/about"], ["Advisory", "/advisory"], ["The Human Premium", "/human-premium"], ["Subscribe", "/subscribe"], ["Corrections", "/corrections"], ["Contact", "/contact"]] },
 ];
 
@@ -122,7 +123,8 @@ export function pillarFor(pathname = "") {
   if (/^\/(tools|methodology)\//.test(pathname) || pathname === "/how-to-choose") return "diagnostics";
   if (/^\/vendors(\/|$)/.test(pathname)) return "vendors";
   if (/^\/industries(\/|$)/.test(pathname)) return "industries";
-  if (/^\/research(\/|$)/.test(pathname)) return "research";
+  if (/^\/(research|perspectives|contributors|contribute)(\/|$)/.test(pathname)) return "research";
+  if (/^\/market-watch(\/|$)/.test(pathname)) return "marketWatch";
   return null;
 }
 

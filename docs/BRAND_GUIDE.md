@@ -127,7 +127,7 @@ Navy holds the house. Colour marks territory, sparingly: under one tenth of any 
 | Vendor Intelligence | Objectivity | #12B5A6 | #4FD8C9 | #0B766C |
 | Industry Insights | Experience | #F5A524 | #FFC46B | #8A5A00 |
 | Research (soon) | Depth | #8B6CFF | #B7A4FF | #5B3FD1 |
-| Market Watch (soon) | Novelty | #F0508C | #FF8DB5 | #B01E58 |
+| Market Watch | Novelty | #F0508C | #FF8DB5 | #B01E58 |
 
 Pillar colour appears only on the nav tick, the door, the section label and one primary button on that pillar's pages.
 

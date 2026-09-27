@@ -557,7 +557,7 @@ section("M. A scenario link cannot reach an object's prototype or plant a key");
    docs/MEASUREMENT.md, and these pins; a silent rename would break every funnel that uses it. */
 section("P. The taxonomy is frozen (1.1, which kept every 1.0 name), and the landing event reads the channel");
 {
-  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.2");
+  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.3");
   eq("P2 event names are frozen", JSON.stringify(EV), JSON.stringify({
     SESSION_LANDING: "session_landing", TOOL_VIEW: "tool_view", TOOL_COMPLETE: "tool_complete", REPORT_EXPORT: "report_export",
     REPORT_COPY: "report_copy_requested", REVIEW_OPENED: "review_form_opened", REVIEW_SUBMIT: "expert_read_submit",
@@ -566,7 +566,7 @@ section("P. The taxonomy is frozen (1.1, which kept every 1.0 name), and the lan
     LAYER_SELECT: "layer_select", VENDOR_VIEW: "vendor_view", VENDOR_ACTION: "vendor_action", INTRO_SUBMIT: "intro_submit" }));
   eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref", "pillar", "route", "layer", "surface", "vendor", "category", "status", "action", "audience"]));
   const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
-  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.2"));
+  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.3"));
 
   const L = landingProps("/tools/staffing-calculator", "?utm_source=LinkedIn&utm_medium=social&utm_campaign=2026 10 Healthcare&s=abc", "https://www.linkedin.com/feed/update/123?x=1", "www.contactcentercx.com");
   const sent = buildPayload(EV.SESSION_LANDING, L, CTX).properties;
