@@ -43,6 +43,8 @@ export const CCAAS_RESEARCH = {
     "bright-pattern": { vendorId: "VEN-CC-0017", validated: "2026-09-23" },
     vonage: { vendorId: "VEN-CC-0018", validated: "2026-09-23" },
   },
+  /* The next vendor in the research queue (Cohort 4, one at a time under schema v1.0). A plan, not a finding. */
+  next: "anywhere-now",
 };
 
 const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);

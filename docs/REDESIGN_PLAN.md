@@ -121,6 +121,8 @@ made just before the phases that build them, so nothing waits on pages that ship
   Next: the researched vendor profile on the snapshot.
 - Part 2 done (S24, 27 Sep 2026): the researched vendor profile for the 18 CCaaS vendors, six views, from the snapshot.
   Next: the CCaaS category page by competitive class.
+- Part 3 done (S24, 27 Sep 2026): the CCaaS category page by competitive class, from the snapshot's category index.
+  Next: the CCaaS by industry pages (research Stage 3) and the vendor correction policy (D2).
 
 ## Phase 8. Industry Insights (two sessions)
 

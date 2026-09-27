@@ -177,15 +177,19 @@ const DIR = "./src/data/research/ccaas";
   ok(`each vendor file stays under 900 KB [${big.join(", ")}]`, big.length === 0);
   for (const m of ["INTERNAL_RESEARCH_ONLY", "CONFIDENTIAL", "Peer Insights", "G2 /", "Research_Note", "Researcher", "Claim_Text", "Lineage_Source", "Relevant_Excerpt"]) ok(`the snapshot never carries ${m}`, !all.includes(m));
   ok("no withheld table and no dash in the snapshot", WITHHELD_TABLES.every((t) => !all.includes(`"${t}"`)) && !DASH.test(all));
+  const { categoryIndexJson } = await import("./src/lib/research/categoryView.js");
+  const vf = Object.fromEntries(files.map((f) => [f.replace(".json", ""), JSON.parse(readFileSync(DIR + "/vendors/" + f, "utf8"))]));
+  ok("the category index equals a fresh build from the committed snapshot", readFileSync(DIR + "/category.json", "utf8") === categoryIndexJson(shared, vf));
+  all += readFileSync(DIR + "/category.json", "utf8");
   ok("no score or rating field in the snapshot [14]", !/"(?!Rating_Layer|Score_Eligible)[A-Za-z_]*(Score|Rating)[A-Za-z_]*":/.test(all));
 }
 
 section("12. Separation: nothing reads the snapshot outside the research layer yet [1] [3] [18]");
 {
   const tracked = execSync("git ls-files", { encoding: "utf8" }).split("\n").filter((f) => /\.(jsx?|mjs)$/.test(f));
-  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs"];
+  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs"];
   const readers = tracked.filter((f) => !f.startsWith("src/lib/research/") && f !== "scripts/research-sync.mjs" && f !== "research.test.mjs" && !PAGES.includes(f) && /data\/research|lib\/research\//.test(readFileSync(f, "utf8")));
-  ok(`only the research layer and the Vendor Intelligence profile read research data [${readers.join(", ")}]`, readers.length === 0);
+  ok(`only the research layer and the Vendor Intelligence pages (profile, category) read research data [${readers.join(", ")}]`, readers.length === 0);
   ok("Vendor Match reads no research snapshot, Market Position value or Phase 1 baseline file", !/data\/research|market.?position|phase1_baseline/i.test(readFileSync("./VendorMatchEngine.jsx", "utf8")));
   console.log("  note: [2] [7] [15] [17] apply when Vendor Match V3 (Stage 4) and the Market Position Index (Stage 5) exist.");
 }
@@ -199,6 +203,7 @@ if (process.env.RESEARCH_CORPUS && existsSync(process.env.RESEARCH_CORPUS)) {
   ok("the corpus is the one the manifest names", sha === manifest.source.sha256);
   const fresh = splitByVendor(deriveSnapshot(JSON.parse(raw.toString("utf8")), { category: "ccaas", source: manifest.source }));
   ok("every vendor file equals a fresh derivation", Object.entries(fresh.vendors).every(([id, f]) => stableJson(f) === readFileSync(`${DIR}/vendors/${id}.json`, "utf8")) && stableJson(fresh.shared) === readFileSync(DIR + "/shared.json", "utf8"));
+  ok("the category index equals a fresh derivation", (await import("./src/lib/research/categoryView.js")).categoryIndexJson(fresh.shared, fresh.vendors) === readFileSync(DIR + "/category.json", "utf8"));
 } else console.log("  skipped: RESEARCH_CORPUS is not set (the private corpus is not in this repository)");
 
 console.log(`\n${pass} passed, ${fail} failed`);
