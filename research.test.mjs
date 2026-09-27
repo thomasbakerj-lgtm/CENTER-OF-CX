@@ -184,6 +184,25 @@ const DIR = "./src/data/research/ccaas";
   ok("no score or rating field in the snapshot [14]", !/"(?!Rating_Layer|Score_Eligible)[A-Za-z_]*(Score|Rating)[A-Za-z_]*":/.test(all));
 }
 
+section("11b. Vendor tags (size served, UCaaS + CCaaS) rest on published records and say what they say");
+{
+  const { CCAAS_TAGS, SIZES, SIZE_TEST, SELECTED_TEST, UC_TEST, tagsFor } = await import("./src/lib/research/ccaasTags.js");
+  const ids = Object.values(CCAAS_RESEARCH.complete).map((v) => v.vendorId).sort();
+  ok("every researched vendor has tags, and only they do", JSON.stringify(Object.keys(CCAAS_TAGS).sort()) === JSON.stringify(ids));
+  for (const [id, t] of Object.entries(CCAAS_TAGS)) {
+    const f = JSON.parse(readFileSync(`${DIR}/vendors/${id}.json`, "utf8"));
+    const rec = (x) => { const p = f.products.find((y) => y.Product_ID === x); if (p) return `${p.Primary_Target_Segment} ; ${p.Product_Type} ; ${p.Product_or_SKU}`; const c = f.claims.find((y) => y.Claim_ID === x); return c ? c.Publishable_Summary : null; };
+    const cited = [...t.from, ...(t.uc || [])];
+    ok(`${id}: every cited record is published in its own file`, cited.every((x) => rec(x) !== null));
+    const txt = t.from.map(rec).join(" ; ");
+    ok(`${id}: each size is tagged exactly when its records state it`, SIZES.every((z) => !!t.segments[z] === SIZE_TEST[z].test(txt)) && Object.keys(t.segments).every((z) => SIZES.includes(z)));
+    ok(`${id}: enterprise is marked selected exactly when the research says so`, (t.segments.Enterprise === "selected") === SELECTED_TEST.test(txt));
+    ok(`${id}: a UCaaS + CCaaS tag rests on records that show it`, !t.uc || (t.uc.length > 0 && t.uc.every((x) => UC_TEST.test(rec(x) || ""))));
+    ok(`${id}: a CCaaS-only tag has no UCaaS product in the research`, !!t.uc || !f.products.some((p) => /UCaaS|UC\/contact-center/i.test(p.Product_Type)));
+    ok(`${id}: tags carry no grade`, !/score|rank|tier|grade|best/i.test(JSON.stringify(tagsFor(id))));
+  }
+}
+
 section("12. Separation: nothing reads the snapshot outside the research layer yet [1] [3] [18]");
 {
   const tracked = execSync("git ls-files", { encoding: "utf8" }).split("\n").filter((f) => /\.(jsx?|mjs)$/.test(f));

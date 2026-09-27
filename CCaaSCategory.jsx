@@ -16,6 +16,7 @@ import { getCoreVendors, getAdjacentVendors } from "./VendorData";
 import { ccaasResearchStatus, CCAAS_RESEARCH, fmtDate } from "./src/lib/researchStatus";
 import { trackVendor } from "./src/lib/track.js";
 import INDEX from "./src/data/research/ccaas/category.json";
+import { tagsFor, SIZES, UC_LABEL } from "./src/lib/research/ccaasTags.js";
 
 const ACCENT = PILLARS.vendors.onDark;
 
@@ -44,11 +45,25 @@ const METHOD = [
   ["Unknown stays unknown", "Missing public evidence raises the proof burden. It is never counted as a weakness."],
 ];
 
+/* What the vendor sells and the sizes the research says it is sold to. A chip is a label, never a grade; a size the
+   research calls selective carries the words and a dashed edge. */
+export function Tags({ vendorId }) {
+  const t = tagsFor(vendorId);
+  if (!t) return null;
+  return (
+    <ul aria-label="Tags" style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: 0, padding: 0, listStyle: "none" }}>
+      <li style={{ ...chip, fontWeight: 700 }}>{t.category}</li>
+      {t.sizes.map((z) => <li key={z.size} style={{ ...chip, fontWeight: 500, borderStyle: z.selected ? "dashed" : "solid" }}>{z.label}</li>)}
+    </ul>
+  );
+}
+
 function Researched({ v, klass }) {
   const slug = SLUG_OF[v.id];
   return (
     <li style={{ ...K.box, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
       <a href={`/vendors/${slug}`} style={{ ...K.link, color: HOUSE.mist, fontSize: 17 }}>{v.name}</a>
+      <Tags vendorId={v.id} />
       {v.bestWhen
         ? <p style={K.body}><strong style={K.strong}>Where the research says it fits:</strong> {v.bestWhen.statement}</p>
         : <p style={K.small}>No best-when statement is published for this vendor yet. Its profile carries the full research.</p>}
@@ -68,7 +83,7 @@ function Requested({ v }) {
         <a href={`/vendors/${v.slug}`} style={{ ...K.link, color: HOUSE.mist, fontSize: 17 }}>{v.name}</a>
         {next && <span style={{ ...chip, borderStyle: "dashed" }}>Researching next</span>}
       </div>
-      <p style={K.small}>Not yet researched under the current method. No class and no finding until it is.</p>
+      <p style={K.small}>Not yet researched under the current method. No class and no finding until it is.{v.segment ? ` Earlier Phase 1 description: ${v.segment}.` : ""}</p>
       <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center" }}>
         {!next && (sent
           ? <span role="status" style={K.small}>Request noted. Thank you.</span>
@@ -80,7 +95,7 @@ function Requested({ v }) {
   );
 }
 
-export default function CCaaSCategory({ initialClass = "all" }) {
+export default function CCaaSCategory({ initialClass = "all", initialSize = "all", initialUc = false }) {
   const core = getCoreVendors();
   const adjacent = getAdjacentVendors();
   const notYet = core.filter((v) => ccaasResearchStatus(v.slug) !== "complete").sort((a, b) => a.name.localeCompare(b.name));
@@ -91,7 +106,11 @@ export default function CCaaSCategory({ initialClass = "all" }) {
   /* A class can be linked (#cls-cc-004); read after first paint so the prerendered page and the hydrated page match. */
   useEffect(() => { try { const h = window.location.hash.slice(1).toUpperCase(); if (classes.some((c) => c.id === h)) setPick(h); } catch { /* no hash */ } }, []);
   const choose = (id) => { setPick(id); try { window.history.replaceState(null, "", id === "all" ? window.location.pathname : "#" + id.toLowerCase()); } catch { /* ignore */ } };
-  const shown = pick === "all" ? classes : classes.filter((c) => c.id === pick);
+  const [size, setSize] = useState(initialSize);
+  const [ucOnly, setUcOnly] = useState(initialUc);
+  const keep = (v) => { const t = tagsFor(v.id); return (!ucOnly || t.uc) && (size === "all" || t.sizes.some((z) => z.size === size)); };
+  const shown = (pick === "all" ? classes : classes.filter((c) => c.id === pick)).map((c) => ({ ...c, kept: c.vendors.filter(keep) }));
+  const filterBtn = (on) => ({ ...btn(on), flexDirection: "row", alignItems: "center", padding: "0 14px", fontSize: 14, fontWeight: on ? 700 : 500 });
 
   return (
     <div className="cx-cat" style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT, minHeight: "100vh", paddingTop: HEADER_HEIGHT }}>
@@ -131,6 +150,12 @@ export default function CCaaSCategory({ initialClass = "all" }) {
               );
             })}
           </div>
+          <div role="group" aria-label="Filter by size served" style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ ...K.small, marginRight: 4 }}>Size served</span>
+            {["all", ...SIZES].map((z) => <button key={z} type="button" aria-pressed={size === z} onClick={() => setSize(z)} style={filterBtn(size === z)}>{z === "all" ? "Any size" : z}</button>)}
+            <button type="button" aria-pressed={ucOnly} onClick={() => setUcOnly(!ucOnly)} style={filterBtn(ucOnly)}>{UC_LABEL} only</button>
+          </div>
+          <p style={K.small}>{UC_LABEL}: the research shows the vendor's own phone system sold with its contact center. A size is the buyer size the research says the platform is sold to; "selected use" means the research calls that size selective. A tag describes the offer and carries no grade.</p>
           {pick !== "all" && <div><button type="button" onClick={() => choose("all")} style={{ ...K.link, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: 14, minHeight: TOUCH }}>Show every class</button></div>}
         </section>
 
@@ -141,9 +166,9 @@ export default function CCaaSCategory({ initialClass = "all" }) {
               <span style={{ ...chip, borderStyle: c.draft ? "dashed" : "solid" }}>{c.draft ? "Draft class" : "Calibrated class"}</span>
             </div>
             <p style={K.small}>Research class: {c.name}. {c.definition}</p>
-            <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
-              {c.vendors.map((v) => <Researched key={v.id} v={v} klass={c} />)}
-            </ul>
+            {c.kept.length
+              ? <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>{c.kept.map((v) => <Researched key={v.id} v={v} klass={c} />)}</ul>
+              : <p style={K.small}>No researched vendor in this class matches these filters.</p>}
           </section>
         ))}
 
