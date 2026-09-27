@@ -147,10 +147,17 @@ for (const m of METHODOLOGY) {
   report(v.errors.length === 0 && /bands/i.test(v.text) && /cannot tell you/i.test(v.text) && !BAD.test(v.text), `${m} renders its rubric`, v.errors[0] || badAt(v.text));
   await v.ctx.close();
 }
-/* The public method changelog: renders, lists at least one dated change, links methods. */
+/* The method changelog page was removed (TB, 27 Sep 2026): an old link lands on the Diagnostics hub, with no change list. */
 {
-  const v = await open("/changelog");
-  report(v.errors.length === 0 && /What changed in how the tools calculate/.test(v.text) && /\d{1,2} [A-Z][a-z]+ 20\d\d/.test(v.text) && !BAD.test(v.text), "/changelog renders the method changes", v.errors[0] || badAt(v.text));
+  const v = await open("/changelog", /CX Pro Tools/);
+  report(v.errors.length === 0 && /\/how-to-choose\/?$/.test(new URL(v.page.url()).pathname) && !/What changed in how the tools calculate/.test(v.text), "/changelog lands on the Diagnostics hub", v.errors[0] || v.page.url());
+  await v.ctx.close();
+}
+/* The hidden internal method log: renders its dated changes, and tells search engines to stay out. */
+{
+  const v = await open("/internal/method-log", /Method log/);
+  const robots = await v.page.getAttribute('meta[name="robots"]', "content").catch(() => "");
+  report(v.errors.length === 0 && /\d{1,2} [A-Z][a-z]+ 20\d\d/.test(v.text) && /noindex/.test(robots || "") && !BAD.test(v.text), "/internal/method-log renders, noindex", v.errors[0] || robots || badAt(v.text));
   await v.ctx.close();
 }
 /* Full-page prerender (P1 task 3): the served HTML carries the page body before any script runs, and the page then

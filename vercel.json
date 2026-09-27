@@ -16,6 +16,11 @@
       "permanent": true
     },
     {
+      "source": "/changelog",
+      "destination": "/how-to-choose",
+      "permanent": true
+    },
+    {
       "source": "/tools/service-design",
       "destination": "/tools/cx-maturity",
       "permanent": true
@@ -79,6 +84,15 @@
         {
           "key": "Cache-Control",
           "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/internal/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
         }
       ]
     }

@@ -25,7 +25,7 @@ export const NAV = [
 ].map((n) => ({ ...n, name: PILLARS[n.id].name, soon: PILLARS[n.id].soon }));
 
 export const FOOTER = [
-  { head: "Diagnostics", links: [["All tools", "/how-to-choose"], ["Method changelog", "/changelog"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },
+  { head: "Diagnostics", links: [["All tools", "/how-to-choose"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },
   { head: "Vendor Intelligence", links: [["All categories", "/vendors"], ["Contact center platforms", "/vendors/ccaas"], ["Conversational AI", "/vendors/iva"]] },
   { head: "Industry Insights", links: [["All industries", "/industries"], ["Healthcare", "/industries/healthcare"], ["Financial Services", "/industries/financial-services"]] },
   { head: "The Center of CX", links: [["About", "/about"], ["Advisory", "/advisory"], ["The Human Premium", "/human-premium"], ["Subscribe", "/subscribe"], ["Contact", "/contact"]] },
@@ -119,7 +119,7 @@ export function SiteFooter() {
 
 /** The pillar a path belongs to, for the header's active mark. */
 export function pillarFor(pathname = "") {
-  if (/^\/(tools|methodology)\//.test(pathname) || pathname === "/how-to-choose" || pathname === "/changelog") return "diagnostics";
+  if (/^\/(tools|methodology)\//.test(pathname) || pathname === "/how-to-choose") return "diagnostics";
   if (/^\/vendors(\/|$)/.test(pathname)) return "vendors";
   if (/^\/industries(\/|$)/.test(pathname)) return "industries";
   if (/^\/research(\/|$)/.test(pathname)) return "research";

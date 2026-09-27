@@ -440,7 +440,7 @@ export default function ReportActions({
         </p>
         {stamp && (
           <p style={{ ...TYPE.caption, color: MUTED, margin: "-6px 0 14px" }}>
-            {stamp.text}. <a href={stamp.href} style={{ color: ELECTRIC, fontWeight: 600 }}>How this is calculated</a> · <a href="/changelog" style={{ color: ELECTRIC, fontWeight: 600 }}>Changes</a>
+            {stamp.text}. <a href={stamp.href} style={{ color: ELECTRIC, fontWeight: 600 }}>How this is calculated</a>
           </p>
         )}
 

@@ -53,7 +53,7 @@ section("1. The header");
 
 section("2. The pillar a path belongs to");
 {
-  const cases = { "/tools/cost-per-contact": "diagnostics", "/methodology/tco-calculator": "diagnostics", "/how-to-choose": "diagnostics", "/changelog": "diagnostics",
+  const cases = { "/tools/cost-per-contact": "diagnostics", "/methodology/tco-calculator": "diagnostics", "/how-to-choose": "diagnostics",
     "/vendors": "vendors", "/vendors/ccaas": "vendors", "/vendors/genesys": "vendors", "/industries": "industries", "/industries/healthcare/payer": "industries",
     "/research": "research", "/research/ccaas-migration-costs": "research", "/": null, "/about": null, "/vendorsx": null, "/tools": null };
   for (const [p, want] of Object.entries(cases)) ok(`${p} is ${want}`, S.pillarFor(p) === want, String(S.pillarFor(p)));
@@ -61,7 +61,7 @@ section("2. The pillar a path belongs to");
   // everywhere else (a sub-vertical page, a floor tool and a method page carry no clearance).
   const fixedCases = { "/": false, "/vendors": true, "/vendors/ccaas": true, "/vendors/five9": true, "/vendors/ccaas/healthcare": true,
     "/industries": true, "/industries/healthcare": true, "/industries/healthcare/payer": false, "/research/ccaas-migration-costs": true,
-    "/tools/tco-calculator": true, "/tools/cost-per-contact": false, "/methodology/staffing": false, "/changelog": false };
+    "/tools/tco-calculator": true, "/tools/cost-per-contact": false, "/methodology/staffing": false };
   for (const [p, want] of Object.entries(fixedCases)) ok(`${p} header ${want ? "over the page" : "in the flow"}`, S.headerFixed(p) === want);
 }
 

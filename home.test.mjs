@@ -3,7 +3,7 @@
  * Redesign Phase 5, the homepage (Homepage.jsx, data in src/lib/home.js). Every count is the registry's, every route
  * step is a live page and every tool step is the journey graph's own name and link, every industry figure is the
  * claims registry's published value with its source (or none), the stack reads Platform Decision's published layer
- * map, "What changed" is the changelog's newest, no route promises a time we have not measured or a profile feature
+ * map, no route promises a time we have not measured or a profile feature
  * that does not exist yet, and the events carry only taxonomy 1.1 values. The page renders on the server with one h1.
  *
  * Run from repo root: node home.test.mjs
@@ -22,7 +22,6 @@ const MV = await import("./src/lib/methodVersions.js");
 const J = await import("./src/lib/journey.js");
 const C = await import("./src/lib/claims.js");
 const V = await import("./src/lib/verticals.js");
-const CL = await import("./src/lib/changelog.js");
 const PD = await import("./src/lib/rubrics/platformDecision.js");
 const TR = await import("./src/lib/track.js");
 
@@ -112,10 +111,9 @@ section("5. The stack reads Platform Decision's layer map");
   ok(`every layer's tool, vendor category and technical name are the published model's, and live [${bad.join(", ")}]`, bad.length === 0 && Object.keys(H.LAYER_INFO).length === 7);
 }
 
-section("6. What changed");
+section("6. No change log on the homepage (removed, TB, 27 Sep 2026)");
 {
-  const newest = [...CL.CHANGELOG].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
-  ok("the four newest changelog titles, dated", H.CHANGES.map((c) => c.title).join("|") === newest.map((c) => c.title).join("|") && H.CHANGES.every((c) => /^\d{1,2} [A-Z][a-z]+ \d{4}$/.test(c.date)));
+  ok("the homepage shows no What changed section and no changelog link", !/what changed|changelog/i.test(SRC) && !("CHANGES" in H) && !/changelog/i.test(DATA));
 }
 
 section("7. The page renders");
@@ -128,7 +126,7 @@ section("7. The page renders");
   ok("five doors as one radio group, the first chosen", (html.match(/role="radio" aria-checked="(true|false)"/g) || []).length >= 5 && /aria-checked="true"[\s\S]*Diagnostics/.test(html));
   ok("step 2 opens on the first diagnostics route with its start button", html.includes("What are you trying to work out?") && html.includes("Where the cost comes from") && html.includes('href="/tools/cost-per-contact"'));
   ok("the stack and the evidence mark render", /aria-label="The seven layer stack"/.test(html) && /Every number says how sure it is/.test(html));
-  ok("the proof tiles and what changed render", H.PROOFS.every((p) => html.includes(p.link)) && H.CHANGES.every((c) => html.includes(c.title.replace(/&/g, "&amp;"))));
+  ok("the proof tiles render, and no change list", H.PROOFS.every((p) => html.includes(p.link)) && !/What changed/i.test(html));
   ok("the page adds no header, footer or nav of its own", !/<header|<footer|<nav\b/.test(html));
   ok("no NaN, undefined or Infinity", !/NaN|undefined|Infinity/.test(html));
 }

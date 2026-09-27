@@ -967,6 +967,22 @@ dashboard, the 12-phase growth program.
    `Button` now passes `onClick` on links; `RouteCard` takes `onStart` and a figure slot. Gates: `home.test.mjs` (33),
    seo E surfaces and J13 retargeted to `home.js`, shell and tool frame pins updated. Suite 24,692; 426-page sweep clean;
    live check 254 of 254.
+   TB waived the baseline ("skip the baseline, merge"); PR #44 merged (d8193af). Next: Phase 6, tools onto the frame,
+   first batch Cost per Contact, FCR Leakage, AI Deflection, Business Case.
+52. S24 (27 Sep), TB: "What Changed on the home page and any other page should be removed." Removed every change list:
+   the homepage section, each method page's "Changes to this method", and the `/changelog` page (301 to `/how-to-choose`
+   at the edge and in the app; out of the sitemap, now 425, and the metadata). Links removed from the footer, the seven
+   method page captions and the tool report area; the Research door now points to `/research`. Version stamps ("Method
+   1.0, published ...") stay on tools, method pages and PDFs. `src/lib/changelog.js` stays as the record behind each
+   stamp (`methods.test.mjs` still checks each method's newest entry carries its version); nothing renders it.
+   `methods.test.mjs` and `home.test.mjs` prove the removal (both fail on the old tree); the live checker checks the
+   redirect. Suite 24,686; live check 254 of 254.
+   Then TB: "I don't want my audience to see the change log. We can create a page for documentation but hide it." The
+   record renders at `/internal/method-log` (`RubricPage` id `method-log`): linked from nowhere, not prerendered, outside
+   the sitemap and the metadata map (so the app and the shell mark it noindex), and `X-Robots-Tag: noindex, nofollow` at
+   the edge for `/internal/(.*)`. Hidden is not private: anyone with the URL can open it, and the repo is public. Gates in
+   `methods.test.mjs` (mounted, unlinked, out of sitemap and metadata, the edge header); the live checker opens it and
+   reads its noindex. Suite 24,691; live check 255 of 255.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

@@ -2,7 +2,7 @@
 //
 // Redesign Phase 5, to the approved homepage design (canvas "Phase 1 designs": Homepage, desktop and phone).
 // Hero beside the stack; step 1, five doors; step 2, the door's question and one route card; the evidence mark
-// explained; proof from the registries; what changed. Every figure comes from src/lib/home.js, which derives it;
+// explained; proof from the registries. Every figure comes from src/lib/home.js, which derives it;
 // this file types no count. Tokens only. Events are taxonomy 1.1: door_select, route_select, route_start and
 // layer_select (surface home). The initial state is fixed, so the prerendered page and the first client render agree.
 
@@ -10,7 +10,7 @@ import React, { useState } from "react";
 import { HOUSE, PILLARS, LAYERS, RADIUS, TOUCH, FONT_SANS, TYPE_SCALE, alpha, LINE } from "./src/lib/tokens.js";
 import { Door, RouteCard, Stack, EvidenceMark, GradeBadge } from "./src/lib/ui.jsx";
 import { Icon } from "./src/lib/Icon.jsx";
-import { DOORS, LAYER_INFO, PROOFS, CHANGES } from "./src/lib/home.js";
+import { DOORS, LAYER_INFO, PROOFS } from "./src/lib/home.js";
 import { trackHome } from "./src/lib/track.js";
 
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
@@ -168,7 +168,7 @@ export default function Homepage() {
         </div>
       </section>
 
-      <section aria-label="What the site stands on" style={{ ...WRAP, padding: "48px 20px" }}>
+      <section aria-label="What the site stands on" style={{ ...WRAP, padding: "48px 20px 64px" }}>
         <div className="cx-home-three">
           {PROOFS.map((p) => (
             <div key={p.link} style={{ padding: 24, borderRadius: RADIUS.card, border: `1px solid ${hair}`, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -180,19 +180,6 @@ export default function Homepage() {
         </div>
       </section>
 
-      <section aria-labelledby="cx-changed" style={{ ...WRAP, padding: "8px 20px 64px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 16, flexWrap: "wrap", marginBottom: 12 }}>
-          <h2 id="cx-changed" style={{ margin: 0, fontSize: TYPE_SCALE.h2.size, fontWeight: TYPE_SCALE.h2.weight }}>What changed</h2>
-          <a href="/changelog" style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: HOUSE.sky2, textDecoration: "none" }}>Method changelog<Icon name="next" size={16} /></a>
-        </div>
-        <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-          {CHANGES.map((c) => (
-            <li key={c.title} style={{ display: "grid", gridTemplateColumns: "minmax(0,160px) minmax(0,1fr)", gap: 16, padding: "14px 0", borderTop: `1px solid ${hair}`, fontSize: 15 }}>
-              <span style={{ color: HOUSE.muted }}>{c.date}</span><span style={{ color: HOUSE.mist }}>{c.title}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
     </main>
   );
 }

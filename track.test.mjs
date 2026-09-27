@@ -577,7 +577,7 @@ section("P. The taxonomy is frozen (1.1, which kept every 1.0 name), and the lan
   const pasted = buildPayload(EV.SESSION_LANDING, landingProps("/", "?utm_source=jane.doe@example.com&utm_campaign=" + "x".repeat(80), "", "x"), CTX).properties;
   ok("P9 a UTM value that is not a short slug (an address, an overlong value) is dropped", !("utm_source" in pasted) && !("utm_campaign" in pasted));
   ok("P10 no referrer, no ref", !("ref" in landingProps("/", "", "", "x")));
-  eq("P11 page types", ["/", "/tools/tco-calculator", "/methodology/tco-calculator", "/changelog", "/industries/healthcare/health-insurance", "/vendors/genesys", "/research/ccaas-buyer-guide", "/about", "/vendors/ccaas", "/vendors/payments/"].map(pageType).join(","), "home,tool,method,method,industry,vendor,research,other,category,category");
+  eq("P11 page types", ["/", "/tools/tco-calculator", "/methodology/tco-calculator", "/methodology/cx-maturity", "/industries/healthcare/health-insurance", "/vendors/genesys", "/research/ccaas-buyer-guide", "/about", "/vendors/ccaas", "/vendors/payments/"].map(pageType).join(","), "home,tool,method,method,industry,vendor,research,other,category,category");
   const app = readFileSync("./App.jsx", "utf8");
   ok("P12 the app fires the landing once per session, on mount", /useEffect\(\(\) => \{ trackLanding\(\); \}, \[\]\)/.test(app) && /coc:landed/.test(readFileSync("./src/lib/track.js", "utf8")));
 }
