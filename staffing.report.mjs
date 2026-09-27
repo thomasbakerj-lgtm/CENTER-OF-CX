@@ -633,7 +633,7 @@ console.log("\n11B. void render, sign invariance");
   const fm = (x) => `$${Math.round(x)}`;
   const vs = subtitleFn(D.r, fm, D.cost, isVoid, v.gradeObj, v.confidence);
   A("the void subtitle says the export is void and claims no grade", /EXPORT VOID/.test(vs) && !/Directional|Planning-grade|Finance-grade/.test(vs));
-  A("the badge renders the void in red", /confidence === "Void" \? RED/.test(SRC));
+  A("a void reaches the result as a void, with no figure (Phase 6: the frame's Result)", /const \{ how, voidReason \} = resultHow\(gradeObj\);/.test(SRC) && /value=\{voidReason \? null : r\.sched\}/.test(SRC) && /voidReason=\{voidReason\}/.test(SRC));
   /* Sign invariance. The same inputs with only volume moved, zero to large. */
   const Z = render({ mut: () => ({ vol: 0, aht: 350, shrink: 31 }) });
   const M = render({ mut: () => ({ vol: 420, aht: 350, shrink: 31 }) });

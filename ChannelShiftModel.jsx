@@ -11,6 +11,10 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
+import { HOUSE, PILLARS, ARCS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
+import { methodStamp } from "./src/lib/methodVersions.js";
 
 /* UI-only palette. The engine's colours live inside the engine region below,
    because buildVerdict and TARGETS carry them into the report payload. */
@@ -422,9 +426,18 @@ function gradeChannel({ d, r, pre, railOrigin }) {
 
 /* @engine-end */
 
-function Nav() {
-  return null;
-}
+const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
+const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
+const h2 = { fontSize: 18, fontWeight: 600, lineHeight: 1.3, color: HOUSE.mist, margin: "0 0 8px" };
+const body = { fontSize: 15, lineHeight: 1.6, color: HOUSE.body, margin: 0 };
+const small = { fontSize: 13, lineHeight: 1.5, color: HOUSE.muted, margin: 0 };
+const link = { color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
+const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))`, gap: 12 });
+const panel = { background: HOUSE.navy, border: `1px solid ${hair}`, borderRadius: RADIUS.card, padding: 20 };
+const stat = { ...TYPE.statValue, fontSize: 24, color: HOUSE.mist, margin: "4px 0 2px" };
+const Tile = ({ label, value, sub }) => (
+  <div style={panel}><span style={kicker}>{label}</span><div style={stat}>{value}</div>{sub && <p style={small}>{sub}</p>}</div>
+);
 export default function ChannelShiftModel() {
   const [d, setD] = useState(() => clone(DEFAULTS.d));
   const [mech, setMech] = useState(DEFAULTS.mech);
@@ -482,7 +495,6 @@ export default function ChannelShiftModel() {
   /* railOrigin is null because the rail carries no origin grade yet. See gradeChannel. */
   const graded = gradeChannel({ d, r, pre, railOrigin: null });
   const { gradeObj, confidence, gradeWhy } = graded;
-  const gradeColor = confidence === "Finance-grade" ? GREEN : confidence === "Planning-grade" ? AMBER : confidence === "Void" ? RED : MUTED;
 
   const mixTotal = n(d.voicePct) + n(d.chatPct) + n(d.emailPct) + n(d.botPct);
   const riskAny = RISKS.some(x => d[x.k]);
@@ -519,245 +531,200 @@ export default function ChannelShiftModel() {
   const scenario = { d, mech };
 
 
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}select,input,button{font-family:inherit}@media(max-width:760px){.cg1{grid-template-columns:1fr!important}.cg{grid-template-columns:1fr 1fr!important}.s4{grid-template-columns:1fr 1fr!important}.s3{grid-template-columns:1fr!important}}`}</style>
-      <Nav />
-
-      <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "52px 28px 32px" }}>
-        <div style={WRAP}>
-          <span style={{ color: LIGHT, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 12 }}>Cost + Economics</span>
-          <h1 style={{ ...TYPE.display, color: "#fff", margin: "0 0 12px" }}>Channel Shift Economics</h1>
-          <p style={{ fontSize: 15, color: "rgba(255,255,255,0.72)", lineHeight: 1.65, maxWidth: 700 }}>Channel shift only creates value when eligible demand resolves in the target channel at a rate high enough to offset failure, escalation, residual voice complexity, transition cost, and capacity realization. This model does not assume digital adoption equals savings. It separates shifted, resolved, displaced, and finance-realizable volume. Every formula, constant and a worked example are in the <a href="/methodology/channel-shift" style={{ color: LIGHT, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
-          <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            {Object.keys(pulled).length > 0 && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,136,221,0.12)", border: `1px solid ${ELECTRIC}40`, borderRadius: 8, padding: "8px 14px" }}>
-                <span style={{ ...TYPE.caption, fontSize: 12, color: "#fff", fontWeight: W.semibold }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from {pullSources.length ? pullSources.join(", ") : "a previous tool"}.</span>
-              </div>
-            )}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,0.06)", borderRadius: 8, padding: "8px 14px" }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", background: gradeColor }} />
-              <span style={{ ...TYPE.caption, fontSize: 12, color: "#fff", fontWeight: W.semibold }}>{confidence}</span>
-              <span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{gradeWhy}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* VERDICT */}
-      <section style={{ background: `${verdict.color}0A`, borderBottom: `2px solid ${verdict.color}`, padding: "20px 28px" }}>
-        <div style={{ ...WRAP, display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
-          <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: 150, padding: "10px 18px", background: "#fff", border: `1px solid ${verdict.color}`, borderRadius: 10 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, textTransform: "uppercase" }}>Verdict</span>
-            <span style={{ fontSize: 17, fontWeight: 700, color: verdict.color, textAlign: "center", lineHeight: 1.2 }}>{verdict.label}</span>
-          </div>
-          <div style={{ flex: "1 1 360px" }}>
-            <div style={{ fontSize: 13.5, color: SLATE, lineHeight: 1.5 }}>{verdict.detail}</div>
-            {verdict.be != null && verdict.pt && (
-              <div style={{ display: "flex", gap: 20, marginTop: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 12, color: MUTED }}>Current {verdict.pt.key.toLowerCase()} res: <strong style={{ color: NAVY }}>{verdict.curRes}%</strong></span>
-                <span style={{ fontSize: 12, color: MUTED }}>Break-even: <strong style={{ color: verdict.color }}>{verdict.be.toFixed(0)}%</strong></span>
-                <span style={{ fontSize: 12, color: MUTED }}>Net realizable: <strong style={{ color: r.netRealizable >= 0 ? GREEN : RED }}>{fmtK(r.netRealizable)}/mo</strong></span>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section style={{ background: WARM, padding: "28px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase", marginBottom: 12 }}>Environment</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
-            <NumField label="Monthly contacts" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
-            <NumField label="Agent hourly" value={d.hourlyRate} onChange={v => set("hourlyRate", v)} prefix="$" suffix="/hr" step={0.5} min={0} pulled={pulled.hourlyRate} />
-            <NumField label="Loaded overhead" value={d.loadedOH} onChange={v => set("loadedOH", v)} suffix="x" step={0.05} min={1} info={DEFS.loadedOH} infoTitle="Loaded overhead" />
-            <NumField label="Marginal overhead" value={d.marginalOH} onChange={v => set("marginalOH", v)} suffix="x" step={0.02} min={1} hint="Savings basis" info={DEFS.marginalOH} infoTitle="Marginal overhead" infoAlign="right" />
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 700, color: SLATE, letterSpacing: 1, textTransform: "uppercase", margin: "18px 0 12px" }}>Current mix <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: mixTotal === 100 ? MUTED : RED }}>· {mixTotal}%</span> &amp; handle</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
-            <NumField label="Voice %" value={d.voicePct} onChange={v => set("voicePct", v)} suffix="%" step={1} min={0} max={100} />
-            <NumField label="Chat %" value={d.chatPct} onChange={v => set("chatPct", v)} suffix="%" step={1} min={0} max={100} />
-            <NumField label="Email %" value={d.emailPct} onChange={v => set("emailPct", v)} suffix="%" step={1} min={0} max={100} />
-            <NumField label="Bot %" value={d.botPct} onChange={v => set("botPct", v)} suffix="%" step={1} min={0} max={100} />
-            <NumField label="Voice AHT" value={d.voiceAHT} onChange={v => set("voiceAHT", v)} suffix="min" step={0.5} min={0} />
-            <NumField label="Chat AHT / conc" value={d.chatAHT} onChange={v => set("chatAHT", v)} suffix="min" step={0.5} min={0} hint={`conc ${d.chatConc}x`} />
-            <NumField label="Email AHT" value={d.emailAHT} onChange={v => set("emailAHT", v)} suffix="min" step={0.5} min={0} />
-            <NumField label="Bot cost / contact" value={d.botCost} onChange={v => set("botCost", v)} prefix="$" step={0.05} min={0} info={DEFS.botCost} infoTitle="Bot cost / contact" infoAlign="right" />
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, margin: "18px 0 0" }} className="s3">
-            <NumField label="Eligible voice for shift" value={d.eligibility} onChange={v => set("eligibility", v)} suffix="%" step={5} min={0} max={100} hint="Structurally shiftable, exclude complex/regulated/emotional volume" info={DEFS.eligibility} infoTitle="Eligible voice for shift" />
-            <NumField label="Escalation return factor" value={d.escReturnFactor} onChange={v => set("escReturnFactor", v)} suffix="x" step={0.1} min={1} hint="Re-contact friction: 1.0 same as a direct call, 1.2 frustrated, 1.5 complex recovery" info={DEFS.erf} infoTitle="Escalation return factor" />
-            <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: NAVY, display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>Residual complexity curve<InfoDot text={DEFS.curve} title="Residual complexity curve" align="right" /></label>
-              <div style={{ display: "flex", gap: 4, background: "#fff", padding: 3, borderRadius: 7, border: `1px solid ${BORDER}` }}>
-                {Object.entries(CURVE).map(([k, v]) => <button key={k} onClick={() => set("adverseCurve", k)} style={{ flex: 1, fontSize: 12, fontWeight: 600, padding: "7px 4px", borderRadius: 5, border: "none", cursor: "pointer", background: d.adverseCurve === k ? ELECTRIC : "transparent", color: d.adverseCurve === k ? "#fff" : SLATE }}>{v.label}</button>)}
-              </div>
-              <span style={{ fontSize: 12, color: MUTED, marginTop: 2, display: "block" }}>{CURVE[r.curveKey].note}</span>
-            </div>
-          </div>
-
-          {r.Dtot > 0 && (
-            <div style={{
-              marginTop: 14, background: "#fff", borderRadius: 8, padding: "14px 16px",
-              border: `1px solid ${r.deptImpossible || r.deptImplausible ? RED : BORDER}`,
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: r.deptImpossible || r.deptImplausible ? RED : SLATE, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
-                What this curve is actually claiming
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 22, alignItems: "flex-end" }}>
-                <div>
-                  <div style={{ fontSize: 19, fontWeight: 700, color: NAVY }}>{r.baseEff.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span></div>
-                  <div style={{ fontSize: 12, color: MUTED }}>Voice baseline today</div>
-                </div>
-                <div style={{ fontSize: 15, color: MUTED, paddingBottom: 4 }}>&rarr;</div>
-                <div>
-                  <div style={{ fontSize: 19, fontWeight: 700, color: r.deptImpossible || r.deptImplausible ? RED : ELECTRIC }}>
-                    {r.deptEffRaw.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: MUTED }}>Implied AHT of the calls you displace</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 19, fontWeight: 700, color: AMBER }}>{r.residualEff.toFixed(1)}<span style={{ fontSize: 12, fontWeight: 500, color: MUTED }}> min</span></div>
-                  <div style={{ fontSize: 12, color: MUTED }}>Voice left behind, {(r.residualUplift * 100).toFixed(1)}% harder</div>
-                </div>
-              </div>
-              <p style={{ fontSize: 12, color: SLATE, lineHeight: 1.6, margin: "12px 0 0" }}>
-                Total voice minutes do not change when you shift: the same calls take the same time, only fewer of them
-                stay. So choosing a residual uplift also decides how simple the departing calls must have been. If the
-                volume you plan to move is not around {r.deptEffRaw.toFixed(1)} minutes, this curve is the wrong one.
-              </p>
-            </div>
+  const stamp = methodStamp(TOOL_ID);
+  const { how, voidReason } = resultHow(gradeObj);
+  const result = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="Net realizable a month" value={voidReason ? null : r.netRealizable} format={fmtK}
+        change={voidReason ? null : (r.netRealizable >= 0 ? `${fmtK(r.netRealizable * 12)} a year. ` : "A net cost. ") + `${Math.round(r.Dtot).toLocaleString()} contacts truly leave voice each month.`}
+        how={how} voidReason={voidReason} />
+      {!voidReason && (
+        <div style={panel}>
+          <span style={kicker}>The decision this protects</span>
+          <div style={{ fontSize: 20, fontWeight: 700, color: HOUSE.mist, margin: "6px 0" }}>{verdict.label}</div>
+          <p style={small}>{verdict.detail}</p>
+          {verdict.be != null && verdict.pt && (
+            <p style={{ ...small, marginTop: 8 }}>Current {verdict.pt.key.toLowerCase()} resolution <strong style={{ color: HOUSE.mist }}>{verdict.curRes}%</strong>, break-even <strong style={{ color: HOUSE.mist }}>{verdict.be.toFixed(0)}%</strong>.</p>
           )}
+        </div>
+      )}
+    </div>
+  );
 
-          <div style={{ fontSize: 12, fontWeight: 700, color: GREEN, letterSpacing: 1, textTransform: "uppercase", margin: "20px 0 4px" }}>Shift from voice → target</div>
-          <p style={{ fontSize: 12, color: MUTED, marginBottom: 10 }}>Points are the plan. Everything under them is the discount. Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts. Set them to what your data supports.</p>
+  return (
+    <ToolFrame toolId={TOOL_ID} section="Cost + Economics" name="Channel Shift" title="What does moving contacts out of voice actually save?"
+      lede="Channel shift only creates value when eligible demand resolves in the target channel at a rate high enough to offset failure, escalation, residual voice complexity, transition cost, and capacity realization. This model does not assume digital adoption equals savings. It separates shifted, resolved, displaced, and finance-realizable volume."
+      method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
+      result={result} pinned={voidReason ? null : { label: "Net realizable a month", value: fmtK(r.netRealizable) }}>
+      <style>{`${FONT_IMPORT_CSS}.cs-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
+      <p style={small}>Every formula, constant and a worked example are in the <a href="/methodology/channel-shift" style={link}>published method</a>.{Object.keys(pulled).length > 0 && ` Prefilled ${Object.keys(pulled).length} value${Object.keys(pulled).length > 1 ? "s" : ""} from ${pullSources.length ? pullSources.join(", ") : "a previous tool"}.`}</p>
 
-          <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "12px 14px", marginBottom: 12, fontSize: 12, color: SLATE, lineHeight: 1.6 }}>
-            <strong style={{ color: NAVY }}>How to use the points.</strong> A point is one percent of your total monthly contact volume,
-            moved out of voice. Voice is currently {r.voicePct}% of the mix. Shifting {shiftPts} points takes it to {Math.max(0, r.voicePct - shiftPts)}%.
-            {" "}Start by asking how much voice is <em>structurally eligible</em> to move, set that above, then set points to match.
-            {shiftPts > 0 && (
-              <> You have requested <strong>{Math.round(r.monthly * shiftPts / 100).toLocaleString()}</strong> contacts against an eligible pool of{" "}
-              <strong>{Math.round(r.eligible).toLocaleString()}</strong>.{r.scaled ? " That exceeds the pool, so the shift was scaled down to fit." : " That fits."}</>
-            )}
-            {shiftPts > r.voicePct && <span style={{ color: RED, fontWeight: 600 }}> You are asking to move more volume than exists in voice.</span>}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }} className="s3">
-            {TARGETS.map(tc => { const t = tc.key, color = tc.color; return (
-              <div key={t} style={{ background: "#fff", border: `1px solid ${color}40`, borderRadius: 8, padding: "12px 14px" }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color, marginBottom: 8 }}>&rarr; {t === "Bot" ? "Bot / Self-Service" : t}</div>
-                <NumField compact label="Shift" value={d["shiftTo" + t]} onChange={v => set("shiftTo" + t, v)} suffix="pts" step={1} min={0} max={100} hint="pts of total volume" info={DEFS.shiftPts} infoTitle="Shift points" />
-                <div style={{ height: 6 }} />
-                <NumField compact label="Resolution rate" value={d["res" + t]} onChange={v => set("res" + t, v)} suffix="%" step={1} min={0} max={100} pulled={t === "Bot" && pulled.resBot} hint={t === "Bot" && pulled.resBot ? "from AI Deflection" : "resolves without bouncing"} info={DEFS.resolution} infoTitle="Resolution rate" />
-                <div style={{ height: 6 }} />
-                <NumField compact label="Displacement" value={d["disp" + t]} onChange={v => set("disp" + t, v)} suffix="%" step={1} min={0} max={100} hint="% that truly replace a voice call" info={DEFS.displacement} infoTitle="Displacement" />
-              </div>
-            ); })}
+      <fieldset style={{ ...panel, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 3 · Your environment</legend>
+        <div style={grid(180)}>
+          <NumField tone="dark" label="Monthly contacts" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
+          <NumField tone="dark" label="Agent hourly" value={d.hourlyRate} onChange={v => set("hourlyRate", v)} prefix="$" suffix="/hr" step={0.5} min={0} pulled={pulled.hourlyRate} />
+          <NumField tone="dark" label="Loaded overhead" value={d.loadedOH} onChange={v => set("loadedOH", v)} suffix="x" step={0.05} min={1} info={DEFS.loadedOH} infoTitle="Loaded overhead" />
+          <NumField tone="dark" label="Marginal overhead" value={d.marginalOH} onChange={v => set("marginalOH", v)} suffix="x" step={0.02} min={1} hint="Savings basis" info={DEFS.marginalOH} infoTitle="Marginal overhead" infoAlign="right" />
+        </div>
+        <h2 style={{ ...h2, fontSize: 16, margin: "18px 0 10px" }}>Current mix and handle time <span style={{ ...small, fontWeight: 500, color: mixTotal === 100 ? HOUSE.muted : HOUSE.mist }}>· mix sums to {mixTotal}%{mixTotal === 100 ? "" : ", fix to 100"}</span></h2>
+        <div style={grid(150)}>
+          <NumField tone="dark" label="Voice %" value={d.voicePct} onChange={v => set("voicePct", v)} suffix="%" step={1} min={0} max={100} />
+          <NumField tone="dark" label="Chat %" value={d.chatPct} onChange={v => set("chatPct", v)} suffix="%" step={1} min={0} max={100} />
+          <NumField tone="dark" label="Email %" value={d.emailPct} onChange={v => set("emailPct", v)} suffix="%" step={1} min={0} max={100} />
+          <NumField tone="dark" label="Bot %" value={d.botPct} onChange={v => set("botPct", v)} suffix="%" step={1} min={0} max={100} />
+          <NumField tone="dark" label="Voice AHT" value={d.voiceAHT} onChange={v => set("voiceAHT", v)} suffix="min" step={0.5} min={0} />
+          <NumField tone="dark" label="Chat AHT / conc" value={d.chatAHT} onChange={v => set("chatAHT", v)} suffix="min" step={0.5} min={0} hint={`conc ${d.chatConc}x`} />
+          <NumField tone="dark" label="Email AHT" value={d.emailAHT} onChange={v => set("emailAHT", v)} suffix="min" step={0.5} min={0} />
+          <NumField tone="dark" label="Bot cost / contact" value={d.botCost} onChange={v => set("botCost", v)} prefix="$" step={0.05} min={0} info={DEFS.botCost} infoTitle="Bot cost / contact" infoAlign="right" />
+        </div>
+        <div style={{ ...grid(220), marginTop: 18 }}>
+          <NumField tone="dark" label="Eligible voice for shift" value={d.eligibility} onChange={v => set("eligibility", v)} suffix="%" step={5} min={0} max={100} hint="Structurally shiftable, exclude complex/regulated/emotional volume" info={DEFS.eligibility} infoTitle="Eligible voice for shift" />
+          <NumField tone="dark" label="Escalation return factor" value={d.escReturnFactor} onChange={v => set("escReturnFactor", v)} suffix="x" step={0.1} min={1} hint="Re-contact friction: 1.0 same as a direct call, 1.2 frustrated, 1.5 complex recovery" info={DEFS.erf} infoTitle="Escalation return factor" />
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>Residual complexity curve<InfoDot text={DEFS.curve} title="Residual complexity curve" align="right" /></div>
+            <div role="group" aria-label="Residual complexity curve" style={{ display: "flex", gap: 6 }}>
+              {Object.entries(CURVE).map(([k, v]) => <button key={k} type="button" aria-pressed={d.adverseCurve === k} onClick={() => set("adverseCurve", k)} style={{ flex: 1, minHeight: TOUCH, fontFamily: FONT, fontSize: 14, fontWeight: d.adverseCurve === k ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer", border: `1px solid ${d.adverseCurve === k ? HOUSE.electric : alpha(HOUSE.mist, LINE.firm)}`, background: d.adverseCurve === k ? alpha(HOUSE.electric, 0.22) : "transparent", color: HOUSE.mist }}>{v.label}</button>)}
+            </div>
+            <span style={{ ...small, marginTop: 4, display: "block" }}>{CURVE[r.curveKey].note}</span>
           </div>
         </div>
+
+        {r.Dtot > 0 && (
+          <div style={{ marginTop: 16, borderRadius: RADIUS.field, padding: "14px 16px", border: r.deptImpossible || r.deptImplausible ? `1.5px solid ${HOUSE.mist}` : `1px solid ${hair}` }}>
+            <div style={{ ...kicker, marginBottom: 8 }}>What this curve is actually claiming{r.deptImpossible || r.deptImplausible ? ": check it" : ""}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 22, alignItems: "flex-end" }}>
+              <div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: HOUSE.mist }}>{r.baseEff.toFixed(1)}<span style={small}> min</span></div>
+                <div style={small}>Voice baseline today</div>
+              </div>
+              <div aria-hidden="true" style={{ fontSize: 15, color: HOUSE.muted, paddingBottom: 4 }}>&rarr;</div>
+              <div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: HOUSE.mist }}>{r.deptEffRaw.toFixed(1)}<span style={small}> min</span></div>
+                <div style={small}>Implied AHT of the calls you displace</div>
+              </div>
+              <div>
+                <div style={{ fontSize: 19, fontWeight: 700, color: HOUSE.mist }}>{r.residualEff.toFixed(1)}<span style={small}> min</span></div>
+                <div style={small}>Voice left behind, {(r.residualUplift * 100).toFixed(1)}% harder</div>
+              </div>
+            </div>
+            <p style={{ ...small, marginTop: 12 }}>
+              Total voice minutes do not change when you shift: the same calls take the same time, only fewer of them
+              stay. So choosing a residual uplift also decides how simple the departing calls must have been. If the
+              volume you plan to move is not around {r.deptEffRaw.toFixed(1)} minutes, this curve is the wrong one.
+            </p>
+          </div>
+        )}
+      </fieldset>
+
+      <fieldset style={{ ...panel, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 2 of 3 · Shift from voice to a target</legend>
+        <p style={{ ...small, marginBottom: 10 }}>Points are the plan. Everything under them is the discount. Resolution = share that resolves without bouncing back to voice. Displacement = share of resolved that truly replace a voice call (not new demand). Both are honest haircuts. Set them to what your data supports.</p>
+        <p style={{ ...body, fontSize: 14, marginBottom: 14, padding: "12px 14px", border: `1px solid ${hair}`, borderRadius: RADIUS.field }}>
+          <strong style={{ color: HOUSE.mist }}>How to use the points.</strong> A point is one percent of your total monthly contact volume,
+          moved out of voice. Voice is currently {r.voicePct}% of the mix. Shifting {shiftPts} points takes it to {Math.max(0, r.voicePct - shiftPts)}%.
+          {" "}Start by asking how much voice is <em>structurally eligible</em> to move, set that above, then set points to match.
+          {shiftPts > 0 && (
+            <> You have requested <strong style={{ color: HOUSE.mist }}>{Math.round(r.monthly * shiftPts / 100).toLocaleString()}</strong> contacts against an eligible pool of{" "}
+            <strong style={{ color: HOUSE.mist }}>{Math.round(r.eligible).toLocaleString()}</strong>.{r.scaled ? " That exceeds the pool, so the shift was scaled down to fit." : " That fits."}</>
+          )}
+          {shiftPts > r.voicePct && <strong style={{ color: HOUSE.mist }}> You are asking to move more volume than exists in voice.</strong>}
+        </p>
+        <div style={grid(200)}>
+          {TARGETS.map(tc => { const t = tc.key; return (
+            <div key={t} style={{ border: `1px solid ${hair}`, borderRadius: RADIUS.field, padding: "12px 14px" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: HOUSE.mist, marginBottom: 8 }}>To {t === "Bot" ? "Bot / Self-Service" : t}</div>
+              <NumField tone="dark" compact label="Shift" value={d["shiftTo" + t]} onChange={v => set("shiftTo" + t, v)} suffix="pts" step={1} min={0} max={100} hint="pts of total volume" info={DEFS.shiftPts} infoTitle="Shift points" />
+              <div style={{ height: 6 }} />
+              <NumField tone="dark" compact label="Resolution rate" value={d["res" + t]} onChange={v => set("res" + t, v)} suffix="%" step={1} min={0} max={100} pulled={t === "Bot" && pulled.resBot} hint={t === "Bot" && pulled.resBot ? "from AI Deflection" : "resolves without bouncing"} info={DEFS.resolution} infoTitle="Resolution rate" />
+              <div style={{ height: 6 }} />
+              <NumField tone="dark" compact label="Displacement" value={d["disp" + t]} onChange={v => set("disp" + t, v)} suffix="%" step={1} min={0} max={100} hint="% that truly replace a voice call" info={DEFS.displacement} infoTitle="Displacement" />
+            </div>
+          ); })}
+        </div>
+      </fieldset>
+
+      <fieldset style={{ ...panel, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 3 of 3 · Capacity action and guardrails</legend>
+        <div style={grid(260)}>
+          <div>
+            <label htmlFor="cs-mech" style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>Capacity action<InfoDot text={DEFS.capacity} title="Capacity action" /></label>
+            <p style={{ ...small, color: mechKey === "none" ? HOUSE.mist : HOUSE.muted, marginBottom: 10 }}>{MECH[mechKey].note}</p>
+            <select id="cs-mech" aria-label="Realization mechanism" value={mechKey} onChange={e => setMech(e.target.value)} className="cs-sel" style={{ width: "100%", minHeight: TOUCH, fontFamily: FONT, fontSize: 15, fontWeight: 600, padding: "0 12px", borderRadius: RADIUS.field, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, background: HOUSE.navy, color: HOUSE.mist, cursor: "pointer" }}>
+              {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, marginBottom: 8 }}>Risk guardrails <span style={{ ...small, fontWeight: 400 }}>· flags CX-sensitive volume</span></div>
+            <div style={grid(150)}>
+              {RISKS.map(rk => (
+                <label key={rk.k} style={{ display: "flex", alignItems: "center", gap: 8, minHeight: TOUCH, cursor: "pointer", fontSize: 14, color: HOUSE.body }}>
+                  <input type="checkbox" checked={d[rk.k]} onChange={() => toggle(rk.k)} style={{ width: 18, height: 18, accentColor: HOUSE.electric }} />{rk.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <div style={grid(150)}>
+        <Tile label="Net realizable" value={`${fmtK(r.netRealizable)}/mo`} sub={r.netRealizable >= 0 ? `${fmtK(r.netRealizable * 12)}/yr` : "net cost"} />
+        <Tile label="Voice displaced" value={Math.round(r.Dtot).toLocaleString()} sub="truly leave voice/mo" />
+        <Tile label="Bounced to voice" value={Math.round(r.Etot).toLocaleString()} sub="failed in channel/mo" />
+        <Tile label="Voice FTE freed" value={r.fteFreed.toFixed(1)} sub={r.fteFreed >= 0 ? "net capacity" : "net capacity, a loss"} />
+      </div>
+      <p style={{ ...body, fontSize: 14, padding: "12px 14px", border: `1px solid ${hair}`, borderRadius: RADIUS.field }}>
+        <strong style={{ color: HOUSE.mist }}>{Math.round(r.shifted).toLocaleString()} shifted</strong>: {Math.round(r.Dtot).toLocaleString()} displace voice, {Math.round(r.Etot).toLocaleString()} bounce back. Net <strong style={{ color: HOUSE.mist }}>{Math.round(r.netMin).toLocaleString()} agent-min/mo</strong> freed, {fmtK(r.laborCash)} realized labor less {fmtK(r.botFee)} bot fees = <strong style={{ color: HOUSE.mist }}>{fmtK(r.netRealizable)}/mo</strong>.
+      </p>
+
+      <section aria-label="Integrity checks" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <h2 style={h2}>Integrity checks</h2>
+        {flags.map((f, i) => <Finding key={i} level={f.sev === "warn" ? "high" : "unknown"} title={f.sev === "warn" ? "Check this" : "Note"}>{f.t}</Finding>)}
+        {!flags.length && <Finding level="clear" title="Integrity checks passed">Mix at 100%, shift within eligible volume, above break-even, capacity action set, no risk-sensitive volume flagged.</Finding>}
       </section>
 
-      <section style={{ background: "#fff", padding: "32px 28px" }}>
-        <div style={WRAP}>
-          {/* Capacity action + risk guardrails */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }} className="cg1">
-            <div style={{ background: WARM, border: `1px solid ${mechKey === "none" ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 2, display: "flex", alignItems: "center", gap: 6 }}>Capacity action<InfoDot text={DEFS.capacity} title="Capacity action" /></div>
-              <div style={{ fontSize: 12, color: mechKey === "none" ? AMBER : MUTED, marginBottom: 10 }}>{MECH[mechKey].note}</div>
-              <select aria-label="Realization mechanism" value={mechKey} onChange={e => setMech(e.target.value)} style={{ width: "100%", fontSize: 13, fontWeight: 600, padding: "9px 12px", borderRadius: 7, border: `1px solid ${BORDER}`, background: "#fff", color: NAVY, cursor: "pointer" }}>
-                {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
-              </select>
-            </div>
-            <div style={{ background: WARM, border: `1px solid ${riskAny ? AMBER : BORDER}`, borderRadius: 10, padding: "14px 18px" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY, marginBottom: 8 }}>Risk guardrails <span style={{ fontWeight: 400, color: MUTED }}>· flags CX-sensitive volume</span></div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-                {RISKS.map(rk => (
-                  <label key={rk.k} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: SLATE }}>
-                    <input type="checkbox" checked={d[rk.k]} onChange={() => toggle(rk.k)} style={{ width: 13, height: 13, accentColor: AMBER }} />{rk.label}
-                  </label>
+      <section aria-label="Shift detail by target" style={panel}>
+        <h2 style={h2}>Shift detail by target</h2>
+        <div style={grid(180)}>
+          {r.perTarget.filter(t => t.S > 0).map((t, i) => (
+            <div key={i} style={{ border: `1px solid ${hair}`, borderRadius: RADIUS.field, padding: 14 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: HOUSE.mist, marginBottom: 8 }}>{t.key}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {[["Shifted", t.S], ["Displaced", t.D], ["Bounced", t.E], ["Incremental", t.incremental]].map(([k, v]) => (
+                  <div key={k}><span style={small}>{k}</span><div style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist, ...NUM }}>{Math.round(v).toLocaleString()}</div></div>
                 ))}
               </div>
             </div>
-          </div>
+          ))}
+          {r.perTarget.every(t => t.S === 0) && <p style={small}>No shift modeled yet.</p>}
+        </div>
+      </section>
 
-          {/* Summary */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 14, marginBottom: 24 }} className="s4">
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: r.netRealizable >= 0 ? GREEN : RED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Net Realizable</div>
-              <div style={{ ...TYPE.statValue, color: "#fff" }}>{fmtK(r.netRealizable)}<span style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>/mo</span></div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)" }}>{r.netRealizable >= 0 ? `${fmtK(r.netRealizable * 12)}/yr` : "net cost"}</div>
-            </div>
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Voice Displaced</div>
-              <div style={{ ...TYPE.statValue, color: GREEN }}>{Math.round(r.Dtot).toLocaleString()}</div>
-              <div style={{ fontSize: 12, color: MUTED }}>truly leave voice/mo</div>
-            </div>
-            <div style={{ background: WARM, border: `1px solid ${AMBER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Bounced to Voice</div>
-              <div style={{ ...TYPE.statValue, color: AMBER }}>{Math.round(r.Etot).toLocaleString()}</div>
-              <div style={{ fontSize: 12, color: MUTED }}>failed in channel/mo</div>
-            </div>
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 16px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 6 }}>Voice FTE Freed</div>
-              <div style={{ ...TYPE.statValue, color: r.fteFreed >= 0 ? GREEN : RED }}>{r.fteFreed.toFixed(1)}</div>
-              <div style={{ fontSize: 12, color: MUTED }}>net capacity</div>
-            </div>
-          </div>
-          <p style={{ fontSize: 12, color: SLATE, marginBottom: 24, background: `${ELECTRIC}06`, border: `1px solid ${ELECTRIC}20`, borderRadius: 8, padding: "10px 14px", lineHeight: 1.5 }}>
-            <strong>{Math.round(r.shifted).toLocaleString()} shifted</strong> → {Math.round(r.Dtot).toLocaleString()} displace voice, {Math.round(r.Etot).toLocaleString()} bounce back. Net <strong>{Math.round(r.netMin).toLocaleString()} agent-min/mo</strong> freed → {fmtK(r.laborCash)} realized labor − {fmtK(r.botFee)} bot fees = <strong>{fmtK(r.netRealizable)}/mo</strong>.
-          </p>
+      <section aria-label="Transition investment" style={panel}>
+        <h2 style={h2}>Transition investment</h2>
+        <div style={grid(160)}>
+          <div><span style={small}>Chat reskilling</span><div style={stat}>{fmtK(r.training)}</div></div>
+          <div><span style={small}>Ramp productivity loss</span><div style={stat}>{fmtK(r.ramp)}</div></div>
+          <div><span style={small}>Payback (headline)</span><div style={stat}>{isFinite(r.payback) ? r.payback.toFixed(1) + " mo" : "Never"}</div></div>
+        </div>
+      </section>
 
-          {/* Integrity */}
-          <div style={{ border: `1px solid ${flags.some(f => f.sev === "warn") ? AMBER : BORDER}`, borderRadius: 12, padding: "16px 20px", marginBottom: 24, background: flags.some(f => f.sev === "warn") ? `${AMBER}06` : WARM }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: flags.some(f => f.sev === "warn") ? AMBER : GREEN, letterSpacing: 1, textTransform: "uppercase", marginBottom: flags.length ? 10 : 0 }}>{flags.length ? "⚠ Integrity checks" : "✓ Integrity checks passed"}</div>
-            {flags.map((f, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, marginTop: i ? 8 : 0 }}>
-                <span style={{ color: f.sev === "warn" ? AMBER : ELECTRIC, fontWeight: 700, fontSize: 13 }}>{f.sev === "warn" ? "!" : "i"}</span>
-                <span style={{ fontSize: 12.5, color: SLATE, lineHeight: 1.5 }}>{f.t}</span>
-              </div>
-            ))}
-            {!flags.length && <span style={{ fontSize: 12.5, color: SLATE }}>Mix at 100%, shift within eligible volume, above break-even, capacity action set, no risk-sensitive volume flagged.</span>}
-          </div>
+      <section aria-label="What it means" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+        <span style={kicker}>What it means · shift resolvable volume, not all volume</span>
+        {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "8px 0 0" }}>{t}</p>)}
+      </section>
 
-          {/* Shift detail */}
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Shift Detail by Target</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 28 }} className="s3">
-            {r.perTarget.filter(t => t.S > 0).map((t, i) => (
-              <div key={i} style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: t.color, marginBottom: 8 }}>{t.key === "Bot" ? "Bot" : t.key}</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 12 }}>
-                  <div><span style={{ color: MUTED }}>Shifted</span><div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{Math.round(t.S).toLocaleString()}</div></div>
-                  <div><span style={{ color: MUTED }}>Displaced</span><div style={{ fontSize: 14, fontWeight: 600, color: GREEN }}>{Math.round(t.D).toLocaleString()}</div></div>
-                  <div><span style={{ color: MUTED }}>Bounced</span><div style={{ fontSize: 14, fontWeight: 600, color: AMBER }}>{Math.round(t.E).toLocaleString()}</div></div>
-                  <div><span style={{ color: MUTED }}>Incremental</span><div style={{ fontSize: 14, fontWeight: 600, color: MUTED }}>{Math.round(t.incremental).toLocaleString()}</div></div>
-                </div>
-              </div>
-            ))}
-            {r.perTarget.every(t => t.S === 0) && <div style={{ fontSize: 12, color: MUTED }}>No shift modeled yet.</div>}
-          </div>
+      <section aria-label="How sure" style={panel}>
+        <span style={kicker}>How sure · {confidence}</span>
+        <p style={{ ...body, fontSize: 14, margin: "8px 0 12px" }}>{gradeWhy}</p>
+        <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+          <input type="checkbox" checked={d.validated} onChange={e => set("validated", e.target.checked)} style={{ width: 18, height: 18, marginTop: 3, accentColor: HOUSE.electric }} />
+          <span style={{ ...body, fontSize: 14 }}>Eligibility, displacement &amp; resolution validated from data (self-attested: lifts these to Planning-grade at most)</span>
+        </label>
+      </section>
 
-          {/* Transition */}
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, marginBottom: 12 }}>Transition Investment</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 28 }} className="s3">
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>Chat reskilling</div><div style={{ fontSize: 20, fontWeight: 600, color: NAVY }}>{fmtK(r.training)}</div></div>
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>Ramp productivity loss</div><div style={{ fontSize: 20, fontWeight: 600, color: NAVY }}>{fmtK(r.ramp)}</div></div>
-            <div style={{ background: WARM, border: `1px solid ${isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER}`, borderRadius: 10, padding: "16px", textAlign: "center" }}><div style={{ fontSize: 12, color: MUTED, marginBottom: 4 }}>Payback (headline)</div><div style={{ fontSize: 20, fontWeight: 600, color: isFinite(r.payback) && r.payback <= 12 ? GREEN : AMBER }}>{isFinite(r.payback) ? r.payback.toFixed(1) + " mo" : "Never"}</div></div>
-          </div>
-
-          {/* Analyst */}
-          <div style={{ background: "#fff", border: `1px solid ${BORDER}`, borderLeft: `3px solid ${ELECTRIC}`, borderRadius: 12, padding: "20px 22px", marginBottom: 24 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Analyst Read · shift resolvable volume, not all volume</div>
-            {analyst.map((t, i) => <p key={i} style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
-          </div>
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginBottom: 8 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-              <input type="checkbox" checked={d.validated} onChange={e => set("validated", e.target.checked)} style={{ width: 14, height: 14, accentColor: ELECTRIC }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: NAVY }}>Eligibility, displacement &amp; resolution validated from data (self-attested: lifts these to Planning-grade at most)</span>
-            </label>
-          </div>
-
+      {/* The report is paper (Brand Guide section 13). */}
+      <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions
             toolId={TOOL_ID}
             toolName="Channel Shift Economics"
@@ -843,12 +810,11 @@ export default function ChannelShiftModel() {
             ]}
           />
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", marginTop: 20 }}>
-            <a href="/tools/ai-deflection" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>AI Deflection →</a>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <Button kind="secondary" href="/tools/ai-deflection">AI Deflection</Button>
+      </div>
+    </ToolFrame>
   );
 }
 

@@ -993,6 +993,17 @@ dashboard, the 12-phase growth program.
    updated for the frame (selectors read the resolved keys on the shared choice group, the tiles share one helper).
    `toolframe.test.mjs` section 5 gates each moved tool. Suite 24,703; live check 255 of 255. Next: batch 2 (TCO, License Gap,
    Staffing, Attrition, Channel Shift).
+   PR #46 merged by TB's instruction (dfdf849).
+54. S24, redesign session 13, Phase 6 batch 2 (TB: "merge it and go"): TCO, License Gap, Staffing, Attrition and Channel
+   Shift on `ToolFrame`, the nine rail tools now all on the frame. Same rule as batch 1: every engine region, the component
+   logic and every ReportActions prop byte-equal to `main`; the only logic lines removed are colour-only (`gradeColor`,
+   `tierColor`, local card styles). Attrition's rail follows its own next step (occupancy risk when seats go unfilled). TCO keeps
+   its six steps as a step group and drops its own global stylesheet and fixed-header clearance (its header now sits in the
+   flow). License Gap's module table became one card per module, so it fits a phone. Colour no longer marks a figure or a
+   band on these pages (verdicts, flags and chips carry a word). Harness pins updated where they read the old render:
+   Staffing's void now reaches the frame's Result; the shell's fixed-header list drops TCO.
+   `toolframe.test.mjs` 5 covers all nine. Suite 24,718; live check 255 of 255. Next: Phase 6 batch 3, the WFM five.
+   Known, unchanged: License Gap's page still shows its tiles on a void (the Result shows none).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

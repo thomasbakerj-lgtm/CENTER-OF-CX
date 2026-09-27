@@ -11,6 +11,10 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE } from "./src/lib/confidence";
 import { createGuards, guardVal } from "./src/lib/guards";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
+import { HOUSE, PILLARS, ARCS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
+import { methodStamp } from "./src/lib/methodVersions.js";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, MUTED = COLORS.muted;
 const DEEP = "#061325", LIGHT = "#00AAFF", WARM = "#F8FAFB", SLATE = "#3A4F6A", BORDER = "#D8E3ED";
@@ -396,18 +400,26 @@ export function compute(d) {
 function Select({ label, value, onChange, opts, info, infoTitle, align }) {
   return (
     <div>
-      <label style={{ ...TYPE.label, color: NAVY, display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>{label}{info && <InfoDot text={info} title={infoTitle || label} align={align} />}</label>
-      <select aria-label={typeof label === "string" ? label : undefined} value={value} onChange={e => onChange(e.target.value)} style={{ width: "100%", padding: "9px 12px", fontSize: 14, fontFamily: FONT, border: `1px solid ${BORDER}`, borderRadius: 6, background: "#fff", color: NAVY }}>
+      <label style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>{label}{info && <InfoDot text={info} title={infoTitle || label} align={align} />}</label>
+      <select aria-label={typeof label === "string" ? label : undefined} value={value} onChange={e => onChange(e.target.value)} className="at-sel" style={{ width: "100%", minHeight: TOUCH, padding: "0 12px", fontSize: 15, fontWeight: 600, fontFamily: FONT, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, background: HOUSE.navy, color: HOUSE.mist }}>
         {opts.map(o => <option key={o.v} value={o.v}>{o.label}</option>)}
       </select>
     </div>
   );
 }
+const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
+const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
+const h2 = { fontSize: 18, fontWeight: 600, lineHeight: 1.3, color: HOUSE.mist, margin: "0 0 8px" };
+const body = { fontSize: 15, lineHeight: 1.6, color: HOUSE.body, margin: 0 };
+const small = { fontSize: 13, lineHeight: 1.5, color: HOUSE.muted, margin: 0 };
+const link = { color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
+const grid = (min) => ({ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(min(${min}px, 100%), 1fr))`, gap: 12 });
+const panel = { background: HOUSE.navy, border: `1px solid ${hair}`, borderRadius: RADIUS.card, padding: 20 };
+const stat = { ...TYPE.statValue, fontSize: 24, color: HOUSE.mist, margin: "4px 0 2px" };
 function LogoMark({ size = 34 }) {
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={.6} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={.8} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
 }
 
-const tierColor = (g) => g === "Finance-grade" ? GREEN : g === "Planning-grade" ? ELECTRIC : AMBER;
 const AXIS_LABEL = { evidence: "Evidence", realization: "Realization", completeness: "Completeness" };
 
 export default function AttritionCostCalculator() {
@@ -453,224 +465,229 @@ export default function AttritionCostCalculator() {
 
   const maxCost = Math.max(...r.cashRows.map(b => b.cost), ...r.capRows.map(b => b.cost), 1);
   const Bar = ({ b }) => (
-    <div style={{ display: "grid", gridTemplateColumns: "200px 1fr 78px", gap: 12, alignItems: "center" }}>
-      <span style={{ ...TYPE.cell, color: SLATE }}>{b.name}</span>
-      <div style={{ height: 20, background: WARM, borderRadius: 4, overflow: "hidden" }}><div style={{ height: "100%", width: `${(Math.max(0, b.cost) / maxCost) * 100}%`, background: b.color, borderRadius: 4, transition: "width 0.3s" }} /></div>
-      <span style={{ ...TYPE.cellNum, fontWeight: 600, color: NAVY, textAlign: "right" }}>{fmtK(b.cost)}</span>
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.2fr) minmax(0,1fr) 78px", gap: 12, alignItems: "center" }}>
+      <span style={{ ...small, color: HOUSE.body }}>{b.name}</span>
+      <div style={{ height: 16, background: hair, borderRadius: RADIUS.chip, overflow: "hidden" }}><div style={{ height: "100%", width: `${(Math.max(0, b.cost) / maxCost) * 100}%`, background: ARCS.evidence, borderRadius: RADIUS.chip, transition: "width 0.3s" }} /></div>
+      <span style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, textAlign: "right", ...NUM }}>{fmtK(b.cost)}</span>
     </div>
   );
 
   const statLg = { ...TYPE.statValueLg, color: "#fff" };
   const corrections = r.guards.map(g => `${g.label}: entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}.`);
 
+  const stamp = methodStamp(TOOL_ID);
+  const { how, voidReason } = resultHow(r.gradeObj);
+  const result = (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <Result label="All-in cost per departure" value={voidReason ? null : r.allInPerDeparture} format={fmtK}
+        change={voidReason ? null : `${fmtK(r.cashPerDeparture)} cash plus ${fmtK(r.capacityPerDeparture)} capacity, per refill. Range ${fmtK(r.allInLow)} to ${fmtK(r.allInHigh)}.`}
+        how={how} voidReason={voidReason} />
+      {!voidReason && (
+        <div style={panel}>
+          <span style={kicker}>Annual replacement burden</span>
+          <div style={{ ...TYPE.statValueLg, fontSize: 29, color: HOUSE.mist, marginTop: 4 }}>{fmtK(r.annualReplBurden)}</div>
+          <p style={{ ...small, marginTop: 4 }}>{fmtK(r.annualCashBurden)} cash + {fmtK(r.annualCapBurden)} capacity. {r.hires} of {r.departures} departures refilled. A current-state diagnosis, not automatically recoverable.</p>
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY}}a{text-decoration:none;color:inherit}@media(max-width:700px){.cg{grid-template-columns:1fr 1fr!important}.cg3{grid-template-columns:1fr!important}}`}</style>
+    <ToolFrame toolId={TOOL_ID} section="Cost + Economics" name="Attrition Cost" title="What does each agent departure cost you?"
+      choice={r.unbackfilled > 0 && !r.downsizing ? "occupancy-risk" : null}
+      lede={`The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act. Replacement cost scales with how much you backfill; seats you do not refill are treated as a capacity decision, never as free. Checked against a ${BAND.low} to ${BAND.high}% of salary planning band for frontline roles, set by this platform.`}
+      method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
+      result={result} pinned={voidReason ? null : { label: "All-in per departure", value: fmtK(r.allInPerDeparture) }}>
+      <style>{`${FONT_IMPORT_CSS}.at-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
+      <p style={small}>Every formula, constant and a worked example are in the <a href="/methodology/attrition-cost" style={link}>published method</a>.</p>
 
-      
+      <fieldset style={{ ...panel, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 3 · Your operation</legend>
+        <div style={grid(190)}>
+          <NumField tone="dark" label="Total agents" value={d.agents} onChange={v => set("agents", v)} step={5} min={0} pulled={!!pulled.agents} />
+          <NumField tone="dark" label="Annual attrition" value={d.attritionRate} onChange={v => set("attritionRate", v)} suffix="%" min={0} max={300} info={DEFS.denominator} infoTitle="Attrition denominator" hint="Sep / avg headcount" />
+          <NumField tone="dark" label="Avg agent salary" value={d.avgSalary} onChange={v => set("avgSalary", v)} suffix="$/yr" step={1000} min={0} pulled={!!pulled.avgSalary} />
+          <NumField tone="dark" label="Benefits load" value={d.benefitsLoadPct} onChange={v => set("benefitsLoadPct", v)} suffix="%" min={0} info={DEFS.benefitsLoad} infoTitle="Benefits load" />
+        </div>
+        <div style={{ ...grid(220), marginTop: 14 }}>
+          <Select label="Backfill basis" value={d.backfillRate} onChange={v => set("backfillRate", Number(v))} opts={BACKFILL_OPTS} info={DEFS.backfill} infoTitle="Backfill basis" />
+          <Select label="Un-backfilled seats are" value={r.unbackfillIntent} onChange={v => set("unbackfillIntent", v)} opts={INTENT_OPTS} info={DEFS.unbackfill} infoTitle="Un-backfilled seats" />
+          <NumField tone="dark" label="Early washout (new hires)" value={d.earlyWashoutRate} onChange={v => set("earlyWashoutRate", v)} suffix="%" min={0} max={100} info={DEFS.early} infoTitle="Early washout rate" hint="Leave before productivity" />
+        </div>
+      </fieldset>
 
-      <section style={{ background: `linear-gradient(168deg, ${DEEP}, ${NAVY})`, padding: "48px 28px 36px" }}>
-        <div style={WRAP}>
-          <span style={{ ...TYPE.eyebrow, color: RED, display: "block", marginBottom: 10 }}>Cost + Economics</span>
-          <h1 style={t("display", { color: "#fff", margin: "0 0 10px" })}>Attrition Cost Calculator</h1>
-          <p style={{ ...TYPE.body, color: "rgba(255,255,255,0.72)", maxWidth: 700 }}>The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act. Replacement cost scales with how much you backfill; seats you do not refill are treated as a capacity decision, never as free. Checked against a {BAND.low} to {BAND.high}% of salary planning band for frontline roles, set by this platform. Every formula, constant and a worked example are in the <a href="/methodology/attrition-cost" style={{ color: LIGHT, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
+      <fieldset style={{ ...panel, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px", display: "flex", alignItems: "center", gap: 4 }}>Question 2 of 3 · Cash out the door<InfoDot text={DEFS.marginalCash} title="Cash out the door" /></legend>
+        <div style={grid(190)}>
+          <NumField tone="dark" label="Recruiting cost" value={d.recruitingCost} onChange={v => set("recruitingCost", v)} suffix="$" step={250} min={0} hint="Postings, agency, referral" />
+          <NumField tone="dark" label="Screening hours" value={d.screeningHours} onChange={v => set("screeningHours", v)} suffix="hrs" min={0} />
+          <NumField tone="dark" label="HR loaded rate" value={d.hrLoadedRate} onChange={v => set("hrLoadedRate", v)} suffix="$/hr" min={0} />
+          <NumField tone="dark" label="Sign-on bonus" value={d.signOnBonus} onChange={v => set("signOnBonus", v)} suffix="$" step={250} min={0} hint="0 if none" />
+          <NumField tone="dark" label="Training duration" value={d.trainingWeeks} onChange={v => set("trainingWeeks", v)} suffix="wks" min={0} />
+          <NumField tone="dark" label="Trainer loaded rate" value={d.trainerLoadedRate} onChange={v => set("trainerLoadedRate", v)} suffix="$/hr" min={0} />
+          <NumField tone="dark" label="Class size" value={d.classSize} onChange={v => set("classSize", v)} min={1} hint="Trainer cost / class" />
+          <NumField tone="dark" label="Overtime premium" value={d.overtimePremium} onChange={v => set("overtimePremium", v)} suffix="%" min={0} hint="Above base wage" />
+          <NumField tone="dark" label="Vacancy days" value={d.vacancyDays} onChange={v => set("vacancyDays", v)} suffix="days" min={0} />
+          <NumField tone="dark" label="Vacancy covered by OT" value={d.vacancyCoverageFraction} onChange={v => set("vacancyCoverageFraction", v)} suffix="%" min={0} max={100} />
+          <Select label="Vacancy costing mode" value={r.vacancyMode} onChange={v => set("vacancyMode", v)} opts={VACANCY_OPTS} info={DEFS.vacancyMode} infoTitle="Vacancy costing mode" align="right" />
+        </div>
+      </fieldset>
+
+      <fieldset style={{ ...panel, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px", display: "flex", alignItems: "center", gap: 4 }}>Question 3 of 3 · Capacity and opportunity<InfoDot text={DEFS.capacity} title="Capacity vs cash" /></legend>
+        <div style={grid(190)}>
+          <NumField tone="dark" label="Nesting duration" value={d.nestingWeeks} onChange={v => set("nestingWeeks", v)} suffix="wks" min={0} info={DEFS.nesting} infoTitle="Nesting" />
+          <NumField tone="dark" label="Nesting productivity" value={d.nestingProductivity} onChange={v => set("nestingProductivity", v)} suffix="%" min={0} max={100} hint="Of full output" />
+          <NumField tone="dark" label="Ramp (after nesting)" value={d.rampMonths} onChange={v => set("rampMonths", v)} suffix="mo" min={0} info={DEFS.ramp} infoTitle="Ramp-to-proficiency" />
+          <NumField tone="dark" label="Ramp productivity" value={d.rampProductivity} onChange={v => set("rampProductivity", v)} suffix="%" min={0} max={100} hint="Avg vs tenured parity" />
+          <NumField tone="dark" label="Supervisor hrs / new hire" value={d.supervisorHoursPerNew} onChange={v => set("supervisorHoursPerNew", v)} suffix="hrs" min={0} />
+          <NumField tone="dark" label="Supervisor loaded rate" value={d.supLoadedRate} onChange={v => set("supLoadedRate", v)} suffix="$/hr" min={0} />
+        </div>
+        <div style={{ ...grid(240), marginTop: 14 }}>
+          <Select label="Capacity realization mechanism" value={r.mechKey} onChange={v => set("mech", v)} opts={MECH_OPTS} info={DEFS.mech} infoTitle="Realization mechanism" />
+          <Select label="Input basis" value={r.evidence} onChange={v => set("evidence", v)} opts={EVIDENCE_OPTS} info={DEFS.confidence} infoTitle="Export confidence" align="right" />
+        </div>
+      </fieldset>
+
+      {r.voided && (
+        <Finding level="critical" title="Export void">{r.invariants.join(" ")} A model that produced an impossible figure has not produced a small error. Correct the inputs and run it again; nothing on this page should be quoted until it clears.</Finding>
+      )}
+
+      {/* A void renders no figure: the notice above, the corrections and the inputs stay; every result is withheld. */}
+      {!r.voided && (<>
+      <div style={grid(170)}>
+        <div style={panel}>
+          <span style={kicker}>Cash per departure</span>
+          <div style={stat}>{fmtK(r.cashPerDeparture)}</div>
+          <p style={small}>Avoided when a refill is prevented</p>
+        </div>
+        <div style={panel}>
+          <span style={kicker}>Capacity per departure</span>
+          <div style={stat}>{fmtK(r.capacityPerDeparture)}</div>
+          <p style={small}>Recovered only if you act</p>
+        </div>
+        <div style={panel}>
+          <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 4 }}>All-in per departure<InfoDot text={DEFS.sensitivity} title="Why a range, not a point" align="right" /></span>
+          <div style={stat}>{fmtK(r.allInPerDeparture)}</div>
+          <p style={{ ...small, ...NUM }}>range {fmtK(r.allInLow)} to {fmtK(r.allInHigh)} (+/-{Math.round(r.uncPct * 100)}%)</p>
+          <p style={{ ...small, ...NUM }}>{r.salaryUnknown ? "salary not entered" : `${Math.round(r.pctSalary)}% of salary`} · per refill</p>
+        </div>
+      </div>
+
+      <div style={grid(170)}>
+        <div style={panel}>
+          <span style={kicker}>Annual replacement burden</span>
+          <div style={stat}>{fmtK(r.annualReplBurden)}</div>
+          <p style={{ ...small, ...NUM }}>range {fmtK(r.annLow)} to {fmtK(r.annHigh)} (+/-{Math.round(r.uncPct * 100)}%)</p>
+          <p style={{ ...small, ...NUM }}>{fmtK(r.annualCashBurden)} cash + {fmtK(r.annualCapBurden)} capacity · {r.hires} of {r.departures} departures refilled</p>
+          <p style={{ ...small, marginTop: 4 }}>Current-state diagnosis, not automatically recoverable.</p>
+        </div>
+        <div style={{ ...panel, ...(r.unbackfilled > 0 && !r.downsizing ? { border: `1.5px solid ${HOUSE.mist}` } : {}) }}>
+          <span style={kicker}>Un-backfilled seats</span>
+          <div style={stat}>{r.unbackfilled}/yr</div>
+          <p style={{ ...small, color: HOUSE.body }}>{r.unbackfilled === 0 ? "All departures refilled" : r.downsizing ? "Deliberate reduction, no replacement cost" : "Lost capacity, not free"}</p>
+          <p style={{ ...small, marginTop: 4 }}>{r.unbackfilled === 0 ? "Full replacement cycle applies." : r.downsizing ? "Confirm this is intended." : "Value the output loss in Staffing / Occupancy."}</p>
+        </div>
+        <div style={panel}>
+          <span style={kicker}>Early-washout waste</span>
+          <div style={stat}>{fmtK(r.earlyWaste)}</div>
+          <p style={{ ...small, color: HOUSE.body }}>{r.earlyWashoutRate}% of replacement hires ({r.earlyWashouts}/yr) leave pre-productivity</p>
+          <p style={{ ...small, marginTop: 4 }}>Subset of cash burden, the most recoverable slice.</p>
+        </div>
+      </div>
+      </>)}
+
+      {r.guards.length > 0 && (
+        <Finding level="critical" title="Inputs corrected before calculation">
+          {corrections.map((c, i) => <span key={i} style={{ display: "block", ...NUM }}>{c}</span>)}
+          <span style={{ display: "block", marginTop: 6 }}>Every figure in this report was computed on the corrected values, not on what was entered.</span>
+        </Finding>
+      )}
+
+      <section aria-label="How sure" style={panel}>
+        <span style={kicker}>How sure</span>
+        <div style={{ ...grid(150), margin: "12px 0" }}>
+          {AXES.map((a) => (
+            <div key={a} style={{ borderRadius: RADIUS.field, border: `1px solid ${hair}`, padding: "10px 12px" }}>
+              <div style={kicker}>{AXIS_LABEL[a]}</div>
+              <div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{r.voided ? "Void" : r.grades[a]}</div>
+            </div>
+          ))}
+        </div>
+        <p style={{ ...body, fontSize: 14 }}>The headline is the weakest of the three axes: {r.voided ? "Void" : r.confidence}. <strong style={{ color: HOUSE.mist }}>Bound by {r.boundBy}.</strong> <strong style={{ color: HOUSE.mist }}>Evidence:</strong> {r.evidenceReason} <strong style={{ color: HOUSE.mist }}>Realization:</strong> {r.realizationReason} <strong style={{ color: HOUSE.mist }}>Completeness:</strong> {r.completenessReason}</p>
+        <p style={{ ...small, ...NUM, marginTop: 8 }}>Frontline planning band is {r.band.low} to {r.band.high}% of salary ({fmtK(r.bandLo)} to {fmtK(r.bandHi)} here), a check set by this platform. This result is {r.voided ? "void, so it is not tested against the band" : r.salaryUnknown ? "untestable, because no salary was entered" : `${Math.round(r.pctSalary)}% / ${fmtK(r.allInPerDeparture)}, ${r.guardrailOk ? "within band" : r.pctSalary > r.band.high ? "above band, validate" : "below band, validate"}`}.</p>
+      </section>
+
+      {!r.voided && (<>
+      <section aria-label="Where the cost comes from" style={panel}>
+        <div style={grid(260)}>
+          <div><h2 style={h2}>Cash out the door</h2><div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{r.cashRows.map((b, i) => <Bar key={i} b={b} />)}</div></div>
+          <div><h2 style={h2}>Capacity and opportunity</h2><div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{r.capRows.map((b, i) => <Bar key={i} b={b} />)}</div></div>
         </div>
       </section>
 
-      <section style={{ background: WARM, padding: "32px 28px", borderBottom: `1px solid ${BORDER}` }}>
-        <div style={WRAP}>
-          <h2 style={{ ...TYPE.eyebrow, fontSize: 12, color: NAVY, margin: "0 0 14px" }}>Your Operation</h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
-            <NumField label="Total agents" value={d.agents} onChange={v => set("agents", v)} step={5} min={0} pulled={!!pulled.agents} />
-            <NumField label="Annual attrition" value={d.attritionRate} onChange={v => set("attritionRate", v)} suffix="%" min={0} max={300} info={DEFS.denominator} infoTitle="Attrition denominator" hint="Sep / avg headcount" />
-            <NumField label="Avg agent salary" value={d.avgSalary} onChange={v => set("avgSalary", v)} suffix="$/yr" step={1000} min={0} pulled={!!pulled.avgSalary} />
-            <NumField label="Benefits load" value={d.benefitsLoadPct} onChange={v => set("benefitsLoadPct", v)} suffix="%" min={0} info={DEFS.benefitsLoad} infoTitle="Benefits load" />
+      <section aria-label="Realizable value" style={panel}>
+        <h2 style={h2}>Realizable value if you reduce attrition</h2>
+        <p style={{ ...small, marginBottom: 12 }}>Cash in full; capacity at {Math.round(r.mech * 100)}% per mechanism; both scaled to {r.backfillRate}% backfill. Realizable value, not the burden above.{!r.downsizing && r.unbackfilled > 0 ? " Under forced under-staffing, retained capacity carries additional value. See Staffing." : ""}{r.downsizing ? " Note: under intended downsizing, retaining agents slows your planned reduction, so this credits only replacement cost avoided on the seats you would refill, not a net headcount saving." : ""}</p>
+      </section>
+      </>)}
+      <div style={{ maxWidth: 320 }}>
+        <NumField tone="dark" label="Cost to achieve (per point / yr)" value={d.costPerPoint} onChange={v => set("costPerPoint", v)} suffix="$" step={5000} min={0} info={DEFS.costToAchieve} infoTitle="Cost to achieve: CFO net view" hint={r.costPerPoint > 0 ? "Cards show net of this spend" : "0 = show gross only"} />
+      </div>
+      {!r.voided && (<>
+      <div style={grid(160)}>
+        {r.scenarios.map((s, i) => (
+          <div key={i} style={{ ...panel, ...(r.costPerPoint > 0 && s.net < 0 ? { border: `1.5px solid ${HOUSE.mist}` } : {}) }}>
+            <span style={kicker}>-{s.redPts} pts to {s.newRate}%</span>
+            {r.costPerPoint > 0 ? (<>
+              <div style={stat}>{fmtK(s.net)}</div>
+              <p style={small}>net / yr{s.net < 0 ? ", a loss" : ""}</p>
+              <p style={{ ...small, ...NUM, marginTop: 4 }}>{fmtK(s.total)} gross less {fmtK(s.achieveCost)} cost<br />{s.roi != null ? `${s.roi.toFixed(1)}x return · ` : ""}{s.avoided} fewer</p>
+            </>) : (<>
+              <div style={stat}>{fmtK(s.total)}</div>
+              <p style={small}>realizable / yr</p>
+              <p style={{ ...small, ...NUM, marginTop: 4 }}>{fmtK(s.cash)} cash avoided + {fmtK(s.cap)} capacity value<br />{s.avoided} fewer departures</p>
+            </>)}
+            <p style={{ ...small, fontWeight: 600, color: HOUSE.mist, marginTop: 6 }}>{r.bookLabel}</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginTop: 12 }} className="cg">
-            <Select label="Backfill basis" value={d.backfillRate} onChange={v => set("backfillRate", Number(v))} opts={BACKFILL_OPTS} info={DEFS.backfill} infoTitle="Backfill basis" />
-            <Select label="Un-backfilled seats are" value={r.unbackfillIntent} onChange={v => set("unbackfillIntent", v)} opts={INTENT_OPTS} info={DEFS.unbackfill} infoTitle="Un-backfilled seats" />
-            <NumField label="Early washout (new hires)" value={d.earlyWashoutRate} onChange={v => set("earlyWashoutRate", v)} suffix="%" min={0} max={100} info={DEFS.early} infoTitle="Early washout rate" hint="Leave before productivity" />
-          </div>
+        ))}
+      </div>
 
-          <h2 style={{ ...TYPE.eyebrow, fontSize: 12, color: NAVY, margin: "22px 0 14px", display: "flex", alignItems: "center", gap: 4 }}>Cash Out The Door<InfoDot text={DEFS.marginalCash} title="Cash out the door" /></h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
-            <NumField label="Recruiting cost" value={d.recruitingCost} onChange={v => set("recruitingCost", v)} suffix="$" step={250} min={0} hint="Postings, agency, referral" />
-            <NumField label="Screening hours" value={d.screeningHours} onChange={v => set("screeningHours", v)} suffix="hrs" min={0} />
-            <NumField label="HR loaded rate" value={d.hrLoadedRate} onChange={v => set("hrLoadedRate", v)} suffix="$/hr" min={0} />
-            <NumField label="Sign-on bonus" value={d.signOnBonus} onChange={v => set("signOnBonus", v)} suffix="$" step={250} min={0} hint="0 if none" />
-            <NumField label="Training duration" value={d.trainingWeeks} onChange={v => set("trainingWeeks", v)} suffix="wks" min={0} />
-            <NumField label="Trainer loaded rate" value={d.trainerLoadedRate} onChange={v => set("trainerLoadedRate", v)} suffix="$/hr" min={0} />
-            <NumField label="Class size" value={d.classSize} onChange={v => set("classSize", v)} min={1} hint="Trainer cost / class" />
-            <NumField label="Overtime premium" value={d.overtimePremium} onChange={v => set("overtimePremium", v)} suffix="%" min={0} hint="Above base wage" />
-            <NumField label="Vacancy days" value={d.vacancyDays} onChange={v => set("vacancyDays", v)} suffix="days" min={0} />
-            <NumField label="Vacancy covered by OT" value={d.vacancyCoverageFraction} onChange={v => set("vacancyCoverageFraction", v)} suffix="%" min={0} max={100} />
-            <Select label="Vacancy costing mode" value={r.vacancyMode} onChange={v => set("vacancyMode", v)} opts={VACANCY_OPTS} info={DEFS.vacancyMode} infoTitle="Vacancy costing mode" align="right" />
-          </div>
+      {r.flags.length > 0 && (
+        <section aria-label="Integrity checks" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <h2 style={h2}>Integrity checks</h2>
+          {r.flags.map((f, i) => <Finding key={i} level={f.sev === "high" ? "high" : "unknown"} title={f.sev === "high" ? "Check this" : "Note"}>{f.t}</Finding>)}
+        </section>
+      )}
 
-          <h2 style={{ ...TYPE.eyebrow, fontSize: 12, color: NAVY, margin: "22px 0 14px", display: "flex", alignItems: "center", gap: 4 }}>Capacity / Opportunity<InfoDot text={DEFS.capacity} title="Capacity vs cash" /></h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12 }} className="cg">
-            <NumField label="Nesting duration" value={d.nestingWeeks} onChange={v => set("nestingWeeks", v)} suffix="wks" min={0} info={DEFS.nesting} infoTitle="Nesting" />
-            <NumField label="Nesting productivity" value={d.nestingProductivity} onChange={v => set("nestingProductivity", v)} suffix="%" min={0} max={100} hint="Of full output" />
-            <NumField label="Ramp (after nesting)" value={d.rampMonths} onChange={v => set("rampMonths", v)} suffix="mo" min={0} info={DEFS.ramp} infoTitle="Ramp-to-proficiency" />
-            <NumField label="Ramp productivity" value={d.rampProductivity} onChange={v => set("rampProductivity", v)} suffix="%" min={0} max={100} hint="Avg vs tenured parity" />
-            <NumField label="Supervisor hrs / new hire" value={d.supervisorHoursPerNew} onChange={v => set("supervisorHoursPerNew", v)} suffix="hrs" min={0} />
-            <NumField label="Supervisor loaded rate" value={d.supLoadedRate} onChange={v => set("supLoadedRate", v)} suffix="$/hr" min={0} />
-          </div>
+      <section aria-label="What it means" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+        <span style={kicker}>What it means</span>
+        {r.analystRead.split("\n\n").map((para, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "8px 0 0" }}>{para}</p>)}
+      </section>
+      </>)}
 
-          <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="cg">
-            <Select label="Capacity realization mechanism" value={r.mechKey} onChange={v => set("mech", v)} opts={MECH_OPTS} info={DEFS.mech} infoTitle="Realization mechanism" />
-            <Select label="Input basis" value={r.evidence} onChange={v => set("evidence", v)} opts={EVIDENCE_OPTS} info={DEFS.confidence} infoTitle="Export confidence" align="right" />
+      <section aria-label="What is driving this attrition" style={panel}>
+        <h2 style={h2}>What is driving this attrition?</h2>
+        <p style={{ ...small, marginBottom: 12 }}>At {r.attritionRate}% one or more of these is active. The rate gets fixed in these tools, not in this calculator.</p>
+        {[
+          { driver: "Occupancy above 85%", likelihood: r.attritionRate > 35 ? "High" : "Medium", tool: "/tools/occupancy-risk", toolName: "Occupancy Risk Simulator", why: "Insufficient recovery time between contacts burns agents out. The most controllable attrition driver." },
+          { driver: "Repeat contacts / rework load", likelihood: "Medium", tool: "/tools/fcr-leakage", toolName: "FCR Leakage Diagnostic", why: "New-hire error and repeat-contact cost lives here, not in this tool. Quantify the rework that frustrates agents and customers alike." },
+          { driver: "Weak coaching or agent experience", likelihood: "Medium", tool: "/tools/qa-scorecard", toolName: "QA Scorecard Builder", why: "Agents who feel unsupported leave faster than agents who feel underpaid. Coaching runs through the QA program." },
+          { driver: "No visible career path", likelihood: r.attritionRate > 40 ? "High" : "Medium", tool: "/human-premium", toolName: "The Human Premium", why: "When agents cannot see what comes after this role, they leave to find it. New CX roles are emerging." },
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 0", borderTop: `1px solid ${hair}` }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: HOUSE.mist, padding: "2px 8px", borderRadius: RADIUS.chip, border: item.likelihood === "High" ? `1.5px solid ${HOUSE.mist}` : `1px dashed ${soft}`, flexShrink: 0, marginTop: 2 }}>{item.likelihood}</span>
+            <div>
+              <span style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist }}>{item.driver}</span>
+              <p style={{ ...small, margin: "2px 0 6px" }}>{item.why}</p>
+              <a href={item.tool} style={link}>{item.toolName}</a>
+            </div>
           </div>
-        </div>
+        ))}
       </section>
 
-      <section style={{ background: "#fff", padding: "36px 28px" }}>
-        <div style={WRAP}>
-          {r.voided && (
-            <div style={{ background: "#FEF2F2", border: `2px solid ${RED}`, borderRadius: 10, padding: "16px 18px", marginBottom: 20 }}>
-              <div style={{ ...TYPE.eyebrow, color: RED, marginBottom: 6 }}>Export Void</div>
-              <div style={{ ...TYPE.bodySm, color: SLATE }}>{r.invariants.join(" ")} A model that produced an impossible figure has not produced a small error. Correct the inputs and run it again; nothing on this page should be quoted until it clears.</div>
-            </div>
-          )}
-
-          {/* A void renders no figure: the notice above, the corrections and the inputs stay; every result is withheld. */}
-          {!r.voided && (<>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 16 }} className="cg3">
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: 22, textAlign: "center" }}>
-              <div style={{ ...TYPE.eyebrow, color: LIGHT, marginBottom: 6 }}>Cash Per Departure</div>
-              <div style={statLg}>{fmtK(r.cashPerDeparture)}</div>
-              <div style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)" }}>Avoided when a refill is prevented</div>
-            </div>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 10, padding: 22, textAlign: "center" }}>
-              <div style={{ ...TYPE.eyebrow, color: AMBER, marginBottom: 6 }}>Capacity Per Departure</div>
-              <div style={statLg}>{fmtK(r.capacityPerDeparture)}</div>
-              <div style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)" }}>Recovered only if you act</div>
-            </div>
-            <div style={{ background: `linear-gradient(135deg, #7F1D1D, #991B1B)`, borderRadius: 10, padding: 22, textAlign: "center" }}>
-              <div style={{ ...TYPE.eyebrow, color: "#FCA5A5", marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>All-In Per Departure<InfoDot text={DEFS.sensitivity} title="Why a range, not a point" align="right" /></div>
-              <div style={statLg}>{fmtK(r.allInPerDeparture)}</div>
-              <div style={{ ...TYPE.caption, ...NUM, color: "rgba(255,255,255,0.7)" }}>range {fmtK(r.allInLow)} to {fmtK(r.allInHigh)} (+/-{Math.round(r.uncPct * 100)}%)</div>
-              <div style={{ ...TYPE.caption, ...NUM, color: "rgba(255,255,255,0.72)" }}>{r.salaryUnknown ? "salary not entered" : `${Math.round(r.pctSalary)}% of salary`} · per refill</div>
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }} className="cg3">
-            <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "16px 18px" }}>
-              <div style={{ ...TYPE.eyebrow, color: SLATE, marginBottom: 4 }}>Annual Replacement Burden</div>
-              <div style={{ ...TYPE.statValue, color: NAVY }}>{fmtK(r.annualReplBurden)}</div>
-              <div style={{ ...TYPE.caption, ...NUM, color: MUTED }}>range {fmtK(r.annLow)} to {fmtK(r.annHigh)} (+/-{Math.round(r.uncPct * 100)}%)</div>
-              <div style={{ ...TYPE.caption, ...NUM, color: MUTED }}>{fmtK(r.annualCashBurden)} cash + {fmtK(r.annualCapBurden)} capacity · {r.hires} of {r.departures} departures refilled</div>
-              <div style={{ ...TYPE.caption, color: MUTED, marginTop: 4 }}>Current-state diagnosis, not automatically recoverable.</div>
-            </div>
-            <div style={{ border: `1px solid ${r.unbackfilled > 0 && !r.downsizing ? RED : BORDER}`, background: r.unbackfilled > 0 && !r.downsizing ? "#FEF6F6" : "#fff", borderRadius: 10, padding: "16px 18px" }}>
-              <div style={{ ...TYPE.eyebrow, color: r.unbackfilled > 0 && !r.downsizing ? RED : SLATE, marginBottom: 4 }}>Un-backfilled Seats</div>
-              <div style={{ ...TYPE.statValue, color: r.unbackfilled > 0 && !r.downsizing ? RED : NAVY }}>{r.unbackfilled}/yr</div>
-              <div style={{ ...TYPE.cell, color: SLATE }}>{r.unbackfilled === 0 ? "All departures refilled" : r.downsizing ? "Deliberate reduction, no replacement cost" : "Lost capacity, not free"}</div>
-              <div style={{ ...TYPE.caption, color: MUTED, marginTop: 4 }}>{r.unbackfilled === 0 ? "Full replacement cycle applies." : r.downsizing ? "Confirm this is intended." : "Value the output loss in Staffing / Occupancy."}</div>
-            </div>
-            <div style={{ border: `1px solid ${AMBER}`, background: "#FFFBF4", borderRadius: 10, padding: "16px 18px" }}>
-              <div style={{ ...TYPE.eyebrow, color: "#92400E", marginBottom: 4 }}>Early-Washout Waste</div>
-              <div style={{ ...TYPE.statValue, color: "#92400E" }}>{fmtK(r.earlyWaste)}</div>
-              <div style={{ ...TYPE.cell, color: SLATE }}>{r.earlyWashoutRate}% of replacement hires ({r.earlyWashouts}/yr) leave pre-productivity</div>
-              <div style={{ ...TYPE.caption, color: MUTED, marginTop: 4 }}>Subset of cash burden, the most recoverable slice.</div>
-            </div>
-          </div>
-          </>)}
-
-          {r.guards.length > 0 && (
-            <div style={{ background: "#FFF8F0", border: `1px solid ${RED}`, borderRadius: 10, padding: "16px 18px", marginBottom: 20 }}>
-              <div style={{ ...TYPE.eyebrow, color: RED, marginBottom: 8 }}>Inputs Corrected Before Calculation</div>
-              {corrections.map((c, i) => <div key={i} style={{ ...TYPE.bodySm, ...NUM, color: SLATE }}>{c}</div>)}
-              <div style={{ ...TYPE.caption, color: SLATE, marginTop: 6 }}>Every figure in this report was computed on the corrected values, not on what was entered.</div>
-            </div>
-          )}
-
-          <div style={{ marginBottom: 22, padding: "12px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", marginBottom: 8 }}>
-              {AXES.map((a) => (
-                <div key={a} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: MUTED }}>{AXIS_LABEL[a]}</span>
-                  <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "1px", color: tierColor(r.grades[a]), padding: "3px 8px", borderRadius: 4, background: `${tierColor(r.grades[a])}1a` }}>{r.grades[a]}</span>
-                </div>
-              ))}
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: MUTED }}>Headline</span>
-                <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "1px", color: "#fff", padding: "3px 8px", borderRadius: 4, background: r.voided ? RED : tierColor(r.confidence) }}>{r.voided ? "Void" : r.confidence}</span>
-              </div>
-            </div>
-            <div style={{ ...TYPE.caption, color: SLATE }}>The headline is the weakest of the three axes. <strong style={{ color: NAVY }}>Bound by {r.boundBy}.</strong> <strong style={{ color: NAVY }}>Evidence:</strong> {r.evidenceReason} <strong style={{ color: NAVY }}>Realization:</strong> {r.realizationReason} <strong style={{ color: NAVY }}>Completeness:</strong> {r.completenessReason}</div>
-            <div style={{ ...TYPE.cell, ...NUM, color: SLATE, marginTop: 6 }}>Frontline planning band is {r.band.low} to {r.band.high}% of salary ({fmtK(r.bandLo)} to {fmtK(r.bandHi)} here), a check set by this platform. This result is {r.voided ? "void, so it is not tested against the band" : r.salaryUnknown ? "untestable, because no salary was entered" : `${Math.round(r.pctSalary)}% / ${fmtK(r.allInPerDeparture)}, ${r.guardrailOk ? "within band" : r.pctSalary > r.band.high ? "above band, validate" : "below band, validate"}`}.</div>
-          </div>
-
-          {!r.voided && (<>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, marginBottom: 26 }} className="cg3">
-            <div><h3 style={t("h3", { color: NAVY, marginBottom: 10 })}>Cash out the door</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{r.cashRows.map((b, i) => <Bar key={i} b={b} />)}</div></div>
-            <div><h3 style={t("h3", { color: NAVY, marginBottom: 10 })}>Capacity / opportunity</h3><div style={{ display: "flex", flexDirection: "column", gap: 6 }}>{r.capRows.map((b, i) => <Bar key={i} b={b} />)}</div></div>
-          </div>
-
-          <h3 style={t("h3", { color: NAVY, marginBottom: 4 })}>Realizable value if you reduce attrition</h3>
-          <p style={{ ...TYPE.caption, color: MUTED, marginBottom: 12 }}>Cash in full; capacity at {Math.round(r.mech * 100)}% per mechanism; both scaled to {r.backfillRate}% backfill. Realizable value, not the burden above.{!r.downsizing && r.unbackfilled > 0 ? " Under forced under-staffing, retained capacity carries additional value. See Staffing." : ""}{r.downsizing ? " Note: under intended downsizing, retaining agents slows your planned reduction, so this credits only replacement cost avoided on the seats you would refill, not a net headcount saving." : ""}</p>
-          </>)}
-          <div style={{ maxWidth: 300, marginBottom: 14 }}>
-            <NumField label="Cost to achieve (per point / yr)" value={d.costPerPoint} onChange={v => set("costPerPoint", v)} suffix="$" step={5000} min={0} info={DEFS.costToAchieve} infoTitle="Cost to achieve: CFO net view" hint={r.costPerPoint > 0 ? "Cards show net of this spend" : "0 = show gross only"} />
-          </div>
-          {!r.voided && (<>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 12, marginBottom: 26 }} className="cg">
-            {r.scenarios.map((s, i) => (
-              <div key={i} style={{ background: WARM, border: `1px solid ${r.costPerPoint > 0 && s.net < 0 ? RED : BORDER}`, borderRadius: 10, padding: 16, textAlign: "center" }}>
-                <div style={{ ...TYPE.eyebrow, fontSize: 12, color: GREEN, marginBottom: 4 }}>-{s.redPts} pts to {s.newRate}%</div>
-                {r.costPerPoint > 0 ? (<>
-                  <div style={{ ...TYPE.statValue, fontSize: 22, color: s.net < 0 ? RED : GREEN }}>{fmtK(s.net)}</div>
-                  <div style={{ ...TYPE.caption, color: MUTED }}>net / yr</div>
-                  <div style={{ ...TYPE.caption, ...NUM, fontSize: 12, color: MUTED, marginTop: 4 }}>{fmtK(s.total)} gross less {fmtK(s.achieveCost)} cost<br />{s.roi != null ? `${s.roi.toFixed(1)}x return · ` : ""}{s.avoided} fewer</div>
-                </>) : (<>
-                  <div style={{ ...TYPE.statValue, fontSize: 22, color: GREEN }}>{fmtK(s.total)}</div>
-                  <div style={{ ...TYPE.caption, color: MUTED }}>realizable / yr</div>
-                  <div style={{ ...TYPE.caption, ...NUM, fontSize: 12, color: MUTED, marginTop: 4 }}>{fmtK(s.cash)} cash avoided + {fmtK(s.cap)} capacity value<br />{s.avoided} fewer departures</div>
-                </>)}
-                <div style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.3px", color: tierColor(r.grades.realization), marginTop: 6, padding: "2px 6px", borderRadius: 3, background: `${tierColor(r.grades.realization)}14`, display: "inline-block" }}>{r.bookLabel}</div>
-              </div>
-            ))}
-          </div>
-
-          {r.flags.length > 0 && (
-            <div style={{ background: "#FFF8F0", border: `1px solid ${AMBER}`, borderRadius: 10, padding: "16px 18px", marginBottom: 22 }}>
-              <h3 style={{ ...TYPE.eyebrow, fontSize: 12, color: "#92400E", marginBottom: 8 }}>Integrity Checks</h3>
-              {r.flags.map((f, i) => (
-                <div key={i} style={{ display: "flex", gap: 8, padding: "4px 0" }}>
-                  <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: f.sev === "high" ? RED : AMBER, flexShrink: 0, marginTop: 2, width: 32 }}>{f.sev === "high" ? "FLAG" : "NOTE"}</span>
-                  <span style={{ ...TYPE.bodySm, color: SLATE }}>{f.t}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 24 }}>
-            <h3 style={{ ...TYPE.eyebrow, fontSize: 12, color: GREEN, marginBottom: 12 }}>Analyst Read</h3>
-            {r.analystRead.split("\n\n").map((para, i) => <p key={i} style={{ ...TYPE.bodySm, color: "rgba(255,255,255,0.7)", marginBottom: 10 }}>{para}</p>)}
-          </div>
-          </>)}
-
-          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 12, padding: "22px 26px", marginBottom: 24 }}>
-            <h3 style={{ ...TYPE.eyebrow, fontSize: 12, color: GREEN, marginBottom: 8 }}>What Is Driving This Attrition?</h3>
-            <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", marginBottom: 14 }}>At {r.attritionRate}% one or more of these is active. The rate gets fixed in these tools, not in this calculator.</p>
-            {[
-              { driver: "Occupancy above 85%", likelihood: r.attritionRate > 35 ? "High" : "Medium", tool: "/tools/occupancy-risk", toolName: "Occupancy Risk Simulator", why: "Insufficient recovery time between contacts burns agents out. The most controllable attrition driver." },
-              { driver: "Repeat contacts / rework load", likelihood: "Medium", tool: "/tools/fcr-leakage", toolName: "FCR Leakage Diagnostic", why: "New-hire error and repeat-contact cost lives here, not in this tool. Quantify the rework that frustrates agents and customers alike." },
-              { driver: "Weak coaching or agent experience", likelihood: "Medium", tool: "/tools/qa-scorecard", toolName: "QA Scorecard Builder", why: "Agents who feel unsupported leave faster than agents who feel underpaid. Coaching runs through the QA program." },
-              { driver: "No visible career path", likelihood: r.attritionRate > 40 ? "High" : "Medium", tool: "/human-premium", toolName: "The Human Premium", why: "When agents cannot see what comes after this role, they leave to find it. New CX roles are emerging." },
-            ].map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "8px 0", borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
-                <span style={{ ...TYPE.eyebrow, fontSize: 11, letterSpacing: "0.5px", color: item.likelihood === "High" ? RED : AMBER, padding: "2px 6px", borderRadius: 3, background: item.likelihood === "High" ? "rgba(239,68,68,0.15)" : "rgba(245,158,11,0.15)", flexShrink: 0, marginTop: 2 }}>{item.likelihood}</span>
-                <div>
-                  <span style={{ ...TYPE.h3, fontSize: 13, color: "#fff" }}>{item.driver}</span>
-                  <p style={{ ...TYPE.caption, color: "rgba(255,255,255,0.72)", margin: "2px 0 4px" }}>{item.why}</p>
-                  <a href={item.tool} style={{ ...TYPE.caption, fontWeight: 600, color: LIGHT, padding: "2px 8px", borderRadius: 3, border: "1px solid rgba(255,255,255,0.12)" }}>{item.toolName}</a>
-                </div>
-              </div>
-            ))}
-          </div>
-
+      {/* The report is paper (Brand Guide section 13). */}
+      <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions
             next={r.unbackfilled > 0 && !r.downsizing ? { to: "occupancy-risk", because: "Seats you do not refill under forced under-staffing are lost capacity this tool does not price; Occupancy Risk shows what that load does to the agents who remain." } : null}
             toolId={TOOL_ID}
@@ -774,13 +791,11 @@ export default function AttritionCostCalculator() {
             ].filter((sec) => !r.voided || ["Export Void", "Inputs Corrected Before Calculation", "Methodology", "Next Steps"].includes(sec.title))}
           />
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 20 }}>
-            <a href="/tools/occupancy-risk" style={{ ...TYPE.h3, fontSize: 14, background: ELECTRIC, color: "#fff", padding: "12px 24px", borderRadius: 8 }}>Occupancy Risk Simulator</a>
-            <a href="/how-to-choose" style={{ ...TYPE.h3, fontSize: 14, background: WARM, border: `1px solid ${BORDER}`, color: NAVY, padding: "12px 24px", borderRadius: 8 }}>Explore More Tools</a>
-          </div>
-        </div>
-      </section>
-    </div>
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <Button kind="secondary" href="/tools/occupancy-risk">Occupancy Risk Simulator</Button>
+      </div>
+    </ToolFrame>
   );
 }
 
