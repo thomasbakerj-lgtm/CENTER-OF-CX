@@ -1016,6 +1016,19 @@ dashboard, the 12-phase growth program.
    field contract). Suite 24,736; live check 255 of 255. Next: batch 4, the frameworks (CX Maturity, AI Readiness,
    Transformation Readiness, CX IT Alignment, Governance), then procurement (QA, Platform Decision, RFP, Contract Risk),
    Vendor Match and Roadmap.
+   PR #48 merged by TB's instruction (35d90a1).
+56. S24, redesign session 15, Phase 6 batch 4 (TB: "merge it and go"): the five frameworks (CX Maturity, AI Readiness,
+   Transformation Readiness, CX IT Alignment, Governance) moved from `ToolShell` onto `ToolFrame`. The kit gains `Scale`
+   (1 to 5 radio group), `StatementStep` (tabs, statements, previous and next) and `DimensionBars`; the kit still imports
+   only tokens, type, the components and guards. Each page keeps an intro with its start button (the live checker's
+   hostile-link rule), then the statements, then results: the band as a word, the checklist, "Next diagnostic:" and the
+   published rubric link (harness pins), and the report on paper. CX IT Alignment keeps its paired CX and IT sides and
+   states each gap in words; its area chart marks CX filled and IT as a ring, with both averages written. Governance
+   severities are words on outlined chips (critical heavier, confirm dashed); role buttons no longer colour-code roles.
+   Band and severity colours print in the PDF only. Logic above the render and every ReportActions prop byte-equal to
+   `main`; rubric, ownership, floor and journey harnesses pass. `toolframe.test.mjs` 5 covers 19 tools. Suite 24,751;
+   live check 255 of 255. Next: batch 5, procurement (QA Scorecard, Platform Decision, RFP Builder, Contract Risk), then
+   Vendor Match and Roadmap.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

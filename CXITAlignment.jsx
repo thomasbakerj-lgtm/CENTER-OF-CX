@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
-import { ToolHero, ToolStart } from "./src/lib/ToolShell";
+import { ToolFrame } from "./src/lib/ToolFrame.jsx";
+import { Result, Button } from "./src/lib/ui.jsx";
+import { K, Paper, Group, Scale, frameMethod } from "./src/lib/frameKit.jsx";
+import { methodStamp } from "./src/lib/methodVersions.js";
 import { scorePaired, bandFor } from "./src/lib/rubric";
 import { CX_IT_ALIGNMENT as RUBRIC } from "./src/lib/rubrics/cxItAlignment";
 import { JOURNEY } from "./src/lib/journey";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { TOUCH, RADIUS } from "./src/lib/tokens.js";
 
-const NAVY = "#0B1D3A"; const DEEP = "#061325"; const ELECTRIC = "#0088DD"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const MUTED = "#5B6E88"; const BORDER = "#D8E3ED"; const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444";
-const WRAP = { maxWidth: 860, margin: "0 auto", padding: "0 28px" };
-
-function LogoMark({size=34,light=true}){const a=light?"#fff":NAVY,x=light?LIGHT:ELECTRIC;return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light?.6:.3}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light?.8:.5}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
-
-const AREA_COLORS = { strategy: ELECTRIC, data: "#10B981", platforms: "#7C3AED", ai: "#F59E0B", governance: "#EF4444" };
+/* Band colours print in the PDF only; on the page a band is a word. */
+const GREEN = "#10B981"; const AMBER = "#F59E0B"; const RED = "#EF4444"; const ELECTRIC = "#0088DD"; const MUTED = "#5B6E88";
 const BAND_COLORS = { aligned: GREEN, minor: ELECTRIC, significant: AMBER, critical: RED };
 /* The pairs, gap bands, actions and next diagnostics live in the published rubric; this
    file only presents them. See cxItAlignment and RUBRIC.methodology. */
-const AREAS = RUBRIC.dims.map(d => ({ id: d.id, name: d.name, color: AREA_COLORS[d.id], pairs: d.pairs.map(p => ({ cx: p.cx, it: p.it })) }));
+const AREAS = RUBRIC.dims.map(d => ({ id: d.id, name: d.name, pairs: d.pairs.map(p => ({ cx: p.cx, it: p.it })) }));
 const toolOf = (id) => JOURNEY[id] ? { name: JOURNEY[id].name, href: JOURNEY[id].route } : null;
 
 const TOOL_ID = "cx-it-alignment";
@@ -62,170 +62,131 @@ export default function CXITAlignment() {
 
   const handleResults = () => setPhase("results");
 
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh" }}>
-      <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:${FONT};background:#fff;color:${NAVY};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}`}</style>
+  const answered = Object.keys(scores).length, total = AREAS.reduce((n, a) => n + a.pairs.length * 2, 0);
+  const result = phase === "results"
+    ? <Result label="Average CX to IT gap" value={overallGap.toFixed(1) + " pts"} change={`${gapLevel.label}. 0 is identical answers and 4 is opposite.`} />
+    : <Result label="Answers given" value={`${answered} of ${total}`} change="The gap, band and checklist appear once every pair is answered on both sides." />;
+  const tabStyle = (on) => ({ minHeight: TOUCH, padding: "0 12px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer", border: `1px solid ${on ? K.strong.color : K.firm}`, background: "transparent", color: K.strong.color });
+  const navBtn = { minHeight: TOUCH, padding: "0 18px", fontFamily: FONT, fontSize: 15, fontWeight: 600, borderRadius: RADIUS.field, border: `1px solid ${K.firm}`, background: "transparent", color: K.strong.color, cursor: "pointer" };
 
-      {phase !== "intro" && <ToolHero compact wrap={WRAP} eyebrow="Frameworks + Planning" title="CX + IT Alignment Framework" />}
+  return (
+    <ToolFrame toolId={TOOL_ID} choice={R.nextDiagnostic ? R.nextDiagnostic.tool : null} section="Frameworks + Planning" name="CX + IT Alignment Framework" title="Do your CX and IT teams see the same capabilities?"
+      lede="Rate 15 paired statements, one from the CX side and one from the IT side, across strategy, data, platforms, AI and governance. The result shows where the two sides see the same capability differently, and where both agree it is missing. Best answered by two people: the CX lead fills the CX side, sends the scenario link, and the IT lead fills the IT side."
+      method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={phase === "results" ? { label: "Average gap", value: overallGap.toFixed(1) + " pts" } : null}>
+      <style>{FONT_IMPORT_CSS}</style>
 
       {phase === "intro" && (
-        <ToolHero fill wrap={WRAP} eyebrow="Frameworks + Planning" title="CX + IT Alignment Framework"
-          intro="Rate 15 paired statements, one from the CX side and one from the IT side, across strategy, data, platforms, AI and governance. The result shows where the two sides see the same capability differently, and where both agree it is missing. Best answered by two people: the CX lead fills the CX column, then sends the scenario link to the IT lead to fill the IT column.">
-          <ToolStart label="Start Assessment" onStart={handleStart} methodHref={RUBRIC.methodology} methodLabel="See the published rubric: every pair, band and action" />
-        </ToolHero>
-      )}
-
-      {phase === "assess" && (
-        <section style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "40px 28px 80px" }}>
-          <div style={WRAP}>
-            <div style={{ display: "flex", gap: 4, marginBottom: 32 }}>
-              {AREAS.map((a, i) => (
-                <div key={i} onClick={() => setCurrentArea(i)} style={{ flex: 1, cursor: "pointer" }}>
-                  <div style={{ height: 4, borderRadius: 2, background: areaComplete(a.id) ? a.color : i === currentArea ? `${a.color}60` : BORDER }} />
-                  <div style={{ fontSize: 12, color: i === currentArea ? a.color : MUTED, fontWeight: i === currentArea ? 700 : 400, marginTop: 6, textAlign: "center" }}>{a.name.split(" ")[0]}</div>
-                </div>
-              ))}
-            </div>
-
-            {(() => {
-              const area = AREAS[currentArea];
-              return (
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                    <div style={{ width: 4, height: 24, borderRadius: 2, background: area.color }} />
-                    <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: NAVY, margin: 0 }}>{area.name}</h2>
-                    <span style={{ fontSize: 12, color: MUTED }}>({currentArea + 1} of {AREAS.length})</span>
-                  </div>
-                  <p style={{ fontSize: 13, color: MUTED, marginBottom: 28 }}>Rate each paired statement 1 to 5. The left column is the CX perspective. The right column is the IT perspective. Gaps between scores reveal misalignment.</p>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                    {area.pairs.map((pair, pi) => {
-                      const cxVal = getScore(area.id, pi, "cx");
-                      const itVal = getScore(area.id, pi, "it");
-                      const gap = cxVal && itVal ? Math.abs(cxVal - itVal) : null;
-                      const gapColor = gap === null ? BORDER : gap <= 1 ? GREEN : gap <= 2 ? AMBER : RED;
-                      return (
-                        <div key={pi} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px", overflow: "hidden" }}>
-                          {gap !== null && <div style={{ height: 3, background: gapColor, margin: "-20px -20px 16px", borderRadius: "10px 10px 0 0" }} />}
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 40px 1fr", gap: 12 }}>
-                            {/* CX side */}
-                            <div>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>CX Perspective</div>
-                              <p style={{ fontSize: 12.5, color: NAVY, lineHeight: 1.5, margin: "0 0 10px", fontWeight: 500 }}>{pair.cx}</p>
-                              <div style={{ display: "flex", gap: 4 }}>
-                                {[1,2,3,4,5].map(v => (
-                                  <button key={v} onClick={() => setScore(area.id, pi, "cx", v)} style={{ width: 36, height: 32, borderRadius: 5, border: cxVal === v ? `2px solid ${ELECTRIC}` : `1px solid ${BORDER}`, background: cxVal === v ? `${ELECTRIC}12` : "#fff", color: cxVal === v ? ELECTRIC : MUTED, fontSize: 13, fontWeight: cxVal === v ? 700 : 400, cursor: "pointer" }}>{v}</button>
-                                ))}
-                              </div>
-                            </div>
-                            {/* Gap indicator */}
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                              {gap !== null ? (
-                                <div style={{ width: 32, height: 32, borderRadius: "50%", background: `${gapColor}15`, border: `2px solid ${gapColor}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: gapColor }}>{gap}</div>
-                              ) : (
-                                <div style={{ fontSize: 12, color: MUTED }}>vs</div>
-                              )}
-                            </div>
-                            {/* IT side */}
-                            <div>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: "#7C3AED", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>IT Perspective</div>
-                              <p style={{ fontSize: 12.5, color: NAVY, lineHeight: 1.5, margin: "0 0 10px", fontWeight: 500 }}>{pair.it}</p>
-                              <div style={{ display: "flex", gap: 4 }}>
-                                {[1,2,3,4,5].map(v => (
-                                  <button key={v} onClick={() => setScore(area.id, pi, "it", v)} style={{ width: 36, height: 32, borderRadius: 5, border: itVal === v ? `2px solid #7C3AED` : `1px solid ${BORDER}`, background: itVal === v ? `#7C3AED12` : "#fff", color: itVal === v ? "#7C3AED" : MUTED, fontSize: 13, fontWeight: itVal === v ? 700 : 400, cursor: "pointer" }}>{v}</button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 28 }}>
-                    <button onClick={() => setCurrentArea(Math.max(0, currentArea - 1))} disabled={currentArea === 0} style={{ padding: "12px 24px", borderRadius: 8, border: `1px solid ${BORDER}`, background: "#fff", color: currentArea === 0 ? MUTED : NAVY, fontSize: 14, fontWeight: 500, cursor: currentArea === 0 ? "default" : "pointer" }}>← Previous</button>
-                    {currentArea < AREAS.length - 1 ? (
-                      <button onClick={() => setCurrentArea(currentArea + 1)} style={{ padding: "12px 24px", borderRadius: 8, border: "none", background: area.color, color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Next: {AREAS[currentArea + 1].name.split(" &")[0].split(" ")[0]} →</button>
-                    ) : (
-                      <button onClick={handleResults} disabled={!allComplete} style={{ padding: "12px 28px", borderRadius: 8, border: "none", background: allComplete ? GREEN : MUTED, color: "#fff", fontSize: 14, fontWeight: 600, cursor: allComplete ? "pointer" : "default", opacity: allComplete ? 1 : 0.5 }}>
-                        {allComplete ? "View Alignment Results →" : `${AREAS.filter(a => areaComplete(a.id)).length}/${AREAS.length} areas complete`}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
+        <section aria-label="Start" style={K.lead}>
+          <p style={K.body}>Each pair is rated twice, once from each side, from 1 (strongly disagree) to 5 (strongly agree). Nothing is scored until every pair is answered on both sides.</p>
+          <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", marginTop: 16 }}>
+            <Button onClick={handleStart}>Start Assessment</Button>
+            <a href={RUBRIC.methodology} style={K.link}>See the published rubric: every pair, band and action</a>
           </div>
         </section>
       )}
 
-      {phase === "results" && (
-        <section style={{ background: WARM, minHeight: "calc(100vh - 60px)", padding: "44px 28px 80px" }}>
-          <div style={WRAP}>
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "36px 32px", textAlign: "center", marginBottom: 24 }}>
-              <span style={{ color: "rgba(255,255,255,0.78)", fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>CX + IT alignment</span>
-              <h2 style={{ fontFamily: FONT, fontSize: 36, fontWeight: 600, color: gapLevel.color, margin: "8px 0 4px" }}>{gapLevel.label}</h2>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.78)", marginBottom: 12 }}>Average gap {overallGap.toFixed(1)} points, where 0 is identical answers and 4 is opposite</div>
-              <p style={{ fontSize: 14, color: "#fff", lineHeight: 1.7, maxWidth: 560, margin: "0 auto" }}>{gapLevel.desc}</p>
-            </div>
-
-            {shared.length > 0 && (
-              <div style={{ background: "#FFF7ED", border: `1px solid ${AMBER}`, borderRadius: 10, padding: "16px 20px", marginBottom: 24 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#9A3412", marginBottom: 4 }}>{shared.length} shared weakness{shared.length === 1 ? "" : "es"}</div>
-                <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, margin: 0 }}>On {shared.length === 1 ? "this pair" : "these pairs"} both sides answered {RUBRIC.failAt} or below. The two sides agree the capability is missing, so the gap does not show it. {shared.length === 1 ? "It is" : "They are"} on the checklist below.</p>
-              </div>
-            )}
-
-            <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 600, color: NAVY, margin: "0 0 14px" }}>Alignment by area, largest gap first</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
-              {byGap.map((a) => {
-                const cxAvg = areaAvg(a.id, "cx"), itAvg = areaAvg(a.id, "it"), gap = areaGap(a.id);
-                const gl = (b => ({ ...b, color: BAND_COLORS[b.id] }))(bandFor(RUBRIC, gap));
-                const sh = shared.filter(c => c.dimension === a.id).length;
+      {phase === "assess" && (() => {
+        const area = AREAS[currentArea];
+        return (<>
+          <div role="tablist" aria-label="Areas" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {AREAS.map((a, i) => (
+              <button key={a.id} type="button" role="tab" aria-selected={i === currentArea} onClick={() => setCurrentArea(i)} style={tabStyle(i === currentArea)}>{areaComplete(a.id) ? "\u2713 " : ""}{a.name}</button>
+            ))}
+          </div>
+          <Group legend={`Area ${currentArea + 1} of ${AREAS.length} · ${area.name}`} note="Rate each paired statement 1 to 5. The first is the CX perspective, the second the IT perspective. Gaps between scores reveal misalignment.">
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {area.pairs.map((pair, pi) => {
+                const cxVal = getScore(area.id, pi, "cx");
+                const itVal = getScore(area.id, pi, "it");
+                const gap = cxVal && itVal ? Math.abs(cxVal - itVal) : null;
                 return (
-                  <div key={a.id} style={{ background: "#fff", border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 22px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{ width: 4, height: 20, borderRadius: 2, background: a.color }} />
-                        <span style={{ fontSize: 15, fontWeight: 600, color: NAVY }}>{a.name}</span>
+                  <div key={pi} style={K.box}>
+                    <div style={K.grid(240)}>
+                      <div>
+                        <div style={{ ...K.kicker, marginBottom: 6 }}>CX perspective</div>
+                        <p style={{ ...K.body, color: K.strong.color, fontWeight: 500, margin: "0 0 10px" }}>{pair.cx}</p>
+                        <Scale label={"CX: " + pair.cx} value={cxVal} onPick={(v) => setScore(area.id, pi, "cx", v)} />
                       </div>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: NAVY, background: `${gl.color}18`, padding: "3px 8px", borderRadius: 4 }}>{gl.label}, gap {gap.toFixed(1)}{sh ? `, ${sh} shared weakness${sh === 1 ? "" : "es"}` : ""}</span>
+                      <div>
+                        <div style={{ ...K.kicker, marginBottom: 6 }}>IT perspective</div>
+                        <p style={{ ...K.body, color: K.strong.color, fontWeight: 500, margin: "0 0 10px" }}>{pair.it}</p>
+                        <Scale label={"IT: " + pair.it} value={itVal} onPick={(v) => setScore(area.id, pi, "it", v)} />
+                      </div>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: SLATE, marginBottom: 4 }}><span>CX {cxAvg.toFixed(1)}</span><span>IT {itAvg.toFixed(1)}</span></div>
-                    <div style={{ position: "relative", height: 8, background: BORDER, borderRadius: 4 }}>
-                      <div style={{ position: "absolute", left: `calc(${((cxAvg - 1) / 4) * 100}% - 6px)`, top: -2, width: 12, height: 12, borderRadius: "50%", background: ELECTRIC, border: "2px solid #fff" }} />
-                      <div style={{ position: "absolute", left: `calc(${((itAvg - 1) / 4) * 100}% - 6px)`, top: -2, width: 12, height: 12, borderRadius: "50%", background: "#7C3AED", border: "2px solid #fff" }} />
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginTop: 4 }}><span style={{ color: ELECTRIC, fontWeight: 600 }}>CX average</span><span style={{ color: "#7C3AED", fontWeight: 600 }}>IT average</span></div>
+                    <p style={{ ...K.small, marginTop: 10 }}>{gap === null ? "Answer both sides to see the gap." : `Gap ${gap} point${gap === 1 ? "" : "s"}${gap >= RUBRIC.gapAt ? ", misaligned" : ""}.`}</p>
                   </div>
                 );
               })}
             </div>
+          </Group>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <button type="button" onClick={() => setCurrentArea(Math.max(0, currentArea - 1))} disabled={currentArea === 0} style={{ ...navBtn, opacity: currentArea === 0 ? 0.5 : 1 }}>Previous</button>
+            {currentArea < AREAS.length - 1 ? (
+              <Button onClick={() => setCurrentArea(currentArea + 1)}>Next: {AREAS[currentArea + 1].name}</Button>
+            ) : (
+              <Button onClick={handleResults} disabled={!allComplete}>{allComplete ? "View alignment results" : `${AREAS.filter(a => areaComplete(a.id)).length}/${AREAS.length} areas complete`}</Button>
+            )}
+          </div>
+        </>);
+      })()}
 
-            <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${DEEP})`, borderRadius: 14, padding: "28px 28px", marginBottom: 24 }}>
-              <h3 style={{ fontSize: 13, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 12 }}>Your action checklist</h3>
-              {R.checklist.length === 0 ? (
-                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>No pair is {RUBRIC.gapAt} or more points apart and none is answered {RUBRIC.failAt} or below on both sides, so the rubric raises no action. The area with the largest gap is still the place to look first.</p>
-              ) : R.checklist.map((c, i) => (
-                <div key={c.criterion} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: i < R.checklist.length - 1 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
-                  <span style={{ fontFamily: FONT, fontSize: 16, color: LIGHT, width: 22, flexShrink: 0 }}>{i + 1}</span>
-                  <div>
-                    <div style={{ fontSize: 14, color: "#fff", fontWeight: 600, lineHeight: 1.5 }}>{c.action}</div>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.78)", marginTop: 3, lineHeight: 1.5 }}>{c.dimensionName}, {c.kind === "misaligned" ? `misaligned: CX answered ${c.cx} and IT answered ${c.it}` : `shared weakness: CX answered ${c.cx} and IT answered ${c.it}`}, on "{c.texts.cx}"</div>
-                  </div>
+      {phase === "results" && (<>
+        <section aria-label="CX and IT alignment" style={K.lead}>
+          <span style={K.kicker}>CX + IT alignment</span>
+          <div style={K.stat}>{gapLevel.label}</div>
+          <p style={K.small}>Average gap {overallGap.toFixed(1)} points, where 0 is identical answers and 4 is opposite</p>
+          <p style={{ ...K.body, marginTop: 8 }}>{gapLevel.desc}</p>
+        </section>
+
+        {shared.length > 0 && (
+          <section aria-label="Shared weaknesses" style={{ ...K.panel, border: `1.5px solid ${K.strong.color}` }}>
+            <h2 style={K.h2}>{shared.length} shared weakness{shared.length === 1 ? "" : "es"}</h2>
+            <p style={K.body}>On {shared.length === 1 ? "this pair" : "these pairs"} both sides answered {RUBRIC.failAt} or below. The two sides agree the capability is missing, so the gap does not show it. {shared.length === 1 ? "It is" : "They are"} on the checklist below.</p>
+          </section>
+        )}
+
+        <section aria-label="Alignment by area" style={K.panel}>
+          <h2 style={K.h2}>Alignment by area, largest gap first</h2>
+          {byGap.map((a) => {
+            const cxAvg = areaAvg(a.id, "cx"), itAvg = areaAvg(a.id, "it"), gap = areaGap(a.id);
+            const gl = bandFor(RUBRIC, gap);
+            const sh = shared.filter(c => c.dimension === a.id).length;
+            return (
+              <div key={a.id} style={{ padding: "12px 0", borderTop: `1px solid ${K.hair}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+                  <span style={{ ...K.strong, fontSize: 15 }}>{a.name}</span>
+                  <span style={{ ...K.small, color: K.body.color }}>{gl.label}, gap {gap.toFixed(1)}{sh ? `, ${sh} shared weakness${sh === 1 ? "" : "es"}` : ""}</span>
                 </div>
-              ))}
-              {next && (
-                <div style={{ marginTop: 16, fontSize: 14, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>
-                  Next diagnostic: <a href={next.href} style={{ color: LIGHT, fontWeight: 600 }}>{next.name}</a>, because {next.because} has the largest gap.
+                <div role="img" aria-label={`${a.name}: CX ${cxAvg.toFixed(1)}, IT ${itAvg.toFixed(1)}`} style={{ position: "relative", height: 8, background: K.hair, borderRadius: 4, margin: "0 6px" }}>
+                  <div style={{ position: "absolute", left: `calc(${((cxAvg - 1) / 4) * 100}% - 7px)`, top: -3, width: 14, height: 14, borderRadius: "50%", background: K.strong.color }} />
+                  <div style={{ position: "absolute", left: `calc(${((itAvg - 1) / 4) * 100}% - 7px)`, top: -3, width: 14, height: 14, borderRadius: "50%", border: `3px solid ${K.shade(0)}`, boxSizing: "border-box" }} />
                 </div>
-              )}
-              <p style={{ marginTop: 16, fontSize: 12, color: "rgba(255,255,255,0.78)", lineHeight: 1.6 }}>
-                Scored on the <a href={RUBRIC.methodology} style={{ color: LIGHT }}>published rubric</a>, version {RUBRIC.version}. {RUBRIC.limits[0]} {RUBRIC.limits[1]}
-              </p>
+                <div style={{ display: "flex", justifyContent: "space-between", ...K.small, marginTop: 8 }}><span>CX average {cxAvg.toFixed(1)} (filled)</span><span>IT average {itAvg.toFixed(1)} (ring)</span></div>
+              </div>
+            );
+          })}
+        </section>
+
+        <section aria-label="Your action checklist" style={K.panel}>
+          <h2 style={K.h2}>Your action checklist</h2>
+          {R.checklist.length === 0 ? (
+            <p style={K.body}>No pair is {RUBRIC.gapAt} or more points apart and none is answered {RUBRIC.failAt} or below on both sides, so the rubric raises no action. The area with the largest gap is still the place to look first.</p>
+          ) : R.checklist.map((c, i) => (
+            <div key={c.criterion} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderTop: `1px solid ${K.hair}` }}>
+              <span style={{ ...K.strong, ...K.num, width: 22, flexShrink: 0 }}>{i + 1}</span>
+              <div>
+                <div style={{ ...K.strong, fontSize: 15, lineHeight: "22px" }}>{c.action}</div>
+                <div style={{ ...K.small, marginTop: 3 }}>{c.dimensionName}, {c.kind === "misaligned" ? `misaligned: CX answered ${c.cx} and IT answered ${c.it}` : `shared weakness: CX answered ${c.cx} and IT answered ${c.it}`}, on "{c.texts.cx}"</div>
+              </div>
             </div>
+          ))}
+          {next && (
+            <p style={{ ...K.body, marginTop: 14 }}>Next diagnostic: <a href={next.href} style={K.link}>{next.name}</a>, because {next.because} has the largest gap.</p>
+          )}
+          <p style={{ ...K.small, marginTop: 14 }}>Scored on the <a href={RUBRIC.methodology} style={K.link}>published rubric</a>, version {RUBRIC.version}. {RUBRIC.limits[0]} {RUBRIC.limits[1]}</p>
+        </section>
 
-            <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+        <Paper>
               <ReportActions next={R.nextDiagnostic ? { to: R.nextDiagnostic.tool, because: next ? next.because + " has the largest gap." : null } : null} toolId={TOOL_ID} toolName="CX + IT Alignment Framework" subtitle={"Average CX to IT gap " + overallGap.toFixed(1) + " points, " + gapLevel.label} routePath={ROUTE} state={{ scores }} defaults={DEFAULTS}
                 summary={[{ label: "Average CX to IT gap", value: overallGap.toFixed(1) + " pts" }, { label: "Alignment band", value: gapLevel.label }, { label: "Misaligned pairs", value: String(misaligned.length) }, { label: "Shared weaknesses", value: String(shared.length) }]}
                 sections={[
@@ -245,12 +206,12 @@ export default function CXITAlignment() {
                   { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
                   { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each pair scores the gap between its CX and IT answers on a 1 to 5 scale; an area scores the average gap of its pairs and the overall score is the equally weighted average of the five areas. A pair " + RUBRIC.gapAt + " or more points apart is misaligned; a pair answered " + RUBRIC.failAt + " or below on both sides is a shared weakness. Both add their action to the checklist, largest area gap first." },
                 ]} />
-              <a href="/contact" style={{ background: ELECTRIC, color: "#fff", fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Talk through the gaps</a>
-              <a href="/tools/governance-model" style={{ background: "#fff", border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 8 }}>Governance & Operating Model</a>
-            </div>
-          </div>
-        </section>
-      )}
-    </div>
+        </Paper>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Button href="/contact">Talk through the gaps</Button>
+          <Button kind="secondary" href="/tools/governance-model">Governance & Operating Model</Button>
+        </div>
+      </>)}
+    </ToolFrame>
   );
 }
