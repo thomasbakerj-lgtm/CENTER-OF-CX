@@ -110,5 +110,26 @@ section("5. Subscribe asks for an address and says what arrives");
   ok("no name or company is asked for", !/name="(first_name|last_name|company)"|>(First name|Last name|Company)</i.test(read("Subscribe.jsx")));
 }
 
+section("6. Pages still being built invite ideas, and the header says what is coming");
+{
+  const SH = read("src/lib/Shell.jsx");
+  ok("the header tag reads Coming soon", />Coming soon<\/span>/.test(SH) && !/>SOON</.test(SH));
+  const IB = await (async () => {
+    const r = await build({ entryPoints: ["./src/lib/IdeaBox.jsx"], bundle: true, write: false, format: "cjs", platform: "node", jsx: "automatic", loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent" });
+    const mod = { exports: {} };
+    new Function("module", "exports", "require", r.outputFiles[0].text)(mod, mod.exports, require);
+    const React = require("react"); const { renderToString } = require("react-dom/server");
+    return { mod: mod.exports, html: renderToString(React.createElement(mod.exports.IdeaBox, { where: "Research" })) };
+  })();
+  const fields = [...IB.html.matchAll(/<(input|textarea|select)[^>]*>/g)].map((m) => m[0]).filter((f) => !/type="hidden"/.test(f));
+  ok("the idea box asks for one required field, the idea; role and email are optional", fields.length === 3 && fields.filter((f) => /required/.test(f)).length === 1 && /<textarea[^>]*name="idea"[^>]*required/.test(IB.html));
+  ok("every field has a label", fields.every((f) => { const id = (f.match(/id="([^"]+)"/) || [])[1]; return id && IB.html.includes(`for="${id}"`); }));
+  ok("it posts to the inbox the Privacy Policy names for ideas", IB.mod.IDEA_ENDPOINT === "https://formspree.io/f/xvzvdnry" && /Ideas you send from the Research and perspectives pages[^}]*endpoint: "xvzvdnry"/.test(read("PrivacyPolicy.jsx")));
+  ok("the email subject names the page", IB.html.includes('value="Idea for The Center of CX: Research"'));
+  ok("Research and Perspectives carry it; the homepage Research door points to it",
+    /<IdeaBox where="Research"/.test(read("Research.jsx")) && /<IdeaBox where="Perspectives"/.test(read("Perspectives.jsx")) && /href: "\/research#ideas"/.test(read("src/lib/home.js")));
+  ok("no dash in the idea box", !/[\u2013\u2014]/.test(read("src/lib/IdeaBox.jsx")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);
