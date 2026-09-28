@@ -3,7 +3,7 @@ import ReportActions from "./ReportActions";
 import InfoDot from "./src/lib/InfoDot";
 import NumField from "./src/lib/NumField";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
-import { emitGrades, voidResult, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
+import { emitGrades, voidResult, railEvidence, weakerStream, realizationFromCred, originsFor } from "./src/lib/confidence";
 import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 /* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
    nothing (P6 item 15: every pull is external). */
@@ -646,10 +646,13 @@ export default function FCRLeakageDiagnostic() {
   const methodLabel = method === "survey" ? "external post-call survey" : method === "internal" ? "internal callback window of " + N.windowDays + " days" : "not declared";
 
   useEffect(() => {
-    if (phase === "results") publishToolResult("fcr-leakage", {
+    if (phase === "results") {
+      const published = {
       repeatContactBurden: R.burdenYr, controllableRepeatBurden: R.controllableBurdenYr, cashRealizableSavings: R.realizableYr,
       repeatContactShare: R.repeatShare, marginalPerContact: N.mCPC, targetFCR: R.target, fcr: N.fcrPct / 100, monthlyContacts: N.M,
-    });
+    };
+      publishToolResult("fcr-leakage", published, originsFor(G.gradeObj, published));
+    }
   }, [phase, R.burdenYr, R.realizableYr, R.payback, G.confidence]);
 
   const stamp = methodStamp(TOOL_ID);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
-import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
+import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred, originsFor } from "./src/lib/confidence";
 import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 /* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
    nothing (P6 item 15: every pull is external). */
@@ -520,13 +520,14 @@ export default function ChannelShiftModel() {
   else if (r.Dtot > 0) flags.push({ sev: "info", t: `Implied assumption: the ${Math.round(r.Dtot).toLocaleString()} displaced contacts average ${r.deptEff.toFixed(1)} minutes against your ${r.baseEff.toFixed(1)} minute voice baseline, and the voice work left behind rises to ${r.residualEff.toFixed(1)} minutes. Total voice minutes are unchanged. If the volume you are shifting is not that much simpler, lower the curve.` });
 
   useEffect(() => {
-    publishToolResult("channel-shift", normalizeForPublish({
+    const published = normalizeForPublish({
       channelShiftNetRealizableMonthly: Math.round(r.netRealizable), channelShiftNetRealizableAnnual: Math.round(r.netRealizable * 12),
       channelShiftGrossMonthly: Math.round(r.gross), channelShiftDisplacedVoice: Math.round(r.Dtot), channelShiftBouncedMonthly: Math.round(r.Etot),
       channelShiftFteFreed: +r.fteFreed.toFixed(1), channelShiftTransition: Math.round(r.transition),
       channelShiftPaybackMonths: isFinite(r.payback) ? +r.payback.toFixed(1) : null, channelShiftBreakEvenRes: verdict.be != null ? +verdict.be.toFixed(0) : null,
       capacityAction: mechKey,
-    }, { sourceTool: "channel-shift" }).clean);
+    }, { sourceTool: "channel-shift" }).clean;
+    publishToolResult("channel-shift", published, originsFor(gradeObj, published));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
 
