@@ -5,13 +5,15 @@
  * methods.test.mjs recomputes every pin from the tool's own engine.
  */
 import { benchmark, BENCHMARK_SOURCES, benchmarksForTool } from "../benchmarks.js";
-import { MECH, MECH_INITIAL } from "../mech.js";
+import { MECH } from "../mech.js";
 
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const usd2 = (n) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pc = (x, d = 0) => (x * 100).toFixed(d) + "%";
 const b = (id) => benchmark(id);
-const H = MECH[MECH_INITIAL];
+/* The worked example runs at avoided hiring. The tool opens with no capacity action (F2), which realizes $0, so the
+   example names the action it uses. */
+const H = MECH.hiring;
 
 /* The pins, at the tool's opening case. Each is recomputed from the engine. */
 import { ATTRITION_DRIVERS } from "./attritionDrivers.js";
@@ -58,7 +60,7 @@ export const ATTRITION_MODEL = {
     "market.wage.agent", "time.hours.year", "load.benefits", "adh.ot.multiplier",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening case, with the capacity action the tool opens on (" + H.label.toLowerCase() + ", " + pc(H.f) + ").",
+    note: "Computed by the tool's own engine at its opening case, with avoided hiring as the capacity action (" + pc(H.f) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
     inputs: [["Operation", "200 agents, 35% attrition, full backfill, 25% early washout"], ["Pay", usd(P.salary) + " salary (BLS $" + b("market.wage.agent") + " × 2,080), 30% benefits load"], ["Hiring", "$2,500 recruiting plus 8 screening hours at $48; 6 weeks training at $45 a trainer hour, classes of 12; 4 weeks nesting at 50%, 3 months ramp at 75%; 10 supervisor hours at $55; 30 vacancy days, 60% covered by overtime at a 50% premium"]],
     steps: [
       ["Departures", P.departures + " a year, all refilled; loaded hourly " + usd2(P.loadedHourly)],

@@ -7,6 +7,24 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-28", methods: ["ai-deflection"], version: "1.1",
+    title: "AI Deflection: no capacity action is chosen for you",
+    changes: [
+      "The tool now opens with no capacity action (it opened on avoided hiring). Freed agent time counts as $0 until you choose how it becomes cash.",
+      "With no action chosen the decision is withheld and says which choice unlocks it; it used to read as a loss verdict. The severity band sent with a review request is withheld the same way.",
+      "Formulas are unchanged. With an action chosen, every figure and decision is exactly as before.",
+    ],
+  },
+  {
+    date: "2026-09-28", methods: ["channel-shift"], version: "1.2",
+    title: "Channel Shift: no capacity action is chosen for you",
+    changes: [
+      "The tool now opens with no capacity action (it opened on avoided hiring). Freed voice time counts as $0 until you choose how it becomes cash.",
+      "With no action chosen the approval call is withheld and says which choice unlocks it; it used to read Do not approve yet.",
+      "Formulas are unchanged. With an action chosen, every figure and call is exactly as before.",
+    ],
+  },
+  {
     date: "2026-09-28", methods: ["attrition-cost"], version: "1.2",
     title: "Attrition Cost: a root-cause check on why agents leave",
     changes: [

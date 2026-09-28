@@ -97,7 +97,7 @@ A("every other opening value reads the registry", ["agents", "attritionRate", "e
 A("no invariant fails on the shipped defaults", base.invariants.length === 0);
 A("shipped defaults are not void", base.voided === false);
 A("shipped defaults carry no hard flag", base.hardFlag === false);
-A("shipped default mechanism is the defensible default, not headcount reduction", base.mechKey === "hiring");
+A("the form opens with no capacity action chosen (F2), never headcount reduction", base.mechKey === "none" && MECH_INITIAL === "none");
 A("shipped defaults sit inside the 40 to 60 frontline planning band", base.inBand === true && base.guardrailOk === true);
 A("uncertainty band on estimated inputs is plus or minus 25 percent", near(base.uncPct, 0.25));
 A("the planning range brackets the point estimate", base.allInLow < base.allInPerDeparture && base.allInHigh > base.allInPerDeparture);
@@ -159,7 +159,7 @@ for (const bfp of [100, 75, 50, 0]) {
     if (intent === "forced" && r.unbackfilled > 0) {
       A(`${tag}: forced under-staffing raises a hard flag and routes the value out`, r.hardFlag === true);
       A(`${tag}: forced under-staffing binds the completeness axis, not the mechanism`, r.grades.completeness === "Directional");
-      A(`${tag}: routing the value out does not silently downgrade the mechanism`, r.grades.realization === "Planning-grade");
+      A(`${tag}: routing the value out does not silently downgrade the mechanism`, r.grades.realization === CRED_GRADE[MECH[r.mechKey].cred]);
     }
     if (intent === "downsizing" && r.unbackfilled > 0) {
       A(`${tag}: deliberate downsizing is a note, not a hard flag`, r.hardFlag === false);

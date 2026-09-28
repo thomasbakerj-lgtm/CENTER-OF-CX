@@ -275,6 +275,9 @@ function buildVerdict(d, r, mechKey) {
   const pt = primaryTarget(r);
   const riskAny = RISKS.some(x => d[x.k]);
   if (!pt || r.shifted === 0) return { label: "No shift modeled", color: MUTED, detail: "Add a shift to see the channel-shift economics.", be: null, pt: null };
+  /* F2 (TB, S24): with no capacity action chosen, freed labor realizes $0 while bot fees stay cash, so the net is
+     negative by construction. Withhold the approval call until the reader chooses; the figures still show. */
+  if (r.mechKey === "none") return { label: "Choose a capacity action first", color: MUTED, be: null, pt, curRes: pt.resPct, detail: "Freed voice time counts as $0 until you say how it becomes cash. Bot fees are cash either way and are already counted. Pick the action above to see whether the shift clears its bar." };
   const be = solveBreakEven(d, r.mechKey, pt);
   const curRes = pt.resPct;
   if (r.netRealizable < 0) {
@@ -540,7 +543,7 @@ export default function ChannelShiftModel() {
   const result = (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <Result label="Net realizable a month" value={voidReason ? null : r.netRealizable} format={fmtK}
-        change={voidReason ? null : (r.netRealizable >= 0 ? `${fmtK(r.netRealizable * 12)} a year. ` : "A net cost. ") + `${Math.round(r.Dtot).toLocaleString()} contacts truly leave voice each month.`}
+        change={voidReason ? null : (r.mechKey === "none" ? "No capacity action chosen yet, so freed time counts as $0 and only the bot fees show. " : r.netRealizable >= 0 ? `${fmtK(r.netRealizable * 12)} a year. ` : "A net cost. ") + `${Math.round(r.Dtot).toLocaleString()} contacts truly leave voice each month.`}
         how={how} voidReason={voidReason} />
       {!voidReason && (
         <div style={panel}>

@@ -5,12 +5,14 @@
  * methods.test.mjs recomputes every pin from the tool's own engine.
  */
 import { benchmark, BENCHMARK_SOURCES, benchmarksForTool } from "../benchmarks.js";
-import { MECH, MECH_INITIAL } from "../mech.js";
+import { MECH } from "../mech.js";
 
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const num = (n) => Math.round(n).toLocaleString("en-US");
 const pc = (x, d = 1) => (x * 100).toFixed(d) + "%";
-const H = MECH[MECH_INITIAL];
+/* The worked example runs at avoided hiring. The tool opens with no capacity action (F2), which realizes $0, so the
+   example names the action it uses. */
+const H = MECH.hiring;
 const b = (id) => benchmark(id);
 
 /* The pins: the tool's opening inputs with a declared cross-channel scope, an internal
@@ -53,7 +55,7 @@ export const FCR_MODEL = {
     ...benchmarksForTool("fcr-leakage").map((e) => e.id),
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening inputs, with a declared cross-channel scope, an internal 7-day callback window, every diagnostic statement answered at 3 and the capacity action the tool opens on (" + H.label.toLowerCase() + ", " + pc(H.f, 0) + "). It does not pay back: the example shows a case the tool reports honestly as a loss.",
+    note: "Computed by the tool's own engine at its opening inputs, with a declared cross-channel scope, an internal 7-day callback window, every diagnostic statement answered at 3 and avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0. It does not pay back: the example shows a case the tool reports honestly as a loss.",
     inputs: [["Volume and resolution", "50,000 contacts a month, FCR 72%, target 80%, one-callback model"], ["Cost", "$6.50 marginal, $11 loaded per contact, repeat multiplier 1.0"], ["Investment", "$150,000 one-time, $90,000 a year recurring"]],
     steps: [
       ["Repeat share", "(1 − 0.72) ÷ (2 − 0.72) = " + pc(P.repeatShare, 2) + ", " + num(P.repeats) + " repeats a month"],

@@ -687,7 +687,7 @@ export default function FCRLeakageDiagnostic() {
     <Result label="Annual repeat burden" value={0} voidReason={`The engine produced a physically impossible value, so no result is shown. ${blockList.join(" ")}`} />
   ) : (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Result label="Annual repeat burden" value={R.burdenYr} format={money} change={`Year-1 net ${money(R.year1Net)}, payback ${R.paybackLabel}`} how={how} />
+      <Result label="Annual repeat burden" value={R.burdenYr} format={money} change={R.mechKey === "none" && R.mechApplies ? "No capacity action chosen yet, so the repeat burden you remove counts as $0 in the payback. Choose one below." : `Year-1 net ${money(R.year1Net)}, payback ${R.paybackLabel}`} how={how} />
       <p style={small}>This grade is self-declared: no payroll file, finance record or repeat-contact dataset was inspected.</p>
       <div style={card}>
         <span style={kicker}>Burden to cash</span>

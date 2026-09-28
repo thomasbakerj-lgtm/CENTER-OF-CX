@@ -1,16 +1,18 @@
-/* AI Deflection Reality Check, version 1.0. A calculator method (kind "calc").
+/* AI Deflection Reality Check, version 1.1 (F2: opens with no capacity action). A calculator method (kind "calc").
  *
  * Published at /methodology/ai-deflection from this object. The engine lives inside
  * AIDeflectionRealityCheck.jsx, so this page carries its worked example as pins, and
  * methods.test.mjs recomputes every pin from the tool's own engine.
  */
 import { benchmark, BENCHMARK_SOURCES, benchmarksForTool } from "../benchmarks.js";
-import { MECH, MECH_INITIAL } from "../mech.js";
+import { MECH } from "../mech.js";
 
 const usd = (n) => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
 const num = (n) => Math.round(n).toLocaleString("en-US");
 const pc = (x, d = 1) => (x * 100).toFixed(d) + "%";
-const H = MECH[MECH_INITIAL];
+/* The worked example runs at avoided hiring. The tool opens with no capacity action (F2), which realizes $0, so the
+   example names the action it uses. */
+const H = MECH.hiring;
 const b = (id) => benchmark(id);
 
 /* The pins, at the tool's opening case (assumption set A, a 6-month ramp, the resolution
@@ -26,8 +28,8 @@ export const AID_MODEL = {
   id: "ai-deflection",
   kind: "calc",
   title: "AI Deflection Reality Check",
-  version: "1.0",
-  published: "2026-09-25",
+  version: "1.1",
+  published: "2026-09-28",
   route: "/tools/ai-deflection",
   methodology: "/methodology/ai-deflection",
   what: "How the AI Deflection Reality Check turns a vendor's resolution rate into the share of your total demand that durably goes away, what that is worth after operating cost and the escalation premium, and the resolution rate at which the program breaks even.",
@@ -55,7 +57,7 @@ export const AID_MODEL = {
     ...benchmarksForTool("ai-deflection").map((e) => e.id),
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening case: assumption set A, a 6-month ramp, the resolution rate sourced to an internal estimate, no marginal cost supplied, and the capacity action the tool opens on (" + H.label.toLowerCase() + ", " + pc(H.f, 0) + ").",
+    note: "Computed by the tool's own engine at its opening case: assumption set A, a 6-month ramp, the resolution rate sourced to an internal estimate, no marginal cost supplied, and avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
     inputs: [["Demand and cost", "80,000 contacts a month, $7.00 loaded; marginal not supplied"], ["Bot", "55% eligible, 65% apparent resolution, 18% repeat, 25% escalation premium"], ["Operating cost", "$8,000 platform, $2,000 QA, 40 tuning hours at $65, 20 knowledge hours at $55; no one-time cost"]],
     steps: [
       ["Marginal cost", "60% of $7.00 = $" + P.marg.toFixed(2) + ", disclosed"],

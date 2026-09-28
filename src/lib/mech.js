@@ -45,16 +45,13 @@ export const MECH_FALLBACK = "none";
 
 /** Initial form state, before the user selects anything.
  *
- *  Held at "hiring" pending tracker 1-08b. "none" is the doctrine-correct value,
- *  because under Section 5 the realization axis reads credit class directly, so
- *  "hiring" presents a Planning-grade realization earned by a default nobody chose.
- *  It does not flip as a one-line change: at "none" the cash-out-the-door costs are
- *  unscaled while freed labor credits zero, so Channel Shift renders "Do not approve
- *  yet" and AI Deflection renders a negative purchase verdict on first paint. Those
- *  read as answers to a question nobody asked, which is the 1-12 defect class in
- *  another costume. The flip ships with the unselected-state rendering, not before.
+ *  "none" (F2, TB, S24; was "hiring" pending tracker 1-08b). Under Section 5 the realization axis reads the
+ *  credit class directly, so opening on "hiring" presented a Planning-grade realization earned by a default
+ *  nobody chose. At "none" freed labor credits zero while cash out the door stays unscaled, so the tools
+ *  whose decision turns on that net (AI Deflection, Channel Shift) withhold the decision and say which choice
+ *  unlocks it, instead of printing a loss verdict for a question nobody asked; every figure still shows.
  *
  *  Never initialize a tool to headcount reduction. */
-export const MECH_INITIAL = "hiring";
+export const MECH_INITIAL = "none";
 
 export default MECH;

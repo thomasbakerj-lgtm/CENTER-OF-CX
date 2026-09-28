@@ -306,7 +306,7 @@ console.log("\n6. input guards and impossible-output blocking");
       A(`capacity action ${tag} writes the same analyst read as none`, JSON.stringify(a) === JSON.stringify(buildAnalystRead(B(), NONE, "none")));
     }
     if (Z !== null) {
-      A("a hostile key never inherits the shipped hiring default", M("bogus").mechKey !== DEFAULTS.mech);
+      A("a hostile key lands on the zero-credit fallback, which the form now also opens on (F2)", M("bogus").mechKey === "none" && DEFAULTS.mech === "none");
       A("the analyst read follows the resolved key, not the argument it is handed",
         JSON.stringify(buildAnalystRead(B(), M("hiring"), "toString")) === JSON.stringify(buildAnalystRead(B(), M("hiring"), "hiring")));
       A("a hostile action between hostile inputs discloses in engine order",
