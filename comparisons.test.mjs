@@ -144,6 +144,8 @@ ok("source is BLS May 2025, read on O*NET", /Bureau of Labor Statistics/.test(W.
 section("7. Retired lines stay retired");
 ok("TCO: no 'Bench 5:00 to 7:00'", !read("TCOCalculator.jsx").includes("Bench 5:00"));
 ok("TCO: no '$4.5K to $7.5K'", !read("TCOCalculator.jsx").includes("4.5K to"));
+ok("TCO: no unsourced input benchmarks (Bench, Target, Typically) and no per-agent colour band", !/Bench [0-9]|Target (under|[0-9])|Typically [0-9]|getBench|4500, 7500/.test(read("TCOCalculator.jsx")));
+ok("TCO: every hint that points to published figures has the panel's groups behind it", ["fcr", "attrition", "service", "occupancy", "shrinkage", "adherence"].every((g) => C.TOOL_GROUPS["tco-calculator"].groups.includes(g)));
 ok("Staffing: no 'Most centres run'", !read("StaffingCalculator.jsx").includes("Most centres run"));
 ok("Staffing: the 80/20 line names its source", read("StaffingCalculator.jsx").includes("SQM Group calls 80% in 20 seconds the traditional standard"));
 ok("CPC: no vertical planning ranges", !/VBENCH|cpc\.vert\./.test(read("CostPerContactCalculator.jsx")));

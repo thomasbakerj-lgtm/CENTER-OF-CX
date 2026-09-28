@@ -772,10 +772,6 @@ function Calculator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dRaw, stance]);
 
-  const getBench = (val, low, high, inverse) => {
-    if (inverse) return val <= low ? GREEN : val >= high ? RED : AMBER;
-    return val >= high ? GREEN : val <= low ? RED : AMBER;
-  };
 
 
 
@@ -848,7 +844,7 @@ function Calculator() {
                 <legend style={{ ...kicker, padding: "0 6px" }}>Labor Costs</legend>
                 <div style={grid(190)}>
                   <NumField label="Agent Hourly Rate" tone="dark" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" step={0.5} min={0} />
-                  <NumField label="Benefits & Burden" tone="dark" value={d.agentBenefitsPct} onChange={v => set("agentBenefitsPct", v)} suffix="%" factor={100} min={0} max={100} hint="Typically 25 to 35%" info={DEFS.loaded} infoTitle="Loaded rate" />
+                  <NumField label="Benefits & Burden" tone="dark" value={d.agentBenefitsPct} onChange={v => set("agentBenefitsPct", v)} suffix="%" factor={100} min={0} max={100} hint="Benefits and payroll taxes as a share of wage; enter yours" info={DEFS.loaded} infoTitle="Loaded rate" />
                   <div style={box}>
                     <div style={small}>Loaded rate (wage plus benefits)</div>
                     <div style={figure}>${r.loaded.toFixed(2)}/hr</div>
@@ -875,18 +871,18 @@ function Calculator() {
                   <NumField label="AHT (seconds)" tone="dark" value={d.aht} onChange={v => set("aht", v)} info={DEFS.aht} infoTitle="AHT" step={5} min={1} pulled={pulled.aht} hint={<span>{mmss(d.aht)}, full handle time. Published averages are under How others report it</span>} />
                   <NumField label="ACW (seconds)" tone="dark" value={d.acw} onChange={v => set("acw", v)} info={DEFS.acw} infoTitle="ACW" step={5} min={0} hint="After-call work, inside AHT, line closed" />
                   <NumField label="Hold Time (seconds)" tone="dark" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Inside AHT, line open" />
-                  <NumField label="FCR" tone="dark" value={d.fcr} onChange={v => set("fcr", v)} info={DEFS.fcr} infoTitle="FCR" suffix="%" factor={100} min={0} max={100} hint={<span>Bench 65 to 85%</span>} />
-                  <NumField label="Containment" tone="dark" value={d.containment} onChange={v => set("containment", v)} info={DEFS.containment} infoTitle="Containment" suffix="%" factor={100} min={0} max={100} hint={<span>Bench 15 to 45%</span>} />
+                  <NumField label="FCR" tone="dark" value={d.fcr} onChange={v => set("fcr", v)} info={DEFS.fcr} infoTitle="FCR" suffix="%" factor={100} min={0} max={100} hint="Published figures under How others report it" />
+                  <NumField label="Containment" tone="dark" value={d.containment} onChange={v => set("containment", v)} info={DEFS.containment} infoTitle="Containment" suffix="%" factor={100} min={0} max={100} hint="Share of contacts resolved without an agent" />
                   <NumField label="Occupancy" tone="dark" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={150} hint={<span>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above that, burnout risk</span>} />
-                  <NumField label="Shrinkage" tone="dark" value={d.shrinkage} onChange={v => set("shrinkage", v)} info={DEFS.shrinkage} infoTitle="Shrinkage" suffix="%" factor={100} min={0} max={100} pulled={pulled.shrinkage} hint="25 to 35%" />
-                  <NumField label="Annual Attrition" tone="dark" value={d.attrition} onChange={v => set("attrition", v)} info={DEFS.attrition} infoTitle="Attrition" suffix="%" factor={100} min={0} max={200} pulled={pulled.attrition} hint={<span>Bench 20 to 40%</span>} />
-                  <NumField label="Absenteeism" tone="dark" value={d.absenteeism} onChange={v => set("absenteeism", v)} suffix="%" factor={100} min={0} max={100} hint="5 to 10%" />
-                  <NumField label="Schedule Adherence" tone="dark" value={d.scheduleAdherence} onChange={v => set("scheduleAdherence", v)} suffix="%" factor={100} min={0} max={100} hint="Target 88 to 95%" />
-                  <NumField label="ASA (seconds)" tone="dark" value={d.avgSpeedAnswer} onChange={v => set("avgSpeedAnswer", v)} step={5} min={0} hint="Target under 30s" />
-                  <NumField label="Abandon Rate" tone="dark" value={d.abandonRate} onChange={v => set("abandonRate", v)} suffix="%" factor={100} min={0} max={100} hint="Target under 5%" />
+                  <NumField label="Shrinkage" tone="dark" value={d.shrinkage} onChange={v => set("shrinkage", v)} info={DEFS.shrinkage} infoTitle="Shrinkage" suffix="%" factor={100} min={0} max={100} pulled={pulled.shrinkage} hint="Published ranges under How others report it" />
+                  <NumField label="Annual Attrition" tone="dark" value={d.attrition} onChange={v => set("attrition", v)} info={DEFS.attrition} infoTitle="Attrition" suffix="%" factor={100} min={0} max={200} pulled={pulled.attrition} hint="Published figures under How others report it" />
+                  <NumField label="Absenteeism" tone="dark" value={d.absenteeism} onChange={v => set("absenteeism", v)} suffix="%" factor={100} min={0} max={100} hint="Unplanned absence as a share of scheduled time" />
+                  <NumField label="Schedule Adherence" tone="dark" value={d.scheduleAdherence} onChange={v => set("scheduleAdherence", v)} suffix="%" factor={100} min={0} max={100} hint="Published ranges under How others report it" />
+                  <NumField label="ASA (seconds)" tone="dark" value={d.avgSpeedAnswer} onChange={v => set("avgSpeedAnswer", v)} step={5} min={0} hint="Published figures under How others report it" />
+                  <NumField label="Abandon Rate" tone="dark" value={d.abandonRate} onChange={v => set("abandonRate", v)} suffix="%" factor={100} min={0} max={100} hint="Published figures under How others report it" />
                   <NumField label="Transfer Rate" tone="dark" value={d.transferRate} onChange={v => set("transferRate", v)} suffix="%" factor={100} min={0} max={100} />
                   <NumField label="QA Score" tone="dark" value={d.qualityScore} onChange={v => set("qualityScore", v)} suffix="%" factor={100} min={0} max={100} />
-                  <NumField label="CSAT (1 to 5)" tone="dark" value={d.csat} onChange={v => set("csat", v)} step={0.1} min={1} max={5} hint={<span>Bench 3.8 to 4.5</span>} />
+                  <NumField label="CSAT (1 to 5)" tone="dark" value={d.csat} onChange={v => set("csat", v)} step={0.1} min={1} max={5} hint="Your survey average on a 1 to 5 scale" />
                   <NumField label="NPS (-100 to 100)" tone="dark" value={d.nps} onChange={v => set("nps", v)} min={-100} max={100} />
                   <NumField label="New Hire Training (days)" tone="dark" value={d.newHireTrainingDays} onChange={v => set("newHireTrainingDays", v)} min={0} />
                 </div>
@@ -1221,7 +1217,7 @@ function Calculator() {
                           { title: "TCO Summary", type: "metrics", items: [
                             { label: "Annual TCO", value: fmtK(r.annual), color: ELECTRIC, sub: "Range " + fmtK(r.sensitivity.annualLow) + " to " + fmtK(r.sensitivity.annualHigh) },
                             { label: "3-Year TCO", value: fmtK(r.threeYear), color: ELECTRIC, sub: escLabel },
-                            { label: "Per Agent/Month", value: fmt(r.monthly / r.agents), color: getBench(r.monthly / r.agents, 4500, 7500, true) },
+                            { label: "Per Agent/Month", value: fmt(r.monthly / r.agents), color: ELECTRIC, sub: "every cost in the model" },
                             { label: "Cost per Contact", value: "$" + r.costPerContact.toFixed(2), color: ELECTRIC },
                             { label: "Cost per Resolution", value: "$" + r.costPerResolution.toFixed(2), color: r.costPerResolution > r.costPerContact * 1.25 ? RED : AMBER },
                             { label: "Marginal per Contact", value: "$" + r.marginalPerContact.toFixed(2), color: MUTED, sub: "variable cost" },

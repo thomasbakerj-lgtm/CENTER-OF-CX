@@ -137,6 +137,7 @@ export const GROUPS = {
     rows: [
       { label: "Where shrinkage normally comes out", value: "30% to 35%", src: "cchShr" },
       { label: "Dimension Data benchmark average, as quoted", value: "35%", detail: "The original report is no longer published", src: "cchShr" },
+      { label: "Short-term agent absence, US, 2023", value: "6.5%", kind: "measured", detail: "Median of centers' reported absence, one part of unplanned shrinkage; over a quarter of centers report above 15%", src: "cb24" },
     ],
   }),
   adherence: () => ({
@@ -202,7 +203,7 @@ export const TOOL_GROUPS = {
   "schedule-adherence": { groups: ["adherence", "service"], wage: true },
   "ai-deflection": { groups: ["deflection", "channels"] },
   "channel-shift": { groups: ["channels", "cost", "deflection"], wage: true },
-  "tco-calculator": { groups: ["prices", "aht", "wageIndustry"], wage: true },
+  "tco-calculator": { groups: ["prices", "aht", "fcr", "attrition", "service", "occupancy", "shrinkage", "adherence", "wageIndustry"], wage: true },
   "license-gap": { groups: ["prices"] },
 };
 
