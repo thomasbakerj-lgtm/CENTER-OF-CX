@@ -4,7 +4,10 @@ import InfoDot from "./src/lib/InfoDot";
 import NumField from "./src/lib/NumField";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { emitGrades, voidResult, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
-import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
+import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
+/* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
+   nothing (P6 item 15: every pull is external). */
+const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
@@ -542,9 +545,9 @@ export default function FCRLeakageDiagnostic() {
   const rail = useRef(null);
   if (rail.current === null) {
     const got = {
-      M: getPrimitiveWithSource("monthlyContacts"), fcr: getPrimitiveWithSource("fcr"),
-      mCPC: getPrimitiveWithSource("marginalPerContact"), mCPCalt: getPrimitiveWithSource("marginalCPC"),
-      lCPC: getPrimitiveWithSource("loadedCPC"), lCPCalt: getPrimitiveWithSource("costPerContact"),
+      M: (getExternalWithSource("monthlyContacts", TOOL_ID) || NO_RAIL), fcr: (getExternalWithSource("fcr", TOOL_ID) || NO_RAIL),
+      mCPC: (getExternalWithSource("marginalPerContact", TOOL_ID) || NO_RAIL), mCPCalt: (getExternalWithSource("marginalCPC", TOOL_ID) || NO_RAIL),
+      lCPC: (getExternalWithSource("loadedCPC", TOOL_ID) || NO_RAIL), lCPCalt: (getExternalWithSource("costPerContact", TOOL_ID) || NO_RAIL),
     };
     const first = (a, b) => (a.value ? a : b.value ? b : null);
     const hit = { M: got.M.value ? got.M : null, mCPC: first(got.mCPC, got.mCPCalt), lCPC: first(got.lCPC, got.lCPCalt) };

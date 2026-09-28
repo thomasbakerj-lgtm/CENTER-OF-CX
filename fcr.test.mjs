@@ -618,7 +618,7 @@ console.log("\n14. 11B grading layer and registry");
   A("the component exports the three-axis grade object", /grades=\{G\.gradeObj\}/.test(src) && /confidence=\{G\.confidence\}/.test(src));
   A("the rationale is displayed on the page, not only in the PDF", /\{G\.gradeWhy\}<\/div>/.test(src));
   A("the rail pulls carry their source tool, read once at mount",
-    (src.match(/getPrimitiveWithSource\("(monthlyContacts|fcr|marginalPerContact|marginalCPC|loadedCPC|costPerContact)"\)/g) || []).length === 6 && !/getPrimitive\(/.test(src) && /const rail = useRef\(null\);/.test(src));
+    (src.match(/getExternalWithSource\("(monthlyContacts|fcr|marginalPerContact|marginalCPC|loadedCPC|costPerContact)", TOOL_ID\)/g) || []).length === 6 && !/getPrimitive(WithSource)?\(/.test(src) && /const rail = useRef\(null\);/.test(src));
   A("the two-axis ladder is gone", !/costConf|realConf|confReason|realizationRank/.test(src));
   A("the engine region never reads the rail", !/getPrimitive/.test(region));
   A("the rail carries no confidence verdict (P6 item 14: facts, not verdicts)", !/fcrLeakageConfidence/.test(src));

@@ -4,7 +4,10 @@ import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
-import { publishToolResult, getExternalPrimitive, getPrimitiveWithSource } from "./src/lib/toolData";
+import { publishToolResult, getExternalPrimitive, getExternalWithSource } from "./src/lib/toolData";
+/* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
+   nothing (P6 item 15: every pull is external). */
+const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { MECH, MECH_ORDER, MECH_FALLBACK } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { normalizeForPublish } from "./src/lib/metrics";
@@ -1036,7 +1039,7 @@ export default function BusinessCaseBuilder() {
       const v = getExternalPrimitive(key, "business-case-builder");
       if (v != null && !isNaN(v)) {
         next[field] = xf(v); got[field] = true;
-        const res = getPrimitiveWithSource(key);
+        const res = (getExternalWithSource(key, TOOL_ID) || NO_RAIL);
         src[field] = res.sourceTool; origin[field] = res.railOrigin;
       }
     };
@@ -1050,13 +1053,13 @@ export default function BusinessCaseBuilder() {
     const annual = getExternalPrimitive("annualContacts", "business-case-builder");
     if (annual != null && !isNaN(annual)) {
       next.monthlyContacts = Math.round(annual / 12); got.monthlyContacts = true;
-      const res = getPrimitiveWithSource("annualContacts");
+      const res = (getExternalWithSource("annualContacts", TOOL_ID) || NO_RAIL);
       src.monthlyContacts = res.sourceTool; origin.monthlyContacts = res.railOrigin;
     } else {
       const mc = getExternalPrimitive("monthlyContacts", "business-case-builder");
       if (mc != null && !isNaN(mc)) {
         next.monthlyContacts = Math.round(mc); got.monthlyContacts = true;
-        const res = getPrimitiveWithSource("monthlyContacts");
+        const res = (getExternalWithSource("monthlyContacts", TOOL_ID) || NO_RAIL);
         src.monthlyContacts = res.sourceTool; origin.monthlyContacts = res.railOrigin;
       }
     }

@@ -651,7 +651,7 @@ console.log("\n18. 11B grading layer and registry");
     /const G = gradeAID\(\{ I: inputA, r: R, pre: fromLink \? \{\} : rail\.current\.pre, railOrigin: null \}\);/.test(src));
   A("the component exports the three-axis grade object", /grades=\{G\.gradeObj\}/.test(src) && /confidence=\{G\.confidence\}/.test(src));
   A("the rationale is displayed on the page, not only in the PDF", /\{G\.gradeWhy\} Net savings carry/.test(src));
-  A("the rail pulls carry their source tool", (src.match(/getPrimitiveWithSource\("(monthlyContacts|costPerContact|marginalPerContact)"\)/g) || []).length === 3 && !/getPrimitive\(/.test(src));
+  A("the rail pulls are external and carry their source tool (P6 item 15)", (src.match(/getExternalWithSource\("(monthlyContacts|costPerContact|marginalPerContact)", TOOL_ID\)/g) || []).length === 3 && !/getPrimitive(WithSource)?\(/.test(src));
   A("sourcedExternally is display only", (src.match(/sourcedExternally\(/g) || []).length === 1 && !/sourcedExternally/.test(region.slice(region.indexOf("function gradeAID"))));
 
   const G = (o = {}, pre = {}, ro = null) => engine({ ...OWN_ALL, costBasisOwned: true, evidence: "pilot", mech: CASH_KEY, ...o }, pre, ro);

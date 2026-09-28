@@ -332,6 +332,12 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   const tools = readdirSync(".").filter((f) => f.endsWith(".jsx") && /publishToolResult\(/.test(readFileSync(f, "utf8")));
   const leaking = tools.filter((f) => { const s = readFileSync(f, "utf8"); return [...s.matchAll(/publishToolResult\(/g)].some((m) => { const call = s.slice(m.index, s.indexOf(");", m.index)); return [...call.matchAll(/(?:^|[\s{,])([A-Za-z]+)\s*:/g)].some((m) => isVerdictKey(m[1])); }); });
   eq(`V4  no tool's publish call names a verdict key (${tools.length} publishers)`, leaking.join(), "");
+  /* P6 item 15 (S24): every pull is external. The self-capable getters stay in toolData for the rail's own use and the
+     harnesses; no page calls them, so a tool can never read back its own publish as if another tool had sourced it. */
+  const strip = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+  const selfReaders = readdirSync(".").filter((f) => f.endsWith(".jsx") && /getPrimitive(WithSource)?\(/.test(strip(readFileSync(f, "utf8"))));
+  eq("V5  no page pulls with a self-capable getter", selfReaders.join(), "");
+  truthy("V6  the rule fires on a planted pull", /getPrimitive(WithSource)?\(/.test(strip('const x = getPrimitiveWithSource("agents");')));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

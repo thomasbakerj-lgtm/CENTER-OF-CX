@@ -2,7 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
-import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
+import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
+/* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
+   nothing (P6 item 15: every pull is external). */
+const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
@@ -368,12 +371,12 @@ export default function CostPerContactCalculator() {
       if (res.sourceTool && res.sourceTool !== TOOL_ID) { got[field] = true; srcOf[field] = res.sourceTool; }
       return true;
     };
-    if (!take(getPrimitiveWithSource("monthlyContacts"), "monthlyContacts", (v) => Math.round(v)))
-      take(getPrimitiveWithSource("annualContacts"), "monthlyContacts", (v) => Math.round(v / 12));
-    take(getPrimitiveWithSource("fcr"), "fcrRate", (v) => (v <= 1 ? Math.round(v * 100) : Math.round(v)));
-    take(getPrimitiveWithSource("costPerContact"), "loadedCPC", (v) => +v.toFixed(2));
-    take(getPrimitiveWithSource("marginalPerContact"), "marginalCPC", (v) => +v.toFixed(2));
-    take(getPrimitiveWithSource("agentHourly"), "agentHourly", (v) => v);
+    if (!take((getExternalWithSource("monthlyContacts", TOOL_ID) || NO_RAIL), "monthlyContacts", (v) => Math.round(v)))
+      take((getExternalWithSource("annualContacts", TOOL_ID) || NO_RAIL), "monthlyContacts", (v) => Math.round(v / 12));
+    take((getExternalWithSource("fcr", TOOL_ID) || NO_RAIL), "fcrRate", (v) => (v <= 1 ? Math.round(v * 100) : Math.round(v)));
+    take((getExternalWithSource("costPerContact", TOOL_ID) || NO_RAIL), "loadedCPC", (v) => +v.toFixed(2));
+    take((getExternalWithSource("marginalPerContact", TOOL_ID) || NO_RAIL), "marginalCPC", (v) => +v.toFixed(2));
+    take((getExternalWithSource("agentHourly", TOOL_ID) || NO_RAIL), "agentHourly", (v) => v);
     if (Object.keys(next).length) setD(prev => ({ ...prev, ...next }));
     if (Object.keys(got).length) { setPulled(got); setPullSources([...new Set(Object.values(srcOf))]); }
     /* Captured once, at mount, BEFORE this tool publishes, with the tool that wrote
