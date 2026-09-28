@@ -38,7 +38,7 @@ section("1. The header");
   ok("five pillars in order", S.NAV.map((n) => n.name).join() === "Diagnostics,Vendor Intelligence,Industry Insights,Research,Market Watch");
   ok("every pillar with a page links to a live route", S.NAV.filter((n) => n.href).every((n) => live(n.href)), S.NAV.filter((n) => n.href && !live(n.href)).map((n) => n.href).join());
   ok("Market Watch links to its page (Phase 10)", S.NAV.find((n) => n.id === "marketWatch").href === "/market-watch" && /<a [^>]*href="\/market-watch"[^>]*>Market Watch/.test(hd));
-  ok("Research is marked soon, nothing else", (hd.match(/>SOON</g) || []).length === 1 && S.NAV.filter((n) => n.soon).map((n) => n.id).join() === "research");
+  ok("Research is marked soon, nothing else", (hd.match(/>Coming soon</g) || []).length === 1 && !/>SOON</.test(hd) && S.NAV.filter((n) => n.soon).map((n) => n.id).join() === "research");
   ok("the header adds no h1", !/<h1/.test(hd));
   ok("the logo links home", /<a href="\/"[^>]*>.*The Center of CX/.test(hd));
   ok("the phone menu button is named and says whether it is open", /aria-expanded="false" aria-controls="cx-menu" aria-label="Open menu"/.test(hd));

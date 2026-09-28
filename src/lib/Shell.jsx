@@ -53,7 +53,7 @@ export function Mark({ size = 30, edition = null }) {
 }
 
 const SoonTag = ({ id }) => (
-  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "1px 5px", borderRadius: 4, border: `1px solid ${PILLARS[id].onDark}`, color: PILLARS[id].onDark }}>SOON</span>
+  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "1px 5px", borderRadius: 4, border: `1px solid ${PILLARS[id].onDark}`, color: PILLARS[id].onDark, whiteSpace: "nowrap" }}>Coming soon</span>
 );
 
 const CSS = `body{margin:0}.cx-nav{display:flex}.cx-menu-btn{display:none}

@@ -10,6 +10,7 @@ import { FONT } from "./src/lib/type.js";
 import { K } from "./src/lib/frameKit.jsx";
 import { Crumbs } from "./src/lib/Shell.jsx";
 import { Button } from "./src/lib/ui.jsx";
+import { IdeaBox } from "./src/lib/IdeaBox.jsx";
 import { CATEGORIES, CCAAS_INDEXED_INDUSTRIES, VERTICALS } from "./src/lib/verticals.js";
 import { CCAAS_RESEARCH, CCAAS_COMPLETE_COUNT } from "./src/lib/researchStatus.js";
 import { vendorDisplayName, SEGMENT_COUNT } from "./src/lib/seo.js";
@@ -134,6 +135,8 @@ export default function Research() {
         <Section id="studies" kicker="Coming" title="Studies of our own">
           <p style={K.body}>Studies we run ourselves, starting from what professionals choose to share through the diagnostics. Nothing is collected until the consent design is published, participation will be opt-in and anonymous, and every study will publish its data, its method and its limits.</p>
         </Section>
+
+        <IdeaBox where="Research" title="What should we study first?" prompt="Tell us the question you most want answered with real data from contact centers like yours, or a study you would take part in. We read every one, and they shape which studies come first." />
 
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center", padding: 20, borderRadius: RADIUS.card, border: `1px solid ${hair}` }}>
           <p style={{ ...K.body, flex: "1 1 280px", margin: 0 }}>Get new research, methods and Market Watch as they publish. <a href="/cx-ecosystem" style={{ color: ACCENT }}>Other publications and communities we read</a>.</p>

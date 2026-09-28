@@ -29,6 +29,7 @@ export const FORMS = [
   { what: "Buyer guide downloads", fields: "name, job title and email", endpoint: "mgorkboe, myklwvjy, xojydbwe" },
   { what: "Vendor reviews you submit on a profile", fields: "your name, email, role, company size, tenure with the vendor and your review", endpoint: "xjgplvkz" },
   { what: "Newsletter sign-ups", fields: "email address", endpoint: "xnjolywk" },
+  { what: "Ideas you send from the Research and perspectives pages", fields: "your idea and, if you choose, your role and email", endpoint: "xvzvdnry" },
 ];
 
 export default function PrivacyPolicy() {
