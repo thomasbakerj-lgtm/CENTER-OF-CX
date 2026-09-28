@@ -81,7 +81,7 @@ const old = decodeScenario(`?s=${oldEnc}`, "attrition-cost", LD) || decodeScenar
 ok("an older link opens with its inputs and no answers", !!old && old.d.agents === 90 && JSON.stringify(old.drivers) === "{}");
 
 console.log("\n6. The method page");
-ok("the published method carries the check the tool scores", ATTRITION_MODEL.checks === R && ATTRITION_MODEL.version === "1.2");
+ok("the published method carries the check the tool scores", ATTRITION_MODEL.checks === R && Number(ATTRITION_MODEL.version) >= 1.2);
 const rp = await build({ entryPoints: ["./RubricPage.jsx"], bundle: true, write: false, format: "cjs", platform: "node", jsx: "automatic",
   loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent" });
 const pm = { exports: {} };

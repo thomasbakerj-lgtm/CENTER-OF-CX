@@ -1456,6 +1456,17 @@ dashboard, the 12-phase growth program.
    the code builder, the summary-only send, no text on the wire), `toolframe.test.mjs` (scope, validator, per-tool privacy
    line). Suite 25,964; live check 256 of 256; browser at 1440 and 390 clean. Once events arrive, a PostHog breakdown of
    `milestones` shows where plans stall.
+   PR #76 merged by TB's instruction (055f243).
+85. S24 (28 Sep), the other contact center SOC codes (TB validated against BLS Table 1, May 2025, released 15 May 2026):
+   43-1011 First-Line Supervisors of Office and Administrative Support Workers $33.41, 13-1151 Training and Development
+   Specialists $33.31, 13-1071 Human Resources Specialists $36.51 (median hourly; means and employment in the registry
+   comment). Registered as `market.wage.supervisor`, `market.wage.trainer`, `market.wage.hr` (kind market, Table 1 link,
+   reviewed 2026-09-28); the three unsourced Attrition heuristics ($55, $45, $48 loaded) are retired. Attrition method 1.3
+   opens each rate at the median times the shared benefits load, to the cent ($43.43, $43.30, $47.46). Opening case:
+   all-in per departure $18,535 to $18,381, annual burden $1,297,454 to $1,286,673; the verified fixture keeps its old
+   inputs and reproduces to the cent, so only the three rates moved. Method page names each rate with its median; pins
+   recomputed; `attrition.test.mjs` pins values, SOC codes, the release wording (never "May 2026"). Suite 25,966; live
+   check 256 of 256.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

@@ -19,18 +19,20 @@ const H = MECH.hiring;
 import { ATTRITION_DRIVERS } from "./attritionDrivers.js";
 
 export const ATTRITION_PINS = {
-  salary: 44782, departures: 70, hires: 70, loadedHourly: 27.98875, recruiting: 2884, training: 7617.3, vacancy: 1550.15,
-  cashPerDeparture: 12051.45, nestingLoss: 2239.1, rampLoss: 3694.515, supervisorBurden: 550, capacityPerDeparture: 6483.615,
-  allInPerDeparture: 18535.06, pctSalary: 41.39, annualReplBurden: 1297454.28, earlyWashouts: 18, earlyWaste: 189023.4,
-  step: 10, avoided: 20, stepCash: 241028.92, stepCap: 97254.22, stepTotal: 338283.15,
+  salary: 44782, departures: 70, hires: 70, loadedHourly: 27.98875, recruiting: 2879.68, training: 7583.3, vacancy: 1550.15,
+  cashPerDeparture: 12013.13, nestingLoss: 2239.1, rampLoss: 3694.515, supervisorBurden: 434.3, capacityPerDeparture: 6367.915,
+  allInPerDeparture: 18381.04, pctSalary: 41.05, annualReplBurden: 1286672.88, earlyWashouts: 18, earlyWaste: 188333.64,
+  step: 10, avoided: 20, stepCash: 240262.52, stepCap: 95518.725, stepTotal: 335781.25,
 };
 const P = ATTRITION_PINS;
+/* A BLS median at the shared benefits load, as the tool opens on it: "$47.46 (BLS $36.51 median, loaded)". */
+const lb = (id) => "$" + (Math.round(b(id) * b("load.benefits") * 100) / 100).toFixed(2) + " (BLS $" + b(id).toFixed(2) + " median, loaded)";
 
 export const ATTRITION_MODEL = {
   id: "attrition-cost",
   kind: "calc",
   title: "Attrition Cost Calculator",
-  version: "1.2",
+  version: "1.3",
   published: "2026-09-28",
   /* The root-cause check (method 1.2), published on the method page from the object the tool scores. */
   checks: ATTRITION_DRIVERS,
@@ -61,7 +63,7 @@ export const ATTRITION_MODEL = {
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
     note: "Computed by the tool's own engine at its opening case, with avoided hiring as the capacity action (" + pc(H.f) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
-    inputs: [["Operation", "200 agents, 35% attrition, full backfill, 25% early washout"], ["Pay", usd(P.salary) + " salary (BLS $" + b("market.wage.agent") + " × 2,080), 30% benefits load"], ["Hiring", "$2,500 recruiting plus 8 screening hours at $48; 6 weeks training at $45 a trainer hour, classes of 12; 4 weeks nesting at 50%, 3 months ramp at 75%; 10 supervisor hours at $55; 30 vacancy days, 60% covered by overtime at a 50% premium"]],
+    inputs: [["Operation", "200 agents, 35% attrition, full backfill, 25% early washout"], ["Pay", usd(P.salary) + " salary (BLS $" + b("market.wage.agent") + " × 2,080), 30% benefits load"], ["Hiring", "$2,500 recruiting plus 8 screening hours at " + lb("market.wage.hr") + "; 6 weeks training at " + lb("market.wage.trainer") + " a trainer hour, classes of 12; 4 weeks nesting at 50%, 3 months ramp at 75%; 10 supervisor hours at " + lb("market.wage.supervisor") + "; 30 vacancy days, 60% covered by overtime at a 50% premium"]],
     steps: [
       ["Departures", P.departures + " a year, all refilled; loaded hourly " + usd2(P.loadedHourly)],
       ["Cash per departure", usd(P.recruiting) + " recruiting + " + usd2(P.training) + " training + " + usd2(P.vacancy) + " vacancy = " + usd2(P.cashPerDeparture)],

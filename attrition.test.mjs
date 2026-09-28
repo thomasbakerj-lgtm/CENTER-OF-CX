@@ -17,10 +17,10 @@
  */
 import { readFileSync } from "fs";
 
-let COLORS, benchmark, MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards, guardVal;
+let COLORS, benchmark, BENCHMARK_SOURCES, MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL, createGuards, guardVal;
 let gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE;
 try {
-  ({ COLORS, benchmark } = await import("./src/lib/benchmarks.js"));
+  ({ COLORS, benchmark, BENCHMARK_SOURCES } = await import("./src/lib/benchmarks.js"));
   ({ MECH, MECH_ORDER, MECH_FALLBACK, MECH_INITIAL } = await import("./src/lib/mech.js"));
   ({ createGuards, guardVal } = await import("./src/lib/guards.js"));
   ({ gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE } = await import("./src/lib/confidence.js"));
@@ -76,7 +76,9 @@ const base = compute(D());
 /* The dollar fixture predates the registry defaults. It pins the arithmetic at the inputs it
    was verified on ($38,000 salary, 28% load); the opening case now reads the shared BLS wage
    and the shared benefits load (J10, J11), checked below. */
-const fixture = compute(m({ avgSalary: 38000, benefitsLoadPct: 28 }));
+/* The verified fixture keeps its verified inputs: the pre-registry salary and load, and the recruiter, trainer and
+   supervisor rates the tool opened on before method 1.3 moved them to BLS medians (48, 45 and 55 an hour, loaded). */
+const fixture = compute(m({ avgSalary: 38000, benefitsLoadPct: 28, hrLoadedRate: 48, trainerLoadedRate: 45, supLoadedRate: 55 }));
 
 /* ---- 2. the shipped default scenario ---- */
 console.log("\n2. shipped defaults");
@@ -95,6 +97,14 @@ A("the opening salary is the shared BLS wage over the 2,080 hour year", DEFAULTS
 A("the opening benefits load is the shared load, and the overtime premium the FLSA minimum", DEFAULTS.d.benefitsLoadPct === Math.round((benchmark("load.benefits") - 1) * 100) && DEFAULTS.d.overtimePremium === 50);
 A("every other opening value reads the registry", ["agents", "attritionRate", "earlyWashoutRate", "recruitingCost", "trainingWeeks", "rampMonths", "vacancyDays"].every((k) => /at\("default\./.test(region)) && benchmark("attrition.default.agents") === DEFAULTS.d.agents);
 A("no invariant fails on the shipped defaults", base.invariants.length === 0);
+A("method 1.3: the recruiter, trainer and supervisor rates open at the BLS May 2025 medians times the shared benefits load",
+  DEFAULTS.d.hrLoadedRate === 47.46 && DEFAULTS.d.trainerLoadedRate === 43.3 && DEFAULTS.d.supLoadedRate === 43.43
+  && benchmark("market.wage.hr") === 36.51 && benchmark("market.wage.trainer") === 33.31 && benchmark("market.wage.supervisor") === 33.41);
+A("method 1.3: each of the three cites its SOC code and the May 2025 release, and none says May 2026",
+  [["market.wage.hr", "13-1071"], ["market.wage.trainer", "13-1151"], ["market.wage.supervisor", "43-1011"]].every(([id, soc]) => {
+    const e = BENCHMARK_SOURCES[id];
+    return e && e.kind === "market" && e.source.includes(soc) && /May 2025 \(released 15 May 2026\)/.test(e.source) && !/May 2026 wage/i.test(e.source) && /^https:\/\/www\.bls\.gov\//.test(e.url);
+  }));
 A("shipped defaults are not void", base.voided === false);
 A("shipped defaults carry no hard flag", base.hardFlag === false);
 A("the form opens with no capacity action chosen (F2), never headcount reduction", base.mechKey === "none" && MECH_INITIAL === "none");
