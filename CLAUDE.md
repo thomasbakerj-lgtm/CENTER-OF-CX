@@ -376,7 +376,7 @@ Binding. None of this is in code comments beyond what is noted.
 ## 6. Carried debt
 
 **Rail and confidence**
-- TCO publishes `analystRead`, a verdict on the rail.
+- ~~TCO publishes `analystRead`, a verdict on the rail.~~ Fixed S24: the rail refuses verdict keys (item 77).
 - ~~TCO `marginalPerContact` uses 1.30x.~~ Moved to `load.marginal` 1.18 S23 (P3 10). Still at the loaded rate: TCO's AHT
   lever and BCB's derived marginal (ask TB).
 - TCO, AHT Decomposition, Shrinkage Planner and Occupancy Risk publish origin grades. Staffing, CPC, FCR, AID, Channel read
@@ -400,8 +400,8 @@ Binding. None of this is in code comments beyond what is noted.
   Phase 2 research or set noindex like the other 70 category-by-vertical pages.
 - Vendor Match still ranks on its 24-vendor Phase 1 fork and prints fit scores (Stage 4,
   5-01).
-- BCB publishes `analystRead` and `confidence` on the rail (verdicts), like TCO's
-  `analystRead`. BCB next steps are a hardcoded list, not `nextFor` (3-03).
+- ~~BCB publishes `analystRead` and `confidence` on the rail.~~ Fixed S24 (item 77). BCB next steps are a hardcoded list,
+  not `nextFor` (3-03).
 - ~~`scenarioUrl` `__proto__` assignment.~~ Fixed S23: a link could swap a decoded state's prototype; unsafe names
   are now dropped in both directions (`track.test.mjs` M). `track.js` was already allowlisted.
 - ~~`ReportExport.jsx` wrote section strings into the PDF window as raw HTML.~~ Fixed S23: a crafted scenario link could
@@ -1366,6 +1366,16 @@ dashboard, the 12-phase growth program.
    sample retired; points to the TCO calculator. Advisory: "350+ vendor assessment library" becomes the derived profile
    count; "50+ implementations" dropped. `copy.test.mjs` section 6 keeps them retired and pins the certification list
    (https link, provider cost and time, check date). Suite 25,822.
+   PR #68 merged by TB's instruction (1b99278).
+77. S24 (28 Sep), P6 item 14, facts not verdicts on the rail. The debt named TCO and Business Case; the sweep found twelve
+   verdict keys across nine tools, none read by any tool: `analystRead` (AI Deflection, Attrition, Business Case, Channel,
+   CPC, FCR, License Gap, Staffing, TCO), `grade` (Channel, CPC), `confidence` (Business Case), `licenseConfidence`,
+   `deflectionVerdict`, `attritionConfidence`, `fcrLeakageConfidence`. All removed from the publish calls, and the rail now
+   refuses them at the door: `normalizeForPublish` (which `publishToolResult` runs) drops any key in `RAIL_VERDICT_KEYS`
+   or ending Verdict, Confidence, Grade, Read, Recommendation, Headline or Severity, with a flag naming it; the registry
+   no longer lists analystRead, confidence or grade. `rail.test.mjs` V0 to V4 (no registered fact matches the pattern; the
+   publish-call scan proven on a planted key). Channel, CPC and FCR pins now require no verdict in the publish. Suite
+   25,827; live check 256 of 256.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1441,7 +1451,7 @@ P5. Design.
 P6. Remaining debt.
   13. Unsourced figures on Human Premium, Research, Advisory, Platforms, About (the Industries hub is done in item 37).
   13b. Queued originality phrase searches for Telecom, Education, Travel, Financial Services, Utilities, Government.
-  14. TCO and BCB publish verdicts on the rail (`analystRead`, `confidence`); publish facts only.
+  14. ~~TCO and BCB publish verdicts on the rail.~~ Done S24 (item 77): no tool publishes a verdict; the rail refuses them.
   15. CPC, Channel, FCR, AID to external getters; Staffing, CPC, FCR, AID, Channel publish origin grades.
   16. BCB next steps to `nextFor` (3-03); `MECH_INITIAL` F2; TCO guard-case wording; ReportActions `Field` labels.
   17. Roadmap anonymous sequence capture; Attrition root-cause layer from the Agent Experience content.

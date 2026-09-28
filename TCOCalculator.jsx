@@ -756,7 +756,7 @@ function Calculator() {
       tcoPerAgentMonth: Math.round(r.monthly / r.agents), costPerContact: +r.costPerContact.toFixed(2),
       costPerResolution: +r.costPerResolution.toFixed(2), marginalPerContact: +r.marginalPerContact.toFixed(2),
       laborPct: +r.laborPct.toFixed(4), techPct: +r.techPct.toFixed(4), threeYearTCO: Math.round(r.threeYear),
-      optimizationNetMonthly: Math.round(opt.netTotal), stance, analystRead: analyst[0],
+      optimizationNetMonthly: Math.round(opt.netTotal), stance,
       wageEscalatorPct: n(d.wageEscalatorPct), licenseEscalatorPct: n(d.licenseEscalatorPct), tcoConfidence: G.confidence,
       // Baseline facts for downstream tools (e.g. Business Case Builder). Facts, not
       // conclusions: raw current-state drivers so a downstream case inherits the same

@@ -97,9 +97,6 @@ export const metricRegistry = {
   repeatContactsMonthly: count("Repeat contacts (monthly)"),
 
   // ---- Enums and strings. No numeric normalization.
-  analystRead: pass("Analyst read headline"),
-  confidence: pass("Confidence label"),
-  grade: pass("Confidence grade"),
   capacityAction: pass("Capacity mechanism"),
 };
 
@@ -204,10 +201,18 @@ export function normalizeMetric(key, value, source = "rail") {
 /** Publisher wrapper. Cleans an entire primitives object to canonical KEYS and canonical
  *  UNITS before it touches the rail. Invalid values are dropped and reported.
  *  Idempotent: running it twice on the same object is a no-op on the second pass. */
+/* Pass facts, not verdicts (doctrine, the rail). A tool's read, grade or recommendation is its own conclusion; another
+   tool pulling it would inherit a verdict it cannot check. These keys never reach the rail: the publisher drops them
+   and says so. P6 item 14 (S24): nine tools published analystRead, and several a grade, that no tool read. */
+export const RAIL_VERDICT_KEYS = new Set(["analystRead", "confidence", "grade", "licenseConfidence", "verdict", "recommendation", "headline", "severity", "severityBand"]);
+/* A tool-named verdict (deflectionVerdict, attritionConfidence) is still a verdict. No registered fact ends this way. */
+export const isVerdictKey = (k) => RAIL_VERDICT_KEYS.has(k) || /(Verdict|Confidence|Grade|Read|Recommendation|Headline|Severity)$/.test(k);
+
 export function normalizeForPublish(primitives, { sourceTool } = {}) {
   const clean = {};
   const flags = [];
   for (const [k, v] of Object.entries(primitives || {})) {
+    if (isVerdictKey(k)) { flags.push(`[${sourceTool || "publish"}] ${k} is a verdict; the rail carries facts only, so it was not published.`); continue; }
     const res = normalizeMetric(k, v, "user");
     if (res.status === "invalid") { flags.push(`[${sourceTool || "publish"}] ${res.flag}`); continue; }
     if (res.status === "empty") continue;

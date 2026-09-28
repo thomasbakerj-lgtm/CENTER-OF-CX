@@ -625,8 +625,6 @@ export default function AIDeflectionRealityCheck() {
       realizedDollarsPct: Math.round(R.realizedDollarsPct),
       breakEvenResolutionPct: isFinite(R.beResPct) ? +R.beResPct.toFixed(1) : undefined,
       capacityAction: R.mechKey,
-      deflectionVerdict: R.verdict,
-      analystRead: analyst[0],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s]);

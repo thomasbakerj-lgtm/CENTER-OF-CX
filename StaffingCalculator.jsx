@@ -589,7 +589,6 @@ export default function StaffingCalculator() {
       sustainableCeiling: pair.sustainable ? pair.ceiling : undefined,
       recoveryTimeFteCost: pair.sustainable ? pair.deltaFte : undefined,
       modelValid: valid.ok, intervalToAhtRatio: +valid.ratio.toFixed(2),
-      analystRead: insights[0],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vol, intv, aht, shrink, slT, slS, patience, capOn, capPct]);

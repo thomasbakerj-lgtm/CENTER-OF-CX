@@ -470,7 +470,7 @@ export default function LicenseBundleGapChecker() {
       licenseQuotedSeat: +quotedSeat.toFixed(2), licenseEffectiveLicenseSeat: +effLicenseSeat.toFixed(2), licenseEffectivePlatformSeat: +effPlatformSeat.toFixed(2),
       licenseBundleGapPct: +gapPct.toFixed(1), licenseAddOnAnnual: Math.round(decomp.addOns), licenseTierAnnual: Math.round(decomp.tier), licenseUsageMonthly: Math.round(usageMonthly),
       licenseHiddenAnnual: Math.round(hiddenAnnual), licenseImplementationOneTime: Math.round(oneTimeTotal), licenseAnnualPlatform: Math.round(annualPlatform), licenseYear3Seat: +year3Seat.toFixed(2),
-      licenseCommitExposureAnnual: Math.round(commitExpAnnual), agents: billable, licenseConfidence: confidence, analystRead: analyst[0],
+      licenseCommitExposureAnnual: Math.round(commitExpAnnual), agents: billable,
     }, { sourceTool: "license-gap" }).clean); /* eslint-disable-next-line */
   }, [d]);
 

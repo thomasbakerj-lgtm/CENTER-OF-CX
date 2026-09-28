@@ -557,7 +557,7 @@ const hard = (r) => r.flags.some(f => /impossible|outside the plausible|outside 
          three sibling tools read. ---- */
 {
   A("publish block names the tool id 'fcr-leakage'", /publishToolResult\("fcr-leakage"/.test(src));
-  const need = ["repeatContactBurden", "controllableRepeatBurden", "cashRealizableSavings", "repeatContactShare", "marginalPerContact", "targetFCR", "fcr", "monthlyContacts", "fcrLeakageConfidence"];
+  const need = ["repeatContactBurden", "controllableRepeatBurden", "cashRealizableSavings", "repeatContactShare", "marginalPerContact", "targetFCR", "fcr", "monthlyContacts"];
   A("every documented rail key is still published", need.every(k => src.indexOf(k + ":") >= 0));
   A("FCR is published as a fraction, not a whole number", /fcr: N\.fcrPct \/ 100/.test(src));
   A("the report signals publish the applied target, not the requested one",
@@ -621,7 +621,7 @@ console.log("\n14. 11B grading layer and registry");
     (src.match(/getPrimitiveWithSource\("(monthlyContacts|fcr|marginalPerContact|marginalCPC|loadedCPC|costPerContact)"\)/g) || []).length === 6 && !/getPrimitive\(/.test(src) && /const rail = useRef\(null\);/.test(src));
   A("the two-axis ladder is gone", !/costConf|realConf|confReason|realizationRank/.test(src));
   A("the engine region never reads the rail", !/getPrimitive/.test(region));
-  A("the rail publishes the three-axis headline", /fcrLeakageConfidence: G\.confidence/.test(src));
+  A("the rail carries no confidence verdict (P6 item 14: facts, not verdicts)", !/fcrLeakageConfidence/.test(src));
 
   /* J7. Legacy next links. The graph is the only source of a next step. */
   A("J7: the untracked backward CTA is gone", !/Cost per Resolution →/.test(src) && !/<a href="\/tools\//.test(src));

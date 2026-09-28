@@ -399,7 +399,7 @@ export default function CostPerContactCalculator() {
       costPerContact: +r.loaded.toFixed(2), costPerResolution: +r.cprLoaded.toFixed(2),
       contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: r.fcrPct / 100,
       repeatContactsMonthly: r.repeatContacts, repeatDemandBurdenMonthly: Math.round(r.burden), fteBurden: +r.fteBurden.toFixed(1),
-      capacityAction: mechKey, capacityRealizationPct: Math.round(r.mf * 100), grade: confidence, analystRead: analyst[0],
+      capacityAction: mechKey, capacityRealizationPct: Math.round(r.mf * 100),
     }, { sourceTool: "cost-per-contact" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
