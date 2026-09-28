@@ -88,7 +88,7 @@ const DEF = {
   M: 50000, fcr: 0.72, mCPC: 6.5, lCPC: 11,
   repeatModel: "one", measuredRate: 0.22, measuredTargetRate: null, pathModel: "one",
   repeatMult: 1.0, dScore: 3, askTarget: 0.80,
-  mech: MECH_INITIAL, sourcing: "inhouse",
+  mech: "hiring", sourcing: "inhouse",
   investOneTime: 150000, investRecurring: 90000,
   costBasis: "estimate", defDeclared: false, fcrPulledDirty: false,
   scope: "", method: "", windowDays: 7, diagComplete: false,
@@ -610,6 +610,7 @@ console.log("\n14. 11B grading layer and registry");
   A("every threshold states a rationale", owned.filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
 
   A("1-08c: both mechanism literals read MECH_INITIAL", !/"hiring"/.test(src.replace(/hiring: "avoiding[^"]*"/, "")) && (src.match(/MECH_INITIAL/g) || []).length === 2);
+  A("F2: the form opens with no capacity action, and the result says why the payback counts nothing yet", MECH_INITIAL === "none" && /R\.mechKey === "none" && R\.mechApplies \? "No capacity action chosen yet/.test(src));
   A("1-08c: the form initial is the shared constant", /mech: MECH_INITIAL,/.test(src) && /useState\(DEFAULTS\.mech\)/.test(src));
 
   A("the grading layer is in the engine region", typeof gradeFCR === "function" && typeof fieldOrigin === "function");

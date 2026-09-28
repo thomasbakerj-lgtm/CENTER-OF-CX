@@ -287,8 +287,8 @@ Binding. None of this is in code comments beyond what is noted.
 - CPC C: BLS wage. D: FCR and M lift evidence only when entered and attested by
   checkbox. E: concurrency below 1 corrected to 1 and disclosed.
 - Channel G: validation checkbox caps at Planning-grade. F1: `MECH_INITIAL` replaces
-  the literal. **F2 deferred:** flipping `MECH_INITIAL` to "none" breaks 14 assertions
-  across four tools until unselected-state rendering exists.
+  the literal. **F2 done S24 (TB: start at zero):** `MECH_INITIAL` is "none"; AI Deflection and Channel Shift withhold
+  their decision until an action is chosen (item 83).
 - AID I5: cost checkbox required for Planning-grade on cost basis. I6: near-free bot
   threshold $0.01 per attempted conversation ($0.10 blocked a valid reconciled case).
 - Defect class 2: any rail value with no origin grade grades Directional through
@@ -1434,6 +1434,17 @@ dashboard, the 12-phase growth program.
    SOC codes: recommended only where a tool shows the figure: Attrition's unsourced supervisor ($55), trainer ($45) and
    HR ($48) loaded rates would become BLS medians for 43-1011, 13-1151 and 13-1071 at the shared benefits load; needs the
    May 2025 rows from TB (bls.gov refuses this network).
+   PR #74 merged by TB's instruction (15b2aa4).
+83. S24 (28 Sep), F2 (TB: "agreed, start at zero"). `MECH_INITIAL` is "none": CPC, Channel Shift, FCR Leakage, AI
+   Deflection and Attrition open with no capacity action, so freed time realizes $0 until the reader chooses; no tool
+   picks an action for them. Unselected state: AI Deflection (method 1.1) and Channel Shift (method 1.2), whose decision
+   turns on that net, withhold it ("Choose a capacity action first", with what the choice unlocks) instead of printing
+   "Buy nothing" or "Do not approve yet"; AI Deflection also withholds the severity band on the review payload; their
+   headlines, and FCR's, say why the figure is a cost or counts nothing yet. Every figure still shows; formulas unchanged;
+   with an action chosen every figure, grade and decision equals the previous engine. Method pages run their worked
+   examples at avoided hiring and say so (pins unchanged). Harness fixtures that pinned "the shipped default" now pin
+   avoided hiring explicitly; new pins prove the opening state, the withheld decisions and their restoration. Suite 25,955;
+   live check 256 of 256; browser at 1440 and 390 on the five tools clean.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1511,8 +1522,7 @@ P6. Remaining debt.
   13b. Queued originality phrase searches for Telecom, Education, Travel, Financial Services, Utilities, Government.
   14. ~~TCO and BCB publish verdicts on the rail.~~ Done S24 (item 77): no tool publishes a verdict; the rail refuses them.
   15. ~~External getters and origin grades.~~ Done S24 (items 78 and 79).
-  16. ~~BCB next steps, TCO guard case, Field labels.~~ Done S24 (item 80). `MECH_INITIAL` F2: TB agreed S24 (start at zero);
-      queued, needs the unselected-state rendering first.
+  16. ~~BCB next steps, TCO guard case, Field labels.~~ Done S24 (item 80). ~~`MECH_INITIAL` F2~~ done S24 (item 83).
   17. Roadmap anonymous sequence capture; ~~Attrition root-cause layer from the Agent Experience content~~ (done S24, item 82).
   18. WS10 performance re-scope and Core Web Vitals; ~~root `download`~~ archived S24 (item 82).
 

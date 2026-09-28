@@ -1,16 +1,18 @@
-/* Channel Shift Model, version 1.0. A calculator method (kind "calc").
+/* Channel Shift Model, version 1.2. A calculator method (kind "calc").
  *
  * Published at /methodology/channel-shift from this object. The engine lives inside
  * ChannelShiftModel.jsx, so this page carries its worked example as pins, and
  * methods.test.mjs recomputes every pin from the tool's own engine.
  */
 import { benchmark, BENCHMARK_SOURCES, benchmarksForTool } from "../benchmarks.js";
-import { MECH, MECH_INITIAL } from "../mech.js";
+import { MECH } from "../mech.js";
 
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const num = (n) => Math.round(n).toLocaleString("en-US");
 const pc = (x, d = 1) => (x * 100).toFixed(d) + "%";
-const H = MECH[MECH_INITIAL];
+/* The worked example runs at avoided hiring. The tool opens with no capacity action (F2), which realizes $0, so the
+   example names the action it uses. */
+const H = MECH.hiring;
 
 /* The pins, at the tool's opening case. Each is recomputed from the engine. */
 export const CHANNEL_PINS = {
@@ -26,7 +28,7 @@ export const CHANNEL_MODEL = {
   id: "channel-shift",
   kind: "calc",
   title: "Channel Shift Model",
-  version: "1.1",
+  version: "1.2",
   published: "2026-09-28",
   route: "/tools/channel-shift",
   methodology: "/methodology/channel-shift",
@@ -55,7 +57,7 @@ export const CHANNEL_MODEL = {
     "market.wage.agent", "load.benefits", "load.marginal",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening profile, with the capacity action the tool opens on (" + H.label.toLowerCase() + ", " + pc(H.f, 0) + ").",
+    note: "Computed by the tool's own engine at its opening profile, with avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
     inputs: [["Volume", "100,000 contacts a month, voice 70% at 7 minutes, 60% of voice eligible"], ["Shift", "10 points to chat (85% resolve, 80% displace, 10 minutes at 2.5 concurrent) and 10 points to bot (65% resolve, 70% displace, $0.50 a contact)"], ["Cost", "$" + benchmark("market.wage.agent") + " an hour, marginal load " + benchmark("load.marginal") + ", loaded " + benchmark("load.benefits") + "; return factor 1.2; moderate curve; $1,500 training and 4 ramp weeks"]],
     steps: [
       ["Eligible voice", num(P.voiceVol) + " voice × 60% = " + num(P.eligible) + "; " + num(P.shifted) + " shifted, within the pool"],

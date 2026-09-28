@@ -236,7 +236,7 @@ const guarded = (r, label) => r.guards.some(g => g.label === label);
         JSON.stringify(v) === JSON.stringify(buildVerdict(BASE, NONE, "none")) && JSON.stringify(a) === JSON.stringify(buildAnalystRead(BASE, NONE, "none", buildVerdict(BASE, NONE, "none"))));
     }
     if (Z !== null) {
-      A("a hostile key never inherits the shipped hiring default", M("bogus").mechKey !== DEFAULTS.mech);
+      A("a hostile key lands on the zero-credit fallback, which the form now also opens on (F2)", M("bogus").mechKey === "none" && DEFAULTS.mech === "none");
       A("a hostile capacity action and a hostile curve disclose two corrections, in engine order",
         JSON.stringify(compute({ ...BASE, adverseCurve: "toString" }, "toString").guards.map(g => g.label)) === JSON.stringify(["Capacity action", "Residual complexity curve"]));
     }
@@ -643,6 +643,18 @@ console.log("\n15. typography");
     !/TYPE\.|FONT_IMPORT_CSS|fontFamily/.test(region));
   A("the shared hardened input is used, not a local copy", /from "\.\/src\/lib\/NumField"/.test(SRC) && !/^function NumField/m.test(SRC));
   A("no em-dash anywhere in the file", SRC.indexOf(String.fromCharCode(0x2014)) < 0);
+}
+
+/* ---- F2 (TB, S24): the form opens with no capacity action, and the approval call waits for one ---- */
+{
+  console.log("\nF2. No capacity action chosen");
+  const r0 = compute(BASE, "none"), v0 = buildVerdict(BASE, r0, "none");
+  A("the form opens with no capacity action", DEFAULTS.mech === "none");
+  A("no action: the approval call is withheld and names what to choose", v0.label === "Choose a capacity action first" && /counts as \$0 until you say how it becomes cash/.test(v0.detail) && v0.be === null);
+  A("no action: the figures still show, and freed time realizes nothing", Number.isFinite(r0.netRealizable) && r0.netRealizable < 0);
+  const rh = compute(BASE, "hiring");
+  A("choosing an action restores the call", buildVerdict(BASE, rh, "hiring").label === "Approve");
+  A("the page says why the headline is a cost when nothing is chosen", /No capacity action chosen yet, so freed time counts as \$0/.test(SRC));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

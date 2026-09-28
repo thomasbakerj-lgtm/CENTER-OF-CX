@@ -5,7 +5,7 @@
  * methods.test.mjs recomputes every pin from the tool's own engine.
  */
 import { benchmark, BENCHMARK_SOURCES, benchmarksForTool } from "../benchmarks.js";
-import { MECH, MECH_INITIAL } from "../mech.js";
+import { MECH } from "../mech.js";
 
 const usd2 = (n) => "$" + n.toFixed(2);
 const usd = (n) => "$" + Math.round(n).toLocaleString("en-US");
@@ -18,7 +18,9 @@ export const CPC_PINS = {
   step: 10, newFCR: 82, released: 21120.69, realizable: 15840.52, fte: 3.502,
 };
 const P = CPC_PINS;
-const H = MECH[MECH_INITIAL];
+/* The worked example runs at avoided hiring. The tool opens with no capacity action (F2), which realizes $0, so the
+   example names the action it uses. */
+const H = MECH.hiring;
 
 export const CPC_MODEL = {
   id: "cost-per-contact",
@@ -51,7 +53,7 @@ export const CPC_MODEL = {
     "market.wage.agent", "load.benefits",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
-    note: "Computed by the tool's own engine at its opening profile, with the capacity action the tool opens on (" + H.label.toLowerCase() + ").",
+    note: "Computed by the tool's own engine at its opening profile, with avoided hiring as the capacity action (" + pc(H.f, 0) + " of freed capacity). The tool itself opens with no action chosen, which realizes $0.",
     inputs: [["Volume", "50,000 handled contacts a month"], ["Resolution", "FCR 72%, M 2.4 contacts per unresolved issue"], ["Cost", "$7.00 loaded, $4.20 marginal per contact"], ["Channels", "voice 60% at 7 minutes, chat 25% at 9 minutes and 2.5 concurrent, email 15% at 5 minutes; $" + benchmark("market.wage.agent") + " an hour × " + benchmark("load.benefits") + "; 140 productive hours per FTE"]],
     steps: [
       ["Contacts per resolution", "0.72 + 0.28 × 2.4 = " + P.C],

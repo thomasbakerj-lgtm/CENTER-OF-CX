@@ -290,7 +290,14 @@ export function engine(I) {
   const strongEvidence = ev.rank >= 1;
   const creditable = cr >= 2;
   let verdict, verdictWhy, verdictRoute, verdictRouteLabel, verdictTone;
-  if (netSavings <= 0 && bestNet <= 0) {
+  /* F2 (TB, S24): the form opens with no capacity action. With none chosen, freed time realizes $0 while the
+     operating cost stays cash, so every case is a loss by construction. That is the arithmetic of a question the
+     reader has not answered yet, so the tool withholds the decision until they choose; the figures still show. */
+  if (mechKey === "none") {
+    verdict = "Choose a capacity action first";
+    verdictWhy = "Freed agent time counts as $0 until you say how it becomes cash: reduced overtime, avoided hiring, less vendor volume or fewer seats. Operating cost and the escalation premium are cash either way and are already counted. Pick the action above and the decision appears.";
+    verdictRoute = null; verdictRouteLabel = null; verdictTone = "muted";
+  } else if (netSavings <= 0 && bestNet <= 0) {
     verdict = "Buy nothing, as scoped";
     verdictWhy = "Even the upside case is a net cost at this eligibility, cost basis, and operating spend. The economics do not support this purchase as scoped. Fix the underlying process or the price, or hold.";
     verdictRoute = "/tools/business-case"; verdictRouteLabel = "Frame the hold as a business case"; verdictTone = "red";
@@ -718,7 +725,7 @@ export default function AIDeflectionRealityCheck() {
   const row = (k, v, sub) => <div style={{ display: "flex", justifyContent: "space-between", gap: 12, padding: "10px 0", borderTop: `1px solid ${hair}` }}><span style={small}>{k}{sub && <span style={{ display: "block" }}>{sub}</span>}</span><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{v}</span></div>;
   const result = (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Result label="Net savings a month" value={R.netSavings} format={fmt} change={`${R.netAutomationRate.toFixed(1)}% of total demand automated, against ${R.rp}% resolution claimed`} how={how} voidReason={voidReason} />
+      <Result label="Net savings a month" value={R.netSavings} format={fmt} change={R.mechKey === "none" ? "No capacity action chosen yet, so freed time counts as $0 and only the costs show. Choose one to see the saving." : `${R.netAutomationRate.toFixed(1)}% of total demand automated, against ${R.rp}% resolution claimed`} how={how} voidReason={voidReason} />
       {!voidReason && (
         <div style={{ ...cardStyle, marginBottom: 0 }}>
           <span style={kicker}>The decision this protects</span>
@@ -833,7 +840,7 @@ export default function AIDeflectionRealityCheck() {
         <h2 style={{ ...h2, fontSize: 26, margin: "8px 0" }}>{R.verdict}</h2>
         <p style={{ ...body, margin: "0 0 10px" }}>{R.verdictWhy}</p>
         <p style={{ ...small, marginBottom: 14 }}>What selected this: net {fmt(R.netSavings)}/mo, upside case {fmt(R.bestNet)}/mo, eligibility {R.ep}%, evidence {R.evidenceLabel.toLowerCase()}, capacity action {MECH[R.mechKey].label.toLowerCase()}. Change any of those and the verdict can change.</p>
-        <Button kind="secondary" href={R.verdictRoute} icon="next">{R.verdictRouteLabel}</Button>
+        {R.verdictRoute && <Button kind="secondary" href={R.verdictRoute} icon="next">{R.verdictRouteLabel}</Button>}
       </section>
 
       <section aria-label="How sure" style={{ ...cardStyle, marginBottom: 0 }}>
@@ -1023,7 +1030,9 @@ export default function AIDeflectionRealityCheck() {
                  escalation premium are both zero, low at a strong claim against light cost,
                  severe at or beyond break-even. The ratio itself is computed in the engine
                  as severityRatio so the engine harness can test it directly. */
-              severity: severityBucket(R.severityRatio),
+              /* F2: with no capacity action chosen, break-even is unreachable by construction, so the band would read
+                 severe for a question the reader has not answered. Withheld, like the decision. */
+              ...(R.mechKey === "none" ? {} : { severity: severityBucket(R.severityRatio) }),
               verdict_class: R.verdict,
               has_real_cost_basis: !R.margWasDefaulted,
               has_document_evidence: ["proposal", "sla", "pilot"].indexOf(R.evidenceKey) >= 0,

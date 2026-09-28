@@ -346,6 +346,8 @@ const bandsSeen = new Set();
 for (const k of Object.keys(DOCS)) {
   const doc = DOCS[k], R = doc.R;
   const raw = doc.signals.severity;
+  /* F2: with no capacity action chosen the band is withheld with the decision. */
+  if (R.mechKey === "none") { A(`${k}: no action chosen, no band on the wire`, !("severity" in doc.signals)); continue; }
   const wire = sanitizeProps({ severity: raw }).severity;
   const expect = severityBucket(R.severityRatio);
   A(`${k}: the published band equals the band the engine ratio produces`, raw === expect);
@@ -381,6 +383,7 @@ console.log("\n5b. the rejected basis stays rejected");
   const A_ = DOCS.A, B_ = DOCS.B;
   A("the prior basis would have rated the shipped default in the top band", severityBucket(Math.max(0, Math.min(1, 1 - A_.R.realizedDollarsPct / 100))) === "severe");
   A("the argued basis does not", A_.signals.severity !== "severe");
+  A("the shipped default opens with no action chosen, so the band is withheld with the decision (F2)", A_.R.mechKey === "none" && !("severity" in A_.signals) && A_.R.verdict === "Choose a capacity action first");
   A("the prior basis would have rated a strong case in the top band too", severityBucket(Math.max(0, Math.min(1, 1 - B_.R.realizedDollarsPct / 100))) === "severe");
   A("the argued basis separates the strong case from the shipped default", B_.signals.severity !== A_.signals.severity || B_.R.beResPct !== A_.R.beResPct);
 }
@@ -403,7 +406,7 @@ console.log("\n7. the hostile scenario link is disclosed, not absorbed");
   A("C: the document is still whole under hostile input", C.sections.length >= 4);
   A("C: rates are clamped into their domain", C.R.netAutomationRate >= 0 && C.R.netAutomationRate <= 100);
   A("C: the apparent resolution rate never prints above 100", C.R.rp <= 100);
-  A("C: an unknown capacity action falls back to none, never the form initial", C.R.mechKey === MECH_FALLBACK && C.R.mechKey !== MECH_INITIAL);
+  A("C: an unknown capacity action falls back to none, the zero-credit fallback the form also opens on (F2)", C.R.mechKey === MECH_FALLBACK && MECH_INITIAL === MECH_FALLBACK);
   A("C: the document discloses the unknown capacity action it replaced",
     sectionByTitle(C, "Integrity Flags (" + C.R.flags.length + ")").items.filter(t => t === `Capacity action was "not-a-mechanism", which is not an option this tool offers, and was held at ${MECH.none.label}.`).length === 1);
   A("C: the open issues count is a number the document can print", Number.isFinite(C.signals.open_issues));
@@ -417,7 +420,7 @@ console.log("\n8. the zero-realization case says so rather than printing a zero"
   A("D: the zero-realization action produces a loss, not a zero", D.R.netSavings < 0);
   A("D: break-even is unreachable at any resolution rate", !isFinite(D.R.beResPct));
   A("D: the document prints the word never rather than a rate", summaryValue(D, "Break-even resolution") === "never");
-  A("D: the band reports severe", D.signals.severity === "severe");
+  A("D: zero realization is no action chosen, so the band and the decision are withheld (F2)", !("severity" in D.signals) && D.R.verdict === "Choose a capacity action first");
   A("D: the analyst read names the missing capacity action", D.analyst.join(" ").indexOf("no capacity action") >= 0);
 }
 

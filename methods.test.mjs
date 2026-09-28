@@ -60,8 +60,8 @@ section("Cost per Contact Calculator");
   const region = SRC.slice(SRC.indexOf("/* @engine-start"), SRC.indexOf("/* @engine-end */")).replace(/^export /gm, "");
   const E = new Function("MECH", "MECH_INITIAL", "ELECTRIC", "GREEN", "AMBER", "createGuards", "guardVal", "guardLine", "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
     region + "\nreturn { compute, BASE, DEFAULTS };")(MECH, MECH_INITIAL, COLORS.electric, COLORS.green, COLORS.amber, createGuards, guardVal, guardLine, benchmark, conf.emitGrades, conf.voidResult, conf.isVoid, conf.railEvidence, conf.weakerStream, conf.realizationFromCred);
-  const r = E.compute(E.DEFAULTS.d, E.DEFAULTS.mech), q = r.dividend.find((x) => x.p === P.step);
-  ok("the example runs at the tool's opening case with no correction", r.guards.length === 0 && E.DEFAULTS.mech === MECH_INITIAL);
+  const r = E.compute(E.DEFAULTS.d, "hiring"), q = r.dividend.find((x) => x.p === P.step);
+  ok("the example runs at the opening case with avoided hiring chosen; the tool itself opens with no action (F2)", r.guards.length === 0 && E.DEFAULTS.mech === MECH_INITIAL && MECH_INITIAL === "none");
   ok("contacts per resolution and cost per resolution equal the engine", near(r.C, P.C, 5e-7) && near(r.cprLoaded, P.cpr, 5e-7));
   ok("resolutions, repeats and repeat share equal the engine", r.handled === P.handled && r.resolutions === P.resolutions && r.repeatContacts === P.repeats && near(r.repeatShare, P.repeatShare, 5e-6));
   ok("burden, blended handle cost and FTE burden equal the engine", near(r.burden, P.burden, 0.005) && near(r.blendedHandle, P.blendedHandle, 5e-5) && near(r.blendedEffMin, P.blendedEffMin, 5e-9) && near(r.fteBurden, P.fteBurden, 5e-4));
@@ -79,8 +79,8 @@ section("Channel Shift Model");
   const region = SRC.slice(SRC.indexOf("/* @engine-start"), SRC.indexOf("/* @engine-end */")).replace(/^export /gm, "");
   const E = new Function("MECH", "MECH_INITIAL", "COLORS", "createGuards", "guardVal", "guardLine", "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
     region + "\nreturn { compute, buildVerdict, DEFAULTS };")(MECH, MECH_INITIAL, COLORS, createGuards, guardVal, guardLine, benchmark, conf.emitGrades, conf.voidResult, conf.isVoid, conf.railEvidence, conf.weakerStream, conf.realizationFromCred);
-  const r = E.compute(E.DEFAULTS.d, E.DEFAULTS.mech), v = E.buildVerdict(E.DEFAULTS.d, r, E.DEFAULTS.mech);
-  ok("the example runs at the tool's opening case with no correction and no scaling", r.guards.length === 0 && !r.scaled && E.DEFAULTS.mech === MECH_INITIAL);
+  const r = E.compute(E.DEFAULTS.d, "hiring"), v = E.buildVerdict(E.DEFAULTS.d, r, "hiring");
+  ok("the example runs at the opening case with avoided hiring chosen, no correction and no scaling; the tool itself opens with no action (F2)", r.guards.length === 0 && !r.scaled && E.DEFAULTS.mech === MECH_INITIAL && MECH_INITIAL === "none");
   ok("voice, eligible, shifted, displaced and bounced equal the engine", r.voiceVol === P.voiceVol && r.eligible === P.eligible && r.shifted === P.shifted && near(r.Dtot, P.displaced, 1e-6) && near(r.Etot, P.bounced, 1e-6));
   ok("residual uplift, residual and departing handle time equal the engine", near(r.residualUplift, P.uplift, 5e-7) && near(r.residualEff, P.residualEff, 1e-9) && near(r.deptEff, P.deptEff, 5e-6));
   ok("net minutes, labor, bot fees and net realizable equal the engine", near(r.netMin, P.netMin, 0.005) && near(r.laborCash, P.laborCash, 0.005) && near(r.botFee, P.botFee, 1e-9) && near(r.netRealizable, P.netRealizable, 0.005));
@@ -99,7 +99,7 @@ section("FCR Leakage Diagnostic");
     region + "\nreturn { engine, gradeFCR };")(MECH, MECH_ORDER, createGuards, benchmark, conf.emitGrades, conf.voidResult, conf.railEvidence, conf.weakerStream, conf.realizationFromCred);
   const d = (f) => benchmark("fcr.default." + f);
   /* The shipped engineInput line at the tool's opening values, scope and method declared. */
-  const I = { M: d("M"), fcr: d("fcrPct") / 100, mCPC: d("mCPC"), lCPC: d("lCPC"), repeatModel: "one", measuredRate: d("measuredPct") / 100, measuredTargetRate: null, pathModel: "one", repeatMult: d("repeatMult"), dScore: P.dScore, askTarget: d("targetPct") / 100, mech: MECH_INITIAL, sourcing: "inhouse", investOneTime: d("investOneTime"), investRecurring: d("investRecurring"), costBasis: "estimate", defDeclared: true, fcrPulledDirty: false, scope: "cc", method: "internal", windowDays: d("windowDays"), numericCorrections: [], diagComplete: true };
+  const I = { M: d("M"), fcr: d("fcrPct") / 100, mCPC: d("mCPC"), lCPC: d("lCPC"), repeatModel: "one", measuredRate: d("measuredPct") / 100, measuredTargetRate: null, pathModel: "one", repeatMult: d("repeatMult"), dScore: P.dScore, askTarget: d("targetPct") / 100, mech: "hiring", sourcing: "inhouse", investOneTime: d("investOneTime"), investRecurring: d("investRecurring"), costBasis: "estimate", defDeclared: true, fcrPulledDirty: false, scope: "cc", method: "internal", windowDays: d("windowDays"), numericCorrections: [], diagComplete: true };
   const r = E.engine(I);
   ok("the example runs at the tool's opening values with no correction", r.enumCorrections.length + r.numericCorrections.length + r.measuredCorrections.length === 0 && !r.fcrImpossible && !r.negImpossible && I.M === 50000 && I.fcr === 0.72 && I.askTarget === 0.8);
   ok("repeat share, repeats and the yearly burden equal the engine", near(r.repeatShare, P.repeatShare, 1e-12) && near(r.repeats, P.repeats, 1e-9) && near(r.burdenYr, P.burdenYr, 1e-6));
@@ -118,7 +118,7 @@ section("AI Deflection Reality Check");
   const E = new Function("MECH", "MECH_INITIAL", "createGuards", "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
     region + "\nreturn { engine, BASE, V_A };")(MECH, MECH_INITIAL, createGuards, benchmark, conf.emitGrades, conf.voidResult, conf.isVoid, conf.railEvidence, conf.weakerStream, conf.realizationFromCred);
   /* The shipped inputA line at the tool's DEFAULTS. */
-  const B = E.BASE, I = { M: B.M, cpc: B.cpc, marg: B.marg, eligibleRate: B.eligibleRate, mech: MECH_INITIAL, rampOn: true, rampMonths: B.rampMonths, evidence: "estimate", costBasisOwned: false, ...E.V_A };
+  const B = E.BASE, I = { M: B.M, cpc: B.cpc, marg: B.marg, eligibleRate: B.eligibleRate, mech: "hiring", rampOn: true, rampMonths: B.rampMonths, evidence: "estimate", costBasisOwned: false, ...E.V_A };
   ok("the tool opens with the ramp on at the registry's ramp, sourced to an estimate", /mech: MECH_INITIAL, rampOn: true, rampMonths: BASE\.rampMonths/.test(SRC) && /evidence: "estimate", costConfirmed: false/.test(SRC) && B.rampMonths === 6);
   const r = E.engine(I);
   ok("the example runs with no correction and a disclosed marginal cost", r.guards.length === 0 && r.margWasDefaulted && near(r.marg, P.marg, 1e-12));
@@ -179,8 +179,8 @@ section("Attrition Cost Calculator");
   const region = SRC.slice(SRC.indexOf("/* @engine-start"), SRC.indexOf("/* @engine-end */")).replace(/^export /gm, "");
   const E = new Function("COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "createGuards", "guardVal", "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE", "benchmark",
     region + "\nreturn { compute, DEFAULTS };")(COLORS, MECH, MECH_ORDER, MECH_INITIAL, createGuards, guardVal, conf.gradeConfidence, conf.emitGrades, conf.voidResult, conf.GRADE_RANK, conf.AXES, conf.CRED_GRADE, benchmark);
-  const r = E.compute(E.DEFAULTS.d), q = r.scenarios.find((x) => x.redPts === P.step);
-  ok("the example is the tool's opening case, with no correction", r.guards.length === 0 && !r.voided && E.DEFAULTS.d.avgSalary === P.salary && r.mechKey === MECH_INITIAL);
+  const r = E.compute({ ...E.DEFAULTS.d, mech: "hiring" }), q = r.scenarios.find((x) => x.redPts === P.step);
+  ok("the example is the opening case with avoided hiring chosen, no correction; the tool itself opens with no action (F2)", r.guards.length === 0 && !r.voided && E.DEFAULTS.d.avgSalary === P.salary && r.mechKey === "hiring" && E.DEFAULTS.d.mech === MECH_INITIAL && MECH_INITIAL === "none");
   ok("departures, hires and loaded hourly equal the engine", r.departures === P.departures && r.hires === P.hires && near(r.loadedHourly, P.loadedHourly, 1e-9));
   ok("cash per departure and its parts equal the engine", r.recruiting === P.recruiting && near(r.training, P.training, 0.005) && near(r.vacancy, P.vacancy, 0.005) && near(r.cashPerDeparture, P.cashPerDeparture, 0.005));
   ok("capacity per departure and its parts equal the engine", near(r.nestingLoss, P.nestingLoss, 0.005) && near(r.rampLoss, P.rampLoss, 0.005) && r.supervisorBurden === P.supervisorBurden && near(r.capacityPerDeparture, P.capacityPerDeparture, 0.005));

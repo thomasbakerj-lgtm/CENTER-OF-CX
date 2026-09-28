@@ -67,7 +67,7 @@ const MECH_KEYS = MECH_ORDER.slice();
 const CASH_KEY = MECH_KEYS.filter(k => MECH[k].cred === "cash").pop();
 const ZERO_KEY = MECH_KEYS.filter(k => MECH[k].f === 0)[0];
 
-const DEF = { M:80000, cpc:7, marg:0, eligibleRate:55, mech:MECH_INITIAL, rampOn:false, rampMonths:6,
+const DEF = { M:80000, cpc:7, marg:0, eligibleRate:55, mech:"hiring", rampOn:false, rampMonths:6,
   evidence:"estimate", costBasisOwned:false, apparentResolutionRate:65, repeatLeakRate:18,
   escalationPenalty:25, implOneTime:0, botPlatformCost:8000, qaCost:2000, tuningHours:40,
   tuningRate:65, knowledgeMaintHours:20, knowledgeRate:55 };
@@ -164,7 +164,7 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
 
 /* ---- 9. All four verdicts reachable ---- */
 { const vP=engine({...DEF,marg:4.2,costBasisOwned:true,evidence:"pilot",mech:CASH_KEY,eligibleRate:60,apparentResolutionRate:75,repeatLeakRate:10}).verdict;
-  const vB=engine({...DEF,marg:4.2,eligibleRate:60,apparentResolutionRate:70,repeatLeakRate:12,evidence:"estimate",mech:MECH_INITIAL}).verdict;
+  const vB=engine({...DEF,marg:4.2,eligibleRate:60,apparentResolutionRate:70,repeatLeakRate:12,evidence:"estimate",mech:"hiring"}).verdict;
   const vF=engine({...DEF,marg:4.2,eligibleRate:20,apparentResolutionRate:70,repeatLeakRate:12,evidence:"pilot",mech:CASH_KEY}).verdict;
   const vN=engine({...DEF,marg:4.2,eligibleRate:40,apparentResolutionRate:20,repeatLeakRate:60,botPlatformCost:60000,mech:CASH_KEY,evidence:"pilot"}).verdict;
   A("verdict: Proceed reachable", vP.indexOf("Proceed") === 0);
@@ -308,7 +308,7 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   const K90 = MECH_ORDER.filter(k => MECH[k].f === 0.9 && MECH[k].cred === "cash")[0];
 
   const tied  = engine({ ...BASE, evidence:"pilot", mech:K90 });            // Planning / Finance / Finance
-  const both  = engine({ ...BASE, evidence:"pilot", mech:MECH_INITIAL });   // Planning / Planning / Finance
+  const both  = engine({ ...BASE, evidence:"pilot", mech:"hiring" });   // Planning / Planning / Finance
   const rlLow = engine({ ...BASE, evidence:"pilot", mech:ZERO_KEY });       // Planning / Directional / Finance
 
   A("evidence-bound case names evidence alone", tied.gradeObj.boundBy === "evidence" && /^Bound by evidence\./.test(tied.gradeWhy));
@@ -516,7 +516,12 @@ console.log("\n14. enum inputs resolve through pick");
   }
 
   A("a hostile capacity action resolves to the zero-credit fallback", engine({ ...CLEAN, mech:"bogus" }).mechKey === MECH_FALLBACK);
-  A("a hostile capacity action never inherits the form initial", engine({ ...CLEAN, mech:"bogus" }).mechKey !== MECH_INITIAL);
+  A("the form opens on the zero-credit fallback: no action is chosen for the reader (F2)", MECH_INITIAL === "none" && MECH_INITIAL === MECH_FALLBACK);
+  /* F2: with no action chosen the net is a loss by construction, so the decision is withheld, never "Buy nothing". */
+  const unchosen = engine({ ...DEF, mech: "none" });
+  A("no action chosen: the decision is withheld and names what to choose", unchosen.verdict === "Choose a capacity action first" && /counts as \$0 until you say how it becomes cash/.test(unchosen.verdictWhy) && unchosen.verdictRoute === null);
+  A("no action chosen: the figures still show, and realize nothing from freed time", Number.isFinite(unchosen.netSavings) && unchosen.netSavings < 0 && unchosen.mechKey === "none");
+  A("choosing an action restores the decision", engine({ ...DEF, mech: "hiring" }).verdict === "Run a bounded pilot");
   A("a hostile evidence source never credits a document", engine({ ...CLEAN, evidence:"bogus" }).evidenceKey === "estimate");
   const both = engine({ ...CLEAN, M:-5, mech:"toString", evidence:"constructor", botPlatformCost:-1 });
   A("hostile enums between hostile inputs disclose in engine order",
