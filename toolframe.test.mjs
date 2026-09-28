@@ -68,7 +68,7 @@ section("2. The route rail");
     if (hrefs.includes(J.JOURNEY[id].route)) bad.push(`${id} links to itself`);
     if (hrefs.join() !== steps.slice(1).map((s) => s.href).join()) bad.push(`${id} links differ from the route`);
     if (!hrefs.every((x) => live.has(x))) bad.push(`${id} dead link`);
-    if (!html.includes(F.PRIVACY) || !/href="\/how-to-choose"[^>]*>Change route/.test(html)) bad.push(`${id} privacy or change route`);
+    if (!html.includes(F.privacyFor(id)) || !/href="\/how-to-choose"[^>]*>Change route/.test(html)) bad.push(`${id} privacy or change route`);
   }
   ok(`every tool's rail: one current step (this tool, not a link), the rest link the route's live steps, change route and the privacy line (${ids.length} tools) [${bad.slice(0, 4).join("; ")}]`, bad.length === 0);
   let n = 0; const off = [];
@@ -88,8 +88,13 @@ section("3. The privacy line stays true");
   // is ids, grades, bands, flags, counts, landing tags and closed 1.1 vocabularies scoped to their own events.
   // A new key here must be read against the line first.
   const keys = [...TR.ALLOWED_PROP_KEYS].sort().join();
-  ok("the analytics allowlist is the reviewed set (1.1 adds pillar, route, layer, surface, vendor, category, status, action, audience)", keys === "action,audience,bound_axis,category,depth,from,grade,layer,page_type,pillar,real,ref,repeat,route,severity,status,surface,to,tool,utm_campaign,utm_medium,utm_source,vendor,via_rail", keys);
+  ok("the analytics allowlist is the reviewed set (1.1 adds pillar, route, layer, surface, vendor, category, status, action, audience; 1.4 adds milestones)", keys === "action,audience,bound_axis,category,depth,from,grade,layer,milestones,page_type,pillar,real,ref,repeat,route,severity,status,surface,to,tool,utm_campaign,utm_medium,utm_source,vendor,via_rail", keys);
   ok("none of the 1.1 keys can ride a tool event", ["tool_view", "tool_complete", "next_step_click"].every((e) => Object.keys(TR.scopeProps(e, { pillar: "vendors", route: "cost", layer: "l4", surface: "home", vendor: "x", category: "ccaas", status: "complete", action: "request", audience: "finance" })).length === 0));
+  /* 1.4: the one entered value analytics carries is Roadmap's milestone code. It rides roadmap_snapshot only, and that
+     tool's rail says exactly what is recorded; every other tool keeps the shared line. */
+  ok("the milestone code rides roadmap_snapshot only", !("milestones" in TR.scopeProps("tool_complete", { milestones: "n".repeat(18) })) && "milestones" in TR.scopeProps("roadmap_snapshot", { milestones: "n".repeat(18) }));
+  ok("the milestone code carries no text: only 18 letters from n, p, r, b and c pass", TR.sanitizeProps({ milestones: "npbrc".repeat(3) + "nnn" }).milestones === "npbrcnpbrcnpbrcnnn" && !("milestones" in TR.sanitizeProps({ milestones: "n".repeat(17) })) && !("milestones" in TR.sanitizeProps({ milestones: "hello world 123456" })) && !("milestones" in TR.sanitizeProps({ milestones: "n".repeat(19) })));
+  ok("only Roadmap changes the privacy line, and its line names what is recorded", Object.keys(F.PRIVACY_BY_TOOL).join() === "roadmap-builder" && /status you set for each of the 18 milestones, with no text/.test(F.privacyFor("roadmap-builder")) && F.privacyFor("cost-per-contact") === F.PRIVACY);
   ok("a number passed to analytics is dropped", Object.keys(TR.sanitizeProps({ tool: "cost-per-contact", agents: 120, wage: 20.59, cpc: 7 })).join() === "tool");
 }
 

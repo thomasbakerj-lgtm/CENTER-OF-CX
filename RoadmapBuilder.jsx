@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Button } from "./src/lib/ui.jsx";
 import { K, Paper, Group, numInput, selectStyle, optionCss } from "./src/lib/frameKit.jsx";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
+import { trackRoadmap } from "./src/lib/track";
 
 /* A status is a word on the page; nothing is colour-coded. */
 const PHASES = [
@@ -58,6 +59,13 @@ const cleanState = (sc) => ({
   initiative: typeof (sc && sc.initiative) === "string" ? sc.initiative.slice(0, 200) : "",
 });
 
+/* Taxonomy 1.4: one letter per milestone in the fixed order m1 to m18 (n not started, p in progress, r at risk,
+   b blocked, c complete). The only thing this tool sends about what the reader entered; notes and the initiative
+   name never leave the tab. */
+const CODE_LETTER = { "not-started": "n", "in-progress": "p", "at-risk": "r", "blocked": "b", "complete": "c" };
+export const roadmapCode = (statuses) => MILESTONES_IN_ORDER.map((m) => CODE_LETTER[(statuses && statuses[m.id]) || "not-started"] || "n").join("");
+const MILESTONES_IN_ORDER = PHASES.flatMap((p) => p.milestones);
+
 export default function RoadmapBuilder() {
   const [init] = useState(() => cleanState(readScenario(TOOL_ID, DEFAULTS)));
   const [phase, setPhase] = useState(() => (Object.keys(init.statuses).length > 0 ? "saved" : "intro"));
@@ -79,7 +87,12 @@ export default function RoadmapBuilder() {
   const handleStart = () => setPhase("build");
 
 
-  const handleSave = () => setPhase("saved");
+  const sent = useRef(null);
+  const handleSave = () => {
+    const code = roadmapCode(statuses);
+    if (sent.current !== code) { sent.current = code; trackRoadmap.snapshot(code); }
+    setPhase("saved");
+  };
 
 
   const result = <Result label="Milestones complete" value={`${completedCount} of ${allMilestones.length}`} change={atRiskCount > 0 ? `${atRiskCount} at risk or blocked.` : "No milestone at risk or blocked."} />;

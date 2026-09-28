@@ -1,8 +1,8 @@
 # Measurement: event taxonomy, UTM convention and funnels
 
-Taxonomy version 1.3, 27 September 2026 (1.2 and 1.1 frozen the same day at redesign Phase 5; 1.0 frozen 25 September 2026, P2
-task 7, tracker 11-01 to 11-03). The sections below are 1.0; sections "Taxonomy 1.1" to "Taxonomy 1.3" list what each
-adds. Source of truth in code:
+Taxonomy version 1.4, 28 September 2026 (1.3 frozen 27 September 2026; 1.2 and 1.1 frozen the same day at redesign Phase 5;
+1.0 frozen 25 September 2026, P2 task 7, tracker 11-01 to 11-03). The sections below are 1.0; sections "Taxonomy 1.1" to
+"Taxonomy 1.4" list what each adds. Source of truth in code:
 `src/lib/track.js`; pins in `track.test.mjs` section P. PostHog (free tier) is the event store; Vercel Analytics counts
 page views only.
 
@@ -87,11 +87,25 @@ Create these as saved insights (Product analytics, New insight, Funnels), conver
    bring readers who finish a diagnostic.
 5. **Intent.** Funnel `tool_complete` then `report_export` then `expert_read_submit`, broken down by `grade`.
 
+## Taxonomy 1.4 (28 September 2026, Roadmap sequence capture, P6 item 17)
+
+1.4 only adds. Every earlier name keeps its meaning.
+
+| Change | Detail |
+|---|---|
+| New event `roadmap_snapshot` | The Roadmap Builder summary was opened. Carries `tool` and `milestones`. Sent once per distinct code in a visit to the page |
+| New property `milestones` | One letter per fixed milestone m1 to m18, in order: `n` not started, `p` in progress, `r` at risk, `b` blocked, `c` complete. Exactly 18 letters from that set; anything else is dropped. Travels on `roadmap_snapshot` only |
+
+What it answers: across real plans, which milestones stall (at risk or blocked) and in what order work gets done. Notes, the
+initiative name and anything typed never travel; the tool's page says what is recorded.
+
 ## Rules
 
 - Add an event only to `EV` in `src/lib/track.js`, with a validator for any new property, a row here, and a pin in
   `track.test.mjs`.
-- Never send a figure the reader entered, a result value, a name, an email address or a company.
+- Never send a figure the reader entered, a result value, a name, an email address or a company. The one entered value any
+  event carries is the Roadmap Builder's milestone statuses (1.4), a fixed 18-letter code with no text, said on that tool's
+  page and in the Privacy Policy.
 - Measurement stays on the PostHog free tier (CLAUDE.md section 10: paid analytics waits until free-tier limits are
   actually hit).
 

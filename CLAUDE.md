@@ -1445,6 +1445,17 @@ dashboard, the 12-phase growth program.
    examples at avoided hiring and say so (pins unchanged). Harness fixtures that pinned "the shipped default" now pin
    avoided hiring explicitly; new pins prove the opening state, the withheld decisions and their restoration. Suite 25,955;
    live check 256 of 256; browser at 1440 and 390 on the five tools clean.
+   PR #75 merged by TB's instruction (48f1283).
+84. S24 (28 Sep), P6 item 17 part 2, Roadmap anonymous sequence capture (TB: "go"). Taxonomy 1.4: event
+   `roadmap_snapshot` with `tool` and `milestones`, one letter per fixed milestone m1 to m18 (n, p, r, b, c for not
+   started, in progress, at risk, blocked, complete), exactly 18 letters or dropped, scoped to that event only. Sent when
+   the reader opens the summary, once per distinct code; notes and the initiative name never travel. It is the first event
+   that carries anything the reader entered, so it is disclosed where it happens: Roadmap's rail says what is recorded
+   (`PRIVACY_BY_TOOL` in ToolFrame; every other tool keeps the shared line) and the Privacy Policy's PostHog paragraph
+   names the exception. `docs/MEASUREMENT.md` 1.4 section and rule. Gates: `track.test.mjs` P1 to P9 (version, names,
+   the code builder, the summary-only send, no text on the wire), `toolframe.test.mjs` (scope, validator, per-tool privacy
+   line). Suite 25,964; live check 256 of 256; browser at 1440 and 390 clean. Once events arrive, a PostHog breakdown of
+   `milestones` shows where plans stall.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1523,7 +1534,7 @@ P6. Remaining debt.
   14. ~~TCO and BCB publish verdicts on the rail.~~ Done S24 (item 77): no tool publishes a verdict; the rail refuses them.
   15. ~~External getters and origin grades.~~ Done S24 (items 78 and 79).
   16. ~~BCB next steps, TCO guard case, Field labels.~~ Done S24 (item 80). ~~`MECH_INITIAL` F2~~ done S24 (item 83).
-  17. Roadmap anonymous sequence capture; ~~Attrition root-cause layer from the Agent Experience content~~ (done S24, item 82).
+  17. ~~Roadmap anonymous sequence capture~~ (done S24, item 84); ~~Attrition root-cause layer~~ (done S24, item 82).
   18. WS10 performance re-scope and Core Web Vitals; ~~root `download`~~ archived S24 (item 82).
 
 P7. Gated on TB or the corpus.
