@@ -47,9 +47,9 @@ export const CPC_MODEL = {
     { label: "Resolution premium colour", range: "Amber above " + benchmark("cpc.band.gapAmber") + "%, red above " + benchmark("cpc.band.gapRed") + "%", meaning: "Colour only. It reaches no confidence axis." },
     { label: "Shallow repeat check", range: "FCR under " + pc(benchmark("cpc.read.lowFcr"), 0) + " with M under " + benchmark("cpc.read.shallowM"), meaning: "The repeat path is likely understated; completeness holds Directional until M is checked." },
   ],
-  bandsNote: "Every line is a threshold in the registry with its rationale. The vertical planning ranges on the tool page are context only and feed no figure.",
+  bandsNote: "Every line is a threshold in the registry with its rationale.",
   constants: () => [
-    ...benchmarksForTool("cost-per-contact").map((e) => e.id).filter((id) => !id.startsWith("cpc.vert.")),
+    ...benchmarksForTool("cost-per-contact").map((e) => e.id),
     "market.wage.agent", "load.benefits",
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {

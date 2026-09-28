@@ -87,13 +87,6 @@ const DIV_STEPS = [benchmark("cpc.dividend.step1"), benchmark("cpc.dividend.step
 const DIV_TIERS = ["Operational", "Root-cause work", "Transformation"];
 const QUOTED_STEP = DIV_STEPS[1];
 const quoted = (r) => r.dividend.find(x => x.p === QUOTED_STEP) || {};
-/* Vertical context ranges. Internal planning heuristics, labelled so on the page.
-   They feed no figure and reach no axis. */
-const vert = (k, label) => ({ vert: label,
-  cpc: `$${benchmark(`cpc.vert.${k}.cpcLow`)} to $${benchmark(`cpc.vert.${k}.cpcHigh`)}`,
-  cpr: `$${benchmark(`cpc.vert.${k}.cprLow`)} to $${benchmark(`cpc.vert.${k}.cprHigh`)}`,
-  fcr: `${benchmark(`cpc.vert.${k}.fcr`)}%` });
-const VBENCH = [vert("fin", "Financial Services"), vert("health", "Healthcare"), vert("retail", "Retail & eCommerce")];
 
 /* Scenario contract. Module scope for stable identity across renders. */
 const TOOL_ID = "cost-per-contact";
@@ -186,14 +179,14 @@ function compute(d, mechIn) {
   /* Guard disclosure comes FIRST. If the engine had to change an input, that is the
      most important thing on the page: every figure below it was computed from a
      number the user did not enter. */
-  for (const g of guards) flags.push({ sev: "warn", t: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the possible range. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.` });
-  if (margDerived) flags.push({ sev: "info", t: `No usable marginal cost was entered, so marginal was derived at ${Math.round(MARG_SHARE * 100)}% of loaded (${money(marg)}). Marginal cost drives the repeat-demand burden and every released figure. Enter your real variable cost before presenting any of them.` });
-  if (loaded > 0 && marg >= loaded) flags.push({ sev: "warn", t: "Marginal cost is not below loaded. Marginal must be the lower, variable cost. Eliminating a contact can't recover the fixed platform and facilities in the loaded figure. Check the cost basis." });
-  if (chPctTotal !== 100) flags.push({ sev: "warn", t: chPctTotal === 0 ? `Channel mix sums to 0%. Blended handle cost and the FTE burden below are not computed from your mix; effective handle time falls back to ${EFF_AHT_FALLBACK} minutes. Set the mix before reading either.` : `Channel mix sums to ${chPctTotal}%, not 100%. Channel spend is scaled to volume, but blended handle cost reads true only at 100%.` });
-  if (repeatShare > REPEAT_SHARE_LINE) flags.push({ sev: "info", t: `Repeat demand is ${(repeatShare * 100).toFixed(0)}% of all contacts, a resolution problem, not a price problem. Cutting contact cost won't fix it; raising FCR will.` });
-  if (fcr < LOW_FCR && Mu < SHALLOW_M) flags.push({ sev: "warn", t: `Low FCR (${n(d.fcrRate)}%) paired with shallow non-FCR depth (M=${Mu}) likely understates the repeat burden. Validate reopened cases, callbacks, transfers, and follow-ups. Real M is usually higher than ${SHALLOW_M}.` });
-  if (mechKey === "none") flags.push({ sev: "warn", t: "No capacity action selected: realizable savings are $0. Pick a mechanism (overtime, hiring avoidance, vendor reduction, or headcount) before presenting any savings number." });
-  if (mechKey === "headcount") flags.push({ sev: "info", t: "Headcount reduction is fully cashable but carries the highest change and CSAT risk. Confirm the FCR gain is durable before committing to it." });
+  for (const g of guards) flags.push({ sev: "warn", t: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the possible range. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input; until then the result grades Directional.` });
+  if (margDerived) flags.push({ sev: "info", t: `No usable marginal cost was entered, so marginal was derived at ${Math.round(MARG_SHARE * 100)}% of loaded (${money(marg)}). Marginal cost (the variable cost that goes away when a contact does) drives the repeat-demand burden and every released figure. Enter your own variable cost before you present any of them.` });
+  if (loaded > 0 && marg >= loaded) flags.push({ sev: "warn", t: "Marginal cost is not below loaded. Marginal should be the lower figure: the variable cost of one contact. Removing a contact leaves the fixed platform and facilities costs in the loaded figure unchanged. Check the cost basis." });
+  if (chPctTotal !== 100) flags.push({ sev: "warn", t: chPctTotal === 0 ? `Channel mix sums to 0%. Blended handle cost and the FTE burden below use a fallback effective handle time of ${EFF_AHT_FALLBACK} minutes because there is no mix to weight. Set the mix before reading either.` : `Channel mix sums to ${chPctTotal}%. Channel spend is scaled to volume. Blended handle cost reads true only when the mix totals 100%.` });
+  if (repeatShare > REPEAT_SHARE_LINE) flags.push({ sev: "info", t: `Repeat demand is ${(repeatShare * 100).toFixed(0)}% of all contacts. At this level it is a resolution problem: raising FCR reduces it, while a lower price per contact leaves every repeat in place.` });
+  if (fcr < LOW_FCR && Mu < SHALLOW_M) flags.push({ sev: "warn", t: `A low FCR (${n(d.fcrRate)}%) with so few contacts per unresolved issue (M = ${Mu}) likely understates the repeat burden. Check reopened cases, callbacks, transfers and follow-ups in your data. At this FCR, M is usually higher than ${SHALLOW_M}.` });
+  if (mechKey === "none") flags.push({ sev: "warn", t: "No capacity action selected: realizable savings are $0. Choose how freed time will be used (less overtime, hiring avoided, vendor reduction or headcount) before you present any savings figure." });
+  if (mechKey === "headcount") flags.push({ sev: "info", t: "Headcount reduction converts in full to cash and carries the highest change and CSAT risk (CSAT is customer satisfaction). Confirm the FCR gain holds over time before you commit to it." });
 
   return { C, gapPct, cprLoaded, loaded, marg, margDerived, margEntered, mf, mechKey, cred: MECH[mechKey].cred, fcrPct, Mu, vol, agentHourly, overheadMult, pHrs, guards, blocked: guards.length > 0, handled: Math.round(handled), resolutions: Math.round(resolutions), repeatContacts: Math.round(repeatContacts), repeatShare, burden, burdenLoaded, channels, blendedHandle, blendedEffMin, blendedEffMinFallback, chPctTotal, fteBurden, dividend, flags };
 }
@@ -201,14 +194,14 @@ function compute(d, mechIn) {
 function buildAnalystRead(d, r, mechKey) {
   const out = [];
   const unit = d.denominator === "issues" ? "resolved issue" : "handled contact";
-  out.push(`Your cost per contact is ${money(r.loaded)}, but your cost per resolution is ${money(r.cprLoaded)}, a ${r.gapPct.toFixed(0)}% premium. The gap is repeat demand: ${(r.repeatShare * 100).toFixed(0)}% of every handled contact is a repeat tied to an unresolved issue. The contact price isn't the problem; the repeat rate is. That's the 2026 move from cost-per-contact to resolution-cost thinking.`);
+  out.push(`Each contact costs ${money(r.loaded)} fully loaded, and each resolved issue costs ${money(r.cprLoaded)}, ${r.gapPct.toFixed(0)}% more. The difference is repeat demand: ${(r.repeatShare * 100).toFixed(0)}% of handled contacts are repeats about an issue that was not resolved the first time. The repeat rate drives the cost of a resolution, so that is the lever to study first.`);
 
-  out.push(`Your repeat-demand capacity burden is ${fmtK(r.burden)}/mo (${r.fteBurden.toFixed(1)} FTE of handling), the marginal cost of all repeat contacts. Read it as a ceiling, not a savings figure: you can't release all of it, because FCR never reaches 100%. The realistic releases come from the FCR improvements below.`);
+  out.push(`The repeat-demand burden is ${fmtK(r.burden)}/mo, the marginal cost of handling every repeat contact, or ${r.fteBurden.toFixed(1)} FTE (full-time equivalents) of agent time. Read it as a ceiling. You will not release all of it, because FCR never reaches 100%, and none of it is a saving on its own. The FCR steps below show what a realistic improvement releases.`);
 
   const d10 = r.dividend.find(x => x.p === QUOTED_STEP);
-  if (d10) out.push(`Lifting FCR ${QUOTED_STEP} points to ${d10.newFCR.toFixed(0)}% releases ${fmtK(d10.released)}/mo of that burden (capacity released, not yet cash). At your selected action, ${MECH[r.mechKey].label}${r.mechKey !== "none" ? ` (${Math.round(r.mf * 100)}%)` : ""}, ${fmtK(d10.realizable)}/mo is realizable this cycle. ${r.mechKey === "none" ? "Right now that's $0 because no capacity action is selected." : "Realization depends entirely on that action. Change it and the number changes."} A +${QUOTED_STEP} point FCR move is root-cause work, not a quick toggle; treat +${DIV_STEPS[2]} as a transformation case, not a base case.`);
+  if (d10) out.push(`Lifting FCR ${QUOTED_STEP} points to ${d10.newFCR.toFixed(0)}% releases ${fmtK(d10.released)}/mo of that burden as agent capacity, which becomes cash only through the capacity action you choose. ${r.mechKey === "none" ? `That is $0 for now because no capacity action is selected: the capacity action above still reads "${MECH.none.label}".` : `With ${MECH[r.mechKey].label} (${Math.round(r.mf * 100)}%), ${fmtK(d10.realizable)}/mo is realizable this cycle. The realizable figure moves with that action alone. Change the action and it changes.`} A ${QUOTED_STEP} point FCR gain usually takes root-cause work on processes, knowledge and systems. Treat +${DIV_STEPS[2]} as a transformation case and plan on smaller steps.`);
 
-  out.push(`Reported cost-per-contact and cost-per-resolution are full loaded cost, correct for unit-cost metrics. Capacity burden and released figures are marginal. Realizable is marginal scaled by the capacity action. Those are four different numbers and the report keeps them separate on purpose. Most CX ROI decks blur them, which is how bad automation gets justified.`);
+  out.push(`Cost per contact and cost per resolution use the fully loaded cost, which is the right basis for unit costs. The burden and the released figures use the marginal cost. Realizable is the released figure scaled by the capacity action. These are four different numbers, and the report keeps them apart so that a saving is never read off a unit cost.`);
   return out;
 }
 
@@ -449,13 +442,13 @@ export default function CostPerContactCalculator() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Cost + Economics" name="Cost per Contact" title="What does a contact cost, and what does a resolution cost?"
-      lede="A $7 call that takes three contacts to resolve is a $21 resolution. This separates handle cost from resolution cost and keeps four things distinct that most ROI decks blur: cost reported, repeat-demand burden, capacity released, and savings realized."
+      lede="A $7 call that takes three contacts to resolve is a $21 resolution. This tool separates the cost of handling a contact from the cost of resolving an issue, and keeps four figures apart: the cost you report, the repeat-demand burden, the capacity an FCR gain releases, and the savings you can realize."
       method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
       result={result} pinned={voidReason ? null : { label: "Cost per resolution", value: money(r.cprLoaded) }}>
       <style>{`${FONT_IMPORT_CSS}.cpc-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
 
       {Object.keys(pulled).length > 0 && (
-        <p style={{ ...card, ...body, padding: "12px 16px" }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from {pullSources.length ? pullSources.join(", ") : "a previous tool"}. Every field stays editable.</p>
+        <p style={{ ...card, ...body, padding: "12px 16px" }}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from {pullSources.length ? pullSources.join(", ") : "a previous tool"}. You can edit every field.</p>
       )}
 
       <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -469,43 +462,43 @@ export default function CostPerContactCalculator() {
         </div>
         <div style={grid(190)}>
           <NumField tone="dark" label={volLabel} value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={0} pulled={pulled.monthlyContacts} />
-          <NumField tone="dark" label="FCR rate" value={d.fcrRate} onChange={v => set("fcrRate", v)} suffix="%" step={1} min={0} max={100} pulled={pulled.fcrRate} hint="First contact resolution" />
-          <NumField tone="dark" label="Non-FCR contacts to resolution (M)" value={d.contactsPerUnresolved} onChange={v => set("contactsPerUnresolved", v)} step={0.1} min={1} hint="TOTAL contacts when not resolved first time, incl. the first. 1 first + 2 follow-ups = 3.0" />
+          <NumField tone="dark" label="FCR rate" value={d.fcrRate} onChange={v => set("fcrRate", v)} suffix="%" step={1} min={0} max={100} pulled={pulled.fcrRate} hint="First contact resolution: the share of issues solved on the first contact" />
+          <NumField tone="dark" label="Non-FCR contacts to resolution (M)" value={d.contactsPerUnresolved} onChange={v => set("contactsPerUnresolved", v)} step={0.1} min={1} hint="Total contacts an issue takes when the first contact does not resolve it, counting the first. One contact plus two follow-ups is 3.0" />
         </div>
       </fieldset>
 
       <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
         <legend style={{ ...kicker, padding: "0 6px" }}>Question 2 of 3 · Cost basis</legend>
-        <p style={{ ...small, margin: 0 }}>Pulled from TCO when available.</p>
+        <p style={{ ...small, margin: 0 }}>Filled from your TCO (total cost of ownership) run when you have one.</p>
         <div style={grid(160)}>
-          <NumField tone="dark" label="Loaded cost / contact" value={d.loadedCPC} onChange={v => set("loadedCPC", v)} prefix="$" step={0.25} min={0} pulled={pulled.loadedCPC} hint="Fully-loaded unit cost" />
-          <NumField tone="dark" label="Marginal cost / contact" value={d.marginalCPC} onChange={v => set("marginalCPC", v)} prefix="$" step={0.25} min={0} pulled={pulled.marginalCPC} hint="Variable handle cost" />
-          <NumField tone="dark" label="Agent hourly" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" suffix="/hr" step={0.5} min={0} pulled={pulled.agentHourly} hint="For channel view" />
-          <NumField tone="dark" label="Productive hrs / FTE / mo" value={d.productiveHoursPerFTE} onChange={v => set("productiveHoursPerFTE", v)} suffix="hrs" step={5} min={1} hint={`After shrinkage (~${BASE.productiveHoursPerFTE})`} />
+          <NumField tone="dark" label="Loaded cost per contact" value={d.loadedCPC} onChange={v => set("loadedCPC", v)} prefix="$" step={0.25} min={0} pulled={pulled.loadedCPC} hint="Full cost of one contact: labor, benefits, platform and facilities" />
+          <NumField tone="dark" label="Marginal cost per contact" value={d.marginalCPC} onChange={v => set("marginalCPC", v)} prefix="$" step={0.25} min={0} pulled={pulled.marginalCPC} hint="The variable cost that goes away when one contact does" />
+          <NumField tone="dark" label="Agent hourly" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" suffix="/hr" step={0.5} min={0} pulled={pulled.agentHourly} hint="Used for the channel costs below" />
+          <NumField tone="dark" label="Productive hours per FTE a month" value={d.productiveHoursPerFTE} onChange={v => set("productiveHoursPerFTE", v)} suffix="hrs" step={5} min={1} hint={`Hours a full-time agent spends handling work after breaks, training and absence (about ${BASE.productiveHoursPerFTE})`} />
         </div>
       </fieldset>
 
       <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 12, borderColor: mechKey === "none" ? HOUSE.electric : hair }}>
         <legend style={{ ...kicker, padding: "0 6px" }}>Question 3 of 3 · Capacity action</legend>
-        <p style={{ ...body, margin: 0 }}>How freed time becomes value. {MECH[mechKey].note}</p>
+        <p style={{ ...body, margin: 0 }}>What you will do with the agent time an FCR gain frees up. Freed time turns into money only through one of these actions. {MECH[mechKey].note}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <select aria-label="Realization mechanism" value={mechKey} className="cpc-sel" onChange={e => setMech(e.target.value)} style={{ minHeight: TOUCH, fontSize: 15, fontWeight: 600, padding: "0 12px", borderRadius: RADIUS.field, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, background: HOUSE.navy, color: HOUSE.mist, cursor: "pointer" }}>
             {MECH_ORDER.map(k => <option key={k} value={k}>{MECH[k].label}{k !== "none" ? `  (${Math.round(MECH[k].f * 100)}%)` : ""}</option>)}
           </select>
           <label style={{ display: "flex", alignItems: "center", gap: 8, minHeight: TOUCH, cursor: "pointer" }}>
             <input type="checkbox" checked={d.validated} onChange={e => set("validated", e.target.checked)} style={{ width: 18, height: 18, accentColor: HOUSE.electric }} />
-            <span style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist }}>FCR & M validated from data</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist }}>FCR and M come from my reporting data</span>
           </label>
         </div>
       </fieldset>
 
       <p style={{ ...card, ...body, padding: "14px 16px" }}>
-        The <strong style={{ color: HOUSE.mist }}>burden</strong> is a ceiling, the marginal cost of all repeat demand, not a savings figure. You can't release all of it (FCR never hits 100%). Realistic releases from FCR improvement, and what's actually realizable given your capacity action, are below.
+        The <strong style={{ color: HOUSE.mist }}>burden</strong> is the marginal cost of all repeat demand. Read it as a ceiling: FCR never reaches 100%, so you will never release all of it. Below are the capacity a realistic FCR gain releases and the part your capacity action can turn into savings.
       </p>
 
       <section aria-label="Integrity checks" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <h2 style={h2}>Integrity checks</h2>
-        {r.flags.length === 0 && <Finding level="clear" title="Integrity checks passed">Marginal below loaded, channel mix at 100%, M consistent with FCR, capacity action set. Numbers are internally consistent.</Finding>}
+        {r.flags.length === 0 && <Finding level="clear" title="Integrity checks passed">Marginal cost sits below loaded, the channel mix totals 100%, M fits the FCR you entered and a capacity action is chosen. The figures agree with each other.</Finding>}
         {r.flags.map((f, i) => isNoActionFlag(f)
           ? <Finding key={i} level="unknown" title="Your choice is still open">{f.t}</Finding>
           : f.sev === "warn"
@@ -514,8 +507,8 @@ export default function CostPerContactCalculator() {
       </section>
 
       <section aria-label="FCR improvement" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <h2 style={h2}>FCR improvement: capacity released, then realizable</h2>
-        <p style={body}>Released is incremental capacity at marginal cost ({money(r.marg)}). Realizable applies your capacity action ({MECH[mechKey].label}{mechKey !== "none" ? `, ${Math.round(r.mf * 100)}%` : ""}).</p>
+        <h2 style={h2}>What an FCR gain releases, and what you can realize</h2>
+        <p style={body}>Released is the agent time the gain frees, valued at marginal cost ({money(r.marg)} a contact). Realizable is the part your capacity action turns into savings ({MECH[mechKey].label}{mechKey !== "none" ? `, ${Math.round(r.mf * 100)}%` : ""}).</p>
         <div style={grid(180)}>
           {r.dividend.map((s, i) => (
             <div key={i} style={card}>
@@ -527,7 +520,7 @@ export default function CostPerContactCalculator() {
               <div style={{ ...fig, fontSize: 22, color: HOUSE.body }}>{fmtK(s.released * 12)}/yr</div>
               <div style={{ ...small, marginTop: 8 }}>Realizable ({Math.round(r.mf * 100)}%)</div>
               <div style={fig}>{fmtK(s.realizable * 12)}/yr</div>
-              <div style={{ ...small, marginTop: 6 }}>{Math.round(s.avoided).toLocaleString()} avoided/mo · {s.fte.toFixed(1)} FTE</div>
+              <div style={{ ...small, marginTop: 6 }}>{Math.round(s.avoided).toLocaleString()} contacts avoided a month · {s.fte.toFixed(1)} FTE</div>
             </div>
           ))}
         </div>
@@ -535,7 +528,7 @@ export default function CostPerContactCalculator() {
 
       <section aria-label="Channel handle economics" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <h2 style={h2}>Channel handle economics</h2>
-        <p style={body}>Handle-labor only. Concurrency is why chat undercuts voice. Blended: <strong style={{ color: HOUSE.mist }}>{money(r.blendedHandle)}</strong>/contact. Averages hide complexity; shift only resolvable, low-complexity volume. Model it in <a href="/tools/channel-shift" style={{ color: PILLARS.diagnostics.onDark, fontWeight: 600 }}>Channel Shift</a>.</p>
+        <p style={body}>Agent labor only. Chat costs less per contact than voice because an agent can handle several chats at once (concurrency). Blended across your mix: <strong style={{ color: HOUSE.mist }}>{money(r.blendedHandle)}</strong> a contact. An average hides complexity, so move only simple contacts that the new channel can resolve. Model a move in <a href="/tools/channel-shift" style={{ color: PILLARS.diagnostics.onDark, fontWeight: 600 }}>Channel Shift</a>.</p>
         <div style={grid(180)}>
           {r.channels.map((ch, i) => (
             <div key={i} style={card}>
@@ -544,8 +537,8 @@ export default function CostPerContactCalculator() {
                 <span style={small}>{ch.pct}% of volume</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div><div style={small}>AHT</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{ch.aht}m</div></div>
-                <div><div style={small}>Effective (÷{ch.conc})</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{ch.effAHT.toFixed(1)}m</div></div>
+                <div><div style={small}>AHT (average handle time)</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{ch.aht}m</div></div>
+                <div><div style={small}>Per contact at {ch.conc} at once</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{ch.effAHT.toFixed(1)}m</div></div>
                 <div><div style={small}>Handle cost</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{money(ch.handleCPC)}</div></div>
                 <div><div style={small}>Handle spend</div><div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{fmtK(ch.spend)}</div></div>
               </div>
@@ -556,13 +549,13 @@ export default function CostPerContactCalculator() {
 
       <section aria-label="What it means" style={{ ...card, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
         <h2 style={h2}>What it means</h2>
-        <span style={{ ...small, display: "block", marginBottom: 8 }}>Cost reported, capacity created and savings realized are three different numbers.</span>
+        <span style={{ ...small, display: "block", marginBottom: 8 }}>The cost you report, the capacity you release and the savings you realize are separate figures.</span>
         {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "8px 0 0" : 0 }}>{t}</p>)}
       </section>
 
       <div style={{ ...card, padding: 0, overflow: "hidden" }}>
         <button type="button" aria-expanded={showMath} onClick={() => setShowMath(s => !s)} style={{ width: "100%", minHeight: TOUCH, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", background: "transparent", border: "none", cursor: "pointer", fontSize: 15, fontWeight: 600, color: HOUSE.mist, fontFamily: FONT }}>
-          <span>Show the math, every formula, every value</span><span style={{ color: HOUSE.muted }}>{showMath ? "−" : "+"}</span>
+          <span>Show the math: every formula and every value</span><span style={{ color: HOUSE.muted }}>{showMath ? "−" : "+"}</span>
         </button>
         {showMath && (
           <div style={{ padding: "4px 20px 16px" }}>
@@ -575,25 +568,21 @@ export default function CostPerContactCalculator() {
             {mathRow(`Released (+${QUOTED_STEP} FCR) = issues × (C − C₁) × marginal`, `${fmtK(quoted(r).released)}/mo`)}
             {mathRow(`Realizable = released × ${Math.round(r.mf * 100)}% (${MECH[mechKey].label})`, `${fmtK(quoted(r).realizable)}/mo`)}
             {mathRow("FTE burden = repeats × blended eff. min / 60 / prod hrs", `${r.fteBurden.toFixed(1)}`)}
-            <p style={{ ...small, marginTop: 12 }}>M = total contacts an unresolved issue takes (incl. the first). Reported CPC/CPR are loaded; burden and released are marginal; realizable applies the capacity action. FTE is a capacity equivalent, not a headcount cut. Every formula, constant and a worked example are in the <a href="/methodology/cost-per-contact" style={{ color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
+            <p style={{ ...small, marginTop: 12 }}>M is the total number of contacts an unresolved issue takes, counting the first. Cost per contact and cost per resolution use the loaded cost. The burden and the released figures use the marginal cost. Realizable applies the capacity action. FTE measures agent time as full-time equivalents; it describes capacity, and cutting heads is a separate decision. Every formula, constant and a worked example are in the <a href="/methodology/cost-per-contact" style={{ color: PILLARS.diagnostics.onDark, fontWeight: 600, textDecoration: "underline" }}>published method</a>.</p>
           </div>
         )}
       </div>
 
-      <section aria-label="Vertical planning ranges" style={card}>
-        <h2 style={h2}>Vertical planning ranges</h2>
-        <p style={{ ...small, margin: "0 0 12px" }}>These are internal planning heuristics, not published benchmarks. Context only; no figure above uses them.</p>
-        <div style={grid(150)}>
-          {VBENCH.map((b, i) => (
-            <div key={i} style={{ borderRadius: RADIUS.field, padding: "10px 12px", border: `1px solid ${hair}` }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, marginBottom: 4 }}>{b.vert}</div>
-              <div style={small}>CPC: {b.cpc}</div>
-              <div style={small}>CPR: {b.cpr}</div>
-              <div style={small}>Avg FCR: {b.fcr}</div>
-            </div>
-          ))}
+      {/* The vertical planning ranges (internal heuristics for three industries, with an "average FCR" that read as a
+          measured figure) were retired on 28 Sep 2026 (TB). Published figures by industry, where any exist, live on the
+          industry pages with their sources. */}
+      <section aria-label="Compare with your industry" style={card}>
+        <h2 style={h2}>How does yours compare?</h2>
+        <p style={{ ...body, margin: 0 }}>There is no reliable public benchmark for cost per contact by industry: published figures mix channels, cost definitions and company sizes. The industry pages show the figures that are published, such as first contact resolution, each with its source, and say where none exists.</p>
+        <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginTop: 8 }}>
+          <a href="/industries" style={{ display: "inline-flex", alignItems: "center", minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark }}>See your industry</a>
+          {r.fcrPct < FCR_LEAK_LINK && <a href="/tools/fcr-leakage" style={{ display: "inline-flex", alignItems: "center", minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark }}>Run FCR Leakage to find why resolution fails</a>}
         </div>
-        {r.fcrPct < FCR_LEAK_LINK && <a href="/tools/fcr-leakage" style={{ display: "inline-flex", alignItems: "center", minHeight: TOUCH, marginTop: 8, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark }}>Run FCR Leakage to find why resolution fails</a>}
       </section>
 
       {/* The report is paper (Brand Guide section 13): the actions sit on a paper panel until ReportActions moves onto the house in a later batch. */}
@@ -646,17 +635,17 @@ export default function CostPerContactCalculator() {
                 { label: "Repeat Demand Share", value: (r.repeatShare * 100).toFixed(0) + "%", color: AMBER, sub: `${r.repeatContacts.toLocaleString()}/mo` },
                 { label: "Repeat-Demand Burden", value: fmtK(r.burden) + "/mo", color: RED, sub: `ceiling · ${r.fteBurden.toFixed(1)} FTE` },
               ]},
-              { title: "Three Value Layers (don't conflate)", type: "table", rows: [
-                ["Repeat-demand burden (baseline ceiling, marginal)", fmtK(r.burden) + "/mo"],
-                [`Capacity released: FCR +${QUOTED_STEP}pts (incremental, marginal)`, fmtK(quoted(r).released) + "/mo"],
+              { title: "Three Value Layers, kept apart", type: "table", rows: [
+                ["Repeat-demand burden (the ceiling, at marginal cost)", fmtK(r.burden) + "/mo"],
+                [`Capacity released by FCR +${QUOTED_STEP} points (at marginal cost)`, fmtK(quoted(r).released) + "/mo"],
                 [`Realizable this cycle (${MECH[mechKey].label}, ${Math.round(r.mf * 100)}%)`, fmtK(quoted(r).realizable) + "/mo"],
-                ["Burden, loaded (accounting only, not savings)", fmtK(r.burdenLoaded) + "/mo"],
+                ["Burden at loaded cost (accounting view only, no saving)", fmtK(r.burdenLoaded) + "/mo"],
               ]},
               { title: "FCR Dividend: Released → Realizable", type: "table", rows: r.dividend.map(s => ["FCR +" + s.p + " → " + s.newFCR.toFixed(0) + "% (" + s.tier + ")", "released " + fmtK(s.released * 12) + "/yr · realizable " + fmtK(s.realizable * 12) + "/yr"]) },
               ...(r.guards.length ? [{ title: "⚠ Inputs Corrected Before Calculation", type: "findings", items: r.guards.map(guardLine) }] : []),
               ...(r.flags.length ? [{ title: "Integrity Checks", type: "findings", items: r.flags.map(f => f.t) }] : []),
               { title: "Analyst Read", type: "findings", items: analyst },
-              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where M is the TOTAL contacts an issue takes when not resolved on first contact (including the first). Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C; reported CPC/CPR are fully loaded (correct for unit-cost metrics). The repeat-demand burden is the marginal cost of all repeat contacts, a baseline ceiling, not a savings figure and not "created." Capacity released is the scenario-incremental marginal value of a specific FCR improvement; realizable applies the selected capacity action (${MECH[mechKey].label}, ${Math.round(r.mf * 100)}%), because freed capacity is not cash until taken as overtime reduction, hiring avoidance, vendor reduction, or headcount. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/cost-per-contact. Report grade: ${confidence}, ${gradeWhy}${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at ${Math.round(MARG_SHARE * 100)}% of loaded (${money(r.marg)}).` : ""}` },
+              { title: "Methodology", type: "text", content: `A resolved issue averages C = FCR + (1 - FCR) x M contacts, where FCR is first contact resolution and M is the total number of contacts an issue takes when the first contact does not resolve it, counting the first. Volume basis: ${d.denominator === "issues" ? "resolved issues (handled contacts derived as issues x C)" : "handled contacts (resolutions derived as contacts / C)"}. Cost per resolution = loaded x C. Cost per contact and cost per resolution are fully loaded, the right basis for unit costs. The repeat-demand burden is the marginal cost of all repeat contacts. It is a baseline ceiling, and it counts as neither a saving nor capacity created. Capacity released is the marginal value of the contacts a specific FCR improvement avoids. Realizable applies the selected capacity action (${MECH[mechKey].label}, ${Math.round(r.mf * 100)}%), because freed capacity becomes cash only when it is taken as less overtime, hiring avoided, vendor reduction or headcount. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/cost-per-contact. Report grade: ${confidence}, ${gradeWhy}${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""}${r.margDerived ? ` Marginal cost was not entered and was derived at ${Math.round(MARG_SHARE * 100)}% of loaded (${money(r.marg)}).` : ""}` },
             ]}
           />
       </div>

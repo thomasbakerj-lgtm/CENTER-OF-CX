@@ -136,7 +136,7 @@ for (const t of TOOLS) {
       } catch (e) { report(false, `${t.route} ${kind} PDF generates`, e.message.slice(0, 100)); }
     } else if (kind === "sample") report(false, `${t.route} sample link shows the result`);
     else {
-      const state = !shown ? "" : /result blocked|export void/i.test(v.text) ? "a blocked-result notice" : /Start [A-Z][a-z]+/.test(v.text) ? "its start screen" : "";
+      const state = !shown ? "" : /result blocked|export void/i.test(v.text) ? "a blocked-result notice" : /\bStart (?:the )?[A-Za-z]+/.test(v.text) ? "its start screen" : "";
       report(!!state, `${t.route} hostile link shows ${state || "no result and no start screen"}, so it claims no result`, state ? "" : shown ? "neither a result, a start screen nor a blocked notice" : "blank page");
     }
     await v.ctx.close();

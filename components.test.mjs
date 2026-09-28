@@ -159,7 +159,7 @@ section("10. Next step, byline, door, route card, states");
   for (const k of Object.keys(T.PILLARS)) {
     const d = h(U.Door, { pillar: k, number: "01", line: "l", meta: "m", selected: true });
     ok(`door ${k}: a radio, checked when chosen, readable on its fill`, /role="radio" aria-checked="true"/.test(d) && c(T.onFill(T.PILLARS[k].fill), T.PILLARS[k].fill) >= AA);
-    ok(`door ${k}: soon only on Research and Market Watch`, T.PILLARS[k].soon === d.includes(">SOON<"));
+    ok(`door ${k}: soon only on Research and Market Watch`, T.PILLARS[k].soon === d.includes(">Coming soon<"));
   }
   const rc = h(U.RouteCard, { kicker: "Your route", time: "17 minutes", title: "Where the cost comes from", steps: [1, 2, 3, 4, 5].map((i) => ({ name: "Step " + i })), ending: "Fix, build a case, or stop.", cta: "Start", href: "/tools/cost-per-contact" });
   ok("a route shows no more than three steps", rc.includes("Step 3") && !rc.includes("Step 4"));

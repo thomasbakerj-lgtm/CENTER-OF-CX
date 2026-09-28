@@ -93,7 +93,7 @@ export default function CXITAlignment() {
               <button key={a.id} type="button" role="tab" aria-selected={i === currentArea} onClick={() => setCurrentArea(i)} style={tabStyle(i === currentArea)}>{areaComplete(a.id) ? "\u2713 " : ""}{a.name}</button>
             ))}
           </div>
-          <Group legend={`Area ${currentArea + 1} of ${AREAS.length} · ${area.name}`} note="Rate each paired statement 1 to 5. The first is the CX perspective, the second the IT perspective. Gaps between scores reveal misalignment.">
+          <Group legend={`Area ${currentArea + 1} of ${AREAS.length} · ${area.name}`} note="Rate each paired statement 1 to 5. The first is the CX view, the second the IT view. The distance between the two answers shows where the sides disagree.">
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {area.pairs.map((pair, pi) => {
                 const cxVal = getScore(area.id, pi, "cx");
@@ -200,11 +200,11 @@ export default function CXITAlignment() {
                     gapLevel.label + ": " + gapLevel.desc,
                     "Largest gap: " + byGap[0].name + " (" + areaGap(byGap[0].id).toFixed(1) + " points).",
                     shared.length ? shared.length + " pair" + (shared.length === 1 ? " was" : "s were") + " answered " + RUBRIC.failAt + " or below by both sides: agreement that the capability is missing, which the gap does not show." : "No pair was answered " + RUBRIC.failAt + " or below by both sides.",
-                    "A gap is the distance between how CX and IT rate the same capability. It measures agreement, never capability.",
+                    "A gap is the distance between how CX and IT rate the same capability. It measures how far the two sides agree. When both rate a capability low, it appears as a shared weakness.",
                   ]},
                   { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ", " + (c.kind === "misaligned" ? "misaligned" : "shared weakness") + ": CX " + c.cx + ", IT " + c.it + " on \"" + c.texts.cx + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No pair reaches the gap line or the shared-weakness line, so the rubric raises no action.", detail: "The area with the largest gap is still the place to look first.", priority: "medium" }] },
                   { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
-                  { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each pair scores the gap between its CX and IT answers on a 1 to 5 scale; an area scores the average gap of its pairs and the overall score is the equally weighted average of the five areas. A pair " + RUBRIC.gapAt + " or more points apart is misaligned; a pair answered " + RUBRIC.failAt + " or below on both sides is a shared weakness. Both add their action to the checklist, largest area gap first." },
+                  { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each pair scores the gap between its CX and IT answers on a 1 to 5 scale. An area scores the average gap of its pairs, and the overall score is the average of the five areas, weighted equally. A pair " + RUBRIC.gapAt + " or more points apart is misaligned. A pair answered " + RUBRIC.failAt + " or below on both sides is a shared weakness. Both add their action to the checklist, largest area gap first." },
                 ]} />
         </Paper>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

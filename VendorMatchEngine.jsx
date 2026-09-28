@@ -283,7 +283,7 @@ const cleanState = (sc) => {
 /* Interim disclosure (CLAUDE.md sections 12 and 13). This engine still scores a
    24-vendor CCaaS set from the Phase 1 model. The class-scoped rebuild on current
    research is Stage 4. Until then the page says so. */
-const METHOD_NOTE = "These fit scores come from the Phase 1 CCaaS model: 24 vendors, each scored on 27 dimensions, adjusted for your size, vertical, priorities and budget sensitivity. They are a starting shortlist, not a ranking on current research. Current research on CCaaS vendors is under way, and this engine will be rebuilt on it, ranking only within comparable classes of vendor. Scores near the top of the scale are not meaningfully different from each other.";
+const METHOD_NOTE = "These fit scores come from the Phase 1 CCaaS (contact center as a service) model: 24 vendors, each scored on 27 dimensions, then adjusted for your size, vertical, priorities and budget sensitivity. Use them as a starting shortlist. They do not rank vendors on current research. Current research on CCaaS vendors is under way, and this engine will be rebuilt on it, ranking only within comparable classes of vendor. Scores near the top of the scale are too close to tell apart in any meaningful way.";
 
 export default function VendorMatchEngine() {
   const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { fromLink: !!sc, d: cleanState(sc) }; });
@@ -328,7 +328,7 @@ export default function VendorMatchEngine() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Vendor Selection" name="Vendor Match" title="Which CCaaS vendors belong on your starting list?"
-      lede="Describe your environment, priorities and compliance needs to get a shortlist with the reasoning behind each fit. The ranking runs on the Phase 1 vendor model, and its method is disclosed with the results."
+      lede="Describe your environment, priorities and compliance needs, and get a shortlist with the reasoning behind each fit. The ranking runs on the Phase 1 vendor model, and its method is stated with the results."
       result={result} pinned={phase === "results" ? { label: "Vendors on the list", value: String(results.length) } : null}>
       <style>{FONT_IMPORT_CSS + optionCss("vm-sel")}</style>
 
@@ -343,16 +343,16 @@ export default function VendorMatchEngine() {
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <Select label="Industry vertical" value={d.vertical} onChange={v=>{set("vertical",v);set("compliance",[]);}} options={VERTICALS}/>
             <Select label="Operation size" value={d.size} onChange={v=>set("size",v)} options={SIZES}/>
-            <Select label="Current platform" value={d.currentPlatform} onChange={v=>set("currentPlatform",v)} options={PLATFORMS.map(p=>p.name)} hint="Helps identify migration-specific considerations"/>
+            <Select label="Current platform" value={d.currentPlatform} onChange={v=>set("currentPlatform",v)} options={PLATFORMS.map(p=>p.name)} hint="Used to flag what to plan for when you migrate from it"/>
           </div>
           {platformData&&platformData.notes&&(<div style={{...K.box,marginTop:16}}>
             <div style={{...K.kicker,marginBottom:6}}>Platform Context: {platformData.name}</div>
             <p style={K.body}>{platformData.notes}</p>
           </div>)}
-          <div style={{marginTop:18}}><Button onClick={()=>setStep(1)} disabled={!d.vertical||!d.size}>Next: What Matters</Button></div>
+          <div style={{marginTop:18}}><Button onClick={()=>setStep(1)} disabled={!d.vertical||!d.size}>Next: what matters</Button></div>
         </Group>)}
 
-        {step===1&&(<Group legend="What matters to your operation?" note="Select all that apply. The more you select, the more nuanced the match.">
+        {step===1&&(<Group legend="What matters to your operation?" note="Select all that apply. Each one you select shapes the match.">
           <div style={K.grid(240)}>
             {PRIORITIES.map(p=>{const on=d.priorities.includes(p.id);return(<button key={p.id} type="button" aria-pressed={on} onClick={()=>toggleArr("priorities",p.id)} style={pickStyle(on)}>
               <div style={{...K.strong,fontSize:14}}>{on?"\u2713 ":""}{p.name}</div>
@@ -361,7 +361,7 @@ export default function VendorMatchEngine() {
           </div>
           <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>
             <Button kind="secondary" onClick={()=>setStep(0)}>Back</Button>
-            <Button onClick={()=>setStep(2)} disabled={d.priorities.length===0}>Next: Compliance</Button>
+            <Button onClick={()=>setStep(2)} disabled={d.priorities.length===0}>Next: compliance</Button>
           </div>
         </Group>)}
 
@@ -371,7 +371,7 @@ export default function VendorMatchEngine() {
           </div>
           <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>
             <Button kind="secondary" onClick={()=>setStep(1)}>Back</Button>
-            <Button onClick={()=>setStep(3)}>Next: Weighting</Button>
+            <Button onClick={()=>setStep(3)}>Next: weighting</Button>
           </div>
         </Group>)}
 
@@ -391,7 +391,7 @@ export default function VendorMatchEngine() {
           </div>
           <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>
             <Button kind="secondary" onClick={()=>setStep(2)}>Back</Button>
-            <Button onClick={handleResults}>See My Matches</Button>
+            <Button onClick={handleResults}>See my matches</Button>
           </div>
         </Group>)}
       </>)}
@@ -452,7 +452,7 @@ export default function VendorMatchEngine() {
                 )}
                 <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:10}}>
                   <VendorIntro slug={v.slug} name={v.name} from={TOOL_ID} surface="tool"/>
-                  <Button kind="secondary" href={`/vendors/${v.slug}`}>View Full Profile</Button>
+                  <Button kind="secondary" href={`/vendors/${v.slug}`}>View the full profile</Button>
                 </div>
               </>)}
               {!isTop&&(<div style={{marginTop:8}}><VendorIntro slug={v.slug} name={v.name} from={TOOL_ID} surface="tool" kind="text"/></div>)}
@@ -493,7 +493,7 @@ export default function VendorMatchEngine() {
                 detail: `Strengths: ${v.strengths.join("; ")}. Risk: ${v.risks[0] || "N/A"}.${v.integrations && v.integrations.length > 0 ? ` Verified integrations: ${v.integrations.join(", ")}.` : ""}`,
                 priority: i === 0 ? "high" : undefined,
               })) },
-              { title: "Important Note", type: "text", content: "This shortlist is generated from independently scored vendor data across 27 weighted dimensions. Vendor fit depends on details this tool cannot capture: integration complexity, contract terms, implementation timelines, and organizational readiness. Use this as a starting point for deeper evaluation, not as a final decision." },
+              { title: "Important Note", type: "text", content: "This shortlist comes from independently scored Phase 1 vendor data across 27 weighted dimensions. Fit also depends on details this tool cannot capture: integration complexity, contract terms, implementation timelines and how ready your organization is. Use it as the starting point for a deeper evaluation. The final decision belongs to that evaluation." },
             ]}
           />
         </Paper>
@@ -501,15 +501,15 @@ export default function VendorMatchEngine() {
         <div style={K.grid(260)}>
           <a href="/contact" style={{...K.panel,display:"block",textDecoration:"none"}}>
             <div style={{...K.kicker,marginBottom:8}}>Refine Your Shortlist</div>
-            <div style={{...K.strong,fontSize:18,marginBottom:8}}>Speak with a CX Consultant</div>
-            <p style={{...K.small,margin:"0 0 12px"}}>30 minutes to refine this shortlist based on integration complexity, contract terms, and organizational readiness.</p>
-            <span style={K.link}>Request Working Session</span>
+            <div style={{...K.strong,fontSize:18,marginBottom:8}}>Speak with a CX consultant</div>
+            <p style={{...K.small,margin:"0 0 12px"}}>30 minutes to refine this shortlist for integration complexity, contract terms and organizational readiness.</p>
+            <span style={K.link}>Request a working session</span>
           </a>
           <a href={introHref({slug:results[0].slug,from:TOOL_ID})} style={{...K.panel,display:"block",textDecoration:"none"}}>
             <div style={{...K.kicker,marginBottom:8}}>See It In Action</div>
             <div style={{...K.strong,fontSize:18,marginBottom:8}}>Request a Vendor Introduction</div>
-            <p style={{...K.small,margin:"0 0 12px"}}>We coordinate a tailored demo with your top match using your scenarios, not their standard pitch.</p>
-            <span style={K.link}>Request Introduction + Demo</span>
+            <p style={{...K.small,margin:"0 0 12px"}}>We arrange a demo with your top match, built around your own scenarios in place of the vendor's standard pitch.</p>
+            <span style={K.link}>Request an introduction and demo</span>
           </a>
         </div>
 

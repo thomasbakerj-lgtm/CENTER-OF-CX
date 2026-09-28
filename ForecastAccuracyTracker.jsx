@@ -84,19 +84,19 @@ export default function ForecastAccuracyTracker() {
   const findings = [
     R.wape === null
       ? "No actual contacts were entered, so no interval error can be measured."
-      : `Across ${R.n} intervals the forecast missed ${R.absErr.toLocaleString("en-US")} contacts, above or below: WAPE ${pc(R.wape)} of the ${R.totalA.toLocaleString("en-US")} actual contacts, interval accuracy ${pc(R.intervalAccuracy)}.`,
+      : `Across ${R.n} intervals the forecast missed ${R.absErr.toLocaleString("en-US")} contacts, above or below. That is a WAPE (weighted absolute percentage error, total contacts missed as a share of actual contacts) of ${pc(R.wape)} of the ${R.totalA.toLocaleString("en-US")} actual contacts, so interval accuracy is ${pc(R.intervalAccuracy)}. This is the figure to staff on.`,
     R.totalAccuracy === null
       ? "No forecast volume was entered, so total-volume accuracy cannot be measured."
-      : `The day's total came in at ${R.totalA.toLocaleString("en-US")} against a forecast of ${R.totalF.toLocaleString("en-US")} (${signed(R.delta)}), total-volume accuracy ${pc(R.totalAccuracy)}.` + (cancelled > 0 ? ` ${cancelled.toLocaleString("en-US")} contacts of interval error cancelled out in that total, which is why it can read high while intervals miss.` : ""),
+      : `The day's total came in at ${R.totalA.toLocaleString("en-US")} against a forecast of ${R.totalF.toLocaleString("en-US")} (${signed(R.delta)}), total-volume accuracy ${pc(R.totalAccuracy)}.` + (cancelled > 0 ? ` ${cancelled.toLocaleString("en-US")} contacts of interval error cancelled out in that total, which is why the daily total can look accurate while individual intervals miss. Judge the forecast on its intervals.` : ""),
     R.mape === null
       ? "MAPE needs at least one interval with actual contacts."
-      : `MAPE is ${pc(R.mape)} across the ${R.n - R.mapeExcluded} intervals with actual contacts${R.mapeExcluded ? ` (${R.mapeExcluded} with none are left out)` : ""}. It weighs a quiet interval as much as a busy one, so plan staffing on WAPE.`,
+      : `MAPE (mean absolute percentage error, the average of each interval's percent miss) is ${pc(R.mape)} across the ${R.n - R.mapeExcluded} intervals with actual contacts${R.mapeExcluded ? ` (${R.mapeExcluded} with none are left out)` : ""}. It gives a quiet interval the same weight as a busy one, so plan staffing on WAPE and use MAPE as a second view.`,
     R.bias === null
       ? "Bias needs a forecast volume."
-      : `Actual ran ${pc(Math.abs(R.bias))} ${R.bias >= 0 ? "above" : "below"} forecast for the day. The tracking signal is ${R.trackingSignal.toFixed(1)}: ` + (R.lean === "above" ? `above +${L}, so actual ran above forecast more consistently than random error would (the forecast is running low).` : R.lean === "below" ? `below -${L}, so actual ran below forecast more consistently than random error would (the forecast is running high).` : `within plus or minus ${L}, so any bias is not distinguished from random error.`),
+      : `Actual ran ${pc(Math.abs(R.bias))} ${R.bias >= 0 ? "above" : "below"} forecast for the day. The tracking signal (the running sum of errors divided by the average error, which shows whether misses lean one way) is ${R.trackingSignal.toFixed(1)}: ` + (R.lean === "above" ? `above +${L}, so actual ran above forecast more consistently than random error would (the forecast is running low). Revisit the volume assumptions behind it before the next schedule.` : R.lean === "below" ? `below -${L}, so actual ran below forecast more consistently than random error would (the forecast is running high). Revisit the volume assumptions behind it before the next schedule.` : `within plus or minus ${L}, so any bias is not distinguished from random error. No correction is called for yet.`),
     ...(R.worst.length ? [`The largest miss is ${worstLine(R.worst[0])}.`] : []),
     aht > 0
-      ? `At ${aht} seconds a contact, intervals that ran above forecast left ${h1(R.underHours)} workload hours unplanned and intervals below forecast planned ${h1(R.overHours)} hours with no contacts, before service level and shrinkage.`
+      ? `At ${aht} seconds a contact, intervals that ran above forecast left ${h1(R.underHours)} workload hours unplanned and intervals below forecast planned ${h1(R.overHours)} hours with no contacts. These are raw workload hours, before service level and shrinkage are added.`
       : "Enter an AHT to turn contacts missed into workload hours.",
   ];
 
@@ -110,7 +110,7 @@ export default function ForecastAccuracyTracker() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Operations + Workforce" name="Forecast Accuracy" title="How far off was the forecast, interval by interval?"
-      lede="Compare forecast and actual contacts interval by interval. The tracker reports WAPE, the volume-weighted error staffing is planned on, beside MAPE, total-volume accuracy, bias and the tracking signal, and ranks the intervals by contacts missed. The table opens on a labelled sample; replace it with your own intervals."
+      lede="Compare forecast and actual contacts interval by interval. The tracker reports WAPE (the contacts missed across all intervals as a share of actual contacts, the error staffing is planned on), MAPE, total-volume accuracy, bias and the tracking signal, and ranks the intervals by contacts missed. The table opens on a labelled sample; replace it with your own intervals."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Interval accuracy", value: pc(R.intervalAccuracy) }}>
       <style>{FONT_IMPORT_CSS}</style>
       <p style={K.small}>Every formula and line is in the <a href={METHOD} style={K.link}>published method</a>.</p>
@@ -126,7 +126,7 @@ export default function ForecastAccuracyTracker() {
             <input type="range" aria-label="Sample variance, percent" min="2" max="30" value={variance} onChange={(e) => setVariance(Number(e.target.value))} style={{ width: "100%", accentColor: K.shade(0), minHeight: 44 }} />
             <span style={{ ...K.small, display: "block" }}>Shapes the sample only. Enter your own intervals in the table below.</span>
           </label>
-          <Field label="AHT (seconds)" value={ahtIn} onChange={setAht} hint="Optional. Turns contacts missed into workload hours." />
+          <Field label="AHT, average handle time (seconds)" value={ahtIn} onChange={setAht} hint="Optional. Turns contacts missed into workload hours." />
         </div>
         <details style={{ marginTop: 16 }}>
           <summary style={{ ...K.link, cursor: "pointer", minHeight: 44, display: "flex", alignItems: "center" }}>Edit interval data</summary>
@@ -192,6 +192,7 @@ export default function ForecastAccuracyTracker() {
           </div>
         ))}
         {!R.worst.length && <p style={K.small}>Every interval matched its forecast.</p>}
+        {R.worst.length > 0 && <p style={{ ...K.small, marginTop: 10 }}>Check these intervals first. If a miss repeats at the same time on other days, look at how that interval is forecast.</p>}
       </section>
 
       <section aria-label="What it means" style={K.lead}>

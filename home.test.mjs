@@ -139,5 +139,14 @@ section("8. Events are taxonomy 1.1 only");
   ok("route_start sends the route's `to`", /trackHome\.start\(door\.event, route\.id, route\.to\)/.test(SRC));
 }
 
+{
+  /* The contour rings of the approved design (Brand Guide: contour lines, 4 to 7 percent). They went missing once because
+     the page's inline background shorthand reset the stylesheet's image; the page sets only its colour inline. */
+  const HP = readFileSync("./Homepage.jsx", "utf8");
+  ok("the homepage draws contour rings from the stack, 5 percent sky, one every 24px",
+    /repeating-radial-gradient\(circle at \$\{at\}, \$\{alpha\(HOUSE\.sky2, 0\.05\)\} 0 1px, transparent 1px 24px\)/.test(HP) && /\.cx-home\{background-image:\$\{CONTOUR\("76% 260px"\)\}\}/.test(HP));
+  ok("nothing inline overrides the rings", /<main className="cx-home" style=\{\{ backgroundColor: HOUSE\.ink/.test(HP) && !/<main className="cx-home" style=\{\{ background:/.test(HP));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

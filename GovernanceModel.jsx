@@ -21,7 +21,7 @@ const DOMAINS = MODEL.domains.map(d => ({ name: d.name, items: d.items.map(it =>
 const SEV_STYLE = { critical: { label: "Critical", color: RED }, high: { label: "High", color: "#C2410C" }, medium: { label: "Medium", color: "#B45309" }, info: { label: "Confirm", color: SLATE } };
 /* The line under each finding: the rule's test, or for a missing function whether the
    decision is one of the five that carry control or budget risk. */
-const whyOf = (f) => f.rule === "involve" ? (f.severity === "high" ? "Function missing on a decision that carries control or budget risk." : "Function missing: this decision usually needs it.") : f.title + ": " + MODEL.rules[f.rule].test;
+const whyOf = (f) => f.rule === "involve" ? (f.severity === "high" ? "Function missing on a decision that carries control or budget risk." : "Function missing: this decision usually needs its input.") : f.title + ": " + MODEL.rules[f.rule].test;
 const toolOf = (id) => JOURNEY[id] ? { name: JOURNEY[id].name, href: JOURNEY[id].route } : null;
 
 const TOOL_ID = "governance-model";
@@ -92,13 +92,13 @@ export default function GovernanceModel() {
 
   return (
     <ToolFrame toolId={TOOL_ID} choice={R.nextDiagnostic ? R.nextDiagnostic.tool : null} section="Frameworks + Planning" name="Governance & Operating Model" title="Who is accountable for each CX decision?"
-      lede="Name the accountable function, and optionally one contributor, for each of 30 CX decisions. The result is an ownership map and the findings six published rules raise: decisions nobody owns, functions a decision needs but leaves out, bottlenecks, influence without authority, fragmented domains, and owners that differ from the common pattern."
+      lede="For each of 30 CX decisions, name the function that is accountable (the one that makes the final call) and, if you like, one that contributes. You get an ownership map and the findings from six published rules: decisions nobody owns, functions a decision needs but leaves out, bottlenecks, influence without authority, domains split across too many owners, and owners that differ from the common pattern."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={phase === "results" ? { label: "Owned decisions", value: `${assignedCount} of ${totalItems}` } : null}>
       <style>{FONT_IMPORT_CSS}</style>
 
       {phase === "intro" && (
         <section aria-label="Start" style={K.lead}>
-          <p style={K.body}>Each decision gets one accountable function and at most one contributor. There is no score: governance does not average, and one unowned decision can matter more than the rest together.</p>
+          <p style={K.body}>Each decision gets one accountable function and at most one contributor. There is no score. Ownership does not average out: one unowned decision can matter more than all the others together.</p>
           <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", marginTop: 16 }}>
             <Button onClick={handleStart}>Start Mapping</Button>
             <a href={MODEL.methodology} style={K.link}>See the published model: every decision, rule and threshold</a>
@@ -164,7 +164,7 @@ export default function GovernanceModel() {
               <span key={sv} style={chip(sv)}>{sevCount(sv)} {SEV_STYLE[sv].label.toLowerCase()}</span>
             ))}
           </div>
-          <p style={K.body}>There is no score: governance does not average, and one unowned decision can matter more than the rest together. Findings are listed most serious first.</p>
+          <p style={K.body}>There is no score. Ownership does not average out: one unowned decision can matter more than all the others together. Findings are listed most serious first.</p>
         </section>
 
         <section aria-label="Ownership by function" style={K.panel}>
@@ -200,7 +200,7 @@ export default function GovernanceModel() {
           {next && (
             <p style={{ ...K.body, marginTop: 14 }}>Next diagnostic: <a href={next.href} style={K.link}>{next.name}</a>, because {next.why}.</p>
           )}
-          <p style={{ ...K.small, marginTop: 14 }}>Scored on the <a href={MODEL.methodology} style={K.link}>published model</a>, version {MODEL.version}. {MODEL.limits[0]} {MODEL.limits[1]}</p>
+          <p style={{ ...K.small, marginTop: 14 }}>Checked against the <a href={MODEL.methodology} style={K.link}>published model</a>, version {MODEL.version}. {MODEL.limits[0]} {MODEL.limits[1]}</p>
         </section>
 
         <Paper>

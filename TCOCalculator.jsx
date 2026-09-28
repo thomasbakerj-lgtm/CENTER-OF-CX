@@ -87,10 +87,10 @@ const BASE = { supervisors: 20, qaStaff: 5, wfmStaff: 4, trainers: 3, itSupport:
 // Optimization realization confidence: how much freed capacity converts to real savings.
 // "none" is first-class so the tool can honestly report $0 realized when nothing is committed.
 const STANCE = {
-  none: { label: "None", f: 0.00, note: "No mechanism committed. Freed capacity is real, but $0 is booked until you act on it." },
-  conservative: { label: "Conservative", f: 0.50, note: "Only savings you can commit to. Heavy haircut on freed capacity." },
-  expected: { label: "Expected", f: 0.70, note: "Realistic conversion of freed capacity to cash. The defensible default." },
-  aggressive: { label: "Aggressive", f: 1.00, note: "Full theoretical capacity value, no haircut. Matches vendor ROI tools." },
+  none: { label: "None", f: 0.00, note: "No capacity action committed yet. The freed capacity exists, and $0 is booked until you act on it." },
+  conservative: { label: "Conservative", f: 0.50, note: "Books only savings you can commit to: half the value of freed capacity." },
+  expected: { label: "Expected", f: 0.70, note: "A realistic share of freed capacity turned into cash. A reasonable starting point." },
+  aggressive: { label: "Aggressive", f: 1.00, note: "Books the full theoretical value of freed capacity with no reduction, as vendor ROI tools usually do." },
 };
 /* Scenario defaults. Only fields that differ from these travel in the link, so a
    shared URL stays short. The industry preset is part of the state, so a link
@@ -100,25 +100,25 @@ const SCENARIO_DEFAULTS = { ...BASE, ...INDUSTRY.general, industry: "general" };
 // InfoDot definition strings. Two sentences each: what it is, and why the tool uses it.
 // This map is the future glossary content for the TCO tool.
 const DEFS = {
-  loaded: "Your hourly wage plus benefits and employer burden (payroll tax, paid time off, insurance). The tool keeps loaded and marginal cost separate because loaded cost belongs in unit metrics, while only marginal cost should value savings.",
-  marginal: "The variable cost that actually disappears when one contact goes away: the handle-time labor plus any per-minute telephony. Savings are valued here, not at fully loaded cost, because fixed tech and facilities do not fall when volume drops.",
-  wageEsc: "The annual rate at which labor cost rises. Defaulted to 3.5 percent from current wage-growth data, and applied only to the labor bucket because wages and contracted license inflate at different rates.",
-  licenseEsc: "The annual uplift on contracted recurring software at renewal. Defaulted to 6 percent, an internal planning value (enter your contract's renewal cap), and applied only to license because a single blended rate misstates a labor-heavy base.",
-  stance: "How much freed capacity you assume converts to real cash. It is a haircut on theoretical savings, and None books $0 so the tool can be honest when no mechanism is committed.",
-  costBasis: "Whether your cost inputs are estimates, vendor quotes, or actual invoices. It sets the sensitivity range and gates the confidence label, because a number from an invoice is far more bookable than one from a guess.",
-  targets: "The improvement level each lever is measured against. These are yours to set, not fixed by the tool, so the opportunity reflects your own goals rather than an assumed target.",
-  aht: "Average Handle Time, the full time an agent spends per contact including talk, hold, and after-call work. It drives both the marginal cost per contact and the labor freed when you reduce it, so it is one of the largest levers in the model.",
-  acw: "After-Call Work, the wrap-up time after the caller disconnects, counted inside AHT. The tool subtracts it from AHT to size telephony minutes, because you stop paying for the line once the call ends but still pay the agent.",
-  fcr: "First Contact Resolution, the share of contacts resolved without a repeat. It sets cost per resolution, since a lower FCR means paying to handle the same issue more than once, and it sizes the repeat-contact savings lever.",
-  containment: "The share of contacts fully handled by self-service or a bot with no agent. This is not FCR (never reaching an agent versus not calling back), and it is an outcome, not the self-service entry channel, which the tool models separately. Raising it deflects volume, valued at marginal cost.",
-  costPerResolution: "Total cost per issue actually resolved, estimated as cost per contact times the contacts each issue takes (about 2 minus FCR under the standard one-plus-repeat model). A lower FCR raises it because more issues need a second contact. If you track an observed recontact rate, that is the more precise figure.",
-  occupancy: "The share of logged-in time agents spend actively handling contacts. The tool warns when capturing a saving by cutting heads would push it above the platform's caution line.",
-  shrinkage: "The share of paid time agents are not available to handle contacts (training, breaks, meetings, absence). The tool uses it to translate 173 paid hours into productive hours, though labor cost is still computed on paid hours because you pay for shrinkage.",
-  attrition: "Annual agent turnover as a share of headcount. It sets how many replacement hires you fund each month, and therefore the recruiting, training, and ramp cost carried in the model.",
-  seatBasis: "A per-seat monthly software fee. The tool multiplies it by all licensed seats (agents plus supervisors, QA, and WFM), not just agents, and escalates it at the license renewal rate in the 3-year view.",
-  telephony: "Usage-based carrier cost per line-open minute, billed on actual voice minutes rather than per seat. It is held flat in the 3-year projection because usage scales with volume, not with a contracted renewal uplift.",
-  psAmortized: "Professional services spread as a recurring monthly line, for ongoing managed or configuration work. Keep it separate from the one-time implementation, or the same project gets counted twice.",
-  implementation: "A one-time upfront cost added once to the 3-year total and never escalated. Set it to zero when modeling a steady-state operation with the build already behind you.",
+  loaded: "The hourly wage plus benefits and employer costs (payroll tax, paid time off, insurance). The tool keeps loaded and marginal cost apart: loaded cost belongs in unit metrics such as cost per contact, and marginal cost is the one to value savings with.",
+  marginal: "The variable cost that goes away when one contact goes away: the handle-time labor plus any per-minute telephony. Savings are valued at this cost, because technology and facilities costs stay the same when volume drops.",
+  wageEsc: "The annual rate at which labor cost rises. Defaulted to 3.5 percent from current wage-growth data, and applied only to labor, since wages and contracted licenses rise at different rates.",
+  licenseEsc: "The annual price increase on contracted software at renewal. Defaulted to 6 percent, an internal planning value (enter your contract's renewal cap), and applied only to licenses, since one blended rate misstates a cost base that is mostly labor.",
+  stance: "How much of the freed capacity you assume becomes cash. It reduces the theoretical savings to what you expect to capture. None books $0, the right answer when nobody has committed to a capacity action.",
+  costBasis: "Whether your cost inputs are estimates, vendor quotes or actual invoices. It sets the sensitivity range and the evidence grade the cost inputs can reach, since finance can book a number from an invoice far more readily than an estimate.",
+  targets: "The improvement level each lever is measured against. You set them, so the opportunity reflects your own goals.",
+  aht: "AHT (average handle time), the full time an agent spends on a contact: talk, hold and after-call work. It drives both the marginal cost per contact and the labor freed when you reduce it, so it is one of the largest levers in the model.",
+  acw: "ACW (after-call work), the wrap-up time after the caller hangs up, counted inside AHT. The tool subtracts it from AHT to size telephony minutes: the line charge stops when the call ends, and the agent is still paid.",
+  fcr: "FCR (first contact resolution), the share of issues resolved on the first contact, with no repeat. It sets cost per resolution, since a lower FCR means paying to handle the same issue more than once, and it sizes the repeat-contact savings lever.",
+  containment: "The share of contacts fully handled by self-service or a bot, with no agent. It differs from FCR: containment means the customer never reached an agent, FCR means they did not have to come back. It is also an outcome, separate from the self-service channel share, which the tool models on its own. Raising it deflects volume, valued at marginal cost.",
+  costPerResolution: "Total cost per issue resolved, estimated as cost per contact times the contacts each issue takes (about 2 minus FCR under the standard one-plus-repeat model). A lower FCR raises it, because more issues need a second contact. If you track an observed repeat contact rate, use that for a more precise figure.",
+  occupancy: "The share of logged-in time agents spend handling contacts. The tool warns when capturing a saving by reducing headcount would push it above the caution line.",
+  shrinkage: "The share of paid time agents are unavailable to handle contacts (training, breaks, meetings, absence). The tool uses it to turn 173 paid hours into productive hours. Labor cost is still computed on paid hours, because shrinkage time is paid.",
+  attrition: "Annual agent turnover as a share of headcount. It sets how many replacement hires you fund each month, and with them the recruiting, training and ramp cost carried in the model.",
+  seatBasis: "A monthly software fee per seat. The tool multiplies it by every licensed seat (agents plus supervisors, QA and WFM staff) and raises it at the license renewal rate in the 3-year view.",
+  telephony: "Carrier cost per minute the line is open, billed on actual voice minutes. It is held flat in the 3-year projection, because usage moves with volume and carries no contracted renewal increase.",
+  psAmortized: "Professional services spread as a recurring monthly line, for ongoing managed or configuration work. Keep it separate from the one-time implementation so the same project is counted once.",
+  implementation: "A one-time upfront cost, added once to the 3-year total and never escalated. Set it to zero when you model a running operation with the build already behind you.",
 };
 
 // Largest-remainder allocation. Rounds each part to whole units and pushes the residual
@@ -202,7 +202,7 @@ const TCO_DOMAIN = [
   ["qaStaff", "QA Analysts", 0, null, "", 1],
   ["wfmStaff", "WFM Staff", 0, null, "", 1],
   ["trainers", "Trainers", 0, null, "", 1],
-  ["itSupport", "IT / Tech Support", 0, null, "", 1],
+  ["itSupport", "IT and Tech Support", 0, null, "", 1],
   ["sites", "Sites", 0, null, "", 1],
   ["monthlyContacts", "Monthly Contacts (gross demand)", 1, null, "", 1],
   ["agentHourly", "Agent Hourly Rate", 0, null, "$", 1],
@@ -212,7 +212,7 @@ const TCO_DOMAIN = [
   ["wfmHourly", "WFM Analyst Hourly", 0, null, "$", 1],
   ["trainerHourly", "Trainer Hourly", 0, null, "$", 1],
   ["itHourly", "IT Support Hourly", 0, null, "$", 1],
-  ["recruitingCostPerHire", "Recruiting Cost/Hire", 0, null, "$", 1],
+  ["recruitingCostPerHire", "Recruiting Cost per Hire", 0, null, "$", 1],
   ["aht", "AHT (seconds)", 0, null, "s", 1],
   ["acw", "ACW (seconds)", 0, null, "s", 1],
   ["avgHoldTime", "Hold Time (seconds)", 0, null, "s", 1],
@@ -231,7 +231,7 @@ const TCO_DOMAIN = [
   ["nps", "NPS (-100 to 100)", -100, 100, "", 1],
   ["newHireTrainingDays", "New Hire Training (days)", 0, null, "", 1],
   ["channelMixVoice", "Voice", 0, 100, "%", 100],
-  ["channelMixChat", "Chat / Messaging", 0, 100, "%", 100],
+  ["channelMixChat", "Chat and Messaging", 0, 100, "%", 100],
   ["channelMixEmail", "Email", 0, 100, "%", 100],
   ["channelMixSocial", "Social", 0, 100, "%", 100],
   ["channelMixSelfServe", "Self-Service", 0, 100, "%", 100],
@@ -239,16 +239,16 @@ const TCO_DOMAIN = [
   ["wemSeat", "WEM Per Seat", 0, null, "$", 1],
   ["crmSeat", "CRM Per Seat", 0, null, "$", 1],
   ["telephonyPerMin", "Telephony Per Min", 0, null, "$", 1],
-  ["ivaMonthly", "IVA / Bot Platform", 0, null, "$", 1],
+  ["ivaMonthly", "IVA and Bot Platform", 0, null, "$", 1],
   ["agentAssistMonthly", "Agent Assist", 0, null, "$", 1],
-  ["rpaMonthly", "RPA / Automation", 0, null, "$", 1],
+  ["rpaMonthly", "RPA and Automation", 0, null, "$", 1],
   ["analyticsMonthly", "Analytics Platform", 0, null, "$", 1],
-  ["ipaasMonthly", "iPaaS / Integration", 0, null, "$", 1],
+  ["ipaasMonthly", "iPaaS and Integration", 0, null, "$", 1],
   ["recordingMonthly", "Recording & Compliance", 0, null, "$", 1],
-  ["knowledgeMgmt", "Knowledge Mgmt", 0, null, "$", 1],
+  ["knowledgeMgmt", "Knowledge Management", 0, null, "$", 1],
   ["securityCompliance", "Security & Compliance", 0, null, "$", 1],
   ["cloudInfra", "Cloud Infrastructure (mo)", 0, null, "$", 1],
-  ["psAmortized", "Prof. Services Amortized (mo)", 0, null, "$", 1],
+  ["psAmortized", "Professional Services, Amortized (mo)", 0, null, "$", 1],
   ["facilitiesCost", "Facilities (mo)", 0, null, "$", 1],
   ["implementationOneTime", "Implementation (one-time)", 0, null, "$", 1],
   ["blendedEscalatorPct", "Blended Escalator", -100, null, "%", 100],
@@ -364,20 +364,20 @@ function computeTCO(dIn, stanceKey = "expected") {
   /* Marginal cost per contact above the fully loaded cost per contact cannot happen in a real operation: the handle time
      entered does not fit in the paid hours of the agents entered (1 agent and 120,000 contacts printed it, unflagged). */
   if (marginalPerContact > costPerContact) flags.push({ level: "flag", msg: `Marginal cost per contact ($${marginalPerContact.toFixed(2)}) is above the full cost per contact ($${costPerContact.toFixed(2)}). At this volume the handle time does not fit in the paid hours of ${n(d.agents).toLocaleString()} agent${n(d.agents) === 1 ? "" : "s"}. Check agents, monthly contacts and handle time.` });
-  if (perAgentMonth > TCO_CHECKS.perAgentCeiling) flags.push({ level: "block", msg: `Cost per agent per month is ${fmt(perAgentMonth)}, above the tool's plausibility ceiling of ${fmt(TCO_CHECKS.perAgentCeiling)}. Check the wage and seat inputs. Finance-grade is blocked until this is sane.` });
-  if (domShare > TCO_CHECKS.domShareMax && domKey !== "AI usage") flags.push({ level: "flag", msg: `${domKey} is ${pct(domShare)} of the software bucket. One line dominating usually means a miscategorized or mis-scaled input. Confirm it before treating this as Finance-grade.` });
-  if (domShare > TCO_CHECKS.domShareMax && domKey === "AI usage") flags.push({ level: "note", msg: `AI usage is ${pct(domShare)} of the software bucket. That is legitimate for a usage-heavy AI contract and is not penalized, but confirm it is genuinely usage-metered.` });
-  if (n(d.psAmortized) > 0 && n(d.implementationOneTime) > 0) flags.push({ level: "note", msg: `Both amortized professional services (recurring) and a one-time implementation are set. Confirm you are not entering the same cost twice: amortized PS is a recurring monthly line, the one-time figure is a separate upfront cost added once.` });
+  if (perAgentMonth > TCO_CHECKS.perAgentCeiling) flags.push({ level: "block", msg: `Cost per agent per month is ${fmt(perAgentMonth)}, above the tool's plausibility ceiling of ${fmt(TCO_CHECKS.perAgentCeiling)}. Check the wage and seat inputs. Finance-grade stays out of reach until this is corrected.` });
+  if (domShare > TCO_CHECKS.domShareMax && domKey !== "AI usage") flags.push({ level: "flag", msg: `${domKey} is ${pct(domShare)} of the software bucket. When one line dominates, an input is usually in the wrong category or the wrong unit. Confirm it before treating this as Finance-grade.` });
+  if (domShare > TCO_CHECKS.domShareMax && domKey === "AI usage") flags.push({ level: "note", msg: `AI usage is ${pct(domShare)} of the software bucket. That is normal for an AI contract billed mostly on usage, and it carries no penalty. Confirm it is billed on usage.` });
+  if (n(d.psAmortized) > 0 && n(d.implementationOneTime) > 0) flags.push({ level: "note", msg: `Both amortized professional services (recurring) and a one-time implementation are set. Confirm the same cost is not entered twice: amortized professional services is a recurring monthly line, and the one-time figure is a separate upfront cost added once.` });
   const agentsPerSup = n(d.agents) / Math.max(1, n(d.supervisors));
   if (agentsPerSup > TCO_CHECKS.spanMax) flags.push({ level: "flag", msg: `Span of control is ${Math.round(agentsPerSup)} agents per supervisor, above the tool's check line of ${TCO_CHECKS.spanMax}. Thin supervision understates labor cost. Confirm the supervisor count before treating this as Finance-grade.` });
   // Cross-metric coherence: operational sanity, not just financial. These surface as items to
   // confirm and shape the analyst read; they do not block the cost-input grade.
   const occ = n(d.occupancy);
-  if (occ > 0 && occ < benchmark("tco.read.lowOccupancy")) flags.push({ level: "note", msg: `Occupancy is ${pct0(occ)}, below ${pct0(benchmark("tco.read.lowOccupancy"))}, so idle capacity already exists. Freeing more capacity through deflection or AHT is a redeployment or hiring-avoidance opportunity, not immediate cash, until you address why occupancy is low (overstaffing, interval mismatch, or measurement).` });
-  if (n(d.abandonRate) > 0.05 && n(d.avgSpeedAnswer) > 0 && n(d.avgSpeedAnswer) < 15) flags.push({ level: "note", msg: `Abandonment is ${pct0(d.abandonRate)} while answer speed is ${Math.round(n(d.avgSpeedAnswer))} seconds. High abandon with fast answer is unusual; check for short-abandon counting, interval volatility, or a blended-channel measure.` });
-  if (n(d.fcr) > 0.75 && n(d.csat) > 0 && n(d.csat) < 3.5) flags.push({ level: "note", msg: `FCR is ${pct0(d.fcr)} but CSAT is ${n(d.csat).toFixed(1)} of 5. High resolution with low satisfaction suggests resolution does not equal a good experience, or FCR is measured loosely. Confirm the FCR definition.` });
+  if (occ > 0 && occ < benchmark("tco.read.lowOccupancy")) flags.push({ level: "note", msg: `Occupancy is ${pct0(occ)}, below ${pct0(benchmark("tco.read.lowOccupancy"))}, so idle capacity already exists. Capacity freed through deflection or AHT can be redeployed or used to avoid hiring. It becomes cash only after you deal with why occupancy is low (overstaffing, staffing that does not match demand by interval, or how it is measured).` });
+  if (n(d.abandonRate) > 0.05 && n(d.avgSpeedAnswer) > 0 && n(d.avgSpeedAnswer) < 15) flags.push({ level: "note", msg: `Abandonment is ${pct0(d.abandonRate)} while answer speed is ${Math.round(n(d.avgSpeedAnswer))} seconds. High abandonment with fast answer is unusual. Check whether very short abandons are counted, whether volume swings sharply between intervals, or whether the measure blends channels.` });
+  if (n(d.fcr) > 0.75 && n(d.csat) > 0 && n(d.csat) < 3.5) flags.push({ level: "note", msg: `FCR is ${pct0(d.fcr)} but CSAT is ${n(d.csat).toFixed(1)} of 5. High resolution with low satisfaction suggests that resolved issues still leave customers unhappy, or that FCR is measured loosely. Confirm the FCR definition.` });
   const ahtCut = n(d.aht) > 0 ? (n(d.aht) - n(d.targetAht)) / n(d.aht) : 0;
-  if (ahtCut > 0.20 && (n(d.qualityScore) > 0 && n(d.qualityScore) < 0.75 || n(d.csat) > 0 && n(d.csat) < 3.5)) flags.push({ level: "note", msg: `The AHT target cuts handle time ${pct0(ahtCut)} while quality is already soft (QA ${pct0(d.qualityScore)}, CSAT ${n(d.csat).toFixed(1)}). Make sure the reduction comes from tools and knowledge, not rushing, or you risk a cheaper but worse operation.` });
+  if (ahtCut > 0.20 && (n(d.qualityScore) > 0 && n(d.qualityScore) < 0.75 || n(d.csat) > 0 && n(d.csat) < 3.5)) flags.push({ level: "note", msg: `The AHT target cuts handle time ${pct0(ahtCut)} while quality is already soft (QA ${pct0(d.qualityScore)}, CSAT ${n(d.csat).toFixed(1)}). Make sure the reduction comes from better tools and knowledge. If agents simply rush, the operation gets cheaper and worse.` });
   const hasBlock = flags.some(f => f.level === "block");
   const hasFlag = flags.some(f => f.level === "flag");
 
@@ -387,8 +387,8 @@ function computeTCO(dIn, stanceKey = "expected") {
   const sensitivity = { pct: sensPct, annualLow: annual * (1 - sensPct), annualHigh: annual * (1 + sensPct), threeLow: threeYear * (1 - sensPct), threeHigh: threeYear * (1 + sensPct) };
 
   const openIssues = [];
-  if (basisRank === 0) openIssues.push("Costs are estimates, not from quotes or invoices, so treat the numbers as directional.");
-  if (stanceKey === "aggressive") openIssues.push("Aggressive stance books full theoretical capacity as cash, with no haircut.");
+  if (basisRank === 0) openIssues.push("Costs are estimates. Until they come from quotes or invoices, treat the numbers as directional.");
+  if (stanceKey === "aggressive") openIssues.push("The aggressive stance books the full theoretical value of freed capacity as cash, with no reduction.");
   flags.forEach(f => { if (f.level !== "note") openIssues.push(f.msg); });
   const itemsToConfirm = flags.filter(f => f.level === "note").map(f => f.msg);
 
@@ -429,7 +429,7 @@ function buildOptimizations(d, r, stanceKey) {
   if (deflectable > 100) {
     const gross = deflectable * r.marginalPerContact;
     out.push({ key: "containment", title: "Increase self-service containment", gross, net: gross * f,
-      desc: `Deflect ${Math.round(deflectable).toLocaleString()} contacts per month by moving containment ${pct(d.containment)} to ${pctD(targetCont)}. Valued at marginal handle cost, not fully loaded.` });
+      desc: `Deflect ${Math.round(deflectable).toLocaleString()} contacts per month by moving containment ${pct(d.containment)} to ${pctD(targetCont)}. Valued at the marginal handle cost, the labor that goes away with each contact.` });
     pool -= deflectable;
   }
 
@@ -448,14 +448,14 @@ function buildOptimizations(d, r, stanceKey) {
     const minSaved = (n(d.aht) - targetAht) / 60;
     const gross = minSaved * pool * (r.loaded / 60);
     out.push({ key: "aht", title: "Reduce average handle time", gross, net: gross * f,
-      desc: `Bring AHT ${mmss(d.aht)} to ${mmss(targetAht)} across ${Math.round(pool).toLocaleString()} agent-handled contacts per month (after deflection). Applied only to contacts agents still handle, so it does not double count deflected volume.` });
+      desc: `Bring AHT ${mmss(d.aht)} to ${mmss(targetAht)} across ${Math.round(pool).toLocaleString()} agent-handled contacts per month (after deflection). Applied only to contacts agents still handle, so deflected volume is counted once.` });
   }
 
   if (n(d.attrition) > n(d.targetAttrition)) {
     const fewerHires = (n(d.attrition) - n(d.targetAttrition)) * r.agents / 12;
     const gross = fewerHires * r.perHire;
     out.push({ key: "attrition", title: "Reduce agent attrition", gross, net: gross * f,
-      desc: `Cut attrition ${pct(d.attrition)} to ${pct(d.targetAttrition)} (about ${fewerHires.toFixed(1)} fewer hires per month) saving recruiting, training, and ramp. Independent of contact volume.` });
+      desc: `Cut attrition ${pct(d.attrition)} to ${pct(d.targetAttrition)} (about ${fewerHires.toFixed(1)} fewer hires per month), saving recruiting, training and ramp cost. Contact volume does not affect it.` });
   }
 
   // Round each lever to the nearest $1,000 so displayed parts always reconcile with the
@@ -481,30 +481,30 @@ function buildAnalystRead(d, r, opt, stanceKey) {
   const resPremium = r.costPerResolution / r.costPerContact - 1;
   /* At a cost per contact of zero the premium is zero over zero. Say so plainly. */
   if (!(r.costPerContact > 0))
-    out.push(`Cost per contact computes to $${(r.costPerContact || 0).toFixed(2)} at these inputs, so no resolution premium can be stated. Check the corrected inputs first.`);
+    out.push(`Cost per contact computes to $${(r.costPerContact || 0).toFixed(2)} at these inputs, so the extra cost of resolution cannot be stated. Check the corrected inputs first.`);
   else if (resPremium > benchmark("tco.read.resPremium"))
-    out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) runs ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}). At ${pct(d.fcr)} FCR a share of issues take more than one contact to close (this uses the standard one plus repeat-rate model, about ${(2 - n(d.fcr)).toFixed(2)} contacts per resolution), and that gap is where rework cost sits.`);
+    out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) runs ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}). At ${pct(d.fcr)} FCR a share of issues take more than one contact to close (the standard one-plus-repeat model, about ${(2 - n(d.fcr)).toFixed(2)} contacts per resolution). That gap is the cost of rework.`);
   else
-    out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) is ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}), a small gap at ${pct(d.fcr)} FCR, so rework is not a major cost driver here. The cost story is volume and labor.`);
+    out.push(`Cost per resolution ($${r.costPerResolution.toFixed(2)}) is ${Math.round(resPremium * 100)}% above cost per contact ($${r.costPerContact.toFixed(2)}), a small gap at ${pct(d.fcr)} FCR, so rework is a minor cost here. Volume and labor drive the cost.`);
 
   if (r.laborPct > benchmark("tco.read.laborHeavy"))
-    out.push(`Labor is ${r.disp.laborPctStr} of TCO, so this is a people-cost operation. The highest-leverage moves are deflection and AHT, which free agent capacity, rather than trimming the ${r.disp.techPctStr} tech line. Cutting tech here barely moves the total.`);
+    out.push(`Labor is ${r.disp.laborPctStr} of TCO (total cost of ownership), so people drive the cost. The biggest levers are deflection and AHT, which free agent capacity. Trimming the ${r.disp.techPctStr} technology line barely moves the total.`);
   else
-    out.push(`Labor is ${r.disp.laborPctStr} of TCO with tech at ${r.disp.techPctStr}, an unusually tech-heavy structure. Worth auditing platform overlap in the License Gap Checker before adding more tooling.`);
+    out.push(`Labor is ${r.disp.laborPctStr} of TCO (total cost of ownership) with technology at ${r.disp.techPctStr}, an unusually technology-heavy structure. Check for overlapping platforms in the License Gap Checker before adding more tools.`);
 
   if (!r.single && r.laborPct > benchmark("tco.read.laborSplit"))
-    out.push(`The 3-year view escalates labor at ${pctD(r.wEff)} and contracted license at ${pctD(r.lEff)}, with usage and facilities held flat. A single blended rate would misstate a base that is ${r.disp.laborPctStr} labor, which is why the two rates are separated.`);
+    out.push(`The 3-year view escalates labor at ${pctD(r.wEff)} and contracted license at ${pctD(r.lEff)}, with usage and facilities held flat. The two rates are kept apart because one blended rate would misstate a base that is ${r.disp.laborPctStr} labor.`);
 
   if (stanceKey === "none")
-    out.push(`The None stance books $0 realized. The freed capacity above is real, but nothing converts to cash until you commit to a mechanism, so the honest number today is zero.`);
+    out.push(`The None stance books $0 realized. The freed capacity above exists, and none of it becomes cash until you commit to a capacity action, so today's figure is zero.`);
   else if (opt.items.length)
-    out.push(`The ${stanceKey} stance values savings at ${fmtK(opt.netTotal)} per month (${fmtK(opt.netTotal * 12)} per year)${Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", the full theoretical capacity value with no haircut applied" : ", haircut from a theoretical " + fmtK(opt.grossTotal) + " per month"}. Levers are de-overlapped, each acting on what the prior one leaves, so the total is defensible rather than a sum of every lever at full loaded cost.`);
+    out.push(`The ${stanceKey} stance values savings at ${fmtK(opt.netTotal)} per month (${fmtK(opt.netTotal * 12)} per year)${Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", the full theoretical capacity value with no reduction" : ", reduced from a theoretical " + fmtK(opt.grossTotal) + " per month"}. Each lever acts on the volume the one before it leaves, so no contact is counted twice and nothing is valued at full loaded cost.`);
 
-  out.push(`Savings are valued at marginal cost ($${r.marginalPerContact.toFixed(2)} per contact), not fully loaded ($${r.costPerContact.toFixed(2)}). Deflecting contacts frees agent time but not fixed tech and facilities, so capturing it as cash requires reducing or redeploying FTE. That is the conversation to have, not assume.`);
+  out.push(`Savings are valued at marginal cost, $${r.marginalPerContact.toFixed(2)} per contact. The fully loaded cost is $${r.costPerContact.toFixed(2)}. Deflecting contacts frees agent time while technology and facilities costs stay, so capturing the saving as cash means reducing or redeploying FTE (full-time equivalent agents). Agree that plan with the people who own the budget before you count the saving.`);
   out.push(marginalLoadLine(d, r));
 
-  if (opt.occRisk) out.push(`Occupancy at ${pct(d.occupancy)} is in the burnout zone (above ${pct0(BENCH.occupancy.cautionMax)}). That is a hidden cost, because it drives the very attrition inflating your overhead. Model it in the Occupancy Risk Simulator before assuming the savings above are free.`);
-  else if (n(d.occupancy) > 0 && n(d.occupancy) < benchmark("tco.read.lowOccupancy")) out.push(`Occupancy at ${pct(d.occupancy)} sits below ${pct0(benchmark("tco.read.lowOccupancy"))}, so you already carry idle capacity. The savings above are real as freed capacity, but they will not become cash until you redeploy that time or reduce headcount, and the first question is why occupancy is this low. Pressure-test it in the Occupancy Risk Simulator and Staffing Calculator before booking these numbers.`);
+  if (opt.occRisk) out.push(`Occupancy at ${pct(d.occupancy)} is in the burnout zone (above ${pct0(BENCH.occupancy.cautionMax)}). That carries a hidden cost: it drives the attrition that adds to your overhead. Model it in the Occupancy Risk Simulator before you treat the savings above as free.`);
+  else if (n(d.occupancy) > 0 && n(d.occupancy) < benchmark("tco.read.lowOccupancy")) out.push(`Occupancy at ${pct(d.occupancy)} sits below ${pct0(benchmark("tco.read.lowOccupancy"))}, so you already carry idle capacity. The savings above are freed capacity. They become cash only when you redeploy that time or reduce headcount, and the first question is why occupancy is this low. Test it in the Occupancy Risk Simulator and Staffing Calculator before you book these numbers.`);
   return out;
 }
 /* ---- Grading. Three axes, doctrine section 5. ----
@@ -614,8 +614,8 @@ function gradeTCO({ d, r, pre, railOrigin, stanceKey }) {
   const opsParts = why(TCO_OPS);
   if (!opsParts.length) opsParts.push("Headcount, volume, handle time and attrition are your own entries. Self-declared figures stand at Planning-grade at most, because no data was inspected");
   const costParts = why(TCO_COST);
-  if (!costParts.length && !attested) costParts.push("Every wage and price is your own entry but the cost basis is an estimate. Select quoted or invoiced once the figures come from quotes or invoices");
-  if (!costParts.length) costParts.push("Every wage and price is your own entry, with the cost basis declared by your own account. Self-declaration stands at Planning-grade at most; Finance-grade needs document attestation this tool does not collect");
+  if (!costParts.length && !attested) costParts.push("Every wage and price is your own entry, and the cost basis is an estimate. Select quoted or invoiced once the figures come from quotes or invoices");
+  if (!costParts.length) costParts.push("Every wage and price is your own entry, with the cost basis declared by your own account. Self-declaration stands at Planning-grade at most. Finance-grade needs document attestation, which this tool does not collect");
   const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   const evParts = [...(opsGrade === evidence ? opsParts : []), ...(costGrade === evidence ? costParts : [])];
 
@@ -637,7 +637,7 @@ function gradeTCO({ d, r, pre, railOrigin, stanceKey }) {
     ? voidResult({ invariant: invariants.join("; "), remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this report." })
     : emitGrades({
         evidence, realization: null, completeness,
-        naReason: "TCO prices the cash the operation spends today. No capacity action applies to a cost baseline. The optimization savings are sized opportunity and are graded in Business Case Builder once a capacity action is chosen.",
+        naReason: "TCO prices the cash the operation spends today. No capacity action applies to a cost baseline. The optimization savings are a sized opportunity, graded in Business Case Builder once a capacity action is chosen.",
         reasons: { evidence: `${evParts.map(cap).join(". ")}.`, completeness: `${cap(modelWhy)}.` },
       });
   const confidence = voided ? "Void" : gradeObj.headline;
@@ -805,11 +805,11 @@ function Calculator() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Cost + Economics" name="TCO Calculator" title="What does your contact center cost to run, today and over three years?"
-      lede="Total cost of ownership across labor, technology, 17 operational KPIs, and overhead, as a current-state X-ray and a 3-year projection. Every number is transparent and valued at marginal cost so savings are realistic rather than inflated."
+      lede="TCO (total cost of ownership) is everything it costs to run your contact center: labor, technology and overhead, with 17 operational KPIs (key performance indicators) for context. You get a picture of today and a 3-year projection. Every figure shows how it was made, and savings are valued at marginal cost, the cost that actually goes away, so they stay realistic."
       method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
       result={result} pinned={voidReason ? null : { label: "Annual TCO", value: fmtK(r.annual) }}>
       <style>{`${FONT_IMPORT_CSS}.tco-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
-      {Object.keys(pulled).length > 0 && <p style={small}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from your recent tools. Every field is editable.</p>}
+      {Object.keys(pulled).length > 0 && <p style={small}>Prefilled {Object.keys(pulled).length} value{Object.keys(pulled).length > 1 ? "s" : ""} from tools you used recently. You can edit every field.</p>}
 
       <div role="group" aria-label="Calculator steps" style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         {sections.map((x, i) => (
@@ -821,22 +821,22 @@ function Calculator() {
               <fieldset style={{ ...panel, margin: 0 }}>
                 <legend style={{ ...kicker, padding: "0 6px" }}>Organization Profile</legend>
                 <div style={grid(190)}>
-                  <NumField label="Total Agents (FTE)" tone="dark" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} hint="Full-time and FTE-equivalent" pulled={pulled.agents} />
+                  <NumField label="Total Agents (FTE)" tone="dark" value={d.agents} onChange={v => set("agents", v)} step={5} min={1} hint="Full-time equivalents (FTE)" pulled={pulled.agents} />
                   <NumField label="Supervisors" tone="dark" value={d.supervisors} onChange={v => set("supervisors", v)} min={0} />
                   <NumField label="QA Analysts" tone="dark" value={d.qaStaff} onChange={v => set("qaStaff", v)} min={0} />
                   <NumField label="WFM Staff" tone="dark" value={d.wfmStaff} onChange={v => set("wfmStaff", v)} min={0} />
                   <NumField label="Trainers" tone="dark" value={d.trainers} onChange={v => set("trainers", v)} min={0} />
-                  <NumField label="IT / Tech Support" tone="dark" value={d.itSupport} onChange={v => set("itSupport", v)} min={0} />
+                  <NumField label="IT and Tech Support" tone="dark" value={d.itSupport} onChange={v => set("itSupport", v)} min={0} />
                   <NumField label="Sites" tone="dark" value={d.sites} onChange={v => set("sites", v)} min={1} />
                   <div>
                     <label htmlFor="tco-industry" style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, display: "block", marginBottom: 6 }}>Industry</label>
                     <select id="tco-industry" aria-label="Industry" value={d.industry} onChange={e => loadIndustry(e.target.value)} className="tco-sel" style={sel}>
                       {Object.entries(INDUSTRY).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                     </select>
-                    <div style={{ ...small, marginTop: 4 }}>Prepopulated with {INDUSTRY[d.industry]?.label} benchmarks. Adjust any value.</div>
-                    <div style={{ ...small, marginTop: 4 }} title={BENCHMARK_SOURCES}>Industry profiles are internal planning values, not sourced benchmarks. Hover for what is sourced and what is not. Every formula, constant and a worked example are in the <a href="/methodology/tco-calculator" style={link}>published method</a>.</div>
+                    <div style={{ ...small, marginTop: 4 }}>Filled with the {INDUSTRY[d.industry]?.label} profile. Adjust any value.</div>
+                    <div style={{ ...small, marginTop: 4 }} title={BENCHMARK_SOURCES}>Industry profiles are internal planning values set by us. Hover to see which figures are sourced. Every formula, constant and a worked example are in the <a href="/methodology/tco-calculator" style={link}>published method</a>.</div>
                   </div>
-                  <NumField label="Monthly Contacts (gross demand)" tone="dark" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} hint={`All interactions initiated. About ${Math.round(n(d.monthlyContacts) * (1 - n(d.containment))).toLocaleString()} reach an agent at ${pct0(d.containment)} containment.`} />
+                  <NumField label="Monthly Contacts (gross demand)" tone="dark" value={d.monthlyContacts} onChange={v => set("monthlyContacts", v)} step={1000} min={1} pulled={pulled.monthlyContacts} hint={`Every contact customers start. About ${Math.round(n(d.monthlyContacts) * (1 - n(d.containment))).toLocaleString()} reach an agent at ${pct0(d.containment)} containment.`} />
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "flex-end", gap: 10 }}>{navBtn(1, "Next: Labor Costs", true)}</div>
               </fieldset>
@@ -849,7 +849,7 @@ function Calculator() {
                   <NumField label="Agent Hourly Rate" tone="dark" value={d.agentHourly} onChange={v => set("agentHourly", v)} prefix="$" step={0.5} min={0} />
                   <NumField label="Benefits & Burden" tone="dark" value={d.agentBenefitsPct} onChange={v => set("agentBenefitsPct", v)} suffix="%" factor={100} min={0} max={100} hint="Typically 25 to 35%" info={DEFS.loaded} infoTitle="Loaded rate" />
                   <div style={box}>
-                    <div style={small}>Loaded Rate</div>
+                    <div style={small}>Loaded rate (wage plus benefits)</div>
                     <div style={figure}>${r.loaded.toFixed(2)}/hr</div>
                   </div>
                   <NumField label="Supervisor Hourly" tone="dark" value={d.supHourly} onChange={v => set("supHourly", v)} prefix="$" step={0.5} min={0} />
@@ -857,11 +857,11 @@ function Calculator() {
                   <NumField label="WFM Analyst Hourly" tone="dark" value={d.wfmHourly} onChange={v => set("wfmHourly", v)} prefix="$" step={0.5} min={0} />
                   <NumField label="Trainer Hourly" tone="dark" value={d.trainerHourly} onChange={v => set("trainerHourly", v)} prefix="$" step={0.5} min={0} />
                   <NumField label="IT Support Hourly" tone="dark" value={d.itHourly} onChange={v => set("itHourly", v)} prefix="$" step={0.5} min={0} />
-                  <NumField label="Recruiting Cost/Hire" tone="dark" value={d.recruitingCostPerHire} onChange={v => set("recruitingCostPerHire", v)} prefix="$" step={100} min={0} />
+                  <NumField label="Recruiting Cost per Hire" tone="dark" value={d.recruitingCostPerHire} onChange={v => set("recruitingCostPerHire", v)} prefix="$" step={100} min={0} />
                 </div>
                 <div style={{ ...box, marginTop: 16, flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
                   <div><div style={small}>Monthly Labor</div><div style={{ ...figure, ...NUM }}>{fmtK(r.labor)}</div></div>
-                  <div style={{ textAlign: "right" }}><div style={small}>Attrition Cost/Mo</div><div style={{ ...figure, ...NUM }}>{fmtK(r.attritionCost)}</div><div style={small}>{r.monthlyHires} hires/mo</div></div>
+                  <div style={{ textAlign: "right" }}><div style={small}>Attrition cost a month</div><div style={{ ...figure, ...NUM }}>{fmtK(r.attritionCost)}</div><div style={small}>{r.monthlyHires} hires a month</div></div>
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>{navBtn(0, "Back", false)}{navBtn(2, "Next: KPIs", true)}</div>
               </fieldset>
@@ -872,11 +872,11 @@ function Calculator() {
                 <legend style={{ ...kicker, padding: "0 6px" }}>Operational KPIs</legend>
                 <div style={grid(190)}>
                   <NumField label="AHT (seconds)" tone="dark" value={d.aht} onChange={v => set("aht", v)} info={DEFS.aht} infoTitle="AHT" step={5} min={1} pulled={pulled.aht} hint={<span>{mmss(d.aht)}, full handle time. Bench 5:00 to 7:00</span>} />
-                  <NumField label="ACW (seconds)" tone="dark" value={d.acw} onChange={v => set("acw", v)} info={DEFS.acw} infoTitle="ACW" step={5} min={0} hint="After-call work (within AHT, line closed)" />
-                  <NumField label="Hold Time (seconds)" tone="dark" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Within AHT (line open)" />
+                  <NumField label="ACW (seconds)" tone="dark" value={d.acw} onChange={v => set("acw", v)} info={DEFS.acw} infoTitle="ACW" step={5} min={0} hint="After-call work, inside AHT, line closed" />
+                  <NumField label="Hold Time (seconds)" tone="dark" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Inside AHT, line open" />
                   <NumField label="FCR" tone="dark" value={d.fcr} onChange={v => set("fcr", v)} info={DEFS.fcr} infoTitle="FCR" suffix="%" factor={100} min={0} max={100} hint={<span>Bench 65 to 85%</span>} />
                   <NumField label="Containment" tone="dark" value={d.containment} onChange={v => set("containment", v)} info={DEFS.containment} infoTitle="Containment" suffix="%" factor={100} min={0} max={100} hint={<span>Bench 15 to 45%</span>} />
-                  <NumField label="Occupancy" tone="dark" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={150} hint={<span>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above is burnout</span>} />
+                  <NumField label="Occupancy" tone="dark" value={d.occupancy} onChange={v => set("occupancy", v)} info={DEFS.occupancy} infoTitle="Occupancy" suffix="%" factor={100} min={0} max={150} hint={<span>{pct0(BENCH.occupancy.healthyMax)} to {pct0(BENCH.occupancy.cautionMax)} healthy. Above that, burnout risk</span>} />
                   <NumField label="Shrinkage" tone="dark" value={d.shrinkage} onChange={v => set("shrinkage", v)} info={DEFS.shrinkage} infoTitle="Shrinkage" suffix="%" factor={100} min={0} max={100} pulled={pulled.shrinkage} hint="25 to 35%" />
                   <NumField label="Annual Attrition" tone="dark" value={d.attrition} onChange={v => set("attrition", v)} info={DEFS.attrition} infoTitle="Attrition" suffix="%" factor={100} min={0} max={200} pulled={pulled.attrition} hint={<span>Bench 20 to 40%</span>} />
                   <NumField label="Absenteeism" tone="dark" value={d.absenteeism} onChange={v => set("absenteeism", v)} suffix="%" factor={100} min={0} max={100} hint="5 to 10%" />
@@ -889,7 +889,7 @@ function Calculator() {
                   <NumField label="NPS (-100 to 100)" tone="dark" value={d.nps} onChange={v => set("nps", v)} min={-100} max={100} />
                   <NumField label="New Hire Training (days)" tone="dark" value={d.newHireTrainingDays} onChange={v => set("newHireTrainingDays", v)} min={0} />
                 </div>
-                <p style={{ ...small, marginTop: 12 }}>Only headcount, wages, attrition, contract and usage prices, and AHT (through voice minutes) move the current TCO total. FCR, containment, occupancy, and shrinkage do not change current cost; they size the optimization opportunity and derived metrics. CSAT, NPS, QA, adherence, ASA, abandon, transfer, hold, and absenteeism are context for the analyst read and coherence checks.</p>
+                <p style={{ ...small, marginTop: 12 }}>Only headcount, wages, attrition, contract and usage prices, and AHT (through voice minutes) move the current TCO total. FCR, containment, occupancy and shrinkage leave current cost unchanged. They size the optimization opportunity and the derived metrics. CSAT (customer satisfaction), NPS (Net Promoter Score), QA (quality assurance) score, adherence, ASA (average speed of answer), abandonment, transfers, hold and absenteeism give context for the analyst read and the consistency checks.</p>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>{navBtn(1, "Back", false)}{navBtn(3, "Next: Channel Mix", true)}</div>
               </fieldset>
             )}
@@ -899,24 +899,24 @@ function Calculator() {
                 <legend style={{ ...kicker, padding: "0 6px" }}>Channel Mix</legend>
                 <div style={grid(190)}>
                   <NumField label="Voice" tone="dark" value={d.channelMixVoice} onChange={v => set("channelMixVoice", v)} suffix="%" factor={100} min={0} max={100} />
-                  <NumField label="Chat / Messaging" tone="dark" value={d.channelMixChat} onChange={v => set("channelMixChat", v)} suffix="%" factor={100} min={0} max={100} />
+                  <NumField label="Chat and Messaging" tone="dark" value={d.channelMixChat} onChange={v => set("channelMixChat", v)} suffix="%" factor={100} min={0} max={100} />
                   <NumField label="Email" tone="dark" value={d.channelMixEmail} onChange={v => set("channelMixEmail", v)} suffix="%" factor={100} min={0} max={100} />
                   <NumField label="Social" tone="dark" value={d.channelMixSocial} onChange={v => set("channelMixSocial", v)} suffix="%" factor={100} min={0} max={100} />
                   <NumField label="Self-Service" tone="dark" value={d.channelMixSelfServe} onChange={v => set("channelMixSelfServe", v)} suffix="%" factor={100} min={0} max={100} />
                   <div style={{ ...box, border: channelOK ? `1px solid ${hair}` : `1.5px solid ${HOUSE.mist}` }}>
                     <div style={small}>Total</div>
                     <div style={{ ...figure, ...NUM }}>{pct(channelTotal)}</div>
-                    <div style={{ ...small, color: channelOK ? HOUSE.muted : HOUSE.mist, fontWeight: channelOK ? 400 : 700 }}>{channelOK ? "Balanced" : "Must equal 100%"}</div>
+                    <div style={{ ...small, color: channelOK ? HOUSE.muted : HOUSE.mist, fontWeight: channelOK ? 400 : 700 }}>{channelOK ? "Totals 100%" : "Must total 100%"}</div>
                   </div>
                 </div>
                 {!channelOK && (
                   <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", border: `1.5px solid ${HOUSE.mist}`, borderRadius: RADIUS.field, padding: "12px 16px" }}>
-                    <span style={{ ...body, fontSize: 14, flex: 1 }}>Channel mix is at {pct(channelTotal)}. The TCO cannot be trusted until it sums to 100%.</span>
+                    <span style={{ ...body, fontSize: 14, flex: 1 }}>Channel mix totals {pct(channelTotal)}. It must total 100% before the TCO can be relied on.</span>
                     <Button kind="secondary" onClick={normalizeChannels}>Auto-balance to 100%</Button>
                   </div>
                 )}
                 <div style={{ ...box, marginTop: 16 }}>
-                  <div style={small}>Monthly Voice Minutes</div>
+                  <div style={small}>Monthly voice minutes</div>
                   <div style={figure}>{Math.round(r.voiceMinutes).toLocaleString()}</div>
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -937,18 +937,18 @@ function Calculator() {
                   <NumField label="WEM Per Seat" tone="dark" value={d.wemSeat} onChange={v => set("wemSeat", v)} prefix="$" step={5} min={0} />
                   <NumField label="CRM Per Seat" tone="dark" value={d.crmSeat} onChange={v => set("crmSeat", v)} prefix="$" step={5} min={0} />
                   <NumField label="Telephony Per Min" tone="dark" value={d.telephonyPerMin} onChange={v => set("telephonyPerMin", v)} info={DEFS.telephony} infoTitle="Telephony" prefix="$" step={0.005} min={0} />
-                  <NumField label="IVA / Bot Platform" tone="dark" value={d.ivaMonthly} onChange={v => set("ivaMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="IVA and Bot Platform" tone="dark" value={d.ivaMonthly} onChange={v => set("ivaMonthly", v)} prefix="$" step={500} min={0} />
                   <NumField label="Agent Assist" tone="dark" value={d.agentAssistMonthly} onChange={v => set("agentAssistMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="RPA / Automation" tone="dark" value={d.rpaMonthly} onChange={v => set("rpaMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="RPA and Automation" tone="dark" value={d.rpaMonthly} onChange={v => set("rpaMonthly", v)} prefix="$" step={500} min={0} />
                   <NumField label="Analytics Platform" tone="dark" value={d.analyticsMonthly} onChange={v => set("analyticsMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="iPaaS / Integration" tone="dark" value={d.ipaasMonthly} onChange={v => set("ipaasMonthly", v)} prefix="$" step={500} min={0} />
+                  <NumField label="iPaaS and Integration" tone="dark" value={d.ipaasMonthly} onChange={v => set("ipaasMonthly", v)} prefix="$" step={500} min={0} />
                   <NumField label="Recording & Compliance" tone="dark" value={d.recordingMonthly} onChange={v => set("recordingMonthly", v)} prefix="$" step={500} min={0} />
-                  <NumField label="Knowledge Mgmt" tone="dark" value={d.knowledgeMgmt} onChange={v => set("knowledgeMgmt", v)} prefix="$" step={500} min={0} />
+                  <NumField label="Knowledge Management" tone="dark" value={d.knowledgeMgmt} onChange={v => set("knowledgeMgmt", v)} prefix="$" step={500} min={0} />
                   <NumField label="Security & Compliance" tone="dark" value={d.securityCompliance} onChange={v => set("securityCompliance", v)} prefix="$" step={500} min={0} />
                 </div>
                 <div style={{ ...box, marginTop: 16, flexDirection: "row", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-                  <div><div style={small}>Monthly Tech Cost</div><div style={{ ...figure, ...NUM }}>{fmtK(r.tech)}</div></div>
-                  <div style={{ textAlign: "right" }}><div style={small}>Tech Per Agent/Mo</div><div style={{ ...figure, ...NUM }}>{fmt(r.techPerAgent)}</div></div>
+                  <div><div style={small}>Monthly technology cost</div><div style={{ ...figure, ...NUM }}>{fmtK(r.tech)}</div></div>
+                  <div style={{ textAlign: "right" }}><div style={small}>Technology per agent a month</div><div style={{ ...figure, ...NUM }}>{fmt(r.techPerAgent)}</div></div>
                 </div>
                 <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>{navBtn(3, "Back", false)}{navBtn(5, "Next: Results", true)}</div>
               </fieldset>
@@ -960,14 +960,14 @@ function Calculator() {
                   <legend style={{ ...kicker, padding: "0 6px" }}>Overhead, Facilities & 3-Year Inputs</legend>
                   <div style={grid(190)}>
                     <NumField label="Cloud Infrastructure (mo)" tone="dark" value={d.cloudInfra} onChange={v => set("cloudInfra", v)} prefix="$" step={500} min={0} />
-                    <NumField label="Prof. Services Amortized (mo)" tone="dark" value={d.psAmortized} onChange={v => set("psAmortized", v)} info={DEFS.psAmortized} infoTitle="Amortized PS" prefix="$" step={500} min={0} hint="Recurring managed service" />
+                    <NumField label="Professional Services, Amortized (mo)" tone="dark" value={d.psAmortized} onChange={v => set("psAmortized", v)} info={DEFS.psAmortized} infoTitle="Amortized PS" prefix="$" step={500} min={0} hint="Recurring managed service" />
                     <NumField label="Facilities (mo)" tone="dark" value={d.facilitiesCost} onChange={v => set("facilitiesCost", v)} prefix="$" step={500} min={0} />
-                    <NumField label="Implementation (one-time)" tone="dark" value={d.implementationOneTime} onChange={v => set("implementationOneTime", v)} info={DEFS.implementation} infoTitle="Implementation" prefix="$" step={5000} min={0} pulled={pulled.implementationOneTime} hint="Added once to 3-year. 0 if steady-state" />
+                    <NumField label="Implementation (one-time)" tone="dark" value={d.implementationOneTime} onChange={v => set("implementationOneTime", v)} info={DEFS.implementation} infoTitle="Implementation" prefix="$" step={5000} min={0} pulled={pulled.implementationOneTime} hint="Added once to the 3-year total. 0 for a running operation" />
                   </div>
 
                   <div style={{ marginTop: 18, border: `1px solid ${hair}`, borderRadius: RADIUS.field, padding: "16px 18px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 12 }}>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 6 }}>3-Year Escalators <InfoDot title="Two escalators" text="Labor and contracted license inflate at different rates, so the tool escalates them separately. Usage and facilities are held flat, and one-time cost is added once and never escalates." /></div>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 6 }}>3-Year Escalators <InfoDot title="Two escalators" text="Labor and contracted licenses rise at different rates, so the tool raises them separately. Usage and facilities are held flat, and a one-time cost is added once and never raised." /></div>
                       <Button kind="secondary" onClick={() => set("useSingleEscalator", !d.useSingleEscalator)}>{d.useSingleEscalator ? "Using single blended rate" : "Using two rates"}</Button>
                     </div>
                     {d.useSingleEscalator ? (
@@ -991,16 +991,16 @@ function Calculator() {
                     <div>
                       <label htmlFor="tco-basis" style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>Cost basis <InfoDot title="Cost basis" text={DEFS.costBasis} /></label>
                       <select id="tco-basis" aria-label="Cost basis" value={d.costBasis} onChange={e => set("costBasis", e.target.value)} className="tco-sel" style={sel}>
-                        <option value="estimate">Estimate (directional)</option>
+                        <option value="estimate">Estimate (Directional)</option>
                         <option value="quoted">Vendor quote</option>
                         <option value="invoiced">Actual invoice</option>
                       </select>
-                      <div style={{ ...small, marginTop: 4 }}>Sets the sensitivity range and gates Finance-grade. Applies to cost inputs like wages and seat prices, not KPIs.</div>
+                      <div style={{ ...small, marginTop: 4 }}>Sets the sensitivity range and the grade the cost inputs can reach. It applies to cost inputs such as wages and seat prices. KPIs are unaffected.</div>
                     </div>
                     <div style={box}>
-                      <div style={small}>Export confidence</div>
+                      <div style={small}>Report confidence</div>
                       <div style={{ fontSize: 16, fontWeight: 700, color: HOUSE.mist }}>{G.confidence}</div>
-                      <div style={small}>Headline range +/- {pct0(r.sensitivity.pct)}</div>
+                      <div style={small}>Headline range plus or minus {pct0(r.sensitivity.pct)}</div>
                     </div>
                   </div>
                 </fieldset>
@@ -1018,7 +1018,7 @@ function Calculator() {
                 <section aria-label="Complete TCO results" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
                     <span style={kicker}>Complete TCO results</span>
-                    <span style={small}><strong style={{ color: HOUSE.mist }}>{G.confidence}</strong>, cost inputs, not savings or KPIs</span>
+                    <span style={small}><strong style={{ color: HOUSE.mist }}>{G.confidence}</strong>, graded on the cost inputs (savings and KPIs are graded elsewhere)</span>
                   </div>
                   {G.voided ? (
                     <Finding level="critical" title="Result void. No figure is shown and no grade is claimed.">Failed check: {G.invariants.join("; ")}. Remedy: {G.gradeObj.remedy}</Finding>
@@ -1035,13 +1035,13 @@ function Calculator() {
                       <div style={small}>{n(d.implementationOneTime) > 0 ? fmtK(n(d.implementationOneTime)) + " impl + " : ""}{escLabel}</div>
                     </div>
                     <div>
-                      <div style={small}>Per Agent/Month</div>
+                      <div style={small}>Per agent a month</div>
                       <div style={{ ...TYPE.statValueLg, fontSize: 29, color: HOUSE.mist }}>{fmt(r.monthly / r.agents)}</div>
-                      <div style={small}>Industry: $4.5K to $7.5K loaded</div>
+                      <div style={small}>Industry range: $4.5K to $7.5K loaded</div>
                     </div>
                   </div>
                   <div style={{ ...grid(130), marginBottom: 20 }}>
-                    {[{ l: "Cost Per Contact", v: "$" + r.costPerContact.toFixed(2) }, { l: "Cost Per Resolution", v: "$" + r.costPerResolution.toFixed(2) }, { l: "Marginal / Contact", v: "$" + r.marginalPerContact.toFixed(2) }, { l: "Contacts / Agent/Mo", v: Math.round(r.contacts / r.agents).toLocaleString() }].map((item, i) => (
+                    {[{ l: "Cost Per Contact", v: "$" + r.costPerContact.toFixed(2) }, { l: "Cost Per Resolution", v: "$" + r.costPerResolution.toFixed(2) }, { l: "Marginal per Contact", v: "$" + r.marginalPerContact.toFixed(2) }, { l: "Contacts per Agent a Month", v: Math.round(r.contacts / r.agents).toLocaleString() }].map((item, i) => (
                       <div key={i}><div style={small}>{item.l}</div><div style={{ ...figure, ...NUM }}>{item.v}</div></div>
                     ))}
                   </div>
@@ -1054,7 +1054,7 @@ function Calculator() {
                     </div>
                     <div style={{ display: "flex", gap: 16, marginTop: 6, flexWrap: "wrap" }}>
                       <span style={small}>Labor {r.disp.laborPctStr}, {fmtK(r.labor)}/mo</span>
-                      <span style={small}>Tech {r.disp.techPctStr}, {fmtK(r.tech)}/mo</span>
+                      <span style={small}>Technology {r.disp.techPctStr}, {fmtK(r.tech)}/mo</span>
                       <span style={small}>Overhead {r.disp.overheadPctStr}, {fmtK(r.overhead)}/mo</span>
                     </div>
                   </div>
@@ -1091,9 +1091,9 @@ function Calculator() {
                   <section aria-label="Optimization opportunities" style={panel}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8, marginBottom: 6 }}>
                       <h2 style={{ ...h2, margin: 0 }}>Optimization opportunities</h2>
-                      <div style={small}>{Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? "Booked at full theoretical value" : "Booked"} <strong style={{ color: HOUSE.mist }}>{fmtK(opt.netTotal)}/mo</strong> ({fmtK(opt.netTotal * 12)}/yr){Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", no haircut applied" : `, haircut from ${fmtK(opt.grossTotal)}/mo theoretical`}</div>
+                      <div style={small}>{Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? "Booked at full theoretical value" : "Booked"} <strong style={{ color: HOUSE.mist }}>{fmtK(opt.netTotal)}/mo</strong> ({fmtK(opt.netTotal * 12)}/yr){Math.round(opt.netTotal) === Math.round(opt.grossTotal) ? ", with no reduction" : `, reduced from ${fmtK(opt.grossTotal)}/mo theoretical`}</div>
                     </div>
-                    <p style={{ ...small, margin: "0 0 12px" }}>De-overlapped: each lever acts on the volume the prior leaves, valued at marginal cost, then scaled by the {STANCE[stance].label.toLowerCase()} stance. They do not double-count.</p>
+                    <p style={{ ...small, margin: "0 0 12px" }}>Each lever acts on the volume the one before it leaves, so no contact is counted twice. Each is valued at marginal cost, then scaled by the {STANCE[stance].label.toLowerCase()} stance.</p>
                     {opt.items.map((o, i) => (
                       <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, padding: "12px 0", borderTop: `1px solid ${hair}` }}>
                         <div style={{ flex: 1 }}>
@@ -1106,7 +1106,7 @@ function Calculator() {
                         </div>
                       </div>
                     ))}
-                    {opt.occRisk && <Finding level="high" title={`Occupancy above ${pct0(BENCH.occupancy.cautionMax)}`}>Capturing these savings by cutting heads will push occupancy higher and risk attrition. Re-staff to the 83 to 87% band rather than just trimming.</Finding>}
+                    {opt.occRisk && <Finding level="high" title={`Occupancy above ${pct0(BENCH.occupancy.cautionMax)}`}>Capturing these savings by reducing headcount will push occupancy higher and risk attrition. Staff to the 83 to 87% band instead of simply cutting.</Finding>}
                   </section>
                 )}
 
@@ -1122,7 +1122,7 @@ function Calculator() {
                           confidence={G.confidence}
                           grades={G.gradeObj}
                           summary={G.voided ? [
-                            { label: "Result", value: "Void. No figure was computed; see the failed invariant." },
+                            { label: "Result", value: "Void. No figure was computed. See the failed check." },
                             { label: "Realization stance", value: STANCE[stance].label },
                           ] : [
                             { label: "Annual TCO", value: fmtK(r.annual) },
@@ -1204,7 +1204,7 @@ function Calculator() {
                              never restates an axis. A void run carries none of it, because its checks
                              read figures that are not finite (S21 defects D15 and D16). */
                           ...(G.voided ? [] : [{ title: "Open Issues", type: "findings", items: [
-                            `Cost basis is ${d.costBasis}, declared by your own account. It sets the sensitivity range for the cost inputs (wages and seat prices), not the operational KPIs or org structure, and it lifts cost evidence to Planning-grade at most. Headline sensitivity is plus or minus ${pct0(r.sensitivity.pct)} (annual ${fmtK(r.sensitivity.annualLow)} to ${fmtK(r.sensitivity.annualHigh)}).`,
+                            `Cost basis is ${d.costBasis}, declared by your own account. It sets the sensitivity range for the cost inputs (wages and seat prices) and leaves the operational KPIs and headcount structure alone. It lifts cost evidence to Planning-grade at most. Headline sensitivity is plus or minus ${pct0(r.sensitivity.pct)} (annual ${fmtK(r.sensitivity.annualLow)} to ${fmtK(r.sensitivity.annualHigh)}).`,
                             ...(r.openIssues.length ? r.openIssues : ["No blocking issues on the confidence checks."]),
                             ...r.itemsToConfirm.map(m => "Confirm: " + m),
                           ]}]),
@@ -1238,11 +1238,11 @@ function Calculator() {
                             const v = r.disp.rows;
                             return [
                               ["Labor, agents", fmt(v[0])],
-                              ["Labor, supervisors QA WFM trainers IT", fmt(v[1])],
-                              ["Technology, " + r.breakdown.seats + " seats (CCaaS WEM CRM)", fmt(v[2])],
-                              ["Technology, AI usage analytics iPaaS recording knowledge security", fmt(v[3])],
+                              ["Labor, supervisors, QA, WFM, trainers, IT", fmt(v[1])],
+                              ["Technology, " + r.breakdown.seats + " seats (CCaaS, WEM, CRM)", fmt(v[2])],
+                              ["Technology, AI usage, analytics, iPaaS, recording, knowledge, security", fmt(v[3])],
                               ["Technology, telephony (" + Math.round(r.voiceMinutes).toLocaleString() + " min)", fmt(v[4])],
-                              ["Overhead, cloud prof-services facilities", fmt(v[5])],
+                              ["Overhead, cloud, professional services, facilities", fmt(v[5])],
                               ["Overhead, attrition (" + r.monthlyHires + " hires at " + fmt(r.perHire) + " loaded cost per hire)", fmt(v[6])],
                               ["Total monthly", fmt(r.disp.total)],
                             ];
@@ -1255,7 +1255,7 @@ function Calculator() {
                           { title: "Analyst Read", type: "findings", items: analyst },
                           { title: "Optimization Opportunities", type: "actions", items: opt.items.slice(0, 4).map((o, i) => ({ action: o.title + ", " + fmtK(o.net) + "/mo", detail: o.desc, priority: (() => { const rank = [...opt.items].sort((a, b) => b.net - a.net).findIndex(x => x === o); return rank === 0 ? "high" : rank === 1 ? "medium" : undefined; })() })) },
                           ]),
-                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on ${benchmark("tco.hours.month")} paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}; the platform defaults are wage ${pctD(benchmark("tco.escalator.wage"))} and license ${pctD(benchmark("tco.escalator.license"))}); usage and facilities are held flat and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model, not cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, not fully loaded cost per contact, because fixed tech and facilities do not fall when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts), de-overlapped so each acts on the volume the prior leaves, and scaled by the ${STANCE[stance].label.toLowerCase()} realization stance, so totals are defensible rather than inflated.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/tco-calculator. ${BENCHMARK_SOURCES}` },
+                          { title: "Methodology", type: "text", content: `TCO covers labor, technology, and overhead. Labor cost is computed on ${benchmark("tco.hours.month")} paid hours per agent per month (2080 annual hours divided by 12); at ${pct0(d.shrinkage)} shrinkage that is roughly ${Math.round(r.productiveHours)} productive hours, but cost uses paid hours because shrinkage time is paid. The 3-year view carries the current operation forward with two escalators (this analysis uses ${escLabel}. The tool defaults are wage ${pctD(benchmark("tco.escalator.wage"))} and license ${pctD(benchmark("tco.escalator.license"))}). Usage and facilities are held flat, and any one-time implementation is added once and never escalates. Year 1 equals the annual snapshot so the views reconcile. Annual TCO is recurring run-rate and excludes the one-time implementation, which appears only in Year 1 cash and the 3-year total. Cost per resolution uses cost per contact times (2 minus FCR), the standard one-plus-repeat model. The tool does not use cost per contact divided by FCR. Optimization savings are valued at marginal (variable) cost, the handle-time labor freed per contact, because technology and facilities costs stay the same when volume drops. Optimization levers act on agent-handled volume (gross demand minus contained contacts). Each acts on the volume the one before it leaves, so no contact is counted twice, and the total is scaled by the ${STANCE[stance].label.toLowerCase()} realization stance.${r.guards.length ? ` INPUTS CORRECTED: ${r.guards.map(g => `${g.label} entered ${guardVal(g, "entered")}, computed at ${guardVal(g, "used")}`).join("; ")}. Every figure above was computed on the corrected values.` : ""} The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/tco-calculator. ${BENCHMARK_SOURCES}` },
                         ]}
                         />
                 </div>

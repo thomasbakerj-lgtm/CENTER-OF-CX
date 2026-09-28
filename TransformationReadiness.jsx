@@ -64,7 +64,7 @@ export default function TransformationReadiness() {
     : <Result label="Statements answered" value={`${answered} of ${total}`} change="The score, band and checklist appear once every statement is answered." />;
   return (
     <ToolFrame toolId={TOOL_ID} choice={R.nextDiagnostic ? R.nextDiagnostic.tool : null} section="Assessments + Scorecards" name="Transformation Readiness Scorecard" title="Is your organization ready to commit to this transformation?"
-      lede="The go/no-go assessment. Score 6 dimensions, get a phased recommendation, and see exactly which tools to use to close each gap before committing budget."
+      lede="Decide whether to commit budget to a platform change. Rate 6 dimensions, from leadership to change management, and get a phased recommendation plus the tool to use for each gap you need to close first."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={phase === "results" ? { label: "Readiness", value: overallScore.toFixed(1) + " / 5" } : null}>
       <style>{FONT_IMPORT_CSS}</style>
 
@@ -72,7 +72,7 @@ export default function TransformationReadiness() {
         <section aria-label="Start" style={K.lead}>
           <p style={K.body}>Rate each statement from 1 (strongly disagree) to 5 (strongly agree). Nothing is scored until every statement is answered.</p>
           <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", marginTop: 16 }}>
-            <Button onClick={handleStart}>Start Assessment</Button>
+            <Button onClick={handleStart}>Start the assessment</Button>
             <a href={RUBRIC.methodology} style={K.link}>See the published rubric: every statement, band and action</a>
           </div>
         </section>
@@ -80,7 +80,7 @@ export default function TransformationReadiness() {
 
       {phase === "assess" && (
         <StatementStep dims={DIMS} current={currentDim} setCurrent={setCurrentDim} scores={scores} setScore={setScore} done={dimComplete} complete={allComplete} onResults={handleResults}
-          prompt="Rate each statement from 1 (strongly disagree) to 5 (strongly agree) based on your organization's current reality." />
+          prompt="Rate each statement from 1 (strongly disagree) to 5 (strongly agree) for how your organization works today." />
       )}
 
       {phase === "results" && (<>
@@ -113,7 +113,7 @@ export default function TransformationReadiness() {
         <section aria-label="Your action checklist" style={K.panel}>
           <h2 style={K.h2}>Your action checklist</h2>
           {R.checklist.length === 0 ? (
-            <p style={K.body}>No statement was answered at {RUBRIC.failAt} or below, so the rubric raises no action. Your lowest dimension is still the place to look first.</p>
+            <p style={K.body}>No statement was answered at {RUBRIC.failAt} or below, so the rubric raises no action. Your lowest-scoring dimension is still the place to look first.</p>
           ) : R.checklist.map((c, i) => (
             <div key={c.criterion} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderTop: `1px solid ${K.hair}` }}>
               <span style={{ ...K.strong, ...K.num, width: 22, flexShrink: 0 }}>{i + 1}</span>
@@ -132,12 +132,12 @@ export default function TransformationReadiness() {
         <div style={K.grid(240)}>
           <section aria-label="Sequence the gap closure" style={K.panel}>
             <h2 style={K.h2}>Sequence the gap closure</h2>
-            <p style={{ ...K.small, marginBottom: 12 }}>A working session to order these gaps and build the readiness plan before you commit budget.</p>
+            <p style={{ ...K.small, marginBottom: 12 }}>A working session with a consultant to put these gaps in order and build the readiness plan before you commit budget.</p>
             <Button href="/contact">Request a working session</Button>
           </section>
           <section aria-label="Starting vendor evaluation" style={K.panel}>
             <h2 style={K.h2}>Starting vendor evaluation?</h2>
-            <p style={{ ...K.small, marginBottom: 12 }}>From the Ready band up, Vendor Match builds a starting shortlist from your environment and priorities, with its method disclosed.</p>
+            <p style={{ ...K.small, marginBottom: 12 }}>Once you reach the Ready band, Vendor Match can build a starting shortlist from your environment and priorities. Its method is published with the result.</p>
             <Button kind="secondary" href="/tools/vendor-match">Open Vendor Match</Button>
           </section>
         </div>
@@ -151,10 +151,10 @@ export default function TransformationReadiness() {
                 { label: "Band", value: tier.tier, color: tier.color },
               ]},
               { title: "Recommendation", type: "text", content: tier.desc },
-              { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ": answered " + c.score + " of 5 to \"" + c.text + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No statement was answered at " + RUBRIC.failAt + " or below, so the rubric raises no action.", detail: "Your lowest dimension is still the place to look first.", priority: "medium" }] },
+              { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ": answered " + c.score + " of 5 to \"" + c.text + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No statement was answered at " + RUBRIC.failAt + " or below, so the rubric raises no action.", detail: "Your lowest-scoring dimension is still the place to look first.", priority: "medium" }] },
               { title: "Gaps to Close", type: "findings", items: gaps.length ? gaps.map(d => d.name + " (" + dimScore(d.id).toFixed(1) + "/5, " + flagOf(d.id).toLowerCase() + ")" + (toolOf(d.next) ? ": next, " + toolOf(d.next).name : "")) : ["No dimension scores below the Ready band."] },
               { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
-              { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each dimension scores the mean of its statements on a 1 to 5 scale; the overall score is the equally weighted mean of the six dimensions. A dimension below 2.5 is marked Close this gap and one from 2.5 to below 3.5 is marked Monitor. Every statement answered at " + RUBRIC.failAt + " or below adds its action to the checklist, weakest dimension first." },
+              { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each dimension scores the average of its statements on a 1 to 5 scale. The overall score is the average of the six dimensions, weighted equally. A dimension below 2.5 is marked Close this gap and one from 2.5 to below 3.5 is marked Monitor. Every statement answered at " + RUBRIC.failAt + " or below adds its action to the checklist, weakest dimension first." },
             ]} />
         </Paper>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

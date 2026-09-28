@@ -29,18 +29,18 @@ const fmtX = (x) => (Math.round(Number(x) * 100) / 100).toString();
 
 // DEFS is the future glossary content: write once, lift later.
 const DEFS = {
-  fcrDef: { title: "FCR definition", text: "FCR has no industry standard. Call-level same-channel scores higher than cross-channel contact-level, and a post-call survey reads differently than an internal callback window. Declare yours so the result stays comparable to itself over time, not to a benchmark measured a different way." },
-  scope: { title: "Resolution scope", text: "The set of channels a resolution must hold across. Voice-only is the most generous and inflates FCR. Enterprise one-contact is the strictest because a customer who failed in a bot, searched help, then called counts as unresolved. Narrower scope understates leakage." },
-  marginalCPC: { title: "Marginal cost per contact", text: "The cost that actually disappears when one contact goes away: agent wage plus benefits for the handle time, not facilities or licenses. Savings are valued here because fixed costs do not refund when volume drops." },
-  loadedCPC: { title: "Loaded cost per contact", text: "Fully burdened cost including facilities, software, and overhead. Used only for the unit metric you report upward, never for savings, because valuing savings at loaded cost is the most common way these numbers get inflated." },
-  repeatModel: { title: "Repeat-behavior model", text: "The same FCR yields different leakage depending on how an unresolved issue behaves. One-callback assumes each failed issue returns once. Geometric assumes callbacks can themselves fail, so some issues return several times. If you have measured your real repeat rate, enter it and ignore the model." },
-  repeatMult: { title: "Repeat complexity multiplier", text: "Repeat contacts often cost more than first contacts: longer handle time, more transfers, escalation, and back-office rework. The tool's planning range, a labelled threshold rather than a published benchmark: 1.0x to 2.0x is the normal modeled range, 2.0x to 2.5x is elevated and fits centers where repeats escalate or run long, and above 2.5x is a high assumption to validate against your own handle-time and escalation data before using it in a business case. Default is 1.0x. Raise it only on evidence, do not invent the number." },
-  ceiling: { title: "Opportunity times capture", text: "Two separate truths. Opportunity is how much controllable leakage exists, which is high when your diagnostic is weak. Capture is how much of it you can realistically book in year one, which is high when your diagnostic is strong. Headroom is measured against a practical maximum, not a perfect 100%, because gains get much harder near the top. That maximum tightens as the definition broadens: voice-only 93%, cross-channel 90%, digital plus assisted 89%, enterprise one-contact 88%. Their product caps your target, so a center cannot claim a gain it has no realistic ability to capture." },
-  controllable: { title: "Controllable vs non-controllable burden", text: "Only part of your repeat burden is inside your control this year. The rest comes from issue complexity, structural constraints, and customer-driven failures that no process fix removes. Savings are drawn only from the controllable slice." },
-  sourcing: { title: "Sourcing model", text: "For in-house teams, reduced volume is capacity, not cash, until a mechanism converts it. For an outsourced per-contact model, reduced volume stops being billed, so it converts to cash directly. Same volume drop, very different cash speed." },
-  mech: { title: "Realization mechanism", text: "Freed agent time is capacity, not cash, until you commit to converting it. None means zero dollars realized for in-house. The mechanism sets how much capacity becomes budget, from absorbing growth up to removing headcount." },
-  invest: { title: "One-time vs recurring cost", text: "Raising FCR carries an upfront cost (integration, content build) and an ongoing cost (knowledge upkeep, coaching). Payback and year-one net are shown against both, because a project can be net positive annualized yet cash negative in its first year." },
-  confidence: { title: "Confidence (two axes)", text: "Cost basis asks whether inputs are validated: estimate, operations data, or finance-confirmed. Realization asks whether the savings can be booked given your mechanism and sourcing. The headline reports the weaker of the two, and any impossible input or undeclared definition forces Directional." },
+  fcrDef: { title: "FCR definition", text: "FCR (first contact resolution) is the share of issues solved on the first contact. FCR has no industry standard. Measured per call in one channel, it reads higher than measured per customer across channels, and a post-call survey reads differently from an internal callback window. Declare how you measure it so you can compare this result with your own later runs. A benchmark measured another way will not line up with it." },
+  scope: { title: "Resolution scope", text: "The channels a resolution has to hold across. Voice only is the most generous and makes FCR look higher. Enterprise one-contact is the strictest: a customer who tried a bot, searched the help pages, then called counts as unresolved. The narrower the scope, the less leakage you will see." },
+  marginalCPC: { title: "Marginal cost per contact", text: "The cost that goes away when one contact goes away: agent wage and benefits for the handle time. Facilities and licenses stay. Savings are valued at this cost, because fixed costs do not fall when volume drops." },
+  loadedCPC: { title: "Loaded cost per contact", text: "The full cost of a contact, including facilities, software and overhead. Use it for the unit cost you report upward. Savings are never valued on it: facilities and software do not shrink when one contact goes away, so a saving valued at loaded cost is overstated." },
+  repeatModel: { title: "Repeat-behavior model", text: "The same FCR can mean different amounts of leakage, depending on what an unresolved issue does next. One callback assumes each unresolved issue comes back once. Geometric assumes a callback can also fail, so some issues come back several times. If you have measured your real repeat rate, enter it and the model is set aside." },
+  repeatMult: { title: "Repeat complexity multiplier", text: "Repeat contacts often cost more than first contacts: longer handle time, more transfers, escalations and back-office rework. This tool's planning range is our own labelled threshold, with no published benchmark behind it. 1.0x to 2.0x is the normal modeled range. 2.0x to 2.5x is elevated and fits centers where repeats escalate or run long. Above 2.5x is a high assumption: check it against your own handle-time and escalation data before it goes into a business case. The default is 1.0x. Raise it only when your own data supports it." },
+  ceiling: { title: "Opportunity times capture", text: "Two separate measures. Opportunity is how much controllable leakage exists, and it is high when your diagnostic scores are weak. Capture is how much of it you can realistically book in year one, and it is high when your scores are strong. Headroom runs up to a practical maximum below 100%, because gains get much harder near the top. That maximum falls as the definition widens: voice only 93%, cross-channel 90%, digital plus assisted 89%, enterprise one-contact 88%. Opportunity times capture caps your target, so the model never books a gain you have no realistic way to capture." },
+  controllable: { title: "Controllable and non-controllable burden", text: "Only part of your repeat burden is within your control this year. The rest comes from issue complexity, structural limits and customer-driven failures that a process fix will not remove. Savings are drawn only from the controllable part." },
+  sourcing: { title: "Sourcing model", text: "In-house, fewer contacts frees agent time (capacity). It becomes cash only when a capacity action converts it. On an outsourced per-contact contract, contacts that no longer happen are no longer billed, so the saving is cash straight away. The same drop in volume turns into cash at very different speeds." },
+  mech: { title: "Realization mechanism", text: "The capacity action: what you will do with the agent time you free up. Freed time stays capacity until you commit to converting it. None realizes $0 for an in-house team. The choice sets how much of the capacity becomes budget, from absorbing growth up to reducing headcount." },
+  invest: { title: "One-time vs recurring cost", text: "Raising FCR has an upfront cost (integration, building content) and an ongoing cost (keeping knowledge current, coaching). Payback and year-one net are shown against both, because a project can be positive over a full year of steady state and still be cash negative in its first year." },
+  confidence: { title: "How sure the result is", text: "The result is graded on three axes. Evidence: where your inputs came from, including whether cost is an estimate, operations data or finance-confirmed. Realization: whether the savings can be booked, given your capacity action and sourcing. Completeness: whether the model is whole. The headline is the weakest of the three. Any impossible input or an undeclared FCR definition holds it at Directional." },
 };
 
 
@@ -62,24 +62,24 @@ function Tag({ text }) {
 }
 
 const DIMS = [
-  { id: "policy", name: "Policy + Process Gaps", color: RED, icon: "📋", ownerClass: "Enterprise + CC controllable", owner: "Ops leadership and the business owner", desc: "Policies that force callbacks: verification that cannot finish in one contact, approval chains, processes that span departments.",
-    qs: ["Agents can resolve the top 10 contact types without escalation or manager approval.", "Policy exceptions have documented authority levels agents apply in real time.", "Multi-step processes (claims, disputes, changes) complete in a single interaction.", "Customers do not call back to confirm an action was completed."],
+  { id: "policy", name: "Policy + Process Gaps", color: RED, icon: "📋", ownerClass: "Enterprise + CC controllable", owner: "Ops leadership and the business owner", desc: "Policies that force a callback: verification that cannot finish in one contact, approval chains, processes that cross departments.",
+    qs: ["Agents can resolve the top 10 contact types without escalation or manager approval.", "Policy exceptions have documented authority levels agents apply in real time.", "Multi-step processes (claims, disputes, account changes) finish in a single interaction.", "Customers do not call back to confirm an action was completed."],
     test: { move: "Audit the escalation authority matrix for the top 10 intents", lead: "Escalation rate on those intents", lag: "Repeat contact rate", stop: "Do not scale if CSAT or QA accuracy drops" } },
-  { id: "handoff", name: "Handoff + Transfer Failures", color: AMBER, icon: "↗️", ownerClass: "CC + Tech controllable", owner: "Contact center ops and CX tech", desc: "Context lost during transfers, departments that do not share information, warm transfers that go cold.",
-    qs: ["When agents transfer, full context (reason, steps, mood) transfers with it.", "Transferred customers do not re-explain their issue.", "Cross-department handoffs have SLAs for response and resolution.", "Transfer rates are tracked by reason code and used to improve routing."],
-    test: { move: "Map the top 5 transfer destinations and whether context travels", lead: "Transfer rate and re-explanation rate", lag: "Repeat contact rate on transferred intents", stop: "Do not scale if AHT rises without FCR gain" } },
+  { id: "handoff", name: "Handoff + Transfer Failures", color: AMBER, icon: "↗️", ownerClass: "CC + Tech controllable", owner: "Contact center ops and CX tech", desc: "Context lost in transfers, departments that do not share information, warm transfers that go cold.",
+    qs: ["When agents transfer, full context (reason, steps, mood) transfers with it.", "Transferred customers do not re-explain their issue.", "Cross-department handoffs have SLAs (service level agreements) for response and resolution.", "Transfer rates are tracked by reason code and used to improve routing."],
+    test: { move: "Map the top 5 transfer destinations and whether context travels", lead: "Transfer rate and re-explanation rate", lag: "Repeat contact rate on transferred intents", stop: "Do not scale if AHT (average handle time) rises with no FCR gain" } },
   { id: "channel", name: "Channel Mismatch", color: ELECTRIC, icon: "📱", ownerClass: "Tech + CC controllable", owner: "CX tech and routing", desc: "Customers forced into the wrong channel, or channel switches that lose context.",
-    qs: ["Complex issues route to the channel best suited for resolution, not forced through chat or IVR.", "When a customer switches channels, prior context is available.", "Self-service handles the issues customers want to self-serve, not just the easy ones.", "Channel containment is measured by resolution, not just deflection."],
+    qs: ["Complex issues route to the channel best suited to resolving them, instead of being pushed through chat or the IVR (the automated phone menu).", "When a customer switches channels, prior context is available.", "Self-service covers the issues customers want to handle themselves, including the harder ones.", "Channel containment is measured by whether the issue was resolved, beyond whether the customer was deflected."],
     test: { move: "Map top 10 intents to the channel best suited for resolution", lead: "Cross-channel switch rate before resolution", lag: "Enterprise one-contact resolution rate", stop: "Do not scale if deflection rises but resolution does not" } },
   { id: "knowledge", name: "Knowledge + Information Gaps", color: "#7C3AED", icon: "📚", ownerClass: "CC controllable", owner: "Knowledge and enablement", desc: "Outdated articles, missing procedures, conflicting sources, knowledge that exists but cannot be found.",
-    qs: ["Knowledge articles are reviewed and updated at least quarterly.", "Agents report knowledge gaps and those reports are actioned within 2 weeks.", "There is a single source of truth, not conflicting wikis and tribal knowledge.", "Product, policy, and system changes hit the knowledge base before going live."],
+    qs: ["Knowledge articles are reviewed and updated at least quarterly.", "Agents report knowledge gaps and those reports are actioned within 2 weeks.", "There is a single source of truth, with no conflicting wikis or knowledge that lives only in people's heads.", "Product, policy, and system changes hit the knowledge base before going live."],
     test: { move: "Have 5 agents search answers to the top 10 questions and time it", lead: "Search time and answer-found rate", lag: "Repeat contact rate on knowledge-driven intents", stop: "Do not scale if found answers are inaccurate" } },
   { id: "skill", name: "Agent Skill + Training Gaps", color: "#EC4899", icon: "🎯", ownerClass: "CC controllable", owner: "Contact center ops and training", desc: "Agents who lack the skill, confidence, or authority to resolve on first contact.",
-    qs: ["Agents are assessed on specific skill gaps, not just overall QA, and training targets those gaps.", "New agents can identify when they are out of their depth and escalate gracefully.", "Tenured agents have skills and authority that grow with experience.", "Call types with the lowest FCR are analyzed for skill or training root causes."],
-    test: { move: "Pull FCR by tenure band on the lowest-FCR intents", lead: "New-agent vs tenured FCR gap", lag: "Repeat contact rate by tenure", stop: "If tenured agents are also low, the gap is authority, not training" } },
+    qs: ["Agents are assessed on specific skill gaps as well as their overall QA (quality assurance) score, and training targets those gaps.", "New agents can identify when they are out of their depth and escalate gracefully.", "Tenured agents have skills and authority that grow with experience.", "Call types with the lowest FCR are analyzed for skill or training root causes."],
+    test: { move: "Pull FCR by tenure band on the lowest-FCR intents", lead: "New-agent vs tenured FCR gap", lag: "Repeat contact rate by tenure", stop: "If tenured agents are also low, look at their authority to resolve before adding training" } },
   { id: "workflow", name: "Broken Workflows + Systems", color: "#0EA5E9", icon: "⚙️", ownerClass: "Tech controllable", owner: "CX tech and IT", desc: "Systems that do not talk to each other, manual steps that introduce errors, follow-up required by design.",
-    qs: ["The top 10 workflows complete end-to-end in a single or tightly integrated system.", "Agents do not manually copy data between applications.", "System errors and timeouts are rare and do not force a callback.", "Follow-up notifications are triggered by the system, not the agent."],
-    test: { move: "Map the top 10 workflows end-to-end and flag callback-by-design steps", lead: "Manual re-entry steps and system error rate", lag: "Repeat contact rate on system-driven intents", stop: "Do not scale a workaround that hides the integration gap" } },
+    qs: ["The top 10 workflows complete end-to-end in a single or tightly integrated system.", "Agents do not manually copy data between applications.", "System errors and timeouts are rare and do not force a callback.", "The system sends follow-up notifications on its own, without an agent having to trigger them."],
+    test: { move: "Map the top 10 workflows end-to-end and flag callback-by-design steps", lead: "Manual re-entry steps and system error rate", lag: "Repeat contact rate on system-driven intents", stop: "Do not scale a workaround that hides the integration gap; fix the integration" } },
 ];
 
 /* @engine-start
@@ -331,26 +331,26 @@ function engine(I) {
   for (const c of enumCorrections) flags.push(c);
   for (const c of I.numericCorrections || []) flags.push(c);
   for (const c of measuredCorrections) flags.push(c);
-  if (fcrPulledDirty) flags.push("Current FCR was pulled from another tool as a whole number and normalized to " + pct(fcr) + ". Confidence is capped until you confirm it. The upstream tool is publishing FCR in the wrong unit, which is a suite-contract issue worth fixing at the source.");
-  if (fcrWasPercent) flags.push("Current FCR arrived as a whole number and was read as " + pct(fcr) + ". Confirm the upstream tool publishes FCR as a fraction, not a percentage.");
-  if (fcrImpossible) flags.push("Current FCR was outside 0 to 100% and had to be clamped. The result is unreliable until the input is corrected.");
-  if (negImpossible) flags.push("A negative volume, cost, or multiplier reached the model, which is impossible, and was clamped to zero. This can only arrive through an edited scenario link. Re-enter the inputs directly before using any figure on this page.");
+  if (fcrPulledDirty) flags.push("Current FCR came from another tool as a whole number and was read as " + pct(fcr) + ". The grade is capped until you confirm it. The tool that sent it is publishing FCR in the wrong unit, and the fix belongs in that tool.");
+  if (fcrWasPercent) flags.push("Current FCR arrived as a whole number and was read as " + pct(fcr) + ". Check that the tool that sent it publishes FCR as a fraction of 1.");
+  if (fcrImpossible) flags.push("Current FCR was outside 0 to 100% and had to be clamped. Treat the result as unreliable until the input is corrected.");
+  if (negImpossible) flags.push("A negative volume, cost or multiplier reached the model, which is impossible, and was clamped to zero. Only an edited scenario link can do this. Re-enter the inputs yourself before using any figure on this page.");
   if (repeats > M + 1) flags.push("Repeat contacts exceed total contacts, which is impossible. The inputs are inconsistent.");
   if (repeatModel === "measured" && (repeatShare < 0 || repeatShare > MEASURED_MAX)) flags.push("Measured repeat share is outside the plausible 0 to " + Math.round(MEASURED_MAX * 100) + "% range. Recheck the figure.");
   if (method === "internal" && windowDays < WINDOW_SHORT) flags.push("Callback window of " + windowDays + " days is short. Internal FCR measured on a short window captures fewer return contacts and tends to run high, so the true repeat burden is likely larger than shown. This matters most for cross-channel and enterprise scope, where customers often return days later.");
-  if (neverPaysBack) flags.push("Recurring cost meets or exceeds steady-state realizable savings, so this project does not pay back at any horizon under the current scope. Reduce recurring cost, strengthen the mechanism, or narrow the target.");
-  if (repeatMult > MULT_HIGH) flags.push("Repeat complexity multiplier above " + MULT_HIGH + "x sits above the tool's planning range of 1.0x to " + MULT_ELEVATED + "x. Confirm it against your own handle-time, escalation, and rework data before presenting these figures.");
+  if (neverPaysBack) flags.push("Recurring cost is equal to or above the realizable savings at steady state, so this project does not pay back at any horizon as scoped. To change that, lower the recurring cost, choose a capacity action that converts more of the freed time, or narrow the target.");
+  if (repeatMult > MULT_HIGH) flags.push("A repeat complexity multiplier above " + MULT_HIGH + "x is outside this tool's planning range of 1.0x to " + MULT_ELEVATED + "x. Check it against your own handle-time, escalation and rework data before presenting these figures.");
   if (lCPC && mCPC > lCPC) flags.push("Marginal cost per contact exceeds loaded cost, which is impossible. Correct the inputs.");
-  if (repeatMult < 1) flags.push("Repeat complexity multiplier below 1.0 implies repeats are cheaper than first contacts, which is implausible.");
-  else if (lCPC && mCPC >= MARG_NEAR * lCPC) flags.push("Marginal cost is close to loaded cost. You may have entered loaded cost. The savings basis must be marginal.");
-  else if (lCPC && mCPC > 0 && mCPC <= MARG_FAR * lCPC) flags.push("Marginal cost is " + Math.round((mCPC / lCPC) * 100) + "% of loaded cost. Marginal cost is mostly agent wage and benefits, so it usually runs 50% to 75% of loaded. A ratio this low means either an unusually fixed cost base or a wrong input, and burden scales directly with it. Confirm the figure before presenting, especially if it was pulled from another tool.");
-  if (measuredPathOverridden) flags.push("This scenario carried a modeled improvement path against a measured repeat rate. That path computes the target share from a model whose baseline your measured figure replaces, so it books the gap between the two as savings. The improvement is now scaled proportionally on your own measured base, which is the only base-consistent reading. Figures here will not match a report generated from this link before that change.");
-  if (!defDeclared) flags.push("FCR definition not declared. The result is not comparable across centers until you state how you measure it.");
-  if (target <= fcr + 1e-9) flags.push("Target FCR is not above current. There is no improvement to value.");
+  if (repeatMult < 1) flags.push("A repeat complexity multiplier below 1.0 prices a repeat below a first contact. That is unlikely; check the figure.");
+  else if (lCPC && mCPC >= MARG_NEAR * lCPC) flags.push("Marginal cost is close to loaded cost, which usually means loaded cost was entered by mistake. Savings have to be valued at marginal cost.");
+  else if (lCPC && mCPC > 0 && mCPC <= MARG_FAR * lCPC) flags.push("Marginal cost is " + Math.round((mCPC / lCPC) * 100) + "% of loaded cost. Marginal cost is mostly agent wage and benefits, so it usually runs 50% to 75% of loaded. A ratio this low points to an unusually fixed cost base or a wrong input, and the burden scales directly with it. Confirm the figure before presenting it, especially if it came from another tool.");
+  if (measuredPathOverridden) flags.push("This scenario carried a modeled improvement path against a measured repeat rate. That path takes the target share from a model whose baseline your measured figure replaces, so it books the gap between the two as savings. The improvement is now scaled in proportion on your own measured base, the only base-consistent reading. Figures here will differ from a report made from this link before that change.");
+  if (!defDeclared) flags.push("FCR definition not declared. State your scope and method so the result can be compared across centers.");
+  if (target <= fcr + 1e-9) flags.push("Target FCR is not above current, so there is no improvement to value.");
   if (overCeiling) flags.push("Target was capped at " + pct(ceilingFCR) + ", the most your diagnostic says you can capture.");
-  if (mechKey === "none" && sourcing !== "bpo") flags.push("No mechanism and in-house sourcing. Realizable savings are $0 until you commit to one.");
-  if (mechApplies && mechKey === "vendor") flags.push("You selected in-house sourcing and a mechanism that reduces outsourcer volume. Those only hold together if you route overflow or seasonal volume to a per-contact vendor. If you do not, there is no invoice to reduce, the savings are capacity rather than cash, and this should be modeled as avoid hiring instead. This is the only path to Finance-grade realization that does not reduce headcount, so it will be the first assumption a CFO tests.");
-  if (!mechApplies) flags.push("Outsourced per-contact sourcing converts volume reduction to cash at 100%, and the realization mechanism does not apply. This assumes billing tracks actual volume with no minimum commitment. If your contract carries a volume floor, nothing is saved until you drop below it. Confirm the commitment terms in Contract Risk Scanner before presenting these savings.");
+  if (mechKey === "none" && sourcing !== "bpo") flags.push("No mechanism and in-house sourcing. Realizable savings are $0 until you choose a capacity action for the freed time.");
+  if (mechApplies && mechKey === "vendor") flags.push("You chose in-house sourcing and a capacity action that reduces outsourcer volume. The two fit together only if you send overflow or seasonal volume to a per-contact vendor. If you do not, there is no invoice to reduce: the freed time is capacity, and avoided hiring is the better model. This is the one route to Finance-grade realization that does not reduce headcount, so finance will test it first.");
+  if (!mechApplies) flags.push("Outsourced per-contact sourcing turns lower volume into cash at 100%, so the capacity action does not apply. This assumes billing follows actual volume with no minimum commitment. If your contract has a volume floor, nothing is saved until volume drops below it. Check the commitment terms in Contract Risk Scanner before presenting these savings.");
   const hardFlag = flags.some((f) => /impossible|outside the plausible|outside 0 to 100|had to be clamped|clamped to zero|was held at/.test(f));
 
   /* The two-axis ladder that lived here graded a single select to Finance-grade and
@@ -441,27 +441,27 @@ function gradeFCR({ I, r, pre, railOrigin }) {
     const parts = [];
     const def = named(list, "default"), self = named(list, "self"), rail = named(list, "rail");
     if (def.length) parts.push(`${say(def)} ${def.length > 1 ? "are" : "is"} still at the tool default`);
-    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself`);
+    if (self.length) parts.push(`${say(self)} ${self.length > 1 ? "were" : "was"} restored from this tool's own last run, and a tool never credentials itself, so it counts as unverified`);
     if (rail.length) {
       const seen = [...new Set(list.filter(([f]) => origins[f] === "rail").map(([f]) => (pre && pre[f] && pre[f].origin) || railOrigin).map((g) => g || "none"))];
       const noted = seen.length === 1 && seen[0] === "none" ? "with no recorded origin grade" : `with an origin grade of ${say(seen)}`;
-      parts.push(`${say(rail)} arrived over the rail ${noted}, which confers consistency and evidence only as far as its origin`);
+      parts.push(`${say(rail)} arrived over the rail ${noted}. A value from another tool keeps your tools consistent, and its evidence goes only as far as where it came from`);
     }
     return parts;
   };
   const opsParts = why([...opsList, ...(multBinds ? [["repeatMult", "repeat complexity multiplier"]] : [])]);
-  if (!measured) opsParts.push(`the repeat share is modeled from FCR by the ${r.shareSource}, not measured. Select the measured model and enter your repeat rate to lift it`);
-  if (!opsParts.length) opsParts.push("Volume, FCR and the measured repeat share are your own entries. Self-declared figures stand at Planning-grade at most, because no data was inspected");
+  if (!measured) opsParts.push(`the repeat share is modeled from FCR by the ${r.shareSource}. Choose the measured model and enter your own repeat rate to lift it`);
+  if (!opsParts.length) opsParts.push("Volume, FCR and the measured repeat share are your own entries. Figures you declare yourself stand at Planning-grade at most, because no data was inspected");
   const costParts = why([...COST_ATTEST, ...COST_OWN]);
-  if (!costParts.length && !attested) costParts.push("Marginal cost is your own entry but the cost basis is an estimate. Select operations or finance data once it is validated");
-  if (!costParts.length) costParts.push("Marginal, one-time and recurring cost are your own entries, with the cost basis declared by your own account. Self-declaration stands at Planning-grade at most");
+  if (!costParts.length && !attested) costParts.push("Marginal cost is your own entry and the cost basis is an estimate. Select operations or finance data once the figure is validated");
+  if (!costParts.length) costParts.push("Marginal, one-time and recurring cost are your own entries, and you declared the cost basis yourself. A self-declared basis stands at Planning-grade at most");
   const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
   const evParts = [...(opsGrade === evidence ? opsParts : []), ...(costGrade === evidence ? costParts : [])];
 
   const inhouseVendor = r.mechApplies && r.mechKey === "vendor";
   const realization = !r.mechApplies ? "Planning-grade" : inhouseVendor ? weakerStream(realizationFromCred(MECH[r.mechKey].cred), "Planning-grade") : realizationFromCred(MECH[r.mechKey].cred);
   const realWhy = !r.mechApplies
-    ? "Per-contact billing falls directly with volume, so no capacity mechanism applies. It is held at Planning-grade until a minimum volume commitment is ruled out"
+    ? "Per-contact billing falls directly with volume, so no capacity action applies. It is held at Planning-grade until a minimum volume commitment is ruled out"
     : inhouseVendor
       ? `${MECH.vendor.label} on in-house sourcing is held at Planning-grade, because the outsourcer invoice it would reduce is not confirmed by anything this tool collects`
       : `${MECH[r.mechKey].label} is credited as ${MECH[r.mechKey].cred} in mech.js, because ${MECH_REASON[r.mechKey] || "that is its credit class"}`;
@@ -491,7 +491,7 @@ function gradeFCR({ I, r, pre, railOrigin }) {
   const gradeObj = voided
     ? voidResult({
         invariant: invariants.join("; "),
-        remedy: "Correct the inputs behind the failed check and re-run before citing any figure in this report.",
+        remedy: "Correct the inputs behind the failed check and run it again before citing any figure in this report.",
       })
     : emitGrades({
         evidence, realization, completeness,
@@ -509,7 +509,7 @@ function gradeFCR({ I, r, pre, railOrigin }) {
 const MECH_OPTS = MECH_ORDER.map((k) => ({ v: k, l: MECH[k].label + (k === "none" ? " ($0)" : `  (${Math.round(MECH[k].f * 100)}%)`) }));
 
 const LABELS = ["", "Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
-const GAMING = ["Reopen / repeat-contact rate", "Transfer rate", "Escalation rate", "AHT drift (chasing FCR by lengthening calls)", "Confirmed bot containment, not raw containment", "CSAT / CES", "QA resolution accuracy", "Complaint rate"];
+const GAMING = ["Reopen and repeat-contact rate", "Transfer rate", "Escalation rate", "AHT drift (chasing FCR with longer calls)", "Confirmed bot containment (issues the bot actually resolved)", "CSAT and CES (satisfaction and effort scores)", "QA resolution accuracy", "Complaint rate"];
 
 function LogoMark({ size = 30 }) {
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={0.6} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={0.8} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
@@ -681,18 +681,18 @@ export default function FCRLeakageDiagnostic() {
           </li>
         ))}
       </ol>
-      <p style={small}>The burden, what is controllable, what converts to cash, and whether the project pays back appear once the diagnostic is complete.</p>
+      <p style={small}>Once the diagnostic is complete you will see the burden, how much of it is controllable, how much converts to cash, and whether the project pays back.</p>
     </div>
   ) : blocked ? (
-    <Result label="Annual repeat burden" value={0} voidReason={`The engine produced a physically impossible value, so no result is shown. ${blockList.join(" ")}`} />
+    <Result label="Annual repeat burden" value={0} voidReason={`An input produced an impossible value, so no result is shown. ${blockList.join(" ")}`} />
   ) : (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <Result label="Annual repeat burden" value={R.burdenYr} format={money} change={R.mechKey === "none" && R.mechApplies ? "No capacity action chosen yet, so the repeat burden you remove counts as $0 in the payback. Choose one below." : `Year-1 net ${money(R.year1Net)}, payback ${R.paybackLabel}`} how={how} />
-      <p style={small}>This grade is self-declared: no payroll file, finance record or repeat-contact dataset was inspected.</p>
+      <Result label="Annual repeat burden" value={R.burdenYr} format={money} change={R.mechKey === "none" && R.mechApplies ? "No capacity action chosen yet, so the repeat burden you remove counts as $0 in the payback. Choose what you will do with the freed time in question 4." : `Year-1 net ${money(R.year1Net)}, payback ${R.paybackLabel}`} how={how} />
+      <p style={small}>This grade rests on what you told us. No payroll file, finance record or repeat-contact data was inspected, so it is self-declared.</p>
       <div style={card}>
         <span style={kicker}>Burden to cash</span>
         <div style={{ marginTop: 8 }}>
-          {row("Controllable burden", money(R.controllableBurdenYr), "Not savings until a mechanism converts it")}
+          {row("Controllable burden", money(R.controllableBurdenYr), "Becomes savings only when a capacity action converts it")}
           {row("Realizable a year", money(R.realizableYr), `At ${pct(R.target)} FCR`)}
           {row("Year-1 net", money(R.year1Net))}
           {row("Year-2 net", money(R.year2Net))}
@@ -703,38 +703,38 @@ export default function FCRLeakageDiagnostic() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Performance + Quality" name="FCR Leakage" title="What do repeat contacts cost you, and what can you get back?"
-      lede="Repeat contacts are the leakage. This separates the burden you carry, the portion that is realistically controllable, and the part that converts to actual cash. It will tell you when a project does not pay back."
+      lede="Every issue that comes back as a second or third contact costs you again. This shows what those repeats cost a year, how much of that is realistically within your control, and how much could turn into cash. It also tells you plainly when a project to raise FCR (first contact resolution) would not pay back."
       method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
       result={result} pinned={phase === "results" && !blocked ? { label: "Annual repeat burden", value: money(R.burdenYr) } : null}>
       <style>{`${FONT_IMPORT_CSS}.fcr-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
 
       {phase === "setup" && (<>
         <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-          <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 4 · Volume and economics</legend>
+          <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 4 · Volume and cost</legend>
           <div style={grid(220)}>
             <NumField tone="dark" label="Monthly contacts" value={M} onChange={setM} step={500} min={0} pulled={pulledM} />
             <NumField tone="dark" label="Current FCR" value={fcrPct} onChange={onFcr} suffix="%" step={1} min={1} max={99} pulled={pulledFcr} info={DEFS.fcrDef.text} infoTitle={DEFS.fcrDef.title} />
-            <NumField tone="dark" label="Marginal cost / contact" value={mCPC} onChange={setMCPC} prefix="$" step={0.25} min={0} pulled={pulledMcpc} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
-            <NumField tone="dark" label="Loaded cost / contact" value={lCPC} onChange={setLCPC} prefix="$" step={0.25} min={0} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} infoAlign="right" />
+            <NumField tone="dark" label="Marginal cost per contact" value={mCPC} onChange={setMCPC} prefix="$" step={0.25} min={0} pulled={pulledMcpc} info={DEFS.marginalCPC.text} infoTitle={DEFS.marginalCPC.title} />
+            <NumField tone="dark" label="Loaded cost per contact" value={lCPC} onChange={setLCPC} prefix="$" step={0.25} min={0} info={DEFS.loadedCPC.text} infoTitle={DEFS.loadedCPC.title} infoAlign="right" />
           </div>
         </fieldset>
 
         <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
           <legend style={{ ...kicker, padding: "0 6px" }}>Question 2 of 4 · Your FCR definition</legend>
-          <p style={body}>FCR has no industry standard. Until you declare scope and method, the result stays Directional and is not comparable across centers. Every formula, constant and a worked example are in the <a href="/methodology/fcr-leakage" style={link}>published method</a>.</p>
+          <p style={body}>FCR has no industry standard, so say how yours is measured. Until you declare scope and method, the result stays Directional and cannot be compared across centers. Every formula, constant and a worked example are in the <a href="/methodology/fcr-leakage" style={link}>published method</a>.</p>
           <div style={grid(200)}>
-            <Sel label="Resolution scope" value={R.scopeKey} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Voice only" }, { v: "cc", l: "CC cross-channel" }, { v: "digital", l: "Digital + assisted" }, { v: "enterprise", l: "Enterprise OCR" }]} />
+            <Sel label="Resolution scope" value={R.scopeKey} onChange={setScope} info={DEFS.scope.text} infoTitle={DEFS.scope.title} options={[{ v: "", l: "Select..." }, { v: "voice", l: "Voice only" }, { v: "cc", l: "Contact center, cross-channel" }, { v: "digital", l: "Digital plus assisted" }, { v: "enterprise", l: "Enterprise one-contact" }]} />
             <Sel label="Measurement method" value={method} onChange={setMethod} options={[{ v: "", l: "Select..." }, { v: "survey", l: "External post-call survey" }, { v: "internal", l: "Internal callback window" }]} />
             {method === "internal" ? <NumField tone="dark" label="Callback window" value={windowDays} onChange={setWindowDays} suffix=" days" step={1} min={1} max={30} /> : <div />}
           </div>
-          {scope === "voice" && note("high", "Voice-only scope is the most generous definition. It usually inflates FCR and understates leakage, because a customer who failed in chat or a bot before calling is not counted.")}
-          {method === "internal" && N.windowDays < WINDOW_SHORT && note("high", `A ${N.windowDays}-day callback window is short. It captures fewer return contacts, so internal FCR tends to read high and the true leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, since customers often return through another channel days later. Common practice is 7 to 30 days depending on issue type.`)}
+          {scope === "voice" && note("high", "Voice only is the most generous definition. It usually makes FCR look higher and leakage look smaller, because a customer who tried chat or a bot before calling is left out of the count.")}
+          {method === "internal" && N.windowDays < WINDOW_SHORT && note("high", `A ${N.windowDays}-day callback window is short. It catches fewer return contacts, so internal FCR tends to read high and the real leakage is likely larger than shown. Cross-channel and enterprise scope feel this most, because customers often come back through another channel days later. Common practice is 7 to 30 days, depending on the issue type.`)}
         </fieldset>
 
         <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
           <legend style={{ ...kicker, padding: "0 6px" }}>Question 3 of 4 · Leakage model</legend>
           <div style={grid(220)}>
-            <Sel label="Repeat-behavior model" value={repeatModel} onChange={setRepeatModel} info={DEFS.repeatModel.text} infoTitle={DEFS.repeatModel.title} options={[{ v: "one", l: "One callback then resolved" }, { v: "geometric", l: "Geometric (callbacks can fail)" }, { v: "measured", l: "I have my measured repeat rate" }]} />
+            <Sel label="Repeat-behavior model" value={repeatModel} onChange={setRepeatModel} info={DEFS.repeatModel.text} infoTitle={DEFS.repeatModel.title} options={[{ v: "one", l: "One callback, then resolved" }, { v: "geometric", l: "Geometric (callbacks can fail)" }, { v: "measured", l: "I have my measured repeat rate" }]} />
             <NumField tone="dark" label="Repeat complexity multiplier" value={repeatMult} onChange={setRepeatMult} suffix="x" step={0.1} min={0.5} max={3} info={DEFS.repeatMult.text} infoTitle={DEFS.repeatMult.title} infoAlign="right" />
             {repeatModel === "measured" && <NumField tone="dark" label="Measured current repeat share" value={measuredPct} onChange={setMeasuredPct} suffix="%" step={1} min={0} max={60} />}
             {repeatModel === "measured" && <NumField tone="dark" label="Measured target repeat share (0 = model it)" value={measuredTargetPct} onChange={setMeasuredTargetPct} suffix="%" step={1} min={0} max={60} infoAlign="right" />}
@@ -744,17 +744,17 @@ export default function FCRLeakageDiagnostic() {
                 decode, and the engine flags them. */}
             <NumField tone="dark" label="Target FCR" value={targetPct} onChange={setTargetPct} suffix="%" step={1} min={1} max={95} info={DEFS.ceiling.text} infoTitle={DEFS.ceiling.title} infoAlign="right" />
           </div>
-          {N.repeatMult > MULT_HIGH ? note("high", `High assumption at ${fmtX(N.repeatMult)}x, above the tool's planning range. Validate it against your handle-time, escalation, and rework data before using these figures in a business case.`) : N.repeatMult > MULT_ELEVATED ? note("unknown", `Elevated at ${fmtX(N.repeatMult)}x. Reasonable if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.`) : null}
+          {N.repeatMult > MULT_HIGH ? note("high", `${fmtX(N.repeatMult)}x is a high assumption, above this tool's planning range. Check it against your handle-time, escalation and rework data before these figures go into a business case.`) : N.repeatMult > MULT_ELEVATED ? note("unknown", `${fmtX(N.repeatMult)}x is elevated. It fits if your repeats escalate or run longer than first contacts. The normal modeled range is 1.0x to 2.0x.`) : null}
         </fieldset>
 
         <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
           <legend style={{ ...kicker, padding: "0 6px" }}>Question 4 of 4 · Realization and investment</legend>
           <div style={grid(220)}>
-            <Sel label="Sourcing model" value={sourcing} onChange={setSourcing} info={DEFS.sourcing.text} infoTitle={DEFS.sourcing.title} options={[{ v: "inhouse", l: "In-house (capacity, needs mechanism)" }, { v: "bpo", l: "Outsourced per-contact (direct cash)" }]} />
-            <Sel label="Realization mechanism" value={R.mechKey} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} disabled={sourcing === "bpo"} note={sourcing === "bpo" ? "Not used. On a per-contact contract the invoice falls with volume, so savings convert at 100% without a capacity mechanism. Switch to in-house sourcing to apply one." : null} />
+            <Sel label="Sourcing model" value={sourcing} onChange={setSourcing} info={DEFS.sourcing.text} infoTitle={DEFS.sourcing.title} options={[{ v: "inhouse", l: "In-house (frees capacity, needs an action)" }, { v: "bpo", l: "Outsourced, paid per contact (direct cash)" }]} />
+            <Sel label="Realization mechanism" value={R.mechKey} onChange={setMech} info={DEFS.mech.text} infoTitle={DEFS.mech.title} align="right" options={MECH_OPTS} disabled={sourcing === "bpo"} note={sourcing === "bpo" ? "Not used here. On a per-contact contract the invoice falls with volume, so savings convert at 100% with no capacity action needed. Switch to in-house sourcing to choose one." : null} />
             <NumField tone="dark" label="One-time cost to achieve" value={investOneTime} onChange={setInvestOneTime} prefix="$" step={10000} min={0} info={DEFS.invest.text} infoTitle={DEFS.invest.title} />
             <NumField tone="dark" label="Recurring annual cost" value={investRecurring} onChange={setInvestRecurring} prefix="$" step={5000} min={0} infoAlign="right" />
-            <Sel label="Cost basis" value={costBasis} onChange={setCostBasis} info={DEFS.confidence.text} infoTitle={DEFS.confidence.title} options={[{ v: "estimate", l: "Estimate (±25%)" }, { v: "ops", l: "Operations data (±15%)" }, { v: "finance", l: "Finance-confirmed (±10%)" }]} />
+            <Sel label="Cost basis" value={costBasis} onChange={setCostBasis} info={DEFS.confidence.text} infoTitle={DEFS.confidence.title} options={[{ v: "estimate", l: "Estimate (±25%)" }, { v: "ops", l: "Operations data (±15%)" }, { v: "finance", l: "Confirmed by finance (±10%)" }]} />
           </div>
         </fieldset>
 
@@ -799,14 +799,14 @@ export default function FCRLeakageDiagnostic() {
       {phase === "results" && (<>
         {blocked && (
           <section aria-label="Result blocked" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <Finding level="critical" title="Result blocked: invalid inputs">The engine produced a physically impossible value, so no result is shown. An invalid result is not a low-confidence result. Correct the inputs and the economics will return.</Finding>
+            <Finding level="critical" title="Result blocked: invalid inputs">An input produced an impossible value, so no result is shown. This is a broken input, which is a different thing from a low grade. Correct the inputs below and the economics come back.</Finding>
             {blockList.map((f, i) => <p key={i} style={{ ...card, ...body, padding: "12px 16px" }}>{f}</p>)}
             <div><Button onClick={() => setPhase("setup")}>Adjust inputs</Button></div>
           </section>
         )}
         {!blocked && (<>
           <section aria-label="How sure" style={{ ...card, display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={kicker}>How sure, by axis <InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></span>
+            <span style={kicker}>How sure the result is, by axis <InfoDot text={DEFS.confidence.text} title={DEFS.confidence.title} /></span>
             <p style={body}>Evidence <strong style={{ color: HOUSE.mist }}>{G.evidence}</strong> · Realization <strong style={{ color: HOUSE.mist }}>{G.realization}</strong> · Completeness <strong style={{ color: HOUSE.mist }}>{G.completeness}</strong></p>
             <div style={small}>{G.gradeWhy}</div>
           </section>
@@ -815,27 +815,27 @@ export default function FCRLeakageDiagnostic() {
             <section aria-label="Annual repeat burden" style={card}>
               <span style={kicker}>Annual repeat burden <Tag text={R.shareBasis} /> <InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></span>
               <div style={{ fontSize: 34, fontWeight: 700, color: HOUSE.mist, margin: "6px 0", fontVariantNumeric: "tabular-nums" }}>{money(R.burdenYr)}</div>
-              <p style={small}>{Math.round(R.repeats).toLocaleString()} repeats/mo at {pct(R.repeatShare)} of volume ({R.shareSource}), valued at {money2(R.repeatCPC)} repeat-adjusted marginal cost ({money2(N.mCPC)} base times {fmtX(N.repeatMult)}x complexity). Burden ceiling, not recoverable. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
+              <p style={small}>{Math.round(R.repeats).toLocaleString()} repeats a month, {pct(R.repeatShare)} of volume ({R.shareSource}), each valued at {money2(R.repeatCPC)} ({money2(N.mCPC)} marginal cost times {fmtX(N.repeatMult)}x for complexity). Read it as the ceiling: you will not recover all of it. Range {money(R.burdenYr * (1 - R.band))} to {money(R.burdenYr * (1 + R.band))}.</p>
             </section>
             <section aria-label="Year-1 net" style={card}>
               <span style={kicker}>Year-1 net <Tag text="Assumed" /> <InfoDot text={DEFS.invest.text} title={DEFS.invest.title} /></span>
               <div style={{ fontSize: 34, fontWeight: 700, color: HOUSE.mist, margin: "6px 0", fontVariantNumeric: "tabular-nums" }}>{money(R.year1Net)}</div>
-              <p style={small}>{money(R.realizableYr)}/yr realizable at steady state. Payback {R.paybackLabel}. Year-2 net {money(R.year2Net)}, two-year cumulative {money(R.cum2Yr)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
+              <p style={small}>{money(R.realizableYr)} a year realizable at steady state. Payback {R.paybackLabel}. Year-2 net {money(R.year2Net)}, two-year cumulative {money(R.cum2Yr)}. {R.year1Net < 0 ? "Cash negative in year one as scoped." : "Cash positive in year one."}</p>
             </section>
           </div>
 
           <div style={grid(260)}>
             <section aria-label="Burden split" style={card}>
-              <span style={kicker}>Burden split, not savings <InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></span>
+              <span style={kicker}>How the burden splits <InfoDot text={DEFS.controllable.text} title={DEFS.controllable.title} /></span>
               <div style={{ marginTop: 8 }}>
                 {row(<>Theoretical controllable burden <Tag text="Capped" /></>, money(R.controllableBurdenYr))}
                 {row(<>Non-controllable <Tag text="Excluded" /></>, money(R.nonControllableBurdenYr))}
               </div>
-              <p style={{ ...small, marginTop: 8 }}>Burden, not savings. The controllable slice is not cash-realizable unless the selected mechanism converts freed capacity, and only net of the cost to achieve it.</p>
+              <p style={{ ...small, marginTop: 8 }}>These are costs you carry today. The controllable part turns into cash only when your capacity action converts the freed time, and only after the cost of getting there.</p>
             </section>
             <section aria-label="Opportunity times capture" style={card}>
               <span style={kicker}>Opportunity times capture <InfoDot text={DEFS.ceiling.text} title={DEFS.ceiling.title} /></span>
-              <p style={{ ...body, marginTop: 8 }}>Diagnostic {dScore.toFixed(1)}/5: opportunity {pct(R.opp, 0)}, capture {pct(R.cap, 0)}. Realistic FCR ceiling {pct(R.ceilingFCR)}, applied target {pct(R.target)}. {R.overCeiling ? "Your ask exceeded the ceiling and was capped." : "Your target is within the ceiling."}</p>
+              <p style={{ ...body, marginTop: 8 }}>Diagnostic {dScore.toFixed(1)}/5: opportunity {pct(R.opp, 0)}, capture {pct(R.cap, 0)}. Realistic FCR ceiling {pct(R.ceilingFCR)}, applied target {pct(R.target)}. {R.overCeiling ? "Your target was above the ceiling and was capped." : "Your target is within the ceiling."}</p>
             </section>
           </div>
 
@@ -848,7 +848,7 @@ export default function FCRLeakageDiagnostic() {
 
           <section aria-label="Top leakage sources" style={card}>
             <h2 style={h2}>Top leakage sources</h2>
-            <p style={{ ...small, marginBottom: 8 }}>Lowest scores first.</p>
+            <p style={{ ...small, marginBottom: 8 }}>The three lowest-scoring areas, weakest first.</p>
             {sorted.slice(0, 3).map((d, i) => (
               <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderTop: `1px solid ${hair}` }}>
                 <span style={{ fontSize: 20, fontWeight: 700, color: HOUSE.mist, width: 22 }}>{i + 1}</span>
@@ -860,7 +860,7 @@ export default function FCRLeakageDiagnostic() {
 
           <section aria-label="Your next 30-day operating test" style={{ ...card, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
             <h2 style={h2}>Your next 30-day operating test</h2>
-            <p style={{ ...body, margin: "0 0 10px" }}>Your leakage points first at <strong style={{ color: HOUSE.mist }}>{top.name}</strong>, owned by {top.owner}. Do not start with agent training unless the diagnostic points there.</p>
+            <p style={{ ...body, margin: "0 0 10px" }}>Your answers point first at <strong style={{ color: HOUSE.mist }}>{top.name}</strong>, owned by {top.owner}. Start there. Agent training is the right first move only when the diagnostic points to it.</p>
             <div style={{ ...body, lineHeight: 1.8 }}>
               <div><strong style={{ color: HOUSE.mist }}>First move:</strong> {top.test.move}.</div>
               <div><strong style={{ color: HOUSE.mist }}>Leading indicator:</strong> {top.test.lead}.</div>
@@ -872,18 +872,18 @@ export default function FCRLeakageDiagnostic() {
           <div style={grid(260)}>
             <section aria-label="Do not let FCR get gamed" style={card}>
               <h2 style={{ ...h2, fontSize: 17 }}>Do not let FCR get gamed</h2>
-              <p style={{ ...body, marginBottom: 8 }}>FCR rises falsely if agents mark issues resolved, callbacks get recoded, or bots contain without resolving. Track these alongside it:</p>
+              <p style={{ ...body, marginBottom: 8 }}>FCR can rise on paper when agents mark issues resolved too early, callbacks get recoded, or bots end conversations without solving anything. Track these beside it:</p>
               <p style={small}>{GAMING.join(" · ")}</p>
             </section>
-            <section aria-label="Containment is not resolution" style={card}>
-              <h2 style={{ ...h2, fontSize: 17 }}>Containment is not resolution</h2>
-              <p style={body}>A bot can contain a conversation without resolving it, and a customer who gives up looks like a success. Use confirmed resolution, repeat contact, escalation, and CSAT as balancing checks before crediting AI deflection. Benchmarks run 50% to 90% by industry and complexity, so your own trend and definition consistency matter more than the market average.</p>
+            <section aria-label="Containment and resolution" style={card}>
+              <h2 style={{ ...h2, fontSize: 17 }}>Check that contained means resolved</h2>
+              <p style={body}>A bot can keep a conversation away from agents (containment) without solving the issue, and a customer who gives up looks like a success. Check confirmed resolution, repeat contacts, escalations and CSAT (customer satisfaction) before crediting AI deflection. Benchmarks run 50% to 90% by industry and complexity, so your own trend, measured the same way each time, tells you more than the market average.</p>
             </section>
           </div>
 
           <section aria-label="Assumption sensitivity" style={card}>
-            <h2 style={h2}>Assumption sensitivity <InfoDot text="Repeat-contact cost premiums run 1.5x to 2x in published research, and repeat behavior can be one-callback or geometric. This shows how those two assumptions swing year-one net, holding your FCR, target, mechanism, and costs constant, so you can see which assumptions matter most before acting." title="Assumption sensitivity" /></h2>
-            <p style={{ ...small, marginBottom: 8 }}>Same FCR, target, mechanism, and costs. Only the repeat-behavior model and cost premium change.</p>
+            <h2 style={h2}>Assumption sensitivity <InfoDot text="Repeat-contact cost premiums run 1.5x to 2x in published research, and repeat behavior can follow the one-callback or the geometric pattern. This shows how far those two assumptions move year-one net while your FCR, target, capacity action and costs stay fixed, so you can see which one matters most before acting." title="Assumption sensitivity" /></h2>
+            <p style={{ ...small, marginBottom: 8 }}>Same FCR, target, capacity action and costs. Only the repeat-behavior model and the cost premium change.</p>
             {[
               { k: "Conservative", d: "one-callback, 1.0x cost", r: sensLo },
               { k: "Current model", d: `${repeatModel === "geometric" ? "geometric" : repeatModel === "measured" ? "measured" : "one-callback"}, ${fmtX(N.repeatMult)}x cost`, r: R, cur: true },
@@ -895,7 +895,7 @@ export default function FCRLeakageDiagnostic() {
                 <span style={{ fontSize: 17, fontWeight: 600, color: HOUSE.mist, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{money(rw.r.year1Net)}</span>
               </div>
             ))}
-            <p style={{ ...small, marginTop: 8 }}>Rightmost column is year-one net. If the sign flips across these rows, your repeat-cost assumption is the deciding factor and is worth measuring before you commit.</p>
+            <p style={{ ...small, marginTop: 8 }}>The right-hand column is year-one net. If it turns from positive to negative across these rows, your repeat-cost assumption decides the case. Measure it before you commit.</p>
           </section>
 
           {/* The report is paper (Brand Guide section 13). */}
@@ -968,11 +968,11 @@ export default function FCRLeakageDiagnostic() {
                 from_scenario_link: fromLink ? "yes" : "no",
               }}
               sections={[
-                { title: "Result Summary", type: "text", content: `Repeat contacts cost ${money(R.burdenYr)} per year at the margin. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not savings until a mechanism converts it. At a ${pct(R.target)} FCR target the project realizes ${money(R.realizableYr)} per year at steady state, nets ${money(R.year1Net)} in year one, and pays back ${R.neverPaysBack ? "never at current scope" : R.payback ? "in month " + R.payback : "beyond " + HORIZON + " months"}. Confidence is ${G.confidence}.` },
+                { title: "Result Summary", type: "text", content: `Under these inputs, repeat contacts cost ${money(R.burdenYr)} a year at marginal cost. Of that, ${money(R.controllableBurdenYr)} is controllable leakage burden, which is not yet savings: it becomes savings only when a capacity action converts it. At a ${pct(R.target)} FCR target the project models ${money(R.realizableYr)} a year realizable at steady state, ${money(R.year1Net)} net in year one, and payback ${R.neverPaysBack ? "never at current scope" : R.payback ? "in month " + R.payback : "beyond " + HORIZON + " months"}. Confidence is ${G.confidence}.` },
                 { title: "Definitions and Scope Used", type: "findings", items: [
                   `FCR definition: ${scopeLabelFor(R.scopeKey)}, ${methodLabel}.`,
                   `Repeat behavior: ${R.shareSource}. Repeat complexity multiplier ${fmtX(N.repeatMult)}x.`,
-                  `Sourcing: ${sourcing === "bpo" ? "outsourced per-contact. Volume reduction converts to cash at 100% through billing. No capacity mechanism applies, and none was used." : "in-house. Freed capacity is gated by a mechanism. Mechanism applied: " + MECH[R.mechKey].label + " (" + Math.round(MECH[R.mechKey].f * 100) + "%), credited as " + MECH[R.mechKey].cred + "."}`,
+                  `Sourcing: ${sourcing === "bpo" ? "outsourced, paid per contact. Lower volume converts to cash at 100% through billing. No capacity action applies, and none was used." : "in-house. Freed time becomes cash only through a capacity action (the mechanism). Mechanism applied: " + MECH[R.mechKey].label + " (" + Math.round(MECH[R.mechKey].f * 100) + "%), credited as " + MECH[R.mechKey].cred + "."}`,
                   `Cost basis: ${{estimate:"Estimate marginal cost (±25%)",ops:"Operations-data marginal cost (±15%)",finance:"Finance-confirmed marginal cost (±10%)"}[costBasis]}. Target capped by diagnostic: ${R.overCeiling ? "yes, at " + pct(R.ceilingFCR) : "no"}.`,
                 ] },
                 { title: "Leakage Economics", type: "metrics", items: [
@@ -984,7 +984,7 @@ export default function FCRLeakageDiagnostic() {
                   { label: "Non-controllable (excluded)", value: money(R.nonControllableBurdenYr), color: MUTED },
                 ] },
                 { title: "Cash Conversion and Payback", type: "metrics", items: [
-                  { label: "Diagnostic ceiling FCR / applied target", value: pct(R.ceilingFCR) + " / " + pct(R.target), color: NAVY },
+                  { label: "Diagnostic ceiling FCR and applied target", value: pct(R.ceilingFCR) + " / " + pct(R.target), color: NAVY },
                   { label: sourcing === "bpo" ? "Gross volume reduction value" : "Gross capacity value", value: money(R.grossYr), color: SLATE },
                   { label: "Realizable via " + (sourcing === "bpo" ? "billing reduction" : "mechanism"), value: money(R.realizableYr), color: R.realizableYr > 0 ? GREEN : RED },
                   { label: "One-time cost", value: money(N.investOneTime), color: SLATE },
@@ -999,20 +999,20 @@ export default function FCRLeakageDiagnostic() {
                   `Evidence axis: ${G.voided ? "Void" : G.evidence}.`,
                   `Realization axis: ${G.voided ? "Void" : G.realization} (${R.mechApplies ? MECH[R.mechKey].label : "per-contact billing"}).`,
                   `Completeness axis: ${G.voided ? "Void" : G.completeness}${G.blockers.length ? ", " + G.blockers.length + (G.blockers.length === 1 ? " check failed" : " checks failed") : ", model is whole"}.`,
-                  "This grade is self-declared. It reflects the sources you named. No payroll file, finance record or repeat-contact dataset was inspected.",
+                  "This grade is self-declared. It reflects the sources you named. No payroll file, finance record or repeat-contact data was inspected.",
                   ...(R.flags.length ? R.flags : ["No integrity flags raised."]),
                 ] },
                 { title: "Dimension Scores", type: "table", rows: DIMS.map((d) => [d.name, dimScore(d.id).toFixed(1) + "/5 (" + d.ownerClass + ")"]) },
                 { title: "Top Leakage Sources", type: "findings", items: sorted.slice(0, 3).map((d, i) => "#" + (i + 1) + " " + d.name + " (" + dimScore(d.id).toFixed(1) + "/5), owner " + d.owner + ": " + d.desc) },
                 { title: "30-Day Operating Test", type: "findings", items: [`Target: ${top.name}, owned by ${top.owner}.`, `First move: ${top.test.move}.`, `Leading indicator: ${top.test.lead}. Lagging indicator: ${top.test.lag}.`, `Stop condition: ${top.test.stop}.`] },
                 { title: "Assumptions and Exclusions", type: "findings", items: [
-                  "Savings valued at marginal cost, never loaded. Loaded cost is context only.",
+                  "Savings are valued at marginal cost, never loaded. Loaded cost is shown for context only.",
                   sourcing === "bpo"
-                    ? "Repeat burden is a ceiling. Only the controllable slice is realizable, converted at 100% through per-contact billing. This assumes no minimum volume commitment."
-                    : "Repeat burden is a ceiling. Only the controllable slice, converted through the selected capacity mechanism, is realizable.",
-                  "Non-controllable leakage (complexity, structural, customer-driven) is excluded from savings.",
-                  "Balancing metrics (reopen, transfer, escalation, AHT, confirmed containment, CSAT) must hold or the FCR gain is not real.",
-                  "Interval staffing, multi-year board case, and contract penalties are out of scope and routed below.",
+                    ? "Repeat burden is a ceiling. Only the controllable part is realizable, converted at 100% through per-contact billing. This assumes no minimum volume commitment."
+                    : "Repeat burden is a ceiling. Only the controllable part, converted through the chosen capacity action, is realizable.",
+                  "Non-controllable leakage (issue complexity, structural limits, customer-driven failures) is left out of savings.",
+                  "The balancing metrics (reopens, transfers, escalations, AHT, confirmed containment, CSAT) have to hold steady for an FCR gain to count.",
+                  "Interval staffing, a multi-year board case and contract penalties are outside this tool. The next step below points to where they are covered.",
                   "The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/fcr-leakage.",
                 ] },
                 /* The edge set lives in src/lib/journey.js, the same graph the tracked

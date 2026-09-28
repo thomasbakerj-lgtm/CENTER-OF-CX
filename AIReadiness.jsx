@@ -61,7 +61,7 @@ export default function AIReadiness() {
     : <Result label="Statements answered" value={`${answered} of ${total}`} change="The score, band and checklist appear once every statement is answered." />;
   return (
     <ToolFrame toolId={TOOL_ID} choice={R.nextDiagnostic ? R.nextDiagnostic.tool : null} section="Assessments + Scorecards" name="AI Readiness Diagnostic" title="Is your operation ready for AI automation and agent assist?"
-      lede="Evaluate whether your data quality, workflow design, integration architecture, governance, talent, and measurement capabilities can support AI-driven automation and agent assist. 24 questions across 6 dimensions. Takes about 5 minutes."
+      lede="Check whether your data, workflows, integrations, governance, people and measurement can support AI automation and agent assist (AI that helps agents during a contact). 24 statements across 6 dimensions, about 5 minutes."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={phase === "results" ? { label: "AI readiness", value: overallScore.toFixed(1) + " / 5" } : null}>
       <style>{FONT_IMPORT_CSS}</style>
 
@@ -69,7 +69,7 @@ export default function AIReadiness() {
         <section aria-label="Start" style={K.lead}>
           <p style={K.body}>Rate 24 statements from 1 (strongly disagree) to 5 (strongly agree). Nothing is scored until every statement is answered.</p>
           <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", marginTop: 16 }}>
-            <Button onClick={handleStart}>Start Diagnostic</Button>
+            <Button onClick={handleStart}>Start the diagnostic</Button>
             <a href={RUBRIC.methodology} style={K.link}>See the published rubric: every statement, weight and band</a>
           </div>
         </section>
@@ -77,7 +77,7 @@ export default function AIReadiness() {
 
       {phase === "assess" && (
         <StatementStep dims={DIMS} current={currentDim} setCurrent={setCurrentDim} scores={scores} setScore={setScore} done={dimComplete} complete={allComplete} onResults={handleResults}
-          prompt="Rate each statement from 1 (strongly disagree) to 5 (strongly agree) based on your current reality." />
+          prompt="Rate each statement from 1 (strongly disagree) to 5 (strongly agree) for how your operation works today." />
       )}
 
       {phase === "results" && (<>
@@ -108,7 +108,7 @@ export default function AIReadiness() {
         <section aria-label="Your action checklist" style={K.panel}>
           <h2 style={K.h2}>Your action checklist</h2>
           {R.checklist.length === 0 ? (
-            <p style={K.body}>No statement was answered at {RUBRIC.failAt} or below, so the rubric raises no action. Your lowest dimension is still the place to look first.</p>
+            <p style={K.body}>No statement was answered at {RUBRIC.failAt} or below, so the rubric raises no action. Your lowest-scoring dimension is still the place to look first.</p>
           ) : R.checklist.map((c, i) => (
             <div key={c.criterion} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderTop: `1px solid ${K.hair}` }}>
               <span style={{ ...K.strong, ...K.num, width: 22, flexShrink: 0 }}>{i + 1}</span>
@@ -134,14 +134,14 @@ export default function AIReadiness() {
                       "AI readiness score: " + overallScore.toFixed(1) + "/5 (" + tier.tier + ").",
                       "Weakest dimension: " + [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].name + ".",
                     ]},
-                    { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ": answered " + c.score + " of 5 to \"" + c.text + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No statement was answered at " + RUBRIC.failAt + " or below.", detail: "The rubric raises no action. Start with the lowest-scoring dimension." }] },
+                    { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ": answered " + c.score + " of 5 to \"" + c.text + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No statement was answered at " + RUBRIC.failAt + " or below.", detail: "The rubric raises no action. Start with your lowest-scoring dimension." }] },
                     { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },
-                    { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each dimension scores the mean of its statements on a 1 to 5 scale; the overall score is the equally weighted mean of the dimensions; the band is read from the published cut points. Every statement answered at " + RUBRIC.failAt + " or below adds its action to the checklist, weakest dimension first. The next diagnostic is the one the rubric names for your lowest dimension." },
+                    { title: "Method", type: "text", content: RUBRIC.title + " rubric version " + RUBRIC.version + ", published at contactcentercx.com" + RUBRIC.methodology + ". Each dimension scores the average of its statements on a 1 to 5 scale. The overall score is the average of the six dimensions, weighted equally, and the band is read from the published cut points. Every statement answered at " + RUBRIC.failAt + " or below adds its action to the checklist, weakest dimension first. The next diagnostic is the one the rubric names for your lowest dimension." },
                   ]} />
         </Paper>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Button href="/contact">Connect with a Consultant</Button>
-          <Button kind="secondary" href="/vendors/agent-assist">Browse Agent Assist Vendors</Button>
+          <Button href="/contact">Talk to a consultant</Button>
+          <Button kind="secondary" href="/vendors/agent-assist">Browse agent assist vendors</Button>
         </div>
       </>)}
     </ToolFrame>

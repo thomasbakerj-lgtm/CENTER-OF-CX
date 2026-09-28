@@ -11,6 +11,7 @@ import { FONT } from "./src/lib/type.js";
 import { K } from "./src/lib/frameKit.jsx";
 import { Crumbs } from "./src/lib/Shell.jsx";
 import { Byline, Button } from "./src/lib/ui.jsx";
+import { IdeaBox } from "./src/lib/IdeaBox.jsx";
 import { longDate } from "./src/lib/methodVersions.js";
 import { CONTRIBUTORS, PIECES, perspectivePath, contributorPath, pieceProblems, contributorProblems } from "./src/lib/contributors.js";
 
@@ -62,6 +63,7 @@ export function PerspectivesIndex({ pieces = PIECES, contributors = CONTRIBUTORS
           </section>
         )}
       {list.length > 0 && <p style={K.body}><a href="/contribute" style={{ color: ACCENT, fontWeight: 600 }}>Write for The Center of CX</a></p>}
+      <IdeaBox where="Perspectives" title="What should practitioners write about?" prompt="Name a topic you want a practitioner's view on, a question you are wrestling with at work, or a person whose experience you would like to read. You do not need to write it yourself." />
     </Page>
   );
 }

@@ -124,7 +124,7 @@ export default function RFPRequirementBuilder() {
   const all = R.requirements;
   const groups = [...new Set(all.map((r) => r.layer))].map((n) => ({ n, name: all.find((r) => r.layer === n).layerName, reqs: all.filter((r) => r.layer === n) }));
   const next = toolOf(R.next);
-  const NEXT_WHY = { "vendor-match": "you have no vendors in the scorer yet, and a starting list is the first step", "platform-decision": "no vendor covers a whole layer, and that is a specialist question before it is a vendor question", "license-gap": "some vendors meet requirements through paid add-ons, and those change the real price", "contract-risk": "the contract is where the conditions and commitments you need get written down", "tco-calculator": "the next question is what each option costs over the full term" };
+  const NEXT_WHY = { "vendor-match": "you have no vendors in the scorer yet, and a starting list is the first step", "platform-decision": "no vendor covers a whole layer, so first decide whether a specialist product belongs beside the platform", "license-gap": "some vendors meet requirements through paid add-ons, and those change the real price", "contract-risk": "the contract is where the conditions and commitments you need get written down", "tco-calculator": "the next question is what each option costs over the full term" };
   const scoring = R.vendors.length > 0;
 
   const reportSections = [
@@ -162,7 +162,7 @@ export default function RFPRequirementBuilder() {
 
   return (
     <ToolFrame toolId={TOOL_ID} choice={R.next || null} section="Vendor Selection" name="RFP Requirement Builder" title="What should your RFP require, and how did each vendor answer?"
-      lede="Build weighted requirements for your platform RFP by layer, then score each vendor's response: who meets every must-have, where the choice is actually decided, what to script in each demo, and which claims still need proof."
+      lede="Build weighted requirements for your platform RFP (request for proposal), layer by layer, then score each vendor's response: who meets every must-have, where the choice is actually decided, what to script into each demo, and which claims still need proof."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={phase === "results" ? (scoring ? { label: "Meet every must-have", value: `${met} of ${R.vendors.length}` } : { label: "Requirements", value: String(all.length) }) : null}>
       <style>{FONT_IMPORT_CSS + optionCss("rfp-sel")}</style>
       <p style={K.small}>Every requirement, weight and scoring rule is in the <a href={MODEL.methodology} style={K.link}>published method</a>.</p>
@@ -182,11 +182,11 @@ export default function RFPRequirementBuilder() {
                 <select id="rfp-size" className="rfp-sel" value={size} onChange={(e) => setSize(e.target.value)} style={{ ...selectStyle, marginTop: 6 }}><option value="">Select...</option>{MODEL.sizes.map((sz) => <option key={sz} value={sz}>{sz}</option>)}</select>
               </label>
             </div>
-            <div style={{ marginTop: 18 }}><Button onClick={() => setStep(1)} disabled={!vertical || !size}>Next: Focus Areas</Button></div>
+            <div style={{ marginTop: 18 }}><Button onClick={() => setStep(1)} disabled={!vertical || !size}>Next: focus areas</Button></div>
           </Group>
         )}
         {step === 1 && (
-          <Group legend="What are your focus areas?" note="Selected from your environment. Add or remove as needed.">
+          <Group legend="What are your focus areas?" note="Preselected from your industry and size. Add or remove any.">
             <div style={K.grid(240)}>
               {MODEL.tags.map((t) => { const on = activeTags.includes(t.id); return (
                 <button key={t.id} type="button" aria-pressed={on} onClick={() => t.id !== "all" && toggleTag(t.id)} style={{ ...K.box, textAlign: "left", cursor: t.id === "all" ? "default" : "pointer", border: `${on ? 2 : 1}px solid ${on ? K.strong.color : K.hair}`, fontFamily: FONT }}>
@@ -197,7 +197,7 @@ export default function RFPRequirementBuilder() {
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
               <Button kind="secondary" onClick={() => setStep(0)}>Back</Button>
-              <Button onClick={() => setStep(2)}>Review Requirements</Button>
+              <Button onClick={() => setStep(2)}>Review the requirements</Button>
             </div>
           </Group>
         )}
@@ -209,7 +209,7 @@ export default function RFPRequirementBuilder() {
           <Groups edit />
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Button kind="secondary" onClick={() => setStep(1)}>Back</Button>
-            <Button onClick={() => setPhase("results")}>Generate RFP Document</Button>
+            <Button onClick={() => setPhase("results")}>Build the RFP document</Button>
           </div>
         </>)}
       </>)}
@@ -224,7 +224,7 @@ export default function RFPRequirementBuilder() {
 
         <section aria-label="Score the vendor responses" style={K.panel}>
           <h2 style={K.h2}>Score the vendor responses</h2>
-          <p style={{ ...K.body, marginBottom: 12 }}>When responses come back, add each vendor you sent the RFP to, on this site or not, and record what they answered. Only a generally available capability earns full credit; preview and roadmap earn none; an unanswered line is a question to send back, never a zero. Tick "seen" once a must-have works in the demo.</p>
+          <p style={{ ...K.body, marginBottom: 12 }}>When responses come back, add each vendor you sent the RFP to, on this site or not, and record what they answered. Only a generally available capability, released and supported for every customer, earns full credit. Preview and roadmap answers earn none. An unanswered line is a question to send back, and it never counts as a zero. Tick "seen" once a must-have works in the demo.</p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
             {vendors.map((v, vi) => <input key={vi} type="text" aria-label={`Vendor ${vi + 1} name`} placeholder={`Vendor ${vi + 1}`} value={v} onChange={(e) => setVendorName(vi, e.target.value)} style={{ ...numInput, marginTop: 0, width: 170, fontVariantNumeric: "normal" }} />)}
             {vendors.length < MODEL.thresholds.maxVendors.value && <Button kind="secondary" onClick={addVendor}>+ Add a vendor</Button>}
@@ -279,7 +279,7 @@ export default function RFPRequirementBuilder() {
           <span style={K.kicker}>Next move</span>
           {next && <p style={{ ...K.body, color: K.strong.color, margin: "8px 0" }}><a href={next.href} style={K.link}>{next.name}</a>, because {NEXT_WHY[R.next]}.</p>}
           {R.next !== "vendor-match" && toolOf("vendor-match") && <p style={K.small}>Looking for more vendors to send this to? <a href={toolOf("vendor-match").href} style={K.link}>Vendor Match</a> builds a starting list from your operation.</p>}
-          <p style={{ ...K.small, marginTop: 6 }}>Running this RFP and want help with the demos, references and negotiation? Use the review request below; your requirements and scores travel with it.</p>
+          <p style={{ ...K.small, marginTop: 6 }}>For help with the demos, references and negotiation, use the review request below. Your requirements and scores travel with it.</p>
         </section>
 
         <Paper>
@@ -299,7 +299,7 @@ export default function RFPRequirementBuilder() {
             sections={reportSections}
           />
         </Paper>
-        <p style={K.small}>Want expert eyes on this? <a href="/contact" style={K.link}>Connect with a consultant</a></p>
+        <p style={K.small}>For an expert review of your RFP: <a href="/contact" style={K.link}>Connect with a consultant</a></p>
       </>)}
     </ToolFrame>
   );

@@ -1496,6 +1496,36 @@ dashboard, the 12-phase growth program.
    TB (28 Sep): About stays without a name for now ("incognito"). Subscribe reworded to the value of each email (key
    takeaways, ideas to test, Market Watch, vendor research, method changes) and a planned rhythm that moves with the news:
    about once a week, an extra one when more is worth it, skipped in a quiet week; reply to stop (handled by hand).
+   PR #78 merged by TB's instruction (fa1f1b5).
+87. S24 (28 Sep), first visit batch 2 (TB: "Sound human. Be an expert. Be concise but descriptive assuming not everyone
+   knows everything"; audience from newcomers to ten years in, leadership, strategy, operations, IT and security).
+   - Voice pass on all 25 tools and the nine rubric data files (which also render the method pages), by seven writers on
+     one brief (scratchpad `voice-brief.md`: define a term in one clause where a newcomer first needs it; say what a
+     number is, why it matters, what to do; no "X, not Y", no swipes or sales lines, no slash shorthand; every figure,
+     formula, threshold, doctrine word, verdict label, id, key and pinned opening unchanged). Harness pins moved only
+     where they matched old wording of a kept meaning; each is listed in its commit.
+   - Found and fixed on the way: Attrition's main read printed "${BAND.low} to ${BAND.high} percent" literally in three
+     branches (plain strings); `floor.test.mjs` now fails on any printed "${". Five tools said a corrected input made the
+     output "void" while grading Directional (CPC, Staffing, Channel, License Gap, Attrition now say Directional). FCR's
+     and AI Deflection's method text described two confidence axes (three). Business Case said recruiting and training
+     spend is never scaled (trainee ramp is). Staffing no longer calls handle time "reducible".
+   - Cost per Contact's "Vertical planning ranges" retired with its 15 registry entries (TB: follow the recommendation):
+     heuristic ranges for three industries whose "Avg FCR" read as measured. The panel now says no reliable public
+     benchmark exists for cost per contact by industry and links the industry pages.
+   - Header tag "Coming soon" (was SOON). `src/lib/IdeaBox.jsx` on Research ("What should we study first?") and
+     Perspectives: the idea required, role and email optional, to the existing inbox, named in the Privacy Policy; the
+     homepage Research door says "Suggest a study". Phone question labels keep to one line (tighter tracking).
+   - Live checker: a start screen is now recognised by "Start" in sentence case too (the rewrite changed "Start
+     Assessment" to "Start the assessment"; the checker caught it, 252 of 256, before the fix).
+   `firstvisit.test.mjs` 41. Suite 26,016 green; live check 256 of 256; 432-page sweep clean at 1440 and 390; axe 0 on
+   105 tool, method and landing pages. Open: TCO's input hints "Bench 5:00 to 7:00" and "Industry range: $4.5K to $7.5K
+   loaded" carry unsourced figures (same treatment as the CPC ranges); Staffing's "Most centres run 80% in 20 to 30s"
+   is pinned and unsourced; Vendor Match's "demo with your top match" card (item 58) still open.
+   Then TB flagged the homepage missing the "reverberating rings" of the approved design (canvas P1-Home: a contour
+   `repeating-radial-gradient`, 5% sky, a ring every 24px, spreading from the stack; Brand Guide texture rule 4 to 7%).
+   Built as `CONTOUR` in `Homepage.jsx`, centred on the stack at desktop and the top right on a phone; the page's inline
+   `background` shorthand had to become `backgroundColor` or it resets the image. The homepage Research door's tag now
+   reads "Coming soon" too. `home.test.mjs` pins both. Suite 26,018; homepage axe 0 at 1440 and 390.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

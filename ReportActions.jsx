@@ -518,7 +518,7 @@ export default function ReportActions({
                 </button>
               </div>
               <p style={{ fontSize: 12, color: MUTED, marginTop: 7, lineHeight: 1.5 }}>
-                A person sends this, not a robot. Expect it within one business day.
+                A person on our team sends it, usually within one business day.
                 Your address is used to send this report and to reply if you ask a question.
                 Nothing you entered leaves your browser unless you send it here, and the
                 download never asks for it.

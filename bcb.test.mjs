@@ -681,7 +681,7 @@ section("12b. Semantic status, headroom and horizon language");
   })());
   ok("the aggressive item is framed as benefit attribution, never as costs being fine", (() => {
     const c = confidenceOf(T3, computeCase(T3, "aggressive", true), "aggressive");
-    return c.withheld.some(t => /benefit-attribution concern rather than a cost-input one/.test(t))
+    return c.withheld.some(t => /benefit-attribution concern and says nothing about the cost inputs/.test(t))
       && !JSON.stringify(c).includes("cost inputs are not the issue");
   })());
   ok("the implementation concern and the stance concern never share a counter", (() => {
@@ -806,7 +806,7 @@ section("12z. Rendered narrative, asserted on the SOURCE");
   ok("SOURCE methodology exempts costs from both adjustments",
      meth.includes("never scaled by either adjustment"));
   ok("SOURCE methodology branches on the repeat-contact basis", meth.includes('repeatBasis === "fcr-proxy"'));
-  ok("SOURCE methodology still branches on phasing", meth.includes("phasing was turned OFF"));
+  ok("SOURCE methodology still branches on phasing", meth.includes("phasing was turned off"));
   ok("SOURCE methodology still branches on the RESOLVED stance", meth.includes('r.stanceKey === "aggressive"'));
 
   ok("SOURCE no surface still calls the headline cost-input confidence", !has("Cost-input confidence"));
@@ -821,7 +821,7 @@ section("12z. Rendered narrative, asserted on the SOURCE");
   ok("SOURCE the UI renders withheld items, not only open items",
      has("conf.withheld.map") && has("conf.open.map"));
   ok("SOURCE the UI labels withheld items as not a cost defect",
-     has("Limiting an axis, and not a cost-input defect"));
+     has("Limits an axis, separate from the cost inputs"));
   ok("SOURCE the capacity strip renders all four quantities",
      has("Capacity released") && has("Converted to value") && has("Not converted") && has("Cash-releasing"));
   ok("SOURCE the PDF carries a Capacity and Cash table", has('title: "Capacity and Cash"'));
@@ -952,7 +952,7 @@ section("12c. Capacity is not cash");
   })());
   ok("a realization cap is filed as withheld, never as a cost-input open item", (() => {
     const c = confidenceOf(H, computeCase(H, "expected", true, "hiring"), "expected");
-    return c.withheld.some(t => /benefit-realization concern, not a cost-input one/.test(t))
+    return c.withheld.some(t => /benefit-realization concern and says nothing about the cost inputs/.test(t))
       && !c.open.some(t => /capacity action|realization/.test(t));
   })());
   ok("a predominantly capacity case cannot headline Finance-grade", (() => {
@@ -976,7 +976,7 @@ section("12c. Capacity is not cash");
     for (const k of MECH_ORDER) {
       const r = computeCase(T, "expected", true, k), c = confidenceOf(T, r, "expected");
       const txt = caseInsights(r, T, "expected", c).join(" ");
-      if (r.capacityNet > 0 && !/not money until somebody acts on it/.test(txt)) return false;
+      if (r.capacityNet > 0 && !/becomes money only when somebody acts on it/.test(txt)) return false;
     }
     return true;
   })());
@@ -1093,7 +1093,7 @@ section("12h. Branch copy is true in every branch");
   ok("with no action committed, the read calls it an open decision, not a stress test", (() => {
     const r = computeCase(T, "expected", true, "none");
     const txt = caseInsights(r, T, "expected", confidenceOf(T, r, "expected")).join(" ");
-    return /an open decision rather than a stress test/.test(txt)
+    return /and that is an open decision/.test(txt)
       && !/signals you have already stress-tested/.test(txt);
   })());
   ok("with an action committed, the read names it and its conversion", (() => {
@@ -1173,7 +1173,7 @@ section("12e. Confidence concepts never contaminate each other");
   ok("target ambition caps the headline and is named as a target concern", (() => {
     const d = { ...base, containment: 40 };
     const c = confidenceOf(d, computeCase(d, "expected", true, "headcount"), "expected");
-    return c.grade === "Planning-grade" && c.withheld.some(t => /target-plausibility concern, not a cost-input one/.test(t));
+    return c.grade === "Planning-grade" && c.withheld.some(t => /target-plausibility concern and says nothing about the cost inputs/.test(t));
   })());
   ok("only genuine cost-input defects ever appear in open", (() => {
     for (const st of ["aggressive", "expected", "conservative"]) for (const mk of MECH_ORDER) {
@@ -2012,7 +2012,7 @@ section("G. BAU counterfactual");
   ok("G11 absorbed labor is named as excluded from the cash return",
      ins({ bauAbsorbedHours: 4200 }).includes("excluded from the cash return"));
   ok("G11 the read states the denominator is not netted",
-     ins({ bauEliminatedAnnual: 300000, bauExitCost: 150000 }).includes("rather than netted out of that denominator"));
+     ins({ bauEliminatedAnnual: 300000, bauExitCost: 150000 }).includes("It is never netted out of that denominator"));
 
   const has = (s) => SRC.includes(s);
   ok("G11 SOURCE the methodology branches on whether a counterfactual was entered",
@@ -2075,7 +2075,7 @@ section("G. BAU counterfactual");
     const t = caseInsights(r, d, "expected", confidenceOf(d, r, "expected")).join(" ");
     return r.postMonthly > 0 && r.monthlyFull < r.monthlyPlatform &&
       t.includes("Run-rate contribution does exceed") &&
-      t.includes("is displaced technology spend rather than operational saving") &&
+      t.includes("is displaced technology spend and the rest is operational saving") &&
       !t.includes("Run-rate savings do exceed");
   })());
   ok("G12 with no BAU the run-rate lines are unchanged", (() => {
@@ -2347,7 +2347,7 @@ section("J. 1-14 fragility, the thin return that used to pass in silence");
   ok("J22 the fragility line prices the dominant lever",
      /% of the case rests on/.test(readThin[0]) && /under-delivering by \d+%/.test(readThin[0]));
   ok("J23 the read tells the user not to present it as a payback",
-     new RegExp(`not as a ${rThin.payback}-month payback`).test(readThin[0]));
+     new RegExp(`Do not present it as a ${rThin.payback}-month payback`).test(readThin[0]));
   const readHealthy = caseInsights(rHealthy, healthy, "expected", cHealthy);
   ok("J24 the healthy control carries no fragility line",
      !readHealthy.some(t => /takes the whole return with it/.test(t)));

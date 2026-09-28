@@ -9,7 +9,7 @@ import { trackRoadmap } from "./src/lib/track";
 
 /* A status is a word on the page; nothing is colour-coded. */
 const PHASES = [
-  { name: "Phase 1: Foundation (Days 1 to 30)", desc: "Establish baseline, align stakeholders, define success criteria.", milestones: [
+  { name: "Phase 1: Foundation (Days 1 to 30)", desc: "Measure where you start, get the stakeholders agreed, and define what success looks like.", milestones: [
     { id: "m1", text: "Current-state assessment complete", owner: "CX Ops", deps: [] },
     { id: "m2", text: "Stakeholder alignment meeting held", owner: "Executive Sponsor", deps: [] },
     { id: "m3", text: "Success metrics and KPIs defined", owner: "CX Ops + Analytics", deps: ["m1"] },
@@ -17,7 +17,7 @@ const PHASES = [
     { id: "m5", text: "Budget and resource allocation confirmed", owner: "Finance + Exec", deps: ["m2", "m3"] },
     { id: "m6", text: "Risk register created", owner: "Program Lead", deps: ["m1"] },
   ]},
-  { name: "Phase 2: Design & Pilot (Days 31 to 60)", desc: "Design target state, build integrations, pilot with controlled group.", milestones: [
+  { name: "Phase 2: Design & Pilot (Days 31 to 60)", desc: "Design the target state, build the integrations, and pilot with a small, controlled group.", milestones: [
     { id: "m7", text: "Target-state architecture documented", owner: "IT / Arch", deps: ["m4"] },
     { id: "m8", text: "Integration requirements scoped", owner: "IT / Arch", deps: ["m7"] },
     { id: "m9", text: "Pilot group selected and briefed", owner: "CX Ops", deps: ["m7"] },
@@ -25,8 +25,8 @@ const PHASES = [
     { id: "m11", text: "Pilot launched with monitoring plan", owner: "Program Lead", deps: ["m8", "m9", "m10"] },
     { id: "m12", text: "First pilot checkpoint and adjustments", owner: "Program Lead", deps: ["m11"] },
   ]},
-  { name: "Phase 3: Scale & Optimize (Days 61 to 90)", desc: "Expand deployment, measure outcomes, establish ongoing governance.", milestones: [
-    { id: "m13", text: "Pilot results reviewed and go/no-go decided", owner: "Exec + Program Lead", deps: ["m12"] },
+  { name: "Phase 3: Scale & Optimize (Days 61 to 90)", desc: "Roll out to everyone, measure the outcomes, and set up governance that lasts beyond the project.", milestones: [
+    { id: "m13", text: "Pilot results reviewed and the decision to proceed or stop made", owner: "Exec + Program Lead", deps: ["m12"] },
     { id: "m14", text: "Full deployment plan finalized", owner: "Program Lead", deps: ["m13"] },
     { id: "m15", text: "Agent rollout and training complete", owner: "Training + CX Ops", deps: ["m14"] },
     { id: "m16", text: "Production monitoring and QA active", owner: "CX Ops + Analytics", deps: ["m15"] },
@@ -99,21 +99,21 @@ export default function RoadmapBuilder() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Frameworks + Planning" name="Transformation Roadmap Builder" title="What has to happen in the first 90 days, and what is stuck?"
-      lede="A structured 90-day plan with 18 milestones across three phases, Foundation, Design & Pilot, and Scale & Optimize. Track status, identify dependencies, flag risks, and build the plan you can put in front of leadership."
+      lede="A 90-day plan with 18 milestones in three phases: Foundation, Design & Pilot, and Scale & Optimize. Track each milestone's status, see what it depends on, flag risks, and produce a plan you can put in front of leadership."
       result={result} pinned={phase === "intro" ? null : { label: "Complete", value: `${completedCount} of ${allMilestones.length}` }}>
       <style>{FONT_IMPORT_CSS + optionCss("rm-sel")}</style>
 
       {phase === "intro" && (
         <section aria-label="Start" style={K.lead}>
-          <p style={K.body}>Mark each milestone's status. A milestone whose dependencies are not complete says what it is waiting on. This is a planner: it scores nothing.</p>
-          <div style={{ marginTop: 16 }}><Button onClick={handleStart}>Start Building</Button></div>
+          <p style={K.body}>Mark each milestone's status. A milestone whose dependencies are not complete says what it is waiting on. This is a planner, so nothing is scored.</p>
+          <div style={{ marginTop: 16 }}><Button onClick={handleStart}>Start the plan</Button></div>
         </section>
       )}
 
       {phase === "build" && (<>
         <section aria-label="Your initiative" style={K.lead}>
           <h2 style={K.h2}>90-Day Transformation Roadmap</h2>
-          <input aria-label="Initiative name" value={initiative} onChange={e => setInitiative(e.target.value)} placeholder="Name your initiative (e.g., CCaaS Migration, AI Deployment)" style={{ ...numInput, fontVariantNumeric: "normal", fontWeight: 500, maxWidth: 440 }} />
+          <input aria-label="Initiative name" value={initiative} onChange={e => setInitiative(e.target.value)} placeholder="Name your initiative, for example a platform migration or an AI rollout" style={{ ...numInput, fontVariantNumeric: "normal", fontWeight: 500, maxWidth: 440 }} />
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
             {STATUS_OPTIONS.map(s => {
               const count = allMilestones.filter(m => getStatus(m.id) === s.value).length;
@@ -175,8 +175,8 @@ export default function RoadmapBuilder() {
                   ]} />
         </Paper>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Button href="/contact">Connect with a Consultant</Button>
-          <Button kind="secondary" href="/tools/governance-model">Map Governance</Button>
+          <Button href="/contact">Talk to a consultant</Button>
+          <Button kind="secondary" href="/tools/governance-model">Map who owns each decision</Button>
         </div>
       </>)}
     </ToolFrame>

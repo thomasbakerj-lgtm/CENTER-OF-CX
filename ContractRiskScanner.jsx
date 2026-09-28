@@ -42,13 +42,13 @@ export default function ContractRiskScanner() {
 
   const result = reading
     ? <Result label={R.complete ? "Reading" : `Reading, ${R.answered} of ${R.total} clauses answered`} value={reading.label} change={reading.test} />
-    : <Result label="Clauses answered" value={`0 of ${R.total}`} change="The reading appears with your first answer. A clause you do not know is an item to find, never a pass." />;
+    : <Result label="Clauses answered" value={`0 of ${R.total}`} change="The reading appears with your first answer. A clause you do not know becomes an item to find in the contract. It never counts as a pass." />;
   const chip = (lv) => ({ display: "inline-block", fontFamily: FONT, fontSize: 13, fontWeight: 700, padding: "3px 10px", borderRadius: RADIUS.chip, border: `${lv === "critical" ? 2 : 1}px ${lv === "unknown" ? "dashed" : "solid"} ${lv === "critical" || lv === "high" ? K.strong.color : K.firm}`, color: K.strong.color, flexShrink: 0, minWidth: 72, textAlign: "center" });
   const optBtn = (on) => ({ minHeight: TOUCH, padding: "0 14px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer", border: `${on ? 2 : 1}px solid ${on ? K.strong.color : K.firm}`, background: on ? K.shade(0) : "transparent", color: K.strong.color, textAlign: "left" });
 
   return (
     <ToolFrame toolId={TOOL_ID} choice={R.next || null} section="Vendor Selection" name="Contract Risk Scanner" title="What in this contract should you change before you sign?"
-      lede={`Read ${MODEL.terms.length} clauses of a contact center platform contract against published severities. Pick the option that matches your contract, or "don't know"; every flagged clause comes with the reason and the position to ask for instead. Not legal advice.`}
+      lede={`Read ${MODEL.terms.length} clauses of a contact center platform contract against published severities. Pick the option that matches your contract, or "don't know". Every flagged clause comes with the reason it matters and the position to ask for. This is not legal advice.`}
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={reading ? { label: "Reading", value: reading.label } : null}>
       <style>{FONT_IMPORT_CSS}</style>
 
@@ -106,7 +106,7 @@ export default function ContractRiskScanner() {
         </section>
       )}
       {next && <p style={K.body}>Next diagnostic: <a href={next.href} style={K.link}>{next.name}</a>, because {NEXT_WHY[R.next]}.</p>}
-      <p style={K.small}>Want a second pair of eyes before you sign? Use the review request below: your answers travel with it.</p>
+      <p style={K.small}>For a second opinion before you sign, use the review request below. Your answers travel with it.</p>
 
       <Paper>
         <ReportActions next={R.next ? { to: R.next, because: "Because " + NEXT_WHY[R.next] + "." } : null}
@@ -128,7 +128,7 @@ export default function ContractRiskScanner() {
             { title: "Negotiation Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((f) => ({ action: f.name + (f.severity === "unknown" ? "" : ": " + f.selected), detail: LEVEL[f.severity].label + ". " + f.action + " Why it matters: " + f.why, priority: f.severity === "critical" || f.severity === "high" ? "high" : "medium" })) : [{ action: "No clause is critical, high or unknown.", detail: "Have counsel review the final contract before signing.", priority: "medium" }] },
             { title: "Negotiation Positions", type: "text", content: MODEL.positionsNote },
             { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
-            { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". Each clause option carries a published severity; the reading is the most serious one present, and a clause you do not know is an item to find, never a pass. Published at contactcentercx.com" + MODEL.methodology + "." },
+            { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". Each clause option carries a published severity; the reading is the most serious one present, and a clause you do not know becomes an item to find and never counts as a pass. Published at contactcentercx.com" + MODEL.methodology + "." },
           ]}
         />
       </Paper>

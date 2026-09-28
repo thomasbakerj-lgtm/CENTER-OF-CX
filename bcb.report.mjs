@@ -550,7 +550,7 @@ console.log(`\n${"=".repeat(78)}\n1-14 GATE: a confident case on a return too th
     A("F: the read names the benefit shortfall that erases the return",
       /shortfall of \d+% in benefit/.test(F.insights[0] || ""));
     A("F: the read tells the reader not to present it as a payback",
-      new RegExp(`not as a ${F.r.payback}-month payback`).test(F.insights[0] || ""));
+      new RegExp(`Do not present it as a ${F.r.payback}-month payback`).test(F.insights[0] || ""));
 
     /* Same three channels as 1-12. Fragility is a finding, never a cap and never an axis. */
     A("F: the finding reaches the confidence section of the document",

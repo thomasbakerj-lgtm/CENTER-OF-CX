@@ -62,13 +62,13 @@ export default function ShrinkagePlanner() {
   const rangeText = `${Math.round(RANGE.low * 100)} to ${Math.round(RANGE.high * 100)}%`;
 
   const findings = [
-    `Total shrinkage is ${totalLabel} of paid hours: ${R.plannedPct.toFixed(1)}% planned and ${R.unplannedPct.toFixed(1)}% unplanned. Of ${v.agents} agents on the roster, about ${R.onQueueRounded} are on the queue at any moment.`,
+    `Total shrinkage is ${totalLabel} of paid hours: ${R.plannedPct.toFixed(1)}% planned and ${R.unplannedPct.toFixed(1)}% unplanned. Of ${v.agents} agents on the roster, about ${R.onQueueRounded} are available to take contacts at any moment.`,
     v.needed > 0
-      ? `To keep ${v.needed} agents on the queue at ${totalLabel} shrinkage, schedule ${R.schedule}: ${v.needed} divided by ${pc(R.avail, 1)}, rounded up. ${gapText}`
-      : `No agents needed on the queue were entered, so nothing is scheduled against a need.`,
-    `Paid time off the queue comes to about ${usd(R.offQueueValue)} a year at the loaded rate (${usd(R.plannedValue)} planned, ${usd(R.unplannedValue)} unplanned). These are wages already paid. Breaks, PTO, coaching and training are part of running the operation, so this figure is where paid time goes and is no saving.`,
-    `Each point of shrinkage takes ${R.pointAgents.toFixed(1)} agents off the queue, about ${usd(R.pointValue)} a year of paid time.`,
-    `${totalLabel} is ${R.position === "within" ? "within" : R.position} the ${rangeText} planning range, a labelled heuristic. The range says nothing about whether your total is right for your operation. The largest category is ${R.largest.name} at ${R.largest.pct}%.`,
+      ? `To keep ${v.needed} agents on the queue at ${totalLabel} shrinkage, schedule ${R.schedule}: ${v.needed} divided by ${pc(R.avail, 1)}, rounded up. ${gapText} Hire and build schedules to this number.`
+      : `No agents needed on the queue were entered, so nothing is scheduled against a need. Enter the number from your forecast or the Staffing Calculator to see how many to schedule.`,
+    `Paid time off the queue comes to about ${usd(R.offQueueValue)} a year at the loaded rate (${usd(R.plannedValue)} planned, ${usd(R.unplannedValue)} unplanned). These are wages you already pay. Breaks, PTO (paid time off), coaching and training are part of running a contact center, so read this figure as where paid time goes. Cutting it would mean cutting those activities.`,
+    `Each point of shrinkage takes ${R.pointAgents.toFixed(1)} agents off the queue, about ${usd(R.pointValue)} a year of paid time. Use it to size a change: trimming one point of unplanned absence frees roughly that many agents.`,
+    `${totalLabel} is ${R.position === "within" ? "within" : R.position} the ${rangeText} planning range, a labelled heuristic. Treat the range as a rough reference; the right total depends on your own mix of training, coaching and time off. The largest category is ${R.largest.name} at ${R.largest.pct}%, so start there if you want to move the total.`,
   ];
   const assumptions = [
     `Every category is a percent of paid hours, so the categories add. If you measure a category against hours present instead, convert it first: multiply it by one minus your out-of-office shrinkage.`,
@@ -91,7 +91,7 @@ export default function ShrinkagePlanner() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Operations + Workforce" name="Shrinkage Planner" title="How much paid time never reaches the queue?"
-      lede="Shrinkage is the share of paid agent time that never reaches the queue. Enter each category as a percent of paid hours. The planner totals them, shows how many agents your roster keeps on the queue, how many to schedule to keep the number you need there, and what the time off the queue is worth."
+      lede="Shrinkage is the share of paid agent time spent away from the queue: breaks, meetings, training, time off, absence. Enter each category as a percent of paid hours. The planner adds them up, shows how many of your agents are actually available to take contacts, how many to schedule to keep the number you need there, and what the time away is worth."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Total shrinkage", value: totalLabel }}>
       <style>{FONT_IMPORT_CSS}</style>
       <p style={K.small}>Every formula and assumption is in the <a href={METHOD} style={K.link}>published method</a>.</p>
@@ -117,7 +117,7 @@ export default function ShrinkagePlanner() {
         <div style={K.grid(180)}>
           <Field label="Agents on the roster" value={d.agents} onChange={(x) => set("agents", x)} />
           <Field label="Agents needed on the queue" value={d.needed} onChange={(x) => set("needed", x)} hint="From your forecast or the Staffing Calculator" />
-          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? `BLS median, ${BLS_WAGE_VINTAGE}` : undefined} />
+          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? `BLS median, ${BLS_WAGE_VINTAGE}. Enter yours.` : undefined} />
         </div>
       </Group>
 
@@ -181,7 +181,7 @@ export default function ShrinkagePlanner() {
               { title: "Key Findings", type: "findings", items: findings },
               { title: "Shrinkage Breakdown", type: "table", rows: R.cats.map((c) => [c.name + " (" + c.type + ")", c.pct.toFixed(1) + "%"]).concat([["Total shrinkage", totalLabel]]) },
               { title: "Planning Assumptions", type: "findings", items: assumptions },
-              { title: "Method", type: "text", content: "Total shrinkage is the sum of the categories, each a percent of paid hours. Agents on the queue are the roster times one minus shrinkage; agents to schedule are the need divided by one minus shrinkage, rounded up. Paid time off the queue is priced at the hourly rate, the full-time year and the benefits load. Published at contactcentercx.com" + METHOD + "." },
+              { title: "Method", type: "text", content: "Shrinkage is paid time spent away from the queue. Total shrinkage is the sum of the categories, each a percent of paid hours. Agents on the queue are the roster times one minus shrinkage; agents to schedule are the need divided by one minus shrinkage, rounded up. Paid time off the queue is priced at the hourly rate, the full-time year and the benefits load. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
       </Paper>
