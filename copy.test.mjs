@@ -86,5 +86,26 @@ for (const f of subPages) {
   ok(`${f}: every review field has a label`, ["sv-review-email", "sv-review-name", "sv-review-company"].every((id) => s.includes(`htmlFor="${id}"`) && s.includes(`id="${id}"`)));
 }
 
+
+/* 6. P6 item 13 (S24, 28 Sep 2026): unsourced figures retired from Human Premium, Platforms and Tech, and Advisory. Each
+   was stated as fact with no source; the argument stays, in words or as a labelled illustration. */
+console.log("\n6. Retired unsourced figures stay retired");
+{
+  const RETIRED_FIGURES = {
+    "HumanPremium.jsx": ["60-80%", "20-40%", "2-3x", "$200/hour", "$2M", "10-15 years", "this 20%"],
+    "PlatformsTech.jsx": ["$450 to $800", "$305 to $540", "$325 to $600", "5 to 10% containment", "20 to 40% automation", "50 to 70%+", "2% sample", "~500-seat"],
+    "Advisory.jsx": ["350+", "50+ implementations", "3-5 vendors"],
+  };
+  ok("the rule fires on a planted page", ["60-80%"].some((x) => "When your IVA handles 60-80% of".includes(x)));
+  for (const [f, list] of Object.entries(RETIRED_FIGURES)) {
+    const s = readFileSync(f, "utf8");
+    const back = list.filter((x) => s.includes(x));
+    ok(`${f}: no retired unsourced figure`, back.length === 0, back.join(", "));
+  }
+  ok("Human Premium's worked example is labelled an illustration", /illustrative example \(our own, with no forecast behind it\)/.test(readFileSync("HumanPremium.jsx", "utf8")));
+  ok("Platforms and Tech points to the TCO calculator for real numbers", /href="\/tools\/tco-calculator"/.test(readFileSync("PlatformsTech.jsx", "utf8")));
+  ok("Advisory's vendor count is derived", /\$\{VENDOR_PROFILE_COUNT\} vendor profiles/.test(readFileSync("Advisory.jsx", "utf8")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);
