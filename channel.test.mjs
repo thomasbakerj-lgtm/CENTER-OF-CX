@@ -110,7 +110,7 @@ A("baseline shifts 20,000 (20 pts of total), inside the eligible pool", near(R0.
 A("baseline displaces 11,350 voice contacts", near(R0.Dtot, 11350));
 A("baseline bounces 5,000 back to voice", near(R0.Etot, 5000));
 A("baseline voice AHT effective is 7.0 min", near(R0.baseEff, 7));
-A("baseline net realizable is $3,022.48/mo at the $20.59 market wage", Math.abs(R0.netRealizable - 3022.48) < 0.005);
+A("baseline net realizable is $3,344.22/mo at the $21.53 market wage", Math.abs(R0.netRealizable - 3344.22) < 0.005);
 A("decision H moved only the wage: at the retired $18 the engine still nets $2,135.99", Math.abs(compute({ ...BASE, hourlyRate: 18 }, "hiring").netRealizable - 2135.99) < 0.005);
 A("baseline produces no input corrections", R0.guards.length === 0 && R0.blocked === false);
 A("baseline is not marked impossible or implausible", !R0.deptImpossible && !R0.deptImplausible);
@@ -474,9 +474,9 @@ console.log("\n14. 11B grading layer and registry");
   A("no curve, planning constant or threshold ships bare",
     !/c: 0\.\d|22 \* 8|\* 0\.3\)|deptEffRaw < 2|<= 0\.10|be < 1\b|be < 1 /.test(SRC));
   A("J11 closes decision H: the default wage is the one shared BLS market median",
-    BASE.hourlyRate === 20.59 && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
+    BASE.hourlyRate === 21.53 && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
     && BENCHMARK_SOURCES["market.wage.agent"].kind === "market" && !("channel.wage.median" in BENCHMARK_SOURCES)
-    && /May 2024/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
+    && /May 2025/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
   A("J10: both overheads are shared load concepts, not multiples of this tool's own",
     BASE.loadedOH === 1.30 && BASE.marginalOH === 1.18
     && BENCHMARK_SOURCES["load.benefits"].tool === "shared" && BENCHMARK_SOURCES["load.marginal"].tool === "shared"

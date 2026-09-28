@@ -535,8 +535,8 @@ section("benchmark registry: every constant this tool ships is registered");
     bm("load.benefits") === 1.30 && bm("load.marginal") === 1.18 && bm("load.fullyLoaded") === 1.95);
 
   // J11. One shared wage entry, and this tool's industry wages are registered heuristics.
-  ok("J11: the shared market wage is the BLS May 2024 median",
-    bm("market.wage.agent") === 20.59 && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
+  ok("J11: the shared market wage is the BLS May 2025 median (released 15 May 2026)",
+    bm("market.wage.agent") === 21.53 && /May 2025 \(released 15 May 2026\)/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && !/May 2026 wage/i.test(BENCHMARK_SOURCES["market.wage.agent"].source) && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
     && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
   ok("J11: the three per-tool wage copies are retired",
     !("staffing.wage.median" in BENCHMARK_SOURCES) && !("cpc.wage.median" in BENCHMARK_SOURCES) && !("channel.wage.median" in BENCHMARK_SOURCES));

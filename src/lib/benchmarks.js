@@ -295,12 +295,16 @@ const fcrEntries = {
    concept it actually means instead of inventing a multiple of its own. TCO's 1.25x for
    salaried staff is a fourth fact, a different population, and is registered to TCO. */
 const SHARED = "shared";
-const BLS_WAGE = "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2024, SOC 43-4051 Customer Service Representatives, national median hourly wage.";
+/* The agent wage. OEWS May 2025 estimates, published 15 May 2026 (USDL-26-0725): the current annual release. They are May
+   2025 wages published in 2026, never "May 2026 wages" (TB, 28 Sep 2026). SOC 43-4051 national: median hourly $21.53, mean
+   hourly $22.40, mean annual $46,590, employment 2,595,750 (BLS Table 1). The site uses the median. */
+export const BLS_WAGE_VINTAGE = "May 2025";
+const BLS_WAGE = "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2025 (released 15 May 2026), SOC 43-4051 Customer Service Representatives, national median hourly wage.";
 const TIME_DEF = "A definition: the full-time paid schedule of 40 hours a week for 52 weeks. Not a benchmark; change it where your contract hours differ.";
 const shLoad = (value, rationale) => ({ tool: SHARED, kind: "heuristic", value, unit: "multiple of hourly wage", source: "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.", reviewed: REVIEWED, version: 1, rationale });
 
 export const SHARED_BENCHMARKS = {
-  "market.wage.agent": { tool: SHARED, kind: "market", value: 20.59, unit: "USD per hour", source: BLS_WAGE, reviewed: REVIEWED, version: 1, rationale: "The one agent wage benchmark the platform cites. Staffing, Cost per Contact and Channel Shift read it. It is the occupation median, no figure of the user's own, so a driver still at it grades evidence Directional." },
+  "market.wage.agent": { tool: SHARED, kind: "market", value: 21.53, unit: "USD per hour", source: BLS_WAGE, url: "https://www.bls.gov/oes/tables.htm", reviewed: "2026-09-28", version: 2, rationale: "The one agent wage benchmark the platform cites. Staffing, Cost per Contact and Channel Shift read it. It is the occupation median, no figure of the user's own, so a driver still at it grades evidence Directional." },
   "load.benefits": shLoad(1.30, "Wage plus benefits and employer payroll burden, and nothing else. The narrowest of the three loads. Use it wherever a wage becomes a loaded hourly rate for unit metrics."),
   "load.marginal": shLoad(1.18, "The variable cost that disappears when one contact goes away. The only load a saving may be valued on, because fixed technology and facilities do not fall with volume."),
   "load.fullyLoaded": shLoad(1.95, "Wage plus benefits, payroll tax, facilities, supervision and technology. The cost of standing a seat up. Use it only to price whole headcount, never to value a freed contact."),

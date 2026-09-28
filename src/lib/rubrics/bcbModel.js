@@ -15,11 +15,11 @@ const st = (k) => ["containment", "handleTime", "fcr", "attrition"].map((x) => M
 /* The pins, at the tool's opening case (expected stance, phasing on, no capacity action),
    and the same case with hiring avoidance. Each is recomputed from the engine. */
 export const BCB_PINS = {
-  loaded: 26.767, marginal: 3.1228, deflected: 216000, handled: 1224000, avoidedRepeats: 76500, avoidedTurnover: 14,
-  containment: 674528.4, handleTime: 532395.63, fcr: 238895.47, attrition: 111955.98, gross: 1557775.49,
-  capacityNet: 1284542.98, cashNet: 31850, tco3: 1722000,
+  loaded: 27.989, marginal: 3.2654, deflected: 216000, handled: 1224000, avoidedRepeats: 76500, avoidedTurnover: 14,
+  containment: 705322.8, handleTime: 556701.21, fcr: 249801.82, attrition: 114830.13, gross: 1626655.96,
+  capacityNet: 1343186.51, cashNet: 31850, tco3: 1722000,
   none: { net: 31850, benefit3: 65027.08, roi3: -96.22 },
-  hiring: { realized: 963407.23, net: 995257.23, benefit3: 2031983.52, roi3: 18.0, payback: 31 },
+  hiring: { realized: 1007389.88, net: 1039239.88, benefit3: 2121781.43, roi3: 23.22, payback: 30 },
 };
 const P = BCB_PINS;
 
@@ -27,8 +27,8 @@ export const BCB_MODEL = {
   id: "business-case-builder",
   kind: "calc",
   title: "Business Case Builder",
-  version: "1.1",
-  published: "2026-09-25",
+  version: "1.2",
+  published: "2026-09-28",
   route: "/tools/business-case",
   methodology: "/methodology/business-case-builder",
   what: "How the Business Case Builder turns four improvement levers into a three-year case: what each lever frees, how much of it the stance attributes to the program, how much becomes cash through the capacity action you choose, and how that compares with the investment over a phased timeline.",

@@ -7,6 +7,24 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-28", methods: ["staffing-calculator", "cost-per-contact", "channel-shift", "attrition-cost", "occupancy-risk", "shrinkage-planner", "schedule-adherence"], version: "1.1",
+    title: "The agent wage moves to the BLS May 2025 estimates",
+    changes: [
+      "The opening wage is the BLS median for customer service representatives (SOC 43-4051) in the May 2025 Occupational Employment and Wage Statistics, published 15 May 2026: $21.53 an hour (was $20.59, the May 2024 median). The BLS mean is $22.40 an hour, $46,590 a year; the tools open on the median.",
+      "Figures built on agent time move up by about 4.6%, the wage ratio: at the opening cases Staffing's annual cost moves from $10,502,407 to $10,981,876, Channel Shift's net realizable from $3,022 to $3,344 a month, and Attrition's opening salary from $42,827 to $44,782 with all-in cost per departure from $17,915 to $18,535.",
+      "Formulas, thresholds and grades are unchanged. Any case where you entered your own wage computes exactly as before.",
+    ],
+  },
+  {
+    date: "2026-09-28", methods: ["business-case-builder"], version: "1.2",
+    title: "Business Case: the agent wage moves to the BLS May 2025 estimates",
+    changes: [
+      "The opening wage is the BLS May 2025 median, $21.53 an hour (was $20.59), published 15 May 2026.",
+      "With no capacity action the opening case is unchanged: net $31,850 a year, three-year cost $1,722,000. With hiring avoidance, net moves from $995,257 to $1,039,240 a year and payback from month 31 to month 30.",
+      "Formulas and grades are unchanged. Any case where you entered your own wage computes exactly as before.",
+    ],
+  },
+  {
     date: "2026-09-28", methods: ["tco-calculator"], version: "1.2",
     title: "TCO: a validity check for marginal cost above the full cost per contact",
     changes: [

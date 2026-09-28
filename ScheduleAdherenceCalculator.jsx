@@ -7,7 +7,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine, money } from "./src/lib/guards";
-import { benchmark } from "./src/lib/benchmarks";
+import { benchmark, BLS_WAGE_VINTAGE } from "./src/lib/benchmarks";
 import { runAdherence } from "./src/lib/adherence";
 
 /* Schedule Adherence Impact Calculator. The arithmetic lives in src/lib/adherence.js between
@@ -64,7 +64,7 @@ export default function ScheduleAdherenceCalculator() {
 
   const planning = [
     "Adherence is taken as the share of scheduled agents on the queue at any moment.",
-    `Overtime multiplier ${v.otMultiplier}x${v.otMultiplier === benchmark("adh.ot.multiplier") ? ", the US Fair Labor Standards Act minimum" : ", entered by you"}; hourly rate ${wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024" : "entered by you"}.`,
+    `Overtime multiplier ${v.otMultiplier}x${v.otMultiplier === benchmark("adh.ot.multiplier") ? ", the US Fair Labor Standards Act minimum" : ", entered by you"}; hourly rate ${wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}` : "entered by you"}.`,
     `The call rate is taken to hold across ${v.hoursPerDay} open hours a day and ${v.daysPerYear} days a year.`,
   ];
   const result = (
@@ -99,7 +99,7 @@ export default function ScheduleAdherenceCalculator() {
 
       <Group legend="Question 2 of 2 · Overtime cost">
         <div style={K.grid(170)}>
-          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? "BLS median, May 2024" : undefined} />
+          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? `BLS median, ${BLS_WAGE_VINTAGE}` : undefined} />
           <Field label="Overtime multiplier" value={d.otMultiplier} onChange={(x) => set("otMultiplier", x)} suffix="x" hint={v.otMultiplier === benchmark("adh.ot.multiplier") ? "US FLSA minimum" : undefined} />
           <Field label="Open hours a day" value={d.hoursPerDay} onChange={(x) => set("hoursPerDay", x)} />
           <Field label="Open days a year" value={d.daysPerYear} onChange={(x) => set("daysPerYear", x)} />
@@ -176,7 +176,7 @@ export default function ScheduleAdherenceCalculator() {
               { title: "Each Point of Adherence", type: "table", rows: R.rows.map((r) => [r.adh + "% adherence" + (r.drop ? " (-" + r.drop + ")" : " (today)"), `${r.onQueue} on the queue, service level ${pc(r.sl)} (${r.meets ? "met" : "missed"}), speed of answer ${r.asa === null ? "overloaded" : Math.round(r.asa) + "s"}, ${otLine(r)}`]) },
               { title: "Planning Assumptions", type: "findings", items: [
                 "Adherence is taken as the share of scheduled agents on the queue at any moment.",
-                `Overtime multiplier ${v.otMultiplier}x${v.otMultiplier === benchmark("adh.ot.multiplier") ? ", the US Fair Labor Standards Act minimum" : ", entered by you"}; hourly rate ${wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024" : "entered by you"}.`,
+                `Overtime multiplier ${v.otMultiplier}x${v.otMultiplier === benchmark("adh.ot.multiplier") ? ", the US Fair Labor Standards Act minimum" : ", entered by you"}; hourly rate ${wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}` : "entered by you"}.`,
                 `The call rate is taken to hold across ${v.hoursPerDay} open hours a day and ${v.daysPerYear} days a year.`,
                 "Erlang C assumes no caller abandons, so the service level it gives sits below what abandonment would produce.",
               ]},

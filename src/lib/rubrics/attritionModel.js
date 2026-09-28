@@ -15,10 +15,10 @@ const H = MECH[MECH_INITIAL];
 
 /* The pins, at the tool's opening case. Each is recomputed from the engine. */
 export const ATTRITION_PINS = {
-  salary: 42827, departures: 70, hires: 70, loadedHourly: 26.766875, recruiting: 2884, training: 7324.05, vacancy: 1482.47,
-  cashPerDeparture: 11690.52, nestingLoss: 2141.35, rampLoss: 3533.23, supervisorBurden: 550, capacityPerDeparture: 6224.58,
-  allInPerDeparture: 17915.10, pctSalary: 41.83, annualReplBurden: 1254057.04, earlyWashouts: 18, earlyWaste: 183744.9,
-  step: 10, avoided: 20, stepCash: 233810.46, stepCap: 93368.66, stepTotal: 327179.12,
+  salary: 44782, departures: 70, hires: 70, loadedHourly: 27.98875, recruiting: 2884, training: 7617.3, vacancy: 1550.15,
+  cashPerDeparture: 12051.45, nestingLoss: 2239.1, rampLoss: 3694.515, supervisorBurden: 550, capacityPerDeparture: 6483.615,
+  allInPerDeparture: 18535.06, pctSalary: 41.39, annualReplBurden: 1297454.28, earlyWashouts: 18, earlyWaste: 189023.4,
+  step: 10, avoided: 20, stepCash: 241028.92, stepCap: 97254.22, stepTotal: 338283.15,
 };
 const P = ATTRITION_PINS;
 
@@ -26,8 +26,8 @@ export const ATTRITION_MODEL = {
   id: "attrition-cost",
   kind: "calc",
   title: "Attrition Cost Calculator",
-  version: "1.0",
-  published: "2026-09-25",
+  version: "1.1",
+  published: "2026-09-28",
   route: "/tools/attrition-cost",
   methodology: "/methodology/attrition-cost",
   what: "How the Attrition Cost Calculator prices each agent departure as cash that leaves and capacity lost while a new hire ramps, what that costs a year, and what a lower attrition rate would avoid.",

@@ -144,7 +144,7 @@ function sustainablePair(volume, ahtSec, intMin, slT, slSec, shrink, ceiling) {
    payroll burden, and roughly 1.9 to 2.1 once the rest is included. We use 1.95
    on base wage when only a wage is known, and prefer a real per-agent TCO figure
    whenever the rail carries one, because that is measured rather than assumed. */
-const BENCHMARK_HOURLY = benchmark("market.wage.agent");        // shared BLS OEWS May 2024, SOC 43-4051 median
+const BENCHMARK_HOURLY = benchmark("market.wage.agent");        // shared BLS OEWS median, SOC 43-4051 (vintage in the registry)
 const FULL_LOAD_MULTIPLE = benchmark("load.fullyLoaded");       // shared: wage to fully loaded, when no TCO figure exists
 const PAID_HOURS_MONTH = benchmark("staffing.hours.month");     // 2080 annual hours / 12
 

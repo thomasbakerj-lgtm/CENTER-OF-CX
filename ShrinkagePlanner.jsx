@@ -7,7 +7,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine, money } from "./src/lib/guards";
-import { benchmark, BENCHMARK_SOURCES } from "./src/lib/benchmarks";
+import { benchmark, BENCHMARK_SOURCES, BLS_WAGE_VINTAGE } from "./src/lib/benchmarks";
 import { publishToolResult } from "./src/lib/toolData";
 import { runShrinkage, SHRINK_PLANNED, SHRINK_UNPLANNED } from "./src/lib/shrinkage";
 
@@ -75,7 +75,7 @@ export default function ShrinkagePlanner() {
     `Paid hours ${SHRINK_PARAMS.hoursYear.toLocaleString("en-US")} a year: the full-time definition.`,
     `Benefits load ${SHRINK_PARAMS.load}x, the platform's shared heuristic.`,
     `Planning range ${rangeText}: heuristic, no published source.`,
-    `Hourly rate ${wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024." : "entered by you."}`,
+    `Hourly rate ${wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}.` : "entered by you."}`,
   ];
 
   const result = (
@@ -117,7 +117,7 @@ export default function ShrinkagePlanner() {
         <div style={K.grid(180)}>
           <Field label="Agents on the roster" value={d.agents} onChange={(x) => set("agents", x)} />
           <Field label="Agents needed on the queue" value={d.needed} onChange={(x) => set("needed", x)} hint="From your forecast or the Staffing Calculator" />
-          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? "BLS median, May 2024" : undefined} />
+          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? `BLS median, ${BLS_WAGE_VINTAGE}` : undefined} />
         </div>
       </Group>
 

@@ -14,7 +14,7 @@ const pc = (x, d = 1) => (x * 100).toFixed(d) + "%";
 /* The pins, at the tool's opening case. Each is recomputed from the engine. */
 export const CPC_PINS = {
   C: 1.392, cpr: 9.744, handled: 50000, resolutions: 35920, repeats: 14080, repeatShare: 0.28161,
-  burden: 59137.93, blendedHandle: 2.6098, blendedEffMin: 5.85, fteBurden: 9.806,
+  burden: 59137.93, blendedHandle: 2.7289, blendedEffMin: 5.85, fteBurden: 9.806,
   step: 10, newFCR: 82, released: 21120.69, realizable: 15840.52, fte: 3.502,
 };
 const P = CPC_PINS;
@@ -24,8 +24,8 @@ export const CPC_MODEL = {
   id: "cost-per-contact",
   kind: "calc",
   title: "Cost per Contact Calculator",
-  version: "1.0",
-  published: "2026-09-25",
+  version: "1.1",
+  published: "2026-09-28",
   route: "/tools/cost-per-contact",
   methodology: "/methodology/cost-per-contact",
   what: "How the Cost per Contact Calculator turns cost per contact, first contact resolution and repeat depth into cost per resolution, the repeat-demand burden and the capacity an FCR improvement releases.",
