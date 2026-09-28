@@ -210,7 +210,7 @@ A("rail values are fractions in [0,1]", (()=>{const r=engine(DEF);return r.railR
   A("zero-realization action raises a flag", engine({...DEF,marg:4.2,mech:ZERO_KEY}).flags.some(f => /realized savings are \$0/.test(f)));
   A("eligibility above 90 raises a flag", engine({...DEF,marg:4.2,eligibleRate:95}).flags.some(f => /rare/.test(f)));
   A("dominant escalation premium raises a flag",
-    engine({...DEF,marg:4.2,escalationPenalty:200,apparentResolutionRate:30,repeatLeakRate:50}).flags.some(f => /directional, not measured/.test(f)));
+    engine({...DEF,marg:4.2,escalationPenalty:200,apparentResolutionRate:30,repeatLeakRate:50}).flags.some(f => /directional starting value/.test(f)));
 }
 
 
