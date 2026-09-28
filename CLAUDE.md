@@ -381,8 +381,7 @@ Binding. None of this is in code comments beyond what is noted.
   lever and BCB's derived marginal (ask TB).
 - TCO, AHT Decomposition, Shrinkage Planner and Occupancy Risk publish origin grades. Staffing, CPC, FCR, AID, Channel read
   but publish none.
-- CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource` (self-read capable;
-  graded `self` and Directional, so not yet a defect).
+- ~~CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource`.~~ Fixed S24 (item 78): every pull is external.
 - ~~FCR PULLED badge reads `getPrimitive`.~~ Fixed S23: the badge fires only on a value another tool produced.
 - ~~Attrition live PDFs never pulled; local `boundAxes`.~~ Fixed S23: pulled and reconciled (29 of 29 figures,
   normal and Finance-grade); the void now publishes no figure (it printed `$∞` and a grade); shared `boundAxes`.
@@ -1376,6 +1375,15 @@ dashboard, the 12-phase growth program.
    no longer lists analystRead, confidence or grade. `rail.test.mjs` V0 to V4 (no registered fact matches the pattern; the
    publish-call scan proven on a planted key). Channel, CPC and FCR pins now require no verdict in the publish. Suite
    25,827; live check 256 of 256.
+   PR #69 merged by TB's instruction (4bb2e15).
+78. S24 (28 Sep), P6 item 15 part 1, every rail pull external. Seven tools (AI Deflection, Attrition, Business Case, Channel,
+   CPC, FCR, License Gap) pulled with `getPrimitiveWithSource`, which hands back a tool's own publish; 25 reads now use
+   `getExternalWithSource(key, TOOL_ID)`, with a frozen `NO_RAIL` empty read in the old shape so the code after each read
+   is unchanged. A reopened tool no longer badges its own value as pulled; a value another tool published still arrives
+   with its source and origin grade (browser: CPC publishes, FCR shows PULLED, CPC reopened shows none of its own).
+   `rail.test.mjs` V5 and V6: no page calls a self-capable getter (proven on a planted pull); AI Deflection, Attrition,
+   Channel and FCR pins moved to the external getter. Suite 25,829; live check 256 of 256. Part 2 (Staffing, CPC, FCR,
+   AI Deflection and Channel publish origin grades) is next.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
