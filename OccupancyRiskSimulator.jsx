@@ -37,9 +37,9 @@ const pct = (x, d = 1) => (x * 100).toFixed(d) + "%";
 const k = (x) => "$" + Math.round(x / 1000).toLocaleString("en-US") + "K";
 const B = OCC_PARAMS.bands;
 const BAND_TEXT = {
-  healthy: `At or below ${pct(B.healthyMax, 0)}, the platform's healthy band. Agents keep recovery time between contacts.`,
-  caution: `Above ${pct(B.healthyMax, 0)} and up to ${pct(B.cautionMax, 0)}, the caution band. Workable for peaks; as a steady state this model raises attrition ${OCC_PARAMS.mult.caution}x.`,
-  critical: `Above ${pct(B.cautionMax, 0)}, the critical band. Recovery time between contacts is minimal; this model raises attrition ${OCC_PARAMS.mult.critical}x.`,
+  healthy: `At or below ${pct(B.healthyMax, 0)}, the platform's healthy band. Agents still get a short breather between contacts. Hold here and watch it through your peaks.`,
+  caution: `Above ${pct(B.healthyMax, 0)} and up to ${pct(B.cautionMax, 0)}, the caution band. Fine for a busy hour or a seasonal peak. Run it every day and this model raises attrition ${OCC_PARAMS.mult.caution}x, so plan staffing back toward your target.`,
+  critical: `Above ${pct(B.cautionMax, 0)}, the critical band. Agents go straight from one contact to the next with almost no recovery time, and this model raises attrition ${OCC_PARAMS.mult.critical}x. Add staff or cut workload before anything else.`,
 };
 
 export default function OccupancyRiskSimulator() {
@@ -73,13 +73,13 @@ export default function OccupancyRiskSimulator() {
 
   const findings = [
     R.overloaded
-      ? `Offered load of ${R.intensity.toFixed(1)} Erlangs exceeds the ${v.agents} agents staffed. Occupancy cannot exceed 100%; the queue grows without limit until staffing rises.`
+      ? `Offered load of ${R.intensity.toFixed(1)} Erlangs exceeds the ${v.agents} agents staffed. Occupancy cannot go past 100%, so the queue keeps growing until you add agents or reduce the workload.`
       : `At ${pct(R.occ)} occupancy, agents have about ${R.idleMin.toFixed(1)} minutes an hour between contacts. ${BAND_TEXT[R.band]}`,
     R.aboveTarget
-      ? `Bringing occupancy to your ${v.target}% target takes ${R.extraAgents} more agents, about ${k(R.staffingCost)} a year loaded. The attrition this model attaches to today's occupancy over the target is about ${k(R.excessAttritionCost)} a year.`
-      : `Occupancy is at or below your ${v.target}% target.`,
+      ? `Bringing occupancy to your ${v.target}% target takes ${R.extraAgents} more agents, about ${k(R.staffingCost)} a year loaded. This model puts the extra attrition from running above target at about ${k(R.excessAttritionCost)} a year. Compare the two before you decide.`
+      : `Occupancy is at or below your ${v.target}% target, so there is no staffing gap to close here.`,
     `Replacing one agent costs ${money(R.replacementCost)} in this model: ${money(v.hiringCost)} to hire plus ${money(R.rampWages)} of loaded wages over a ${v.trainingWeeks}-week ramp.`,
-    `The attrition multipliers (${OCC_PARAMS.mult.caution}x in the caution band, ${OCC_PARAMS.mult.critical}x in the critical band) are planning heuristics, not measured values for your operation. Your entered attrition is taken as the rate at or below the healthy band.`,
+    `The attrition multipliers (${OCC_PARAMS.mult.caution}x in the caution band, ${OCC_PARAMS.mult.critical}x in the critical band) are planning heuristics with no published source. They are our estimate, and your own exit data should replace them. The attrition you enter is treated as your rate at or below the healthy band.`,
   ];
 
   const result = (
@@ -88,7 +88,7 @@ export default function OccupancyRiskSimulator() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Operations + Workforce" name="Occupancy Risk" title="How hard are your agents running, and what does it cost?"
-      lede="Occupancy is the share of logged-in time agents spend handling contacts. Enter your queue, attrition and cost inputs to see the occupancy they produce, the staffing it takes to reach your target, and the attrition cost a labelled planning model attaches to running above it."
+      lede="Occupancy is the share of logged-in time agents spend handling contacts; the rest is the gap between one contact and the next. Enter your queue, attrition and costs to see your occupancy, the staff it takes to reach your target, and what a labelled planning model says running above target costs in turnover."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Occupancy", value: occLabel }}>
       <style>{FONT_IMPORT_CSS}</style>
       <p style={K.small}>Every formula, band and assumption is in the <a href={METHOD} style={K.link}>published method</a>.</p>
@@ -97,14 +97,14 @@ export default function OccupancyRiskSimulator() {
         <div style={K.grid(170)}>
           <Field label="Agents on queue" value={d.agents} onChange={(x) => set("agents", x)} />
           <Field label="Calls per hour" value={d.callsPerHour} onChange={(x) => set("callsPerHour", x)} />
-          <Field label="AHT" value={d.aht} onChange={(x) => set("aht", x)} suffix="sec" />
-          <Field label="Target occupancy" value={d.target} onChange={(x) => set("target", x)} suffix="%" hint={`Default ${Math.round(B.healthyMax * 100)}%, the healthy band's ceiling`} />
+          <Field label="AHT (average handle time)" value={d.aht} onChange={(x) => set("aht", x)} suffix="sec" />
+          <Field label="Target occupancy" value={d.target} onChange={(x) => set("target", x)} suffix="%" hint={`Default ${Math.round(B.healthyMax * 100)}%, the top of the healthy band`} />
         </div>
       </Group>
 
       <Group legend="Question 2 of 2 · Attrition and cost">
         <div style={K.grid(170)}>
-          <Field label="Current attrition" value={d.attritionRate} onChange={(x) => set("attritionRate", x)} suffix="%/yr" />
+          <Field label="Current attrition" hint="Agents who leave in a year, as a share of headcount" value={d.attritionRate} onChange={(x) => set("attritionRate", x)} suffix="%/yr" />
           <Field label="Hiring cost per agent" value={d.hiringCost} onChange={(x) => set("hiringCost", x)} suffix="$" />
           <Field label="Training ramp" value={d.trainingWeeks} onChange={(x) => set("trainingWeeks", x)} suffix="weeks" />
           <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? `BLS median, ${BLS_WAGE_VINTAGE}. Enter yours.` : "Your figure"} />
@@ -116,8 +116,8 @@ export default function OccupancyRiskSimulator() {
       <section aria-label="Your current occupancy" style={K.lead}>
         <span style={K.kicker}>Your current occupancy · {band.label}</span>
         <div style={K.stat}>{occLabel}</div>
-        <p style={K.small}>{R.intensity.toFixed(1)} Erlangs of workload over {v.agents} agents</p>
-        <p style={{ ...K.body, marginTop: 10 }}>{R.overloaded ? "The offered load exceeds the agents staffed, so the queue grows without limit." : BAND_TEXT[R.band]}</p>
+        <p style={K.small}>{R.intensity.toFixed(1)} Erlangs of workload over {v.agents} agents. An Erlang is one hour of handling work arriving each hour, so it equals the agents needed at 100% busy.</p>
+        <p style={{ ...K.body, marginTop: 10 }}>{R.overloaded ? "More work arrives than your agents can handle, so the queue keeps growing. Add agents or cut workload first." : BAND_TEXT[R.band]}</p>
       </section>
 
       {R.aboveTarget && (
@@ -128,8 +128,8 @@ export default function OccupancyRiskSimulator() {
             <Tile label="Staffing cost, loaded" value={k(R.staffingCost) + "/yr"} />
             <Tile label="Attrition cost of today's occupancy" value={k(R.excessAttritionCost) + "/yr"} />
           </div>
-          <p style={{ ...K.small, marginTop: 12 }}>Staffing cost is the added agents at your hourly rate for a {OCC_PARAMS.hoursYear.toLocaleString("en-US")}-hour year with a {OCC_PARAMS.load}x benefits load. The attrition cost is a planning model, labelled below. Set them side by side with your own figures before you decide.</p>
-          <p style={{ ...K.small, marginTop: 10 }}><a href="/tools/staffing-calculator" style={K.link}>Staffing Calculator: staff to your target with service level</a> · <a href="/tools/attrition-cost" style={K.link}>Attrition Cost: price turnover in full</a></p>
+          <p style={{ ...K.small, marginTop: 12 }}>Staffing cost is the added agents at your hourly rate for a {OCC_PARAMS.hoursYear.toLocaleString("en-US")}-hour year with a {OCC_PARAMS.load}x benefits load. The attrition cost comes from a planning model, labelled below. Check both against your own figures before you decide.</p>
+          <p style={{ ...K.small, marginTop: 10 }}><a href="/tools/staffing-calculator" style={K.link}>Staffing Calculator: staff to your target and service level</a> · <a href="/tools/attrition-cost" style={K.link}>Attrition Cost: price turnover in full</a></p>
         </section>
       )}
 
@@ -157,7 +157,7 @@ export default function OccupancyRiskSimulator() {
             </tbody>
           </table>
         </div>
-        <p style={{ ...K.small, marginTop: 10 }}>Agents are the fewest that keep occupancy at or below each level; service level is the Staffing Calculator's job. Attrition and turnover cost use the planning multipliers below.</p>
+        <p style={{ ...K.small, marginTop: 10 }}>Each row shows the fewest agents that keep occupancy at or below that level. It does not check service level (the share of calls answered within a target time); the Staffing Calculator does that. Attrition and turnover cost use the planning multipliers below.</p>
       </section>
 
       <Assumptions items={[
@@ -191,7 +191,7 @@ export default function OccupancyRiskSimulator() {
               { title: "Key Findings", type: "findings", items: findings },
               { title: "Occupancy Ladder", type: "table", rows: R.ladder.map((l) => [l.occ + "% (" + BAND[l.band].label + ")", l.agents + " agents, " + l.attrition.toFixed(0) + "% attrition, " + k(l.turnoverCost) + "/yr turnover"]) },
               { title: "Planning Assumptions", type: "findings", items: heuristics.map((e) => e.value + " " + e.unit + ": heuristic, no published source.").concat(["Paid hours " + OCC_PARAMS.hoursWeek + " a week and " + OCC_PARAMS.hoursYear.toLocaleString("en-US") + " a year: the full-time definition.", "Benefits load " + OCC_PARAMS.load + "x, the platform's shared heuristic.", "Hourly rate " + (wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}.` : "entered by you.")]) },
-              { title: "Method", type: "text", content: "Occupancy is offered load in Erlangs (calls per hour times AHT in hours) divided by agents. Bands are the platform's shared occupancy bands. Attrition multipliers are labelled planning heuristics. Published at contactcentercx.com" + METHOD + "." },
+              { title: "Method", type: "text", content: "Occupancy is offered load in Erlangs (calls per hour times AHT, average handle time, in hours) divided by agents. Bands are the platform's shared occupancy bands. Attrition multipliers are labelled planning heuristics. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
       </Paper>

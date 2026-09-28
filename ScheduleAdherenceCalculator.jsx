@@ -54,12 +54,12 @@ export default function ScheduleAdherenceCalculator() {
   const otLine = (r) => (r.extra === null ? "the target cannot be held by scheduling" : r.extra === 0 ? "no overtime" : `${r.extra} more agents, ${Math.round(r.otHours).toLocaleString("en-US")} overtime hours, ${usd(r.otCost)} a year`);
 
   const findings = [
-    `At ${B.adh}% adherence, ${B.onQueue} of ${v.agents} scheduled agents are on the queue. Erlang C gives ${pc(B.sl)} answered within ${v.slaTime} seconds (target ${v.slaTarget}%, ${B.meets ? "met" : "missed"}) and an average speed of answer of ${secs(B.asa)}.`,
+    `At ${B.adh}% adherence, ${B.onQueue} of ${v.agents} scheduled agents are on the queue. Erlang C (the standard queueing formula for how many callers wait, given calls, handle time and agents) gives ${pc(B.sl)} answered within ${v.slaTime} seconds (target ${v.slaTarget}%, ${B.meets ? "met" : "missed"}) and an average speed of answer (how long a caller waits before an agent picks up) of ${secs(B.asa)}.`,
     R.need === null
-      ? `Holding ${tgt} cannot be reached within the search range at this load.`
-      : `Holding ${tgt} takes ${R.need} agents on the queue. ` + (!B.meets ? "The target is already missed at today's adherence." : M ? `Service level first falls below target at ${M.adh}% adherence (${M.drop} points lower), where it is ${pc(M.sl)}.` : "Service level stays at or above target through 10 points of loss."),
+      ? `Holding ${tgt} cannot be reached within the search range at this load. Check the calls per hour and handle time before anything else.`
+      : `Holding ${tgt} takes ${R.need} agents on the queue. ` + (!B.meets ? "The target is already missed at today's adherence, so the first step is more agents on the queue or better adherence." : M ? `Service level first falls below target at ${M.adh}% adherence (${M.drop} points lower), where it is ${pc(M.sl)}. That is how much adherence slack you have before callers start to feel it.` : "Service level stays at or above target through 10 points of loss, so this queue has room to absorb slippage."),
     ...(M && M.extra ? [`At ${M.adh}% adherence, holding the target means scheduling ${M.toSchedule} agents, ${M.extra} more than the roster: about ${Math.round(M.otHours).toLocaleString("en-US")} overtime hours, ${usd(M.otCost)} a year at ${v.otMultiplier} × ${money(v.hourlyRate)} an hour.`] : []),
-    `Overtime assumes the ${v.callsPerHour.toLocaleString("en-US")} calls an hour hold across ${v.hoursPerDay} open hours a day and ${v.daysPerYear} days a year. Erlang C assumes every caller waits until answered; with abandonment, measured service level runs higher than this model shows.`,
+    `Overtime assumes the ${v.callsPerHour.toLocaleString("en-US")} calls an hour hold across ${v.hoursPerDay} open hours a day and ${v.daysPerYear} days a year. Erlang C assumes every caller waits until answered. In practice some callers hang up, which removes them from the queue, so the service level you measure will run higher than this model shows.`,
   ];
 
   const planning = [
@@ -81,7 +81,7 @@ export default function ScheduleAdherenceCalculator() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Operations + Workforce" name="Schedule Adherence" title="What does each point of adherence do to service level?"
-      lede="Adherence is the share of scheduled time agents spend doing what the schedule says. Enter your queue to see the service level an Erlang C model gives at today's adherence and at each point of loss, the agents it takes to hold your target, and the overtime that costs."
+      lede="Adherence is the share of scheduled time agents spend doing what the schedule says, such as being on the phones when planned. Service level is the share of calls answered within a set time, for example 80% in 20 seconds. Enter your queue to see the service level an Erlang C queueing model gives at today's adherence and at each point lost, the agents it takes to hold your target, and what the overtime costs."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Service level today", value: pc(B.sl) }}>
       <style>{FONT_IMPORT_CSS}</style>
       <p style={K.small}>Every formula and assumption is in the <a href={METHOD} style={K.link}>published method</a>.</p>
@@ -91,16 +91,16 @@ export default function ScheduleAdherenceCalculator() {
           <Field label="Agents scheduled" value={d.agents} onChange={(x) => set("agents", x)} />
           <Field label="Current adherence" value={d.currentAdherence} onChange={(x) => set("currentAdherence", x)} suffix="%" />
           <Field label="Calls per hour" value={d.callsPerHour} onChange={(x) => set("callsPerHour", x)} />
-          <Field label="AHT" value={d.aht} onChange={(x) => set("aht", x)} suffix="sec" />
-          <Field label="Service level target" value={d.slaTarget} onChange={(x) => set("slaTarget", x)} suffix="%" />
+          <Field label="AHT (average handle time)" value={d.aht} onChange={(x) => set("aht", x)} suffix="sec" />
+          <Field label="Service level target" value={d.slaTarget} onChange={(x) => set("slaTarget", x)} suffix="%" hint="Share of calls answered within the time below" />
           <Field label="Answer within" value={d.slaTime} onChange={(x) => set("slaTime", x)} suffix="sec" />
         </div>
       </Group>
 
       <Group legend="Question 2 of 2 · Overtime cost">
         <div style={K.grid(170)}>
-          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? `BLS median, ${BLS_WAGE_VINTAGE}` : undefined} />
-          <Field label="Overtime multiplier" value={d.otMultiplier} onChange={(x) => set("otMultiplier", x)} suffix="x" hint={v.otMultiplier === benchmark("adh.ot.multiplier") ? "US FLSA minimum" : undefined} />
+          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? `BLS median, ${BLS_WAGE_VINTAGE}. Enter yours.` : undefined} />
+          <Field label="Overtime multiplier" value={d.otMultiplier} onChange={(x) => set("otMultiplier", x)} suffix="x" hint={v.otMultiplier === benchmark("adh.ot.multiplier") ? "US FLSA (Fair Labor Standards Act) minimum" : undefined} />
           <Field label="Open hours a day" value={d.hoursPerDay} onChange={(x) => set("hoursPerDay", x)} />
           <Field label="Open days a year" value={d.daysPerYear} onChange={(x) => set("daysPerYear", x)} />
         </div>
@@ -178,7 +178,7 @@ export default function ScheduleAdherenceCalculator() {
                 "Adherence is taken as the share of scheduled agents on the queue at any moment.",
                 `Overtime multiplier ${v.otMultiplier}x${v.otMultiplier === benchmark("adh.ot.multiplier") ? ", the US Fair Labor Standards Act minimum" : ", entered by you"}; hourly rate ${wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}` : "entered by you"}.`,
                 `The call rate is taken to hold across ${v.hoursPerDay} open hours a day and ${v.daysPerYear} days a year.`,
-                "Erlang C assumes no caller abandons, so the service level it gives sits below what abandonment would produce.",
+                "Erlang C assumes every caller waits to be answered. Callers who hang up leave the queue, so measured service level will sit above what this model gives.",
               ]},
               { title: "Method", type: "text", content: "Erlang C through the Erlang B recurrence gives service level and speed of answer for the agents on the queue at each adherence. Agents needed on the queue are the fewest that meet the target; agents to schedule are that number divided by adherence, rounded up; overtime prices any agents beyond the roster for the open hours and days entered. Published at contactcentercx.com" + METHOD + "." },
             ]}

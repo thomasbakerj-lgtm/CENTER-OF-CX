@@ -96,21 +96,21 @@ export default function AHTDecomposition() {
   const leverLine = (L) => L.targets.map((c) => `${L.pcts[c]}% of ${COMPONENT[c].name.toLowerCase()}`).join(" and ");
 
   const findings = [
-    `Handle time is ${fmt(R.total)}. Conversation is ${pc(R.talkShare)} of it (${fmt(v.values.talk)}); the other ${fmt(R.nonTalk)} (${pc(R.nonTalkShare)}) is hold, after-call work, transfers, search and system time.`,
-    `The largest part outside the conversation is ${COMPONENT[R.largestNonTalk].name.toLowerCase()} at ${fmt(v.values[R.largestNonTalk])}.`,
+    `Average handle time (AHT, the time an agent spends on one contact from start to finish) is ${fmt(R.total)}. Conversation is ${pc(R.talkShare)} of it (${fmt(v.values.talk)}); the other ${fmt(R.nonTalk)} (${pc(R.nonTalkShare)}) is hold, after-call work, transfers, search and system time.`,
+    `The largest part outside the conversation is ${COMPONENT[R.largestNonTalk].name.toLowerCase()} at ${fmt(v.values[R.largestNonTalk])}. Look there first: it is the time you can cut without shortening the conversation.`,
     ...R.levers.filter((L) => L.on && L.saved > 0).map((L) => `${L.name}, removing ${leverLine(L)}, models ${fmt(L.saved)} a contact (${pc(L.savedPct, 1)}).`),
     selected.length
       ? `With the ${selected.length} lever${selected.length > 1 ? "s" : ""} selected, the model takes handle time from ${fmt(R.total)} to ${fmt(R.combinedNew)}, ${pc(R.combinedSavedPct, 1)} lower, under the shares shown.`
-      : `No lever is selected, so no reduction is modelled.`,
+      : `No lever is selected, so no reduction is modelled. Tick the initiatives you are weighing to see their combined effect.`,
     v.contacts > 0 && selected.length
-      ? `At ${v.contacts.toLocaleString("en-US")} contacts a month that is about ${hrs(R.combinedHours)} agent hours a year of capacity. Capacity becomes cash only through an action such as fewer hires or less overtime.`
+      ? `At ${v.contacts.toLocaleString("en-US")} contacts a month that is about ${hrs(R.combinedHours)} agent hours a year of capacity. That is time freed for agents. Capacity becomes cash only through an action such as fewer hires or less overtime, so decide which one before counting it as a saving.`
       : `Enter contacts per month to see the agent hours a reduction frees.`,
   ];
   const assumptions = [
     "Every lever share opens at a planning heuristic with no published source. Replace it with a vendor's evidence or your own pilot before relying on it.",
     "A lever counts toward the combined figure only when it is selected. Two levers on the same component combine multiplicatively: each removes its share of what the other leaves.",
     "Agent hours are capacity. The Staffing Calculator turns handle time into agents at your service level.",
-    `The ${PRESET_NAMES.map(([, n]) => n.toLowerCase()).join(", ")} profiles are illustrative starting points, never benchmarks.`,
+    `The ${PRESET_NAMES.map(([, n]) => n.toLowerCase()).join(", ")} profiles are illustrative starting points. They are examples of our own and carry no benchmark weight.`,
   ];
 
   const result = (
@@ -125,7 +125,7 @@ export default function AHTDecomposition() {
 
   return (
     <ToolFrame toolId={TOOL_ID} section="Performance + Quality" name="AHT Decomposition" title="Where do the seconds of handle time go?"
-      lede="Average handle time is several components added together. Set talk, hold, after-call work, transfer, search and system time to see where the seconds go. Then choose the initiatives you are weighing, set how much of each component they remove, and see the handle time and agent hours that follow."
+      lede="Average handle time (AHT) is how long an agent spends on one contact, and it is several parts added together. Set talk, hold, after-call work, transfer, search and system time to see where the seconds go. Then pick the initiatives you are weighing, set how much of each part they remove, and see the handle time and agent hours that follow."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Handle time", value: fmt(R.total) }}>
       <style>{FONT_IMPORT_CSS}</style>
       <p style={K.small}>Every formula and assumption is in the <a href={METHOD} style={K.link}>published method</a>.</p>
@@ -139,7 +139,7 @@ export default function AHTDecomposition() {
           {AHT_COMPONENTS.map((c) => <Slider key={c} id={c} value={d.values[c]} onChange={(x) => setValue(c, x)} />)}
         </div>
         <div style={{ maxWidth: 320, marginTop: 16 }}>
-          <Field label="Contacts per month" value={d.contacts} onChange={(x) => setD((p) => ({ ...p, contacts: x }))} hint="Optional. Turns seconds into agent hours a year." />
+          <Field label="Contacts per month" value={d.contacts} onChange={(x) => setD((p) => ({ ...p, contacts: x }))} hint="Optional. Turns seconds saved into agent hours a year." />
         </div>
       </Group>
 
@@ -171,7 +171,7 @@ export default function AHTDecomposition() {
         ))}
       </section>
 
-      <Group legend="Question 2 of 2 · Initiatives you are weighing" note="Each share opens at a planning heuristic. Set it to what a vendor can evidence or your own pilot measured, and select the levers you want in the combined figure.">
+      <Group legend="Question 2 of 2 · Initiatives you are weighing" note="Each share opens at a planning heuristic, our estimate with no published source. Replace it with what a vendor can evidence or what your own pilot measured, and tick the levers you want in the combined figure.">
         <div style={K.grid(260)}>
           {R.levers.map((L) => (
             <div key={L.id} style={{ ...K.box, border: `1px solid ${L.on ? K.firm : K.hair}` }}>
@@ -196,7 +196,7 @@ export default function AHTDecomposition() {
 
       <section aria-label="What it means" style={K.lead}>
         {findings.slice(-2).map((f, i) => <p key={i} style={{ ...K.body, marginTop: i ? 10 : 0 }}>{f}</p>)}
-        <p style={{ ...K.small, marginTop: 12 }}>Hold, search, system time and after-call work are where handle time can come out while the conversation stays whole. Talk time is where resolution happens, so protect it while working on the rest.</p>
+        <p style={{ ...K.small, marginTop: 12 }}>Hold, search, system time and after-call work are where handle time can come out while the conversation stays whole. Talk time is where the customer's issue gets resolved, so protect it while you work on the rest. The Staffing Calculator shows what a new handle time means for headcount.</p>
       </section>
 
       <Assumptions items={assumptions} />
@@ -227,7 +227,7 @@ export default function AHTDecomposition() {
               { title: "Key Findings", type: "findings", items: findings },
               { title: "Levers", type: "table", rows: R.levers.map((L) => [L.name + (L.on ? " (selected)" : " (not selected)"), `${leverLine(L)}: ${fmt(L.saved)} a contact, handle time ${fmt(L.newAHT)}${v.contacts > 0 ? `, ${hrs(L.hours)} agent hours a year` : ""}`]) },
               { title: "Planning Assumptions", type: "findings", items: assumptions },
-              { title: "Method", type: "text", content: "Handle time is the sum of its six components. Each lever removes its share of the components it targets; selected levers combine multiplicatively on a shared component. Agent hours are seconds saved times contacts a month times 12, over 3,600. Published at contactcentercx.com" + METHOD + "." },
+              { title: "Method", type: "text", content: "Average handle time (AHT) is the sum of its six components. Each lever removes its share of the components it targets; selected levers combine multiplicatively on a shared component. Agent hours are seconds saved times contacts a month times 12, over 3,600. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
       </Paper>
