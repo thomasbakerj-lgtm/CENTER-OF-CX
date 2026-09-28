@@ -7,6 +7,15 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-28", methods: ["tco-calculator"], version: "1.2",
+    title: "TCO: a validity check for marginal cost above the full cost per contact",
+    changes: [
+      "When the marginal cost per contact comes out above the full cost per contact, the handle time entered does not fit in the paid hours of the agents entered. The result now says so, names both figures, and holds completeness at Directional.",
+      "A corrected input now says the result grades Directional until you correct it, which is what the grade already did.",
+      "Every figure is unchanged. On 6,000 random cases grades differ only where the new check fires.",
+    ],
+  },
+  {
     date: "2026-09-25", methods: ["tco-calculator"], version: "1.1",
     title: "TCO: deflection and repeat savings valued at the marginal load",
     changes: [

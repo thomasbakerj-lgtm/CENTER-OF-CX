@@ -407,8 +407,7 @@ Binding. None of this is in code comments beyond what is noted.
   put markup into user text (criterion names, roadmap items, RFP lines) that ran in the same-origin report window.
   `reportHtml` is now pure and escapes every field; no tool used markup in PDF strings (37 reports scanned).
   `export.test.mjs` attacks every section type and cover field and checks every interpolation.
-- `ReportActions` `Field` labels are not bound to their inputs (no `htmlFor`/`id`).
-  Screen readers cannot name the review form fields.
+- ~~`ReportActions` `Field` labels unbound.~~ Bound (`useId`); the S24 axe audit found none unbound.
 - ~~A failed lazy route chunk leaves the tool blank.~~ Fixed S23: one retry, one
   reload per session, then a route error boundary with a reload link.
 - Non-rail tools carry floor only: no engine markers, harness pairs, claim-class
@@ -417,9 +416,7 @@ Binding. None of this is in code comments beyond what is noted.
 - ~~Occupancy 0.15 turnover factor, AHT benchmark ranges, Contract Risk "40-100%".~~ Retired in Phases C and D.
 - ~~Staffing's solver started at ceil(A)+1 and could report one agent more on a fractional load.~~ Fixed S23 in the
   Phase D rail step (starts at floor(A)+1; A/B in `wfmrail.test.mjs`).
-- TCO guard case (1 agent, 120,000 contacts) prints marginal cost per contact above
-  cost per contact, unflagged, and its open-issues text says "treat the output as void"
-  while grading Directional. Low.
+- ~~TCO guard case: marginal above cost per contact unflagged; "void" wording.~~ Fixed S24 (item 80, method 1.2).
 
 **Test infrastructure**
 - `channel.report.mjs` UNPARSED once in session 20, not reproducible. UNPARSED is
@@ -1393,6 +1390,17 @@ dashboard, the 12-phase growth program.
    pass it to `publishToolResult`. Browser: every published key carries a grade (Directional at the defaults). `rail.test`
    V7 to V10; the channel report harness's slice marker moved with the publish block. Suite 25,833; live check 256 of
    256. P6 item 15 closed.
+   PR #71 merged by TB's instruction (147d13a).
+80. S24 (28 Sep), P6 item 16. Two of its four debts were already done: ReportActions `Field` labels are bound (`useId`),
+   and Business Case's next step comes from the journey graph through ReportActions (3-02). TCO method 1.2: when the
+   marginal cost per contact is above the full cost per contact (the handle time does not fit in the agents' paid
+   hours), the result says so with both figures and holds completeness Directional (defect class 3); a corrected input
+   now says the result grades Directional until corrected (it said "treat the output as void" while grading
+   Directional). Since method 1.1's marginal load the S21 guard case (1 agent, 120,000 contacts) no longer crosses; the
+   pin uses 300,000. A/B on 6,000 cases against the engine without the check: figures identical, grades differ only
+   where it fires; the method 1.1 load A/B now sets those cases aside and counts them. Method page, changelog entry,
+   version 1.2. Suite 25,841; live check 256 of 256. Open for TB: `MECH_INITIAL` F2 (defaulting the capacity action to
+   "none" shows $0 realizable until the reader picks an action; needs unselected-state rendering first).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1470,7 +1478,7 @@ P6. Remaining debt.
   13b. Queued originality phrase searches for Telecom, Education, Travel, Financial Services, Utilities, Government.
   14. ~~TCO and BCB publish verdicts on the rail.~~ Done S24 (item 77): no tool publishes a verdict; the rail refuses them.
   15. ~~External getters and origin grades.~~ Done S24 (items 78 and 79).
-  16. BCB next steps to `nextFor` (3-03); `MECH_INITIAL` F2; TCO guard-case wording; ReportActions `Field` labels.
+  16. ~~BCB next steps, TCO guard case, Field labels.~~ Done S24 (item 80). Open: `MECH_INITIAL` F2 (TB decision).
   17. Roadmap anonymous sequence capture; Attrition root-cause layer from the Agent Experience content.
   18. WS10 performance re-scope and Core Web Vitals; delete root `download` once TB confirms.
 
