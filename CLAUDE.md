@@ -1351,6 +1351,21 @@ dashboard, the 12-phase growth program.
      `editions.test.mjs` (25). TB (27 Sep): the Pillar edition runs 5 to 9 October 2026 for Customer Service Week and
      CX Day; checked in a browser with the clock set (arcs switch on 6 Oct, everyday mark on 12 Oct, no hydration error).
    Suite 25,812; live check 256 of 256. Phase 11 complete except the measurement review (needs TB's PostHog numbers).
+   PR #67 merged by TB's instruction (5b7fdbf).
+76. S24 (28 Sep), P6 item 13, unsourced figures (TB: "merge and go"). BLS wage update (item 38) blocked: every bls.gov page,
+   the national file and the API refuse this network (API daily limit); TB to supply the May 2025 national mean and median
+   hourly wage for SOC 43-4051. Human Premium: the 60 to 80% automation, 20 to 40% remainder, 2 to 3x complexity, $2M
+   account, $200 an hour and 10 to 15 years claims were stated as fact with no source; the argument stays in words and the
+   500-agent case is labelled an illustrative example of our own. Its certification list was checked on each provider's
+   page (research agent, 28 Sep): nine of twelve were wrong or unverifiable (Google AI Essentials is USD 49 a month, not
+   free; AWS AI Practitioner USD 100, not 150; Azure AI-900 retired for AI-901 at USD 99; no ICMI CCCA credential exists,
+   removed; no Qualtrics XM Certification, now Platform Essentials at $100; Tableau Desktop Specialist now Salesforce
+   Certified Tableau Desktop Foundations at USD 75; UiPath exam USD 150, training free; HDI $849 to $1,699; COPC 40 hours
+   from $3,950); superlative "why" lines retired; prices and times now as each provider states them, with the check date
+   on the page. Platforms and Tech: per-agent cost ranges and automation rates by era (including 2030) and the 2% QA
+   sample retired; points to the TCO calculator. Advisory: "350+ vendor assessment library" becomes the derived profile
+   count; "50+ implementations" dropped. `copy.test.mjs` section 6 keeps them retired and pins the certification list
+   (https link, provider cost and time, check date). Suite 25,822.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

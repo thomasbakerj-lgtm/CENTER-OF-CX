@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
+import { VENDOR_PROFILE_COUNT } from "./src/lib/seo.js";
 
 const NAVY = HOUSE.mist;
 const DEEP = HOUSE.ink;
@@ -160,7 +161,7 @@ function Offerings() {
     },
     {
       title: "Vendor shortlisting",
-      desc: "You tell us what you need. We draw on our 350+ vendor assessment library to produce a shortlist of 3-5 vendors that fit your situation, with honest assessments of where each one excels and where each one will create friction.",
+      desc: `You tell us what you need. We draw on our ${VENDOR_PROFILE_COUNT} vendor profiles and the research behind them to produce a short list of vendors that fit your situation, with an honest account of where each one fits and where each one will create friction.`,
       who: "Procurement leads, CX directors, and operations executives running vendor evaluations",
       output: "Curated vendor shortlist with strengths, weaknesses, competitive context, and red flags",
     },
@@ -283,7 +284,7 @@ function Boundaries() {
 
 function WhoItsFor() {
   const scenarios = [
-    { trigger: "You're evaluating CCaaS platforms", detail: "and the vendor demos are starting to blur together. You need someone who's seen 50+ implementations to tell you which three actually fit your operating model." },
+    { trigger: "You're evaluating CCaaS platforms", detail: "and the vendor demos are starting to blur together. You need someone who has seen many implementations to tell you which ones actually fit your operating model." },
     { trigger: "Your AI pilot isn't scaling", detail: "and leadership wants to know why. You need a structured assessment of what's blocking scale: data quality, workflow gaps, governance holes, or the wrong vendor." },
     { trigger: "You inherited a fragmented stack", detail: "from a previous team and need to decide what stays, what goes, and how to sequence the transition without disrupting service levels." },
     { trigger: "Your board is asking about AI in CX", detail: "and you need an executive briefing that's grounded in operational reality, with clear recommendations they can act on." },

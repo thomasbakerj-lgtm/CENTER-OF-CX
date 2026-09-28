@@ -281,7 +281,7 @@ function Categories() {
     },
     {
       t: "Workforce & Quality Management", s: "WEM · QM · WFM · Coaching", layers: "7", href: "/vendors/wem-qm",
-      d: "Forecasting, scheduling, quality monitoring, coaching, and performance management. AI is transforming QA from 2% sample reviews to 100% automated evaluation.",
+      d: "Forecasting, scheduling, quality monitoring, coaching, and performance management. AI is moving QA from reviewing a small sample of contacts toward evaluating every one.",
       questions: ["AI QA vs human QA: what actually works", "Forecasting truth in volatile environments", "Cost control levers most teams miss"],
       vendors: "NICE, Verint, Calabrio, Genesys WEM, Five9",
     },
@@ -382,8 +382,7 @@ function ArchEvolution() {
       label: "~2015", tag: "On-Prem Era",
       arch: "On-prem ACD + IVR + CTI with point-solution WFM & recording",
       components: "PBX/ACD, IVR, CTI, WFM, recording, basic reporting",
-      automation: "5 to 10% containment via IVR self-service",
-      tco: "$450 to $800",
+      automation: "IVR self-service for simple, structured requests",
       cost_driver: "Human labor + CapEx hardware/software",
       unit: "Cost per FTE",
     },
@@ -391,8 +390,7 @@ function ArchEvolution() {
       label: "Today", tag: "CCaaS Era",
       arch: "CCaaS core + add-on AI + some RPA/iPaaS",
       components: "CCaaS (omnichannel), IVA/VA, WEM suite, RPA/iPaaS, analytics, knowledge",
-      automation: "20 to 40% automation via IVA/VA + simple workflows",
-      tco: "$305 to $540",
+      automation: "IVA and virtual agents plus simple workflows",
       cost_driver: "Human labor + SaaS licenses",
       unit: "Cost per contact",
     },
@@ -400,8 +398,7 @@ function ArchEvolution() {
       label: "~2030", tag: "AI-Native Era",
       arch: "AI-native orchestration layer over CCaaS + automation fabric",
       components: "Orchestration engine (7 to 9 layers), AI workers, CCaaS as commodity, data fabric & governance",
-      automation: "50 to 70%+ automation via AI workers + deep workflows",
-      tco: "$325 to $600",
+      automation: "AI workers plus deep workflows",
       cost_driver: "Human labor for exceptions + AI/automation spend",
       unit: "Cost per successfully completed task/journey",
     },
@@ -415,9 +412,9 @@ function ArchEvolution() {
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 600, margin: "0 auto 48px" }}>
             <Label light>Architecture Evolution</Label>
-            <Title light>TCO doesn't drop linearly. Spend shifts from infrastructure to AI.</Title>
+            <Title light>Spend shifts from infrastructure to AI.</Title>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.65, marginTop: 4, fontFamily: FONT }}>
-              Based on a ~500-seat contact center, mixed voice + digital. All-in TCO per agent per month including platform, licenses, infra, and implementation amortized.
+              How the architecture, the automation and the cost driver change from one era to the next. It describes the shape of the change and carries no prices. To put numbers on your own operation, run the <a href="/tools/tco-calculator" style={{ color: HOUSE.sky2, fontWeight: 600 }}>TCO calculator</a>.
             </p>
           </div>
         </FadeIn>
@@ -445,7 +442,6 @@ function ArchEvolution() {
               { label: "Architecture", value: e.arch },
               { label: "Core Components", value: e.components },
               { label: "Tier 1 Automation", value: e.automation },
-              { label: "All-in TCO / Agent / Month", value: e.tco, highlight: true },
               { label: "Primary Cost Driver", value: e.cost_driver },
               { label: "Unit of Optimization", value: e.unit },
             ].map((item, ii) => (
@@ -468,7 +464,7 @@ function ArchEvolution() {
         <FadeIn delay={0.2}>
           <div style={{ textAlign: "center", marginTop: 40 }}>
             <p style={{ fontSize: 14, color: HOUSE.body, lineHeight: 1.6, maxWidth: 600, margin: "0 auto 20px", fontFamily: FONT }}>
-              Cost per resolved interaction drops sharply as automation rises, even as per-agent TCO flattens. The winning metric shifts from cost-per-agent to cost-per-successful-task.
+              Where automation resolves more of the work, the measure that matters moves from cost per agent to cost per successfully completed task.
             </p>
             <a href="/contact" style={{ fontSize: 14, fontWeight: 600, color: LIGHT, fontFamily: FONT }}>Calculate your stack's TCO →</a>
           </div>
