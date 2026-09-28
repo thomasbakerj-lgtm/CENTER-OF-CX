@@ -15,8 +15,8 @@ export const SEO_MAP = {
     desc: "Nine CX technology decision domains mapped to seven orchestration layers. Understand what you need, who owns it, and what breaks when you choose wrong.",
   },
   "/about": {
-    title: `Our POV | ${SITE}`,
-    desc: "How we think about CX technology, why independence matters, and the operating philosophy behind The Center of CX.",
+    title: `About | ${SITE}`,
+    desc: "What The Center of CX offers, how every figure is made and graded, the rules that keep vendor research independent, and what happens to your data.",
   },
   "/advisory": {
     title: `Find a CX Consultant | ${SITE}`,

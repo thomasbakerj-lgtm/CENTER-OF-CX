@@ -99,6 +99,8 @@ export const EV = {
   INTRO_SUBMIT: "intro_submit",        // a vendor introduction request reached the contact form's inbox
   // Taxonomy 1.4: added, nothing renamed or removed.
   ROADMAP_SNAPSHOT: "roadmap_snapshot", // the Roadmap Builder summary opened: one status letter per fixed milestone
+  // Taxonomy 1.5: added, nothing renamed or removed.
+  PAGE_SHARE: "page_shared",           // the Share action on a page's breadcrumb row was used
 };
 
 const EVENT_NAMES = new Set(Object.values(EV));
@@ -106,7 +108,7 @@ const EVENT_NAMES = new Set(Object.values(EV));
 /* Frozen taxonomy (11-01 to 11-03, P2 task 7). Event names and property keys do not change without a new version,
    a line in docs/MEASUREMENT.md and the pins in track.test.mjs; PostHog funnels are built on these names. 1.1 (redesign
    Phase 5) adds the homepage, stack, honest exit and vendor profile events; every 1.0 name is unchanged. */
-export const TAXONOMY_VERSION = "1.4";
+export const TAXONOMY_VERSION = "1.5";
 
 /* ---------------------------------------------------------------- severity */
 
@@ -163,6 +165,7 @@ const isUtm = (v) => typeof v === "string" && UTM.test(v);
 const HOST = /^(?=.{3,60}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 const isHost = (v) => typeof v === "string" && HOST.test(v);
 export const ROADMAP_CODE = /^[nprbc]{18}$/;
+export const SHARE_VIA = new Set(["native", "copy"]);
 export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "category", "vendor", "research", "market-watch", "other"]);
 /* Taxonomy 1.1 vocabularies. Closed sets: a value outside them is dropped. */
 export const PILLAR_IDS = new Set(["diagnostics", "vendors", "industries", "research", "market-watch"]);
@@ -233,6 +236,8 @@ export const ALLOWED_PROPS = {
   // Taxonomy 1.4. One letter per fixed Roadmap milestone, in order: n not started, p in progress, r at risk, b blocked,
   // c complete. Exactly 18 letters from that set, so no note, name or number can pass.
   milestones: (v) => typeof v === "string" && ROADMAP_CODE.test(v),
+  // Taxonomy 1.5. How a page was shared: the device's share sheet or a copied link. Never where it went.
+  via: isOneOf(SHARE_VIA),
 };
 
 export const ALLOWED_PROP_KEYS = Object.keys(ALLOWED_PROPS);
@@ -287,6 +292,7 @@ export const EVENT_SCOPED = {
   action: ["vendor_action"],
   audience: ["report_export"],
   milestones: ["roadmap_snapshot"],
+  via: ["page_shared"],
 };
 
 export function scopeProps(event, props) {
@@ -626,6 +632,12 @@ export const trackTool = {
 export const trackVendor = {
   action: (vendor, action, surface) => track(EV.VENDOR_ACTION, { vendor, action, surface }),
   introSent: (vendor) => track(EV.INTRO_SUBMIT, { vendor }),
+};
+
+/* Taxonomy 1.5: a page shared from its breadcrumb row. `page_type` says what kind of page; `via` says share sheet or
+   copied link. The address shared is the page's own, which the event already carries as its current URL. */
+export const trackShare = {
+  page: (pathname, via) => track(EV.PAGE_SHARE, { page_type: pageType(pathname), via }),
 };
 
 /* Taxonomy 1.4: the Roadmap Builder's milestone statuses as one code, sent when the reader opens the summary. It says

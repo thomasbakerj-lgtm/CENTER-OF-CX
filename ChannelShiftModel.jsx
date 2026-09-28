@@ -9,7 +9,7 @@ const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null,
 import { normalizeForPublish } from "./src/lib/metrics";
 import InfoDot from "./src/lib/InfoDot";
 import NumField from "./src/lib/NumField";
-import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_INITIAL, isNoActionFlag } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
@@ -686,7 +686,7 @@ export default function ChannelShiftModel() {
 
       <section aria-label="Integrity checks" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <h2 style={h2}>Integrity checks</h2>
-        {flags.map((f, i) => <Finding key={i} level={f.sev === "warn" ? "high" : "unknown"} title={f.sev === "warn" ? "Check this" : "Note"}>{f.t}</Finding>)}
+        {flags.map((f, i) => isNoActionFlag(f) ? <Finding key={i} level="unknown" title="Your choice is still open">{f.t}</Finding> : <Finding key={i} level={f.sev === "warn" ? "high" : "unknown"} title={f.sev === "warn" ? "Check this" : "Note"}>{f.t}</Finding>)}
         {!flags.length && <Finding level="clear" title="Integrity checks passed">Mix at 100%, shift within eligible volume, above break-even, capacity action set, no risk-sensitive volume flagged.</Finding>}
       </section>
 

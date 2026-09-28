@@ -12,6 +12,7 @@ import React, { useState, useEffect } from "react";
 import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_SANS, alpha, LINE } from "./tokens.js";
 import { Icon } from "./Icon.jsx";
 import { editionFor, todayUtc } from "./editions.js";
+import { trackShare } from "./track.js";
 
 export const HEADER_HEIGHT = 64;
 
@@ -139,8 +140,8 @@ export function pillarFor(pathname = "") {
 /* Pages built before the shell whose first section clears a fixed bar (37 files carried
    their own fixed navigation; the homepage left the list when Phase 5 rebuilt it). They keep the header over the page until Phases 8 and 9
    rebuild them; every other page has the header in the flow. */
-const FIXED_EXACT = new Set(["/about", "/advisory", "/contact", "/cx-ecosystem", "/how-to-choose", "/human-premium",
-  "/industries", "/platforms-and-tech", "/privacy", "/terms", "/research", "/subscribe", "/vendors"]);
+const FIXED_EXACT = new Set(["/advisory", "/contact", "/cx-ecosystem", "/how-to-choose", "/human-premium",
+  "/industries", "/platforms-and-tech", "/privacy", "/terms", "/research", "/vendors"]);
 export function headerFixed(pathname = "") {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
   return FIXED_EXACT.has(p) || /^\/vendors\//.test(p) || /^\/research\/[^/]+$/.test(p) || /^\/industries\/[^/]+$/.test(p);
@@ -148,7 +149,38 @@ export function headerFixed(pathname = "") {
 
 /** A slim row under the header: where the page sits, and at most one action. Replaces the
  *  back links pages used to carry in their own navigation bars. */
-export function Crumbs({ items = [], action = null }) {
+/* Share this page. On a touch device with a share sheet, the sheet opens; anywhere else the page's address is copied. The
+   address is the page's own (path and view hash), never the query, so nothing a tool or form placed there travels. The
+   prerender and the first paint render the same button; nothing reads the browser until it is pressed. */
+export function ShareButton() {
+  const [note, setNote] = useState("");
+  const onClick = async () => {
+    const { origin, pathname, hash } = window.location;
+    const url = origin + pathname + hash;
+    try {
+      if (navigator.share && window.matchMedia && window.matchMedia("(pointer: coarse)").matches) {
+        await navigator.share({ title: document.title, url });
+        trackShare.page(pathname, "native");
+        return;
+      }
+    } catch (e) { if (e && e.name === "AbortError") return; }
+    try {
+      await navigator.clipboard.writeText(url);
+      trackShare.page(pathname, "copy");
+      setNote("Link copied");
+    } catch { setNote("Copy the address from your browser bar"); }
+    setTimeout(() => setNote(""), 3000);
+  };
+  return (
+    <button type="button" onClick={onClick} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, padding: "0 4px", background: "transparent", border: "none", cursor: "pointer", fontFamily: FONT_SANS, fontSize: 14, fontWeight: 600, color: HOUSE.sky2 }}>
+      <Icon name="share" size={16} />
+      <span>Share</span>
+      <span role="status" style={{ fontWeight: 400, color: HOUSE.body }}>{note}</span>
+    </button>
+  );
+}
+
+export function Crumbs({ items = [], action = null, share = true }) {
   return (
     <div style={{ background: HOUSE.navy, borderBottom: `1px solid ${hair}`, fontFamily: FONT_SANS }}>
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 20px", boxSizing: "border-box", minHeight: 44, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
@@ -160,7 +192,12 @@ export function Crumbs({ items = [], action = null }) {
             </span>
           ))}
         </nav>
-        {action && <a href={action[1]} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, fontSize: 14, fontWeight: 600, color: HOUSE.sky2, textDecoration: "none" }}>{action[0]}<Icon name="next" size={16} /></a>}
+        {(share || action) && (
+          <div style={{ display: "flex", alignItems: "center", gap: 18, flexWrap: "wrap" }}>
+            {share && <ShareButton />}
+            {action && <a href={action[1]} style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 44, fontSize: 14, fontWeight: 600, color: HOUSE.sky2, textDecoration: "none" }}>{action[0]}<Icon name="next" size={16} /></a>}
+          </div>
+        )}
       </div>
     </div>
   );

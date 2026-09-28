@@ -1467,6 +1467,35 @@ dashboard, the 12-phase growth program.
    inputs and reproduces to the cent, so only the three rates moved. Method page names each rate with its median; pins
    recomputed; `attrition.test.mjs` pins values, SOC codes, the release wording (never "May 2026"). Suite 25,966; live
    check 256 of 256.
+   PR #77 merged by TB's instruction (b968890).
+86. S24 (28 Sep), first visit batch 1 (TB: "ensure the first visit is one that builds trust, allows it to be shared, used
+   and revisited"; no PostHog numbers needed to fix what is known). Audit of the homepage, a tool, a method page, About and
+   Subscribe at 1440 and 390. Fixed:
+   - Every capacity tool opened with a red "High: Check this input" (and Cost per Contact a red-outlined question) because
+     F2 starts at no action. An open choice is not a defect: `isNoActionFlag` in `mech.js`; Cost per Contact, Channel
+     Shift, FCR Leakage and AI Deflection show it as Unknown, "Your choice is still open"; AI Deflection's issue count
+     leaves it out unless an input is invalid. Engines, flags, PDFs and grades unchanged.
+   - 16 pages (About, Advisory, Contact, the seven Phase 1 category pages, Vendors, Phase 1 profiles, Human Premium, CX
+     Ecosystem, Platforms and Tech, the CCaaS cost article) hid every section at opacity 0 until scrolled to: empty bands
+     on a fast scroll, a print or a screenshot. `FadeIn` is now a plain wrapper. The content that surfaced had one AA
+     failure (Platforms and Tech era tag at 70% opacity, 3.3:1), fixed; era buttons carry `aria-pressed`.
+   - Share: `ShareButton` on every `Crumbs` row (method, industry, segment, CCaaS category and industry, researched
+     profiles, Market Watch, Research, About, Contribute, Corrections): the phone's share sheet on touch devices, else the
+     link is copied; the page's path and view hash only, never the query. Taxonomy 1.5: `page_shared` with `page_type`
+     and `via` (native or copy), scoped to that event.
+   - About rewritten as facts a reader can check, every count derived (tools, methods, profiles, categories, researched
+     CCaaS, industries, segments): what you can use, how the numbers are made (four claim kinds, three grades, published
+     methods, sources), independence rules, your data, get in touch. Retired: "some platforms are genuinely better ... and
+     we'll say so", "Our research, scoring and vendor evaluations", "operator credibility", "Six pillars that make this
+     different from everything else". Metadata "About", not "Our POV". Header in the flow.
+   - Subscribe asked for first name, last name, company and email, all required, and said nothing about what arrives.
+     Now email only; what an email carries (method changes, vendor research, Market Watch), at most one a week, reply to
+     stop. Privacy Policy field list updated. Header in the flow.
+   - Cost per Contact FCR tiles: heading and chip stack instead of squeezing.
+   `firstvisit.test.mjs` (34). Suite 26,009 green; live check 256 of 256; 432-page sweep at 1440 and 390 clean.
+   TB (28 Sep): About stays without a name for now ("incognito"). Subscribe reworded to the value of each email (key
+   takeaways, ideas to test, Market Watch, vendor research, method changes) and a planned rhythm that moves with the news:
+   about once a week, an extra one when more is worth it, skipped in a quiet week; reply to stop (handled by hand).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

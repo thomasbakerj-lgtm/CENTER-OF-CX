@@ -15,7 +15,7 @@ import { publishToolResult, getExternalPrimitive, sourcedExternally, getExternal
    nothing (P6 item 15: every pull is external). */
 const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
-import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_INITIAL, isNoActionFlag } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { severityBucket } from "./src/lib/track";
 
@@ -610,6 +610,8 @@ export default function AIDeflectionRealityCheck() {
   const inputB = { ...inputA, ...s.vB };
   const R = engine(inputA);
   const RB = engine(inputB);
+  /* The page counts issues in the reader's inputs; an open capacity choice is not one of them. */
+  const issueCount = R.flags.filter((f) => R.hardFlag || !isNoActionFlag(f)).length;
   /* railOrigin is null because the rail carries no origin grade yet. A scenario link
      suppresses the prefill record, since those values describe someone else's session. */
   const G = gradeAID({ I: inputA, r: R, pre: fromLink ? {} : rail.current.pre, railOrigin: null });
@@ -883,8 +885,8 @@ export default function AIDeflectionRealityCheck() {
 
       {R.flags.length > 0 && (
         <section aria-label="Integrity flags" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <h2 style={h2}>Integrity flags · {R.flags.length} {R.flags.length === 1 ? "issue" : "issues"}</h2>
-          {R.flags.map((f, i) => <Finding key={i} level={R.hardFlag ? "critical" : "high"} title={R.hardFlag ? "Invalid input" : "Check this"}>{f}</Finding>)}
+          <h2 style={h2}>Integrity flags{issueCount ? ` · ${issueCount} ${issueCount === 1 ? "issue" : "issues"}` : ""}</h2>
+          {R.flags.map((f, i) => !R.hardFlag && isNoActionFlag(f) ? <Finding key={i} level="unknown" title="Your choice is still open">{f}</Finding> : <Finding key={i} level={R.hardFlag ? "critical" : "high"} title={R.hardFlag ? "Invalid input" : "Check this"}>{f}</Finding>)}
         </section>
       )}
 

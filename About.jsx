@@ -1,331 +1,126 @@
-import { useState, useEffect, useRef } from "react";
-import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+// About.jsx
+//
+// What the site is, how its numbers are made, the independence rules and what happens to a visitor's data, stated as
+// facts a first-time reader can check. Every count is derived from the registry that owns it (seo.js, researchStatus.js,
+// methodVersions.js, verticals.js), never typed. It replaces a page of positioning copy that promised verdicts the site
+// does not make ("some platforms are genuinely better ... and we'll say so") and described vendor scoring the site
+// withdrew in S22. Tokens only; the header sits in the flow.
+import { HOUSE, PILLARS, RADIUS } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
+import { K } from "./src/lib/frameKit.jsx";
+import { Crumbs } from "./src/lib/Shell.jsx";
+import { Icon } from "./src/lib/Icon.jsx";
+import { TOOL_COUNT, VENDOR_PROFILE_COUNT, CATEGORY_COUNT, SEGMENT_COUNT } from "./src/lib/seo.js";
+import { CCAAS_COMPLETE_COUNT } from "./src/lib/researchStatus.js";
+import { METHOD_COUNT, INDUSTRY_COUNT } from "./src/lib/home.js";
 
-const NAVY = HOUSE.mist;
-const DEEP = HOUSE.ink;
-const ELECTRIC = PILLARS.research.onDark;
-const LIGHT = PILLARS.research.onDark;
-const ICE = HOUSE.navy;
-const WARM = HOUSE.navy;
-const SLATE = HOUSE.body;
-const MUTED = HOUSE.muted;
-const BORDER = alpha(HOUSE.mist, LINE.hair);
+const ACCENT = HOUSE.sky2;
+const link = { color: ACCENT, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
+const CSS = `.cx-about p,.cx-about li{overflow-wrap:anywhere}`;
 
-function useInView(t = 0.1) {
-  const ref = useRef(null);
-  const [v, setV] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); o.unobserve(el); } }, { threshold: t });
-    o.observe(el);
-    return () => o.disconnect();
-  }, []);
-  return [ref, v];
-}
+/* What a reader can use, each with the count its registry holds. */
+export const OFFER = [
+  { n: TOOL_COUNT, title: "diagnostics", text: `Calculators, assessments and procurement tools. Each has a published method (${METHOD_COUNT} in all) and a report you can download with no sign-in.`, href: "/how-to-choose", cta: "See the diagnostics" },
+  { n: VENDOR_PROFILE_COUNT, title: "vendor profiles", text: `Across ${CATEGORY_COUNT} technology categories, listed A to Z. ${CCAAS_COMPLETE_COUNT} contact center platforms are researched finding by finding, each finding with its public sources and validation date.`, href: "/vendors", cta: "Browse the vendors" },
+  { n: INDUSTRY_COUNT, title: "industries", text: `With ${SEGMENT_COUNT} segments: what each one requires, the regulation it answers to and the published benchmarks that exist for it. Where no public benchmark exists, the page says so.`, href: "/industries", cta: "Find your industry" },
+];
 
-function FadeIn({ children, delay = 0, style = {} }) {
-  const [ref, v] = useInView();
-  return <div ref={ref} style={{ ...style, opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(22px)", transition: `opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s` }}>{children}</div>;
-}
+/* How a figure on this site is made. */
+export const HOW = [
+  { title: "Every figure is one of four kinds", text: "A fact with its source, an assumption labelled as one, a result modelled from inputs you can see, or a measurement you entered. A model says what it computes under its inputs; it never promises a saving." },
+  { title: "Every result says how sure it is", text: "Three grades sit behind each result: the evidence behind the inputs, how likely the value is to be realized, and how complete the inputs are. The weakest sets the headline, and the page says what would raise it. When a result cannot be trusted, the page shows no figure." },
+  { title: "Every method is published", text: "Each diagnostic's formulas and constants are written out in words, with a version and date, and checked against published reference cases such as Erlang C tables. A constant with no public source is labelled as a planning value of our own." },
+  { title: "Sources are linked, quotes are credited", text: "A published figure links to the publisher's own page. What is not a quotation is written in our own words." },
+];
 
-const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-const Label = ({ children, light }) => <span style={{ color: light ? LIGHT : ELECTRIC, fontSize: 11.5, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 12 }}>{children}</span>;
-const Title = ({ children, light }) => <h2 style={{ fontFamily: FONT, fontSize: "clamp(28px, 3.5vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.15, margin: "0 0 16px", letterSpacing: "-0.015em" }}>{children}</h2>;
+/* The independence rules. */
+export const RULES = [
+  "No vendor pays to appear, to move, to be left out or to see research before it is published.",
+  "Vendor lists run A to Z. No scores or ranks are shown while the current research is in progress; the earlier Phase 1 scores are withdrawn.",
+  "An introduction to a vendor, when you ask for one, never changes a list, an order or a finding.",
+  "Anyone, including a vendor, can report an error with a public source. Every accepted correction is shown on the vendor's page.",
+];
 
-function Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
-  const links = [
-    { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
-    { name: "Research", href: "/research" },
-    { name: "Vendors", href: "/vendors" },
-    { name: "The Human Premium", href: "/human-premium" },
-  ];
+/* What happens to a visitor's data. */
+export const DATA = [
+  "No sign-in and no email to use any diagnostic or download its report.",
+  "The numbers you enter stay in your browser tab unless you send them to us for a review.",
+  "Usage is counted anonymously: which pages and tools are used, never the figures you enter.",
+];
+
+function Section({ id, title, children }) {
   return (
-    <>
-      <style>{`
-        
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        a { text-decoration: none; color: inherit; }
-        @media (max-width: 860px) { .nav-links { display: none !important; } .split-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
-      `}</style>
-      
-    </>
-  );
-}
-
-function Hero() {
-  return (
-    <section style={{ background: HOUSE.navy, padding: "140px 28px 80px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
-      <div style={{ position: "absolute", bottom: "-20%", right: "-10%", width: 500, height: 500, borderRadius: "50%", background: "none" }} />
-      <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-        <FadeIn>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-            <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a>
-            <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-            <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>About</span>
-          </div>
-        </FadeIn>
-        <FadeIn delay={0.05}>
-          <div style={{ maxWidth: 680 }}>
-            <h1 style={{ fontFamily: FONT, fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
-              We understand both the{" "}
-              <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>boardroom and the queue.</span>
-            </h1>
-            <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 560 }}>
-              The Center of CX is a strategy and intelligence platform for contact center and CX leaders who need more than vendor marketing and recycled best practices.
-            </p>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-function POV() {
-  return (
-    <section style={{ background: WARM, padding: "96px 28px", borderBottom: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "start" }} className="split-grid">
-          <FadeIn>
-            <div>
-              <Label>Our point of view</Label>
-              <Title>Customer experience has entered its operational era.</Title>
-              <div style={{ fontSize: 15.5, color: SLATE, lineHeight: 1.8, marginTop: 12 }}>
-                <p style={{ marginBottom: 20 }}>
-                  Great CX doesn't happen because companies say they care. It happens when strategy, systems, teams, data, and execution align. Most organizations are nowhere close.
-                </p>
-                <p style={{ marginBottom: 20 }}>
-                  The contact center stack has more layers, more vendors, and more AI promises than ever. Platform costs shift but don't disappear. Automation rises but complexity rises faster. And every vendor claims to be the answer.
-                </p>
-                <p>
-                  We exist to help leaders cut through that noise, with frameworks, vendor intelligence, and operational depth grounded in how contact centers actually run.
-                </p>
-              </div>
-            </div>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "32px 28px" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.8, textTransform: "uppercase", marginBottom: 20 }}>What we believe</div>
-              {[
-                "Technology matters, but tools aren't the strategy.",
-                "AI reshapes routing, QA, role design, knowledge, and governance. The efficiency gains are a side effect of deeper structural change.",
-                "Healthcare is not retail. Insurance is not telecom. Context changes the right answer.",
-                "The best CX content is practical enough for operators and strategic enough for executives.",
-                "Our evaluations are editorially independent. Some platforms are genuinely better than others for specific situations, and we'll say so.",
-              ].map((belief, i) => (
-                <div key={i} style={{ display: "flex", gap: 12, padding: "12px 0", borderBottom: i < 4 ? `1px solid ${BORDER}` : "none" }}>
-                  <div style={{ width: 20, height: 20, borderRadius: 5, background: `${ELECTRIC}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
-                    <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700 }}>✓</span>
-                  </div>
-                  <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55 }}>{belief}</span>
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function WhatWeDo() {
-  const pillars = [
-    { title: "Vendor intelligence", desc: "Vendor profiles across eight technology categories. Contact center platforms are researched finding by finding, each with its public sources and validation date; the other categories are marked Phase 1 context until their research is complete." },
-    { title: "Buying frameworks", desc: "Decision tools for CCaaS selection, AI readiness, platform vs point-solution math, and RFPs that don't fail. Built for the way real procurement decisions actually happen." },
-    { title: "Operational depth", desc: "TCO models, orchestration architecture, staffing implications, QA design, and governance frameworks. We go where most CX content stops: the queue, the SLA, the escalation path." },
-    { title: "Industry-specific CX", desc: "Ten verticals, each with vertical-specific vendor maps, stack layer models, and specialization breakdowns. Because healthcare CX is nothing like retail CX." },
-    { title: "Practical tools", desc: "TCO calculators, maturity assessments, AI readiness diagnostics, and planning templates. Tools that give you output you can bring to your next leadership meeting." },
-    { title: "Consultant Matching", desc: "We connect CX leaders with vetted consultants who specialize in platform selection, AI strategy, and contact center transformation. We are the intelligence layer: they are the implementation experts." },
-  ];
-  return (
-    <section style={{ background: HOUSE.ink, padding: "96px 28px" }}>
-      <div style={WRAP}>
-        <FadeIn>
-          <div style={{ maxWidth: 560, marginBottom: 48 }}>
-            <Label>What we do</Label>
-            <Title>Six pillars that make this different from everything else.</Title>
-          </div>
-        </FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 20 }}>
-          {pillars.map((p, i) => (
-            <FadeIn key={i} delay={i * 0.05}>
-              <div style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "28px 24px", transition: "border-color 0.2s", height: "100%" }}
-                onMouseOver={e => e.currentTarget.style.borderColor = ELECTRIC}
-                onMouseOut={e => e.currentTarget.style.borderColor = BORDER}>
-                <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>{p.title}</h3>
-                <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.6, margin: 0 }}>{p.desc}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function WhoItsFor() {
-  const audiences = [
-    { role: "CX leaders", needs: "Strategy, maturity models, governance, customer journey alignment, executive framing." },
-    { role: "Contact center leaders", needs: "Staffing, QA, coaching, WEM, channel strategy, CCaaS modernization, AI workflow impact." },
-    { role: "CIO / CTO / Digital transformation", needs: "Architecture, integration strategy, AI governance, platform design, data alignment." },
-    { role: "Operations executives", needs: "Measurable outcomes, cost-to-serve reduction, process redesign, adoption risk management." },
-    { role: "Founders / PE / Growth operators", needs: "Scalable service operations, retention strategy, experience design as growth leverage." },
-  ];
-  return (
-    <section style={{ background: WARM, padding: "96px 28px", borderTop: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <FadeIn>
-          <div style={{ maxWidth: 560, marginBottom: 48 }}>
-            <Label>Who this is for</Label>
-            <Title>Five audiences. One platform. No dilution.</Title>
-          </div>
-        </FadeIn>
-        <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-          {audiences.map((a, i) => (
-            <FadeIn key={i} delay={i * 0.06}>
-              <div style={{ display: "flex", alignItems: "start", gap: 24, padding: "24px 28px", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: i === 0 ? "10px 10px 0 0" : i === audiences.length - 1 ? "0 0 10px 10px" : 0, borderTop: i > 0 ? "none" : undefined, flexWrap: "wrap" }}>
-                <div style={{ minWidth: 200 }}>
-                  <h3 style={{ fontFamily: FONT, fontSize: 19, fontWeight: 400, color: NAVY, margin: 0 }}>{a.role}</h3>
-                </div>
-                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, flex: 1, minWidth: 280 }}>{a.needs}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function WhatWeWontDo() {
-  return (
-    <section style={{ background: HOUSE.navy, padding: "96px 28px", position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", top: "30%", left: "-5%", width: 400, height: 400, borderRadius: "50%", background: "none" }} />
-      <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64 }} className="split-grid">
-          <FadeIn>
-            <div>
-              <Label light>What we won't do</Label>
-              <Title light>This site is not for everyone. That's the point.</Title>
-              <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginTop: 8 }}>
-                If you're looking for generic "CX is important" content, vendor press releases repackaged as insight, or a directory where every vendor looks equal: you'll find that elsewhere. We have opinions. We back them with data. And we'd rather be useful to a focused audience than comfortable for a broad one.
-              </p>
-            </div>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {[
-                { no: "Vendor propaganda", why: "We don't take placement fees. Vendors earn coverage through demonstrated capability." },
-                { no: "Abstract inspiration", why: "Every framework, tool, and assessment produces output you can act on Monday morning." },
-                { no: "Feature-level comparisons", why: "We evaluate platforms at the architecture, operations, and governance level." },
-                { no: "Implementation services", why: "We are the intelligence platform, not the implementor. We connect you with the right consultants. Keeping intelligence and delivery separate protects the integrity of both." },
-                { no: "AI hype", why: "We show how AI restructures routing, QA, role design, knowledge, and governance. The operational implications are what matter." },
-              ].map((item, i) => (
-                <div key={i} style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 8, padding: "18px 20px" }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, marginBottom: 4 }}>We don't do: {item.no}</div>
-                  <div style={{ fontSize: 13, color: HOUSE.body, lineHeight: 1.5 }}>{item.why}</div>
-                </div>
-              ))}
-            </div>
-          </FadeIn>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Principles() {
-  return (
-    <section style={{ background: HOUSE.ink, padding: "96px 28px", borderTop: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <FadeIn>
-          <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto 56px" }}>
-            <Label>Operating principles</Label>
-            <Title>How we work and why it matters.</Title>
-          </div>
-        </FadeIn>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 32 }}>
-          {[
-            { n: "01", t: "Editorially independent, commercially transparent", d: "Our research, scoring, and vendor evaluations are completely independent. No vendor pays for coverage or placement. When you need expert guidance, we connect you with vetted technology consultants, and we're transparent about how those relationships work." },
-            { n: "02", t: "Operator credibility", d: "Our frameworks are built by people who've managed queues, staffing models, SLAs, and QA programs. We understand what happens when the theory hits the floor." },
-            { n: "03", t: "Architecture over features", d: "We evaluate technology at the system level: orchestration layers, integration dependencies, governance requirements. Checkbox feature comparisons tell you what a platform can do. We tell you what it will do to your operations." },
-            { n: "04", t: "Vertical specificity", d: "We don't give the same advice to a hospital that we give to a retailer. Compliance burden, customer emotion, channel mix, and data sensitivity change every recommendation." },
-          ].map((p, i) => (
-            <FadeIn key={i} delay={i * 0.08}>
-              <div>
-                <span style={{ fontFamily: FONT, fontSize: 32, color: ELECTRIC }}>{p.n}</span>
-                <h3 style={{ fontFamily: FONT, fontSize: 20, fontWeight: 400, color: NAVY, margin: "4px 0 8px" }}>{p.t}</h3>
-                <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, margin: 0 }}>{p.d}</p>
-              </div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CTA() {
-  return (
-    <section style={{ background: WARM, padding: "96px 28px", borderTop: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <FadeIn>
-          <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
-            <Title>If this resonates, we should talk.</Title>
-            <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px" }}>
-              Whether you're evaluating platforms, building an AI business case, or trying to make sense of a fragmented vendor landscape: we offer the clarity that vendor sales calls can't.
-            </p>
-            <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Find a Consultant →</a>
-              <a href="/platforms-and-tech" style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Explore the Platform</a>
-            </div>
-          </div>
-        </FadeIn>
-      </div>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    null
-  );
-}
-
-function EcosystemCallout() {
-  return (
-    <section style={{ background: HOUSE.ink, padding: "48px 28px", borderTop: `1px solid ${BORDER}` }}>
-      <div style={WRAP}>
-        <FadeIn>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-            <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>We're part of a larger CX ecosystem. See the publications and communities we respect.</p>
-            <a href="/cx-ecosystem" style={{ fontSize: 14, fontWeight: 600, color: ELECTRIC }}>Explore the CX Ecosystem →</a>
-          </div>
-        </FadeIn>
-      </div>
+    <section aria-labelledby={id} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <h2 id={id} style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>{title}</h2>
+      {children}
     </section>
   );
 }
 
 export default function About() {
   return (
-    <div>
-      <Nav />
-      <Hero />
-      <POV />
-      <WhatWeDo />
-      <WhoItsFor />
-      <WhatWeWontDo />
-      <Principles />
-      <CTA />
-      <EcosystemCallout />
-      <Footer />
+    <div className="cx-about" style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT, minHeight: "100vh" }}>
+      <style>{CSS}</style>
+      <Crumbs items={[["Home", "/"], ["About"]]} />
+      <div style={{ maxWidth: 920, margin: "0 auto", padding: "32px 20px 72px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 40 }}>
+        <header style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <span style={{ ...K.kicker, color: ACCENT }}>About The Center of CX</span>
+          <h1 style={{ margin: 0, fontSize: "clamp(30px, 4.4vw, 46px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>Free diagnostics and vendor research for contact center decisions.</h1>
+          <p style={{ ...K.body, fontSize: 17, lineHeight: "28px", maxWidth: 720 }}>
+            For the people who run contact centers, buy their technology and fund the change. Every figure on the site says where it came from and how sure it is, so you can check it before you rely on it.
+          </p>
+          <p style={K.small}>Independent and self-funded, with no vendor owner or investor.</p>
+        </header>
+
+        <Section id="offer" title="What you can use here">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(250px, 100%), 1fr))", gap: 14 }}>
+            {OFFER.map((o) => (
+              <div key={o.title} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 34, fontWeight: 700, lineHeight: 1, color: HOUSE.mist }}>{o.n}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{o.title}</span>
+                </div>
+                <p style={{ ...K.body, flex: 1 }}>{o.text}</p>
+                <a href={o.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: 44, fontSize: 14, fontWeight: 600, color: ACCENT, textDecoration: "none" }}>{o.cta}<Icon name="next" size={16} /></a>
+              </div>
+            ))}
+          </div>
+          <p style={K.body}>Also: <a href="/market-watch" style={link}>Market Watch</a>, dated launches, deals, outages and rule changes, each labelled by the source it rests on.</p>
+        </Section>
+
+        <Section id="how" title="How the numbers are made">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(380px, 100%), 1fr))", gap: 14 }}>
+            {HOW.map((h) => (
+              <div key={h.title} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 6 }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{h.title}</h3>
+                <p style={K.body}>{h.text}</p>
+              </div>
+            ))}
+          </div>
+          <p style={K.body}>Read one: <a href="/methodology/cost-per-contact" style={link}>the Cost per Contact method</a>, or <a href="/methodology/staffing-calculator" style={link}>the Staffing method</a>, which is checked against published Erlang C cases.</p>
+        </Section>
+
+        <Section id="independence" title="Independence">
+          <ul style={{ margin: 0, paddingLeft: 22, display: "flex", flexDirection: "column", gap: 10 }}>
+            {RULES.map((r) => <li key={r} style={K.body}>{r}</li>)}
+          </ul>
+          <p style={K.body}><a href="/corrections" style={link}>How corrections work</a></p>
+        </Section>
+
+        <Section id="data" title="Your data">
+          <ul style={{ margin: 0, paddingLeft: 22, display: "flex", flexDirection: "column", gap: 10 }}>
+            {DATA.map((d) => <li key={d} style={K.body}>{d}</li>)}
+          </ul>
+          <p style={K.body}>The <a href="/privacy" style={link}>Privacy Policy</a> names every service the site uses and what each receives.</p>
+        </Section>
+
+        <section aria-labelledby="touch" style={{ ...K.panel, borderColor: PILLARS.diagnostics.onDark, borderRadius: RADIUS.card, display: "flex", flexDirection: "column", gap: 10 }}>
+          <h2 id="touch" style={{ ...K.h2, margin: 0 }}>Get in touch</h2>
+          <p style={K.body}>
+            Questions, a project or a vendor you want researched: <a href="/contact" style={link}>contact us</a>. To write for the site, see <a href="/contribute" style={link}>Write for us</a>. New methods, research and Market Watch items: <a href="/subscribe" style={link}>subscribe</a>. Publications and communities we read are on <a href="/cx-ecosystem" style={link}>the CX ecosystem page</a>.
+          </p>
+        </section>
+      </div>
     </div>
   );
 }

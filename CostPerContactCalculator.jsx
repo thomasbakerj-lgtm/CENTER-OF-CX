@@ -8,14 +8,14 @@ import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
-import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_INITIAL, isNoActionFlag } from "./src/lib/mech";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, resultHow } from "./src/lib/ui.jsx";
-import { HOUSE, PILLARS, FINDINGS, RADIUS, TOUCH, FONT_MONO, alpha, LINE, onFill } from "./src/lib/tokens.js";
+import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_MONO, alpha, LINE, onFill } from "./src/lib/tokens.js";
 import { methodStamp } from "./src/lib/methodVersions.js";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
@@ -485,7 +485,7 @@ export default function CostPerContactCalculator() {
         </div>
       </fieldset>
 
-      <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 12, borderColor: mechKey === "none" ? FINDINGS.high.dark : hair }}>
+      <fieldset style={{ ...card, margin: 0, display: "flex", flexDirection: "column", gap: 12, borderColor: mechKey === "none" ? HOUSE.electric : hair }}>
         <legend style={{ ...kicker, padding: "0 6px" }}>Question 3 of 3 · Capacity action</legend>
         <p style={{ ...body, margin: 0 }}>How freed time becomes value. {MECH[mechKey].note}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
@@ -506,7 +506,9 @@ export default function CostPerContactCalculator() {
       <section aria-label="Integrity checks" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <h2 style={h2}>Integrity checks</h2>
         {r.flags.length === 0 && <Finding level="clear" title="Integrity checks passed">Marginal below loaded, channel mix at 100%, M consistent with FCR, capacity action set. Numbers are internally consistent.</Finding>}
-        {r.flags.map((f, i) => f.sev === "warn"
+        {r.flags.map((f, i) => isNoActionFlag(f)
+          ? <Finding key={i} level="unknown" title="Your choice is still open">{f.t}</Finding>
+          : f.sev === "warn"
           ? <Finding key={i} level="high" title="Check this input">{f.t}</Finding>
           : <p key={i} style={{ ...card, ...body, padding: "12px 16px" }}>{f.t}</p>)}
       </section>
@@ -517,9 +519,9 @@ export default function CostPerContactCalculator() {
         <div style={grid(180)}>
           {r.dividend.map((s, i) => (
             <div key={i} style={card}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                <span style={{ ...kicker, color: HOUSE.mist }}>FCR +{s.p} to {s.newFCR.toFixed(0)}%</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, border: `1px solid ${soft}`, padding: "2px 8px", borderRadius: RADIUS.chip }}>{s.tier}</span>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 6, marginBottom: 10 }}>
+                <span style={{ ...kicker, color: HOUSE.mist, whiteSpace: "nowrap" }}>FCR +{s.p} to {s.newFCR.toFixed(0)}%</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, border: `1px solid ${soft}`, padding: "2px 8px", borderRadius: RADIUS.chip, whiteSpace: "nowrap" }}>{s.tier}</span>
               </div>
               <div style={small}>Released</div>
               <div style={{ ...fig, fontSize: 22, color: HOUSE.body }}>{fmtK(s.released * 12)}/yr</div>

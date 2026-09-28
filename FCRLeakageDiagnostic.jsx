@@ -10,7 +10,7 @@ import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { severityBucket } from "./src/lib/track";
-import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
+import { MECH, MECH_ORDER, MECH_INITIAL, isNoActionFlag } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { FONT, FONT_IMPORT_CSS, TYPE, W, NUM } from "./src/lib/type";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
@@ -842,7 +842,7 @@ export default function FCRLeakageDiagnostic() {
           {R.flags.length > 0 && (
             <section aria-label="Integrity flags" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <h2 style={h2}>Integrity flags</h2>
-              {R.flags.map((f, i) => <Finding key={i} level="high" title="Check this">{f}</Finding>)}
+              {R.flags.map((f, i) => isNoActionFlag(f) ? <Finding key={i} level="unknown" title="Your choice is still open">{f}</Finding> : <Finding key={i} level="high" title="Check this">{f}</Finding>)}
             </section>
           )}
 
