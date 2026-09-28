@@ -300,6 +300,14 @@ const SHARED = "shared";
    hourly $22.40, mean annual $46,590, employment 2,595,750 (BLS Table 1). The site uses the median. */
 export const BLS_WAGE_VINTAGE = "May 2025";
 const BLS_WAGE = "US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2025 (released 15 May 2026), SOC 43-4051 Customer Service Representatives, national median hourly wage.";
+/* Three more May 2025 medians from the same release (BLS Table 1, TB validated 28 Sep 2026), for the people who recruit,
+   train and supervise a new agent in Attrition. Each opens at the median times the shared benefits load. For reference,
+   from the same table: 43-1011 employment 1,436,680, mean $35.33 an hour, $73,490 a year; 13-1151 458,300, $36.32,
+   $75,550; 13-1071 912,430, $39.42, $81,990. */
+const blsWage = (soc, title, value, role) => ({ tool: "attrition-cost", kind: "market", value, unit: "USD per hour",
+  source: `US Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2025 (released 15 May 2026), SOC ${soc} ${title}, national median hourly wage.`,
+  url: "https://www.bls.gov/news.release/ocwage.t01.htm", reviewed: "2026-09-28", version: 1,
+  rationale: `The opening hourly rate for ${role} in Attrition, before the shared benefits load. Replace it with your own rate where you have one.` });
 const TIME_DEF = "A definition: the full-time paid schedule of 40 hours a week for 52 weeks. Not a benchmark; change it where your contract hours differ.";
 const shLoad = (value, rationale) => ({ tool: SHARED, kind: "heuristic", value, unit: "multiple of hourly wage", source: "Internal planning heuristic set by ContactCenterCX. Not sourced to a published benchmark. Replace with your own figures.", reviewed: REVIEWED, version: 1, rationale });
 
@@ -422,16 +430,16 @@ const attritionEntries = {
   "attrition.default.washout": atHeur(25, "percent of hires", ATTR_DEF + " Share of hires who leave before they are productive."),
   "attrition.default.recruiting": atHeur(2500, "USD per hire", ATTR_DEF + " Sourcing, advertising and background checks."),
   "attrition.default.screeningHours": atHeur(8, "hours per hire", ATTR_DEF),
-  "attrition.default.hrRate": atHeur(48, "USD per hour, loaded", ATTR_DEF),
+  "market.wage.hr": blsWage("13-1071", "Human Resources Specialists", 36.51, "the recruiter who screens each hire"),
   "attrition.default.trainingWeeks": atHeur(6, "weeks", ATTR_DEF),
-  "attrition.default.trainerRate": atHeur(45, "USD per hour, loaded", ATTR_DEF),
+  "market.wage.trainer": blsWage("13-1151", "Training and Development Specialists", 33.31, "the trainer who runs each new-hire class"),
   "attrition.default.classSize": atHeur(12, "hires per class", ATTR_DEF),
   "attrition.default.nestingWeeks": atHeur(4, "weeks", ATTR_DEF),
   "attrition.default.nestingProductivity": atHeur(50, "percent of a tenured agent", ATTR_DEF),
   "attrition.default.rampMonths": atHeur(3, "months after nesting", ATTR_DEF),
   "attrition.default.rampProductivity": atHeur(75, "percent of a tenured agent", ATTR_DEF),
   "attrition.default.supervisorHours": atHeur(10, "hours per new hire", ATTR_DEF),
-  "attrition.default.supervisorRate": atHeur(55, "USD per hour, loaded", ATTR_DEF),
+  "market.wage.supervisor": blsWage("43-1011", "First-Line Supervisors of Office and Administrative Support Workers", 33.41, "the supervisor who coaches each new hire"),
   "attrition.default.vacancyDays": atHeur(30, "days a seat stays open", ATTR_DEF),
   "attrition.default.vacancyCoverage": atHeur(60, "percent of the vacancy covered by overtime", ATTR_DEF),
   "attrition.time.workdaysMonth": atHeur(22, "working days a month", "Converts ramp months to hours: 22 days of 8 hours."),

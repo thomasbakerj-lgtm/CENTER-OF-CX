@@ -7,6 +7,15 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-28", methods: ["attrition-cost"], version: "1.3",
+    title: "Attrition Cost: recruiter, trainer and supervisor rates from BLS",
+    changes: [
+      "The recruiter, trainer and supervisor hourly rates now open at the BLS May 2025 national medians (published 15 May 2026) times the shared 30% benefits load: Human Resources Specialists (13-1071) $36.51, so $47.46 loaded (was $48, no source); Training and Development Specialists (13-1151) $33.31, so $43.30 (was $45); First-Line Supervisors of Office and Administrative Support Workers (43-1011) $33.41, so $43.43 (was $55).",
+      "At the opening case, all-in cost per departure moves from $18,535 to $18,381, and the annual replacement burden from $1,297,454 to $1,286,673. Any case where you entered your own rates computes exactly as before.",
+      "Formulas and grades are unchanged.",
+    ],
+  },
+  {
     date: "2026-09-28", methods: ["ai-deflection"], version: "1.1",
     title: "AI Deflection: no capacity action is chosen for you",
     changes: [

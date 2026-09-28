@@ -123,6 +123,9 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
    the salary is the shared BLS median wage over the 2,080 hour year, the benefits load the
    shared load (J10, J11) and the overtime premium the FLSA minimum. */
 const at = (k) => benchmark(`attrition.${k}`);
+/* A BLS median hourly wage at the shared benefits load, to the cent: the opening rate for the recruiter, trainer and
+   supervisor (May 2025, method 1.3). */
+const loadedBls = (id) => Math.round(benchmark(id) * benchmark("load.benefits") * 100) / 100;
 const HOURS_YEAR = benchmark("time.hours.year");
 const HOURS_DAY = at("time.hoursDay"), DAYS_WEEK = at("time.daysWeek"), WORKDAYS_MONTH = at("time.workdaysMonth");
 const BAND = { low: at("band.low"), high: at("band.high"), floor: at("band.floor"), ceiling: at("band.ceiling") };
@@ -130,11 +133,11 @@ const BASE = {
   agents: at("default.agents"), attritionRate: at("default.rate"),
   avgSalary: Math.round(benchmark("market.wage.agent") * HOURS_YEAR), benefitsLoadPct: Math.round((benchmark("load.benefits") - 1) * 100),
   backfillRate: at("default.backfill"), unbackfillIntent: "forced", earlyWashoutRate: at("default.washout"),
-  recruitingCost: at("default.recruiting"), screeningHours: at("default.screeningHours"), hrLoadedRate: at("default.hrRate"),
-  trainingWeeks: at("default.trainingWeeks"), trainerLoadedRate: at("default.trainerRate"), classSize: at("default.classSize"), signOnBonus: 0,
+  recruitingCost: at("default.recruiting"), screeningHours: at("default.screeningHours"), hrLoadedRate: loadedBls("market.wage.hr"),
+  trainingWeeks: at("default.trainingWeeks"), trainerLoadedRate: loadedBls("market.wage.trainer"), classSize: at("default.classSize"), signOnBonus: 0,
   nestingWeeks: at("default.nestingWeeks"), nestingProductivity: at("default.nestingProductivity"),
   rampMonths: at("default.rampMonths"), rampProductivity: at("default.rampProductivity"),
-  supervisorHoursPerNew: at("default.supervisorHours"), supLoadedRate: at("default.supervisorRate"),
+  supervisorHoursPerNew: at("default.supervisorHours"), supLoadedRate: loadedBls("market.wage.supervisor"),
   overtimePremium: Math.round((benchmark("adh.ot.multiplier") - 1) * 100), vacancyDays: at("default.vacancyDays"), vacancyCoverageFraction: at("default.vacancyCoverage"), vacancyMode: "incremental",
   mech: MECH_INITIAL, evidence: "estimate", costPerPoint: 0,
 };
