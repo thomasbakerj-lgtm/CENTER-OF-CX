@@ -180,27 +180,26 @@ export default function HumanPremium() {
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase", display: "block", marginBottom: 10 }}>Where to Level Up</span>
             <h2 style={{ fontFamily: FONT, fontSize: 30, fontWeight: 400, color: NAVY, lineHeight: 1.2, margin: "0 0 12px" }}>Certifications and learning paths that compound.</h2>
-            <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>Not every certification matters. These are the ones that position you at the intersection of CX expertise and AI capability, where demand is highest and supply is thinnest.</p>
+            <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>Programmes that pair CX expertise with AI, data and automation skills. Prices and times are as each provider states them on the linked page, checked on 28 September 2026. Confirm before you enrol, since providers change them.</p>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="cert-grid">
             {[
               { cat: "AI & Machine Learning", color: ELECTRIC, certs: [
-                { name: "Google AI Essentials", link: "https://grow.google/certificates/ai-essentials/", time: "~10 hours", cost: "Free", why: "Fastest path to AI literacy. No technical background required." },
-                { name: "AWS AI Practitioner", link: "https://aws.amazon.com/certification/certified-ai-practitioner/", time: "~40 hours", cost: "$150", why: "Cloud AI fundamentals. Strong if your org uses AWS/Connect." },
-                { name: "Microsoft AI Fundamentals (AI-900)", link: "https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-fundamentals/", time: "~20 hours", cost: "$165", why: "Azure AI ecosystem. Essential for Microsoft-shop environments." },
-                { name: "IBM AI Foundations for Business", link: "https://www.ibm.com/training/collection/ibm-ai-foundations-for-business", time: "~15 hours", cost: "Free", why: "Business-oriented AI understanding. Good starting point." },
+                { name: "Google AI Essentials", link: "https://grow.google/ai-essentials/", time: "Time: under 10 hours (Google)", cost: "USD 49 a month after a 7-day free trial (US and Canada)", why: "Practical AI use for everyday work. No technical background required." },
+                { name: "AWS Certified AI Practitioner", link: "https://aws.amazon.com/certification/certified-ai-practitioner/", time: "Exam: 90 minutes", cost: "Exam fee: USD 100", why: "Cloud AI fundamentals. Relevant if your organisation runs on AWS and Amazon Connect." },
+                { name: "Microsoft Azure AI Fundamentals (AI-901)", link: "https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-fundamentals/", time: "Study time: not stated by Microsoft", cost: "Exam fee: USD 99 in the US; varies by country", why: "Azure AI basics. Relevant in Microsoft environments." },
+                { name: "IBM AI Foundations for Business", link: "https://www.ibm.com/training/badge/ibm-ai-foundations-for-business-specialization", time: "Three courses on Coursera; time not stated by IBM", cost: "Price not stated by IBM (taken through Coursera)", why: "Business-oriented AI understanding. A starting point before a technical course." },
               ]},
               { cat: "CX & Contact Center", color: GREEN, certs: [
-                { name: "ICMI Certified Associate (CCCA)", link: "https://www.icmi.com/training", time: "Self-paced", cost: "$995", why: "Widely used contact center management credential." },
-                { name: "COPC CX Standard", link: "https://www.copc.com/training/", time: "3-5 days", cost: "Varies", why: "Operations excellence. The gold standard for CX performance." },
-                { name: "HDI Support Center Analyst", link: "https://www.thinkhdi.com/education/courses", time: "2 days", cost: "~$1,500", why: "Service desk and support operations. Strong for IT+CX roles." },
-                { name: "Qualtrics XM Certification", link: "https://www.qualtrics.com/training/", time: "Self-paced", cost: "Free", why: "Experience management platform skills. Growing demand." },
+                { name: "COPC Best Practices for CX Operations", link: "https://www.copc.com/class-listing/copc-best-practices-for-cx-operations/", time: "40 hours", cost: "From $3,950 (US live virtual class); varies by session and language", why: "Operating discipline for CX performance, taught from the COPC standard." },
+                { name: "HDI Support Center Analyst", link: "https://www.thinkhdi.com/education/courses/hdi-support-center-analyst-new-version", time: "About 10 to 12 hours online; two days in a virtual class", cost: "$849 online, $1,699 virtual class; exam included", why: "Service desk and support operations. Strong for IT and CX roles." },
+                { name: "Qualtrics Platform Essentials", link: "https://www.qualtrics.com/training/certification/", time: "Time: not stated by Qualtrics", cost: "Exam and final project: $100", why: "Experience management platform skills." },
               ]},
               { cat: "Data, Analytics & Automation", color: AMBER, certs: [
-                { name: "Google Data Analytics Certificate", link: "https://grow.google/certificates/data-analytics/", time: "~6 months", cost: "$49/mo", why: "Data literacy for non-engineers. Directly applicable to CX analytics." },
-                { name: "Tableau Desktop Specialist", link: "https://www.tableau.com/learn/certification", time: "~50 hours", cost: "$100", why: "Visualization skills. Turn CX data into stories leaders understand." },
-                { name: "UiPath Automation Developer", link: "https://www.uipath.com/learning/certification", time: "Self-paced", cost: "Free", why: "RPA and automation. Build the workflows that connect AI to action." },
-                { name: "Salesforce Administrator", link: "https://trailhead.salesforce.com/credentials/administrator", time: "~100 hours", cost: "$200", why: "CRM is the CX backbone. Admin skills open doors everywhere." },
+                { name: "Google Data Analytics Certificate", link: "https://grow.google/certificates/data-analytics/", time: "About 240 hours in total (Google)", cost: "USD 49 a month after a 7-day free trial (US and Canada)", why: "Data literacy for non-engineers. Directly applicable to CX analytics." },
+                { name: "Salesforce Certified Tableau Desktop Foundations", link: "https://trailheadacademy.salesforce.com/certificate/exam-tableau-desktop-found---Analytics-101", time: "Exam: 70 minutes", cost: "Exam fee: USD 75", why: "Visualization skills. Turn CX data into stories leaders understand." },
+                { name: "UiPath Automation Developer Associate", link: "https://www.uipath.com/learning/certification", time: "Free training: 45 hours 20 minutes (UiPath Academy)", cost: "Exam fee: USD 150 per attempt", why: "RPA and automation. Build the workflows that connect AI to action." },
+                { name: "Salesforce Certified Platform Administrator", link: "https://trailheadacademy.salesforce.com/certificate/exam-platform-admin---Plat-Admn-201", time: "Exam: 105 minutes", cost: "Exam fee: USD 200", why: "CRM administration, which many contact centers depend on." },
               ]},
             ].map((section, si) => (
               <FadeIn key={si} delay={si * 0.08}>
@@ -210,15 +209,13 @@ export default function HumanPremium() {
                   </div>
                   <div style={{ padding: "12px 0" }}>
                     {section.certs.map((c, ci) => (
-                      <a key={ci} href={c.link} target="_blank" rel="noopener noreferrer" style={{ display: "block", padding: "12px 20px", borderBottom: ci < section.certs.length - 1 ? `1px solid ${BORDER}40` : "none", transition: "background 0.15s" }}
+                      <a key={ci} href={c.link} target="_blank" rel="noopener noreferrer" style={{ display: "block", textDecoration: "none", padding: "12px 20px", borderBottom: ci < section.certs.length - 1 ? `1px solid ${BORDER}40` : "none", transition: "background 0.15s" }}
                         onMouseOver={e => e.currentTarget.style.background = `${section.color}06`}
                         onMouseOut={e => e.currentTarget.style.background = "transparent"}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: NAVY }}>{c.name}</span>
-                          <span style={{ fontSize: 10, color: MUTED }}>{c.cost}</span>
-                        </div>
-                        <p style={{ fontSize: 11, color: MUTED, margin: "0 0 2px" }}>{c.time}</p>
-                        <p style={{ fontSize: 11, color: section.color, margin: 0, fontWeight: 500 }}>{c.why}</p>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: NAVY, marginBottom: 4 }}>{c.name}</div>
+                        <p style={{ fontSize: 12, color: HOUSE.body, margin: "0 0 2px" }}>{c.cost}</p>
+                        <p style={{ fontSize: 12, color: HOUSE.body, margin: "0 0 2px" }}>{c.time}</p>
+                        <p style={{ fontSize: 12, color: section.color, margin: 0, fontWeight: 500 }}>{c.why}</p>
                       </a>
                     ))}
                   </div>
