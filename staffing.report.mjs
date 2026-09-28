@@ -375,7 +375,7 @@ for (const k of Object.keys(DOCS)) {
   A(`${k}: the metric grid cost sub carries the headline`, (sectionByTitle(doc, "Staffing Results").items.find(i => i.label === "Annual Cost of This Plan") || {}).sub === doc.confidence);
   A(`${k}: the grade carries no defect`, doc.gradeObj.defects.length === 0);
   A(`${k}: realization is not applicable with its reason`, doc.gradeObj.realization === null && doc.gradeObj.naReason.length > 40);
-  A(`${k}: the cost basis line matches the rail state`, summaryValue(doc, "Cost basis") === (cost.sourced ? "user figures via rail" : "benchmark median"));
+  A(`${k}: the cost basis line matches the rail state`, summaryValue(doc, "Cost basis") === (cost.sourced ? "your figures, from another tool" : "benchmark median"));
   /* Shrinkage converts base agents to scheduled FTE, so scheduled can never be smaller
      for any shrinkage inside its domain, and the guard holds every set inside it. */
   A(`${k}: scheduled FTE is never below base agents`, r.sched >= r.raw);

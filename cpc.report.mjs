@@ -369,7 +369,7 @@ for (const [key, S] of Object.entries(SETS)) {
   A(`${key}: the layered burden row equals the headline burden`, rowVal(layers, "Repeat-demand burden") === fmtK(r.burden) + "/mo");
   A(`${key}: the released row equals the engine's +10pt released figure`, rowVal(layers, "Capacity released") === fmtK(r.dividend[1].released) + "/mo");
   A(`${key}: the realizable row equals released x the mechanism factor`, rowVal(layers, "Realizable this cycle") === fmtK(r.dividend[1].released * MECH[mech].f) + "/mo");
-  A(`${key}: the loaded-burden row is labelled accounting only, not savings`, rows(layers).some(x => /accounting only, not savings/.test(x[0])));
+  A(`${key}: the loaded-burden row is labelled accounting only, not savings`, rows(layers).some(x => /accounting view only, no saving/.test(x[0])));
   A(`${key}: the loaded burden exceeds the marginal burden, or marginal is not below loaded`, r.burdenLoaded >= r.burden);
 
   /* The single most important claim in the document. If realizable ever reads as
@@ -403,8 +403,8 @@ for (const [key, S] of Object.entries(SETS)) {
   A(`${key}: the analyst prose quotes the same burden as the summary`, analystText.includes(fmtK(r.burden)));
   A(`${key}: the analyst prose quotes the same released figure as the layers table`, analystText.includes(fmtK(r.dividend[1].released)));
   A(`${key}: the analyst prose quotes the same realizable figure as the layers table`, analystText.includes(fmtK(r.dividend[1].realizable)));
-  A(`${key}: the analyst prose calls released capacity, not cash`, /capacity released, not yet cash/.test(analystText));
-  A(`${key}: the analyst prose calls the burden a ceiling`, /ceiling, not a savings figure/.test(analystText));
+  A(`${key}: the analyst prose calls released capacity, not cash`, /becomes cash only through the capacity action you choose/.test(analystText));
+  A(`${key}: the analyst prose calls the burden a ceiling`, /Read it as a ceiling\./.test(analystText) && /none of it is a saving on its own/.test(analystText));
 
   const meth = find(P.sections, "Methodology").content;
   A(`${key}: methodology names the volume basis actually used`,
@@ -412,7 +412,7 @@ for (const [key, S] of Object.entries(SETS)) {
   A(`${key}: methodology names the mechanism and factor used`,
     meth.includes(MECH[mech].label) && meth.includes(String(Math.round(MECH[mech].f * 100)) + "%"));
   A(`${key}: methodology states the grade printed at the top of the document`, meth.includes(P.grade));
-  A(`${key}: methodology refuses to call the burden a saving`, /not a savings figure and not "created\."/.test(meth));
+  A(`${key}: methodology refuses to call the burden a saving`, /it counts as neither a saving nor capacity created\./.test(meth));
 
   /* --- integrity and corrections must surface in the document, not only in the app --- */
   const corrected = find(P.sections, "⚠ Inputs Corrected");
@@ -553,7 +553,7 @@ A("the band discriminates: five scenarios produce five distinct bands",
    the shared bucket turns moderate, so the two are the same threshold. */
 for (const k of ["none", "benign", "mid", "bad", "severe"]) {
   const doc = SEV[k];
-  const flagged = doc.r.flags.some(f => /resolution problem, not a price problem/.test(f.t));
+  const flagged = doc.r.flags.some(f => /At this level it is a resolution problem/.test(f.t));
   const banded = ["moderate", "high", "severe"].includes(doc.signals.severity);
   A(`${k}: the published band and the resolution-problem flag agree on the 25% threshold`, flagged === banded);
 }

@@ -109,16 +109,6 @@ const CPC_HEUR = "Internal planning heuristic set by ContactCenterCX. Not source
 const cHeur = (value, unit, rationale) => ({ tool: CPC, kind: "heuristic", value, unit, source: CPC_HEUR, reviewed: REVIEWED, version: 1, rationale });
 const cLine = (value, unit, rationale) => ({ tool: CPC, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
 const CPC_DEF = "Default so the tool opens on a runnable case.";
-const CPC_VERTS = { fin: [8.5, 12, 11, 16, 72], health: [9, 14, 13, 20, 71], retail: [5, 8, 6, 10, 78] };
-const CPC_VERT_FIELDS = [
-  ["cpcLow", "USD per contact", "Low end of the internal cost per contact planning range"],
-  ["cpcHigh", "USD per contact", "High end of the internal cost per contact planning range"],
-  ["cprLow", "USD per resolution", "Low end of the internal cost per resolution planning range"],
-  ["cprHigh", "USD per resolution", "High end of the internal cost per resolution planning range"],
-  ["fcr", "percent", "Internal planning FCR for this vertical"],
-];
-const cpcVertEntries = Object.fromEntries(Object.entries(CPC_VERTS).flatMap(([k, vals]) =>
-  CPC_VERT_FIELDS.map(([f, unit, what], i) => [`cpc.vert.${k}.${f}`, cHeur(vals[i], unit, `${what}. Context for the reader only. It feeds no figure and reaches no confidence axis.`)])));
 
 /* Staffing Requirement Calculator. Presets are internal operating profiles, one per
    industry, so the tool opens on a runnable case. They are labelled heuristics in
@@ -590,7 +580,6 @@ export const BENCHMARK_SOURCES = {
   "cpc.read.fcrLeakLink": cLine(78, "percent FCR", "Below this FCR the page offers the FCR Leakage Diagnostic. The top of the internal vertical FCR range. Navigation only."),
   "cpc.band.gapAmber": cLine(20, "percent resolution premium", "Cost per resolution card turns amber above this premium. Colour only. It reaches no confidence axis."),
   "cpc.band.gapRed": cLine(40, "percent resolution premium", "Cost per resolution card turns red above this premium. Colour only. It reaches no confidence axis."),
-  ...cpcVertEntries,
 
   ...channelDefaultEntries,
   "channel.curve.mild": chHeur(0.08, "residual AHT uplift per unit of shift share", "Mild complexity curve. Easy volume leaves and residual voice gets slightly harder."),

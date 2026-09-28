@@ -59,12 +59,12 @@ const a = SRC.indexOf("/* @engine-start"), b = SRC.indexOf("/* @engine-end */");
 if (a < 0 || b < 0) { console.error("BLOCKER: engine markers not found in CostPerContactCalculator.jsx."); process.exit(1); }
 const region = SRC.slice(a, b).replace(/^export /gm, "");
 
-let compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, VBENCH, TOOL_ID;
+let compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, TOOL_ID;
 try {
-  ({ compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, VBENCH, TOOL_ID } = new Function(
+  ({ compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, TOOL_ID } = new Function(
     "MECH", "MECH_INITIAL", "ELECTRIC", "GREEN", "AMBER", "createGuards", "guardVal", "guardLine", "benchmark",
     "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
-    region + "\nreturn { compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, VBENCH, TOOL_ID };"
+    region + "\nreturn { compute, buildAnalystRead, BASE, DEFAULTS, money, fmtK, n, gradeCPC, fieldOrigin, DIV_STEPS, QUOTED_STEP, TOOL_ID };"
   )(MECH, MECH_INITIAL, COLORS.electric, COLORS.green, COLORS.amber, createGuards, guardVal, guardLine, benchmark,
     CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred));
 } catch (e) {
@@ -393,13 +393,13 @@ console.log("\n10. analyst read reconciliation");
     A(`analyst read quotes the engine's released figure (${mech})`, out[2].includes(fmtK(r.dividend[1].released)));
     A(`analyst read quotes the engine's realizable figure (${mech})`, out[2].includes(fmtK(r.dividend[1].realizable)));
     A(`analyst read names the selected mechanism by its shared label (${mech})`, out[2].includes(MECH[mech].label));
-    A(`analyst read calls the burden a ceiling, never a saving (${mech})`, /ceiling, not a savings figure/.test(out[1]));
+    A(`analyst read calls the burden a ceiling, never a saving (${mech})`, /Read it as a ceiling\./.test(out[1]) && /none of it is a saving on its own/.test(out[1]));
   }
   const none = B();
   A("with no mechanism the analyst read says the realizable figure is $0",
-    /that's \$0 because no capacity action is selected/.test(buildAnalystRead(none, compute(none, "none"), "none")[2]));
+    /That is \$0 for now because no capacity action is selected/.test(buildAnalystRead(none, compute(none, "none"), "none")[2]));
   A("the analyst read never claims released capacity is cash",
-    /capacity released, not yet cash/.test(buildAnalystRead(none, compute(none, "hiring"), "hiring")[2]));
+    /becomes cash only through the capacity action you choose/.test(buildAnalystRead(none, compute(none, "hiring"), "hiring")[2]));
 }
 
 /* ---- 11. Formatter contract. Every printed figure passes through these. ---- */
@@ -475,16 +475,16 @@ console.log("\n14. 11B grading layer and registry");
 {
   const TOOL = "cost-per-contact";
   const ids = [...SRC.matchAll(/benchmark\("([^"]+)"\)/g)].map(m => m[1]);
-  const vk = [...SRC.matchAll(/vert\("(\w+)", "/g)].map(m => m[1]);
-  const vf = [...SRC.matchAll(/benchmark\(`cpc\.vert\.\$\{k\}\.(\w+)`\)/g)].map(m => m[1]);
   const owned = benchmarksForTool(TOOL).map(e => e.id);
-  const readIds = new Set([...ids, ...vk.flatMap(k => vf.map(f => `cpc.vert.${k}.${f}`))]);
+  const readIds = new Set(ids);
   A("the tool reads its benchmarks from the registry", ids.length >= 25);
   A("every id the tool reads is registered", ids.every(id => id in BENCHMARK_SOURCES));
   A("every id the tool reads is owned by this tool or shared", ids.every(id => [TOOL, "shared"].includes(BENCHMARK_SOURCES[id].tool)));
-  A("the vertical ranges read every field by template", ["cpcLow", "cpcHigh", "cprLow", "cprHigh", "fcr"].every(f => vf.includes(f)) && vk.length === 3);
+  A("the vertical planning ranges are retired: no heuristic range or average FCR by industry, in the page or the registry (TB, 28 Sep)",
+    !/VBENCH|cpc\.vert\.|Vertical planning ranges|Avg FCR/.test(SRC) && !Object.keys(BENCHMARK_SOURCES).some(id => id.startsWith("cpc.vert.")));
+  A("the page points to the sourced industry figures instead", /href="\/industries"/.test(SRC) && /no reliable public benchmark for cost per contact by industry/.test(SRC));
   A("every registered entry for this tool is read", owned.every(id => readIds.has(id)));
-  A("the registry holds 42 entries for this tool", owned.length === 42);
+  A("the registry holds 27 entries for this tool (15 vertical ranges retired 28 Sep)", owned.length === 27);
   A("no default ships a bare number", !/:\s*\d/.test(SRC.slice(SRC.indexOf("const BASE = {"), SRC.indexOf("};", SRC.indexOf("const BASE = {")))));
   A("no derivation, fallback, floor or threshold ships bare",
     !/loaded \* 0\.6|\? 5\.5 :|Math\.max\(0\.1|repeatShare > 0\.25|fcr < 0\.70|Mu < 1\.3|fcrPct < 78|gapPct > 40|gapPct > 20|used: 140|: 140;/.test(SRC));
@@ -498,10 +498,6 @@ console.log("\n14. 11B grading layer and registry");
     && !("cpc.default.overhead" in BENCHMARK_SOURCES));
   A("every heuristic is labelled as one", benchmarksForTool(TOOL).filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
   A("every threshold states a rationale", benchmarksForTool(TOOL).filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));
-  A("the vertical ranges are labelled internal planning heuristics on the page",
-    /internal planning heuristics, not published benchmarks/.test(SRC) && !/validated 2026/.test(SRC));
-  A("the vertical ranges print the registry values",
-    VBENCH[0].cpc === `$${benchmark("cpc.vert.fin.cpcLow")} to $${benchmark("cpc.vert.fin.cpcHigh")}` && VBENCH[2].fcr === `${benchmark("cpc.vert.retail.fcr")}%`);
   A("the dividend prices the registry steps, in order", JSON.stringify(compute(B(), "hiring").dividend.map(x => x.p)) === JSON.stringify(DIV_STEPS) && QUOTED_STEP === DIV_STEPS[1]);
 
   A("the engine calls emitGrades", /emitGrades\(\{/.test(region));
