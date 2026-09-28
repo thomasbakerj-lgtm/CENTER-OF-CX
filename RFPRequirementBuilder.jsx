@@ -230,7 +230,7 @@ export default function RFPRequirementBuilder() {
             {vendors.length < MODEL.thresholds.maxVendors.value && <Button kind="secondary" onClick={addVendor}>+ Add a vendor</Button>}
           </div>
           {scoring && (
-            <div style={{ overflowX: "auto", border: `1px solid ${K.hair}`, borderRadius: RADIUS.field, marginBottom: 12 }}>
+            <div role="region" aria-label="Scoring table, scrolls sideways" tabIndex={0} style={{ overflowX: "auto", border: `1px solid ${K.hair}`, borderRadius: RADIUS.field, marginBottom: 12 }}>
               <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 360 + R.vendors.length * 170 }}>
                 <thead><tr><th scope="col" style={{ ...K.kicker, textAlign: "left", padding: "10px 12px" }}>Requirement</th>{R.vendors.map((v) => <th key={v.index} scope="col" style={{ ...K.strong, fontSize: 13, textAlign: "left", padding: "10px 12px" }}>{v.name}</th>)}</tr></thead>
                 <tbody>{all.map((r) => (

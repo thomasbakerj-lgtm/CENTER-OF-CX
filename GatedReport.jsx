@@ -275,8 +275,9 @@ export default function GatedReport() {
 
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, display: "block", marginBottom: 4 }}>Name *</label>
+                  <label htmlFor="gr-name" style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, display: "block", marginBottom: 4 }}>Name *</label>
                   <input
+                    id="gr-name"
                     type="text" required
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
@@ -288,8 +289,9 @@ export default function GatedReport() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, display: "block", marginBottom: 4 }}>Title</label>
+                  <label htmlFor="gr-title" style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, display: "block", marginBottom: 4 }}>Title</label>
                   <input
+                    id="gr-title"
                     type="text"
                     value={formData.title}
                     onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -301,8 +303,9 @@ export default function GatedReport() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, display: "block", marginBottom: 4 }}>Email *</label>
+                  <label htmlFor="gr-email" style={{ fontSize: 12, fontWeight: 600, color: HOUSE.body, display: "block", marginBottom: 4 }}>Email *</label>
                   <input
+                    id="gr-email"
                     type="email" required
                     value={formData.email}
                     onChange={e => setFormData({ ...formData, email: e.target.value })}

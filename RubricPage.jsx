@@ -67,7 +67,7 @@ export default function RubricPage({ id }) {
         </>)}
 
         <h2 style={H2}>Bands</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY }}>{paired ? "Average gap" : "Overall score"}</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Band</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>What it means</th></tr></thead>
           <tbody>{r.bands.map((b, i, all) => (
             <tr key={b.id}><td style={{ ...cell, whiteSpace: "nowrap" }}>{cut(b, i, all)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{b.label}</td><td style={cell}>{b.desc}{b.rec ? ` ${b.rec}` : ""}{b.dimFlag ? ` A dimension scoring in this band is marked "${b.dimFlag}".` : ""}</td></tr>
@@ -76,7 +76,7 @@ export default function RubricPage({ id }) {
 
         {r.secondaryBands && (<>
           <h2 style={H2}>{r.secondaryBands.title}</h2>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
             <tbody>{r.secondaryBands.bands.map((b, i, all) => (
               <tr key={b.id}><td style={{ ...cell, whiteSpace: "nowrap" }}>{cut(b, i, all)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{b.label}</td><td style={cell}>{b.desc}</td></tr>
             ))}</tbody>
@@ -91,14 +91,14 @@ export default function RubricPage({ id }) {
               <span style={{ ...TYPE.caption, color: MUTED }}>Weight {d.weight} of {totalWeight}. {paired ? "If largest gap" : "If lowest"}, next diagnostic: {JOURNEY[d.next] ? <a href={JOURNEY[d.next].route} style={{ color: ELECTRIC, fontWeight: 600 }}>{JOURNEY[d.next].name}</a> : d.next}</span>
             </div>
             {paired ? (
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
+            <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
               <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY }}>{sideLabel(0)}</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>{sideLabel(1)}</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>If {r.gapAt}+ points apart</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>If both at {r.failAt} or below</th></tr></thead>
               <tbody>{d.pairs.map((p, i) => (
                 <tr key={i}><td style={cell}>{p[r.sides[0].id]}</td><td style={cell}>{p[r.sides[1].id]}</td><td style={cell}>{p.align}</td><td style={cell}>{p.build}</td></tr>
               ))}</tbody>
             </table>
             ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
+            <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
               <thead><tr><th style={{ ...cell, ...TYPE.label, color: NAVY, width: "45%" }}>Statement</th><th style={{ ...cell, ...TYPE.label, color: NAVY }}>Action if answered {r.failAt} or below</th></tr></thead>
               <tbody>{d.criteria.map((c, i) => (
                 <tr key={i}><td style={cell}>{c.text}</td><td style={cell}>{c.action}</td></tr>
@@ -147,7 +147,7 @@ function OwnershipPage({ r }) {
         <h2 style={H2}>How the map is read</h2>
         <p style={P}>Each decision gets one accountable role and, optionally, one contributing role. The model does not score: governance quality does not average, and one unowned decision can matter more than the rest together. It raises findings under the six rules below, most serious first. Findings appear once {r.minAssigned} of the {total} decisions have an owner. The roles are {r.roles.map((x) => x.label).join(", ")}.</p>
         <h2 style={H2}>Rules and bands</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Finding</th><th style={th}>Raised when</th><th style={th}>Severity</th></tr></thead>
           <tbody>{Object.entries(r.rules).map(([id, x]) => (
             <tr key={id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.title}</td><td style={cell}>{id === "bottleneck" ? `${x.test} Across ${r.roles.length} roles that is ${bottleneckAt} or more.` : x.test}</td><td style={cell}>{x.severity === "info" ? "Confirm" : x.severity[0].toUpperCase() + x.severity.slice(1)}</td></tr>
@@ -158,7 +158,7 @@ function OwnershipPage({ r }) {
         {r.domains.map((d) => (
           <section key={d.id} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
             <h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 10 }}>{d.name}</h3>
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
+            <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
               <thead><tr><th style={{ ...th, width: "45%" }}>Decision</th><th style={th}>Common owner</th><th style={th}>Must involve</th></tr></thead>
               <tbody>{d.items.map((it, i) => (
                 <tr key={i}><td style={cell}>{it.text}</td><td style={cell}>{role(it.common)}</td><td style={cell}>{need(it) || "None required"}</td></tr>
@@ -190,7 +190,7 @@ function QAPage({ r }) {
   const sev = (x) => (x.severity === "info" ? "Note" : x.severity[0].toUpperCase() + x.severity.slice(1));
   const rules = (group) => Object.entries(r.rules).filter(([, x]) => x.group === group);
   const RuleTable = ({ group }) => (
-    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
       <thead><tr><th style={th}>Finding</th><th style={th}>Raised when</th><th style={th}>Severity</th></tr></thead>
       <tbody>{rules(group).map(([id, x]) => (
         <tr key={id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.title}</td><td style={cell}>{fillT(x.test)}{x.heuristic ? " Heuristic threshold." : ""}</td><td style={cell}>{sev(x)}</td></tr>
@@ -225,13 +225,13 @@ function QAPage({ r }) {
         <p style={P}>Each evaluator scores the same calls alone and sees only their own score. They send the QA lead a submission code, which carries their initials, the call ID, their marks and a fingerprint of the form, so a code scored on a different form is set aside. The tool compares nothing, and shows no score, bias or agreement, until every evaluator has scored every call. Until then it shows only how many evaluators have scored each call. A session needs at least {r.thresholds.minEvaluators.value} evaluators besides any reference.</p>
         <h2 style={H2}>{r.method.name}, version {r.method.version}</h2>
         <p style={P}>{r.method.summary} The method is our own combination; every statistic inside it is published and cited below.</p>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Measure</th><th style={th}>Statistic</th></tr></thead>
           <tbody>{r.measures.map((m) => <tr key={m.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{m.label}</td><td style={cell}>{m.stat}</td></tr>)}</tbody>
         </table>
         <p style={{ ...P, marginTop: 12 }}>Every measure carries a {Math.round(r.bootstrap.level * 100)}% bootstrap interval: the calls are resampled {r.bootstrap.resamples.toLocaleString("en-US")} times with a fixed seed, so the same session always gives the same interval. A measure is graded by where its whole interval falls. An interval that crosses a band line is inconclusive, and a session of fewer than {r.thresholds.minCalls.value} calls is shown but not graded. When every evaluator gives every mark the same value, alpha has no value to compute, because there is no variation to measure; the session reads as unanimous and is never reported as a failure. Percent agreement sits beside each measure because it is the number a supervisor reads first.</p>
         <h2 style={H2}>Rules and bands</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Band</th><th style={th}>Cut point</th><th style={th}>Meaning</th></tr></thead>
           <tbody>{r.bands.map((b, i) => <tr key={b.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{b.label}</td><td style={cell}>{i === 0 ? `${b.min.toFixed(3)} and above` : Number.isFinite(b.min) ? `${b.min.toFixed(3)} to below ${r.bands[i - 1].min.toFixed(3)}` : `Below ${r.bands[i - 1].min.toFixed(3)}`}</td><td style={cell}>{b.desc}</td></tr>)}</tbody>
         </table>
@@ -240,7 +240,7 @@ function QAPage({ r }) {
         <h2 style={H2}>Why kappa is not used for critical fails</h2>
         <p style={P}>Two evaluators score {px.calls} calls on one auto-fail criterion. Both pass {px.bothPass}; each fails {px.splitA} that the other passed; neither fails the same call. They agree on {Math.round(g.pa * 100)}% of calls. Cohen's kappa for this table is {kappa.toFixed(2)}, which reads as no agreement at all, because rare fails make chance agreement look almost certain. Gwet's AC1 for the same table is {g.ac1.toFixed(2)}. Critical fails are rare by design, so the method grades them with AC1 (Feinstein and Cicchetti 1990; Gwet 2008).</p>
         <h2 style={H2}>Thresholds</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Threshold</th><th style={th}>Value</th><th style={th}>Basis</th></tr></thead>
           <tbody>{Object.entries(r.thresholds).map(([id, t]) => <tr key={id}><td style={cell}>{t.text[0].toUpperCase() + t.text.slice(1)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{TV[id]}</td><td style={cell}>{t.kind === "heuristic" ? "Heuristic, no published source" : "Rule of the method"}</td></tr>)}</tbody>
         </table>
@@ -289,26 +289,26 @@ function RenewalPage({ r }) {
         <h2 style={H2}>What you record for each need</h2>
         <p style={P}>How well your current platform does it: {r.ratings.map((x) => x.value + " " + x.label.toLowerCase()).join(", ")}, or {r.unknown.label.toLowerCase()}. How you know: {r.evidence.map((x) => x.label.toLowerCase()).join(" or ")}. Whether it matters for the next contract term: {r.needLevels.map((x) => x.label.toLowerCase()).join(", ")}. A need marked not needed drops out of every outcome. Nothing is averaged: a must-have gap is a gap whatever the other ratings are, and a rating you do not know is a request for proof, never a low score.</p>
         <h2 style={H2}>Rules and bands</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Finding</th><th style={th}>Raised when</th><th style={th}>Severity</th></tr></thead>
           <tbody>{Object.entries(r.rules).map(([id, x]) => (
             <tr key={id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.title}</td><td style={cell}>{fillT(x.test)}</td><td style={cell}>{sev(x)}</td></tr>
           ))}</tbody>
         </table>
         <h2 style={H2}>Layer outcomes</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Outcome</th><th style={th}>When</th></tr></thead>
           <tbody>{r.outcomes.map((o) => <tr key={o.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{o.label}</td><td style={cell}>{fillT(o.test)}</td></tr>)}</tbody>
         </table>
         <p style={{ ...P, marginTop: 12 }}>A core layer is what the contact center platform itself is: {r.layers.filter((l) => l.core).map((l) => l.name).join(" and ")}. A gap there is not closed by adding a product beside the platform, so it calls for a market test; on the other layers a specialist can serve beside it.</p>
         <h2 style={H2}>The renewal gate</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Gate</th><th style={th}>When</th></tr></thead>
           <tbody>{r.gates.map((g) => <tr key={g.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{g.label}</td><td style={cell}>{fillT(g.test)}</td></tr>)}</tbody>
         </table>
         <p style={{ ...P, marginTop: 12 }}>The clock then checks whether there is time to act: fewer than {TV.evaluationMonths} months to the notice date is too little to run an evaluation, and fewer than {TV.negotiationMonths} months is little time to negotiate conditions. The next step is {link(r.next.contract)} when the exit and data terms are unknown or conditions must be written in, {link(r.next.market)} when the gate says evaluate, and {link(r.next.price)} when the call is to renew.</p>
         <h2 style={H2}>Thresholds</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Threshold</th><th style={th}>Value</th><th style={th}>Basis</th></tr></thead>
           <tbody>{Object.entries(r.thresholds).map(([id, t]) => <tr key={id}><td style={cell}>{t.text[0].toUpperCase() + t.text.slice(1)}</td><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{TV[id]}</td><td style={cell}>{t.kind === "heuristic" ? "Heuristic, no published source" : "Rule of the method"}</td></tr>)}</tbody>
         </table>
@@ -355,11 +355,11 @@ function TermsPage({ r }) {
         <h2 style={H2}>How a contract is read</h2>
         <p style={P}>Each clause is answered with the option that matches the contract, or {r.unknown.label.toLowerCase()}. Every option carries a published severity. A clause you do not know is an item to find before signing: it is never counted as a pass and never given a severity. {r.positionsNote}</p>
         <h2 style={H2}>Rules and bands</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
           <thead><tr><th style={th}>Severity</th><th style={th}>Meaning</th></tr></thead>
           <tbody>{r.levels.map((l) => <tr key={l.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{l.label}</td><td style={cell}>{l.test}</td></tr>)}</tbody>
         </table>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Reading</th><th style={th}>When</th></tr></thead>
           <tbody>{r.readings.map((x) => <tr key={x.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.label}</td><td style={cell}>{x.test}</td></tr>)}</tbody>
         </table>
@@ -418,12 +418,12 @@ function RfpPage({ r }) {
         <h2 style={H2}>How responses are scored</h2>
         <p style={P}>Each requirement carries a priority, which you can change. {r.weightsNote} Weighted coverage is the credit a vendor earns over the weight of the requirements it answered. A requirement a vendor left unanswered is left out of its score and listed as a clarification to send back; it is never counted as a zero. A vendor is ordered only when it meets or conditionally meets every must-have and has no must-have left unanswered, and vendors within {r.thresholds.tieMargin.value} points share a position. Only the vendors you enter are ordered, on your data.</p>
         <h2 style={H2}>Rules and bands</h2>
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
           <thead><tr><th style={th}>Response</th><th style={th}>Credit</th><th style={th}>Meets a must-have</th></tr></thead>
           <tbody>{r.responses.map((x) => <tr key={x.id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.label}</td><td style={cell}>{x.credit}{x.heuristic ? " (default, no published source)" : ""}</td><td style={cell}>{x.meets ? "Yes" + (x.id === "partner" ? ", with the ownership questions below" : "") : "No"}</td></tr>)}</tbody>
         </table>
         <p style={P}>Preview, beta, early access and roadmap capabilities earn no credit: a capability that is not generally available cannot be relied on in production, however soon it is promised.</p>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead><tr><th style={th}>Finding</th><th style={th}>Raised when</th><th style={th}>Severity</th></tr></thead>
           <tbody>{Object.entries(r.rules).map(([id, x]) => <tr key={id}><td style={{ ...cell, fontWeight: 600, color: NAVY }}>{x.title}</td><td style={cell}>{fillT(x.test)}</td><td style={cell}>{sev(x)}</td></tr>)}</tbody>
         </table>
@@ -432,7 +432,7 @@ function RfpPage({ r }) {
         {r.layers.map((l) => (
           <section key={l.n} style={{ border: `1px solid ${BORDER}`, borderRadius: 10, padding: "18px 20px", marginBottom: 16, background: WARM }}>
             <h3 style={{ ...TYPE.h3, color: NAVY, marginBottom: 10 }}>L{l.n} {l.name}</h3>
-            <table style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
+            <table tabIndex={0} style={{ width: "100%", borderCollapse: "collapse", background: "transparent" }}>
               <thead><tr><th style={{ ...th, width: "58%" }}>Requirement</th><th style={th}>Default priority</th><th style={th}>Included for</th></tr></thead>
               <tbody>{l.reqs.map((q, i) => <tr key={i}><td style={cell}>{q.text}</td><td style={cell}>{pri(q.priority)}</td><td style={cell}>{q.tags.map(tag).join(", ")}</td></tr>)}</tbody>
             </table>

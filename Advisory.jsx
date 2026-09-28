@@ -132,7 +132,7 @@ function HowWeWork() {
                 { step: "04", text: "If you need implementation support, we introduce you to vetted partners who fit your vertical and stack." },
               ].map((s, i) => (
                 <div key={i} style={{ display: "flex", gap: 14, padding: "14px 0", borderBottom: i < 3 ? `1px solid ${BORDER}` : "none" }}>
-                  <span style={{ fontFamily: FONT, fontSize: 22, color: `${ELECTRIC}40`, flexShrink: 0, width: 28 }}>{s.step}</span>
+                  <span style={{ fontFamily: FONT, fontSize: 22, color: ELECTRIC, flexShrink: 0, width: 28 }}>{s.step}</span>
                   <span style={{ fontSize: 14, color: SLATE, lineHeight: 1.55, fontFamily: FONT }}>{s.text}</span>
                 </div>
               ))}

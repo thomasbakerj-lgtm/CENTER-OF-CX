@@ -164,15 +164,21 @@ export function resultHow(g) {
 /** The figure counts to its value; one line under it states the change; the evidence
  *  mark sits beside it, or below it in a narrow column. A void result shows no figure and says which input made it
  *  impossible. */
+/* Decimal places a figure carries, so a count-up never shows float noise ("129.2584297154897" once overflowed the
+   Staffing page mid-animation). */
+const SR_ONLY = { position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap", border: 0 };
+const placesOf = (v) => { if (typeof v !== "number" || !isFinite(v)) return 0; const t = String(v); return t.includes("e") ? 0 : (t.split(".")[1] || "").length; };
+
 export function Result({ label, value, format = (v) => String(v), change, how, voidReason }) {
   const [shown, setShown] = useState(value);
+  const dp = Math.min(placesOf(value), 6);
   const from = useRef(value);
   useEffect(() => {
     if (typeof value !== "number" || typeof from.current !== "number") { setShown(value); from.current = value; return; }
     const a = from.current, b = value, t0 = typeof performance !== "undefined" ? performance.now() : 0, dur = parseInt(MOTION.count, 10);
     if (typeof window === "undefined" || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) { setShown(b); from.current = b; return; }
     let raf;
-    const step = (t) => { const k = Math.min(1, (t - t0) / dur), ez = 1 - Math.pow(1 - k, 3); setShown(a + (b - a) * ez); if (k < 1) raf = requestAnimationFrame(step); else from.current = b; };
+    const step = (t) => { const k = Math.min(1, (t - t0) / dur), ez = 1 - Math.pow(1 - k, 3); setShown(k < 1 ? +(a + (b - a) * ez).toFixed(dp) : b); if (k < 1) raf = requestAnimationFrame(step); else from.current = b; };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [value]);
@@ -189,7 +195,9 @@ export function Result({ label, value, format = (v) => String(v), change, how, v
     <section aria-label={label} style={{ padding: 24, borderRadius: RADIUS.card, background: HOUSE.navy, display: "flex", flexWrap: "wrap", gap: 24, alignItems: "center", boxShadow: `0 24px 60px ${alpha(HOUSE.ink, 0.5)}` }}>
       <div style={{ flex: "1 1 220px", minWidth: 0 }}>
         <div style={labelStyle}>{label}</div>
-        <div aria-live="polite" style={{ fontSize: 64, fontWeight: 700, letterSpacing: T.figure.tracking, lineHeight: 1, color: HOUSE.mist, fontVariantNumeric: "tabular-nums", marginTop: 8 }}>{format(typeof value === "number" ? shown : value)}</div>
+        {/* The figure animates for sight; the live region announces only the settled value, once. */}
+        <div aria-hidden="true" style={{ fontSize: 64, fontWeight: 700, letterSpacing: T.figure.tracking, lineHeight: 1, color: HOUSE.mist, fontVariantNumeric: "tabular-nums", marginTop: 8, overflowWrap: "anywhere" }}>{format(typeof value === "number" ? shown : value)}</div>
+        <span aria-live="polite" style={SR_ONLY}>{format(value)}</span>
         {change && <div style={{ fontSize: 15, color: HOUSE.body, marginTop: 8 }}>{change}</div>}
       </div>
       {how && (

@@ -118,7 +118,7 @@ export default function HowToChoose() {
             <a key={c.id} href={`#${c.id}`} style={{ padding: "6px 14px", fontSize: 12, fontWeight: 600, borderRadius: 5, color: MUTED, border: `1px solid ${BORDER}`, whiteSpace: "nowrap", transition: "all 0.15s" }}
               onMouseOver={e => { e.target.style.color = c.color; e.target.style.borderColor = c.color; }}
               onMouseOut={e => { e.target.style.color = MUTED; e.target.style.borderColor = BORDER; }}>
-              {c.label} <span style={{ opacity: 0.4 }}>({c.tools.length})</span>
+              {c.label} <span style={{ opacity: 0.8 }}>({c.tools.length})</span>
             </a>
           ))}
         </div>

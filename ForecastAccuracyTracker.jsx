@@ -163,7 +163,7 @@ export default function ForecastAccuracyTracker() {
         <Tile label="Tracking signal" value={R.trackingSignal.toFixed(1)} note={R.lean === "none" ? `Within plus or minus ${L}` : R.lean === "above" ? "Forecast running low" : "Forecast running high"} />
       </div>
 
-      <section aria-label="Forecast and actual by interval" style={{ ...K.panel, overflowX: "auto" }}>
+      <section aria-label="Forecast and actual by interval" tabIndex={0} style={{ ...K.panel, overflowX: "auto" }}>
         <h2 style={K.h2}>Forecast and actual by interval</h2>
         <svg viewBox={`0 0 ${chartW} ${chartH + 24}`} style={{ width: "100%", maxWidth: chartW, minWidth: 320 }} role="img" aria-label="Forecast and actual contacts by interval">
           {rows.map((r, i) => {

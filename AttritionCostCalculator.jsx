@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
@@ -398,10 +398,11 @@ export function compute(d) {
 /* @engine-end */
 
 function Select({ label, value, onChange, opts, info, infoTitle, align }) {
+  const id = useId();
   return (
     <div>
-      <label style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>{label}{info && <InfoDot text={info} title={infoTitle || label} align={align} />}</label>
-      <select aria-label={typeof label === "string" ? label : undefined} value={value} onChange={e => onChange(e.target.value)} className="at-sel" style={{ width: "100%", minHeight: TOUCH, padding: "0 12px", fontSize: 15, fontWeight: 600, fontFamily: FONT, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, background: HOUSE.navy, color: HOUSE.mist }}>
+      <label htmlFor={id} style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist, display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>{label}{info && <InfoDot text={info} title={infoTitle || label} align={align} />}</label>
+      <select id={id} aria-label={typeof label === "string" ? label : undefined} value={value} onChange={e => onChange(e.target.value)} className="at-sel" style={{ width: "100%", minHeight: TOUCH, padding: "0 12px", fontSize: 15, fontWeight: 600, fontFamily: FONT, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, background: HOUSE.navy, color: HOUSE.mist }}>
         {opts.map(o => <option key={o.v} value={o.v}>{o.label}</option>)}
       </select>
     </div>

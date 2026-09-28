@@ -185,33 +185,33 @@ function ContactPage() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <div>
-                        <label style={labelStyle}>First name</label>
-                        <input name="first_name" required style={inputStyle} placeholder="Jane" />
+                        <label htmlFor="ct-first_name" style={labelStyle}>First name</label>
+                        <input id="ct-first_name" name="first_name" required style={inputStyle} placeholder="Jane" />
                       </div>
                       <div>
-                        <label style={labelStyle}>Last name</label>
-                        <input name="last_name" required style={inputStyle} placeholder="Smith" />
+                        <label htmlFor="ct-last_name" style={labelStyle}>Last name</label>
+                        <input id="ct-last_name" name="last_name" required style={inputStyle} placeholder="Smith" />
                       </div>
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Work email</label>
-                      <input name="email" type="email" required style={inputStyle} placeholder="jane@company.com" />
+                      <label htmlFor="ct-email" style={labelStyle}>Work email</label>
+                      <input id="ct-email" name="email" type="email" required style={inputStyle} placeholder="jane@company.com" />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Company</label>
-                      <input name="company" required style={inputStyle} placeholder="Acme Corp" />
+                      <label htmlFor="ct-company" style={labelStyle}>Company</label>
+                      <input id="ct-company" name="company" required style={inputStyle} placeholder="Acme Corp" />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Your role</label>
-                      <input name="role" required style={inputStyle} placeholder="VP of Customer Experience" />
+                      <label htmlFor="ct-role" style={labelStyle}>Your role</label>
+                      <input id="ct-role" name="role" required style={inputStyle} placeholder="VP of Customer Experience" />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>What are you working on?</label>
-                      <select key={intro ? "intro" : "none"} name="topic" required defaultValue={intro ? INTRO_TOPIC : ""} style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
+                      <label htmlFor="ct-topic" style={labelStyle}>What are you working on?</label>
+                      <select key={intro ? "intro" : "none"} id="ct-topic" name="topic" required defaultValue={intro ? INTRO_TOPIC : ""} style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
                         <option value="" disabled>Select a topic</option>
                         <option value="Platform selection / CCaaS evaluation">Platform selection / CCaaS evaluation</option>
                         <option value="AI readiness assessment">AI readiness assessment</option>
@@ -225,13 +225,13 @@ function ContactPage() {
                     </div>
 
                     <div>
-                      <label style={labelStyle}>Describe your situation <span style={{ fontWeight: 400, color: MUTED }}>(the more context, the better we can prepare)</span></label>
-                      <textarea key={intro ? "intro" : "none"} name="message" required rows={5} style={{ ...inputStyle, resize: "vertical", minHeight: 120 }} placeholder={intro ? "What you want to see in the demo, your timeline, and who should join the call..." : "We're evaluating CCaaS platforms and need help narrowing from 8 vendors to 3. Currently on legacy Avaya with 400 agents across two sites..."} />
+                      <label htmlFor="ct-message" style={labelStyle}>Describe your situation <span style={{ fontWeight: 400, color: MUTED }}>(the more context, the better we can prepare)</span></label>
+                      <textarea key={intro ? "intro" : "none"} id="ct-message" name="message" required rows={5} style={{ ...inputStyle, resize: "vertical", minHeight: 120 }} placeholder={intro ? "What you want to see in the demo, your timeline, and who should join the call..." : "We're evaluating CCaaS platforms and need help narrowing from 8 vendors to 3. Currently on legacy Avaya with 400 agents across two sites..."} />
                     </div>
 
                     <div>
-                      <label style={labelStyle}>How did you find us? <span style={{ fontWeight: 400, color: MUTED }}>(optional)</span></label>
-                      <input name="source" style={inputStyle} placeholder="LinkedIn, referral, search, event..." />
+                      <label htmlFor="ct-source" style={labelStyle}>How did you find us? <span style={{ fontWeight: 400, color: MUTED }}>(optional)</span></label>
+                      <input id="ct-source" name="source" style={inputStyle} placeholder="LinkedIn, referral, search, event..." />
                     </div>
 
                     <button
