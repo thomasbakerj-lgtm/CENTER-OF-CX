@@ -380,8 +380,8 @@ for (const [k, R] of Object.entries(results)) {
   if (r.shelfware.length) {
     A(`${k}: the shelfware section calls it leverage, never recoverable savings`,
       sect(R, "Shelfware").content.indexOf("Not recoverable") >= 0);
-    A(`${k}: the shelfware section heading says leverage, not savings`,
-      !!R.sections.find(s => s && s.title.indexOf("leverage, not savings") >= 0));
+    A(`${k}: the shelfware section heading says it is leverage only`,
+      !!R.sections.find(s => s && s.title.indexOf("Leverage Only") >= 0));
   }
 
   /* --- commercial exposure only appears when it exists --- */

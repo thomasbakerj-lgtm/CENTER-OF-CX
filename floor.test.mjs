@@ -81,7 +81,7 @@ function render(mod, route, search) {
     return { h1: (html.match(/<h1[\s>]/g) || []).length, text: html.replace(/<[^>]+>/g, " ").replace(/&[a-z#0-9]+;/g, " ").replace(/\s+/g, " ") };
   } catch (e) { return { error: e.message }; }
 }
-const BAD = /\bNaN\b|\bInfinity\b|\bundefined\b|\[object Object\]/;
+const BAD = /\bNaN\b|\bInfinity\b|\bundefined\b|\[object Object\]|\$\{/; // "${" is a template placeholder printed as text (Attrition read, found 28 Sep)
 /* Float noise: a figure such as 28.000000000000004 or 0.30000000000000004 printed as if
    it were a value. Checked on the default and sample renders, which a reader sees first. */
 const NOISE = /\d\.\d*0000000\d|\d\.\d*9999999\d/;

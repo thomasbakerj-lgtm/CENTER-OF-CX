@@ -27,20 +27,20 @@ const DEEP = "#061325", LIGHT = "#00AAFF", WARM = "#F8FAFB", SLATE = "#3A4F6A", 
 const WRAP = { maxWidth: 920, margin: "0 auto", padding: "0 28px" };
 
 const DEFS = {
-  benefitsLoad: "The percentage added to base wage for employer-paid benefits and payroll taxes. It opens at the platform's shared 30% benefits load. The tool loads wage-paid time at this rate because you really do pay salary plus benefits while a new hire trains or ramps, not just base wage.",
-  backfill: "The share of departures you actually replace. Replacement cost only exists for seats you refill: no hire means no recruiting, training, ramp, or coverage spend. Backfill therefore scales the entire replacement cycle. Seats you do not refill are a capacity decision, not a replacement cost, and are handled separately below.",
-  unbackfill: "What happens to the seats you do not refill. Intended downsizing means the capacity reduction is deliberate, so it is not a turnover cost. Forced under-staffing means you are losing output you still need; that lost capacity is real but is valued in Staffing and Occupancy, not invented here, so this tool routes it rather than guessing a number.",
-  marginalCash: "Cash out the door is spend that genuinely disappears when a backfilled departure is avoided: recruiting, training wages, sign-on, and overtime premium. It is credited at 100 percent in savings because you simply stop spending it.",
-  capacity: "Capacity is recovered agent and supervisor time, not cash. It only becomes money if you act on it, so it is gated by a realization mechanism. With no mechanism committed, recovered capacity is worth zero in hard savings.",
-  denominator: "Attrition here is separations divided by average headcount over the year. Define it before you trust it: voluntary only or total, regrettable or all, and a rolling twelve-month actual rather than a bad month annualized. Annualizing one rough month is the most common way centers accidentally inflate their own rate.",
-  early: "The share of new hires who wash out before reaching productive output, usually inside the first ninety days. Their recruiting and training cash is mostly sunk with near-zero return, which makes early attrition the highest-waste and most recoverable segment. It is measured against hires, not all departures, so it can never exceed the replacement cash it is drawn from.",
-  nesting: "Nesting is supervised live production right after classroom training, where the new hire handles real contacts at reduced output. The loss is the unproductive share of fully-paid time during that period.",
-  ramp: "Ramp is the post-nesting stretch before a new hire reaches tenured-agent parity on AHT, QA, and FCR, not merely the point they finish training. Default to fully-productive parity, which is months not days, and value only the shortfall against full output. Ramp starts after nesting so the two never overlap.",
-  vacancyMode: "Incremental to staffed plan charges only the overtime premium, because the empty seat's base wage is not being paid. Gross coverage spend charges the full overtime cost and should be used only when the departed agent's stopped payroll is credited somewhere else, or you will double count.",
-  mech: "How recovered capacity converts to money. Not selected means you keep the slack and realize zero. Avoid hiring is the most common honest lever and the defensible default. Headcount reduction realizes the most but is the hardest commitment to make. This table is the shared platform definition, so the same mechanism means the same thing in every tool.",
-  confidence: "Confidence is split into three named axes. Evidence asks where the inputs came from: estimated, HR data, or finance-confirmed. Realization asks whether the modelled benefit converts to cash, read from the shared capacity-action table. Completeness asks whether the model is whole and internally consistent: inputs inside possible ranges, cost basis inside the frontline band, and no value routed out of the model. The headline grade is the weakest of the three, and the rationale always names which axis is holding it there.",
-  sensitivity: "The all-in figure multiplies six uncertain inputs, and multiplying uncertainty compounds it, so the true cost is a range, not a point. The planning band tightens as you confirm inputs: about plus or minus 25 percent on estimates, 15 percent on HR data, 10 percent on finance-confirmed figures. This exists for CFO alignment: a finance team trusts a defensible range far more than a single exact number, and a lone precise figure invites a vendor or budget owner to attack one input and dismiss the whole model. The band is how the number survives scrutiny.",
-  costToAchieve: "Realizable savings are shown gross, before the money you spend to actually cut attrition: pay adjustments, coaching, scheduling tools, better hiring. This exists for CFO alignment because no CFO will book a savings number without the cost to capture it. Enter the annual cost per point of reduction and the tool nets it out and shows the return, turning a scary gross figure into a fundable business case. Real programs cost more per point as you push lower (diminishing returns), so treat deep cuts as the optimistic end.",
+  benefitsLoad: "The percentage added to base wage for employer-paid benefits and payroll taxes. It opens at the platform's shared 30% benefits load. Paid time during training and ramp is costed at this loaded rate, because you pay salary plus benefits while a new hire learns the job.",
+  backfill: "The share of departures you replace. Replacement cost exists only for seats you refill: with no hire there is no recruiting, training, ramp or coverage spend. Backfill therefore scales the whole replacement cycle. Seats you do not refill are a capacity decision, handled separately below.",
+  unbackfill: "What happens to the seats you do not refill. Intended downsizing means the reduction is deliberate, so it carries no turnover cost. Forced under-staffing means you lose output you still need. That lost capacity is real, and it is valued in Staffing and Occupancy. This tool routes it there and does not guess a number.",
+  marginalCash: "Cash out the door is spend that stops when a backfilled departure is avoided: recruiting, training wages, sign-on bonuses and the overtime premium. It counts at 100 percent in savings, because you simply stop spending it.",
+  capacity: "Capacity is recovered agent and supervisor time. It becomes money only when you act on it, so it passes through a capacity action (the realization mechanism). With no action committed, recovered capacity counts as zero in hard savings.",
+  denominator: "Attrition here is separations divided by average headcount over the year. Define it before you rely on it: voluntary only or total, regrettable or all, and a rolling twelve-month actual. Annualizing one rough month is a common way centers inflate their own rate by accident.",
+  early: "Early washout is the share of new hires who leave before reaching productive output, usually inside the first ninety days. Their recruiting and training cash is spent with almost no return, which makes this the most wasteful and most recoverable segment. It is measured against hires, so it can never exceed the replacement cash it is drawn from.",
+  nesting: "Nesting is supervised live work right after classroom training: the new hire handles real contacts at reduced output. The loss is the unproductive share of fully paid time during that period.",
+  ramp: "Ramp is the stretch after nesting until a new hire matches tenured agents on AHT (average handle time), QA (quality assurance) scores and FCR (first contact resolution). Measure it to full parity, which takes months. Only the shortfall against full output is valued, and ramp starts after nesting so the two never overlap.",
+  vacancyMode: "Incremental charges only the overtime premium, because the empty seat's base wage is no longer being paid. Gross coverage spend charges the full overtime cost. Use it only when the departed agent's stopped payroll is credited somewhere else, or you will count it twice.",
+  mech: "How recovered capacity turns into money. Not selected means you keep the slack and realize zero. Avoiding hiring is a common and defensible choice. Headcount reduction realizes the most but is the hardest commitment to make. The table is shared across the platform, so each action means the same thing in every tool.",
+  confidence: "Confidence is graded on three axes. Evidence: where the inputs came from (estimates, HR data or finance-confirmed figures). Realization: whether the modelled benefit converts to cash, read from the shared capacity-action table. Completeness: whether the model is whole and consistent, with inputs inside possible ranges, the cost basis inside the frontline band and no value routed out of the model. The headline grade is the weakest of the three, and the rationale names the axis holding it there.",
+  sensitivity: "The all-in figure multiplies six uncertain inputs, and the uncertainty compounds, so the cost is shown as a range around the point figure. The band narrows as you confirm inputs: about plus or minus 25 percent on estimates, 15 percent on HR data and 10 percent on finance-confirmed figures. Finance teams tend to trust a defensible range more than a single exact number, and a range keeps one disputed input from discrediting the whole model.",
+  costToAchieve: "Realizable savings are shown gross, before what you spend to reduce attrition: pay adjustments, coaching, scheduling tools, better hiring. Finance will want the savings net of that spend. Enter the annual cost per point of reduction and the tool nets it out and shows the return. Programs usually cost more per point as you push the rate lower (diminishing returns), so treat the deeper cuts as the optimistic end.",
 };
 
 /* @engine-start
@@ -104,11 +104,11 @@ const INTENT_OPTS = [
   { v: "downsizing", label: "Intended downsizing (deliberate)" },
 ];
 const VACANCY_OPTS = [
-  { v: "incremental", label: "Incremental (OT premium)" },
+  { v: "incremental", label: "Incremental (overtime premium)" },
   { v: "gross", label: "Gross coverage spend" },
 ];
 const EVIDENCE_OPTS = [
-  { v: "estimate", label: "Estimated / defaults" },
+  { v: "estimate", label: "Estimates or defaults" },
   { v: "hrdata", label: "From our HR data" },
   { v: "finance", label: "Finance-confirmed figures" },
 ];
@@ -254,24 +254,24 @@ export function compute(d) {
 
   // ---- INTEGRITY FLAGS ----
   const flags = [];
-  if (guards.length) flags.push({ t: `${guards.length} input${guards.length > 1 ? "s were" : " was"} outside the possible range and ${guards.length > 1 ? "were" : "was"} corrected before calculation. Every figure in this report was computed on the corrected values, listed in full above. Correct the input or treat the output as void.`, sev: "high" });
-  if (salaryUnknown) flags.push({ t: `Average salary is zero, so the cost basis cannot be tested against the ${BAND.low} to ${BAND.high}% frontline planning band. That band is the plausibility check on the rest of the model, so without it this export is a structure, not a validated figure.`, sev: "high" });
-  else if (pctSalary > BAND.ceiling) flags.push({ t: `All-in exceeds ${BAND.ceiling}% of salary. That is manager-tier territory, implausible for a frontline agent. Re-check ramp loss, vacancy coverage, and double counting.`, sev: "high" });
-  else if (pctSalary > BAND.high) flags.push({ t: `All-in is ${Math.round(pctSalary)}% of salary, above the ${BAND.low} to ${BAND.high}% frontline planning band. Defensible for complex or regulated centers, but validate role type and inputs.`, sev: "med" });
-  else if (pctSalary > 0 && pctSalary < BAND.floor) flags.push({ t: `All-in is only ${Math.round(pctSalary)}% of salary, below the ${BAND.low} to ${BAND.high}% frontline planning band. Plausible for offshore or BPO, but for a US onshore center it usually signals understated training, ramp, or vacancy inputs. Validate before citing.`, sev: "med" });
-  const compNames = [["Recruiting + screening", recruiting], ["Training", training], ["Vacancy coverage", vacancy], ["Nesting loss", nestingLoss], ["Ramp loss", rampLoss], ["Supervisor coaching", supervisorBurden]];
+  if (guards.length) flags.push({ t: `${guards.length} input${guards.length > 1 ? "s were" : " was"} outside the possible range and ${guards.length > 1 ? "were" : "was"} corrected before calculation. Every figure in this report was computed on the corrected values, listed in full above. Correct the input. Until you do, completeness grades Directional.`, sev: "high" });
+  if (salaryUnknown) flags.push({ t: `Average salary is zero, so the cost basis cannot be tested against the ${BAND.low} to ${BAND.high}% frontline planning band. That band is the plausibility check on the rest of the model. Until a salary is entered, read this export as a structure without a validated figure.`, sev: "high" });
+  else if (pctSalary > BAND.ceiling) flags.push({ t: `All-in exceeds ${BAND.ceiling}% of salary. That is a manager-level cost and implausible for a frontline agent. Check ramp loss, vacancy coverage and double counting.`, sev: "high" });
+  else if (pctSalary > BAND.high) flags.push({ t: `All-in is ${Math.round(pctSalary)}% of salary, above the ${BAND.low} to ${BAND.high}% frontline planning band. Complex or regulated centers can justify that, but validate the role type and inputs.`, sev: "med" });
+  else if (pctSalary > 0 && pctSalary < BAND.floor) flags.push({ t: `All-in is only ${Math.round(pctSalary)}% of salary, below the ${BAND.low} to ${BAND.high}% frontline planning band. That is plausible offshore or at a BPO (business process outsourcer). For a US onshore center it usually means the training, ramp or vacancy inputs are understated. Validate before citing.`, sev: "med" });
+  const compNames = [["Recruiting and screening", recruiting], ["Training", training], ["Vacancy coverage", vacancy], ["Nesting loss", nestingLoss], ["Ramp loss", rampLoss], ["Supervisor coaching", supervisorBurden]];
   const topComp = compNames.reduce((a, b) => b[1] > a[1] ? b : a, compNames[0]);
   const trainShare = allInPerDeparture > 0 ? training / allInPerDeparture : 0;
-  if (topComp[0] === "Training" && trainShare > at("read.trainingShare")) flags.push({ t: `Training is the dominant cost driver (${Math.round(trainShare * 100)}% of all-in, ${fmt$(training)}). ${trainShare > at("read.trainingHigh") ? "That is high, so " : "That can be valid for a long program, but "}validate training duration, paid hours, class size, and trainer allocation before citing.`, sev: "med" });
-  else if (allInPerDeparture > 0 && topComp[1] / allInPerDeparture > at("read.dominance")) flags.push({ t: `${topComp[0]} is over ${Math.round(at("read.dominance") * 100)}% of all-in cost (${fmt$(topComp[1])}). A single line dominating this hard usually means an overstated duration or rate. Verify before citing.`, sev: "med" });
-  if (attritionRate < at("read.rateLow")) flags.push({ t: "Attrition under " + at("read.rateLow") + "% is low for a contact center. Validate the denominator (separations divided by average headcount, rolling 12 months).", sev: "med" });
-  else if (attritionRate > at("read.rateExtreme")) flags.push({ t: `Attrition of ${Math.round(attritionRate)}% means you replace the entire floor more than once a year. That happens, but it is far more often a denominator error: a bad month annualized, or headcount taken at period end rather than as an average. Confirm the definition before citing this.`, sev: "high" });
-  else if (attritionRate > at("read.rateHigh")) flags.push({ t: "Attrition over " + at("read.rateHigh") + "% is severe churn. The early-washout share is usually where the recoverable waste sits. Confirm it.", sev: "med" });
-  if (unbackfilled > 0 && !downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures/yr are not replaced under forced under-staffing. That lost capacity is a real cost, but it is an output and service-level question. Quantify it in Staffing and Occupancy, not here. This tool does not zero it out as free.`, sev: "high" });
-  if (unbackfilled > 0 && downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures/yr are a deliberate headcount reduction, so they carry no replacement cost. Confirm this is truly intended and not a hiring freeze in disguise.`, sev: "med" });
-  if (mech === 0) flags.push({ t: "No capacity action is selected, so recovered capacity is credited at $0. The savings shown are avoided cash only, the honest floor.", sev: "med" });
-  if (mech === 1) flags.push({ t: "Headcount reduction realizes 100% of capacity but is the hardest lever to commit. Confirm leadership will hold the seats out.", sev: "med" });
-  if (vacancyMode === "gross") flags.push({ t: "Vacancy costing is Gross coverage spend (full OT). This counts base wage you would have paid anyway and overstates incremental attrition cost unless the departed agent's stopped payroll is credited elsewhere. Use Incremental for a clean business case.", sev: "med" });
+  if (topComp[0] === "Training" && trainShare > at("read.trainingShare")) flags.push({ t: `Training is the dominant cost driver (${Math.round(trainShare * 100)}% of all-in, ${fmt$(training)}). ${trainShare > at("read.trainingHigh") ? "That is high, so " : "That can be valid for a long program, but "}validate training duration, paid hours, class size and trainer allocation before citing.`, sev: "med" });
+  else if (allInPerDeparture > 0 && topComp[1] / allInPerDeparture > at("read.dominance")) flags.push({ t: `${topComp[0]} is over ${Math.round(at("read.dominance") * 100)}% of all-in cost (${fmt$(topComp[1])}). One line dominating this much usually means an overstated duration or rate. Verify it before citing.`, sev: "med" });
+  if (attritionRate < at("read.rateLow")) flags.push({ t: "Attrition under " + at("read.rateLow") + "% is low for a contact center. Check the denominator: separations divided by average headcount over a rolling 12 months.", sev: "med" });
+  else if (attritionRate > at("read.rateExtreme")) flags.push({ t: `Attrition of ${Math.round(attritionRate)}% means you replace the entire floor more than once a year. That does happen, but a denominator error is far more often the cause: one bad month annualized, or headcount taken at period end instead of as an average. Confirm the definition before citing this.`, sev: "high" });
+  else if (attritionRate > at("read.rateHigh")) flags.push({ t: "Attrition over " + at("read.rateHigh") + "% is severe churn. The recoverable waste usually sits in early washout, so confirm that figure.", sev: "med" });
+  if (unbackfilled > 0 && !downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures a year are not replaced under forced under-staffing. That lost capacity is a real cost, and it shows up in output and service level. Quantify it in Staffing and Occupancy. This tool does not count it as zero.`, sev: "high" });
+  if (unbackfilled > 0 && downsizing) flags.push({ t: `${unbackfilled} of ${departures} departures a year are a deliberate headcount reduction, so they carry no replacement cost. Confirm the reduction is intended and is not a hiring freeze under another name.`, sev: "med" });
+  if (mech === 0) flags.push({ t: "No capacity action is selected, so recovered capacity is credited at $0. The savings shown are avoided cash only.", sev: "med" });
+  if (mech === 1) flags.push({ t: "Headcount reduction realizes 100% of capacity and is the hardest lever to commit. Confirm leadership will keep those seats unfilled.", sev: "med" });
+  if (vacancyMode === "gross") flags.push({ t: "Vacancy costing is set to Gross coverage spend (full overtime cost). This counts base wage you would have paid anyway, so it overstates incremental attrition cost unless the departed agent's stopped payroll is credited elsewhere. Use Incremental for a clean business case.", sev: "med" });
 
   /* ---- INVARIANTS: a completeness failure voids the export rather than grading it down ----
      Impossible-output blocking. Every published figure is checked for finiteness and
@@ -331,16 +331,16 @@ export function compute(d) {
   const { headline: confidence, boundBy, boundAxes } = gradeConfidence(grades);
 
   const evidenceReason = evidence === "finance" ? "Finance-confirmed figures."
-    : evidence === "hrdata" ? "Real HR figures, but not finance-confirmed."
-    : "Inputs are estimated or default. Replace with real figures to raise this.";
-  const realizationReason = realization === "Finance-grade" ? `"${mechName}" is a hard cash lever, so savings are bookable once committed in budget.`
-    : realization === "Planning-grade" ? `"${mechName}" is finance-creditable over the cycle, so tie it to a budget action to book it.`
+    : evidence === "hrdata" ? "Real HR figures, not yet confirmed by finance."
+    : "Inputs are estimates or defaults. Replace them with real figures to raise this axis.";
+  const realizationReason = realization === "Finance-grade" ? `"${mechName}" turns freed capacity into cash, so the savings can be booked once they are committed in the budget.`
+    : realization === "Planning-grade" ? `"${mechName}" can be credited by finance over the budget cycle. Tie it to a budget action to book it.`
     : mech === 0 ? "No capacity action selected, so recovered capacity is worth $0 and only avoided cash applies."
-    : `"${mechName}" absorbs freed capacity into growth rather than booking cash, so this is planning value only.`;
-  const completenessReason = voided ? "The model failed an integrity invariant, so the export is void rather than graded."
-    : hardFlag ? "An active hard flag means part of this model is corrected, untestable, or routed to another tool. Resolve it first."
+    : `"${mechName}" absorbs freed capacity into growth and books no cash, so this is planning value only.`;
+  const completenessReason = voided ? "The model failed an integrity check, so the export is void and carries no grade."
+    : hardFlag ? "A high-severity flag is open: part of this model is corrected, untestable or routed to another tool. Resolve it first."
     : completenessNotes.length ? `Model is internally consistent, but ${completenessNotes.join(", and ")}.`
-    : "Model is whole and internally consistent: every input inside its possible range, cost basis inside the frontline planning band, and no value routed out of the model.";
+    : "The model is whole and internally consistent: every input is inside its possible range, the cost basis is inside the frontline planning band, and no value is routed out of the model.";
   const AXIS_REASON = { evidence: evidenceReason, realization: realizationReason, completeness: completenessReason };
   const why = `${confidence}, bound by ${boundBy}. ${boundAxes.map((a) => AXIS_REASON[a]).join(" ")}`;
 
@@ -354,13 +354,13 @@ export function compute(d) {
       })
     : emitGrades({ evidence: evidenceGrade, realization, completeness, reasons: AXIS_REASON });
 
-  const bookLabel = realization === "Finance-grade" ? "Bookable if committed" : realization === "Planning-grade" ? "Soft lever, tie to budget" : "Planning only";
+  const bookLabel = realization === "Finance-grade" ? "Bookable if committed" : realization === "Planning-grade" ? "Soft lever, tie it to a budget" : "Planning only";
 
   const cashRows = [
-    { name: "Recruiting + screening", cost: recruiting, color: "#3B82F6" },
-    { name: "Training (wages + trainer)", cost: training, color: "#8B5CF6" },
+    { name: "Recruiting and screening", cost: recruiting, color: "#3B82F6" },
+    { name: "Training (wages and trainer)", cost: training, color: "#8B5CF6" },
     ...(signOn > 0 ? [{ name: "Sign-on bonus", cost: signOn, color: "#0EA5E9" }] : []),
-    { name: "Vacancy backfill (OT)", cost: vacancy, color: "#F97316" },
+    { name: "Vacancy cover (overtime)", cost: vacancy, color: "#F97316" },
   ];
   const capRows = [
     { name: "Nesting productivity loss", cost: nestingLoss, color: "#EC4899" },
@@ -371,16 +371,16 @@ export function compute(d) {
   const unbackfillSentence = unbackfilled <= 0
     ? `Every departure is replaced, so the full replacement cycle applies.`
     : downsizing
-      ? `${unbackfilled} of your ${departures} departures a year are a deliberate reduction, so they carry no replacement cost. Confirm that is intended and not a quiet hiring freeze.`
-      : `${unbackfilled} of your ${departures} departures a year are not replaced under forced under-staffing. That is not free: you are losing output you still need. This tool does not pretend that is $0. It routes the lost-capacity value to Staffing and Occupancy, where service-level and overtime effects can be modeled honestly.`;
+      ? `${unbackfilled} of your ${departures} departures a year are a deliberate reduction, so they carry no replacement cost. Confirm that is intended and is not a quiet hiring freeze.`
+      : `${unbackfilled} of your ${departures} departures a year are not replaced under forced under-staffing. That has a real cost: you lose output you still need. This tool routes the value of that lost capacity to Staffing and Occupancy, where service-level and overtime effects can be modelled.`;
 
   const analystRead = voided
-    ? `This export is void. ${invariants.join(" ")}\n\nA model that produced an impossible figure has not produced a small error, it has produced a number with no meaning, and grading it down would imply it is merely uncertain. Correct the inputs listed in the corrections section and run it again. Nothing on this page should be quoted until it clears.`
+    ? `This export is void. ${invariants.join(" ")}\n\nAn impossible figure has no meaning, and grading it down would suggest it is merely uncertain. Correct the inputs listed in the corrections section and run it again. Quote nothing on this page until it clears.`
     : (hires === 0)
     ? (downsizing
-        ? `At 0% backfill, this model does not generate replacement cost, because the center is not refilling departures. Here that is intended downsizing: ${departures} seats a year are being shed on purpose, so there is no recruiting, training, or ramp spend to recover, and early-washout waste is correctly $0, because there are no new hires to wash out.\n\nWhat this tool will not do is call that a $0 problem and move on. Confirm the reduction is genuinely planned and not a hiring freeze wearing downsizing's clothes. If the demand those seats carried has not gone away, the exposure has simply moved from replacement cost to capacity, and that belongs in Staffing and Occupancy.\n\nThe per-refill economics above still stand as the cost you would re-incur the moment you start backfilling again: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${pctShort}. Treat that as the price of reversing the reduction, not as a current burden.`
-        : `At 0% backfill, this model does not generate replacement cost, because the center is not replacing departures. That does not mean attrition is harmless. With no hires, there is no recruiting, training, or ramp spend, so replacement burden and early-washout waste are both correctly $0, but the economic exposure has not vanished, it has shifted.\n\nUnder forced under-staffing it moves to understaffing, occupancy, service level, backlog, burnout, and customer-impact risk. None of that is a replacement cost, so this tool deliberately does not invent a dollar for it; it routes the case to Staffing and Occupancy, where lost output, overtime on the remaining team, and SLA breach can be modeled honestly. That is also why this export is held at Directional on the completeness axis: the real cost lives in a model this calculator is not.\n\nThe per-refill economics above remain valid as the cost you re-incur the moment you resume hiring: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${pctShort}. Do not read the $0 replacement burden as "attrition is free."`)
-    : `Attrition cost is not one number, and the honest version refuses to pretend it is. Replacing one frontline agent here runs about ${fmt$(allInPerDeparture)} all-in, ${pctClaim}, which sits ${salaryUnknown ? "outside the reach of the frontline band entirely, so the band cannot test it" : inBand ? "inside the frontline planning band of ${BAND.low} to ${BAND.high} percent, the plausibility check on the rest of the model" : pctSalary > 60 ? "above the frontline planning band of ${BAND.low} to ${BAND.high} percent, so validate the ramp, vacancy, and training inputs before a CFO sees it; complex or regulated centers can justify it, but it is not automatically defensible" : "below the frontline planning band of ${BAND.low} to ${BAND.high} percent, which reads as either an efficient or offshore model or understated inputs, so confirm which before relying on it"}.\n\nThat figure is a burden, not a savings cheque. About ${fmt$(cashPerDeparture)} is cash out the door: recruiting, training wages, sign-on, and the overtime premium to cover the empty seat. The other ${fmt$(capacityPerDeparture)} is recovered capacity: nesting and ramp time you pay full wage for at partial output, plus supervisor coaching. Cash disappears when a backfilled departure is avoided; capacity becomes money only when leadership commits a mechanism. At ${backfillRate}% backfill and a "${mechLabel}" mechanism, that is why the realizable column is smaller than the burden.\n\nBackfill is the assumption most attrition models get wrong. Replacement cost only exists for seats you refill. ${unbackfillSentence}\n\nThe sharpest recoverable line is early washout. ${earlyWashoutRate}% of your replacement hires, about ${earlyWashouts} a year, leave before reaching productive output, and the ${fmt$(earlyWaste)} of recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}and training cash spent on them returns almost nothing. Because it is measured against hires, it can never exceed your replacement cash; it is the cleanest target on the page. The defensible business case is not "attrition costs us everything." It is "this much is cash, this much is capacity, this much we can actually realize, and this slice is near-pure waste we can attack first."`;
+        ? `At 0% backfill this model produces no replacement cost, because the center is not refilling departures. Here that is intended downsizing: ${departures} seats a year are shed on purpose, so there is no recruiting, training or ramp spend to recover, and early-washout waste is $0 because there are no new hires to wash out.\n\nConfirm the reduction is planned and is not a hiring freeze described as downsizing. If the demand those seats carried is still there, the exposure has moved from replacement cost to capacity, and that belongs in Staffing and Occupancy.\n\nThe per-refill economics above still hold as the cost you take on again the moment you resume backfilling: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${pctShort}. Read that as the price of reversing the reduction. It is not a current burden.`
+        : `At 0% backfill this model produces no replacement cost, because the center is not replacing departures. Attrition still costs you here. With no hires there is no recruiting, training or ramp spend, so replacement burden and early-washout waste are both $0, but the economic exposure has not vanished. It has shifted.\n\nUnder forced under-staffing it moves to occupancy (the share of paid time agents spend handling contacts), service level, backlog, burnout and customer impact. None of that is a replacement cost, so this tool does not invent a dollar for it. It routes the case to Staffing and Occupancy, where lost output, overtime on the remaining team and SLA (service level agreement) breaches can be modelled. For the same reason completeness is held at Directional: the real cost sits in a model this calculator does not run.\n\nThe per-refill economics above remain valid as the cost you take on again the moment you resume hiring: about ${fmt$(allInPerDeparture)} all-in per replaced agent, ${pctShort}. A $0 replacement burden does not mean attrition is free.`)
+    : `Attrition cost has several parts, and this read separates them. Replacing one frontline agent here costs about ${fmt$(allInPerDeparture)} all-in, ${pctClaim}, which sits ${salaryUnknown ? "outside the reach of the frontline band entirely, so the band cannot test it" : inBand ? `inside the frontline planning band of ${BAND.low} to ${BAND.high} percent, the plausibility check on the rest of the model` : pctSalary > 60 ? `above the frontline planning band of ${BAND.low} to ${BAND.high} percent. Complex or regulated centers can justify that, but validate the ramp, vacancy and training inputs before finance reviews it` : `below the frontline planning band of ${BAND.low} to ${BAND.high} percent. That points either to an efficient or offshore model or to understated inputs, so confirm which before relying on it`}.\n\nThat figure is today's cost burden. What you could save is modelled separately, below. About ${fmt$(cashPerDeparture)} is cash out the door: recruiting, training wages, sign-on and the overtime premium to cover the empty seat. The other ${fmt$(capacityPerDeparture)} is recovered capacity: nesting and ramp time you pay full wage for at partial output, plus supervisor coaching. Cash stops when a backfilled departure is avoided. Capacity becomes money only when leadership commits a capacity action. At ${backfillRate}% backfill, with the capacity action set to "${mechLabel}", that is why the realizable figures are smaller than the burden.\n\nBackfill matters here, because replacement cost exists only for seats you refill. ${unbackfillSentence}\n\nThe clearest recoverable line is early washout. ${earlyWashoutRate}% of your replacement hires, about ${earlyWashouts} a year, leave before reaching productive output, and the ${fmt$(earlyWaste)} of recruiting, screening, ${signOn > 0 ? "sign-on, " : ""}and training cash spent on them returns almost nothing. Because it is measured against hires, it can never exceed your replacement cash, which makes it a good place to start. A business case built on this keeps four things apart: what is cash, what is capacity, what you can realize, and the early-washout waste you can address first.`;
 
   const railRead = voided
     ? `Attrition: export void, integrity invariant failed. Do not consume downstream.`
@@ -539,7 +539,7 @@ export default function AttritionCostCalculator() {
         <div style={panel}>
           <span style={kicker}>Annual replacement burden</span>
           <div style={{ ...TYPE.statValueLg, fontSize: 29, color: HOUSE.mist, marginTop: 4 }}>{fmtK(r.annualReplBurden)}</div>
-          <p style={{ ...small, marginTop: 4 }}>{fmtK(r.annualCashBurden)} cash + {fmtK(r.annualCapBurden)} capacity. {r.hires} of {r.departures} departures refilled. A current-state diagnosis, not automatically recoverable.</p>
+          <p style={{ ...small, marginTop: 4 }}>{fmtK(r.annualCashBurden)} cash + {fmtK(r.annualCapBurden)} capacity. {r.hires} of {r.departures} departures refilled. This is today's cost; only part of it is recoverable.</p>
         </div>
       )}
     </div>
@@ -548,7 +548,7 @@ export default function AttritionCostCalculator() {
   return (
     <ToolFrame toolId={TOOL_ID} section="Cost + Economics" name="Attrition Cost" title="What does each agent departure cost you?"
       choice={r.unbackfilled > 0 && !r.downsizing ? "occupancy-risk" : null}
-      lede={`The full cost of every agent departure, split into cash that actually leaves and capacity you only recover if you act. Replacement cost scales with how much you backfill; seats you do not refill are treated as a capacity decision, never as free. Checked against a ${BAND.low} to ${BAND.high}% of salary planning band for frontline roles, set by this platform.`}
+      lede={`The full cost of each agent departure, split into cash that leaves the business and capacity you recover only if you act on it. Replacement cost scales with how many departures you refill (backfill). Seats you do not refill are a capacity decision, and the tool never counts them as free. Results are checked against a ${BAND.low} to ${BAND.high}% of salary planning band for frontline roles, set by this platform.`}
       method={stamp ? { version: stamp.version, date: stamp.text.replace(/^Method [^,]+, published /, ""), href: stamp.href } : null}
       result={result} pinned={voidReason ? null : { label: "All-in per departure", value: fmtK(r.allInPerDeparture) }}>
       <style>{`${FONT_IMPORT_CSS}.at-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
@@ -558,14 +558,14 @@ export default function AttritionCostCalculator() {
         <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 3 · Your operation</legend>
         <div style={grid(190)}>
           <NumField tone="dark" label="Total agents" value={d.agents} onChange={v => set("agents", v)} step={5} min={0} pulled={!!pulled.agents} />
-          <NumField tone="dark" label="Annual attrition" value={d.attritionRate} onChange={v => set("attritionRate", v)} suffix="%" min={0} max={300} info={DEFS.denominator} infoTitle="Attrition denominator" hint="Sep / avg headcount" />
-          <NumField tone="dark" label="Avg agent salary" value={d.avgSalary} onChange={v => set("avgSalary", v)} suffix="$/yr" step={1000} min={0} pulled={!!pulled.avgSalary} />
+          <NumField tone="dark" label="Annual attrition" value={d.attritionRate} onChange={v => set("attritionRate", v)} suffix="%" min={0} max={300} info={DEFS.denominator} infoTitle="Attrition denominator" hint="Separations over average headcount" />
+          <NumField tone="dark" label="Average agent salary" value={d.avgSalary} onChange={v => set("avgSalary", v)} suffix="$/yr" step={1000} min={0} pulled={!!pulled.avgSalary} />
           <NumField tone="dark" label="Benefits load" value={d.benefitsLoadPct} onChange={v => set("benefitsLoadPct", v)} suffix="%" min={0} info={DEFS.benefitsLoad} infoTitle="Benefits load" />
         </div>
         <div style={{ ...grid(220), marginTop: 14 }}>
           <Select label="Backfill basis" value={d.backfillRate} onChange={v => set("backfillRate", Number(v))} opts={BACKFILL_OPTS} info={DEFS.backfill} infoTitle="Backfill basis" />
-          <Select label="Un-backfilled seats are" value={r.unbackfillIntent} onChange={v => set("unbackfillIntent", v)} opts={INTENT_OPTS} info={DEFS.unbackfill} infoTitle="Un-backfilled seats" />
-          <NumField tone="dark" label="Early washout (new hires)" value={d.earlyWashoutRate} onChange={v => set("earlyWashoutRate", v)} suffix="%" min={0} max={100} info={DEFS.early} infoTitle="Early washout rate" hint="Leave before productivity" />
+          <Select label="Seats not refilled are" value={r.unbackfillIntent} onChange={v => set("unbackfillIntent", v)} opts={INTENT_OPTS} info={DEFS.unbackfill} infoTitle="Seats not refilled" />
+          <NumField tone="dark" label="Early washout (new hires)" value={d.earlyWashoutRate} onChange={v => set("earlyWashoutRate", v)} suffix="%" min={0} max={100} info={DEFS.early} infoTitle="Early washout rate" hint="Leave before reaching full output" />
         </div>
       </fieldset>
 
@@ -578,32 +578,32 @@ export default function AttritionCostCalculator() {
           <NumField tone="dark" label="Sign-on bonus" value={d.signOnBonus} onChange={v => set("signOnBonus", v)} suffix="$" step={250} min={0} hint="0 if none" />
           <NumField tone="dark" label="Training duration" value={d.trainingWeeks} onChange={v => set("trainingWeeks", v)} suffix="wks" min={0} />
           <NumField tone="dark" label="Trainer loaded rate" value={d.trainerLoadedRate} onChange={v => set("trainerLoadedRate", v)} suffix="$/hr" min={0} />
-          <NumField tone="dark" label="Class size" value={d.classSize} onChange={v => set("classSize", v)} min={1} hint="Trainer cost / class" />
+          <NumField tone="dark" label="Class size" value={d.classSize} onChange={v => set("classSize", v)} min={1} hint="Trainer cost is shared across the class" />
           <NumField tone="dark" label="Overtime premium" value={d.overtimePremium} onChange={v => set("overtimePremium", v)} suffix="%" min={0} hint="Above base wage" />
           <NumField tone="dark" label="Vacancy days" value={d.vacancyDays} onChange={v => set("vacancyDays", v)} suffix="days" min={0} />
-          <NumField tone="dark" label="Vacancy covered by OT" value={d.vacancyCoverageFraction} onChange={v => set("vacancyCoverageFraction", v)} suffix="%" min={0} max={100} />
+          <NumField tone="dark" label="Vacancy covered by overtime" value={d.vacancyCoverageFraction} onChange={v => set("vacancyCoverageFraction", v)} suffix="%" min={0} max={100} />
           <Select label="Vacancy costing mode" value={r.vacancyMode} onChange={v => set("vacancyMode", v)} opts={VACANCY_OPTS} info={DEFS.vacancyMode} infoTitle="Vacancy costing mode" align="right" />
         </div>
       </fieldset>
 
       <fieldset style={{ ...panel, margin: 0 }}>
-        <legend style={{ ...kicker, padding: "0 6px", display: "flex", alignItems: "center", gap: 4 }}>Question 3 of 3 · Capacity and opportunity<InfoDot text={DEFS.capacity} title="Capacity vs cash" /></legend>
+        <legend style={{ ...kicker, padding: "0 6px", display: "flex", alignItems: "center", gap: 4 }}>Question 3 of 3 · Capacity and opportunity<InfoDot text={DEFS.capacity} title="Capacity and cash" /></legend>
         <div style={grid(190)}>
           <NumField tone="dark" label="Nesting duration" value={d.nestingWeeks} onChange={v => set("nestingWeeks", v)} suffix="wks" min={0} info={DEFS.nesting} infoTitle="Nesting" />
           <NumField tone="dark" label="Nesting productivity" value={d.nestingProductivity} onChange={v => set("nestingProductivity", v)} suffix="%" min={0} max={100} hint="Of full output" />
           <NumField tone="dark" label="Ramp (after nesting)" value={d.rampMonths} onChange={v => set("rampMonths", v)} suffix="mo" min={0} info={DEFS.ramp} infoTitle="Ramp-to-proficiency" />
-          <NumField tone="dark" label="Ramp productivity" value={d.rampProductivity} onChange={v => set("rampProductivity", v)} suffix="%" min={0} max={100} hint="Avg vs tenured parity" />
-          <NumField tone="dark" label="Supervisor hrs / new hire" value={d.supervisorHoursPerNew} onChange={v => set("supervisorHoursPerNew", v)} suffix="hrs" min={0} />
+          <NumField tone="dark" label="Ramp productivity" value={d.rampProductivity} onChange={v => set("rampProductivity", v)} suffix="%" min={0} max={100} hint="Average, against a tenured agent" />
+          <NumField tone="dark" label="Supervisor hours per new hire" value={d.supervisorHoursPerNew} onChange={v => set("supervisorHoursPerNew", v)} suffix="hrs" min={0} />
           <NumField tone="dark" label="Supervisor loaded rate" value={d.supLoadedRate} onChange={v => set("supLoadedRate", v)} suffix="$/hr" min={0} />
         </div>
         <div style={{ ...grid(240), marginTop: 14 }}>
-          <Select label="Capacity realization mechanism" value={r.mechKey} onChange={v => set("mech", v)} opts={MECH_OPTS} info={DEFS.mech} infoTitle="Realization mechanism" />
+          <Select label="Capacity action" value={r.mechKey} onChange={v => set("mech", v)} opts={MECH_OPTS} info={DEFS.mech} infoTitle="Capacity action" />
           <Select label="Input basis" value={r.evidence} onChange={v => set("evidence", v)} opts={EVIDENCE_OPTS} info={DEFS.confidence} infoTitle="Export confidence" align="right" />
         </div>
       </fieldset>
 
       {r.voided && (
-        <Finding level="critical" title="Export void">{r.invariants.join(" ")} A model that produced an impossible figure has not produced a small error. Correct the inputs and run it again; nothing on this page should be quoted until it clears.</Finding>
+        <Finding level="critical" title="Export void">{r.invariants.join(" ")} An impossible figure has no meaning. Correct the inputs and run it again, and quote nothing on this page until it clears.</Finding>
       )}
 
       {/* A void renders no figure: the notice above, the corrections and the inputs stay; every result is withheld. */}
@@ -620,7 +620,7 @@ export default function AttritionCostCalculator() {
           <p style={small}>Recovered only if you act</p>
         </div>
         <div style={panel}>
-          <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 4 }}>All-in per departure<InfoDot text={DEFS.sensitivity} title="Why a range, not a point" align="right" /></span>
+          <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 4 }}>All-in per departure<InfoDot text={DEFS.sensitivity} title="Why a range" align="right" /></span>
           <div style={stat}>{fmtK(r.allInPerDeparture)}</div>
           <p style={{ ...small, ...NUM }}>range {fmtK(r.allInLow)} to {fmtK(r.allInHigh)} (+/-{Math.round(r.uncPct * 100)}%)</p>
           <p style={{ ...small, ...NUM }}>{r.salaryUnknown ? "salary not entered" : `${Math.round(r.pctSalary)}% of salary`} · per refill</p>
@@ -633,19 +633,19 @@ export default function AttritionCostCalculator() {
           <div style={stat}>{fmtK(r.annualReplBurden)}</div>
           <p style={{ ...small, ...NUM }}>range {fmtK(r.annLow)} to {fmtK(r.annHigh)} (+/-{Math.round(r.uncPct * 100)}%)</p>
           <p style={{ ...small, ...NUM }}>{fmtK(r.annualCashBurden)} cash + {fmtK(r.annualCapBurden)} capacity · {r.hires} of {r.departures} departures refilled</p>
-          <p style={{ ...small, marginTop: 4 }}>Current-state diagnosis, not automatically recoverable.</p>
+          <p style={{ ...small, marginTop: 4 }}>Today's cost. Only part of it is recoverable.</p>
         </div>
         <div style={{ ...panel, ...(r.unbackfilled > 0 && !r.downsizing ? { border: `1.5px solid ${HOUSE.mist}` } : {}) }}>
-          <span style={kicker}>Un-backfilled seats</span>
+          <span style={kicker}>Seats not refilled</span>
           <div style={stat}>{r.unbackfilled}/yr</div>
-          <p style={{ ...small, color: HOUSE.body }}>{r.unbackfilled === 0 ? "All departures refilled" : r.downsizing ? "Deliberate reduction, no replacement cost" : "Lost capacity, not free"}</p>
-          <p style={{ ...small, marginTop: 4 }}>{r.unbackfilled === 0 ? "Full replacement cycle applies." : r.downsizing ? "Confirm this is intended." : "Value the output loss in Staffing / Occupancy."}</p>
+          <p style={{ ...small, color: HOUSE.body }}>{r.unbackfilled === 0 ? "All departures refilled" : r.downsizing ? "Deliberate reduction, no replacement cost" : "Lost capacity, with a real cost"}</p>
+          <p style={{ ...small, marginTop: 4 }}>{r.unbackfilled === 0 ? "Full replacement cycle applies." : r.downsizing ? "Confirm this is intended." : "Value the lost output in Staffing and Occupancy."}</p>
         </div>
         <div style={panel}>
           <span style={kicker}>Early-washout waste</span>
           <div style={stat}>{fmtK(r.earlyWaste)}</div>
-          <p style={{ ...small, color: HOUSE.body }}>{r.earlyWashoutRate}% of replacement hires ({r.earlyWashouts}/yr) leave pre-productivity</p>
-          <p style={{ ...small, marginTop: 4 }}>Subset of cash burden, the most recoverable slice.</p>
+          <p style={{ ...small, color: HOUSE.body }}>{r.earlyWashoutRate}% of replacement hires ({r.earlyWashouts}/yr) leave before reaching full output</p>
+          <p style={{ ...small, marginTop: 4 }}>Part of the cash burden, and the most recoverable part.</p>
         </div>
       </div>
       </>)}
@@ -653,7 +653,7 @@ export default function AttritionCostCalculator() {
       {r.guards.length > 0 && (
         <Finding level="critical" title="Inputs corrected before calculation">
           {corrections.map((c, i) => <span key={i} style={{ display: "block", ...NUM }}>{c}</span>)}
-          <span style={{ display: "block", marginTop: 6 }}>Every figure in this report was computed on the corrected values, not on what was entered.</span>
+          <span style={{ display: "block", marginTop: 6 }}>Every figure in this report was computed on the corrected values.</span>
         </Finding>
       )}
 
@@ -668,7 +668,7 @@ export default function AttritionCostCalculator() {
           ))}
         </div>
         <p style={{ ...body, fontSize: 14 }}>The headline is the weakest of the three axes: {r.voided ? "Void" : r.confidence}. <strong style={{ color: HOUSE.mist }}>Bound by {r.boundBy}.</strong> <strong style={{ color: HOUSE.mist }}>Evidence:</strong> {r.evidenceReason} <strong style={{ color: HOUSE.mist }}>Realization:</strong> {r.realizationReason} <strong style={{ color: HOUSE.mist }}>Completeness:</strong> {r.completenessReason}</p>
-        <p style={{ ...small, ...NUM, marginTop: 8 }}>Frontline planning band is {r.band.low} to {r.band.high}% of salary ({fmtK(r.bandLo)} to {fmtK(r.bandHi)} here), a check set by this platform. This result is {r.voided ? "void, so it is not tested against the band" : r.salaryUnknown ? "untestable, because no salary was entered" : `${Math.round(r.pctSalary)}% / ${fmtK(r.allInPerDeparture)}, ${r.guardrailOk ? "within band" : r.pctSalary > r.band.high ? "above band, validate" : "below band, validate"}`}.</p>
+        <p style={{ ...small, ...NUM, marginTop: 8 }}>Frontline planning band is {r.band.low} to {r.band.high}% of salary ({fmtK(r.bandLo)} to {fmtK(r.bandHi)} here), a check set by this platform. This result is {r.voided ? "void, so it is not tested against the band" : r.salaryUnknown ? "untestable, because no salary was entered" : `${Math.round(r.pctSalary)}%, ${fmtK(r.allInPerDeparture)}, ${r.guardrailOk ? "within the band" : r.pctSalary > r.band.high ? "above the band, so validate the inputs" : "below the band, so validate the inputs"}`}.</p>
       </section>
 
       {!r.voided && (<>
@@ -681,11 +681,11 @@ export default function AttritionCostCalculator() {
 
       <section aria-label="Realizable value" style={panel}>
         <h2 style={h2}>Realizable value if you reduce attrition</h2>
-        <p style={{ ...small, marginBottom: 12 }}>Cash in full; capacity at {Math.round(r.mech * 100)}% per mechanism; both scaled to {r.backfillRate}% backfill. Realizable value, not the burden above.{!r.downsizing && r.unbackfilled > 0 ? " Under forced under-staffing, retained capacity carries additional value. See Staffing." : ""}{r.downsizing ? " Note: under intended downsizing, retaining agents slows your planned reduction, so this credits only replacement cost avoided on the seats you would refill, not a net headcount saving." : ""}</p>
+        <p style={{ ...small, marginBottom: 12 }}>Cash counts in full and capacity at {Math.round(r.mech * 100)}% under the chosen capacity action, both scaled to {r.backfillRate}% backfill. These are the figures you could realize; the burden above is today's cost.{!r.downsizing && r.unbackfilled > 0 ? " Under forced under-staffing, agents you keep also carry capacity value; see Staffing." : ""}{r.downsizing ? " Under intended downsizing, keeping agents slows your planned reduction, so this credits only the replacement cost avoided on seats you would refill. It is not a net headcount saving." : ""}</p>
       </section>
       </>)}
       <div style={{ maxWidth: 320 }}>
-        <NumField tone="dark" label="Cost to achieve (per point / yr)" value={d.costPerPoint} onChange={v => set("costPerPoint", v)} suffix="$" step={5000} min={0} info={DEFS.costToAchieve} infoTitle="Cost to achieve: CFO net view" hint={r.costPerPoint > 0 ? "Cards show net of this spend" : "0 = show gross only"} />
+        <NumField tone="dark" label="Cost to achieve (per point, a year)" value={d.costPerPoint} onChange={v => set("costPerPoint", v)} suffix="$" step={5000} min={0} info={DEFS.costToAchieve} infoTitle="Cost to achieve: the net view" hint={r.costPerPoint > 0 ? "Cards show savings net of this spend" : "At 0 the cards show gross"} />
       </div>
       {!r.voided && (<>
       <div style={grid(160)}>
@@ -694,11 +694,11 @@ export default function AttritionCostCalculator() {
             <span style={kicker}>-{s.redPts} pts to {s.newRate}%</span>
             {r.costPerPoint > 0 ? (<>
               <div style={stat}>{fmtK(s.net)}</div>
-              <p style={small}>net / yr{s.net < 0 ? ", a loss" : ""}</p>
-              <p style={{ ...small, ...NUM, marginTop: 4 }}>{fmtK(s.total)} gross less {fmtK(s.achieveCost)} cost<br />{s.roi != null ? `${s.roi.toFixed(1)}x return · ` : ""}{s.avoided} fewer</p>
+              <p style={small}>net a year{s.net < 0 ? ", a loss" : ""}</p>
+              <p style={{ ...small, ...NUM, marginTop: 4 }}>{fmtK(s.total)} gross less {fmtK(s.achieveCost)} cost<br />{s.roi != null ? `${s.roi.toFixed(1)}x return · ` : ""}{s.avoided} fewer departures</p>
             </>) : (<>
               <div style={stat}>{fmtK(s.total)}</div>
-              <p style={small}>realizable / yr</p>
+              <p style={small}>realizable a year</p>
               <p style={{ ...small, ...NUM, marginTop: 4 }}>{fmtK(s.cash)} cash avoided + {fmtK(s.cap)} capacity value<br />{s.avoided} fewer departures</p>
             </>)}
             <p style={{ ...small, fontWeight: 600, color: HOUSE.mist, marginTop: 6 }}>{r.bookLabel}</p>
@@ -724,15 +724,15 @@ export default function AttritionCostCalculator() {
       {/* The report is paper (Brand Guide section 13). */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions
-            next={r.unbackfilled > 0 && !r.downsizing ? { to: "occupancy-risk", because: "Seats you do not refill under forced under-staffing are lost capacity this tool does not price; Occupancy Risk shows what that load does to the agents who remain." } : null}
+            next={r.unbackfilled > 0 && !r.downsizing ? { to: "occupancy-risk", because: "Seats you do not refill under forced under-staffing are lost capacity that this tool does not price. Occupancy Risk shows what the extra load does to the agents who remain." } : null}
             toolId={TOOL_ID}
             toolName="Attrition Cost Analysis"
-            subtitle={`Total Cost of Agent Turnover. ${r.voided ? "EXPORT VOID, integrity invariant failed" : `${r.confidence}, bound by ${r.boundBy}`}`}
+            subtitle={`Total Cost of Agent Turnover. ${r.voided ? "Void: an integrity check failed" : `${r.confidence}, bound by ${r.boundBy}`}`}
             routePath={ROUTE}
             state={{ d, drivers }}
             defaults={LINK_DEFAULTS}
             grades={r.gradeObj}
-            summary={r.voided ? [{ label: "Export", value: "Void: an integrity invariant failed, so no figure is reported" }] : [
+            summary={r.voided ? [{ label: "Export", value: "Void: an integrity check failed, so no figure is reported" }] : [
               { label: "Cash per departure", value: fmt$(r.cashPerDeparture) },
               { label: "All-in per departure", value: fmt$(r.allInPerDeparture) },
               { label: "Annual replacement burden", value: fmt$(r.annualReplBurden) },
@@ -777,23 +777,23 @@ export default function AttritionCostCalculator() {
             /* A void publishes no figure (doctrine 5.4): the document keeps the void notice,
                the corrected inputs, the method and the next steps, and nothing computed. */
             sections={[
-              ...(r.voided ? [{ title: "Export Void", type: "findings", items: [...r.invariants, "A model that produced an impossible figure has not produced a small error. Correct the inputs and run it again. Nothing in this document should be cited until it clears."] }] : []),
-              ...(r.guards.length ? [{ title: "Inputs Corrected Before Calculation", type: "findings", items: [...corrections, "Every figure in this document was computed on the corrected values, not on what was entered."] }] : []),
+              ...(r.voided ? [{ title: "Export Void", type: "findings", items: [...r.invariants, "An impossible figure has no meaning. Correct the inputs and run it again. Cite nothing in this document until it clears."] }] : []),
+              ...(r.guards.length ? [{ title: "Inputs Corrected Before Calculation", type: "findings", items: [...corrections, "Every figure in this document was computed on the corrected values."] }] : []),
               /* The three axes are NOT restated here. ReportActions injects one standard
                  Confidence section from the `grades` prop, so nine tools cannot drift into
                  nine wordings of the same idea. What stays here is the evidence detail only
                  this tool can supply. */
               { title: "Evidence Detail", type: "findings", items: [
-                `Backfill basis: ${r.backfillRate}% of departures replaced (${r.hires} of ${r.departures}). Replacement cost scales with this; ${r.unbackfilled} un-backfilled seats are ${r.downsizing ? "a deliberate reduction with no replacement cost" : "lost capacity routed to Staffing/Occupancy, not zeroed out as free"}.`,
-                `Vacancy costing: ${r.vacancyMode === "gross" ? "Gross coverage spend (full OT) that overstates incremental cost unless the vacant seat's stopped payroll is credited elsewhere. Incremental (OT premium only) is the conservative default." : "Incremental, OT premium only (the conservative default)."}`,
+                `Backfill basis: ${r.backfillRate}% of departures replaced (${r.hires} of ${r.departures}). Replacement cost scales with this. ${r.unbackfilled} un-backfilled seats are ${r.downsizing ? "a deliberate reduction with no replacement cost" : "lost capacity with a real cost, routed to Staffing and Occupancy and never priced at zero"}.`,
+                `Vacancy costing: ${r.vacancyMode === "gross" ? "Gross coverage spend (full overtime cost), which overstates incremental cost unless the vacant seat's stopped payroll is credited elsewhere. Incremental (overtime premium only) is the default." : "Incremental, overtime premium only (the default)."}`,
                 r.salaryUnknown
                   ? `Cost basis: ${fmt$(r.allInPerDeparture)} all-in, but average salary was not entered, so the ${r.band.low} to ${r.band.high}% frontline planning band cannot test it. That band is the plausibility check on the rest of the model.`
                   : `Cost basis: ${Math.round(r.pctSalary)}% of salary (${fmt$(r.allInPerDeparture)}, planning range ${fmt$(r.allInLow)} to ${fmt$(r.allInHigh)} at +/-${Math.round(r.uncPct * 100)}%) versus the ${r.band.low} to ${r.band.high}% frontline planning band of ${fmt$(r.bandLo)} to ${fmt$(r.bandHi)}. ${r.guardrailOk ? "Within the plausible range." : "Outside the plausible range. Verify inputs before citing."}`,
               ]},
               ...(r.flags.length > 0 ? [{ title: "Integrity Flags", type: "findings", items: r.flags.map(f => `${f.sev === "high" ? "[FLAG] " : "[NOTE] "}${f.t}`) }] : []),
               { title: "Cost Per Replaced Departure", type: "table", rows: [
-                ["Recruiting + screening (cash)", fmt$(r.recruiting)],
-                ["Training: wages + trainer (cash)", fmt$(r.training)],
+                ["Recruiting and screening (cash)", fmt$(r.recruiting)],
+                ["Training: wages and trainer (cash)", fmt$(r.training)],
                 ...(r.signOn > 0 ? [["Sign-on bonus (cash)", fmt$(r.signOn)]] : []),
                 [`Vacancy backfill: ${r.vacancyMode === "gross" ? "gross" : "OT premium"} (cash)`, fmt$(r.vacancy)],
                 ["Nesting productivity loss (capacity)", fmt$(r.nestingLoss)],
@@ -810,12 +810,12 @@ export default function AttritionCostCalculator() {
               ]},
               { title: "Key Findings", type: "findings", items: [
                 `Each replaced departure costs ${fmt$(r.cashPerDeparture)} cash plus ${fmt$(r.capacityPerDeparture)} recovered capacity, for ${fmt$(r.allInPerDeparture)} all-in${r.salaryUnknown ? "" : `, about ${Math.round(r.pctSalary)}% of salary`}.`,
-                `At ${r.backfillRate}% backfill, ${r.hires} of ${r.departures} departures are refilled, for an annual replacement burden of ${fmt$(r.annualReplBurden)} (${fmt$(r.annualCashBurden)} cash). This is a current-state diagnosis, not recoverable savings.`,
-                r.unbackfilled > 0 ? `${r.unbackfilled} departures/yr are not refilled. ${r.downsizing ? "Treated as a deliberate reduction with no replacement cost." : "This is lost capacity, not zero cost. Quantify the output and service-level impact in Staffing/Occupancy."}` : `All departures are refilled, so the full replacement cycle applies.`,
-                `${r.earlyWashoutRate}% of replacement hires wash out before productivity, wasting about ${fmt$(r.earlyWaste)} of recruiting, screening, ${r.signOn > 0 ? "sign-on, " : ""}and training cash, a subset of cash burden and the most recoverable slice.`,
+                `At ${r.backfillRate}% backfill, ${r.hires} of ${r.departures} departures are refilled, for an annual replacement burden of ${fmt$(r.annualReplBurden)} (${fmt$(r.annualCashBurden)} cash). This is today's cost. The recoverable share is in the realizable figures.`,
+                r.unbackfilled > 0 ? `${r.unbackfilled} departures a year are not refilled. ${r.downsizing ? "They are treated as a deliberate reduction with no replacement cost." : "This is lost capacity and it has a real cost. Quantify the output and service-level impact in Staffing and Occupancy."}` : `All departures are refilled, so the full replacement cycle applies.`,
+                `${r.earlyWashoutRate}% of replacement hires leave before reaching full output, wasting about ${fmt$(r.earlyWaste)} of recruiting, screening, ${r.signOn > 0 ? "sign-on, " : ""}and training cash. This is part of the cash burden and the most recoverable part.`,
                 r.costPerPoint > 0
-                  ? `Cutting attrition 5 points yields ${fmt$(r.scenarios[0].total)} gross; net of ${fmt$(r.scenarios[0].achieveCost)} to achieve it is ${fmt$(r.scenarios[0].net)}${r.scenarios[0].roi != null ? ` (${r.scenarios[0].roi.toFixed(1)}x return)` : ""}. Bookability: ${r.bookLabel.toLowerCase()}. Net is the figure to take to budget.`
-                  : `Cutting attrition 5 points realizes ${fmt$(r.scenarios[0].total)} gross (${fmt$(r.scenarios[0].cash)} cash avoided + ${fmt$(r.scenarios[0].cap)} capacity value), gated by backfill and mechanism. Bookability: ${r.bookLabel.toLowerCase()}. Not booked EBITDA unless tied to a budget action, and this is before the cost to achieve the reduction.`,
+                  ? `Cutting attrition by 5 points models ${fmt$(r.scenarios[0].total)} gross. Net of the ${fmt$(r.scenarios[0].achieveCost)} it costs to achieve, that is ${fmt$(r.scenarios[0].net)}${r.scenarios[0].roi != null ? ` (${r.scenarios[0].roi.toFixed(1)}x return)` : ""}. Bookability: ${r.bookLabel.toLowerCase()}. Take the net figure to budget.`
+                  : `Cutting attrition by 5 points models ${fmt$(r.scenarios[0].total)} realizable gross (${fmt$(r.scenarios[0].cash)} cash avoided plus ${fmt$(r.scenarios[0].cap)} capacity value), limited by backfill and the capacity action. Bookability: ${r.bookLabel.toLowerCase()}. It counts toward EBITDA (earnings before interest, taxes, depreciation and amortization) only when tied to a budget action, and it is shown before the cost of achieving the reduction.`,
               ]},
               ...(driverScore.dims.some((x) => x.complete) ? [{ title: "Why Agents Leave: Your Answers", type: "findings", items: [
                 ...driverScore.dims.filter((x) => x.complete).flatMap((x) => {
@@ -829,10 +829,10 @@ export default function AttritionCostCalculator() {
                 "These answers are how the person answering sees the operation. They change no figure or grade in this report and predict no attrition rate.",
               ]}] : []),
               { title: "Methodology", type: "findings", items: [
-                `Cost model: per replaced departure = cash (recruiting, screening, ${r.signOn > 0 ? "sign-on, " : ""}training wages, trainer, vacancy OT) + capacity (nesting and ramp productivity loss, supervisor coaching). Capacity is recovered time, credited only through a realization mechanism.`,
-                `Capacity realization: "${r.mechName}" credits ${Math.round(r.mech * 100)}% of freed capacity, read from the shared platform capacity-action table so the same mechanism means the same thing in every tool. Credit class ${r.cred}${r.voided ? "" : `, which sets the realization axis at ${r.grades.realization}`}. Cash out the door is never scaled by this factor.`,
-                `Plausibility check: the ${r.band.low} to ${r.band.high}% of salary frontline band is a planning check set by this platform, not a published study. Replace it with your own replacement-cost history where you have one. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/attrition-cost.`,
-                `Confidence: three named axes. Evidence is input provenance. Realization is whether modelled benefit converts to cash, read from the shared credit class. Completeness is whether the model is whole and internally consistent. The headline is the weakest of the three and the rationale names the binding axis. A failed integrity invariant voids the export rather than grading it down, because an impossible figure is not an uncertain one.${r.guards.length ? ` INPUTS CORRECTED: ${corrections.join(" ")} Every figure above was computed on the corrected values.` : ""}`,
+                `Cost model: each replaced departure = cash (recruiting, screening, ${r.signOn > 0 ? "sign-on, " : ""}training wages, trainer, vacancy overtime) + capacity (nesting and ramp productivity loss, supervisor coaching). Capacity is recovered time, credited only through a capacity action (the realization mechanism).`,
+                `Capacity realization: "${r.mechName}" credits ${Math.round(r.mech * 100)}% of freed capacity, read from the shared platform capacity-action table, so each action means the same thing in every tool. Credit class ${r.cred}${r.voided ? "" : `, which sets the realization axis at ${r.grades.realization}`}. Cash out the door is never scaled by this factor.`,
+                `Plausibility check: the ${r.band.low} to ${r.band.high}% of salary frontline band is a planning check set by this platform. No published study sets it. Where you have your own replacement-cost history, use that instead. The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/attrition-cost.`,
+                `Confidence: three named axes. Evidence is where the inputs came from. Realization is whether the modelled benefit converts to cash, read from the shared credit class. Completeness is whether the model is whole and internally consistent. The headline is the weakest of the three, and the rationale names the binding axis. A failed integrity check voids the export and assigns no grade, because an impossible figure carries no meaning.${r.guards.length ? ` INPUTS CORRECTED: ${corrections.join(" ")} Every figure above was computed on the corrected values.` : ""}`,
               ]},
             ].filter((sec) => !r.voided || ["Export Void", "Inputs Corrected Before Calculation", "Methodology", "Next Steps"].includes(sec.title))}
           />

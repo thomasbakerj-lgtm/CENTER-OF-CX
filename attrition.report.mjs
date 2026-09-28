@@ -335,8 +335,8 @@ for (const [k, doc] of Object.entries(DOCS)) {
   A(`${k}: the metrics block prints capacity per departure from the engine`, metrics["Capacity per departure"] === money(r.capacityPerDeparture));
 
   const rows = Object.fromEntries(sectionByTitle(doc, "Cost Per Replaced Departure").rows);
-  A(`${k}: the cost table prints the recruiting figure the engine used`, rows["Recruiting + screening (cash)"] === money(r.recruiting));
-  A(`${k}: the cost table prints the training figure the engine used`, rows["Training: wages + trainer (cash)"] === money(r.training));
+  A(`${k}: the cost table prints the recruiting figure the engine used`, rows["Recruiting and screening (cash)"] === money(r.recruiting));
+  A(`${k}: the cost table prints the training figure the engine used`, rows["Training: wages and trainer (cash)"] === money(r.training));
   A(`${k}: the cost table prints the nesting figure the engine used`, rows["Nesting productivity loss (capacity)"] === money(r.nestingLoss));
   A(`${k}: the cost table prints the ramp figure the engine used`, rows["Ramp-to-proficiency loss (capacity)"] === money(r.rampLoss));
   A(`${k}: the cost table prints the supervisor figure the engine used`, rows["Supervisor coaching (capacity)"] === money(r.supervisorBurden));
@@ -400,7 +400,7 @@ for (const [k, doc] of Object.entries(DOCS)) {
   A(`${k}: each axis carries its reason`, [doc.r.evidenceReason, doc.r.realizationReason, doc.r.completenessReason].every(x => text.includes(x)));
   A(`${k}: the headline in the document is the headline the engine computed`, text.includes(`Headline: ${doc.confidence}`));
   A(`${k}: the document names the binding axis`, text.includes(`bound by ${doc.r.boundBy}`));
-  A(`${k}: the subtitle agrees with the Confidence section on the headline`, doc.subtitle.includes(doc.confidence === "Void" ? "EXPORT VOID" : doc.confidence));
+  A(`${k}: the subtitle agrees with the Confidence section on the headline`, doc.subtitle.includes(doc.confidence === "Void" ? "Void:" : doc.confidence));
   A(`${k}: the lead payload agrees with the document on the headline`, doc.signals.headline_confidence === (doc.confidence === "Void" ? "void" : doc.confidence));
   A(`${k}: the lead payload agrees with the document on each axis`, doc.signals.evidence_axis === doc.r.grades.evidence && doc.signals.realization_axis === doc.r.grades.realization && doc.signals.completeness_axis === doc.r.grades.completeness);
   A(`${k}: the axes are stated once, not restated by the tool`, (text.match(/Evidence axis/g) || []).length === 1 && !itemsOf(doc, "Evidence Detail").includes("Evidence axis"));
@@ -422,9 +422,9 @@ console.log("\n5. routed value is stated, never implied as zero");
 const E = DOCS.E;
 A("E has un-backfilled seats", E.r.unbackfilled > 0);
 A("E states the un-backfilled seat count in the evidence detail", itemsOf(E, "Evidence Detail").includes(`${E.r.unbackfilled} un-backfilled seats`));
-A("E routes the lost capacity to another tool rather than pricing it here", itemsOf(E, "Evidence Detail").includes("Staffing/Occupancy"));
-A("E says explicitly that the value is not zeroed out as free", itemsOf(E, "Evidence Detail").includes("not zeroed out as free"));
-A("E repeats the routing in key findings", itemsOf(E, "Key Findings").includes("This is lost capacity, not zero cost"));
+A("E routes the lost capacity to another tool rather than pricing it here", itemsOf(E, "Evidence Detail").includes("Staffing and Occupancy"));
+A("E says explicitly that the value is never priced at zero", itemsOf(E, "Evidence Detail").includes("never priced at zero"));
+A("E repeats the routing in key findings", itemsOf(E, "Key Findings").includes("This is lost capacity and it has a real cost"));
 A("E raises the routing as a flag, not only as prose", itemsOf(E, "Integrity Flags").includes("not replaced under forced under-staffing"));
 A("E points the reader at the tool that can price it", sectionByTitle(E, "Next Step").items.some(i => /Occupancy/.test(i.tool)));
 A("A has no un-backfilled seats and says the full cycle applies", DOCS.A.r.unbackfilled === 0 && itemsOf(DOCS.A, "Key Findings").includes("All departures are refilled"));
