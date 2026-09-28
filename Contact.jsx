@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { readIntro, INTRO_TOPIC } from "./src/lib/intro.js";
 import { trackVendor } from "./src/lib/track.js";
 import { HOUSE, PILLARS, LINE, FINDINGS, alpha } from "./src/lib/tokens.js";
@@ -14,23 +14,9 @@ const SLATE = HOUSE.body;
 const MUTED = HOUSE.muted;
 const BORDER = alpha(HOUSE.mist, LINE.hair);
 
-function useInView(t = 0.1) {
-  const ref = useRef(null);
-  const [v, setV] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const o = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setV(true); o.unobserve(el); } }, { threshold: t });
-    o.observe(el);
-    return () => o.disconnect();
-  }, []);
-  return [ref, v];
-}
 
-function FadeIn({ children, delay = 0, style = {} }) {
-  const [ref, v] = useInView();
-  return <div ref={ref} style={{ ...style, opacity: v ? 1 : 0, transform: v ? "translateY(0)" : "translateY(22px)", transition: `opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s` }}>{children}</div>;
-}
+/* Content is visible from the first paint: no reveal on scroll, so a served page, a print and a quick scroll never show an empty band. */
+function FadeIn({ children, style = {} }) { return <div style={style}>{children}</div>; }
 
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 

@@ -61,7 +61,7 @@ section("2. The pillar a path belongs to");
   // everywhere else (a sub-vertical page, a tool on the frame and a method page carry no clearance).
   const fixedCases = { "/": false, "/vendors": true, "/vendors/ccaas": true, "/vendors/five9": true, "/vendors/ccaas/healthcare": true,
     "/industries": true, "/industries/healthcare": true, "/industries/healthcare/payer": false, "/research/ccaas-migration-costs": true,
-    "/tools/tco-calculator": false, "/tools/cost-per-contact": false, "/methodology/staffing": false };
+    "/tools/tco-calculator": false, "/tools/cost-per-contact": false, "/methodology/staffing": false, "/about": false, "/subscribe": false };
   for (const [p, want] of Object.entries(fixedCases)) ok(`${p} header ${want ? "over the page" : "in the flow"}`, S.headerFixed(p) === want);
 }
 

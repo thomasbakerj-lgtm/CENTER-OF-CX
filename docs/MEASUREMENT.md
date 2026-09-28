@@ -1,8 +1,8 @@
 # Measurement: event taxonomy, UTM convention and funnels
 
-Taxonomy version 1.4, 28 September 2026 (1.3 frozen 27 September 2026; 1.2 and 1.1 frozen the same day at redesign Phase 5;
+Taxonomy version 1.5, 28 September 2026 (1.4 the same day; 1.3 frozen 27 September 2026; 1.2 and 1.1 frozen the same day at redesign Phase 5;
 1.0 frozen 25 September 2026, P2 task 7, tracker 11-01 to 11-03). The sections below are 1.0; sections "Taxonomy 1.1" to
-"Taxonomy 1.4" list what each adds. Source of truth in code:
+"Taxonomy 1.5" list what each adds. Source of truth in code:
 `src/lib/track.js`; pins in `track.test.mjs` section P. PostHog (free tier) is the event store; Vercel Analytics counts
 page views only.
 
@@ -98,6 +98,19 @@ Create these as saved insights (Product analytics, New insight, Funnels), conver
 
 What it answers: across real plans, which milestones stall (at risk or blocked) and in what order work gets done. Notes, the
 initiative name and anything typed never travel; the tool's page says what is recorded.
+
+## Taxonomy 1.5 (28 September 2026, sharing a page)
+
+1.5 only adds. Every earlier name keeps its meaning.
+
+| Change | Detail |
+|---|---|
+| New event `page_shared` | The Share action on a page's breadcrumb row was used. Carries `page_type` and `via` |
+| New property `via` | `native` (the device's share sheet opened) or `copy` (the page's address was copied). Travels on `page_shared` only |
+
+What it answers: which kinds of page people pass on, and whether they do it from a phone's share sheet or a copied link.
+The address shared is the page's own path and view hash; the query is never included, and the event never says where
+the link went.
 
 ## Rules
 

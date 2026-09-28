@@ -107,7 +107,7 @@ const full = buildPayload(EV.TOOL_COMPLETE, {
 }, CTX);
 const OWNED = { pillar: ["door_select", "vendors"], route: ["route_select", "cost"], layer: ["layer_select", "l4"], surface: ["layer_select", "home"],
   vendor: ["vendor_view", "five9"], category: ["vendor_view", "ccaas"], status: ["vendor_view", "complete"], action: ["vendor_action", "request"], audience: ["report_export", "finance"],
-  milestones: ["roadmap_snapshot", "nnppcrbcnnnnnnnnnn"] };
+  milestones: ["roadmap_snapshot", "nnppcrbcnnnnnnnnnn"], via: ["page_shared", "copy"] };
 for (const k of ALLOWED_PROP_KEYS) {
   const props = OWNED[k] ? buildPayload(OWNED[k][0], { [k]: OWNED[k][1] }, CTX).properties : full.properties;
   ok(`B6  allowed key "${k}" survives when valid${OWNED[k] ? " on its own event" : ""}`, Object.prototype.hasOwnProperty.call(props, k));
@@ -558,15 +558,15 @@ section("M. A scenario link cannot reach an object's prototype or plant a key");
    docs/MEASUREMENT.md, and these pins; a silent rename would break every funnel that uses it. */
 section("P. The taxonomy is frozen (1.1, which kept every 1.0 name), and the landing event reads the channel");
 {
-  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.4");
+  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.5");
   eq("P2 event names are frozen", JSON.stringify(EV), JSON.stringify({
     SESSION_LANDING: "session_landing", TOOL_VIEW: "tool_view", TOOL_COMPLETE: "tool_complete", REPORT_EXPORT: "report_export",
     REPORT_COPY: "report_copy_requested", REVIEW_OPENED: "review_form_opened", REVIEW_SUBMIT: "expert_read_submit",
     NEXT_STEP: "next_step_click", SCENARIO_SHARE: "scenario_shared", SCENARIO_LOAD: "scenario_loaded",
     DOOR_SELECT: "door_select", ROUTE_SELECT: "route_select", ROUTE_START: "route_start", STOP_HERE: "stop_here",
     LAYER_SELECT: "layer_select", VENDOR_VIEW: "vendor_view", VENDOR_ACTION: "vendor_action", INTRO_SUBMIT: "intro_submit",
-    ROADMAP_SNAPSHOT: "roadmap_snapshot" }));
-  eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref", "pillar", "route", "layer", "surface", "vendor", "category", "status", "action", "audience", "milestones"]));
+    ROADMAP_SNAPSHOT: "roadmap_snapshot", PAGE_SHARE: "page_shared" }));
+  eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref", "pillar", "route", "layer", "surface", "vendor", "category", "status", "action", "audience", "milestones", "via"]));
   const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
   /* 1.4: Roadmap's code is built from the fixed milestone order and sent only from the summary button, with no note,
      initiative name or other text. */
@@ -588,7 +588,15 @@ section("P. The taxonomy is frozen (1.1, which kept every 1.0 name), and the lan
   }
   const snap = buildPayload(EV.ROADMAP_SNAPSHOT, { tool: "roadmap-builder", milestones: "cpnnnnnnnnnnnnnnnr", notes: "board wants AI", initiative: "Acme" }, CTX).properties;
   ok("P8 the snapshot carries the tool and the code, and never a note or the initiative name", snap.tool === "roadmap-builder" && snap.milestones === "cpnnnnnnnnnnnnnnnr" && !("notes" in snap) && !("initiative" in snap) && !JSON.stringify(snap).includes("Acme"));
-  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.4"));
+  /* 1.5: a page share carries the page type and how it was shared; never the address, a query or anything typed. */
+  {
+    const sh = buildPayload(EV.PAGE_SHARE, { page_type: "method", via: "native", url: "https://x/y?s=abc", title: "Acme" }, CTX).properties;
+    ok("P10 a page share carries page type and via only", sh.page_type === "method" && sh.via === "native" && !("url" in sh) && !("title" in sh) && !JSON.stringify(sh).includes("Acme"));
+    ok("P11 via is a closed set and travels on page_shared only", !("via" in sanitizeProps({ via: "linkedin" })) && !("via" in buildPayload(EV.TOOL_VIEW, { tool: "staffing-calculator", via: "copy" }, CTX).properties));
+    const SH = readFileSync("./src/lib/Shell.jsx", "utf8");
+    ok("P12 the share button shares the page's own path and hash, never its query", /const url = origin \+ pathname \+ hash;/.test(SH) && !/location\.search|location\.href/.test(SH));
+  }
+  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.5"));
 
   const L = landingProps("/tools/staffing-calculator", "?utm_source=LinkedIn&utm_medium=social&utm_campaign=2026 10 Healthcare&s=abc", "https://www.linkedin.com/feed/update/123?x=1", "www.contactcentercx.com");
   const sent = buildPayload(EV.SESSION_LANDING, L, CTX).properties;

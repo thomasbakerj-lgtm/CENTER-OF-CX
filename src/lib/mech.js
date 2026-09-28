@@ -54,4 +54,9 @@ export const MECH_FALLBACK = "none";
  *  Never initialize a tool to headcount reduction. */
 export const MECH_INITIAL = "none";
 
+/** True for the flag a tool raises while no capacity action is chosen. At "none" that is an open choice,
+ *  never a defect in the reader's inputs, so pages show it as not yet known (dashed, never red) and do not
+ *  count it among the issues. Takes a flag string or a { t } flag object. */
+export const isNoActionFlag = (f) => /^No (capacity action|mechanism)\b/.test(typeof f === "string" ? f : (f && f.t) || "");
+
 export default MECH;

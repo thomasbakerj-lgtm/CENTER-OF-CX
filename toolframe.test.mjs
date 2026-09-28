@@ -88,7 +88,8 @@ section("3. The privacy line stays true");
   // is ids, grades, bands, flags, counts, landing tags and closed 1.1 vocabularies scoped to their own events.
   // A new key here must be read against the line first.
   const keys = [...TR.ALLOWED_PROP_KEYS].sort().join();
-  ok("the analytics allowlist is the reviewed set (1.1 adds pillar, route, layer, surface, vendor, category, status, action, audience; 1.4 adds milestones)", keys === "action,audience,bound_axis,category,depth,from,grade,layer,milestones,page_type,pillar,real,ref,repeat,route,severity,status,surface,to,tool,utm_campaign,utm_medium,utm_source,vendor,via_rail", keys);
+  ok("the analytics allowlist is the reviewed set (1.1 adds pillar, route, layer, surface, vendor, category, status, action, audience; 1.4 adds milestones; 1.5 adds via)", keys === "action,audience,bound_axis,category,depth,from,grade,layer,milestones,page_type,pillar,real,ref,repeat,route,severity,status,surface,to,tool,utm_campaign,utm_medium,utm_source,vendor,via,via_rail", keys);
+  ok("how a page was shared rides page_shared only", !("via" in TR.scopeProps("tool_complete", { via: "copy" })) && "via" in TR.scopeProps("page_shared", { via: "copy" }));
   ok("none of the 1.1 keys can ride a tool event", ["tool_view", "tool_complete", "next_step_click"].every((e) => Object.keys(TR.scopeProps(e, { pillar: "vendors", route: "cost", layer: "l4", surface: "home", vendor: "x", category: "ccaas", status: "complete", action: "request", audience: "finance" })).length === 0));
   /* 1.4: the one entered value analytics carries is Roadmap's milestone code. It rides roadmap_snapshot only, and that
      tool's rail says exactly what is recorded; every other tool keeps the shared line. */

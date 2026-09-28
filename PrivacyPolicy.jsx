@@ -28,7 +28,7 @@ export const FORMS = [
   { what: "Industry stack framework reviews", fields: "your email, name and company, and the stack profile you marked", endpoint: "maqlvwne" },
   { what: "Buyer guide downloads", fields: "name, job title and email", endpoint: "mgorkboe, myklwvjy, xojydbwe" },
   { what: "Vendor reviews you submit on a profile", fields: "your name, email, role, company size, tenure with the vendor and your review", endpoint: "xjgplvkz" },
-  { what: "Newsletter sign-ups", fields: "first and last name, email and company", endpoint: "xnjolywk" },
+  { what: "Newsletter sign-ups", fields: "email address", endpoint: "xnjolywk" },
 ];
 
 export default function PrivacyPolicy() {

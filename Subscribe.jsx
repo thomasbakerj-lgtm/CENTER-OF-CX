@@ -1,196 +1,74 @@
-import { useState, useEffect, useRef } from "react";
-import { HOUSE, PILLARS, LINE, FINDINGS, alpha } from "./src/lib/tokens.js";
+// Subscribe.jsx
+//
+// The newsletter sign-up: one field. It asked for first name, last name, company and email, all required, with nothing
+// said about what arrives or how often; a first visitor had to hand over four facts to learn what the site publishes.
+// Now it says what an email carries, how often at most, and how to stop, and asks only for the address. Posts to the
+// same Formspree form as before (named in the Privacy Policy). Tokens only; the header sits in the flow.
+import { useState } from "react";
+import { HOUSE, RADIUS, TOUCH } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
+import { K } from "./src/lib/frameKit.jsx";
+import { Crumbs } from "./src/lib/Shell.jsx";
 
-const NAVY = HOUSE.mist;
-const DEEP = HOUSE.ink;
-const ELECTRIC = PILLARS.research.onDark;
-const LIGHT = PILLARS.research.onDark;
-const WARM = HOUSE.navy;
-const SLATE = HOUSE.body;
-const MUTED = HOUSE.muted;
-const BORDER = alpha(HOUSE.mist, LINE.hair);
+/* What a subscriber receives. Each line is a kind of page the site already publishes. */
+export const WHAT_ARRIVES = [
+  ["New and changed methods", "when a diagnostic's formulas or sourced constants change, with what moved."],
+  ["Vendor research", "when a vendor's research is completed or corrected."],
+  ["Market Watch", "the new dated items, each labelled by the source it rests on."],
+];
 
-const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-
-function LogoMark({ size = 34, light = true }) {
-  const arcColor = HOUSE.mist;
-  const xColor = light ? LIGHT : ELECTRIC;
-  return (
-    <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
-      <g transform="translate(60,60)">
-        <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={arcColor} strokeWidth="2" strokeLinecap="round" opacity={light ? 0.6 : 0.3}/>
-        <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={arcColor} strokeWidth="3.2" strokeLinecap="round" opacity={light ? 0.8 : 0.5}/>
-        <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={arcColor} strokeWidth="5" strokeLinecap="round"/>
-        <line x1="-14" y1="-14" x2="14" y2="14" stroke={xColor} strokeWidth="5.5" strokeLinecap="round"/>
-        <line x1="14" y1="-14" x2="-14" y2="14" stroke={xColor} strokeWidth="5.5" strokeLinecap="round"/>
-      </g>
-    </svg>
-  );
-}
-
-function Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
-  const links = [
-    { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
-    { name: "Research", href: "/research" },
-    { name: "Vendors", href: "/vendors" },
-    { name: "The Human Premium", href: "/human-premium" },
-  ];
-  return (
-    <>
-      <style>{`
-        
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        a { text-decoration: none; color: inherit; }
-        @media (max-width: 860px) { .nav-links { display: none !important; } }
-        input:focus { outline: none; border-color: ${ELECTRIC} !important; box-shadow: 0 0 0 3px ${alpha(HOUSE.electric, LINE.firm)}; }
-      `}</style>
-      
-    </>
-  );
-}
-
-function SubscribePage() {
-  const [submitted, setSubmitted] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  const inputStyle = {
-    width: "100%", padding: "13px 16px", fontSize: 14, fontFamily: FONT,
-    border: `1px solid ${BORDER}`, borderRadius: 8, background: HOUSE.ink, color: NAVY,
-    transition: "border-color 0.2s, box-shadow 0.2s",
-  };
-
-  const labelStyle = {
-    fontSize: 13, fontWeight: 600, color: NAVY, display: "block", marginBottom: 6,
-    fontFamily: FONT,
-  };
-
-  const handleSubmit = () => {
-    const form = document.getElementById("subscribe-form");
-    const inputs = form.querySelectorAll("input[required]");
-    let valid = true;
-    inputs.forEach(input => {
-      if (!input.value) {
-        valid = false;
-        input.style.borderColor = FINDINGS.high.dark;
-      } else {
-        input.style.borderColor = BORDER;
-      }
-    });
-    if (!valid) return;
-
-    setSending(true);
-    const formData = new FormData();
-    form.querySelectorAll("input").forEach(el => {
-      if (el.name) formData.append(el.name, el.value);
-    });
-
-    fetch("https://formspree.io/f/xnjolywk", {
-      method: "POST",
-      body: formData,
-      headers: { Accept: "application/json" },
-    }).then(res => {
-      if (res.ok) setSubmitted(true);
-      setSending(false);
-    }).catch(() => setSending(false));
-  };
-
-  return (
-    <section style={{ background: HOUSE.navy, minHeight: "100vh", display: "flex", alignItems: "center", position: "relative", overflow: "hidden", padding: "140px 28px 80px" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
-      <div style={{ position: "absolute", bottom: "-20%", right: "-10%", width: 600, height: 600, borderRadius: "50%", background: "none" }} />
-
-      <div style={{ ...WRAP, position: "relative", zIndex: 1, width: "100%" }}>
-        <div style={{ maxWidth: 480, margin: "0 auto" }}>
-          {submitted ? (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: HOUSE.navy, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
-                <span style={{ color: LIGHT, fontSize: 26 }}>✓</span>
-              </div>
-              <h1 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>You're in.</h1>
-              <p style={{ fontSize: 16, color: HOUSE.body, lineHeight: 1.65, fontFamily: FONT, margin: "0 0 32px" }}>
-                We'll send you vendor intelligence, market analysis, and operational insights worth reading. No filler.
-              </p>
-              <a href="/" style={{ color: LIGHT, fontSize: 14, fontWeight: 600, fontFamily: FONT }}>← Back to home</a>
-            </div>
-          ) : (
-            <div>
-              <div style={{ textAlign: "center", marginBottom: 40 }}>
-                <h1 style={{ fontFamily: FONT, fontSize: "clamp(30px, 4vw, 42px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.12, margin: "0 0 16px" }}>
-                  Stay ahead of the CX landscape.
-                </h1>
-                <p style={{ fontSize: 16, color: HOUSE.body, lineHeight: 1.65, fontFamily: FONT }}>
-                  Vendor intelligence, market shifts, and operational insights delivered to your inbox. Written for CX leaders who make technology and strategy decisions.
-                </p>
-              </div>
-
-              <div id="subscribe-form" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 14, padding: "32px 28px" }}>
-                <input type="hidden" name="_subject" value="New Newsletter Subscriber: Center of CX" />
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 14 }}>
-                  <div>
-                    <label htmlFor="sub-first_name" style={{ ...labelStyle, color: HOUSE.body }}>First name</label>
-                    <input id="sub-first_name" name="first_name" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Jane" />
-                  </div>
-                  <div>
-                    <label htmlFor="sub-last_name" style={{ ...labelStyle, color: HOUSE.body }}>Last name</label>
-                    <input id="sub-last_name" name="last_name" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Smith" />
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: 14 }}>
-                  <label htmlFor="sub-company" style={{ ...labelStyle, color: HOUSE.body }}>Company</label>
-                  <input id="sub-company" name="company" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="Acme Corp" />
-                </div>
-
-                <div style={{ marginBottom: 24 }}>
-                  <label htmlFor="sub-email" style={{ ...labelStyle, color: HOUSE.body }}>Work email</label>
-                  <input id="sub-email" name="email" type="email" required style={{ ...inputStyle, background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist }} placeholder="jane@company.com" />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={sending}
-                  style={{
-                    width: "100%", background: HOUSE.action, color: HOUSE.paper, opacity: sending ? 0.6 : 1,
-                    fontSize: 15, fontWeight: 600, padding: "15px 32px", borderRadius: 8,
-                    border: "none", cursor: sending ? "wait" : "pointer",
-                    fontFamily: FONT, boxShadow: "none",
-                    transition: "background 0.2s",
-                  }}
-                >
-                  {sending ? "Subscribing..." : "Subscribe"}
-                </button>
-
-                <p style={{ fontSize: 12, color: HOUSE.body, textAlign: "center", margin: "16px 0 0", fontFamily: FONT }}>
-                  Occasional emails. Unsubscribe anytime. We respect your inbox.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    null
-  );
-}
+const field = { width: "100%", boxSizing: "border-box", minHeight: TOUCH, padding: "10px 12px", fontFamily: FONT, fontSize: 16, color: HOUSE.mist,
+  background: HOUSE.navy, border: `1px solid ${K.firm}`, borderRadius: RADIUS.field };
 
 export default function Subscribe() {
+  const [state, setState] = useState("idle");
+  const submit = async (e) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    setState("sending");
+    try {
+      const res = await fetch("https://formspree.io/f/xnjolywk", { method: "POST", body: new FormData(form), headers: { Accept: "application/json" } });
+      setState(res.ok ? "sent" : "failed");
+    } catch { setState("failed"); }
+  };
+
   return (
-    <div>
-      <Nav />
-      <SubscribePage />
-      <Footer />
+    <div style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT, minHeight: "100vh" }}>
+      <Crumbs items={[["Home", "/"], ["Subscribe"]]} share={false} />
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 20px 72px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 24 }}>
+        <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <span style={{ ...K.kicker, color: HOUSE.sky2 }}>Subscribe</span>
+          <h1 style={{ margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12, color: HOUSE.mist }}>Hear when something new is published.</h1>
+          <p style={K.body}>At most one email a week, and only when there is something new. Reply to any email to stop, or ask us on the contact page.</p>
+        </header>
+
+        <section aria-labelledby="arrives" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
+          <h2 id="arrives" style={{ ...K.h2, margin: 0 }}>What an email carries</h2>
+          <ul style={{ margin: 0, paddingLeft: 22, display: "flex", flexDirection: "column", gap: 8 }}>
+            {WHAT_ARRIVES.map(([t, d]) => <li key={t} style={K.body}><strong style={K.strong}>{t}</strong>, {d}</li>)}
+          </ul>
+        </section>
+
+        {state === "sent" ? (
+          <p role="status" style={{ ...K.panel, ...K.body }}>
+            <strong style={K.strong}>You are subscribed.</strong> The next email goes out when something new is published. Meanwhile, <a href="/how-to-choose" style={{ color: HOUSE.sky2, fontWeight: 600 }}>the diagnostics</a> are free to use now.
+          </p>
+        ) : (
+          <form onSubmit={submit} noValidate style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 12 }}>
+            <input type="hidden" name="_subject" value="New Newsletter Subscriber: Center of CX" />
+            <label htmlFor="sub-email" style={{ ...K.small, fontWeight: 600, color: HOUSE.mist }}>Email address</label>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <input id="sub-email" name="email" type="email" autoComplete="email" required placeholder="you@company.com" style={{ ...field, flex: "1 1 240px", width: "auto" }} />
+              <button type="submit" disabled={state === "sending"} style={{ minHeight: TOUCH, padding: "0 24px", borderRadius: RADIUS.field, border: "none", background: HOUSE.action, color: HOUSE.paper, fontFamily: FONT, fontSize: 15, fontWeight: 600, cursor: state === "sending" ? "wait" : "pointer" }}>
+                {state === "sending" ? "Subscribing" : "Subscribe"}
+              </button>
+            </div>
+            {state === "failed" && <p role="alert" style={{ ...K.small, color: HOUSE.mist }}>That did not go through. Check the address and try again.</p>}
+            <p style={K.small}>Your address is used only to send these emails. See the <a href="/privacy" style={{ color: HOUSE.sky2 }}>Privacy Policy</a>.</p>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
