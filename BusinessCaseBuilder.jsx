@@ -1132,7 +1132,6 @@ export default function BusinessCaseBuilder() {
       // class of defect as the annualized-attrition case the ceilings were added to catch.
       displacementBenefitShare: Math.round(r.displacementShare * 1000) / 1000, bauEvidence: conf.bauEvidence,
       year1Savings: Math.round(r.year1), rampOn, migrationMonths: r.M, rampMonths: r.R,
-      confidence: conf.grade, analystRead: insights[0],
     };
     publishToolResult("business-case-builder", normalizeForPublish(primitives, { sourceTool: "business-case-builder" }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps

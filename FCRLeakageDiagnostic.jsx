@@ -646,8 +646,6 @@ export default function FCRLeakageDiagnostic() {
     if (phase === "results") publishToolResult("fcr-leakage", {
       repeatContactBurden: R.burdenYr, controllableRepeatBurden: R.controllableBurdenYr, cashRealizableSavings: R.realizableYr,
       repeatContactShare: R.repeatShare, marginalPerContact: N.mCPC, targetFCR: R.target, fcr: N.fcrPct / 100, monthlyContacts: N.M,
-      fcrLeakageConfidence: G.confidence,
-      analystRead: `Repeat burden ${money(R.burdenYr)}/yr (${money(R.controllableBurdenYr)} controllable). ${money(R.realizableYr)} realizable at ${pct(R.target)} FCR, payback ${R.paybackLabel}.`,
     });
   }, [phase, R.burdenYr, R.realizableYr, R.payback, G.confidence]);
 

@@ -432,7 +432,7 @@ console.log("\n12. publish contract");
   A("the prefill record is captured at mount, before this tool publishes", /setPre\(seen\);/.test(SRC));
   A("the component grades through gradeCPC with the mount record and no origin grade",
     /const graded = gradeCPC\(\{ d, r, pre, railOrigin: null \}\);/.test(SRC));
-  A("the rail publishes the headline the grading layer computed", /grade: confidence, analystRead/.test(SRC));
+  A("the rail carries facts only: no grade and no analyst read (P6 item 14)", !/grade: confidence|analystRead:/.test(SRC.slice(SRC.indexOf("publishToolResult("))));
   A("the prefill badge names its real source rather than assuming TCO",
     !/from your TCO run/.test(SRC));
   A("publishToolResult is called with the tool's own registered id",

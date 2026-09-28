@@ -456,10 +456,8 @@ export default function AttritionCostCalculator() {
       attritionAllInPerDeparture: Math.round(r.allInPerDeparture),
       attritionAnnualReplBurden: Math.round(r.annualReplBurden),
       attritionUnbackfilled: r.unbackfilled,
-      attritionConfidence: r.confidence,
       attritionVoided: r.voided,
       capacityAction: r.mechKey,
-      analystRead: r.railRead,
     }, { sourceTool: TOOL_ID }).clean);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d]);

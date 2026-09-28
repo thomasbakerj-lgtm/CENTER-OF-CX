@@ -490,7 +490,7 @@ console.log("\n14. 11B grading layer and registry");
   A("the engine never grades a voided result", /const confidence = voided \? "Void"/.test(region));
   A("the component passes the emitted object to ReportActions", /grades=\{gradeObj\}/.test(SRC) && !/confidence=\{grade\}/.test(SRC));
   A("the component grades through gradeChannel with no rail origin", /gradeChannel\(\{ d, r, pre, railOrigin: null \}\)/.test(SRC));
-  A("the publish carries the headline the page shows", /grade: confidence, analystRead/.test(SRC));
+  A("the publish carries facts only: no grade and no analyst read (P6 item 14)", !/grade: confidence|analystRead:/.test(SRC.slice(SRC.indexOf("publishToolResult("))));
   A("the checkbox no longer promises Finance-grade", !/required for Finance-grade/.test(SRC));
 
   const ACTIONS = ["vendor", "hiring", "overtime", "growth", "none", "headcount"];

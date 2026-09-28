@@ -317,5 +317,22 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   truthy("N23 a voided TCO run publishes no origin grades", has("TCOCalculator.jsx", /if \(!G\.voided\) \{/));
 }
 
+
+// ---------------------------------------------------------------- Facts, not verdicts (P6 item 14, S24)
+{
+  const { RAIL_VERDICT_KEYS, isVerdictKey, metricRegistry } = await import("./src/lib/metrics.js");
+  truthy("V0  tool-named verdicts are caught; no registered fact is", isVerdictKey("deflectionVerdict") && isVerdictKey("attritionConfidence") && isVerdictKey("fcrLeakageConfidence") && !Object.keys(metricRegistry).some(isVerdictKey));
+  const out = normalizeForPublish({ agents: 12, analystRead: "Looks good", grade: "Finance-grade", confidence: "Planning-grade", licenseConfidence: "Directional", verdict: "Buy" }, { sourceTool: "t" });
+  eq("V1  a verdict never reaches the rail; facts do", Object.keys(out.clean).join(), "agents");
+  truthy("V2  each dropped verdict is flagged by name", ["analystRead", "grade", "confidence", "licenseConfidence", "verdict"].every((k) => out.flags.some((f) => f.includes(k + " is a verdict"))));
+  resetRail();
+  publishToolResult("t", { agents: 12, analystRead: "Looks good", grade: "Finance-grade" });
+  eq("V3  publishToolResult drops them at the door too", getPrimitive("analystRead") === undefined && getPrimitive("grade") === undefined && getPrimitive("agents") === 12, true);
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const tools = readdirSync(".").filter((f) => f.endsWith(".jsx") && /publishToolResult\(/.test(readFileSync(f, "utf8")));
+  const leaking = tools.filter((f) => { const s = readFileSync(f, "utf8"); return [...s.matchAll(/publishToolResult\(/g)].some((m) => { const call = s.slice(m.index, s.indexOf(");", m.index)); return [...call.matchAll(/(?:^|[\s{,])([A-Za-z]+)\s*:/g)].some((m) => isVerdictKey(m[1])); }); });
+  eq(`V4  no tool's publish call names a verdict key (${tools.length} publishers)`, leaking.join(), "");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
