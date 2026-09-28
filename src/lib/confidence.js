@@ -311,3 +311,18 @@ export const AXIS_EXPLAINER =
   "action committed. Completeness rates whether the model is whole and internally " +
   "consistent. The headline is the weakest applicable axis. Each axis has a " +
   "different remedy: get a better source, commit a harder lever, or finish the model.";
+
+/**
+ * Origin grades for a publish (P6 item 15, part 2). Every key a tool puts on the rail carries the tool's evidence
+ * grade, the weakest evidence behind its result: it can understate a well-evidenced input, never overstate one. A void
+ * result publishes no origin grade. A value the tool republishes unchanged keeps its original producer and grade
+ * (toolData's provenance rule), so this never upgrades another tool's figure.
+ */
+export function originsFor(gradeObj, published) {
+  const g = gradeObj && gradeObj.evidence;
+  if (!["Directional", "Planning-grade", "Finance-grade"].includes(g)) return {};
+  const out = {};
+  for (const [k, v] of Object.entries(published || {})) if (v !== undefined && v !== null) out[k] = g;
+  return out;
+}
+

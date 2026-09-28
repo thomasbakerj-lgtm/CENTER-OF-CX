@@ -5,7 +5,7 @@ import { METHOD_VERSIONS, methodStamp } from "./src/lib/methodVersions";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
-import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
+import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred, originsFor } from "./src/lib/confidence";
 import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
@@ -614,7 +614,8 @@ export default function AIDeflectionRealityCheck() {
     /* This tool publishes what it OWNS and nothing else. It does not republish the volume
        or cost basis it pulled: laundering another tool's typed number through this one's
        provenance record is how a confidence gate gets credentialed by nobody. */
-    publishToolResult(TOOL_ID, {
+    {
+      const published = {
       realisticDeflectionRate: R.railPublished ? +R.railRate.toFixed(4) : undefined,
       botResolutionRate: R.railPublished ? +R.railBot.toFixed(4) : undefined,
       aiEligibleRate: +R.E.toFixed(4),
@@ -628,7 +629,9 @@ export default function AIDeflectionRealityCheck() {
       realizedDollarsPct: Math.round(R.realizedDollarsPct),
       breakEvenResolutionPct: isFinite(R.beResPct) ? +R.beResPct.toFixed(1) : undefined,
       capacityAction: R.mechKey,
-    });
+    };
+      publishToolResult(TOOL_ID, published, originsFor(G.gradeObj, published));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s]);
 

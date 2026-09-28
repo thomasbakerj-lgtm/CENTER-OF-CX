@@ -379,8 +379,8 @@ Binding. None of this is in code comments beyond what is noted.
 - ~~TCO publishes `analystRead`, a verdict on the rail.~~ Fixed S24: the rail refuses verdict keys (item 77).
 - ~~TCO `marginalPerContact` uses 1.30x.~~ Moved to `load.marginal` 1.18 S23 (P3 10). Still at the loaded rate: TCO's AHT
   lever and BCB's derived marginal (ask TB).
-- TCO, AHT Decomposition, Shrinkage Planner and Occupancy Risk publish origin grades. Staffing, CPC, FCR, AID, Channel read
-  but publish none.
+- Every rail publisher sends origin grades: TCO, AHT Decomposition, Shrinkage and Occupancy per field; Staffing, CPC, FCR,
+  AID and Channel at their evidence grade (S24, item 79).
 - ~~CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource`.~~ Fixed S24 (item 78): every pull is external.
 - ~~FCR PULLED badge reads `getPrimitive`.~~ Fixed S23: the badge fires only on a value another tool produced.
 - ~~Attrition live PDFs never pulled; local `boundAxes`.~~ Fixed S23: pulled and reconciled (29 of 29 figures,
@@ -1384,6 +1384,15 @@ dashboard, the 12-phase growth program.
    `rail.test.mjs` V5 and V6: no page calls a self-capable getter (proven on a planted pull); AI Deflection, Attrition,
    Channel and FCR pins moved to the external getter. Suite 25,829; live check 256 of 256. Part 2 (Staffing, CPC, FCR,
    AI Deflection and Channel publish origin grades) is next.
+   PR #70 merged by TB's instruction (bfcbcd8).
+79. S24 (28 Sep), P6 item 15 part 2, origin grades. Staffing, CPC, FCR, AI Deflection and Channel pulled graded values but
+   published none, so a consumer graded their figures Directional through railEvidence(null) whatever the reader had
+   entered. `originsFor(gradeObj, published)` in `confidence.js` grades every key a tool publishes at its evidence grade
+   (the weakest evidence behind the result: it can understate a well-evidenced input, never overstate one); a void
+   publishes none; a republished unchanged value keeps its producer's grade (toolData provenance rule). The five tools
+   pass it to `publishToolResult`. Browser: every published key carries a grade (Directional at the defaults). `rail.test`
+   V7 to V10; the channel report harness's slice marker moved with the publish block. Suite 25,833; live check 256 of
+   256. P6 item 15 closed.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1460,7 +1469,7 @@ P6. Remaining debt.
   13. Unsourced figures on Human Premium, Research, Advisory, Platforms, About (the Industries hub is done in item 37).
   13b. Queued originality phrase searches for Telecom, Education, Travel, Financial Services, Utilities, Government.
   14. ~~TCO and BCB publish verdicts on the rail.~~ Done S24 (item 77): no tool publishes a verdict; the rail refuses them.
-  15. CPC, Channel, FCR, AID to external getters; Staffing, CPC, FCR, AID, Channel publish origin grades.
+  15. ~~External getters and origin grades.~~ Done S24 (items 78 and 79).
   16. BCB next steps to `nextFor` (3-03); `MECH_INITIAL` F2; TCO guard-case wording; ReportActions `Field` labels.
   17. Roadmap anonymous sequence capture; Attrition root-cause layer from the Agent Experience content.
   18. WS10 performance re-scope and Core Web Vitals; delete root `download` once TB confirms.

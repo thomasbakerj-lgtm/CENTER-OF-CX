@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import ReportActions from "./ReportActions";
 import { METHOD_VERSIONS } from "./src/lib/methodVersions";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage, benchmark } from "./src/lib/benchmarks";
-import { emitGrades, voidResult, isVoid, railEvidence, weakerStream } from "./src/lib/confidence";
+import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, originsFor } from "./src/lib/confidence";
 import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import NumField from "./src/lib/NumField";
@@ -567,7 +567,8 @@ export default function StaffingCalculator() {
   const ahtDown = calc(vol, Math.round(aht * (1 - AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);
 
   useEffect(() => {
-    publishToolResult("staffing-calculator", {
+    {
+      const published = {
       volume: vol, intervalMin: intv, aht, shrinkage: shrink / 100,
       serviceLevelTarget: slT / 100, serviceLevel: r.sl, asa: r.asa,
       /* A service level above the reporting ceiling is not certainty. The flag
@@ -589,7 +590,9 @@ export default function StaffingCalculator() {
       sustainableCeiling: pair.sustainable ? pair.ceiling : undefined,
       recoveryTimeFteCost: pair.sustainable ? pair.deltaFte : undefined,
       modelValid: valid.ok, intervalToAhtRatio: +valid.ratio.toFixed(2),
-    });
+    };
+      publishToolResult("staffing-calculator", published, originsFor(gradeObj, published));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vol, intv, aht, shrink, slT, slS, patience, capOn, capPct]);
 

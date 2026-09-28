@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
-import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred } from "./src/lib/confidence";
+import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred, originsFor } from "./src/lib/confidence";
 import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 /* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
    nothing (P6 item 15: every pull is external). */
@@ -398,12 +398,13 @@ export default function CostPerContactCalculator() {
   const { gradeObj, confidence, gradeWhy } = graded;
 
   useEffect(() => {
-    publishToolResult("cost-per-contact", normalizeForPublish({
+    const published = normalizeForPublish({
       costPerContact: +r.loaded.toFixed(2), costPerResolution: +r.cprLoaded.toFixed(2),
       contactsPerResolution: +r.C.toFixed(2), repeatDemandSharePct: +(r.repeatShare * 100).toFixed(1), fcr: r.fcrPct / 100,
       repeatContactsMonthly: r.repeatContacts, repeatDemandBurdenMonthly: Math.round(r.burden), fteBurden: +r.fteBurden.toFixed(1),
       capacityAction: mechKey, capacityRealizationPct: Math.round(r.mf * 100),
-    }, { sourceTool: "cost-per-contact" }).clean);
+    }, { sourceTool: "cost-per-contact" }).clean;
+    publishToolResult("cost-per-contact", published, originsFor(gradeObj, published));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [d, mech]);
 

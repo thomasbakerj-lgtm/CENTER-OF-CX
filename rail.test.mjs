@@ -338,6 +338,17 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   const selfReaders = readdirSync(".").filter((f) => f.endsWith(".jsx") && /getPrimitive(WithSource)?\(/.test(strip(readFileSync(f, "utf8"))));
   eq("V5  no page pulls with a self-capable getter", selfReaders.join(), "");
   truthy("V6  the rule fires on a planted pull", /getPrimitive(WithSource)?\(/.test(strip('const x = getPrimitiveWithSource("agents");')));
+  /* P6 item 15 part 2 (S24): the five tools that pulled but published no origin grade now publish one per key, at their
+     evidence grade; a void publishes none. */
+  const { originsFor } = await import("./src/lib/confidence.js");
+  const { getExternalWithSource: gws } = await import("./src/lib/toolData.js");
+  eq("V7  every published key carries the evidence grade", JSON.stringify(originsFor({ evidence: "Planning-grade" }, { a: 1, b: 0, c: undefined, d: null })), JSON.stringify({ a: "Planning-grade", b: "Planning-grade" }));
+  eq("V8  a void or ungraded result publishes no origin grade", JSON.stringify([originsFor({ evidence: null }, { a: 1 }), originsFor(null, { a: 1 }), originsFor({ evidence: "Void" }, { a: 1 })]), "[{},{},{}]");
+  resetRail();
+  publishToolResult("cost-per-contact", { fcr: 0.7 }, originsFor({ evidence: "Planning-grade" }, { fcr: 0.7 }));
+  eq("V9  a pulling tool sees the producer and its grade", JSON.stringify((({ sourceTool, railOrigin }) => ({ sourceTool, railOrigin }))(gws("fcr", "fcr-leakage"))), JSON.stringify({ sourceTool: "cost-per-contact", railOrigin: "Planning-grade" }));
+  const GRADERS = { "StaffingCalculator.jsx": "gradeObj", "CostPerContactCalculator.jsx": "gradeObj", "ChannelShiftModel.jsx": "gradeObj", "FCRLeakageDiagnostic.jsx": "G.gradeObj", "AIDeflectionRealityCheck.jsx": "G.gradeObj" };
+  eq("V10 the five tools publish their origin grades", Object.entries(GRADERS).filter(([f, g]) => !readFileSync(f, "utf8").includes(`published, originsFor(${g}, published))`)).map(([f]) => f).join(), "");
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

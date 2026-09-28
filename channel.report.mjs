@@ -160,7 +160,7 @@ const engineRegion = SRC.slice(ea, eb);
 /* The integrity-check block is sliced, never retyped. A retyped flag list is
    exactly the kind of copy that drifts from the shipped one and then certifies
    a report the app would never have produced. */
-const flagsRegion = block("  const mixTotal =", "  useEffect(() => {\n    publishToolResult(\"channel-shift\"");
+const flagsRegion = block("  const mixTotal =", "  useEffect(() => {\n    const published = normalizeForPublish(");
 
 const subtitleAt = SRC.indexOf("subtitle={");
 const subtitleExpr = balanced(SRC, subtitleAt + 9, "{", "}").text.slice(1, -1);
