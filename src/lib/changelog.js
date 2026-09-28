@@ -7,6 +7,15 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-28", methods: ["attrition-cost"], version: "1.2",
+    title: "Attrition Cost: a root-cause check on why agents leave",
+    changes: [
+      "A new section asks six drivers of departures as statements you rate: workload and recovery, schedule control, tools and desktop, knowledge and enablement, supervisor coaching, and career path. Each statement at 2 or below becomes an action, with the tool that measures that driver. It returns the retired Agent Experience Diagnostic in our own words, without its unsourced thresholds or its predicted attrition rates.",
+      "It replaces a list that marked drivers High or Medium from the attrition rate alone, with no source for either the cut points or the claims beside them.",
+      "No figure or grade changes. The answers are scored apart from the cost calculation and are not averaged into one score.",
+    ],
+  },
+  {
     date: "2026-09-28", methods: ["staffing-calculator", "cost-per-contact", "channel-shift", "attrition-cost", "occupancy-risk", "shrinkage-planner", "schedule-adherence"], version: "1.1",
     title: "The agent wage moves to the BLS May 2025 estimates",
     changes: [

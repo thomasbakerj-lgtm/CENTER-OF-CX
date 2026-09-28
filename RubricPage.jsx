@@ -504,6 +504,18 @@ function CalcPage({ r }) {
           <p style={P}>Cases whose answer is known outside this site. The test suite computes each one with this tool's own engine on every change.</p>
           {fixturesFor(r.id).map((f) => <div key={f.id} style={box}><div style={{ ...TYPE.label, color: NAVY }}>{f.title} <span style={{ color: SLATE, fontWeight: 600 }}>· {FIXTURE_KIND[f.kind]}</span></div><p style={{ ...P, fontSize: 14, margin: "4px 0 0" }}>{f.case} Result: {f.expected}. {f.source}</p></div>)}
         </>}
+        {r.checks && <>
+          <h2 style={H2}>{r.checks.title}</h2>
+          <p style={P}>{r.checks.what} Rated 1 ({r.checks.scale.low}) to 5 ({r.checks.scale.high}); a statement at {r.checks.failAt} or below becomes its action.</p>
+          {r.checks.dims.map((dm) => (
+            <div key={dm.id} style={box}>
+              <div style={{ ...TYPE.label, color: NAVY }}>{dm.name} <span style={{ color: SLATE, fontWeight: 600 }}>· {dm.next ? "measured by the " + (RUBRICS[dm.next] ? RUBRICS[dm.next].title : dm.next) : "no tool yet"}</span></div>
+              {dm.criteria.map((c, ci) => <p key={ci} style={{ ...P, fontSize: 14, margin: "6px 0 0" }}><strong style={{ color: NAVY }}>{c.text}</strong> {c.action}</p>)}
+              {!dm.next && <p style={{ ...P, fontSize: 14, margin: "6px 0 0" }}>{dm.nextNote}</p>}
+            </div>
+          ))}
+          <ul style={{ paddingLeft: 20 }}>{r.checks.limits.map((x, li) => <li key={li} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
+        </>}
         <h2 style={H2}>What this tool cannot tell you</h2>
         <ul style={{ paddingLeft: 20 }}>{r.limits.map((x, i) => <li key={i} style={{ ...P, marginBottom: 8 }}>{x}</li>)}</ul>
         <div style={{ marginTop: 36 }}>

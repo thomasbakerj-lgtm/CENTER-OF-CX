@@ -37,6 +37,8 @@ const { gradeConfidence, emitGrades, voidResult, isVoid, isDual, AXIS_EXPLAINER,
    publishes signals.severity through severityBucket, and sanitizeProps is what
    decides whether that value reaches the wire or is silently dropped. */
 const { severityBucket, sanitizeProps, SEVERITY_BANDS } = await import("./src/lib/track.js");
+const { scoreRubric } = await import("./src/lib/rubric.js");
+const { ATTRITION_DRIVERS, DRIVER_TOOL_NAMES } = await import("./src/lib/rubrics/attritionDrivers.js");
 
 let pass = 0, fail = 0;
 const A = (nm, c) => { if (c) pass++; else { fail++; console.log("  FAIL:", nm); } };
@@ -148,8 +150,8 @@ A("the ReportActions summary payload slices out of the shipped JSX", !!summaryEx
 A("the ReportActions signals payload slices out of the shipped JSX", !!signalsExpr);
 A("the ReportActions sections payload slices out of the shipped JSX", !!sectionsExpr);
 A("the report is named", !!toolNameM);
-A("the scenario prop carries the live input set", /state=\{\{ d \}\}/.test(SRC));
-A("the defaults prop points at the shared DEFAULTS", /defaults=\{DEFAULTS\}/.test(SRC));
+A("the scenario prop carries the live input set and the root-cause answers", /state=\{\{ d, drivers \}\}/.test(SRC));
+A("the defaults prop points at the link defaults (cost inputs plus empty answers)", /defaults=\{LINK_DEFAULTS\}/.test(SRC) && /const LINK_DEFAULTS = \{ \.\.\.DEFAULTS, drivers: \{\} \};/.test(SRC));
 A("the route prop points at the shared ROUTE", /routePath=\{ROUTE\}/.test(SRC));
 A("the report payload contains no em-dash",
   [subtitleExpr, gradesExpr, summaryExpr, signalsExpr, sectionsExpr].join("").indexOf(String.fromCharCode(0x2014)) < 0);
@@ -243,6 +245,9 @@ const SETS = {
     mut: () => ({ evidence: "finance", mech: "none" }) },
   E: { label: "Forced under-staffing at half backfill: value routed out of this model", fromLink: false,
     mut: () => ({ evidence: "finance", mech: "vendor", backfillRate: 50 }) },
+  /* The root-cause check answered: workload all 1, schedule all 4, career partly answered. */
+  F: { label: "Root-cause check: workload low, schedule fine, career partial", fromLink: false, mut: () => ({}),
+    drivers: { "workload-0": 1, "workload-1": 2, "workload-2": 1, "schedule-0": 4, "schedule-1": 4, "schedule-2": 4, "schedule-3": 4, "career-0": 1 } },
 };
 
 function render(S) {
@@ -250,6 +255,7 @@ function render(S) {
     ${engineRegion}
     const d = { ...clone(DEFAULTS.d), ...MUT() };
     const r = compute(d);
+    const driverScore = scoreRubric(ATTRITION_DRIVERS, DRIVERS);
     const fromLink = FROM_LINK;
     const corrections = r.guards.map(g => \`\${g.label}: entered \${guardVal(g, "entered")}, computed at \${guardVal(g, "used")}.\`);
     const subtitle = ${subtitleExpr};
@@ -260,8 +266,8 @@ function render(S) {
     const confidence = r.voided ? "Void" : r.confidence;
     return { d, r, subtitle, grades, summary, signals, sections, confidence, corrections };
   `;
-  const out = new Function("COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", "createGuards", "guardVal", "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE", "benchmark", body)(
-    COLORS, MECH, MECH_ORDER, MECH_INITIAL, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink, createGuards, guardVal, gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE, benchmark);
+  const out = new Function("COLORS", "MECH", "MECH_ORDER", "MECH_INITIAL", "ELECTRIC", "AMBER", "RED", "GREEN", "severityBucket", "MUT", "FROM_LINK", "createGuards", "guardVal", "gradeConfidence", "emitGrades", "voidResult", "GRADE_RANK", "AXES", "CRED_GRADE", "benchmark", "scoreRubric", "ATTRITION_DRIVERS", "DRIVER_TOOL_NAMES", "DRIVERS", body)(
+    COLORS, MECH, MECH_ORDER, MECH_INITIAL, COLORS.electric, COLORS.amber, COLORS.red, COLORS.green, severityBucket, S.mut, S.fromLink, createGuards, guardVal, gradeConfidence, emitGrades, voidResult, GRADE_RANK, AXES, CRED_GRADE, benchmark, scoreRubric, ATTRITION_DRIVERS, DRIVER_TOOL_NAMES, S.drivers || {});
   out.sections = [confidenceSection(out.grades, out.confidence), ...out.sections];
   return out;
 }
@@ -546,6 +552,20 @@ A("a void export therefore carries no signal_severity into the review payload",
 /* The second consumer. ReportActions appends every signal to the Formspree
    review payload, so adding severity changed the manual-handling form too. */
 A("ReportActions maps every signal into the review payload as signal_<key>", /signal_\$\{k\}/.test(RA));
+
+/* ---- The root-cause check (method 1.2) in the document ---- */
+console.log("\nR. Why agents leave: the root-cause answers");
+const WHY = "Why Agents Leave: Your Answers";
+A("no answers, no root-cause section", !sectionByTitle(DOCS.A, WHY));
+const why = itemsOf(DOCS.F, WHY);
+A("answered drivers print, each with its count and the tool that measures it",
+  /Workload and recovery: 3 of 3 statements at 2 or below\. Measure it with the Occupancy Risk Simulator\./.test(why)
+  && /Schedule control: no statement at 2 or below\. Measure it with the Staffing Requirement Calculator\./.test(why));
+A("each low statement prints its action", ATTRITION_DRIVERS.dims[0].criteria.every((c) => why.includes(`Action (Workload and recovery): ${c.action}`)));
+A("a partly answered driver prints nothing", !/Career path/.test(why));
+A("the section says the answers move no figure and predict no rate", /change no figure or grade in this report and predict no attrition rate/.test(why));
+const sansWhy = (doc) => JSON.stringify({ ...doc, sections: doc.sections.filter((x) => x.title !== WHY), signals: doc.signals });
+A("answers move no figure, grade, signal or other section", sansWhy(DOCS.A) === sansWhy(DOCS.F));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
