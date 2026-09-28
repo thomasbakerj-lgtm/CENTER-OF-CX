@@ -1493,9 +1493,9 @@ dashboard, the 12-phase growth program.
      stop. Privacy Policy field list updated. Header in the flow.
    - Cost per Contact FCR tiles: heading and chip stack instead of squeezing.
    `firstvisit.test.mjs` (34). Suite 26,009 green; live check 256 of 256; 432-page sweep at 1440 and 390 clean.
-   Open for TB: About names no person. A named founder with a line of background is the strongest trust signal left on
-   the site; say the name, the one-line role and whether to link LinkedIn. Subscribe promises "at most one email a week"
-   and "reply to stop" (both handled by hand from the Formspree inbox).
+   TB (28 Sep): About stays without a name for now ("incognito"). Subscribe reworded to the value of each email (key
+   takeaways, ideas to test, Market Watch, vendor research, method changes) and a planned rhythm that moves with the news:
+   about once a week, an extra one when more is worth it, skipped in a quiet week; reply to stop (handled by hand).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

@@ -10,12 +10,17 @@ import { FONT } from "./src/lib/type.js";
 import { K } from "./src/lib/frameKit.jsx";
 import { Crumbs } from "./src/lib/Shell.jsx";
 
-/* What a subscriber receives. Each line is a kind of page the site already publishes. */
+/* What a subscriber receives: the value of each email, and the kinds of page the site already publishes that feed it. */
 export const WHAT_ARRIVES = [
-  ["New and changed methods", "when a diagnostic's formulas or sourced constants change, with what moved."],
-  ["Vendor research", "when a vendor's research is completed or corrected."],
-  ["Market Watch", "the new dated items, each labelled by the source it rests on."],
+  ["Key takeaways", "a few points you can act on or bring to your next meeting, each with its source."],
+  ["Ideas to test", "a question worth asking about your own operation, with the diagnostic that answers it from your numbers."],
+  ["Market Watch", "launches, deals, outages and rule changes worth knowing, each labelled by the source it rests on."],
+  ["Vendor research", "new and corrected findings on the platforms we research."],
+  ["Method changes", "when a diagnostic's formulas or sourced constants change, and what moved."],
 ];
+
+/* How often. TB (28 Sep): a planned rhythm that can move with the news. */
+export const FREQUENCY = "About once a week. When more is worth your time, such as a rule change or a major launch, we may send an extra one; in a quiet week we skip it.";
 
 const field = { width: "100%", boxSizing: "border-box", minHeight: TOUCH, padding: "10px 12px", fontFamily: FONT, fontSize: 16, color: HOUSE.mist,
   background: HOUSE.navy, border: `1px solid ${K.firm}`, borderRadius: RADIUS.field };
@@ -39,8 +44,9 @@ export default function Subscribe() {
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "40px 20px 72px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 24 }}>
         <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={{ ...K.kicker, color: HOUSE.sky2 }}>Subscribe</span>
-          <h1 style={{ margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12, color: HOUSE.mist }}>Hear when something new is published.</h1>
-          <p style={K.body}>At most one email a week, and only when there is something new. Reply to any email to stop, or ask us on the contact page.</p>
+          <h1 style={{ margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12, color: HOUSE.mist }}>Ideas and takeaways for contact center decisions.</h1>
+          <p style={{ ...K.body, fontSize: 17, lineHeight: "28px" }}>Each email picks out what changed in contact center technology and operations, what it means for the people who buy and run it, and where on the site to test it against your own numbers.</p>
+          <p style={K.body}><strong style={K.strong}>How often:</strong> {FREQUENCY} Reply to any email to stop, or ask us on the contact page.</p>
         </header>
 
         <section aria-labelledby="arrives" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -52,7 +58,7 @@ export default function Subscribe() {
 
         {state === "sent" ? (
           <p role="status" style={{ ...K.panel, ...K.body }}>
-            <strong style={K.strong}>You are subscribed.</strong> The next email goes out when something new is published. Meanwhile, <a href="/how-to-choose" style={{ color: HOUSE.sky2, fontWeight: 600 }}>the diagnostics</a> are free to use now.
+            <strong style={K.strong}>You are subscribed.</strong> The next email goes out when there is something worth sending. Meanwhile, <a href="/how-to-choose" style={{ color: HOUSE.sky2, fontWeight: 600 }}>the diagnostics</a> are free to use now.
           </p>
         ) : (
           <form onSubmit={submit} noValidate style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 12 }}>

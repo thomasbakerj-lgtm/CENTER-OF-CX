@@ -103,9 +103,9 @@ section("5. Subscribe asks for an address and says what arrives");
   const t = text(html);
   const inputs = [...html.matchAll(/<input[^>]*>/g)].map((m) => m[0]).filter((i) => !/type="hidden"/.test(i));
   ok("one visible field, the email address, labelled", inputs.length === 1 && /type="email"/.test(inputs[0]) && /id="sub-email"/.test(inputs[0]) && /for="sub-email"/.test(html));
-  ok("says how often, at most", /At most one email a week/.test(t));
+  ok("says how often, and that it moves with the news", /About once a week/.test(t) && /extra one/.test(t) && /quiet week we skip it/.test(t) && t.includes(mod.FREQUENCY));
   ok("says how to stop", /Reply to any email to stop/.test(t));
-  ok("lists what an email carries", mod.WHAT_ARRIVES.length >= 3 && mod.WHAT_ARRIVES.every(([k]) => t.includes(k)));
+  ok("lists what an email carries", mod.WHAT_ARRIVES.length >= 5 && ["Key takeaways", "Ideas to test"].every((k) => mod.WHAT_ARRIVES.some(([x]) => x === k)) && mod.WHAT_ARRIVES.every(([k]) => t.includes(k)));
   ok("posts to the form the Privacy Policy names, whose field list says email only", /formspree\.io\/f\/xnjolywk/.test(read("Subscribe.jsx")) && /\{ what: "Newsletter sign-ups", fields: "email address", endpoint: "xnjolywk" \}/.test(read("PrivacyPolicy.jsx")));
   ok("no name or company is asked for", !/name="(first_name|last_name|company)"|>(First name|Last name|Company)</i.test(read("Subscribe.jsx")));
 }
