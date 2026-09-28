@@ -94,7 +94,7 @@ section("4. About states facts a reader can check");
   const fixed = read("src/lib/Shell.jsx").match(/const FIXED_EXACT = new Set\(\[([^\]]*)\]/)[1];
   ok("About and Subscribe have the header in the flow", !fixed.includes('"/about"') && !fixed.includes('"/subscribe"'));
   ok("the metadata describes the page", /"\/about": \{\s*title: `About \| \$\{SITE\}`/.test(read("src/lib/seo.js")));
-  ok("no dash in About", !/[–—]/.test(src));
+  ok("no dash in About", !/[\u2013\u2014]/.test(src));
 }
 
 section("5. Subscribe asks for an address and says what arrives");
