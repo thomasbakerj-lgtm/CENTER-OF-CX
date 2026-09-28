@@ -1555,6 +1555,16 @@ dashboard, the 12-phase growth program.
    - Retired: TCO's "Bench 5:00 to 7:00" and "$4.5K to $7.5K loaded", Staffing's "Most centres run 80% in 20 to 30s"
      (now SQM's traditional standard, named), CPC's "How does yours compare?" text panel and `cpc.read.fcrLeakLink`.
    `comparisons.test.mjs` (699). Browser: 11 tools at 1440 and 390, every group open, no error, no overflow, axe 0.
+   PR #80 merged by TB's instruction (ee7c527); production serves the panel.
+89. S24 (28 Sep), P6 13b, the queued originality searches (TB: "go"). The queued phrase lists lived in earlier scratchpads,
+   so the runs were rebuilt from the current files: 152 distinctive 10 word runs (Telecom 20, Travel 20, Education 20,
+   Financial Services 42, Utilities 30, Government 20) searched as exact phrases by six agents on one brief (WebSearch;
+   a positive control found its published source first). No result carried any run verbatim. Every related page the
+   searches returned was fetched and compared by script with every prose segment for shared 8 word runs: 381 pages
+   compared, 74 blocked or script-rendered; of 10 PDFs, 5 compared on text extracted from their streams and 5 gave no text. One shared run, GAO's own
+   wording in a sentence that credited GAO ("federal legacy systems most in need of modernization", Government main and
+   sub-page); reworded in our own words and recorded as a match. Each industry's originality record carries the second
+   pass and the check date 2026-09-28.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1629,7 +1639,7 @@ P5. Design.
 
 P6. Remaining debt.
   13. Unsourced figures on Human Premium, Research, Advisory, Platforms, About (the Industries hub is done in item 37).
-  13b. Queued originality phrase searches for Telecom, Education, Travel, Financial Services, Utilities, Government.
+  13b. ~~Queued originality phrase searches for Telecom, Education, Travel, Financial Services, Utilities, Government.~~ Done S24 (item 89).
   14. ~~TCO and BCB publish verdicts on the rail.~~ Done S24 (item 77): no tool publishes a verdict; the rail refuses them.
   15. ~~External getters and origin grades.~~ Done S24 (items 78 and 79).
   16. ~~BCB next steps, TCO guard case, Field labels.~~ Done S24 (item 80). ~~`MECH_INITIAL` F2~~ done S24 (item 83).
