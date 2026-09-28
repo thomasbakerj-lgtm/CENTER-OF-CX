@@ -360,7 +360,10 @@ function computeTCO(dIn, stanceKey = "expected") {
   const domShare = licenseMonthly > 0 ? domVal / licenseMonthly : 0;
 
   const flags = [];
-  for (const g of guards) flags.push({ level: "block", msg: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the range this model can compute. Every figure in this report was computed at ${guardVal(g, "used")}. Correct the input or treat the output as void.` });
+  for (const g of guards) flags.push({ level: "block", msg: `${g.label}: you entered ${guardVal(g, "entered")}, which is outside the range this model can compute. Every figure in this report was computed at ${guardVal(g, "used")}, and the result grades Directional until you correct it.` });
+  /* Marginal cost per contact above the fully loaded cost per contact cannot happen in a real operation: the handle time
+     entered does not fit in the paid hours of the agents entered (1 agent and 120,000 contacts printed it, unflagged). */
+  if (marginalPerContact > costPerContact) flags.push({ level: "flag", msg: `Marginal cost per contact ($${marginalPerContact.toFixed(2)}) is above the full cost per contact ($${costPerContact.toFixed(2)}). At this volume the handle time does not fit in the paid hours of ${n(d.agents).toLocaleString()} agent${n(d.agents) === 1 ? "" : "s"}. Check agents, monthly contacts and handle time.` });
   if (perAgentMonth > TCO_CHECKS.perAgentCeiling) flags.push({ level: "block", msg: `Cost per agent per month is ${fmt(perAgentMonth)}, above the tool's plausibility ceiling of ${fmt(TCO_CHECKS.perAgentCeiling)}. Check the wage and seat inputs. Finance-grade is blocked until this is sane.` });
   if (domShare > TCO_CHECKS.domShareMax && domKey !== "AI usage") flags.push({ level: "flag", msg: `${domKey} is ${pct(domShare)} of the software bucket. One line dominating usually means a miscategorized or mis-scaled input. Confirm it before treating this as Finance-grade.` });
   if (domShare > TCO_CHECKS.domShareMax && domKey === "AI usage") flags.push({ level: "note", msg: `AI usage is ${pct(domShare)} of the software bucket. That is legitimate for a usage-heavy AI contract and is not penalized, but confirm it is genuinely usage-metered.` });
@@ -623,6 +626,7 @@ function gradeTCO({ d, r, pre, railOrigin, stanceKey }) {
   if (n(d.agents) / Math.max(1, n(d.supervisors)) > TCO_CHECKS.spanMax) blockers.push(`span of control is above ${TCO_CHECKS.spanMax} agents per supervisor, which understates labor cost`);
   const mix = n(d.channelMixVoice) + n(d.channelMixChat) + n(d.channelMixEmail) + n(d.channelMixSocial) + n(d.channelMixSelfServe);
   if (!(Math.abs(mix - 1) < TCO_CHECKS.mixTol)) blockers.push("the channel mix does not total 100 percent, and the voice share prices telephony");
+  if (r.marginalPerContact > r.costPerContact) blockers.push("marginal cost per contact is above the full cost per contact, so the handle time does not fit in the paid hours");
   if (stanceKey === "aggressive") blockers.push("the aggressive stance books full theoretical capacity as cash with no haircut");
   const completeness = blockers.length ? "Directional" : "Finance-grade";
   const modelWhy = blockers.length ? blockers.join("; ")

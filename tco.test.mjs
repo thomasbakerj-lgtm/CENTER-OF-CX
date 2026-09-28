@@ -610,7 +610,7 @@ section("marginal load: only deflection and repeat savings move");
   const n = mod.n;
   const inds = Object.keys(INDUSTRY), sts = Object.keys(STANCE);
   const COST = ["loaded", "labor", "tech", "overhead", "monthly", "annual", "costPerContact", "costPerResolution", "costPerHuman", "threeYear", "y2", "y3", "perHire", "attritionCost", "laborPct", "techPct"];
-  let costSame = true, gradeSame = true, othersSame = true, lower = true, oracle = true, capped = true, moved = 0, count = 0;
+  let costSame = true, gradeSame = true, othersSame = true, lower = true, oracle = true, capped = true, moved = 0, count = 0; let validityCases = 0;
   for (let i = 0; i < 6000; i++) {
     const ind = inds[Math.floor(rnd() * inds.length)], st = sts[Math.floor(rnd() * sts.length)];
     const d = { ...BASE, ...INDUSTRY[ind], industry: ind, agents: 20 + Math.round(rnd() * 2000), agentHourly: 14 + rnd() * 20,
@@ -619,6 +619,9 @@ section("marginal load: only deflection and repeat savings move");
       attrition: rnd() * 0.8, targetAttrition: rnd() * 0.5, channelMixVoice: rnd() };
     const rN = computeTCO(d, st), rO = OLD.computeTCO(d, st); count++;
     for (const k of COST) if (rN[k] !== rO[k]) costSame = false;
+    /* The validity check added in S24 (marginal above loaded cost) reads the marginal figure, which the load moves; a case
+       where it fires under either load is a validity question, outside what the load change is allowed to touch. */
+    if (rN.marginalPerContact > rN.costPerContact || rO.marginalPerContact > rO.costPerContact) { validityCases++; } else
     if (JSON.stringify(gradeTCO({ d: rN.d, r: rN, pre: {}, railOrigin: null, stanceKey: st })) !== JSON.stringify(OLD.gradeTCO({ d: rO.d, r: rO, pre: {}, railOrigin: null, stanceKey: st }))) gradeSame = false;
     const oN = buildOptimizations(rN.d, rN, st), oO = OLD.buildOptimizations(rO.d, rO, st);
     const by = (x) => Object.fromEntries(x.items.map((it) => [it.key, it]));
@@ -632,7 +635,7 @@ section("marginal load: only deflection and repeat savings move");
     if (rN.marginalPerContact > rO.marginalPerContact + 1e-12) capped = false;
   }
   ok("A/B: every cost figure is identical on 6,000 cases", costSame, String(count));
-  ok("A/B: every grade is identical", gradeSame);
+  ok(`A/B: every grade is identical (${validityCases} cases where marginal exceeds loaded cost set aside; the validity section checks them)`, gradeSame);
   ok("A/B: the handle-time and attrition levers are identical", othersSame);
   ok("A/B: savings never rise", lower);
   ok("A/B: savings move on most cases", moved > count / 2, String(moved));
@@ -643,6 +646,45 @@ section("marginal load: only deflection and repeat savings move");
   const read = buildAnalystRead(r.d, r, op, "expected").join(" ");
   ok("the disclosure line states both loads and sizes the benefits share", /wage times 1\.18, the marginal load, and unit costs at the loaded 1\.30\. Capturing the saving by not backfilling seats removes benefits too, about 10% more on those two levers\./.test(read), read.slice(-260));
   ok("the disclosure drops its size when the loads are equal", !/about \d+% more/.test(buildAnalystRead(r.d, { ...r, marginalLoad: 1.3 }, op, "expected").join(" ")));
+}
+
+
+section("validity: marginal cost above loaded cost (S24, P6 item 16)");
+{
+  const IND0 = Object.keys(INDUSTRY)[0];
+  const g = computeTCO({ ...BASE, ...INDUSTRY[IND0], industry: IND0, agents: 1, monthlyContacts: 300000 }, "expected");
+  ok("a single agent with 300,000 contacts has marginal above loaded cost", g.marginalPerContact > g.costPerContact, `${g.marginalPerContact} vs ${g.costPerContact}`);
+  ok("and it is flagged, naming both figures", g.flags.some((f) => f.level === "flag" && /Marginal cost per contact \(\$[\d.]+\) is above the full cost per contact \(\$[\d.]+\)/.test(f.msg)));
+  const G = gradeTCO({ d: g.d, r: g, pre: {}, railOrigin: null, stanceKey: "expected" });
+  ok("and completeness holds at Directional (defect class 3)", G.completeness === "Directional" || (G.gradeObj && G.gradeObj.completeness === "Directional"), JSON.stringify(G).slice(0, 120));
+  const base = computeTCO({ ...BASE, ...INDUSTRY[IND0], industry: IND0 }, "expected");
+  ok("the opening case is not flagged", !base.flags.some((f) => /Marginal cost per contact/.test(f.msg)));
+  ok("SOURCE a corrected input no longer says treat the output as void", !/treat the output as void/.test(SRC) && /the result grades Directional until you correct it/.test(SRC));
+  /* A/B against the engine before this change: every figure identical, grades differ only where the new check fires. */
+  /* The engine before this change is the current one with the two additions removed, each removal asserted. */
+  const FLAG_AT = region.indexOf("  /* Marginal cost per contact above the fully loaded cost per contact cannot happen");
+  const FLAG_END = region.indexOf("\n", region.indexOf("if (marginalPerContact > costPerContact) flags.push(", FLAG_AT)) + 1;
+  const BLOCKER = '  if (r.marginalPerContact > r.costPerContact) blockers.push("marginal cost per contact is above the full cost per contact, so the handle time does not fit in the paid hours");\n';
+  ok("the previous engine can be rebuilt (both additions found once)", FLAG_AT > 0 && FLAG_END > FLAG_AT && region.split(BLOCKER).length === 2);
+  const PREV_REGION = (region.slice(0, FLAG_AT) + region.slice(FLAG_END)).replace(BLOCKER, "");
+  const PREV = new Function(
+    "BENCH", "benchmark", "benchmarksForTool", "createGuards", "guardVal", "guardLine", "emitGrades", "voidResult", "railEvidence", "weakerStream", "TOOL_ID",
+    `${PREV_REGION}\nreturn { computeTCO, gradeTCO, BASE, INDUSTRY, STANCE };`
+  )(BENCH, BENCHMOD.benchmark, BENCHMOD.benchmarksForTool, createGuards, guardVal, guardLine, CONF.emitGrades, CONF.voidResult, CONF.railEvidence, CONF.weakerStream, "tco-calculator");
+  let seed = 99; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  let figs = true, gradeOk = true, fired = 0;
+  const KEYS = ["monthly", "annual", "costPerContact", "marginalPerContact", "costPerResolution", "threeYear", "perAgentMonth"];
+  for (let i = 0; i < 6000; i++) {
+    const ind = Object.keys(INDUSTRY)[Math.floor(rnd() * Object.keys(INDUSTRY).length)];
+    const d = { ...BASE, ...INDUSTRY[ind], industry: ind, agents: 1 + Math.round(rnd() * 800), monthlyContacts: Math.round(1000 + rnd() * 200000), aht: 120 + Math.round(rnd() * 900) };
+    const a = computeTCO(d, "expected"), b = PREV.computeTCO(d, "expected");
+    for (const k of KEYS) if (a[k] !== b[k]) figs = false;
+    const ga = JSON.stringify(gradeTCO({ d: a.d, r: a, pre: {}, railOrigin: null, stanceKey: "expected" })), gb = JSON.stringify(PREV.gradeTCO({ d: b.d, r: b, pre: {}, railOrigin: null, stanceKey: "expected" }));
+    const fires = a.marginalPerContact > a.costPerContact;
+    if (fires) fired++; else if (ga !== gb) gradeOk = false;
+  }
+  ok("A/B against the previous engine: every figure identical on 6,000 cases", figs);
+  ok(`A/B: grades differ only where the new check fires (${fired} of 6,000)`, gradeOk && fired > 0);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
