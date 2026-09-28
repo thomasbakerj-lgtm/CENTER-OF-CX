@@ -106,7 +106,8 @@ const full = buildPayload(EV.TOOL_COMPLETE, {
   via_rail: true, repeat: true, page_type: "tool", utm_source: "linkedin", utm_medium: "social", utm_campaign: "2026-10-healthcare", ref: "linkedin.com",
 }, CTX);
 const OWNED = { pillar: ["door_select", "vendors"], route: ["route_select", "cost"], layer: ["layer_select", "l4"], surface: ["layer_select", "home"],
-  vendor: ["vendor_view", "five9"], category: ["vendor_view", "ccaas"], status: ["vendor_view", "complete"], action: ["vendor_action", "request"], audience: ["report_export", "finance"] };
+  vendor: ["vendor_view", "five9"], category: ["vendor_view", "ccaas"], status: ["vendor_view", "complete"], action: ["vendor_action", "request"], audience: ["report_export", "finance"],
+  milestones: ["roadmap_snapshot", "nnppcrbcnnnnnnnnnn"] };
 for (const k of ALLOWED_PROP_KEYS) {
   const props = OWNED[k] ? buildPayload(OWNED[k][0], { [k]: OWNED[k][1] }, CTX).properties : full.properties;
   ok(`B6  allowed key "${k}" survives when valid${OWNED[k] ? " on its own event" : ""}`, Object.prototype.hasOwnProperty.call(props, k));
@@ -557,16 +558,37 @@ section("M. A scenario link cannot reach an object's prototype or plant a key");
    docs/MEASUREMENT.md, and these pins; a silent rename would break every funnel that uses it. */
 section("P. The taxonomy is frozen (1.1, which kept every 1.0 name), and the landing event reads the channel");
 {
-  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.3");
+  eq("P1 taxonomy version", TAXONOMY_VERSION, "1.4");
   eq("P2 event names are frozen", JSON.stringify(EV), JSON.stringify({
     SESSION_LANDING: "session_landing", TOOL_VIEW: "tool_view", TOOL_COMPLETE: "tool_complete", REPORT_EXPORT: "report_export",
     REPORT_COPY: "report_copy_requested", REVIEW_OPENED: "review_form_opened", REVIEW_SUBMIT: "expert_read_submit",
     NEXT_STEP: "next_step_click", SCENARIO_SHARE: "scenario_shared", SCENARIO_LOAD: "scenario_loaded",
     DOOR_SELECT: "door_select", ROUTE_SELECT: "route_select", ROUTE_START: "route_start", STOP_HERE: "stop_here",
-    LAYER_SELECT: "layer_select", VENDOR_VIEW: "vendor_view", VENDOR_ACTION: "vendor_action", INTRO_SUBMIT: "intro_submit" }));
-  eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref", "pillar", "route", "layer", "surface", "vendor", "category", "status", "action", "audience"]));
+    LAYER_SELECT: "layer_select", VENDOR_VIEW: "vendor_view", VENDOR_ACTION: "vendor_action", INTRO_SUBMIT: "intro_submit",
+    ROADMAP_SNAPSHOT: "roadmap_snapshot" }));
+  eq("P3 property keys are frozen", JSON.stringify(ALLOWED_PROP_KEYS), JSON.stringify(["tool", "from", "to", "grade", "bound_axis", "severity", "real", "depth", "via_rail", "repeat", "page_type", "utm_source", "utm_medium", "utm_campaign", "ref", "pillar", "route", "layer", "surface", "vendor", "category", "status", "action", "audience", "milestones"]));
   const doc = readFileSync("./docs/MEASUREMENT.md", "utf8");
-  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.3"));
+  /* 1.4: Roadmap's code is built from the fixed milestone order and sent only from the summary button, with no note,
+     initiative name or other text. */
+  const RSRC = readFileSync("./RoadmapBuilder.jsx", "utf8");
+  ok("P7 Roadmap sends the milestone code from the summary button, once per distinct code, and nothing it was typed",
+    /const handleSave = \(\) => \{\s*const code = roadmapCode\(statuses\);\s*if \(sent\.current !== code\) \{ sent\.current = code; trackRoadmap\.snapshot\(code\); \}/.test(RSRC)
+    && (RSRC.match(/trackRoadmap\./g) || []).length === 1 && !/trackRoadmap\.snapshot\([^)]*(notes|initiative)/.test(RSRC));
+  {
+    const { build } = await import("esbuild");
+    const { createRequire } = await import("node:module");
+    const req = createRequire(import.meta.url);
+    const out = await build({ entryPoints: ["./RoadmapBuilder.jsx"], bundle: true, write: false, format: "cjs", platform: "node", jsx: "automatic", loader: { ".js": "jsx" }, external: ["react", "react-dom"], logLevel: "silent" });
+    const m = { exports: {} };
+    new Function("module", "exports", "require", out.outputFiles[0].text)(m, m.exports, req);
+    const code = m.exports.roadmapCode;
+    ok("P9 the code is one letter per milestone m1 to m18 in order, not started when unmarked, and always passes the validator",
+      code({}) === "n".repeat(18) && code({ m1: "complete", m2: "in-progress", m17: "at-risk", m18: "blocked" }) === "cp" + "n".repeat(14) + "rb"
+      && "milestones" in sanitizeProps({ milestones: code(m.exports.SAMPLE.statuses) }) && code(m.exports.SAMPLE.statuses) === "nprbc".repeat(3) + "npr");
+  }
+  const snap = buildPayload(EV.ROADMAP_SNAPSHOT, { tool: "roadmap-builder", milestones: "cpnnnnnnnnnnnnnnnr", notes: "board wants AI", initiative: "Acme" }, CTX).properties;
+  ok("P8 the snapshot carries the tool and the code, and never a note or the initiative name", snap.tool === "roadmap-builder" && snap.milestones === "cpnnnnnnnnnnnnnnnr" && !("notes" in snap) && !("initiative" in snap) && !JSON.stringify(snap).includes("Acme"));
+  ok("P4 docs/MEASUREMENT.md names every event and property and the version", Object.values(EV).every((n) => doc.includes("`" + n + "`")) && ALLOWED_PROP_KEYS.every((k) => doc.includes("`" + k + "`")) && doc.includes("Taxonomy version 1.4"));
 
   const L = landingProps("/tools/staffing-calculator", "?utm_source=LinkedIn&utm_medium=social&utm_campaign=2026 10 Healthcare&s=abc", "https://www.linkedin.com/feed/update/123?x=1", "www.contactcentercx.com");
   const sent = buildPayload(EV.SESSION_LANDING, L, CTX).properties;

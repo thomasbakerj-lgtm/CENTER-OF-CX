@@ -97,6 +97,8 @@ export const EV = {
   VENDOR_ACTION: "vendor_action",      // an action on a vendor profile was taken
   // Taxonomy 1.2: added, nothing renamed or removed.
   INTRO_SUBMIT: "intro_submit",        // a vendor introduction request reached the contact form's inbox
+  // Taxonomy 1.4: added, nothing renamed or removed.
+  ROADMAP_SNAPSHOT: "roadmap_snapshot", // the Roadmap Builder summary opened: one status letter per fixed milestone
 };
 
 const EVENT_NAMES = new Set(Object.values(EV));
@@ -104,7 +106,7 @@ const EVENT_NAMES = new Set(Object.values(EV));
 /* Frozen taxonomy (11-01 to 11-03, P2 task 7). Event names and property keys do not change without a new version,
    a line in docs/MEASUREMENT.md and the pins in track.test.mjs; PostHog funnels are built on these names. 1.1 (redesign
    Phase 5) adds the homepage, stack, honest exit and vendor profile events; every 1.0 name is unchanged. */
-export const TAXONOMY_VERSION = "1.3";
+export const TAXONOMY_VERSION = "1.4";
 
 /* ---------------------------------------------------------------- severity */
 
@@ -160,6 +162,7 @@ const isUtm = (v) => typeof v === "string" && UTM.test(v);
 /* The referring site's host name only, never its path or query. */
 const HOST = /^(?=.{3,60}$)[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 const isHost = (v) => typeof v === "string" && HOST.test(v);
+export const ROADMAP_CODE = /^[nprbc]{18}$/;
 export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "category", "vendor", "research", "market-watch", "other"]);
 /* Taxonomy 1.1 vocabularies. Closed sets: a value outside them is dropped. */
 export const PILLAR_IDS = new Set(["diagnostics", "vendors", "industries", "research", "market-watch"]);
@@ -227,6 +230,9 @@ export const ALLOWED_PROPS = {
   status: isOneOf(RESEARCH_STATES),           // vendor events: research status
   action: isOneOf(VENDOR_ACTIONS),            // vendor_action: what was done
   audience: isOneOf(AUDIENCES),               // report events: who the report was written for
+  // Taxonomy 1.4. One letter per fixed Roadmap milestone, in order: n not started, p in progress, r at risk, b blocked,
+  // c complete. Exactly 18 letters from that set, so no note, name or number can pass.
+  milestones: (v) => typeof v === "string" && ROADMAP_CODE.test(v),
 };
 
 export const ALLOWED_PROP_KEYS = Object.keys(ALLOWED_PROPS);
@@ -280,6 +286,7 @@ export const EVENT_SCOPED = {
   status: ["vendor_view"],
   action: ["vendor_action"],
   audience: ["report_export"],
+  milestones: ["roadmap_snapshot"],
 };
 
 export function scopeProps(event, props) {
@@ -619,6 +626,12 @@ export const trackTool = {
 export const trackVendor = {
   action: (vendor, action, surface) => track(EV.VENDOR_ACTION, { vendor, action, surface }),
   introSent: (vendor) => track(EV.INTRO_SUBMIT, { vendor }),
+};
+
+/* Taxonomy 1.4: the Roadmap Builder's milestone statuses as one code, sent when the reader opens the summary. It says
+   where 90-day plans stall; notes, the initiative name and anything typed never travel (the page says so). */
+export const trackRoadmap = {
+  snapshot: (code) => track(EV.ROADMAP_SNAPSHOT, { tool: "roadmap-builder", milestones: code }),
 };
 
 /* Taxonomy 1.1: the homepage's two steps and the stack. `repeat` rides every event through track(). */

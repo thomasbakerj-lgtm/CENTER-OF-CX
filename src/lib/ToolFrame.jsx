@@ -21,6 +21,11 @@ const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
 const D = PILLARS.diagnostics;
 export const RESULT_ID = "cx-result";
 export const PRIVACY = "Your numbers stay in this browser tab unless you ask for a review.";
+/* A tool that sends any part of what the reader entered says exactly what, on its own page (taxonomy 1.4). */
+export const PRIVACY_BY_TOOL = {
+  "roadmap-builder": "Your notes and initiative name stay in this browser tab. When you open the summary we record the status you set for each of the 18 milestones, with no text, to learn where 90-day plans stall.",
+};
+export const privacyFor = (toolId) => PRIVACY_BY_TOOL[toolId] || PRIVACY;
 
 const CSS = `.cx-tf{display:grid;grid-template-columns:232px minmax(0,1fr) 360px;gap:32px;align-items:start}
 .cx-tf-rail ol{flex-direction:column}
@@ -62,7 +67,7 @@ export function RouteRail({ toolId, choice = null }) {
       <a href="/how-to-choose" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: D.onDark, textDecoration: "none" }}>
         Change route<Icon name="next" size={16} />
       </a>
-      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: HOUSE.muted }}>{PRIVACY}</p>
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: HOUSE.muted }}>{privacyFor(toolId)}</p>
     </aside>
   );
 }
