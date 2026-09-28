@@ -18,7 +18,13 @@ const WRAP = { maxWidth: 1280, margin: "0 auto", padding: "0 20px", boxSizing: "
 const LABEL = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
 const LAYER_BY_ID = Object.fromEntries(LAYERS.map((l) => [l.id, l]));
 
-const CSS = `.cx-home-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:48px;align-items:center}
+/* The contour texture from the approved design (Brand Guide: contour lines, 4 to 7 percent): rings spread out from the
+   stack, one every 24px at 5 percent sky, fading into the page. On a phone, where the stack is hidden, they start from
+   the top right corner instead. */
+const CONTOUR = (at) => `repeating-radial-gradient(circle at ${at}, ${alpha(HOUSE.sky2, 0.05)} 0 1px, transparent 1px 24px)`;
+const CSS = `.cx-home{background-image:${CONTOUR("76% 260px")}}
+@media (max-width:900px){.cx-home{background-image:${CONTOUR("92% 80px")}}}
+.cx-home-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:48px;align-items:center}
 .cx-home-doors{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .cx-home-step2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:32px;align-items:start}
 .cx-home-opts{display:grid;gap:10px}
@@ -110,7 +116,7 @@ export default function Homepage() {
       : <RouteCard pillar={door.pillar} kicker={pillar.name} time="Coming soon" title="Follow it as it is built" steps={door.soon.rules.map((r) => ({ name: r }))} cta={door.soon.cta} href={door.soon.href} />;
 
   return (
-    <main className="cx-home" style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT_SANS }}>
+    <main className="cx-home" style={{ backgroundColor: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT_SANS }}>
       <style>{CSS}</style>
 
       <section style={{ ...WRAP, padding: "56px 20px 40px" }}>

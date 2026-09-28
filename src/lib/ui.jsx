@@ -365,7 +365,7 @@ export function Door({ pillar, number, line, meta, selected, onSelect }) {
         backgroundImage: !selected && p.soon ? `repeating-linear-gradient(135deg, ${alpha(p.fill, 0.07)} 0 2px, transparent 2px 10px)` : "none" }}>
       <span style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
         <span style={{ fontSize: 13, fontWeight: 700, color: selected ? ink : p.onDark }}>{number}</span>
-        {p.soon && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 6px", borderRadius: RADIUS.chip, color: selected ? ink : p.onDark, border: `1px solid ${selected ? ink : p.onDark}` }}>SOON</span>}
+        {p.soon && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 6px", borderRadius: RADIUS.chip, color: selected ? ink : p.onDark, border: `1px solid ${selected ? ink : p.onDark}`, whiteSpace: "nowrap" }}>Coming soon</span>}
       </span>
       <span style={{ fontSize: 20, fontWeight: 700, color: ink }}>{p.name}</span>
       <span style={{ fontSize: 14, lineHeight: 1.5, color: selected ? ink : HOUSE.body, flexGrow: 1 }}>{line}</span>

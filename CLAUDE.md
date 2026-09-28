@@ -1521,6 +1521,11 @@ dashboard, the 12-phase growth program.
    105 tool, method and landing pages. Open: TCO's input hints "Bench 5:00 to 7:00" and "Industry range: $4.5K to $7.5K
    loaded" carry unsourced figures (same treatment as the CPC ranges); Staffing's "Most centres run 80% in 20 to 30s"
    is pinned and unsourced; Vendor Match's "demo with your top match" card (item 58) still open.
+   Then TB flagged the homepage missing the "reverberating rings" of the approved design (canvas P1-Home: a contour
+   `repeating-radial-gradient`, 5% sky, a ring every 24px, spreading from the stack; Brand Guide texture rule 4 to 7%).
+   Built as `CONTOUR` in `Homepage.jsx`, centred on the stack at desktop and the top right on a phone; the page's inline
+   `background` shorthand had to become `backgroundColor` or it resets the image. The homepage Research door's tag now
+   reads "Coming soon" too. `home.test.mjs` pins both. Suite 26,018; homepage axe 0 at 1440 and 390.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
