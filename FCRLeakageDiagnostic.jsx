@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useId } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import ReportActions from "./ReportActions";
 import InfoDot from "./src/lib/InfoDot";
 import NumField from "./src/lib/NumField";
@@ -898,6 +899,7 @@ export default function FCRLeakageDiagnostic() {
             <p style={{ ...small, marginTop: 8 }}>The right-hand column is year-one net. If it turns from positive to negative across these rows, your repeat-cost assumption decides the case. Measure it before you commit.</p>
           </section>
 
+          <HowOthersReport toolId={TOOL_ID} />
           {/* The report is paper (Brand Guide section 13). */}
           <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
             <ReportActions

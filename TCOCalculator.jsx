@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import ReportActions from "./ReportActions";
 import { METHOD_VERSIONS } from "./src/lib/methodVersions";
 import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
@@ -871,7 +872,7 @@ function Calculator() {
               <fieldset style={{ ...panel, margin: 0 }}>
                 <legend style={{ ...kicker, padding: "0 6px" }}>Operational KPIs</legend>
                 <div style={grid(190)}>
-                  <NumField label="AHT (seconds)" tone="dark" value={d.aht} onChange={v => set("aht", v)} info={DEFS.aht} infoTitle="AHT" step={5} min={1} pulled={pulled.aht} hint={<span>{mmss(d.aht)}, full handle time. Bench 5:00 to 7:00</span>} />
+                  <NumField label="AHT (seconds)" tone="dark" value={d.aht} onChange={v => set("aht", v)} info={DEFS.aht} infoTitle="AHT" step={5} min={1} pulled={pulled.aht} hint={<span>{mmss(d.aht)}, full handle time. Published averages are under How others report it</span>} />
                   <NumField label="ACW (seconds)" tone="dark" value={d.acw} onChange={v => set("acw", v)} info={DEFS.acw} infoTitle="ACW" step={5} min={0} hint="After-call work, inside AHT, line closed" />
                   <NumField label="Hold Time (seconds)" tone="dark" value={d.avgHoldTime} onChange={v => set("avgHoldTime", v)} step={5} min={0} hint="Inside AHT, line open" />
                   <NumField label="FCR" tone="dark" value={d.fcr} onChange={v => set("fcr", v)} info={DEFS.fcr} infoTitle="FCR" suffix="%" factor={100} min={0} max={100} hint={<span>Bench 65 to 85%</span>} />
@@ -1037,7 +1038,7 @@ function Calculator() {
                     <div>
                       <div style={small}>Per agent a month</div>
                       <div style={{ ...TYPE.statValueLg, fontSize: 29, color: HOUSE.mist }}>{fmt(r.monthly / r.agents)}</div>
-                      <div style={small}>Industry range: $4.5K to $7.5K loaded</div>
+                      <div style={small}>Every cost in the model, per agent</div>
                     </div>
                   </div>
                   <div style={{ ...grid(130), marginBottom: 20 }}>
@@ -1110,6 +1111,7 @@ function Calculator() {
                   </section>
                 )}
 
+                <HowOthersReport toolId={TOOL_ID} />
                 {/* The report is paper (Brand Guide section 13). */}
                 <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
                         <ReportActions

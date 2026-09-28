@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred, originsFor } from "./src/lib/confidence";
@@ -730,6 +731,7 @@ export default function ChannelShiftModel() {
         </label>
       </section>
 
+      <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions

@@ -482,9 +482,9 @@ console.log("\n14. 11B grading layer and registry");
   A("every id the tool reads is owned by this tool or shared", ids.every(id => [TOOL, "shared"].includes(BENCHMARK_SOURCES[id].tool)));
   A("the vertical planning ranges are retired: no heuristic range or average FCR by industry, in the page or the registry (TB, 28 Sep)",
     !/VBENCH|cpc\.vert\.|Vertical planning ranges|Avg FCR/.test(SRC) && !Object.keys(BENCHMARK_SOURCES).some(id => id.startsWith("cpc.vert.")));
-  A("the page points to the sourced industry figures instead", /href="\/industries"/.test(SRC) && /no reliable public benchmark for cost per contact by industry/.test(SRC));
+  A("the page shows the sourced comparison panel instead (comparisons.test.mjs holds its figures)", /<HowOthersReport toolId=\{TOOL_ID\} \/>/.test(SRC));
   A("every registered entry for this tool is read", owned.every(id => readIds.has(id)));
-  A("the registry holds 27 entries for this tool (15 vertical ranges retired 28 Sep)", owned.length === 27);
+  A("the registry holds 26 entries for this tool (15 vertical ranges and their FCR link threshold retired 28 Sep)", owned.length === 26 && !("cpc.read.fcrLeakLink" in BENCHMARK_SOURCES));
   A("no default ships a bare number", !/:\s*\d/.test(SRC.slice(SRC.indexOf("const BASE = {"), SRC.indexOf("};", SRC.indexOf("const BASE = {")))));
   A("no derivation, fallback, floor or threshold ships bare",
     !/loaded \* 0\.6|\? 5\.5 :|Math\.max\(0\.1|repeatShare > 0\.25|fcr < 0\.70|Mu < 1\.3|fcrPct < 78|gapPct > 40|gapPct > 20|used: 140|: 140;/.test(SRC));

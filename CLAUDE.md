@@ -1526,6 +1526,35 @@ dashboard, the 12-phase growth program.
    Built as `CONTOUR` in `Homepage.jsx`, centred on the stack at desktop and the top right on a phone; the page's inline
    `background` shorthand had to become `backgroundColor` or it resets the image. The homepage Research door's tag now
    reads "Coming soon" too. `home.test.mjs` pins both. Suite 26,018; homepage axe 0 at 1440 and 390.
+   PR #79 merged by TB's instruction (6fb4f5f).
+88. S24 (28 Sep), sourced comparisons, "How others report it" (TB: "Go", after two benchmark research runs: the Benchmark
+   Corpus and the Benchmark Library, both 28 Sep). Verdict given to TB: the data supports context beside a result, not
+   per-industry averages in every tool (the Library itself: no industry figure clears three publishers); only FCR and
+   wages have industry depth. Built display only: `src/lib/comparisons.js` (sources, groups, per-tool map, WITHHELD),
+   `src/lib/comparisons/stateWages.js`, `src/lib/HowOthersReport.jsx` on 11 tools (CPC, FCR Leakage, Attrition,
+   Staffing, Occupancy, Shrinkage, Adherence, AI Deflection, Channel Shift, TCO, License Gap). No tool imports the
+   figures; nothing reaches an engine, default, flag or grade. One publisher and method per row, never averaged.
+   - Read on the publisher's page this session: SQM 2026 FCR text (overall 71, retail 77, insurance 75, not-for-profit
+     73, tech support 64, telco 56; financial and health insurance as ranges, their 70 and 69 read off SQM's chart in S23
+     and kept from the claims registry, which the FCR group reads), SQM 2024 (69%, AHT 697 s), SQM KPI standards 2023,
+     ContactBabel 2026 key findings ($7.20 an inbound call, 74 s ASA, 18% of web chats without an agent; the canonical
+     contactbabel.com page replaces the Corpus's dev host), ContactBabel 2024 HR table via RingCentral (mean 31%, median
+     24%, defined as total), ContactBabel 2025 channel mix via Contact Center Pipeline, NICE 2025 PDF, SHRM ($5,475; 39
+     days), Salesforce (30%), YouGov (35% phone), Call Centre Helper occupancy, shrinkage and adherence, Intradiem,
+     Verint, TechTarget, CPUC GO 103-A (80% in 30 s, abandonment 5% or less), seven vendor pricing pages, and all 51
+     BLS May 2025 state medians on O*NET (every one equal to the Library to the cent; national $21.53 equals the
+     registry). BLS pay by industry (five OOH rows) rests on TB's research (bls.gov refuses this network).
+   - Corrections to the research: NICE's 39% is unmanaged attrition (the Library called it total); the Library's
+     "consensus" occupancy, shrinkage and adherence ranges average several publishers' ranges and are not used; its
+     SQM 2026 "n/a" for four industries is wrong (the chart publishes them).
+   - Withheld and gated: Gartner 2024 cost per contact (403 from here), Umbrex shrinkage, the FCC relay rule
+     (unreadable here), Freshworks ticket FCR, JOLTS turnover index, May 2023 industry means, Dialpad prices (secondary),
+     vendor-defined and forecast figures, and the excluded-sources tab's misattributions.
+   - The state wage is shown, never filled: filling the wage field would make a published median count as the
+     reader's own figure and lift the grade.
+   - Retired: TCO's "Bench 5:00 to 7:00" and "$4.5K to $7.5K loaded", Staffing's "Most centres run 80% in 20 to 30s"
+     (now SQM's traditional standard, named), CPC's "How does yours compare?" text panel and `cpc.read.fcrLeakLink`.
+   `comparisons.test.mjs` (699). Browser: 11 tools at 1440 and 390, every group open, no error, no overflow, axe 0.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

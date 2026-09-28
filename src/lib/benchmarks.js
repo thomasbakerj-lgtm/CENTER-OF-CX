@@ -577,7 +577,6 @@ export const BENCHMARK_SOURCES = {
   "cpc.read.repeatShare": cLine(0.25, "share of handled contacts", "Repeat demand above this reads as a resolution problem. It is the point where the shared severity bucket turns moderate, so the flag and the published band agree. Framing only."),
   "cpc.read.lowFcr": cLine(0.7, "FCR", "Below this FCR, paired with a shallow M, the repeat path is likely understated. Holds completeness Directional until M is checked."),
   "cpc.read.shallowM": cLine(1.3, "contacts per unresolved issue", "An M under this with low FCR is implausibly shallow. Paired with the low FCR line, holds completeness Directional."),
-  "cpc.read.fcrLeakLink": cLine(78, "percent FCR", "Below this FCR the page offers the FCR Leakage Diagnostic. The top of the internal vertical FCR range. Navigation only."),
   "cpc.band.gapAmber": cLine(20, "percent resolution premium", "Cost per resolution card turns amber above this premium. Colour only. It reaches no confidence axis."),
   "cpc.band.gapRed": cLine(40, "percent resolution premium", "Cost per resolution card turns red above this premium. Colour only. It reaches no confidence axis."),
 

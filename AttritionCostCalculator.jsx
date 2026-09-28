@@ -1,4 +1,5 @@
 import { useState, useEffect, useId } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
@@ -721,6 +722,7 @@ export default function AttritionCostCalculator() {
 
       <DriverCheck answers={drivers} setAnswer={(k, v) => setDrivers((p) => ({ ...p, [k]: v }))} scored={driverScore} />
 
+      <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions

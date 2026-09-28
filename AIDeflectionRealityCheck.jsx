@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import { toolAt } from "./src/lib/journey";
 import ReportActions from "./ReportActions";
 import { METHOD_VERSIONS, methodStamp } from "./src/lib/methodVersions";
@@ -969,6 +970,7 @@ export default function AIDeflectionRealityCheck() {
         {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "6px 0 0" }}>{t}</p>)}
       </section>
 
+      <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions

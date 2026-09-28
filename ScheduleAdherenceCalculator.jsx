@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result } from "./src/lib/ui.jsx";
 import { K, Group, Field, Tile, Corrections, Assumptions, Paper, frameMethod } from "./src/lib/frameKit.jsx";
@@ -149,6 +150,8 @@ export default function ScheduleAdherenceCalculator() {
       </section>
 
       <Assumptions items={planning} />
+
+      <HowOthersReport toolId={TOOL_ID} />
 
       <Paper>
           <ReportActions
