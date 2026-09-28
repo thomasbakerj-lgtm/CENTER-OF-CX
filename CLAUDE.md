@@ -426,8 +426,7 @@ Binding. None of this is in code comments beyond what is noted.
 - `chunk.test.mjs` imports `vite`: `npm install` before the suite.
 - `rail-audit.mjs` writes `.rail-audit-metrics.mjs` at repo root every run and never
   removes it. Covered by `.gitignore`.
-- Root file `download` holds `.gitignore`-style content. Superseded; delete once TB
-  confirms nothing reads it.
+- ~~Root file `download`.~~ Archived S24 (TB: archive, do not delete): `docs/archive/root-download.txt` with a README.
 
 **TB actions outstanding**
 - ~~11-01: verify custom events reach Vercel dashboard on Hobby.~~ Settled S23: Vercel Hobby has no custom events. PostHog
@@ -1416,6 +1415,25 @@ dashboard, the 12-phase growth program.
    avoidance net $995,257 to $1,039,240 and payback month 31 to 30; no action unchanged ($31,850). Old scenario links
    carry only changed fields, so a link that left the wage at default opens at the new one. Suite 25,841; live check 256
    of 256. TB suggested next: the May 2025 set for other contact center SOC codes (supervisors, technical support).
+   PR #73 merged by TB's instruction (2063c4c).
+82. S24 (28 Sep), P6 item 17 part 1, Attrition's root-cause layer (TB: "go"). Attrition method 1.2. The retired Agent
+   Experience Diagnostic returns as "Why are agents leaving?" on the Attrition page: six drivers (workload and recovery,
+   schedule control, tools and desktop, knowledge and enablement, supervisor coaching, career path) as statements rated 1
+   to 5, in our words, with no figure (the old statements carried unsourced thresholds and its bands predicted attrition
+   rates and replacement costs). Data in `src/lib/rubrics/attritionDrivers.js`, scored by the one rubric engine: a
+   statement at 2 or below becomes its action, weakest driver first, each driver with the tool that measures it
+   (Occupancy Risk, Staffing, AHT Decomposition, FCR Leakage, QA Scorecard; career says no tool yet and links The Human
+   Premium). No overall score, band or predicted rate; drivers are not averaged. It replaced a list that marked drivers
+   High or Medium from the attrition rate alone ("the most controllable attrition driver", "leave faster than agents who
+   feel underpaid", no source). The cost engine is untouched and reads no answer; the report harness proves answers move
+   no figure, grade, signal or other section. Scenario links carry the answers (`LINK_DEFAULTS`); older links open with
+   none. The PDF prints "Why Agents Leave: Your Answers" when a driver is complete; the method page publishes every
+   statement and action from the same object (`checks` on the model, rendered by `CalcPage`). `drivers.test.mjs` (31).
+   Root `download` archived to `docs/archive/` (TB: archive, not delete). Suite 25,963; live check 256 of 256.
+   TB decisions the same day: F2 agreed (capacity action starts at "none", so zero until the reader picks one; queued).
+   SOC codes: recommended only where a tool shows the figure: Attrition's unsourced supervisor ($55), trainer ($45) and
+   HR ($48) loaded rates would become BLS medians for 43-1011, 13-1151 and 13-1071 at the shared benefits load; needs the
+   May 2025 rows from TB (bls.gov refuses this network).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1493,9 +1511,10 @@ P6. Remaining debt.
   13b. Queued originality phrase searches for Telecom, Education, Travel, Financial Services, Utilities, Government.
   14. ~~TCO and BCB publish verdicts on the rail.~~ Done S24 (item 77): no tool publishes a verdict; the rail refuses them.
   15. ~~External getters and origin grades.~~ Done S24 (items 78 and 79).
-  16. ~~BCB next steps, TCO guard case, Field labels.~~ Done S24 (item 80). Open: `MECH_INITIAL` F2 (TB decision).
-  17. Roadmap anonymous sequence capture; Attrition root-cause layer from the Agent Experience content.
-  18. WS10 performance re-scope and Core Web Vitals; delete root `download` once TB confirms.
+  16. ~~BCB next steps, TCO guard case, Field labels.~~ Done S24 (item 80). `MECH_INITIAL` F2: TB agreed S24 (start at zero);
+      queued, needs the unselected-state rendering first.
+  17. Roadmap anonymous sequence capture; ~~Attrition root-cause layer from the Agent Experience content~~ (done S24, item 82).
+  18. WS10 performance re-scope and Core Web Vitals; ~~root `download`~~ archived S24 (item 82).
 
 P7. Gated on TB or the corpus.
   19. Research Stage 1 loader (full CCaaS corpus and Research Strategy Handoff), Stage 3 Vendor Intelligence pages,

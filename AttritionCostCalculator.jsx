@@ -18,6 +18,9 @@ import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
 import { HOUSE, PILLARS, ARCS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
 import { methodStamp } from "./src/lib/methodVersions.js";
+import { scoreRubric } from "./src/lib/rubric.js";
+import { ATTRITION_DRIVERS, DRIVER_TOOL_NAMES } from "./src/lib/rubrics/attritionDrivers.js";
+import { StatementStep } from "./src/lib/frameKit.jsx";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, MUTED = COLORS.muted;
 const DEEP = "#061325", LIGHT = "#00AAFF", WARM = "#F8FAFB", SLATE = "#3A4F6A", BORDER = "#D8E3ED";
@@ -424,18 +427,62 @@ function LogoMark({ size = 34 }) {
   return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={.6} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={.8} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
 }
 
+/* The root-cause check (method 1.2): why agents leave, rated by the reader. It reads only its own answers, scores
+   them with the one rubric engine and never touches the cost engine: no figure or grade above moves with it. It
+   reports each driver's low answers as actions, with the tool that measures that driver, and no overall score. */
+/* Scenario links carry the cost inputs and the root-cause answers; an older link without answers opens with none. */
+const LINK_DEFAULTS = { ...DEFAULTS, drivers: {} };
+const DRIVER_STEPS = ATTRITION_DRIVERS.dims.map((dm) => ({ id: dm.id, name: dm.name, qs: dm.criteria.map((c) => ({ q: c.text })) }));
+
+export function DriverCheck({ answers, setAnswer, scored }) {
+  const [current, setCurrent] = useState(0);
+  const done = (id) => scored.dims.find((x) => x.id === id).complete;
+  const finished = scored.dims.filter((x) => x.complete);
+  return (
+    <section aria-label="Why agents leave" style={{ ...panel, display: "flex", flexDirection: "column", gap: 16 }}>
+      <div>
+        <h2 style={h2}>Why are agents leaving?</h2>
+        <p style={body}>Rate each statement for your operation, 1 if you disagree and 5 if you agree. A statement at 2 or below becomes an action, with the tool that measures that driver. Your answers change no figure and no grade above, and the check predicts no attrition rate.</p>
+      </div>
+      <StatementStep dims={DRIVER_STEPS} current={current} setCurrent={setCurrent} scores={answers}
+        setScore={(dim, qi, v) => setAnswer(`${dim}-${qi}`, v)} done={done} complete={scored.complete}
+        onResults={() => { try { document.getElementById("driver-results").scrollIntoView({ behavior: "smooth" }); } catch { /* no DOM */ } }}
+        prompt="Answer for how the operation runs today." />
+      <div id="driver-results" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <h3 style={{ ...h2, fontSize: 16 }}>What your answers point to</h3>
+        {finished.length === 0 && <p style={small}>Answer every statement for a driver to see what it points to. Drivers are read one at a time and never averaged.</p>}
+        {finished.map((x) => {
+          const spec = ATTRITION_DRIVERS.dims.find((dm) => dm.id === x.id);
+          const low = scored.checklist.filter((c) => c.dimension === x.id);
+          return (
+            <div key={x.id} style={{ padding: "12px 0", borderTop: `1px solid ${hair}` }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist }}>{x.name}</span>
+              <p style={{ ...small, margin: "2px 0 6px" }}>{low.length ? `${low.length} of ${x.criteria.length} statements at 2 or below.` : `No statement at 2 or below.`}</p>
+              {low.map((c) => <p key={c.criterion} style={{ ...body, margin: "4px 0" }}>{c.action}</p>)}
+              {spec.next
+                ? <a href={`/tools/${spec.next}`} style={link}>Measure it: {DRIVER_TOOL_NAMES[spec.next]}</a>
+                : <p style={small}>{spec.nextNote} <a href={spec.read.href} style={link}>{spec.read.label}</a></p>}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 const AXIS_LABEL = { evidence: "Evidence", realization: "Realization", completeness: "Completeness" };
 
 export default function AttritionCostCalculator() {
   const [d, setD] = useState(() => clone(DEFAULTS.d));
   const [pulled, setPulled] = useState({});
   const [fromLink, setFromLink] = useState(false);
+  const [drivers, setDrivers] = useState({});
   const set = (k, v) => setD(p => ({ ...p, [k]: v }));
 
   useEffect(() => {
     // A scenario link is a deliberate act and outranks the ambient cross-tool pull.
-    const sc = readScenario(TOOL_ID, DEFAULTS);
-    if (sc) { setD(sc.d); setFromLink(true); clearScenarioParam(); return; }
+    const sc = readScenario(TOOL_ID, LINK_DEFAULTS);
+    if (sc) { setD(sc.d); setDrivers(sc.drivers && typeof sc.drivers === "object" ? sc.drivers : {}); setFromLink(true); clearScenarioParam(); return; }
 
     /* The external getter, which refuses this tool's own value. This tool publishes `agents`, so on a
        remount inside one session the plain read hands back this tool's own value and
@@ -451,6 +498,7 @@ export default function AttritionCostCalculator() {
   }, []);
 
   const r = compute(d);
+  const driverScore = scoreRubric(ATTRITION_DRIVERS, drivers);
 
   useEffect(() => {
     publishToolResult(TOOL_ID, normalizeForPublish({
@@ -668,25 +716,7 @@ export default function AttritionCostCalculator() {
       </section>
       </>)}
 
-      <section aria-label="What is driving this attrition" style={panel}>
-        <h2 style={h2}>What is driving this attrition?</h2>
-        <p style={{ ...small, marginBottom: 12 }}>At {r.attritionRate}% one or more of these is active. The rate gets fixed in these tools, not in this calculator.</p>
-        {[
-          { driver: "Occupancy above 85%", likelihood: r.attritionRate > 35 ? "High" : "Medium", tool: "/tools/occupancy-risk", toolName: "Occupancy Risk Simulator", why: "Insufficient recovery time between contacts burns agents out. The most controllable attrition driver." },
-          { driver: "Repeat contacts / rework load", likelihood: "Medium", tool: "/tools/fcr-leakage", toolName: "FCR Leakage Diagnostic", why: "New-hire error and repeat-contact cost lives here, not in this tool. Quantify the rework that frustrates agents and customers alike." },
-          { driver: "Weak coaching or agent experience", likelihood: "Medium", tool: "/tools/qa-scorecard", toolName: "QA Scorecard Builder", why: "Agents who feel unsupported leave faster than agents who feel underpaid. Coaching runs through the QA program." },
-          { driver: "No visible career path", likelihood: r.attritionRate > 40 ? "High" : "Medium", tool: "/human-premium", toolName: "The Human Premium", why: "When agents cannot see what comes after this role, they leave to find it. New CX roles are emerging." },
-        ].map((item, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 0", borderTop: `1px solid ${hair}` }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: HOUSE.mist, padding: "2px 8px", borderRadius: RADIUS.chip, border: item.likelihood === "High" ? `1.5px solid ${HOUSE.mist}` : `1px dashed ${soft}`, flexShrink: 0, marginTop: 2 }}>{item.likelihood}</span>
-            <div>
-              <span style={{ fontSize: 15, fontWeight: 600, color: HOUSE.mist }}>{item.driver}</span>
-              <p style={{ ...small, margin: "2px 0 6px" }}>{item.why}</p>
-              <a href={item.tool} style={link}>{item.toolName}</a>
-            </div>
-          </div>
-        ))}
-      </section>
+      <DriverCheck answers={drivers} setAnswer={(k, v) => setDrivers((p) => ({ ...p, [k]: v }))} scored={driverScore} />
 
       {/* The report is paper (Brand Guide section 13). */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
@@ -696,8 +726,8 @@ export default function AttritionCostCalculator() {
             toolName="Attrition Cost Analysis"
             subtitle={`Total Cost of Agent Turnover. ${r.voided ? "EXPORT VOID, integrity invariant failed" : `${r.confidence}, bound by ${r.boundBy}`}`}
             routePath={ROUTE}
-            state={{ d }}
-            defaults={DEFAULTS}
+            state={{ d, drivers }}
+            defaults={LINK_DEFAULTS}
             grades={r.gradeObj}
             summary={r.voided ? [{ label: "Export", value: "Void: an integrity invariant failed, so no figure is reported" }] : [
               { label: "Cash per departure", value: fmt$(r.cashPerDeparture) },
@@ -784,6 +814,17 @@ export default function AttritionCostCalculator() {
                   ? `Cutting attrition 5 points yields ${fmt$(r.scenarios[0].total)} gross; net of ${fmt$(r.scenarios[0].achieveCost)} to achieve it is ${fmt$(r.scenarios[0].net)}${r.scenarios[0].roi != null ? ` (${r.scenarios[0].roi.toFixed(1)}x return)` : ""}. Bookability: ${r.bookLabel.toLowerCase()}. Net is the figure to take to budget.`
                   : `Cutting attrition 5 points realizes ${fmt$(r.scenarios[0].total)} gross (${fmt$(r.scenarios[0].cash)} cash avoided + ${fmt$(r.scenarios[0].cap)} capacity value), gated by backfill and mechanism. Bookability: ${r.bookLabel.toLowerCase()}. Not booked EBITDA unless tied to a budget action, and this is before the cost to achieve the reduction.`,
               ]},
+              ...(driverScore.dims.some((x) => x.complete) ? [{ title: "Why Agents Leave: Your Answers", type: "findings", items: [
+                ...driverScore.dims.filter((x) => x.complete).flatMap((x) => {
+                  const spec = ATTRITION_DRIVERS.dims.find((dm) => dm.id === x.id);
+                  const low = driverScore.checklist.filter((c) => c.dimension === x.id);
+                  return [
+                    `${x.name}: ${low.length ? `${low.length} of ${x.criteria.length} statements at 2 or below` : "no statement at 2 or below"}. ${spec.next ? `Measure it with the ${DRIVER_TOOL_NAMES[spec.next]}.` : spec.nextNote}`,
+                    ...low.map((c) => `Action (${x.name}): ${c.action}`),
+                  ];
+                }),
+                "These answers are how the person answering sees the operation. They change no figure or grade in this report and predict no attrition rate.",
+              ]}] : []),
               { title: "Methodology", type: "findings", items: [
                 `Cost model: per replaced departure = cash (recruiting, screening, ${r.signOn > 0 ? "sign-on, " : ""}training wages, trainer, vacancy OT) + capacity (nesting and ramp productivity loss, supervisor coaching). Capacity is recovered time, credited only through a realization mechanism.`,
                 `Capacity realization: "${r.mechName}" credits ${Math.round(r.mech * 100)}% of freed capacity, read from the shared platform capacity-action table so the same mechanism means the same thing in every tool. Credit class ${r.cred}${r.voided ? "" : `, which sets the realization axis at ${r.grades.realization}`}. Cash out the door is never scaled by this factor.`,
@@ -802,4 +843,4 @@ export default function AttritionCostCalculator() {
 }
 
 /* The scenario-link defaults, exported for the live checker and the visual audit. */
-export { DEFAULTS };
+export { LINK_DEFAULTS as DEFAULTS };
