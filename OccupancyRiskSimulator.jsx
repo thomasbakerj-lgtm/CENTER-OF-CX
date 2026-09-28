@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result } from "./src/lib/ui.jsx";
 import { K, Group, Field, Tile, Corrections, Assumptions, Paper, frameMethod } from "./src/lib/frameKit.jsx";
@@ -165,6 +166,8 @@ export default function OccupancyRiskSimulator() {
         `Paid hours: ${OCC_PARAMS.hoursWeek} a week and ${OCC_PARAMS.hoursYear.toLocaleString("en-US")} a year, the full-time definition.`,
         `Benefits load ${OCC_PARAMS.load}x: ${BENCHMARK_SOURCES["load.benefits"].rationale} Bands: healthy to ${pct(B.healthyMax, 0)}, caution to ${pct(B.cautionMax, 0)}, the platform's shared occupancy bands.`,
       ]} />
+
+      <HowOthersReport toolId={TOOL_ID} />
 
       <Paper>
           <ReportActions

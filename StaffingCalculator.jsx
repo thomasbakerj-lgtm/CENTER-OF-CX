@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import ReportActions from "./ReportActions";
 import { METHOD_VERSIONS } from "./src/lib/methodVersions";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage, benchmark } from "./src/lib/benchmarks";
@@ -265,7 +266,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
   }
 
   if (aggressive)
-    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service: ASA (average speed of answer) is ${fmtASA(r.asa)}, and ${fmtPW(r.pw)} of callers wait at all. That speed is paid for in extra agents. Most centres run 80% in 20 to 30s.`);
+    out.push(`A ${targetPct.toFixed(0)}% in ${slSec}s target is premium service: ASA (average speed of answer) is ${fmtASA(r.asa)}, and ${fmtPW(r.pw)} of callers wait at all. That speed is paid for in extra agents. SQM Group calls 80% in 20 seconds the traditional standard.`);
 
   if (looseOcc && overBy < benchmark("staffing.read.overServePts"))
     out.push(`Occupancy at ${occPct.toFixed(1)}% sits below the ${band} band while service level is met. You have room to absorb growth, or to run leaner if cost comes first.`);
@@ -779,6 +780,7 @@ export default function StaffingCalculator() {
         <p style={{ ...body, fontSize: 14, marginTop: 8 }}>Erlang C is the standard queueing model for staffing. We solve it through the Erlang B recursion, which stays accurate from a handful of agents to several thousand. It assumes calls arrive at random (Poisson arrivals), handle times vary exponentially and callers never hang up, so it tends to over-staff. Enter an average patience to see the estimate adjusted for abandonment. The optional occupancy cap staffs to whichever is higher: the agents that meet service level, or the agents that hold occupancy at or below your ceiling. Shrinkage is applied after the agent calculation to turn base agents into scheduled FTE. Erlang C assumes one contact per agent at a time. Chat, messaging and email agents run several sessions at once, so applying these numbers to a digital queue overstates headcount, often by half or more. Every formula, constant and a worked example are in the <a href="/methodology/staffing-calculator" style={link}>published method</a>.</p>
       </section>
 
+      <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
               <ReportActions

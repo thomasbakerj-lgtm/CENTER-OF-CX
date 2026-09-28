@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { emitGrades, voidResult, isVoid, railEvidence, weakerStream, realizationFromCred, originsFor } from "./src/lib/confidence";
@@ -79,7 +80,6 @@ const EFF_AHT_FALLBACK = benchmark("cpc.fallback.effAht");
 const CONC_FLOOR = benchmark("cpc.guard.concurrencyFloor");
 const REPEAT_SHARE_LINE = benchmark("cpc.read.repeatShare");
 const LOW_FCR = benchmark("cpc.read.lowFcr"), SHALLOW_M = benchmark("cpc.read.shallowM");
-const FCR_LEAK_LINK = benchmark("cpc.read.fcrLeakLink");
 const GAP_AMBER = benchmark("cpc.band.gapAmber"), GAP_RED = benchmark("cpc.band.gapRed");
 /* The dividend steps, in order, with the realism tier each is read as. The layers
    table, the math drawer and the analyst read all quote the middle step. */
@@ -574,17 +574,10 @@ export default function CostPerContactCalculator() {
       </div>
 
       {/* The vertical planning ranges (internal heuristics for three industries, with an "average FCR" that read as a
-          measured figure) were retired on 28 Sep 2026 (TB). Published figures by industry, where any exist, live on the
-          industry pages with their sources. */}
-      <section aria-label="Compare with your industry" style={card}>
-        <h2 style={h2}>How does yours compare?</h2>
-        <p style={{ ...body, margin: 0 }}>There is no reliable public benchmark for cost per contact by industry: published figures mix channels, cost definitions and company sizes. The industry pages show the figures that are published, such as first contact resolution, each with its source, and say where none exists.</p>
-        <div style={{ display: "flex", gap: 18, flexWrap: "wrap", marginTop: 8 }}>
-          <a href="/industries" style={{ display: "inline-flex", alignItems: "center", minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark }}>See your industry</a>
-          {r.fcrPct < FCR_LEAK_LINK && <a href="/tools/fcr-leakage" style={{ display: "inline-flex", alignItems: "center", minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark }}>Run FCR Leakage to find why resolution fails</a>}
-        </div>
-      </section>
+          measured figure) were retired on 28 Sep 2026 (TB). Their place is the sourced comparison panel below: SQM's
+          published first contact resolution by industry and ContactBabel's cost of an inbound call. */}
 
+      <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13): the actions sit on a paper panel until ReportActions moves onto the house in a later batch. */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
           <ReportActions

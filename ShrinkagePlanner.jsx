@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result } from "./src/lib/ui.jsx";
 import { K, Group, Field, Tile, Corrections, Assumptions, Paper, frameMethod } from "./src/lib/frameKit.jsx";
@@ -155,6 +156,8 @@ export default function ShrinkagePlanner() {
       <Assumptions items={assumptions}>
         <p style={{ ...K.small, marginTop: 6 }}>{BENCHMARK_SOURCES["shrinkage.range.low"].rationale}</p>
       </Assumptions>
+
+      <HowOthersReport toolId={TOOL_ID} />
 
       <Paper>
           <ReportActions
