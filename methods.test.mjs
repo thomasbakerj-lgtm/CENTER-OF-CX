@@ -221,7 +221,7 @@ section("Version stamps; the change record renders nowhere");
   const methodIds = Object.keys(RUBRICS);
   ok("the version table has exactly the published methods", Object.keys(METHOD_VERSIONS).sort().join() === methodIds.slice().sort().join());
   ok("every stamp equals its method's own version and date", methodIds.every((id) => METHOD_VERSIONS[id].version === RUBRICS[id].version && METHOD_VERSIONS[id].published === RUBRICS[id].published));
-  ok("a stamp reads as the page and PDF print it", methodStamp("staffing-calculator").text === "Method 1.0, published 25 September 2026" && methodStamp("staffing-calculator").href === "/methodology/staffing-calculator");
+  ok("a stamp reads as the page and PDF print it", methodStamp("staffing-calculator").text === "Method 1.1, published 28 September 2026" && methodStamp("staffing-calculator").href === "/methodology/staffing-calculator");
   ok("tools with no published method carry no stamp, and a hostile id finds none", methodStamp("roadmap-builder") === null && methodStamp("vendor-match") === null && methodStamp("__proto__") === null && methodStamp("toString") === null);
   const RA = readFileSync("./ReportActions.jsx", "utf8"), RE = readFileSync("./ReportExport.jsx", "utf8");
   ok("ReportActions prints the stamp on the page and passes it to the PDF", /methodStamp\(toolId\)/.test(RA) && /\{stamp\.text\}/.test(RA) && /method=\{stamp \?/.test(RA));

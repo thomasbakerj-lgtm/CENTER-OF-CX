@@ -14,7 +14,7 @@ const RATIO = benchmark("staffing.validity.ratio");
 
 /* The pins. Each is recomputed from the engine by methods.test.mjs. */
 export const STAFFING_PINS = {
-  defaults: { volume: 400, aht: 360, interval: 30, slT: 0.8, slS: 20, shrink: 0.3, load: 80, base: 88, fte: 126, sl: 0.81804, asa: 12.77, occ: 0.90909, perAgentMonth: 6946.04, annual: 10502407 },
+  defaults: { volume: 400, aht: 360, interval: 30, slT: 0.8, slS: 20, shrink: 0.3, load: 80, base: 88, fte: 126, sl: 0.81804, asa: 12.77, occ: 0.90909, perAgentMonth: 7263.15, annual: 10981876 },
   nextiva: { volume: 400, aht: 257, interval: 30, slT: 0.8, slS: 20, shrink: 0.3, cap: 0.85, load: 57.11, base: 68, fte: 98, occ: 0.84, capped: true },
 };
 const D = STAFFING_PINS.defaults, N = STAFFING_PINS.nextiva;
@@ -23,8 +23,8 @@ export const STAFFING_MODEL = {
   id: "staffing-calculator",
   kind: "calc",
   title: "Staffing Requirement Calculator",
-  version: "1.0",
-  published: "2026-09-25",
+  version: "1.1",
+  published: "2026-09-28",
   route: "/tools/staffing-calculator",
   methodology: "/methodology/staffing-calculator",
   what: "How the Staffing Requirement Calculator turns contacts, handle time and a service level target into agents on the phones, scheduled FTE and an annual cost, through Erlang C.",

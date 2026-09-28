@@ -489,10 +489,10 @@ console.log("\n14. 11B grading layer and registry");
   A("no derivation, fallback, floor or threshold ships bare",
     !/loaded \* 0\.6|\? 5\.5 :|Math\.max\(0\.1|repeatShare > 0\.25|fcr < 0\.70|Mu < 1\.3|fcrPct < 78|gapPct > 40|gapPct > 20|used: 140|: 140;/.test(SRC));
   A("no dividend step ships bare", !/\[5, 10, 15\]|x\.p === 10|FCR \+10pts|\+10 FCR/.test(SRC));
-  A("J11: the default wage is the one shared BLS May 2024 market median, no longer this tool's own copy",
-    BASE.agentHourly === 20.59 && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
+  A("J11: the default wage is the one shared BLS May 2025 market median, no longer this tool's own copy",
+    BASE.agentHourly === 21.53 && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared"
     && BENCHMARK_SOURCES["market.wage.agent"].kind === "market" && !("cpc.wage.median" in BENCHMARK_SOURCES)
-    && /May 2024/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
+    && /May 2025/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
   A("J10: the overhead multiple is the shared benefits load, and the 1.35x is retired",
     BASE.overheadMultiplier === 1.30 && BENCHMARK_SOURCES["load.benefits"].tool === "shared"
     && !("cpc.default.overhead" in BENCHMARK_SOURCES));

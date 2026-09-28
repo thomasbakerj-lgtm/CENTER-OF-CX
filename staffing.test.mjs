@@ -483,7 +483,7 @@ section("11B. grading layer, registry, sign invariance");
   ok("no stress step ships bare", !/vol \* 1\.2|aht \* 1\.1|aht \* 0\.9|shrink \+ 5|0\.70\)|slT >= 95|slT [+-] 5/.test(SRC));
   ok("no what-if label hardcodes its step", !/"\+20% volume|"\+10% AHT|"\+5pt/.test(SRC));
   ok("presets equal their registry values", Object.entries(G.PRESETS).every(([k, p]) => p.volume === benchmark(`staffing.preset.${k}.vol`) && Math.round(p.shrink * 100) === benchmark(`staffing.preset.${k}.shrink`)));
-  ok("the wage is the shared BLS May 2024 market median", benchmark("market.wage.agent") === 20.59 && BENCHMARK_SOURCES["market.wage.agent"].kind === "market" && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared" && /May 2024/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
+  ok("the wage is the shared BLS May 2025 market median", benchmark("market.wage.agent") === 21.53 && BENCHMARK_SOURCES["market.wage.agent"].kind === "market" && BENCHMARK_SOURCES["market.wage.agent"].tool === "shared" && /May 2025/.test(BENCHMARK_SOURCES["market.wage.agent"].source) && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
   ok("the full load is the shared fully loaded concept, not a multiple of its own", benchmark("load.fullyLoaded") === 1.95 && BENCHMARK_SOURCES["load.fullyLoaded"].tool === "shared" && !("staffing.load.multiple" in BENCHMARK_SOURCES));
   ok("every heuristic is labelled as one", benchmarksForTool("staffing-calculator").filter(e => e.kind === "heuristic").every(e => /heuristic/i.test(e.source)));
   ok("every threshold states a rationale", benchmarksForTool("staffing-calculator").filter(e => e.kind === "threshold").every(e => e.rationale.length > 40));

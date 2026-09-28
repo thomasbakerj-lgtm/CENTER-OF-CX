@@ -16,8 +16,8 @@ const H = MECH[MECH_INITIAL];
 export const CHANNEL_PINS = {
   voiceVol: 70000, eligible: 42000, shifted: 20000, displaced: 11350, bounced: 5000,
   uplift: 0.042857, residualEff: 7.3, deptEff: 5.44978, netMin: 23205.22,
-  laborCash: 7047.48, botFee: 4025, netRealizable: 3022.48, fteFreed: 3.1392,
-  transition: 12507.56, payback: 4.138, verdict: "Approve", breakEven: 71.815,
+  laborCash: 7369.22, botFee: 4025, netRealizable: 3344.22, fteFreed: 3.1392,
+  transition: 12771.01, payback: 3.819, verdict: "Approve", breakEven: 71.043,
 };
 const P = CHANNEL_PINS;
 const prodMin = benchmark("channel.plan.workdays") * benchmark("channel.plan.hoursPerDay") * 60 * benchmark("channel.plan.productiveShare");
@@ -26,8 +26,8 @@ export const CHANNEL_MODEL = {
   id: "channel-shift",
   kind: "calc",
   title: "Channel Shift Model",
-  version: "1.0",
-  published: "2026-09-25",
+  version: "1.1",
+  published: "2026-09-28",
   route: "/tools/channel-shift",
   methodology: "/methodology/channel-shift",
   what: "How the Channel Shift Model turns a planned move of voice contacts into chat, bot or email into net agent minutes freed, what those minutes are worth after bot fees, the cost of the transition and the resolution rate at which the shift breaks even.",

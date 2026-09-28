@@ -91,7 +91,7 @@ A("annual cash burden is $749,818.46", near(fixture.annualCashBurden, 749818.461
 A("early washouts are 18 of 70 hires", base.earlyWashouts === 18);
 A("early-washout waste is $169,133.54", near(fixture.earlyWaste, 169133.53846153847));
 A("no inputs required correction on the shipped defaults", base.guards.length === 0);
-A("the opening salary is the shared BLS wage over the 2,080 hour year", DEFAULTS.d.avgSalary === Math.round(benchmark("market.wage.agent") * benchmark("time.hours.year")) && DEFAULTS.d.avgSalary === 42827);
+A("the opening salary is the shared BLS wage over the 2,080 hour year", DEFAULTS.d.avgSalary === Math.round(benchmark("market.wage.agent") * benchmark("time.hours.year")) && DEFAULTS.d.avgSalary === 44782);
 A("the opening benefits load is the shared load, and the overtime premium the FLSA minimum", DEFAULTS.d.benefitsLoadPct === Math.round((benchmark("load.benefits") - 1) * 100) && DEFAULTS.d.overtimePremium === 50);
 A("every other opening value reads the registry", ["agents", "attritionRate", "earlyWashoutRate", "recruitingCost", "trainingWeeks", "rampMonths", "vacancyDays"].every((k) => /at\("default\./.test(region)) && benchmark("attrition.default.agents") === DEFAULTS.d.agents);
 A("no invariant fails on the shipped defaults", base.invariants.length === 0);

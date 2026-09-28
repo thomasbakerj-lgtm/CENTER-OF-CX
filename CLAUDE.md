@@ -318,7 +318,9 @@ Binding. None of this is in code comments beyond what is noted.
 - **J10:** three shared loads only: `load.benefits` 1.30, `load.marginal` 1.18 (the
   only load a saving may be valued on), `load.fullyLoaded` 1.95. `tco.load.salaried`
   1.25 is TCO-owned. Do not invent a fifth. CPC and Channel 1.35x retired to 1.30.
-- **J11:** one wage, `market.wage.agent` BLS $20.59 (OEWS May 2024, SOC 43-4051).
+- **J11:** one wage, `market.wage.agent` BLS $21.53 median hourly (OEWS May 2025, released 15 May 2026, USDL-26-0725,
+  SOC 43-4051; was $20.59, May 2024, until 28 Sep 2026). Label it May 2025, never "May 2026 wages" (TB). Mean $22.40 an
+  hour, $46,590 a year, employment 2,595,750, for reference; the tools use the median.
   TCO industry wages are heuristics, never presented as medians.
 - TCO sources paragraph is generated from the registry. Balto/Parloa/Teneo containment
   and the $19 "BLS" wage claims are retired and pinned dead.
@@ -842,7 +844,7 @@ dashboard, the 12-phase growth program.
    - Two sources read off the publisher's own site, disclosed in the claim: ACSI federal figures from ACSI's study PDF
      hosted by FedScoop (theacsi sites refuse this network). Government CSAT row sets ACSI's index (65) beside SQM's
      top-box 78%, with the scale difference stated.
-38. **Scheduled (TB: yes):** BLS wage update, its own change after the site scan. OEWS now publishes May 2025; the site
+38. **Done S24 (28 Sep), item 81.** BLS wage update, its own change after the site scan. OEWS now publishes May 2025; the site
    wage (`market.wage.agent`, $20.59, J11) is May 2024. Read the May 2025 national row for SOC 43-4051 first (bls.gov
    refuses this sandbox; WebFetch reaches only index pages; the national XLSX or TB can supply it), then move the registry
    entry and its review date, and A/B every wage-driven tool (figures move by the wage ratio, grades unchanged).
@@ -1401,6 +1403,19 @@ dashboard, the 12-phase growth program.
    where it fires; the method 1.1 load A/B now sets those cases aside and counts them. Method page, changelog entry,
    version 1.2. Suite 25,841; live check 256 of 256. Open for TB: `MECH_INITIAL` F2 (defaulting the capacity action to
    "none" shows $0 realizable until the reader picks an action; needs unselected-state rendering first).
+81. S24 (28 Sep), item 38, the BLS wage update. TB validated the release against BLS: OEWS May 2025, released 15 May
+   2026 (USDL-26-0725), the latest; there is no May 2026 dataset. SOC 43-4051 median hourly $21.53 (was $20.59), mean
+   $22.40, mean annual $46,590. `market.wage.agent` 21.53, version 2, reviewed 2026-09-28, source "May 2025 (released 15
+   May 2026)" with the BLS tables link; `BLS_WAGE_VINTAGE` in `benchmarks.js` feeds the Occupancy, Shrinkage and Schedule
+   Adherence hints, so no tool writes a vintage by hand. Eight methods move a version (Staffing, CPC, Channel, Attrition,
+   Occupancy, Shrinkage, Adherence 1.1; Business Case 1.2) with a changelog entry each; method pins recomputed from the
+   engines. A/B: with the wage held at $20.59 every pre-change pin reproduces exactly (121 of 121), so only the wage
+   moved; grades on 10,000 random cases equal across wages except 39 Attrition cases where the higher salary crosses the
+   40 to 60% band edge (the salary is that band's denominator). Opening cases: Staffing annual $10,502,407 to $10,981,876,
+   Channel net realizable $3,022 to $3,344 a month, Attrition salary $42,827 to $44,782, Business Case with hiring
+   avoidance net $995,257 to $1,039,240 and payback month 31 to 30; no action unchanged ($31,850). Old scenario links
+   carry only changed fields, so a link that left the wage at default opens at the new one. Suite 25,841; live check 256
+   of 256. TB suggested next: the May 2025 set for other contact center SOC codes (supervisors, technical support).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -1462,7 +1477,7 @@ P3. Engine integrity (TB decided S23). PR #38 (task 8) merged 889c188, one next 
      changelog. Report set H now starts at 5% containment to keep the moderate band exercised. Open for TB: the AHT
      lever still values freed minutes at the loaded rate, and BCB derives its marginal at 1 + benefits (J10 says a
      saving is valued only on the marginal load).
-  10b. BLS wage update (item 38).
+  10b. **Done S24 (item 81).** BLS wage update (item 38).
 
 P4. Distribution launch (TB posts; site supplies assets).
   11. LinkedIn newsletter or Substack from the method changelog and each sourced industry page; weekly asset cadence

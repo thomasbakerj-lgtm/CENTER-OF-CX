@@ -7,7 +7,7 @@ import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT_IMPORT_CSS } from "./src/lib/type";
 import { createGuards, guardLine, money } from "./src/lib/guards";
-import { BENCH, benchmark, benchmarksForTool, BENCHMARK_SOURCES } from "./src/lib/benchmarks";
+import { BENCH, benchmark, benchmarksForTool, BENCHMARK_SOURCES, BLS_WAGE_VINTAGE } from "./src/lib/benchmarks";
 import { runOccupancy } from "./src/lib/occupancy";
 import { publishToolResult } from "./src/lib/toolData";
 
@@ -107,7 +107,7 @@ export default function OccupancyRiskSimulator() {
           <Field label="Current attrition" value={d.attritionRate} onChange={(x) => set("attritionRate", x)} suffix="%/yr" />
           <Field label="Hiring cost per agent" value={d.hiringCost} onChange={(x) => set("hiringCost", x)} suffix="$" />
           <Field label="Training ramp" value={d.trainingWeeks} onChange={(x) => set("trainingWeeks", x)} suffix="weeks" />
-          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? "BLS median, May 2024. Enter yours." : "Your figure"} />
+          <Field label="Hourly rate" value={d.hourlyRate} onChange={(x) => set("hourlyRate", x)} suffix="$/hr" hint={wageAtBenchmark ? `BLS median, ${BLS_WAGE_VINTAGE}. Enter yours.` : "Your figure"} />
         </div>
       </Group>
 
@@ -190,7 +190,7 @@ export default function OccupancyRiskSimulator() {
               ...(guards.length ? [{ title: "Inputs Corrected", type: "findings", items: guards.map(guardLine) }] : []),
               { title: "Key Findings", type: "findings", items: findings },
               { title: "Occupancy Ladder", type: "table", rows: R.ladder.map((l) => [l.occ + "% (" + BAND[l.band].label + ")", l.agents + " agents, " + l.attrition.toFixed(0) + "% attrition, " + k(l.turnoverCost) + "/yr turnover"]) },
-              { title: "Planning Assumptions", type: "findings", items: heuristics.map((e) => e.value + " " + e.unit + ": heuristic, no published source.").concat(["Paid hours " + OCC_PARAMS.hoursWeek + " a week and " + OCC_PARAMS.hoursYear.toLocaleString("en-US") + " a year: the full-time definition.", "Benefits load " + OCC_PARAMS.load + "x, the platform's shared heuristic.", "Hourly rate " + (wageAtBenchmark ? "is the BLS median for customer service representatives, May 2024." : "entered by you.")]) },
+              { title: "Planning Assumptions", type: "findings", items: heuristics.map((e) => e.value + " " + e.unit + ": heuristic, no published source.").concat(["Paid hours " + OCC_PARAMS.hoursWeek + " a week and " + OCC_PARAMS.hoursYear.toLocaleString("en-US") + " a year: the full-time definition.", "Benefits load " + OCC_PARAMS.load + "x, the platform's shared heuristic.", "Hourly rate " + (wageAtBenchmark ? `is the BLS median for customer service representatives, ${BLS_WAGE_VINTAGE}.` : "entered by you.")]) },
               { title: "Method", type: "text", content: "Occupancy is offered load in Erlangs (calls per hour times AHT in hours) divided by agents. Bands are the platform's shared occupancy bands. Attrition multipliers are labelled planning heuristics. Published at contactcentercx.com" + METHOD + "." },
             ]}
           />
