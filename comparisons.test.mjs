@@ -115,7 +115,7 @@ for (const id of Object.keys(C.TOOL_GROUPS)) {
   ok(`${id}: outside links open safely`, (out.match(/target="_blank"/g) || []).length === (out.match(/rel="noopener noreferrer"/g) || []).length);
   ok(`${id}: says the figures never change the result or grade`, /None of them changes your result or its grade/.test(text));
   ok(`${id}: wage picker exactly when mapped`, /Where are your agents\?/.test(text) === !!C.TOOL_GROUPS[id].wage);
-  ok(`${id}: no NaN, undefined or dash`, !/NaN|undefined|Infinity|[–—]/.test(text));
+  ok(`${id}: no NaN, undefined or dash`, !/NaN|undefined|Infinity|[\u2013\u2014]/.test(text));
 }
 ok("a tool with no comparison renders nothing", renderToStaticMarkup(React.createElement(P.HowOthersReport, { toolId: "roadmap-builder" })) === "");
 
@@ -150,7 +150,7 @@ ok("CPC: no vertical planning ranges", !/VBENCH|cpc\.vert\./.test(read("CostPerC
 
 section("8. Copy");
 for (const f of ["src/lib/comparisons.js", "src/lib/HowOthersReport.jsx", "src/lib/comparisons/stateWages.js"]) {
-  ok(`${f}: no dash characters`, !/[–—]/.test(read(f)));
+  ok(`${f}: no dash characters`, !/[\u2013\u2014]/.test(read(f)));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
