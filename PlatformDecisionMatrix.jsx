@@ -104,9 +104,9 @@ export default function PlatformDecisionMatrix() {
 
       {phase === "intro" && (
         <section aria-label="Start" style={K.lead}>
-          <p style={K.body}>No averaging: a must-have rated 2 or below is a gap whatever the others say, a rating you do not know is a proof request, and a need you mark not needed drops out.</p>
+          <p style={K.body}>Nothing is averaged. A must-have rated 2 or below is a gap whatever the other ratings say. A rating you do not know becomes a request for proof. A need you mark not needed drops out.</p>
           <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap", marginTop: 16 }}>
-            <Button onClick={() => setPhase("assess")}>Start Renewal Check</Button>
+            <Button onClick={() => setPhase("assess")}>Start the renewal check</Button>
             <a href={MODEL.methodology} style={K.link}>See the published method: every rule, outcome and threshold</a>
           </div>
         </section>
@@ -119,7 +119,7 @@ export default function PlatformDecisionMatrix() {
         </div>
 
         {!onClockStep && (() => { const layer = layers[currentLayer]; return (
-          <Group legend={`L${layer.n} ${layer.name}`} note="For each need: how well your current platform does it, how you know, and whether it matters for the next contract term. Mark anything you do not need as not needed; it drops out.">
+          <Group legend={`L${layer.n} ${layer.name}`} note="For each need, say how well your current platform does it, how you know, and whether it matters for the next contract term. Anything marked not needed drops out.">
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {layer.needs.map((text, i) => { const key = `${layer.n}-${i}`, it = itemOf(key), none = it.need === "none"; return (
                 <div key={key} style={{ ...K.box, opacity: none ? 0.75 : 1 }}>
@@ -142,7 +142,7 @@ export default function PlatformDecisionMatrix() {
         ); })()}
 
         {onClockStep && (
-          <Group legend="Renewal clock" note="Optional, and it changes what you can do: whether there is time to negotiate conditions or run an evaluation before the notice date.">
+          <Group legend="Renewal clock" note="Optional. It shows whether there is time to negotiate conditions or run an evaluation before the notice date, the last day to tell the vendor you will not renew as is.">
             <div style={{ ...K.grid(220), marginBottom: 14 }}>
               <label style={{ ...K.strong, fontSize: 14 }}>Months until the notice deadline
                 <input type="number" min={0} max={120} value={clock.monthsToNotice ?? ""} onChange={(e) => setClockField("monthsToNotice", e.target.value === "" ? undefined : Math.max(0, Math.min(120, Math.round(Number(e.target.value) || 0))))} style={numInput} />
@@ -216,7 +216,7 @@ export default function PlatformDecisionMatrix() {
             { title: "Every Need", type: "table", rows: R.items.map((x) => ["L" + x.layer + " " + x.text, x.need === "none" ? "Not needed" : (x.rating === "unknown" ? MODEL.unknown.label : MODEL.ratings.find((r) => r.value === x.rating).label + ", " + MODEL.evidence.find((e) => e.id === x.evidence).label.toLowerCase()) + ", " + MODEL.needLevels.find((n) => n.id === x.need).label.toLowerCase()]) },
             { title: "Renewal Clock", type: "table", rows: [["Months to notice", R.clock.months === null ? "Not entered" : String(R.clock.months)], ["Term offered", R.clock.years === null ? "Not entered" : R.clock.years + " years"], ["Exit and data terms known", R.clock.exitKnown === null ? "Not sure yet" : R.clock.exitKnown ? "Yes" : "No"]] },
             { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
-            { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". A must-have rated " + MODEL.thresholds.gapAt.value + " or below is a gap whatever the other ratings are; a rating you do not know is a proof request, never a low score; only needs that matter count. Published at contactcentercx.com" + MODEL.methodology + "." },
+            { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". A must-have rated " + MODEL.thresholds.gapAt.value + " or below is a gap whatever the other ratings are. A rating you do not know becomes a request for proof and counts as no score at all. Only needs that matter count. Published at contactcentercx.com" + MODEL.methodology + "." },
           ]} />
         </Paper>
       </>)}

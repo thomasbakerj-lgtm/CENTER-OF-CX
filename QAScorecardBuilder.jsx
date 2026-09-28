@@ -135,10 +135,10 @@ export default function QAScorecardBuilder() {
 
   const nextTool = R.next.tool && JOURNEY[R.next.tool] ? { name: JOURNEY[R.next.tool].name, href: JOURNEY[R.next.tool].route } : null;
   const NEXT_TEXT = {
-    form: "Fix the critical and high form findings first. Scores from a form that fails these checks cannot be defended, however well evaluators agree.",
+    form: "Fix the critical and high form findings first. Until the form passes these checks, its scores are hard to defend, however well evaluators agree.",
     calibrate: "Run a blind calibration session: have at least two evaluators score the same calls with this form, then paste their codes below.",
-    recalibrate: "Reword the flagged criteria, brief evaluators on the definitions and run another blind session before scores drive coaching or pay.",
-    outcome: "The form passes its checks and evaluators agree. The next test is whether the scores track customer outcomes.",
+    recalibrate: "Reword the flagged criteria, brief evaluators on the definitions and run another blind session before scores feed coaching or pay.",
+    outcome: "The form passes its checks and evaluators agree. The next test is whether the scores move with customer outcomes, such as repeat contacts.",
   };
   const STEP_LABEL = { form: "Fix the form", calibrate: "Calibrate", recalibrate: "Calibrate again", outcome: "Test against outcomes" };
   const sevCount = (s) => R.bySeverity[s];
@@ -148,7 +148,7 @@ export default function QAScorecardBuilder() {
 
   return (
     <ToolFrame toolId={TOOL_ID} choice={R.next.tool || null} section="Performance + Quality" name="QA Scorecard Builder" title="Does your QA form produce scores you can defend?"
-      lede="Build a weighted QA form for a contact type, check that it produces scores you can defend, and calibrate your evaluators blind: each scores the same calls alone, and nothing is compared until everyone has scored."
+      lede="Build a weighted QA (quality assurance) form for one contact type, check that it produces scores you can defend, and calibrate your evaluators blind: each scores the same calls alone, and nothing is compared until everyone has scored."
       method={frameMethod(methodStamp(TOOL_ID))} result={result} pinned={{ label: "Next step", value: STEP_LABEL[R.next.step] }}>
       <style>{FONT_IMPORT_CSS + optionCss("qa-sel")}</style>
       <p style={K.small}>Every rule, cut point and source is published in the <a href={MODEL.methodology} style={K.link}>QA method</a>.</p>
@@ -160,7 +160,7 @@ export default function QAScorecardBuilder() {
 
       <section aria-label="1. The form" style={K.panel}>
         <h2 style={K.h2}>1. The form</h2>
-        <p style={{ ...K.body, marginBottom: 14 }}>Each criterion needs a definition of what earns a yes, a tag for what it measures, and, if it is an auto-fail, the reason it must be one.</p>
+        <p style={{ ...K.body, marginBottom: 14 }}>Each criterion needs a definition of what earns a yes and a tag for what it measures. An auto-fail criterion, one whose miss fails the whole evaluation, also needs the reason it must be one.</p>
         {categories.map((cat, ci) => (
           <div key={ci} style={{ ...K.box, marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", paddingBottom: 10, borderBottom: `1px solid ${K.hair}` }}>
@@ -202,7 +202,7 @@ export default function QAScorecardBuilder() {
 
       <section aria-label="2. Form check" style={K.panel}>
         <h2 style={K.h2}>2. Form check</h2>
-        <p style={{ ...K.body, marginBottom: 12 }}>What this form measures, by share of its weight. This is shown as a fact: no source says what the right mix is.</p>
+        <p style={{ ...K.body, marginBottom: 12 }}>What this form measures, by share of its weight. It is shown as a fact only, because no source sets a right mix.</p>
         <div style={{ ...K.grid(150), marginBottom: 14 }}>
           {L.mix.map(m => (
             <div key={m.focus} style={K.box}>
@@ -262,7 +262,7 @@ export default function QAScorecardBuilder() {
         <h2 style={K.h2}>4. Calibration session</h2>
         <p style={K.body}>For the QA lead. A session runs in four steps:</p>
         <ol style={{ ...K.body, paddingLeft: 22, margin: "8px 0 12px" }}>
-          <li>Pick 3 or more calls that range from weak to strong. The method measures whether evaluators separate good calls from weak ones, so a set of similar calls reads as low agreement.</li>
+          <li>Pick 3 or more calls that range from weak to strong. The method measures whether evaluators tell good calls from weak ones, so a set of similar calls reads as low agreement.</li>
           <li>Send each evaluator this form: <button type="button" onClick={copyLink} style={textLink}>{linkCopied ? "evaluator link copied" : "copy the evaluator link"}</button>. It opens this form at step 3, with nothing marked.</li>
           <li>Each evaluator enters their initials and the call ID, marks every criterion, and sends you the code that appears. One code per evaluator per call.</li>
           <li>Paste every code below, one per line. Results stay sealed until every evaluator has scored every call.</li>
@@ -287,7 +287,7 @@ export default function QAScorecardBuilder() {
         )}
         {CR && (
           <div style={{ marginTop: 10 }}>
-            <p style={{ ...K.small, marginBottom: 10 }}>{MODEL.method.name} {MODEL.method.version}. Intervals are {Math.round(MODEL.bootstrap.level * 100)}% bootstrap intervals over calls.{CR.graded ? "" : ` Fewer than ${MODEL.thresholds.minCalls.value} calls: shown, not graded.`}</p>
+            <p style={{ ...K.small, marginBottom: 10 }}>{MODEL.method.name} {MODEL.method.version}. Intervals are {Math.round(MODEL.bootstrap.level * 100)}% bootstrap intervals over calls.{CR.graded ? "" : ` Fewer than ${MODEL.thresholds.minCalls.value} calls, so the measures are shown but not graded.`}</p>
             <div style={{ ...K.grid(180), marginBottom: 14 }}>
               {CR.measures.map(m => (
                 <div key={m.id} style={K.box}>
@@ -323,7 +323,7 @@ export default function QAScorecardBuilder() {
       </section>
 
       <section aria-label="One form per contact type" style={K.lead}>
-        <p style={K.body}><strong style={{ color: K.strong.color }}>One form per contact type.</strong> A password reset and a billing dispute call for different criteria. One form for every contact type is either too generic for complex calls or penalizes simple calls for criteria that do not apply. Build a form for each contact type, complexity or risk level, and weight what matters for each.</p>
+        <p style={K.body}><strong style={{ color: K.strong.color }}>One form per contact type.</strong> A password reset and a billing dispute call for different criteria. A single form for every contact type ends up too generic for complex calls, or it marks simple calls down for criteria that do not apply. Build a form for each contact type, complexity or risk level, and weight what matters for each.</p>
       </section>
 
       <Paper>
@@ -350,7 +350,7 @@ export default function QAScorecardBuilder() {
                 ["Session", C.raters + " evaluators on " + C.calls + " calls" + (C.reference ? ", reference " + C.reference : "")],
               ] }] : []),
               ...(own ? [{ title: "Your Evaluation", type: "findings", items: [(own.autoFail ? "Auto-fail. Weighted score before the auto-fail: " : "Weighted score: ") + own.score.toFixed(1) + "%" + (L.total === 100 ? "." : ". Weights do not total 100%, so this score cannot be compared with another form's.")] }] : []),
-              { title: "Findings", type: "actions", items: R.findings.length ? R.findings.map(f => ({ action: f.action, detail: SEV_STYLE[f.severity].label + ". " + whyOf(f), priority: f.severity === "critical" || f.severity === "high" ? "high" : "medium" })) : [{ action: "No published rule raises a finding.", detail: "Keep calibrating on a regular cycle; agreement drifts.", priority: "medium" }] },
+              { title: "Findings", type: "actions", items: R.findings.length ? R.findings.map(f => ({ action: f.action, detail: SEV_STYLE[f.severity].label + ". " + whyOf(f), priority: f.severity === "critical" || f.severity === "high" ? "high" : "medium" })) : [{ action: "No published rule raises a finding.", detail: "Keep calibrating on a regular cycle. Agreement drifts over time.", priority: "medium" }] },
               { title: "Next Step", type: "text", content: NEXT_TEXT[R.next.step] },
               { title: "What This Tool Cannot Tell You", type: "findings", items: MODEL.limits },
               { title: "Method", type: "text", content: MODEL.method.name + " " + MODEL.method.version + ". " + MODEL.method.summary + " Published at contactcentercx.com" + MODEL.methodology + "." },
