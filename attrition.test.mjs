@@ -410,7 +410,7 @@ A("the engine is pure: computing twice returns the same figures", near(compute(D
 A("the engine does not mutate its input", (() => { const d = D(); const before = JSON.stringify(d); compute(d); return JSON.stringify(d) === before; })());
 A("the rail line reports the all-in, the burden and the un-backfilled seats", /replaced departure/.test(base.railRead) && /annual replacement burden/.test(base.railRead) && /seats\/yr/.test(base.railRead));
 A("the rail line refuses to publish a figure from a void export", /void/.test(compute(m({ mech: "none" })).railRead) === false);
-A("the component pulls with provenance, never a bare rail read", /getPrimitiveWithSource/.test(SRC) && !/[^h]getPrimitive\(/.test(SRC));
+A("the component pulls with provenance through the external getter, never a bare or self read (P6 item 15)", /getExternalWithSource\("agents", TOOL_ID\)/.test(SRC) && !/getPrimitive(WithSource)?\(/.test(SRC.replace(/\/\*[\s\S]*?\*\//g, "")));
 A("the component refuses to badge a value it published itself", /sourceTool !== TOOL_ID/.test(SRC));
 A("the component normalizes at the publish site", /normalizeForPublish\(/.test(SRC));
 A("the component uses the shared NumField, not a local copy", /from "\.\/src\/lib\/NumField"/.test(SRC) && !/function NumField\(/.test(SRC));

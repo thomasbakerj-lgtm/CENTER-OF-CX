@@ -2,7 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
 import { emitGrades, voidResult } from "./src/lib/confidence";
-import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
+import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
+/* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
+   nothing (P6 item 15: every pull is external). */
+const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { normalizeForPublish } from "./src/lib/metrics";
 import NumField from "./src/lib/NumField";
 import InfoDot from "./src/lib/InfoDot";
@@ -444,7 +447,7 @@ export default function LicenseBundleGapChecker() {
        A value you published is not a value you sourced, so the badge is raised only
        when the rail names a different producer, and it names that producer. Auto-fill
        from your own last run stays: convenience is not evidence, but it is convenient. */
-    const ag = getPrimitiveWithSource("agents");
+    const ag = (getExternalWithSource("agents", TOOL_ID) || NO_RAIL);
     if (ag.value != null && !isNaN(ag.value)) {
       setD(p => ({ ...p, classes: p.classes.map(x => x.id === "agent" ? { ...x, count: Math.round(ag.value) } : x) }));
       if (ag.sourceTool && ag.sourceTool !== TOOL_ID) setPulled({ agents: true, from: ag.sourceTool });

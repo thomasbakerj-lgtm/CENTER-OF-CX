@@ -1,7 +1,10 @@
 import { useState, useEffect, useId } from "react";
 import ReportActions from "./ReportActions";
 import { COLORS, benchmark } from "./src/lib/benchmarks";
-import { publishToolResult, getPrimitiveWithSource } from "./src/lib/toolData";
+import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
+/* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
+   nothing (P6 item 15: every pull is external). */
+const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { normalizeForPublish } from "./src/lib/metrics";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
 import NumField from "./src/lib/NumField";
@@ -434,13 +437,13 @@ export default function AttritionCostCalculator() {
     const sc = readScenario(TOOL_ID, DEFAULTS);
     if (sc) { setD(sc.d); setFromLink(true); clearScenarioParam(); return; }
 
-    /* getPrimitiveWithSource, not getPrimitive. This tool publishes `agents`, so on a
+    /* The external getter, which refuses this tool's own value. This tool publishes `agents`, so on a
        remount inside one session the plain read hands back this tool's own value and
        the PULLED badge asserts a provenance that does not exist. A value you published
        is not a value you sourced. Nothing here lifts a confidence axis either: a value
        arriving over the rail confers consistency, never evidence. */
-    const pa = getPrimitiveWithSource("agents");
-    const ph = getPrimitiveWithSource("agentHourly");
+    const pa = (getExternalWithSource("agents", TOOL_ID) || NO_RAIL);
+    const ph = (getExternalWithSource("agentHourly", TOOL_ID) || NO_RAIL);
     const next = {}, badge = {};
     if (pa.value != null && !isNaN(pa.value) && pa.sourceTool && pa.sourceTool !== TOOL_ID) { next.agents = Math.round(pa.value); badge.agents = pa.sourceTool; }
     if (ph.value != null && !isNaN(ph.value) && ph.sourceTool && ph.sourceTool !== TOOL_ID) { next.avgSalary = Math.round(ph.value * 2080); badge.avgSalary = ph.sourceTool; }

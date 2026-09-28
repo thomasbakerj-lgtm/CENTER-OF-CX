@@ -10,7 +10,10 @@ import { FONT, FONT_IMPORT_CSS, TYPE, NUM } from "./src/lib/type";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
 import { HOUSE, PILLARS, ARCS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
-import { publishToolResult, getPrimitiveWithSource, getExternalPrimitive, sourcedExternally } from "./src/lib/toolData";
+import { publishToolResult, getExternalPrimitive, sourcedExternally, getExternalWithSource } from "./src/lib/toolData";
+/* An empty rail read, in the shape the old self-capable getter returned, so a missing or self-published value reads as
+   nothing (P6 item 15: every pull is external). */
+const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { MECH, MECH_ORDER, MECH_INITIAL } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
@@ -555,7 +558,7 @@ export default function AIDeflectionRealityCheck() {
      string literals so rail-audit.mjs can see every pull. */
   const rail = useRef(null);
   if (rail.current === null) {
-    const got = { M: getPrimitiveWithSource("monthlyContacts"), cpc: getPrimitiveWithSource("costPerContact"), marg: getPrimitiveWithSource("marginalPerContact") };
+    const got = { M: (getExternalWithSource("monthlyContacts", TOOL_ID) || NO_RAIL), cpc: (getExternalWithSource("costPerContact", TOOL_ID) || NO_RAIL), marg: (getExternalWithSource("marginalPerContact", TOOL_ID) || NO_RAIL) };
     const val = { M: got.M.value != null ? Math.round(got.M.value) : null, cpc: got.cpc.value, marg: got.marg.value };
     const pre = {};
     for (const f of ["M", "cpc", "marg"]) if (val[f] != null && !isNaN(val[f])) pre[f] = { value: val[f], src: got[f].sourceTool || "", origin: got[f].railOrigin || null };
