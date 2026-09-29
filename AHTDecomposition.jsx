@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result } from "./src/lib/ui.jsx";
 import { K, Group, Field, Tile, Choice, Corrections, Assumptions, Paper, frameMethod } from "./src/lib/frameKit.jsx";
@@ -200,6 +201,8 @@ export default function AHTDecomposition() {
       </section>
 
       <Assumptions items={assumptions} />
+
+      <HowOthersReport toolId={TOOL_ID} />
 
       <Paper>
           <ReportActions

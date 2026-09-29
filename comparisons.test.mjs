@@ -35,7 +35,7 @@ const TOOL_FILES = {
   "fcr-leakage": "FCRLeakageDiagnostic.jsx", "cost-per-contact": "CostPerContactCalculator.jsx", "attrition-cost": "AttritionCostCalculator.jsx",
   "staffing-calculator": "StaffingCalculator.jsx", "occupancy-risk": "OccupancyRiskSimulator.jsx", "shrinkage-planner": "ShrinkagePlanner.jsx",
   "schedule-adherence": "ScheduleAdherenceCalculator.jsx", "ai-deflection": "AIDeflectionRealityCheck.jsx", "channel-shift": "ChannelShiftModel.jsx",
-  "tco-calculator": "TCOCalculator.jsx", "license-gap": "LicenseBundleGapChecker.jsx",
+  "tco-calculator": "TCOCalculator.jsx", "license-gap": "LicenseBundleGapChecker.jsx", "aht-decomposition": "AHTDecomposition.jsx",
 };
 
 section("1. Sources");

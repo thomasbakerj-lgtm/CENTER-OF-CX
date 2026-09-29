@@ -203,6 +203,7 @@ export const TOOL_GROUPS = {
   "schedule-adherence": { groups: ["adherence", "service"], wage: true },
   "ai-deflection": { groups: ["deflection", "channels"] },
   "channel-shift": { groups: ["channels", "cost", "deflection"], wage: true },
+  "aht-decomposition": { groups: ["aht"] },
   "tco-calculator": { groups: ["prices", "aht", "fcr", "attrition", "service", "occupancy", "shrinkage", "adherence", "wageIndustry"], wage: true },
   "license-gap": { groups: ["prices"] },
 };
