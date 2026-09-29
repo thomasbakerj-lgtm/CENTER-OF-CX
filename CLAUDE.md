@@ -1615,6 +1615,20 @@ dashboard, the 12-phase growth program.
    now carry the panel; Forecast Accuracy, Business Case and the frameworks stay without one (no published figure that
    passes, per the eligibility decision). Sweep of every tool's copy for unsourced benchmark wording: none left outside
    registered, labelled planning values.
+   PR #85 merged by TB's instruction (8c56212).
+94. S24 (29 Sep), site audit item 1 (TB: take the audit findings one at a time): the 7-Layer CX Orchestration Framework
+   download returned 404 on production after the reader gave name and email (the file was committed as
+   "CX-Orchestration-Framework-2026 (1).pdf"). The April document itself carried unsourced figures (2% QA sample, 10%
+   forecast gap, 20% and 50% thresholds), retired wording ("Industry-Leading", "competitive advantage", "table stakes"),
+   forecasts, a vendor statistic, an out of date EU AI Act date and links to retired tools. TB chose a rebuild.
+   `src/lib/frameworkGuide.js` (content as data: seven layers named as the site names them, each with what it does, who
+   usually owns it, three questions, what to check first, what fails, the diagnostics that test it, and published figures
+   only through comparison groups with their sources), `src/lib/frameworkHtml.js` (pure page), `scripts/framework-pdf.mjs`
+   (prints it with Chromium and self-hosted Plex to public/CX-Orchestration-Framework-2026.pdf, 14 pages, and records page
+   and file hashes in `src/data/frameworkGuide.manifest.json`). Readiness checklist: any statement at 2 or below is an
+   action; no total or band. Download page copy updated. `framework.test.mjs` (62): every gated file exists, the PDF was
+   printed from the current content (a content change without a reprint fails, proven), house rules, live links.
+   Reprint after any content change: `CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/framework-pdf.mjs`.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
