@@ -1673,7 +1673,9 @@ dashboard, the 12-phase growth program.
    Both already linked the CCaaS category page, which lists vendors by the job they do; the labels now say so ("Browse CCaaS
    Platforms by Job"). The article's two TCO links go straight to `/tools/tco-calculator` (they reached it through a
    redirect). `freeze.test.mjs` walks every page, component and data file: none may offer to see, view, compare, explore,
-   browse or check vendor scores, rankings or ratings (proven on the old WEM page). Suite 26,938.
+   browse or check vendor scores, rankings or ratings (proven on the old WEM page). 
+   TB (29 Sep): the homepage's A to Z proof tile linked About; it now opens the vendor directory ("Browse the vendors"),
+   so each proof tile opens its own evidence (`home.test.mjs`). Suite 26,939.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

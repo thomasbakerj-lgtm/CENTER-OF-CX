@@ -43,6 +43,8 @@ section("1. Counts come from their registries");
   ok("industries: industries and segments", d.industries.meta === `${Object.keys(V.VERTICALS).length} industries. ${SEO.SEGMENT_COUNT} segments.` && SEO.SEGMENT_COUNT > 50, d.industries.meta);
   const sitemapSegments = (readFileSync("./public/sitemap.xml", "utf8").match(/\/industries\/[a-z0-9-]+\/[a-z0-9-]+</g) || []).length;
   ok("the segment count equals the segment pages in the sitemap", SEO.SEGMENT_COUNT === sitemapSegments, `${SEO.SEGMENT_COUNT} vs ${sitemapSegments}`);
+  // TB (29 Sep): the A to Z tile linked About. Each proof tile opens its own evidence: the A to Z claim opens the list.
+  ok("each proof tile links its own evidence (A to Z opens the vendor directory)", H.PROOFS[2].n === "A to Z" && H.PROOFS[2].href === "/vendors");
   ok("the proof tiles state the method and researched counts", H.PROOFS[0].n === String(H.METHOD_COUNT) && H.PROOFS[1].n === String(RS.CCAAS_COMPLETE_COUNT));
   ok("neither file types a count", !/\b\d{2,4}\s+(tools|profiles|methods|industries|segments|vendors)\b/i.test(SRC + DATA));
 }
