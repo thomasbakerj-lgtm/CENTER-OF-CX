@@ -600,6 +600,9 @@ export default function LicenseBundleGapChecker() {
 
       {voided && <Finding level="critical" title="Output void">{`${invariants.join("; ")}. Correct the inputs before using any figure on this page.`}</Finding>}
 
+      {/* A void fails its own consistency checks, so no figure renders: the Result above already shows none, and these
+         tiles, the hidden annual, its drivers, the commit and projection tiles and the read are withheld with it. */}
+      {!voided && (<>
       <div style={grid(150)}>
         <Tile label="Quoted seat" info={<InfoDot text={DEFS.baseSeat} title="Quoted seat" />} value={`$${quotedSeat.toFixed(0)}`} sub="vendor headline" />
         <Tile label="Effective license seat" info={<InfoDot text={DEFS.effLicenseSeat} title="Effective license seat" />} value={`$${effLicenseSeat.toFixed(0)}`} sub="seat, modules and tier upgrades" />
@@ -653,6 +656,7 @@ export default function LicenseBundleGapChecker() {
           <Tile label="18-month expansion" value={fmtK(exp18Annual)} sub={gSeats18 > 0 ? `${gSeats18} seats · rate-lock them now` : "enter the seats you expect to add"} />
         </div>
       )}
+      </>)}
 
       <section aria-label="How sure" style={panel}>
         <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 4 }}>How sure · {voided ? "Void" : confidence}<InfoDot text={DEFS.confidence} title="Export confidence" /></span>
@@ -688,10 +692,10 @@ export default function LicenseBundleGapChecker() {
         {!flags.length && <Finding level="clear" title="Integrity checks passed">Inclusion is known on every needed module, nothing forces a hidden tier upgrade, usage fees are priced with no double counts, and committed seats match active seats.</Finding>}
       </section>
 
-      <section aria-label="What it means" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+      {!voided && <section aria-label="What it means" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
         <span style={kicker}>What it means · the platform seat-equivalent is a comparison figure</span>
         {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "8px 0 0" }}>{t}</p>)}
-      </section>
+      </section>}
 
       <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}
