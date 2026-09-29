@@ -1676,6 +1676,28 @@ dashboard, the 12-phase growth program.
    browse or check vendor scores, rankings or ratings (proven on the old WEM page). 
    TB (29 Sep): the homepage's A to Z proof tile linked About; it now opens the vendor directory ("Browse the vendors"),
    so each proof tile opens its own evidence (`home.test.mjs`). Suite 26,939.
+   PR #89 merged by TB's instruction (a517581).
+99. S24 (29 Sep), TB's fix list (TB: "1. Merge 2. Fix 3. Yes 4. Agreed 5. Go 6. Agreed").
+   - TB decision, audit item 4: the 264 Phase 1 vendor profiles stay as they are ("many have been researched to a certain
+     extent"); each is updated as clean research arrives. No removal for want of sources.
+   - License Gap: a void rendered no figure in its Result but still showed the seat tiles, hidden annual, drivers, commit
+     and projection tiles and the read; all now sit inside `!voided` (`licensegap.test.mjs`, 10 fail on the old file).
+   - 11-04 measurement: the route rail on every tool page linked the next tools and sent nothing, so the first-to-second
+     funnel undercounted journey use. Each rail link now sends `next_step_click` (from, to), the event ReportActions'
+     next step sends; checked in a browser with a test key (`toolframe.test.mjs`).
+   - Vendor Match ceiling cap (section 7 interim): on 20,000 random profiles the top vendor sat at 99 in 67% and two or more
+     shared 99 in 63% (order by list position). Order now follows the unclipped score, no score shows above 90 ("90+"),
+     vendors within 5 points of the top are one leading group; disclosed on page and in the PDF; "Ordered by fit on the
+     Phase 1 model". Weights unchanged. `vendormatch.test.mjs` (13, registered).
+   - J10 completed: TCO method 1.4 (handle-time lever at the marginal load) and Business Case method 1.3 (derived marginal,
+     handle time and freed trainee time at the savings rate; absorbed labor stays loaded, recruiting cash unchanged).
+     Opening cases: TCO $76,000 to $74,000 gross a month; Business Case with hiring avoidance net $1,039,240 to $946,250,
+     return 23% to 12%, payback 30 to 32; no action unchanged ($31,850). bcb.test PRE13 (same engine at the 1.2 valuation)
+     keeps every historical artifact chain; 12j A/B on 6,000 cases: only the load-valued savings move, by exactly the ratio;
+     costs, cash and grades identical.
+   - 26 unused copies of the retired three-arc mark removed; four tools carry an `@helpers-end` slice marker; `mark.test.mjs`
+     refuses the old mark. Suite 26,975; build green; local live check 256 of 256; browser at 1440 and 390 clean.
+   Next from the list: item 7 (source the 77 category by industry pages) and item 8 (the "X, not Y" pass).
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
