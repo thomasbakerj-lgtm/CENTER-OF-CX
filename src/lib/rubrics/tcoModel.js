@@ -15,11 +15,11 @@ const b = (id) => benchmark(id);
 /* The pins, at the tool's opening case (the cross-industry profile, expected stance,
    costs as estimates). Each is recomputed from the engine. */
 export const TCO_PINS = {
-  loaded: 24.7, agentLabor: 854620, labor: 1089467.5, tech: 106317.5, overhead: 78547.2, monthly: 1274332.2,
-  annual: 15291986.4, costPerContact: 10.6194, costPerResolution: 13.8053, marginalPerContact: 2.5079,
-  monthlyHires: 7, perHire: 7649.6, attritionCost: 53547.2, telephony: 9487.5, seats: 229,
-  y2: 15851130.17, y3: 16431820.92, threeYear: 47574937.49, perAgentMonth: 6371.66,
-  optGross: 68000, optNet: 48000,
+  loaded: 27.989, agentLabor: 968419.4, labor: 1203266.9, tech: 106317.5, overhead: 82415.064, monthly: 1391999.464,
+  annual: 16703993.568, costPerContact: 11.6, costPerResolution: 15.08, marginalPerContact: 2.8313,
+  monthlyHires: 7, perHire: 8202.152, attritionCost: 57415.064, telephony: 9487.5, seats: 229,
+  y2: 17312557.59, y3: 17944398.30, threeYear: 51960949.46, perAgentMonth: 6960.00,
+  optGross: 76000, optNet: 54000,
 };
 const P = TCO_PINS;
 const STANCES = "none 0%, conservative 50%, expected 70%, aggressive 100%";
@@ -28,12 +28,12 @@ export const TCO_MODEL = {
   id: "tco-calculator",
   kind: "calc",
   title: "TCO Calculator",
-  version: "1.2",
-  published: "2026-09-28",
+  version: "1.3",
+  published: "2026-09-29",
   route: "/tools/tco-calculator",
   methodology: "/methodology/tco-calculator",
   what: "How the TCO Calculator builds the monthly, annual and three-year cost of a contact center from labor, technology and overhead, what that means per contact and per resolution, and what four improvement levers are worth at the realization stance you choose.",
-  claimClasses: "Every cost line and total is arithmetic on your inputs. The seven industry profiles, the salaried load and the license uplift are internal planning values, labelled as heuristics; a field still at its profile grades Directional, and Planning-grade needs every graded field set off the profile. The wage escalator is a sourced market figure. The optimization figures are a conditional forecast at the realization stance you pick.",
+  claimClasses: "Every cost line and total is arithmetic on your inputs. The industry profiles (apart from the BLS wages in the cross-industry, insurance, retail and BPO profiles), the salaried load and the license uplift are internal planning values, labelled as heuristics; a field still at its profile grades Directional, and Planning-grade needs every graded field set off the profile. The wage escalator is a sourced market figure. The optimization figures are a conditional forecast at the realization stance you pick.",
   formulas: [
     { name: "Agent labor", formula: "Agents × hourly wage × (1 + benefits load) × " + b("tco.hours.month") + " paid hours", note: "Paid hours, because you pay for shrinkage. The benefits load opens at the shared " + b("load.benefits") + "." },
     { name: "Salaried labor", formula: "Headcount × hourly rate × " + b("tco.load.salaried") + " × " + b("tco.hours.month") + " hours, for supervisors, QA, WFM, trainers and IT", note: "The salaried load is this tool's own planning value." },
@@ -57,14 +57,14 @@ export const TCO_MODEL = {
   ].map((id) => ({ id, ...BENCHMARK_SOURCES[id] })),
   example: {
     note: "Computed by the tool's own engine at its opening case: the cross-industry profile, the expected stance and costs as estimates.",
-    inputs: [["Operation", "200 agents at $" + b("tco.wage.general") + " an hour, 120,000 contacts a month, AHT 6:30 with 45 seconds after-call work, FCR 70%, containment 28%, attrition 40%"], ["Staff", "20 supervisors, 5 QA, 4 WFM, 3 trainers, 4 IT"], ["Technology", "$150 CCaaS, $45 WEM and $75 CRM a seat; voice 55% at $0.025 a minute; AI, analytics and platform lines at the profile"]],
+    inputs: [["Operation", "200 agents at $" + b("market.wage.agent") + " an hour, 120,000 contacts a month, AHT 6:30 with 45 seconds after-call work, FCR 70%, containment 28%, attrition 40%"], ["Staff", "20 supervisors, 5 QA, 4 WFM, 3 trainers, 4 IT"], ["Technology", "$150 CCaaS, $45 WEM and $75 CRM a seat; voice 55% at $0.025 a minute; AI, analytics and platform lines at the profile"]],
     steps: [
-      ["Loaded wage", "$19 × " + b("load.benefits") + " = " + usd2(P.loaded) + " an hour; agent labor " + usd(P.agentLabor) + " a month"],
+      ["Loaded wage", "$" + b("market.wage.agent") + " × " + b("load.benefits") + " = " + usd2(P.loaded) + " an hour; agent labor " + usd(P.agentLabor) + " a month"],
       ["Labor", usd(P.labor) + " with salaried staff"],
       ["Technology", P.seats + " seats; telephony " + usd(P.telephony) + "; technology " + usd(P.tech)],
       ["Overhead", P.monthlyHires + " hires a month at " + usd2(P.perHire) + " = " + usd(P.attritionCost) + "; overhead " + usd(P.overhead)],
       ["Monthly and annual", usd(P.monthly) + " a month, " + usd(P.annual) + " a year, " + usd(P.perAgentMonth) + " per agent a month"],
-      ["Unit costs", usd2(P.costPerContact) + " per contact, " + usd2(P.costPerResolution) + " per resolution, " + usd2(P.marginalPerContact) + " marginal (6.5 handle minutes × $19 × " + b("load.marginal") + " ÷ 60, plus telephony)"],
+      ["Unit costs", usd2(P.costPerContact) + " per contact, " + usd2(P.costPerResolution) + " per resolution, " + usd2(P.marginalPerContact) + " marginal (6.5 handle minutes × $" + b("market.wage.agent") + " × " + b("load.marginal") + " ÷ 60, plus telephony)"],
       ["Three years", usd(P.annual) + " + " + usd(P.y2) + " + " + usd(P.y3) + " = " + usd(P.threeYear)],
       ["Optimizations", usd(P.optGross) + " a month gross, " + usd(P.optNet) + " at the expected 70%"],
     ],

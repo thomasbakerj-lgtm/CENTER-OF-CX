@@ -1577,6 +1577,18 @@ dashboard, the 12-phase growth program.
    TCO's industry wage presets ($19 general, $22 financial, $20 healthcare, $16 retail, $19 telecom, $21 insurance, $15
    BPO) are labelled heuristics; BLS May 2025 now publishes medians for four of them (national $21.53, insurance $22.47,
    retail $17.96, business support $17.68). Moving them is a method change (version bump, A/B).
+   PR #82 merged by TB's instruction (b0d9d7d).
+91. S24 (29 Sep), TCO method 1.3 (TB: "go"): industry profile wages at BLS medians where BLS publishes them. J11 refined:
+   the cross-industry profile reads `market.wage.agent` itself ($21.53, was a $19 planning value; `tco.wage.general`
+   retired, so no copy of the national wage exists); insurance $22.47 (was $21), retail $17.96 (was $16) and BPO at
+   business support services $17.68 (was $15) are registered `market` entries, the BLS OOH May 2025 industry medians for
+   SOC 43-4051 (TB research; bls.gov refuses this network); financial services, healthcare and telecom have no May 2025
+   industry row and stay labelled heuristics. A/B: at the old $19 the engine reproduces every old pin exactly; in all four
+   profiles only wage-driven figures move (technology, telephony, seats, hires and flags unchanged); formulas and grades
+   unchanged (a preset still grades Directional). Opening case: annual $15,291,986 to $16,703,994, cost per contact $10.62
+   to $11.60, marginal $2.51 to $2.83, savings $68,000 to $76,000 gross ($48,000 to $54,000 expected). Pins, changelog,
+   method page, sources paragraph (TCO now names the BLS wages it reads) and `tco.test` J11 updated. Suite 26,783; live
+   check 256 of 256.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

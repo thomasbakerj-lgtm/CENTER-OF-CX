@@ -316,7 +316,7 @@ console.log("\nmarginal load disclosure");
 {
   const t = allText(DOCS.A);
   A("A: the PDF states the marginal load the savings use and the benefits it leaves out", /wage times 1\.18, the marginal load, and unit costs at the loaded 1\.30\. Capturing the saving by not backfilling seats removes benefits too, about 10% more on those two levers\./.test(t));
-  A("A: the PDF prints the marginal cost per contact at the marginal load", t.includes("$" + DOCS.A.r.marginalPerContact.toFixed(2)) && Math.abs(DOCS.A.r.marginalPerContact - 2.5079) < 1e-4);
+  A("A: the PDF prints the marginal cost per contact at the marginal load", t.includes("$" + DOCS.A.r.marginalPerContact.toFixed(2)) && Math.abs(DOCS.A.r.marginalPerContact - 2.8313) < 1e-4);
 }
 
 /* ---- 2. no impossible figure reaches the page ---- */
