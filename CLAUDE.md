@@ -1609,6 +1609,12 @@ dashboard, the 12-phase growth program.
      from the FCC's own release (adopted as circulated, changed, or pulled) in a dated PR; keep the EU AI item labelled
      news (EUR-Lex still returns nothing to this network); refresh weekly once distribution starts. A check-in is set for
      1 Oct.
+   PR #84 merged by TB's instruction (d18a733).
+93. S24 (29 Sep): AHT Decomposition gets How others report it (voice handle time: SQM 2024, 697 seconds; ContactBabel
+   "over seven minutes"). It was the one tool whose subject had verified published figures and no panel. Twelve tools
+   now carry the panel; Forecast Accuracy, Business Case and the frameworks stay without one (no published figure that
+   passes, per the eligibility decision). Sweep of every tool's copy for unsourced benchmark wording: none left outside
+   registered, labelled planning values.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
