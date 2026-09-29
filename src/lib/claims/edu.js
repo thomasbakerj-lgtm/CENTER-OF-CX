@@ -31,7 +31,7 @@ const bench = {
   "edu.bench.aht.cross": fact("11:37", "Average handle time (697 seconds, talk plus wrap), SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "aht"),
   "edu.bench.abandon.edu": none("Abandon rate, education contact centers", NO_EDU, "15%", "staffing"),
   "edu.bench.abandon.cross": fact("6%", "Abandon rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "staffing"),
-  "edu.bench.attrition.edu": none("Annual agent attrition, education contact centers", `${NO_EDU} BLS JOLTS quits for educational services cover every worker in the sector, not service staff.`, "35%", "attrition"),
+  "edu.bench.attrition.edu": none("Annual agent attrition, education contact centers", `${NO_EDU} BLS JOLTS quits for educational services cover every worker in the sector, with no breakout for service staff.`, "35%", "attrition"),
   "edu.bench.attrition.cross": fact("34%", "Annual agent turnover, SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "attrition"),
 };
 
@@ -89,7 +89,7 @@ export default {
   "edu.grad.cycle": { kind: "assumption", value: "3 to 12 months", label: "Graduate enrollment cycle from first inquiry to enrollment", rationale: "From practice; varies by program and start dates. Measure inquiry to enrollment time in your own CRM.", test: "forecast" },
 
   "edu.ex.grad-weight": { kind: "example", value: "$120,000 and $5,000", label: "Illustrative tuition of an MBA against a certificate", rationale: "Arithmetic on illustrative prices; use your own program tuition.", text: "one enrollment in a $120,000 MBA brings as much tuition as 24 enrollments in a $5,000 certificate" },
-  "edu.ex.grad-speed": { kind: "example", value: "4 hours and 15 minutes", label: "Illustrative response times of two programs to the same inquiry", rationale: "A scenario, not a measured response time.", text: "If your program answers in 4 hours with a generic email while a competitor calls in 15 minutes with a tailored conversation" },
+  "edu.ex.grad-speed": { kind: "example", value: "4 hours and 15 minutes", label: "Illustrative response times of two programs to the same inquiry", rationale: "An illustrative scenario with no measured response time.", text: "If your program answers in 4 hours with a generic email while a competitor calls in 15 minutes with a tailored conversation" },
   "edu.ex.netprice": { kind: "example", value: "$55,000 and $12,000", label: "Illustrative cost of attendance against net price", rationale: "Shows how to present both figures; use your own net price calculator.", text: "The cost of attendance is $55,000. Based on typical aid for your income range, your estimated net price is about $12,000." },
   "edu.ex.balance": { kind: "example", value: "$12,000, $10,000 and $2,000", label: "Illustrative balance shown beside pending aid", rationale: "A scenario showing one view of bill and aid together.", text: "Your balance is $12,000. Pending financial aid of $10,000 will be applied by August 15, leaving an estimated balance of $2,000." },
 };

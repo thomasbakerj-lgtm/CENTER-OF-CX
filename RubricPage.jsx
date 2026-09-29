@@ -542,7 +542,7 @@ function MethodLogPage() {
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Internal method log</span>
           <h1 style={{ ...TYPE.display, color: HOUSE.mist, margin: "10px 0 12px" }}>Method log</h1>
-          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>Internal documentation, not linked from the site. Every change to a published method: what moved, in which direction and by about how much, behind the version each tool page and report names.</p>
+          <p style={{ ...TYPE.body, color: HOUSE.body, maxWidth: 640 }}>Internal documentation, linked from nowhere on the site. Every change to a published method: what moved, in which direction and by about how much, behind the version each tool page and report names.</p>
         </div>
       </header>
       <main style={{ ...WRAP, padding: "8px 24px 72px" }}>

@@ -284,7 +284,7 @@ export function compute(d) {
   const completenessCeiling = modelBlockers.length ? "Directional" : modelGaps.length ? "Planning-grade" : "Finance-grade";
   const evidenceWhy = defaultDrivers.length
     ? `${defaultDrivers.length} priced driver${defaultDrivers.length > 1 ? "s are" : " is"} still at the tool's planning default (${defaultDrivers.join(", ")}). Enter the figures from your quote to lift this axis`
-    : `Evidence source is ${evLabel}${docEv && !confirmed ? ", not yet confirmed in writing" : docEv ? ", confirmed in writing" : ""}`;
+    : `Evidence source is ${evLabel}${docEv && !confirmed ? ", yet to be confirmed in writing" : docEv ? ", confirmed in writing" : ""}`;
   const modelWhy = modelBlockers.length || modelGaps.length
     ? (modelBlockers.length ? modelBlockers : modelGaps).join("; ")
     : "The cost model is complete: every needed module is classified and priced, committed seats and uplift are entered, and no plausibility check fired";

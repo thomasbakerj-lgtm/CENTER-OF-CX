@@ -40,7 +40,7 @@ export const VERTICALS = {
     subVerts: "Health Systems, Payer/Insurance, Pharma, Ambulatory/Clinics, Home Health, Digital Health",
     keySystems: ["Epic", "Oracle Health (Cerner)", "athenahealth", "MEDITECH", "NextGen", "Allscripts"],
     ccaasLeaders: ["genesys", "nice-cxone", "five9", "talkdesk", "cisco"],
-    ccaasContext: "Healthcare CCaaS evaluations should require an EHR integration demo using your specific EHR platform. Ask vendors to show an inbound patient scheduling call with real-time Epic or Cerner screen pops. Vendors without native EHR connectors will require middleware and 6+ months of integration effort. HIPAA BAA is mandatory, not optional, not 'available upon request.'",
+    ccaasContext: "Healthcare CCaaS evaluations should require an EHR integration demo using your specific EHR platform. Ask vendors to show an inbound patient scheduling call with real-time Epic or Cerner screen pops. Vendors without native EHR connectors will require middleware and 6+ months of integration effort. HIPAA BAA is mandatory; a BAA 'available upon request' does not meet that bar.",
   },
   retail: {
     name: "Retail + eCommerce", industryPage: "/industries/retail",

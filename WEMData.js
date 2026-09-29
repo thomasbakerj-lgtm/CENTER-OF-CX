@@ -8,7 +8,7 @@ export const categoryMeta = {
   lastUpdated: "April 2026",
   executiveTake: "The workforce and quality stack is no longer one clean market. It has split into four real layers: enterprise WEM/WFO suites, CCaaS-embedded modules, best-of-breed WFM specialists, and AI-first QM/Auto-QA overlays. The mistake is treating them as interchangeable. They are not. WFM is still the harder operational control plane; QM is where AI overlays are fragmenting the market fastest.",
   scoringNote: "Do not force WFM, QM, and AI-QA into one flat leaderboard. Vendors are ranked within the layer they actually compete in. That keeps the shortlist honest and prevents a flashy Auto-QA overlay from outranking a true workforce control plane on the wrong criteria.",
-  methodology: "Scores use one framework with three weighting modes. The criteria stay consistent, but the weights change based on whether you are buying a WFM backbone, a balanced WEM suite, or a QA modernization layer. Enterprise depth (1 to 5) measures suitability for large, complex, multi-site, multi-skill, compliance-heavy operations. AI-QA maturity (1 to 5) measures credibility of 100% interaction review, auto-scoring, coaching workflows, and operational usability. Scores are analyst judgment based on current official product evidence and market structure, not vendor self-scores.",
+  methodology: "Scores use one framework with three weighting modes. The criteria stay consistent, but the weights change based on whether you are buying a WFM backbone, a balanced WEM suite, or a QA modernization layer. Enterprise depth (1 to 5) measures suitability for large, complex, multi-site, multi-skill, compliance-heavy operations. AI-QA maturity (1 to 5) measures credibility of 100% interaction review, auto-scoring, coaching workflows, and operational usability. Scores are analyst judgment based on current official product evidence and market structure; vendors do not score themselves.",
   consolidationNote: "Playvox is now folded into NICE. Klaus is now Zendesk QA. CommunityWFM is absorbed into RingCentral's WEM motion. These are not counted as standalone leaders, doing so would distort the market map.",
 };
 
@@ -46,10 +46,10 @@ export const leaderboards = {
       { rank: 2, vendor: "Verint", score: 4.78, read: "Enterprise-grade alternative with strong automation" },
       { rank: 3, vendor: "Calabrio", score: 4.39, read: "Best balance of WFM + QM without mega-suite sprawl" },
       { rank: 4, vendor: "Genesys", score: 4.18, read: "Strong if platform alignment matters more than best-of-breed depth" },
-      { rank: 5, vendor: "Zendesk", score: 3.45, read: "Digital-service-first WEM, not voice-first enterprise WEM" },
+      { rank: 5, vendor: "Zendesk", score: 3.45, read: "Digital-service-first WEM; voice-first enterprise WEM is outside its focus" },
       { rank: 6, vendor: "RingCentral", score: 3.43, read: "Much more credible post-RingWEM, still proving top-end maturity" },
       { rank: 7, vendor: "Talkdesk", score: 3.41, read: "Good practical option, but mixed architecture drags score" },
-      { rank: 8, vendor: "Five9", score: 3.02, read: "Solid embedded path for existing customers, not a WEM leader" },
+      { rank: 8, vendor: "Five9", score: 3.02, read: "Solid embedded path for existing customers; it does not lead in WEM" },
     ],
   },
   qaModernization: {
@@ -79,7 +79,7 @@ export const marketLayers = {
       { rank: 7, vendor: "Talkdesk", slug: "talkdesk-wem", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 4, native: "Mixed", rec: "Good fit where native ease matters, but complex WFM often pushes you toward Verint partner path", bpo: 3 },
       { rank: 8, vendor: "Five9", slug: "five9-wem", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 3, native: "Mixed", rec: "Worth evaluating if already on Five9, but the WEM story is not as clean as the leaders", bpo: 3 },
       { rank: 9, vendor: "RingCentral", slug: "ringcentral-wem", segment: "CCaaS-embedded WEM", entDepth: 4, aiQA: 4, native: "Acquired-native", rec: "Now more credible post-CommunityWFM absorption; still needs more proof at top-end scale", bpo: 3 },
-      { rank: 10, vendor: "Zendesk", slug: "zendesk-wem", segment: "Digital-service WEM", entDepth: 3, aiQA: 5, native: "Acquired-native", rec: "Strong for digital support QA + WFM, not a voice-first enterprise WEM replacement", bpo: 2 },
+      { rank: 10, vendor: "Zendesk", slug: "zendesk-wem", segment: "Digital-service WEM", entDepth: 3, aiQA: 5, native: "Acquired-native", rec: "Strong for digital support QA + WFM; it does not replace voice-first enterprise WEM", bpo: 2 },
       { rank: 11, vendor: "Content Guru", slug: "contentguru-wem", segment: "CCaaS + WEM", entDepth: 4, aiQA: 3, native: "Mixed", rec: "Real platform, but evaluate carefully where WFM depth depends on partner integration paths", bpo: 4 },
       { rank: 12, vendor: "8x8", slug: "8x8-wem", segment: "CCaaS-embedded WEM", entDepth: 3, aiQA: 3, native: "Mixed", rec: "Improving, but still not where I'd start for complex enterprise WFM-led transformation", bpo: 3 },
     ],
@@ -104,7 +104,7 @@ export const marketLayers = {
       { rank: 2, vendor: "CallMiner", slug: "callminer-wem", segment: "Analytics-led AI-QA", entDepth: 4, aiQA: 5, native: "Native", rec: "Best if QA, compliance, and analytics need to sit together", bpo: 4 },
       { rank: 3, vendor: "Cresta", slug: "cresta-wem", segment: "AI-QA + coaching", entDepth: 3, aiQA: 5, native: "Native", rec: "Strongest coaching-forward AI-QM play", bpo: 3 },
       { rank: 4, vendor: "MiaRec", slug: "miarec-wem", segment: "Auto-QA / conversation intelligence", entDepth: 3, aiQA: 4, native: "Native", rec: "Strong practical Auto-QA option with clear contact-center focus", bpo: 3 },
-      { rank: 5, vendor: "evaluagent", slug: "evaluagent-wem", segment: "QA improvement platform", entDepth: 3, aiQA: 4, native: "Native", rec: "Good fit for modernizing governance, not just automating scoring", bpo: 3 },
+      { rank: 5, vendor: "evaluagent", slug: "evaluagent-wem", segment: "QA improvement platform", entDepth: 3, aiQA: 4, native: "Native", rec: "Good fit for modernizing governance as well as automating scoring", bpo: 3 },
       { rank: 6, vendor: "MaestroQA", slug: "maestroqa-wem", segment: "QA automation", entDepth: 3, aiQA: 4, native: "Native", rec: "Best fit for support-centric QA modernization", bpo: 2 },
       { rank: 7, vendor: "Scorebuddy", slug: "scorebuddy-wem", segment: "QA/coaching platform", entDepth: 3, aiQA: 4, native: "Native", rec: "Good option when coaching and QA ops matter as much as scoring coverage", bpo: 4 },
     ],
@@ -115,7 +115,7 @@ export const buyerShortlists = [
   { situation: "WFM backbone is the primary problem", shortlist: "NICE, Verint, Calabrio, Genesys, then Aspect, Peopleware/injixo, Eleveo for specialist depth", logic: "Buy workforce control first; then add QA depth" },
   { situation: "CCaaS-embedded WEM without a second platform", shortlist: "Amazon Connect, Webex, Talkdesk, Five9, RingCentral: based on your installed base", logic: "Unify admin and data model unless WFM depth is clearly insufficient" },
   { situation: "QA modernization is urgent and telephony is settled", shortlist: "Observe.AI, CallMiner, Cresta: strongest first-wave overlay shortlist", logic: "Overlay on existing CCaaS; don't replace the platform for QA" },
-  { situation: "Digital-support-first, not voice-first", shortlist: "Zendesk, Assembled, MaestroQA", logic: "Optimize for support operations workflow, not classic call-center orthodoxy" },
+  { situation: "Digital-support-first rather than voice-first", shortlist: "Zendesk, Assembled, MaestroQA", logic: "Optimize for support operations workflow over classic call-center orthodoxy" },
   { situation: "BPO or multi-client operations", shortlist: "NICE, Verint, Calabrio, Aspect, CallMiner, Scorebuddy", logic: "Multi-client governance, role separation, and reporting isolation are non-negotiable" },
   { situation: "Enterprise voice-heavy global operations", shortlist: "NICE, Verint, Aspect, Calabrio, then CallMiner or Observe.AI for QA overlay", logic: "Buy workforce control first; then add QA depth" },
 ];
@@ -123,7 +123,7 @@ export const buyerShortlists = [
 export const demoGates = [
   { gate: "Stress Handling Gate", desc: "Vendor must show same-day absenteeism, volume spike, SLA breach, and cross-skill rebalance live.", pass: "Demo shows all four scenarios in the product with clear operational controls.", penalty: -0.5, why: "Prevents polished demos from hiding weak exception handling" },
   { gate: "Evaluator Trust Gate", desc: "Vendor must explain why AI scored an interaction the way it did.", pass: "Demo shows evidence, rationale, tuning logic, and auditability for an AI score.", penalty: -0.5, why: "Auto-QA without explainability is not operationally trustworthy" },
-  { gate: "Admin Burden Gate", desc: "Vendor must show scorecard maintenance, model tuning, calibration workflow, and supervisor effort.", pass: "Demo proves manageable admin model with role clarity and low services dependency.", penalty: -0.4, why: "Real TCO is driven by ongoing admin burden, not just license cost" },
+  { gate: "Admin Burden Gate", desc: "Vendor must show scorecard maintenance, model tuning, calibration workflow, and supervisor effort.", pass: "Demo proves manageable admin model with role clarity and low services dependency.", penalty: -0.4, why: "Real TCO is driven by ongoing admin burden as well as license cost" },
   { gate: "Architecture Transparency Gate", desc: "Vendor must map what is native, acquired-native, OEM, and partner-driven.", pass: "Clean architecture map with clear support boundaries.", penalty: -0.3, why: "Vague 'seamless integration' claims hide real operational risk" },
   { gate: "BPO Multi-Tenant Gate", desc: "Vendor must show multi-client governance, role separation, and reporting isolation.", pass: "Demo shows separate client views, permission models, and isolated reporting.", penalty: -0.3, why: "BPO buyers need governance controls that single-tenant demos don't reveal" },
 ];

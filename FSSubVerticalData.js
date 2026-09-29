@@ -32,7 +32,7 @@ export const fsSubVerticals = {
           { name: "NICE CXone", role: "Primary CCaaS", why: "Routing and WEM on one platform. Native workforce management means routing decisions account for agent skills, schedule, and quality scores simultaneously.", href: "/vendors/nice-cxone" },
           { name: "Talkdesk Financial Services", role: "Vertical CCaaS", why: "Pre-built banking routing flows, fraud, service, sales, reduce implementation time. Purpose-built for mid-market banks that need depth without Genesys complexity.", href: "/vendors/talkdesk" },
         ],
-        pitfall: "Intent-based routing requires intent data. Many banks deploy 'intent routing' that is actually skills-based routing with renamed queues. True intent routing needs NLU analysis of the customer's reason for contact before the routing decision, which means your IVR or digital front door must classify intent, not just collect account numbers."
+        pitfall: "Intent-based routing requires intent data. Many banks deploy 'intent routing' that is actually skills-based routing with renamed queues. True intent routing needs NLU analysis of the customer's reason for contact before the routing decision, which means your IVR or digital front door must classify intent as well as collect account numbers."
       },
       { layer: 5, name: "Conversation Management",
         capabilities: ["Secure messaging for account-sensitive communications (statements, disputes)","Co-browsing for online banking navigation and application assistance","Chat with PII redaction for card numbers and SSN","Video banking for advisory consultations and complex product discussions","Proactive notifications for fraud alerts, payment reminders, and rate changes"],
@@ -84,7 +84,7 @@ export const fsSubVerticals = {
           { name: "Salesforce Financial Services Cloud", role: "CRM & Relationship View", why: "Unified customer view across deposits, lending, wealth, and insurance. Pre-built financial data model. Action plans for onboarding, servicing, and retention workflows.", href: "/vendors/ccaas" },
           { name: "Jack Henry", role: "Core Banking (Community)", why: "Symitar and SilverLake cores serving community banks and credit unions. Symitar's API strategy is improving but still requires middleware for real-time CX integration." },
         ],
-        pitfall: "The agent desktop problem is not a CCaaS problem: it's a data access problem. Banks buy Genesys or NICE expecting a 'unified desktop' but the CCaaS platform only unifies communication channels. The agent still needs FIS for balances, a card system for disputes, an LOS for loan status, and Salesforce for the relationship view. The real integration work is building a single-pane agent experience that pulls from all four, which is middleware and UI work, not CCaaS configuration."
+        pitfall: "The agent desktop problem is not a CCaaS problem: it's a data access problem. Banks buy Genesys or NICE expecting a 'unified desktop' but the CCaaS platform only unifies communication channels. The agent still needs FIS for balances, a card system for disputes, an LOS for loan status, and Salesforce for the relationship view. The real integration work is building a single-pane agent experience that pulls from all four, which is middleware and UI work; CCaaS configuration alone will not deliver it."
       },
     ],
   },
@@ -134,7 +134,7 @@ export const fsSubVerticals = {
           { name: "Kasisto (KAI)", role: "Banking AI", why: "Pre-trained on banking intents including credit union-specific terminology (shares, dividends, SEGs). Can be deployed at a scope appropriate for credit union budgets.", href: "/vendors/iva" },
           { name: "Ada", role: "AI Customer Service", why: "No-code bot builder that CU staff can manage without engineering resources. Pre-built financial services content. Good for after-hours self-service and FAQ automation.", href: "/vendors/iva" },
         ],
-        pitfall: "Members chose a credit union because they don't want to talk to a bot. Deploy AI for the interactions members don't want to wait for (balance checks at 11pm, card freezes during fraud), not for the interactions where they want a human (loan advice, financial hardship). A containment target around [[fs.cu.containment]] fits a relationship-led membership; set yours from the interactions members are happy to self-serve."
+        pitfall: "Members chose a credit union because they don't want to talk to a bot. Deploy AI for the interactions members don't want to wait for (balance checks at 11pm, card freezes during fraud). Keep it away from the interactions where they want a human (loan advice, financial hardship). A containment target around [[fs.cu.containment]] fits a relationship-led membership; set yours from the interactions members are happy to self-serve."
       },
       { layer: 3, name: "Policy & Guardrails",
         capabilities: ["NCUA regulatory compliance controls and examination readiness","BSA/AML monitoring integration for suspicious activity reporting","Member authentication meeting FFIEC guidance for digital channels","TCPA compliance for outbound member communications","Share insurance disclosure requirements in automated interactions"],
@@ -152,7 +152,7 @@ export const fsSubVerticals = {
           { name: "MeridianLink", role: "Loan Origination", why: "A common LOS in credit unions. Digital lending workflow from application through decisioning. Integrates with Symitar and other CU cores.", href: "/vendors" },
           { name: "Alkami", role: "Digital Banking", why: "Digital banking platform purpose-built for credit unions. Member-facing workflows for account opening, transfers, and servicing that reduce contact center volume.", href: "/vendors" },
         ],
-        pitfall: "Credit unions often automate new workflows while leaving legacy manual processes untouched. The result: new members get a slick digital onboarding experience, but existing members still call to do a wire transfer because that workflow was never digitized. Audit your highest-volume call drivers and automate backwards from contact volume, not forwards from what's easiest to build."
+        pitfall: "Credit unions often automate new workflows while leaving legacy manual processes untouched. The result: new members get a slick digital onboarding experience, but existing members still call to do a wire transfer because that workflow was never digitized. Audit your highest-volume call drivers and automate backwards from contact volume. What's easiest to build is the wrong starting point."
       },
       { layer: 1, name: "Data Access",
         capabilities: ["Core system integration (Symitar, Corelation, DNA, CU*BASE)","Card processing system connectivity (PSCU, CO-OP, Visa DPS)","Loan origination system access for application status and decisions","Online/mobile banking platform integration for session continuity","Member relationship view spanning all share and loan accounts"],
@@ -212,7 +212,7 @@ export const fsSubVerticals = {
           { name: "Cognigy", role: "Conversational AI", why: "Enterprise-grade IVA with insurance pre-built intents. Handles FNOL data collection, claims status, and billing. Strong integration with Guidewire and Duck Creek.", href: "/vendors/iva" },
           { name: "Kore.ai", role: "Enterprise IVA", why: "Deep insurance domain coverage including P&C, life, and health intents. Handles multi-turn FNOL conversations that require peril-specific data collection (auto vs property vs liability).", href: "/vendors/iva" },
         ],
-        pitfall: "FNOL bots must collect different data for different perils. An auto FNOL needs vehicle information, other party details, and police report number. A property FNOL needs damage description, temporary housing needs, and mitigation status. Generic 'tell us what happened' bots miss required fields, creating adjuster callback loops. Build peril-specific FNOL flows, not one generic intake."
+        pitfall: "FNOL bots must collect different data for different perils. An auto FNOL needs vehicle information, other party details, and police report number. A property FNOL needs damage description, temporary housing needs, and mitigation status. Generic 'tell us what happened' bots miss required fields, creating adjuster callback loops. Build a separate FNOL flow for each peril; one generic intake misses what each needs."
       },
       { layer: 3, name: "Policy & Guardrails",
         capabilities: ["State DOI compliance controls for claims handling timelines","Unfair claims practices act adherence monitoring","Recorded statement protocols with required disclosures","Anti-fraud detection integrated into FNOL and claims workflows","E&O risk controls requiring supervisor review for coverage determinations"],
@@ -264,7 +264,7 @@ export const fsSubVerticals = {
           { name: "Global Relay", role: "Compliance Archival", why: "Alternative to Smarsh with strong presence in wealth management. Captures Bloomberg, Symphony, and WhatsApp alongside traditional channels. Immutable archival for examination readiness.", href: "/vendors" },
           { name: "NICE Actimize", role: "Compliance Surveillance", why: "Trade surveillance, communications monitoring, and employee compliance in one platform. Detects insider trading patterns, churning, and unsuitable recommendations.", href: "/vendors" },
         ],
-        pitfall: "Wealth management firms archive emails and calls but forget to archive LinkedIn messages, personal texts, and WhatsApp conversations between advisors and clients. SEC enforcement actions increasingly cite unmonitored communication channels. Your archival strategy must cover every channel advisors actually use, not just the channels you wish they'd use."
+        pitfall: "Wealth management firms archive emails and calls but forget to archive LinkedIn messages, personal texts, and WhatsApp conversations between advisors and clients. SEC enforcement actions increasingly cite unmonitored communication channels. Your archival strategy must cover every channel advisors actually use, including the ones you wish they didn't."
       },
       { layer: 6, name: "Routing & Orchestration",
         capabilities: ["Named-advisor routing connecting clients to their dedicated relationship manager","Licensed representative routing for trading, options, and margin inquiries","Escalation to compliance for complex suitability questions","After-hours routing to qualified backup advisors with client context","Priority routing for high-AUM clients and significant market events"],
@@ -343,7 +343,7 @@ export const fsSubVerticals = {
           { name: "NICE CXone", role: "QA & Recording", why: "Compliance recording with automated TRID disclosure detection. QA scoring verifies agents provide required fee transparency and rate lock confirmations.", href: "/vendors/nice-cxone" },
           { name: "Qualtrics", role: "Borrower Feedback", why: "Milestone-triggered surveys (application, UW decision, closing) identify where the borrower experience breaks down. Post-close NPS predicts referral likelihood.", href: "/vendors/analytics" },
         ],
-        pitfall: "Mortgage analytics must track the whole journey from application to close as well as individual interactions. A good phone call early in the process counts for little if the borrower's application has sat in underwriting for weeks. Map analytics to pipeline milestones, not just contact center metrics."
+        pitfall: "Mortgage analytics must track the whole journey from application to close as well as individual interactions. A good phone call early in the process counts for little if the borrower's application has sat in underwriting for weeks. Map analytics to pipeline milestones as well as contact center metrics."
       },
       { layer: 6, name: "Routing & Orchestration",
         capabilities: ["Pipeline-stage routing connecting borrowers to their assigned loan officer","Rate lock urgency routing during volatile market conditions","Closing coordination routing connecting borrowers with title and settlement","Retention routing for borrowers exploring refinance with competitors","After-hours routing for rate inquiries during evening research"],
@@ -352,13 +352,13 @@ export const fsSubVerticals = {
           { name: "Five9", role: "Primary CCaaS", why: "Strong mid-market to enterprise fit for lending operations. Reliable routing with Salesforce integration. Good for lenders using Salesforce as their CRM layer.", href: "/vendors/five9" },
           { name: "Genesys Cloud", role: "Enterprise CCaaS", why: "Predictive routing for high-volume lending operations. Pipeline-aware routing connects borrowers to their assigned LO. Scales for refi boom volumes.", href: "/vendors/genesys" },
         ],
-        pitfall: "Rate lock windows create some of the most time-sensitive routing in financial services. A borrower calling to lock their rate during a volatile market needs to reach their LO or an authorized rate desk, not a general service agent, within minutes. Build a 'rate lock emergency' routing path that bypasses the normal queue."
+        pitfall: "Rate lock windows create some of the most time-sensitive routing in financial services. A borrower calling to lock their rate during a volatile market needs to reach their LO or an authorized rate desk within minutes; a general service agent is the wrong destination. Build a 'rate lock emergency' routing path that bypasses the normal queue."
       },
       { layer: 5, name: "Conversation Management",
         capabilities: ["Secure document upload portal for income, asset, and property documentation","Co-browsing for online application assistance and document review","Proactive milestone notifications (application received, UW decision, clear-to-close)","Video for complex rate comparison and closing disclosure review","SMS alerts for document requests and deadline reminders"],
         vendors: "Glia, Blend, LivePerson", risk: "Borrower receiving conflicting rate information across channels",
         stack: [
-          { name: "Blend", role: "Digital Lending", why: "End-to-end digital mortgage platform: application, document upload, disclosures, and closing. The conversation management layer is built into the lending workflow, not bolted on.", href: "/vendors" },
+          { name: "Blend", role: "Digital Lending", why: "End-to-end digital mortgage platform: application, document upload, disclosures, and closing. The conversation management layer is built into the lending workflow from the start.", href: "/vendors" },
           { name: "Glia", role: "Digital Customer Service", why: "Co-browsing for mortgage application assistance. Agents guide borrowers through the application in real-time. Secure document sharing within the interaction.", href: "/vendors/digital-engagement" },
         ],
         pitfall: "Mortgage document collection is a leading source of borrower frustration and process delay. Borrowers submit documents via email, fax, portal upload, and in-person drop-off, then call to ask 'did you get my documents?' Build a single document status view that both the borrower and agent can see. Blend provides this as part of its platform; many LOS platforms require custom development."
@@ -367,7 +367,7 @@ export const fsSubVerticals = {
         capabilities: ["Application status bots with pipeline stage and next-step guidance","Document checklist bots tracking received vs outstanding items","Rate quote bots with real-time pricing engine integration","Payment calculator bots with taxes, insurance, and PMI estimates","Pre-qualification bots collecting initial borrower information"],
         vendors: "Kasisto, Cognigy, Blend AI", risk: "AI quoting rates without proper disclosures and licensing",
         stack: [
-          { name: "Blend AI", role: "Lending AI", why: "AI built into the lending workflow. Document collection reminders, status updates, and pre-qualification powered by actual underwriting logic, not generic chatbot responses.", href: "/vendors" },
+          { name: "Blend AI", role: "Lending AI", why: "AI built into the lending workflow. Document collection reminders, status updates, and pre-qualification powered by actual underwriting logic in place of generic chatbot responses.", href: "/vendors" },
           { name: "Cognigy", role: "Conversational AI", why: "Multi-turn document collection conversations. Handles 'I submitted my W-2 but can't find my bank statements' with intelligent follow-up and alternative document guidance.", href: "/vendors/iva" },
         ],
         pitfall: "A bot that quotes mortgage rates is making statements that Regulation Z governs: an advertised rate must be stated as [[fs.regz.apr]], and a quote without the APR, fees and lock expiration invites a compliance finding and a TRID dispute later. Either build disclosure logic into the bot or restrict it to directing borrowers to a licensed loan officer for rate discussions."
@@ -379,23 +379,23 @@ export const fsSubVerticals = {
           { name: "ICE (Encompass Compliance)", role: "Regulatory Compliance", why: "TRID timeline automation, disclosure generation, and fee tolerance monitoring built into the origination workflow. Widely used for mortgage compliance.", href: "/vendors" },
           { name: "Wolters Kluwer", role: "Compliance Content", why: "Regulatory content engine ensuring disclosures and documents meet state-specific requirements. Automatically updates when regulations change.", href: "/vendors" },
         ],
-        pitfall: "Fair lending monitoring must cover the contact center, not just the origination system. If agents quote different rates to different borrowers for the same scenario, even unintentionally, you have a fair lending risk. Record and analyze rate discussions in the contact center with the same rigor you apply to loan officer pricing decisions."
+        pitfall: "Fair lending monitoring must cover the contact center as well as the origination system. If agents quote different rates to different borrowers for the same scenario, even unintentionally, you have a fair lending risk. Record and analyze rate discussions in the contact center with the same rigor you apply to loan officer pricing decisions."
       },
       { layer: 2, name: "Workflow Execution",
         capabilities: ["Loan application intake workflow with automated AUS submission","Document collection workflow with intelligent follow-up sequencing","Underwriting condition clearance workflow with borrower notification","Closing scheduling workflow coordinating title, settlement, and notary","Post-close onboarding workflow with servicing transfer communication"],
         vendors: "Encompass (ICE), Blend, MuleSoft, Byte", risk: "Manual document chasing creating timeline delays",
         stack: [
-          { name: "ICE Encompass", role: "Loan Origination System", why: "Widely used LOS. Workflow rules engine for document collection, underwriting conditions, and closing coordination. Your CX stack integrates with Encompass, not the other way around.", href: "/vendors" },
+          { name: "ICE Encompass", role: "Loan Origination System", why: "Widely used LOS. Workflow rules engine for document collection, underwriting conditions, and closing coordination. Your CX stack integrates with Encompass; Encompass will not adapt to it.", href: "/vendors" },
           { name: "Blend", role: "Digital Origination", why: "Modern digital layer on top of Encompass. Borrower-facing application, document upload, and e-closing. Reduces the 'how do I submit this?' calls that take up a large share of mortgage contact center volume.", href: "/vendors" },
         ],
-        pitfall: "Encompass is the system of record, but its agent-facing UI was designed for loan officers, not contact center agents. An agent answering 'what's the status of my loan?' doesn't need to see the full underwriting file: they need a simplified pipeline view with current stage, next milestone, and outstanding items. Build a contact center-specific Encompass view or you'll train agents to navigate a tool designed for a different job."
+        pitfall: "Encompass is the system of record, but its agent-facing UI was designed for loan officers. Contact center agents were never its audience. An agent answering 'what's the status of my loan?' doesn't need to see the full underwriting file: they need a simplified pipeline view with current stage, next milestone, and outstanding items. Build a contact center-specific Encompass view or you'll train agents to navigate a tool designed for a different job."
       },
       { layer: 1, name: "Data Access",
         capabilities: ["Loan origination system integration (Encompass, Byte, Calyx)","Pricing engine connectivity for real-time rate and fee calculation","AUS integration (DU, LPA) for automated underwriting decisions","Title and settlement system connectivity for closing coordination","Servicing platform integration for post-close inquiries and payments"],
         vendors: "ICE (Encompass), Black Knight, Sagent, FICS", risk: "Disconnected origination and servicing creating post-close confusion",
         stack: [
           { name: "ICE Encompass", role: "Origination Data", why: "Application data, pipeline status, conditions, and disclosures. The single source of truth for any pre-close interaction.", href: "/vendors" },
-          { name: "ICE MSP / Sagent", role: "Servicing Data", why: "Post-close payment history, escrow analysis, and account status. When a borrower calls after closing, the servicing system, not the origination system, has the answers.", href: "/vendors" },
+          { name: "ICE MSP / Sagent", role: "Servicing Data", why: "Post-close payment history, escrow analysis, and account status. When a borrower calls after closing, the servicing system has the answers; the origination system no longer does.", href: "/vendors" },
           { name: "Optimal Blue", role: "Pricing Engine", why: "Real-time rate and fee calculation. Integration means agents and bots can provide accurate rate quotes (with proper disclosures) rather than stale rate sheets.", href: "/vendors" },
         ],
         pitfall: "The origination-to-servicing handoff is a common post-close CX failure point. The borrower's loan moves from Encompass to MSP (or Sagent, or FICS) and the contact center loses visibility. The origination team says 'that's a servicing question now' while the servicing team is still onboarding the loan. RESPA requires the outgoing servicer to notify the borrower at least [[fs.respa.transfer]] before a servicing transfer takes effect; build a transition protocol around that notice so borrowers know their new servicing contact before the transfer completes."
@@ -421,7 +421,7 @@ export const fsSubVerticals = {
           { name: "Amplitude", role: "Product Analytics", why: "Connects in-app behavior to support contact. Shows exactly which app screen or feature triggered the support request. Product teams use the same data to fix root causes.", href: "/vendors" },
           { name: "Mixpanel", role: "Event Analytics", why: "Event-based tracking for funnel analysis. Identifies where users drop off (onboarding, first deposit, first card transaction) and predicts who will contact support.", href: "/vendors" },
         ],
-        pitfall: "Fintechs treat product analytics and support analytics as separate functions owned by separate teams. The result: [[fs.ex.fintech-dropoff]] Pipe your support data into your product analytics platform. The best CX improvement in fintech is often a product fix, not a service fix."
+        pitfall: "Fintechs treat product analytics and support analytics as separate functions owned by separate teams. The result: [[fs.ex.fintech-dropoff]] Pipe your support data into your product analytics platform. The best CX improvement in fintech is often a fix to the product itself, ahead of any service change."
       },
       { layer: 6, name: "Routing & Orchestration",
         capabilities: ["In-app support routing with full session context and user journey data","Priority routing based on account value, tenure, and issue severity","Fraud alert routing with immediate account freeze capability","Engineering escalation routing for product bugs surfaced through support","Queue-less routing: chat-first with callback as overflow only"],
@@ -448,7 +448,7 @@ export const fsSubVerticals = {
           { name: "Intercom Fin", role: "AI Agent", why: "Trained on your help center and knowledge base. Resolves common questions without custom bot building. Falls back to human agents for complex issues with full conversation context.", href: "/vendors/iva" },
           { name: "Ada", role: "AI Customer Service", why: "No-code bot builder with strong fintech deployments. Handles card management, dispute filing, and account verification. Pre-built financial services content library.", href: "/vendors/iva" },
         ],
-        pitfall: "Fintech bots must execute actions, not just provide information. A user who asks 'freeze my card' expects the card to be frozen, not a link to a help article about how to freeze their card in the app. If your bot can't call the card management API to freeze the card in real-time, it's not a bot: it's a search engine with a chat interface."
+        pitfall: "Fintech bots must execute actions as well as provide information. A user who asks 'freeze my card' expects the card to be frozen. A link to a help article about how to freeze their card in the app. If your bot can't call the card management API to freeze the card in real-time, it's not a bot: it's a search engine with a chat interface."
       },
       { layer: 3, name: "Policy & Guardrails",
         capabilities: ["Charter/license compliance appropriate to entity type","BSA/AML controls meeting regulatory expectations","Strong customer authentication for account changes and high-value transfers","Dispute resolution compliance meeting Reg E timelines","Data privacy controls meeting state-by-state requirements"],
@@ -475,7 +475,7 @@ export const fsSubVerticals = {
         stack: [
           { name: "Marqeta", role: "Card Issuing & Processing", why: "Card issuing platform used by many fintech debit and credit card programs. Real-time transaction data, card controls, and tokenization. Your support agents need Marqeta data for any card-related interaction.", href: "/vendors" },
           { name: "Galileo", role: "Card Processing", why: "SoFi-owned processor serving fintech card and account programs. Transaction processing, account management, and program management APIs.", href: "/vendors" },
-          { name: "Plaid", role: "Data Connectivity", why: "Bank account linking and transaction data aggregation. When a user asks 'where's my ACH transfer?' the answer lives in Plaid's API, not your BaaS provider.", href: "/vendors" },
+          { name: "Plaid", role: "Data Connectivity", why: "Bank account linking and transaction data aggregation. When a user asks 'where's my ACH transfer?' the answer lives in Plaid's API; your BaaS provider does not hold it.", href: "/vendors" },
         ],
         pitfall: "Fintechs often have better data infrastructure than traditional banks, but worse data access for support agents. The engineering team builds beautiful real-time dashboards for product metrics while the support team copy-pastes between several admin panels to answer a single question. Invest in an internal support tool that aggregates Marqeta + BaaS + Plaid + product data into one agent view. Your engineers will resist building 'internal tools': make it a priority anyway."
       },
@@ -518,7 +518,7 @@ export const fsSubVerticals = {
           { name: "Zendesk", role: "Support Platform", why: "Structured ticketing for merchant support cases. Knowledge base for self-service. API documentation integration for developer support. Good for managing the B2B support lifecycle.", href: "/vendors" },
           { name: "Salesforce Service Cloud", role: "Merchant CRM", why: "Full merchant relationship view with case management. Tracks merchant portfolio data alongside support interactions. Enterprise-grade for large processor operations.", href: "/vendors/ccaas" },
         ],
-        pitfall: "Developer support (API integration, webhook troubleshooting) is a high-value and often neglected support channel in payments. ISVs and merchants integrating your API generate recurring revenue for years, but many processors route developer questions to the same agents who handle card declines. Staff developer support with engineers who understand REST APIs, not agents reading from scripts."
+        pitfall: "Developer support (API integration, webhook troubleshooting) is a high-value and often neglected support channel in payments. ISVs and merchants integrating your API generate recurring revenue for years, but many processors route developer questions to the same agents who handle card declines. Staff developer support with engineers who understand REST APIs. Agents reading from scripts are a poor fit for developer questions."
       },
       { layer: 4, name: "Reasoning & Planning",
         capabilities: ["Transaction lookup bots with real-time authorization and settlement data","Cardholder dispute intake bots collecting required Reg E information","Merchant statement and fee explanation bots","Terminal activation and basic troubleshooting bots","Settlement status and funding timeline bots"],

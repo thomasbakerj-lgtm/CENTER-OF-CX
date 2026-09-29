@@ -28,9 +28,9 @@ const bench = {
   "utl.bench.aht.cross": fact("11:37", "Average handle time (697 seconds, talk plus wrap), SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "aht"),
   "utl.bench.abandon.utl": none("Abandon rate, utility contact centers", NO_UTL, undefined, "staffing"),
   "utl.bench.abandon.cross": fact("6%", "Abandon rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "staffing"),
-  "utl.bench.attrition.utl": none("Annual agent attrition, utility contact centers", `${NO_UTL} BLS JOLTS quits for utilities cover every worker in the sector, not agents.`, "30%", "attrition"),
+  "utl.bench.attrition.utl": none("Annual agent attrition, utility contact centers", `${NO_UTL} BLS JOLTS quits for utilities cover every worker in the sector, with no breakout for agents.`, "30%", "attrition"),
   "utl.bench.attrition.cross": fact("34%", "Annual agent turnover, SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "attrition"),
-  "utl.bench.storm.utl": none("Storm day call volume against a normal day, utility contact centers", "No regulator or trade body publishes storm call volume multiples; EIA publishes customer outage hours, not contacts. Forecast from your own past storm events.", "10-50x", "forecast"),
+  "utl.bench.storm.utl": none("Storm day call volume against a normal day, utility contact centers", "No regulator or trade body publishes storm call volume multiples; EIA publishes customer outage hours; contacts are outside its scope. Forecast from your own past storm events.", "10-50x", "forecast"),
 };
 
 /* Sub-page tiles. No free public source publishes these metrics for any utility segment (SQM's Energy FCR is an
@@ -51,8 +51,8 @@ const SV_REASON = {
   fcr: "No regulator or trade body publishes first contact resolution for this segment; SQM Group's energy figure covers the industry as a whole.",
   csat: "No public contact center CSAT percentage exists for this segment; ACSI and J.D. Power publish utility index scores on other scales.",
   containment: "No regulator or trade body publishes self-service containment for this segment.",
-  storm: "No regulator or trade body publishes storm call volume multiples; EIA publishes customer outage hours, not contacts.",
-  churn: "No regulator publishes a national churn rate for competitive retail energy suppliers; state switching statistics count accounts served, not churn.",
+  storm: "No regulator or trade body publishes storm call volume multiples; EIA publishes customer outage hours; contacts are outside its scope.",
+  churn: "No regulator publishes a national churn rate for competitive retail energy suppliers; state switching statistics count accounts served and give no churn rate.",
 };
 const sv = {};
 for (const [slug, kpis] of Object.entries(SV)) for (const [m, v] of Object.entries(kpis)) {
@@ -80,11 +80,11 @@ export default {
   "utl.gas.cluster": assume("two or more reports in the same area within 30 minutes", "Trigger for a clustering alert on gas odor reports", "A design choice; set the count and window against your own leak history."),
   "utl.retail.renewal": assume("60 to 90 days", "Lead time before fixed-rate contract expiration for renewal outreach", "From practice; not a published figure. Test your own renewal timing against retention.", "channel"),
   "utl.retail.estreads": assume("15%", "Share of estimated meter reads at which to treat utility EDI data as a quality problem", "A threshold from practice; not a published figure. Track your own estimated read share against billing disputes."),
-  "utl.ex.storm": example("200,000 customers", "Illustrative storm outage", "A scenario, not a measured event.", "A major storm knocks out power for 200,000 customers, and many of them call to report the outage and ask when power will be back."),
-  "utl.ex.callbacks": example("2 hours, 4 hours and the next morning", "Illustrative callback pattern when field status does not reach the customer", "A scenario, not a measured pattern.", "The customer receives no updates, so they call back 2 hours later, 4 hours later and again the next morning."),
+  "utl.ex.storm": example("200,000 customers", "Illustrative storm outage", "An illustrative scenario with no measured event.", "A major storm knocks out power for 200,000 customers, and many of them call to report the outage and ask when power will be back."),
+  "utl.ex.callbacks": example("2 hours, 4 hours and the next morning", "Illustrative callback pattern when field status does not reach the customer", "An illustrative scenario with no measured pattern.", "The customer receives no updates, so they call back 2 hours later, 4 hours later and again the next morning."),
   "utl.ex.oms": example("15 minutes and 5 minutes", "Illustrative lag between an outage and a status page refresh", "A scenario; measure your own OMS to bot refresh interval.", "If the bot reads a status page that refreshes every 15 minutes, a customer whose power went out 5 minutes ago can hear that there are no known outages in their area."),
   "utl.ex.gasdispatch": example("60 minutes and 10 minutes", "Illustrative share of a response window used before dispatch", "A scenario; the response window comes from your own emergency plan and state rules.", "If your plan sets a 60 minute response and the call takes 10 minutes to process and dispatch, a sixth of the window is gone before a truck moves."),
-  "utl.ex.boilwater": example("10,000 and 2,000", "Illustrative inbound surge after a boil-water advisory", "A scenario, not a measured call rate; forecast from your own past advisories.", "If 10,000 customers receive a boil-water advisory and 2,000 of them call with questions, the inbound queue needs staffing the outbound system does not provide."),
-  "utl.ex.afterhours": example("9pm, 9:45pm and 45 minutes", "Illustrative delay in an answering service handoff", "A scenario, not a measured delay.", "A customer reports a downed power line at 9pm, the answering service takes a message, and the message reaches dispatch at 9:45pm: 45 minutes lost."),
+  "utl.ex.boilwater": example("10,000 and 2,000", "Illustrative inbound surge after a boil-water advisory", "An illustrative scenario with no measured call rate; forecast from your own past advisories.", "If 10,000 customers receive a boil-water advisory and 2,000 of them call with questions, the inbound queue needs staffing the outbound system does not provide."),
+  "utl.ex.afterhours": example("9pm, 9:45pm and 45 minutes", "Illustrative delay in an answering service handoff", "An illustrative scenario with no measured delay.", "A customer reports a downed power line at 9pm, the answering service takes a message, and the message reaches dispatch at 9:45pm: 45 minutes lost."),
   "utl.ex.usage": example("2,000 kWh and 800 kWh", "Illustrative seasonal usage swing", "A scenario; use the customer's own interval history.", "A customer who uses 2,000 kWh in summer and 800 kWh in winter sees a very different bill under a flat-rate plan than under a tiered plan."),
 };

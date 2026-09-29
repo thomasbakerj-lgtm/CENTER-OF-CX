@@ -22,7 +22,7 @@ const bench = {
   "hc.bench.aht.cross": fact("11:37", "Average handle time (697 seconds, talk plus wrap), SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "aht"),
   "hc.bench.abandon.hc": none("Abandon rate, healthcare contact centers", NO_HC, "7%", "staffing"),
   "hc.bench.abandon.cross": fact("6%", "Abandon rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "staffing"),
-  "hc.bench.attrition.hc": none("Annual agent attrition, healthcare contact centers", `${NO_HC} BLS JOLTS quits for health care and social assistance cover every worker in the sector, not agents.`, "42%", "attrition"),
+  "hc.bench.attrition.hc": none("Annual agent attrition, healthcare contact centers", `${NO_HC} BLS JOLTS quits for health care and social assistance cover every worker in the sector, with no breakout for agents.`, "42%", "attrition"),
   "hc.bench.attrition.cross": fact("34%", "Annual agent turnover, SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "attrition"),
   "hc.bench.transfer.hc": none("Transfer rate, healthcare contact centers", NO_HC, "19%", "fcr"),
   "hc.bench.transfer.cross": fact("19%", "Transfer rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "fcr"),
@@ -42,7 +42,7 @@ const SV = {
 const SV_TEST = { aht: "aht", fcr: "fcr", containment: "deflection" };
 const SV_LABEL = { aht: "Average handle time", fcr: "First contact resolution", csat: "Customer satisfaction", containment: "Self-service containment" };
 const SV_REASON = {
-  aht: "No regulator or trade body publishes handle time for this segment; CMS call center monitoring measures hold time, not handle time.",
+  aht: "No regulator or trade body publishes handle time for this segment; CMS call center monitoring measures hold time; handle time is outside its scope.",
   fcr: "No regulator or trade body publishes first contact resolution for this segment.",
   csat: "No public CSAT percentage exists for this segment; CAHPS, ACSI and J.D. Power publish index scores on other scales.",
   containment: "No regulator or trade body publishes self-service containment for this segment.",
@@ -75,8 +75,8 @@ export default {
   "hc.cms.interpreter": { kind: "fact", value: "97%", label: "Interpreter and TTY contacts completed on Medicare Advantage prospective member lines, CMS test calls February to May 2025 (2026 Star Ratings measure C33)", source: { publisher: "CMS", title: "Medicare 2026 Part C and D Star Ratings Technical Notes, Attachment C", year: 2025, url: "https://www.cms.gov/files/document/2026-star-ratings-technical-notes.pdf" }, checked: "2026-09-25" },
   "hc.cms.alerts": { kind: "assumption", value: "day 20 and hour 12", label: "Escalation alert points ahead of the standard and expedited grievance limits", rationale: "A design choice that leaves a third to a half of each limit as working time; set your own." },
   "hc.referral.window": { kind: "assumption", value: "24 hours", label: "Referral-to-appointment service target", rationale: "A service target from practice; set it against your own referral data.", test: "fcr" },
-  "hc.ex.referral-fax": { kind: "example", value: "3 days and 2 weeks", label: "Illustrative referral delay in a fax-based workflow", rationale: "A scenario, not a measured delay.", text: "A PCP refers a patient to cardiology; the referral sits in a fax queue for 3 days; someone manually enters it into the scheduling system; the patient gets called 2 weeks later." },
-  "hc.ex.referral-ortho": { kind: "example", value: "48 hours", label: "Illustrative window before a referred patient books elsewhere", rationale: "A scenario, not a measured window.", text: "A PCP refers a patient to the group's orthopedist; the contact center does not schedule the appointment within 48 hours; the patient searches 'orthopedist near me' and books with a competitor." },
+  "hc.ex.referral-fax": { kind: "example", value: "3 days and 2 weeks", label: "Illustrative referral delay in a fax-based workflow", rationale: "An illustrative scenario with no measured delay.", text: "A PCP refers a patient to cardiology; the referral sits in a fax queue for 3 days; someone manually enters it into the scheduling system; the patient gets called 2 weeks later." },
+  "hc.ex.referral-ortho": { kind: "example", value: "48 hours", label: "Illustrative window before a referred patient books elsewhere", rationale: "An illustrative scenario with no measured window.", text: "A PCP refers a patient to the group's orthopedist; the contact center does not schedule the appointment within 48 hours; the patient searches 'orthopedist near me' and books with a competitor." },
   "hc.ex.copay": { kind: "example", value: "$40 and $60", label: "Illustrative copay quoted by a bot against the true copay", rationale: "Shows why a bot must read the deductible state before quoting.", text: "If a bot tells a member their specialist copay is $40 but the actual copay is $60 because they have not met their deductible, the member will rely on that $40 figure." },
   "hc.tele.support": { kind: "example", value: "15% and 8%", label: "Illustrative pre-visit support and visit abandonment rates", rationale: "A worked scenario; measure your own support contacts per visit.", text: "If 15% of patients call support before their visit and 8% of those abandon the visit entirely, you have a technical barrier to care that only shows up in support data." },
   "hc.onboard.time": { kind: "assumption", value: "15 to 25 minutes", label: "Digital health onboarding time before a first visit", rationale: "From practice; count your own steps and time them.", test: "channel" },

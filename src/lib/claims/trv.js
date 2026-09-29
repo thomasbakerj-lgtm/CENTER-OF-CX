@@ -34,7 +34,7 @@ const bench = {
   "trv.bench.aht.cross": fact("11:37", "Average handle time (697 seconds, talk plus wrap), SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "aht"),
   "trv.bench.abandon.trv": none("Abandon rate, travel and hospitality contact centers", NO_TRV, "12%", "staffing"),
   "trv.bench.abandon.cross": fact("6%", "Abandon rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "staffing"),
-  "trv.bench.attrition.trv": none("Annual agent attrition, travel and hospitality contact centers", `${NO_TRV} BLS JOLTS quits for accommodation and food services cover every worker in the sector, not agents.`, "38%", "attrition"),
+  "trv.bench.attrition.trv": none("Annual agent attrition, travel and hospitality contact centers", `${NO_TRV} BLS JOLTS quits for accommodation and food services cover every worker in the sector, with no breakout for agents.`, "38%", "attrition"),
   "trv.bench.attrition.cross": fact("34%", "Annual agent turnover, SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "attrition"),
   "trv.bench.digital.trv": none("Digital self-service adoption, travel and hospitality", `${NO_TRV} No public source defines digital adoption for contact centers in a comparable way.`, "35%", "channel"),
   "trv.bench.digital.cross": none("Digital self-service adoption, all industries", "No free public source publishes digital adoption for contact centers across industries with a stated definition and population.", "30%", "channel"),
@@ -85,16 +85,16 @@ const planning = {
 };
 
 const examples = {
-  "trv.ex.irop.hold": example("20 minutes and 2 hours", "Illustrative gap between operational and passenger views of a disruption", "A scenario, not a measured case.", "A flight that is cancelled and rebooked within 20 minutes on the operations report can still leave a passenger on hold for 2 hours to learn the new plan."),
-  "trv.ex.connection": example("45 minutes", "Illustrative bad automatic rebooking", "A scenario, not a measured case.", "A bot that moves a business class passenger to an economy seat with a 45 minute connection through an unfamiliar hub has created a worse problem than the cancellation."),
+  "trv.ex.irop.hold": example("20 minutes and 2 hours", "Illustrative gap between operational and passenger views of a disruption", "An illustrative scenario with no measured case.", "A flight that is cancelled and rebooked within 20 minutes on the operations report can still leave a passenger on hold for 2 hours to learn the new plan."),
+  "trv.ex.connection": example("45 minutes", "Illustrative bad automatic rebooking", "An illustrative scenario with no measured case.", "A bot that moves a business class passenger to an economy seat with a 45 minute connection through an unfamiliar hub has created a worse problem than the cancellation."),
   "trv.ex.hotel.tier": example("50+ nights and $15K a year", "Illustrative value of a top-tier loyalty member", "A scenario; use your own program's tier thresholds and spend.", "The Platinum member may have stayed 50+ nights and spent $15K a year with the brand."),
   "trv.ex.car.branch": example("3 times", "Illustrative branch-level complaint finding", "Shows the form of an actionable finding; not a measured rate.", "'Branch 247 generates 3 times the network's complaints per rental' is actionable; 'overall CSAT is 72%' is not."),
-  "trv.ex.cruise.silence": example("10 months", "Illustrative gap between booking and sailing", "A scenario, not a measured booking window.", "A guest who books in January for a November sailing faces 10 months of silence, or of upsell emails."),
+  "trv.ex.cruise.silence": example("10 months", "Illustrative gap between booking and sailing", "An illustrative scenario with no measured booking window.", "A guest who books in January for a November sailing faces 10 months of silence, or of upsell emails."),
   "trv.ex.cruise.dining": example("2pm and 1pm", "Illustrative schedule conflict", "A scenario.", "Booking a shore excursion that returns at 2pm for a guest holding a 1pm specialty dining reservation creates a conflict the bot should catch."),
   "trv.ex.cruise.sync": example("2 hours", "Illustrative shore to ship sync delay", "A scenario.", "A guest who books an excursion through the contact center 2 hours before the ship reaches port may find it unconfirmed on the ship's system."),
-  "trv.ex.tours.rating": example("5 stars and 2 stars", "Illustrative rating spread for one tour", "A scenario, not measured ratings.", "The same tour can earn 5 stars one day and 2 stars the next, and a 4.5 star product can hide one guide who is rated 2 stars again and again."),
+  "trv.ex.tours.rating": example("5 stars and 2 stars", "Illustrative rating spread for one tour", "An illustrative scenario with no measured ratings.", "The same tour can earn 5 stars one day and 2 stars the next, and a 4.5 star product can hide one guide who is rated 2 stars again and again."),
   "trv.ex.tours.tz": example("6am Iceland time", "Illustrative time zone gap", "Arithmetic: Iceland is UTC+0, Tokyo UTC+9, Manila UTC+8.", "A customer in Tokyo books a tour in Reykjavik and needs support at 6am Iceland time: 3pm in Tokyo and 2pm at a support center in Manila."),
-  "trv.ex.tours.weather": example("500 tours", "Illustrative weather cancellation surge", "A scenario, not a measured event.", "A hurricane warning in Hawaii can cancel 500 tours in one day, each needing a rebooking or a refund: 500 calls if handled one by one, close to none if processed in bulk before travelers call."),
+  "trv.ex.tours.weather": example("500 tours", "Illustrative weather cancellation surge", "An illustrative scenario with no measured event.", "A hurricane warning in Hawaii can cancel 500 tours in one day, each needing a rebooking or a refund: 500 calls if handled one by one, close to none if processed in bulk before travelers call."),
 };
 
 export default { ...bench, ...sv, ...regs, ...planning, ...examples };

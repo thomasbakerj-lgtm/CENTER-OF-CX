@@ -73,7 +73,7 @@ export const AID_MODEL = {
   limits: [
     "Every bot rate is usually a claim until your own pilot measures it. The evidence source you pick decides how far the grade can go, and nothing here reaches Finance-grade because no document is inspected.",
     "The escalation premium has no single published figure. The page shows net savings with it at zero and at double, so you can see how much of the answer rests on it.",
-    "Eligibility is a property of your demand, not the vendor. The AI Readiness Diagnostic looks at what limits it.",
+    "Eligibility is a property of your demand; the vendor does not set it. The AI Readiness Diagnostic looks at what limits it.",
     "Savings are valued at marginal cost. Loaded cost appears only in the vendor claim, because a deflected contact does not refund fixed cost.",
   ],
 };

@@ -124,7 +124,7 @@ export const GROUPS = {
   }),
   occupancy: () => ({
     id: "occupancy", title: "Occupancy", kind: "practice",
-    note: "Targets from practice, not surveys of what centers achieve. Each publisher's range is shown as it states it.",
+    note: "Targets from practice; no publisher here surveys what centers achieve. Each publisher's range is shown as it states it.",
     rows: [
       { label: "Ideal rate, practitioner roundup", value: "85% to 90%", detail: "Some suggest 80% to 90%; centers under 100 agents 70% to 75%. The page adds there is no definitive answer", src: "cchOcc" },
       { label: "Industry standard", value: "75% to 85%", src: "sqm23" },
@@ -133,7 +133,7 @@ export const GROUPS = {
   }),
   shrinkage: () => ({
     id: "shrinkage", title: "Shrinkage", kind: "practice",
-    note: "Total shrinkage, planned and unplanned, as a share of paid time. Practice figures, not a survey of actuals.",
+    note: "Total shrinkage, planned and unplanned, as a share of paid time. Practice figures; none comes from a survey of actuals.",
     rows: [
       { label: "Where shrinkage normally comes out", value: "30% to 35%", src: "cchShr" },
       { label: "Dimension Data benchmark average, as quoted", value: "35%", detail: "The original report is no longer published", src: "cchShr" },
@@ -229,7 +229,7 @@ export const WITHHELD = [
   { claim: "Freshworks platform FCR by industry (2022 ticket data)", reason: "Ticket data from one platform, a different measure; one value printed as 8.05%.", match: ["Freshworks", "8.05%"] },
   { claim: "Gartner median cost per contact $13.50 assisted, $1.84 self-service", reason: "The document could not be read from this network; not shown until it is.", match: ["$13.50", "$1.84"] },
   { claim: "Averaged 'consensus' ranges: occupancy 79% to 87%, shrinkage 32% to 38%, adherence 83% to 90%", reason: "No publisher states them; they average several publishers' ranges.", match: ["79% to 87%", "32% to 38%", "83% to 90%"] },
-  { claim: "Sector quit rates (BLS JOLTS) as an industry turnover index", reason: "Covers every role in a sector, not agents.", match: ["turnover pressure", "JOLTS"] },
+  { claim: "Sector quit rates (BLS JOLTS) as an industry turnover index", reason: "Covers every role in a sector, with no breakout for agents.", match: ["turnover pressure", "JOLTS"] },
   { claim: "Dialpad seat prices", reason: "Read on a competitor's blog; Dialpad's own page did not show them.", match: ["Dialpad Support"] },
   { claim: "May 2023 mean wages by industry", reason: "Out of date against May 2025 and a different statistic (means).", match: ["$46,200", "$59,560"] },
 ];

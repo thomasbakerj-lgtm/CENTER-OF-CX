@@ -89,7 +89,7 @@ function HowWeWork() {
                   We help CX and contact center leaders make better technology and strategy decisions. Our work focuses on the questions that matter before implementation begins, which platform fits your operating model, whether your organization is ready for AI at scale, which vendors deserve a deeper look, and which ones you should walk away from.
                 </p>
                 <p>
-                  We are the intelligence platform, not the consulting firm. When you need expert guidance on platform selection, AI strategy, or operational transformation, we match you with vetted consultants who specialize in your vertical and stack.
+                  We are the intelligence platform, and we leave consulting to consulting firms. When you need expert guidance on platform selection, AI strategy, or operational transformation, we match you with vetted consultants who specialize in your vertical and stack.
                 </p>
               </div>
             </div>

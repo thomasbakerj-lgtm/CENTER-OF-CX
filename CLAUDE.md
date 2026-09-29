@@ -1713,6 +1713,16 @@ dashboard, the 12-phase growth program.
    GovRAMP. The hero no longer says vendors were "evaluated" for the industry. Content lives in `src/lib/verticalsContent.js`
    (loaded only by the page), so the entry chunk fell from 276,174 to 268,346 bytes; the pre-audit text stays there as
    drafts for lineage. `catvertical.test.mjs` (150, registered). Suite 27,125; browser at 1440 and 390 clean.
+101. S24 (29 Sep), fix list item 8 (TB: "Go"): the "X, not Y" cadence retired from public copy. 342 matches outside
+   `node_modules` across 64 files; five writers on one brief (scratchpad `xnoty-brief.md`: say what a thing is; keep every
+   figure, id, key, claim token, doctrine word and pinned phrase; comments are not copy). About 230 lines rewritten
+   across 41 files, reviewed against the originals (a few now state a reason the sentence already implied). 13 remain,
+   each allowlisted in `copy.test.mjs` section 7 with its reason: pinned by a harness (Business Case's "not a measured
+   outcome", Channel Shift's "capacity, not headcount", TCO's "not a published median"), the Phase 1 label (TB, S22),
+   approved Terms text, stored values (a Contract Risk option that links store; a QA criterion the form fingerprint
+   hashes), and records that never render (lineage drafts, originality notes, an internal registry note). The gate fails
+   on any new one (proven on a planted sentence) and on a stale allowlist entry. Terms of Use untouched. Suite 27,127;
+   build green; 252 page loads (industry, segment, tool, method and content pages at 1440 and 390) clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

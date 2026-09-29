@@ -51,7 +51,7 @@ export const ATTRITION_MODEL = {
     { name: "Avoided by a lower rate", formula: "Departures avoided × backfill × (cash per departure + capacity per departure × the action's share)", note: "Priced at 5, 10, 15 and 20 points lower. With a cost per point, net and return are shown." },
   ],
   bands: [
-    { label: "Frontline planning band", range: b("attrition.band.low") + " to " + b("attrition.band.high") + "% of salary", meaning: "Inside it, completeness can reach Finance-grade. A planning check set by this platform, not a published study." },
+    { label: "Frontline planning band", range: b("attrition.band.low") + " to " + b("attrition.band.high") + "% of salary", meaning: "Inside it, completeness can reach Finance-grade. A planning check set by this platform, with no published study behind it." },
     { label: "Plausible range", range: b("attrition.band.floor") + "% to the band's lower edge", meaning: "Completeness Planning-grade." },
     { label: "Outside", range: "Under " + b("attrition.band.floor") + "% or over " + b("attrition.band.high") + "%; over " + b("attrition.band.ceiling") + "% is flagged as manager tier", meaning: "Completeness Directional; validate the inputs." },
     { label: "Range on the cost", range: "Estimates ±" + pc(b("attrition.band.estimate")) + ", HR data ±" + pc(b("attrition.band.hrdata")) + ", finance-confirmed ±" + pc(b("attrition.band.finance")), meaning: "Display only." },

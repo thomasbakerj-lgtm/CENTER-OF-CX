@@ -19,7 +19,7 @@
 
 export const MECH = {
   none: { label: "Not selected", f: 0.00, cred: "none", note: "No capacity action: realizable savings stay $0 until you commit to one." },
-  growth: { label: "Absorb growth / backlog", f: 0.25, cred: "capacity", note: "Capacity value, not cash this cycle." },
+  growth: { label: "Absorb growth / backlog", f: 0.25, cred: "capacity", note: "Capacity value; no cash this cycle." },
   overtime: { label: "Reduce overtime", f: 0.60, cred: "finance", note: "Finance-creditable." },
   hiring: { label: "Avoid hiring / attrition freeze", f: 0.75, cred: "finance", note: "Finance-creditable over the cycle. The defensible default." },
   vendor: { label: "Vendor / BPO volume reduction", f: 0.90, cred: "cash", note: "Often highly cashable." },

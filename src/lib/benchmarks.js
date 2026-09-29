@@ -244,7 +244,7 @@ const FCR_DEFAULTS = {
   measuredPct: [22, "percent of volume", "A measured repeat share still at this value grades evidence Directional."],
   measuredTargetPct: [0, "percent of volume", "Zero means model the target share proportionally on the measured base."],
   repeatMult: [1, "multiple of a first contact", "The conservative floor. At this value it cannot inflate the burden, so it does not bind evidence."],
-  targetPct: [80, "percent", "Target FCR is the user's plan, not a claim about the operation. It reaches no evidence stream."],
+  targetPct: [80, "percent", "Target FCR is the user's plan and makes no claim about the operation. It reaches no evidence stream."],
   investOneTime: [150000, "USD one time", "A one-time cost still at this value grades cost evidence Directional."],
   investRecurring: [90000, "USD per year", "A recurring cost still at this value grades cost evidence Directional."],
 };
@@ -335,11 +335,11 @@ const tWage = (value, label) => tHeur(value, "USD per hour", `Opening agent wage
 const tWageBls = (value, industry, label) => ({ tool: TCO, kind: "market", value, unit: "USD per hour",
   source: `US Bureau of Labor Statistics, Occupational Outlook Handbook, Customer Service Representatives, pay by industry: median hourly wage in ${industry}, May 2025 (TB research, 28 Sep 2026).`,
   url: "https://www.bls.gov/ooh/office-and-administrative-support/customer-service-representatives.htm", reviewed: "2026-09-29", version: 2,
-  rationale: `Opening agent wage for the ${label} profile: the BLS May 2025 median for customer service representatives in ${industry}. A published median, not the reader's own pay, so a wage still at this value grades cost evidence Directional.` });
+  rationale: `Opening agent wage for the ${label} profile: the BLS May 2025 median for customer service representatives in ${industry}. A published median rather than the reader's own pay, so a wage still at this value grades cost evidence Directional.` });
 
 const tcoEntries = {
-  "tco.load.salaried": tHeur(1.25, "multiple of hourly rate", "Supervisors, QA, WFM, trainers and IT are salaried and carry a lighter employer burden than an hourly agent, so they load at less than the agent benefits multiple. A fourth load concept because it prices a different population, not a different opinion about the same one."),
-  "tco.hours.month": tHeur(173, "paid hours per staff member per month", "The 2,080 hour full-time year over twelve months. Labor cost is computed on paid hours, not productive hours, because shrinkage time is paid."),
+  "tco.load.salaried": tHeur(1.25, "multiple of hourly rate", "Supervisors, QA, WFM, trainers and IT are salaried and carry a lighter employer burden than an hourly agent, so they load at less than the agent benefits multiple. A fourth load concept because it prices a different population; it is no second opinion about the agent load."),
+  "tco.hours.month": tHeur(173, "paid hours per staff member per month", "The 2,080 hour full-time year over twelve months. Labor cost is computed on paid hours, shrinkage included, because that time is paid even when no contact is handled."),
   "tco.escalator.wage": { tool: TCO, kind: "market", label: "annual labor escalation", display: "3.5 percent a year", value: 0.035, unit: "annual rate", source: "US Bureau of Labor Statistics, Employment Cost Index, wages and salaries, private industry, twelve month change.", reviewed: REVIEWED, version: 1, rationale: "Annual labor escalation in the three year view. Applied only to the labor bucket, because wages and contracted license inflate at different rates." },
   "tco.escalator.license": tHeur(0.06, "annual rate", "Annual uplift on contracted recurring software at renewal. The middle of the 3 to 10 percent band enterprise renewal clauses commonly carry. Replace it with the uplift in your own contract."),
   "tco.escalator.blended": tHeur(0.045, "annual rate", "Single blended escalator, offered only when the user opts out of the split rates. A blended rate misstates a labor heavy base, so the split is the default."),
@@ -402,7 +402,7 @@ const ahtEntries = {
    line the tool draws is the tracking signal limit: the running sum of errors over the mean
    absolute error, outside plus or minus 4, reads as a forecast that leans one way. */
 const forecastEntries = {
-  "forecast.ts.limit": { tool: "forecast-accuracy", kind: "threshold", value: 4, unit: "mean absolute errors", source: "The tracking signal and its control limits of plus or minus 4 mean absolute deviations, as taught in standard operations management texts (for example Heizer, Render and Munson, Operations Management, chapter on forecasting). A convention, not a law: some planners use 3 for tighter control.", reviewed: REVIEWED, version: 1, rationale: "Outside plus or minus 4 the errors lean one way more than random error would, so the forecast is read as biased. Inside it, bias is not distinguished from noise." },
+  "forecast.ts.limit": { tool: "forecast-accuracy", kind: "threshold", value: 4, unit: "mean absolute errors", source: "The tracking signal and its control limits of plus or minus 4 mean absolute deviations, as taught in standard operations management texts (for example Heizer, Render and Munson, Operations Management, chapter on forecasting). A convention that planners may tighten: some use 3 for tighter control.", reviewed: REVIEWED, version: 1, rationale: "Outside plus or minus 4 the errors lean one way more than random error would, so the forecast is read as biased. Inside it, bias is not distinguished from noise." },
 };
 
 /* Schedule Adherence Impact Calculator. Service level and speed of answer come from Erlang C,
@@ -444,7 +444,7 @@ const attritionEntries = {
   "attrition.time.workdaysMonth": atHeur(22, "working days a month", "Converts ramp months to hours: 22 days of 8 hours."),
   "attrition.time.hoursDay": atHeur(8, "hours a day", "A full-time shift."),
   "attrition.time.daysWeek": atHeur(5, "days a week", "Converts training and nesting weeks to days."),
-  "attrition.band.low": atLine(40, "percent of salary", "Lower edge of the planning band for a frontline replacement. All-in cost inside 40 to 60 percent of salary lets completeness reach Finance-grade. A planning check set by this platform, not a published study."),
+  "attrition.band.low": atLine(40, "percent of salary", "Lower edge of the planning band for a frontline replacement. All-in cost inside 40 to 60 percent of salary lets completeness reach Finance-grade. A planning check set by this platform, with no published study behind it."),
   "attrition.band.high": atLine(60, "percent of salary", "Upper edge of the planning band. Above it the page flags the case to validate; completeness holds Directional."),
   "attrition.band.floor": atLine(30, "percent of salary", "Below this the cost basis sits outside the plausible range and completeness holds Directional. Between it and the band, Planning-grade."),
   "attrition.band.ceiling": atLine(100, "percent of salary", "Above this the case reads as manager tier, implausible for a frontline agent; a high flag holds completeness Directional."),

@@ -332,7 +332,7 @@ export function compute(d) {
   const { headline: confidence, boundBy, boundAxes } = gradeConfidence(grades);
 
   const evidenceReason = evidence === "finance" ? "Finance-confirmed figures."
-    : evidence === "hrdata" ? "Real HR figures, not yet confirmed by finance."
+    : evidence === "hrdata" ? "Real HR figures, yet to be confirmed by finance."
     : "Inputs are estimates or defaults. Replace them with real figures to raise this axis.";
   const realizationReason = realization === "Finance-grade" ? `"${mechName}" turns freed capacity into cash, so the savings can be booked once they are committed in the budget.`
     : realization === "Planning-grade" ? `"${mechName}" can be credited by finance over the budget cycle. Tie it to a budget action to book it.`

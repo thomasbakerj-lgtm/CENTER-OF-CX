@@ -59,7 +59,7 @@ const reports = {
       ],
       fullOnly: ["Top 12 vendor assessments with strengths, weaknesses, and red flags", "Hidden costs vendors omit from proposals", "The RFP questions that reveal what demos hide", "The shortlist decision framework"],
       next: [
-        ["Model the full cost, not the seat price", "/tools/tco-calculator"],
+        ["Model the full cost beyond the seat price", "/tools/tco-calculator"],
         ["Build requirements into an RFP", "/tools/rfp-builder"],
         ["Pressure-test the platform decision", "/tools/platform-decision"],
         ["Scan a CCaaS contract for risk", "/tools/contract-risk"],

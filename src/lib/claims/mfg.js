@@ -36,7 +36,7 @@ const bench = {
   "mfg.bench.fcr.cross": fact("71%", `First contact resolution, all industries, average (range 40% to 91%); ${SQM_POP}`, SQM_FCR_2026, "fcr"),
   "mfg.bench.aht.mfg": none("Average handle time, manufacturing contact centers", NO_MFG, "8:30", "aht"),
   "mfg.bench.aht.cross": fact("11:37", "Average handle time (697 seconds, talk plus wrap), SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "aht"),
-  "mfg.bench.attrition.mfg": none("Annual agent attrition, manufacturing contact centers", `${NO_MFG} BLS JOLTS quits for manufacturing cover every worker in the sector, not agents.`, "30%", "attrition"),
+  "mfg.bench.attrition.mfg": none("Annual agent attrition, manufacturing contact centers", `${NO_MFG} BLS JOLTS quits for manufacturing cover every worker in the sector, with no breakout for agents.`, "30%", "attrition"),
   "mfg.bench.attrition.cross": fact("34%", "Annual agent turnover, SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "attrition"),
 };
 
@@ -78,18 +78,18 @@ const regs = {
 };
 
 const planning = {
-  "mfg.recall.playbook": assumption("4 hours", "Time to deploy a recall readiness playbook (notice content, IVR update, agent briefing, FAQ, VIN checker)", "A readiness target from practice, not a published figure. Rehearse your own playbook and time it.", "forecast"),
+  "mfg.recall.playbook": assumption("4 hours", "Time to deploy a recall readiness playbook (notice content, IVR update, agent briefing, FAQ, VIN checker)", "A readiness target from practice, with no published source. Rehearse your own playbook and time it.", "forecast"),
   "mfg.oem.dtc.aht": assumption("2 to 3 minutes", "Handle time saved on a technical call when the agent sees the vehicle's diagnostic codes before the owner describes the symptom", "From practice; not a published figure. Measure the diagnosis segment of your own technical calls before and after.", "aht"),
   "mfg.dealer.followup": assumption("10 minutes", "Target for a personal follow-up call after an online lead arrives", "A service target from practice; published speed-to-lead studies are paywalled or unverifiable. Set it against your own lead conversion by response time.", "staffing"),
   "mfg.fb.cluster": assumption("three or more similar reports from one lot code within 48 hours", "Complaint cluster that triggers an automatic food safety investigation", "A design choice for an alert threshold; set it with your food safety team and your own complaint volumes."),
 };
 
 const examples = {
-  "mfg.ex.recall-surge": example("2 million vehicles, 200,000 calls", "Illustrative recall call surge", "A scenario, not a measured rate; forecast your own from past campaigns.", "A safety recall covering 2 million vehicles that draws a call from one owner in ten puts 200,000 calls into the queue within weeks"),
+  "mfg.ex.recall-surge": example("2 million vehicles, 200,000 calls", "Illustrative recall call surge", "An illustrative scenario with no measured rate; forecast your own from past campaigns.", "A safety recall covering 2 million vehicles that draws a call from one owner in ten puts 200,000 calls into the queue within weeks"),
   "mfg.ex.goodwill": example("$200 and $150,000", "Illustrative goodwill repair against an owner's future purchases", "A scenario that compares a one-time cost with lifetime value; use your own repurchase data.", "A $200 goodwill repair that keeps an owner worth $150,000 in future vehicle purchases"),
   "mfg.ex.tcpa": example("$5 million to $15 million", "Illustrative statutory exposure from 10,000 unconsented texts", "Arithmetic on the statutory $500 per violation and the up to threefold award.", "At $500 each, 10,000 unconsented reminder texts carry $5 million in statutory damages, and up to $15 million if a court trebles them"),
   "mfg.ex.mttr": example("15 and 2 tickets a quarter", "Illustrative accounts with the same resolution time", "A scenario; track resolution by account in your own data.", "An account that opens 15 tickets a quarter with a 4-day average time to resolve has a different experience from an account that opens 2 tickets a quarter at the same 4 days"),
-  "mfg.ex.dispatch": example("3 hours and 2 to 5 days", "Illustrative field service trip without the right part", "A scenario, not a measured delay.", "A technician drives 3 hours to the customer site, opens the equipment and finds the replacement part is not on the truck; the line stays down another 2 to 5 days while the part ships"),
+  "mfg.ex.dispatch": example("3 hours and 2 to 5 days", "Illustrative field service trip without the right part", "An illustrative scenario with no measured delay.", "A technician drives 3 hours to the customer site, opens the equipment and finds the replacement part is not on the truck; the line stays down another 2 to 5 days while the part ships"),
   "mfg.ex.support-cost": example("$15 and $3 per unit", "Illustrative support cost gap between two products", "A scenario; compute support cost per unit sold for your own products.", "If Product A generates $15 in support cost per unit and Product B generates $3, the $12 gap per unit is a design cost that grows with every unit sold"),
 };
 
