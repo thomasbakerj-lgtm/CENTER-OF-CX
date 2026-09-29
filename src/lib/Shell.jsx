@@ -12,6 +12,7 @@ import React, { useState, useEffect } from "react";
 import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_SANS, alpha, LINE } from "./tokens.js";
 import { Icon } from "./Icon.jsx";
 import { editionFor, todayUtc } from "./editions.js";
+import { EVERYDAY, geometryFor, markParts } from "./mark.js";
 import { trackShare } from "./track.js";
 
 export const HEADER_HEIGHT = 64;
@@ -36,18 +37,21 @@ export const FOOTER = [
 
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
 
-/** The mark. `edition` (src/lib/editions.js) colours the three arcs and the X on its dates; without one, the everyday
- *  mist arcs. */
+/** The mark (src/lib/mark.js): the mist C, the voice in sky, the X. `edition` (src/lib/editions.js) colours the voice
+ *  bars in turn with its three colours and the X with its own, on its dates; the C stays mist. */
 export function Mark({ size = 30, edition = null }) {
-  const arc = (i, fade) => (edition ? { stroke: edition.arcs[i], opacity: 1 } : { stroke: HOUSE.mist, opacity: fade });
-  const x = edition ? edition.x : HOUSE.sky;
+  const p = markParts(geometryFor(size));
+  const voices = edition ? edition.voices : [EVERYDAY.dark.voice];
+  const x = edition ? edition.x : EVERYDAY.dark.x;
   return (
     <svg width={size} height={size} viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
-      <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" {...arc(0, 0.45)} strokeWidth="3" strokeLinecap="round" />
-      <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" {...arc(1, 0.7)} strokeWidth="4.5" strokeLinecap="round" />
-      <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" {...arc(2, 1)} strokeWidth="6" strokeLinecap="round" />
-      <line x1="-13" y1="-13" x2="13" y2="13" stroke={x} strokeWidth="7" strokeLinecap="round" />
-      <line x1="13" y1="-13" x2="-13" y2="13" stroke={x} strokeWidth="7" strokeLinecap="round" />
+      <g fill="none" strokeLinecap="round">
+        <path d={p.c} stroke={EVERYDAY.dark.c} strokeWidth={p.cW} />
+        <g strokeWidth={p.barW}>
+          {p.bars.map((b, i) => <line key={i} x1={b.x1} y1="0" x2={b.x2} y2="0" transform={`rotate(${b.rot})`} stroke={voices[i % voices.length]} />)}
+        </g>
+        <path d={p.x} stroke={x} strokeWidth={p.xW} />
+      </g>
     </svg>
   );
 }
