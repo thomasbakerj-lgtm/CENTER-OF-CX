@@ -1589,6 +1589,26 @@ dashboard, the 12-phase growth program.
    to $11.60, marginal $2.51 to $2.83, savings $68,000 to $76,000 gross ($48,000 to $54,000 expected). Pins, changelog,
    method page, sources paragraph (TCO now names the BLS wages it reads) and `tco.test` J11 updated. Suite 26,783; live
    check 256 of 256.
+   PR #83 merged by TB's instruction (862ddc9).
+92. S24 (29 Sep), TB: the Vendor Match demo card is a CTA to keep ("I can leverage that. Need a button linked to
+   formspree"); About "should not involve me but should involve why we built this and the value intended it brings all
+   user types and personas"; no newsletter yet. Built:
+   - `src/lib/DemoRequest.jsx` on Vendor Match (replaces the link card): "Request a demo with <top match>" opens a short
+     form (work email required; name, company and what the demo should show optional) posting to the contact inbox
+     (xvzvdnry), `_subject` "Demo request: <vendor>", intro fields as the contact form's. The reader's answers in the tool
+     (industry, size, current platform, priorities, compliance) travel only while a listed checkbox stays ticked. Tracked
+     as `vendor_action` intro on open and `intro_submit` on send. States that asking never changes a list, order or
+     finding, and that nothing reaches the vendor until the reader confirms the scenarios (a process promise for TB).
+     Privacy Policy FORMS entry added. `intro.test.mjs` pins (29).
+   - About: "Why we built this" (four paragraphs in a human voice: the floor lives with decisions made far away; those
+     decisions are hard and the guidance is often from someone selling; the site shows its working, sources and grades;
+     better decisions make better days and better service) and "What it offers you", nine readers (new to contact
+     centers, operations and workforce, leadership, strategy, IT, security, finance and procurement, consultants,
+     vendors). No name, no figure, no outcome claim; `firstvisit.test.mjs` pins both (43).
+   - Market Watch (recommendation to TB): keep the FCC TCPA item labelled a draft until the 30 Sep vote, then update it
+     from the FCC's own release (adopted as circulated, changed, or pulled) in a dated PR; keep the EU AI item labelled
+     news (EUR-Lex still returns nothing to this network); refresh weekly once distribution starts. A check-in is set for
+     1 Oct.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

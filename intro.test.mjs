@@ -49,7 +49,13 @@ section("2. Every vendor surface offers an introduction");
   ok(`every profile variant carries the button under its name (${intros} of ${heads})`, heads === 8 && intros === heads);
   const VM = read("VendorMatchEngine.jsx");
   ok("Vendor Match: top matches and the rest of the list each carry one", /isTop&&\(<>[\s\S]*<VendorIntro slug=\{v\.slug\}/.test(VM) && /!isTop&&\(<div[^\n]*<VendorIntro slug=\{v\.slug\}/.test(VM));
-  ok("Vendor Match: the introduction card names the top match", /href=\{introHref\(\{slug:results\[0\]\.slug,from:TOOL_ID\}\)\}/.test(VM));
+  ok("Vendor Match: the demo request names the top match (TB, 29 Sep: a button to the Formspree inbox)", /<DemoRequest vendor=\{\{name:results\[0\]\.name,slug:results\[0\]\.slug\}\} from=\{TOOL_ID\}/.test(VM));
+  { const DR = read("src/lib/DemoRequest.jsx"), PP = read("PrivacyPolicy.jsx");
+    ok("demo request: posts to the contact inbox the Privacy Policy names, with its own entry", /DEMO_ENDPOINT = "https:\/\/formspree\.io\/f\/xvzvdnry"/.test(DR) && /Demo requests from Vendor Match/.test(PP));
+    ok("demo request: only the email is required", (DR.replace(/\/\/.*$/gm, "").match(/\brequired\b/g) || []).length === 1 && /name="email" type="email" required/.test(DR));
+    ok("demo request: tool answers travel only when the reader leaves the box ticked, and the box lists them", /if \(share\) for \(const \[k, v\] of shown\)/.test(DR) && /Include my answers from this tool/.test(DR));
+    ok("demo request: reads no vendor data, score or order, and says it moves nothing", !/VendorData|score|rank/i.test(DR.replace(/\/\/.*$/gm, "")) && /never changes a list, an order or a finding/.test(DR));
+    ok("demo request: tracked as an introduction (open) and intro_submit (sent)", /trackVendor\.action\(vendor\.slug \|\| null, "intro", "tool"\)/.test(DR) && /trackVendor\.introSent/.test(DR)); }
   ok("RFP Builder: each named vendor carries one", /<VendorIntro name=\{v\.name\} from=\{TOOL_ID\}/.test(read("RFPRequirementBuilder.jsx")));
   ok("CCaaS category: all three vendor lists carry one", (read("CCaaSCategory.jsx").match(/<VendorIntroLink slug=\{v\.slug\}/g) || []).length === 3);
   ok("the other categories' directory carries one", /<VendorIntroLink slug=\{v\.slug\}/.test(read("src/lib/Phase1Directory.jsx")));
@@ -90,7 +96,8 @@ section("5. Rendered: Vendor Match offers every listed vendor an introduction");
   const React = require("react"); const { renderToString } = require("react-dom/server");
   const html = renderToString(React.createElement(mod.exports.default));
   const links = (html.match(/href="\/contact\?intro=[a-z0-9-]+&amp;from=vendor-match"/g) || []).length;
-  ok(`each of the 24 listed vendors links an introduction, plus the card (${links})`, links === 25);
+  ok(`each of the 24 listed vendors links an introduction (${links})`, links === 24);
+  ok("the demo request renders for the top match, closed until asked", /Request a demo with /.test(html) && /Get a demo with /.test(html) && !/name="email"[^>]*required/.test(html.split("Get a demo with")[1] || ""));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

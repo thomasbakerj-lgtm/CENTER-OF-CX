@@ -18,6 +18,29 @@ const ACCENT = HOUSE.sky2;
 const link = { color: ACCENT, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
 const CSS = `.cx-about p,.cx-about li{overflow-wrap:anywhere}`;
 
+/* Why the site exists (TB, 29 Sep 2026: "why we built this and the value intended it brings all user types and
+   personas", in a human voice, with no name on it). Each paragraph states intent or something the site does; none claims
+   an outcome it cannot show. */
+export const WHY = [
+  "A contact center is where a company keeps its promises, or fails to. Every day, the people who answer the calls and messages live with decisions made far from the floor: the platform they log into, the targets they are held to, the staffing plan that decides whether there is a breath between one customer and the next.",
+  "Those decisions are hard to get right. A platform choice can shape an operation for years. The people making it are busy running the place, rarely have neutral data, and seldom get to test a claim against their own numbers before they sign. Much of the guidance on offer comes from someone with something to sell, and figures travel from page to page until no one can say where they started.",
+  "We built The Center of CX to be the place we wished existed. Free tools that take your numbers and show their working. Research that says where every finding comes from and when it was checked. A plain line between what is known, what is assumed and what is modelled, so you can see how far to lean on each answer. When a figure has no public source, we say so. When a result cannot be trusted, we show no figure at all.",
+  "We believe better decisions in contact centers make better days for the people who work in them and better service for the people who call. Everything here is built toward that.",
+];
+
+/* What the site offers each kind of reader: the jobs they arrive with, answered with what the site actually has. */
+export const FOR_YOU = [
+  { who: "New to contact centers", text: "The numbers people will ask you about, explained where you first meet them: handle time, occupancy, first contact resolution, shrinkage. The tools show how each one moves the others, so you learn how the operation works as well as what it calls things." },
+  { who: "Running operations and workforce", text: "Staffing, occupancy, shrinkage, adherence and forecast accuracy on published methods. When you ask for another agent or a schedule change, the case rests on arithmetic your leadership can check line by line." },
+  { who: "Leadership", text: "Cost, service and risk in one view before you commit budget, with a grade on every result that tells you how far you can rely on it and what would make it firmer." },
+  { who: "Strategy and transformation", text: "Readiness assessments, a renewal gate and a business case that keeps freed time apart from real savings, so a plan is built on what will actually change and who has to change it." },
+  { who: "IT, platforms and architecture", text: "Vendor research finding by finding: what a platform does, where it breaks, what it takes to implement and who owns the complexity after go-live, with the public source behind each point." },
+  { who: "Security, risk and compliance", text: "Contract terms read clause by clause, including how an AI vendor may use your data, security and residency, and the rules each industry answers to, each with its source." },
+  { who: "Finance and procurement", text: "Total cost, license gaps and business cases where every figure is sourced, marked as an assumption, or yours, and the report says which. Built to hold up when someone asks where a number came from." },
+  { who: "Consultants and advisors", text: "Methods anyone can read, reports you can hand to a client, and links that reopen a scenario exactly as you left it." },
+  { who: "Vendors and partners", text: "A fair hearing. Anyone can report an error with a public source, every accepted correction is shown on the vendor's page, and no vendor pays to appear, to move or to preview research." },
+];
+
 /* What a reader can use, each with the count its registry holds. */
 export const OFFER = [
   { n: TOOL_COUNT, title: "diagnostics", text: `Calculators, assessments and procurement tools. Each has a published method (${METHOD_COUNT} in all) and a report you can download with no sign-in.`, href: "/how-to-choose", cta: "See the diagnostics" },
@@ -71,6 +94,24 @@ export default function About() {
           </p>
           <p style={K.small}>Independent and self-funded, with no vendor owner or investor.</p>
         </header>
+
+        <Section id="why" title="Why we built this">
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 760 }}>
+            {WHY.map((p, i) => <p key={i} style={{ ...K.body, fontSize: 17, lineHeight: "29px", color: i === WHY.length - 1 ? HOUSE.mist : HOUSE.body, fontWeight: i === WHY.length - 1 ? 600 : 400 }}>{p}</p>)}
+          </div>
+        </Section>
+
+        <Section id="for-you" title="What it offers you">
+          <p style={K.body}>Whatever your role and however long you have been doing it, you should find something here that replaces guesswork with a number you can check.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 14 }}>
+            {FOR_YOU.map((f) => (
+              <div key={f.who} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 6 }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{f.who}</h3>
+                <p style={K.body}>{f.text}</p>
+              </div>
+            ))}
+          </div>
+        </Section>
 
         <Section id="offer" title="What you can use here">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(250px, 100%), 1fr))", gap: 14 }}>

@@ -4,7 +4,7 @@ import { Result, Button } from "./src/lib/ui.jsx";
 import { K, Paper, Group, selectStyle, optionCss } from "./src/lib/frameKit.jsx";
 import { TOUCH, RADIUS } from "./src/lib/tokens.js";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
-import { introHref } from "./src/lib/intro.js";
+import { DemoRequest } from "./src/lib/DemoRequest.jsx";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
@@ -498,18 +498,19 @@ export default function VendorMatchEngine() {
           />
         </Paper>
 
+        {/* The demo request (TB, 29 Sep 2026): a button that opens a short form posting to the contact inbox, with the
+            reader's own answers attached only if they choose. It reads the list; it never changes it. */}
+        <DemoRequest vendor={{name:results[0].name,slug:results[0].slug}} from={TOOL_ID} context={[
+          ["Industry",d.vertical],["Operation size",d.size],["Current platform",d.currentPlatform],
+          ["Priorities",d.priorities.map(p=>PRIORITIES.find(pr=>pr.id===p)?.name||p).join(", ")],["Compliance",d.compliance.join(", ")],
+        ]}/>
+
         <div style={K.grid(260)}>
           <a href="/contact" style={{...K.panel,display:"block",textDecoration:"none"}}>
             <div style={{...K.kicker,marginBottom:8}}>Refine Your Shortlist</div>
             <div style={{...K.strong,fontSize:18,marginBottom:8}}>Speak with a CX consultant</div>
             <p style={{...K.small,margin:"0 0 12px"}}>30 minutes to refine this shortlist for integration complexity, contract terms and organizational readiness.</p>
             <span style={K.link}>Request a working session</span>
-          </a>
-          <a href={introHref({slug:results[0].slug,from:TOOL_ID})} style={{...K.panel,display:"block",textDecoration:"none"}}>
-            <div style={{...K.kicker,marginBottom:8}}>See It In Action</div>
-            <div style={{...K.strong,fontSize:18,marginBottom:8}}>Request a Vendor Introduction</div>
-            <p style={{...K.small,margin:"0 0 12px"}}>We arrange a demo with your top match, built around your own scenarios in place of the vendor's standard pitch.</p>
-            <span style={K.link}>Request an introduction and demo</span>
           </a>
         </div>
 
