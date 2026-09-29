@@ -51,5 +51,23 @@ const TERMS = readFileSync("./TermsOfService.jsx", "utf8");
 ok("the Terms claim no current vendor scores", !/Vendor scores, tier classifications|receive a higher score|published methodologies/.test(TERMS) && /scores and tiers have been withdrawn/.test(TERMS));
 ok("no dash", !/[\u2013\u2014]/.test(readFileSync("./PrivacyPolicy.jsx", "utf8")));
 
+/* Terms of Use (TB, 29 Sep 2026, from TB's legal review notes). */
+{
+  const src = readFileSync("./TermsOfService.jsx", "utf8");
+  const heads = [...src.matchAll(/h: "(\d+)\. ([^"]+)"/g)].map((m) => m[2]);
+  ok("Terms carry the clauses the notes rank strongest: research, tools, no guaranteed outcomes, IP, warranties, liability",
+    ["Research, ratings and analysis", "Calculators, assessments and decision-support tools", "No guarantee of outcomes", "Intellectual property", "Disclaimer of warranties", "Limitation of liability"].every((h) => heads.includes(h)));
+  ok("Terms also cover vendor information, introductions, submissions, reviews, acceptable use, indemnity and eligibility",
+    ["Vendor information", "Vendor introductions", "User submissions", "Vendor reviews", "Acceptable use", "Indemnification", "Eligibility"].every((h) => heads.includes(h)));
+  ok("Terms name the operator as the Privacy Policy does, and publish no placeholder", /sole proprietorship based in the United States/.test(src) && !/\[(LEGAL|STATE|COUNTY|BUSINESS)/.test(src));
+  ok("no governing-law or venue clause until TB and counsel decide, and no arbitration clause", !/Governing law|governed by the laws of|arbitrat/i.test(src.replace(/\/\/.*$/gm, "")));
+  ok("Terms say the site gives no legal, financial or procurement advice and separate engagements take their own agreement", /does not constitute legal, financial/.test(src) && /separate written/.test(src));
+  ok("Terms carry a real date and the page is titled Terms of Use", /TERMS_UPDATED = "\d{1,2} [A-Z][a-z]+ 20\d\d"/.test(src) && /Terms of Use<\/h1>/.test(src) && /"\/terms": \{\s*title: `Terms of Use/.test(readFileSync("./src/lib/seo.js", "utf8")));
+  ok("no dash in the Terms", !/[\u2013\u2014]/.test(src));
+  const forms = { "VendorProfile.jsx": "vendor review", "Contribute.jsx": "contributor proposal", "Contact.jsx": "consultation request", "Corrections.jsx": "correction report", "src/lib/DemoRequest.jsx": "demo request", "ReportActions.jsx": "review request" };
+  for (const [f, what] of Object.entries(forms)) ok(`the ${what} form shows the assent notice beside its button`, /<Assent[ />]/.test(readFileSync("./" + f, "utf8")));
+  ok("the notice links both documents", /href="\/terms"/.test(readFileSync("./src/lib/Assent.jsx", "utf8")) && /href="\/privacy"/.test(readFileSync("./src/lib/Assent.jsx", "utf8")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

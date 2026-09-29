@@ -6,6 +6,7 @@
 // from the tool travel with the request, and the form says exactly what those answers are. An introduction never moves a
 // vendor: nothing here reads or changes a list, an order, a score or a finding. Tokens only.
 import { useState, useId } from "react";
+import { Assent } from "./Assent.jsx";
 import { HOUSE, RADIUS, TOUCH, FONT_SANS, alpha, LINE } from "./tokens.js";
 import { K } from "./frameKit.jsx";
 import { Button } from "./ui.jsx";
@@ -92,6 +93,7 @@ export function DemoRequest({ vendor, from, context = [] }) {
             </button>
             <p style={K.small}>Used only to arrange this demo. See the <a href="/privacy" style={{ color: HOUSE.sky2 }}>Privacy Policy</a>.</p>
           </div>
+          <Assent />
           {state === "failed" && <p role="alert" style={{ ...K.small, color: HOUSE.mist }}>That did not go through. Please try again, or write to us from the contact page.</p>}
         </form>
       )}

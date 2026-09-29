@@ -1,4 +1,5 @@
 import { useState, useEffect, Suspense } from "react";
+import { Assent } from "./src/lib/Assent.jsx";
 import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
 import { ccaasResearchLabel, phase1Label, CCAAS_RESEARCH } from "./src/lib/researchStatus";
@@ -1127,6 +1128,7 @@ export default function VendorProfile() {
                   </button>
 
                   <p style={{ fontSize: 11, color: MUTED, textAlign: "center", margin: 0, fontFamily: FONT }}>Your email stays private. Reviews may be edited for clarity.</p>
+                  <Assent align="center" />
                 </div>
               </div>
             )}

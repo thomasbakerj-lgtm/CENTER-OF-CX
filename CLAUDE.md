@@ -1645,6 +1645,17 @@ dashboard, the 12-phase growth program.
    now say numbers stay in the tab unless you ask for a review or share a scenario link. `privacy.test.mjs` 23.
    Before the first newsletter: a postal address is needed in the email footer (US commercial email rules). Next: Terms of
    Use, per TB's notes.
+96. S24 (29 Sep), Terms of Use from TB's legal review draft (LegalZoom general information, not legal advice), with TB's four
+   items: (1) entity and jurisdiction: operator named as in the Privacy Policy (sole proprietorship based in the United
+   States; no entity formed), no placeholder published, governing law and venue left out until TB and counsel decide;
+   (2) visible assent: `src/lib/Assent.jsx` ("By submitting, you agree to the Terms of Use and acknowledge the Privacy
+   Policy.") beside the submit button on vendor reviews, contributor proposals, consultation requests, research
+   corrections, demo requests and review requests (notice, no checkbox; TB and counsel may switch to a checkbox);
+   (3) separate commercial terms: the Terms say paid engagements take their own written agreement; (4) no arbitration
+   clause. `TermsOfService.jsx` renders TERMS_SECTIONS (27 sections; disclaimers set in capitals by CSS, so the source stays
+   readable); section 3 says the Phase 1 scores are withdrawn and none shows today; section 12 notes that publishing a
+   method does not license its reuse. Page title "Terms of Use"; /privacy and /terms descriptions no longer claim "No
+   third-party tracking". `privacy.test.mjs` 37.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
