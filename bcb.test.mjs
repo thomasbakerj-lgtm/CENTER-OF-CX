@@ -17,7 +17,7 @@ function slice(startMarker, endMarker) {
   return SRC.slice(a, b);
 }
 
-const helpers = slice("const STATUS = {", "function LogoMark");
+const helpers = slice("const STATUS = {", "/* @helpers-end");
 const consts  = slice("const STANCE = {", "/* De-overlapped model");
 const engine  = slice("function computeCase(", "export default function");
 

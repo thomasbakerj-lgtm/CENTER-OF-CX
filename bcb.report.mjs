@@ -132,7 +132,7 @@ function slice(startMarker, endMarker) {
   if (b < 0) { console.error("BLOCKER: engine slice failed, missing end: " + endMarker); process.exit(1); }
   return SRC.slice(a, b);
 }
-const helpers = slice("const STATUS = {", "function LogoMark");
+const helpers = slice("const STATUS = {", "/* @helpers-end");
 const consts = slice("const STANCE = {", "/* De-overlapped model");
 const engine = slice("function computeCase(", "export default function");
 

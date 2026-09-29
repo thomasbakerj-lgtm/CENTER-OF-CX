@@ -128,7 +128,7 @@ function slice(a, b) {
   if (j < 0) return null;
   return SRC.slice(i, j);
 }
-const ids = slice('const TOOL_ID = "tco-calculator";', "function LogoMark");
+const ids = slice('const TOOL_ID = "tco-calculator";', "/* @helpers-end");
 const region = slice("/* @engine-start", "/* @engine-end */");
 /* The shipped grade call, sliced so the harness runs the component's own line. */
 const gradeLine = (() => { const i = SRC.indexOf("  const G = gradeTCO("); return i < 0 ? null : SRC.slice(i, SRC.indexOf("\n", i)); })();

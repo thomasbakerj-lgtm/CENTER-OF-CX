@@ -85,7 +85,6 @@ const reports = {
   },
 };
 
-function LogoMark({size=34}){return<svg width={size} height={size} viewBox="0 0 120 120" style={{flexShrink:0}}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={HOUSE.mist} strokeWidth="2" strokeLinecap="round" opacity={0.6}/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={HOUSE.mist} strokeWidth="3.2" strokeLinecap="round" opacity={0.8}/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={HOUSE.mist} strokeWidth="5" strokeLinecap="round"/><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round"/></g></svg>}
 
 function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
 const links=[{name:"Platforms & Tech",href:"/platforms-and-tech"},{name:"How to Choose",href:"/how-to-choose"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"Advisory",href:"/advisory"}];

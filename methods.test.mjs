@@ -197,7 +197,7 @@ section("Business Case Builder");
   const SRC = readFileSync("./BusinessCaseBuilder.jsx", "utf8");
   const sl = (a, b) => { const i = SRC.indexOf(a); return SRC.slice(i, SRC.indexOf(b, i)); };
   const E = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards", "emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", "benchmark",
-    sl("const STATUS = {", "function LogoMark") + "\n" + sl("const STANCE = {", "/* De-overlapped model") + "\n" + sl("function computeCase(", "export default function") + "\nreturn { computeCase, DEFAULTS };")(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, conf.emitGrades, conf.voidResult, conf.weakerStream, conf.realizationFromCred, conf.GRADE_RANK, benchmark);
+    sl("const STATUS = {", "/* @helpers-end") + "\n" + sl("const STANCE = {", "/* De-overlapped model") + "\n" + sl("function computeCase(", "export default function") + "\nreturn { computeCase, DEFAULTS };")(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, conf.emitGrades, conf.voidResult, conf.weakerStream, conf.realizationFromCred, conf.GRADE_RANK, benchmark);
   ok("the tool opens at the expected stance, phasing on, no capacity action", SRC.includes('SCENARIO_DEFAULTS = { d: DEFAULTS, stance: "expected", rampOn: true, mech: "none" }') && MECH_FALLBACK === "none");
   const r = E.computeCase(E.DEFAULTS, "expected", true, "none"), h = E.computeCase(E.DEFAULTS, "expected", true, "hiring");
   ok("loaded wage, marginal, deflected and handled equal the engine", near(r.loaded, P.loaded, 1e-9) && near(r.marginal, P.marginal, 5e-5) && r.deflected === P.deflected && r.handled === P.handled);
