@@ -133,7 +133,7 @@ export default function PrivacyPolicy() {
           <P>We use administrative, technical and organisational measures designed to protect personal information, appropriate to its nature and to our operations, including encrypted connections, restricted access, data minimisation and the security measures of our service providers. No transmission, browser, service or storage system is completely secure, so we cannot guarantee that information will never be accessed, disclosed, altered, lost or destroyed without authorisation. If a security incident occurs, we will investigate, respond and give the notifications the law requires.</P>
 
           <S id="children">Children</S>
-          <P>The Site is for business and professional audiences and is not directed to children. We do not knowingly collect personal information from anyone under 16. If you believe a child has sent us personal information, contact us and we will review and address it.</P>
+          <P>The Site is for business and professional audiences and is not directed to children; our <A href="/terms">Terms of Use</A> require users to be at least 18. We do not knowingly collect personal information from anyone under 18. If you believe someone under 18 has sent us personal information, contact us and we will review and address it.</P>
 
           <S id="links">Other websites</S>
           <P>The Site links to websites run by vendors, research sources and other third parties. Their privacy and security practices are theirs; review their privacy information before giving them personal information.</P>

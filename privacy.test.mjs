@@ -63,6 +63,7 @@ ok("no dash", !/[\u2013\u2014]/.test(readFileSync("./PrivacyPolicy.jsx", "utf8")
   ok("governing law is Arizona, where the operator is based (TB, 29 Sep), with courts in Arizona and no arbitration clause", /governed by the laws of the State of Arizona/.test(src) && /courts located in Arizona/.test(src) && !/arbitrat/i.test(src.replace(/\/\/.*$/gm, "")));
   ok("Terms say the site gives no legal, financial or procurement advice and separate engagements take their own agreement", /does not constitute legal, financial/.test(src) && /separate written/.test(src));
   ok("Terms carry a real date and the page is titled Terms of Use", /TERMS_UPDATED = "\d{1,2} [A-Z][a-z]+ 20\d\d"/.test(src) && /Terms of Use<\/h1>/.test(src) && /"\/terms": \{\s*title: `Terms of Use/.test(readFileSync("./src/lib/seo.js", "utf8")));
+  ok("the two documents state one minimum age (18)", /at least 18 years old/.test(src) && /anyone under 18/.test(t) && !/under 16/.test(t));
   ok("no dash in the Terms", !/[\u2013\u2014]/.test(src));
   const forms = { "VendorProfile.jsx": "vendor review", "Contribute.jsx": "contributor proposal", "Contact.jsx": "consultation request", "Corrections.jsx": "correction report", "src/lib/DemoRequest.jsx": "demo request", "ReportActions.jsx": "review request" };
   for (const [f, what] of Object.entries(forms)) ok(`the ${what} form shows the assent notice beside its button`, /<Assent[ />]/.test(readFileSync("./" + f, "utf8")));
