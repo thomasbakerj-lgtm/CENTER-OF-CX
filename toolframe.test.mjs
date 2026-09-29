@@ -106,7 +106,10 @@ section("4. Layout and house rules");
   ok("on a phone the question comes first and the rail follows the result", /760px[\s\S]*\.cx-tf-rail\{order:3\}/.test(SRC));
   ok("the phone bar shows only on a phone, and the page leaves room for it", /\.cx-tf-pin\{display:none\}/.test(SRC) && /760px[\s\S]*\.cx-tf-pin\{display:flex\}[\s\S]*\.cx-tf-pad\{height/.test(SRC));
   const imports = [...SRC.matchAll(/^import .* from "([^"]+)";/gm)].map((m) => m[1]).sort().join();
-  ok("the frame computes nothing: it imports only react, tokens, the shell, the journey graph and icons", imports === "./Icon.jsx,./Shell.jsx,./journey.js,./tokens.js,react", imports);
+  ok("the frame computes nothing: it imports only react, tokens, the shell, the journey graph, icons and the event sender", imports === "./Icon.jsx,./Shell.jsx,./journey.js,./tokens.js,./track.js,react", imports);
+  /* 11-04 (29 Sep): the rail's step links are journey links, so a click on one is a next_step_click from this tool to
+     that step, the same event ReportActions' next step sends. Without it the first-to-second funnel undercounted. */
+  ok("every route rail link sends next_step_click from this tool to its step", /<a href=\{s\.href\} style=\{box\} onClick=\{\(\) => trackTool\.nextStep\(toolId, s\.to\)\}>/.test(SRC));
   const code = SRC.split("\n").filter((l) => !/^\s*\/\//.test(l)).join("\n");
   ok("no colour literal", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(code));
   ok("no dash characters", !new RegExp("[" + String.fromCharCode(0x2013, 0x2014) + "]").test(SRC));

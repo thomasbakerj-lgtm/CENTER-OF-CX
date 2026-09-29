@@ -16,6 +16,7 @@ import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_SANS, FONT_MONO, TYPE_SCALE, alpha,
 import { HEADER_HEIGHT } from "./Shell.jsx";
 import { routeFrom } from "./journey.js";
 import { Icon } from "./Icon.jsx";
+import { trackTool } from "./track.js";
 
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
 const D = PILLARS.diagnostics;
@@ -59,7 +60,7 @@ export function RouteRail({ toolId, choice = null }) {
             background: here ? alpha(D.fill, 0.12) : "transparent", border: `1px solid ${here ? alpha(D.fill, 0.4) : hair}` };
           return (
             <li key={s.to}>
-              {here ? <div aria-current="step" style={box}>{inner}</div> : <a href={s.href} style={box}>{inner}</a>}
+              {here ? <div aria-current="step" style={box}>{inner}</div> : <a href={s.href} style={box} onClick={() => trackTool.nextStep(toolId, s.to)}>{inner}</a>}
             </li>
           );
         })}
