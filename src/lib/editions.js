@@ -1,12 +1,12 @@
 // src/lib/editions.js
 //
-// Special editions of the mark (Brand Guide 1.0 section 5). The everyday mark never changes; on set dates its three arcs
-// carry colours an occasion or community already owns, then return to mist. Only the header draws an edition, and it
+// Special editions of the mark (Brand Guide 1.0 section 5). The everyday mark never changes; on set dates the voice bars
+// carry three colours an occasion or community already owns, in turn, then return to sky. The C stays mist. Only the header draws an edition, and it
 // switches after the page loads (the prerendered page always carries the everyday mark, so hydration never differs).
 // Never on a result, a report, a method page or a vendor page: nothing outside the header reads this file.
 //
 // Adding an edition follows the guide: colours the community recognises, asked of someone from it before publishing;
-// three arcs and the X only; every arc visible on the house (editions.test.mjs checks 3:1 against ink and navy); a start
+// three voice colours and the X only; every colour visible on the house (editions.test.mjs checks 3:1 against ink and navy); a start
 // and end date and one line on why we mark it.
 import { HOUSE, PILLARS } from "./tokens.js";
 
@@ -14,7 +14,7 @@ export const EDITIONS = {
   pillar: {
     name: "Pillar edition",
     use: "Anniversaries, launch weeks and events",
-    arcs: [PILLARS.marketWatch.fill, PILLARS.industries.fill, PILLARS.vendors.fill], // outer, middle, inner: magenta, amber, teal
+    voices: [PILLARS.marketWatch.fill, PILLARS.industries.fill, PILLARS.vendors.fill], // the voice bars in turn: magenta, amber, teal
     x: HOUSE.sky,
   },
 };

@@ -76,27 +76,34 @@ Voice: the voice of the industry, edited by an independent analyst. Outcome firs
 
 ## 4. The mark
 
-Three arcs converge on an X: everything meets at the center. The gap on the right is the way in. Weight and opacity step down
-outward so the eye travels to the decision.
+A solid C, a second C of voice bars, and the X where they meet. The solid C is the contact center. The bars are the voice of
+the customer on every channel: calls, chat, messages, feedback. The X marks the spot where they meet, the center of CX. Read
+together the two Cs and the X spell CCX. Nothing crosses the voice: a stroke through it would read as a break or a mute.
+Chosen by TB, 29 Sep 2026, over seven other concepts and a headset variant (a headset ties the brand to one channel).
 
-- Construction: arcs of radius 30, 44 and 58 on a 120 unit box, opening 120 degrees to the right; weights 5, 3.2 and 2 (display)
-  at 100, 70 and 45 percent; the X in #00AAFF, arms 26, weight 5.5.
-- Lockups: mist arcs with #00AAFF X on navy or ink; navy arcs with #0072BB X on mist or paper. Wordmark in IBM Plex Sans SemiBold.
-- App icon on #13284A with a 26 radius. Below 24 pixels, one heavy arc and the X.
-- Clear space equals the inner arc radius on every side.
-- Never close the rings, rotate the mark, recolour the everyday mark, replace the X, or set it on a bright field.
+- Construction (`src/lib/mark.js`, 120 unit box): the C is radius 24, weight 6.5, opening 57 degrees either side of the
+  right-hand axis. 17 bars sit on radius 42 across 230 degrees, weight 3.4, never inside 32 or outside 52, lengths an uneven
+  speech rhythm. The X spans 18 units, weight 6.5.
+- Small drawing, below 40 pixels (header, footer, favicon, report masthead): 9 bars at weight 6, the C at 9, the X at 9.
+- Colour: on the house, a mist C with the voice and X in #00AAFF; on paper, an ink C with the voice and X in #0072BB. One
+  colour versions in navy or white. Wordmark in IBM Plex Sans SemiBold.
+- Favicon: the small drawing on a navy tile with a 24 radius (`node scripts/favicon.mjs` writes it from the module).
+- Clear space equals the C's radius on every side.
+- Never close the C, rotate the mark, draw anything across the voice, recolour the everyday mark, replace the X, or set it on
+  a bright field. `mark.test.mjs` holds the construction and proves every place draws from the one module.
 
 ## 5. Special editions
 
-The everyday mark never changes. On set dates the arcs carry colours a community or occasion already owns, then return to mist.
+The everyday mark never changes. On set dates the voice bars carry three colours a community or occasion already owns, in
+turn, then return to blue. The C stays mist.
 
-- Current editions: Pillar edition (magenta, amber and teal arcs, #00AAFF X) for anniversaries, launch weeks and events;
+- Current editions: Pillar edition (magenta, amber and teal voice, #00AAFF X) for anniversaries, launch weeks and events;
   CX Day and Customer Service Week in October; Pride in June; Earth Day on 22 April.
 - Calendar to confirm each year: Lunar New Year, Black History Month (US), Women's History Month, Earth Day, AANHPI Heritage Month
   (US), Pride Month and Juneteenth, Disability Pride Month, Hispanic Heritage Month (US, 15 Sep to 15 Oct), CX Day and Customer
   Service Week, Veterans Day, International Day of Persons with Disabilities, our anniversary, a pillar launch.
-- Drawing a new edition: use colours the community recognises and ask someone from it before publishing; three arcs and the X
-  only, no symbols, mascots or slogans; check every arc is visible on navy and say so if a colour is lightened; set start and end
+- Drawing a new edition: use colours the community recognises and ask someone from it before publishing; three voice colours and
+  the X only, no symbols, mascots or slogans; check every colour is visible on navy and say so if a colour is lightened; set start and end
   dates, a changelog entry and one line on why we mark it.
 - Where: header, favicon, social avatars, newsletter masthead, share cards, event slides. Never on a result, report, method page
   or vendor page.

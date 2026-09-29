@@ -1,7 +1,7 @@
 // editions.test.mjs
 //
-// Special editions of the mark (Brand Guide 1.0 section 5; redesign Phase 11). Proves: every edition has three arcs and an
-// X, each visible on the house (3:1 against ink and navy, the non-text contrast floor); the schedule is valid (a known
+// Special editions of the mark (Brand Guide 1.0 section 5; redesign Phase 11). Proves: every edition has three voice
+// colours and an X, each visible on the house (3:1 against ink and navy, the non-text contrast floor); the schedule is valid (a known
 // edition, dates in order, a month at most, no overlap, a line on why) and the rules fire on planted mistakes; the switch
 // picks an edition only inside its dates; the prerendered header always carries the everyday mark (the edition switches
 // after load, so hydration never differs); a Mark drawn with an edition takes its colours; and only the header reads the
@@ -19,13 +19,13 @@ const { renderToString } = require("react-dom/server");
 const E = await import("./src/lib/editions.js");
 const { HOUSE, contrast } = await import("./src/lib/tokens.js");
 
-console.log("\n1. Every edition is three arcs and an X, visible on the house");
+console.log("\n1. Every edition is three voice colours and an X, visible on the house");
 for (const [id, e] of Object.entries(E.EDITIONS)) {
-  ok(`${id}: three arcs and an X`, Array.isArray(e.arcs) && e.arcs.length === 3 && /^#[0-9A-Fa-f]{6}$/.test(e.x) && e.arcs.every((c) => /^#[0-9A-Fa-f]{6}$/.test(c)));
-  for (const c of [...e.arcs, e.x]) ok(`${id}: ${c} is at least 3:1 on ink and on navy`, contrast(c, HOUSE.ink) >= 3 && contrast(c, HOUSE.navy) >= 3, `${contrast(c, HOUSE.ink).toFixed(2)} / ${contrast(c, HOUSE.navy).toFixed(2)}`);
+  ok(`${id}: three voice colours and an X`, Array.isArray(e.voices) && e.voices.length === 3 && /^#[0-9A-Fa-f]{6}$/.test(e.x) && e.voices.every((c) => /^#[0-9A-Fa-f]{6}$/.test(c)));
+  for (const c of [...e.voices, e.x]) ok(`${id}: ${c} is at least 3:1 on ink and on navy`, contrast(c, HOUSE.ink) >= 3 && contrast(c, HOUSE.navy) >= 3, `${contrast(c, HOUSE.ink).toFixed(2)} / ${contrast(c, HOUSE.navy).toFixed(2)}`);
   ok(`${id}: named, with its use`, !!e.name && !!e.use);
 }
-ok("the pillar edition is magenta, amber and teal with the sky X", E.EDITIONS.pillar.arcs.join() === "#F0508C,#F5A524,#12B5A6" && E.EDITIONS.pillar.x === HOUSE.sky);
+ok("the pillar edition is magenta, amber and teal with the sky X", E.EDITIONS.pillar.voices.join() === "#F0508C,#F5A524,#12B5A6" && E.EDITIONS.pillar.x === HOUSE.sky);
 
 console.log("\n2. The schedule");
 ok("the published schedule is valid", E.scheduleProblems().length === 0, E.scheduleProblems().join("; "));
@@ -54,10 +54,10 @@ const m = { exports: {} };
 new Function("module", "exports", "require", r.outputFiles[0].text)(m, m.exports, require);
 const S = m.exports;
 const head = renderToString(React.createElement(S.SiteHeader, {}));
-ok("the prerendered header draws the everyday mark", !E.EDITIONS.pillar.arcs.some((c) => head.includes(c)) && head.includes(HOUSE.mist));
+ok("the prerendered header draws the everyday mark", !E.EDITIONS.pillar.voices.some((c) => head.includes(c)) && head.includes(HOUSE.mist));
 const marked = renderToString(React.createElement(S.Mark, { edition: E.EDITIONS.pillar }));
-ok("a Mark with an edition takes its arc colours", E.EDITIONS.pillar.arcs.every((c) => marked.includes(`stroke="${c}"`)));
-ok("the everyday Mark keeps mist arcs and the sky X", renderToString(React.createElement(S.Mark, {})).includes(`stroke="${HOUSE.mist}"`));
+ok("a Mark with an edition takes its voice colours", E.EDITIONS.pillar.voices.every((c) => marked.includes(`stroke="${c}"`)));
+ok("the everyday Mark keeps the mist C and the sky X", renderToString(React.createElement(S.Mark, {})).includes(`stroke="${HOUSE.mist}"`));
 const SRC = readFileSync("./src/lib/Shell.jsx", "utf8");
 ok("the header switches after load, in an effect", /useEffect\(\(\) => \{ try \{ setEdition\(editionFor\(todayUtc\(\)\)\)/.test(SRC));
 ok("the footer mark never takes an edition", /<Mark size=\{26\} \/>/.test(SRC));

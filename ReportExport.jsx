@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { trackTool, toolIdFromPath } from "./src/lib/track";
 import { HOUSE, PILLARS, ARCS_PRINT, FINDINGS, FONT_FILES } from "./src/lib/tokens";
+import { EVERYDAY, markSvg as markSvg_ } from "./src/lib/mark.js";
 
 /* The paper palette (Brand Guide 1.0, sections 6 and 7): ink on white, the Diagnostics
    on-light blue for labels, the action blue for links, the print finding red only beside
@@ -129,7 +130,7 @@ export function reportHtml({ toolName, subtitle, reportName, company, logo, toda
     return "";
   };
 
-  const markSvg = `<svg class="mark" width="26" height="26" viewBox="-60 -60 120 120" aria-hidden="true"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round" opacity="0.45"/><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linecap="round" opacity="0.7"/><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><line x1="-13" y1="-13" x2="13" y2="13" stroke="${LINK}" stroke-width="7" stroke-linecap="round"/><line x1="13" y1="-13" x2="-13" y2="13" stroke="${LINK}" stroke-width="7" stroke-linecap="round"/></svg>`;
+  const markSvg = markSvg_(EVERYDAY.paper, { size: 26, attrs: 'class="mark" aria-hidden="true"' });
   const howBlock = !how ? "" : how.void
     ? `<div class="how void"><div class="how-label">How sure</div><div class="how-grade">No figure</div><div class="how-line">${e(how.reason || "The inputs made a figure impossible, so none is printed.")}</div></div>`
     : `<div class="how">${evidenceMark(how.axes || {})}<div class="how-text"><div class="how-label">How sure${how.label ? `, ${e(how.label)}` : ""}</div><div class="how-grade">${e(how.headline || "Not stated")}</div>${how.boundBy ? `<div class="how-line">Held by ${e(how.boundBy)}</div>` : ""}</div></div>`;

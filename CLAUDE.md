@@ -1616,6 +1616,18 @@ dashboard, the 12-phase growth program.
    passes, per the eligibility decision). Sweep of every tool's copy for unsourced benchmark wording: none left outside
    registered, labelled planning values.
 
+94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
+   finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
+   mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the
+   voice of the customer on every channel, the X where they meet (CCX). `src/lib/mark.js` is the one geometry: the header and
+   footer `Mark` (Shell.jsx), `public/favicon.svg` (`node scripts/favicon.mjs`, `--check`) and the report masthead
+   (ReportExport.jsx, ink C, action-blue voice and X). Below 40 px a small drawing (9 heavier bars) takes over, so the header,
+   footer, favicon and masthead all use it. Special editions colour the voice bars in turn (`voices`, was `arcs`); the C stays
+   mist. Brand Guide sections 4 and 5 rewritten. `mark.test.mjs` (41): construction, the small switch, colour contrast, every
+   place draws from mark.js, favicon current, three-arc mark gone. Not changed: share cards (text only, no mark) and 27 dead
+   `Logo`/`LogoMark` copies of the old mark left in page files (never rendered; several are md5-pinned tool files). Suite
+   26,846; build and prerender green; browser at 1440 and 390, the edition on 6 Oct and the report masthead checked.
+
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
 
