@@ -117,7 +117,7 @@ export default function ArticleCCaaSCosts() {
             </P>
 
             <P>
-              And here is the stat that haunts me: according to Puzzel's 2026 State of Contact Centers report, only 3 percent of contact centers operate on a single, unified platform. The average organization is running 3.9 different contact center technologies. So even after migration, most organizations end up in a hybrid state that is more complex, not less.
+              And here is the stat that haunts me: according to Puzzel's 2026 State of Contact Centers report, only 3 percent of contact centers operate on a single, unified platform. The average organization is running 3.9 different contact center technologies. So even after migration, most organizations end up in a hybrid state that is more complex than before.
             </P>
 
             <H2>So why does this keep happening?</H2>
@@ -127,7 +127,7 @@ export default function ArticleCCaaSCosts() {
             </P>
 
             <P>
-              The vendor's sales team is compensated on contract value, not on deployment success. The implementation partner bills by the hour, so a longer project is a more profitable project. Your internal champion needs the migration to look like a win, so the post-mortem focuses on what went right rather than what cost more than planned. And by the time the real costs are clear, everyone who approved the original business case has either been promoted or moved to a different company.
+              The vendor's sales team is compensated on contract value. Deployment success does not enter into it. The implementation partner bills by the hour, so a longer project is a more profitable project. Your internal champion needs the migration to look like a win, so the post-mortem focuses on what went right rather than what cost more than planned. And by the time the real costs are clear, everyone who approved the original business case has either been promoted or moved to a different company.
             </P>
 
             <P>
@@ -141,11 +141,11 @@ export default function ArticleCCaaSCosts() {
             </P>
 
             <P>
-              <strong>Build the real TCO, not the vendor's version.</strong> The vendor's TCO model includes their platform costs. Your TCO model needs to include their platform costs plus your integration costs, your internal labor, your training time, your parallel-run period, your productivity dip, your WFM and QM and analytics add-ons, and the cost of the two contractors you will hire in month four when the project falls behind. Use our <a href="/tools/tco-calculator" style={{ color: ELECTRIC, fontWeight: 600 }}>TCO Calculator</a> to build the honest version.
+              <strong>Build the real TCO, your own version of it.</strong> The vendor's TCO model includes their platform costs. Your TCO model needs to include their platform costs plus your integration costs, your internal labor, your training time, your parallel-run period, your productivity dip, your WFM and QM and analytics add-ons, and the cost of the two contractors you will hire in month four when the project falls behind. Use our <a href="/tools/tco-calculator" style={{ color: ELECTRIC, fontWeight: 600 }}>TCO Calculator</a> to build the honest version.
             </P>
 
             <P>
-              <strong>Negotiate the contract knowing what the add-ons will cost.</strong> The base per-seat price is a starting point, not a destination. Before you sign, get written pricing for every module you will need in the first 18 months. Recording. Analytics. QA. WFM. AI features. Get it all in writing, in the initial contract, with rate locks. The vendors who resist this are the ones whose add-on revenue model depends on you not asking.
+              <strong>Negotiate the contract knowing what the add-ons will cost.</strong> The base per-seat price is only a starting point. Before you sign, get written pricing for every module you will need in the first 18 months. Recording. Analytics. QA. WFM. AI features. Get it all in writing, in the initial contract, with rate locks. The vendors who resist this are the ones whose add-on revenue model depends on you not asking.
             </P>
 
             <P>
@@ -171,7 +171,7 @@ export default function ArticleCCaaSCosts() {
             </P>
 
             <P>
-              The fix is not to stop migrating. The fix is to start telling the truth about what migration actually costs, what it actually delivers, and how long it actually takes. And to build business cases that survive contact with reality, not just contact with a boardroom presentation.
+              The fix is not to stop migrating. The fix is to start telling the truth about what migration actually costs, what it actually delivers, and how long it actually takes. And to build business cases that survive contact with reality as well as contact with a boardroom presentation.
             </P>
 
             <P>

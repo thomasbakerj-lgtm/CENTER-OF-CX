@@ -28,7 +28,7 @@ const bench = {
   "retail.bench.aht.cross": fact("11:37", "Average handle time (697 seconds, talk plus wrap), SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "aht"),
   "retail.bench.abandon.retail": none("Abandon rate, retail contact centers", NO_RETAIL, "5%", "staffing"),
   "retail.bench.abandon.cross": fact("6%", "Abandon rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "staffing"),
-  "retail.bench.attrition.retail": none("Annual agent attrition, retail contact centers", `${NO_RETAIL} BLS JOLTS quits for retail trade cover every worker in stores and warehouses, not contact center agents.`, "42%", "attrition"),
+  "retail.bench.attrition.retail": none("Annual agent attrition, retail contact centers", `${NO_RETAIL} BLS JOLTS quits for retail trade cover every worker in stores and warehouses, with no breakout for contact center agents.`, "42%", "attrition"),
   "retail.bench.attrition.cross": fact("34%", "Annual agent turnover, SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "attrition"),
   "retail.bench.containment.retail": none("Self-service containment, retail contact centers", "No regulator, trade body or independent benchmark publishes self-service containment for retail; vendor figures describe their own customers.", "30%", "deflection"),
   "retail.bench.containment.cross": none("Self-service containment, all industries", "No independent public benchmark publishes self-service containment across industries; definitions differ by vendor.", "25%", "deflection"),

@@ -66,6 +66,6 @@ export const OCCUPANCY_MODEL = {
     "Occupancy here is an hourly average. Real queues vary within the hour, so occupancy at peak intervals runs higher than this figure.",
     "The attrition multipliers are planning heuristics. No published study gives the attrition rise at a given occupancy for your operation; use your own exit data where you have it.",
     "Agents at each level ignore service level and shrinkage. The Staffing Calculator sizes both.",
-    "Costs are conditional forecasts under the stated assumptions, not savings or budgets.",
+    "Costs are conditional forecasts under the stated assumptions. Read them as neither savings nor budgets.",
   ],
 };

@@ -147,7 +147,7 @@ export const vendors = {
     redFlags: [
       "Do not overrate Cisco without a real estate or security advantage, the platform competes differently when evaluated standalone",
       "Validate WEM and QA depth for your specific requirements, supplemental vendors may be needed",
-      "Implementation partners should have Webex Contact Center experience, not just broader Cisco expertise",
+      "Implementation partners should have Webex Contact Center experience specifically, beyond broader Cisco expertise",
     ],
     competitors: ["Genesys Cloud CX", "NICE CXone", "Zoom", "RingCentral", "Amazon Connect"],
     competitiveContext: "Cisco competes best when the decision is influenced by security posture, existing Cisco infrastructure, and enterprise consolidation logic. Against Genesys and NICE, Cisco trades broader CCaaS depth for security and collaboration adjacency. Against Zoom and RingCentral, Cisco brings significantly more enterprise gravity.",
@@ -773,9 +773,9 @@ export const vendors = {
     strengths: ["Strong digital service and social engagement capabilities", "AI substance for digital-first service", "Unified platform spanning marketing, service, and engagement"],
     weaknesses: ["Usually not the cleanest pure CCaaS foundation", "Voice and telephony capabilities are secondary to digital"],
     bestFit: "Digital-first service transformation as an overlay to a core CCaaS platform.", notFit: "Standalone CCaaS foundation evaluation.",
-    redFlags: ["Evaluate as adjacent stack, not core CCaaS replacement"],
+    redFlags: ["Evaluate as adjacent stack; do not treat it as a core CCaaS replacement"],
     competitors: ["Zendesk", "Salesforce Service Cloud", "Khoros"],
-    competitiveContext: "Sprinklr competes in the digital engagement and unified CX layer. Should be evaluated alongside, not instead of, a core CCaaS platform.",
+    competitiveContext: "Sprinklr competes in the digital engagement and unified CX layer. Should be evaluated alongside a core CCaaS platform, as a complement to it.",
   },
 
   "salesforce-service": {
@@ -785,7 +785,7 @@ export const vendors = {
     strengths: ["Massive CRM ecosystem and integration gravity", "Service Cloud voice and digital engagement capabilities", "Einstein AI for service predictions and agent assist"],
     weaknesses: ["Too ecosystem-dependent to evaluate as standalone CCaaS", "Telephony requires partner integration (Amazon Connect, etc.)"],
     bestFit: "CRM-first transformation strategy where Salesforce is the system of record.", notFit: "Standalone CCaaS foundation evaluation.",
-    redFlags: ["Track as adjacent platform influence, CCaaS selection should complement, not be driven by, Salesforce alone"],
+    redFlags: ["Track as adjacent platform influence, Salesforce alone should not drive CCaaS selection; the selection should complement it"],
     competitors: ["ServiceNow", "Zendesk", "Microsoft Dynamics"],
     competitiveContext: "Salesforce shapes CCaaS decisions through its CRM gravity. Five9, Talkdesk, and Amazon Connect have the strongest Salesforce integrations among core CCaaS platforms.",
   },
@@ -797,7 +797,7 @@ export const vendors = {
     strengths: ["Workflow orchestration depth that influences CX architecture", "Strong IT/employee/customer service convergence story", "Growing customer service management capabilities"],
     weaknesses: ["Not a standalone CCaaS foundation in most evaluations", "Voice and contact center-specific depth require partner platforms"],
     bestFit: "Workflow-heavy service environments where ServiceNow is already the IT backbone.", notFit: "Standalone CCaaS foundation evaluation.",
-    redFlags: ["Track as adjacent workflow platform, should complement core CCaaS, not replace it"],
+    redFlags: ["Track as adjacent workflow platform, should complement core CCaaS and leave it in place"],
     competitors: ["Salesforce Service Cloud", "Pega", "Microsoft Dynamics"],
     competitiveContext: "ServiceNow influences CCaaS decisions through its workflow gravity. Organizations heavily invested in ServiceNow should evaluate which CCaaS platforms integrate most cleanly.",
   },

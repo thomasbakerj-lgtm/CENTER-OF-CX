@@ -113,5 +113,33 @@ console.log("\n6. Retired unsourced figures stay retired");
   ok("Advisory's vendor count is derived", /\$\{VENDOR_PROFILE_COUNT\} vendor profiles/.test(readFileSync("Advisory.jsx", "utf8")));
 }
 
+/* 7. The "X, not Y" cadence (fix list item 8, TB 29 Sep 2026: "Go"). 342 matches were rewritten to say what a thing is.
+   Outside comments, only these may remain, each for a stated reason; any new one fails. */
+{
+  const ALLOWED = [
+    ["BusinessCaseBuilder.jsx", "not a measured outcome"],        // doctrine claim classes; pinned by bcb.test
+    ["ChannelShiftModel.jsx", "capacity, not headcount"],         // pinned by channel.report
+    ["Research.jsx", "not yet researched"],                       // the Phase 1 label (TB, S22); pinned by freeze.test
+    ["src/lib/researchStatus.js", "not yet researched"],          // the same label, twice
+    ["TermsOfService.jsx", "not necessarily those of"],           // approved legal text
+    ["src/lib/benchmarks.js", "not a published median"],          // pinned by tco.test
+    ["src/lib/categoryRegistry.js", "not current evidence"],      // internal registry note, CLAUDE.md section 7 wording
+    ["src/lib/claims/originality.js", "not fetched"],             // originality records, never rendered
+    ["src/lib/rubrics/contractRisk.js", "not attested"],          // an option value scenario links store
+    ["src/lib/rubrics/qaScorecard.js", "not just symptom"],       // criterion text the QA form fingerprint hashes
+    ["src/lib/verticalsContent.js", "not a nice-to-have"],        // considerationsDraft: lineage, never rendered
+  ];
+  const files = execSync("git ls-files '*.js' '*.jsx'", { encoding: "utf8" }).split("\n").filter((f) => f && !/\.(test|report)\.|^scripts\/|node_modules|^dist/.test(f));
+  const found = [];
+  for (const f of files) {
+    let t = readFileSync(f, "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+    t = t.split("\n").filter((l) => !/^\s*(\/\/|\*|\{\/\*)/.test(l)).join("\n").replace(/(?<![:"'])\/\/.*/g, "");
+    for (const m of t.matchAll(/[^\n]{0,50}, not (a |an |the )?[a-zA-Z]+[^\n]{0,30}/g)) found.push([f, m[0].trim()]);
+  }
+  const stray = found.filter(([f, line]) => !ALLOWED.some(([af, frag]) => af === f && line.includes(frag)));
+  ok('no new "X, not Y" sentence outside comments and the allowlist', stray.length === 0, stray.slice(0, 5).map(([f, l]) => `${f}: ${l}`).join(" | "));
+  ok("the allowlist is not stale: every entry still matches", ALLOWED.every(([af, frag]) => found.some(([f, l]) => f === af && l.includes(frag))));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

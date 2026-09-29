@@ -48,7 +48,7 @@ export default function WEMCategory() {
         <FadeIn>
           <span style={{ color: RED, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Demo Gates</span>
           <h2 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 12px" }}>Five gates every vendor demo must pass.</h2>
-          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 24 }}>Polished demos hide weak exception handling, unexplainable AI, and hidden admin burden. These gates force vendors to prove operational readiness, not just feature existence.</p>
+          <p style={{ fontSize: 14, color: MUTED, maxWidth: 600, marginBottom: 24 }}>Polished demos hide weak exception handling, unexplainable AI, and hidden admin burden. These gates force vendors to prove operational readiness as well as feature existence.</p>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {demoGates.map((dg, i) => (

@@ -31,7 +31,7 @@ const bench = {
   "fs.bench.aht.cross": fact("11:37", "Average handle time (697 seconds, talk plus wrap), SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "aht"),
   "fs.bench.abandon.fs": fact("12% (Tier I) and nearly 18% (Tier II)", `Call abandonment at retail banks, Tier I and Tier II banks globally; ${CAP_POP}`, CAPGEMINI_WRBR, "staffing"),
   "fs.bench.abandon.cross": fact("6%", "Abandon rate, SQM's stated call center industry standard, all industries", SQM_KPI_2023, "staffing"),
-  "fs.bench.attrition.fs": none("Annual agent attrition, financial services contact centers", `${NO_FS} BLS JOLTS quits for finance and insurance cover every worker in the sector, not contact center agents.`, "28%", "attrition"),
+  "fs.bench.attrition.fs": none("Annual agent attrition, financial services contact centers", `${NO_FS} BLS JOLTS quits for finance and insurance cover every worker in the sector, with no breakout for contact center agents.`, "28%", "attrition"),
   "fs.bench.attrition.cross": fact("34%", "Annual agent turnover, SQM's 2024 benchmarking participants, all industries", SQM_FCR_2024, "attrition"),
   "fs.bench.containment.fs": none("Self-service containment, financial services contact centers", "No regulator, trade body or independent benchmark publishes self-service containment for financial services; vendor figures describe their own customers.", "20%", "deflection"),
   "fs.bench.containment.cross": none("Self-service containment, all industries", "No independent public benchmark publishes self-service containment across industries; definitions differ by vendor.", "25%", "deflection"),

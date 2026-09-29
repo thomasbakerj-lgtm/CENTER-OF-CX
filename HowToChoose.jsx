@@ -55,7 +55,7 @@ const CATEGORIES = [
       { title: "CX Maturity Assessment", desc: "Strategy, ops, tech, analytics, governance. 25 questions. Tier classification.", href: "/tools/cx-maturity" },
       { title: "AI Readiness Diagnostic", desc: "Whether your data, workflows, and governance are ready for AI.", href: "/tools/ai-readiness" },
     ]},
-  { id: "framework", label: "Frameworks + Planning", color: HOUSE.sky2, desc: "Build the plan, not just the score",
+  { id: "framework", label: "Frameworks + Planning", color: HOUSE.sky2, desc: "Build the plan as well as the score",
     tools: [
       { title: "CX-IT Alignment Framework", desc: "Bridge the gap between experience vision and tech execution.", href: "/tools/cx-it-alignment" },
       { title: "Governance + Operating Model", desc: "Who owns what across CX strategy, ops, and AI.", href: "/tools/governance-model" },
