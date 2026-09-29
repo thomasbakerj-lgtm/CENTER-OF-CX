@@ -1698,6 +1698,21 @@ dashboard, the 12-phase growth program.
    - 26 unused copies of the retired three-arc mark removed; four tools carry an `@helpers-end` slice marker; `mark.test.mjs`
      refuses the old mark. Suite 26,975; build green; local live check 256 of 256; browser at 1440 and 390 clean.
    Next from the list: item 7 (source the 77 category by industry pages) and item 8 (the "X, not Y" pass).
+   PR #90 merged by TB's instruction (3466a83).
+100. S24 (29 Sep), fix list item 7 (TB: "Validate and source the research on these pages"): the 70 category by industry
+   pages outside CCaaS (7 categories by 10 industries; CCaaS has its own research pages) all render one industry paragraph and
+   one chip list from the shared data. Each paragraph is rewritten in our own words around figures already sourced in the
+   claims registry (items 36 and 37), rendered by ClaimText with a sources list: HIPAA penalties, referral completion,
+   Regulation E, returns, CPNI, claim acknowledgment, catastrophe losses, DOT refunds and EU 261, Section 508 and ADA
+   Title II, EIA outage hours, PHMSA gas procedures, warranty claims, NHTSA Part 573, FERPA and Title IV. Retired with no
+   source: "20-30% longer" handle time, "7+ minutes", "40-50%", "8-10x", "60-70%", "5-20x", "3-5x", "99.999%", "12-24
+   months", and the verdicts ("top CX killer", "strictest", "highest-ROI"). The chips became "Rules and standards buyers ask
+   about": 21 rules in `RULES`, each linked to its publisher's page with its kind and how it was checked (17 read on 29
+   Sep; FFIEC, NAIC, ISO and FBI CJIS refuse this network and link their own addresses); operating wishes ("Seasonal 10x
+   scale", "Multi-currency", "24/7 global coverage", "99.999% availability") and vague entries are gone; StateRAMP is
+   GovRAMP. The hero no longer says vendors were "evaluated" for the industry. Content lives in `src/lib/verticalsContent.js`
+   (loaded only by the page), so the entry chunk fell from 276,174 to 268,346 bytes; the pre-audit text stays there as
+   drafts for lineage. `catvertical.test.mjs` (150, registered). Suite 27,125; browser at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
