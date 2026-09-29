@@ -379,8 +379,8 @@ Binding. None of this is in code comments beyond what is noted.
 
 **Rail and confidence**
 - ~~TCO publishes `analystRead`, a verdict on the rail.~~ Fixed S24: the rail refuses verdict keys (item 77).
-- ~~TCO `marginalPerContact` uses 1.30x.~~ Moved to `load.marginal` 1.18 S23 (P3 10). Still at the loaded rate: TCO's AHT
-  lever and BCB's derived marginal (ask TB).
+- ~~TCO `marginalPerContact` uses 1.30x.~~ Moved to `load.marginal` 1.18 S23 (P3 10). ~~TCO's AHT lever and BCB's derived
+  marginal at the loaded rate.~~ Moved S24 (TB: go): TCO method 1.4, Business Case method 1.3 (item 99).
 - Every rail publisher sends origin grades: TCO, AHT Decomposition, Shrinkage and Occupancy per field; Staffing, CPC, FCR,
   AID and Channel at their evidence grade (S24, item 79).
 - ~~CPC, Channel, FCR, AID still pull via `getPrimitiveWithSource`.~~ Fixed S24 (item 78): every pull is external.

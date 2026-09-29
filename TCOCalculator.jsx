@@ -403,7 +403,7 @@ function computeTCO(dIn, stanceKey = "expected") {
   return {
     d, guards,
     loaded, labor, tech, overhead, monthly, annual, agents, contacts,
-    costPerContact, costPerResolution, costPerHuman, marginalPerContact, marginalLoad, humanContacts,
+    costPerContact, costPerResolution, costPerHuman, marginalPerContact, marginalPerMin, marginalLoad, humanContacts,
     monthlyHires, attritionCost, voiceMinutes, perHire,
     laborPct: labor / (monthly || 1), techPct: tech / (monthly || 1), overheadPct: overhead / (monthly || 1),
     disp: buildDisplay(breakdown, monthly),
@@ -447,7 +447,7 @@ function buildOptimizations(d, r, stanceKey) {
   const targetAht = n(d.targetAht);
   if (n(d.aht) > targetAht && pool > 0) {
     const minSaved = (n(d.aht) - targetAht) / 60;
-    const gross = minSaved * pool * (r.loaded / 60);
+    const gross = minSaved * pool * r.marginalPerMin; // method 1.4: the shared marginal load (J10), as the other two levers
     out.push({ key: "aht", title: "Reduce average handle time", gross, net: gross * f,
       desc: `Bring AHT ${mmss(d.aht)} to ${mmss(targetAht)} across ${Math.round(pool).toLocaleString()} agent-handled contacts per month (after deflection). Applied only to contacts agents still handle, so deflected volume is counted once.` });
   }
@@ -474,7 +474,7 @@ function buildOptimizations(d, r, stanceKey) {
 function marginalLoadLine(d, r) {
   const full = 1 + n(d.agentBenefitsPct);
   const more = r.marginalLoad > 0 ? Math.round((full / r.marginalLoad - 1) * 100) : 0;
-  return `Deflection and repeat savings value agent time at the wage times ${r.marginalLoad.toFixed(2)}, the marginal load, and unit costs at the loaded ${full.toFixed(2)}. Capturing the saving by not backfilling seats removes benefits too${more > 0 ? `, about ${more}% more on those two levers` : ""}.`;
+  return `Deflection, repeat and handle-time savings value agent time at the wage times ${r.marginalLoad.toFixed(2)}, the marginal load, and unit costs at the loaded ${full.toFixed(2)}. Capturing the saving by not backfilling seats removes benefits too${more > 0 ? `, about ${more}% more on those three levers` : ""}.`;
 }
 
 function buildAnalystRead(d, r, opt, stanceKey) {

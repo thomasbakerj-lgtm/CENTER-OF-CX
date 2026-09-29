@@ -1,4 +1,4 @@
-/* TCO Calculator, version 1.1. A calculator method (kind "calc").
+/* TCO Calculator, version 1.4. A calculator method (kind "calc").
  *
  * Published at /methodology/tco-calculator from this object. The engine lives inside
  * TCOCalculator.jsx, so this page carries its worked example as pins, and
@@ -19,7 +19,7 @@ export const TCO_PINS = {
   annual: 16703993.568, costPerContact: 11.6, costPerResolution: 15.08, marginalPerContact: 2.8313,
   monthlyHires: 7, perHire: 8202.152, attritionCost: 57415.064, telephony: 9487.5, seats: 229,
   y2: 17312557.59, y3: 17944398.30, threeYear: 51960949.46, perAgentMonth: 6960.00,
-  optGross: 76000, optNet: 54000,
+  optGross: 74000, optNet: 52000,
 };
 const P = TCO_PINS;
 const STANCES = "none 0%, conservative 50%, expected 70%, aggressive 100%";
@@ -28,7 +28,7 @@ export const TCO_MODEL = {
   id: "tco-calculator",
   kind: "calc",
   title: "TCO Calculator",
-  version: "1.3",
+  version: "1.4",
   published: "2026-09-29",
   route: "/tools/tco-calculator",
   methodology: "/methodology/tco-calculator",
@@ -41,7 +41,7 @@ export const TCO_MODEL = {
     { name: "Telephony", formula: "Contacts × voice share × (AHT − after-call work) ÷ 60 × price per minute", note: "Billed on line-open minutes; the agent is still paid for after-call work." },
     { name: "Technology", formula: "Seats × (CCaaS + WEM + CRM seat prices) + AI usage + analytics + iPaaS + recording + knowledge + security + telephony", note: "Seats are agents, supervisors, QA and WFM." },
     { name: "Overhead", formula: "Cloud infrastructure + amortized professional services + facilities + attrition", note: "" },
-    { name: "Unit costs", formula: "Cost per contact = monthly TCO ÷ contacts. Cost per resolution = cost per contact × (2 − FCR). Marginal per contact = AHT minutes × wage × the marginal load (" + b("load.marginal") + ", never above the loaded rate entered) per minute + voice share × line-open minutes × telephony price", note: "Cost per resolution uses the one-plus-repeat model. Unit costs stay on the loaded rate; deflection and repeat savings are valued at the marginal cost. Capturing them by not backfilling seats removes benefits too, about " + Math.round((b("load.benefits") / b("load.marginal") - 1) * 100) + "% more at the opening loads." },
+    { name: "Unit costs", formula: "Cost per contact = monthly TCO ÷ contacts. Cost per resolution = cost per contact × (2 − FCR). Marginal per contact = AHT minutes × wage × the marginal load (" + b("load.marginal") + ", never above the loaded rate entered) per minute + voice share × line-open minutes × telephony price", note: "Cost per resolution uses the one-plus-repeat model. Unit costs stay on the loaded rate; deflection, repeat and handle-time savings are valued at the marginal load. Capturing them by not backfilling seats removes benefits too, about " + Math.round((b("load.benefits") / b("load.marginal") - 1) * 100) + "% more at the opening loads." },
     { name: "Three years", formula: "Year one = annual. Years two and three escalate labor and attrition at the wage rate and contracted software at the license rate; telephony and facilities stay flat. Plus any one-time implementation, once", note: "A single blended rate is offered but misstates a labor-heavy base." },
     { name: "Optimizations", formula: "Containment: deflected contacts × marginal. FCR: avoided repeats on the handled pool × marginal. AHT: seconds saved × remaining handled contacts × loaded per minute. Attrition: fewer hires × cost per hire. Each × the stance", note: "Applied in order so no contact is counted twice; rounded to the nearest $1,000. Stances: " + STANCES + "." },
   ],

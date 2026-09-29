@@ -7,6 +7,24 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-29", methods: ["business-case-builder"], version: "1.3",
+    title: "Business Case: savings valued on the shared marginal load",
+    changes: [
+      "Deflected and repeat contacts, handle time and the trainee time that lower attrition frees are now valued at the wage times the shared marginal load (1.18, never above the loaded rate you enter). They were valued at the fully loaded rate, which counts benefits that stay in place when a contact goes away.",
+      "Costs stay on the loaded rate, and recruiting cash avoided is unchanged.",
+      "At the opening case with hiring avoidance, net realizable savings move from $1,039,240 to $946,250 a year, the three-year return from 23% to 12%, and payback from month 30 to month 32. With no capacity action the net is unchanged at $31,850.",
+      "Grades are unchanged: the load moves figures, never evidence.",
+    ],
+  },
+  {
+    date: "2026-09-29", methods: ["tco-calculator"], version: "1.4",
+    title: "TCO: handle-time savings valued on the shared marginal load",
+    changes: [
+      "The handle-time lever now values freed agent minutes at the wage times the shared marginal load (1.18), the same rate as the deflection and repeat levers. It used the fully loaded rate.",
+      "At the opening case, modelled savings move from $76,000 to $74,000 a month gross ($54,000 to $52,000 at the expected stance). Costs, unit costs and grades are unchanged.",
+    ],
+  },
+  {
     date: "2026-09-29", methods: ["tco-calculator"], version: "1.3",
     title: "TCO: industry profile wages move to BLS medians where BLS publishes them",
     changes: [
