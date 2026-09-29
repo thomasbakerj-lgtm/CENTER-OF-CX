@@ -323,11 +323,11 @@ export const SEO_MAP = {
   },
   "/privacy": {
     title: `Privacy Policy | ${SITE}`,
-    desc: "How The Center of CX handles your data. No vendor access to user data. No advertising cookies. No third-party tracking.",
+    desc: "How The Center of CX collects, uses and protects personal information: what tools keep in your browser, what forms send, who processes it and the choices you have.",
   },
   "/terms": {
-    title: `Terms of Service | ${SITE}`,
-    desc: "Terms governing use of The Center of CX. Tool disclaimers, vendor assessment independence, intellectual property, and liability limitations.",
+    title: `Terms of Use | ${SITE}`,
+    desc: "The terms for using The Center of CX: research and tools as decision support, no guaranteed outcomes, vendor information and introductions, submissions, intellectual property and liability.",
   },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management: 25 Vendors Profiled | ${SITE}`,

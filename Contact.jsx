@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Assent } from "./src/lib/Assent.jsx";
 import { readIntro, INTRO_TOPIC } from "./src/lib/intro.js";
 import { trackVendor } from "./src/lib/track.js";
 import { HOUSE, PILLARS, LINE, FINDINGS, alpha } from "./src/lib/tokens.js";
@@ -266,6 +267,7 @@ function ContactPage() {
                     <p style={{ fontSize: 12, color: MUTED, textAlign: "center", margin: 0, fontFamily: FONT }}>
                       We'll respond within one business day. No spam, no vendor hand-offs without your permission.
                     </p>
+                    <Assent align="center" />
                   </div>
                 </div>
               )}

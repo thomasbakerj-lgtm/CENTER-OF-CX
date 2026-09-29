@@ -1615,6 +1615,49 @@ dashboard, the 12-phase growth program.
    now carry the panel; Forecast Accuracy, Business Case and the frameworks stay without one (no published figure that
    passes, per the eligibility decision). Sweep of every tool's copy for unsourced benchmark wording: none left outside
    registered, labelled planning values.
+   PR #85 merged by TB's instruction (8c56212).
+94. S24 (29 Sep), site audit item 1 (TB: take the audit findings one at a time): the 7-Layer CX Orchestration Framework
+   download returned 404 on production after the reader gave name and email (the file was committed as
+   "CX-Orchestration-Framework-2026 (1).pdf"). The April document itself carried unsourced figures (2% QA sample, 10%
+   forecast gap, 20% and 50% thresholds), retired wording ("Industry-Leading", "competitive advantage", "table stakes"),
+   forecasts, a vendor statistic, an out of date EU AI Act date and links to retired tools. TB chose a rebuild.
+   `src/lib/frameworkGuide.js` (content as data: seven layers named as the site names them, each with what it does, who
+   usually owns it, three questions, what to check first, what fails, the diagnostics that test it, and published figures
+   only through comparison groups with their sources), `src/lib/frameworkHtml.js` (pure page), `scripts/framework-pdf.mjs`
+   (prints it with Chromium and self-hosted Plex to public/CX-Orchestration-Framework-2026.pdf, 14 pages, and records page
+   and file hashes in `src/data/frameworkGuide.manifest.json`). Readiness checklist: any statement at 2 or below is an
+   action; no total or band. Download page copy updated. `framework.test.mjs` (62): every gated file exists, the PDF was
+   printed from the current content (a content change without a reprint fails, proven), house rules, live links.
+   Reprint after any content change: `CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/framework-pdf.mjs`.
+95. S24 (29 Sep), Privacy Policy hardened from TB's legal review notes (LegalZoom general information: describe practices
+   accurately, no promises the code does not prove, legal bases, retention criteria, processors named). Facts checked in
+   the code first: scenario links use the query string (`?s=`), so opening one sends its inputs to the host, whose logs may
+   keep them (TB: keep the format; the policy warns); analytics send the path only; PostHog is called without its library
+   (no autocapture or replay), person profiles off, random id in local storage and visit id in session storage, and TB
+   confirms "Discard client IP data" is on; mail is Google Workspace (the domain's MX records); no other processor (TB);
+   vendor reviews are not published anywhere. Operator: sole proprietorship based in the United States (TB: not formed
+   yet; no name, as on About). Policy dated 29 September 2026: no "By using the Site"; tools "designed to" process inputs
+   in the browser; scenario link warning; sensitive information warning; reviews not published and email never public;
+   processors named (Vercel, PostHog, Formspree, Google Workspace, GitHub); introductions: the vendor handles what it
+   receives under its own practices; marketing apart from requests ("occasional related updates" removed); retention by
+   category; rights with appeal and agent; EEA and UK legal bases; transfers; reasonable safeguards (the "strict content
+   security policy" and "no passwords to protect" promises removed); children; other websites. The tool frame and About
+   now say numbers stay in the tab unless you ask for a review or share a scenario link. `privacy.test.mjs` 23.
+   Before the first newsletter: a postal address is needed in the email footer (US commercial email rules). Next: Terms of
+   Use, per TB's notes.
+96. S24 (29 Sep), Terms of Use from TB's legal review draft (LegalZoom general information, not legal advice), with TB's four
+   items: (1) entity and jurisdiction: operator named as in the Privacy Policy (sole proprietorship based in the United
+   States; no entity formed), no placeholder published, governing law and venue left out until TB and counsel decide;
+   (2) visible assent: `src/lib/Assent.jsx` ("By submitting, you agree to the Terms of Use and acknowledge the Privacy
+   Policy.") beside the submit button on vendor reviews, contributor proposals, consultation requests, research
+   corrections, demo requests and review requests (notice, no checkbox; TB and counsel may switch to a checkbox);
+   (3) separate commercial terms: the Terms say paid engagements take their own written agreement; (4) no arbitration
+   clause. `TermsOfService.jsx` renders TERMS_SECTIONS (27 sections; disclaimers set in capitals by CSS, so the source stays
+   readable); section 3 says the Phase 1 scores are withdrawn and none shows today; section 12 notes that publishing a
+   method does not license its reuse. Page title "Terms of Use"; /privacy and /terms descriptions no longer claim "No
+   third-party tracking". `privacy.test.mjs` 37.
+   TB (29 Sep): the operator is based in Arizona. Both documents say "a sole proprietorship based in Arizona, United
+   States"; Terms section 22, governing law: Arizona law, courts located in Arizona (no county named; counsel to confirm).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.

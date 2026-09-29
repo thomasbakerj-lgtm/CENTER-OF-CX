@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useId } from "react";
+import { Assent } from "./src/lib/Assent.jsx";
 import ReportExport from "./ReportExport";
 import { scenarioLink, inputsMoved } from "./src/lib/scenarioUrl";
 import { FONT, TYPE } from "./src/lib/type";
@@ -604,6 +605,7 @@ export default function ReportActions({
               style={{ ...primaryBtn(!validEmail(email)), marginTop: 6 }}>
               {reviewState === "sending" ? "Sending" : "Send results and request a review"}
             </button>
+            <Assent tone="paper" />
 
             {reviewState === "error" && (
               <p style={{ fontSize: 12, color: RED, marginTop: 8 }}>

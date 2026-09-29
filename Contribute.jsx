@@ -4,6 +4,7 @@
 // inbox as every other request (Formspree, already an allowed host and named in the Privacy Policy); nothing is
 // published from it until the piece is reviewed. Tokens only.
 import { useState } from "react";
+import { Assent } from "./src/lib/Assent.jsx";
 import { HOUSE, PILLARS, RADIUS, TOUCH } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
 import { K } from "./src/lib/frameKit.jsx";
@@ -105,6 +106,7 @@ export default function Contribute() {
                   <Button type="submit" disabled={state === "sending"}>{state === "sending" ? "Sending" : "Send the proposal"}</Button>
                   {state === "failed" && <span role="alert" style={K.small}>The proposal did not send. Please try again.</span>}
                 </div>
+                <Assent />
               </form>
             )}
         </section>

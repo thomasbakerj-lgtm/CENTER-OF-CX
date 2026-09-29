@@ -67,7 +67,7 @@ export const RULES = [
 /* What happens to a visitor's data. */
 export const DATA = [
   "No sign-in and no email to use any diagnostic or download its report.",
-  "The numbers you enter stay in your browser tab unless you send them to us for a review.",
+  "The numbers you enter stay in your browser tab unless you send them to us for a review or share a scenario link, which carries them in its address.",
   "Usage is counted anonymously: which pages and tools are used, never the figures you enter.",
 ];
 
