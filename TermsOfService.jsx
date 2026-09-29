@@ -4,8 +4,8 @@
 // Terms do the liability work the Privacy Policy should not: research and ratings, calculators and assessments, no
 // guarantee of outcomes, vendor information and introductions, submissions, intellectual property, acceptable use,
 // warranties and liability. The operator is named as the Privacy Policy names it (a sole proprietorship; no entity
-// formed yet). Governing law and venue are left out until TB and counsel decide them, and arbitration is left out on
-// purpose (TB's notes). Separate paid engagements take their own written agreement. Content is data (TERMS_SECTIONS) so
+// formed yet). Governing law is Arizona, where the operator is based (TB, 29 Sep 2026; counsel to confirm), and arbitration is left out
+// on purpose (TB's notes). Separate paid engagements take their own written agreement. Content is data (TERMS_SECTIONS) so
 // terms.page checks in privacy.test.mjs read what renders. Tokens only.
 import { useEffect } from "react";
 import { HOUSE, PILLARS } from "./src/lib/tokens.js";
@@ -21,7 +21,7 @@ export const TERMS_UPDATED = "29 September 2026";
 export const TERMS_SECTIONS = [
   { h: null, blocks: [
     "These Terms of Use (\"Terms\") govern your access to and use of contactcentercx.com and the tools, calculators, assessments, research, reports, vendor profiles, frameworks, content and other features made available through it (the \"Site\").",
-    "The Site is operated by its founder as a sole proprietorship based in the United States, doing business as The Center of CX (\"The Center of CX\", \"we\", \"us\" or \"our\").",
+    "The Site is operated by its founder as a sole proprietorship based in Arizona, United States, doing business as The Center of CX (\"The Center of CX\", \"we\", \"us\" or \"our\").",
     "By accessing or using the Site, you agree to these Terms. If you do not agree, do not use the Site.",
     "Certain services, advisory engagements, paid products, research arrangements or other offerings may be governed by separate written terms. If separate terms conflict with these Terms, the separate terms control for that specific service.",
   ] },
@@ -175,23 +175,27 @@ export const TERMS_SECTIONS = [
   { h: "21. Copyright and rights complaints", blocks: [
     "If you believe material on the Site infringes your copyright, trademark or other rights, contact us at hello@contactcentercx.com with enough information to identify the material and the basis for your request. We may request additional information before taking action. Nothing in this section represents that we have adopted any particular statutory safe-harbor procedure unless expressly stated elsewhere.",
   ] },
-  { h: "22. Changes to these Terms", blocks: [
+  { h: "22. Governing law", blocks: [
+    "These Terms are governed by the laws of the State of Arizona, without regard to conflict-of-law principles, except where applicable law requires otherwise.",
+    "Subject to any mandatory rights available under applicable law, legal proceedings arising from or relating to these Terms or the Site will be brought in the state or federal courts located in Arizona, and you and The Center of CX consent to the jurisdiction of those courts.",
+  ] },
+  { h: "23. Changes to these Terms", blocks: [
     "We may update these Terms as the Site, our services or applicable requirements change. The \"Last updated\" date identifies the most recent revision. Material changes may also be communicated through the Site or another reasonable method.",
     "Your continued use of the Site after revised Terms become effective constitutes acceptance of the revised Terms to the extent permitted by applicable law. If you do not agree to revised Terms, you should stop using the Site.",
   ] },
-  { h: "23. Severability", blocks: [
+  { h: "24. Severability", blocks: [
     "If any provision of these Terms is found unenforceable, the remaining provisions will remain in effect to the maximum extent permitted by law. The unenforceable provision will be interpreted or modified only to the extent necessary to make it enforceable where permitted.",
   ] },
-  { h: "24. No waiver", blocks: [
+  { h: "25. No waiver", blocks: [
     "Our failure to enforce a provision of these Terms does not waive our right to enforce it later. A waiver is effective only if made expressly in writing by The Center of CX.",
   ] },
-  { h: "25. Assignment", blocks: [
+  { h: "26. Assignment", blocks: [
     "You may not assign or transfer your rights or obligations under these Terms without our written consent. We may assign these Terms in connection with a merger, acquisition, reorganization, sale of assets or similar business transaction, subject to applicable law.",
   ] },
-  { h: "26. Entire agreement", blocks: [
+  { h: "27. Entire agreement", blocks: [
     "These Terms, together with the Privacy Policy and any additional terms expressly applicable to a particular Site feature, constitute the agreement between you and The Center of CX regarding use of the Site. They do not replace a separate written agreement governing consulting, advisory, paid research or other professional services.",
   ] },
-  { h: "27. Contact", blocks: [
+  { h: "28. Contact", blocks: [
     "Questions about these Terms: hello@contactcentercx.com, or use the contact page (/contact). The Center of CX, contactcentercx.com.",
   ] },
 ];

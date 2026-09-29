@@ -37,7 +37,7 @@ ok("says tools are designed to process inputs in the browser and analytics are b
 ok("warns that scenario links carry inputs in the address, reach the host when opened and may be logged", /carries the inputs of a tool in the web address itself/.test(t) && /request logs may record it/.test(t) && /Do not put confidential information/.test(t));
 ok("asks readers not to send sensitive information", /Please do not send sensitive information/.test(t) && /passwords, medical or health information/.test(t));
 ok("describes the practice, not a contract: no 'By using the Site'", !/By using the Site/.test(t) && /our Terms of Use govern/.test(t));
-ok("names the operator form and every processor, Google Workspace included", /sole proprietorship/.test(t) && ["Vercel", "PostHog", "Formspree", "Google Workspace", "GitHub"].every((n) => t.includes(n)));
+ok("names the operator form and every processor, Google Workspace included", /sole proprietorship based in Arizona/.test(t) && ["Vercel", "PostHog", "Formspree", "Google Workspace", "GitHub"].every((n) => t.includes(n)));
 ok("states PostHog discards IP addresses and runs without its browser library", /set to discard IP addresses/.test(t) && /without PostHog's browser library/.test(t) && !/may use your IP address to estimate/.test(t));
 ok("keeps marketing apart from requests: no bundled 'related updates'", !/occasional related updates/.test(t) && /does not subscribe you/.test(t));
 ok("says vendor reviews are not published and names the email as never public", /not published on the Site today/.test(t) && /Your email address is never published/.test(t));
@@ -59,8 +59,8 @@ ok("no dash", !/[\u2013\u2014]/.test(readFileSync("./PrivacyPolicy.jsx", "utf8")
     ["Research, ratings and analysis", "Calculators, assessments and decision-support tools", "No guarantee of outcomes", "Intellectual property", "Disclaimer of warranties", "Limitation of liability"].every((h) => heads.includes(h)));
   ok("Terms also cover vendor information, introductions, submissions, reviews, acceptable use, indemnity and eligibility",
     ["Vendor information", "Vendor introductions", "User submissions", "Vendor reviews", "Acceptable use", "Indemnification", "Eligibility"].every((h) => heads.includes(h)));
-  ok("Terms name the operator as the Privacy Policy does, and publish no placeholder", /sole proprietorship based in the United States/.test(src) && !/\[(LEGAL|STATE|COUNTY|BUSINESS)/.test(src));
-  ok("no governing-law or venue clause until TB and counsel decide, and no arbitration clause", !/Governing law|governed by the laws of|arbitrat/i.test(src.replace(/\/\/.*$/gm, "")));
+  ok("Terms name the operator as the Privacy Policy does, and publish no placeholder", /sole proprietorship based in Arizona, United States/.test(src) && !/\[(LEGAL|STATE|COUNTY|BUSINESS)/.test(src));
+  ok("governing law is Arizona, where the operator is based (TB, 29 Sep), with courts in Arizona and no arbitration clause", /governed by the laws of the State of Arizona/.test(src) && /courts located in Arizona/.test(src) && !/arbitrat/i.test(src.replace(/\/\/.*$/gm, "")));
   ok("Terms say the site gives no legal, financial or procurement advice and separate engagements take their own agreement", /does not constitute legal, financial/.test(src) && /separate written/.test(src));
   ok("Terms carry a real date and the page is titled Terms of Use", /TERMS_UPDATED = "\d{1,2} [A-Z][a-z]+ 20\d\d"/.test(src) && /Terms of Use<\/h1>/.test(src) && /"\/terms": \{\s*title: `Terms of Use/.test(readFileSync("./src/lib/seo.js", "utf8")));
   ok("no dash in the Terms", !/[\u2013\u2014]/.test(src));

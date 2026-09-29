@@ -48,7 +48,7 @@ export default function PrivacyPolicy() {
 
       <section style={{ padding: "24px 0 72px" }}>
         <div style={WRAP}>
-          <P>The Center of CX ("The Center of CX", "we", "us" or "our") is operated by its founder as a sole proprietorship based in the United States. This Privacy Policy explains how we collect, use, disclose and protect personal information when you use contactcentercx.com and pages that link to this policy (the "Site"). It describes our practices; our <A href="/terms">Terms of Use</A> govern your use of the Site.</P>
+          <P>The Center of CX ("The Center of CX", "we", "us" or "our") is operated by its founder as a sole proprietorship based in Arizona, United States. This Privacy Policy explains how we collect, use, disclose and protect personal information when you use contactcentercx.com and pages that link to this policy (the "Site"). It describes our practices; our <A href="/terms">Terms of Use</A> govern your use of the Site.</P>
 
           <S id="summary">The short version</S>
           <L items={[

@@ -1656,6 +1656,8 @@ dashboard, the 12-phase growth program.
    readable); section 3 says the Phase 1 scores are withdrawn and none shows today; section 12 notes that publishing a
    method does not license its reuse. Page title "Terms of Use"; /privacy and /terms descriptions no longer claim "No
    third-party tracking". `privacy.test.mjs` 37.
+   TB (29 Sep): the operator is based in Arizona. Both documents say "a sole proprietorship based in Arizona, United
+   States"; Terms section 22, governing law: Arizona law, courts located in Arizona (no county named; counsel to confirm).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
