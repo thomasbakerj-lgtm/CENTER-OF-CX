@@ -20,7 +20,7 @@ import { Icon } from "./Icon.jsx";
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
 const D = PILLARS.diagnostics;
 export const RESULT_ID = "cx-result";
-export const PRIVACY = "Your numbers stay in this browser tab unless you ask for a review.";
+export const PRIVACY = "Your numbers stay in this browser tab unless you ask for a review or share a scenario link.";
 /* A tool that sends any part of what the reader entered says exactly what, on its own page (taxonomy 1.4). */
 export const PRIVACY_BY_TOOL = {
   "roadmap-builder": "Your notes and initiative name stay in this browser tab. When you open the summary we record the status you set for each of the 18 milestones, with no text, to learn where 90-day plans stall.",

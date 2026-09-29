@@ -33,7 +33,17 @@ ok("and each is named in the policy", hosts.every((h) => SERVICE[h] && t.include
 
 ok("says most of the site needs no email", /most of the Site never asks for your email/.test(t) && /Most tools and pages do not require an email address/.test(t));
 ok("states the user-initiated contact-details clause, phone included, and that declining may prevent fulfilment", /For specific purposes that you start/.test(t) && /may require before we fulfil the request, a valid email address/.test(t) && /telephone number/.test(t) && /may not be able to complete that request/.test(t));
-ok("says tool inputs stay in the browser and analytics never receive them", /numbers and answers you enter are not sent to us/.test(t) && /never receives the values you enter/.test(t));
+ok("says tools are designed to process inputs in the browser and analytics are built not to receive them (TB legal notes, 29 Sep: no absolute promise)", /designed to process the values you enter in your browser/.test(t) && /designed never to include the values you enter/.test(t) && !/are not sent to us/.test(t));
+ok("warns that scenario links carry inputs in the address, reach the host when opened and may be logged", /carries the inputs of a tool in the web address itself/.test(t) && /request logs may record it/.test(t) && /Do not put confidential information/.test(t));
+ok("asks readers not to send sensitive information", /Please do not send sensitive information/.test(t) && /passwords, medical or health information/.test(t));
+ok("describes the practice, not a contract: no 'By using the Site'", !/By using the Site/.test(t) && /our Terms of Use govern/.test(t));
+ok("names the operator form and every processor, Google Workspace included", /sole proprietorship/.test(t) && ["Vercel", "PostHog", "Formspree", "Google Workspace", "GitHub"].every((n) => t.includes(n)));
+ok("states PostHog discards IP addresses and runs without its browser library", /set to discard IP addresses/.test(t) && /without PostHog's browser library/.test(t) && !/may use your IP address to estimate/.test(t));
+ok("keeps marketing apart from requests: no bundled 'related updates'", !/occasional related updates/.test(t) && /does not subscribe you/.test(t));
+ok("says vendor reviews are not published and names the email as never public", /not published on the Site today/.test(t) && /Your email address is never published/.test(t));
+ok("gives retention criteria by category, EEA and UK legal bases, and the appeal and agent route", /Newsletter subscriptions are kept while you are subscribed/.test(t) && /legitimate interests/.test(t) && /right to appeal/.test(t) && /authorised agent/.test(t));
+ok("describes reasonable safeguards without promising specific controls", !/strict content security policy|no user accounts or passwords to protect/i.test(t) && /cannot guarantee/.test(t));
+ok("introductions: the vendor handles what it receives under its own practices", /under their own privacy practices and legal responsibilities/.test(t));
 ok("claims no vendor scores and no absence of third-party scripts", !/scores are independently|Vendor scores are|no third-party tracking scripts|do not use third-party/i.test(t));
 ok("states no sale of personal information", /We do not sell, rent or trade your personal information/.test(t));
 ok("carries a real update date", /Last updated: \d{1,2} [A-Z][a-z]+ 20\d\d/.test(t));

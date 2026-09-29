@@ -1629,6 +1629,22 @@ dashboard, the 12-phase growth program.
    action; no total or band. Download page copy updated. `framework.test.mjs` (62): every gated file exists, the PDF was
    printed from the current content (a content change without a reprint fails, proven), house rules, live links.
    Reprint after any content change: `CHROMIUM_PATH=/opt/pw-browsers/chromium node scripts/framework-pdf.mjs`.
+95. S24 (29 Sep), Privacy Policy hardened from TB's legal review notes (LegalZoom general information: describe practices
+   accurately, no promises the code does not prove, legal bases, retention criteria, processors named). Facts checked in
+   the code first: scenario links use the query string (`?s=`), so opening one sends its inputs to the host, whose logs may
+   keep them (TB: keep the format; the policy warns); analytics send the path only; PostHog is called without its library
+   (no autocapture or replay), person profiles off, random id in local storage and visit id in session storage, and TB
+   confirms "Discard client IP data" is on; mail is Google Workspace (the domain's MX records); no other processor (TB);
+   vendor reviews are not published anywhere. Operator: sole proprietorship based in the United States (TB: not formed
+   yet; no name, as on About). Policy dated 29 September 2026: no "By using the Site"; tools "designed to" process inputs
+   in the browser; scenario link warning; sensitive information warning; reviews not published and email never public;
+   processors named (Vercel, PostHog, Formspree, Google Workspace, GitHub); introductions: the vendor handles what it
+   receives under its own practices; marketing apart from requests ("occasional related updates" removed); retention by
+   category; rights with appeal and agent; EEA and UK legal bases; transfers; reasonable safeguards (the "strict content
+   security policy" and "no passwords to protect" promises removed); children; other websites. The tool frame and About
+   now say numbers stay in the tab unless you ask for a review or share a scenario link. `privacy.test.mjs` 23.
+   Before the first newsletter: a postal address is needed in the email footer (US commercial email rules). Next: Terms of
+   Use, per TB's notes.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
