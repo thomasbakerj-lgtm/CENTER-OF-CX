@@ -130,6 +130,6 @@ export const LAYER_INFO = Object.fromEntries(PLATFORM_DECISION.layers.map((l) =>
 export const PROOFS = [
   { n: String(METHOD_COUNT), text: "methods published: the rules and formulas each tool runs, in words, with where every constant comes from.", link: "Read a method", href: "/methodology/cost-per-contact" },
   { n: String(CCAAS_COMPLETE_COUNT), text: "CCaaS vendors researched under the current method, each profile with its validation date.", link: "See the research", href: CATEGORIES.ccaas.page },
-  { n: "A to Z", text: "Vendor lists run alphabetically. No vendor can pay to appear or to move.", link: "About the site", href: "/about" },
+  { n: "A to Z", text: "Vendor lists run alphabetically. No vendor can pay to appear or to move.", link: "Browse the vendors", href: "/vendors" },
 ];
 
