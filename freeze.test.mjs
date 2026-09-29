@@ -14,7 +14,7 @@
  *
  * Run from repo root: node freeze.test.mjs
  */
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 const { vendors, getCoreVendors, getAdjacentVendors } = await import("./VendorData.js");
 const RS = await import("./src/lib/researchStatus.js");
@@ -190,6 +190,13 @@ section("7. S23: the seven other categories, their profiles and the industry pag
     const t = readFileSync(f, "utf8");
     ok(`${f.slice(2)} claims no scoring of vendors`, !/scoring rubric|scoring model|Scored, weighted|Vendors assessed|Mapped and evaluated|350\+ vendors/i.test(t));
   }
+  // Site audit item 3 (29 Sep): two calls to action still offered "CCaaS Vendor Scores" (WEM category page, CCaaS cost
+  // article). No page, component or data file may offer to show vendor scores or rankings.
+  const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => /^(node_modules|dist|dist-ssr|\.git|docs|public)$/.test(e.name) ? [] : e.isDirectory() ? walk(d + "/" + e.name) : /\.(jsx|js)$/.test(e.name) ? [d + "/" + e.name] : []);
+  const OFFER = /\b(?:see|view|compare|explore|browse|check)(?: our| the)? (?:[A-Za-z]+ )?vendor (?:scores|rankings|ratings)\b/i;
+  const offers = walk(".").filter((f) => OFFER.test(readFileSync(f, "utf8")));
+  ok("no page offers to show vendor scores, rankings or ratings", offers.length === 0, offers.join(", "));
+  ok("the offer rule fires on the retired wording", OFFER.test("See Our CCaaS Vendor Scores") && OFFER.test("See CCaaS Vendor Scores") && !OFFER.test("Browse CCaaS Platforms by Job"));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -142,7 +142,7 @@ export default function ArticleCCaaSCosts() {
             </P>
 
             <P>
-              <strong>Build the real TCO, not the vendor's version.</strong> The vendor's TCO model includes their platform costs. Your TCO model needs to include their platform costs plus your integration costs, your internal labor, your training time, your parallel-run period, your productivity dip, your WFM and QM and analytics add-ons, and the cost of the two contractors you will hire in month four when the project falls behind. Use our <a href="/tco-calculator" style={{ color: ELECTRIC, fontWeight: 600 }}>TCO Calculator</a> to build the honest version.
+              <strong>Build the real TCO, not the vendor's version.</strong> The vendor's TCO model includes their platform costs. Your TCO model needs to include their platform costs plus your integration costs, your internal labor, your training time, your parallel-run period, your productivity dip, your WFM and QM and analytics add-ons, and the cost of the two contractors you will hire in month four when the project falls behind. Use our <a href="/tools/tco-calculator" style={{ color: ELECTRIC, fontWeight: 600 }}>TCO Calculator</a> to build the honest version.
             </P>
 
             <P>
@@ -194,9 +194,9 @@ export default function ArticleCCaaSCosts() {
             </div>
 
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 32 }}>
-              <a href="/vendors/ccaas" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>See Our CCaaS Vendor Scores</a>
+              <a href="/vendors/ccaas" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Browse CCaaS Platforms by Job</a>
               <a href="/research/ccaas-buyer-guide" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Download CCaaS Buyer Guide</a>
-              <a href="/tco-calculator" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Use TCO Calculator</a>
+              <a href="/tools/tco-calculator" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Use TCO Calculator</a>
             </div>
 
           </FadeIn>
