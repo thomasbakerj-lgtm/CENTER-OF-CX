@@ -41,7 +41,7 @@ export default function IVACategory() {
           </FadeIn>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
-              <a href="/research/iva-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, background: HOUSE.navy }}>IVA Buyer Guide (25 pages) ↓</a>
+              <a href="/research/iva-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, background: HOUSE.navy }}>IVA Buyer Guide, Phase 1 edition (25 pages) ↓</a>
               <a href="/tools/ai-deflection" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, background: HOUSE.navy }}>AI Deflection Reality Check →</a>
               <a href="/tools/ai-readiness" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, background: HOUSE.navy }}>AI Readiness Diagnostic →</a>
             </div>

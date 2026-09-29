@@ -34,6 +34,12 @@ section("1. Every gated download exists");
   for (const p of pdfs) ok(`${p} is in public/ and is a PDF`, existsSync("./public" + p) && readFileSync("./public" + p).subarray(0, 5).toString() === "%PDF-");
   ok("the framework page points at the guide's file", pdfs.includes(G.GUIDE.file));
   ok("the broken April file name is gone", !existsSync("./public/CX-Orchestration-Framework-2026 (1).pdf"));
+  /* The IVA guide is a dated Phase 1 edition (TB, S23: the Phase 1 PDFs stay downloadable as dated editions). Its page
+     says so, with the PDF's own count and date, and no longer sells scores, validation or shortlists (audit item 2). */
+  const iva = src.slice(src.indexOf('"iva-buyer-guide": {'), src.indexOf('"ccaas-buyer-guide": {'));
+  ok("IVA guide page names the Phase 1 edition, its date and the PDF's own vendor count (43)", /phase1: true/.test(iva) && /published: "April 2026"/.test(iva) && /43 IVA and conversational AI vendors/.test(iva) && /scores and tiers are withdrawn/.test(iva));
+  ok("IVA guide page no longer sells scores, outside validation, superlatives or shortlists", !/50 vendors|validated by Gartner|the best CX|vendor shortlists|scored across/.test(iva));
+  ok("IVA guide search description matches the edition", /Phase 1 edition, April 2026: 43 IVA/.test(readFileSync("./src/lib/seo.js", "utf8")));
   ok("the page no longer promises a 12 month outlook or maturity bands", !/12-month outlook|next 12 months|maturity scoring|Foundation to Leading/.test(src));
 }
 

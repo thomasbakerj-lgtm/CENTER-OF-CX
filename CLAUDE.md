@@ -1658,6 +1658,15 @@ dashboard, the 12-phase growth program.
    third-party tracking". `privacy.test.mjs` 37.
    TB (29 Sep): the operator is based in Arizona. Both documents say "a sole proprietorship based in Arizona, United
    States"; Terms section 22, governing law: Arizona law, courts located in Arizona (no county named; counsel to confirm).
+   Privacy Policy aligned to the Terms' minimum age (18). PR #86 merged by TB's instruction (39c9413); production serves
+   the framework PDF (200) and both documents' Arizona text.
+97. S24 (29 Sep), site audit item 2: the IVA buyer guide. The PDF (April 2026, 25 pages) is the Phase 1 edition: composite
+   scores out of 100 for 43 vendors, tiers, forecasts to 2029 and analyst quotations. Per the standing S23 decision (the
+   Phase 1 PDFs stay downloadable as dated editions), the download page now reads like the CCaaS guide's: "The Phase 1
+   assessment of 43 IVA and conversational AI vendors, dated April 2026", scores and tiers withdrawn on the site, forecasts
+   as that edition stated them and not re-checked; retired "50 vendors scored across 7 market categories", "validated by
+   Gartner and Forrester", "why the best CX operations" and "vendor shortlists" (the PDF counts 43, not 50). Search
+   description and the IVA category link label say Phase 1 edition. `framework.test.mjs` 65.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
