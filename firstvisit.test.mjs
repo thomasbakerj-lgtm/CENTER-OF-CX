@@ -95,6 +95,9 @@ section("4. About states facts a reader can check");
   ok("About and Subscribe have the header in the flow", !fixed.includes('"/about"') && !fixed.includes('"/subscribe"'));
   ok("the metadata describes the page", /"\/about": \{\s*title: `About \| \$\{SITE\}`/.test(read("src/lib/seo.js")));
   ok("no dash in About", !/[\u2013\u2014]/.test(src));
+  ok("About says why it was built and what it offers each reader (TB, 29 Sep), with no name", /Why we built this/.test(t) && /What it offers you/.test(t) && mod.WHY.length >= 3 && mod.WHY.every((p) => t.includes(p))
+    && ["New to contact centers", "Running operations and workforce", "Leadership", "Strategy and transformation", "IT, platforms and architecture", "Security, risk and compliance", "Finance and procurement", "Consultants and advisors", "Vendors and partners"].every((w) => mod.FOR_YOU.some((f) => f.who === w) && t.includes(w)));
+  ok("About's story claims no outcome it cannot show and keeps the house cadence", !/guarantee|proven|thousands|trusted by|not only|, not /i.test([...mod.WHY, ...mod.FOR_YOU.map((f) => f.text)].join(" ")));
 }
 
 section("5. Subscribe asks for an address and says what arrives");

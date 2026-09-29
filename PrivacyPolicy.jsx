@@ -22,6 +22,7 @@ export const PRIVACY_UPDATED = "27 September 2026";
 /* Every form that sends personal information, as the policy names it. privacy.test.mjs holds this list to the code. */
 export const FORMS = [
   { what: "Contact, consultant and vendor introduction requests", fields: "name, work email, company, role, the topic, your message, how you found us and the vendor you asked about", endpoint: "xvzvdnry" },
+  { what: "Demo requests from Vendor Match", fields: "work email and, if you choose, your name, company, what the demo should show and your answers in the tool", endpoint: "xvzvdnry" },
   { what: "Contributor proposals", fields: "name, email, role, organisation, any commercial tie to a vendor, a working title, the proposal and an optional link to a draft", endpoint: "xvzvdnry" },
   { what: "Research correction reports", fields: "the statement you question, what your source shows, its public link, your email and whether you represent the vendor", endpoint: "xvzvdnry" },
   { what: "Report copies and review requests from a tool", fields: "your email and, as you choose, your name, company and role, and the tool's inputs and results you choose to send", endpoint: "maqlvwne" },
