@@ -1565,6 +1565,18 @@ dashboard, the 12-phase growth program.
    wording in a sentence that credited GAO ("federal legacy systems most in need of modernization", Government main and
    sub-page); reworded in our own words and recorded as a match. Each industry's originality record carries the second
    pass and the check date 2026-09-28.
+   PR #81 merged by TB's instruction (abd1e88). GitHub nightly on production after PR #80: live check and performance
+   budget green (the sandbox's 19 of 256 was its own egress, as before).
+90. S24 (28 Sep), TCO's remaining unsourced input hints (TB: "go"). Retired: "Typically 25 to 35%" (benefits), "Bench 65 to
+   85%" (FCR), "Bench 15 to 45%" (containment), "25 to 35%" (shrinkage), "Bench 20 to 40%" (attrition), "5 to 10%"
+   (absenteeism), "Target 88 to 95%" (adherence), "Target under 30s" (ASA), "Target under 5%" (abandon), "Bench 3.8 to
+   4.5" (CSAT), and the report's per-agent colour band ($4,500 to $7,500, `getBench`). Hints now say what to enter or
+   point to How others report it; TCO's panel gains FCR, attrition, service level, occupancy, shrinkage and adherence,
+   and the shrinkage group adds ContactBabel's US 2023 median short-term absence (6.5%, read in its own table). No figure,
+   grade or engine line moved (TCO harnesses unchanged). `comparisons.test.mjs` section 7 keeps them retired. Open for TB:
+   TCO's industry wage presets ($19 general, $22 financial, $20 healthcare, $16 retail, $19 telecom, $21 insurance, $15
+   BPO) are labelled heuristics; BLS May 2025 now publishes medians for four of them (national $21.53, insurance $22.47,
+   retail $17.96, business support $17.68). Moving them is a method change (version bump, A/B).
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
