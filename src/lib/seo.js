@@ -212,7 +212,7 @@ export const SEO_MAP = {
   },
   "/research/iva-buyer-guide": {
     title: `IVA + Conversational AI Buyer's Guide 2026 | ${SITE}`,
-    desc: "Phase 1 edition: 50 vendors across 7 categories, the Human Premium framework and market forecasts through 2029. Its scores are withdrawn on the site until the category is researched under the current methodology.",
+    desc: "Phase 1 edition, April 2026: 43 IVA and conversational AI vendors, architecture eras, demo questions and cost traps. Its scores and tiers are withdrawn on the site until the category is researched under the current methodology.",
   },
   "/research/ccaas-buyer-guide": {
     title: `CCaaS Platform Buyer's Guide 2026 | ${SITE}`,
