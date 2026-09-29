@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { CATEGORIES, VERTICALS } from "./src/lib/verticals";
+import { RULES, VERTICAL_CONTENT } from "./src/lib/verticalsContent.js";
+import ClaimText, { ClaimSources } from "./src/lib/ClaimText.jsx";
+import { claimIds } from "./src/lib/claims.js";
 import CCaaSIndustry from "./CCaaSIndustry.jsx";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
@@ -20,8 +23,11 @@ export default function CategoryVerticalPage() {
   /* CCaaS by industry is rebuilt from the research (Phase 7 part 4); the other categories keep this page. */
   if (categorySlug === "ccaas") return <CCaaSIndustry verticalSlug={verticalSlug} />;
 
-  // For non-CCaaS categories, show leader slugs from vertical config
-  const leaderSlugs = vert.ccaasLeaders || [];
+  /* Audit item 7 (29 Sep 2026): every figure in the industry paragraph is a registry claim with its source, and every
+     rule links its publisher's page. Nothing on this page evaluates or ranks a vendor. */
+  const text = VERTICAL_CONTENT[verticalSlug];
+  const rules = text.rules.map((id) => RULES[id]);
+  const ids = claimIds([text.considerations]);
 
   const navLinks = [
     { name: "Vendors", href: "/vendors" },
@@ -52,7 +58,7 @@ export default function CategoryVerticalPage() {
             <span style={{ color: LIGHT }}>{vert.name}</span>
           </h1>
           <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 600 }}>
-            {`${cat.name} vendors evaluated for ${vert.name} requirements.`} Compliance, integration, and operational considerations specific to this vertical.
+            {`What ${vert.name} asks of ${cat.name}: the rules that apply, the systems buyers integrate, and how the work differs. Vendors are listed on the category page, A to Z; this page evaluates none.`}
           </p>
           <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
             <a href={cat.page} style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>All {cat.name} vendors →</a>
@@ -68,22 +74,35 @@ export default function CategoryVerticalPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="pg">
             <div>
               <h2 style={{ fontSize: 13, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>Why {vert.name} is different</h2>
-              <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6 }}>{vert.considerations}</p>
+              <p style={{ fontSize: 14, color: SLATE, lineHeight: 1.6 }}><ClaimText text={text.considerations} /></p>
             </div>
             <div>
-              <h3 style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Compliance requirements</h3>
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 12 }}>
-                {vert.compliance.map((c, i) => <span key={i} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 4, background: `${RED}08`, color: RED, fontWeight: 500 }}>{c}</span>)}
-              </div>
-              <h3 style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Key systems to integrate</h3>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Rules and standards buyers ask about</h3>
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 12px", display: "flex", flexDirection: "column", gap: 6 }}>
+                {rules.map((r) => (
+                  <li key={r.name} style={{ fontSize: 13, color: SLATE, lineHeight: 1.5 }}>
+                    <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ color: LIGHT, fontWeight: 600, textDecoration: "underline" }}>{r.name}</a> <span style={{ color: MUTED }}>({r.kind})</span>: {r.note}
+                  </li>
+                ))}
+              </ul>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 6 }}>Examples of systems buyers integrate</h3>
               <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 12 }}>
                 {vert.keySystems.map((s, i) => <span key={i} style={{ fontSize: 11, padding: "3px 8px", borderRadius: 4, background: `${ELECTRIC}08`, color: ELECTRIC }}>{s}</span>)}
               </div>
-              <div style={{ fontSize: 11, color: MUTED }}>Sub-verticals: {vert.subVerts}</div>
+              <div style={{ fontSize: 12, color: MUTED }}>Segments: {vert.subVerts}</div>
             </div>
           </div>
         </div>
       </section>
+
+      {ids.length > 0 && (
+        <section aria-label="Sources" style={{ background: WARM, padding: "20px 28px", borderTop: `1px solid ${BORDER}` }}>
+          <div style={WRAP}>
+            <h2 style={{ fontSize: 13, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>Sources for the figures above</h2>
+            <ClaimSources ids={ids} color={SLATE} accent={LIGHT} />
+          </div>
+        </section>
+      )}
 
       {/* Tools */}
       <section style={{ background: WARM, padding: "28px 28px", borderTop: `1px solid ${BORDER}` }}>
@@ -91,7 +110,7 @@ export default function CategoryVerticalPage() {
           <h3 style={{ fontSize: 13, fontWeight: 600, color: MUTED, marginBottom: 12 }}>Tools for {vert.name} {cat.name} evaluation</h3>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }} className="pg">
             {[
-              { name: "Vendor Match Engine", desc: "Get a shortlist filtered for " + vert.name, href: "/tools/vendor-match" },
+              { name: "Vendor Match Engine", desc: "A starting list of contact center platforms for " + vert.name, href: "/tools/vendor-match" },
               { name: "Platform Decision", desc: "The renewal gate for your current platform", href: "/tools/platform-decision" },
               { name: "Contract Risk Scanner", desc: "Analyze terms before signing", href: "/tools/contract-risk" },
             ].map((t, i) => (
