@@ -280,10 +280,19 @@ const cleanState = (sc) => {
   };
 };
 
+/* Ceiling cap (interim Phase 1 fix, CLAUDE.md section 7; TB agreed 29 Sep). Measured on 20,000 random buyer profiles:
+   the top vendor sat at the old 99 ceiling in 67% of them, two or more vendors shared 99 in 63% (their order then came
+   from list position), and the top two were within 5 points in 97%. So the order now follows the unclipped score, no
+   score shows above SCORE_CAP, and every vendor within LEAD_GAP points of the top forms one leading group. Both are
+   heuristics, disclosed in METHOD_NOTE. Presentation only: the Phase 1 data and weights are unchanged. */
+export const SCORE_CAP = 90;
+export const LEAD_GAP = 5;
+export const shownScore = (v) => (v.raw >= SCORE_CAP ? `${SCORE_CAP}+` : String(v.score));
+
 /* Interim disclosure (CLAUDE.md sections 12 and 13). This engine still scores a
    24-vendor CCaaS set from the Phase 1 model. The class-scoped rebuild on current
    research is Stage 4. Until then the page says so. */
-const METHOD_NOTE = "These fit scores come from the Phase 1 CCaaS (contact center as a service) model: 24 vendors, each scored on 27 dimensions, then adjusted for your size, vertical, priorities and budget sensitivity. Use them as a starting shortlist. They do not rank vendors on current research. Current research on CCaaS vendors is under way, and this engine will be rebuilt on it, ranking only within comparable classes of vendor. Scores near the top of the scale are too close to tell apart in any meaningful way.";
+const METHOD_NOTE = `These fit scores come from the Phase 1 CCaaS (contact center as a service) model: 24 vendors, each scored on 27 dimensions, then adjusted for your size, vertical, priorities and budget sensitivity. Use them as a starting shortlist. They do not rank vendors on current research. Current research on CCaaS vendors is under way, and this engine will be rebuilt on it, ranking only within comparable classes of vendor. Scores near the top of the scale are too close to tell apart in any meaningful way. So no score shows above ${SCORE_CAP}: in about two of every three buyer profiles this model gives its top vendor the maximum, and several vendors share it, so a higher number would claim a precision the model does not have. Vendors within ${LEAD_GAP} points of the top vendor are shown as one leading group, too close to separate.`;
 
 export default function VendorMatchEngine() {
   const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { fromLink: !!sc, d: cleanState(sc) }; });
@@ -313,8 +322,8 @@ export default function VendorMatchEngine() {
       /* Name and tier come from the profile the result links to, so the shortlist
          can never contradict the category page or the vendor profile. */
       const p = getVendor(v.slug);
-      return {...v, name: p ? p.name : v.name, tier: p ? p.tier : v.tier, score: Math.min(99,Math.max(25,Math.round(s)))};
-    }).sort((a,b) => b.score-a.score);
+      return {...v, name: p ? p.name : v.name, tier: p ? p.tier : v.tier, raw: s, score: Math.min(SCORE_CAP,Math.max(25,Math.round(s)))};
+    }).sort((a,b) => b.raw-a.raw).map((v, i, all) => ({ ...v, lead: v.raw >= all[0].raw - LEAD_GAP }));
   };
 
   const handleResults = () => setPhase("results");
@@ -402,7 +411,7 @@ export default function VendorMatchEngine() {
         </section>
         <section aria-label="Your vendor shortlist" style={K.panel}>
           <span style={K.kicker}>Your Vendor Shortlist</span>
-          <h2 style={{...K.h2,marginTop:6}}>Ranked by fit for your environment</h2>
+          <h2 style={{...K.h2,marginTop:6}}>Ordered by fit on the Phase 1 model</h2>
           <p style={K.small}>{d.size} in {d.vertical||"your vertical"}{d.currentPlatform&&d.currentPlatform!=="None / Greenfield"?`, migrating from ${d.currentPlatform}`:""}. {d.priorities.length} priorities. {d.compliance.length} compliance requirements.</p>
         </section>
 
@@ -414,7 +423,7 @@ export default function VendorMatchEngine() {
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap"}}>
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{display:"flex",alignItems:"baseline",gap:10,marginBottom:4}}>
-                    <span style={K.small}>#{i+1}</span>
+                    <span style={K.small}>{v.lead?"Leading group":`#${i+1}`}</span>
                     <a href={`/vendors/${v.slug}`} style={{...K.link,fontSize:isTop?20:16}}>{v.name}</a>
                   </div>
                   {isTop&&(<>
@@ -427,10 +436,11 @@ export default function VendorMatchEngine() {
                   </>)}
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>
-                  <div style={{...K.strong,...K.num,fontSize:isTop?32:22}}>{v.score}</div>
+                  <div style={{...K.strong,...K.num,fontSize:isTop?32:22}}>{shownScore(v)}</div>
                   <div style={{...K.small,fontWeight:600,color:K.strong.color}}>{fl}</div>
                 </div>
               </div>
+              {v.lead&&<p style={{...K.small,marginTop:6}}>Within {LEAD_GAP} points of the top vendor on this model: too close to separate.</p>}
               {isTop&&(<>
                 <div style={{display:"flex",gap:14,flexWrap:"wrap",marginTop:10,paddingTop:10,borderTop:`1px solid ${K.hair}`}}>
                   {selPriorities.slice(0,6).map(p=>(<div key={p.id} style={{minWidth:80}}>
@@ -481,10 +491,10 @@ export default function VendorMatchEngine() {
                 ["Billing Preference", d.billingPreference],
                 ["Contract Term", d.termLength],
               ]},
-              { title: "Vendor Shortlist: Top 5", type: "findings", items: results.slice(0, 5).map((v, i) => `#${i+1} ${v.name} (Fit Score: ${v.score}), ${v.tier}. ${v.strengths[0] || ""}`) },
+              { title: "Vendor Shortlist: Top 5", type: "findings", items: results.slice(0, 5).map((v, i) => `${v.lead ? "Leading group" : `#${i+1}`} ${v.name} (Fit Score: ${shownScore(v)}), ${v.tier}. ${v.strengths[0] || ""}`) },
               { title: "Fit Scores", type: "metrics", items: results.slice(0, 4).map(v => ({
                 label: v.name.split(" ")[0],
-                value: v.score.toString(),
+                value: shownScore(v),
                 color: v.score >= 85 ? GREEN : v.score >= 70 ? AMBER : MUTED,
                 sub: v.score >= 85 ? "Strong Fit" : v.score >= 70 ? "Good Fit" : "Conditional",
               })) },
