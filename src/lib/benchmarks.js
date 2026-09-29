@@ -332,6 +332,11 @@ const tHeur = (value, unit, rationale) => ({ tool: TCO, kind: "heuristic", value
 const tLine = (value, unit, rationale) => ({ tool: TCO, kind: "threshold", value, unit, source: "", reviewed: REVIEWED, version: 1, rationale });
 const tWage = (value, label) => tHeur(value, "USD per hour", `Opening agent wage for the ${label} profile. An internal planning value, not a published median. The platform's sourced wage benchmark is market.wage.agent. A wage still at this value grades cost evidence Directional.`);
 
+const tWageBls = (value, industry, label) => ({ tool: TCO, kind: "market", value, unit: "USD per hour",
+  source: `US Bureau of Labor Statistics, Occupational Outlook Handbook, Customer Service Representatives, pay by industry: median hourly wage in ${industry}, May 2025 (TB research, 28 Sep 2026).`,
+  url: "https://www.bls.gov/ooh/office-and-administrative-support/customer-service-representatives.htm", reviewed: "2026-09-29", version: 2,
+  rationale: `Opening agent wage for the ${label} profile: the BLS May 2025 median for customer service representatives in ${industry}. A published median, not the reader's own pay, so a wage still at this value grades cost evidence Directional.` });
+
 const tcoEntries = {
   "tco.load.salaried": tHeur(1.25, "multiple of hourly rate", "Supervisors, QA, WFM, trainers and IT are salaried and carry a lighter employer burden than an hourly agent, so they load at less than the agent benefits multiple. A fourth load concept because it prices a different population, not a different opinion about the same one."),
   "tco.hours.month": tHeur(173, "paid hours per staff member per month", "The 2,080 hour full-time year over twelve months. Labor cost is computed on paid hours, not productive hours, because shrinkage time is paid."),
@@ -349,13 +354,17 @@ const tcoEntries = {
   "tco.band.quoted": tHeur(0.15, "share of the total", "Range printed when costs come from vendor quotes. Display only."),
   "tco.band.invoiced": tHeur(0.10, "share of the total", "Range printed when costs come from invoices. Display only."),
   "tco.check.mixTol": tLine(0.005, "share of volume", "Tolerance on the channel mix totalling one. The voice share prices telephony, so a mix that does not total 100 percent misprices the usage bucket. Holds completeness Directional."),
-  "tco.wage.general": tWage(19, "cross-industry"),
+  /* Industry wages (TB, 29 Sep 2026: move a preset to the BLS median where BLS publishes one for that industry). The
+     cross-industry profile reads market.wage.agent itself, so no copy of the national figure exists. Insurance, retail and
+     BPO read the May 2025 median for customer service representatives in their BLS industry; financial services, healthcare
+     and telecom have no May 2025 industry row and stay labelled planning values. Grading is unchanged: any preset still at
+     its value grades evidence Directional by the origin rule, sourced or not. */
   "tco.wage.financial": tWage(22, "financial services"),
   "tco.wage.healthcare": tWage(20, "healthcare"),
-  "tco.wage.retail": tWage(16, "retail and eCommerce"),
+  "tco.wage.retail": tWageBls(17.96, "Retail trade", "retail and eCommerce"),
   "tco.wage.telecom": tWage(19, "telecommunications"),
-  "tco.wage.insurance": tWage(21, "insurance"),
-  "tco.wage.bpo": tWage(15, "BPO and outsourcer"),
+  "tco.wage.insurance": tWageBls(22.47, "Insurance carriers and related activities", "insurance"),
+  "tco.wage.bpo": tWageBls(17.68, "Business support services (which includes telephone call centers)", "BPO and outsourcer"),
 };
 
 /* Occupancy Risk Simulator. Occupancy itself is arithmetic (workload in Erlangs over

@@ -26,7 +26,7 @@ export const METHOD_VERSIONS = {
   "channel-shift": V("1.2", "2026-09-28"),
   "fcr-leakage": V("1.0", "2026-09-25"),
   "ai-deflection": V("1.1", "2026-09-28"),
-  "tco-calculator": V("1.2", "2026-09-28"),
+  "tco-calculator": V("1.3", "2026-09-29"),
   "license-gap": V("1.0", "2026-09-25"),
   "attrition-cost": V("1.3", "2026-09-28"),
   "business-case-builder": V("1.2", "2026-09-28"),

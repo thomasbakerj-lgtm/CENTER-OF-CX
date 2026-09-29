@@ -7,6 +7,16 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-29", methods: ["tco-calculator"], version: "1.3",
+    title: "TCO: industry profile wages move to BLS medians where BLS publishes them",
+    changes: [
+      "The cross-industry profile now opens at the platform's agent wage, the BLS May 2025 median for customer service representatives: $21.53 an hour (was a $19 planning value).",
+      "Three industry profiles open at the BLS May 2025 median for customer service representatives in their industry: insurance $22.47 (was $21), retail $17.96 (was $16), and BPO at business support services, which includes telephone call centers, $17.68 (was $15). Financial services, healthcare and telecom have no May 2025 industry figure and keep their labelled planning values.",
+      "At the opening case, annual cost moves from $15,291,986 to $16,703,994, cost per contact from $10.62 to $11.60, marginal cost per contact from $2.51 to $2.83, and modelled savings from $68,000 to $76,000 a month gross ($48,000 to $54,000 at the expected stance). Only wage-driven figures move; technology, telephony, seats and hires are unchanged.",
+      "Formulas and grades are unchanged. A wage still at its profile grades Directional, sourced or not. Any case where you entered your own wage computes exactly as before.",
+    ],
+  },
+  {
     date: "2026-09-28", methods: ["attrition-cost"], version: "1.3",
     title: "Attrition Cost: recruiter, trainer and supervisor rates from BLS",
     changes: [

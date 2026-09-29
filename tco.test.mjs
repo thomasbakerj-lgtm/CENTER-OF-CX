@@ -521,7 +521,7 @@ section("benchmark registry: every constant this tool ships is registered");
     readIds.filter((id) => !(id in BENCHMARK_SOURCES)).join(", "));
   ok("every id the tool reads is owned by this tool or shared",
     readIds.every((id) => [TOOL, "shared"].includes(BENCHMARK_SOURCES[id].tool)));
-  ok("the registry holds 23 entries for this tool", benchmarksForTool(TOOL).length === 23, `${benchmarksForTool(TOOL).length}`);
+  ok("the registry holds 22 entries for this tool (the cross-industry wage reads market.wage.agent, method 1.3)", benchmarksForTool(TOOL).length === 22, `${benchmarksForTool(TOOL).length}`);
   ok("every heuristic is labelled as one", benchmarksForTool(TOOL).filter((e) => e.kind === "heuristic").every((e) => /heuristic/i.test(e.source)));
   ok("every threshold states a rationale", benchmarksForTool(TOOL).filter((e) => e.kind === "threshold").every((e) => e.rationale.length > 40));
   ok("the one market entry names its source and date", benchmarksForTool(TOOL).filter((e) => e.kind === "market").every((e) => /Bureau of Labor Statistics/.test(e.source)));
@@ -540,13 +540,19 @@ section("benchmark registry: every constant this tool ships is registered");
     && /43-4051/.test(BENCHMARK_SOURCES["market.wage.agent"].source));
   ok("J11: the three per-tool wage copies are retired",
     !("staffing.wage.median" in BENCHMARK_SOURCES) && !("cpc.wage.median" in BENCHMARK_SOURCES) && !("channel.wage.median" in BENCHMARK_SOURCES));
-  const inds = ["general", "financial", "healthcare", "retail", "telecom", "insurance", "bpo"];
-  ok("J11: all seven industry wages are registered heuristics",
-    inds.every((k) => BENCHMARK_SOURCES[`tco.wage.${k}`] && BENCHMARK_SOURCES[`tco.wage.${k}`].kind === "heuristic"));
+  /* Method 1.3 (TB, 29 Sep 2026): a profile wage is the BLS median where BLS publishes one for that industry, else a
+     labelled planning value. The cross-industry profile reads the one platform wage, never a copy. */
+  const heur = ["financial", "healthcare", "telecom"], bls = { retail: 17.96, insurance: 22.47, bpo: 17.68 };
+  ok("J11: the cross-industry profile reads market.wage.agent itself, with no copy registered",
+    INDUSTRY.general.agentHourly === bm("market.wage.agent") && !("tco.wage.general" in BENCHMARK_SOURCES));
+  ok("J11: financial, healthcare and telecom wages stay registered heuristics, never presented as medians",
+    heur.every((k) => BENCHMARK_SOURCES[`tco.wage.${k}`].kind === "heuristic" && /not a published median/.test(BENCHMARK_SOURCES[`tco.wage.${k}`].rationale)));
+  ok("method 1.3: retail, insurance and BPO wages are BLS May 2025 industry medians with source and link",
+    Object.entries(bls).every(([k, v]) => { const e = BENCHMARK_SOURCES[`tco.wage.${k}`]; return e.kind === "market" && e.value === v && /Bureau of Labor Statistics/.test(e.source) && /May 2025/.test(e.source) && /^https:\/\/www\.bls\.gov\//.test(e.url); }));
   ok("J11: each industry preset reads its wage from the registry",
-    inds.every((k) => INDUSTRY[k].agentHourly === bm(`tco.wage.${k}`)));
-  ok("J11: no industry wage is presented as the sourced market figure",
-    inds.every((k) => /not a published median/.test(BENCHMARK_SOURCES[`tco.wage.${k}`].rationale)));
+    [...heur, ...Object.keys(bls)].every((k) => INDUSTRY[k].agentHourly === bm(`tco.wage.${k}`)));
+  ok("method 1.3: the sources paragraph names the BLS wages",
+    /Bureau of Labor Statistics/.test(mod.BENCHMARK_SOURCES || "") && /17\.96/.test(mod.BENCHMARK_SOURCES || "") && /21\.53/.test(mod.BENCHMARK_SOURCES || ""));
 
   // Step 2. The hand-written sources paragraph is gone and cannot come back.
   const paragraph = mod.BENCHMARK_SOURCES || "";
@@ -605,7 +611,7 @@ section("marginal load: only deflection and repeat savings move");
      benefits load reproduces it exactly, because the engine takes the smaller of the two. */
   const OLD = build((id) => id === "load.marginal" ? 99 : BENCHMOD.benchmark(id));
   ok("the registry marginal load is the shared 1.18", BENCHMOD.benchmark("load.marginal") === 1.18);
-  ok("SOURCE the tool declares the shared marginal load it reads", /const TCO_SHARED_IDS = \["load\.benefits", "load\.marginal"\];/.test(SRC) && /benchmark\("load\.marginal"\)/.test(SRC));
+  ok("SOURCE the tool declares the shared marginal load it reads", /const TCO_SHARED_IDS = \["load\.benefits", "load\.marginal", "market\.wage\.agent"\];/.test(SRC) && /benchmark\("load\.marginal"\)/.test(SRC));
   let seed = 1234; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
   const n = mod.n;
   const inds = Object.keys(INDUSTRY), sts = Object.keys(STANCE);
