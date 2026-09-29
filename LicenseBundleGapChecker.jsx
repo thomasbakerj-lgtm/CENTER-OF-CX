@@ -386,10 +386,6 @@ const DEFS = {
   evidence: "What the numbers rest on. An estimate is a guess. A vendor email is stronger. A proposal, order form, SKU schedule or MSA (master services agreement) is what finance will trust. Finance-grade requires one of those documents, confirmed in writing.",
 };
 
-function LogoMark({ size = 30, light = true }) {
-  const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC;
-  return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
-}
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft), firm = alpha(HOUSE.mist, LINE.firm);
 const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
 const h2 = { fontSize: 18, fontWeight: 600, lineHeight: 1.3, color: HOUSE.mist, margin: "0 0 8px", display: "flex", alignItems: "center", gap: 6 };
@@ -600,6 +596,9 @@ export default function LicenseBundleGapChecker() {
 
       {voided && <Finding level="critical" title="Output void">{`${invariants.join("; ")}. Correct the inputs before using any figure on this page.`}</Finding>}
 
+      {/* A void fails its own consistency checks, so no figure renders: the Result above already shows none, and these
+         tiles, the hidden annual, its drivers, the commit and projection tiles and the read are withheld with it. */}
+      {!voided && (<>
       <div style={grid(150)}>
         <Tile label="Quoted seat" info={<InfoDot text={DEFS.baseSeat} title="Quoted seat" />} value={`$${quotedSeat.toFixed(0)}`} sub="vendor headline" />
         <Tile label="Effective license seat" info={<InfoDot text={DEFS.effLicenseSeat} title="Effective license seat" />} value={`$${effLicenseSeat.toFixed(0)}`} sub="seat, modules and tier upgrades" />
@@ -653,6 +652,7 @@ export default function LicenseBundleGapChecker() {
           <Tile label="18-month expansion" value={fmtK(exp18Annual)} sub={gSeats18 > 0 ? `${gSeats18} seats · rate-lock them now` : "enter the seats you expect to add"} />
         </div>
       )}
+      </>)}
 
       <section aria-label="How sure" style={panel}>
         <span style={{ ...kicker, display: "flex", alignItems: "center", gap: 4 }}>How sure · {voided ? "Void" : confidence}<InfoDot text={DEFS.confidence} title="Export confidence" /></span>
@@ -688,10 +688,10 @@ export default function LicenseBundleGapChecker() {
         {!flags.length && <Finding level="clear" title="Integrity checks passed">Inclusion is known on every needed module, nothing forces a hidden tier upgrade, usage fees are priced with no double counts, and committed seats match active seats.</Finding>}
       </section>
 
-      <section aria-label="What it means" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
+      {!voided && <section aria-label="What it means" style={{ ...panel, borderLeft: `3px solid ${PILLARS.diagnostics.fill}` }}>
         <span style={kicker}>What it means · the platform seat-equivalent is a comparison figure</span>
         {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "8px 0 0" }}>{t}</p>)}
-      </section>
+      </section>}
 
       <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}

@@ -27,20 +27,7 @@ const ROUTE = "/tools/tco-calculator";
 const METHODOLOGY_VERSION = METHOD_VERSIONS[TOOL_ID].version;
 
 
-function LogoMark({ size = 34, light = true }) {
-  const arcColor = light ? "#fff" : NAVY, xColor = light ? LIGHT : ELECTRIC;
-  return (
-    <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}>
-      <g transform="translate(60,60)">
-        <path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={arcColor} strokeWidth="2" strokeLinecap="round" opacity={light ? 0.6 : 0.3}/>
-        <path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={arcColor} strokeWidth="3.2" strokeLinecap="round" opacity={light ? 0.8 : 0.5}/>
-        <path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={arcColor} strokeWidth="5" strokeLinecap="round"/>
-        <line x1="-14" y1="-14" x2="14" y2="14" stroke={xColor} strokeWidth="5.5" strokeLinecap="round"/>
-        <line x1="14" y1="-14" x2="-14" y2="14" stroke={xColor} strokeWidth="5.5" strokeLinecap="round"/>
-      </g>
-    </svg>
-  );
-}
+/* @helpers-end: engine harnesses slice up to this line. */
 
 /* @engine-start
    Everything between these markers is the TCO engine and the only things it
@@ -403,7 +390,7 @@ function computeTCO(dIn, stanceKey = "expected") {
   return {
     d, guards,
     loaded, labor, tech, overhead, monthly, annual, agents, contacts,
-    costPerContact, costPerResolution, costPerHuman, marginalPerContact, marginalLoad, humanContacts,
+    costPerContact, costPerResolution, costPerHuman, marginalPerContact, marginalPerMin, marginalLoad, humanContacts,
     monthlyHires, attritionCost, voiceMinutes, perHire,
     laborPct: labor / (monthly || 1), techPct: tech / (monthly || 1), overheadPct: overhead / (monthly || 1),
     disp: buildDisplay(breakdown, monthly),
@@ -447,7 +434,7 @@ function buildOptimizations(d, r, stanceKey) {
   const targetAht = n(d.targetAht);
   if (n(d.aht) > targetAht && pool > 0) {
     const minSaved = (n(d.aht) - targetAht) / 60;
-    const gross = minSaved * pool * (r.loaded / 60);
+    const gross = minSaved * pool * r.marginalPerMin; // method 1.4: the shared marginal load (J10), as the other two levers
     out.push({ key: "aht", title: "Reduce average handle time", gross, net: gross * f,
       desc: `Bring AHT ${mmss(d.aht)} to ${mmss(targetAht)} across ${Math.round(pool).toLocaleString()} agent-handled contacts per month (after deflection). Applied only to contacts agents still handle, so deflected volume is counted once.` });
   }
@@ -474,7 +461,7 @@ function buildOptimizations(d, r, stanceKey) {
 function marginalLoadLine(d, r) {
   const full = 1 + n(d.agentBenefitsPct);
   const more = r.marginalLoad > 0 ? Math.round((full / r.marginalLoad - 1) * 100) : 0;
-  return `Deflection and repeat savings value agent time at the wage times ${r.marginalLoad.toFixed(2)}, the marginal load, and unit costs at the loaded ${full.toFixed(2)}. Capturing the saving by not backfilling seats removes benefits too${more > 0 ? `, about ${more}% more on those two levers` : ""}.`;
+  return `Deflection, repeat and handle-time savings value agent time at the wage times ${r.marginalLoad.toFixed(2)}, the marginal load, and unit costs at the loaded ${full.toFixed(2)}. Capturing the saving by not backfilling seats removes benefits too${more > 0 ? `, about ${more}% more on those three levers` : ""}.`;
 }
 
 function buildAnalystRead(d, r, opt, stanceKey) {

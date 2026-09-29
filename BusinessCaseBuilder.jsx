@@ -72,7 +72,7 @@ const fmtK = (v) => v >= 1000000 ? "$" + (v / 1000000).toFixed(2) + "M" : v >= 1
 const fmtFull = (v) => (Math.round(v) < 0 ? "-$" + Math.abs(Math.round(v)).toLocaleString() : "$" + Math.round(v).toLocaleString());
 const fmt2 = (v) => "$" + Number(v).toFixed(2);
 
-function LogoMark({ size = 34, light = true }) { const a = light ? "#fff" : NAVY, x = light ? LIGHT : ELECTRIC; return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke={a} strokeWidth="2" strokeLinecap="round" opacity={light ? .6 : .3} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke={a} strokeWidth="3.2" strokeLinecap="round" opacity={light ? .8 : .5} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke={a} strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={x} strokeWidth="5.5" strokeLinecap="round" /></g></svg>; }
+/* @helpers-end: engine harnesses slice up to this line. */
 
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
 const kicker = { fontSize: 12, fontWeight: 500, letterSpacing: "0.18em", textTransform: "uppercase", color: HOUSE.muted };
@@ -261,10 +261,14 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   d = dg;
 
   const loaded = n(d.avgHourly) * (1 + n(d.benefitsPct) / 100);
+  // Method 1.3 (J10): a saving is valued only on the shared marginal load, never above the loaded rate entered:
+  // deflected and repeat contacts, handle time and trainee time freed by lower attrition. Costs (absorbed internal
+  // labor) stay on the loaded rate.
+  const marginalRate = n(d.avgHourly) * Math.min(benchmark("load.marginal"), 1 + n(d.benefitsPct) / 100);
   // Marginal cost per contact: use a value inherited from another tool when present,
-  // otherwise derive the labor-marginal (handle-time at the loaded wage). This is
+  // otherwise derive the labor-marginal (handle-time at the marginal rate). This is
   // what actually disappears when a contact is deflected, not the fully loaded CPC.
-  const derivedMarginal = (n(d.currentAHT) / 3600) * loaded;
+  const derivedMarginal = (n(d.currentAHT) / 3600) * marginalRate;
   const marginal = n(d.marginalPerContact) > 0 ? n(d.marginalPerContact) : derivedMarginal;
   const marginalPulled = n(d.marginalPerContact) > 0;
   // An inherited marginal goes stale the moment AHT or wage is edited here, and a marginal
@@ -284,7 +288,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   const acw = Math.min(n(d.currentACW), n(d.currentAHT));
   const talkHold = Math.max(0, n(d.currentAHT) - acw);
   const secSaved = talkHold * (n(d.htReduction) / 100) + acw * (n(d.acwReduction) / 100);
-  const handleTime = handled * secSaved / 3600 * loaded;
+  const handleTime = handled * secSaved / 3600 * marginalRate;
 
   const containment = deflected * marginal;              // marginal basis, not loaded CPC
 
@@ -331,7 +335,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   // so what is actually avoided is the lost production during ramp, which is capacity like any
   // other freed hour and must be scaled by the same realization factor.
   const perHireCash = n(d.recruitCostPerHire);
-  const perHireCapacity = n(d.trainingDays) * benchmark("bcb.time.trainingHoursDay") * loaded;
+  const perHireCapacity = n(d.trainingDays) * benchmark("bcb.time.trainingHoursDay") * marginalRate;
   const perHire = perHireCash + perHireCapacity;
   const attrition = avoidedTurnover * perHire;
   const attritionCash = avoidedTurnover * perHireCash;
@@ -570,7 +574,7 @@ function computeCase(d, stanceKey, rampOn, mechKey = MECH_FALLBACK) {
   // What the dominant lever alone has to miss by, to take the whole three-year return with it.
   const leverShortfallToZero = topLeverShare > 0 ? benefitSlack / (topLeverShare / 100) : 0;
 
-  return { loaded, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal,
+  return { loaded, marginalRate, marginal, marginalPulled, marginalGap, marginalStale, derivedMarginal,
     mechKey: mKey, stanceKey: stKey, stanceLabel: cf.label, corrections, numericCorrections, domainCorrections, dg, mf, mechLabel: mech.label, cred: mech.cred,
     capacityGross, cashGross, capacityNet, cashNet, capacityRealized, unrealizedCapacity,
     attritionCash, attritionCapacity, perHireCash, perHireCapacity,
@@ -1257,7 +1261,7 @@ export default function BusinessCaseBuilder() {
                 <span style={{ ...small, fontWeight: 600, color: PILLARS.diagnostics.onDark }}>{marginalSource ? `from ${marginalSource}` : "pulled"}</span>
                 {r.marginalStale && <span style={{ ...small, color: HOUSE.mist, fontWeight: 600 }}>Check: AHT and wage here imply {fmt2(r.derivedMarginal)}, a {Math.round(r.marginalGap * 100)}% gap</span>}
               </>
-            : <span style={small}>derived from AHT and loaded wage</span>}
+            : <span style={small}>derived from AHT and the wage at the marginal load</span>}
           <span style={small}>against {fmt2(n(g.costPerContact))} fully loaded</span>
         </div>
       </Card>
@@ -1532,7 +1536,7 @@ export default function BusinessCaseBuilder() {
                   { title: "Decision Read", type: "findings", items: insights },
                   { title: "Key Assumptions", type: "table", rows: [
                     ["Loaded hourly rate", fmtFull(r.loaded) + ` per hr (${n(g.avgHourly)} plus ${n(g.benefitsPct)}% burden)`],
-                    ["Marginal cost per contact (savings basis)", fmt2(r.marginal) + (r.marginalPulled ? ` (inherited from ${marginalSource || "an earlier tool run"}${r.marginalStale ? `, ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage on this case` : ""})` : " (derived from AHT and loaded wage)")],
+                    ["Marginal cost per contact (savings basis)", fmt2(r.marginal) + (r.marginalPulled ? ` (inherited from ${marginalSource || "an earlier tool run"}${r.marginalStale ? `, ${Math.round(r.marginalGap * 100)}% away from the ${fmt2(r.derivedMarginal)} implied by the AHT and wage on this case` : ""})` : " (derived from AHT and the wage at the marginal load)")],
                     ["Fully loaded cost per contact (context)", fmt2(n(g.costPerContact))],
                     ["Annual contacts", (r.annual).toLocaleString()],
                     ["Contacts deflected (containment)", Math.round(r.deflected).toLocaleString() + ` (${n(g.containment)}%)`],
@@ -1549,7 +1553,7 @@ export default function BusinessCaseBuilder() {
                     ["Attribution weighting", `containment ${Math.round(STANCE[r.stanceKey].c * 100)}%, handle-time ${Math.round(STANCE[r.stanceKey].h * 100)}%, FCR ${Math.round(STANCE[r.stanceKey].f * 100)}%, attrition ${Math.round(STANCE[r.stanceKey].a * 100)}%`],
                   ]},
                   ]),
-                  { title: "Methodology", type: "text", content: "Avoided contacts release agent labor capacity, valued at marginal cost: the handle-time labor in one contact. The fully loaded cost per contact is shown for context only, because fixed technology, facilities and supervision stay in place when one contact is removed. The TCO Calculator uses the same valuation, so the two tools agree on the value of the same contact. That agreement is a shared definition; whether the released capacity releases cash depends on the capacity action. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance). Attribution is then followed by a separate and independent adjustment: freed agent labor is released capacity and converts to money only through a named action, so containment, handle-time and FCR savings are scaled by the " + r.mechLabel + " capacity action at " + Math.round(r.mf * 100) + "%. Avoided recruiting and training spend is cash-releasing and is never scaled. Platform and implementation costs are real cash out and are never scaled by either adjustment. " + (r.repeatBasis === "fcr-proxy" ? "Repeat-contact volume was not supplied, so avoided repeats are derived from FCR on the underlying issue count, because total handled contacts already include the repeats. This assumes one repeat per unresolved issue. That is a proxy, and a measured repeat volume would replace it." : "Avoided repeats are computed on measured same-reason repeat volume.") + (rampOn ? " Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback follows the real J-curve of a build followed by a ramp." : " Savings phasing was turned off for this case, so the model assumes full run-rate savings from month one. Payback and ROI here are idealized figures that ignore the migration build and the post-go-live ramp, and they will be shorter and higher than the phased case a CFO should be shown.") + (r.bauEntered
+                  { title: "Methodology", type: "text", content: "Avoided contacts release agent labor capacity, valued at marginal cost: the handle-time labor in one contact, at the wage times the shared marginal load, which leaves out the benefits that stay in place when one contact goes away. Handle time and the trainee time that lower attrition frees are valued at the same rate; the loaded wage values costs only. The fully loaded cost per contact is shown for context only, because fixed technology, facilities and supervision stay in place when one contact is removed. The TCO Calculator uses the same valuation, so the two tools agree on the value of the same contact. That agreement is a shared definition; whether the released capacity releases cash depends on the capacity action. Savings are computed on the post-deflection handled pool so deflected contacts are never also credited with handle-time or FCR savings. After-call work is treated as a disjoint slice of AHT, so handle-time and ACW reductions cannot double-count the same minutes. Each lever is then weighted by an attribution-confidence factor (the stance). Attribution is then followed by a separate and independent adjustment: freed agent labor is released capacity and converts to money only through a named action, so containment, handle-time and FCR savings are scaled by the " + r.mechLabel + " capacity action at " + Math.round(r.mf * 100) + "%. Avoided recruiting and training spend is cash-releasing and is never scaled. Platform and implementation costs are real cash out and are never scaled by either adjustment. " + (r.repeatBasis === "fcr-proxy" ? "Repeat-contact volume was not supplied, so avoided repeats are derived from FCR on the underlying issue count, because total handled contacts already include the repeats. This assumes one repeat per unresolved issue. That is a proxy, and a measured repeat volume would replace it." : "Avoided repeats are computed on measured same-reason repeat volume.") + (rampOn ? " Savings are phased over a monthly cash-flow model: zero during the migration build, then a linear ramp to full run-rate over the ramp window, so payback follows the real J-curve of a build followed by a ramp." : " Savings phasing was turned off for this case, so the model assumes full run-rate savings from month one. Payback and ROI here are idealized figures that ignore the migration build and the post-go-live ramp, and they will be shorter and higher than the phased case a CFO should be shown.") + (r.bauEntered
                     ? " Return is calculated against gross transformation cash, meaning one-time implementation plus contractual exit and incremental cash labor, plus three years of the new platform fee. A business-as-usual counterfactual has been entered, and displaced current spend is credited on the benefit side as avoided cash and is never netted out of that denominator. Netting it out would drive the denominator toward zero and then negative as the displaced figure grows, so the ratio would become unstable exactly where the economics are strongest. Displaced spend is not weighted by the stance or by the capacity action, because retiring a contract is a contractual outcome with no attribution or realization question attached. It is not phased over the savings ramp either: it steps at the end of the dual-run period. Absorbed internal project labor is disclosed as an hours burden and excluded from the cash return on the same principle that unconverted freed agent capacity is excluded from the benefit. This still excludes usage-based charges and any growth in volume or wages over the horizon, which are a forward counterfactual this version does not model."
                     : " Return is calculated against modeled three-year investment cost, meaning one-time implementation plus three years of the new platform fee. This is deliberately not called total cost of ownership: no business-as-usual counterfactual has been entered for this case, so it excludes current platform spend that would be displaced, migration overlap, termination and decommissioning, internal project labor and usage-based charges. The tool models all of those, and they are all zero here. A full incremental comparison would move this figure in both directions.") + (r.stanceKey === "aggressive" ? " This case was run on the Aggressive stance, which applies no attribution haircut, so the savings side of this document carries no attribution discount. Say so when you present it." : " On this stance each lever carries an attribution weight below one, so the modeled figure is lower than the technical potential by design.") + " The full method, with every formula, constant and a worked example, is published at contactcentercx.com/methodology/business-case-builder." },
                 ]}

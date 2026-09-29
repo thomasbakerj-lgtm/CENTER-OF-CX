@@ -17,7 +17,7 @@ function slice(startMarker, endMarker) {
   return SRC.slice(a, b);
 }
 
-const helpers = slice("const STATUS = {", "function LogoMark");
+const helpers = slice("const STATUS = {", "/* @helpers-end");
 const consts  = slice("const STANCE = {", "/* De-overlapped model");
 const engine  = slice("function computeCase(", "export default function");
 
@@ -44,6 +44,17 @@ const mod = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards", 
   `return { computeCase, confidenceOf, caseInsights, DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BASELINE_EVIDENCE, BASELINE_FIELDS, BCB_DOMAIN, n, fmtK, fmt2, fmtFull, roiStatus, paybackStatus, STATUS };`
 )(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, ...CONF_VALS());
 
+/* Method 1.3 (29 Sep 2026, J10): savings are valued on the shared marginal load. Several sections below reproduce
+   figures from earlier published artifacts (the live test 3 case, the BAU displacement set G, J27's Set B); they were
+   built at the loaded rate. PRE13 is the same engine with the marginal load set above any benefits load, which the
+   engine clips to the loaded rate, so it is exactly the method 1.2 valuation. Those chains run on PRE13; section 12j
+   proves the shipped engine differs from it only in the savings the load values. */
+const CONF_VALS_PRE13 = () => CONF_VALS().map((v, i) => i === CONF_ARGS.indexOf("benchmark") ? (id) => (id === "load.marginal" ? 99 : BENCH.benchmark(id)) : v);
+const PRE13 = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards", ...CONF_ARGS,
+  `${helpers}\n${consts}\n${engine}\n` +
+  `return { computeCase, confidenceOf, caseInsights, STANCE };`
+)(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, ...CONF_VALS_PRE13());
+
 const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS: SHIPPED_DEFAULTS, STANCE, EVIDENCE, BAU_EVIDENCE, BASELINE_EVIDENCE, BASELINE_FIELDS, BCB_DOMAIN } = mod;
 
 /* The harness scenario set was written against a capacity action of "hiring", which was
@@ -56,6 +67,7 @@ const { computeCase: computeCaseRaw, confidenceOf, caseInsights, DEFAULTS: SHIPP
    Assertions that test the signature default itself call computeCaseRaw directly. */
 const HARNESS_MECH = "hiring";
 const computeCase = (d, stanceKey, rampOn, mechKey = HARNESS_MECH) => computeCaseRaw(d, stanceKey, rampOn, mechKey);
+const computeCasePre = (d, stanceKey, rampOn, mechKey = HARNESS_MECH) => PRE13.computeCase(d, stanceKey, rampOn, mechKey);
 
 let pass = 0, fail = 0;
 const FAILS = [];
@@ -210,15 +222,15 @@ section("3. Marginal provenance, pulled vs derived");
   const dDerived = D({ marginalPerContact: 0 });
   const rD = computeCase(dDerived, "expected", true);
   ok("derived marginal flag is false", rD.marginalPulled === false);
-  ok("derived marginal = AHT/3600 x loaded",
-     near(rD.marginal, (dDerived.currentAHT / 3600) * (dDerived.avgHourly * 1.3), 0.001));
+  ok("derived marginal = AHT/3600 x the marginal rate (wage x the shared marginal load, method 1.3)",
+     near(rD.marginal, (dDerived.currentAHT / 3600) * (dDerived.avgHourly * Math.min(1.18, 1 + dDerived.benefitsPct / 100)), 0.001));
 
   const dPulled = D({ marginalPerContact: 4.28 });
   const rP = computeCase(dPulled, "expected", true);
   ok("pulled marginal flag is true", rP.marginalPulled === true);
   ok("pulled marginal used verbatim", near(rP.marginal, 4.28, 0.001));
   ok("derivedMarginal still exposed alongside pulled",
-     near(rP.derivedMarginal, (dPulled.currentAHT / 3600) * (dPulled.avgHourly * 1.3), 0.001));
+     near(rP.derivedMarginal, (dPulled.currentAHT / 3600) * (dPulled.avgHourly * Math.min(1.18, 1 + dPulled.benefitsPct / 100)), 0.001));
   ok("pulled and derived are not silently interchanged", !near(rP.marginal, rP.derivedMarginal, 0.01));
 
   const dZero = D({ marginalPerContact: 0.0 });
@@ -242,22 +254,22 @@ section("4. ACW clamp and double-count prevention");
   const r = computeCase(d, "expected", true);
   ok("ACW > AHT cannot produce negative handle-time savings", r.buckets.handleTime >= 0,
      String(r.buckets.handleTime));
-  const secSaved = (r.buckets.handleTime / r.handled) * 3600 / r.loaded;
+  const secSaved = (r.buckets.handleTime / r.handled) * 3600 / r.marginalRate;
   ok("saved seconds never exceed AHT", secSaved <= d.currentAHT + 0.001, `${secSaved} vs ${d.currentAHT}`);
 
   const dFull = D({ currentAHT: 420, currentACW: 45, htReduction: 100, acwReduction: 100 });
   const rF = computeCase(dFull, "expected", true);
-  const secF = (rF.buckets.handleTime / rF.handled) * 3600 / rF.loaded;
+  const secF = (rF.buckets.handleTime / rF.handled) * 3600 / rF.marginalRate;
   ok("100/100 reduction saves exactly AHT, not more", near(secF, 420, 0.001), String(secF));
 
   const dACWonly = D({ currentAHT: 420, currentACW: 45, htReduction: 0, acwReduction: 100 });
   const rA = computeCase(dACWonly, "expected", true);
-  const secA = (rA.buckets.handleTime / rA.handled) * 3600 / rA.loaded;
+  const secA = (rA.buckets.handleTime / rA.handled) * 3600 / rA.marginalRate;
   ok("ACW slice is disjoint from talk-hold", near(secA, 45, 0.001), String(secA));
 
   const dHTonly = D({ currentAHT: 420, currentACW: 45, htReduction: 100, acwReduction: 0 });
   const rH = computeCase(dHTonly, "expected", true);
-  const secH = (rH.buckets.handleTime / rH.handled) * 3600 / rH.loaded;
+  const secH = (rH.buckets.handleTime / rH.handled) * 3600 / rH.marginalRate;
   ok("talk-hold slice excludes ACW", near(secH, 375, 0.001), String(secH));
   ok("disjoint slices sum to full AHT", near(secA + secH, 420, 0.001));
 }
@@ -309,7 +321,7 @@ section("7. Attrition lever");
   const r = computeCase(d, "expected", true);
   const expTurnover = d.agents * (d.currentAttrition - d.currentAttrition * (1 - d.attritionReduction / 100)) / 100;
   ok("avoided turnover math", near(r.avoidedTurnover, expTurnover, 0.001));
-  const perHire = d.recruitCostPerHire + d.trainingDays * 8 * r.loaded;
+  const perHire = d.recruitCostPerHire + d.trainingDays * 8 * r.marginalRate; // freed trainee production is a saving: the marginal rate (method 1.3)
   ok("attrition = avoided turnover x per-hire cost", near(r.buckets.attrition, expTurnover * perHire, 0.5));
   ok("zero attrition reduction zeroes the lever",
      near(computeCase(D({ attritionReduction: 0 }), "expected", true).buckets.attrition, 0, 0.001));
@@ -545,6 +557,8 @@ section("12. Provenance, self-credentialing and marginal staleness");
 
 section("12b. Semantic status, headroom and horizon language");
 {
+  /* This section reconciles the live test 3 artifacts, produced at the method 1.2 valuation: it runs on PRE13 (see the top). */
+  const computeCase = computeCasePre;
   const { roiStatus, paybackStatus } = mod;
   const T3 = { agents: 387, avgHourly: 20, benefitsPct: 27, monthlyContacts: 250000,
     currentAHT: 325, currentACW: 54, currentFCR: 69, currentAttrition: 32, costPerContact: 6.25,
@@ -924,8 +938,8 @@ section("12c. Capacity is not cash");
   })());
   ok("freed hours reconcile to the capacity dollars at the marginal rate", (() => {
     const r = computeCase(T, "expected", true, "hiring");
-    return near(r.freedHoursGross * r.loaded, r.capacityGross, r.capacityGross * 0.001);
-  })(), "hours x loaded rate should equal capacity value");
+    return near(r.freedHoursGross * r.marginalRate, r.capacityGross, r.capacityGross * 0.001);
+  })(), "hours x marginal rate should equal capacity value");
 
   // Doctrine: credit class governs the grade, on its own axis.
   // A case healthy enough that the COST axis reaches Finance-grade, so the realization axis is
@@ -1110,11 +1124,14 @@ section("12h. Branch copy is true in every branch");
     return true;
   })());
   ok("a case already past the headroom cliff says so, not that value turns negative above it", (() => {
-    const d = { ...D(), implementationCost: 1500000, agents: 235, newPlatformPerAgentMo: 155,
+    /* Platform 145 (was 155): at method 1.3's marginal rate the old case fell past a different branch (negative even at
+       zero implementation). 145 puts it back past the headroom cliff, the branch this check is about; the guard below
+       fails rather than passes if it ever stops reaching it. */
+    const d = { ...D(), implementationCost: 1500000, agents: 235, newPlatformPerAgentMo: 145,
       migrationMonths: 12, rampMonths: 7, evidence: "proposal", repeatShare: 2, currentFCR: 78 };
     const r = computeCase(d, "expected", true, "hiring");
     const c = confidenceOf(d, r, "expected");
-    if (r.implHeadroomPerAgent >= 0) return true;
+    if (r.implHeadroomPerAgent >= 0) return false;
     return c.findings.some(t => /already negative on implementation cost/.test(t))
       && !c.findings.some(t => /leaving only/.test(t));
   })());
@@ -1207,12 +1224,13 @@ section("12f. Verdict strength is never a confidence axis");
   const RANK = { "Finance-grade": 3, "Planning-grade": 2, "Directional": 1 };
   const fixed = { ...D(), evidence: "proposal", bauEvidence: "reviewed", agents: 200 };
 
-  // One evidence profile, eleven return profiles, driven only by investment and platform price.
+  // One evidence profile, twelve return profiles, driven only by investment and platform price.
   const returns = [
     { implementationCost: 150000 }, { implementationCost: 400000 }, { implementationCost: 750000 },
     { implementationCost: 1500000 }, { implementationCost: 3000000 }, { implementationCost: 6000000 },
     { newPlatformPerAgentMo: 60 }, { newPlatformPerAgentMo: 300 }, { newPlatformPerAgentMo: 900 },
     { bauEliminatedAnnual: 1, bauExitCost: 1100000 }, { bauEliminatedAnnual: 1, bauExitCost: 2200000 },
+    { implementationCost: 50000, newPlatformPerAgentMo: 30 }, // method 1.3: keeps a returning case on every action that can return
   ];
 
   let spanning = 0;
@@ -1466,6 +1484,40 @@ section("12i. Baseline evidence: the benefit stream grades where the baselines c
   ok("SOURCE a scenario link credits no rail baseline", (() => { const a = SRC.indexOf("const sc = readScenario(TOOL_ID"); const b = SRC.indexOf("return;", a); const c = SRC.indexOf("setRailBase(base)"); return a > 0 && b > a && c > b; })());
 }
 
+section("12j. Method 1.3: savings on the shared marginal load (J10), A/B against the 1.2 valuation");
+{
+  let seed = 4242; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  let count = 0, costSame = true, cashSame = true, scaled = true, lower = true, axesSame = 0, moved = 0;
+  const COST = ["tco3", "recurring", "monthlyPlatform", "loaded", "absorbedValue", "displacement3", "bauEntered"];
+  for (let i = 0; i < 6000; i++) {
+    const d = D({ agents: 20 + Math.round(rnd() * 1500), avgHourly: 14 + rnd() * 20, benefitsPct: rnd() < 0.15 ? rnd() * 18 : 20 + rnd() * 30,
+      monthlyContacts: 5000 + Math.round(rnd() * 500000), currentAHT: 180 + Math.round(rnd() * 600), currentACW: 20 + Math.round(rnd() * 90),
+      htReduction: rnd() * 30, acwReduction: rnd() * 40, fcrImprovement: rnd() * 15, attritionReduction: rnd() * 40, containment: rnd() * 30,
+      implementationCost: Math.round(rnd() * 3000000), newPlatformPerAgentMo: 40 + Math.round(rnd() * 250) });
+    const st = ["aggressive", "expected", "conservative"][i % 3], mk = MECH_ORDER[i % MECH_ORDER.length];
+    const rN = computeCase(d, st, true, mk), rO = computeCasePre(d, st, true, mk); count++;
+    for (const k of COST) if (JSON.stringify(rN[k]) !== JSON.stringify(rO[k])) costSame = false;
+    if (Math.abs(rN.attritionCash - rO.attritionCash) > 1e-6) cashSame = false;
+    const ratio = Math.min(1.18, 1 + d.benefitsPct / 100) / (1 + d.benefitsPct / 100);
+    for (const k of ["containment", "handleTime", "fcr"]) if (Math.abs(rN.buckets[k] - rO.buckets[k] * ratio) > 1e-6 * Math.max(1, rO.buckets[k])) scaled = false;
+    if (Math.abs(rN.attritionCapacity - rO.attritionCapacity * ratio) > 1e-6 * Math.max(1, rO.attritionCapacity)) scaled = false;
+    if (rN.gross > rO.gross + 1e-6) lower = false;
+    if (rN.gross !== rO.gross) moved++;
+    const cN = confidenceOf(d, rN, st), cO = PRE13.confidenceOf(d, rO, st);
+    if (cN.evidenceGrade === cO.evidenceGrade && cN.realizationGrade === cO.realizationGrade && cN.costGrade === cO.costGrade) axesSame++;
+  }
+  ok("A/B: every cost figure, the loaded rate and displaced spend are identical on 6,000 cases", costSame, String(count));
+  ok("A/B: recruiting cash avoided is identical (cash out the door is never revalued)", cashSame);
+  ok("A/B: deflection, repeat, handle-time and trainee-capacity savings move by exactly the marginal load over the loaded rate", scaled);
+  ok("A/B: savings never rise", lower);
+  ok("A/B: savings move on most cases", moved > count / 2, String(moved));
+  ok("A/B: evidence, realization and cost grades are identical on every case (the load moves figures, never evidence)", axesSame === count, `${axesSame} of ${count}`);
+  const r = computeCase(D({ benefitsPct: 10 }), "expected", true);
+  ok("a benefits load below the marginal load is used as it is", near(r.marginalRate, r.loaded, 1e-9));
+  ok("the marginal rate is the wage times the shared marginal load", near(computeCase(D(), "expected", true).marginalRate, DEFAULTS.avgHourly * 1.18, 1e-9));
+  ok("SOURCE: the engine reads the shared marginal load and values costs on the loaded rate", /Math\.min\(benchmark\("load\.marginal"\), 1 \+ n\(d\.benefitsPct\) \/ 100\)/.test(SRC) && /const absorbedValue = absorbedHours \* loaded;/.test(SRC));
+}
+
 section("13. Single-driver dominance");
 {
   const d = D();
@@ -1532,13 +1584,16 @@ section("14. caseInsights self-consistency");
      outZ.every(s => !/Infinity/.test(s)));
 
   // Ramp insight arithmetic.
-  const rR = computeCase(D(), "expected", true);
-  const outR = caseInsights(rR, D(), "expected", confidenceOf(D(), rR, "expected"));
+  /* Implementation 400,000: at method 1.3's marginal rate the default case no longer breaks even inside the horizon,
+     so it prints no ramp line; this case does, and the else branch still fails if the line goes missing. */
+  const DR = D({ implementationCost: 400000 });
+  const rR = computeCase(DR, "expected", true);
+  const outR = caseInsights(rR, DR, "expected", confidenceOf(DR, rR, "expected"));
   const rampLine = outR.find(s => /idealized \d+ months to a realistic/.test(s));
   if (rampLine) {
     const mm = rampLine.match(/idealized (\d+) months to a realistic (\d+)/);
     const instMonthly = rR.monthlyFull - rR.monthlyPlatform;
-    const instPay = instMonthly > 0 ? Math.ceil(DEFAULTS.implementationCost / instMonthly) : 0;
+    const instPay = instMonthly > 0 ? Math.ceil(DR.implementationCost / instMonthly) : 0;
     ok("ramp insight reproduces its own idealized payback", Number(mm[1]) === instPay, `${mm[1]} vs ${instPay}`);
     ok("ramp insight reproduces the real payback", Number(mm[2]) === rR.payback, `${mm[2]} vs ${rR.payback}`);
   } else { ok("ramp insight present on default input", false, "line missing"); }
@@ -1638,7 +1693,7 @@ section(`A. Engine invariants across ${N} randomized cases`);
     if (Math.abs(r.tco3 - (d.implementationCost + r.recurring * 3)) > 0.5) tcoDrift++;
     if (r.roiDefined && Math.abs(r.roi3 - (r.savings3 - r.tco3) / r.tco3 * 100) > 0.01) roiDrift++;
     if (r.handled > 0) {
-      const sec = (b.handleTime / r.handled) * 3600 / r.loaded;
+      const sec = (b.handleTime / r.handled) * 3600 / r.marginalRate;
       if (sec > d.currentAHT + 0.01) secOverAHT++;
     }
     if (r.payback > 0 && !(r.cumFlow[r.payback] >= 0 && r.cumFlow[r.payback - 1] < 0)) paybackBad++;
@@ -1790,6 +1845,8 @@ section("F. Targeted zero-cost and zero-savings edges");
 /* ------------------------------------------------------------------------ */
 section("G. BAU counterfactual");
 {
+  /* This section reconciles the session handoff's reference set, produced at the method 1.2 valuation: it runs on PRE13 (see the top). */
+  const computeCase = computeCasePre;
   // Reference set from the session handoff, reconciled exactly against the pre-BAU engine.
   const REF = D({ agents: 235, avgHourly: 20.50, benefitsPct: 28, monthlyContacts: 151000,
     currentAHT: 360, currentACW: 60, currentFCR: 78, repeatShare: 2, currentAttrition: 33,
@@ -2374,8 +2431,9 @@ section("J. 1-14 fragility, the thin return that used to pass in silence");
   /* Fixture regression. The 1-12 reference sets must be untouched by this item, or the
      recorded expectations in the tracker stop describing the shipped tool. */
   ex("J27 Set B is unchanged: Finance-grade, one finding, no payback, break-even month 103", () => {
+    /* The tracker's Set B was recorded at the method 1.2 valuation: PRE13 reproduces it. */
     const d = D({ evidence: "proposal", bauEvidence: "reviewed", implementationCost: 6000000 });
-    const r = computeCase(d, "expected", true, "headcount"), c = confidenceOf(d, r, "expected");
+    const r = computeCasePre(d, "expected", true, "headcount"), c = PRE13.confidenceOf(d, r, "expected");
     return c.grade === "Finance-grade" && c.costGrade === "Finance-grade" && c.realizationGrade === "Finance-grade"
       && c.open.length === 0 && c.withheld.length === 0 && c.findings.length === 1
       && r.payback === 0 && r.trueBreakevenMonth === 103 && r.fragile === false;

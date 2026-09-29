@@ -5,7 +5,7 @@
 // the voice symmetric about the opening); the small drawing takes over below 40 pixels; every colour is visible where it is
 // drawn; the header and footer, the favicon and the report masthead all draw from mark.js, and the retired three-arc mark
 // is gone from each; public/favicon.svg equals the module's output.
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { build } from "esbuild";
 
@@ -70,6 +70,11 @@ ok("the paper mark at 26 pixels is the small drawing", lines(paper) === 9);
 
 console.log("\n6. The three-arc mark is retired from every place the mark is drawn");
 for (const [f, t] of [["src/lib/Shell.jsx", SRC], ["ReportExport.jsx", REP], ["public/favicon.svg", fav]]) ok(`${f}: no three-arc drawing`, !/A 58,58|A 44,44|A 30,30/.test(t));
+/* 29 Sep: 26 page files still carried an unused copy of the old mark (LogoMark or Logo). They are gone; four tools keep an
+   @helpers-end marker where their engine harnesses slice. No page may define or draw the old mark again. */
+const JSX = [".", "src/lib"].flatMap((d) => readdirSync(d).filter((n) => /\.jsx$/.test(n)).map((n) => (d === "." ? n : d + "/" + n)));
+const oldMark = JSX.filter((f) => { const t = readFileSync(f, "utf8"); return /function Logo(Mark)?\(|const Logo(Mark)? = |A 58,58 0 1,0/.test(t); });
+ok("no page defines or draws the retired three-arc mark", oldMark.length === 0, oldMark.join(", "));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);

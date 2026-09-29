@@ -128,7 +128,7 @@ function slice(a, b) {
   if (j < 0) return null;
   return SRC.slice(i, j);
 }
-const ids = slice('const TOOL_ID = "tco-calculator";', "function LogoMark");
+const ids = slice('const TOOL_ID = "tco-calculator";', "/* @helpers-end");
 const region = slice("/* @engine-start", "/* @engine-end */");
 /* The shipped grade call, sliced so the harness runs the component's own line. */
 const gradeLine = (() => { const i = SRC.indexOf("  const G = gradeTCO("); return i < 0 ? null : SRC.slice(i, SRC.indexOf("\n", i)); })();
@@ -315,7 +315,7 @@ for (const k of Object.keys(DOCS)) {
 console.log("\nmarginal load disclosure");
 {
   const t = allText(DOCS.A);
-  A("A: the PDF states the marginal load the savings use and the benefits it leaves out", /wage times 1\.18, the marginal load, and unit costs at the loaded 1\.30\. Capturing the saving by not backfilling seats removes benefits too, about 10% more on those two levers\./.test(t));
+  A("A: the PDF states the marginal load the savings use and the benefits it leaves out", /wage times 1\.18, the marginal load, and unit costs at the loaded 1\.30\. Capturing the saving by not backfilling seats removes benefits too, about 10% more on those three levers\./.test(t));
   A("A: the PDF prints the marginal cost per contact at the marginal load", t.includes("$" + DOCS.A.r.marginalPerContact.toFixed(2)) && Math.abs(DOCS.A.r.marginalPerContact - 2.8313) < 1e-4);
 }
 

@@ -512,9 +512,6 @@ const MECH_OPTS = MECH_ORDER.map((k) => ({ v: k, l: MECH[k].label + (k === "none
 const LABELS = ["", "Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
 const GAMING = ["Reopen and repeat-contact rate", "Transfer rate", "Escalation rate", "AHT drift (chasing FCR with longer calls)", "Confirmed bot containment (issues the bot actually resolved)", "CSAT and CES (satisfaction and effort scores)", "QA resolution accuracy", "Complaint rate"];
 
-function LogoMark({ size = 30 }) {
-  return <svg width={size} height={size} viewBox="0 0 120 120" style={{ flexShrink: 0 }}><g transform="translate(60,60)"><path d="M 30,-50 A 58,58 0 1,0 30,50" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" opacity={0.6} /><path d="M 22,-38 A 44,44 0 1,0 22,38" fill="none" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" opacity={0.8} /><path d="M 15,-26 A 30,30 0 1,0 15,26" fill="none" stroke="#fff" strokeWidth="5" strokeLinecap="round" /><line x1="-14" y1="-14" x2="14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /><line x1="14" y1="-14" x2="-14" y2="14" stroke={LIGHT} strokeWidth="5.5" strokeLinecap="round" /></g></svg>;
-}
 
 /* Scenario contract. Defaults are STATIC on purpose: the state initializers
    below seed from cross-tool pulls, but the URL diff must be taken against a

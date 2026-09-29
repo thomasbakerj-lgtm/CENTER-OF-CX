@@ -117,7 +117,7 @@ function slice(a, b) {
   if (j < 0) return null;
   return SRC.slice(i, j);
 }
-const ids = slice('const TOOL_ID = "staffing-calculator";', "function LogoMark");
+const ids = slice('const TOOL_ID = "staffing-calculator";', "/* @helpers-end");
 const engine = slice("function erlangB(", "const PRESETS = {");
 /* Stop before the S metric component, which is JSX. Everything above it is pure JS. */
 const tail = slice("const PRESETS = {", "const S = ({ label");

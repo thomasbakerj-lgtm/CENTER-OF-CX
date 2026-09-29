@@ -616,7 +616,7 @@ section("marginal load: only deflection and repeat savings move");
   const n = mod.n;
   const inds = Object.keys(INDUSTRY), sts = Object.keys(STANCE);
   const COST = ["loaded", "labor", "tech", "overhead", "monthly", "annual", "costPerContact", "costPerResolution", "costPerHuman", "threeYear", "y2", "y3", "perHire", "attritionCost", "laborPct", "techPct"];
-  let costSame = true, gradeSame = true, othersSame = true, lower = true, oracle = true, capped = true, moved = 0, count = 0; let validityCases = 0;
+  let costSame = true, gradeSame = true, othersSame = true, ahtScaled = true, lower = true, oracle = true, capped = true, moved = 0, count = 0; let validityCases = 0;
   for (let i = 0; i < 6000; i++) {
     const ind = inds[Math.floor(rnd() * inds.length)], st = sts[Math.floor(rnd() * sts.length)];
     const d = { ...BASE, ...INDUSTRY[ind], industry: ind, agents: 20 + Math.round(rnd() * 2000), agentHourly: 14 + rnd() * 20,
@@ -632,7 +632,10 @@ section("marginal load: only deflection and repeat savings move");
     const oN = buildOptimizations(rN.d, rN, st), oO = OLD.buildOptimizations(rO.d, rO, st);
     const by = (x) => Object.fromEntries(x.items.map((it) => [it.key, it]));
     const a = by(oN), b = by(oO);
-    for (const k of ["aht", "attrition"]) if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) othersSame = false;
+    /* Method 1.4 (29 Sep): the handle-time lever moved to the marginal load too, so only attrition stays identical, and
+       the handle-time lever equals the old one scaled by marginal load over loaded rate, within the $1,000 rounding of each. */
+    if (JSON.stringify(a.attrition) !== JSON.stringify(b.attrition)) othersSame = false;
+    if (a.aht && b.aht) { const ratio = Math.min(1.18, 1 + n(rN.d.agentBenefitsPct)) / (1 + n(rN.d.agentBenefitsPct)); if (Math.abs(a.aht.gross - b.aht.gross * ratio) > 1000) ahtScaled = false; }
     if (oN.grossTotal > oO.grossTotal) lower = false;
     if (oN.grossTotal !== oO.grossTotal) moved++;
     const load = Math.min(1.18, 1 + n(rN.d.agentBenefitsPct));
@@ -642,7 +645,8 @@ section("marginal load: only deflection and repeat savings move");
   }
   ok("A/B: every cost figure is identical on 6,000 cases", costSame, String(count));
   ok(`A/B: every grade is identical (${validityCases} cases where marginal exceeds loaded cost set aside; the validity section checks them)`, gradeSame);
-  ok("A/B: the handle-time and attrition levers are identical", othersSame);
+  ok("A/B: the attrition lever is identical", othersSame);
+  ok("A/B: the handle-time lever moves by the marginal load over the loaded rate (method 1.4)", ahtScaled);
   ok("A/B: savings never rise", lower);
   ok("A/B: savings move on most cases", moved > count / 2, String(moved));
   ok("marginal per contact = handle minutes × wage × marginal load per minute + voice telephony", oracle);
@@ -650,7 +654,7 @@ section("marginal load: only deflection and repeat savings move");
   ok("a benefits load below the marginal load is used as it is", (() => { const r = computeTCO(D({ agentBenefitsPct: 0.1 }), "expected"); return near(r.marginalLoad, 1.1, 1e-12); })());
   const r = computeTCO(D(), "expected"), op = buildOptimizations(r.d, r, "expected");
   const read = buildAnalystRead(r.d, r, op, "expected").join(" ");
-  ok("the disclosure line states both loads and sizes the benefits share", /wage times 1\.18, the marginal load, and unit costs at the loaded 1\.30\. Capturing the saving by not backfilling seats removes benefits too, about 10% more on those two levers\./.test(read), read.slice(-260));
+  ok("the disclosure line states both loads and sizes the benefits share", /Deflection, repeat and handle-time savings value agent time at the wage times 1\.18, the marginal load, and unit costs at the loaded 1\.30\. Capturing the saving by not backfilling seats removes benefits too, about 10% more on those three levers\./.test(read), read.slice(-260));
   ok("the disclosure drops its size when the loads are equal", !/about \d+% more/.test(buildAnalystRead(r.d, { ...r, marginalLoad: 1.3 }, op, "expected").join(" ")));
 }
 

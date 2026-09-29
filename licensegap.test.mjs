@@ -708,5 +708,15 @@ A("compute is deterministic", JSON.stringify(compute(D()).flags) === JSON.string
     conf(d => { financeReady(d); d.modules.wem.cost = 5000; }).completenessCeiling === "Directional");
 }
 
+/* Audit (29 Sep): a void showed no figure in its Result but still rendered the seat tiles, the hidden annual, its
+   drivers, the commit and projection tiles and the read. Every figure block below the input form sits inside !voided. */
+{
+  const R = SRC.slice(SRC.indexOf("return ("), SRC.indexOf("<ReportActions"));
+  const guarded = (marker) => { const i = R.indexOf(marker); const g = R.lastIndexOf("{!voided && (", i); const g2 = R.lastIndexOf("{!voided && <section", i); const open = Math.max(g, g2); return i > 0 && open > 0 && R.slice(open, i).split("</>)}").length === 1; };
+  for (const m of ['label="Quoted seat"', 'label="Effective license seat"', 'label="Platform seat-equivalent"', 'label="Bundle gap"', 'aria-label="Hidden annual cost"', 'aria-label="Top recurring cost drivers"', 'label="Commit exposure"', 'label="Year-3 seat-equivalent"', 'label="18-month expansion"', 'aria-label="What it means"'])
+    A(`void withholds ${m}`, guarded(m));
+  A("the void finding and the integrity checks still render on a void", /\{voided && <Finding level="critical"/.test(R) && !guarded('aria-label="Integrity checks"'));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

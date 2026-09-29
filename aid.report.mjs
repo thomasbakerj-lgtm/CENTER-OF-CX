@@ -133,7 +133,7 @@ function prop(name) {
 /* The engine plus every pure-JS module const the payload leans on. One slice, taken
    by string marker rather than by brace balance, so a stray apostrophe inside a
    template literal in buildAnalystRead cannot move the boundary. */
-const ma = SRC.indexOf("/* @engine-start"), mb = SRC.indexOf("function LogoMark");
+const ma = SRC.indexOf("/* @engine-start"), mb = SRC.indexOf("/* @helpers-end");
 if (ma < 0 || mb < 0) { console.error("BLOCKER: engine region markers not found."); process.exit(1); }
 const engineRegion = SRC.slice(ma, mb).replace(/^export /gm, "");
 

@@ -77,7 +77,7 @@ console.log("\n5. The tracker fixture");
   const SRC = readFileSync("./BusinessCaseBuilder.jsx", "utf8");
   const sl = (a, b) => { const i = SRC.indexOf(a); return SRC.slice(i, SRC.indexOf(b, i)); };
   const E = new Function("MECH", "MECH_ORDER", "MECH_FALLBACK", "createGuards", "emitGrades", "voidResult", "weakerStream", "realizationFromCred", "GRADE_RANK", "benchmark",
-    sl("const STATUS = {", "function LogoMark") + "\n" + sl("const STANCE = {", "/* De-overlapped model") + "\n" + sl("function computeCase(", "export default function") + "\nreturn { computeCase, DEFAULTS };")(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, conf.emitGrades, conf.voidResult, conf.weakerStream, conf.realizationFromCred, conf.GRADE_RANK, benchmark);
+    sl("const STATUS = {", "/* @helpers-end") + "\n" + sl("const STANCE = {", "/* De-overlapped model") + "\n" + sl("function computeCase(", "export default function") + "\nreturn { computeCase, DEFAULTS };")(MECH, MECH_ORDER, MECH_FALLBACK, createGuards, conf.emitGrades, conf.voidResult, conf.weakerStream, conf.realizationFromCred, conf.GRADE_RANK, benchmark);
   const r = E.computeCase(E.DEFAULTS, "expected", true, "none");
   const got = `net $${Math.round(r.net).toLocaleString("en-US")} a year, three-year cost $${r.tco3.toLocaleString("en-US")}`;
   ok("the Business Case engine reproduces the tracker fixture at its opening case", F["bcb-tracker"].expected === got, got);
