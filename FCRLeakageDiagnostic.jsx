@@ -10,6 +10,7 @@ import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
    nothing (P6 item 15: every pull is external). */
 const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null, derived: false, flag: null, confidenceImpact: null });
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { severityBucket } from "./src/lib/track";
 import { MECH, MECH_ORDER, MECH_INITIAL, isNoActionFlag } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
@@ -635,6 +636,8 @@ export default function FCRLeakageDiagnostic() {
     measuredPct, measuredTargetPct, pathModel, repeatMult, targetPct,
     sourcing, mech, investOneTime, investRecurring, costBasis, fcrConfirmed, scores,
   };
+  /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
+  useScenarioHash(TOOL_ID, scenario, DEFAULTS);
   const aggMult = Math.min(SENS.max, Math.max(SENS.min, N.repeatMult + SENS.step));
   const sensLo = engine({ ...engineInput, repeatModel: "one", repeatMult: 1.0 });
   const sensHi = engine({ ...engineInput, repeatModel: "geometric", repeatMult: aggMult });

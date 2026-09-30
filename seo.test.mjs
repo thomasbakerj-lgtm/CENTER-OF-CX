@@ -666,7 +666,7 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   ok("J13 the homepage states the PDF page count wherever it names the buyer guide", !/ccaas-buyer-guide/.test(homeSrc) || homeSrc.includes(`${pdfPages} pages`));
   ok("J14 open reports skip the unlock page", /if \(unlocked && !open\)/.test(gr));
   ok("J15 the full guide opens with no form", /open \? \(<>[\s\S]*?href=\{report\.pdf\}/.test(gr));
-  ok("J16 the summary renders only for reports that carry one", /\{open && <Summary report=\{report\} onOpen=\{onOpen\} \/>\}/.test(gr));
+  ok("J16 the summary renders only for reports that carry one", /\{report\.summary && <Summary report=\{report\} onOpen=\{onOpen\} \/>\}/.test(gr));
   ok("J17 no new dashes in the summary layer", !/[\u2013\u2014]/.test((gr.match(/function Summary\([\s\S]*?\n}\n/) || [""])[0] + blk));
 }
 

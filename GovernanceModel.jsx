@@ -8,6 +8,7 @@ import { GOVERNANCE as MODEL } from "./src/lib/rubrics/governance";
 import { JOURNEY } from "./src/lib/journey";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { TOUCH, RADIUS } from "./src/lib/tokens.js";
 
@@ -50,6 +51,8 @@ export default function GovernanceModel() {
   const [init] = useState(() => cleanState(readScenario(TOOL_ID, DEFAULTS)));
   const [phase, setPhase] = useState(() => (Object.keys(init.primary).length >= MIN_ASSIGNED ? "results" : "intro"));
   const [primary, setPrimary] = useState(init.primary); const [secondary, setSecondary] = useState(init.secondary);
+  /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
+  useScenarioHash(TOOL_ID, { primary, secondary }, DEFAULTS);
 
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
   useEffect(() => { clearScenarioParam(); }, []);

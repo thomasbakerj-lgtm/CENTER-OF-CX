@@ -1797,6 +1797,59 @@ dashboard, the 12-phase growth program.
    Open from the audit, for TB: Vendor Match size data and inert inputs, missing Microsoft, Google and Salesforce contact
    center research, refresh loses inputs, company size and region context, cross-tool reconciliation, stale hub and PDF copy.
 
+107. S24 (30 Sep), audit batch 2 item 1 (TB: "go"), refresh and Back keep the reader's inputs (audit top ten 6). Every tool
+   removed its scenario link from the address bar once it loaded, so a refresh or Back from a method page reopened the
+   defaults (Staffing 237 agents to 88). The live inputs now ride in the address fragment (`#s=`, same encoding as a shared
+   link), which a browser never sends to the server, so nothing new reaches the host's logs. `src/lib/useScenarioHash.js`
+   writes it: at once for a page opened from a link (a shared `?s=` link moves into the fragment), otherwise only after a
+   trusted keystroke, tap or edit, so rail values are not written on arrival; the first render never clears a link the tool
+   has not read yet. ReportActions calls it for every tool; the eleven tools whose report sits on a later step (four
+   frameworks, Governance, Roadmap, Platform Decision, RFP, Vendor Match, TCO, FCR Leakage) call it themselves with the
+   state their report encodes. `readScenario` reads the query first, then the fragment; `main.jsx` renders a fragment page
+   fresh; QA's evaluator `#score` is kept beside it. A refresh treats restored values as entered, like opening your own
+   scenario link (D13), so a pulled value the reader has not touched can count as entered after a refresh; the same holds
+   today for a copied link. Privacy Policy says where the copy lives (browser history, and the address if copied), updated
+   30 September 2026. `track.test.mjs` S (26). Browser: all 25 tools refresh with their inputs, Back from a method page,
+   a shared link then refresh, the QA evaluator link, no page error. Suite 27,475; local live check 257 of 257.
+108. S24 (30 Sep), audit batch 2 item 2 (TB: "go"), stale promises (audit top ten 9). The /vendors hub promised
+   "Proprietary rubrics", "Every vendor gets an honest assessment", "Competitive context" and a shortlist "with honest
+   assessments"; it now says how the profiles are built (the researched CCaaS count from `researchStatus.js`, Phase 1
+   profiles labelled, no scores or ranks, corrections) and the six questions a researched profile answers. Counts: the
+   category stat reads `CATEGORY_COUNT` (was a typed 8), "Nine categories" became "8 vendor categories and one emerging
+   area", and the hero says the category counts add up to 278 because the other 4 profiles are adjacent suites on the
+   CCaaS page. Its "Key vendors" lists named vendors with no profile (Nuance, Coveo, Shelf, Forter and 29 more); now
+   "Profiles include (A to Z)", every name a real profile in that category (`isVendorSlug`). Agent Assist and Advisory no
+   longer offer scored shortlists; Phase 1 profiles label their weaknesses "Phase 1 assessment". Platforms and Tech: the
+   "Each category answers" promise (who owns it, which vendors lead) now lists what the cards show; the topic chips are
+   "Questions to settle before you buy", written as questions; vendor names A to Z, Nuance as Microsoft (Nuance). IVA page
+   counts the categories it shows (4, was a claimed 7). Guides: every guide opens with no form (the email form is optional,
+   for updates); the IVA PDF has a first page, added 30 September 2026, saying it is the Phase 1 edition, scores withdrawn,
+   figures and quotations not re-checked (26 pages; metadata subject says the same; stamped with pdf-lib from the
+   scratchpad, the original pages unchanged). Researched profiles print product types and release states as words with
+   acronyms kept ("GA", "EAP", "Core platform"; was "Ga", "CORE_PLATFORM"). Gates: `freeze.test.mjs` 8, `framework.test.mjs`,
+   `profile.test.mjs`, seo J16. Suite 27,493. Browser: nine pages at 1440 and 390, no overflow or error.
+109. S24 (30 Sep), audit batch 2 item 3 part 1 (TB: "go"), Vendor Match labels the Phase 1 model cannot support
+   (presentation only; scoring, weights and order unchanged). Fit verdict words ("Strong Fit" to "Weak Fit", which called
+   Vonage a Weak Fit for a Salesforce shop against the research) are gone from the page and the PDF; each result reads
+   "Leading group" or "Phase 1 fit" beside its score. "Verified Integrations" reads "Integrations named in the Phase 1
+   data". The Phase 1 migration notes for the current platform ("Most migrations: 8-14 months", "First CCaaS with ISO
+   42001", no source) no longer render; the data stays for lineage. The compliance step says its picks do not change the
+   list or its order (the model holds no verified compliance data) and print in the report as requirements to confirm.
+   `vendormatch.test.mjs` 17 (compliance is proven absent from `getResults`). Open for TB: the size data. The Phase 1
+   table gives Genesys and NICE small 95 against mid 60, so an under-50-agent buyer gets them as the leading group; there
+   is no source to correct the numbers from, and the research's size tags cannot feed Vendor Match before Stage 4 (TB:
+   "wait"). A `channel.report.mjs` UNPARSED appeared once in one suite run and passed alone and on the re-run.
+110. S24 (30 Sep), audit batch 2 item 4 part 1 (TB: "go"), one tie rule. On a tie AI Readiness's "Biggest gap" tile named
+   the last-listed of the lowest dimensions while the next step (engine: lowest score, then rubric order) named the first;
+   CX Maturity could call one dimension both strongest and weakest. Both pages now take `weakestDim` with the engine's
+   rule for the tile and the PDF, and when every dimension scores the same they name none strongest ("All dimensions
+   level"). Presentation only; engine, bands and next steps unchanged. `rubric.test.mjs`: page weakest equals the engine's
+   next step on 4,005 answer sets per rubric, ties and all-level included. Suite 27,501.
+   Open from item 4, each a method change needing TB's design call: Staffing prices one interval's FTE as a year of
+   full-time agents ("$29.5M a year" in the audit), where an annual cost needs hours open and the interval profile; Cost
+   per Contact and FCR Leakage model repeat burden differently ($18.6M against $13.9M for one operation); Staffing and
+   Occupancy price reaching the same occupancy target differently (+31 FTE $2.7M against +28 agents $1.63M).
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the

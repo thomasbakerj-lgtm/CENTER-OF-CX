@@ -139,5 +139,21 @@ section("3. The profile route uses the research for exactly the researched vendo
   ok("the page is tokens only", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(RP.replace(/^\s*\/\/.*$/gm, "")));
 }
 
+/* Audit 30 Sep: product lines printed database labels ("CORE_PLATFORM", "Release state: Ga"). */
+{
+  const { words: W } = await import("./src/lib/research/profileView.js");
+  const raw = [];
+  for (const f of readdirSync(DIR + "/vendors")) {
+    const file = JSON.parse(readFileSync(`${DIR}/vendors/${f}`, "utf8"));
+    for (const p of file.products || []) for (const v of [p.Product_Type, p.GA_Status]) {
+      const w = W(v);
+      if (w && (/[A-Z]{2,}_[A-Z]/.test(w) || /\b(Ga|Eap|Ucaas|Ccaas|Ai|Qm|Wfm)\b/.test(w))) raw.push(`${f}: ${v} => ${w}`);
+    }
+  }
+  ok("every product type and release state reads as words, with acronyms kept", raw.length === 0, raw.slice(0, 3).join("; "));
+  ok("GA stays GA and early access stays EAP", W("GA") === "GA" && W("EAP") === "EAP" && W("PRE_GA_END_OF_SEPTEMBER_2026_TARGET") === "Pre GA end of September 2026 target");
+  ok("the product line passes the type through the same words", /\[words\(x\.type\), x\.role\]/.test(readFileSync("./ResearchedProfile.jsx", "utf8")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

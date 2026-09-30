@@ -35,12 +35,12 @@ export default function IVACategory() {
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase" }}>Vendor Intelligence</span>
             <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "8px 0 12px" }}>IVA + Conversational AI</h1>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.65, maxWidth: 600 }}>
-              {allVendors.length} vendors across {IVA_CATEGORIES.length} market categories: enterprise IVA, voice-native, helpdesk AI, CCaaS-native, agent assist, ecommerce, and CRM and workflow. Listed by category and name; scores are withdrawn until this category is researched under the current methodology.
+              {allVendors.length} vendors in {groups.length} market categories: {groups.map((g) => g.name).join(", ")}. Listed by category and name; scores are withdrawn until this category is researched under the current methodology.
             </p>
           </FadeIn>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
-              <a href="/research/iva-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, background: HOUSE.navy }}>IVA Buyer Guide, Phase 1 edition (25 pages) ↓</a>
+              <a href="/research/iva-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, background: HOUSE.navy }}>IVA Buyer Guide, Phase 1 edition (26 pages) ↓</a>
               <a href="/tools/ai-deflection" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, background: HOUSE.navy }}>AI Deflection Reality Check →</a>
               <a href="/tools/ai-readiness" style={{ fontSize: 12, color: LIGHT, padding: "6px 14px", borderRadius: 5, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, background: HOUSE.navy }}>AI Readiness Diagnostic →</a>
             </div>

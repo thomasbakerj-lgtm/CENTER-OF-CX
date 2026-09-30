@@ -90,7 +90,7 @@ export default function QAScorecardBuilder() {
   const [copied, setCopied] = useState(false);
   /* An evaluator link ends in #score, so it opens at step 3, where the code is made. */
   useEffect(() => {
-    const toScore = window.location.hash === "#score";
+    const toScore = /^#(?:.*&)?score(?:&|$)/.test(window.location.hash);
     clearScenarioParam();
     const el = toScore && document.getElementById && document.getElementById("score");
     if (el && el.scrollIntoView) el.scrollIntoView(); else window.scrollTo(0, 0);

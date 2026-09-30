@@ -273,7 +273,7 @@ export default function VendorProfile() {
                   </Section>
                 </div>
                 <div>
-                  <Section label="Honest assessment" title="Where to probe.">
+                  <Section label="Phase 1 assessment" title="Where to probe.">
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       {[aa.weakness1, aa.weakness2, aa.watchout].filter(Boolean).map((w, i) => (
                         <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 8 }}>
@@ -790,7 +790,7 @@ export default function VendorProfile() {
       {/* Weaknesses */}
       <section style={{ background: HOUSE.ink, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
-          <Section label="Honest assessment" title="Where they break.">
+          <Section label="Phase 1 assessment" title="Where they break.">
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {v.weaknesses.map((w, i) => (
                 <div key={i} style={{ display: "flex", gap: 12, padding: "14px 18px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8 }}>

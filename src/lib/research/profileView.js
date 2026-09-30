@@ -41,8 +41,12 @@ export function words(v) {
   const s = String(v);
   if (!/^[A-Z0-9_\-]+$/.test(s)) return s;
   const t = s.replace(/[_]+/g, " ").replace(/-/g, " ").toLowerCase();
-  return t.charAt(0).toUpperCase() + t.slice(1);
+  const out = t.charAt(0).toUpperCase() + t.slice(1);
+  /* Keep the research's acronyms as acronyms ("GA", not "Ga"; "EAP", not "Eap"). */
+  return out.replace(/\b(ga|eap|ai|wfm|wem|qm|iva|oem|smb|cx|ucaas|ccaas|q[1-4]|[12]h)\b/gi, (m) => ACRONYM[m.toLowerCase()] || m.toUpperCase())
+    .replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december)\b/g, (m) => m.charAt(0).toUpperCase() + m.slice(1));
 }
+const ACRONYM = { ucaas: "UCaaS", ccaas: "CCaaS" };
 export const capability = (s) => (s === null || s === undefined ? "Not rated" : CAPABILITY[s] || words(s));
 export const evidence = (s) => (s === null || s === undefined ? null : EVIDENCE[s] || words(s));
 const safeUrl = (u) => (typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);

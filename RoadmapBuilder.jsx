@@ -4,6 +4,7 @@ import { Result, Button } from "./src/lib/ui.jsx";
 import { K, Paper, Group, numInput, selectStyle, optionCss } from "./src/lib/frameKit.jsx";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { trackRoadmap } from "./src/lib/track";
 
@@ -72,6 +73,8 @@ export default function RoadmapBuilder() {
   const [statuses, setStatuses] = useState(init.statuses);
   const [notes, setNotes] = useState(init.notes);
   const [initiative, setInitiative] = useState(init.initiative);
+  /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
+  useScenarioHash(TOOL_ID, { statuses, notes, initiative }, DEFAULTS);
 
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
   useEffect(() => { clearScenarioParam(); }, []);

@@ -19,7 +19,7 @@ const L = ({ items }) => <ul style={{ margin: "0 0 14px", paddingLeft: 20, displ
 const A = ({ href, children }) => <a href={href} style={{ color: LINK, fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 }}>{children}</a>;
 const B = ({ children }) => <strong style={{ color: HOUSE.mist, fontWeight: 600 }}>{children}</strong>;
 
-export const PRIVACY_UPDATED = "29 September 2026";
+export const PRIVACY_UPDATED = "30 September 2026";
 
 /* Every form that sends personal information, as the policy names it. privacy.test.mjs holds this list to the code. */
 export const FORMS = [
@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
 
           <S id="browser">Information processed in your browser</S>
           <P>Many tools keep your inputs in your browser. During a visit, some tools use session storage so your results can move between steps or related tools; session storage generally clears when you close the tab. Some features use local storage to remember settings or an analytics identifier between visits. You can clear both in your browser settings. A logo you add to a report is processed in your browser and is not uploaded to us.</P>
-          <P><B>Scenario links.</B> A scenario link carries the inputs of a tool in the web address itself. Anyone who receives the link can see what it contains. When a link is opened, its full address is sent to our host like any web address, and the host's request logs may record it; browsers, messaging applications, email systems and security tools that handle the link may keep it too. Do not put confidential information, personal information, credentials, regulated information or sensitive customer data into a scenario you plan to share.</P>
+          <P><B>Scenario links.</B> A scenario link carries the inputs of a tool in the web address itself. Anyone who receives the link can see what it contains. When a link is opened, its full address is sent to our host like any web address, and the host's request logs may record it; browsers, messaging applications, email systems and security tools that handle the link may keep it too. Do not put confidential information, personal information, credentials, regulated information or sensitive customer data into a scenario you plan to share. While you work, a tool also keeps a copy of your inputs in the part of its address after the # sign, so a refresh or the Back button reopens them. Browsers do not send that part to our host, but it stays in the browser's history on that device, and it travels with the address if you copy it from the address bar.</P>
 
           <S id="send">Information you choose to send us</S>
           <P>Most tools and pages do not require an email address. For specific purposes that you start, such as downloading a guide or a report, requesting a report copy or a review, asking for a vendor introduction, a demo or a consultation, reporting a research error, proposing a contribution, submitting a vendor review or subscribing to our newsletter, we may ask for, and may require before we fulfil the request, a valid email address and other contact details relevant to that purpose, such as your name, job title, company, role and, where the request calls for it, a telephone number. You may decline; if you do, we may not be able to complete that request. Today these forms collect:</P>

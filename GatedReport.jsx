@@ -12,9 +12,10 @@ const reports = {
     title: "IVA & Conversational AI Platform Buyer's Guide 2026",
     phase1: true,
     subtitle: "The Phase 1 assessment of 43 IVA and conversational AI vendors, dated April 2026. Architecture eras, demo questions and cost traps, kept as a dated record while current research is published.",
-    pages: "25 pages",
+    pages: "26 pages",
     published: "April 2026",
     highlights: [
+      "A first page, added 30 September 2026, that says what is withdrawn and what has not been re-checked",
       "The Phase 1 assessment of 43 vendors, dated April 2026. Its scores and tiers are withdrawn on the site while current research is published",
       "Five architecture eras, from intent-based IVR to LLM-based agents, as that edition described them",
       "Demo questions to ask any vendor before you believe a capability claim",
@@ -136,7 +137,8 @@ export default function GatedReport() {
   const { slug } = useParams();
   const report = reports[slug];
   const [unlocked, setUnlocked] = useState(false);
-  const open = report && report.summary;
+  /* Every guide opens with no form (audit 30 Sep); the email form is optional and only asks to hear about updates. */
+  const open = !!report;
   const onOpen = () => track("next_step_click", { from: slug, to: "pdf" });
   const [sending, setSending] = useState(false);
   const [formData, setFormData] = useState({ name: "", title: "", email: "" });
@@ -260,7 +262,7 @@ export default function GatedReport() {
             <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 12, padding: "32px 28px" }}>
               {open ? (<>
               <h2 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: HOUSE.mist, margin: "0 0 6px" }}>Read the full guide now.</h2>
-              <p style={{ fontSize: 13, color: HOUSE.body, lineHeight: 1.5, marginBottom: 16 }}>No form required. The summary is below.</p>
+              <p style={{ fontSize: 13, color: HOUSE.body, lineHeight: 1.5, marginBottom: 16 }}>{report.summary ? "No form required. The summary is below." : "No form required. It opens in a new tab."}</p>
               <a href={report.pdf} target="_blank" rel="noopener noreferrer" onClick={onOpen} style={{ display: "block", textAlign: "center", background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 24px", borderRadius: 8, marginBottom: 24 }}>Open the guide (PDF) →</a>
               <div style={{ borderTop: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, paddingTop: 20, fontSize: 13, color: HOUSE.body, lineHeight: 1.5, marginBottom: 14 }}>Optional: get notified when the guide is updated.</div>
               </>) : (<>
@@ -339,7 +341,7 @@ export default function GatedReport() {
         </div>
       </section>
 
-      {open && <Summary report={report} onOpen={onOpen} />}
+      {report.summary && <Summary report={report} onOpen={onOpen} />}
 
       
     </div>

@@ -649,6 +649,81 @@ section("R. Taxonomy 1.2: vendor introductions carry only closed values");
   ok("R6 the measurement doc records 1.2", /## Taxonomy 1\.2 \(/.test(doc) && doc.includes("`intro_submit`"));
 }
 
+/* Audit 30 Sep (item 6): a refresh or Back kept nothing, since the tools remove the link from the address bar once it
+   loads. The live inputs now ride in the fragment, which the browser never sends to the server. */
+section("S. Refresh and Back keep the reader's inputs");
+{
+  const SU = await import("./src/lib/scenarioUrl.js");
+  const saved = globalThis.window;
+  const mk = (search, hash) => {
+    const w = { location: { pathname: "/tools/staffing-calculator", search, hash, origin: "https://www.contactcentercx.com" }, history: { state: { idx: 3 }, calls: 0 } };
+    w.history.replaceState = (st, _t, url) => {
+      w.history.calls++; w.history.lastState = st;
+      const u = new URL(url, "https://www.contactcentercx.com");
+      w.location.pathname = u.pathname; w.location.search = u.search; w.location.hash = u.hash;
+    };
+    return w;
+  };
+  const DEF = { agents: 88, aht: 360, rows: [1, 2] };
+  const ST = { agents: 237, aht: 450, rows: [1, 2] };
+  try {
+    eq("S1 the fragment gains the scenario and keeps its other parts", SU.withScenarioHash("#score", "abc"), "#score&s=abc");
+    eq("S2 an empty scenario leaves the other parts alone", SU.withScenarioHash("#score&s=abc", ""), "#score");
+    eq("S3 an empty fragment stays empty", SU.withScenarioHash("", ""), "");
+
+    globalThis.window = mk("", "");
+    SU.syncScenarioHash("staffing-calculator", ST, DEF);
+    ok("S4 the inputs are written to the fragment", /^#s=/.test(window.location.hash));
+    eq("S5 the query string is untouched, so nothing reaches the server", window.location.search, "");
+    ok("S6 the router's history state is kept", window.history.lastState && window.history.lastState.idx === 3);
+    const back = SU.readScenario("staffing-calculator", DEF);
+    ok("S7 a refresh reads the inputs back", back && back.agents === 237 && back.aht === 450);
+    ok("S8 the tool knows it opened with a scenario", SU.hasScenario());
+    ok("S9 another tool never reads this tool's fragment", SU.readScenario("cost-per-contact", DEF) === null);
+
+    const calls = window.history.calls;
+    SU.syncScenarioHash("staffing-calculator", ST, DEF);
+    eq("S10 an unchanged scenario does not rewrite the address", window.history.calls, calls);
+
+    SU.syncScenarioHash("staffing-calculator", DEF, DEF, { clear: false });
+    ok("S11a a first render at the defaults never clears a link the tool has not read yet", /^#s=/.test(window.location.hash));
+    SU.syncScenarioHash("staffing-calculator", DEF, DEF);
+    eq("S11 inputs back at the defaults clear the fragment", window.location.hash, "");
+
+    globalThis.window = mk("", "#score");
+    SU.syncScenarioHash("staffing-calculator", ST, DEF);
+    ok("S12 QA's #score survives beside the scenario", /^#score&s=/.test(window.location.hash)
+      && /^#(?:.*&)?score(?:&|$)/.test(window.location.hash));
+
+    const linkEnc = SU.encodeScenario("staffing-calculator", { ...ST, agents: 500 }, DEF);
+    globalThis.window = mk("?s=" + linkEnc, "#s=" + SU.encodeScenario("staffing-calculator", ST, DEF));
+    eq("S13 a shared link in the query outranks the fragment", SU.readScenario("staffing-calculator", DEF).agents, 500);
+
+    globalThis.window = mk("", "#s=not-base64!!");
+    ok("S14 a tampered fragment opens the defaults", SU.readScenario("staffing-calculator", DEF) === null);
+  } finally { globalThis.window = saved; }
+
+  const hook = readFileSync("./src/lib/useScenarioHash.js", "utf8");
+  ok("S15 ReportActions keeps the fragment in step on every tool", /useScenarioHash\(toolId, state, defaults\);/.test(readFileSync("./ReportActions.jsx", "utf8")));
+  ok("S16 the hook writes on arrival only for a link, else after a trusted act, and its first render never clears",
+    /if \(openedWithScenario \|\| actedRef\.current\) syncScenarioHash\(toolId, state, defaults, \{ clear \}\)/.test(hook)
+    && /useRef\(hasScenario\(\)\)\.current/.test(hook) && /const clear = !firstRef\.current;/.test(hook) && /e\.isTrusted/.test(hook));
+  /* Tools whose report sits on a later step call the hook themselves, with the same state their report encodes. */
+  const STEPPED = { "AIReadiness.jsx": "{ scores }", "CXMaturity.jsx": "{ scores }", "CXITAlignment.jsx": "{ scores }",
+    "TransformationReadiness.jsx": "{ scores }", "GovernanceModel.jsx": "{ primary, secondary }",
+    "RoadmapBuilder.jsx": "{ statuses, notes, initiative }", "PlatformDecisionMatrix.jsx": "state",
+    "RFPRequirementBuilder.jsx": "packState(state)", "VendorMatchEngine.jsx": "d", "TCOCalculator.jsx": "dRaw",
+    "FCRLeakageDiagnostic.jsx": "scenario" };
+  for (const [f, st] of Object.entries(STEPPED)) {
+    const src = readFileSync("./" + f, "utf8").replace(/\s+/g, " ");
+    const call = src.match(/useScenarioHash\(TOOL_ID, (.+?), (\w+)\);/);
+    ok(`S17 ${f} keeps the answers given before its report step`,
+      call && call[1] === st && src.includes(`state={${st}}`) && src.includes(`defaults={${call[2]}}`));
+  }
+  ok("S18 a page opened with the fragment renders fresh", /\/\(\^#\|&\)s=\/\.test\(window\.location\.hash\)/.test(readFileSync("./main.jsx", "utf8")));
+  ok("S19 QA finds #score among the fragment's parts", readFileSync("./QAScorecardBuilder.jsx", "utf8").includes("/^#(?:.*&)?score(?:&|$)/.test(window.location.hash)"));
+}
+
 /* ------------------------------------------------------------------ report */
 
 if (failures.length) {

@@ -7,6 +7,7 @@ import { TOUCH, RADIUS } from "./src/lib/tokens.js";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { JOURNEY } from "./src/lib/journey";
 import { RFP_BUILDER as MODEL } from "./src/lib/rubrics/rfpBuilder";
@@ -148,6 +149,8 @@ export default function RFPRequirementBuilder() {
   }, [vertical, size]);
 
   const state = { vertical, size, activeTags, reqs, edits, dropped, custom, vendors, responses, verified, weights };
+  /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
+  useScenarioHash(TOOL_ID, packState(state), DEFAULTS);
   const R = scoreRfp(MODEL, state);
   const all = R.requirements;
   const groups = [...new Set(all.map((r) => r.layer))].map((n) => ({ n, name: all.find((r) => r.layer === n).layerName, reqs: all.filter((r) => r.layer === n) }));

@@ -72,7 +72,7 @@ export default function AgentAssistCategory() {
               <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "none" }} />
               <div style={{ position: "relative", zIndex: 1 }}>
                 <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating agent assist for your operation?</h2>
-                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>Agent assist sits where cost, quality, compliance, and employee experience collide. The right choice depends on your operating model, installed stack, and which use cases carry the most value. We can help you build a scored shortlist.</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>Agent assist sits where cost, quality, compliance, and employee experience collide. The right choice depends on your operating model, installed stack, and which use cases carry the most value. We can help you build a shortlist, with the research behind each name.</p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request an Agent Assist Briefing</a>
                   <a href="/vendors/ccaas" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Compare CCaaS Platforms →</a>

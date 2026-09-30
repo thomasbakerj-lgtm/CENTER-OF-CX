@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { getAllSlugs } from "./VendorData";
-import { VENDOR_PROFILE_COUNT } from "./src/lib/seo.js";
+import { VENDOR_PROFILE_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, isVendorSlug } from "./src/lib/seo.js";
+import { CCAAS_RESEARCH } from "./src/lib/researchStatus.js";
 import { CATEGORIES } from "./src/lib/verticals.js";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
@@ -69,7 +69,7 @@ function Hero() {
                 <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Mapped by category.</span>
               </h1>
               <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 520, fontFamily: FONT }}>
-                Every vendor is mapped to its category and to the layers of the stack it serves. Contact center platforms are researched finding by finding against a published method; the other categories are marked Phase 1 context until their research is complete.
+                Every vendor is mapped to its category and to the layers of the stack it serves. Contact center platforms are researched finding by finding against a published method; the other categories are marked Phase 1 context until their research is complete. The category counts below add up to {VENDOR_PROFILE_COUNT - ADJACENT_PROFILE_COUNT}; the other {ADJACENT_PROFILE_COUNT} are adjacent suites listed on the contact center platforms page.
               </p>
             </div>
             <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 12, padding: "28px 24px" }}>
@@ -78,7 +78,7 @@ function Hero() {
                   { n: String(VENDOR_PROFILE_COUNT), l: "Vendor profiles" },
                   { n: "9", l: "Decision domains" },
                   { n: "7", l: "Orchestration layers" },
-                  { n: "8", l: "Vendor categories" },
+                  { n: String(CATEGORY_COUNT), l: "Vendor categories" },
                 ].map((s, i) => (
                   <div key={i} style={{ textAlign: "center", padding: "12px 0" }}>
                     <div style={{ fontFamily: FONT, fontSize: 28, color: LIGHT }}>{s.n}</div>
@@ -112,8 +112,6 @@ function Stance() {
 }
 
 function BrowseByCategory() {
-  const slugs = getAllSlugs();
-  const toSlug = (name) => name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 
   /* count and href are derived from CATEGORIES, never typed. Four of these
      eight were wrong: Analytics claimed 52 against 41, Digital 50 against 46,
@@ -121,37 +119,36 @@ function BrowseByCategory() {
      Governance carries no key because it is not a scored category yet. */
   const categories = [
     { key: "ccaas", title: "Core CX Platforms", sub: "CCaaS", vendors: [
-      { name: "Genesys", slug: "genesys" }, { name: "NICE CXone", slug: "nice-cxone" }, { name: "Five9", slug: "five9" },
-      { name: "Amazon Connect", slug: "amazon-connect" }, { name: "Talkdesk", slug: "talkdesk" },
-      { name: "8x8", slug: "8x8" }, { name: "Cisco Webex", slug: "cisco" }, { name: "Zoom", slug: "zoom" },
+      { name: "8x8", slug: "8x8" }, { name: "Amazon Connect", slug: "amazon-connect" }, { name: "Cisco Webex", slug: "cisco" },
+      { name: "Five9", slug: "five9" }, { name: "Genesys", slug: "genesys" }, { name: "NICE CXone", slug: "nice-cxone" }, { name: "Talkdesk", slug: "talkdesk" }, { name: "Zoom", slug: "zoom" },
     ], desc: "The foundational platform for voice, digital, routing, and workforce management." },
     { key: "iva", title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", vendors: [
-      { name: "Kore.ai" }, { name: "Cognigy" }, { name: "Yellow.ai" }, { name: "LivePerson" }, { name: "PolyAI" }, { name: "Amelia" }, { name: "Nuance" },
+      { name: "Kore.ai", slug: "kore-ai" }, { name: "NICE Cognigy", slug: "nice-cognigy" }, { name: "Yellow.ai", slug: "yellow-ai" }, { name: "LivePerson", slug: "liveperson" }, { name: "Google Dialogflow CX", slug: "google-dialogflow" }, { name: "Microsoft Copilot Studio", slug: "microsoft-copilot" }, { name: "Amelia / SoundHound", slug: "amelia-soundhound" },
     ], desc: "From legacy IVAs to LLM-native virtual assistants and autonomous AI workers." },
     { key: "agent-assist", title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", vendors: [
-      { name: "Uniphore" }, { name: "Observe.AI" }, { name: "Cresta" }, { name: "Coveo" }, { name: "Shelf" }, { name: "Guru" }, { name: "Bloomfire" },
+      { name: "Balto", slug: "balto-aa" }, { name: "Cresta", slug: "cresta-aa" }, { name: "Genesys", slug: "genesys-aa" }, { name: "Google Cloud Agent Assist", slug: "google-aa" }, { name: "NICE", slug: "nice-aa" }, { name: "Observe.AI", slug: "observeai-aa" }, { name: "Verint", slug: "verint-aa" },
     ], desc: "Real-time guidance, knowledge retrieval, summarization, and next-best-action." },
     { key: "wem-qm", title: "Workforce & Quality Management", sub: "WEM · QM · WFM", vendors: [
-      { name: "NICE" }, { name: "Verint" }, { name: "Calabrio" }, { name: "Genesys WEM" }, { name: "Five9" }, { name: "Playvox" },
+      { name: "Assembled", slug: "assembled-wem" }, { name: "Calabrio", slug: "calabrio-wem" }, { name: "Five9", slug: "five9-wem" }, { name: "Genesys", slug: "genesys-wem" }, { name: "NICE", slug: "nice-wem" }, { name: "Verint", slug: "verint-wem" },
     ], desc: "Forecasting, scheduling, quality monitoring, coaching, and AI-powered QA." },
     { key: "analytics", title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", vendors: [
-      { name: "CallMiner" }, { name: "Observe.AI" }, { name: "Qualtrics" }, { name: "Verint" }, { name: "Genesys" }, { name: "Clarabridge" },
+      { name: "Calabrio", slug: "calabrio-analytics" }, { name: "CallMiner", slug: "callminer-analytics" }, { name: "Genesys Cloud CX", slug: "genesys-analytics" }, { name: "NICE CXone", slug: "nice-analytics" }, { name: "Observe.AI", slug: "observeai-analytics" }, { name: "Verint Speech Analytics", slug: "verint-analytics" },
     ], desc: "Sentiment, topic analysis, root cause detection, and cross-channel journey patterns." },
     { key: "acd-routing", title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", vendors: [
-      { name: "MuleSoft" }, { name: "Workato" }, { name: "Camunda" }, { name: "Pega" }, { name: "UiPath" }, { name: "Genesys" }, { name: "NICE" },
+      { name: "Amazon Connect", slug: "amazon-acd" }, { name: "Five9", slug: "five9-acd" }, { name: "Genesys Cloud", slug: "genesys-acd" }, { name: "NICE CXone", slug: "nice-acd" }, { name: "Salesforce Voice", slug: "salesforce-acd" }, { name: "Talkdesk", slug: "talkdesk-acd" },
     ], desc: "How interactions get routed, how systems share data, and how workflows execute." },
     { key: "digital-engagement", title: "Digital Engagement", sub: "Chat · Messaging · Social", vendors: [
-      { name: "Ada" }, { name: "Intercom" }, { name: "Sprinklr" }, { name: "Zendesk" }, { name: "Salesforce DE" }, { name: "Khoros" }, { name: "Gladly" },
+      { name: "Ada", slug: "ada-de" }, { name: "Gladly", slug: "gladly-de" }, { name: "Intercom", slug: "intercom-de" }, { name: "Khoros", slug: "khoros-de" }, { name: "Salesforce Digital Engagement", slug: "salesforce-de" }, { name: "Sprinklr Service", slug: "sprinklr-de" }, { name: "Zendesk Messaging", slug: "zendesk-de" },
     ], desc: "Multi-channel digital engagement platforms, CPaaS, and conversational messaging." },
     { key: "payments", title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", vendors: [
-      { name: "Stripe" }, { name: "Adyen" }, { name: "Worldpay" }, { name: "Forter" }, { name: "Sift" }, { name: "BioCatch" }, { name: "Checkout.com" },
+      { name: "Adyen", slug: "adyen-pay" }, { name: "Braintree", slug: "braintree-pay" }, { name: "Checkout.com", slug: "checkout-pay" }, { name: "CyberSource", slug: "cybersource-pay" }, { name: "Stripe", slug: "stripe-pay" }, { name: "Worldpay (FIS)", slug: "worldpay-pay" },
     ], desc: "Payment processing, PCI compliance, authentication, and fraud prevention in CX." },
     { title: "CX & AI Governance", sub: "Compliance · Model Risk", count: "Emerging", vendors: [], desc: "Compliance, model evaluation, escalation design, and AI auditability. Governance tooling is still consolidating." },
   ].map((c) => (c.key ? { ...c, count: String(CATEGORIES[c.key].vendorCount), href: CATEGORIES[c.key].page } : c));
 
   const VendorLink = ({ v }) => {
-    const s = v.slug || toSlug(v.name);
-    const exists = slugs.includes(s);
+    const s = v.slug;
+    const exists = isVendorSlug(s);
     return exists ? (
       <a href={`/vendors/${s}`} style={{ color: ELECTRIC, fontWeight: 600, borderBottom: `1px solid ${ELECTRIC}30`, transition: "border-color 0.2s" }}
         onMouseOver={e => e.target.style.borderColor = ELECTRIC}
@@ -165,7 +162,7 @@ function BrowseByCategory() {
         <FadeIn>
           <div style={{ maxWidth: 560, marginBottom: 48 }}>
             <Label>Browse by decision domain</Label>
-            <Title>Nine categories, each evaluated on its own terms.</Title>
+            <Title>{CATEGORY_COUNT} vendor categories and one emerging area.</Title>
           </div>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -183,7 +180,7 @@ function BrowseByCategory() {
                     <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 6px" }}>{c.title}</h3>
                     <p style={{ fontSize: 13.5, color: MUTED, lineHeight: 1.55, margin: "0 0 12px", fontFamily: FONT }}>{c.desc}</p>
                     <p style={{ fontSize: 12.5, color: SLATE, margin: 0, fontFamily: FONT }}>
-                      <span style={{ fontWeight: 600 }}>Key vendors: </span>
+                      <span style={{ fontWeight: 600 }}>Profiles include (A to Z): </span>
                       {c.vendors.map((v, j) => (
                         <span key={j}><VendorLink v={v} />{j < c.vendors.length - 1 ? ", " : ""}</span>
                       ))}
@@ -208,15 +205,15 @@ function HowWeEvaluate() {
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 56px" }}>
             <Label light>How we evaluate</Label>
-            <Title light>Proprietary rubrics built for operational reality.</Title>
+            <Title light>How the vendor profiles are built.</Title>
           </div>
         </FadeIn>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
           {[
-            { t: "Architecture-level evaluation", d: "We evaluate at the orchestration layer level. Routing dependencies, data fabric requirements, API maturity, event-driven capability, and governance overhead. Feature checklists miss what matters. We go deeper." },
-            { t: "Category-specific rubrics", d: "Each category is evaluated on criteria built for it. CCaaS has moved to the current research method: atomic claims with dated evidence, comparison only within a competitive class, and numeric ratings withheld until each class has enough validated peers." },
-            { t: "Research status on every profile", d: "Each CCaaS profile states whether current research is complete or the page still reflects the earlier Phase 1 assessment. Phase 1 scores, tiers and rankings are withdrawn in every category until it is researched under the current methodology." },
-            { t: "Vertical and buyer context", d: "A vendor that's strong for retail may break in healthcare. Our evaluations include vertical fit signals, regulated-readiness indicators, and buyer-type alignment (enterprise vs mid-market vs SMB)." },
+            { t: "Researched contact center platforms", d: `${Object.keys(CCAAS_RESEARCH.complete).length} CCaaS vendors are researched under the current method: findings with dated public sources, compared only inside a competitive class, with where each platform breaks, what it takes to run, and what to ask for.` },
+            { t: "Phase 1 profiles, labelled", d: "Every other profile carries the earlier Phase 1 assessment as context, and says so on the page. Its scores, tiers and rankings are withdrawn in every category until that category is researched under the current method." },
+            { t: "No scores and no ranks", d: "No profile carries a score, tier or rank, and no vendor pays to appear. Numeric ratings stay withheld until each competitive class has enough researched peers to compare fairly." },
+            { t: "Corrections in the open", d: "Anyone can report an error with a public source. Accepted corrections are noted on the vendor's page, and every report gets an answer." },
           ].map((item, i) => (
             <FadeIn key={i} delay={i * 0.08}>
               <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 10, padding: "28px 24px" }}>
@@ -237,10 +234,10 @@ function VendorPagePreview() {
       <div style={WRAP}>
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 48px" }}>
-            <Label>Individual vendor pages</Label>
-            <Title>Every vendor gets an honest assessment.</Title>
+            <Label>Researched vendor pages</Label>
+            <Title>Six questions a researched profile answers.</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4, fontFamily: FONT }}>
-              Each vendor page follows a consistent structure designed to help buyers make decisions faster.
+              Each researched CCaaS profile answers the same six questions from its sources. Phase 1 profiles show the earlier assessment, labelled as such, until their category is researched.
             </p>
           </div>
         </FadeIn>
@@ -248,12 +245,12 @@ function VendorPagePreview() {
           <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "40px 36px", maxWidth: 700, margin: "0 auto" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {[
-                { label: "What they do well", desc: "Core strengths from the assessment on file. Where the platform genuinely excels and which buyer profiles benefit most." },
-                { label: "Where they break", desc: "Honest assessment of limitations, integration challenges, vertical gaps, and the scenarios where the platform struggles." },
-                { label: "Best-fit customers", desc: "The operating model, vertical, and scale profile where this vendor delivers the strongest outcomes." },
-                { label: "Red flags", desc: "Contract terms, pricing traps, implementation risks, and the patterns we've seen cause problems for buyers." },
-                { label: "Competitive context", desc: "How this vendor compares to direct alternatives on the dimensions that matter for your situation." },
-                { label: "Advisory intro", desc: "If this vendor fits your needs, we connect you with a vetted technology partner who specializes in their deployment." },
+                { label: "Is it a fit?", desc: "Its competitive class and the job that class does, who it is sold to, when it is the rational choice, and when to rule it out." },
+                { label: "What does it do?", desc: "Each finding by capability, with its evidence state, its conditions, the date it was checked and its public sources." },
+                { label: "Where does it break?", desc: "What triggers the break, who it hits, how it is mitigated, what that adds in build and cost, and who owns it after go-live." },
+                { label: "What will it take?", desc: "Implementation, services terms, life after go-live, cost drivers and integrations." },
+                { label: "What should I ask for?", desc: "The proof to request, the contract terms to raise, the AI controls to check and the open questions." },
+                { label: "Where does this come from?", desc: "Who published the evidence, and every source with its publisher, tier and date. Any reader can ask for an introduction or report an error." },
               ].map((item, i) => (
                 <div key={i} style={{ display: "flex", gap: 16, padding: "12px 0", borderBottom: i < 5 ? `1px solid ${BORDER}` : "none" }}>
                   <div style={{ width: 24, height: 24, borderRadius: 6, background: `${ELECTRIC}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
@@ -281,7 +278,7 @@ function CTA() {
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
             <Title>Need a shortlist tailored to your situation?</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px", fontFamily: FONT }}>
-              Browsing {VENDOR_PROFILE_COUNT} vendors takes time. Tell us your operating model, vertical, and constraints. We deliver a shortlist of 3 to 5 vendors with honest assessments of each one.
+              Browsing {VENDOR_PROFILE_COUNT} vendors takes time. Tell us your operating model, industry and constraints, and we will help you build a shortlist, with the research behind each name.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT, boxShadow: "none" }}>Request a Vendor Shortlist</a>

@@ -216,7 +216,7 @@ function Boundaries() {
               <div style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 20, fontFamily: FONT }}>What we do</div>
               {[
                 "Evaluate platforms at the architecture and operations level",
-                "Produce scored vendor shortlists with honest assessments",
+                "Build vendor shortlists with the evidence behind each name",
                 "Assess AI readiness across data, workflows, governance, and team structure",
                 "Design operating models for modern CX organizations",
                 "Facilitate hard conversations between CX, IT, operations, and finance",
