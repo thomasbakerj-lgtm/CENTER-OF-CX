@@ -897,5 +897,21 @@ console.log("  flags               " + r.flags.length);
   A(`N mutants killed ${killed} of ${MUTANTS.length}`, killed === MUTANTS.length);
 }
 
+/* ---- Audit 30 Sep: the side by side panel's own row is this tool's own figure ---- */
+{
+  const X = await import("./src/lib/crossTool.js");
+  let bad = 0, seed = 5; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  for (let t = 0; t < 2000; t++) {
+    const I = { ...DECL, M: Math.round(1000 + rnd() * 2e6), fcr: 0.2 + rnd() * 0.75, mCPC: 1 + rnd() * 8, repeatMult: 1 + rnd(), repeatModel: rnd() < 0.5 ? "one" : "geometric" };
+    const r = engine(I); const x = X.repeatSideBySide({ fcr: r.fcr, contacts: r.M, marginal: r.mCPC, mult: r.repeatMult, current: I.repeatModel });
+    const own = x && x.rows.find((w) => w.own);
+    if (!own || own.id !== I.repeatModel || Math.abs(own.yearly - r.burdenYr) > 1e-6 * Math.max(1, r.burdenYr)) bad++;
+  }
+  A("on 2,000 cases the panel's row for the chosen model equals this page's repeat burden", bad === 0);
+  const S = readFileSync("./FCRLeakageDiagnostic.jsx", "utf8");
+  const ea = S.indexOf("/* @engine-start"), eb = S.indexOf("/* @engine-end */");
+  A("the page shows the panel and nothing on it reaches the engine", /<TwoToolsNote title="Why Cost per Contact gives a different repeat cost"/.test(S) && !/crossTool|TwoToolsNote/.test(S.slice(ea, eb)));
+}
+
 console.log("\n  " + pass + " passed, " + fail + " failed");
 process.exit(fail ? 1 : 0);

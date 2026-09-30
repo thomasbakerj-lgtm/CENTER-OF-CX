@@ -18,6 +18,8 @@ import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, resultHow } from "./src/lib/ui.jsx";
 import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_MONO, alpha, LINE, onFill } from "./src/lib/tokens.js";
 import { methodStamp } from "./src/lib/methodVersions.js";
+import { TwoToolsNote } from "./src/lib/TwoToolsNote.jsx";
+import { repeatSideBySide, perYear } from "./src/lib/crossTool.js";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -573,6 +575,14 @@ export default function CostPerContactCalculator() {
           measured figure) were retired on 28 Sep 2026 (TB). Their place is the sourced comparison panel below: SQM's
           published first contact resolution by industry and ContactBabel's cost of an inbound call. */}
 
+      {/* Audit 30 Sep (TB: side by side and why): FCR Leakage prices the same repeats with a different model. Display only. */}
+      {(() => {
+        const x = graded.voided ? null : repeatSideBySide({ fcr: r.fcrPct / 100, contacts: r.handled, marginal: r.marg, m: r.Mu, current: "cpc" });
+        return x && <TwoToolsNote title="Why FCR Leakage gives a different repeat cost"
+          intro="Both tools price the same repeat contacts. On your inputs here, each model gives:"
+          rows={x.rows.map((w) => ({ value: perYear(w.yearly), tool: w.tool, label: w.label, own: w.own }))}
+          reasons={x.reasons} links={[["Open FCR Leakage", "/tools/fcr-leakage"], ["How Cost per Contact works", "/methodology/cost-per-contact"]]} />;
+      })()}
       <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13): the actions sit on a paper panel until ReportActions moves onto the house in a later batch. */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>

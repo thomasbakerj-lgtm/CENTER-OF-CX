@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
+import { TwoToolsNote } from "./src/lib/TwoToolsNote.jsx";
+import { occupancyAsStaffing, perYear } from "./src/lib/crossTool.js";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result } from "./src/lib/ui.jsx";
 import { K, Group, Field, Tile, Corrections, Assumptions, Paper, frameMethod } from "./src/lib/frameKit.jsx";
@@ -167,6 +169,17 @@ export default function OccupancyRiskSimulator() {
         `Benefits load ${OCC_PARAMS.load}x: ${BENCHMARK_SOURCES["load.benefits"].rationale} Bands: healthy to ${pct(B.healthyMax, 0)}, caution to ${pct(B.cautionMax, 0)}, the platform's shared occupancy bands.`,
       ]} />
 
+      {/* Audit 30 Sep (TB: side by side and why): Staffing counts and prices the same target differently. Display only. */}
+      {(() => {
+        const x = R.extraAgents > 0 ? occupancyAsStaffing({ extraAgents: R.extraAgents, wage: v.hourlyRate, loadBenefits: OCC_PARAMS.load, loadFull: benchmark("load.fullyLoaded"), hoursYear: OCC_PARAMS.hoursYear, shrinkLow: benchmark("shrinkage.range.low"), shrinkHigh: benchmark("shrinkage.range.high") }) : null;
+        return x && <TwoToolsNote title="Why Staffing gives a different cost for this target"
+          intro={`Reaching your ${v.target}% target, counted and priced each way:`}
+          rows={[
+            { value: perYear(x.own.yearly), tool: "Occupancy Risk", label: `${x.own.agents} more agents on the phone, at wage plus benefits`, own: true },
+            { value: `${perYear(x.staffing.yearlyLow).replace(" a year", "")} to ${perYear(x.staffing.yearlyHigh)}`, tool: "Staffing", label: `The same agents counted Staffing's way: ${Math.ceil(x.staffing.fteLow)} to ${Math.ceil(x.staffing.fteHigh)} scheduled FTE after shrinkage of ${Math.round(benchmark("shrinkage.range.low") * 100)} to ${Math.round(benchmark("shrinkage.range.high") * 100)}% (our planning range), fully loaded` },
+          ]}
+          reasons={x.reasons} links={[["Open Staffing", "/tools/staffing-calculator"], ["How Occupancy Risk works", "/methodology/occupancy-risk"]]} />;
+      })()}
       <HowOthersReport toolId={TOOL_ID} />
 
       <Paper>

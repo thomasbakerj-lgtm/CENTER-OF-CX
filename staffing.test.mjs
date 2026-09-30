@@ -562,5 +562,20 @@ section("11B. grading layer, registry, sign invariance");
   }
 }
 
+// Audit 30 Sep: the side by side panel's own row is this tool's own figure.
+{
+  const X = await import("./src/lib/crossTool.js");
+  let bad = 0;
+  for (const [v, a, t, sec, sh] of [[400, 360, 0.8, 20, 0.3], [650, 512, 0.75, 15, 0.32], [1200, 450, 0.8, 30, 0.35], [90, 300, 0.9, 20, 0.28]]) {
+    const p = sustainablePair(v, a, 30, t, sec, sh, 0.87); if (!p.sustainable) continue;
+    const cost = staffingCost(p.sla.sched, 0, 0), ceil = staffingCost(p.sustainable.sched, 0, 0);
+    const x = X.staffingAsOccupancy({ deltaAgents: p.deltaAgents, deltaFte: p.deltaFte, perAgentMonth: cost.perAgentMonth, wage: BENCHMARK_HOURLY, loadBenefits: benchmark("load.benefits"), loadFull: FULL_LOAD_MULTIPLE, hoursYear: benchmark("time.hours.year"), shrink: sh });
+    if (!x || !near(x.own.yearly, ceil.annual - cost.annual, 1e-6)) bad++;
+  }
+  ok("the panel's Staffing row equals the page's cost of recovery time", bad === 0);
+  const S = readFileSync("./StaffingCalculator.jsx", "utf8");
+  ok("the page shows the panel only when it shows the ceiling difference, never on a void", /!capOn && pair\.sustainable && !isVoid\(gradeObj\) \? staffingAsOccupancy/.test(S));
+}
+
 console.log(`\n${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);

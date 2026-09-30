@@ -171,6 +171,13 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
           </ul>
         </section>
 
+        {/* Audit 30 Sep (TB: agree): large buyers weigh these three, and a shortlist check would ask why they are missing. */}
+        <section aria-labelledby="suites" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
+          <h2 id="suites" style={{ ...K.h2, margin: 0 }}>Contact centers from the large cloud suites</h2>
+          <p style={K.small}>Three offers that large buyers often weigh are not in this research yet: Microsoft Dynamics 365 Contact Center, Google Cloud's contact center offering, and Salesforce's own contact center built on Service Cloud. The research adds one vendor at a time under a locked method, and none of these three has been researched, so this page makes no claim about them either way. Salesforce Service Cloud appears below as an adjacent suite.</p>
+          <p style={K.small}><a href="/research#ideas" style={K.link}>Tell us which one you want researched first</a></p>
+        </section>
+
         <section aria-labelledby="adjacent" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
           <h2 id="adjacent" style={{ ...K.h2, margin: 0 }}>Adjacent suites</h2>
           <p style={K.small}>Suites that shape contact center design from beside it, such as CRM and service management platforms. Tracked here, researched in their own categories.</p>

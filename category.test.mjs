@@ -137,5 +137,12 @@ ok("tokens only: no colour literal", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(SRC));
 ok("no dash in the page or the index", !/[\u2013\u2014]/.test(SRC + readFileSync("./src/data/research/ccaas/category.json", "utf8") + readFileSync("./src/lib/research/categoryView.js", "utf8")));
 ok("no global style reset or third-party font", !/fonts\.googleapis|\*, \*::before/.test(SRC));
 
+/* Audit 30 Sep (TB: agree): the page says the three large cloud suites are not researched yet, and claims nothing about them. */
+{
+  const SRC = readFileSync("./CCaaSCategory.jsx", "utf8");
+  ok("the page names the three unresearched cloud suite offers and makes no claim about them",
+    /Microsoft Dynamics 365 Contact Center/.test(SRC) && /Google Cloud's contact center offering/.test(SRC) && /Salesforce's own contact center/.test(SRC) && /makes no claim about them either way/.test(SRC) && /href="\/research#ideas"/.test(SRC));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

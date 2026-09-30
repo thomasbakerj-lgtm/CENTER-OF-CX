@@ -121,5 +121,17 @@ for (const [name, from, to, killed] of mutants) {
   ok(`mutant caught: ${name}`, killed(load(BODY.replace(from, to))));
 }
 
+// Audit 30 Sep: the side by side panel's own row is this tool's own figure.
+{
+  const X = await import("./src/lib/crossTool.js");
+  let bad = 0;
+  for (let i = 0; i < 2000; i++) {
+    const v = randomInputs(); const r = E0.runOccupancy(v, P); if (!(r.extraAgents > 0)) continue;
+    const x = X.occupancyAsStaffing({ extraAgents: r.extraAgents, wage: v.hourlyRate, loadBenefits: P.load, loadFull: 1.95, hoursYear: P.hoursYear, shrinkLow: 0.28, shrinkHigh: 0.35 });
+    if (!x || Math.abs(x.own.yearly - r.staffingCost) > 1e-6 * Math.max(1, r.staffingCost) || !(x.staffing.yearlyLow > x.own.yearly)) bad++;
+  }
+  ok("on 2,000 cases the panel's Occupancy Risk row equals this page's staffing cost, and Staffing's way costs more", bad === 0);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);
