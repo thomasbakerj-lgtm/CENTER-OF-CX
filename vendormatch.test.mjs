@@ -56,6 +56,12 @@ ok("vendors sharing the cap keep their unclipped order", capTies === capTiesOrde
 
 section("3. Presentation only");
 ok("24 Phase 1 vendors, weights unchanged", VENDORS.length === 24 && /s\+=\(v\.dims\[pId\]-70\)\*0\.12/.test(S) && /s\+=\(v\.dims\[k\]-70\)\*\(imp-3\)\*0\.06/.test(S) && /s\+=\(v\.dims\.cost-70\)\*0\.15/.test(S));
+/* Audit 30 Sep: labels the Phase 1 model cannot support. */
+ok("no fit verdict words on the page or in the PDF", !/Strong Fit|Good Fit|Conditional Fit|Weak Fit/.test(S));
+ok("integrations are named as Phase 1 data, never as verified", !/Verified [Ii]ntegrations/.test(S) && /Integrations named in the Phase 1 data/.test(S));
+ok("the Phase 1 migration notes no longer render", !/Platform Context/.test(S) && !/platformData\.notes/.test(S));
+const gr = S.slice(S.indexOf("const getResults"), S.indexOf("const handleResults"));
+ok("compliance picks do not reach the order, and the step says so", !/compliance/.test(gr) && /These do not change the list or its order/.test(S));
 ok("no dash in the tool", !/[\u2013\u2014]/.test(S));
 
 console.log(`\n${pass} passed, ${fail} failed`);

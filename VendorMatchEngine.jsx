@@ -47,6 +47,7 @@ const SIZES = ["Under 50 agents", "50-200 agents", "200-500 agents", "500-1000 a
 const VERTICALS = ["Financial Services", "Healthcare", "Retail + eCommerce", "Telecom", "Insurance", "Travel + Hospitality", "Government", "Utilities", "Manufacturing", "Education", "Other"];
 
 const PLATFORMS = [
+  /* Phase 1 migration notes stay here for lineage; they carry unsourced figures, so the page no longer shows them (audit 30 Sep). */
   { name: "None / Greenfield", notes: "" },
   { name: "Avaya (on-prem)", notes: "End-of-support timelines accelerating. Migration urgency depends on product line (Aura, Elite, IX). Most migrations: 8-14 months. Workforce familiarity and telephony infrastructure are your biggest transition costs." },
   { name: "Cisco UCCE / UCCX", notes: "Deep IT ecosystem integration. Migration to Webex CC preserves some investment. Third-party CCaaS requires telephony re-architecture and significant integration rework." },
@@ -307,7 +308,6 @@ export default function VendorMatchEngine() {
   const set = (k,v) => setD(prev => ({...prev,[k]:v}));
   const toggleArr = (k,v) => setD(prev => ({...prev,[k]:prev[k].includes(v)?prev[k].filter(x=>x!==v):[...prev[k],v]}));
   const setImp = (id,val) => setD(prev => ({...prev,importance:{...prev.importance,[id]:val}}));
-  const platformData = PLATFORMS.find(p => p.name === d.currentPlatform);
   const vertComp = VERTICAL_COMPLIANCE[d.vertical] || VERTICAL_COMPLIANCE["Other"];
   const selPriorities = PRIORITIES.filter(p => d.priorities.includes(p.id));
 
@@ -355,12 +355,8 @@ export default function VendorMatchEngine() {
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <Select label="Industry vertical" value={d.vertical} onChange={v=>{set("vertical",v);set("compliance",[]);}} options={VERTICALS}/>
             <Select label="Operation size" value={d.size} onChange={v=>set("size",v)} options={SIZES}/>
-            <Select label="Current platform" value={d.currentPlatform} onChange={v=>set("currentPlatform",v)} options={PLATFORMS.map(p=>p.name)} hint="Used to flag what to plan for when you migrate from it"/>
+            <Select label="Current platform" value={d.currentPlatform} onChange={v=>set("currentPlatform",v)} options={PLATFORMS.map(p=>p.name)} hint="Noted in your report; it does not change the list"/>
           </div>
-          {platformData&&platformData.notes&&(<div style={{...K.box,marginTop:16}}>
-            <div style={{...K.kicker,marginBottom:6}}>Platform Context: {platformData.name}</div>
-            <p style={K.body}>{platformData.notes}</p>
-          </div>)}
           <div style={{marginTop:18}}><Button onClick={()=>setStep(1)} disabled={!d.vertical||!d.size}>Next: what matters</Button></div>
         </Group>)}
 
@@ -377,7 +373,7 @@ export default function VendorMatchEngine() {
           </div>
         </Group>)}
 
-        {step===2&&(<Group legend="Compliance Requirements" note={`Based on your ${d.vertical||"selected"} vertical. Select requirements that apply.`}>
+        {step===2&&(<Group legend="Compliance Requirements" note={`Based on your ${d.vertical||"selected"} vertical. These do not change the list or its order: the Phase 1 model holds no verified compliance data. They print in your report as requirements to confirm with each vendor.`}>
           <div style={K.grid(240)}>
             {vertComp.map(req=>{const on=d.compliance.includes(req);return(<button key={req} type="button" aria-pressed={on} onClick={()=>toggleArr("compliance",req)} style={{...pickStyle(on),...K.strong,fontSize:14,fontWeight:on?700:500}}>{on?"\u2713 ":""}{req}</button>);})}
           </div>
@@ -421,7 +417,6 @@ export default function VendorMatchEngine() {
         <div style={{display:"flex",flexDirection:"column",gap:10}}>
           {results.map((v,i)=>{
             const isTop=i<3;
-            const fl=v.score>=85?"Strong Fit":v.score>=70?"Good Fit":v.score>=55?"Conditional Fit":"Weak Fit";
             return(<div key={v.name} style={{...(isTop?K.panel:K.box),border:`${isTop?2:1}px solid ${isTop?K.firm:K.hair}`}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:16,flexWrap:"wrap"}}>
                 <div style={{flex:1,minWidth:200}}>
@@ -440,7 +435,7 @@ export default function VendorMatchEngine() {
                 </div>
                 <div style={{textAlign:"center",flexShrink:0}}>
                   <div style={{...K.strong,...K.num,fontSize:isTop?32:22}}>{shownScore(v)}</div>
-                  <div style={{...K.small,fontWeight:600,color:K.strong.color}}>{fl}</div>
+                  <div style={{...K.small,fontWeight:600,color:K.strong.color}}>{v.lead?"Leading group":"Phase 1 fit"}</div>
                 </div>
               </div>
               {v.lead&&<p style={{...K.small,marginTop:6}}>Within {LEAD_GAP} points of the top vendor on this model: too close to separate.</p>}
@@ -459,7 +454,7 @@ export default function VendorMatchEngine() {
                 </details>
                 {v.integrations&&v.integrations.length>0&&(
                   <div style={{...K.box,marginTop:8}}>
-                    <div style={{...K.kicker,marginBottom:4}}>Verified Integrations</div>
+                    <div style={{...K.kicker,marginBottom:4}}>Integrations named in the Phase 1 data</div>
                     <p style={K.body}>{v.integrations.join(", ")}</p>
                   </div>
                 )}
@@ -499,11 +494,11 @@ export default function VendorMatchEngine() {
                 label: v.name.split(" ")[0],
                 value: shownScore(v),
                 color: v.score >= 85 ? GREEN : v.score >= 70 ? AMBER : MUTED,
-                sub: v.score >= 85 ? "Strong Fit" : v.score >= 70 ? "Good Fit" : "Conditional",
+                sub: v.lead ? "Leading group" : "Phase 1 fit",
               })) },
               { title: "Top Match Intelligence", type: "actions", items: results.slice(0, 3).map((v, i) => ({
                 action: `${v.name}`,
-                detail: `Strengths: ${v.strengths.join("; ")}. Risk: ${v.risks[0] || "N/A"}.${v.integrations && v.integrations.length > 0 ? ` Verified integrations: ${v.integrations.join(", ")}.` : ""}`,
+                detail: `Strengths: ${v.strengths.join("; ")}. Risk: ${v.risks[0] || "N/A"}.${v.integrations && v.integrations.length > 0 ? ` Integrations named in the Phase 1 data: ${v.integrations.join(", ")}.` : ""}`,
                 priority: i === 0 ? "high" : undefined,
               })) },
               { title: "Important Note", type: "text", content: "This shortlist comes from independently scored Phase 1 vendor data across 27 weighted dimensions. Fit also depends on details this tool cannot capture: integration complexity, contract terms, implementation timelines and how ready your organization is. Use it as the starting point for a deeper evaluation. The final decision belongs to that evaluation." },

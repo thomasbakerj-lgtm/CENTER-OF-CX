@@ -1828,6 +1828,17 @@ dashboard, the 12-phase growth program.
    scratchpad, the original pages unchanged). Researched profiles print product types and release states as words with
    acronyms kept ("GA", "EAP", "Core platform"; was "Ga", "CORE_PLATFORM"). Gates: `freeze.test.mjs` 8, `framework.test.mjs`,
    `profile.test.mjs`, seo J16. Suite 27,493. Browser: nine pages at 1440 and 390, no overflow or error.
+109. S24 (30 Sep), audit batch 2 item 3 part 1 (TB: "go"), Vendor Match labels the Phase 1 model cannot support
+   (presentation only; scoring, weights and order unchanged). Fit verdict words ("Strong Fit" to "Weak Fit", which called
+   Vonage a Weak Fit for a Salesforce shop against the research) are gone from the page and the PDF; each result reads
+   "Leading group" or "Phase 1 fit" beside its score. "Verified Integrations" reads "Integrations named in the Phase 1
+   data". The Phase 1 migration notes for the current platform ("Most migrations: 8-14 months", "First CCaaS with ISO
+   42001", no source) no longer render; the data stays for lineage. The compliance step says its picks do not change the
+   list or its order (the model holds no verified compliance data) and print in the report as requirements to confirm.
+   `vendormatch.test.mjs` 17 (compliance is proven absent from `getResults`). Open for TB: the size data. The Phase 1
+   table gives Genesys and NICE small 95 against mid 60, so an under-50-agent buyer gets them as the leading group; there
+   is no source to correct the numbers from, and the research's size tags cannot feed Vendor Match before Stage 4 (TB:
+   "wait"). A `channel.report.mjs` UNPARSED appeared once in one suite run and passed alone and on the re-run.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
