@@ -539,7 +539,7 @@ export default function ReportActions({
                 download never asks for it.
               </p>
               {copyState === "error" && (
-                <p style={{ fontSize: 12, color: RED, marginTop: 6 }}>
+                <p role="alert" style={{ fontSize: 12, color: RED, marginTop: 6 }}>
                   That did not go through. Please download the report instead, or try again.
                 </p>
               )}
@@ -622,7 +622,7 @@ export default function ReportActions({
             <Assent tone="paper" />
 
             {reviewState === "error" && (
-              <p style={{ fontSize: 12, color: RED, marginTop: 8 }}>
+              <p role="alert" style={{ fontSize: 12, color: RED, marginTop: 8 }}>
                 That did not go through. Download the report and send it over, or try again.
               </p>
             )}
