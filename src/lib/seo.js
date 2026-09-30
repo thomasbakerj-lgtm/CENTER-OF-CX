@@ -8,7 +8,11 @@ export const SITE = "The Center of CX";
 export const SEO_MAP = {
   "/": {
     title: `${SITE} | Contact Center Decision Tools and Vendor Research`,
-    desc: "282 vendor profiles across 8 categories. Buyer guides, interactive tools, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play.",
+    desc: "Set below with the live counts.",
+  },
+  "/vendors": {
+    title: `Contact Center Vendors | ${SITE}`,
+    desc: "Set below with the live counts.",
   },
   "/platforms-and-tech": {
     title: `Platforms + Tech | ${SITE}`,
@@ -37,10 +41,6 @@ export const SEO_MAP = {
   "/research": {
     title: `Research: Vendors, Methods and Industries | ${SITE}`,
     desc: "What we have researched and how to check it: vendor research by category, published methods, sourced industry pages, Market Watch and perspectives.",
-  },
-  "/vendors": {
-    title: `Vendor Intelligence | 282 Vendor Profiles Across 8 Categories | ${SITE}`,
-    desc: "282 vendors across 8 categories. CCaaS, IVA, Agent Assist, WEM, Analytics, ACD/Routing, Digital Engagement, and Payments. Independent research with no vendor sponsorship.",
   },
   "/vendors/ccaas": {
     title: `CCaaS Vendors: 24 Platforms Profiled by the Job They Do | ${SITE}`,
@@ -849,8 +849,8 @@ export function resolveSeo(rawPath) {
   if (mapped) return { title: mapped.title, desc: mapped.desc, path: pathname, known: true };
 
   const seo = {
-    title: `${SITE} | Independent CX Technology Intelligence`,
-    desc: "Independent CX and contact center technology intelligence. Vendor research, buyer frameworks, and consultant matching.",
+    title: `${SITE} | Contact Center Tools and Research`,
+    desc: "Free tools and research for contact center decisions: calculators with published methods, vendor profiles and sourced industry pages.",
     path: pathname,
     known: false,
   };
@@ -952,12 +952,12 @@ export function structuredData(pathname, seo, extra = {}) {
   if (pathname === "/") {
     graphs.push({
       "@context": "https://schema.org", "@type": "Organization", name: SITE, url: BASE, foundingDate: "2026",
-      description: `Independent CX and contact center technology intelligence. ${VENDOR_PROFILE_COUNT} vendor profiles across ${CATEGORY_COUNT} categories. ${TOOL_COUNT} free tools with published methods.`,
+      description: `Free tools and research for contact center decisions. ${VENDOR_PROFILE_COUNT} vendor profiles across ${CATEGORY_COUNT} categories. ${TOOL_COUNT} free tools with published methods.`,
       knowsAbout: ["Contact Center Technology", "Customer Experience", "CCaaS", "IVA", "Conversational AI", "Workforce Management", "CX Analytics", "Digital Engagement"],
     });
     graphs.push({
       "@context": "https://schema.org", "@type": "WebSite", name: SITE, url: BASE,
-      description: "Independent CX technology intelligence for buyers: vendor profiles, buyer guides, and free decision tools with published methods.",
+      description: "Free tools and research for contact center decisions: vendor profiles, buyer guides and decision tools with published methods.",
       publisher: ORG,
     });
   }

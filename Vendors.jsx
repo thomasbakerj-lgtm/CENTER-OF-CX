@@ -76,7 +76,7 @@ function Hero() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 {[
                   { n: String(VENDOR_PROFILE_COUNT), l: "Vendor profiles" },
-                  { n: "9", l: "Decision domains" },
+                  { n: String(Object.keys(CCAAS_RESEARCH.complete).length), l: "Researched platforms" },
                   { n: "7", l: "Orchestration layers" },
                   { n: String(CATEGORY_COUNT), l: "Vendor categories" },
                 ].map((s, i) => (

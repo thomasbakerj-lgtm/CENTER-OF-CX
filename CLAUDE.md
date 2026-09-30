@@ -1887,6 +1887,20 @@ dashboard, the 12-phase growth program.
    per deliberate choice, never per hover; reduced motion respected; the layer to tool and category map still comes
    from Platform Decision's published model (extend the model, never a hand list on the page); lists carry no order by
    merit and every vendor gets an introduction; `home.test.mjs` and axe stay green.
+114. S24 (30 Sep), copy audit batch 1 (TB: "go"; the reconciled audit's safe items). Withdrawn score wording removed where
+   it still rendered: nine Phase 1 profile sentences (ACD Routing: Content Guru, Twilio Flex, Kore.ai; Analytics: six such
+   as "The strongest product insights score in the entire matrix (6/6)") and two Salesforce and Sprinklr summaries ("to
+   score as", "be scored as"); the Phase 1 profile's review invite ("Score this vendor", and "Every review is attributed by
+   role and company size", untrue since reviews are not published) now says reviews are read and not published. Advisory's
+   deliverables drop "scored evaluation" and "competitive context". Vendors hub tile "9 Decision domains" became the
+   researched platform count. CCaaS guide: "12 vendors, as that edition chose them"; the four unlinked claims ("Independent
+   research. No vendor sponsorship. No pay-to-play. ...") became one linked line, "No vendor paid for, previewed or approved
+   this guide. How we stay independent" (/about#independence). Tagline on the homepage eyebrow and footer, the default
+   metadata, structured data, index.html and the share card default: "Free tools and research for contact center
+   decisions" (was "Independent ... intelligence"); index.html no longer types 282 or "No pay-to-play". Two dead SEO_MAP
+   entries overridden by the live counts now say so; the prerender counts fallbacks by `seo.known`. `freeze.test.mjs` 9
+   gates each (the profile rule reads every profile-type field in the eight category data files; "scoring" alone names a
+   QA capability and passes). Suite 27,546; build green; live check 257 of 257.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

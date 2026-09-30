@@ -769,7 +769,7 @@ export const vendors = {
   "sprinklr": {
     name: "Sprinklr", slug: "sprinklr", category: "Adjacent Suite", categorySlug: "adjacent",
     segment: "Adjacent Suite", tier: "Adjacent", score: null, website: "sprinklr.com",
-    summary: "Strong digital service and AI relevance, but better treated as an overlay or adjacent suite rather than a core CCaaS foundation. Sprinklr's unified platform covers digital engagement, social listening, and AI-powered service, making it influential in CX stack design even though it should not be scored as a standalone CCaaS anchor.",
+    summary: "Strong digital service and AI relevance, but better treated as an overlay or adjacent suite rather than a core CCaaS foundation. Sprinklr's unified platform covers digital engagement, social listening, and AI-powered service, making it influential in CX stack design even though it should not be treated as a standalone CCaaS anchor.",
     strengths: ["Strong digital service and social engagement capabilities", "AI substance for digital-first service", "Unified platform spanning marketing, service, and engagement"],
     weaknesses: ["Usually not the cleanest pure CCaaS foundation", "Voice and telephony capabilities are secondary to digital"],
     bestFit: "Digital-first service transformation as an overlay to a core CCaaS platform.", notFit: "Standalone CCaaS foundation evaluation.",
@@ -781,7 +781,7 @@ export const vendors = {
   "salesforce-service": {
     name: "Salesforce Service Cloud", slug: "salesforce-service", category: "Adjacent Suite", categorySlug: "adjacent",
     segment: "Adjacent Suite", tier: "Adjacent", score: null, website: "salesforce.com",
-    summary: "CRM gravity and ecosystem matter heavily in service transformation, but Salesforce is too ecosystem-dependent to score as a pure CCaaS platform. Its influence on contact center strategy is enormous, many CCaaS evaluations are shaped by which platform integrates best with Salesforce.",
+    summary: "CRM gravity and ecosystem matter heavily in service transformation, but Salesforce is too ecosystem-dependent to treat as a pure CCaaS platform. Its influence on contact center strategy is enormous, many CCaaS evaluations are shaped by which platform integrates best with Salesforce.",
     strengths: ["Massive CRM ecosystem and integration gravity", "Service Cloud voice and digital engagement capabilities", "Einstein AI for service predictions and agent assist"],
     weaknesses: ["Too ecosystem-dependent to evaluate as standalone CCaaS", "Telephony requires partner integration (Amazon Connect, etc.)"],
     bestFit: "CRM-first transformation strategy where Salesforce is the system of record.", notFit: "Standalone CCaaS foundation evaluation.",

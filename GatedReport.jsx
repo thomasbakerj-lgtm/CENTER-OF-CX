@@ -36,7 +36,7 @@ const reports = {
     published: "April 2026",
     highlights: [
       "The Phase 1 assessment of 28 CCaaS platforms, dated April 2026. Its scores and tiers are withdrawn on the site while current research is published",
-      "Assessments of the top 12 vendors, plus the four adjacent platforms that shape CCaaS decisions",
+      "Assessments of 12 vendors, as that edition chose them, plus the four adjacent platforms that shape CCaaS decisions",
       "Migration risk framework: the factors that predict a stall or an overrun",
       "Hidden costs vendors leave out of proposals, and the RFP questions that expose them",
       "A decision framework for building a defensible shortlist",
@@ -126,7 +126,7 @@ function Summary({ report, onOpen }) {
               <a key={href} href={href} onClick={() => track("next_step_click", { from: "ccaas-buyer-guide", to: href.split("/").pop() })} style={{ border: `1px solid ${BORDER}`, borderRadius: 8, padding: "16px 16px", color: NAVY, fontSize: 14, fontWeight: 600, background: WARM }}>{label} →</a>
             ))}
           </div>
-          <p style={{ fontSize: 12, color: MUTED, marginTop: 20 }}>Phase 1 edition, published {report.published}. The full guide keeps that assessment's scores and tiers as a dated record; the site no longer shows them while current research is published. No vendor sponsorship. No pay-to-play.</p>
+          <p style={{ fontSize: 12, color: MUTED, marginTop: 20 }}>Phase 1 edition, published {report.published}. The full guide keeps that assessment's scores and tiers as a dated record; the site no longer shows them while current research is published. No vendor paid for, previewed or approved it.</p>
         </div>
       </div>
     </section>
@@ -254,7 +254,7 @@ export default function GatedReport() {
               </div>
 
               <div style={{ marginTop: 28, padding: "16px 20px", background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 8 }}>
-                <span style={{ fontSize: 11, color: HOUSE.body }}>Independent research. No vendor sponsorship. No pay-to-play. Your information stays private.</span>
+                <span style={{ fontSize: 11, color: HOUSE.body }}>No vendor paid for, previewed or approved this guide. <a href="/about#independence" style={{ color: HOUSE.sky2, fontWeight: 600 }}>How we stay independent</a></span>
               </div>
             </div>
 

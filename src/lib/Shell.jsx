@@ -114,7 +114,7 @@ export function SiteFooter() {
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 20px 28px", boxSizing: "border-box", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 28 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={{ display: "flex", alignItems: "center", gap: 10, color: HOUSE.mist, fontWeight: 600, fontSize: 16 }}><Mark size={34} />The Center of CX</span>
-          <span style={{ fontSize: 14, lineHeight: 1.55 }}>Diagnose before you buy. Independent intelligence for contact center and CX technology. No vendor pays to appear.</span>
+          <span style={{ fontSize: 14, lineHeight: 1.55 }}>Diagnose before you buy. Free tools and research for contact center decisions. No vendor pays to appear.</span>
         </div>
         {FOOTER.map((col) => (
           <nav key={col.head} aria-label={col.head} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
