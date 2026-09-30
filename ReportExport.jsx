@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { trackTool, toolIdFromPath } from "./src/lib/track";
 import { HOUSE, PILLARS, ARCS_PRINT, FINDINGS, FONT_FILES } from "./src/lib/tokens";
 import { EVERYDAY, markSvg as markSvg_ } from "./src/lib/mark.js";
+import { briefFor, READ_NO_GRADE } from "./src/lib/readerBriefs.js";
 
 /* The paper palette (Brand Guide 1.0, sections 6 and 7): ink on white, the Diagnostics
    on-light blue for labels, the action blue for links, the print finding red only beside
@@ -43,12 +44,33 @@ export const AUDIENCES = [
 ];
 
 /* Sections in the chosen reader's order. The confidence section is the one ReportActions
-   builds (title "Confidence"); it sorts as its own kind. Stable: ties keep the tool's order. */
-export function orderSections(sections, audience) {
+   builds (title "Confidence"); it sorts as its own kind. Stable: ties keep the tool's order.
+   A tool with a reader brief (src/lib/readerBriefs.js) puts that reader's sections first, in the brief's order, then
+   the rest by type. The executive sponsor gets a short front section (the brief's sections, the confidence section and
+   the next step) and everything else as an appendix. Every section still prints exactly once. */
+export function planSections(sections, audience, toolId) {
   const a = AUDIENCES.find((x) => x.id === audience) || AUDIENCES[AUDIENCES.length - 1];
+  const brief = briefFor(toolId, a.id);
   const kind = (s) => (s && s.title === "Confidence" ? "confidence" : s && s.type);
+  const leadRank = (s) => { if (!brief || !s || typeof s.title !== "string") return -1; return brief.lead.findIndex((re) => re.test(s.title)); };
   const rank = (s) => { const i = a.order.indexOf(kind(s)); return i < 0 ? a.order.length : i; };
-  return sections.map((s, i) => [s, i]).sort((x, y) => rank(x[0]) - rank(y[0]) || x[1] - y[1]).map(([s]) => s);
+  const indexed = sections.map((s, i) => [s, i]);
+  const led = indexed.filter(([s]) => leadRank(s) >= 0).sort((x, y) => leadRank(x[0]) - leadRank(y[0]) || x[1] - y[1]);
+  const rest = indexed.filter(([s]) => leadRank(s) < 0).sort((x, y) => rank(x[0]) - rank(y[0]) || x[1] - y[1]);
+  if (a.id === "executive" && brief) {
+    /* A front page with none of the brief's sections (a tool at an early step) takes the tool's first summary. */
+    const summary = rest.find(([s]) => kind(s) === "metrics") || rest.find(([s]) => kind(s) !== "confidence" && kind(s) !== "next");
+    const lead0 = led.length ? led : summary ? [summary] : [];
+    const front = [...lead0, ...rest.filter(([s]) => (kind(s) === "confidence" || kind(s) === "next") && !lead0.includes(s))];
+    const frontSet = new Set(front);
+    const back = [...led, ...rest].filter((x) => !frontSet.has(x)).sort((x, y) => x[1] - y[1]);
+    return { lead: front.map(([s]) => s), appendix: back.map(([s]) => s), brief };
+  }
+  return { lead: [...led, ...rest].map(([s]) => s), appendix: [], brief };
+}
+export function orderSections(sections, audience, toolId) {
+  const p = planSections(sections, audience, toolId);
+  return [...p.lead, ...p.appendix];
 }
 
 /* The report as one HTML document. Every string a tool, a user or a scenario link can
@@ -56,11 +78,12 @@ export function orderSections(sections, audience) {
    roadmap item carrying markup cannot run in the report window. Pure, so the harness
    can build it without a browser. */
 const e = (v) => String(v === undefined || v === null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "", method = "", audience = "advisor", how = null }) {
+export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "", method = "", audience = "advisor", how = null, toolId = "" }) {
   // Resolve relative next-step links against the live origin so they work in the
   // popup preview (whose own URL is about:blank) and remain clickable in the PDF.
   const absUrl = (href) => !href ? null : (/^https?:\/\//i.test(href) ? href : origin + (href.startsWith("/") ? href : "/" + href));
   const reader = AUDIENCES.find((x) => x.id === audience) || AUDIENCES[AUDIENCES.length - 1];
+  const plan = planSections(sections, reader.id, toolId);
   const fontFaces = FONT_FILES.filter((f) => f.family !== "IBM Plex Sans Condensed").map((f) => `@font-face{font-family:'${e(f.family)}';font-style:${e(f.style)};font-weight:${e(f.weight)};font-display:swap;src:url(${e(origin)}/fonts/${e(f.file)}) format('woff2')}`).join("");
   const fontSrc = origin ? `'self' ${e(origin)}` : "'self'";
 
@@ -130,7 +153,7 @@ export function reportHtml({ toolName, subtitle, reportName, company, logo, toda
     return "";
   };
 
-  const markSvg = markSvg_(EVERYDAY.paper, { size: 26, attrs: 'class="mark" aria-hidden="true"' });
+  const markSvg = markSvg_(EVERYDAY.paper, { size: 28, trim: true, attrs: 'class="mark" aria-hidden="true"' });
   const howBlock = !how ? "" : how.void
     ? `<div class="how void"><div class="how-label">How sure</div><div class="how-grade">No figure</div><div class="how-line">${e(how.reason || "The inputs made a figure impossible, so none is printed.")}</div></div>`
     : `<div class="how">${evidenceMark(how.axes || {})}<div class="how-text"><div class="how-label">How sure${how.label ? `, ${e(how.label)}` : ""}</div><div class="how-grade">${e(how.headline || "Not stated")}</div>${how.boundBy ? `<div class="how-line">Held by ${e(how.boundBy)}</div>` : ""}</div></div>`;
@@ -205,6 +228,9 @@ td.value { font-weight: 600; text-align: right; }
 .priority.medium { color: ${QUIET}; }
 
 .next-section { margin-top: 14px; }
+.appendix { page-break-before: always; margin: 8px 0 18px; }
+.appendix h2 { font-size: 15pt; color: ${INK}; margin-bottom: 4px; }
+.appendix p { font-size: 9pt; color: ${SLATE}; }
 .next-tools { display: flex; flex-direction: column; gap: 6px; }
 .next-tool { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1.5px solid ${LINK}; border-radius: 10px; font-size: 9pt; }
 .next-tool strong { font-size: 10.5pt; }
@@ -251,9 +277,10 @@ td.value { font-weight: 600; text-align: right; }
 ${howBlock}
 </div>
 
-<div class="reader"><div class="who">Written for<strong>${e(reader.title)}</strong></div><p>${e(reader.read)}</p></div>
-
-${orderSections(sections, reader.id).map((s) => renderSection(s)).join("\n")}
+<div class="reader"><div class="who">Written for<strong>${e(reader.title)}</strong></div><p>${e(how ? reader.read : READ_NO_GRADE[reader.id] || reader.read)}</p></div>
+${plan.brief && plan.brief.ask.length ? `<div class="section ask"><h3>What to check first</h3><ol class="findings">${plan.brief.ask.map((q, qi) => `<li class="finding"><span class="finding-num">${qi + 1}</span><span>${e(q)}</span></li>`).join("")}</ol></div>` : ""}
+${plan.lead.map((s) => renderSection(s)).join("\n")}
+${plan.appendix.length ? `<div class="appendix"><h2>Appendix: the detail</h2><p>The inputs, workings and method behind the summary, for whoever checks it.</p></div>\n${plan.appendix.map((s) => renderSection(s)).join("\n")}` : ""}
 
 <div class="report-footer">
 <div class="row"><span>The Center of CX. Diagnose before you buy.</span><span>${e(today)}</span></div>
@@ -317,7 +344,7 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
     if (!win) { alert("Please allow pop-ups to download your report."); return; }
 
     const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "";
-    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin, method, audience, how });
+    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin, method, audience, how, toolId });
 
     win.document.write(html);
     win.document.close();

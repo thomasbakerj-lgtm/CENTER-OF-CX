@@ -11,7 +11,7 @@ import { groupsFor, rowSource, KIND_LABEL, TOOL_GROUPS, SOURCES } from "./compar
 import { STATE_WAGES, STATE_WAGE_SOURCE, NATIONAL_WAGE } from "./comparisons/stateWages.js";
 
 const hair = alpha(HOUSE.mist, LINE.hair);
-const chip = { display: "inline-block", fontSize: 12, fontWeight: 600, lineHeight: "18px", padding: "1px 8px", borderRadius: RADIUS.field, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist, whiteSpace: "nowrap" };
+const chip = { display: "inline-block", fontSize: 12, fontWeight: 600, lineHeight: "18px", padding: "1px 8px", borderRadius: RADIUS.field, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist, maxWidth: "100%" };
 const usd = (n) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const CSS = `.cx-hor summary{cursor:pointer;list-style:none;min-height:44px;display:flex;align-items:center;flex-wrap:wrap;gap:10px}
 .cx-hor summary::-webkit-details-marker{display:none}
@@ -33,7 +33,7 @@ function Row({ row, group, shared }) {
   const s = rowSource(row, group);
   const kind = row.kind && row.kind !== group.kind ? row.kind : null;
   return (
-    <li style={{ display: "grid", gridTemplateColumns: "minmax(88px, auto) 1fr", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
+    <li style={{ display: "grid", gridTemplateColumns: "fit-content(40%) minmax(0, 1fr)", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
       <span style={{ fontSize: 18, fontWeight: 700, lineHeight: "26px", color: HOUSE.mist, fontVariantNumeric: "tabular-nums" }}>{row.value}</span>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "baseline" }}>
@@ -59,7 +59,7 @@ function WagePicker() {
         {STATE_WAGES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
       </select>
       <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-        <li style={{ display: "grid", gridTemplateColumns: "minmax(88px, auto) 1fr", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
+        <li style={{ display: "grid", gridTemplateColumns: "fit-content(40%) minmax(0, 1fr)", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
           <span style={{ fontSize: 18, fontWeight: 700, lineHeight: "26px", color: HOUSE.mist, fontVariantNumeric: "tabular-nums" }}>{usd(row ? row[2] : NATIONAL_WAGE.hourly)}</span>
           <span style={{ minWidth: 0 }}>
             <span style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "baseline" }}>

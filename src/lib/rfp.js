@@ -23,19 +23,41 @@ function rfpTags(model, state) {
   return [...new Set(["all", ...chosen, ...v])];
 }
 
+/* The buyer's own wording (method 1.1): a published requirement may be reworded (edited,
+   marked so), removed, or joined by requirements of the buyer's own, each on a layer. A
+   removed requirement is left out of every count and score; an edited or added one is scored
+   like any other. Text is trimmed and capped; anything else in the state is ignored. */
+function rfpText(model, t) {
+  return typeof t === "string" ? t.replace(/[<>]/g, "").replace(/\s+/g, " ").trim().slice(0, model.thresholds.maxText.value) : "";
+}
+
 function rfpRequirements(model, state) {
   const tags = rfpTags(model, state);
+  const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
   const pri = state.reqs && typeof state.reqs === "object" ? state.reqs : {};
+  const edits = state.edits && typeof state.edits === "object" ? state.edits : {};
+  const dropped = new Set(Array.isArray(state.dropped) ? state.dropped : []);
   const ok = (p) => model.priorities.some((x) => x.id === p);
+  const wording = (key, text) => { const t = has(edits, key) ? rfpText(model, edits[key]) : ""; return t && t !== text ? { text: t, edited: true } : { text, edited: false }; };
   const out = [];
   for (const l of model.layers) l.reqs.forEach((r, i) => {
     if (!r.tags.some((t) => tags.includes(t))) return;
     const key = `${l.n}-${i}`;
-    out.push({ key, layer: l.n, layerName: l.name, text: r.text, priority: Object.prototype.hasOwnProperty.call(pri, key) && ok(pri[key]) ? pri[key] : r.priority });
+    if (dropped.has(key)) return;
+    out.push({ key, layer: l.n, layerName: l.name, ...wording(key, r.text), priority: has(pri, key) && ok(pri[key]) ? pri[key] : r.priority });
   });
   (model.verticalReqs[state.vertical] || []).forEach((text, i) => {
     const key = `v-${i}`;
-    out.push({ key, layer: 0, layerName: (state.vertical || "") + " specific", text, priority: Object.prototype.hasOwnProperty.call(pri, key) && ok(pri[key]) ? pri[key] : "must" });
+    if (dropped.has(key)) return;
+    out.push({ key, layer: 0, layerName: (state.vertical || "") + " specific", ...wording(key, text), priority: has(pri, key) && ok(pri[key]) ? pri[key] : "must" });
+  });
+  const seen = new Set();
+  (Array.isArray(state.custom) ? state.custom : []).forEach((c) => {
+    if (!c || typeof c !== "object" || seen.size >= model.thresholds.maxCustom.value) return;
+    const id = c.id, layer = model.layers.find((l) => l.n === c.layer), text = rfpText(model, c.text);
+    if (!Number.isInteger(id) || id < 0 || id >= model.thresholds.maxCustom.value * 2 || seen.has(id) || !layer || !text) return;
+    seen.add(id);
+    out.push({ key: `c-${id}`, layer: layer.n, layerName: layer.name, text, edited: false, custom: true, priority: ok(c.priority) ? c.priority : "should" });
   });
   return out;
 }

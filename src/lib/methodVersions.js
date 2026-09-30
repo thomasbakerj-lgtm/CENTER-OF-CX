@@ -15,7 +15,7 @@ export const METHOD_VERSIONS = {
   "qa-scorecard": V("1.0", "2026-09-24"),
   "platform-decision": V("1.0", "2026-09-24"),
   "contract-risk": V("1.0", "2026-09-24"),
-  "rfp-builder": V("1.0", "2026-09-24"),
+  "rfp-builder": V("1.1", "2026-09-30"),
   "occupancy-risk": V("1.1", "2026-09-28"),
   "shrinkage-planner": V("1.1", "2026-09-28"),
   "aht-decomposition": V("1.0", "2026-09-24"),

@@ -1738,7 +1738,45 @@ dashboard, the 12-phase growth program.
      claims plus Forrester, Gartner and Puzzel figures with no links). CCaaS category page retitled around "CCaaS
      vendors" (position 15.8). Researched profiles and segment pages already rank on page one for their long tail.
 
-103. S24 (30 Sep), enterprise executive audit and fix batch 1 (TB: "Go. Let's come back to the others after"). Audit of production
+103. S24 (30 Sep), search metadata pass (TB: "go"). Measured all 432 sitemap pages: 121 page names over 55 characters and
+   115 descriptions over 160, cut off in Google results; many descriptions also broke the site's rules ("Ranked
+   Shortlist", "vendor recommendations", "reducible" handle time, "the 85% occupancy threshold", "Strengths,
+   weaknesses" on profiles, "282" by hand). Rewritten: home, vendor hub (counts derived), 8 category pages, 3 CCaaS
+   research pages ("CCaaS Research: X Contact Centers"), 25 tools, 23 methods, 11 industry pages, the 61 segment
+   template and its 8 hand-written descriptions ("X Contact Center CX", no benchmark claims), the vendor profile
+   template (drops the category when name and category pass 55), and 12 content pages. `seo.test.mjs` W1 to W5 gate
+   length, retired words and derived counts (the old metadata fails four of five). Section 14 records the search rules.
+
+104. S24 (30 Sep), TB's phone review (TB: "a: yes, b: yes, c: yes, merge"). PR #94 merged (bde0c63).
+   - Unreadable buttons: a button with no background of its own took the browser's light grey (and iPhone's native look)
+     under pale text; RFP Builder's focus areas could not be read on a phone. The base stylesheet in `index.html` now
+     starts every button transparent with its container's colour (`a11y.test.mjs` pins it).
+   - RFP Builder method 1.1: step 3 "Review + Customize" now lets the buyer reword any requirement (marked edited on the
+     page and in the report), remove any (a Removed list puts it back; it leaves every count and score), and add up to 20
+     of their own on any layer (key `c-<id>`, should-have by default, scored like any other). Edits, removals and
+     additions travel in the scenario link (text capped at 160 characters, angle brackets stripped); a link too long
+     for the cap falls back to the existing "too detailed to fit" notice. Scoring, weights, credits and rules unchanged:
+     with none of the three, 2,000 random evaluations equal method 1.0 (the 1.0 builder spliced into today's engine).
+     `rfp.test.mjs` 82. Browser at 390: focus stays in the text box while typing; the reopened link keeps all three.
+   - Next (TB approved): reader reports written for each reader (b), starting with RFP Builder and the nine rail tools;
+     then TB's business-size journey idea (proposal to TB first).
+
+105. S24 (30 Sep), reports written for each reader (TB: "the reports by persona all look the same"; TB: "1", build it).
+   PR #96 (RFP 1.1) merged (49fb47b). The reader picker only reordered sections by type, with one generic line per
+   reader, so every reader got the same report in a different order, and RFP Builder's finance cover promised "how sure
+   it is" on a tool with no grade. `src/lib/readerBriefs.js`: for RFP Builder and the nine rail tools, each of the five
+   readers gets the sections they need first (matched by title) and three questions to put to this result ("What to
+   check first", printed under the reader line). The executive sponsor gets a short front (the brief's sections, the
+   confidence section, the next step; the tool's first summary when none of the brief's sections exist yet) and the rest
+   as "Appendix: the detail" on a new page. A tool without grades gets reading lines that make no confidence promise
+   (`READ_NO_GRADE`). A brief never changes a figure, a grade or a section; every section prints once. Tools without a
+   brief keep the type order. `export.test.mjs` 319: every lead names a section the tool emits, three questions per
+   reader with no dash, every section once per reader, at least three readers lead differently per tool, the executive
+   front and appendix, the no-grade line, the tool id reaches the renderer, the escaping allowlist. Browser: RFP Builder
+   IT report leads with layers 1 to 4; the executive report is questions, context and next step, then the appendix.
+   Next: briefs for the other fifteen tools; TB's business-size journey is on hold (another chat may build it).
+
+106. S24 (30 Sep), enterprise executive audit and fix batch 1 (TB: "Go. Let's come back to the others after"). Audit of production
    as an enterprise CX executive: three journeys (cost and AI problem, IVA and Agent Assist research, CCaaS replacement) and a
    break test of 14 more tools; report, top ten and the size matrix in `docs/AUDIT_ENTERPRISE_EXEC_2026-09-30.md`. Math held
    everywhere it was recomputed. Fixed:
@@ -1770,6 +1808,22 @@ dashboard, the 12-phase growth program.
    place draws from mark.js, favicon current, three-arc mark gone. Not changed: share cards (text only, no mark) and 27 dead
    `Logo`/`LogoMark` copies of the old mark left in page files (never rendered; several are md5-pinned tool files). Suite
    26,846; build and prerender green; browser at 1440 and 390, the edition on 6 Oct and the report masthead checked.
+
+102. S24 (30 Sep), TB: the header mark looked too small, and on a phone "text runs out of the border boxes" (TB: go).
+   - Mark: the voice bars take the outer part of the box, so at 30 px the C and X were about 12 px, and the square box
+     left its right third empty beside the name. `src/lib/mark.js` BOX (76 by 106 units, the drawing's own bounds,
+     `mark.test.mjs` proves both drawings fit with round caps and at most 3 units spare a side); trimmed marks take their
+     height. Header 40 px, footer 34, report masthead 28; the small drawing now runs below 48 px. Favicon unchanged.
+   - `scripts/containment-audit.mjs`: text (measured per line with a Range) and controls that cross the edge of their
+     bordered or filled box; a clipping or scrolling box ends the check, closed details and legends are exempt. The
+     page-level overflow sweeps missed these because the page still fit. First run, all 432 pages at 390 and 360 px:
+     the Vendors hub category cards (a 280 px column inside 276 px, so every card spilled; the chip row now wraps), the
+     How others report it list (an auto figure column crushed the name to one letter a line on License Gap at 360;
+     now fit-content(40%)), the eight vendor profile call-to-action headings (a long name such as ContactCenter4All
+     left the card; they break), the Platforms and Tech map card (a 240 px minimum), and at 320 px the community box on
+     every Phase 1 profile variant and the How others report it chips. Every finding fixed and its pages re-checked clean at
+     390, 360 and 320 px. It runs nightly on production at the same three widths.
+   Suite 27,132.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
@@ -2161,3 +2215,31 @@ First report:
 - what tests will prove separation and lineage are preserved.
 
 If a requested code change appears to require a research-methodology or schema change, stop and flag it rather than silently implementing it.
+
+---
+
+## 14. Search rules (TB, 30 Sep 2026)
+
+Google's ranking system is not public. We build to what Google publishes (Search Essentials, the helpful content
+guidance, the Search Quality Rater Guidelines and its E-E-A-T, Core Web Vitals, structured data) and treat the 2023
+antitrust testimony and the 2024 API documentation leak as hints, never as weights. Every new or changed page follows
+these rules:
+
+1. **Title and description match a real search.** Write the words people type (Search Console queries first), not a
+   slogan. The page's own name stays within 55 characters (the brand suffix may be cut); the description runs 70 to
+   160 characters and says what the page gives the reader. `seo.test.mjs` W gates length and the retired sales words.
+2. **Answer first.** The page's main answer or tool sits near the top in plain words; a newcomer can tell in one screen
+   what the page is for.
+3. **Every figure sourced, linked and dated** (doctrine); no metadata claims what the page does not show.
+4. **Say who and how.** Name the method (and, when TB decides, the author or editor); link the published method and the
+   sources. Trust is the E-E-A-T axis we can prove today; experience and expertise need a named person.
+5. **Link the next step.** Each page links the related tool, method, industry and vendor pages, so a reader and a crawler
+   can move through the site.
+6. **Structured data from `seo.js structuredData` only**, prerendered, one type per page kind.
+7. **Page experience stays in budget** (`scripts/perf-check.mjs`: LCP and FCP within 2.5 s, CLS under 0.1 on a throttled
+   phone).
+8. **Thin pages stay noindex** until they carry their own substance.
+9. **Read Search Console weekly.** A page at positions 1 to 10 with impressions and no clicks gets its title and
+   description rewritten to the query; a page at 11 to 20 gets content and internal links for that query.
+10. **Links and mentions come from distribution.** Every asset we publish is something another site can cite: a sourced
+    figure, a tool, a method.

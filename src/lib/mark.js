@@ -6,8 +6,11 @@
 // mark.test.mjs pins the geometry and proves each of those draws from here.
 //
 // Coordinates sit on a 120 unit box centred on 0,0. The C opens 57 degrees either side of the right-hand axis; the bars
-// sit on radius 42 across 230 degrees, never inside 32 or outside 52, their lengths an uneven speech rhythm. Below 40
+// sit on radius 42 across 230 degrees, never inside 32 or outside 52, their lengths an uneven speech rhythm. Below 48
 // pixels the small drawing takes over: nine heavier bars and a heavier C and X, because seventeen bars blur together.
+// The voice opens to the right, so a square box leaves its right third empty and pushes the name away. Beside a name the
+// mark sits in BOX, the drawing's own bounds (mark.test.mjs proves both drawings fit inside it); the favicon keeps the
+// square tile.
 import { HOUSE } from "./tokens.js";
 
 export const MARK = {
@@ -16,7 +19,12 @@ export const MARK = {
   small: { cR: 24, cW: 9, tip: 57, barR: 42, barW: 6, span: 230, x: 9.5, xW: 9,
     bars: [4, 7, 5, 9.5, 7, 9.5, 5.5, 7.5, 3.5] },
 };
-export const SMALL_BELOW = 40;
+export const SMALL_BELOW = 48;
+
+/* The drawing's bounds on the 120 unit grid: left edge of the longest bar to the right tip of the voice. */
+export const BOX = { x: -53, y: -53, w: 76, h: 106 };
+export const boxWidth = (height) => Math.round((height * BOX.w) / BOX.h);
+export const BOX_VIEW = `${BOX.x} ${BOX.y} ${BOX.w} ${BOX.h}`;
 export const geometryFor = (size) => (size < SMALL_BELOW ? MARK.small : MARK.full);
 
 /* Everyday colours: mist C with the voice and X in sky on the house; ink C with the voice and X in action blue on paper. */
@@ -40,11 +48,13 @@ export function markParts(g = MARK.full) {
   };
 }
 
-/** The mark as an SVG string, for places outside React (the favicon, the report window). `voices` colours the bars in turn. */
-export function markSvg({ c, voice, x, voices }, { size = 30, geometry = geometryFor(size), attrs = "" } = {}) {
+/** The mark as an SVG string, for places outside React (the favicon, the report window). `voices` colours the bars in turn.
+ *  `trim` draws it in BOX: `size` is then the height and the width follows the drawing. */
+export function markSvg({ c, voice, x, voices }, { size = 30, geometry = geometryFor(size), attrs = "", trim = false } = {}) {
   const p = markParts(geometry), vs = voices && voices.length ? voices : [voice];
   const bars = p.bars.map((b, i) => `<line x1="${b.x1}" y1="0" x2="${b.x2}" y2="0" transform="rotate(${b.rot})" stroke="${vs[i % vs.length]}"/>`).join("");
-  return `<svg width="${size}" height="${size}" viewBox="-60 -60 120 120"${attrs ? " " + attrs : ""}><g fill="none" stroke-linecap="round">` +
+  const box = trim ? `width="${boxWidth(size)}" height="${size}" viewBox="${BOX_VIEW}"` : `width="${size}" height="${size}" viewBox="-60 -60 120 120"`;
+  return `<svg ${box}${attrs ? " " + attrs : ""}><g fill="none" stroke-linecap="round">` +
     `<path d="${p.c}" stroke="${c}" stroke-width="${p.cW}"/><g stroke-width="${p.barW}">${bars}</g>` +
     `<path d="${p.x}" stroke="${x}" stroke-width="${p.xW}"/></g></svg>`;
 }

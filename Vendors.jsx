@@ -175,8 +175,8 @@ function BrowseByCategory() {
                 onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.boxShadow = "none"; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 20 }}>
-                  <div style={{ flex: 1, minWidth: 280 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                  <div style={{ flex: 1, minWidth: "min(280px, 100%)" }}>
+                    <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "6px 12px", marginBottom: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT }}>{c.sub}</span>
                       <span style={{ fontSize: 11, color: MUTED, background: WARM, padding: "2px 8px", borderRadius: 4, fontFamily: FONT }}>{c.count} vendors</span>
                     </div>

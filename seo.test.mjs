@@ -486,7 +486,7 @@ section("S. Industries routes are indexable only when the page exists");
     eq(`S  map entry ${key} matches live name`, gen[key], name);
     const r = resolveSeo(`/industries/${key}`);
     eq(`S  /industries/${key} is indexable`, r.known, true);
-    ok(`S  /industries/${key} title carries the page name`, r.title.startsWith(`${name} CX Intelligence | `));
+    ok(`S  /industries/${key} title carries the page name`, r.title.startsWith(`${name} Contact Center CX | `));
     ok(`S  /industries/${key} title is unique`, !titles.has(r.title));
     titles.add(r.title);
   }
@@ -553,7 +553,7 @@ section("H. Hand-written anchor sub-vertical descriptions");
   const { readdirSync } = await import("node:fs");
   const SEO_SRC = readFileSync("./src/lib/seo.js", "utf8");
   const DASH = (s) => s.indexOf(String.fromCharCode(0x2014)) >= 0 || s.indexOf(String.fromCharCode(0x2013)) >= 0;
-  const TEMPLATE = "CX technology intelligence for ";
+  const TEMPLATE = " contact centers: what they handle, the rules that apply, sourced figures where they exist and a 7-layer technology check.";
   const m = SEO_SRC.match(/const SUBVERTICAL_DESC = \{([\s\S]*?)\n\};/);
   ok("H  hand-written description map present", !!m);
   const hand = m ? Object.fromEntries([...m[1].matchAll(/^\s+("[^"]+"): ("(?:[^"\\]|\\.)*"),$/gm)].map((x) => [JSON.parse(x[1]), JSON.parse(x[2])])) : {};
@@ -581,7 +581,7 @@ section("H. Hand-written anchor sub-vertical descriptions");
     eq(`H  ${key} stays indexable`, r.known, true);
     ok(`H  ${key} description is 110 to 160 characters`, desc.length >= 110 && desc.length <= 160);
     ok(`H  ${key} description has no em-dash or en-dash`, !DASH(desc));
-    ok(`H  ${key} description is not the template`, !desc.startsWith(TEMPLATE));
+    ok(`H  ${key} description is not the template`, !desc.endsWith(TEMPLATE));
     ok(`H  ${key} description is unique`, !seen.has(desc));
     seen.add(desc);
     const a = anchors.get(key);
@@ -592,7 +592,7 @@ section("H. Hand-written anchor sub-vertical descriptions");
   eq("H  every anchor has a hand-written description", [...anchors.keys()].filter((k) => !hand[k]).length, 0);
   for (const { key } of subs) {
     if (hand[key]) continue;
-    ok(`H  ${key} keeps the template fallback`, resolveSeo(`/industries/${key}`).desc.startsWith(TEMPLATE));
+    ok(`H  ${key} keeps the template fallback`, resolveSeo(`/industries/${key}`).desc.endsWith(TEMPLATE));
   }
   for (const p of ["/industries/travel/constructor", "/industries/travel/__proto__", "/industries/retail/airlines", "/industries/travel/airlines/x"]) {
     ok(`H  ${p} never receives a hand-written description`, !Object.values(hand).includes(resolveSeo(p).desc));
@@ -695,10 +695,36 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   const open = CCAAS_INDEXED_INDUSTRIES.map((v) => `/vendors/ccaas/${v}`);
   ok(`N1 all ${pairs.length - open.length} other category-by-industry pages are noindex`, pairs.length === 80 && pairs.filter((p) => !open.includes(p)).every((p) => resolveSeo(p).known === false));
   ok("N2 only the three indexed CCaaS industry pages are in the sitemap", JSON.stringify(sitemap.filter((p) => /^\/vendors\/[a-z-]+\/[a-z-]+$/.test(p)).sort()) === JSON.stringify([...open].sort()));
-  ok("N2b the three are indexable, titled from the research and claim no score", open.length === 3 && open.every((p) => resolveSeo(p).known === true && /What the Research Says/.test(resolveSeo(p).title) && !/scored|fit score|ranking of/i.test(resolveSeo(p).desc)));
+  ok("N2b the three are indexable, titled from the research and claim no score", open.length === 3 && open.every((p) => resolveSeo(p).known === true && /^CCaaS Research: /.test(resolveSeo(p).title) && !/scored|fit score|ranking of/i.test(resolveSeo(p).desc)));
   const noindexed = sitemap.filter((p) => !resolveSeo(p).known);
   ok(`N3 every sitemap URL is indexable [${noindexed.slice(0, 3).join(" ")}]`, noindexed.length === 0);
-  ok("N4 the pages keep their titles for visitors", pairs.every((p) => / for /.test(resolveSeo(p).title)));
+  ok("N4 the pages keep their titles for visitors", pairs.every((p) => / for |Contact Centers/.test(resolveSeo(p).title)));
+}
+
+/* W. Search result fit (30 Sep 2026, SEO rules in CLAUDE.md section 14). Google shows about 60 characters of a title and
+   about 160 of a description. The page's own name (the title less " | The Center of CX", or the homepage less its
+   leading brand) stays within 55 so it shows whole; every description runs 70 to 160 and uses none of the retired
+   sales words. The first run found 121 long titles and 115 long descriptions across the 432 sitemap pages. */
+section("W. Every sitemap page fits a search result");
+{
+  const sitemapW = [...readFileSync("./public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
+  const SUF = " | " + SEO.SITE, PRE = SEO.SITE + " | ";
+  const RETIRED = /\b(recommendations?|ranked|best|top-rated|industry-leading|leading|confident|reducible|pay-to-play|intelligence for)\b/i;
+  const longT = [], longD = [], shortD = [], words = [];
+  for (const u of sitemapW) {
+    const r = resolveSeo(u);
+    const name = r.title.endsWith(SUF) ? r.title.slice(0, -SUF.length) : r.title.startsWith(PRE) ? r.title.slice(PRE.length) : r.title;
+    if (name.length > 55) longT.push(u);
+    if (r.desc.length > 160) longD.push(u);
+    if (r.desc.length < 70) shortD.push(u);
+    if (RETIRED.test(r.title + " " + r.desc)) words.push(u);
+  }
+  ok(`W1 every page name fits within 55 characters [${longT.slice(0, 3).join(" ")}]`, sitemapW.length > 400 && longT.length === 0);
+  ok(`W2 every description fits within 160 characters [${longD.slice(0, 3).join(" ")}]`, longD.length === 0);
+  ok(`W3 every description says something (70 or more) [${shortD.slice(0, 3).join(" ")}]`, shortD.length === 0);
+  ok(`W4 no retired sales word in any title or description [${words.slice(0, 3).join(" ")}]`, words.length === 0);
+  const home = resolveSeo("/"), hub = resolveSeo("/vendors");
+  ok("W5 homepage and vendor hub state the live profile count", home.desc.includes(String(SEO.VENDOR_PROFILE_COUNT)) && hub.title.includes(String(SEO.VENDOR_PROFILE_COUNT)) && home.desc.includes(String(SEO.TOOL_COUNT)));
 }
 
 if (failures.length) {

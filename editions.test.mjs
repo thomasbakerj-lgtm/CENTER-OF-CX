@@ -60,7 +60,7 @@ ok("a Mark with an edition takes its voice colours", E.EDITIONS.pillar.voices.ev
 ok("the everyday Mark keeps the mist C and the sky X", renderToString(React.createElement(S.Mark, {})).includes(`stroke="${HOUSE.mist}"`));
 const SRC = readFileSync("./src/lib/Shell.jsx", "utf8");
 ok("the header switches after load, in an effect", /useEffect\(\(\) => \{ try \{ setEdition\(editionFor\(todayUtc\(\)\)\)/.test(SRC));
-ok("the footer mark never takes an edition", /<Mark size=\{26\} \/>/.test(SRC));
+ok("the footer mark never takes an edition", /<Mark size=\{34\} \/>/.test(SRC));
 
 console.log("\n5. Only the header reads the editions");
 const files = [];
