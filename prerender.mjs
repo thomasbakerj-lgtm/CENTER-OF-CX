@@ -148,7 +148,7 @@ for (const loc of locs) {
   // Track routes that fell all the way through to the generic default.
   if (
     path !== "/" &&
-    seo.title === "The Center of CX | Independent CX Technology Intelligence"
+    !seo.known
   ) {
     fallbackCount++;
     if (fallbacks.length < 20) fallbacks.push(path);

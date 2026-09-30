@@ -224,5 +224,28 @@ section("8. Audit 30 Sep: the hub and category pages promise only what the profi
   ok("the IVA page counts the categories it shows", /\{groups\.length\} market categories/.test(R("IVACategory.jsx")));
 }
 
+section("9. Audit 30 Sep, batch 1: no withdrawn score wording on profiles, offers or guides");
+{
+  const R = (f) => readFileSync("./" + f, "utf8");
+  /* Phase 1 profile prose renders on public pages, so it may carry no score claim ("Strongest AI and observability scores
+     in tier"). The rule reads every profile-type field in the eight category data files. */
+  const FIELD = /\b(?:profile|summary|differentiator|bestUseCase|diff|useCase): "([^"]*)"/g;
+  const SCORE = /\bscor(?:e|es|ed)\b/i; // "scoring" alone names a QA capability
+  const DATA = ["ACDRoutingData.js", "AnalyticsData.js", "AgentAssistData.js", "IVAData.js", "WEMData.js", "DigitalEngagementData.js", "PaymentData.js", "VendorData.js"];
+  const hits = DATA.flatMap((f) => [...R(f).matchAll(FIELD)].filter((m) => SCORE.test(m[1])).map((m) => `${f}: ${m[1].slice(0, 60)}`));
+  ok("no Phase 1 profile prose claims a score", hits.length === 0);
+  if (hits.length) console.log("   ", hits.join("\n    "));
+  ok("the profile rule fires on the retired wording", [...'profile: "IVA-first platform. Strongest AI and observability scores in tier."'.matchAll(FIELD)].some((m) => SCORE.test(m[1])));
+  const VP = R("VendorProfile.jsx");
+  ok("profiles no longer ask readers to score the vendor, or promise attributed reviews", !/Score this vendor|Every review is attributed/.test(VP) && /reviews are not published/.test(VP));
+  ok("Advisory's deliverables carry no scored evaluation or competitive context", !/scored evaluation|competitive context/i.test(R("Advisory.jsx")));
+  ok("the hub's tiles are counts the site can show", !/Decision domains/.test(R("Vendors.jsx")) && /String\(Object\.keys\(CCAAS_RESEARCH\.complete\)\.length\), l: "Researched platforms"/.test(R("Vendors.jsx")));
+  const G = R("GatedReport.jsx");
+  ok("the CCaaS guide page says the edition chose its 12 vendors", !/top 12 vendors/.test(G) && /12 vendors, as that edition chose them/.test(G));
+  ok("the guide pages make one independence statement, linked", !/No vendor sponsorship|No pay-to-play/.test(G) && /No vendor paid for, previewed or approved this guide\. <a href="\/about#independence"/.test(G));
+  ok("site metadata makes no bare independence claims and types no profile count", ["index.html", "src/lib/seo.js", "src/lib/shareCard.js"].every((f) => !/Independent CX|Technology Intelligence|No vendor sponsorship|No pay-to-play|"282 vendor/.test(R(f))));
+  ok("the tagline says what the site is in plain nouns", ["Homepage.jsx", "src/lib/Shell.jsx"].every((f) => !/Independent intelligence/.test(R(f)) && /Free tools and research for contact center decisions/.test(R(f))));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

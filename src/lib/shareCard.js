@@ -61,7 +61,7 @@ export function firstSentence(desc) {
 
 /* The card's SVG for one page. `title` is the page title without the site suffix. */
 export function cardSvg({ kind, title, summary, path }) {
-  const k = kind || "Independent CX technology intelligence";
+  const k = kind || "Free tools and research for contact center decisions";
   const titleSize = kind ? 60 : 64;
   const tl = wrap(title, titleSize, 1040, 3);
   const sl = wrap(summary || "", 28, 1040, 2);

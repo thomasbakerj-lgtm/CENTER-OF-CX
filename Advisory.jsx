@@ -122,7 +122,7 @@ function Offerings() {
       title: "Platform selection",
       desc: "CCaaS evaluation, vendor shortlisting, and architecture-level comparison tailored to your operating model, vertical requirements, and integration landscape. We go deeper than feature matrices: we assess orchestration readiness, AI maturity, and long-term vendor trajectory.",
       who: "CX leaders, CIOs, and transformation leads evaluating CCaaS platforms",
-      output: "Vendor shortlist with scored evaluation, architecture fit analysis, and negotiation guidance",
+      output: "A shortlist with the reasons behind each vendor on it, architecture fit analysis, and negotiation guidance",
     },
     {
       title: "AI readiness assessment",
@@ -134,7 +134,7 @@ function Offerings() {
       title: "Vendor shortlisting",
       desc: `You tell us what you need. We draw on our ${VENDOR_PROFILE_COUNT} vendor profiles and the research behind them to produce a short list of vendors that fit your situation, with an honest account of where each one fits and where each one will create friction.`,
       who: "Procurement leads, CX directors, and operations executives running vendor evaluations",
-      output: "Curated vendor shortlist with strengths, weaknesses, competitive context, and red flags",
+      output: "A short list with where each vendor fits, where it will create friction, and the questions to put to it",
     },
     {
       title: "Operating model design",

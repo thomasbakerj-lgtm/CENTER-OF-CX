@@ -122,7 +122,7 @@ export default function Homepage() {
       <section style={{ ...WRAP, padding: "56px 20px 40px" }}>
         <div className="cx-home-hero">
           <div>
-            <span style={{ ...LABEL, color: pillar.onDark, display: "block", marginBottom: 16 }}>Independent intelligence for contact center and CX technology</span>
+            <span style={{ ...LABEL, color: pillar.onDark, display: "block", marginBottom: 16 }}>Free tools and research for contact center decisions</span>
             <h1 style={{ margin: 0, fontSize: `clamp(44px, 6.4vw, ${TYPE_SCALE.display.size}px)`, fontWeight: TYPE_SCALE.display.weight, letterSpacing: TYPE_SCALE.display.tracking, lineHeight: TYPE_SCALE.display.line }}>Diagnose before you buy.</h1>
             <p style={{ margin: "20px 0 0", fontSize: 19, lineHeight: 1.55, color: HOUSE.body, maxWidth: 620 }}>Run the numbers on your own operation, read vendor profiles, and check what your industry demands. Every figure says where it came from and how sure it is.</p>
             <p style={{ margin: "18px 0 0", fontSize: 14, color: HOUSE.muted }}>No sign in. No email. Every report free. Vendors cannot pay to appear.</p>
