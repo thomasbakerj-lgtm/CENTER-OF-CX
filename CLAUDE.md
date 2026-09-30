@@ -1878,6 +1878,15 @@ dashboard, the 12-phase growth program.
    either input is at its default. Published keys add `hoursOpenWeek`, `averageIntervalShare`, `annualFte`. At 40 and 100
    every figure equals 1.1 (3,000 random cases; report harness unchanged at the opening case); open all week at 60%:
    331.8 FTE, $28,918,940 (method pin). The staffing side of the two tools panel scales by the same factor.
+113. S24 (30 Sep), queued enhancement (TB: "enhance this when the time is right"; not built). The homepage stack
+   (`Stack` in `src/lib/ui.jsx`, used by `Homepage.jsx`) lifts a layer only on click, and its panel shows one tool and
+   one vendor category per layer. TB wants: (a) hover (and keyboard focus) parts the stack, no click needed; (b) the
+   hovered layer grows a little larger than the stack for emphasis; (c) the layer's panel offers every applicable tool,
+   method, industry resource and vendor category (and, once research allows, researched vendors) for one-click
+   follow-through. Constraints when built: touch has no hover, so tap stays the phone path; `layer_select` fires once
+   per deliberate choice, never per hover; reduced motion respected; the layer to tool and category map still comes
+   from Platform Decision's published model (extend the model, never a hand list on the page); lists carry no order by
+   merit and every vendor gets an introduction; `home.test.mjs` and axe stay green.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
