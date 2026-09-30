@@ -46,6 +46,11 @@ ok("tables that scroll through CSS are focusable", cssScroll.length === 0, cssSc
 ok("no text colour carries an alpha suffix", hits.alpha.length === 0, hits.alpha.join(", "));
 ok("every form label names or wraps its field", hits.label.length === 0, hits.label.slice(0, 4).join(" | "));
 ok("no text is faded below 0.6", hits.faded.length === 0, hits.faded.join(", "));
+/* 30 Sep 2026: a button with no background of its own took the browser's light grey under pale text (RFP focus areas). */
+{
+  const html = readFileSync("./index.html", "utf8");
+  ok("every button starts transparent and inherits its text colour", /button \{ background-color: transparent; color: inherit; -webkit-appearance: none; appearance: none; \}/.test(html));
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail) process.exit(1);
