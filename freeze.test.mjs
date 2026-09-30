@@ -199,5 +199,30 @@ section("7. S23: the seven other categories, their profiles and the industry pag
   ok("the offer rule fires on the retired wording", OFFER.test("See Our CCaaS Vendor Scores") && OFFER.test("See CCaaS Vendor Scores") && !OFFER.test("Browse CCaaS Platforms by Job"));
 }
 
+section("8. Audit 30 Sep: the hub and category pages promise only what the profiles hold");
+{
+  const R = (f) => readFileSync("./" + f, "utf8");
+  const V = R("Vendors.jsx");
+  const RETIRED = /Proprietary rubrics|honest assessment|Competitive context|Every vendor gets|Architecture-level evaluation|We go deeper|scored shortlist/i;
+  for (const f of ["Vendors.jsx", "AgentAssistCategory.jsx", "PlatformsTech.jsx"])
+    ok(`${f} carries none of the retired promises`, !RETIRED.test(R(f)));
+  /* Advisory describes a paid service, so its own words stay; it no longer offers scored shortlists. Phase 1 profiles
+     label their weaknesses as the Phase 1 assessment. */
+  ok("Advisory offers no scored shortlist", !/scored (vendor )?shortlist/i.test(R("Advisory.jsx")));
+  ok("Phase 1 profiles label their assessment as Phase 1", !/label="Honest assessment"/.test(R("VendorProfile.jsx")) && (R("VendorProfile.jsx").match(/label="Phase 1 assessment"/g) || []).length === 2);
+  ok("the rule fires on the retired wording", RETIRED.test("Proprietary rubrics built for operational reality.") && RETIRED.test("We can help you build a scored shortlist."));
+  ok("the hub's category count is derived", /String\(CATEGORY_COUNT\)/.test(V) && !/\{ n: "8", l: "Vendor categories" \}/.test(V) && !/Nine categories/.test(V));
+  ok("the hub says where the adjacent profiles sit, so the category counts add up", /VENDOR_PROFILE_COUNT - ADJACENT_PROFILE_COUNT/.test(V));
+  const { isVendorSlug } = await import("./src/lib/seo.js");
+  const named = [...V.matchAll(/\{ name: "([^"]+)"(?:, slug: "([^"]+)")? \}/g)];
+  ok("every vendor the hub names links a real profile", named.length >= 40 && named.every((m) => m[2] && isVendorSlug(m[2])));
+  ok("the hub links through the sitemap's profile list", /isVendorSlug\(s\)/.test(V) && !/getAllSlugs/.test(V));
+  const P = R("PlatformsTech.jsx");
+  ok("Platforms and Tech lists what each card shows, with vendors A to Z", !/Which vendors lead|When you need it \(and when you don't\)|Who owns this decision/.test(P)
+    && [...P.matchAll(/vendors: "([^"]+)"/g)].every((m) => { const n = m[1].split(", "); return n.join() === [...n].sort((x, y) => x.toLowerCase().localeCompare(y.toLowerCase())).join(); })
+    && /Questions to settle before you buy/.test(P) && !/"Nuance"|, Nuance\b/.test(P));
+  ok("the IVA page counts the categories it shows", /\{groups\.length\} market categories/.test(R("IVACategory.jsx")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

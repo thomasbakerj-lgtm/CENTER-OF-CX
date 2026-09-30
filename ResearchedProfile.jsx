@@ -191,7 +191,7 @@ function FitView({ p }) {
         {p.products.map((x) => (
           <li key={x.id} style={{ listStyle: "none", ...K.box }}>
             <div style={{ ...K.strong, fontSize: 15 }}>{x.name}</div>
-            <p style={K.small}>{[x.type, x.role].filter(Boolean).join(". ")}</p>
+            <p style={K.small}>{[words(x.type), x.role].filter(Boolean).join(". ")}</p>
             <p style={{ ...K.small, marginTop: 4 }}>Release state: {words(x.state) || "Not stated"}</p>
           </li>
         ))}

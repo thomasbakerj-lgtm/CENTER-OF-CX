@@ -1811,6 +1811,23 @@ dashboard, the 12-phase growth program.
    today for a copied link. Privacy Policy says where the copy lives (browser history, and the address if copied), updated
    30 September 2026. `track.test.mjs` S (26). Browser: all 25 tools refresh with their inputs, Back from a method page,
    a shared link then refresh, the QA evaluator link, no page error. Suite 27,475; local live check 257 of 257.
+108. S24 (30 Sep), audit batch 2 item 2 (TB: "go"), stale promises (audit top ten 9). The /vendors hub promised
+   "Proprietary rubrics", "Every vendor gets an honest assessment", "Competitive context" and a shortlist "with honest
+   assessments"; it now says how the profiles are built (the researched CCaaS count from `researchStatus.js`, Phase 1
+   profiles labelled, no scores or ranks, corrections) and the six questions a researched profile answers. Counts: the
+   category stat reads `CATEGORY_COUNT` (was a typed 8), "Nine categories" became "8 vendor categories and one emerging
+   area", and the hero says the category counts add up to 278 because the other 4 profiles are adjacent suites on the
+   CCaaS page. Its "Key vendors" lists named vendors with no profile (Nuance, Coveo, Shelf, Forter and 29 more); now
+   "Profiles include (A to Z)", every name a real profile in that category (`isVendorSlug`). Agent Assist and Advisory no
+   longer offer scored shortlists; Phase 1 profiles label their weaknesses "Phase 1 assessment". Platforms and Tech: the
+   "Each category answers" promise (who owns it, which vendors lead) now lists what the cards show; the topic chips are
+   "Questions to settle before you buy", written as questions; vendor names A to Z, Nuance as Microsoft (Nuance). IVA page
+   counts the categories it shows (4, was a claimed 7). Guides: every guide opens with no form (the email form is optional,
+   for updates); the IVA PDF has a first page, added 30 September 2026, saying it is the Phase 1 edition, scores withdrawn,
+   figures and quotations not re-checked (26 pages; metadata subject says the same; stamped with pdf-lib from the
+   scratchpad, the original pages unchanged). Researched profiles print product types and release states as words with
+   acronyms kept ("GA", "EAP", "Core platform"; was "Ga", "CORE_PLATFORM"). Gates: `freeze.test.mjs` 8, `framework.test.mjs`,
+   `profile.test.mjs`, seo J16. Suite 27,493. Browser: nine pages at 1440 and 390, no overflow or error.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

@@ -40,6 +40,14 @@ section("1. Every gated download exists");
   ok("IVA guide page names the Phase 1 edition, its date and the PDF's own vendor count (43)", /phase1: true/.test(iva) && /published: "April 2026"/.test(iva) && /43 IVA and conversational AI vendors/.test(iva) && /scores and tiers are withdrawn/.test(iva));
   ok("IVA guide page no longer sells scores, outside validation, superlatives or shortlists", !/50 vendors|validated by Gartner|the best CX|vendor shortlists|scored across/.test(iva));
   ok("IVA guide search description matches the edition", /Phase 1 edition, April 2026: 43 IVA/.test(readFileSync("./src/lib/seo.js", "utf8")));
+  /* Audit 30 Sep: the PDF itself now says it is the Phase 1 edition, on a first page added before the original. */
+  const ivaPdf = readFileSync("./public/IVA-Conversational-AI-Buyer-Guide-2026.pdf").toString("latin1");
+  const subj = (ivaPdf.match(/\/Subject <FEFF([0-9A-F]+)>/) || [])[1] || "";
+  const subject = Buffer.from(subj, "hex").swap16().toString("utf16le");
+  ok("the IVA PDF carries its Phase 1 notice as its first page (26 pages) and in its metadata",
+    /\/Count 26\b/.test(ivaPdf) && /^Phase 1 edition, April 2026\. Scores, tiers and rankings withdrawn/.test(subject), subject);
+  ok("the IVA page states the added page and the new count", /pages: "26 pages"/.test(iva) && /A first page, added 30 September 2026/.test(iva));
+  ok("every guide opens with no form; the email form is optional", /const open = !!report;/.test(src) && !/report && report\.summary;/.test(src));
   ok("the page no longer promises a 12 month outlook or maturity bands", !/12-month outlook|next 12 months|maturity scoring|Foundation to Leading/.test(src));
 }
 

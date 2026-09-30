@@ -1,5 +1,5 @@
 // IVA + Conversational AI Intelligence: Phase 1 + Phase 2 Combined
-// 7 market categories | 50 vendors | 16 use case fit matrix | 100-point scoring model
+// Market categories, vendors, use case fit matrix and the Phase 1 scoring model (scores withdrawn on the site)
 // Sources: Phase 1 Market Framework + Phase 2 Sprint 1-7 Research
 
 // ═══════════════════════════════════════════════════════

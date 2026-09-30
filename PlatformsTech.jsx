@@ -78,8 +78,8 @@ function Hero() {
           </FadeIn>
           <FadeIn delay={0.15}>
             <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 14, padding: "28px 24px" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, fontFamily: FONT }}>Each category answers</div>
-              {["Who owns this decision", "When you need it (and when you don't)", "What breaks if you choose wrong", "Which vendors lead: and where they fall short", "How it maps to the orchestration stack"].map((q, i) => (
+              <div style={{ fontSize: 12, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 16, fontFamily: FONT }}>Each category below shows</div>
+              {["What the category does", "Which layers of the stack it serves", "The questions to settle before you buy", "Vendors in it, A to Z, with no order of merit", "A link to its vendor profiles"].map((q, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: i < 4 ? `1px solid ${alpha(HOUSE.mist, LINE.hair)}` : "none" }}>
                   <div style={{ width: 18, height: 18, borderRadius: 4, background: alpha(HOUSE.sky2, LINE.soft), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                     <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700 }}>✓</span>
@@ -250,56 +250,56 @@ function Categories() {
     {
       t: "Core CX Platforms", s: "CCaaS", layers: "5, 6, 7", href: "/vendors/ccaas",
       d: "The foundational platform for voice, digital channels, routing, and workforce management. Most enterprises already have one: the real question is whether to optimize, extend, or replace.",
-      questions: ["Who should not switch platforms", "When add-ons beat rip-and-replace", "Platform-native AI vs best-of-breed"],
-      vendors: "Genesys, NICE, Five9, AWS Connect, Cisco, Talkdesk, 8x8, Zoom",
+      questions: ["Should we switch platforms at all?", "When do add-ons beat a replacement?", "Platform-native AI or a specialist?"],
+      vendors: "8x8, Amazon Connect, Cisco, Five9, Genesys, NICE, Talkdesk, Zoom",
     },
     {
       t: "Customer Automation & Self-Service AI", s: "IVA · Bots · Autonomous Resolution", layers: "4, 5", href: "/vendors/iva",
       d: "The fastest-moving category in the stack. From legacy intent-based IVAs to LLM-native virtual assistants and fully autonomous AI workers handling multi-step tasks.",
-      questions: ["Platform-native vs best-of-breed AI", "Where AI fails in production", "Containment rate realities"],
-      vendors: "Cognigy, Kore.ai, Ada, Google CCAI, Nuance, PolyAI",
+      questions: ["Platform-native AI or a specialist?", "Where could it fail in production?", "What containment is realistic for us?"],
+      vendors: "Ada, Cognigy, Google CCAI, Kore.ai, Microsoft (Nuance), PolyAI",
     },
     {
       t: "Agent Assist & Knowledge", s: "Real-time Intelligence · RAG · Knowledge AI", layers: "4", href: "/vendors/agent-assist",
       d: "Real-time guidance, knowledge retrieval, summarization, and next-best-action delivered to agents during live interactions. The adoption gap here is enormous.",
-      questions: ["Real-time vs post-contact value", "RAG realities and grounding quality", "Adoption traps most teams hit"],
-      vendors: "Uniphore, Observe.AI, Cresta, Coveo, Shelf, Guru",
+      questions: ["Real-time help or after-contact work?", "How is each answer grounded in our knowledge?", "What will make agents use it?"],
+      vendors: "Coveo, Cresta, Guru, Observe.AI, Shelf, Uniphore",
     },
     {
       t: "Workforce & Quality Management", s: "WEM · QM · WFM · Coaching", layers: "7", href: "/vendors/wem-qm",
       d: "Forecasting, scheduling, quality monitoring, coaching, and performance management. AI is moving QA from reviewing a small sample of contacts toward evaluating every one.",
-      questions: ["AI QA vs human QA: what actually works", "Forecasting truth in volatile environments", "Cost control levers most teams miss"],
-      vendors: "NICE, Verint, Calabrio, Genesys WEM, Five9",
+      questions: ["Which contacts need AI QA and which need people?", "How good is our forecast when volume swings?", "Which schedule levers control cost?"],
+      vendors: "Calabrio, Five9, Genesys WEM, NICE, Verint",
     },
     {
       t: "Experience Analytics & VoC", s: "Speech · Text · Journey Analytics", layers: "7", href: "/vendors/analytics",
       d: "Understanding what's actually happening in customer interactions, sentiment, topics, root cause, journey patterns, versus what your dashboards claim is happening.",
-      questions: ["Root cause vs vanity metrics", "Journey visibility across fragmented systems", "When speech analytics ROI is real vs theoretical"],
-      vendors: "CallMiner, Observe.AI, Qualtrics, Genesys, Verint",
+      questions: ["Which metrics point to a root cause?", "Can we see a journey across our systems?", "What would speech analytics have to change to pay back?"],
+      vendors: "CallMiner, Genesys, Observe.AI, Qualtrics, Verint",
     },
     {
       t: "CX Orchestration & Workflow", s: "Routing · Integration · Process Automation", layers: "2, 6", href: "/vendors/acd-routing",
       d: "The glue layer. How interactions get routed, how systems share data, how workflows execute across CRM, CCaaS, and back-office systems. Routing as a standalone category is dead.",
-      questions: ["Orchestration patterns that actually work", "CCaaS + CRM + ITSM convergence", "iPaaS vs RPA vs workflow engines"],
-      vendors: "MuleSoft, Workato, Camunda, Pega, UiPath",
+      questions: ["Where should routing decisions live?", "How do CCaaS, CRM and ITSM share data?", "Integration platform, RPA or a workflow engine?"],
+      vendors: "Camunda, MuleSoft, Pega, UiPath, Workato",
     },
     {
       t: "Enterprise & Employee Service", s: "ITSM · EX-CX Overlap", layers: "1, 2", href: "/vendors",
       d: "When internal service management belongs in the CX stack and when it doesn't. The overlap between employee experience and customer experience creates real architectural questions.",
-      questions: ["When ITSM belongs in CX", "What you should never unify", "The EX-CX connection that matters"],
-      vendors: "ServiceNow, BMC, Jira Service Management, Freshservice",
+      questions: ["When does ITSM belong in CX?", "What should stay separate?", "Where do employee and customer service meet?"],
+      vendors: "BMC, Freshservice, Jira Service Management, ServiceNow",
     },
     {
       t: "Payments, Identity & Trust", s: "PCI · Authentication · Fraud", layers: "3", href: "/vendors/payments",
       d: "The compliance and security layer that most CX strategies ignore until something breaks. PCI, authentication friction, fraud prevention, and identity verification within the service workflow.",
-      questions: ["PCI segmentation in modern stacks", "Authentication vs customer effort tradeoffs", "Fraud prevention without CX destruction"],
-      vendors: "Stripe, Adyen, Forter, Sift, BioCatch, PCI Proxy",
+      questions: ["How is card data kept out of scope?", "How much authentication effort is right?", "How do we stop fraud without blocking customers?"],
+      vendors: "Adyen, BioCatch, Forter, PCI Proxy, Sift, Stripe",
     },
     {
       t: "Digital Engagement", s: "Chat · Messaging · Social · CPaaS", layers: "5", href: "/vendors/digital-engagement",
       d: "Multi-channel digital engagement platforms, conversational messaging, social media management, and CPaaS. The layer that connects your brand to customers on the channels they actually use.",
-      questions: ["Messaging vs chat: what's the real difference", "Social CX management at scale", "CPaaS vs platform-native digital channels"],
-      vendors: "Ada, Intercom, Sprinklr, Zendesk, Khoros, Gladly",
+      questions: ["Messaging or live chat?", "How will we handle service on social channels?", "CPaaS or the platform's own digital channels?"],
+      vendors: "Ada, Gladly, Intercom, Khoros, Sprinklr, Zendesk",
     },
   ];
 
@@ -335,6 +335,7 @@ function Categories() {
                     </div>
                     <h3 style={{ fontFamily: FONT, fontSize: 24, fontWeight: 400, color: NAVY, margin: "0 0 8px", lineHeight: 1.25 }}>{c.t}</h3>
                     <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.65, margin: "0 0 16px", fontFamily: FONT }}>{c.d}</p>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, fontFamily: FONT }}>Questions to settle before you buy</div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {c.questions.map((q, qi) => (
                         <span key={qi} style={{
@@ -346,7 +347,7 @@ function Categories() {
                   </div>
 
                   <div style={{ borderLeft: `1px solid ${BORDER}`, paddingLeft: 24 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, fontFamily: FONT }}>Key vendors</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, fontFamily: FONT }}>Vendors named here (A to Z)</div>
                     <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, marginBottom: 16, fontFamily: FONT }}>{c.vendors}</p>
                     <a href={c.href || "/vendors"} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT }}>Explore category →</a>
                   </div>
