@@ -1776,6 +1776,27 @@ dashboard, the 12-phase growth program.
    IT report leads with layers 1 to 4; the executive report is questions, context and next step, then the appendix.
    Next: briefs for the other fifteen tools; TB's business-size journey is on hold (another chat may build it).
 
+106. S24 (30 Sep), enterprise executive audit and fix batch 1 (TB: "Go. Let's come back to the others after"). Audit of production
+   as an enterprise CX executive: three journeys (cost and AI problem, IVA and Agent Assist research, CCaaS replacement) and a
+   break test of 14 more tools; report, top ten and the size matrix in `docs/AUDIT_ENTERPRISE_EXEC_2026-09-30.md`. Math held
+   everywhere it was recomputed. Fixed:
+   - Business Case crashed ("This page did not load") for any reader arriving from Cost per Contact or Staffing: `railEvidence`
+     was called for a pulled baseline and never imported. `rail.test` V11 and V12: every function a shared module exports that a
+     page calls is imported or declared (fires on the old file). The live checker opens every tool after every other in one tab.
+   - The contact form (introductions included) and the vendor review form swallowed a failed send. Both say "That did not go
+     through" and keep the answers; an empty contact submit says which fields. ReportActions' failure lines carry role alert.
+     `privacy.test`: every page that posts a form carries a failure message (the gated report is exempt: it opens the file anyway).
+   - All 50 IVA profiles printed empty Differentiator, Use Case and Segment tiles and two empty chips (the page read `diff`,
+     `useCase`, `segment`, `type`; the data holds `differentiator`, `bestUseCase`, `verticals`, `category`). Segment became
+     "Industries named"; the duplicate research status tile is gone. `prerender.test`: no vendor page renders an empty value.
+   - AI Deflection method 1.2: Proceed also needs payback inside the 12 months modelled and a Conservative scenario that breaks
+     even; else "Run a bounded pilot" naming the failed test, routed to Contract Risk. The Conservative multiples are registered
+     (`aid.downside.*`, 0.8, 0.85, 1.5, unchanged). The audit case ($13,067 a month net, $2.5M implementation, about 192 months to
+     pay back, Conservative loses $263,219 a month) printed Proceed. A/B on 6,000 cases: every figure identical, only failing
+     Proceeds move. Suite 27,144; local live check under the production policy 257 of 257.
+   Open from the audit, for TB: Vendor Match size data and inert inputs, missing Microsoft, Google and Salesforce contact
+   center research, refresh loses inputs, company size and region context, cross-tool reconciliation, stale hub and PDF copy.
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the

@@ -7,6 +7,15 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-30", methods: ["ai-deflection"], version: "1.2",
+    title: "AI Deflection: a Proceed needs payback in the year and a Conservative case that breaks even",
+    changes: [
+      "Positive monthly economics alone used to earn Proceed. A case netting $13,067 a month against $2.5M of implementation, about 192 months to pay back, read Proceed, with a contracted floor.",
+      "A Proceed now also needs the program to pay back its implementation inside the 12 months the tool models, and the Conservative scenario shown on the page (eligibility x0.8, resolution x0.85, repeats x1.5, now registered) to break even. A case that fails either reads Run a bounded pilot and says which test it failed.",
+      "Figures and grades are unchanged. Against the previous engine on 6,000 random cases, every figure is identical and the only decisions that move are Proceeds that fail a new test.",
+    ],
+  },
+  {
     date: "2026-09-30", methods: ["rfp-builder"], version: "1.1",
     title: "RFP Builder: your own wording, removals and requirements",
     changes: [

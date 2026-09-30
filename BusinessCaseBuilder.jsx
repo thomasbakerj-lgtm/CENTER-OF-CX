@@ -11,7 +11,7 @@ const NO_RAIL = Object.freeze({ value: null, sourceTool: null, railOrigin: null,
 import { MECH, MECH_ORDER, MECH_FALLBACK } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { normalizeForPublish } from "./src/lib/metrics";
-import { emitGrades, voidResult, weakerStream, realizationFromCred, GRADE_RANK } from "./src/lib/confidence";
+import { emitGrades, voidResult, railEvidence, weakerStream, realizationFromCred, GRADE_RANK } from "./src/lib/confidence";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";

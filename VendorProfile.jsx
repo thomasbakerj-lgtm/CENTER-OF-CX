@@ -5,7 +5,7 @@ import { getVendor, getAllSlugs } from "./VendorData";
 import { ccaasResearchLabel, phase1Label, CCAAS_RESEARCH } from "./src/lib/researchStatus";
 import { researchedProfile } from "./src/lib/research/loadProfile.js";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
-import { getIVAVendor } from "./IVAData";
+import { getIVAVendor, IVA_CATEGORIES } from "./IVAData";
 import { getAgentAssistVendor } from "./AgentAssistData";
 import { getWEMVendor } from "./WEMData";
 import { getAnalyticsVendor } from "./AnalyticsData";
@@ -110,6 +110,7 @@ export default function VendorProfile() {
   const [showReview, setShowReview] = useState(false);
   const [reviewSent, setReviewSent] = useState(false);
   const [reviewSending, setReviewSending] = useState(false);
+  const [reviewFailed, setReviewFailed] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
@@ -133,9 +134,8 @@ export default function VendorProfile() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 600 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{iv.type}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{(IVA_CATEGORIES.find((c) => c.id === iv.category) || {}).name || "IVA"}</span>
                   <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{iv.modality}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{iv.segment}</span>
                 </div>
                 <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{iv.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={iv.name} from="vendor" surface="vendor" /></div>
@@ -157,13 +157,12 @@ export default function VendorProfile() {
               <Section label="Vendor Profile" title="Key attributes.">
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }} className="profile-grid">
                   {[
-                    { label: "Differentiator", value: iv.diff },
-                    { label: "Primary Use Case", value: iv.useCase },
+                    { label: "Differentiator", value: iv.differentiator },
+                    { label: "Primary Use Case", value: iv.bestUseCase },
                     { label: "AI Origin", value: iv.origin },
                     { label: "Modality", value: iv.modality },
-                    { label: "Market Segment", value: iv.segment },
-                    { label: "Research status", value: "Phase 1 context" },
-                  ].map((attr, i) => (
+                    { label: "Industries named", value: iv.verticals },
+                  ].filter((attr) => attr.value).map((attr, i) => (
                     <div key={i} style={{ background: WARM, borderRadius: 8, padding: "16px 18px" }}>
                       <div style={{ fontSize: 10, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 4 }}>{attr.label}</div>
                       <div style={{ fontSize: 14, fontWeight: 500, color: NAVY }}>{attr.value}</div>
@@ -1102,15 +1101,16 @@ export default function VendorProfile() {
                           else formData.append(el.name, el.value);
                         }
                       });
-                      setReviewSending(true);
+                      setReviewSending(true); setReviewFailed(false);
                       fetch("https://formspree.io/f/xjgplvkz", {
                         method: "POST", body: formData, headers: { Accept: "application/json" },
-                      }).then(res => { if (res.ok) setReviewSent(true); setReviewSending(false); })
-                      .catch(() => setReviewSending(false));
+                      }).then(res => { if (res.ok) setReviewSent(true); else setReviewFailed(true); setReviewSending(false); })
+                      .catch(() => { setReviewFailed(true); setReviewSending(false); });
                     }}
                     style={{ width: "100%", background: HOUSE.action, color: HOUSE.paper, opacity: reviewSending ? 0.6 : 1, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: reviewSending ? "wait" : "pointer", fontFamily: FONT, boxShadow: "none" }}>
                     {reviewSending ? "Submitting..." : "Submit Review"}
                   </button>
+                  {reviewFailed && <p role="alert" style={{ fontSize: 13, color: NAVY, textAlign: "center", margin: 0, fontFamily: FONT }}>That did not go through. Your answers are still here: please try again in a moment.</p>}
 
                   <p style={{ fontSize: 11, color: MUTED, textAlign: "center", margin: 0, fontFamily: FONT }}>Your email stays private. Reviews may be edited for clarity.</p>
                   <Assent align="center" />

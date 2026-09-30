@@ -39,7 +39,10 @@ try {
   const { render, citationsOf } = await import(pathToFileURL(join(out, "entry-server.js")).href);
   const paths = [...readFileSync("public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
   ok("sitemap parsed", paths.length > 400, String(paths.length));
-  const bad = { render: [], h1: [], text: [], script: [], nested: [], style: [], shell: [] };
+  const bad = { render: [], h1: [], text: [], script: [], nested: [], style: [], shell: [], empty: [] };
+  /* Audit, 30 Sep 2026: every IVA profile printed three attribute tiles and two hero chips with no value (the page read
+     field names the data does not carry). A vendor page never renders an empty attribute value or chip. */
+  const EMPTY_FIELD = /style="[^"]*(font-size:14px;font-weight:500|border-radius:4px)[^"]*"><\/(div|span)>/;
   const ld = { app: [], tech: [], article: [], cite: [], faq: [], headline: [], home: [], main: [] };
   let articles = 0, cited = 0;
   for (const p of paths) {
@@ -72,7 +75,10 @@ try {
     if (nestedLinks(html) > 0) bad.nested.push(p);
     if ((html.match(/<nav aria-label="Primary"/g) || []).length !== 1 || (html.match(/<footer/g) || []).length !== 1 || (html.match(/<header/g) || []).length < 1) bad.shell.push(p);
     try { rawStyles(html); } catch { bad.style.push(p); }
+    if (p.startsWith("/vendors/") && EMPTY_FIELD.test(html)) bad.empty.push(p);
   }
+  ok("no vendor page renders an empty attribute value or chip", bad.empty.length === 0, `${bad.empty.length}: ${bad.empty.slice(0, 5).join(" ")}`);
+  ok("the empty-field rule fires on a planted tile", EMPTY_FIELD.test('<div style="font-size:14px;font-weight:500;color:#EAF0F7"></div>'));
   ok(`all ${paths.length} URLs render`, bad.render.length === 0, bad.render.slice(0, 3).join(" | "));
   ok("every page carries a non-empty h1", bad.h1.length === 0, bad.h1.slice(0, 5).join(" "));
   ok("every page carries its main text (250+ visible characters; the shortest are assessment intro screens)", bad.text.length === 0, bad.text.slice(0, 5).join(" "));

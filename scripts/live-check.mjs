@@ -142,6 +142,23 @@ for (const t of TOOLS) {
     await v.ctx.close();
   }
 }
+/* One reader, one tab (audit, 30 Sep 2026): every tool opened after every other, so each page meets whatever the others
+   published on the rail. Business Case crashed for a reader who came from Cost per Contact; opening each tool in a fresh
+   tab never saw it. Two passes put every publisher before every reader. */
+{
+  const v = await open(TOOLS[0].route);
+  const crashed = [];
+  for (const pass of [1, 2]) for (const t of TOOLS) {
+    const errs = []; const onErr = (e) => errs.push(e.message.slice(0, 100)); v.page.on("pageerror", onErr);
+    await v.page.goto(ORIGIN + t.route, { waitUntil: "networkidle", timeout: 45000 }).catch(() => errs.push("no page"));
+    await v.page.waitForTimeout(400);
+    const txt = await v.page.innerText("body").catch(() => "");
+    if (errs.length || /This page did not load/.test(txt) || txt.length < 150) crashed.push(`${t.route} (pass ${pass}) ${errs[0] || "did not load"}`);
+    v.page.off("pageerror", onErr);
+  }
+  report(crashed.length === 0, "every tool renders after the others in one tab", crashed.slice(0, 3).join(" | "));
+  await v.ctx.close();
+}
 for (const m of METHODOLOGY) {
   const v = await open(m);
   report(v.errors.length === 0 && /bands/i.test(v.text) && /cannot tell you/i.test(v.text) && !BAD.test(v.text), `${m} renders its rubric`, v.errors[0] || badAt(v.text));

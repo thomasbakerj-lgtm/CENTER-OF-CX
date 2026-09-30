@@ -1,4 +1,4 @@
-/* AI Deflection Reality Check, version 1.1 (F2: opens with no capacity action). A calculator method (kind "calc").
+/* AI Deflection Reality Check, version 1.2 (a Proceed needs payback in the year and a Conservative case that breaks even). A calculator method (kind "calc").
  *
  * Published at /methodology/ai-deflection from this object. The engine lives inside
  * AIDeflectionRealityCheck.jsx, so this page carries its worked example as pins, and
@@ -28,8 +28,8 @@ export const AID_MODEL = {
   id: "ai-deflection",
   kind: "calc",
   title: "AI Deflection Reality Check",
-  version: "1.1",
-  published: "2026-09-28",
+  version: "1.2",
+  published: "2026-09-30",
   route: "/tools/ai-deflection",
   methodology: "/methodology/ai-deflection",
   what: "How the AI Deflection Reality Check turns a vendor's resolution rate into the share of your total demand that durably goes away, what that is worth after operating cost and the escalation premium, and the resolution rate at which the program breaks even.",
@@ -48,8 +48,8 @@ export const AID_MODEL = {
     { label: "Buy nothing, as scoped", range: "Net savings and the upside case both at or below zero", meaning: "The upside case lifts resolution " + b("aid.upside.resolutionLift") + " times (capped at 100%) and halves repeats (" + b("aid.upside.repeatCut") + ")." },
     { label: "Fix the economics or renegotiate", range: "Net at or below zero, upside positive", meaning: "A better floor or a lower price could turn it." },
     { label: "Fix the foundation first", range: "Net positive, eligible share under " + pc(b("aid.read.foundationFloor"), 0), meaning: "Knowledge coverage and intent scope are the constraint." },
-    { label: "Run a bounded pilot", range: "Net positive on an estimate or marketing figure, or on capacity no action converts to cash", meaning: "A pilot earns the evidence." },
-    { label: "Proceed, with a contracted floor", range: "Net positive, a proposal, floor or observed data, and a finance-creditable action", meaning: "Put the resolution rate in the contract with a remedy." },
+    { label: "Run a bounded pilot", range: "Net positive on an estimate or marketing figure, or on capacity no action converts to cash; or net positive but no payback inside the 12 months modelled, or a Conservative scenario that loses money", meaning: "A pilot earns the evidence, and a thin margin should cost the vendor, through the contract." },
+    { label: "Proceed, with a contracted floor", range: "Net positive, payback inside the 12 months modelled, a Conservative scenario (eligibility x" + b("aid.downside.eligibleCut") + ", resolution x" + b("aid.downside.resolutionCut") + ", repeats x" + b("aid.downside.repeatLift") + ") that still breaks even, a proposal, floor or observed data, and a finance-creditable action", meaning: "Put the resolution rate in the contract with a remedy." },
     { label: "Sensitivity band on net savings", range: "Estimate or marketing ±" + pc(b("aid.band.estimate"), 0) + ", proposal ±" + pc(b("aid.band.proposal"), 0) + ", contracted floor or pilot ±" + pc(b("aid.band.sla"), 0), meaning: "Display only." },
   ],
   bandsNote: "The verdict is a property of the answer and never caps a confidence axis. A bot at or under $" + b("aid.guard.botNearFree").toFixed(2) + " of operating cost per attempted conversation holds completeness Directional.",

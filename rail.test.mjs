@@ -349,6 +349,22 @@ eq("K3  while another tool may use it", getExternalPrimitive("annualContacts", "
   eq("V9  a pulling tool sees the producer and its grade", JSON.stringify((({ sourceTool, railOrigin }) => ({ sourceTool, railOrigin }))(gws("fcr", "fcr-leakage"))), JSON.stringify({ sourceTool: "cost-per-contact", railOrigin: "Planning-grade" }));
   const GRADERS = { "StaffingCalculator.jsx": "gradeObj", "CostPerContactCalculator.jsx": "gradeObj", "ChannelShiftModel.jsx": "gradeObj", "FCRLeakageDiagnostic.jsx": "G.gradeObj", "AIDeflectionRealityCheck.jsx": "G.gradeObj" };
   eq("V10 the five tools publish their origin grades", Object.entries(GRADERS).filter(([f, g]) => !readFileSync(f, "utf8").includes(`published, originsFor(${g}, published))`)).map(([f]) => f).join(), "");
+  /* Audit 30 Sep 2026: Business Case called railEvidence without importing it, so the page crashed for any reader who
+     arrived with a pulled baseline; no harness ran that path. Every page that calls a function a shared module exports
+     must import it or declare it. */
+  const stripAll = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:"'`\\])\/\/[^\n]*/g, "$1");
+  const sharedFns = new Set();
+  for (const f of readdirSync("src/lib").filter((f) => f.endsWith(".js"))) {
+    for (const m of readFileSync(`src/lib/${f}`, "utf8").matchAll(/export\s+(?:async\s+)?(?:function\*?|const|let)\s+([A-Za-z_$][\w$]*)/g)) sharedFns.add(m[1]);
+  }
+  const unimported = (code) => {
+    const imported = new Set([...code.matchAll(/import\s*\{([^}]*)\}/g)].flatMap((m) => m[1].split(",").map((s) => s.trim().split(/\s+as\s+/).pop())).filter(Boolean));
+    return [...sharedFns].filter((n) => new RegExp(`(^|[^\\w$.])${n.replace(/\$/g, "\\$")}\\(`).test(code) && !imported.has(n)
+      && !new RegExp(`(function\\s+${n}\\b|(const|let|var)\\s+${n}\\b|[{,]\\s*${n}\\s*[,}=:]|\\(\\s*${n}\\s*[,)]|,\\s*${n}\\s*\\))`).test(code));
+  };
+  const pages = [...readdirSync(".").filter((f) => f.endsWith(".jsx")), ...readdirSync("src/lib").filter((f) => f.endsWith(".jsx")).map((f) => `src/lib/${f}`)];
+  eq("V11 every shared function a page calls is imported", pages.flatMap((f) => unimported(stripAll(readFileSync(f, "utf8"))).map((n) => `${f}:${n}`)).join(), "");
+  eq("V12 the rule fires on a planted call", unimported('import { weakerStream } from "./src/lib/confidence";\nconst g = railEvidence(x);').join(), "railEvidence");
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

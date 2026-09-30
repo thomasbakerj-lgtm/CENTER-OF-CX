@@ -70,5 +70,17 @@ ok("no dash", !/[\u2013\u2014]/.test(readFileSync("./PrivacyPolicy.jsx", "utf8")
   ok("the notice links both documents", /href="\/terms"/.test(readFileSync("./src/lib/Assent.jsx", "utf8")) && /href="\/privacy"/.test(readFileSync("./src/lib/Assent.jsx", "utf8")));
 }
 
+/* Audit, 30 Sep 2026: the contact form and the vendor review form swallowed a failed send (no message, no
+   confirmation), so a lost request looked like a click that did nothing. Every page that posts a form says when it did
+   not go through. The gated report download is exempt by design: it opens the file whether or not the note is sent. */
+{
+  const SENDERS = tracked.filter((f) => /\.jsx$/.test(f) && /formspree\.io\/f\//.test(readFileSync(f, "utf8")) && /\bfetch\(/.test(readFileSync(f, "utf8")));
+  const EXEMPT = new Set(["GatedReport.jsx"]);
+  const SAYS_FAILED = /role="alert"[^>]*>\s*[^<]*(did not go through|did not send)/;
+  const silent = SENDERS.filter((f) => !EXEMPT.has(f) && !SAYS_FAILED.test(readFileSync(f, "utf8")));
+  ok(`every form says when a send fails (${SENDERS.length} senders) ${silent.join(", ")}`, SENDERS.length >= 10 && silent.length === 0);
+  ok("the failure rule fires on a planted silent sender", !SAYS_FAILED.test('fetch("https://formspree.io/f/x").catch(() => setSending(false));'));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

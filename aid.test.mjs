@@ -636,9 +636,9 @@ console.log("\n18. 11B grading layer and registry");
   const owned = BENCHMOD.benchmarksForTool(TOOL);
   const ids = [...src.matchAll(/benchmark\("([^"]+)"\)/g)].map(m => m[1]);
   A("the tool id is the registry tool", TOOL_ID === TOOL);
-  A("the registry holds 38 entries for this tool", owned.length === 38);
-  A("the registry splits 33 heuristics, 0 market and 5 thresholds",
-    owned.filter(e => e.kind === "heuristic").length === 33 && owned.filter(e => e.kind === "market").length === 0 && owned.filter(e => e.kind === "threshold").length === 5);
+  A("the registry holds 41 entries for this tool", owned.length === 41);
+  A("the registry splits 36 heuristics, 0 market and 5 thresholds",
+    owned.filter(e => e.kind === "heuristic").length === 36 && owned.filter(e => e.kind === "market").length === 0 && owned.filter(e => e.kind === "threshold").length === 5);
   A("every literal registry read resolves", ids.every(id => id in BENCHMOD.BENCHMARK_SOURCES));
   A("the defaults read every shared field by template", /const dflt = \(f\) => benchmark\(`aid\.default\.\$\{f\}`\);/.test(src) && (src.match(/dflt\("/g) || []).length === 5);
   A("both vendor sets read every field by template", /benchmark\(`aid\.\$\{set\}\.\$\{f\}`\)/.test(src) && VENDOR_OK());
@@ -761,6 +761,55 @@ console.log("\n18. 11B grading layer and registry");
   A("more durable than attempted voids the export", gradeAID({ I, r: { ...r, durable: r.attempted * 2 + 1 }, pre: {}, railOrigin: null }).voided);
   A("a negative cost voids the export", gradeAID({ I, r: { ...r, opexMonthly: -1 }, pre: {}, railOrigin: null }).voided);
   A("the void rationale names the failed invariant", /export void: an output is not a finite number/.test(vg.gradeWhy));
+}
+
+/* ---- Method 1.2: a Proceed needs payback inside the modelled year and a Conservative scenario that breaks even ----
+   Audit, 30 Sep 2026: a case netting $13,067 a month against $2.5M of implementation, from a vendor proposal with avoided
+   hiring, printed "Proceed, with a contracted floor". */
+{
+  const AUDIT = { M: 1166667, cpc: 6.8, marg: 4.1, eligibleRate: 40, apparentResolutionRate: 60, repeatLeakRate: 20, escalationPenalty: 25,
+    implOneTime: 2500000, botPlatformCost: 350000, qaCost: 25000, tuningHours: 400, tuningRate: 85, knowledgeMaintHours: 300, knowledgeRate: 60,
+    evidence: "proposal", mech: "hiring", rampOn: false };
+  const au = engineRaw(AUDIT);
+  A("1.2 the audit case nets about $13,067 a month", Math.round(au.netSavings) === 13067);
+  A("1.2 the audit case is a bounded pilot, never Proceed", au.verdict === "Run a bounded pilot");
+  A("1.2 the audit case says why: no payback in the year, and the Conservative loss", /does not pay back its \$2,500,000 implementation/.test(au.verdictWhy) && /Conservative scenario/.test(au.verdictWhy) && /about 192 months/.test(au.verdictWhy));
+  A("1.2 the fragile case routes to the contract floor", au.verdictRoute === "/tools/contract-risk");
+  const clean = engineRaw({ ...AUDIT, implOneTime: 300000, botPlatformCost: 80000 });
+  A("1.2 a case that pays back in the year and survives the Conservative case still Proceeds", clean.verdict === "Proceed, with a contracted floor" && clean.payback !== null && clean.downNet >= 0);
+
+  /* The verdict's downside is the scenario table's Conservative row, to the cent, and the old engine from git is the
+     reference for every case the new tests do not touch. */
+  /* The reference is the engine before 1.2, rebuilt from today's source by removing the one new branch, so the A/B
+     needs no git history (CI checks out a single commit). The removal is checked to have happened exactly once. */
+  const NEW_BRANCH = /  \} else if \(fragile\.length\) \{[\s\S]*?verdictTone = "electric";\n/;
+  const oldRegion = region.replace(NEW_BRANCH, "");
+  A("1.2 the pre-1.2 reference differs from the engine by the one new branch", (region.match(NEW_BRANCH) || []).length === 1 && oldRegion.length < region.length && !/fragile\.length\) \{/.test(oldRegion));
+  const oldEngine = new Function("MECH", "MECH_INITIAL", "createGuards", "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
+    oldRegion + "\nreturn engine;")(MECH, MECH_INITIAL, createGuards, BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred);
+  A("1.2 the reference prints Proceed on the audit case (the defect it fixes)", oldEngine(AUDIT).verdict === "Proceed, with a contracted floor");
+  let seed = 20260930; const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+  let mismatchDown = 0, lawBroken = 0, differs = 0, onlyDemoted = 0, proceeds = 0, demoted = 0, n = 0;
+  for (let i = 0; i < 6000; i++) {
+    const I = { M: Math.round(5000 + rnd() * 2e6), cpc: +(3 + rnd() * 9).toFixed(2), marg: +(1.5 + rnd() * 4).toFixed(2),
+      eligibleRate: Math.round(10 + rnd() * 80), apparentResolutionRate: Math.round(20 + rnd() * 75), repeatLeakRate: Math.round(rnd() * 40),
+      escalationPenalty: Math.round(rnd() * 60), implOneTime: Math.round(rnd() * 3e6), botPlatformCost: Math.round(rnd() * 400000), qaCost: Math.round(rnd() * 30000),
+      tuningHours: Math.round(rnd() * 500), tuningRate: 85, knowledgeMaintHours: Math.round(rnd() * 400), knowledgeRate: 60,
+      evidence: ["estimate", "proposal", "sla", "pilot"][i % 4], mech: ["overtime", "hiring", "vendor", "headcount", "growth"][i % 5], rampOn: i % 3 === 0, rampMonths: 1 + (i % 9) };
+    if (I.marg > I.cpc) I.marg = +(I.cpc * 0.6).toFixed(2);
+    const x = engineRaw(I); n++;
+    const cons = buildScenarios(I).find((s) => s.label === "Conservative");
+    if (Math.abs(cons.netSavings - x.downNet) > 0.005) mismatchDown++;
+    if (x.verdict === "Proceed, with a contracted floor") { proceeds++; if (x.payback === null || x.downNet < 0 || x.netSavings <= 0) lawBroken++; }
+    {
+      const o = oldEngine(I);
+      if (o.verdict !== x.verdict) { differs++; if (o.verdict === "Proceed, with a contracted floor" && x.verdict === "Run a bounded pilot" && (x.payback === null || x.downNet < 0)) { onlyDemoted++; demoted++; } }
+      if (["netSavings", "year1", "payback", "bestNet", "beResPct", "netAutomationRate"].some((k) => !Object.is(o[k], x[k]))) differs += 1000000;
+    }
+  }
+  A("1.2 the verdict's Conservative net equals the scenario table's on 6,000 cases", mismatchDown === 0);
+  A(`1.2 no Proceed without payback in the year and a Conservative case that breaks even (${proceeds} Proceeds)`, lawBroken === 0 && proceeds > 100);
+  A(`1.2 A/B against the engine before 1.2: every figure identical, and the only verdicts that move are Proceeds that fail a new test (${demoted} of ${n})`, differs === onlyDemoted && demoted > 0);
 }
 
 const r = engine(DEF);

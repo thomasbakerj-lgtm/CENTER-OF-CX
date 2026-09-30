@@ -54,6 +54,8 @@ function ContactPage() {
   const [intro, setIntro] = useState(null);
   useEffect(() => { try { setIntro(readIntro(window.location.search)); } catch { setIntro(null); } }, []);
   const [sending, setSending] = useState(false);
+  /* "" | "missing" | "failed": a request that did not send says so, and keeps what the reader typed. */
+  const [problem, setProblem] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,9 +71,9 @@ function ContactPage() {
       if (res.ok) {
         setSubmitted(true);
         form.reset();
-      }
+      } else setProblem("failed");
     } catch (err) {
-      console.error(err);
+      setProblem("failed");
     }
     setSending(false);
   };
@@ -213,6 +215,7 @@ function ContactPage() {
                         const inputs = form.querySelectorAll('input[required], textarea[required], select[required]');
                         let valid = true;
                         inputs.forEach(input => { if (!input.value || input.value === "") valid = false; });
+                        setProblem(valid ? "" : "missing");
                         if (valid) {
                           const formData = new FormData();
                           form.querySelectorAll('input, textarea, select').forEach(el => {
@@ -227,14 +230,15 @@ function ContactPage() {
                             if (res.ok) {
                               setSubmitted(true);
                               if (intro) trackVendor.introSent(intro.slug || undefined);
-                            }
+                            } else setProblem("failed");
                             setSending(false);
-                          }).catch(() => setSending(false));
+                          }).catch(() => { setProblem("failed"); setSending(false); });
                         } else {
                           inputs.forEach(input => {
                             if (!input.value || input.value === "") {
                               input.style.borderColor = FINDINGS.high.dark;
-                            }
+                              input.setAttribute("aria-invalid", "true");
+                            } else input.removeAttribute("aria-invalid");
                           });
                         }
                       }}
@@ -248,6 +252,8 @@ function ContactPage() {
                     >
                       {sending ? "Sending..." : "Submit Request"}
                     </button>
+                    {problem === "missing" && <p role="alert" style={{ fontSize: 14, color: NAVY, margin: 0, fontFamily: FONT }}>Please fill in the required fields marked in red.</p>}
+                    {problem === "failed" && <p role="alert" style={{ fontSize: 14, color: NAVY, margin: 0, fontFamily: FONT }}>That did not go through. Your answers are still here: please try again in a moment.</p>}
 
                     <p style={{ fontSize: 12, color: MUTED, textAlign: "center", margin: 0, fontFamily: FONT }}>
                       We'll respond within one business day. No spam, no vendor hand-offs without your permission.
