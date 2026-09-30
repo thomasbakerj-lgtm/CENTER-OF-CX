@@ -20,6 +20,8 @@ import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
 import { Icon } from "./src/lib/Icon.jsx";
 import { HOUSE, PILLARS, RADIUS, TOUCH, alpha, LINE, onFill } from "./src/lib/tokens.js";
 import { methodStamp } from "./src/lib/methodVersions.js";
+import { TwoToolsNote } from "./src/lib/TwoToolsNote.jsx";
+import { repeatSideBySide, perYear } from "./src/lib/crossTool.js";
 
 const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, muted: MUTED } = COLORS;
 const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const BORDER = "#D8E3ED";
@@ -899,6 +901,17 @@ export default function FCRLeakageDiagnostic() {
             <p style={{ ...small, marginTop: 8 }}>The right-hand column is year-one net. If it turns from positive to negative across these rows, your repeat-cost assumption decides the case. Measure it before you commit.</p>
           </section>
 
+          {/* Audit 30 Sep (TB: side by side and why): Cost per Contact prices the same repeats from an M you enter. Display only. */}
+          {(() => {
+            const x = blocked ? null : repeatSideBySide({ fcr: R.fcr, contacts: R.M, marginal: R.mCPC, mult: R.repeatMult, current: repeatModel });
+            return x && <TwoToolsNote title="Why Cost per Contact gives a different repeat cost"
+              intro={repeatModel === "measured"
+                ? "This page uses your measured repeat share. On your other inputs here, the two modelled views give:"
+                : "Both tools price the same repeat contacts. On your inputs here, each model gives:"}
+              rows={x.rows.map((w) => ({ value: perYear(w.yearly), tool: w.tool, label: w.label, own: w.own }))}
+              reasons={[...x.reasons.slice(0, 2), "Cost per Contact asks for M directly, so an M of 2 there gives the one-callback row above, and the geometric row's M gives the geometric one.", x.reasons[2]]}
+              links={[["Open Cost per Contact", "/tools/cost-per-contact"], ["How FCR Leakage works", "/methodology/fcr-leakage"]]} />;
+          })()}
           <HowOthersReport toolId={TOOL_ID} />
           {/* The report is paper (Brand Guide section 13). */}
           <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>

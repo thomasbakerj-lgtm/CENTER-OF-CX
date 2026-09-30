@@ -287,6 +287,9 @@ const cleanState = (sc) => {
    from list position), and the top two were within 5 points in 97%. So the order now follows the unclipped score, no
    score shows above SCORE_CAP, and every vendor within LEAD_GAP points of the top forms one leading group. Both are
    heuristics, disclosed in METHOD_NOTE. Presentation only: the Phase 1 data and weights are unchanged. */
+/* The same starting point for every vendor while size is out of the score; 70 is the value the Phase 1 lines already
+   measure every dimension against. */
+export const SIZE_NEUTRAL_BASE = 70;
 export const SCORE_CAP = 90;
 export const LEAD_GAP = 5;
 export const shownScore = (v) => (v.raw >= SCORE_CAP ? `${SCORE_CAP}+` : String(v.score));
@@ -294,7 +297,7 @@ export const shownScore = (v) => (v.raw >= SCORE_CAP ? `${SCORE_CAP}+` : String(
 /* Interim disclosure (CLAUDE.md sections 12 and 13). This engine still scores a
    24-vendor CCaaS set from the Phase 1 model. The class-scoped rebuild on current
    research is Stage 4. Until then the page says so. */
-const METHOD_NOTE = `These fit scores come from the Phase 1 CCaaS (contact center as a service) model: 24 vendors, each scored on 27 dimensions, then adjusted for your size, vertical, priorities and budget sensitivity. Use them as a starting shortlist. They do not rank vendors on current research. Current research on CCaaS vendors is under way, and this engine will be rebuilt on it, ranking only within comparable classes of vendor. Scores near the top of the scale are too close to tell apart in any meaningful way. So no score shows above ${SCORE_CAP}: in about two of every three buyer profiles this model gives its top vendor the maximum, and several vendors share it, so a higher number would claim a precision the model does not have. Vendors within ${LEAD_GAP} points of the top vendor are shown as one leading group, too close to separate.`;
+const METHOD_NOTE = `These fit scores come from the Phase 1 CCaaS (contact center as a service) model: 24 vendors, each scored on 27 dimensions, then adjusted for your vertical, priorities, weightings, budget sensitivity and contract term. Operation size does not change the list yet: the Phase 1 size ratings have no source and contradict themselves, so every vendor starts from the same point until this engine is rebuilt on current research, which records the sizes each researched vendor is sold to. Use them as a starting shortlist. They do not rank vendors on current research. Current research on CCaaS vendors is under way, and this engine will be rebuilt on it, ranking only within comparable classes of vendor. Scores near the top of the scale are too close to tell apart in any meaningful way. So no score shows above ${SCORE_CAP}: in almost half of buyer profiles this model puts its top vendor at or above it, and in about a quarter several vendors reach it, so a higher number would claim a precision the model does not have. Vendors within ${LEAD_GAP} points of the top vendor are shown as one leading group, too close to separate.`;
 
 export default function VendorMatchEngine() {
   const [init] = useState(() => { const sc = readScenario(TOOL_ID, DEFAULTS); return { fromLink: !!sc, d: cleanState(sc) }; });
@@ -314,9 +317,11 @@ export default function VendorMatchEngine() {
 
 
   const getResults = () => {
-    const sk = (d.size.includes("5000")||d.size.includes("1000"))?"large":(d.size.includes("500")||d.size.includes("200"))?"mid":"small";
+    /* Size is out of the score until Vendor Match V3 (TB, 30 Sep 2026): the Phase 1 size table has no source and
+       contradicts itself (Genesys and NICE rate 95 for under 50 agents and 60 for 200 to 500), so every vendor starts
+       from the same base and size changes nothing. The Phase 1 size values stay in the data for lineage. */
     return VENDORS.map(v => {
-      let s = v.fit[sk]||70;
+      let s = SIZE_NEUTRAL_BASE;
       if(d.vertical&&v.verticals.includes(d.vertical)) s+=8; else if(d.vertical) s-=5;
       d.priorities.forEach(pId => { if(v.dims[pId]) s+=(v.dims[pId]-70)*0.12; });
       Object.entries(d.importance).forEach(([k,imp]) => { if(v.dims[k]) s+=(v.dims[k]-70)*(imp-3)*0.06; });
@@ -354,7 +359,7 @@ export default function VendorMatchEngine() {
         {step===0&&(<Group legend="Tell us about your environment">
           <div style={{display:"flex",flexDirection:"column",gap:16}}>
             <Select label="Industry vertical" value={d.vertical} onChange={v=>{set("vertical",v);set("compliance",[]);}} options={VERTICALS}/>
-            <Select label="Operation size" value={d.size} onChange={v=>set("size",v)} options={SIZES}/>
+            <Select label="Operation size" value={d.size} onChange={v=>set("size",v)} options={SIZES} hint="Noted in your report; it does not change the list yet"/>
             <Select label="Current platform" value={d.currentPlatform} onChange={v=>set("currentPlatform",v)} options={PLATFORMS.map(p=>p.name)} hint="Noted in your report; it does not change the list"/>
           </div>
           <div style={{marginTop:18}}><Button onClick={()=>setStep(1)} disabled={!d.vertical||!d.size}>Next: what matters</Button></div>

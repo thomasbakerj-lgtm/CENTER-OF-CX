@@ -1849,6 +1849,25 @@ dashboard, the 12-phase growth program.
    full-time agents ("$29.5M a year" in the audit), where an annual cost needs hours open and the interval profile; Cost
    per Contact and FCR Leakage model repeat burden differently ($18.6M against $13.9M for one operation); Staffing and
    Occupancy price reaching the same occupancy target differently (+31 FTE $2.7M against +28 agents $1.63M).
+111. S24 (30 Sep), audit batch 3 (TB: "a. Go. Side by side and why. Agree.").
+   - Vendor Match: operation size is out of the score until V3 (TB chose a). Every vendor starts from `SIZE_NEUTRAL_BASE`
+     70; the Phase 1 size table (no source; Genesys and NICE 95 for under 50 agents, 60 for 200 to 500) stays in the data
+     for lineage. The size field says it does not change the list yet; the method note says why, and its ceiling shares
+     are restated for the new spread (top at the cap in almost half of profiles, several at it in about a quarter).
+     `vendormatch.test.mjs` 21: size never moves the list on 20,000 profiles; the disclosed shares hold.
+   - Two tools, one question, side by side (display only; no engine, flag or grade moves): `src/lib/crossTool.js` and
+     `src/lib/TwoToolsNote.jsx`. Cost per Contact and FCR Leakage show the same repeat contacts priced by each model from
+     the reader's own inputs (Cost per Contact's M; FCR Leakage's one callback, the same as M of 2, and geometric, the same
+     as M of 1 plus 1 over FCR; FCR's repeat complexity multiplier) with why they differ; the audit's $18.6M and $13.9M
+     reproduce exactly (M of 2.5 against one callback). Staffing and Occupancy Risk show the same occupancy target counted
+     both ways: scheduled FTE after shrinkage at the fully loaded rate against agents on the phone at wage plus benefits,
+     and Erlang C against workload over target. Each tool harness proves the panel's own row equals its page's figure
+     (cpc, fcr, staffing, occupancy tests). 
+   - CCaaS page: "Contact centers from the large cloud suites" says Microsoft Dynamics 365 Contact Center, Google Cloud's
+     contact center offering and Salesforce's own contact center are not researched yet and makes no claim about them,
+     with a link to suggest research (`category.test.mjs`).
+   Suite 27,516. Browser at 1440 and 390: panels on the four tools, the CCaaS line, no overflow or error.
+   Next, TB approved a design first: Staffing's annual cost (it prices one interval's FTE as a year of agents).
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

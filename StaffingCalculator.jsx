@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { HowOthersReport } from "./src/lib/HowOthersReport.jsx";
+import { TwoToolsNote } from "./src/lib/TwoToolsNote.jsx";
+import { staffingAsOccupancy, perYear } from "./src/lib/crossTool.js";
 import ReportActions from "./ReportActions";
 import { METHOD_VERSIONS } from "./src/lib/methodVersions";
 import { COLORS, BENCH, classifyOccupancy, classifyShrinkage, benchmark } from "./src/lib/benchmarks";
@@ -780,6 +782,18 @@ export default function StaffingCalculator() {
         <p style={{ ...body, fontSize: 14, marginTop: 8 }}>Erlang C is the standard queueing model for staffing. We solve it through the Erlang B recursion, which stays accurate from a handful of agents to several thousand. It assumes calls arrive at random (Poisson arrivals), handle times vary exponentially and callers never hang up, so it tends to over-staff. Enter an average patience to see the estimate adjusted for abandonment. The optional occupancy cap staffs to whichever is higher: the agents that meet service level, or the agents that hold occupancy at or below your ceiling. Shrinkage is applied after the agent calculation to turn base agents into scheduled FTE. Erlang C assumes one contact per agent at a time. Chat, messaging and email agents run several sessions at once, so applying these numbers to a digital queue overstates headcount, often by half or more. Every formula, constant and a worked example are in the <a href="/methodology/staffing-calculator" style={link}>published method</a>.</p>
       </section>
 
+      {/* Audit 30 Sep (TB: side by side and why): Occupancy Risk counts and prices the same target differently. Display only. */}
+      {(() => {
+        const wage = railHourly > 0 ? railHourly : BENCHMARK_HOURLY;
+        const x = !capOn && pair.sustainable && !isVoid(gradeObj) ? staffingAsOccupancy({ deltaAgents: pair.deltaAgents, deltaFte: pair.deltaFte, perAgentMonth: cost.perAgentMonth, wage, loadBenefits: benchmark("load.benefits"), loadFull: FULL_LOAD_MULTIPLE, hoursYear: benchmark("time.hours.year"), shrink: shrink / 100 }) : null;
+        return x && <TwoToolsNote title="Why Occupancy Risk gives a different cost for this ceiling"
+          intro={`Holding the ${Math.round(pair.ceiling * 100)}% occupancy ceiling, counted and priced each way:`}
+          rows={[
+            { value: perYear(x.own.yearly), tool: "Staffing", label: `${x.own.fte} more scheduled FTE after ${shrink}% shrinkage, at ${cost.sourced ? "your own cost figure" : "the fully loaded benchmark rate"}`, own: true },
+            { value: perYear(x.occupancy.yearly), tool: "Occupancy Risk", label: `The same ceiling counted its way: ${x.occupancy.agents} more agents on the phone, at $${wage.toFixed(2)} an hour plus benefits` },
+          ]}
+          reasons={x.reasons} links={[["Open Occupancy Risk", "/tools/occupancy-risk"], ["How Staffing works", "/methodology/staffing-calculator"]]} />;
+      })()}
       <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>

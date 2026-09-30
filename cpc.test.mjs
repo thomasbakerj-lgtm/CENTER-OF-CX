@@ -602,5 +602,25 @@ console.log("\n13. typography");
     !/TYPE\.|FONT_IMPORT_CSS|fontFamily/.test(region));
 }
 
+/* ---- Audit 30 Sep: the side by side panel's own row is this tool's own figure ---- */
+console.log("\nX. side by side with FCR Leakage");
+{
+  const X = await import("./src/lib/crossTool.js");
+  let bad = 0, seed = 7; const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  for (let t = 0; t < 2000; t++) {
+    const d = B(); d.fcrRate = 20 + Math.round(rnd() * 75); d.contactsPerUnresolved = +(1 + rnd() * 3).toFixed(2); d.monthlyContacts = Math.round(1000 + rnd() * 2e6);
+    d.marginalCPC = +(1 + rnd() * 8).toFixed(2); d.denominator = rnd() < 0.5 ? "handled" : "issues";
+    const r = compute(d, "hiring"); const x = X.repeatSideBySide({ fcr: r.fcrPct / 100, contacts: r.handled, marginal: r.marg, m: r.Mu, current: "cpc" });
+    const own = x && x.rows.find((w) => w.own);
+    if (!own || own.id !== "cpc" || Math.abs(own.yearly - r.burden * 12) > r.marg * 12) bad++;
+  }
+  A("on 2,000 cases the panel's Cost per Contact row equals this page's repeat burden, to handled-contact rounding", bad === 0);
+  const audit = X.repeatSideBySide({ fcr: 0.68, contacts: 1166667, marginal: 4.10, m: 2.5, current: "cpc" });
+  A("the audit's two figures reproduce: $18.6M here, $13.9M in FCR Leakage's one-callback model", X.perYear(audit.rows[0].yearly) === "$18.6M a year" && X.perYear(audit.rows[1].yearly) === "$13.9M a year");
+  let eq = true; for (let f = 0.05; f <= 1; f += 0.05) { if (!near(X.shareFromM(f, 2), X.shareOneCallback(f)) || !near(X.shareFromM(f, X.geometricM(f)), X.shareGeometric(f))) eq = false; }
+  A("an M of 2 is FCR Leakage's one callback, and an M of 1 plus 1 over FCR its geometric model", eq);
+  A("the page shows the panel and nothing on it reaches the engine", /<TwoToolsNote title="Why FCR Leakage gives a different repeat cost"/.test(SRC) && !/crossTool|TwoToolsNote/.test(SRC.slice(a, b)));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
