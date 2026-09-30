@@ -780,14 +780,14 @@ console.log("\n18. 11B grading layer and registry");
 
   /* The verdict's downside is the scenario table's Conservative row, to the cent, and the old engine from git is the
      reference for every case the new tests do not touch. */
-  const { execSync } = await import("node:child_process");
-  const OLD_REF = process.env.AID_OLD_REF || "c201d49";
-  let oldSrc = null; try { oldSrc = execSync(`git show ${OLD_REF}:AIDeflectionRealityCheck.jsx`, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }); } catch {}
-  const oldEngine = oldSrc && (() => {
-    const oa = oldSrc.indexOf("/* @engine-start"), ob = oldSrc.indexOf("/* @engine-end */");
-    return new Function("MECH", "MECH_INITIAL", "createGuards", "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
-      oldSrc.slice(oa, ob).replace(/^export /gm, "") + "\nreturn engine;")(MECH, MECH_INITIAL, createGuards, BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred);
-  })();
+  /* The reference is the engine before 1.2, rebuilt from today's source by removing the one new branch, so the A/B
+     needs no git history (CI checks out a single commit). The removal is checked to have happened exactly once. */
+  const NEW_BRANCH = /  \} else if \(fragile\.length\) \{[\s\S]*?verdictTone = "electric";\n/;
+  const oldRegion = region.replace(NEW_BRANCH, "");
+  A("1.2 the pre-1.2 reference differs from the engine by the one new branch", (region.match(NEW_BRANCH) || []).length === 1 && oldRegion.length < region.length && !/fragile\.length\) \{/.test(oldRegion));
+  const oldEngine = new Function("MECH", "MECH_INITIAL", "createGuards", "benchmark", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "realizationFromCred",
+    oldRegion + "\nreturn engine;")(MECH, MECH_INITIAL, createGuards, BENCHMOD.benchmark, CONF.emitGrades, CONF.voidResult, CONF.isVoid, CONF.railEvidence, CONF.weakerStream, CONF.realizationFromCred);
+  A("1.2 the reference prints Proceed on the audit case (the defect it fixes)", oldEngine(AUDIT).verdict === "Proceed, with a contracted floor");
   let seed = 20260930; const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
   let mismatchDown = 0, lawBroken = 0, differs = 0, onlyDemoted = 0, proceeds = 0, demoted = 0, n = 0;
   for (let i = 0; i < 6000; i++) {
@@ -801,7 +801,7 @@ console.log("\n18. 11B grading layer and registry");
     const cons = buildScenarios(I).find((s) => s.label === "Conservative");
     if (Math.abs(cons.netSavings - x.downNet) > 0.005) mismatchDown++;
     if (x.verdict === "Proceed, with a contracted floor") { proceeds++; if (x.payback === null || x.downNet < 0 || x.netSavings <= 0) lawBroken++; }
-    if (oldEngine) {
+    {
       const o = oldEngine(I);
       if (o.verdict !== x.verdict) { differs++; if (o.verdict === "Proceed, with a contracted floor" && x.verdict === "Run a bounded pilot" && (x.payback === null || x.downNet < 0)) { onlyDemoted++; demoted++; } }
       if (["netSavings", "year1", "payback", "bestNet", "beResPct", "netAutomationRate"].some((k) => !Object.is(o[k], x[k]))) differs += 1000000;
@@ -809,9 +809,7 @@ console.log("\n18. 11B grading layer and registry");
   }
   A("1.2 the verdict's Conservative net equals the scenario table's on 6,000 cases", mismatchDown === 0);
   A(`1.2 no Proceed without payback in the year and a Conservative case that breaks even (${proceeds} Proceeds)`, lawBroken === 0 && proceeds > 100);
-  if (oldEngine) {
-    A(`1.2 A/B against the engine before 1.2: every figure identical, and the only verdicts that move are Proceeds that fail a new test (${demoted} of ${n})`, differs === onlyDemoted && demoted > 0);
-  } else A("1.2 A/B reference engine readable from git", !!process.env.AID_SKIP_AB);
+  A(`1.2 A/B against the engine before 1.2: every figure identical, and the only verdicts that move are Proceeds that fail a new test (${demoted} of ${n})`, differs === onlyDemoted && demoted > 0);
 }
 
 const r = engine(DEF);
