@@ -30,7 +30,25 @@ for (const [name, g] of Object.entries(M.MARK)) {
 }
 ok("the full mark has 17 bars, the small 9", M.MARK.full.bars.length === 17 && M.MARK.small.bars.length === 9);
 ok("the small drawing is heavier", M.MARK.small.barW > M.MARK.full.barW && M.MARK.small.cW > M.MARK.full.cW && M.MARK.small.xW > M.MARK.full.xW);
-ok("below 40 pixels the small drawing, from 40 the full", M.geometryFor(16) === M.MARK.small && M.geometryFor(30) === M.MARK.small && M.geometryFor(39) === M.MARK.small && M.geometryFor(40) === M.MARK.full && M.geometryFor(96) === M.MARK.full);
+ok("below 48 pixels the small drawing, from 48 the full", M.geometryFor(16) === M.MARK.small && M.geometryFor(40) === M.MARK.small && M.geometryFor(47) === M.MARK.small && M.geometryFor(48) === M.MARK.full && M.geometryFor(96) === M.MARK.full);
+
+/* The trimmed box (TB, 30 Sep: the header mark read too small, its square box left the right third empty). Every stroke's
+   outer edge, round caps included, must sit inside BOX for both drawings, and the box must not waste more than 3 units a side. */
+const extent = (g) => {
+  const p = M.markParts(g), pts = [], rad = (d) => (d * Math.PI) / 180;
+  for (const b of p.bars) for (const x0 of [b.x1, b.x2]) { const a = rad(b.rot); pts.push([x0 * Math.cos(a), x0 * Math.sin(a), g.barW / 2]); }
+  for (let t = g.tip; t <= 360 - g.tip; t += 1) pts.push([g.cR * Math.cos(rad(t)), -g.cR * Math.sin(rad(t)), g.cW / 2]);
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) pts.push([sx * g.x, sy * g.x, g.xW / 2]);
+  return { l: Math.min(...pts.map(([x, , w]) => x - w)), r: Math.max(...pts.map(([x, , w]) => x + w)), t: Math.min(...pts.map(([, y, w]) => y - w)), b: Math.max(...pts.map(([, y, w]) => y + w)) };
+};
+const B = M.BOX;
+for (const [name, g] of Object.entries(M.MARK)) {
+  const e = extent(g);
+  ok(`${name}: the drawing fits inside the trimmed box`, e.l >= B.x && e.r <= B.x + B.w && e.t >= B.y && e.b <= B.y + B.h, JSON.stringify(e));
+}
+const all = Object.values(M.MARK).map(extent);
+ok("the trimmed box hugs the drawing (3 units spare at most on each side)", Math.min(...all.map((e) => e.l)) - B.x <= 3 && B.x + B.w - Math.max(...all.map((e) => e.r)) <= 3 && Math.min(...all.map((e) => e.t)) - B.y <= 3 && B.y + B.h - Math.max(...all.map((e) => e.b)) <= 3, JSON.stringify(all));
+ok("a trimmed mark keeps the drawing's proportions", M.boxWidth(40) === Math.round(40 * B.w / B.h) && M.markSvg(M.EVERYDAY.dark, { size: 40, trim: true }).startsWith(`<svg width="${M.boxWidth(40)}" height="40" viewBox="${M.BOX_VIEW}"`));
 
 console.log("\n2. Colour");
 const D = M.EVERYDAY.dark, P = M.EVERYDAY.paper;
@@ -53,7 +71,8 @@ ok("the everyday mark: mist C, sky voice and X", small.includes(`d="${M.markPart
 ok("the mark is decoration to a screen reader", /aria-hidden="true"/.test(small));
 const SRC = readFileSync("./src/lib/Shell.jsx", "utf8");
 ok("Shell.jsx draws from mark.js", /from "\.\/mark\.js"/.test(SRC) && /markParts\(geometryFor\(size\)\)/.test(SRC));
-ok("the header and footer both place the mark", /<Mark size=\{30\} edition=\{edition\} \/>/.test(SRC) && /<Mark size=\{26\} \/>/.test(SRC));
+ok("the header mark is 40 px tall, the footer 34 (TB, 30 Sep)", /<Mark size=\{40\} edition=\{edition\} \/>/.test(SRC) && /<Mark size=\{34\} \/>/.test(SRC));
+ok("the header and footer mark sit in the trimmed box", small.includes(`viewBox="${M.BOX_VIEW}"`) && small.includes(`width="${M.boxWidth(30)}"`));
 
 console.log("\n4. The favicon");
 const fav = readFileSync("./public/favicon.svg", "utf8");
@@ -63,10 +82,10 @@ ok("index.html links it", /<link rel="icon" type="image\/svg\+xml" href="\/favic
 
 console.log("\n5. The report masthead");
 const REP = readFileSync("./ReportExport.jsx", "utf8");
-ok("ReportExport.jsx draws from mark.js on paper", /from "\.\/src\/lib\/mark\.js"/.test(REP) && /markSvg_\(EVERYDAY\.paper, \{ size: 26/.test(REP));
-const paper = M.markSvg(P, { size: 26, attrs: 'class="mark" aria-hidden="true"' });
+ok("ReportExport.jsx draws from mark.js on paper, trimmed", /from "\.\/src\/lib\/mark\.js"/.test(REP) && /markSvg_\(EVERYDAY\.paper, \{ size: 28, trim: true/.test(REP));
+const paper = M.markSvg(P, { size: 28, trim: true, attrs: 'class="mark" aria-hidden="true"' });
 ok("the paper mark is ink and action blue, never sky", paper.includes(HOUSE.paperInk) && paper.includes(HOUSE.action) && !paper.includes(HOUSE.sky));
-ok("the paper mark at 26 pixels is the small drawing", lines(paper) === 9);
+ok("the paper mark at 28 pixels is the small drawing", lines(paper) === 9);
 
 console.log("\n6. The three-arc mark is retired from every place the mark is drawn");
 for (const [f, t] of [["src/lib/Shell.jsx", SRC], ["ReportExport.jsx", REP], ["public/favicon.svg", fav]]) ok(`${f}: no three-arc drawing`, !/A 58,58|A 44,44|A 30,30/.test(t));
