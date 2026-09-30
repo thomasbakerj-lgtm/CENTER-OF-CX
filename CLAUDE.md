@@ -1868,6 +1868,16 @@ dashboard, the 12-phase growth program.
      with a link to suggest research (`category.test.mjs`).
    Suite 27,516. Browser at 1440 and 390: panels on the four tools, the CCaaS line, no overflow or error.
    Next, TB approved a design first: Staffing's annual cost (it prices one interval's FTE as a year of agents).
+112. S24 (30 Sep), Staffing method 1.2 (TB: "go with recommendation on 1"). The yearly cost priced the busiest interval's
+   FTE as a year of full-time agents, true only for a center open 40 hours a week with every interval at the peak. Two
+   inputs set the year: hours open a week (1 to 168) and the average interval as a share of the busiest (1 to 100%),
+   registered heuristics `staffing.default.hoursOpen` 40 and `staffing.default.avgShare` 100. `openHoursPlan` (engine):
+   FTE on payroll = scheduled FTE for the average interval × hours open ÷ 40 (`time.hours.week`), a planning ceiling with
+   no credit for part-time shifts. The annual cost, recovery time cost and pooling cost all use it; the interval figures
+   (agents, service level, occupancy) stay the busiest interval's. Grade: a sourced cost basis grades Directional while
+   either input is at its default. Published keys add `hoursOpenWeek`, `averageIntervalShare`, `annualFte`. At 40 and 100
+   every figure equals 1.1 (3,000 random cases; report harness unchanged at the opening case); open all week at 60%:
+   331.8 FTE, $28,918,940 (method pin). The staffing side of the two tools panel scales by the same factor.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

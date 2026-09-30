@@ -33,6 +33,7 @@ const DEFAULTS = {
   slT: benchmark("staffing.preset.general.slT"), slS: benchmark("staffing.preset.general.slS"),
   shrink: benchmark("staffing.preset.general.shrink"), intv: benchmark("staffing.default.intv"),
   patience: 0, capOn: false, capPct: benchmark("staffing.default.capPct"), queues: 1, preset: "general",
+  hoursOpen: benchmark("staffing.default.hoursOpen"), avgShare: benchmark("staffing.default.avgShare"),
 };
 
 /* @helpers-end: engine harnesses slice up to this line. */
@@ -242,6 +243,19 @@ function solveNotice(r, slTargetFrac) {
    actually needs to read: the tension between SLA aggressiveness, occupancy, and
    over/under-service. Priority-ordered; the UI takes the top two. This is the
    "synthesis, not metric-dump" pattern other tools adopt where their data supports it. */
+/* Method 1.2 (30 Sep 2026): the year. Erlang C sizes one interval; a year of payroll depends on how many hours the
+   queue is open and how busy an average open interval is. The entered interval is the busiest; the average interval is
+   a share of it. Agents scheduled in the average interval, held for every open hour, need hoursOpen / paid week FTE
+   each. At 40 hours and 100% this is the entered interval's FTE, so the year equals method 1.1's figure. Staffing each
+   open interval to its own volume and summing needs a little less than this, because Erlang C needs proportionally
+   fewer agents as volume grows; the page says so. */
+function openHoursPlan(volume, avgShare, hoursOpen, ahtSec, intMin, slT, slSec, shrink, occCap) {
+  const avgVolume = avgShare >= 100 ? volume : volume * avgShare / 100;
+  const avg = avgShare >= 100 ? calc(volume, ahtSec, intMin, slT, slSec, shrink, occCap) : calc(avgVolume, ahtSec, intMin, slT, slSec, shrink, occCap);
+  const factor = hoursOpen / benchmark("time.hours.week");
+  return { avgVolume, avg, factor, fte: avg.sched * factor };
+}
+
 function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost, pool) {
   const out = [];
   const slPct = r.sl * 100, targetPct = slTargetFrac * 100, overBy = slPct - targetPct, occPct = r.occ * 100;
@@ -277,7 +291,7 @@ function buildInsights(r, slTargetFrac, slSec, occInfo, capOn, capPct, pair, val
      staffed to service level lands above the sustainable band at almost any real
      volume, so the useful output is the size of the trade-off, not a warning. */
   if (!capOn && pair && pair.sustainable)
-    out.push(`Staffing to your service level alone puts occupancy (the share of paid queue time agents spend handling contacts) at ${occPct.toFixed(1)}%, above the ${band} band. Erlang C often lands there at this volume; it does not point to an error in your inputs. Occupancy is the constraint to manage here, since the service level target is already met. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE against ${r.sched}. The ${pair.deltaFte} FTE difference is the price of agent recovery time, about ${fmtMoney(recoveryAnnual)} a year on ${cost.sourced ? "your own cost base" : "benchmark wages"}.`);
+    out.push(`Staffing to your service level alone puts occupancy (the share of paid queue time agents spend handling contacts) at ${occPct.toFixed(1)}%, above the ${band} band. Erlang C often lands there at this volume; it does not point to an error in your inputs. Occupancy is the constraint to manage here, since the service level target is already met. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead would take ${pair.sustainable.sched} FTE against ${r.sched} in the busiest interval. The ${pair.deltaFte} FTE difference is the price of agent recovery time; held across your open hours it comes to about ${fmtMoney(recoveryAnnual)} a year on ${cost.sourced ? "your own cost base" : "benchmark wages"}.`);
 
   if (pool && pool.pctPenalty >= benchmark("staffing.read.poolPenalty"))
     out.push(`This volume is split across ${pool.queues} queues, which takes ${pool.deltaFte} more FTE than one pooled queue would: roughly ${Math.round(pool.pctPenalty * 100)}% more headcount for the same volume and the same service. The split comes from routing, so routing is where to fix it. Read the figure as an upper bound, because overflow rules and cross-trained agents recover part of it.`);
@@ -327,6 +341,8 @@ const STAFFING_DOMAIN = [
   ["capPct", "Occupancy ceiling", 1, 100, "%"],
   ["queues", "Queues or skills this volume splits across", 1, null, ""],
   ["patience", "Avg caller patience (optional)", 0, null, "s"],
+  ["hoursOpen", "Hours open a week", 1, 168, "h"],
+  ["avgShare", "Average interval, share of the busiest", 1, 100, "%"],
 ];
 
 /* Clamp at the engine boundary and record every correction. Nothing is absorbed. */
@@ -373,7 +389,7 @@ const STAFFING_NA = "This tool prices the headcount a service level needs, which
    the field still holds the pulled value, that driver grades by the publisher's origin
    through railEvidence, never higher, and is not compared with the operating profile. An
    edit makes it the user's own entry again. */
-function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, railOrigin, pulled = {} }) {
+function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, railOrigin, pulled = {}, planDefaults = [] }) {
   const invariants = [];
   if (![r.raw, r.sched, r.sl, r.occ, r.asa, r.pw, cost.annual].every(Number.isFinite)) invariants.push("an output is not a finite number");
   if (r.sched < r.raw) invariants.push("scheduled FTE is below base agents");
@@ -392,7 +408,9 @@ function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, rail
   ];
   const railDrivers = [["handle time", fromRail.aht], ["shrinkage", fromRail.shrink]].filter(([, x]) => x);
   const opsGrade = railDrivers.reduce((g, [, x]) => weakerStream(g, railEvidence(x.origin)), defaultDrivers.length ? "Directional" : "Planning-grade");
-  const costGrade = cost.sourced ? railEvidence(railOrigin) : "Directional";
+  /* Method 1.2: the yearly cost also rests on the hours open and the average interval. Either one still at its default
+     is an assumption of ours, so a sourced cost basis grades no higher than Directional until both are the reader's. */
+  const costGrade = cost.sourced && !planDefaults.length ? railEvidence(railOrigin) : "Directional";
   const evidence = weakerStream(opsGrade, costGrade);
   const railWhy = railDrivers.map(([name, x]) => `${name} came from ${x.toolName} ${x.origin ? `with an origin grade of ${x.origin}` : "with no recorded origin grade"}, and grades no higher than that`).join("; ");
   const opsWhy = [
@@ -401,7 +419,9 @@ function gradeStaffing({ r, guards, valid, cost, shipped, vol, aht, shrink, rail
       : railDrivers.length ? "" : "Volume, handle time and shrinkage are your own entries. This tool has no document attestation path, so they stand at Planning-grade at most",
     railWhy,
   ].filter(Boolean).join(". ");
-  const costWhy = cost.sourced
+  const costWhy = cost.sourced && planDefaults.length
+    ? `The cost basis arrived over the rail, but the yearly figure still uses our default ${planDefaults.join(" and ")}. Enter your own to lift this stream`
+    : cost.sourced
     ? `The cost basis arrived over the rail ${railOrigin ? `with an origin grade of ${railOrigin}` : "with no recorded origin grade"}. A rail value confers consistency, and evidence only as far as its origin`
     : `The cost basis is the BLS national median wage of $${BENCHMARK_HOURLY} an hour, loaded at ${FULL_LOAD_MULTIPLE}x. It is a market figure for the occupation and none of your own`;
   const evParts = [...(opsGrade === evidence ? [opsWhy] : []), ...(costGrade === evidence ? [costWhy] : [])];
@@ -481,6 +501,7 @@ export default function StaffingCalculator() {
   const [patienceIn, setPatience] = useState(DEFAULTS.patience);
   const [queuesIn, setQueues] = useState(DEFAULTS.queues);
   const [capOn, setCapOn] = useState(DEFAULTS.capOn), [capPctIn, setCapPct] = useState(DEFAULTS.capPct);
+  const [hoursOpenIn, setHoursOpen] = useState(DEFAULTS.hoursOpen), [avgShareIn, setAvgShare] = useState(DEFAULTS.avgShare);
   const [showBench, setShowBench] = useState(false);
   /* Handle time, shrinkage and the occupancy ceiling another tool published this session,
      read once at mount. Each keeps its producer and origin grade for the grade and the label. */
@@ -499,6 +520,7 @@ export default function StaffingCalculator() {
       setVol(sc.vol); setAht(sc.aht); setSlT(sc.slT); setSlS(sc.slS);
       setShrink(sc.shrink); setIntv(sc.intv); setPatience(sc.patience);
       setCapOn(sc.capOn); setCapPct(sc.capPct); setQueues(sc.queues); setPreset(sc.preset);
+      setHoursOpen(sc.hoursOpen); setAvgShare(sc.avgShare);
       clearScenarioParam();
       return;
     }
@@ -518,9 +540,9 @@ export default function StaffingCalculator() {
   /* One object, matching DEFAULTS key for key, so scenarioLink diffs cleanly. It holds
      what was entered, so a shared link reproduces the same corrections disclosed. Every
      figure below reads the guarded values. */
-  const st = { vol: volIn, aht: ahtIn, slT: slTIn, slS: slSIn, shrink: shrinkIn, intv: intvIn, patience: patienceIn, capOn, capPct: capPctIn, queues: queuesIn, preset };
+  const st = { vol: volIn, aht: ahtIn, slT: slTIn, slS: slSIn, shrink: shrinkIn, intv: intvIn, patience: patienceIn, capOn, capPct: capPctIn, queues: queuesIn, preset, hoursOpen: hoursOpenIn, avgShare: avgShareIn };
   const { st: stG, guards } = guardStaffing(st);
-  const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;
+  const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues, hoursOpen, avgShare } = stG;
 
   const occCap = capOn ? capPct / 100 : null;
   const r = calc(vol, aht, intv, slT / 100, slS, shrink / 100, occCap);
@@ -552,17 +574,25 @@ export default function StaffingCalculator() {
   const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
 
   const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
-  const cost = staffingCost(r.sched, railPerAgent, railHourly);
+  /* The year (method 1.2): priced from the average open interval across the hours open. The recovery time and pooling
+     costs follow the same interval and hours, so every yearly figure on the page rests on one basis. */
+  const plan = openHoursPlan(vol, avgShare, hoursOpen, aht, intv, slT / 100, slS, shrink / 100, occCap);
+  const planAtPeak = avgShare >= 100;
+  const pairYear = planAtPeak ? pair : sustainablePair(plan.avgVolume, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
+  const poolYear = planAtPeak ? pool : poolingPenalty(plan.avgVolume, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
+  const cost = staffingCost(plan.fte, railPerAgent, railHourly);
+  const fteYearText = (Math.round(plan.fte * 10) / 10).toLocaleString("en-US");
+  const planDefaults = [...(hoursOpen === DEFAULTS.hoursOpen ? ["hours open"] : []), ...(avgShare === DEFAULTS.avgShare ? ["average interval"] : [])];
   /* railOrigin is the origin grade the publisher recorded for the key behind the cost
      basis. Null when nothing came over the rail, which grades the stream Directional. */
-  const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled });
+  const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled, planDefaults });
   /* A field shows where its value came from while it still holds the pulled value. */
   const pulledNote = (key, val) => (pulled[key] && pulled[key].value === val ? `From ${pulled[key].toolName}${pulled[key].origin ? `, ${pulled[key].origin}` : ""}. Edit to use your own figure` : null);
   const ahtFrom = pulledNote("aht", aht), shrinkFrom = pulledNote("shrink", shrink), capFrom = capOn ? pulledNote("capPct", capPct) : null;
   const { gradeObj, confidence } = graded;
-  const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
+  const costCeiling = pairYear.sustainable ? staffingCost(pairYear.sustainable.sched * plan.factor, railPerAgent, railHourly) : null;
   const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
-  const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
+  const poolAnnual = poolYear ? staffingCost(poolYear.splitFte * plan.factor, railPerAgent, railHourly).annual - staffingCost(poolYear.pooled.sched * plan.factor, railPerAgent, railHourly).annual : 0;
   const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost, pool);
 
   const spike = calc(Math.round(vol * SPIKE), aht, intv, slT / 100, slS, shrink / 100, occCap);
@@ -587,6 +617,7 @@ export default function StaffingCalculator() {
       poolingPenaltyFte: pool ? pool.deltaFte : undefined,
       poolingPenaltyAnnual: pool ? Math.round(poolAnnual) : undefined,
       annualStaffingCost: Math.round(cost.annual),
+      hoursOpenWeek: hoursOpen, averageIntervalShare: avgShare / 100, annualFte: +plan.fte.toFixed(2),
       staffingCostBasisSourced: cost.sourced,
       recoveryTimeAnnualCost: costCeiling ? Math.round(recoveryAnnual) : undefined,
       sustainableFte: pair.sustainable ? pair.sustainable.sched : undefined,
@@ -597,7 +628,7 @@ export default function StaffingCalculator() {
       publishToolResult("staffing-calculator", published, originsFor(gradeObj, published));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vol, intv, aht, shrink, slT, slS, patience, capOn, capPct]);
+  }, [vol, intv, aht, shrink, slT, slS, patience, capOn, capPct, hoursOpen, avgShare]);
 
 
   const occSub = r.capped ? `Held under your ${capPct}% cap. ${occInfo.message}` : occInfo.message;
@@ -613,7 +644,8 @@ export default function StaffingCalculator() {
         <div style={panel}>
           <span style={kicker}>Annual cost of this plan</span>
           <div style={{ ...TYPE.statValueLg, fontSize: 29, color: HOUSE.mist, marginTop: 4 }}>{fmtMoney(cost.annual)}</div>
-          <p style={{ ...small, marginTop: 4 }}>{r.sched} FTE at {fmtMoney(cost.perAgentMonth)} per agent per month. Based on {cost.basis}.{!cost.sourced && " Run the TCO Calculator (total cost of ownership) to price this on your own cost base."}</p>
+          <p style={{ ...small, marginTop: 4 }}>{fteYearText} FTE on payroll: {plan.avg.sched} scheduled in an average open interval, held for {hoursOpen} hours a week, at {fmtMoney(cost.perAgentMonth)} per agent per month. Based on {cost.basis}.{!cost.sourced && " Run the TCO Calculator (total cost of ownership) to price this on your own cost base."}</p>
+          {planDefaults.length > 0 && <p style={{ ...small, marginTop: 4 }}>Still at our default {planDefaults.join(" and ")}: this year assumes {hoursOpen} hours open and every open interval {avgShare >= 100 ? "as busy as the one above" : `at ${avgShare}% of it`}. Enter yours under Question 3.</p>}
         </div>
       )}
     </div>
@@ -627,7 +659,7 @@ export default function StaffingCalculator() {
       <style>{`${FONT_IMPORT_CSS}.stf-sel option{background:${HOUSE.navy};color:${HOUSE.mist}}`}</style>
 
       <fieldset style={{ ...panel, margin: 0 }}>
-        <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 3 · Your queue</legend>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 1 of 4 · Your busiest interval</legend>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
           <label htmlFor="stf-preset" style={{ fontSize: 14, fontWeight: 600, color: HOUSE.mist }}>Start from</label>
           <select id="stf-preset" aria-label="Industry preset" value={preset} onChange={e => apply(e.target.value)} className="stf-sel" style={{ minHeight: TOUCH, padding: "0 12px", fontFamily: FONT, fontSize: 15, fontWeight: 600, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, borderRadius: RADIUS.field, background: HOUSE.navy, color: HOUSE.mist, cursor: "pointer" }}>
@@ -636,7 +668,7 @@ export default function StaffingCalculator() {
           {isCustom && <span style={{ ...small, fontWeight: 600, color: HOUSE.mist, border: `1px dashed ${soft}`, borderRadius: RADIUS.chip, padding: "2px 8px" }}>Custom</span>}
         </div>
         <div style={grid(200)}>
-          <NumField tone="dark" label="Voice contacts per interval" value={vol} onChange={setVol} hint="Inbound calls arriving in one interval. Voice only; the methodology note below explains why." min={1} />
+          <NumField tone="dark" label="Voice contacts per interval" value={vol} onChange={setVol} hint="Inbound calls arriving in your busiest interval. Voice only; the methodology note below explains why." min={1} />
           <NumField tone="dark" label="Average Handle Time" value={aht} onChange={setAht} hint={ahtFrom || `${fmtMS(aht)}: talk, hold and after-call work (ACW)`} suffix="sec" min={1} pulled={!!ahtFrom} />
           <NumField tone="dark" label="Interval length" value={intv} onChange={setIntv} suffix="min" min={5} max={240} step={5} hint="Erlang C needs an interval of about three times AHT or longer." />
         </div>
@@ -644,7 +676,7 @@ export default function StaffingCalculator() {
       </fieldset>
 
       <fieldset style={{ ...panel, margin: 0 }}>
-        <legend style={{ ...kicker, padding: "0 6px" }}>Question 2 of 3 · Your target</legend>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 2 of 4 · Your target</legend>
         <div style={grid(200)}>
           <NumField tone="dark" label="Service Level Target" value={slT} onChange={setSlT} hint="The ceiling is 99%. Erlang C has no answer at 100, because some callers wait at every headcount." suffix="%" min={1} max={99} />
           <NumField tone="dark" label="Answer Threshold" value={slS} onChange={setSlS} hint="Seconds within which a call counts as answered on time" suffix="sec" min={1} />
@@ -659,7 +691,17 @@ export default function StaffingCalculator() {
       </fieldset>
 
       <fieldset style={{ ...panel, margin: 0 }}>
-        <legend style={{ ...kicker, padding: "0 6px" }}>Question 3 of 3 · Optional checks</legend>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 3 of 4 · Your year</legend>
+        <p style={{ ...small, marginBottom: 12 }}>Erlang C sizes one interval. A year of payroll depends on how long the queue is open and how busy a typical open interval is, so these two turn the interval above into a yearly cost.</p>
+        <div style={grid(220)}>
+          <NumField tone="dark" label="Hours open a week" value={hoursOpen} onChange={setHoursOpen} hint="Hours a week the queue takes contacts. 40 is one paid week; a queue open around the clock is 168." suffix="h" min={1} max={168} />
+          <NumField tone="dark" label="Average interval, share of the busiest" value={avgShare} onChange={setAvgShare} hint="How busy an average open interval is, as a share of the interval above. 100 means every open interval is that busy." suffix="%" min={1} max={100} />
+        </div>
+        <p style={{ ...small, marginTop: 12 }}>Staffing each interval to its own volume and adding them up needs a little less than this, because Erlang C needs proportionally fewer agents as volume grows. Treat the yearly figure as a planning ceiling for these inputs.</p>
+      </fieldset>
+
+      <fieldset style={{ ...panel, margin: 0 }}>
+        <legend style={{ ...kicker, padding: "0 6px" }}>Question 4 of 4 · Optional checks</legend>
         <div style={grid(220)}>
           <NumField tone="dark" label="Queues or skills this volume splits across" value={queues} onChange={setQueues} hint="One pooled queue needs the fewest agents. Enter how many separate queues actually carry this volume." min={1} max={40} />
           <NumField tone="dark" label="Avg caller patience (optional)" value={patience} onChange={setPatience} hint="Seconds before a caller hangs up. Zero turns the abandonment check off." suffix="sec" min={0} max={600} />
@@ -707,7 +749,7 @@ export default function StaffingCalculator() {
           <div style={{ ...grid(160), marginTop: 14 }}>
             <S label="Staffed to service level" value={`${r.sched} FTE`} sub={`${(r.occ * 100).toFixed(1)}% occupancy`} />
             <S label={`Staffed to a ${Math.round(pair.ceiling * 100)}% ceiling`} value={`${pair.sustainable.sched} FTE`} sub={`${(pair.sustainable.occ * 100).toFixed(1)}% occupancy`} />
-            <S label="Difference" value={`+${pair.deltaFte} FTE`} sub={`${fmtMoney(recoveryAnnual)} a year, the price of recovery time`} />
+            <S label="Difference" value={`+${pair.deltaFte} FTE`} sub={`${fmtMoney(recoveryAnnual)} a year across your open hours, the price of recovery time`} />
           </div>
         )}
       </section>
@@ -716,7 +758,7 @@ export default function StaffingCalculator() {
         <section aria-label="Queue fragmentation cost" style={panel}>
           <h2 style={h2}>Queue fragmentation cost <span style={{ ...small, fontWeight: 500 }}>· upper bound</span></h2>
           <p style={{ ...body, fontSize: 14, margin: "0 0 10px" }}>
-            Queues get more efficient as they grow, so one pooled queue always needs fewer agents than the same volume split up. Across {pool.queues} queues this volume needs <strong style={{ color: HOUSE.mist, ...NUM }}>{pool.splitFte} FTE</strong> against <strong style={{ color: HOUSE.mist, ...NUM }}>{pool.pooled.sched} FTE</strong> pooled, a difference of {pool.deltaFte} FTE{poolAnnual > 0 ? <> or about <strong style={{ color: HOUSE.mist, ...NUM }}>{fmtMoney(poolAnnual)} a year</strong></> : null}. The extra agents come from how the volume is split, so routing is the fix.
+            Queues get more efficient as they grow, so one pooled queue always needs fewer agents than the same volume split up. Across {pool.queues} queues this volume needs <strong style={{ color: HOUSE.mist, ...NUM }}>{pool.splitFte} FTE</strong> against <strong style={{ color: HOUSE.mist, ...NUM }}>{pool.pooled.sched} FTE</strong> pooled, a difference of {pool.deltaFte} FTE{poolAnnual > 0 ? <> or about <strong style={{ color: HOUSE.mist, ...NUM }}>{fmtMoney(poolAnnual)} a year</strong> across your open hours</> : null}. The extra agents come from how the volume is split, so routing is the fix.
           </p>
           <p style={small}>
             Read this as an upper bound. It assumes fully independent queues with no overflow and no cross-trained agents, and real routing recovers part of the loss. Splitting also lowers occupancy from {(pool.pooledOcc * 100).toFixed(1)}% to {(pool.splitOcc * 100).toFixed(1)}%, so if you already staff to an occupancy ceiling, part of this is spend you had planned anyway.
@@ -785,12 +827,12 @@ export default function StaffingCalculator() {
       {/* Audit 30 Sep (TB: side by side and why): Occupancy Risk counts and prices the same target differently. Display only. */}
       {(() => {
         const wage = railHourly > 0 ? railHourly : BENCHMARK_HOURLY;
-        const x = !capOn && pair.sustainable && !isVoid(gradeObj) ? staffingAsOccupancy({ deltaAgents: pair.deltaAgents, deltaFte: pair.deltaFte, perAgentMonth: cost.perAgentMonth, wage, loadBenefits: benchmark("load.benefits"), loadFull: FULL_LOAD_MULTIPLE, hoursYear: benchmark("time.hours.year"), shrink: shrink / 100 }) : null;
+        const x = !capOn && pairYear.sustainable && !isVoid(gradeObj) ? staffingAsOccupancy({ deltaAgents: pairYear.deltaAgents * plan.factor, deltaFte: pairYear.deltaFte * plan.factor, perAgentMonth: cost.perAgentMonth, wage, loadBenefits: benchmark("load.benefits"), loadFull: FULL_LOAD_MULTIPLE, hoursYear: benchmark("time.hours.year"), shrink: shrink / 100 }) : null;
         return x && <TwoToolsNote title="Why Occupancy Risk gives a different cost for this ceiling"
           intro={`Holding the ${Math.round(pair.ceiling * 100)}% occupancy ceiling, counted and priced each way:`}
           rows={[
-            { value: perYear(x.own.yearly), tool: "Staffing", label: `${x.own.fte} more scheduled FTE after ${shrink}% shrinkage, at ${cost.sourced ? "your own cost figure" : "the fully loaded benchmark rate"}`, own: true },
-            { value: perYear(x.occupancy.yearly), tool: "Occupancy Risk", label: `The same ceiling counted its way: ${x.occupancy.agents} more agents on the phone, at $${wage.toFixed(2)} an hour plus benefits` },
+            { value: perYear(x.own.yearly), tool: "Staffing", label: `${+x.own.fte.toFixed(1)} more scheduled FTE after ${shrink}% shrinkage across your open hours, at ${cost.sourced ? "your own cost figure" : "the fully loaded benchmark rate"}`, own: true },
+            { value: perYear(x.occupancy.yearly), tool: "Occupancy Risk", label: `The same ceiling counted its way: ${+x.occupancy.agents.toFixed(1)} more agents on the phone, at $${wage.toFixed(2)} an hour plus benefits` },
           ]}
           reasons={x.reasons} links={[["Open Occupancy Risk", "/tools/occupancy-risk"], ["How Staffing works", "/methodology/staffing-calculator"]]} />;
       })()}
@@ -800,7 +842,7 @@ export default function StaffingCalculator() {
               <ReportActions
                 toolId={TOOL_ID}
                 toolName="Staffing Requirement Calculator"
-                subtitle={`${r.sched} FTE at ${(r.occ * 100).toFixed(1)}% occupancy, ${fmtMoney(cost.annual)} a year, ${isVoid(gradeObj) ? "EXPORT VOID, integrity invariant failed" : `${confidence}, bound by ${gradeObj.boundBy}`}`}
+                subtitle={`${r.sched} FTE in the busiest interval at ${(r.occ * 100).toFixed(1)}% occupancy, ${fmtMoney(cost.annual)} a year for ${hoursOpen} hours open a week, ${isVoid(gradeObj) ? "EXPORT VOID, integrity invariant failed" : `${confidence}, bound by ${gradeObj.boundBy}`}`}
                 routePath={ROUTE}
                 state={st}
                 defaults={DEFAULTS}
@@ -814,7 +856,7 @@ export default function StaffingCalculator() {
                   { label: "Cost basis", value: cost.sourced ? "your figures, from another tool" : "benchmark median" },
                   ...(pair.sustainable ? [
                     { label: "FTE at a sustainable ceiling", value: pair.sustainable.sched },
-                    { label: "Cost of recovery time", value: `${pair.deltaFte} FTE, ${fmtMoney(recoveryAnnual)} a year` },
+                    { label: "Cost of recovery time", value: `${pair.deltaFte} FTE in the busiest interval, ${fmtMoney(recoveryAnnual)} a year` },
                   ] : []),
                   ...(abandMeaningful ? [{ label: "Estimated abandonment", value: `${(aband.estAband * 100).toFixed(1)}%` }] : []),
                 ]}
@@ -881,6 +923,9 @@ export default function StaffingCalculator() {
                     ["Traffic Intensity", `${r.A.toFixed(1)} Erlangs`],
                     ["Cost basis", cost.basis.charAt(0).toUpperCase() + cost.basis.slice(1)],
                     ["Queues this volume splits across", String(queues)],
+                    ["Hours open a week", `${hoursOpen}${hoursOpen === DEFAULTS.hoursOpen ? " (our default)" : ""}`],
+                    ["Average interval, share of the busiest", `${avgShare}%${avgShare === DEFAULTS.avgShare ? " (our default)" : ""}`],
+                    ["FTE on payroll for the year", `${fteYearText} (${plan.avg.sched} in an average interval, held for ${hoursOpen} of ${benchmark("time.hours.week")} paid hours a week per FTE)`],
                     ["Industry Preset", presetLabel],
                   ]},
                   { title: "Staffing Results", type: "metrics", items: [
@@ -896,7 +941,7 @@ export default function StaffingCalculator() {
                     ...(!valid.ok ? [valid.msg] : []),
                     ...(solveNotice(r, slT / 100) ? [solveNotice(r, slT / 100)] : []),
                     `At ${vol} contacts per ${intv}-minute interval with ${fmtMS(aht)} AHT, you need ${r.raw} agents on the phones to meet a service level of ${slT}% in ${slS} seconds${r.capped ? ` while holding occupancy under your ${capPct}% cap` : ""}.`,
-                    `After applying ${shrink}% shrinkage, that becomes ${r.sched} scheduled FTE, about ${fmtMoney(cost.annual)} a year at ${fmtMoney(cost.perAgentMonth)} per agent per month. That figure is based on ${cost.basis}.`,
+                    `After applying ${shrink}% shrinkage, that becomes ${r.sched} scheduled FTE in the busiest interval. For ${hoursOpen} hours open a week, with an average interval at ${avgShare}% of the busiest, the year takes ${fteYearText} FTE on payroll, about ${fmtMoney(cost.annual)} a year at ${fmtMoney(cost.perAgentMonth)} per agent per month. That figure is based on ${cost.basis}.`,
                     ...insights.slice(0, 3),
                     ...(shrinkInfo.elevated ? [shrinkInfo.message] : []),
                     ...(abandMeaningful ? [`With ${patience}s average patience, an estimated ${(aband.estAband * 100).toFixed(1)}% of contacts would abandon; the abandonment-adjusted estimate is ${adjR.raw} base agents versus the Erlang C ${r.raw}.`] : []),
@@ -904,7 +949,7 @@ export default function StaffingCalculator() {
                   ]},
                   { title: "Recommended Actions", type: "actions", items: [
                     ...(occInfo.band === "critical" ? [{ action: "Decide whether to buy recovery time", detail: pair.sustainable
-                        ? `Staffing to your service level alone lands at ${(r.occ * 100).toFixed(1)}% occupancy. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead takes ${pair.sustainable.sched} FTE rather than ${r.sched}, a difference of ${pair.deltaFte} FTE, about ${fmtMoney(recoveryAnnual)} a year. That figure is the price of agent recovery time, and it is a decision rather than a setting. Cutting volume through deflection, or shortening AHT, lowers both figures.`
+                        ? `Staffing to your service level alone lands at ${(r.occ * 100).toFixed(1)}% occupancy. Holding an ${Math.round(pair.ceiling * 100)}% ceiling instead takes ${pair.sustainable.sched} FTE rather than ${r.sched}, a difference of ${pair.deltaFte} FTE in the busiest interval, about ${fmtMoney(recoveryAnnual)} a year across your open hours. That figure is the price of agent recovery time, and it is a decision rather than a setting. Cutting volume through deflection, or shortening AHT, lowers both figures.`
                         : `At ${(r.occ * 100).toFixed(1)}%, agents have insufficient recovery time. Target the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% band by adding agents or reducing volume.`, priority: "high" }]
                       : occInfo.band === "caution" ? [{ action: "Monitor occupancy on peaks", detail: `${(r.occ * 100).toFixed(0)}% is in the caution band, workable but fragile. A forecast miss pushes it critical. Aim for the ${Math.round(BENCH.occupancy.targetLow * 100)} to ${Math.round(BENCH.occupancy.targetHigh * 100)}% target.`, priority: "medium" }] : []),
                     ...(shrinkInfo.elevated ? [{ action: "Decompose shrinkage", detail: `${shrink}% is above the ${Math.round(BENCH.shrinkage.typicalLow * 100)} to ${Math.round(BENCH.shrinkage.typicalHigh * 100)}% planning range (a labelled heuristic). Use the Shrinkage Planner to see which categories drive the gap before adding heads.`, priority: "medium" }] : []),

@@ -543,6 +543,8 @@ export const BENCHMARK_SOURCES = {
   ...staffingPresetEntries,
   "staffing.hours.month": sHeur(173, "paid hours per agent per month", "The 2,080 hour full-time year over twelve months. A planning convention for converting an hourly wage to a monthly cost."),
   "staffing.default.intv": sHeur(30, "minutes", "Default interval length. The most common forecasting interval, so the default case sits inside the Erlang C validity floor."),
+  "staffing.default.hoursOpen": sHeur(40, "hours open a week", "Default hours the queue is open a week, set to one paid week so the yearly cost equals the one-interval figure until the reader enters their own hours (method 1.2)."),
+  "staffing.default.avgShare": sHeur(100, "percent of the busiest interval", "Default average interval across open hours, as a share of the busiest interval entered. 100 means every open interval is as busy as the one entered; enter your own to price a real week (method 1.2)."),
   "staffing.default.capPct": sHeur(85, "percent occupancy", "Default occupancy ceiling offered when the cap is switched on. Set at the healthy maximum of the ratified occupancy canon."),
   "staffing.stress.spike": sHeur(1.2, "multiple of volume", "Volume spike the contingency finding prices. A planning stress step, labelled as one."),
   "staffing.stress.aht": sHeur(0.1, "share of AHT", "Handle time change the sensitivity finding prices, applied up and down."),

@@ -38,13 +38,17 @@ section("Staffing Requirement Calculator");
   const SS = readFileSync("./StaffingCalculator.jsx", "utf8");
   const full = SS.slice(SS.indexOf("function erlangB("), SS.indexOf("const S = ({ label"));
   const G = new Function("benchmark", "BENCH", "emitGrades", "voidResult", "isVoid", "railEvidence", "weakerStream", "createGuards",
-    `${full}\nreturn { calc, staffingCost, PRESETS };`)(benchmark, BENCH, conf.emitGrades, conf.voidResult, conf.isVoid, conf.railEvidence, conf.weakerStream, createGuards);
+    `${full}\nreturn { calc, staffingCost, openHoursPlan, PRESETS };`)(benchmark, BENCH, conf.emitGrades, conf.voidResult, conf.isVoid, conf.railEvidence, conf.weakerStream, createGuards);
   const d = P.defaults, g = G.PRESETS.general;
   ok("the opening case is the tool's own general profile", g.volume === d.volume && g.aht === d.aht && g.slT === d.slT && g.slS === d.slS && g.shrink === d.shrink && benchmark("staffing.default.intv") === d.interval);
   const r = G.calc(d.volume, d.aht, d.interval, d.slT, d.slS, d.shrink, null), c = G.staffingCost(r.sched, 0, 0);
   ok("opening case: load, base agents and FTE equal the engine", r.A === d.load && r.raw === d.base && r.sched === d.fte);
   ok("opening case: service level, speed of answer and occupancy equal the engine", near(r.sl, d.sl, 5e-6) && near(r.asa, d.asa, 0.005) && near(r.occ, d.occ, 5e-6));
   ok("opening case: cost per agent and annual cost equal the engine to the dollar", near(c.perAgentMonth, d.perAgentMonth, 0.005) && Math.round(c.annual) === d.annual && !c.sourced);
+  const y = P.year, yp = G.openHoursPlan(y.volume, y.avgShare, y.hoursOpen, y.aht, y.interval, y.slT, y.slS, y.shrink, null);
+  ok("open all week: average interval, FTE on payroll and annual cost equal the engine", yp.avgVolume === y.avgVolume && yp.avg.raw === y.avgBase && yp.avg.sched === y.avgFte && near(yp.factor, y.factor, 1e-12) && near(yp.fte, y.fte, 1e-9) && Math.round(G.staffingCost(yp.fte, 0, 0).annual) === y.annual);
+  const y0 = G.openHoursPlan(d.volume, 100, 40, d.aht, d.interval, d.slT, d.slS, d.shrink, null);
+  ok("at 40 hours and 100% the year equals the opening case", y0.fte === d.fte && Math.round(G.staffingCost(y0.fte, 0, 0).annual) === d.annual);
   const n = P.nextiva, x = G.calc(n.volume, n.aht, n.interval, n.slT, n.slS, n.shrink, n.cap);
   ok("published case: 68 base agents, 98 FTE, 84.0% occupancy, set by the ceiling", x.raw === n.base && x.sched === n.fte && (x.occ * 100).toFixed(1) === "84.0" && x.capped === n.capped && near(x.A, n.load, 0.005));
 }
@@ -221,7 +225,7 @@ section("Version stamps; the change record renders nowhere");
   const methodIds = Object.keys(RUBRICS);
   ok("the version table has exactly the published methods", Object.keys(METHOD_VERSIONS).sort().join() === methodIds.slice().sort().join());
   ok("every stamp equals its method's own version and date", methodIds.every((id) => METHOD_VERSIONS[id].version === RUBRICS[id].version && METHOD_VERSIONS[id].published === RUBRICS[id].published));
-  ok("a stamp reads as the page and PDF print it", methodStamp("staffing-calculator").text === "Method 1.1, published 28 September 2026" && methodStamp("staffing-calculator").href === "/methodology/staffing-calculator");
+  ok("a stamp reads as the page and PDF print it", methodStamp("staffing-calculator").text === "Method 1.2, published 30 September 2026" && methodStamp("staffing-calculator").href === "/methodology/staffing-calculator");
   ok("tools with no published method carry no stamp, and a hostile id finds none", methodStamp("roadmap-builder") === null && methodStamp("vendor-match") === null && methodStamp("__proto__") === null && methodStamp("toString") === null);
   const RA = readFileSync("./ReportActions.jsx", "utf8"), RE = readFileSync("./ReportExport.jsx", "utf8");
   ok("ReportActions prints the stamp on the page and passes it to the PDF", /methodStamp\(toolId\)/.test(RA) && /\{stamp\.text\}/.test(RA) && /method=\{stamp \?/.test(RA));

@@ -21,7 +21,7 @@ export const METHOD_VERSIONS = {
   "aht-decomposition": V("1.0", "2026-09-24"),
   "forecast-accuracy": V("1.0", "2026-09-24"),
   "schedule-adherence": V("1.1", "2026-09-28"),
-  "staffing-calculator": V("1.1", "2026-09-28"),
+  "staffing-calculator": V("1.2", "2026-09-30"),
   "cost-per-contact": V("1.1", "2026-09-28"),
   "channel-shift": V("1.2", "2026-09-28"),
   "fcr-leakage": V("1.0", "2026-09-25"),

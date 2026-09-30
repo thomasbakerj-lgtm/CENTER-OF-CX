@@ -16,7 +16,7 @@ function slice(a, b) {
   return SRC.slice(i, j);
 }
 const engine = slice("function erlangB(", "function buildInsights(");
-const mod = new Function("benchmark", `${engine}\nreturn { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, fmtSL, fmtASA, fmtPW, SL_CEILING, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)(benchmark);
+const mod = new Function("benchmark", `${engine}\nreturn { openHoursPlan, erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, fmtSL, fmtASA, fmtPW, SL_CEILING, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH };`)(benchmark);
 const { erlangB, erlangC, calc, solveNotice, abandonmentCheck, modelValidity, sustainablePair, staffingCost, poolingPenalty, fmtSL, fmtASA, fmtPW, SL_CEILING, BENCHMARK_HOURLY, FULL_LOAD_MULTIPLE, PAID_HOURS_MONTH } = mod;
 
 let pass = 0, fail = 0;
@@ -496,12 +496,12 @@ section("11B. grading layer, registry, sign invariance");
 
   const P0 = G.PRESETS.general;
   const run = (o = {}) => {
-    const st = { vol: 400, aht: 360, slT: 80, slS: 20, shrink: 30, intv: 30, patience: 0, capOn: false, capPct: 85, queues: 1, ...o.st };
+    const st = { vol: 400, aht: 360, slT: 80, slS: 20, shrink: 30, intv: 30, patience: 0, capOn: false, capPct: 85, queues: 1, hoursOpen: 40, avgShare: 100, ...o.st };
     const { st: g, guards } = G.guardStaffing(st);
     const r = o.r || G.calc(g.vol, g.aht, g.intv, g.slT / 100, g.slS, g.shrink / 100, st.capOn ? g.capPct / 100 : null);
     const valid = G.modelValidity(g.aht, g.intv);
     const cost = o.cost || G.staffingCost(r.sched, o.perAgent || 0, o.hourly || 0);
-    return G.gradeStaffing({ r, guards, valid, cost, shipped: o.shipped || P0, vol: g.vol, aht: g.aht, shrink: g.shrink, railOrigin: o.origin ?? null });
+    return G.gradeStaffing({ r, guards, valid, cost, shipped: o.shipped || P0, vol: g.vol, aht: g.aht, shrink: g.shrink, railOrigin: o.origin ?? null, planDefaults: o.planDefaults || [] });
   };
   const own = { vol: 420, aht: 350, shrink: 31 };
   const base = run();
@@ -522,6 +522,10 @@ section("11B. grading layer, registry, sign invariance");
   ok("Finance-grade evidence is unreachable without attestation", run({ st: own, perAgent: 6372, origin: "Finance-grade" }).evidence === "Planning-grade");
   ok("the benchmark basis grades Directional on own inputs", run({ st: own }).costGrade === "Directional" && run({ st: own }).opsGrade === "Planning-grade");
   ok("one default driver holds evidence Directional", run({ st: { ...own, shrink: 30 }, perAgent: 6372, origin: "Planning-grade" }).evidence === "Directional");
+  const planHeld = run({ st: own, perAgent: 6372, origin: "Planning-grade", planDefaults: ["hours open"] });
+  ok("method 1.2: a sourced cost with default hours open grades the cost stream Directional", planHeld.costGrade === "Directional" && /default hours open/.test(planHeld.gradeObj.reasons.evidence));
+  ok("method 1.2: with the reader's own hours and average interval the sourced cost keeps its origin grade", run({ st: own, perAgent: 6372, origin: "Planning-grade", planDefaults: [] }).costGrade === "Planning-grade");
+  ok("method 1.2: the benchmark basis stays Directional whatever the hours", run({ st: own, planDefaults: [] }).costGrade === "Directional");
   ok("a driver at another profile's value counts against that profile", run({ st: { vol: 700, aht: 340, shrink: 34 }, perAgent: 6372, origin: "Planning-grade", shipped: G.PRESETS.bpo }).defaultDrivers.length === 3);
 
   /* Defect 2, closed. An invalid model cannot grade above Directional. */
@@ -574,7 +578,39 @@ section("11B. grading layer, registry, sign invariance");
   }
   ok("the panel's Staffing row equals the page's cost of recovery time", bad === 0);
   const S = readFileSync("./StaffingCalculator.jsx", "utf8");
-  ok("the page shows the panel only when it shows the ceiling difference, never on a void", /!capOn && pair\.sustainable && !isVoid\(gradeObj\) \? staffingAsOccupancy/.test(S));
+  ok("the page shows the panel only when it shows the ceiling difference, never on a void", /!capOn && pairYear\.sustainable && !isVoid\(gradeObj\) \? staffingAsOccupancy/.test(S));
+}
+
+/* Method 1.2: the year is priced from the average open interval held across the hours open. At 40 hours and an
+   average equal to the busiest interval, it must equal method 1.1 exactly. */
+section("Method 1.2: the year from the hours open");
+{
+  const { openHoursPlan, calc, staffingCost } = mod;
+  let seed = 12;
+  const rnd = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+  let same = 0, n = 0, mono = 0, lin = 0;
+  for (let i = 0; i < 3000; i++) {
+    const vol = 1 + Math.floor(rnd() * 3000), aht = 60 + Math.floor(rnd() * 900), intv = [15, 30, 60][i % 3];
+    const slT = 0.6 + rnd() * 0.35, slS = 10 + Math.floor(rnd() * 50), shrink = rnd() * 0.45, cap = i % 4 === 0 ? 0.85 : null;
+    const r = calc(vol, aht, intv, slT, slS, shrink, cap);
+    const p = openHoursPlan(vol, 100, 40, aht, intv, slT, slS, shrink, cap);
+    n++;
+    if (p.fte === r.sched && p.factor === 1 && staffingCost(p.fte, 0, 0).annual === staffingCost(r.sched, 0, 0).annual) same++;
+    const share = 10 + Math.floor(rnd() * 90);
+    const lo = openHoursPlan(vol, share, 40, aht, intv, slT, slS, shrink, cap), hi = openHoursPlan(vol, Math.min(100, share + 10), 40, aht, intv, slT, slS, shrink, cap);
+    if (hi.fte >= lo.fte) mono++;
+    const h = 1 + Math.floor(rnd() * 168), ph = openHoursPlan(vol, share, h, aht, intv, slT, slS, shrink, cap);
+    if (Math.abs(ph.fte - lo.fte * h / 40) < 1e-9) lin++;
+  }
+  ok(`at 40 hours and 100% the year equals method 1.1 (${same} of ${n} cases)`, same === n);
+  ok(`a busier average interval never needs fewer FTE (${mono} of ${n})`, mono === n);
+  ok(`FTE on payroll scale with hours open (${lin} of ${n})`, lin === n);
+  const all = openHoursPlan(400, 60, 168, 360, 30, 0.8, 20, 0.3, null);
+  ok("open all week is 4.2 times a 40 hour week", Math.abs(all.factor - 4.2) < 1e-12);
+  ok("the average interval carries its share of the busiest volume", all.avgVolume === 240 && all.avg.sched === calc(240, 360, 30, 0.8, 20, 0.3, null).sched);
+  ok("the defaults are registered heuristics at 40 hours and 100%", benchmark("staffing.default.hoursOpen") === 40 && benchmark("staffing.default.avgShare") === 100);
+  ok("the form bounds hours open at 1 to 168 and the share at 1 to 100", SRC.includes('["hoursOpen", "Hours open a week", 1, 168, "h"]') && SRC.includes('["avgShare", "Average interval, share of the busiest", 1, 100, "%"]'));
+  ok("every yearly figure on the page rests on the plan", /const cost = staffingCost\(plan\.fte, railPerAgent, railHourly\);/.test(SRC) && /pairYear\.sustainable\.sched \* plan\.factor/.test(SRC) && /poolYear\.splitFte \* plan\.factor/.test(SRC));
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);
