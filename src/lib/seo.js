@@ -7,7 +7,7 @@ export const SITE = "The Center of CX";
 
 export const SEO_MAP = {
   "/": {
-    title: `${SITE} | Independent CX + Contact Center Technology Intelligence`,
+    title: `${SITE} | Contact Center Decision Tools and Vendor Research`,
     desc: "282 vendor profiles across 8 categories. Buyer guides, interactive tools, and the operational clarity CX leaders need to make confident technology decisions. No vendor sponsorship. No pay-to-play.",
   },
   "/platforms-and-tech": {
@@ -20,7 +20,7 @@ export const SEO_MAP = {
   },
   "/advisory": {
     title: `Find a CX Consultant | ${SITE}`,
-    desc: "Connect with vetted CX and contact center technology consultants. Platform selection, AI strategy, operational transformation. We match you with specialists in your vertical and challenge.",
+    desc: "Find a contact center or CX consultant we have vetted: platform selection, AI strategy and operational change, matched to your industry and problem.",
   },
   "/contact": {
     title: `Connect with a CX Consultant | ${SITE}`,
@@ -35,8 +35,8 @@ export const SEO_MAP = {
     desc: "30 free tools for CX operators. Staffing calculators, TCO models, QA scorecards, vendor matching, AHT decomposition, and more. Immediate output. No sales call required.",
   },
   "/research": {
-    title: `Research + Insight | ${SITE}`,
-    desc: "What The Center of CX has researched and how to check it: vendor research by category and its status, published methods, sourced industry pages, Market Watch and contributor perspectives.",
+    title: `Research: Vendors, Methods and Industries | ${SITE}`,
+    desc: "What we have researched and how to check it: vendor research by category, published methods, sourced industry pages, Market Watch and perspectives.",
   },
   "/vendors": {
     title: `Vendor Intelligence | 282 Vendor Profiles Across 8 Categories | ${SITE}`,
@@ -44,135 +44,135 @@ export const SEO_MAP = {
   },
   "/vendors/ccaas": {
     title: `CCaaS Vendors: 24 Platforms Profiled by the Job They Do | ${SITE}`,
-    desc: "24 CCaaS vendors and 4 adjacent suites, grouped by the job each platform does. For the 18 researched: where it fits, where it breaks, and the sources behind each finding. Scores withdrawn.",
+    desc: "24 CCaaS vendors and 4 adjacent suites by the job each does. For the 18 researched: where it fits, where it breaks, and sources. Scores withdrawn.",
   },
   "/vendors/iva": {
-    title: `IVA + Conversational AI: 50 Vendors Profiled Across 7 Categories | ${SITE}`,
-    desc: "50 IVA and conversational AI vendors across 7 market categories: enterprise IVA, voice-native, helpdesk AI, CCaaS-native, agent assist, ecommerce and CRM/workflow. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
+    title: `IVA + Conversational AI: 50 Vendors Profiled | ${SITE}`,
+    desc: "50 IVA and conversational AI vendors in 7 groups, from enterprise IVA and voice-native to helpdesk and CRM AI. Phase 1 scores withdrawn.",
   },
   "/vendors/acd-routing": {
     title: `ACD + Routing: 44 Vendors Profiled | ${SITE}`,
-    desc: "44 ACD and routing vendors by segment: routing logic, AI routing, failover and global scale. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
+    desc: "44 ACD and routing vendors by segment: routing logic, AI routing, failover and global scale. Phase 1 scores withdrawn until current research.",
   },
   "/vendors/analytics": {
     title: `Advanced Analytics: 41 Vendors Profiled | ${SITE}`,
-    desc: "41 analytics vendors across 6 platform categories: CCaaS-embedded, AI-native, WEM, LLM infrastructure, agent assist and product analytics. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
+    desc: "41 analytics vendors in 6 groups: CCaaS-embedded, AI-native, WEM, LLM infrastructure, agent assist and product analytics. Phase 1 scores withdrawn.",
   },
   "/vendors/payments": {
     title: `Payment Technology: 33 Vendors Profiled | ${SITE}`,
-    desc: "33 payment providers by segment: unified commerce, digital-first, enterprise in-store, orchestration, regional and specialty. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
+    desc: "33 payment providers: unified commerce, digital-first, in-store, orchestration, regional and specialty. Phase 1 scores withdrawn.",
   },
   "/vendors/digital-engagement": {
     title: `Digital Engagement: 46 Platforms Profiled | ${SITE}`,
-    desc: "46 digital engagement platforms by archetype: CCaaS-native, messaging, social care, AI automation and helpdesk. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
+    desc: "46 digital engagement platforms: CCaaS-native, messaging, social care, AI automation and helpdesk. Phase 1 scores withdrawn.",
   },
   "/vendors/agent-assist": {
     title: `Agent Assist: 15 Vendors Profiled | ${SITE}`,
-    desc: "15 agent assist vendors by type: real-time guidance, knowledge grounding, workflow execution, coaching and compliance. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
+    desc: "15 agent assist vendors by type: real-time guidance, knowledge grounding, workflow, coaching and compliance. Phase 1 scores withdrawn.",
   },
   "/cx-ecosystem": {
-    title: `CX Industry Ecosystem: 15 Essential Publications + Communities | ${SITE}`,
-    desc: "The 15 publications, research hubs, and communities that matter for CX and contact center professionals. Curated by The Center of CX.",
+    title: `CX Industry Publications and Communities | ${SITE}`,
+    desc: "The publications, research hubs and communities CX and contact center professionals read, with what each covers.",
   },
   "/methodology/cx-maturity": {
     title: `CX Maturity Rubric: How the Assessment Scores | ${SITE}`,
-    desc: "The published scoring rubric for the CX Maturity Assessment: 25 statements across 5 equally weighted dimensions, the band cut points, the action each statement triggers and what the assessment cannot tell you.",
+    desc: "The published rubric behind the CX Maturity Assessment: 25 statements in 5 equal dimensions, band cut points, each statement's action and the limits.",
   },
   "/methodology/transformation-readiness": {
-    title: `Transformation Readiness Rubric: How the Scorecard Scores | ${SITE}`,
-    desc: "The published scoring rubric for the Transformation Readiness Scorecard: 24 statements across 6 equally weighted dimensions, the band cut points, the gap flags, the action each statement triggers and what the scorecard cannot tell you.",
+    title: `Transformation Readiness Rubric: How It Scores | ${SITE}`,
+    desc: "The published rubric behind the Transformation Readiness Scorecard: 24 statements, 6 dimensions, band cut points, gap flags and each action.",
   },
   "/methodology/cx-it-alignment": {
     title: `CX + IT Alignment Rubric: How the Framework Scores | ${SITE}`,
-    desc: "The published scoring rubric for the CX + IT Alignment Framework: 15 paired CX and IT statements across 5 areas, the gap bands, the misalignment and shared-weakness rules, the action each pair triggers and what the framework cannot tell you.",
+    desc: "The published rubric behind CX + IT Alignment: 15 paired statements in 5 areas, gap bands, the misalignment and shared-weakness rules, and each action.",
   },
   "/methodology/governance-model": {
     title: `Governance & Operating Model: How the Map Is Read | ${SITE}`,
-    desc: "The published model behind the Governance & Operating Model: 30 CX decisions across 6 domains, the common owner and required functions for each, the six finding rules with their thresholds, and what the assessment cannot tell you.",
+    desc: "The published model behind Governance & Operating Model: 30 decisions in 6 domains, the owner each needs, and the six finding rules and thresholds.",
   },
   "/methodology/platform-decision": {
-    title: `Platform Decision Method: How the Renewal Gate Reads Your Platform | ${SITE}`,
-    desc: "The published method behind Platform Decision: 35 needs across 7 layers, must-have gaps, proof requests for unknowns, layer outcomes, the renewal gate, the notice-date clock and every threshold.",
+    title: `Platform Decision Method: The Renewal Gate | ${SITE}`,
+    desc: "The method behind Platform Decision: 35 needs across 7 layers, must-have gaps, proof requests for unknowns, the renewal gate and the notice-date clock.",
   },
   "/methodology/contract-risk": {
     title: `Contract Risk Method: How Each Clause Is Rated | ${SITE}`,
-    desc: "The published method behind the Contract Risk Scanner: 13 clauses, every option's severity and reason, the reading rule, negotiation positions and what the scanner cannot tell you.",
+    desc: "The method behind the Contract Risk Scanner: 13 clauses, each option's severity and reason, the reading rule and the negotiation positions.",
   },
   "/methodology/rfp-builder": {
     title: `RFP Builder Method: Requirements and Response Scoring | ${SITE}`,
-    desc: "The published method behind the RFP Requirement Builder: every requirement by layer, default weights, response credits where only generally available earns full credit, clarifications, demo verification and the analyst read rules.",
+    desc: "The method behind the RFP Builder: requirements by layer, default weights, response credits (only GA earns full credit), clarifications and demo checks.",
   },
   "/methodology/occupancy-risk": {
-    title: `Occupancy Risk Method: Formulas, Bands and a Worked Example | ${SITE}`,
-    desc: "The published method behind the Occupancy Risk Simulator: workload in Erlangs, occupancy, the shared occupancy bands, staffing to a target, the labelled attrition model, every constant with its source, and a worked example.",
+    title: `Occupancy Risk Method: Formulas and a Worked Example | ${SITE}`,
+    desc: "The method behind the Occupancy Risk Simulator: workload in Erlangs, occupancy bands, staffing to a target, the attrition model and a worked example.",
   },
   "/methodology/shrinkage-planner": {
     title: `Shrinkage Planner Method: Formulas and a Worked Example | ${SITE}`,
-    desc: "The published method behind the Shrinkage Planner: total shrinkage on one base, planned and unplanned, agents on the queue, agents to schedule, the value of paid time off the queue, every constant with its source, and a worked example.",
+    desc: "The method behind the Shrinkage Planner: planned and unplanned shrinkage on one base, agents to schedule, paid time off the queue and a worked example.",
   },
   "/methodology/aht-decomposition": {
-    title: `AHT Decomposition Method: Formulas, Levers and a Worked Example | ${SITE}`,
-    desc: "The published method behind AHT Decomposition: handle time by component, initiative levers as editable shares, how selected levers combine, agent hours as capacity, every lever share with its source, and a worked example.",
+    title: `AHT Decomposition Method: Levers and a Worked Example | ${SITE}`,
+    desc: "The method behind AHT Decomposition: handle time by component, levers as editable shares, how they combine, freed agent hours and a worked example.",
   },
   "/methodology/forecast-accuracy": {
-    title: `Forecast Accuracy Method: WAPE, MAPE and the Tracking Signal | ${SITE}`,
-    desc: "The published method behind the Forecast Accuracy Tracker: WAPE as the headline, MAPE beside it, total-volume accuracy and why interval errors cancel in it, bias, the tracking signal and its limit, and workload from contacts missed.",
+    title: `Forecast Accuracy Method: WAPE, MAPE and Bias | ${SITE}`,
+    desc: "The method behind the Forecast Accuracy Tracker: WAPE as the headline, MAPE, why total accuracy hides interval errors, bias and the tracking signal.",
   },
   "/methodology/schedule-adherence": {
-    title: `Schedule Adherence Method: Erlang C, Service Level and Overtime | ${SITE}`,
-    desc: "The published method behind the Schedule Adherence Impact Calculator: adherence as agents on the queue, Erlang C service level and speed of answer, agents to schedule for the target, overtime priced at the FLSA minimum, and a worked example.",
+    title: `Schedule Adherence Method: Erlang C and Overtime | ${SITE}`,
+    desc: "The method behind the Schedule Adherence calculator: adherence as agents on the queue, Erlang C service level, agents to schedule and overtime cost.",
   },
   "/methodology/staffing-calculator": {
     title: `Staffing Calculator Method: Erlang C, FTE and Cost | ${SITE}`,
-    desc: "The published method behind the Staffing Requirement Calculator: offered load, Erlang C by recurrence, the agents that meet a service level, occupancy ceilings, shrinkage to scheduled FTE, annual cost, pooling and abandonment checks, and two worked examples.",
+    desc: "The method behind the Staffing Calculator: offered load, Erlang C, agents for a service level, occupancy ceilings, shrinkage to FTE and annual cost.",
   },
   "/methodology/cost-per-contact": {
-    title: `Cost per Contact Method: Cost per Resolution and Repeat Demand | ${SITE}`,
-    desc: "The published method behind the Cost per Contact Calculator: contacts per resolution, cost per resolution, repeat demand and its burden, channel handle cost, FTE burden, capacity released by an FCR improvement, every constant with its source, and a worked example.",
+    title: `Cost per Contact Method: Cost per Resolution | ${SITE}`,
+    desc: "The method behind the Cost per Contact Calculator: contacts per resolution, cost per resolution, repeat demand, channel cost and capacity released.",
   },
   "/methodology/channel-shift": {
-    title: `Channel Shift Method: Net Minutes, Bot Fees and Break-even | ${SITE}`,
-    desc: "The published method behind the Channel Shift Model: eligible voice, displacement and bounce-back, residual and departing handle time, net minutes freed, bot fees, transition, payback, break-even, every constant with its source, and a worked example.",
+    title: `Channel Shift Method: Net Minutes and Break-even | ${SITE}`,
+    desc: "The method behind the Channel Shift Model: eligible voice, displacement and bounce-back, net minutes freed, bot fees, payback and break-even.",
   },
   "/methodology/fcr-leakage": {
     title: `FCR Leakage Method: Repeat Burden, Ceiling and Payback | ${SITE}`,
-    desc: "The published method behind the FCR Leakage Diagnostic: repeat share models, repeat burden, the opportunity and capture curves, the practical ceiling by scope, contacts avoided, realizable savings, payback, every constant with its source, and a worked example.",
+    desc: "The method behind the FCR Leakage Diagnostic: repeat burden, the practical ceiling by scope, contacts avoided, realizable savings and payback.",
   },
   "/methodology/ai-deflection": {
-    title: `AI Deflection Method: Three Rates, Net Savings and Break-even | ${SITE}`,
-    desc: "The published method behind the AI Deflection Reality Check: coverage, apparent resolution and net automation with their denominators, durable resolution, net savings, the bridge from the vendor claim, break-even resolution, repeat tolerance, payback, every constant with its source, and a worked example.",
+    title: `AI Deflection Method: Net Savings and Break-even | ${SITE}`,
+    desc: "The method behind the AI Deflection Reality Check: coverage, true resolution, net automation, net savings, break-even resolution and a worked example.",
   },
   "/methodology/tco-calculator": {
-    title: `TCO Method: Labor, Technology, Overhead and Three Years | ${SITE}`,
-    desc: "The published method behind the TCO Calculator: agent and salaried labor, attrition, telephony, technology and overhead, cost per contact and per resolution, marginal cost, the three-year escalation, the four optimization levers, every constant with its source, and a worked example.",
+    title: `TCO Method: Labor, Technology and Three Years | ${SITE}`,
+    desc: "The method behind the TCO Calculator: labor, attrition, telephony, technology and overhead, cost per contact and resolution, levers and an example.",
   },
   "/methodology/license-gap": {
     title: `License Gap Method: Quoted Seat to Platform Cost | ${SITE}`,
-    desc: "The published method behind the License Bundle Gap Checker: quoted seat, effective license seat, platform seat-equivalent, the bundle gap and hidden annual, commit exposure, year-three seat, growth, every constant with its source, and a worked example.",
+    desc: "The method behind the License Gap Checker: quoted seat to effective seat and platform cost, the bundle gap, commit exposure and a worked example.",
   },
   "/methodology/attrition-cost": {
     title: `Attrition Cost Method: Cash, Capacity and Avoided Cost | ${SITE}`,
-    desc: "The published method behind the Attrition Cost Calculator: departures and hires, cash and capacity per departure, vacancy coverage, annual burden, the frontline planning band, avoided cost at lower rates, every constant with its source, and a worked example.",
+    desc: "The method behind the Attrition Cost Calculator: cash and capacity per departure, vacancy coverage, annual burden, avoided cost and a worked example.",
   },
   "/methodology/business-case-builder": {
-    title: `Business Case Method: Levers, Attribution, Realization and Return | ${SITE}`,
-    desc: "The published method behind the Business Case Builder: the containment, handle-time, FCR and attrition levers, attribution by stance, realization by capacity action, the phased three-year cash flow, return and payback, every constant with its source, and a worked example.",
+    title: `Business Case Method: Levers, Realization, Return | ${SITE}`,
+    desc: "The method behind the Business Case Builder: four levers, attribution, realization by capacity action, three-year cash flow, return and payback.",
   },
   "/methodology/qa-scorecard": {
     title: `QA Scorecard Method: Form Checks and Blind Calibration | ${SITE}`,
-    desc: "The published method behind the QA Scorecard Builder: the form checks, blind calibration, and the Center of CX Calibration Method built on Krippendorff's alpha and Gwet's AC1, with bootstrap intervals, bands, thresholds and sources.",
+    desc: "The method behind the QA Scorecard Builder: form checks and blind calibration with Krippendorff's alpha, Gwet's AC1, bootstrap intervals and sources.",
   },
   "/methodology/ai-readiness": {
     title: `AI Readiness Rubric: How the Diagnostic Scores | ${SITE}`,
-    desc: "The published scoring rubric for the AI Readiness Diagnostic: 24 statements across 6 equally weighted dimensions, the band cut points, the action each statement triggers and what the diagnostic cannot tell you.",
+    desc: "The published rubric behind the AI Readiness Diagnostic: 24 statements in 6 equal dimensions, band cut points, each statement's action and the limits.",
   },
   "/tools/cx-maturity": {
-    title: `CX Maturity Assessment: Score Your Organization | ${SITE}`,
-    desc: "Score your CX organization across 5 dimensions: strategy, operations, technology, analytics, and governance. 25 questions. Immediate results with maturity tier and recommendations.",
+    title: `CX Maturity Assessment | ${SITE}`,
+    desc: "25 statements across strategy, operations, technology, analytics and governance. Your band, an action for each weak statement and a next diagnostic.",
   },
   "/tools/ai-readiness": {
-    title: `AI Readiness Diagnostic: Is Your Contact Center Ready? | ${SITE}`,
-    desc: "Evaluate your data quality, workflow design, integration architecture, governance, and talent readiness for AI-driven automation. 24 questions across 6 dimensions.",
+    title: `AI Readiness Diagnostic for Contact Centers | ${SITE}`,
+    desc: "24 statements across 6 dimensions, from data and workflow to governance and talent. See where AI would stall and what to fix first.",
   },
   "/tools/cx-it-alignment": {
     title: `CX + IT Alignment Framework | ${SITE}`,
@@ -192,23 +192,23 @@ export const SEO_MAP = {
   },
   "/industries": {
     title: `Industries | ${SITE}`,
-    desc: "Ten verticals mapped with CCaaS platforms and vertical-specific overlays. Healthcare, financial services, retail, telecom, insurance, travel, utilities, government, manufacturing, and education.",
+    desc: "Ten industries and their segments: what their contact centers handle, the rules that apply, sourced figures and the technology each layer needs.",
   },
   "/industries/financial-services": {
-    title: `Financial Services CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for banking, insurance, lending, and wealth management. Benchmarks, technology stack mapping, failure modes, BPO guidance, and vendor recommendations.",
+    title: `Financial Services Contact Center CX | ${SITE}`,
+    desc: "Banking, lending, payments and wealth contact centers: Regulation E and other rules, sourced figures, failure modes and the technology they need.",
   },
   "/industries/healthcare": {
-    title: `Healthcare CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for health systems, payers, providers, and digital health. Patient access benchmarks, HIPAA-aware technology mapping, and failure modes.",
+    title: `Healthcare Contact Center CX | ${SITE}`,
+    desc: "Health system, payer, digital health and pharma contact centers: HIPAA, Medicare rules, sourced figures and the technology each layer needs.",
   },
   "/industries/retail": {
-    title: `Retail + eCommerce CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for eCommerce, omnichannel retail, subscription, and marketplace operations. Benchmarks, seasonal scaling, and commerce-integrated vendor recommendations.",
+    title: `Retail + eCommerce Contact Center CX | ${SITE}`,
+    desc: "eCommerce, omnichannel, subscription and marketplace contact centers: returns, peak season, payment rules and the technology each layer needs.",
   },
   "/industries/telecom": {
-    title: `Telecommunications CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for wireless carriers, broadband/ISP, cable, and enterprise communications. Churn reduction, BSS/OSS integration, retention routing, and vendor recommendations.",
+    title: `Telecommunications Contact Center CX | ${SITE}`,
+    desc: "Wireless, broadband, cable and enterprise communications contact centers: CPNI, billing disputes, retention and the technology they need.",
   },
   "/research/iva-buyer-guide": {
     title: `IVA + Conversational AI Buyer's Guide 2026 | ${SITE}`,
@@ -216,51 +216,51 @@ export const SEO_MAP = {
   },
   "/research/ccaas-buyer-guide": {
     title: `CCaaS Platform Buyer's Guide 2026 | ${SITE}`,
-    desc: "Phase 1 edition, April 2026: 28 CCaaS platforms on 27 weighted dimensions, operating-model fit and migration risk. Its scores and tiers are withdrawn on the site while current research is published.",
+    desc: "Phase 1 edition, April 2026: 28 CCaaS platforms on 27 dimensions, operating-model fit and migration risk. Its scores and tiers are withdrawn on the site.",
   },
   "/human-premium": {
-    title: `The Human Premium: Why the Best CX Operations Invest More in People | ${SITE}`,
-    desc: "Four new roles, five career paths, twelve certifications, and the growth playbook for CX professionals thriving in the AI era. Technology intelligence without workforce intelligence is half a strategy.",
+    title: `The Human Premium: Contact Center Careers and AI | ${SITE}`,
+    desc: "New roles, career paths and checked certifications for contact center professionals as AI takes on more of the work, with each provider's price.",
   },
   "/research/ccaas-migration-costs": {
-    title: `Cloud Contact Center Migration Costs: What the Business Case Leaves Out | ${SITE}`,
-    desc: "The costs a CCaaS migration quote tends to leave out: integration, add-on modules, training, parallel running and a longer timeline. How to price each one before you sign.",
+    title: `Cloud Contact Center Migration Costs to Plan For | ${SITE}`,
+    desc: "Costs a CCaaS migration quote tends to leave out: integration, add-on modules, training, parallel running and a longer timeline, and how to price each.",
   },
   "/research/orchestration-framework": {
     title: `The 7-Layer CX Orchestration Framework 2026 | ${SITE}`,
     desc: "How every layer connects, who owns each one, and what to prepare for in the next 12 months. Layer-by-layer deep dives, integration dependencies, and a 14-question readiness checklist.",
   },
   "/tools/staffing-calculator": {
-    title: `Staffing Requirement Calculator | Erlang C Staffing Model | ${SITE}`,
-    desc: "Convert call volume, AHT, SLA target, and shrinkage into required FTE using Erlang C. Sensitivity analysis shows exactly what happens when you are short.",
+    title: `Erlang C Staffing Calculator | ${SITE}`,
+    desc: "Turn call volume, handle time, service level and shrinkage into the agents and FTE you need with Erlang C, and see what happens when you are short.",
   },
   "/tools/shrinkage-planner": {
-    title: `Shrinkage Planner | Planned vs Unplanned Shrinkage Modeling | ${SITE}`,
-    desc: "Model planned and unplanned shrinkage across 8 categories. See the staffing gap it creates and quantify the annual cost of lost capacity.",
+    title: `Shrinkage Planner: Planned and Unplanned Shrinkage | ${SITE}`,
+    desc: "Model planned and unplanned shrinkage across 8 categories, the agents you need to schedule, and the paid time spent off the queue each year.",
   },
   "/tools/occupancy-risk": {
-    title: `Occupancy Risk Simulator | When Efficiency Becomes Burnout | ${SITE}`,
-    desc: "See how occupancy levels affect agent idle time, burnout risk, attrition, and hidden turnover costs. The math behind the 85% occupancy threshold.",
+    title: `Occupancy Risk Simulator: Occupancy vs Burnout | ${SITE}`,
+    desc: "See what occupancy does to idle time, burnout risk and attrition cost, and what staffing to a target occupancy costs in a year.",
   },
   "/tools/forecast-accuracy": {
-    title: `Forecast Accuracy Tracker | Forecast vs Actual by Interval | ${SITE}`,
-    desc: "Compare forecast vs actual by interval and channel. Calculate MAPE, bias, and identify the intervals where your forecast breaks down.",
+    title: `Forecast Accuracy Tracker: WAPE and Bias by Interval | ${SITE}`,
+    desc: "Compare forecast and actual by interval. Interval accuracy (WAPE), MAPE, bias and the tracking signal show where your forecast breaks down.",
   },
   "/tools/schedule-adherence": {
     title: `Schedule Adherence Impact Calculator | ${SITE}`,
     desc: "See how 1-10 points of adherence loss cascade into SLA degradation, ASA spikes, higher abandonment, and overtime cost.",
   },
   "/tools/attrition-cost": {
-    title: `Attrition Cost Calculator | The True Cost of Agent Turnover | ${SITE}`,
-    desc: "Quantify the full cost of every agent departure: recruiting, training, nesting, ramp-to-proficiency, supervisor burden, overtime, and QA drag.",
+    title: `Agent Attrition Cost Calculator | ${SITE}`,
+    desc: "The full cost of each agent who leaves: recruiting, training, ramp, supervisor time and overtime, plus why agents leave and what to check next.",
   },
   "/tools/cost-per-contact": {
     title: `Cost per Contact vs Cost per Resolution Calculator | ${SITE}`,
     desc: "A $7 call that takes 3 contacts to resolve costs $21. Separate handle cost from resolution cost and quantify the real price of low FCR.",
   },
   "/tools/ai-deflection": {
-    title: `AI Deflection Reality Check | Net Savings After the Fine Print | ${SITE}`,
-    desc: "Your vendor says 40% deflection. What does net savings look like after bot leakage, containment failure, escalation premiums, and operating costs?",
+    title: `AI Deflection Reality Check: Net Savings of a Bot | ${SITE}`,
+    desc: "Test a vendor's deflection claim: coverage, true resolution, repeat contacts, bot fees and escalations, and the net saving that survives them.",
   },
   "/tools/channel-shift": {
     title: `Channel Shift Economics Model | ${SITE}`,
@@ -271,44 +271,44 @@ export const SEO_MAP = {
     desc: "Compare the vendor seat price against what you actually need. WEM, QA, analytics, AI, telephony, storage, support. See the real gap.",
   },
   "/tools/aht-decomposition": {
-    title: `AHT Decomposition Tool | Break Handle Time Into Actionable Components | ${SITE}`,
-    desc: "Stop reducing AHT generically. Break it into talk, hold, wrap, transfer, search, and admin. Target the segments that are reducible without hurting quality.",
+    title: `AHT Decomposition: What Makes Up Your Handle Time | ${SITE}`,
+    desc: "Break handle time into talk, hold, wrap, transfer, search and admin, then test which levers move it and what the freed agent hours are worth.",
   },
   "/tools/qa-scorecard": {
-    title: `QA Scorecard Builder | Weighted Evaluation Forms by Contact Type | ${SITE}`,
-    desc: "Build weighted QA forms by contact type, check that they produce defensible scores, and calibrate evaluators blind under a published method: Krippendorff's alpha, Gwet's AC1 and bootstrap intervals.",
+    title: `QA Scorecard Builder and Blind Calibration | ${SITE}`,
+    desc: "Build weighted QA forms, check they produce defensible scores, and calibrate evaluators blind with Krippendorff's alpha and Gwet's AC1.",
   },
   "/tools/fcr-leakage": {
     title: `FCR Leakage Diagnostic | What Drives Repeat Contacts | ${SITE}`,
     desc: "Low FCR is a symptom. This tool identifies the root cause across policy, handoffs, channels, knowledge, skills, and workflows.",
   },
   "/tools/vendor-match": {
-    title: `Vendor Match Engine | Ranked Shortlist for Your Environment | ${SITE}`,
-    desc: "Tell us your operation size, vertical, priorities, and constraints. Get a CCaaS vendor shortlist with the fit reasoning behind it.",
+    title: `Vendor Match: A CCaaS Starting List | ${SITE}`,
+    desc: "Enter your size, industry, priorities and constraints for a starting list of CCaaS platforms, with the Phase 1 method disclosed. No vendor pays to appear.",
   },
   "/tools/platform-decision": {
-    title: `Platform Decision: The Renewal Gate for Your Contact Center Platform | ${SITE}`,
-    desc: "Decide what to do at renewal: renew as is, renew with conditions, add a specialist or run an evaluation. Rate 35 needs across 7 layers by what matters and how you know, against your notice date.",
+    title: `Platform Decision: Renew or Evaluate Your CCaaS | ${SITE}`,
+    desc: "Decide at renewal: renew, renew with conditions, add a specialist or run an evaluation. Rate 35 needs across 7 layers against your notice date.",
   },
   "/tools/contract-risk": {
-    title: `Contract Risk Scanner | Find Red Flags Before You Sign | ${SITE}`,
-    desc: "Read 13 clauses of a contact center platform contract against published severities: renewal, price, SLA, liability, exit, data, AI use of your data, security and add-ons. See what to ask for instead.",
+    title: `Contract Risk Scanner: CCaaS Contract Red Flags | ${SITE}`,
+    desc: "Rate 13 clauses of a contact center platform contract: renewal, price, SLA, liability, exit, data, AI use and add-ons. See what to ask for instead.",
   },
   "/tools/transformation-readiness": {
-    title: `Transformation Readiness Scorecard | Go/No-Go Assessment | ${SITE}`,
-    desc: "Score leadership alignment, budget realism, team capacity, vendor maturity, technical readiness, and change management. Get a phased recommendation.",
+    title: `Transformation Readiness Scorecard | ${SITE}`,
+    desc: "Score leadership, budget, team capacity, vendor, technical and change readiness in 24 statements, with the gaps to close before you commit.",
   },
   "/tools/rfp-builder": {
-    title: `RFP Requirement Builder | Weighted Requirements by Layer | ${SITE}`,
-    desc: "Build weighted RFP requirements by layer for your vertical and size, then score vendor responses: must-haves met, generally available only, what to verify in each demo and where the choice is decided.",
+    title: `RFP Requirement Builder for Contact Centers | ${SITE}`,
+    desc: "Build weighted RFP requirements by layer for your industry and size, then score vendor responses: must-haves met, what is GA, what to verify in a demo.",
   },
   "/market-watch": {
-    title: `Market Watch | What Is New in Contact Center and CX Technology | ${SITE}`,
-    desc: "Dated items on launches, retirements, deals, outages and rules in contact center and CX technology, each written from the page it cites and labelled verified, news or vendor-supplied. Kept apart from the research.",
+    title: `Market Watch: Contact Center and CX Technology News | ${SITE}`,
+    desc: "Dated items on launches, retirements, deals, outages and rules in contact center technology, each written from its source and labelled by it.",
   },
   "/perspectives": {
     title: `Contributor Perspectives | ${SITE}`,
-    desc: "Practitioners, consultants, analysts and academics writing under their own names, reviewed for facts, sources and disclosure. A perspective never changes a research finding, a grade or a tool's result.",
+    desc: "Practitioners, consultants and analysts writing under their own names, checked for facts, sources and disclosure. A perspective never changes a finding.",
   },
   /* A published piece or contributor gets its own entry here when it is published ("/perspectives/<slug>": title with the
      author, desc the piece's dek; "/contributors/<slug>"); contributors.test.mjs requires one for each and no other.
@@ -319,47 +319,47 @@ export const SEO_MAP = {
   },
   "/corrections": {
     title: `How Corrections Work | Vendor Research | ${SITE}`,
-    desc: "How anyone, including a vendor, can report an error in our vendor research: what to send, when we answer, and why only public, citable evidence changes a finding. No vendor pays, previews or approves.",
+    desc: "How anyone, including a vendor, can report an error in our research: what to send, when we answer, and why only public evidence changes a finding.",
   },
   "/privacy": {
     title: `Privacy Policy | ${SITE}`,
-    desc: "How The Center of CX collects, uses and protects personal information: what tools keep in your browser, what forms send, who processes it and the choices you have.",
+    desc: "How The Center of CX collects and uses personal information: what stays in your browser, what forms send, who processes it and the choices you have.",
   },
   "/terms": {
     title: `Terms of Use | ${SITE}`,
-    desc: "The terms for using The Center of CX: research and tools as decision support, no guaranteed outcomes, vendor information and introductions, submissions, intellectual property and liability.",
+    desc: "The terms for using The Center of CX: tools and research as decision support, vendor information and introductions, submissions and liability.",
   },
   "/vendors/wem-qm": {
     title: `Workforce + Quality Management: 25 Vendors Profiled | ${SITE}`,
-    desc: "WEM, WFM and QA vendors across 3 market layers, with the demo gates every vendor should pass. Listed by name; Phase 1 scores withdrawn until the category is researched under the current methodology.",
+    desc: "25 WEM, WFM and QA vendors across 3 market layers, with the demo checks each should pass. Phase 1 scores withdrawn.",
   },
   "/industries/education": {
-    title: `Education CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for admissions, financial aid, student services, IT help desk, and online education. FERPA, enrollment yield, retention, and student lifecycle.",
+    title: `Education Contact Center CX | ${SITE}`,
+    desc: "Admissions, financial aid, student services and online learning contact centers: FERPA, Title IV, sourced figures and the technology they need.",
   },
   "/industries/manufacturing": {
-    title: `Manufacturing + Automotive CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for automotive OEM, dealers, industrial B2B, consumer electronics, aerospace, and food manufacturing. Warranty, recalls, parts logistics, and field service.",
+    title: `Manufacturing + Automotive Contact Center CX | ${SITE}`,
+    desc: "Automotive, industrial, electronics and aerospace contact centers: recalls, warranty claims, parts and field service, and the technology they need.",
   },
   "/industries/government": {
-    title: `Government + Public Sector CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for federal, state, local, courts, public safety, and social services. FedRAMP, accessibility, multilingual support, and citizen trust.",
+    title: `Government + Public Sector Contact Center CX | ${SITE}`,
+    desc: "Federal, state, local, courts, public safety and social services contact centers: Section 508, ADA Title II, language access and technology.",
   },
   "/industries/utilities": {
-    title: `Utilities + Energy CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for electric, gas, water, municipal, renewable energy, and competitive supply. Storm response, outage management, and regulatory compliance.",
+    title: `Utilities + Energy Contact Center CX | ${SITE}`,
+    desc: "Electric, gas and water contact centers: outage surges, gas emergency procedures, regulation and the technology each layer needs.",
   },
   "/industries/insurance": {
-    title: `Insurance CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for P&C, life, commercial, workers comp, specialty lines, and insurtech. Claims management, CAT response, and state DOI compliance.",
+    title: `Insurance Contact Center CX | ${SITE}`,
+    desc: "P&C, life, commercial and specialty insurance contact centers: claim deadlines, catastrophe surges, state rules and the technology they need.",
   },
   "/industries/travel": {
-    title: `Travel + Hospitality CX Intelligence | ${SITE}`,
-    desc: "Vertical-specific CX intelligence for airlines, hotels, OTAs, car rental, cruise lines, and tours. Disruption management, multilingual support, and GDS-integrated vendor recommendations.",
+    title: `Travel + Hospitality Contact Center CX | ${SITE}`,
+    desc: "Airline, hotel, OTA, car rental and cruise contact centers: DOT refunds, EU 261, disruption surges and the technology each layer needs.",
   },
   "/tools/tco-calculator": {
-    title: `TCO Calculator | ${SITE}`,
-    desc: "Model your contact center total cost of ownership across staffing, technology, operations, and transformation. Get a cost breakdown and connect with a consultant.",
+    title: `Contact Center TCO Calculator | ${SITE}`,
+    desc: "Model contact center total cost of ownership: labor, technology, telephony and overhead, cost per contact and per resolution, and three years out.",
   },
 };
 import { CATEGORIES, VERTICALS, hasScoredVerticalFit, CCAAS_INDEXED_INDUSTRIES } from "./verticals.js";
@@ -379,13 +379,24 @@ import { METHOD_VERSIONS } from "./methodVersions.js";
 export const TOOL_COUNT = Object.keys(SEO_MAP).filter((p) => p.startsWith("/tools/")).length;
 /* The tools hub states the live count, never a hand-written one (it said 30 after the retirements). */
 Object.assign(SEO_MAP, { "/how-to-choose": {
-  title: `CX Pro Tools | ${TOOL_COUNT} Free Interactive Tools for Contact Center Professionals | ${SITE}`,
-  desc: `${TOOL_COUNT} free tools for CX operators. Staffing calculators, TCO models, QA scorecards, vendor matching, AHT decomposition, and more. Immediate output. No sales call required.`,
+  title: `${TOOL_COUNT} Free Contact Center Tools and Calculators | ${SITE}`,
+  desc: `${TOOL_COUNT} free tools for contact center teams: staffing, TCO, QA, handle time, vendor fit and more, each with a published method. No sign-up.`,
 } });
 export const CATEGORY_COUNT = Object.keys(CATEGORIES).length;
 export const ADJACENT_PROFILE_COUNT = 4;
 export const VENDOR_PROFILE_COUNT =
   Object.values(CATEGORIES).reduce((a, c) => a + c.vendorCount, 0) + ADJACENT_PROFILE_COUNT;
+/* Home and vendor hub metadata state the live counts (30 Sep 2026: both said 282 by hand). */
+Object.assign(SEO_MAP, {
+  "/": {
+    title: `${SITE} | Contact Center Decision Tools and Vendor Research`,
+    desc: `${TOOL_COUNT} free contact center tools with published methods, ${VENDOR_PROFILE_COUNT} vendor profiles and sourced industry pages. Every figure shows its source.`,
+  },
+  "/vendors": {
+    title: `Contact Center Vendors: ${VENDOR_PROFILE_COUNT} Profiles, ${CATEGORY_COUNT} Categories | ${SITE}`,
+    desc: `${VENDOR_PROFILE_COUNT} contact center and CX vendors in ${CATEGORY_COUNT} categories, from CCaaS to payments, each with its research status. No vendor pays to be listed.`,
+  },
+});
 
 const LEGACY_CAT_NAMES = {
   ccaas: "CCaaS Platforms",
@@ -805,14 +816,14 @@ export const SEGMENT_COUNT = Object.keys(SUBVERTICAL_NAMES).length;
    the other 51. Kept outside the generated block so gen-seo-names.mjs never
    touches it; seo.test.mjs section H holds every key to a real page. */
 const SUBVERTICAL_DESC = {
-  "education/undergrad-admissions": "Admissions contact center intelligence. Speed to lead, yield benchmarks, funnel leakage, and the 7-layer CX stack that turns inquiries into enrolled students.",
-  "financial-services/retail-banking": "Retail banking contact center intelligence. AHT, FCR, and containment benchmarks, fraud and dispute routing, compliance controls, and a 7-layer CX stack map.",
-  "government/federal": "Federal contact center intelligence. FedRAMP constraints, Section 508 and language access, legacy system realities, benchmarks, and a 7-layer CX stack map.",
-  "healthcare/health-systems": "Health system contact center intelligence. Patient access, scheduling, billing, and care coordination benchmarks, HIPAA guardrails, and a 7-layer CX stack map.",
-  "insurance/personal-lines": "Personal lines P&C contact center intelligence. FNOL intake, CAT surge planning, claims and retention benchmarks, fraud controls, and a 7-layer CX stack map.",
-  "manufacturing/automotive-oem": "Automotive OEM contact center intelligence. Recall surges, warranty adjudication, connected vehicle and EV support, dealer handoffs, and a 7-layer CX stack map.",
-  "retail/ecommerce-dtc": "eCommerce and DTC contact center intelligence. Order status, returns, and payment dispute benchmarks, revenue escalation, and a 7-layer CX stack map.",
-  "telecom/mobile-wireless": "Wireless carrier contact center intelligence. Billing disputes, device support, churn and retention benchmarks, SIM swap fraud controls, and a 7-layer CX stack.",
+  "education/undergrad-admissions": "Admissions contact centers: speed to lead, FERPA, the enrollment funnel and a 7-layer technology check for turning inquiries into enrolled students.",
+  "financial-services/retail-banking": "Retail banking contact centers: fraud and dispute handling, Regulation E, compliance controls and a 7-layer technology check you can mark.",
+  "government/federal": "Federal contact centers: FedRAMP, Section 508, language access, legacy systems and a 7-layer technology check you can mark.",
+  "healthcare/health-systems": "Health system contact centers: patient access, scheduling, billing and care coordination, HIPAA guardrails and a 7-layer technology check.",
+  "insurance/personal-lines": "Personal lines insurance contact centers: first notice of loss, catastrophe surges, claim deadlines, fraud controls and a 7-layer technology check.",
+  "manufacturing/automotive-oem": "Automotive OEM contact centers: recall surges, warranty claims, connected vehicles and EVs, dealer handoffs and a 7-layer technology check.",
+  "retail/ecommerce-dtc": "eCommerce and DTC contact centers: order status, returns, payment disputes and a 7-layer technology check you can mark.",
+  "telecom/mobile-wireless": "Wireless carrier contact centers: billing disputes, device support, retention, SIM swap fraud controls and a 7-layer technology check.",
   "travel/airlines": "Airline contact center intelligence. IROP disruption surges, rebooking, EU261 and DOT compensation rules, loyalty routing, benchmarks, and a 7-layer CX stack.",
   "utilities/electric-iou": "Electric utility contact center intelligence. Storm and outage surge response, billing and start or stop service, benchmarks, and a 7-layer CX stack map.",
 };
@@ -860,8 +871,8 @@ export function resolveSeo(rawPath) {
          (TB, 27 Sep 2026). */
       if (parts[0] === "ccaas" && CCAAS_INDEXED_INDUSTRIES.includes(parts[1])) {
         seo.known = true;
-        seo.title = `Contact Center Platforms for ${vName} | What the Research Says | ${SITE}`;
-        seo.desc = `What current research on CCaaS platforms says about ${vName}: every finding, decision, product and break that bears on it, in the research's own words, dated, with vendors A to Z.`;
+        seo.title = `CCaaS Research: ${vName} Contact Centers | ${SITE}`;
+        seo.desc = `What current CCaaS research says about ${vName}: every finding, product and break that bears on it, dated, with vendors A to Z.`;
         return seo;
       }
       seo.known = false;
@@ -879,13 +890,14 @@ export function resolveSeo(rawPath) {
          the term a buyer is actually searching alongside the vendor name. */
       const vendorName = vendorDisplayName(parts[0]);
       const vendorCat = vendorCategoryLabel(parts[0]);
-      seo.title = vendorCat
+      /* The name and category stay within 55 characters so a result shows them whole; a long product name drops the category. */
+      seo.title = vendorCat && `${vendorName} | ${vendorCat}`.length <= 55
         ? `${vendorName} | ${vendorCat} | ${SITE}`
         : `${vendorName} | Vendor Profile | ${SITE}`;
       seo.known = true;
       seo.desc = vendorCat
-        ? `Independent assessment of ${vendorName} in ${vendorCat}. Strengths, weaknesses, where it fits and its research status.`
-        : `Independent assessment of ${vendorName}. Strengths, weaknesses, where it fits and its research status.`;
+        ? `${vendorName} in ${vendorCat}: what it is, where it fits and its research status, with sources where it has been researched.`
+        : `${vendorName}: what it is, where it fits and its research status, with sources where it has been researched.`;
     }
     return seo;
   }
@@ -899,14 +911,14 @@ export function resolveSeo(rawPath) {
       const realSub = own(SUBVERTICAL_NAMES, `${parts[0]}/${parts[1]}`);
       const vName = vertName(parts[0]) || titleCase(parts[0]);
       const subName = realSub || titleCase(parts[1]);
-      seo.title = `${subName} CX Intelligence | ${vName} | ${SITE}`;
+      seo.title = `${subName} Contact Center CX | ${SITE}`;
       seo.known = !!realSub && !!vertName(parts[0]);
-      seo.desc = (realSub && own(SUBVERTICAL_DESC, `${parts[0]}/${parts[1]}`)) || `CX technology intelligence for ${subName} within ${vName}. Benchmarks, stack mapping, failure modes, and vendor guidance specific to ${subName} operations.`;
+      seo.desc = (realSub && own(SUBVERTICAL_DESC, `${parts[0]}/${parts[1]}`)) || `${subName} contact centers: what they handle, the rules that apply, sourced figures where they exist and a 7-layer technology check.`;
     } else {
       const name = titleCase(parts[0]);
-      seo.title = `${name} CX Intelligence | ${SITE}`;
+      seo.title = `${name} Contact Center CX | ${SITE}`;
       seo.known = parts.length === 1 && !!vertName(parts[0]);
-      seo.desc = `Dedicated CX technology intelligence for ${name}. Sub-vertical frameworks, vendor mapping, benchmarks, and integration pitfalls.`;
+      seo.desc = `${name} contact centers: segments, the rules that apply, sourced figures and the technology each layer needs.`;
     }
     return seo;
   }

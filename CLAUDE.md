@@ -1738,6 +1738,15 @@ dashboard, the 12-phase growth program.
      claims plus Forrester, Gartner and Puzzel figures with no links). CCaaS category page retitled around "CCaaS
      vendors" (position 15.8). Researched profiles and segment pages already rank on page one for their long tail.
 
+103. S24 (30 Sep), search metadata pass (TB: "go"). Measured all 432 sitemap pages: 121 page names over 55 characters and
+   115 descriptions over 160, cut off in Google results; many descriptions also broke the site's rules ("Ranked
+   Shortlist", "vendor recommendations", "reducible" handle time, "the 85% occupancy threshold", "Strengths,
+   weaknesses" on profiles, "282" by hand). Rewritten: home, vendor hub (counts derived), 8 category pages, 3 CCaaS
+   research pages ("CCaaS Research: X Contact Centers"), 25 tools, 23 methods, 11 industry pages, the 61 segment
+   template and its 8 hand-written descriptions ("X Contact Center CX", no benchmark claims), the vendor profile
+   template (drops the category when name and category pass 55), and 12 content pages. `seo.test.mjs` W1 to W5 gate
+   length, retired words and derived counts (the old metadata fails four of five). Section 14 records the search rules.
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the
@@ -2140,3 +2149,31 @@ First report:
 - what tests will prove separation and lineage are preserved.
 
 If a requested code change appears to require a research-methodology or schema change, stop and flag it rather than silently implementing it.
+
+---
+
+## 14. Search rules (TB, 30 Sep 2026)
+
+Google's ranking system is not public. We build to what Google publishes (Search Essentials, the helpful content
+guidance, the Search Quality Rater Guidelines and its E-E-A-T, Core Web Vitals, structured data) and treat the 2023
+antitrust testimony and the 2024 API documentation leak as hints, never as weights. Every new or changed page follows
+these rules:
+
+1. **Title and description match a real search.** Write the words people type (Search Console queries first), not a
+   slogan. The page's own name stays within 55 characters (the brand suffix may be cut); the description runs 70 to
+   160 characters and says what the page gives the reader. `seo.test.mjs` W gates length and the retired sales words.
+2. **Answer first.** The page's main answer or tool sits near the top in plain words; a newcomer can tell in one screen
+   what the page is for.
+3. **Every figure sourced, linked and dated** (doctrine); no metadata claims what the page does not show.
+4. **Say who and how.** Name the method (and, when TB decides, the author or editor); link the published method and the
+   sources. Trust is the E-E-A-T axis we can prove today; experience and expertise need a named person.
+5. **Link the next step.** Each page links the related tool, method, industry and vendor pages, so a reader and a crawler
+   can move through the site.
+6. **Structured data from `seo.js structuredData` only**, prerendered, one type per page kind.
+7. **Page experience stays in budget** (`scripts/perf-check.mjs`: LCP and FCP within 2.5 s, CLS under 0.1 on a throttled
+   phone).
+8. **Thin pages stay noindex** until they carry their own substance.
+9. **Read Search Console weekly.** A page at positions 1 to 10 with impressions and no clicks gets its title and
+   description rewritten to the query; a page at 11 to 20 gets content and internal links for that query.
+10. **Links and mentions come from distribution.** Every asset we publish is something another site can cite: a sourced
+    figure, a tool, a method.
