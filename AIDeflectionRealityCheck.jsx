@@ -69,6 +69,8 @@ const RES_RARE = benchmark("aid.read.resolutionRare");
 const FOUNDATION = benchmark("aid.read.foundationFloor");
 const BOT_NEAR_FREE = benchmark("aid.guard.botNearFree");
 const UP_RES = benchmark("aid.upside.resolutionLift"), UP_REP = benchmark("aid.upside.repeatCut");
+/* The Conservative scenario's multiples. Method 1.2: the table shows them and a Proceed needs that case to break even. */
+const DN_ELIG = benchmark("aid.downside.eligibleCut"), DN_RES = benchmark("aid.downside.resolutionCut"), DN_REP = benchmark("aid.downside.repeatLift");
 const BANDS = { estimate: benchmark("aid.band.estimate"), marketing: benchmark("aid.band.marketing"), proposal: benchmark("aid.band.proposal"), sla: benchmark("aid.band.sla"), pilot: benchmark("aid.band.pilot") };
 
 /* Benchmark governance. Every default is sourced, dated, and carries its denominator.
@@ -97,7 +99,7 @@ const DEFS = {
   rail: { title: "Rail handoff", text: "This tool is the one source of the realistic deflection rate the other tools on the site use. It publishes two numbers, net automation of total demand and durable resolution of the traffic routed to the bot, because the tools that read them need different denominators. When it publishes nothing, this panel says so." },
   durable: { title: "Durable resolution, and its limits", text: "A durable resolution is an interaction that reached the outcome the customer wanted without an avoidable handoff to a human, a repeat contact on the same issue, a switch to another channel, or a later correction, inside the measurement window you choose. Two caveats. A repeat contact can be a new, unrelated issue. And a customer who never comes back may simply have given up. Unless you supply observed repeat data matched by contact reason, the durable figure here is an estimate of your leakage, and it should be read as one." },
   funnel: { title: "The three rates", text: "Coverage is how much demand a bot could handle, out of total demand. Resolution is how much of the bot's own traffic it handles, out of AI-involved conversations. Net automation is how much of your total volume goes away for good, out of total demand. Each answers a different question, and most overstatement in AI business cases sits in the gap between apparent resolution and net automation." },
-  verdict: { title: "The decision", text: "This tool supports one expensive decision: approving an automation business case, or committing to a resolution target. The verdict has four main states. Proceed when the economics are positive and backed by evidence. Pilot when they are positive and still unproven. Fix the foundation first when eligibility is what holds you back. Buy nothing when even the upside case is a net cost." },
+  verdict: { title: "The decision", text: "This tool supports one expensive decision: approving an automation business case, or committing to a resolution target. The verdict has four main states. Proceed when the economics are positive and backed by evidence, the program pays back inside the year, and the Conservative scenario still breaks even. Pilot when they are positive but unproven or thin. Fix the foundation first when eligibility is what holds you back. Buy nothing when even the upside case is a net cost." },
 };
 
 export function engine(I) {
@@ -290,6 +292,19 @@ export function engine(I) {
   const bestNet = marg * M * E * (bestDur * sf - (1 - bestDur) * esc) - opexMonthly;
   const strongEvidence = ev.rank >= 1;
   const creditable = cr >= 2;
+  /* Method 1.2 (audit, 30 Sep 2026): positive monthly economics alone printed Proceed on a case that netted $13,067 a
+     month against $2.5M of implementation, a payback of about 16 years, and lost money in its own Conservative
+     scenario. A Proceed now also needs the program to pay back inside the 12 months modelled here and the Conservative
+     scenario (the same rounded inputs the scenario table runs) to break even. No new threshold: both tests read figures
+     the page already shows. */
+  const pctOf = (v, m) => Math.round(Math.min(100, v * m)) / 100;
+  const dE = pctOf(ep, DN_ELIG), dR = pctOf(rp, DN_RES), dRHO = pctOf(rhop, DN_REP);
+  const dDur = dR * (1 - dRHO);
+  const downNet = marg * M * dE * (dDur * sf - (1 - dDur) * esc) - opexMonthly;
+  const paybackMonthsSteady = netSavings > 0 ? Math.ceil(implOneTime / netSavings) : null;
+  const fragile = [];
+  if (payback === null) fragile.push(`It does not pay back its ${fmt(implOneTime)} implementation inside the 12 months modelled here${paybackMonthsSteady ? `: at ${fmt(netSavings)} a month it takes about ${paybackMonthsSteady} months at full run rate` : ""}.`);
+  if (downNet < 0) fragile.push(`The Conservative scenario (lower eligibility and resolution, more repeats) loses ${fmt(-downNet)} a month, so the case holds only if the rates you entered hold.`);
   let verdict, verdictWhy, verdictRoute, verdictRouteLabel, verdictTone;
   /* F2 (TB, S24): the form opens with no capacity action. With none chosen, freed time realizes $0 while the
      operating cost stays cash, so every case is a loss by construction. That is the arithmetic of a question the
@@ -314,9 +329,13 @@ export function engine(I) {
     verdict = "Run a bounded pilot";
     verdictWhy = "The economics are positive, but they rest on estimated inputs or on freed capacity nobody has committed to turning into cash. A scoped pilot produces the evidence finance will ask for before a full commitment.";
     verdictRoute = "/tools/ai-readiness"; verdictRouteLabel = "Design the readiness check"; verdictTone = "electric";
+  } else if (fragile.length) {
+    verdict = "Run a bounded pilot";
+    verdictWhy = `The monthly economics are positive, but the margin is thin. ${fragile.join(" ")} Prove the resolution rate on your own traffic in a scoped pilot before a full commitment, and price the contract so the vendor carries a shortfall.`;
+    verdictRoute = "/tools/contract-risk"; verdictRouteLabel = "Test the contract for a floor"; verdictTone = "electric";
   } else {
     verdict = "Proceed, with a contracted floor";
-    verdictWhy = "The economics are positive, the capacity action is one finance can credit, and the evidence is documented or observed. Proceed, and write the resolution rate into the contract with a remedy, so the number you modeled is the number you are owed.";
+    verdictWhy = "The economics are positive, the program pays back inside a year, the Conservative scenario still breaks even, the capacity action is one finance can credit, and the evidence is documented or observed. Proceed, and write the resolution rate into the contract with a remedy, so the number you modeled is the number you are owed.";
     verdictRoute = "/tools/business-case"; verdictRouteLabel = "Build the business case"; verdictTone = "green";
   }
 
@@ -327,7 +346,7 @@ export function engine(I) {
     netAtEscZero, netAtEscDouble, escSwing, escShareOfResult,
     realizedDollarsPct, realizedDeflectionPct, beResPct, beNote, severityRatio, repeatTolPct, repeatNote,
     monthly, year1, year1NoRamp, rampOn, rampMonths, rampNote, payback, waterfall, waterfallSum, railRate, railBot, railPublished, railReason,
-    bestNet, flags, guards, hardFlag, band, evidenceKey: evKey, evidenceLabel: ev.label, evidenceRank: ev.rank,
+    bestNet, downNet, paybackMonthsSteady, flags, guards, hardFlag, band, evidenceKey: evKey, evidenceLabel: ev.label, evidenceRank: ev.rank,
     verdict, verdictWhy, verdictRoute, verdictRouteLabel, verdictTone,
   };
 }
@@ -337,7 +356,7 @@ export function engine(I) {
 function buildScenarios(I) {
   const specs = [
     { label: "Conservative", note: "lower eligibility and resolution, more repeats, slower ramp",
-      m: { eligibleRate: 0.8, apparentResolutionRate: 0.85, repeatLeakRate: 1.5 } },
+      m: { eligibleRate: DN_ELIG, apparentResolutionRate: DN_RES, repeatLeakRate: DN_REP } },
     { label: "Expected", note: "your inputs as entered", m: { eligibleRate: 1, apparentResolutionRate: 1, repeatLeakRate: 1 } },
     { label: "Stretch", note: "better eligibility and resolution, fewer repeats, and what must be true to get there",
       m: { eligibleRate: 1.1, apparentResolutionRate: 1.15, repeatLeakRate: 0.5 } },
