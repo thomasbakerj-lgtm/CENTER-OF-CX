@@ -194,13 +194,13 @@ export default function VendorProfile() {
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
             <FadeIn>
-              <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-                <div style={{ maxWidth: 480 }}>
+              <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px clamp(18px, 6vw, 32px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+                <div style={{ maxWidth: 480, minWidth: 0 }}>
                   <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                  <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {iv.name}? Share what you've seen.</h3>
+                  <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {iv.name}? Share what you've seen.</h3>
                   <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
                 </div>
-                <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", boxShadow: "none", flexShrink: 0 }}>Share Your Experience</a>
+                <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", boxShadow: "none", flexShrink: 0, maxWidth: "100%", textAlign: "center" }}>Share Your Experience</a>
               </div>
             </FadeIn>
           </div>
@@ -317,13 +317,13 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-              <div style={{ maxWidth: 480 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px clamp(18px, 6vw, 32px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480, minWidth: 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {aa.name} for agent assist? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {aa.name} for agent assist? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
               </div>
-              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, maxWidth: "100%", textAlign: "center", boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
@@ -405,13 +405,13 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-              <div style={{ maxWidth: 480 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px clamp(18px, 6vw, 32px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480, minWidth: 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {wv.vendor} for WEM/WFM/QM? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {wv.vendor} for WEM/WFM/QM? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
               </div>
-              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, maxWidth: "100%", textAlign: "center", boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
@@ -480,13 +480,13 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-              <div style={{ maxWidth: 480 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px clamp(18px, 6vw, 32px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480, minWidth: 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {av.name} for analytics? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {av.name} for analytics? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions.</p>
               </div>
-              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, maxWidth: "100%", textAlign: "center", boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
@@ -548,13 +548,13 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-              <div style={{ maxWidth: 480 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px clamp(18px, 6vw, 32px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480, minWidth: 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {av.name}? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {av.name}? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
-              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, maxWidth: "100%", textAlign: "center", boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
@@ -617,13 +617,13 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-              <div style={{ maxWidth: 480 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px clamp(18px, 6vw, 32px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480, minWidth: 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {dv.name}? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {dv.name}? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
-              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, maxWidth: "100%", textAlign: "center", boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
@@ -694,13 +694,13 @@ export default function VendorProfile() {
         {/* Community */}
         <section style={{ background: HOUSE.ink, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}><FadeIn>
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-              <div style={{ maxWidth: 480 }}>
+            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px clamp(18px, 6vw, 32px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480, minWidth: 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {pv.name}? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {pv.name}? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>Your operational experience helps other CX leaders make better decisions. Share what works and flag what doesn't.</p>
               </div>
-              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, boxShadow: "none" }}>Share Your Experience</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, flexShrink: 0, maxWidth: "100%", textAlign: "center", boxShadow: "none" }}>Share Your Experience</a>
             </div>
           </FadeIn></div>
         </section>
@@ -962,10 +962,10 @@ export default function VendorProfile() {
       <section style={{ background: WARM, padding: "64px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
           <FadeIn>
-            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-              <div style={{ maxWidth: 480 }}>
+            <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "36px clamp(18px, 6vw, 32px)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+              <div style={{ maxWidth: 480, minWidth: 0 }}>
                 <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", fontFamily: FONT, display: "block", marginBottom: 8 }}>Community Intelligence</span>
-                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>Used {v.name}? Share what you've seen.</h3>
+                <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {v.name}? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, fontFamily: FONT }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't. Every review is attributed by role and company size.</p>
               </div>
               <button onClick={() => setShowReview(true)} style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: FONT, boxShadow: "none", flexShrink: 0 }}>Share Your Experience</button>

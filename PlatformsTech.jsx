@@ -221,7 +221,7 @@ function OrchestrationLayers() {
           <a href="/seven-layers-map.html" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 32, background: HOUSE.navy, border: `1px solid ${BORDER}30`, borderRadius: 10, padding: "20px 24px", textDecoration: "none", color: "inherit", transition: "all 0.25s", gap: 20, flexWrap: "wrap" }}
             onMouseOver={e => { e.currentTarget.style.borderColor = ELECTRIC; e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "none"; }}
             onMouseOut={e => { e.currentTarget.style.borderColor = `${BORDER}30`; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, minWidth: 240 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, minWidth: "min(240px, 100%)" }}>
               <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
                 {[1,2,3,4,5,6,7].map((n) => LAYER(n)).map((c,i) => (
                   <div key={i} style={{ width: 6, height: 28 + i*3, borderRadius: 2, background: c }} />
