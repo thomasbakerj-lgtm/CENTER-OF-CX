@@ -12,7 +12,7 @@ import React, { useState, useEffect } from "react";
 import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_SANS, alpha, LINE } from "./tokens.js";
 import { Icon } from "./Icon.jsx";
 import { editionFor, todayUtc } from "./editions.js";
-import { EVERYDAY, geometryFor, markParts } from "./mark.js";
+import { EVERYDAY, geometryFor, markParts, boxWidth, BOX_VIEW } from "./mark.js";
 import { trackShare } from "./track.js";
 
 export const HEADER_HEIGHT = 64;
@@ -37,14 +37,15 @@ export const FOOTER = [
 
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
 
-/** The mark (src/lib/mark.js): the mist C, the voice in sky, the X. `edition` (src/lib/editions.js) colours the voice
+/** The mark (src/lib/mark.js): the mist C, the voice in sky, the X. `size` is its height; it sits in the drawing's own box
+ *  so it meets the name without the empty right third of a square. `edition` (src/lib/editions.js) colours the voice
  *  bars in turn with its three colours and the X with its own, on its dates; the C stays mist. */
 export function Mark({ size = 30, edition = null }) {
   const p = markParts(geometryFor(size));
   const voices = edition ? edition.voices : [EVERYDAY.dark.voice];
   const x = edition ? edition.x : EVERYDAY.dark.x;
   return (
-    <svg width={size} height={size} viewBox="-60 -60 120 120" aria-hidden="true" focusable="false">
+    <svg width={boxWidth(size)} height={size} viewBox={BOX_VIEW} aria-hidden="true" focusable="false">
       <g fill="none" strokeLinecap="round">
         <path d={p.c} stroke={EVERYDAY.dark.c} strokeWidth={p.cW} />
         <g strokeWidth={p.barW}>
@@ -85,7 +86,7 @@ export function SiteHeader({ active = null, fixed = false }) {
       <style>{CSS}</style>
       <div style={{ maxWidth: 1280, margin: "0 auto", height: HEADER_HEIGHT, padding: "0 20px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 28 }}>
         <a href="/" title={edition ? `${edition.name}: ${edition.why}` : undefined} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: HOUSE.mist, minHeight: TOUCH }}>
-          <Mark size={30} edition={edition} /><span style={{ fontSize: 16, fontWeight: 600, whiteSpace: "nowrap" }}>The Center of CX</span>
+          <Mark size={40} edition={edition} /><span style={{ fontSize: 16, fontWeight: 600, whiteSpace: "nowrap" }}>The Center of CX</span>
         </a>
         <nav aria-label="Primary" className="cx-nav" style={{ alignItems: "center", gap: 22 }}>{NAV.map((n) => item(n, false))}</nav>
         <div style={{ flexGrow: 1 }} />
@@ -112,7 +113,7 @@ export function SiteFooter() {
     <footer className="cx-foot" style={{ background: HOUSE.ink, color: HOUSE.body, borderTop: `1px solid ${hair}`, fontFamily: FONT_SANS }}>
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 20px 28px", boxSizing: "border-box", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 28 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 10, color: HOUSE.mist, fontWeight: 600, fontSize: 16 }}><Mark size={26} />The Center of CX</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 10, color: HOUSE.mist, fontWeight: 600, fontSize: 16 }}><Mark size={34} />The Center of CX</span>
           <span style={{ fontSize: 14, lineHeight: 1.55 }}>Diagnose before you buy. Independent intelligence for contact center and CX technology. No vendor pays to appear.</span>
         </div>
         {FOOTER.map((col) => (

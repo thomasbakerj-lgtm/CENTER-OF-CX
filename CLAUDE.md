@@ -1759,6 +1759,22 @@ dashboard, the 12-phase growth program.
    `Logo`/`LogoMark` copies of the old mark left in page files (never rendered; several are md5-pinned tool files). Suite
    26,846; build and prerender green; browser at 1440 and 390, the edition on 6 Oct and the report masthead checked.
 
+102. S24 (30 Sep), TB: the header mark looked too small, and on a phone "text runs out of the border boxes" (TB: go).
+   - Mark: the voice bars take the outer part of the box, so at 30 px the C and X were about 12 px, and the square box
+     left its right third empty beside the name. `src/lib/mark.js` BOX (76 by 106 units, the drawing's own bounds,
+     `mark.test.mjs` proves both drawings fit with round caps and at most 3 units spare a side); trimmed marks take their
+     height. Header 40 px, footer 34, report masthead 28; the small drawing now runs below 48 px. Favicon unchanged.
+   - `scripts/containment-audit.mjs`: text (measured per line with a Range) and controls that cross the edge of their
+     bordered or filled box; a clipping or scrolling box ends the check, closed details and legends are exempt. The
+     page-level overflow sweeps missed these because the page still fit. First run, all 432 pages at 390 and 360 px:
+     the Vendors hub category cards (a 280 px column inside 276 px, so every card spilled; the chip row now wraps), the
+     How others report it list (an auto figure column crushed the name to one letter a line on License Gap at 360;
+     now fit-content(40%)), the eight vendor profile call-to-action headings (a long name such as ContactCenter4All
+     left the card; they break), the Platforms and Tech map card (a 240 px minimum), and at 320 px the community box on
+     every Phase 1 profile variant and the How others report it chips. Every finding fixed and its pages re-checked clean at
+     390, 360 and 320 px. It runs nightly on production at the same three widths.
+   Suite 27,132.
+
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**
 Task detail and definitions of done: `docs/NEXT_PHASE_HANDOFF.md`.
 

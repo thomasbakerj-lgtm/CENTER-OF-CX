@@ -130,7 +130,7 @@ export function reportHtml({ toolName, subtitle, reportName, company, logo, toda
     return "";
   };
 
-  const markSvg = markSvg_(EVERYDAY.paper, { size: 26, attrs: 'class="mark" aria-hidden="true"' });
+  const markSvg = markSvg_(EVERYDAY.paper, { size: 28, trim: true, attrs: 'class="mark" aria-hidden="true"' });
   const howBlock = !how ? "" : how.void
     ? `<div class="how void"><div class="how-label">How sure</div><div class="how-grade">No figure</div><div class="how-line">${e(how.reason || "The inputs made a figure impossible, so none is printed.")}</div></div>`
     : `<div class="how">${evidenceMark(how.axes || {})}<div class="how-text"><div class="how-label">How sure${how.label ? `, ${e(how.label)}` : ""}</div><div class="how-grade">${e(how.headline || "Not stated")}</div>${how.boundBy ? `<div class="how-line">Held by ${e(how.boundBy)}</div>` : ""}</div></div>`;
