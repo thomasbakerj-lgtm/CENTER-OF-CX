@@ -7,6 +7,15 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-30", methods: ["staffing-calculator"], version: "1.2",
+    title: "Staffing: the year priced from your hours open",
+    changes: [
+      "The yearly cost priced the busiest interval's FTE as a year of full-time agents, which fits a center open 40 hours a week with every interval as busy as the busiest, and no other.",
+      "Two inputs now set the year: hours open a week and the average interval as a share of the busiest. FTE on payroll is the scheduled FTE for the average interval times hours open divided by 40. The recovery time and pooling costs use the same basis.",
+      "They open at 40 hours and 100%, where every figure equals method 1.1. A sourced cost basis grades no higher than Directional while either input is still at its default.",
+    ],
+  },
+  {
     date: "2026-09-30", methods: ["ai-deflection"], version: "1.2",
     title: "AI Deflection: a Proceed needs payback in the year and a Conservative case that breaks even",
     changes: [

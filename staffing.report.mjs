@@ -241,7 +241,7 @@ function render(S) {
     const st = { ...DEFAULTS, ...MUT() };
     const { st: stG, guards } = guardStaffing(st);
     const { capOn, preset } = st;
-    const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;
+    const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues, hoursOpen, avgShare } = stG;
     const occCap = capOn ? capPct / 100 : null;
     const r = calc(vol, aht, intv, slT / 100, slS, shrink / 100, occCap);
     /* Rail state. The harness renders the standalone document, the case with no
@@ -261,15 +261,21 @@ function render(S) {
     const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= benchmark("staffing.aband.material") || (r.raw - adjR.raw) >= benchmark("staffing.aband.agents"));
     const pair = sustainablePair(vol, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
     const pool = poolingPenalty(vol, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
-    const cost = staffingCost(r.sched, railPerAgent, railHourly);
+    const plan = openHoursPlan(vol, avgShare, hoursOpen, aht, intv, slT / 100, slS, shrink / 100, occCap);
+    const planAtPeak = avgShare >= 100;
+    const pairYear = planAtPeak ? pair : sustainablePair(plan.avgVolume, aht, intv, slT / 100, slS, shrink / 100, BENCH.occupancy.targetHigh);
+    const poolYear = planAtPeak ? pool : poolingPenalty(plan.avgVolume, aht, intv, slT / 100, slS, shrink / 100, occCap, queues);
+    const cost = staffingCost(plan.fte, railPerAgent, railHourly);
+    const fteYearText = (Math.round(plan.fte * 10) / 10).toLocaleString("en-US");
+    const planDefaults = [...(hoursOpen === DEFAULTS.hoursOpen ? ["hours open"] : []), ...(avgShare === DEFAULTS.avgShare ? ["average interval"] : [])];
     /* Nothing pulled in the standalone document: no field carries a rail value or label. */
     const pulled = {};
-    const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled });
+    const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled, planDefaults });
     const ahtFrom = null, shrinkFrom = null, capFrom = null;
     const { gradeObj, confidence } = graded;
-    const costCeiling = pair.sustainable ? staffingCost(pair.sustainable.sched, railPerAgent, railHourly) : null;
+    const costCeiling = pairYear.sustainable ? staffingCost(pairYear.sustainable.sched * plan.factor, railPerAgent, railHourly) : null;
     const recoveryAnnual = costCeiling ? costCeiling.annual - cost.annual : 0;
-    const poolAnnual = pool ? staffingCost(pool.splitFte, railPerAgent, railHourly).annual - staffingCost(pool.pooled.sched, railPerAgent, railHourly).annual : 0;
+    const poolAnnual = poolYear ? staffingCost(poolYear.splitFte * plan.factor, railPerAgent, railHourly).annual - staffingCost(poolYear.pooled.sched * plan.factor, railPerAgent, railHourly).annual : 0;
     const insights = buildInsights(r, slT / 100, slS, occInfo, capOn, capPct, pair, valid, recoveryAnnual, cost, pool);
     const spike = calc(Math.round(vol * SPIKE), aht, intv, slT / 100, slS, shrink / 100, occCap);
     const ahtUp = calc(vol, Math.round(aht * (1 + AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);
@@ -548,9 +554,9 @@ const CORR = "\u26a0 Inputs Corrected Before Calculation";
      to the shipped JSX. A bypass there would otherwise pass every assertion above. */
   for (const line of [
     "const { st: stG, guards } = guardStaffing(st);",
-    "const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues } = stG;",
-    "const cost = staffingCost(r.sched, railPerAgent, railHourly);",
-    "const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled });",
+    "const { vol, aht, slT, slS, shrink, intv, patience, capPct, queues, hoursOpen, avgShare } = stG;",
+    "const cost = staffingCost(plan.fte, railPerAgent, railHourly);",
+    "const graded = gradeStaffing({ r, guards, valid, cost, shipped: p || PRESETS.general, vol, aht, shrink, railOrigin: costOrigin, pulled, planDefaults });",
     "const abandMeaningful = aband && adjR && (r.raw - adjR.raw) >= 1 && (aband.estAband >= benchmark(\"staffing.aband.material\") || (r.raw - adjR.raw) >= benchmark(\"staffing.aband.agents\"));",
     "const spike = calc(Math.round(vol * SPIKE), aht, intv, slT / 100, slS, shrink / 100, occCap);",
     "const ahtDown = calc(vol, Math.round(aht * (1 - AHT_STEP)), intv, slT / 100, slS, shrink / 100, occCap);",
@@ -629,9 +635,9 @@ console.log("\n11B. void render, sign invariance");
   const D = DOCS.A;
   const v = D.gradeStaffing({ r: { ...D.r, sched: D.r.raw - 1 }, guards: [], valid: D.valid, cost: D.cost, shipped: { label: "x", volume: 0, aht: 0, shrink: 0 }, vol: 1, aht: 1, shrink: 1, railOrigin: null });
   A("a forced invariant voids", v.voided && isVoid(v.gradeObj) && v.confidence === "Void");
-  const subtitleFn = new Function("r", "fmtMoney", "cost", "isVoid", "gradeObj", "confidence", `return ${subtitleExpr};`);
+  const subtitleFn = new Function("r", "fmtMoney", "cost", "isVoid", "gradeObj", "confidence", "hoursOpen", `return ${subtitleExpr};`);
   const fm = (x) => `$${Math.round(x)}`;
-  const vs = subtitleFn(D.r, fm, D.cost, isVoid, v.gradeObj, v.confidence);
+  const vs = subtitleFn(D.r, fm, D.cost, isVoid, v.gradeObj, v.confidence, 40);
   A("the void subtitle says the export is void and claims no grade", /EXPORT VOID/.test(vs) && !/Directional|Planning-grade|Finance-grade/.test(vs));
   A("a void reaches the result as a void, with no figure (Phase 6: the frame's Result)", /const \{ how, voidReason \} = resultHow\(gradeObj\);/.test(SRC) && /value=\{voidReason \? null : r\.sched\}/.test(SRC) && /voidReason=\{voidReason\}/.test(SRC));
   /* Sign invariance. The same inputs with only volume moved, zero to large. */
