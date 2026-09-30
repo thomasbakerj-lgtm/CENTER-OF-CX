@@ -211,7 +211,7 @@ export default function VendorProfile() {
           <div style={WRAP}>
             <FadeIn>
               <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-                <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {iv.name} for your organization?</h2>
+                <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {iv.name} for your organization?</h2>
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {iv.name} fits your operating model, vertical requirements, and integration landscape.</p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
@@ -331,7 +331,7 @@ export default function VendorProfile() {
         {/* CTA */}
         <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {aa.name} for agent assist?</h2>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {aa.name} for agent assist?</h2>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {aa.name} fits your operating model, vertical requirements, and integration landscape.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
@@ -419,7 +419,7 @@ export default function VendorProfile() {
         {/* CTA */}
         <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {wv.vendor} for workforce or quality management?</h2>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {wv.vendor} for workforce or quality management?</h2>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>The right shortlist depends on whether you're buying a workforce control plane, a balanced WEM suite, or a QA modernization overlay. We can help.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a WEM/QM Briefing</a>
@@ -494,7 +494,7 @@ export default function VendorProfile() {
         {/* CTA */}
         <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {av.name} for analytics?</h2>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {av.name} for analytics?</h2>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your analytics architecture and operational workflow requirements.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
@@ -561,7 +561,7 @@ export default function VendorProfile() {
 
         <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {av.name}?</h2>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {av.name}?</h2>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your routing architecture and orchestration requirements.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
@@ -630,7 +630,7 @@ export default function VendorProfile() {
 
         <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {dv.name}?</h2>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {dv.name}?</h2>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {dv.name} fits your digital engagement and channel strategy.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
@@ -707,7 +707,7 @@ export default function VendorProfile() {
 
         <section style={{ background: WARM, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
-            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating {pv.name}?</h2>
+            <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {pv.name}?</h2>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {pv.name} fits your payment architecture, PCI requirements, and channel strategy.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
@@ -1128,7 +1128,7 @@ export default function VendorProfile() {
             <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: "-20%", right: "-10%", width: 400, height: 400, borderRadius: "50%", background: "none" }} />
               <div style={{ position: "relative", zIndex: 1 }}>
-                <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>
+                <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>
                   Evaluating {v.name} for your organization?
                 </h2>
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px", fontFamily: FONT }}>

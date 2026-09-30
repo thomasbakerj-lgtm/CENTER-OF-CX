@@ -227,7 +227,7 @@ function OrchestrationLayers() {
                   <div key={i} style={{ width: 6, height: 28 + i*3, borderRadius: 2, background: c }} />
                 ))}
               </div>
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: LIGHT, boxShadow: `0 0 8px ${LIGHT}` }} />
                   <span style={{ fontSize: 10, fontWeight: 700, color: LIGHT, letterSpacing: 1.8, textTransform: "uppercase" }}>Interactive</span>

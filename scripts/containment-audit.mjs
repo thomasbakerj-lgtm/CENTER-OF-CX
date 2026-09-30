@@ -10,13 +10,10 @@
 // inside it, every text run (measured with a Range, so a long word that will not wrap counts) and every image, svg,
 // input and button must stay within the box, give or take one pixel. A clipping or scrolling ancestor between them ends
 // the check (the overflow is intended and reachable). Prints each finding and exits 1 when any is found.
+// Needs playwright-core (installed with --no-save in CI, as for the live checker) and a Chromium; set CHROMIUM_PATH to
+// use a local one. Runs nightly on production after the live check.
 import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-import { execSync } from "node:child_process";
-
-const require = createRequire(execSync("npm root -g").toString().trim() + "/");
-let chromium;
-try { ({ chromium } = await import("playwright")); } catch { ({ chromium } = require("playwright")); }
+import { chromium } from "playwright-core";
 
 const ORIGIN = (process.argv[2] || "http://localhost:4173").replace(/\/$/, "");
 const WIDTHS = (process.argv[3] || "390,360").split(",").map(Number);
@@ -41,8 +38,8 @@ function audit() {
   // The nearest box around a node, unless a clipping or scrolling ancestor comes first.
   const boxOf = (node) => {
     for (let el = node.nodeType === 1 ? node.parentElement : node.parentElement; el && el !== document.body; el = el.parentElement) {
+      if (clips(el)) return null; // a clipping or scrolling box: overflow there is intended and reachable
       if (isBox(el)) return el;
-      if (clips(el)) return null;
     }
     return null;
   };
@@ -51,6 +48,7 @@ function audit() {
   const hidden = (node) => { const d = node.closest && node.closest("details:not([open])"); return !!d && !node.closest("summary"); };
   const check = (node, rect, what) => {
     if (!rect || rect.width === 0 || rect.height === 0 || hidden(node)) return;
+    if (node.closest && node.closest("legend")) return; // a legend sits on its fieldset's border by design
     const box = boxOf(node);
     if (!box) return;
     const b = box.getBoundingClientRect();
@@ -73,7 +71,7 @@ function audit() {
   return out.filter((f) => { const k = f.box + f.what; if (seen.has(k)) return false; seen.add(k); return true; });
 }
 
-const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome" });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined });
 let total = 0;
 const pages = {};
 for (const w of WIDTHS) {

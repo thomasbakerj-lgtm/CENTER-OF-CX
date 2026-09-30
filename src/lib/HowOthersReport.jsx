@@ -33,7 +33,7 @@ function Row({ row, group, shared }) {
   const s = rowSource(row, group);
   const kind = row.kind && row.kind !== group.kind ? row.kind : null;
   return (
-    <li style={{ display: "grid", gridTemplateColumns: "minmax(88px, auto) 1fr", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
+    <li style={{ display: "grid", gridTemplateColumns: "fit-content(40%) minmax(0, 1fr)", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
       <span style={{ fontSize: 18, fontWeight: 700, lineHeight: "26px", color: HOUSE.mist, fontVariantNumeric: "tabular-nums" }}>{row.value}</span>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "baseline" }}>
@@ -59,7 +59,7 @@ function WagePicker() {
         {STATE_WAGES.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
       </select>
       <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
-        <li style={{ display: "grid", gridTemplateColumns: "minmax(88px, auto) 1fr", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
+        <li style={{ display: "grid", gridTemplateColumns: "fit-content(40%) minmax(0, 1fr)", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
           <span style={{ fontSize: 18, fontWeight: 700, lineHeight: "26px", color: HOUSE.mist, fontVariantNumeric: "tabular-nums" }}>{usd(row ? row[2] : NATIONAL_WAGE.hourly)}</span>
           <span style={{ minWidth: 0 }}>
             <span style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "baseline" }}>

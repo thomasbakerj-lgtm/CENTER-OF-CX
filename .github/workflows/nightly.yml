@@ -30,3 +30,8 @@ jobs:
       - name: Performance budget against production
         if: always()
         run: node scripts/perf-check.mjs https://www.contactcentercx.com
+      # Text or controls crossing the edge of their card, chip or panel on a phone (TB, 30 Sep): every sitemap page at 390
+      # and 360 px. The page-level overflow sweep misses a box whose content spills while the page still fits.
+      - name: Containment on phone widths against production
+        if: always()
+        run: node scripts/containment-audit.mjs https://www.contactcentercx.com 390,360
