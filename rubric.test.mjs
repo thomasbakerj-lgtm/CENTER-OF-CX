@@ -291,5 +291,27 @@ for (const [id, file] of [["cx-maturity", "CXMaturity.jsx"], ["ai-readiness", "A
   ok(`/methodology/${id}: route mounted`, APP.includes(`<Route path="/methodology/${id}" element={<RubricPage id="${id}" />} />`));
 }
 
+/* Audit 30 Sep: on a tie the tile named one dimension and the next step another. The pages now take the weakest with the
+   engine's rule (lowest score, then rubric order) and call none strongest when every dimension scores the same. */
+{
+  const PAGES = { "cx-maturity": "CXMaturity.jsx", "ai-readiness": "AIReadiness.jsx" };
+  for (const [id, file] of Object.entries(PAGES)) {
+    const r = RUBRICS[id]; let bad = 0;
+    const cases = [];
+    for (let k = 0; k < 4000; k++) cases.push(answersAll(r, () => pickInt(r.scale.min, Math.min(r.scale.max, r.scale.min + 2))));
+    for (let v = r.scale.min; v <= r.scale.max; v++) cases.push(answersAll(r, () => v));
+    for (const ans of cases) {
+      const out = E.scoreRubric(r, ans);
+      const page = [...out.dims].sort((a, b) => a.score - b.score)[0];
+      if (!out.nextDiagnostic || page.id !== out.nextDiagnostic.because) bad++;
+    }
+    ok(`${id}: the page's weakest dimension equals the engine's next step on ${cases.length} answer sets, ties included`, bad === 0);
+    const src = readFileSync("./" + file, "utf8");
+    ok(`${id}: the tile and the PDF read that one dimension, and a level result names no strongest`,
+      /const weakestDim = \[\.\.\.DIMS\]\.sort\(\(a, b\) => dimScore\(a\.id\) - dimScore\(b\.id\)\)\[0\];/.test(src)
+      && /value=\{weakestDim\.name\}/.test(src) && !/sorted\[sorted\.length - 1\]/.test(src) && /level \? "All dimensions level"/.test(src));
+  }
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

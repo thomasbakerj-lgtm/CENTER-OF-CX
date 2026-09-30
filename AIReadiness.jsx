@@ -58,6 +58,10 @@ export default function AIReadiness() {
   const handleResults = () => setPhase("results");
 
   const sorted = [...DIMS].sort((a, b) => dimScore(b.id) - dimScore(a.id));
+  /* Ties break by rubric order, the rule the engine uses for the next diagnostic, so the tiles, the PDF and the next step
+     name the same dimension; when every dimension scores the same, none is called strongest (audit 30 Sep). */
+  const weakestDim = [...DIMS].sort((a, b) => dimScore(a.id) - dimScore(b.id))[0];
+  const level = dimScore(sorted[0].id) === dimScore(weakestDim.id);
   const answered = Object.keys(scores).length, total = DIMS.reduce((n, d) => n + d.qs.length, 0);
   const result = phase === "results"
     ? <Result label="AI readiness" value={overallScore.toFixed(1) + " / 5"} change={`${tier.tier}. ${tier.desc}`} />
@@ -98,8 +102,8 @@ export default function AIReadiness() {
         <DimensionBars rows={DIMS.map((d) => ({ id: d.id, name: d.name, score: dimScore(d.id), band: bandFor(RUBRIC, dimScore(d.id)).label }))} />
 
         <div style={K.grid(200)}>
-          <Tile label="Most ready" value={sorted[0].name} note={dimScore(sorted[0].id).toFixed(1) + " / 5.0"} />
-          <Tile label="Biggest gap" value={sorted[sorted.length - 1].name} note={dimScore(sorted[sorted.length - 1].id).toFixed(1) + " / 5.0"} />
+          <Tile label="Most ready" value={level ? "All dimensions level" : sorted[0].name} note={dimScore(sorted[0].id).toFixed(1) + " / 5.0"} />
+          <Tile label="Biggest gap" value={weakestDim.name} note={dimScore(weakestDim.id).toFixed(1) + " / 5.0" + (level ? ", all level" : "")} />
         </div>
 
         <section aria-label={RUBRIC.secondaryBands.title} style={K.panel}>
@@ -135,7 +139,7 @@ export default function AIReadiness() {
                     ]},
                     { title: "Key Findings", type: "findings", items: [
                       "AI readiness score: " + overallScore.toFixed(1) + "/5 (" + tier.tier + ").",
-                      "Weakest dimension: " + [...DIMS].sort((a,b) => dimScore(a.id) - dimScore(b.id))[0].name + ".",
+                      "Weakest dimension: " + weakestDim.name + (level ? " (every dimension scores the same; the first in the rubric is named)." : "."),
                     ]},
                     { title: "Action Checklist", type: "actions", items: R.checklist.length ? R.checklist.map((c, i) => ({ action: c.action, detail: c.dimensionName + ": answered " + c.score + " of 5 to \"" + c.text + "\"", priority: i < 3 ? "high" : "medium" })) : [{ action: "No statement was answered at " + RUBRIC.failAt + " or below.", detail: "The rubric raises no action. Start with your lowest-scoring dimension." }] },
                     { title: "What This Assessment Cannot Tell You", type: "findings", items: RUBRIC.limits },

@@ -1839,6 +1839,16 @@ dashboard, the 12-phase growth program.
    table gives Genesys and NICE small 95 against mid 60, so an under-50-agent buyer gets them as the leading group; there
    is no source to correct the numbers from, and the research's size tags cannot feed Vendor Match before Stage 4 (TB:
    "wait"). A `channel.report.mjs` UNPARSED appeared once in one suite run and passed alone and on the re-run.
+110. S24 (30 Sep), audit batch 2 item 4 part 1 (TB: "go"), one tie rule. On a tie AI Readiness's "Biggest gap" tile named
+   the last-listed of the lowest dimensions while the next step (engine: lowest score, then rubric order) named the first;
+   CX Maturity could call one dimension both strongest and weakest. Both pages now take `weakestDim` with the engine's
+   rule for the tile and the PDF, and when every dimension scores the same they name none strongest ("All dimensions
+   level"). Presentation only; engine, bands and next steps unchanged. `rubric.test.mjs`: page weakest equals the engine's
+   next step on 4,005 answer sets per rubric, ties and all-level included. Suite 27,501.
+   Open from item 4, each a method change needing TB's design call: Staffing prices one interval's FTE as a year of
+   full-time agents ("$29.5M a year" in the audit), where an annual cost needs hours open and the interval profile; Cost
+   per Contact and FCR Leakage model repeat burden differently ($18.6M against $13.9M for one operation); Staffing and
+   Occupancy price reaching the same occupancy target differently (+31 FTE $2.7M against +28 agents $1.63M).
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
