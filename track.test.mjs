@@ -411,7 +411,10 @@ ok("J15 real is computed inside fireComplete, at fire time", /inputsMoved\(state
 ok("J16 no empty-deps effect fires tool_complete on mount", !/useEffect\(\(\) => \{[^}]*(fireComplete|trackTool\.complete)[\s\S]{0,400}?\}, \[\]\)/.test(ra));
 ok("J17 the mount pass records a snapshot and returns without firing",
    /if \(mountSnapRef\.current === undefined\) \{ mountSnapRef\.current = stateSnap; return; \}/.test(ra));
-ok("J18 an input change after mount fires", /stateSnap !== mountSnapRef\.current\) fireComplete\(\)/.test(ra));
+ok("J18 an input change after mount fires once the reader has acted", /if \(userActedRef\.current\) fireComplete\(\);/.test(ra));
+ok("J18b a change before the reader acts moves the baseline and fires nothing", /else mountSnapRef\.current = stateSnap;/.test(ra));
+ok("J18c only trusted events mark the reader as acting", /if \(e\.isTrusted\) userActedRef\.current = true;/.test(ra) && /\["pointerdown", "keydown", "input", "change"\]/.test(ra));
+ok("J18d userActed starts false", /const userActedRef = useRef\(false\);/.test(ra));
 for (const [name, re] of [
   ["PDF export", /onClickCapture=\{fireComplete\}[^>]*><ReportExport/],
   ["email a copy", /setCopyState\("sent"\);\s*fireComplete\(\);/],

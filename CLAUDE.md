@@ -1724,6 +1724,20 @@ dashboard, the 12-phase growth program.
    on any new one (proven on a planted sentence) and on a stale allowlist entry. Terms of Use untouched. Suite 27,127;
    build green; 252 page loads (industry, segment, tool, method and content pages at 1440 and 390) clean.
 
+102. S24 (30 Sep), first readings of PostHog and Search Console (TB exports; TB: "go").
+   - PostHog, 24 to 30 Sep: about 25 browsers; the two busiest (`16gdez...`, `cer7x01...`) are TB's own. No second-tool
+     run by a visitor yet. Three of four `tool_complete` events fired 0.2 to 0.3 s after `tool_view`, before any input
+     was possible. ReportActions now counts a state change as a completion only after a trusted keystroke, tap or
+     edit on the page; a change before that moves the baseline (`track.test.mjs` J18 to J18d). A browser replay of the
+     cause and the `?me=1` switch for TB's browsers were blocked by this session's permission classifier (both need a
+     browser that passes the site's own bot and internal-traffic filters); both are left for TB to decide.
+   - Search Console, 21 to 27 Sep: 226 impressions, 1 click, average position about 41. The migration article ranks 4.3
+     for "cloud contact center migration" with no clicks; its search title and description are rewritten to the
+     search, and the description's unsourced claims ("most organizations are spending the same or more", "20-year
+     operator", "five migrations") are gone. The body keeps TB's first-person essay pending TB (it carries the same
+     claims plus Forrester, Gartner and Puzzel figures with no links). CCaaS category page retitled around "CCaaS
+     vendors" (position 15.8). Researched profiles and segment pages already rank on page one for their long tail.
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the

@@ -285,9 +285,23 @@ export default function ReportActions({
   let stateSnap = null;
   try { stateSnap = JSON.stringify(state === undefined ? null : state); } catch { stateSnap = null; }
   const mountSnapRef = useRef(undefined);
+  /* A state change counts only after the reader has acted on the page (30 Sep 2026). The first PostHog export showed
+     three of four completions 0.2 to 0.3 seconds after the tool opened: a tool that fills itself after mount (a value
+     carried from another tool, a link read after first paint) changed its own state and was counted as a diagnosis.
+     A trusted keystroke, tap or edit anywhere on the page sets userActed; a change before that moves the baseline. */
+  const userActedRef = useRef(false);
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const mark = (e) => { if (e.isTrusted) userActedRef.current = true; };
+    const kinds = ["pointerdown", "keydown", "input", "change"];
+    kinds.forEach((k) => document.addEventListener(k, mark, true));
+    return () => kinds.forEach((k) => document.removeEventListener(k, mark, true));
+  }, []);
   useEffect(() => {
     if (mountSnapRef.current === undefined) { mountSnapRef.current = stateSnap; return; }
-    if (stateSnap !== null && stateSnap !== mountSnapRef.current) fireComplete();
+    if (stateSnap === null || stateSnap === mountSnapRef.current) return;
+    if (userActedRef.current) fireComplete();
+    else mountSnapRef.current = stateSnap;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stateSnap]);
 
