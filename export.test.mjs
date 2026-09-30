@@ -9,6 +9,7 @@
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { build } from "esbuild";
+import { READER_BRIEFS, READ_NO_GRADE, briefFor } from "./src/lib/readerBriefs.js";
 
 const require = createRequire(import.meta.url);
 let pass = 0, fail = 0;
@@ -61,7 +62,7 @@ const FIXED_SET = new Set([
   `url ? ' <span class="next-arrow">&rarr;</span>' : ""`,
   "INK", "LINK", "RULE", "QUIET", "PANEL", "LABEL", "HIGH", "SLATE", "NAVY",
   "cols", "fi + 1", "sizeOf(m.value)", "inner", "fontSrc", "fontFaces", "markSvg", "howBlock",
-  "evidenceMark(how.axes || {})", 'orderSections(sections, reader.id).map((s) => renderSection(s)).join("\\n")',
+  "evidenceMark(how.axes || {})", "qi + 1", 'plan.lead.map((s) => renderSection(s)).join("\\n")', 'plan.appendix.map((s) => renderSection(s)).join("\\n")',
   "r", "color", "ARCS_PRINT.track", "ARCS_PRINT.na", "arc.toFixed(2)", "c.toFixed(2)", "(arc * f).toFixed(2)",
   "ring(56, axes.evidence, ARCS_PRINT.evidence)", "ring(42, axes.realization, ARCS_PRINT.realization)", "ring(28, axes.completeness, ARCS_PRINT.completeness)",
 ]);
@@ -96,7 +97,9 @@ section("4. The light report (redesign Phase 3)");
     const o = orderSections(S, a.id);
     ok(`${a.id}: every section kept once, none altered`, o.length === S.length && S.every((x) => o.filter((y) => y === x).length === 1));
     const h = reportHtml({ toolName: "Cost per Contact", today: "26 September 2026", sections: S, audience: a.id });
-    ok(`${a.id}: the cover says who it is written for`, h.includes(`Written for<strong>${a.title}</strong>`) && h.includes(a.read));
+    ok(`${a.id}: the cover says who it is written for`, h.includes(`Written for<strong>${a.title}</strong>`) && h.includes(READ_NO_GRADE[a.id]));
+    const hg = reportHtml({ toolName: "Cost per Contact", today: "26 September 2026", sections: S, audience: a.id, how: { grade: "Directional", axes: {} } });
+    ok(`${a.id}: with grades, the cover keeps the graded reading line`, hg.includes(a.read));
     ok(`${a.id}: every figure prints exactly once`, (h.match(/\$6\.78/g) || []).length === 1 && (h.match(/>40</g) || []).length === 1);
   }
   ok("advisor keeps the tool's order", orderSections(S, "advisor").every((x, i) => x === S[i]));
@@ -130,6 +133,43 @@ section("4. The light report (redesign Phase 3)");
   ok("a void report draws no mark and claims no grade", !/class="arcs"/.test(v) && /No figure/.test(v) && !/Directional|Planning-grade|Finance-grade/.test(v) && v.includes("Agents must be above zero"));
   ok("a report with no grades draws no mark", !/class="arcs"/.test(reportHtml({ toolName: "t", today: "d", sections: [] })));
   for (const [k, c] of Object.entries(T.ARCS_PRINT)) if (k !== "track") ok(`print arc ${k} holds 3:1 against white`, T.contrast(c, "#FFFFFF") >= 3);
+}
+
+section("5. Reports written for each reader (TB, 30 Sep 2026)");
+{
+  const { planSections, orderSections: order, AUDIENCES: AUD } = mod.exports;
+  const TOOL_FILE = { "rfp-builder": "RFPRequirementBuilder", "tco-calculator": "TCOCalculator", "business-case-builder": "BusinessCaseBuilder", "staffing-calculator": "StaffingCalculator", "cost-per-contact": "CostPerContactCalculator", "channel-shift": "ChannelShiftModel", "fcr-leakage": "FCRLeakageDiagnostic", "ai-deflection": "AIDeflectionRealityCheck", "license-gap": "LicenseBundleGapChecker", "attrition-cost": "AttritionCostCalculator" };
+  ok("briefs cover RFP Builder and the nine rail tools", Object.keys(READER_BRIEFS).sort().join() === Object.keys(TOOL_FILE).sort().join());
+  const DASHES = new RegExp("[" + String.fromCharCode(0x2013) + String.fromCharCode(0x2014) + "]");
+  for (const [tool, file] of Object.entries(TOOL_FILE)) {
+    const src = readFileSync(`./${file}.jsx`, "utf8");
+    ok(`${tool}: the tool passes this id to ReportActions`, src.includes(`TOOL_ID = "${tool}"`));
+    /* The section titles the tool can emit: every literal title, and RFP's layer and vertical templates expanded. */
+    const titles = [...src.matchAll(/title: ?["`]([^"`]{2,90})["`]/g)].map((m) => m[1]);
+    if (tool === "rfp-builder") titles.push("Layer 1: Data", "Layer 2: Workflow", "Layer 3: Policy", "Layer 4: Reasoning", "Layer 5: Conversation", "Layer 6: Routing", "Layer 7: Analytics", "Retail specific Requirements");
+    for (const a of AUD) {
+      const b = briefFor(tool, a.id);
+      ok(`${tool} / ${a.id}: a brief with three questions`, b && b.ask.length === 3 && b.ask.every((q) => typeof q === "string" && q.endsWith("?") && !DASHES.test(q) && q.length < 160));
+      for (const re of b.lead) ok(`${tool} / ${a.id}: lead ${re} names a section the tool emits`, titles.some((t) => re.test(t)));
+    }
+    /* A report built from the tool's own titles: every reader keeps every section once, and the readers do not all
+       lead with the same section. */
+    const S = [...new Set(titles)].slice(0, 30).map((t, i) => ({ title: t, type: ["table", "metrics", "findings", "actions", "text"][i % 5], rows: [], items: [], content: "" })).concat([{ title: "Confidence", type: "table", rows: [] }, { title: "Next Step", type: "next", items: [] }]);
+    const firsts = new Set();
+    for (const a of AUD) {
+      const o = order(S, a.id, tool);
+      ok(`${tool} / ${a.id}: every section printed once`, o.length === S.length && S.every((x) => o.filter((y) => y === x).length === 1));
+      firsts.add(o[0].title);
+    }
+    ok(`${tool}: at least three readers lead with different sections`, firsts.size >= 3);
+    const ex = planSections(S, "executive", tool);
+    ok(`${tool}: the executive report has a short front and the rest as an appendix`, ex.lead.length > 0 && ex.appendix.length > 0 && ex.lead.length <= ex.appendix.length && ex.lead.some((s) => s.title === "Confidence") && ex.lead.some((s) => s.type === "next"));
+    const h = reportHtml({ toolName: "t", today: "d", sections: S, audience: "executive", toolId: tool });
+    ok(`${tool}: the executive report prints the appendix heading and the reader's questions`, h.includes("Appendix: the detail") && h.includes("What to check first") && briefFor(tool, "executive").ask.every((q) => h.includes(q.replace(/'/g, "&#39;"))));
+  }
+  const plain = reportHtml({ toolName: "t", today: "d", sections: [{ title: "A", type: "text", content: "x" }], audience: "finance", toolId: "roadmap-builder" });
+  ok("a tool without a brief prints no questions and no appendix", !plain.includes("What to check first") && !plain.includes("Appendix"));
+  ok("the popup passes the tool id to the renderer", /reportHtml\(\{[^}]*toolId \}\)/.test(SRC));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

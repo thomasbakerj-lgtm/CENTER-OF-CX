@@ -1761,6 +1761,21 @@ dashboard, the 12-phase growth program.
    - Next (TB approved): reader reports written for each reader (b), starting with RFP Builder and the nine rail tools;
      then TB's business-size journey idea (proposal to TB first).
 
+105. S24 (30 Sep), reports written for each reader (TB: "the reports by persona all look the same"; TB: "1", build it).
+   PR #96 (RFP 1.1) merged (49fb47b). The reader picker only reordered sections by type, with one generic line per
+   reader, so every reader got the same report in a different order, and RFP Builder's finance cover promised "how sure
+   it is" on a tool with no grade. `src/lib/readerBriefs.js`: for RFP Builder and the nine rail tools, each of the five
+   readers gets the sections they need first (matched by title) and three questions to put to this result ("What to
+   check first", printed under the reader line). The executive sponsor gets a short front (the brief's sections, the
+   confidence section, the next step; the tool's first summary when none of the brief's sections exist yet) and the rest
+   as "Appendix: the detail" on a new page. A tool without grades gets reading lines that make no confidence promise
+   (`READ_NO_GRADE`). A brief never changes a figure, a grade or a section; every section prints once. Tools without a
+   brief keep the type order. `export.test.mjs` 319: every lead names a section the tool emits, three questions per
+   reader with no dash, every section once per reader, at least three readers lead differently per tool, the executive
+   front and appendix, the no-grade line, the tool id reaches the renderer, the escaping allowlist. Browser: RFP Builder
+   IT report leads with layers 1 to 4; the executive report is questions, context and next step, then the appendix.
+   Next: briefs for the other fifteen tools; TB's business-size journey is on hold (another chat may build it).
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the
