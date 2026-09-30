@@ -247,5 +247,19 @@ section("9. Audit 30 Sep, batch 1: no withdrawn score wording on profiles, offer
   ok("the tagline says what the site is in plain nouns", ["Homepage.jsx", "src/lib/Shell.jsx"].every((f) => !/Independent intelligence/.test(R(f)) && /Free tools and research for contact center decisions/.test(R(f))));
 }
 
+section("10. Audit 30 Sep, batch 2: the tools hub says what each tool gives you");
+{
+  const H = readFileSync("./HowToChoose.jsx", "utf8");
+  const APP = readFileSync("./App.jsx", "utf8");
+  ok("the hub carries none of the retired lines", !/CX Pro Tools|Popular|popular: true|Launch →|ROI narrative|85% occupancy|Tier classification|actually|Go\/no-go/.test(H));
+  ok("the hub's heading counts the tools it lists", /\{totalTools\} free contact center tools<\/h1>/.test(H) && /Open →/.test(H));
+  const hrefs = [...H.matchAll(/href: "(\/tools\/[a-z-]+)"/g)].map((m) => m[1]);
+  const live = [...APP.matchAll(/<Route path="(\/tools\/[a-z-]+)" element=\{<(?!LegacyRedirect)/g)].map((m) => m[1]);
+  ok(`the hub lists every live tool route once (${hrefs.length} of ${live.length})`, hrefs.length === live.length && new Set(hrefs).size === hrefs.length && live.every((r) => hrefs.includes(r)));
+  const { METHOD_VERSIONS } = await import("./src/lib/methodVersions.js");
+  const methods = [...H.matchAll(/method: "([a-z-]+)"/g)].map((m) => m[1]);
+  ok("every method stamp on the hub names a published method", methods.length >= 20 && methods.every((m) => METHOD_VERSIONS[m]));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

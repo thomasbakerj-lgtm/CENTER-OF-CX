@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
+import { METHOD_VERSIONS } from "./src/lib/methodVersions.js";
 
 const NAVY = HOUSE.mist;
 const DEEP = HOUSE.ink;
@@ -18,49 +19,48 @@ const RED = HOUSE.mist;
 const WRAP = { maxWidth: 1080, margin: "0 auto", padding: "0 28px" };
 
 
+/* Descriptions say what each tool gives you, restated from its published method (copy audit, 30 Sep 2026). The groups
+   follow the decision a reader is making. No tool is marked popular: there is no usage data behind such a mark. */
 const CATEGORIES = [
-  { id: "wfm", label: "WFM + Staffing", color: AMBER, desc: "The tools operators actually need daily",
+  { id: "workforce", label: "Workforce and quality", color: AMBER, desc: "How many agents, where their time goes, and how quality is judged",
     tools: [
-      { title: "Staffing Requirement Calculator", desc: "Erlang C model. Volume, AHT, SLA, and shrinkage to required FTE.", href: "/tools/staffing-calculator", popular: true },
-      { title: "Shrinkage Planner", desc: "8-category shrinkage modeling. See the staffing gap and annual cost.", href: "/tools/shrinkage-planner" },
-      { title: "Occupancy Risk Simulator", desc: "When efficiency becomes burnout. The math behind 85% occupancy.", href: "/tools/occupancy-risk" },
-      { title: "Forecast Accuracy Tracker", desc: "Forecast vs actual. MAPE, bias, and worst-interval analysis.", href: "/tools/forecast-accuracy" },
-      { title: "Schedule Adherence Calculator", desc: "How 1-10 points of adherence loss cascades into SLA and overtime.", href: "/tools/schedule-adherence" },
+      { title: "Staffing Requirement Calculator", method: "staffing-calculator", desc: "Agents and scheduled FTE for your busiest interval through Erlang C, and the year priced from your hours open.", href: "/tools/staffing-calculator" },
+      { title: "Shrinkage Planner", method: "shrinkage-planner", desc: "The paid time that never reaches the queue, the agents it takes to cover it, and what that time costs.", href: "/tools/shrinkage-planner" },
+      { title: "Occupancy Risk Simulator", method: "occupancy-risk", desc: "What reaching your occupancy target costs in hiring against what running hot costs in attrition.", href: "/tools/occupancy-risk" },
+      { title: "Forecast Accuracy Tracker", method: "forecast-accuracy", desc: "Forecast error interval by interval, whether the forecast leans one way, and the workload the misses create.", href: "/tools/forecast-accuracy" },
+      { title: "Schedule Adherence Calculator", method: "schedule-adherence", desc: "The service level each point of adherence loss costs, and the overtime it takes to hold your target.", href: "/tools/schedule-adherence" },
+      { title: "AHT Decomposition", method: "aht-decomposition", desc: "Handle time split into its parts, and the agent hours each initiative you are weighing would free.", href: "/tools/aht-decomposition" },
+      { title: "QA Scorecard Builder", method: "qa-scorecard", desc: "A QA form checked for scores you can defend, and blind calibration that shows whether your evaluators agree.", href: "/tools/qa-scorecard" },
     ]},
-  { id: "cost", label: "Cost + Economics", color: RED, desc: "The math the vendor slide skips",
+  { id: "cost", label: "Cost and savings", color: RED, desc: "What the operation costs, and what a change is worth once you act on it",
     tools: [
-      { title: "TCO Calculator", desc: "What your stack actually costs per agent, per contact, per resolution.", href: "/tco-calculator", popular: true },
-      { title: "Attrition Cost Calculator", desc: "Full cost of every departure: recruiting, training, ramp, OT, QA drag.", href: "/tools/attrition-cost" },
-      { title: "Cost per Contact vs Resolution", desc: "Handle cost and resolution cost are different numbers.", href: "/tools/cost-per-contact" },
-      { title: "AI Deflection Reality Check", desc: "Net savings after leakage, containment failure, and escalation.", href: "/tools/ai-deflection", popular: true },
-      { title: "Channel Shift Economics", desc: "What really happens to staffing when voice migrates to chat or bot.", href: "/tools/channel-shift" },
-      { title: "License Bundle Gap Checker", desc: "Quoted seat price vs what you actually pay: add-ons, usage and commits.", href: "/tools/license-gap" },
+      { title: "TCO Calculator", method: "tco-calculator", desc: "Monthly, yearly and three-year cost from labor, technology and overhead, per contact and per resolution.", href: "/tools/tco-calculator" },
+      { title: "Cost per Contact Calculator", method: "cost-per-contact", desc: "Cost per resolution, the cost of repeat demand, and the capacity an FCR improvement releases.", href: "/tools/cost-per-contact" },
+      { title: "FCR Leakage Diagnostic", method: "fcr-leakage", desc: "Repeat contacts and their yearly cost, and how much improvement the root causes let you plan on.", href: "/tools/fcr-leakage" },
+      { title: "Attrition Cost Calculator", method: "attrition-cost", desc: "What each agent departure costs in cash and lost capacity, and why agents are leaving.", href: "/tools/attrition-cost" },
+      { title: "Business Case Builder", method: "business-case-builder", desc: "Whether a change pays back over three years, graded by how sure the inputs are.", href: "/tools/business-case" },
     ]},
-  { id: "quality", label: "Performance + Quality", color: PILLARS.research.onDark, desc: "Measure what actually drives outcomes",
+  { id: "ai", label: "AI and automation", color: PILLARS.research.onDark, desc: "What automation removes from demand, and whether you are ready for it",
     tools: [
-      { title: "AHT Decomposition", desc: "Break AHT into talk, hold, wrap, transfer, search, admin.", href: "/tools/aht-decomposition", popular: true },
-      { title: "QA Scorecard Builder", desc: "Weighted QA forms by contact type, checked for defensibility, with blind evaluator calibration under a published method.", href: "/tools/qa-scorecard" },
-      { title: "FCR Leakage Diagnostic", desc: "What drives repeat contacts across 6 root-cause dimensions.", href: "/tools/fcr-leakage" },
+      { title: "AI Deflection Reality Check", method: "ai-deflection", desc: "The share of demand an AI program durably removes, what it is worth after its costs, and where it breaks even.", href: "/tools/ai-deflection" },
+      { title: "Channel Shift Model", method: "channel-shift", desc: "Agent minutes freed when voice moves to chat, bot or email, net of fees, transition cost and repeats.", href: "/tools/channel-shift" },
+      { title: "AI Readiness Diagnostic", method: "ai-readiness", desc: "How ready your data, workflows, integrations and governance are for AI, and which gaps to close first.", href: "/tools/ai-readiness" },
     ]},
-  { id: "selection", label: "Vendor Selection", color: ELECTRIC, desc: "From shortlist to signed contract",
+  { id: "vendors", label: "Vendors, renewals and contracts", color: ELECTRIC, desc: "From the renewal question to a signed contract",
     tools: [
-      { title: "Vendor Match Engine", desc: "Shortlist with fit reasoning. Environment, priorities, compliance.", href: "/tools/vendor-match", popular: true },
-      { title: "Platform Decision", desc: "The renewal gate: renew, renew with conditions, add a specialist or evaluate, across 7 layers and against your notice date.", href: "/tools/platform-decision" },
-      { title: "Contract Risk Scanner", desc: "13 contract clauses read against published severities, with the position to ask for on every flag.", href: "/tools/contract-risk" },
-      { title: "Transformation Readiness", desc: "Go/no-go assessment. Six dimensions. Phased recommendation.", href: "/tools/transformation-readiness" },
-      { title: "RFP Requirement Builder", desc: "Weighted requirements by layer, then vendor responses scored: who meets every must-have and what to verify in the demo.", href: "/tools/rfp-builder", popular: true },
+      { title: "Platform Decision", method: "platform-decision", desc: "Renew, renew with conditions, add a specialist or run an evaluation, and whether there is time before your notice date.", href: "/tools/platform-decision" },
+      { title: "Vendor Match Engine", desc: "A starting list of CCaaS vendors from your environment and priorities, on the Phase 1 model with its method shown.", href: "/tools/vendor-match" },
+      { title: "RFP Requirement Builder", method: "rfp-builder", desc: "Weighted requirements by layer, then vendor responses scored: who meets every must-have and what to verify in the demo.", href: "/tools/rfp-builder" },
+      { title: "License Bundle Gap Checker", method: "license-gap", desc: "The quoted seat price against what the platform costs with add-ons, usage fees, commits and renewal uplift.", href: "/tools/license-gap" },
+      { title: "Contract Risk Scanner", method: "contract-risk", desc: "13 contract clauses read against published severities, with the position to ask for on every flag.", href: "/tools/contract-risk" },
     ]},
-  { id: "assessment", label: "Assessments + Scorecards", color: GREEN, desc: "Where do you stand",
+  { id: "readiness", label: "Readiness and planning", color: GREEN, desc: "Where you stand, who owns what, and the plan",
     tools: [
-      { title: "CX Maturity Assessment", desc: "Strategy, ops, tech, analytics, governance. 25 questions. Tier classification.", href: "/tools/cx-maturity" },
-      { title: "AI Readiness Diagnostic", desc: "Whether your data, workflows, and governance are ready for AI.", href: "/tools/ai-readiness" },
-    ]},
-  { id: "framework", label: "Frameworks + Planning", color: HOUSE.sky2, desc: "Build the plan as well as the score",
-    tools: [
-      { title: "CX-IT Alignment Framework", desc: "Bridge the gap between experience vision and tech execution.", href: "/tools/cx-it-alignment" },
-      { title: "Governance + Operating Model", desc: "Who owns what across CX strategy, ops, and AI.", href: "/tools/governance-model" },
-      { title: "Roadmap Builder", desc: "90-day planning template with milestones and dependencies.", href: "/tools/roadmap-builder" },
-      { title: "Business Case Builder", desc: "The ROI narrative for your board, built from your real numbers.", href: "/tools/business-case" },
+      { title: "CX Maturity Assessment", method: "cx-maturity", desc: "Where you sit on a five-level rubric across strategy, operations, technology, analytics and governance.", href: "/tools/cx-maturity" },
+      { title: "Transformation Readiness", method: "transformation-readiness", desc: "Whether you are ready to commit budget to a platform change, and the gaps to close before you do.", href: "/tools/transformation-readiness" },
+      { title: "CX and IT Alignment", method: "cx-it-alignment", desc: "Where CX and IT see the same capability differently, and where both agree it is missing.", href: "/tools/cx-it-alignment" },
+      { title: "Governance and Operating Model", method: "governance-model", desc: "Who is accountable for 30 CX decisions, and where a decision is unowned or one function is overloaded.", href: "/tools/governance-model" },
+      { title: "Roadmap Builder", desc: "A 90-day plan with milestones, owners and what each one is waiting on.", href: "/tools/roadmap-builder" },
     ]},
 ];
 
@@ -96,8 +96,8 @@ export default function HowToChoose() {
         <div style={WRAP}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <h1 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 600, color: HOUSE.mist, margin: "0 0 4px" }}>CX Pro Tools</h1>
-              <p style={{ fontSize: 13, color: HOUSE.body }}>{totalTools} tools across {CATEGORIES.length} categories. Free. Immediate output.</p>
+              <h1 style={{ fontFamily: FONT, fontSize: 28, fontWeight: 600, color: HOUSE.mist, margin: "0 0 4px" }}>{totalTools} free contact center tools</h1>
+              <p style={{ fontSize: 13, color: HOUSE.body }}>Each runs in your browser, publishes its method and gives you a report. No sign-in.</p>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <a href="/research/ccaas-buyer-guide" style={{ fontSize: 12, color: LIGHT, padding: "5px 12px", borderRadius: 4, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>CCaaS Guide ↓</a>
@@ -148,11 +148,11 @@ export default function HowToChoose() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{t.title}</span>
-                        {t.popular && <span style={{ fontSize: 11, fontWeight: 700, color: GREEN, letterSpacing: 0.6, textTransform: "uppercase", background: `${GREEN}10`, padding: "2px 6px", borderRadius: 3, flexShrink: 0 }}>Popular</span>}
+                        {t.method && METHOD_VERSIONS[t.method] && <span style={{ fontSize: 11, color: MUTED, flexShrink: 0 }}>Method {METHOD_VERSIONS[t.method].version}</span>}
                       </div>
                       <span style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.4 }}>{t.desc}</span>
                     </div>
-                    <span style={{ color: cat.color, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>Launch →</span>
+                    <span style={{ color: cat.color, fontSize: 13, fontWeight: 600, flexShrink: 0 }}>Open →</span>
                   </a>
                 ))}
               </div>
