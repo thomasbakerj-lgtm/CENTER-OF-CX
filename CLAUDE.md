@@ -1747,7 +1747,9 @@ dashboard, the 12-phase growth program.
      the Vendors hub category cards (a 280 px column inside 276 px, so every card spilled; the chip row now wraps), the
      How others report it list (an auto figure column crushed the name to one letter a line on License Gap at 360;
      now fit-content(40%)), the eight vendor profile call-to-action headings (a long name such as ContactCenter4All
-     left the card; they break), and the Platforms and Tech map card. It runs nightly on production.
+     left the card; they break), the Platforms and Tech map card (a 240 px minimum), and at 320 px the community box on
+     every Phase 1 profile variant and the How others report it chips. Every finding fixed and its pages re-checked clean at
+     390, 360 and 320 px. It runs nightly on production at the same three widths.
    Suite 27,132.
 
 **PRIORITY LIST (TB, 25 Sep 2026, S23). Reach first, then measurement, then integrity, toward 100,000 people.**

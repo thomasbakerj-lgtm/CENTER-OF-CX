@@ -968,7 +968,7 @@ export default function VendorProfile() {
                 <h3 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 8px", overflowWrap: "anywhere" }}>Used {v.name}? Share what you've seen.</h3>
                 <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0, fontFamily: FONT }}>Your operational experience helps other CX leaders make better decisions. Score this vendor, share what works, flag what doesn't. Every review is attributed by role and company size.</p>
               </div>
-              <button onClick={() => setShowReview(true)} style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: FONT, boxShadow: "none", flexShrink: 0 }}>Share Your Experience</button>
+              <button onClick={() => setShowReview(true)} style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, border: "none", cursor: "pointer", fontFamily: FONT, boxShadow: "none", flexShrink: 0, maxWidth: "100%" }}>Share Your Experience</button>
             </div>
           </FadeIn>
         </div>

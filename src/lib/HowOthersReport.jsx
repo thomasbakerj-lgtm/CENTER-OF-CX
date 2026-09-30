@@ -11,7 +11,7 @@ import { groupsFor, rowSource, KIND_LABEL, TOOL_GROUPS, SOURCES } from "./compar
 import { STATE_WAGES, STATE_WAGE_SOURCE, NATIONAL_WAGE } from "./comparisons/stateWages.js";
 
 const hair = alpha(HOUSE.mist, LINE.hair);
-const chip = { display: "inline-block", fontSize: 12, fontWeight: 600, lineHeight: "18px", padding: "1px 8px", borderRadius: RADIUS.field, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist, whiteSpace: "nowrap" };
+const chip = { display: "inline-block", fontSize: 12, fontWeight: 600, lineHeight: "18px", padding: "1px 8px", borderRadius: RADIUS.field, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist, maxWidth: "100%" };
 const usd = (n) => "$" + n.toLocaleString("en-US", { minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 });
 const CSS = `.cx-hor summary{cursor:pointer;list-style:none;min-height:44px;display:flex;align-items:center;flex-wrap:wrap;gap:10px}
 .cx-hor summary::-webkit-details-marker{display:none}
