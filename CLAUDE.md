@@ -1747,6 +1747,20 @@ dashboard, the 12-phase growth program.
    template (drops the category when name and category pass 55), and 12 content pages. `seo.test.mjs` W1 to W5 gate
    length, retired words and derived counts (the old metadata fails four of five). Section 14 records the search rules.
 
+104. S24 (30 Sep), TB's phone review (TB: "a: yes, b: yes, c: yes, merge"). PR #94 merged (bde0c63).
+   - Unreadable buttons: a button with no background of its own took the browser's light grey (and iPhone's native look)
+     under pale text; RFP Builder's focus areas could not be read on a phone. The base stylesheet in `index.html` now
+     starts every button transparent with its container's colour (`a11y.test.mjs` pins it).
+   - RFP Builder method 1.1: step 3 "Review + Customize" now lets the buyer reword any requirement (marked edited on the
+     page and in the report), remove any (a Removed list puts it back; it leaves every count and score), and add up to 20
+     of their own on any layer (key `c-<id>`, should-have by default, scored like any other). Edits, removals and
+     additions travel in the scenario link (text capped at 160 characters, angle brackets stripped); a link too long
+     for the cap falls back to the existing "too detailed to fit" notice. Scoring, weights, credits and rules unchanged:
+     with none of the three, 2,000 random evaluations equal method 1.0 (the 1.0 builder spliced into today's engine).
+     `rfp.test.mjs` 82. Browser at 390: focus stays in the text box while typing; the reopened link keeps all three.
+   - Next (TB approved): reader reports written for each reader (b), starting with RFP Builder and the nine rail tools;
+     then TB's business-size journey idea (proposal to TB first).
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the

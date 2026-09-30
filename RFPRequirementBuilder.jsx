@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Button } from "./src/lib/ui.jsx";
 import { K, Paper, Group, Choice, numInput, selectStyle, optionCss, frameMethod } from "./src/lib/frameKit.jsx";
@@ -24,7 +24,7 @@ const toolOf = (id) => (JOURNEY[id] ? { name: JOURNEY[id].name, href: JOURNEY[id
 
 const TOOL_ID = "rfp-builder";
 const ROUTE = "/tools/rfp-builder";
-export const DEFAULTS = { vertical: "", size: "", activeTags: ["all"], reqs: {}, vendors: [], responses: {}, verified: {}, weights: {} };
+export const DEFAULTS = { vertical: "", size: "", activeTags: ["all"], reqs: {}, edits: {}, dropped: [], custom: [], vendors: [], responses: {}, verified: {}, weights: {} };
 /* A regulated enterprise case with three scored vendors, so the harness renders the
    widest requirement set, the analyst read and their PDF content. */
 const sampleBase = { vertical: "Healthcare", size: "500-1000 agents", activeTags: ["all", "enterprise", "regulated"], reqs: {} };
@@ -44,7 +44,8 @@ const SAMPLE_STATE = {
 /* Scenario links are capped near 1,900 characters, so a link carries each vendor's
    responses as one character per requirement, in the model's fixed requirement order, and
    its demo checks as a string of 0 and 1. The page works on plain maps. */
-const ALL_KEYS = [...MODEL.layers.flatMap((l) => l.reqs.map((_, i) => `${l.n}-${i}`)), ...Array.from({ length: Math.max(...Object.values(MODEL.verticalReqs).map((x) => x.length)) }, (_, i) => `v-${i}`)];
+const ALL_KEYS = [...MODEL.layers.flatMap((l) => l.reqs.map((_, i) => `${l.n}-${i}`)), ...Array.from({ length: Math.max(...Object.values(MODEL.verticalReqs).map((x) => x.length)) }, (_, i) => `v-${i}`), ...Array.from({ length: MODEL.thresholds.maxCustom.value * 2 }, (_, i) => `c-${i}`)];
+const KEY_RE = /^(\d+|v|c)-\d+$/;
 const CODE = { ga: "g", addon: "a", partner: "p", preview: "b", roadmap: "r", no: "n" };
 const DECODE = Object.fromEntries(Object.entries(CODE).map(([k, v]) => [v, k]));
 const packRow = (row) => ALL_KEYS.map((k) => CODE[row && row[k]] || ".").join("").replace(/\.+$/, "");
@@ -61,15 +62,23 @@ const cleanState = (sc) => {
   const size = MODEL.sizes.includes(src.size) ? src.size : "";
   const tags = Array.isArray(src.activeTags) ? src.activeTags.filter((t) => MODEL.tags.some((f) => f.id === t)) : [];
   const pri = new Set(MODEL.priorities.map((p) => p.id));
-  const reqs = Object.fromEntries(Object.entries(src.reqs && typeof src.reqs === "object" ? src.reqs : {}).filter(([k, v]) => /^(\d+|v)-\d+$/.test(k) && pri.has(v)));
+  const reqs = Object.fromEntries(Object.entries(src.reqs && typeof src.reqs === "object" ? src.reqs : {}).filter(([k, v]) => KEY_RE.test(k) && pri.has(v)));
+  const text = (t) => (typeof t === "string" ? t.replace(/[<>]/g, "").slice(0, MODEL.thresholds.maxText.value) : "");
+  const edits = Object.fromEntries(Object.entries(src.edits && typeof src.edits === "object" ? src.edits : {}).filter(([k, v]) => /^(\d+|v)-\d+$/.test(k) && typeof v === "string").map(([k, v]) => [k, text(v)]));
+  const dropped = (Array.isArray(src.dropped) ? src.dropped : []).filter((k) => typeof k === "string" && /^(\d+|v)-\d+$/.test(k)).slice(0, ALL_KEYS.length);
+  const custom = (Array.isArray(src.custom) ? src.custom : []).filter((c) => c && typeof c === "object" && Number.isInteger(c.id) && c.id >= 0 && c.id < MODEL.thresholds.maxCustom.value * 2 && MODEL.layers.some((l) => l.n === c.layer))
+    .slice(0, MODEL.thresholds.maxCustom.value).map((c) => ({ id: c.id, layer: c.layer, text: text(c.text), priority: pri.has(c.priority) ? c.priority : "should" }));
   const vendors = (Array.isArray(src.vendors) ? src.vendors : []).slice(0, MODEL.thresholds.maxVendors.value).map((v) => (typeof v === "string" ? v.replace(/[<>]/g, "").slice(0, 60) : ""));
   const perVendor = (m, ok) => Object.fromEntries(Object.entries(m && typeof m === "object" ? m : {}).filter(([i]) => /^\d$/.test(i) && +i < vendors.length)
-    .map(([i, row]) => [i, Object.fromEntries(Object.entries(row && typeof row === "object" ? row : {}).filter(([k, v]) => /^(\d+|v)-\d+$/.test(k) && ok(v)))]));
+    .map(([i, row]) => [i, Object.fromEntries(Object.entries(row && typeof row === "object" ? row : {}).filter(([k, v]) => KEY_RE.test(k) && ok(v)))]));
   const responses = perVendor(unpack(src.responses, (ch) => DECODE[ch]), (v) => !!RESP[v]);
   const verified = perVendor(unpack(src.verified, (ch) => (ch === "1" ? true : undefined)), (v) => v === true);
   const weights = Object.fromEntries(Object.entries(src.weights && typeof src.weights === "object" ? src.weights : {}).filter(([k, v]) => pri.has(k) && typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 10));
-  return { vertical, size, activeTags: tags.includes("all") ? tags : ["all", ...tags], reqs, vendors, responses, verified, weights };
+  return { vertical, size, activeTags: tags.includes("all") ? tags : ["all", ...tags], reqs, edits, dropped, custom, vendors, responses, verified, weights };
 };
+
+/* For the harness: the link cleaner, so the round trip of your own wording is tested without a browser. */
+export const _cleanState = cleanState;
 
 const chip = (sv) => ({ display: "inline-block", fontFamily: FONT, fontSize: 13, fontWeight: 700, padding: "3px 10px", borderRadius: RADIUS.chip, border: `${sv === "critical" ? 2 : 1}px ${sv === "info" ? "dashed" : "solid"} ${sv === "critical" || sv === "high" ? K.strong.color : K.firm}`, color: K.strong.color, flexShrink: 0, minWidth: 72, textAlign: "center" });
 const tabStyle = (on) => ({ minHeight: TOUCH, padding: "0 12px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer", border: `1px solid ${on ? K.strong.color : K.firm}`, background: "transparent", color: K.strong.color });
@@ -92,6 +101,10 @@ export default function RFPRequirementBuilder() {
   const [size, setSize] = useState(init.size);
   const [activeTags, setActiveTags] = useState(init.activeTags);
   const [reqs, setReqs] = useState(init.reqs);
+  const [edits, setEdits] = useState(init.edits);
+  const [dropped, setDropped] = useState(init.dropped);
+  const [custom, setCustom] = useState(init.custom);
+  const [draft, setDraft] = useState({ layer: MODEL.layers[0].n, text: "", priority: "should" });
   const [vendors, setVendors] = useState(init.vendors);
   const [responses, setResponses] = useState(init.responses);
   const [verified, setVerified] = useState(init.verified);
@@ -100,7 +113,22 @@ export default function RFPRequirementBuilder() {
   useEffect(() => { clearScenarioParam(); }, []);
 
   const toggleTag = (id) => setActiveTags((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]));
-  const setReq = (key, p) => setReqs((prev) => ({ ...prev, [key]: p }));
+  const setReq = (key, p) => (key.startsWith("c-") ? setCustom((prev) => prev.map((c) => (`c-${c.id}` === key ? { ...c, priority: p } : c))) : setReqs((prev) => ({ ...prev, [key]: p })));
+  const cap = (t) => t.replace(/[<>]/g, "").slice(0, MODEL.thresholds.maxText.value);
+  /* Your own wording. A published line keeps its key, so its priority and every vendor's answer stay attached. */
+  const setWording = (key, t) => (key.startsWith("c-") ? setCustom((prev) => prev.map((c) => (`c-${c.id}` === key ? { ...c, text: cap(t) } : c))) : setEdits((prev) => ({ ...prev, [key]: cap(t) })));
+  const resetWording = (key) => setEdits((prev) => { const n = { ...prev }; delete n[key]; return n; });
+  const removeReq = (key) => (key.startsWith("c-") ? setCustom((prev) => prev.filter((c) => `c-${c.id}` !== key)) : setDropped((prev) => (prev.includes(key) ? prev : [...prev, key])));
+  const restoreReq = (key) => setDropped((prev) => prev.filter((k) => k !== key));
+  const canAdd = custom.length < MODEL.thresholds.maxCustom.value && draft.text.trim().length > 0;
+  const addReq = () => {
+    if (!canAdd) return;
+    const used = new Set(custom.map((c) => c.id));
+    let id = 0; while (used.has(id)) id += 1;
+    if (id >= MODEL.thresholds.maxCustom.value * 2) return;
+    setCustom((prev) => [...prev, { id, layer: draft.layer, text: cap(draft.text.trim()), priority: draft.priority }]);
+    setDraft((d) => ({ ...d, text: "" }));
+  };
   const setResponse = (vi, key, v) => setResponses((prev) => { const row = { ...(prev[vi] || {}) }; if (v) row[key] = v; else delete row[key]; return { ...prev, [vi]: row }; });
   const setVer = (vi, key, v) => setVerified((prev) => ({ ...prev, [vi]: { ...(prev[vi] || {}), [key]: v } }));
   const setVendorName = (vi, name) => setVendors((prev) => prev.map((x, i) => (i === vi ? name.replace(/[<>]/g, "").slice(0, 60) : x)));
@@ -119,7 +147,7 @@ export default function RFPRequirementBuilder() {
     setActiveTags(auto);
   }, [vertical, size]);
 
-  const state = { vertical, size, activeTags, reqs, vendors, responses, verified, weights };
+  const state = { vertical, size, activeTags, reqs, edits, dropped, custom, vendors, responses, verified, weights };
   const R = scoreRfp(MODEL, state);
   const all = R.requirements;
   const groups = [...new Set(all.map((r) => r.layer))].map((n) => ({ n, name: all.find((r) => r.layer === n).layerName, reqs: all.filter((r) => r.layer === n) }));
@@ -129,7 +157,7 @@ export default function RFPRequirementBuilder() {
 
   const reportSections = [
     { title: "RFP Context", type: "table", rows: [["Vertical", vertical || "Not specified"], ["Size", size || "Not specified"], ["Focus areas", activeTags.filter((t) => t !== "all").map((t) => (MODEL.tags.find((f) => f.id === t) || {}).label || t).join(", ") || "Core only"], ["Requirements", all.length + " (" + R.counts.must + " must, " + R.counts.should + " should, " + R.counts.nice + " nice)"]] },
-    ...groups.map((g) => ({ title: g.n ? `Layer ${g.n}: ${g.name}` : g.name + " Requirements", type: "table", rows: g.reqs.map((r) => [r.text, PRI_LABEL[r.priority]]) })),
+    ...groups.map((g) => ({ title: g.n ? `Layer ${g.n}: ${g.name}` : g.name + " Requirements", type: "table", rows: g.reqs.map((r) => [r.text + (r.custom ? " (your requirement)" : r.edited ? " (edited)" : ""), PRI_LABEL[r.priority]]) })),
     ...(scoring ? [
       { title: "Vendor Responses", type: "table", rows: R.vendors.map((v) => [v.name, (v.coverage === null ? "No answered requirement" : v.coverage.toFixed(1) + "% weighted coverage") + "; " + (v.status === "unmet" ? "misses " + v.unmet.length + " must-have" + (v.unmet.length > 1 ? "s" : "") : v.status === "clarify" ? v.openMust + " must-haves to clarify" : v.status === "conditional" ? v.notGA.length + " must-haves not generally available" : "meets every must-have") + "; " + v.unverified.length + " must-have claims to verify"]) },
       { title: "Your Evaluation Order", type: "table", rows: R.order.length ? R.order.map((o) => ["Position " + o.position + (o.tied ? " (tied)" : ""), o.name + ", " + o.coverage.toFixed(1) + "%"]).concat(R.notOrdered.map((n) => ["Not ordered", n.name + ": " + n.reason])) : [["Not ordered yet", "No vendor meets every must-have with every must-have answered."]] },
@@ -140,18 +168,33 @@ export default function RFPRequirementBuilder() {
     { title: "Method", type: "text", content: MODEL.title + " " + MODEL.version + ". Published at contactcentercx.com" + MODEL.methodology + "." },
   ];
 
-  const ReqRow = ({ r, edit }) => (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: `1px solid ${K.hair}`, flexWrap: "wrap" }}>
-      <span style={{ ...K.body, flex: 1, minWidth: 200 }}>{r.text}</span>
-      {edit
-        ? <Choice label={`${r.text}: priority`} options={MODEL.priorities.map((p) => [p.id, p.label.split(" ")[0]])} value={r.priority} onPick={(v) => setReq(r.key, v)} />
-        : <span style={{ ...K.strong, fontSize: 13, fontWeight: r.priority === "must" ? 700 : 500 }}>{PRI_LABEL[r.priority]}</span>}
+  const mark = (r) => (r.custom ? "Your requirement" : r.edited ? "Edited" : "");
+  const shown = (r) => (r.custom ? (custom.find((c) => `c-${c.id}` === r.key) || {}).text ?? r.text : Object.prototype.hasOwnProperty.call(edits, r.key) ? edits[r.key] : r.text);
+  const ReqRow = ({ r, edit }) => (edit ? (
+    <div style={{ padding: "12px 0", borderTop: `1px solid ${K.hair}` }}>
+      <label style={{ display: "block" }}>
+        <span className="sr-only">Wording of this requirement</span>
+        <textarea rows={2} value={shown(r)} onChange={(e) => setWording(r.key, e.target.value)} onBlur={() => { if (!r.custom && !String(edits[r.key] ?? r.text).trim()) resetWording(r.key); }}
+          maxLength={MODEL.thresholds.maxText.value} style={{ ...numInput, marginTop: 0, minHeight: 64, padding: "10px 12px", fontWeight: 500, fontSize: 15, lineHeight: "22px", fontVariantNumeric: "normal", resize: "vertical" }} />
+      </label>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, flexWrap: "wrap" }}>
+        <Choice label={`${r.text}: priority`} options={MODEL.priorities.map((p) => [p.id, p.label.split(" ")[0]])} value={r.priority} onPick={(v) => setReq(r.key, v)} />
+        {mark(r) && <span style={{ ...K.small, fontWeight: 700 }}>{mark(r)}</span>}
+        {r.edited && <button type="button" onClick={() => resetWording(r.key)} style={{ ...K.link, border: "none", cursor: "pointer", padding: "0 4px", minHeight: TOUCH, font: "inherit", fontSize: 14 }}>Use the published wording</button>}
+        <button type="button" onClick={() => removeReq(r.key)} style={{ ...K.link, border: "none", cursor: "pointer", padding: "0 4px", minHeight: TOUCH, font: "inherit", fontSize: 14 }}>Remove</button>
+      </div>
     </div>
-  );
+  ) : (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderTop: `1px solid ${K.hair}`, flexWrap: "wrap" }}>
+      <span style={{ ...K.body, flex: 1, minWidth: 200 }}>{r.text}{mark(r) && <span style={{ ...K.small, fontWeight: 700 }}> ({mark(r).toLowerCase()})</span>}</span>
+      <span style={{ ...K.strong, fontSize: 13, fontWeight: r.priority === "must" ? 700 : 500 }}>{PRI_LABEL[r.priority]}</span>
+    </div>
+  ));
+  const removedReqs = rfpRequirements(MODEL, { ...state, dropped: [] }).filter((r) => dropped.includes(r.key));
   const Groups = ({ edit }) => groups.map((g) => (
     <section key={g.n} aria-label={g.n ? `L${g.n} ${g.name}` : `${g.name} requirements`} style={K.panel}>
       <h2 style={{ ...K.h2, fontSize: 17 }}>{g.n ? `L${g.n} ${g.name}` : `${g.name} requirements`} <span style={K.small}>({g.reqs.length})</span></h2>
-      {g.reqs.map((r) => <ReqRow key={r.key} r={r} edit={edit} />)}
+      {g.reqs.map((r) => <Fragment key={r.key}>{ReqRow({ r, edit })}</Fragment>)}
     </section>
   ));
 
@@ -204,9 +247,36 @@ export default function RFPRequirementBuilder() {
         {step === 2 && (<>
           <section aria-label="Review and set priorities" style={K.lead}>
             <h2 style={K.h2}>Review and set priorities</h2>
-            <p style={K.body}>{R.counts.must} must, {R.counts.should} should, {R.counts.nice} nice to have, {all.length} in all. Change any priority; your vertical's own requirements are included and start as must-haves.</p>
+            <p style={K.body}>{R.counts.must} must, {R.counts.should} should, {R.counts.nice} nice to have, {all.length} in all. Change any priority or wording, remove what does not apply, and add your own below. Your vertical's own requirements are included and start as must-haves.</p>
           </section>
-          <Groups edit />
+          {Groups({ edit: true })}
+          <Group legend="Add a requirement of your own" note={`Up to ${MODEL.thresholds.maxCustom.value}, on any layer. ${custom.length} added so far.`}>
+            <div style={{ display: "grid", gap: 10 }}>
+              <label style={{ display: "block" }}><span style={{ ...K.small, color: K.strong.color, fontWeight: 600 }}>Layer</span>
+                <select className="rfp-sel" value={draft.layer} onChange={(e) => setDraft((d) => ({ ...d, layer: Number(e.target.value) }))} style={{ ...selectStyle, marginTop: 6 }}>
+                  {MODEL.layers.map((l) => <option key={l.n} value={l.n}>L{l.n} {l.name}</option>)}
+                </select>
+              </label>
+              <label style={{ display: "block" }}><span style={{ ...K.small, color: K.strong.color, fontWeight: 600 }}>Requirement</span>
+                <textarea rows={2} value={draft.text} maxLength={MODEL.thresholds.maxText.value} onChange={(e) => setDraft((d) => ({ ...d, text: cap(e.target.value) }))} placeholder="For example: Callback requests keep their place in the queue"
+                  style={{ ...numInput, minHeight: 64, padding: "10px 12px", fontWeight: 500, fontSize: 15, lineHeight: "22px", fontVariantNumeric: "normal", resize: "vertical" }} />
+              </label>
+              <Choice label="Priority of the new requirement" options={MODEL.priorities.map((p) => [p.id, p.label.split(" ")[0]])} value={draft.priority} onPick={(v) => setDraft((d) => ({ ...d, priority: v }))} />
+              <div><Button kind="secondary" onClick={addReq} disabled={!canAdd}>Add this requirement</Button></div>
+            </div>
+          </Group>
+          {removedReqs.length > 0 && (
+            <section aria-label="Removed requirements" style={K.panel}>
+              <h2 style={{ ...K.h2, fontSize: 17 }}>Removed <span style={K.small}>({removedReqs.length})</span></h2>
+              <p style={K.small}>Removed requirements leave every count and score. Put one back at any time.</p>
+              {removedReqs.map((r) => (
+                <div key={r.key} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: `1px solid ${K.hair}`, flexWrap: "wrap" }}>
+                  <span style={{ ...K.small, flex: 1, minWidth: 200 }}>{r.text}</span>
+                  <button type="button" onClick={() => restoreReq(r.key)} style={{ ...K.link, border: "none", cursor: "pointer", padding: "0 4px", minHeight: TOUCH, font: "inherit", fontSize: 14 }}>Put back</button>
+                </div>
+              ))}
+            </section>
+          )}
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Button kind="secondary" onClick={() => setStep(1)}>Back</Button>
             <Button onClick={() => setPhase("results")}>Build the RFP document</Button>
@@ -220,7 +290,7 @@ export default function RFPRequirementBuilder() {
           <div style={K.stat}>{all.length} requirements across {groups.length} groups</div>
           <p style={K.small}>{vertical} · {size} · {R.counts.must} must · {R.counts.should} should · {R.counts.nice} nice to have · <button type="button" onClick={() => { setPhase("input"); setStep(2); }} style={{ ...K.link, background: "none", border: "none", cursor: "pointer", padding: 0, font: "inherit" }}>edit</button></p>
         </section>
-        <Groups />
+        {Groups({})}
 
         <section aria-label="Score the vendor responses" style={K.panel}>
           <h2 style={K.h2}>Score the vendor responses</h2>

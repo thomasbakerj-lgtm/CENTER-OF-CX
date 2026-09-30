@@ -7,6 +7,16 @@
  */
 export const CHANGELOG = [
   {
+    date: "2026-09-30", methods: ["rfp-builder"], version: "1.1",
+    title: "RFP Builder: your own wording, removals and requirements",
+    changes: [
+      "Any requirement can be reworded, and the report marks it edited so a reader can tell your wording from the published default.",
+      "Any requirement can be removed; it leaves every count and score.",
+      "Requirements of your own can be added on any layer, up to 20, each scored like any other and starting as a should-have.",
+      "Scoring, weights, credits and every rule are unchanged; with no edit, removal or addition every result equals version 1.0.",
+    ],
+  },
+  {
     date: "2026-09-29", methods: ["business-case-builder"], version: "1.3",
     title: "Business Case: savings valued on the shared marginal load",
     changes: [

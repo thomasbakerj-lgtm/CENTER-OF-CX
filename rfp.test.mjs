@@ -149,5 +149,65 @@ ok("the consultant path stays", /Connect with a consultant/.test(TOOL));
 ok("/methodology/rfp-builder: route mounted and in the sitemap", APP.includes('<Route path="/methodology/rfp-builder" element={<RubricPage id="rfp-builder" />} />') && readFileSync("./public/sitemap.xml", "utf8").includes("/methodology/rfp-builder<"));
 ok("no dash in the engine, the model or the tool", !DASH.test(SRC) && !DASH.test(TOOL));
 
+section("11. Method 1.1: your own wording, removals and requirements");
+{
+  /* Method 1.0's requirement builder, verbatim, spliced into today's engine in place of 1.1's. */
+  const V10 = `function rfpRequirements(model, state) {
+  const tags = rfpTags(model, state);
+  const pri = state.reqs && typeof state.reqs === "object" ? state.reqs : {};
+  const ok = (p) => model.priorities.some((x) => x.id === p);
+  const out = [];
+  for (const l of model.layers) l.reqs.forEach((r, i) => {
+    if (!r.tags.some((t) => tags.includes(t))) return;
+    const key = \`\${l.n}-\${i}\`;
+    out.push({ key, layer: l.n, layerName: l.name, text: r.text, priority: Object.prototype.hasOwnProperty.call(pri, key) && ok(pri[key]) ? pri[key] : r.priority });
+  });
+  (model.verticalReqs[state.vertical] || []).forEach((text, i) => {
+    const key = \`v-\${i}\`;
+    out.push({ key, layer: 0, layerName: (state.vertical || "") + " specific", text, priority: Object.prototype.hasOwnProperty.call(pri, key) && ok(pri[key]) ? pri[key] : "must" });
+  });
+  return out;
+}`;
+  const cutA = BODY.indexOf("/* The buyer's own wording"), cutB = BODY.indexOf("function scoreRfp(");
+  ok("the 1.1 requirement builder is found in the slice", cutA > 0 && cutB > cutA);
+  const OLD = load(BODY.slice(0, cutA) + V10 + "\n\n" + BODY.slice(cutB));
+  const strip = (x) => JSON.stringify(x, (k, v) => (k === "edited" && v === false ? undefined : v));
+  let equal = true;
+  for (let i = 0; i < 2000; i++) { const s = randomEval(); if (strip(E.scoreRfp(M, s)) !== JSON.stringify(OLD.scoreRfp(M, s))) equal = false; }
+  ok("with no edit, removal or addition, 2,000 random evaluations equal method 1.0", equal);
+  const base = { vertical: "Healthcare", size: "200-500 agents", activeTags: ["all"], reqs: {} };
+  const reqs0 = E.rfpRequirements(M, base);
+  const k0 = reqs0[0].key, t0 = reqs0[0].text;
+  const ed = E.rfpRequirements(M, { ...base, edits: { [k0]: "  Our <b>own</b>   wording  " } });
+  ok("an edit rewords the line, trims it and strips angle brackets", ed[0].text === "Our bown/b wording" && ed[0].edited === true && ed[0].key === k0);
+  ok("an edit equal to the published wording is not marked edited", E.rfpRequirements(M, { ...base, edits: { [k0]: t0 } })[0].edited === false);
+  ok("an empty edit falls back to the published wording", E.rfpRequirements(M, { ...base, edits: { [k0]: "   " } })[0].text === t0);
+  ok("a long edit is capped", E.rfpRequirements(M, { ...base, edits: { [k0]: "x".repeat(500) } })[0].text.length === M.thresholds.maxText.value);
+  const dr = E.rfpRequirements(M, { ...base, dropped: [k0, "v-0"] });
+  ok("a removed requirement leaves the set", dr.length === reqs0.length - 2 && !dr.some((r) => r.key === k0 || r.key === "v-0"));
+  const sc0 = E.scoreRfp(M, base), sc1 = E.scoreRfp(M, { ...base, dropped: [k0] });
+  ok("a removed requirement leaves every count", sc0.counts[reqs0[0].priority] - 1 === sc1.counts[reqs0[0].priority]);
+  const cu = E.rfpRequirements(M, { ...base, custom: [{ id: 3, layer: 5, text: "Callback keeps its place" }, { id: 3, layer: 5, text: "duplicate id" }, { id: 4, layer: 99, text: "bad layer" }, { id: 5, layer: 2, text: "  " }, { id: 99, layer: 2, text: "id out of range" }, { id: 6, layer: 2, text: "Must line", priority: "must" }] });
+  const mine = cu.filter((r) => r.custom);
+  ok("valid additions join, invalid ones are dropped", mine.length === 2 && mine[0].key === "c-3" && mine[0].layer === 5 && mine[1].key === "c-6");
+  ok("an addition starts as a should-have unless a priority is given", mine[0].priority === "should" && mine[1].priority === "must");
+  ok("an addition carries its layer's name", mine[0].layerName === M.layers.find((l) => l.n === 5).name);
+  ok("at most maxCustom additions", E.rfpRequirements(M, { ...base, custom: Array.from({ length: 30 }, (_, i) => ({ id: i, layer: 1, text: "R" + i })) }).filter((r) => r.custom).length === M.thresholds.maxCustom.value);
+  const scored = E.scoreRfp(M, { ...base, custom: [{ id: 0, layer: 1, text: "Mine", priority: "must" }], vendors: ["A"], responses: { 0: { "c-0": "no" } } });
+  ok("a vendor's answer on an addition is scored like any other", scored.vendors[0].unmet.some((u) => u === "Mine" || (u && u.text === "Mine") || JSON.stringify(u).includes("Mine")));
+  ok("an addition counts in the priorities", scored.counts.must === E.scoreRfp(M, base).counts.must + 1);
+}
+
+section("12. The page keeps your wording in a link and in the report");
+{
+  const TOOLSRC = readFileSync("./RFPRequirementBuilder.jsx", "utf8");
+  ok("DEFAULTS carry edits, dropped and custom", /edits: \{\}, dropped: \[\], custom: \[\]/.test(TOOLSRC));
+  ok("link keys accept additions", /const KEY_RE = \/\^\(\\d\+\|v\|c\)-\\d\+\$\/;/.test(TOOLSRC));
+  ok("the report marks edited lines and your own", TOOLSRC.includes('(r.custom ? " (your requirement)" : r.edited ? " (edited)" : "")'));
+  ok("rows are called as functions, so a text box keeps focus while typing", !/<ReqRow|<Groups/.test(TOOLSRC));
+  ok("wording, removal, put back and add controls are on the page", ["Use the published wording", ">Remove<", "Put back", "Add this requirement", "Add a requirement of your own"].every((x) => TOOLSRC.includes(x)));
+  ok("the method states the customization rule", typeof M.customNote === "string" && /edited/.test(M.customNote) && M.version === "1.1");
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);
