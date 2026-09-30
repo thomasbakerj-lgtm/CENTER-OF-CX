@@ -43,8 +43,8 @@ export const SEO_MAP = {
     desc: "282 vendors across 8 categories. CCaaS, IVA, Agent Assist, WEM, Analytics, ACD/Routing, Digital Engagement, and Payments. Independent research with no vendor sponsorship.",
   },
   "/vendors/ccaas": {
-    title: `CCaaS Platform Market Intelligence | 24 Vendors Profiled | ${SITE}`,
-    desc: "24 CCaaS vendors and 4 adjacent suites, listed by research status. Where each platform fits, where it breaks, and the evidence behind it. Numeric scores withdrawn until class-specific ratings are validated.",
+    title: `CCaaS Vendors: 24 Platforms Profiled by the Job They Do | ${SITE}`,
+    desc: "24 CCaaS vendors and 4 adjacent suites, grouped by the job each platform does. For the 18 researched: where it fits, where it breaks, and the sources behind each finding. Scores withdrawn.",
   },
   "/vendors/iva": {
     title: `IVA + Conversational AI: 50 Vendors Profiled Across 7 Categories | ${SITE}`,
@@ -223,8 +223,8 @@ export const SEO_MAP = {
     desc: "Four new roles, five career paths, twelve certifications, and the growth playbook for CX professionals thriving in the AI era. Technology intelligence without workforce intelligence is half a strategy.",
   },
   "/research/ccaas-migration-costs": {
-    title: `Why Your CCaaS Migration Didn't Cut Costs | ${SITE}`,
-    desc: "The business case looked clean. Two years later, most organizations are spending the same or more. A 20-year operator breaks down where the money actually went across five CCaaS migrations.",
+    title: `Cloud Contact Center Migration Costs: What the Business Case Leaves Out | ${SITE}`,
+    desc: "The costs a CCaaS migration quote tends to leave out: integration, add-on modules, training, parallel running and a longer timeline. How to price each one before you sign.",
   },
   "/research/orchestration-framework": {
     title: `The 7-Layer CX Orchestration Framework 2026 | ${SITE}`,
