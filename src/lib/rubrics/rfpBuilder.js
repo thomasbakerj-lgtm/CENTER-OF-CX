@@ -1,4 +1,4 @@
-/* RFP Requirement Builder, version 1.0. An RFP model (kind "rfp").
+/* RFP Requirement Builder, version 1.1. An RFP model (kind "rfp").
  *
  * Published at /methodology/rfp-builder from this object, and read by the engine in
  * src/lib/rfp.js. Truth type: the buyer's own requirements and the responses the buyer's
@@ -19,8 +19,8 @@ export const RFP_BUILDER = {
   id: "rfp-builder",
   kind: "rfp",
   title: "RFP Requirement Builder",
-  version: "1.0",
-  published: "2026-09-24",
+  version: "1.1",
+  published: "2026-09-30",
   route: "/tools/rfp-builder",
   methodology: "/methodology/rfp-builder",
   truthType: "The buyer's own requirements and their vendors' responses. Reads no vendor research or score; any vendor can be scored.",
@@ -43,7 +43,10 @@ export const RFP_BUILDER = {
   thresholds: {
     tieMargin: { value: 5, kind: "heuristic", text: "points of weighted coverage within which two vendors are too close to call" },
     maxVendors: { value: 6, kind: "rule", text: "vendors one scoring session holds" },
+    maxCustom: { value: 20, kind: "rule", text: "requirements of your own one RFP holds" },
+    maxText: { value: 160, kind: "rule", text: "characters in one requirement's wording" },
   },
+  customNote: "You can reword any requirement, remove any requirement, and add requirements of your own on any layer. A reworded requirement is marked edited in the report, so a reader can tell your wording from the published default; a removed one leaves every count and score; an added one is scored like any other and starts as a should-have.",
   rules: {
     unmet: { severity: "critical", title: "Must-have not available", test: "A vendor answered not available on a must-have.",
       action: "{vendor} does not offer {req}, a must-have. Keep them in only if you are ready to drop or change the requirement." },
