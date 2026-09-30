@@ -8,6 +8,7 @@ import { TRANSFORMATION_READINESS as RUBRIC } from "./src/lib/rubrics/transforma
 import { JOURNEY } from "./src/lib/journey";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { FONT_IMPORT_CSS } from "./src/lib/type";
 
 /* Band colours print in the PDF only; on the page a band is a word. */
@@ -35,6 +36,8 @@ export default function TransformationReadiness() {
   const [phase, setPhase] = useState(() => (isComplete(init.scores) ? "results" : "intro"));
   const [currentDim, setCurrentDim] = useState(0);
   const [scores, setScores] = useState(init.scores);
+  /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
+  useScenarioHash(TOOL_ID, { scores }, DEFAULTS);
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
   useEffect(() => { clearScenarioParam(); }, []);
 

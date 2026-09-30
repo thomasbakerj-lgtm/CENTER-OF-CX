@@ -7,6 +7,7 @@ import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import { DemoRequest } from "./src/lib/DemoRequest.jsx";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { getVendor } from "./VendorData";
 
@@ -299,6 +300,8 @@ export default function VendorMatchEngine() {
   const [phase, setPhase] = useState(() => (init.fromLink && init.d.vertical && init.d.size && init.d.priorities.length ? "results" : "input"));
   const [step, setStep] = useState(0);
   const [d, setD] = useState(init.d);
+  /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
+  useScenarioHash(TOOL_ID, d, DEFAULTS);
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
   useEffect(() => { clearScenarioParam(); }, []);
   const set = (k,v) => setD(prev => ({...prev,[k]:v}));

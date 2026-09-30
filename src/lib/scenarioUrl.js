@@ -224,13 +224,46 @@ export function decodeScenario(search, toolId, defaults) {
  */
 export function readScenario(toolId, defaults) {
   if (typeof window === "undefined" || !window.location) return null;
-  return decodeScenario(window.location.search, toolId, defaults);
+  return decodeScenario(window.location.search, toolId, defaults)
+    || decodeScenario(hashQuery(window.location.hash), toolId, defaults);
 }
 
 /** True when the current URL carries a scenario payload of any kind. */
 export function hasScenario() {
   if (typeof window === "undefined" || !window.location) return false;
-  return !!new URLSearchParams(window.location.search).get(PARAM);
+  return !!new URLSearchParams(window.location.search).get(PARAM)
+    || !!new URLSearchParams(hashQuery(window.location.hash)).get(PARAM);
+}
+
+/* The live copy of the reader's inputs rides in the fragment ("#s=..."). A browser never sends the fragment to the
+   server, so a refresh or Back restores the inputs without them reaching the host's logs. Other fragment parts (QA's
+   "#score") are kept. */
+function hashQuery(hash) {
+  return String(hash || "").replace(/^#/, "").split("&").filter((p) => p.startsWith(PARAM + "=")).join("&");
+}
+
+/** The fragment with the scenario part set to enc, or removed when enc is empty. */
+export function withScenarioHash(hash, enc) {
+  const parts = String(hash || "").replace(/^#/, "").split("&").filter((p) => p && !p.startsWith(PARAM + "="));
+  if (enc) parts.push(`${PARAM}=${enc}`);
+  return parts.length ? "#" + parts.join("&") : "";
+}
+
+/**
+ * Keep the reader's current inputs in the address bar fragment, so a refresh or Back reopens them. Only the diff
+ * against the defaults travels; an untouched tool, or a scenario too large for a link, leaves no fragment. With
+ * clear false an empty scenario leaves the address alone (a tool's first render, before it has read its link).
+ */
+export function syncScenarioHash(toolId, state, defaults, { clear = true } = {}) {
+  if (typeof window === "undefined" || !window.history?.replaceState || !window.location) return;
+  try {
+    const enc = encodeScenario(toolId, state, defaults);
+    const empty = enc === null || JSON.stringify(JSON.parse(b64urlDecode(enc)).d) === "{}";
+    if (empty && !clear) return;
+    const hash = withScenarioHash(window.location.hash, empty ? "" : enc);
+    if (hash === (window.location.hash || "")) return;
+    window.history.replaceState(window.history.state, "", window.location.pathname + window.location.search + hash);
+  } catch { /* the address bar is a convenience; never break the tool */ }
 }
 
 /**
@@ -243,7 +276,7 @@ export function clearScenarioParam() {
   const u = new URL(window.location.href);
   if (!u.searchParams.has(PARAM)) return;
   u.searchParams.delete(PARAM);
-  window.history.replaceState({}, "", u.pathname + (u.search || "") + u.hash);
+  window.history.replaceState(window.history.state, "", u.pathname + (u.search || "") + u.hash);
 }
 
 /* Inputs moved off the defaults. Lives here, not in track.js, so it loads
@@ -274,4 +307,4 @@ export function inputsMoved(state, defaults) {
   } catch { return false; }
 }
 
-export const _internals = { diff, patch, b64urlEncode, b64urlDecode, MAX_URL, VERSION };
+export const _internals = { diff, patch, b64urlEncode, b64urlDecode, hashQuery, MAX_URL, VERSION };

@@ -10,6 +10,7 @@ import { publishToolResult, getExternalWithSource } from "./src/lib/toolData";
 import { normalizeForPublish } from "./src/lib/metrics";
 import { trackTool, severityBucket } from "./src/lib/track";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { createGuards, guardVal, guardLine } from "./src/lib/guards";
 import { emitGrades, voidResult, railEvidence, weakerStream } from "./src/lib/confidence";
 import { ToolFrame } from "./src/lib/ToolFrame.jsx";
@@ -649,6 +650,8 @@ const sel = { width: "100%", minHeight: TOUCH, padding: "0 12px", fontFamily: FO
 
 function Calculator() {
   const [dRaw, setD] = useState({ ...BASE, ...INDUSTRY.general, industry: "general" });
+  /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
+  useScenarioHash(TOOL_ID, dRaw, SCENARIO_DEFAULTS);
   const set = (k, v) => setD(prev => ({ ...prev, [k]: v }));
   const [activeSection, setActiveSection] = useState(0);
   const [stance, setStance] = useState("expected");

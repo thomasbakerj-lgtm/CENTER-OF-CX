@@ -1797,6 +1797,21 @@ dashboard, the 12-phase growth program.
    Open from the audit, for TB: Vendor Match size data and inert inputs, missing Microsoft, Google and Salesforce contact
    center research, refresh loses inputs, company size and region context, cross-tool reconciliation, stale hub and PDF copy.
 
+107. S24 (30 Sep), audit batch 2 item 1 (TB: "go"), refresh and Back keep the reader's inputs (audit top ten 6). Every tool
+   removed its scenario link from the address bar once it loaded, so a refresh or Back from a method page reopened the
+   defaults (Staffing 237 agents to 88). The live inputs now ride in the address fragment (`#s=`, same encoding as a shared
+   link), which a browser never sends to the server, so nothing new reaches the host's logs. `src/lib/useScenarioHash.js`
+   writes it: at once for a page opened from a link (a shared `?s=` link moves into the fragment), otherwise only after a
+   trusted keystroke, tap or edit, so rail values are not written on arrival; the first render never clears a link the tool
+   has not read yet. ReportActions calls it for every tool; the eleven tools whose report sits on a later step (four
+   frameworks, Governance, Roadmap, Platform Decision, RFP, Vendor Match, TCO, FCR Leakage) call it themselves with the
+   state their report encodes. `readScenario` reads the query first, then the fragment; `main.jsx` renders a fragment page
+   fresh; QA's evaluator `#score` is kept beside it. A refresh treats restored values as entered, like opening your own
+   scenario link (D13), so a pulled value the reader has not touched can count as entered after a refresh; the same holds
+   today for a copied link. Privacy Policy says where the copy lives (browser history, and the address if copied), updated
+   30 September 2026. `track.test.mjs` S (26). Browser: all 25 tools refresh with their inputs, Back from a method page,
+   a shared link then refresh, the QA evaluator link, no page error. Suite 27,475; local live check 257 of 257.
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the

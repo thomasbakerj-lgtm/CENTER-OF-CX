@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useId } from "react";
 import { Assent } from "./src/lib/Assent.jsx";
 import ReportExport from "./ReportExport";
 import { scenarioLink, inputsMoved } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { FONT, TYPE } from "./src/lib/type";
 import { HOUSE, PILLARS, FINDINGS, alpha } from "./src/lib/tokens.js";
 import { trackTool, track, EV } from "./src/lib/track";
@@ -323,6 +324,9 @@ export default function ReportActions({
   useEffect(() => {
     setLink(scenarioLink(toolId, state, defaults, routePath));
   }, [toolId, state, defaults, routePath]);
+
+  /* The address bar keeps the reader's inputs, so a refresh or Back reopens them (useScenarioHash). */
+  useScenarioHash(toolId, state, defaults);
 
   const emailBad = touchedEmail && !validEmail(email);
 

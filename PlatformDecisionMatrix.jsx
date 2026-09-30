@@ -6,6 +6,7 @@ import { methodStamp } from "./src/lib/methodVersions.js";
 import { TOUCH, RADIUS } from "./src/lib/tokens.js";
 import ReportActions from "./ReportActions";
 import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
+import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { JOURNEY } from "./src/lib/journey";
 import { PLATFORM_DECISION as MODEL } from "./src/lib/rubrics/platformDecision";
@@ -76,6 +77,8 @@ export default function PlatformDecisionMatrix() {
   const [evidence, setEvidence] = useState(init.evidence);
   const [clock, setClock] = useState(init.clock);
   const state = { scores, need, evidence, clock };
+  /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
+  useScenarioHash(TOOL_ID, state, DEFAULTS);
   const R = scoreRenewal(MODEL, state);
   const [phase, setPhase] = useState(() => (scoreRenewal(MODEL, init).complete ? "results" : "intro"));
   const [currentLayer, setCurrentLayer] = useState(0);
