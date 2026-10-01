@@ -281,5 +281,29 @@ section("11. Audit 30 Sep, batch 3: the essay pages say what they hold");
   ok("the industries hub counts its segments from the sitemap", /\{SEGMENT_COUNT\} segments/.test(R("Industries.jsx")) && /import \{ SEGMENT_COUNT \} from "\.\/src\/lib\/seo\.js"/.test(R("Industries.jsx")));
 }
 
+section("12. Audit 30 Sep pass two: no rank, score or uncited analyst claim on any profile");
+{
+  const R = (f) => readFileSync("./" + f, "utf8");
+  /* Every prose field a Phase 1 profile or category page renders, in all eight category data files. An analyst placement
+     may appear only in an `analyst` field, quoted, with its link and check date (TB, 1 Oct: cite or quote). */
+  const FIELD = /\b(?:profile|summary|differentiator|bestUseCase|diff|useCase|strength\d?|weakness\d?|watchout|rec|archetype)\s*:\s*"([^"]*)"/g;
+  const RANK_I = /#\s?1\b|\b\d\s*\/\s*\d\b|\bleaders?\b|magic quadrant|marketscape|\bscor(?:e|es|ed)\b|\bnumber one\b|\b(?:best|strongest|deepest|most \w+|top)\b[^.]{0,60}\bin (?:the )?(?:entire )?(?:market|tier|segment|class|category|industry)\b|\bsets the standard\b|\bmarket[- ]leading\b/i;
+  const RANK = { test: (t) => RANK_I.test(t) || /\bWave\b/.test(t) }; // "Wave" as Forrester's title; "first-wave" is an evaluation round
+  const DATA = ["ACDRoutingData.js", "AnalyticsData.js", "AgentAssistData.js", "IVAData.js", "WEMData.js", "DigitalEngagementData.js", "PaymentData.js", "VendorData.js"];
+  const hits = DATA.flatMap((f) => [...R(f).matchAll(FIELD)].filter((m) => RANK.test(m[1])).map((m) => `${f}: ${m[1].slice(0, 70)}`));
+  ok("no profile prose claims a rank, a score, a leader position or an analyst placement", hits.length === 0);
+  if (hits.length) console.log("   ", hits.join("\n    "));
+  for (const bad of ['strength: "#1 social + digital care suite"', 'summary: "The strongest WFM alignment in the AI-native segment (tied at 6/6)."',
+    'summary: "Named Leader in Forrester 2026 Wave for Conversational AI Platforms."', 'summary: "Revenue intelligence leader."'])
+    ok(`the rule fires on ${bad.slice(0, 40)}`, [...bad.matchAll(FIELD)].some((m) => RANK.test(m[1])));
+  const IVA = R("IVAData.js");
+  const analyst = [...IVA.matchAll(/analyst: \{ said: "([^"]+)", by: "([^"]+)", url: "([^"]+)", checked: "(\d{4}-\d{2}-\d{2})" \}/g)];
+  ok("every analyst line is quoted with who said it, a https link and a check date", analyst.length >= 1 && analyst.every((m) => /^https:\/\//.test(m[3])) && (IVA.match(/analyst:/g) || []).length === analyst.length);
+  const VP = R("VendorProfile.jsx");
+  ok("the profile shows an analyst line as a quoted, linked, dated fact that changes nothing", /Analyst coverage, as \{a\.by\} states it: "\{a\.said\}"/.test(VP) && /We have not read the report\. It is not scored and does not change any list or order on this site\./.test(VP) && /\{iv\.analyst && <AnalystNote a=\{iv\.analyst\} \/>\}/.test(VP));
+  ok("back links name the page they open", !/Back to [^<]*Intelligence<|backLabel: "[^"]*Intelligence"/.test(VP + R("GatedReport.jsx")));
+  ok("a layer with one vendor says so", /layer\.stack\.length === 1 \? "the vendor"/.test(R("src/lib/SubVerticalPage.jsx")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

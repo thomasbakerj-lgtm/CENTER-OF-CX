@@ -97,6 +97,18 @@ function VendorNotFound() {
   );
 }
 
+/* Analyst coverage is shown only as a dated, quoted and linked fact, in the vendor's own words. It is never scored and
+   never changes a list, an order or a finding (research law: analyst inclusion may be displayed, never scored). */
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const dayText = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS[m - 1]} ${y}`; };
+function AnalystNote({ a }) {
+  return (
+    <p style={{ fontSize: 13, color: HOUSE.body, lineHeight: 1.6, marginTop: 12 }}>
+      Analyst coverage, as {a.by} states it: "{a.said}" (<a href={a.url} target="_blank" rel="noopener noreferrer" style={{ color: LIGHT }}>{a.by}, checked {dayText(a.checked)}</a>). We have not read the report. It is not scored and does not change any list or order on this site.
+    </p>
+  );
+}
+
 export default function VendorProfile() {
   const { slug } = useParams();
   const vendor = getVendor(slug);
@@ -140,6 +152,7 @@ export default function VendorProfile() {
                 <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{iv.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={iv.name} from="vendor" surface="vendor" /></div>
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7 }}>{iv.summary}</p>
+                {iv.analyst && <AnalystNote a={iv.analyst} />}
               </div>
               <div style={{ flexShrink: 0 }}>
                 <Phase1Badge />
@@ -181,7 +194,7 @@ export default function VendorProfile() {
               <Section label="Research status" title="Phase 1 context." dark>
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginBottom: 20 }}>{phase1Label().text}</p>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to IVA Market Intelligence</a>
+                  <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to IVA and conversational AI vendors</a>
                   
                 </div>
               </Section>
@@ -306,7 +319,7 @@ export default function VendorProfile() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-                <a href="/vendors/agent-assist" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to Agent Assist Intelligence</a>
+                <a href="/vendors/agent-assist" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to agent assist vendors</a>
                 
               </div>
             </FadeIn>
@@ -394,7 +407,7 @@ export default function VendorProfile() {
                 ))}
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-                <a href="/vendors/wem-qm" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to WEM/QM Intelligence</a>
+                <a href="/vendors/wem-qm" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to WEM and QM vendors</a>
                 
               </div>
             </Section>
@@ -469,7 +482,7 @@ export default function VendorProfile() {
             <Section label="Market Position" title={`${av.catLabel}, ${av.segment}`} dark>
               <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Vendors are best compared within the same platform category: a CCaaS platform and an AI-native overlay serve different buying motions.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to Analytics Intelligence</a>
+                <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to analytics vendors</a>
                 
               </div>
             </Section>
@@ -538,7 +551,7 @@ export default function VendorProfile() {
         <section style={{ background: HOUSE.navy, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
           <Section label="Market Position" title={av.segment} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to ACD/Routing Intelligence</a>
+              <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to ACD and routing vendors</a>
               
             </div>
           </Section>
@@ -607,7 +620,7 @@ export default function VendorProfile() {
         <section style={{ background: HOUSE.navy, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
           <Section label="Market Position" title={dv.archetype} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to Digital Engagement Intelligence</a>
+              <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to digital engagement vendors</a>
               
             </div>
           </Section>
@@ -686,7 +699,7 @@ export default function VendorProfile() {
                 {/* Back navigation */}
         <section style={{ background: WARM, padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
-            <a href="/vendors/payments" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>← Back to Payments Intelligence</a>
+            <a href="/vendors/payments" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>← Back to payment vendors</a>
           </div>
         </section>
 
@@ -953,7 +966,7 @@ export default function VendorProfile() {
       {/* Back navigation */}
       <section style={{ background: HOUSE.ink, padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
-          <a href="/vendors/ccaas" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT }}>← Back to CCaaS Platform Intelligence</a>
+          <a href="/vendors/ccaas" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT }}>← Back to contact center platforms (CCaaS)</a>
         </div>
       </section>
 

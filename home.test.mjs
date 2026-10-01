@@ -82,7 +82,9 @@ section("3. Nothing promised that is not measured or not built");
   const vendorText = JSON.stringify(H.DOORS[1].routes);
   ok("vendor routes promise no findings, break conditions, proof tests or search (they arrive with the researched profiles)", !/finding|break|proof test|\bsearch\b/i.test(vendorText));
   ok("no search box and no contributor invitation (D3 is open)", !/\bsearch\b/i.test(SRC) && !/contribut/i.test(SRC));
-  ok("no vendor score, rank or tier language", !/\b(score[ds]?|rank(ed|ing)?|tier)\b/i.test(JSON.stringify(H.DOORS[1]) + JSON.stringify(H.PROOFS)) || /Never ranked/.test(JSON.stringify(H.DOORS[1])));
+  ok("no vendor score, rank or tier language", !/\b(score[ds]?|rank(ed|ing)?|tier)\b/i.test((JSON.stringify(H.DOORS[1]) + JSON.stringify(H.PROOFS)).replace("requirements you can score", "")));
+  // RFP Builder's line is the buyer's own scoring of vendor responses; the site gives no vendor a score
+  ok("the vendors door claims no ranking it cannot keep (Vendor Match orders a Phase 1 starting list)", !/Never ranked/.test(JSON.stringify(H.DOORS[1])) && /listed A to Z\. No vendor pays to appear or to move\./.test(JSON.stringify(H.DOORS[1])));
 }
 
 section("4. Industry figures are the claims registry's");

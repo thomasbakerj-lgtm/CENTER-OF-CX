@@ -65,7 +65,7 @@ for (const c of INDEX.classes) {
     ok(`${v.name}: in order inside ${c.id}`, i > at); at = i;
     const block = ot.slice(i, i + 900);
     ok(`${v.name}: best-when statement or its absence`, v.bestWhen ? block.includes(norm(v.bestWhen.statement)) : block.includes("No best-when statement is published"));
-    ok(`${v.name}: compared on and validated`, block.includes(`Compared on: ${c.boundary}`) && block.includes(`Research validated ${fmtDate(v.validated)}`));
+    ok(`${v.name}: compared on and validated`, block.includes(`Compared on: ${PLAIN[c.id].compared}`) && block.includes(`Research validated ${fmtDate(v.validated)}`));
     ok(`${v.name}: validation date equals the registry`, v.validated === CCAAS_RESEARCH.complete[SLUG[v.id]].validated);
   }
 }

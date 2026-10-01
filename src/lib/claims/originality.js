@@ -23,7 +23,7 @@ const MW_METHOD = "Market Watch launch set (12 items). Each headline and summary
 
 export const ORIGINALITY = {
   "src/lib/marketWatch.js": {
-    checked: "2026-09-27",
+    checked: "2026-10-01",
     method: MW_METHOD,
     matches: [
       { text: "Regulation (EU) 2026/1744 was published in the Official Journal on 24 July 2026", near: "https://lawandtechnology.eu/en/digital-omnibus-on-ai-official-journal-regulation-2026-1744/", kind: "shared factual phrase", resolution: "rewritten" },

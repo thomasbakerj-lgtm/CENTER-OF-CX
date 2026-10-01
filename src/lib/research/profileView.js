@@ -6,6 +6,8 @@
 // weakness: "Not yet proven" is its own answer. Findings are grouped by the corpus's own rating layer, so the five
 // decision layers (capability, evidence, fit, operating risk, implementation) stay separate on the page.
 
+import { readableIds } from "./classWords.js";
+
 /* Plain words for the corpus's states. A state the page does not know is shown as written, never guessed. */
 export const CAPABILITY = { EXCEEDS: "Exceeds the need", MEETS: "Meets the need", PARTIAL: "Partly", UNKNOWN: "Not yet proven", ABSENT: "Not offered" };
 export const EVIDENCE = { VERIFIED: "Verified in public sources", "STRONGLY SUPPORTED": "Strongly supported", INFERRED: "Inferred from sources", UNVERIFIED: "Not yet verified" };
@@ -52,7 +54,10 @@ export const evidence = (s) => (s === null || s === undefined ? null : EVIDENCE[
 const safeUrl = (u) => (typeof u === "string" && /^https:\/\/[^\s"'<>]+$/.test(u) ? u : null);
 
 export function buildProfile(file, shared) {
-  const v = file.vendor;
+  /* A class named by its id in research text reads as the class's name (presentation only; the file is unchanged). */
+  const classes = shared.competitive_classes.map((c) => ({ id: c.Competitive_Class_ID, name: c.Class_Name }));
+  const ids = (t) => readableIds(t, classes);
+  const v = { ...file.vendor, Class_Rationale: ids(file.vendor.Class_Rationale) };
   const klass = shared.competitive_classes.find((c) => c.Competitive_Class_ID === v.Competitive_Class_ID) || null;
   const criteria = new Map(shared.criteria.map((c) => [c.Criterion_ID, c]));
   const evidenceById = new Map(file.evidence.map((e) => [e.Evidence_ID, e]));
@@ -65,7 +70,7 @@ export function buildProfile(file, shared) {
     if (!sourcesOf.has(l.Claim_ID)) sourcesOf.set(l.Claim_ID, []);
     sourcesOf.get(l.Claim_ID).push({ ...source(e), role: words(l.Support_Role) });
   }
-  const claims = file.claims.map((c) => ({ ...c, sources: sourcesOf.get(c.Claim_ID) || [] }));
+  const claims = file.claims.map((c) => ({ ...c, Publishable_Summary: ids(c.Publishable_Summary), Buyer_Implication: ids(c.Buyer_Implication), sources: sourcesOf.get(c.Claim_ID) || [] }));
   const claimById = new Map(claims.map((c) => [c.Claim_ID, c]));
 
   const layers = [];

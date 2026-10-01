@@ -34,8 +34,8 @@ export const ITEMS = [
     "kind": "regulation",
     "who": "Federal Communications Commission",
     "vendors": [],
-    "headline": "FCC circulates draft order narrowing how robocall consent revocations must be honored",
-    "summary": "Ahead of its 30 September 2026 meeting, the FCC circulated a draft order in CG Docket 02-278. Callers could treat an opt-out as covering only the category of informational calls it targets and could name exclusive opt-out methods. A further notice asks about the time allowed to honor revocations.",
+    "headline": "FCC draft order would narrow robocall consent revocations; vote was set for 30 September",
+    "summary": "The FCC circulated a draft order in CG Docket 02-278 for its 30 September 2026 meeting. Callers could treat an opt-out as covering only the category of informational calls it targets and name exclusive opt-out methods. We have not yet read the FCC's record of the vote and will update this item from it.",
     "source": {
       "publisher": "Federal Communications Commission",
       "title": "FCC Fact Sheet: Rules and Regulations Implementing the Telephone Consumer Protection Act of 1991, Report and Order and Further Notice of Proposed Rulemaking (FCC-CIRC 2609-05)",
@@ -48,7 +48,7 @@ export const ITEMS = [
       "url": "https://www.insideglobaltech.com/2026/09/11/fcc-releases-draft-rules-and-proposals-on-tcpa-consent-revocation/",
       "published": "2026-09-11"
     },
-    "checked": "2026-09-27"
+    "checked": "2026-10-01"
   },
   {
     "id": "mw-2026-09-02-fcc-rmd-removals",

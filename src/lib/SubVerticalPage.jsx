@@ -186,7 +186,7 @@ export default function SubVerticalPage({ industry, href, getSubVertical, initia
                     <div style={{ borderTop: `1px solid ${K.hair}`, paddingTop: 10 }}>
                       <button type="button" aria-expanded={!!expandedLayers[li]} onClick={() => toggleLayer(li)}
                         style={{ ...K.link, background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit", fontSize: 14, minHeight: TOUCH }}>
-                        {expandedLayers[li] ? "Hide" : "Show"} the {layer.stack.length} vendors named for this layer
+                        {expandedLayers[li] ? "Hide" : "Show"} {layer.stack.length === 1 ? "the vendor" : `the ${layer.stack.length} vendors`} named for this layer
                       </button>
                       {expandedLayers[li] && (
                         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8 }}>

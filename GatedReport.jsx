@@ -26,7 +26,7 @@ const reports = {
     formspree: "https://formspree.io/f/xojydbwe",
     category: "IVA + Conversational AI",
     backLink: "/vendors/iva",
-    backLabel: "IVA Market Intelligence",
+    backLabel: "IVA and conversational AI vendors",
   },
   "ccaas-buyer-guide": {
     title: "CCaaS Platform Buyer's Guide 2026",
@@ -45,7 +45,7 @@ const reports = {
     formspree: "https://formspree.io/f/myklwvjy",
     category: "CCaaS Platforms",
     backLink: "/vendors/ccaas",
-    backLabel: "CCaaS Market Intelligence",
+    backLabel: "contact center platforms (CCaaS)",
     /* Public summary layer. Every figure here is taken from the published PDF,
        and the harness reconciles it against that source. The full guide stays
        one click away; the email form is optional. */
@@ -82,7 +82,7 @@ const reports = {
     formspree: "https://formspree.io/f/mgorkboe",
     category: "Platforms + Tech",
     backLink: "/platforms-and-tech",
-    backLabel: "Platforms + Tech Intelligence",
+    backLabel: "Platforms and Tech",
   },
 };
 

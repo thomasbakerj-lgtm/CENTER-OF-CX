@@ -18,19 +18,13 @@ import { trackVendor } from "./src/lib/track.js";
 import INDEX from "./src/data/research/ccaas/category.json";
 import { tagsFor, SIZES, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
 import { Tags, TagNotes } from "./src/lib/VendorTags.jsx";
+import { PLAIN } from "./src/lib/research/classWords.js";
 
 const ACCENT = PILLARS.vendors.onDark;
 
-/* Each class restated in plain words (presentation only). The research's own name, definition, buyer and comparison
-   boundary render beside it, word for word. */
-export const PLAIN = {
-  "CLS-CC-001": { name: "Full enterprise suites", job: "Run the whole contact center, voice and digital, on one platform with deep administration and operations." },
-  "CLS-CC-002": { name: "Build on cloud services", job: "Build and run contact center workloads from cloud building blocks, with your own team owning more of the design." },
-  "CLS-CC-003": { name: "Resilience and complex integration", job: "Run complex, integrated or high-stakes operations where uptime, compliance and control come first." },
-  "CLS-CC-004": { name: "Phone system plus contact center", job: "Run a standard to moderately complex contact center simply, often from the supplier of your phone system." },
-  "CLS-CC-005": { name: "Regional and data sovereignty", job: "Meet a country's or region's hosting, data and sector rules first." },
-  "CLS-CC-006": { name: "Moving off an existing system", job: "Move off an installed contact center with less risk, running old and new side by side." },
-};
+/* Each class restated in plain words (presentation only, src/lib/research/classWords.js). The research's own name,
+   definition, buyer and comparison boundary render beside it, word for word. */
+export { PLAIN };
 
 const SLUG_OF = Object.fromEntries(Object.entries(CCAAS_RESEARCH.complete).map(([slug, r]) => [r.vendorId, slug]));
 const plain = (c) => PLAIN[c.id] || { name: c.name, job: c.job };
@@ -56,7 +50,7 @@ function Researched({ v, klass }) {
       {v.bestWhen
         ? <p style={K.body}><strong style={K.strong}>Where the research says it fits:</strong> {v.bestWhen.statement}</p>
         : <p style={K.small}>No best-when statement is published for this vendor yet. Its profile carries the full research.</p>}
-      <p style={K.small}>Compared on: {klass.boundary}</p>
+      <p style={K.small}>Compared on: {(PLAIN[klass.id] || {}).compared || klass.boundary}</p>
       <p style={K.small}>Research validated {fmtDate(v.validated)}</p>
       <div><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={ACCENT} /></div>
     </li>
@@ -157,6 +151,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
               <span style={{ ...chip, borderStyle: c.draft ? "dashed" : "solid" }}>{c.draft ? "Draft class" : "Calibrated class"}</span>
             </div>
             <p style={K.small}>Research class: {c.name}. {c.definition}</p>
+            <p style={K.small}>How the research compares this class, in its own words: {c.boundary}</p>
             {c.kept.length
               ? <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>{c.kept.map((v) => <Researched key={v.id} v={v} klass={c} />)}</ul>
               : <p style={K.small}>No researched vendor in this class matches these filters.</p>}

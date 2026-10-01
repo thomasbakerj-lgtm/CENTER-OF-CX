@@ -92,7 +92,7 @@ export const vendors = {
   "five9": {
     name: "Five9", slug: "five9", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Strategic Foundation", score: 78, website: "five9.com",
-    summary: "Pragmatic enterprise CCaaS with strong outbound heritage and solid market credibility. Five9 balances capability depth with implementation speed and has one of the strongest partner ecosystems in the market. The AI portfolio is growing rapidly, and the platform handles the mid-market to large enterprise range well.",
+    summary: "Pragmatic enterprise CCaaS with strong outbound heritage and solid market credibility. Five9 balances capability depth with implementation speed and has a broad partner ecosystem. The AI portfolio is growing rapidly, and the platform handles the mid-market to large enterprise range well.",
     strengths: [
       "Balanced platform, strong enough for enterprise complexity, deployable fast enough for mid-market timelines",
       "Excellent outbound and blended contact capabilities, one of the best in the market for significant outbound volume",
@@ -436,7 +436,7 @@ export const vendors = {
   "ujet": {
     name: "UJET", slug: "ujet", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "CCaaS Growth Specialist", tier: "Strong Contender", score: 61, website: "ujet.cx",
-    summary: "Modern CCaaS story with mobile-first and digital-native relevance. UJET appeals to organizations redesigning customer service around app-centric and digital-native journeys. The platform has genuine AI substance and growing WFM capabilities, but its market footprint is smaller than top-tier leaders.",
+    summary: "Modern CCaaS story with mobile-first and digital-native relevance. UJET appeals to organizations redesigning customer service around app-centric and digital-native journeys. The platform has genuine AI substance and growing WFM capabilities, but its market footprint is smaller than the largest CCaaS vendors.",
     strengths: [
       "Mobile-first and digital-native CX design, strong for app-centric support journeys",
       "Good AI substance for its segment with agent copilot and automation capabilities",
