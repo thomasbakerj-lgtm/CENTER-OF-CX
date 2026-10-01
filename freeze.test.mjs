@@ -14,7 +14,8 @@
  *
  * Run from repo root: node freeze.test.mjs
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { execSync } from "node:child_process";
 
 const { vendors, getCoreVendors, getAdjacentVendors } = await import("./VendorData.js");
 const RS = await import("./src/lib/researchStatus.js");
@@ -208,7 +209,7 @@ section("8. Audit 30 Sep: the hub and category pages promise only what the profi
     ok(`${f} carries none of the retired promises`, !RETIRED.test(R(f)));
   /* Advisory describes a paid service, so its own words stay; it no longer offers scored shortlists. Phase 1 profiles
      label their weaknesses as the Phase 1 assessment. */
-  ok("Advisory offers no scored shortlist", !/scored (vendor )?shortlist/i.test(R("Advisory.jsx")));
+  ok("the help page offers no scored shortlist", !/scored (vendor )?shortlist/i.test(R("Contact.jsx")));
   ok("Phase 1 profiles label their assessment as Phase 1", !/label="Honest assessment"/.test(R("VendorProfile.jsx")) && (R("VendorProfile.jsx").match(/label="Phase 1 assessment"/g) || []).length === 2);
   ok("the rule fires on the retired wording", RETIRED.test("Proprietary rubrics built for operational reality.") && RETIRED.test("We can help you build a scored shortlist."));
   ok("the hub's category count is derived", /String\(CATEGORY_COUNT\)/.test(V) && !/\{ n: "8", l: "Vendor categories" \}/.test(V) && !/Nine categories/.test(V));
@@ -238,7 +239,7 @@ section("9. Audit 30 Sep, batch 1: no withdrawn score wording on profiles, offer
   ok("the profile rule fires on the retired wording", [...'profile: "IVA-first platform. Strongest AI and observability scores in tier."'.matchAll(FIELD)].some((m) => SCORE.test(m[1])));
   const VP = R("VendorProfile.jsx");
   ok("profiles no longer ask readers to score the vendor, or promise attributed reviews", !/Score this vendor|Every review is attributed/.test(VP) && /reviews are not published/.test(VP));
-  ok("Advisory's deliverables carry no scored evaluation or competitive context", !/scored evaluation|competitive context/i.test(R("Advisory.jsx")));
+  ok("the help page carries no scored evaluation or competitive context", !/scored evaluation|competitive context/i.test(R("Contact.jsx")));
   ok("the hub's tiles are counts the site can show", !/Decision domains/.test(R("Vendors.jsx")) && /String\(Object\.keys\(CCAAS_RESEARCH\.complete\)\.length\), l: "Researched platforms"/.test(R("Vendors.jsx")));
   const G = R("GatedReport.jsx");
   ok("the CCaaS guide page says the edition chose its 12 vendors", !/top 12 vendors/.test(G) && /12 vendors, as that edition chose them/.test(G));
@@ -271,7 +272,7 @@ section("11. Audit 30 Sep, batch 3: the essay pages say what they hold");
     "PlatformsTech.jsx": /isn't a vendor diagram|decision domains|CX technology landscape|vendor landscape/,
     "IVACategory.jsx": /no longer chatbot vs IVA/,
     "CXEcosystem.jsx": /take: "Best |that matter for CX|without vendor influence|can't replicate|Essential reference/,
-    "Advisory.jsx": /strategic clarity|integration landscape|technology landscape/,
+    "Contact.jsx": /strategic clarity|integration landscape|technology landscape/,
     "VendorProfile.jsx": /integration landscape|competitive context and the questions/,
     "ReportActions.jsx": /numbers\s+actually support/,
     "WEMCategory.jsx": /What's Actually True|the market won't tell you/,
@@ -303,6 +304,27 @@ section("12. Audit 30 Sep pass two: no rank, score or uncited analyst claim on a
   ok("the profile shows an analyst line as a quoted, linked, dated fact that changes nothing", /Analyst coverage, as \{a\.by\} states it: "\{a\.said\}"/.test(VP) && /We have not read the report\. It is not scored and does not change any list or order on this site\./.test(VP) && /\{iv\.analyst && <AnalystNote a=\{iv\.analyst\} \/>\}/.test(VP));
   ok("back links name the page they open", !/Back to [^<]*Intelligence<|backLabel: "[^"]*Intelligence"/.test(VP + R("GatedReport.jsx")));
   ok("a layer with one vendor says so", /layer\.stack\.length === 1 \? "the vendor"/.test(R("src/lib/SubVerticalPage.jsx")));
+}
+
+console.log("\n13. Advisory and Contact are one page (TB, 1 Oct 2026)");
+{
+  const R = (f) => readFileSync("./" + f, "utf8");
+  const C = R("Contact.jsx"), APP = R("App.jsx");
+  const edge = JSON.parse(R("vercel.json")).redirects.find((r) => r.source === "/advisory");
+  ok("/advisory redirects to /contact at the edge and in the app, and its page is gone",
+    edge && edge.destination === "/contact" && edge.permanent && APP.includes('<Route path="/advisory" element={<LegacyRedirect to="/contact" />} />')
+    && !APP.includes("import('./Advisory')") && !existsSync("./Advisory.jsx"));
+  ok("/advisory is out of the sitemap and the metadata; /contact is in both",
+    !R("public/sitemap.xml").includes("/advisory<") && R("public/sitemap.xml").includes("/contact</loc>") && !R("src/lib/seo.js").includes('"/advisory": {'));
+  ok("the page says how consultants are chosen", /How consultants are chosen/.test(C) && /vetted/.test(C) && /independent consultant/.test(C));
+  /* TB: never state how the site is paid. Only the rendered page is checked; the rule covers referral and commission language. */
+  const PAID = /referral|commission|finder'?s fee|revenue share|we are paid|we get paid|pays us|paid by the consultant|kickback/i;
+  ok("the page never says how the site is paid", !PAID.test(C));
+  ok("the paid rule fires on a planted line", PAID.test("We earn a referral fee when you engage a consultant."));
+  const files = execSync("git ls-files '*.js' '*.jsx' '*.html'", { encoding: "utf8" }).split("\n")
+    .filter((f) => f && f !== "App.jsx" && !/\.test\.|^docs\/|^scripts\//.test(f) && /\.(jsx?|html)$/.test(f));
+  const stale = files.filter((f) => /["'`(]\/advisory["'`#?)]/.test(R(f)));
+  ok(`no page links /advisory [${stale.join(", ")}]`, stale.length === 0);
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

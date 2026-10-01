@@ -49,6 +49,11 @@
       "source": "/tools/calibration-drift",
       "destination": "/tools/qa-scorecard",
       "permanent": true
+    },
+    {
+      "source": "/advisory",
+      "destination": "/contact",
+      "permanent": true
     }
   ],
   "rewrites": [

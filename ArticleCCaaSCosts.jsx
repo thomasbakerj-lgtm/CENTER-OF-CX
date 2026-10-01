@@ -8,7 +8,7 @@ const NARROW = { maxWidth: 720, margin: "0 auto", padding: "0 28px" };
 /* Content is visible from the first paint: no reveal on scroll, so a served page, a print and a quick scroll never show an empty band. */
 function FadeIn({ children, style = {} }) { return <div style={style}>{children}</div>; }
 function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
-const links=[{name:"Platforms + Tech",href:"/platforms-and-tech"},{name:"Tools",href:"/tools"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"The Human Premium",href:"/human-premium"},{name:"Advisory",href:"/advisory"}];
+const links=[{name:"Platforms + Tech",href:"/platforms-and-tech"},{name:"Tools",href:"/tools"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"The Human Premium",href:"/human-premium"},{name:"Get help",href:"/contact"}];
 return(<><style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}}`}</style>
 </>)}
 

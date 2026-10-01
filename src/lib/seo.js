@@ -22,13 +22,9 @@ export const SEO_MAP = {
     title: `About | ${SITE}`,
     desc: "What The Center of CX offers, how every figure is made and graded, the rules that keep vendor research independent, and what happens to your data.",
   },
-  "/advisory": {
-    title: `Find a CX Consultant | ${SITE}`,
-    desc: "Find a contact center or CX consultant we have vetted: platform selection, AI strategy and operational change, matched to your industry and problem.",
-  },
   "/contact": {
-    title: `Connect with a CX Consultant | ${SITE}`,
-    desc: "Tell us your challenge. We connect you with vetted CX consultants who specialize in your vertical, stack, and transformation stage.",
+    title: `Get Help with a Contact Center Decision | ${SITE}`,
+    desc: "Tell us the decision in front of you and we introduce you to an independent contact center consultant we have vetted, matched to your problem and systems.",
   },
   "/subscribe": {
     title: `Subscribe | ${SITE}`,

@@ -33,7 +33,7 @@ export const FOOTER = [
   { head: "Vendor Intelligence", links: [["All categories", "/vendors"], [CATEGORIES.ccaas.name, "/vendors/ccaas"], [CATEGORIES.iva.name, "/vendors/iva"]] },
   { head: "Industry Insights", links: [["All industries", "/industries"], ["Healthcare", "/industries/healthcare"], ["Financial Services", "/industries/financial-services"]] },
   { head: "Research", links: [["Research", "/research"], ["Market Watch", "/market-watch"], ["Contributor perspectives", "/perspectives"], ["Write for us", "/contribute"]] },
-  { head: "The Center of CX", links: [["About", "/about"], ["Advisory", "/advisory"], ["The Human Premium", "/human-premium"], ["Subscribe", "/subscribe"], ["Corrections", "/corrections"], ["Contact", "/contact"]] },
+  { head: "The Center of CX", links: [["About", "/about"], ["Get help", "/contact"], ["The Human Premium", "/human-premium"], ["Subscribe", "/subscribe"], ["Corrections", "/corrections"]] },
 ];
 
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft);
@@ -146,7 +146,7 @@ export function pillarFor(pathname = "") {
 /* Pages built before the shell whose first section clears a fixed bar (37 files carried
    their own fixed navigation; the homepage left the list when Phase 5 rebuilt it). They keep the header over the page until Phases 8 and 9
    rebuild them; every other page has the header in the flow. */
-const FIXED_EXACT = new Set(["/advisory", "/contact", "/cx-ecosystem", "/tools", "/human-premium",
+const FIXED_EXACT = new Set(["/contact", "/cx-ecosystem", "/tools", "/human-premium",
   "/industries", "/platforms-and-tech", "/privacy", "/terms", "/research", "/vendors"]);
 export function headerFixed(pathname = "") {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;

@@ -22,30 +22,42 @@ function FadeIn({ children, style = {} }) { return <div style={style}>{children}
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
 
 
-function Nav() {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
-  const links = [
-    { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/tools" },
-    { name: "Research", href: "/research" },
-    { name: "Vendors", href: "/vendors" },
-    { name: "The Human Premium", href: "/human-premium" },
-  ];
+/* Page rules: the two columns stack on a phone, and fields show a focus ring. */
+function Styles() {
   return (
-    <>
-      <style>{`
-        
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        a { text-decoration: none; color: inherit; }
-        @media (max-width: 860px) { .nav-links { display: none !important; } .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: ${ELECTRIC} !important; box-shadow: 0 0 0 3px ${alpha(HOUSE.electric, LINE.firm)}; }
-      `}</style>
-      
-    </>
+    <style>{`
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; }
+      a { text-decoration: none; color: inherit; }
+      @media (max-width: 860px) { .contact-grid { grid-template-columns: 1fr !important; gap: 40px !important; } .help-grid { grid-template-columns: 1fr !important; } }
+      input:focus, textarea:focus, select:focus { outline: none; border-color: ${ELECTRIC} !important; box-shadow: 0 0 0 3px ${alpha(HOUSE.electric, LINE.firm)}; }
+    `}</style>
   );
 }
+
+/* Advisory and Contact are one page (TB, 1 Oct 2026). It says how consultants are chosen and never how the site is paid.
+   Every line restates copy TB approved: an independent consultant who has done that work before, one we have vetted,
+   matched to the problem; matching is free and scope and price are agreed with the consultant. */
+const CHOSEN = [
+  "We match on the problem you describe, your industry and the systems you run, so the person you meet has done this kind of work before.",
+  "Every consultant we introduce is one we have vetted ourselves.",
+  "They are independent consultants, and they work for you.",
+  "An introduction never changes what this site publishes: no list order, research finding or tool result moves because of one.",
+  "Nothing about you reaches a consultant or a vendor until you ask for the introduction.",
+];
+const STEPS = [
+  "Tell us what you are working on, using the form on this page.",
+  "We reply within one business day with a suggested match and any questions we have.",
+  "You meet the consultant. Matching is free; if you go further, you agree scope and price directly with the consultant.",
+];
+const HELP = [
+  { t: "Platform selection", d: "Comparing contact center platforms against your operating model, your industry's rules and the systems you integrate with." },
+  { t: "AI readiness", d: "Whether your data, workflows, governance and team are ready for conversational AI, agent assist or AI quality review, and what is realistic on your timeline." },
+  { t: "Vendor shortlisting", d: "Narrowing the field with you, starting from the vendor profiles and research on this site: where each vendor fits and the questions to put to it." },
+  { t: "Operating model", d: "How strategy, contact center operations, digital channels, AI governance and workforce management fit together, and who owns each decision." },
+  { t: "Executive briefings", d: "A focused session for a leadership team on what is changing in contact center technology and what it means for the decisions in front of them." },
+  { t: "Workshops", d: "A facilitated half or full day that brings CX, IT, operations and finance to one set of priorities and an order of work." },
+];
 
 function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -96,24 +108,31 @@ function ContactPage() {
           {/* Left column - context */}
           <FadeIn>
             <div>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
-                <a href="/" style={{ color: MUTED, fontSize: 13, fontFamily: FONT }}>Home</a>
-                <span style={{ color: BORDER, fontSize: 13 }}>/</span>
-                <span style={{ color: ELECTRIC, fontSize: 13, fontWeight: 600, fontFamily: FONT }}>Contact</span>
-              </div>
-
               <h1 style={{ fontFamily: FONT, fontSize: "clamp(30px, 4vw, 46px)", fontWeight: 400, color: NAVY, lineHeight: 1.12, margin: "0 0 20px", letterSpacing: "-0.015em" }}>
-                Tell us your challenge. We will match you with a consultant we have vetted for exactly that kind of problem.
+                Get help with a contact center decision.
               </h1>
-              <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: "0 0 40px", fontFamily: FONT }}>
-                60 minutes with someone who understands both the strategy and the operations. Tell us about your situation, and we'll come prepared with relevant context from our vendor intelligence and frameworks.
+              <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.7, margin: "0 0 36px", fontFamily: FONT }}>
+                The tools and research are free and stay free. When you want a person to work through a decision with you, tell us the problem and we introduce you to an independent consultant who has done that work before. You can also ask us a question or request an introduction to a vendor.
               </p>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              <section aria-labelledby="chosen" style={{ marginBottom: 32 }}>
+                <h2 id="chosen" style={{ fontSize: 18, fontWeight: 600, color: NAVY, margin: "0 0 12px", fontFamily: FONT }}>How consultants are chosen</h2>
+                <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                  {CHOSEN.map((c) => <li key={c} style={{ display: "flex", gap: 10, fontSize: 14.5, color: SLATE, lineHeight: 1.6, fontFamily: FONT }}><span aria-hidden="true" style={{ color: ELECTRIC, flexShrink: 0 }}>+</span><span>{c}</span></li>)}
+                </ul>
+              </section>
+
+              <section aria-labelledby="how" style={{ marginBottom: 32 }}>
+                <h2 id="how" style={{ fontSize: 18, fontWeight: 600, color: NAVY, margin: "0 0 12px", fontFamily: FONT }}>How it works</h2>
+                <ol style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                  {STEPS.map((t, i) => <li key={t} style={{ display: "flex", gap: 12, fontSize: 14.5, color: SLATE, lineHeight: 1.6, fontFamily: FONT }}><span aria-hidden="true" style={{ color: ELECTRIC, fontWeight: 700, flexShrink: 0, width: 16 }}>{i + 1}</span><span>{t}</span></li>)}
+                </ol>
+              </section>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {[
-                  { q: "What happens after I submit?", a: "We review your submission and respond within one business day with availability and any follow-up questions." },
-                  { q: "Is there a cost?", a: "Initial consultation matching is complimentary. The consultant will discuss scope and pricing directly with you." },
-                  { q: "What should I prepare?", a: "A clear description of your current challenge is enough. If you have vendor shortlists, architecture diagrams, or RFPs in progress, bring those too." },
+                  { q: "What should I prepare?", a: "A clear description of the decision in front of you is enough. If you have vendor shortlists, architecture diagrams, a report from one of the tools here, or an RFP in progress, bring those too." },
+                  { q: "Can I ask for a vendor introduction instead?", a: "Yes. Use the introduction link on any vendor page, or choose Vendor introduction in the form. Nothing reaches the vendor until you ask." },
                 ].map((faq, i) => (
                   <div key={i}>
                     <h3 style={{ fontSize: 14, fontWeight: 600, color: NAVY, margin: "0 0 4px", fontFamily: FONT }}>{faq.q}</h3>
@@ -187,12 +206,12 @@ function ContactPage() {
                       <label htmlFor="ct-topic" style={labelStyle}>What are you working on?</label>
                       <select key={intro ? "intro" : "none"} id="ct-topic" name="topic" required defaultValue={intro ? INTRO_TOPIC : ""} style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
                         <option value="" disabled>Select a topic</option>
-                        <option value="Platform selection / CCaaS evaluation">Platform selection / CCaaS evaluation</option>
-                        <option value="AI readiness assessment">AI readiness assessment</option>
+                        <option value="Platform selection">Platform selection</option>
+                        <option value="AI readiness">AI readiness</option>
                         <option value="Vendor shortlisting">Vendor shortlisting</option>
-                        <option value="Operating model design">Operating model design</option>
+                        <option value="Operating model">Operating model</option>
                         <option value="Executive briefing">Executive briefing</option>
-                        <option value="Transformation workshop">Transformation workshop</option>
+                        <option value="Workshop">Workshop</option>
                         <option value={INTRO_TOPIC}>{INTRO_TOPIC}</option>
                         <option value="General inquiry">General inquiry</option>
                       </select>
@@ -205,7 +224,7 @@ function ContactPage() {
 
                     <div>
                       <label htmlFor="ct-source" style={labelStyle}>How did you find us? <span style={{ fontWeight: 400, color: MUTED }}>(optional)</span></label>
-                      <input id="ct-source" name="source" style={inputStyle} placeholder="LinkedIn, referral, search, event..." />
+                      <input id="ct-source" name="source" style={inputStyle} placeholder="LinkedIn, a colleague, search, an event..." />
                     </div>
 
                     <button
@@ -265,6 +284,19 @@ function ContactPage() {
             </div>
           </FadeIn>
         </div>
+
+        <section aria-labelledby="help" style={{ marginTop: 72 }}>
+          <h2 id="help" style={{ fontFamily: FONT, fontSize: "clamp(22px, 2.6vw, 30px)", fontWeight: 400, color: NAVY, margin: "0 0 8px" }}>What a consultant can help with</h2>
+          <p style={{ fontSize: 14.5, color: SLATE, lineHeight: 1.6, margin: "0 0 24px", maxWidth: 680, fontFamily: FONT }}>Choose the closest topic in the form; the description is what we match on.</p>
+          <div className="help-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {HELP.map((h) => (
+              <div key={h.t} style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "20px 20px" }}>
+                <h3 style={{ fontSize: 15, fontWeight: 600, color: NAVY, margin: "0 0 6px", fontFamily: FONT }}>{h.t}</h3>
+                <p style={{ fontSize: 13.5, color: SLATE, lineHeight: 1.6, margin: 0, fontFamily: FONT }}>{h.d}</p>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
     </section>
   );
@@ -279,7 +311,7 @@ function Footer() {
 export default function Contact() {
   return (
     <div>
-      <Nav />
+      <Styles />
       <ContactPage />
       <Footer />
     </div>
