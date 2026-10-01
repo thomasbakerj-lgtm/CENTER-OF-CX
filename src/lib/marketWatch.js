@@ -94,25 +94,25 @@ export const ITEMS = [
   {
     "id": "mw-2026-07-27-eu-ai-omnibus-in-force",
     "date": "2026-07-27",
-    "label": "news",
+    "label": "verified",
     "kind": "regulation",
     "who": "European Union",
     "vendors": [],
     "headline": "EU Digital Omnibus on AI enters into force, pushing back high-risk AI Act deadlines",
     "summary": "Regulation (EU) 2026/1744 appeared in the EU Official Journal on 24 July 2026 and took effect on 27 July. Stand-alone high-risk system rules now apply from 2 December 2027 and product-embedded ones from 2 August 2028. General AI Act provisions still apply from 2 August 2026.",
     "source": {
+      "publisher": "Publications Office of the European Union (EUR-Lex)",
+      "title": "Regulation (EU) 2026/1744 of the European Parliament and of the Council of 8 July 2026 amending Regulations (EU) 2024/1689, (EU) 2018/1139 and (EU) 2023/1230 (Digital Omnibus on AI), OJ L, 24.7.2026",
+      "url": "https://eur-lex.europa.eu/eli/reg/2026/1744/oj/eng",
+      "published": "2026-07-24"
+    },
+    "also": {
       "publisher": "Law & Technology",
       "title": "Digital Omnibus on AI in the Official Journal: Regulation (EU) 2026/1744 is published",
       "url": "https://lawandtechnology.eu/en/digital-omnibus-on-ai-official-journal-regulation-2026-1744/",
       "published": "2026-07-24"
     },
-    "also": {
-      "publisher": "Freshfields",
-      "title": "EU AI Act unpacked #34: The final Digital Omnibus on AI - Key amendments to the AI Act and their impact on businesses active in the EU",
-      "url": "https://www.freshfields.com/en/our-thinking/blogs/technology-quotient/eu-ai-act-unpacked-34-the-final-digital-omnibus-on-ai-key-amendments-to-the-a-102nber",
-      "published": "2026-07-10"
-    },
-    "checked": "2026-09-27"
+    "checked": "2026-10-01"
   },
   {
     "id": "mw-2026-07-15-ofcom-a2p-sms-rules",
