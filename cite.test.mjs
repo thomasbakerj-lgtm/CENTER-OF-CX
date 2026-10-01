@@ -14,7 +14,7 @@ let pass = 0, fail = 0;
 const ok = (name, cond, info) => { if (cond) pass++; else { fail++; console.log("  FAIL:", name, info === undefined ? "" : info); } };
 const section = (t) => console.log("\n" + t);
 const R = (f) => readFileSync("./" + f, "utf8");
-const DASH = /[–—]/;
+const DASH = new RegExp(`[${String.fromCharCode(0x2013)}${String.fromCharCode(0x2014)}]`);
 const React = nodeRequire("react");
 const { renderToString } = nodeRequire("react-dom/server");
 globalThis.window = { location: { search: "", hash: "", pathname: "/", origin: "https://www.contactcentercx.com" }, history: { replaceState() {} }, addEventListener() {}, removeEventListener() {}, scrollTo() {}, matchMedia: () => ({ matches: true }) };

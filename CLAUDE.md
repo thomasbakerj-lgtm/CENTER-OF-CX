@@ -1953,8 +1953,12 @@ dashboard, the 12-phase growth program.
    researched platform and industry page, the crawler policy (robots allows all, deliberately). The eight category pages
    carry an ItemList of their profiles, A to Z, marked unordered. A segment page whose every figure has no public benchmark
    (most of the 61) shows one list naming each figure, its note and its measuring tool, in place of four identical tiles.
-   The FCC item stays as is: the link TB sent (1 Oct) is the FCC's ultra-wideband notice, not the TCPA order, and fcc.gov
-   refuses this network. Gates: `cite.test.mjs` (34, registered), seo L1 expects ItemList on category pages, export pin for
+   Market Watch: TB then sent the FCC records. docs.fcc.gov is readable here (www.fcc.gov is not): the 30 September news
+   release (DOC-425498A1) and Chairman Carr's statement (DOC-425498A2) record the Report and Order and Further Notice
+   adopted 30 September 2026, FCC 26-67, Carr, Gomez and Trusty approving. New verified item of that date (category
+   opt-outs for informational robocalls, a designated revocation method, the further notice on honoring time and reply
+   texts); the 9 September draft item points to it. No effective date is stated: the full order (FCC-26-67A1) is not
+   posted yet. Both items share no 8-word run with the release, the statement or the draft order. Gates: `cite.test.mjs` (34, registered), seo L1 expects ItemList on category pages, export pin for
    the reopen argument. Suite 27,609; build green; live check 257 of 257; browser at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
