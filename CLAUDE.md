@@ -438,7 +438,7 @@ Binding. None of this is in code comments beyond what is noted.
 - Disclosure page (12-06): TB, S23: no disclosure text wanted; the site states facts and perspective only.
 
 **Open with TB (snapshot 1 Oct 2026, after PR #107).** Decisions from the site audit (30 Sep audit doc and S24 notes):
-1. Tools hub from `/how-to-choose` to `/tools` with a 301.
+1. ~~Tools hub from `/how-to-choose` to `/tools` with a 301.~~ Done (item 119).
 2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods.
 3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds.
 4. Site search (static index built at prerender).
@@ -1987,6 +1987,13 @@ dashboard, the 12-phase growth program.
    8-word run shared with the regulation. Held by TB: the FTC investigation of OpenAI and Anthropic (news only, no FTC
    release); not published: a Nextiva sponsored opinion piece and a CX Network forecast piece. Gates: `cite.test.mjs` (34, registered), seo L1 expects ItemList on category pages, export pin for
    the reopen argument. Suite 27,609; build green; live check 257 of 257; browser at 1440 and 390 clean.
+
+119. S24 (1 Oct), the tools hub moved to `/tools` (TB: "Yes to tools"). `/how-to-choose` 301s at the edge (`vercel.json`)
+   and in the app (`LegacyRedirect`); `/changelog` now 301s straight to `/tools`. Every link, crumb, the header and footer,
+   the sitemap line and the metadata key moved; labels that read "How to Choose" read "Tools". `methods.test.mjs` gates the
+   route, both redirects, sitemap and metadata, and fails on any tracked file that links the old path (proven on a planted
+   link); the live checker opens `/how-to-choose` and requires it to land on `/tools`. Suite green; local live check 258 of
+   258; `/tools` at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

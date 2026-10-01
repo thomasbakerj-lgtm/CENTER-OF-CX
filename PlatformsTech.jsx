@@ -27,7 +27,7 @@ function Nav() {
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   const links = [
     { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
+    { name: "Tools", href: "/tools" },
     { name: "Research", href: "/research" },
     { name: "Vendors", href: "/vendors" },
     { name: "The Human Premium", href: "/human-premium" },
@@ -474,7 +474,7 @@ function CTA() {
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT, boxShadow: "none" }}>Connect with a Consultant →</a>
-              <a href="/how-to-choose" style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT }}>Download Buyer Guide</a>
+              <a href="/tools" style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT }}>Download Buyer Guide</a>
             </div>
           </div>
         </FadeIn>

@@ -111,7 +111,7 @@ function measure() {
 
 const VIEWPORTS = { desktop: { width: 1366, height: 900 }, phone: { width: 390, height: 844, isMobile: true, hasTouch: true } };
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: (process.env.CHROMIUM_ARGS || "").split(" ").filter(Boolean) });
-const pages = [{ route: "/", name: "home" }, { route: "/how-to-choose", name: "how-to-choose" }, ...METHODOLOGY.map((m) => ({ route: m, name: m.split("/").pop() + "-rubric" }))];
+const pages = [{ route: "/", name: "home" }, { route: "/tools", name: "how-to-choose" }, ...METHODOLOGY.map((m) => ({ route: m, name: m.split("/").pop() + "-rubric" }))];
 for (const t of TOOLS) pages.push({ route: t.route + (await sampleQuery(t.file)), name: t.route.split("/").pop(), tool: true });
 
 const results = [];

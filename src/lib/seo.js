@@ -34,7 +34,7 @@ export const SEO_MAP = {
     title: `Subscribe | ${SITE}`,
     desc: "CX technology intelligence delivered. Vendor updates, framework releases, and market analysis from The Center of CX.",
   },
-  "/how-to-choose": {
+  "/tools": {
     title: `Contact Center Tools | ${SITE}`,
     desc: "Set below with the live counts.",
   },
@@ -378,7 +378,7 @@ import { METHOD_VERSIONS } from "./methodVersions.js";
    claim a buyer can disprove. */
 export const TOOL_COUNT = Object.keys(SEO_MAP).filter((p) => p.startsWith("/tools/")).length;
 /* The tools hub states the live count, never a hand-written one (it said 30 after the retirements). */
-Object.assign(SEO_MAP, { "/how-to-choose": {
+Object.assign(SEO_MAP, { "/tools": {
   title: `${TOOL_COUNT} Free Contact Center Tools and Calculators | ${SITE}`,
   desc: `${TOOL_COUNT} free tools for contact center teams: staffing, TCO, QA, handle time, vendor fit and more, each with a published method. No sign-up.`,
 } });

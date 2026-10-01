@@ -20,7 +20,7 @@ export const HEADER_HEIGHT = 64;
 /* The five pillars in order. Research stays marked soon until the first study of our own is published; its landing
    gathers what exists today. A pillar without a page would be a label, never a link that goes nowhere. */
 export const NAV = [
-  { id: "diagnostics", href: "/how-to-choose" },
+  { id: "diagnostics", href: "/tools" },
   { id: "vendors", href: "/vendors" },
   { id: "industries", href: "/industries" },
   { id: "research", href: "/research" },
@@ -28,7 +28,7 @@ export const NAV = [
 ].map((n) => ({ ...n, name: PILLARS[n.id].name, soon: PILLARS[n.id].soon }));
 
 export const FOOTER = [
-  { head: "Diagnostics", links: [["All tools", "/how-to-choose"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },
+  { head: "Diagnostics", links: [["All tools", "/tools"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },
   { head: "Vendor Intelligence", links: [["All categories", "/vendors"], ["Contact center platforms", "/vendors/ccaas"], ["Conversational AI", "/vendors/iva"]] },
   { head: "Industry Insights", links: [["All industries", "/industries"], ["Healthcare", "/industries/healthcare"], ["Financial Services", "/industries/financial-services"]] },
   { head: "Research", links: [["Research", "/research"], ["Market Watch", "/market-watch"], ["Contributor perspectives", "/perspectives"], ["Write for us", "/contribute"]] },
@@ -134,7 +134,7 @@ export function SiteFooter() {
 
 /** The pillar a path belongs to, for the header's active mark. */
 export function pillarFor(pathname = "") {
-  if (/^\/(tools|methodology)\//.test(pathname) || pathname === "/how-to-choose") return "diagnostics";
+  if (/^\/(tools|methodology)\//.test(pathname) || pathname === "/tools") return "diagnostics";
   if (/^\/vendors(\/|$)/.test(pathname)) return "vendors";
   if (/^\/industries(\/|$)/.test(pathname)) return "industries";
   if (/^\/(research|perspectives|contributors|contribute)(\/|$)/.test(pathname)) return "research";
@@ -145,7 +145,7 @@ export function pillarFor(pathname = "") {
 /* Pages built before the shell whose first section clears a fixed bar (37 files carried
    their own fixed navigation; the homepage left the list when Phase 5 rebuilt it). They keep the header over the page until Phases 8 and 9
    rebuild them; every other page has the header in the flow. */
-const FIXED_EXACT = new Set(["/advisory", "/contact", "/cx-ecosystem", "/how-to-choose", "/human-premium",
+const FIXED_EXACT = new Set(["/advisory", "/contact", "/cx-ecosystem", "/tools", "/human-premium",
   "/industries", "/platforms-and-tech", "/privacy", "/terms", "/research", "/vendors"]);
 export function headerFixed(pathname = "") {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;

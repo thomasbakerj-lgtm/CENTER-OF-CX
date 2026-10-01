@@ -7,6 +7,7 @@
  * sitemap, linked from its tool, and reads every constant from the registry.
  */
 import { readFileSync } from "node:fs";
+import { execSync } from "node:child_process";
 const { BENCH, benchmark, BENCHMARK_SOURCES } = await import("./src/lib/benchmarks.js");
 const conf = await import("./src/lib/confidence.js");
 const { createGuards } = await import("./src/lib/guards.js");
@@ -241,9 +242,18 @@ section("Version stamps; the change record renders nowhere");
   /* The public changelog page and the method pages' change lists were removed (TB, 27 Sep 2026). The entries stay
      in src/lib/changelog.js as the record behind each version stamp; nothing renders them. */
   ok("the changelog page is gone: it redirects at the edge and in the app, and is out of the sitemap and metadata",
-    APP.includes('<Route path="/changelog" element={<LegacyRedirect to="/how-to-choose" />} />') && !MAP.includes("/changelog<") && !SEO.includes('"/changelog": {')
-    && JSON.parse(readFileSync("./vercel.json", "utf8")).redirects.some((r) => r.source === "/changelog" && r.destination === "/how-to-choose" && r.permanent));
+    APP.includes('<Route path="/changelog" element={<LegacyRedirect to="/tools" />} />') && !MAP.includes("/changelog<") && !SEO.includes('"/changelog": {')
+    && JSON.parse(readFileSync("./vercel.json", "utf8")).redirects.some((r) => r.source === "/changelog" && r.destination === "/tools" && r.permanent));
   const pages = ["./RubricPage.jsx", "./ReportActions.jsx", "./Homepage.jsx", "./src/lib/Shell.jsx", "./src/lib/home.js", "./src/lib/ToolFrame.jsx"];
+  /* The tools hub moved from /how-to-choose to /tools (TB, 1 Oct 2026): a 301 at the edge and in the app, one sitemap
+     URL, and no page links the old path. */
+  ok("the tools hub lives at /tools and /how-to-choose redirects to it at the edge and in the app",
+    APP.includes('<Route path="/tools" element={<HowToChoose />} />') && APP.includes('<Route path="/how-to-choose" element={<LegacyRedirect to="/tools" />} />')
+    && MAP.includes("/tools</loc>") && !MAP.includes("/how-to-choose<") && SEO.includes('"/tools": {') && !SEO.includes('"/how-to-choose": {')
+    && JSON.parse(readFileSync("./vercel.json", "utf8")).redirects.some((r) => r.source === "/how-to-choose" && r.destination === "/tools" && r.permanent));
+  const allSrc = execSync("git ls-files '*.js' '*.jsx' '*.mjs' '*.xml' '*.html'", { encoding: "utf8" }).split("\n").filter((f) => f && f !== "App.jsx" && f !== "scripts/live-check.mjs" && !/\.test\.mjs$/.test(f));
+  const oldHub = allSrc.filter((f) => /["'`]\/how-to-choose["'`#?]/.test(readFileSync(f, "utf8")));
+  ok(`no page links the old tools hub path [${oldHub.join(", ")}]`, oldHub.length === 0);
   const linked = pages.filter((f) => /["'`]\/changelog|Changes to this method|What changed/i.test(readFileSync(f, "utf8")));
   ok(`no page renders a change list or links the changelog [${linked.join(", ")}]`, linked.length === 0);
   /* The record lives on as hidden internal documentation (TB, 27 Sep 2026): mounted, but linked from nowhere, outside

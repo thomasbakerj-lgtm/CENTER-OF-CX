@@ -65,7 +65,7 @@ export function RouteRail({ toolId, choice = null }) {
           );
         })}
       </ol>
-      <a href="/how-to-choose" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: D.onDark, textDecoration: "none" }}>
+      <a href="/tools" style={{ display: "flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: D.onDark, textDecoration: "none" }}>
         Change route<Icon name="next" size={16} />
       </a>
       <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: HOUSE.muted }}>{privacyFor(toolId)}</p>
@@ -78,7 +78,7 @@ function FrameCrumbs({ section, method, actions }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap", paddingBottom: 16, borderBottom: `1px solid ${hair}` }}>
       <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: HOUSE.muted, flexWrap: "wrap" }}>
-        <a href="/how-to-choose" style={{ color: HOUSE.body, textDecoration: "none", minHeight: TOUCH, display: "flex", alignItems: "center" }}>Diagnostics</a>
+        <a href="/tools" style={{ color: HOUSE.body, textDecoration: "none", minHeight: TOUCH, display: "flex", alignItems: "center" }}>Diagnostics</a>
         {section && <><span aria-hidden="true">/</span><span>{section}</span></>}
       </nav>
       <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>

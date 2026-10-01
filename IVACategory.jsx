@@ -20,7 +20,7 @@ export default function IVACategory() {
   /* Integrity freeze (TB, S23): grouped by market category, listed by name; no score, tier or fit rating. */
   const groups = IVA_CATEGORIES.map((c) => ({ name: c.name, desc: c.desc, vendors: allVendors.filter((v) => v.category === c.id).map((v) => ({ slug: v.slug, name: v.name, line: v.modality })) })).filter((g) => g.vendors.length);
 
-  const navLinks = [{ name: "Vendors", href: "/vendors" },{ name: "Tools", href: "/how-to-choose" },{ name: "Industries", href: "/industries" },{ name: "Research", href: "/research" },{ name: "The Human Premium", href: "/human-premium" }];
+  const navLinks = [{ name: "Vendors", href: "/vendors" },{ name: "Tools", href: "/tools" },{ name: "Industries", href: "/industries" },{ name: "Research", href: "/research" },{ name: "The Human Premium", href: "/human-premium" }];
 
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh" }}>

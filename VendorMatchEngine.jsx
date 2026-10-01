@@ -531,7 +531,7 @@ export default function VendorMatchEngine() {
           <Button kind="secondary" href="/tools/platform-decision">Platform Decision</Button>
           <Button kind="secondary" href="/tools/contract-risk">Contract Risk Scanner</Button>
           <Button kind="secondary" href="/tools/transformation-readiness">Transformation Readiness</Button>
-          <Button kind="secondary" href="/how-to-choose">Explore all the tools</Button>
+          <Button kind="secondary" href="/tools">Explore all the tools</Button>
         </div>
       </>)}
     </ToolFrame>

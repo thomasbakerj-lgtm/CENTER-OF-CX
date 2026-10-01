@@ -40,7 +40,7 @@ function Nav() {
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   const links = [
     { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
+    { name: "Tools", href: "/tools" },
     { name: "Research", href: "/research" },
     { name: "The Human Premium", href: "/human-premium" },
   ];

@@ -25,7 +25,7 @@ function FadeIn({ children, style = {} }) { return <div style={style}>{children}
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
-  const links = [{ name: "Vendors", href: "/vendors" },{ name: "Tools", href: "/how-to-choose" },{ name: "Research", href: "/research" },{ name: "Vendors", href: "/vendors" },{ name: "The Human Premium", href: "/human-premium" }];
+  const links = [{ name: "Vendors", href: "/vendors" },{ name: "Tools", href: "/tools" },{ name: "Research", href: "/research" },{ name: "Vendors", href: "/vendors" },{ name: "The Human Premium", href: "/human-premium" }];
   return (<><style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.bell-tiers{flex-direction:column!important}.quad-grid{grid-template-columns:1fr!important}.method-grid{grid-template-columns:1fr 1fr!important}}`}</style>
     </>);
 }

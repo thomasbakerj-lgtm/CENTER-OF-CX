@@ -58,7 +58,7 @@ export default function Subscribe() {
 
         {state === "sent" ? (
           <p role="status" style={{ ...K.panel, ...K.body }}>
-            <strong style={K.strong}>You are subscribed.</strong> The next email goes out when there is something worth sending. Meanwhile, <a href="/how-to-choose" style={{ color: HOUSE.sky2, fontWeight: 600 }}>the diagnostics</a> are free to use now.
+            <strong style={K.strong}>You are subscribed.</strong> The next email goes out when there is something worth sending. Meanwhile, <a href="/tools" style={{ color: HOUSE.sky2, fontWeight: 600 }}>the diagnostics</a> are free to use now.
           </p>
         ) : (
           <form onSubmit={submit} noValidate style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 12 }}>

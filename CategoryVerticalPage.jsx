@@ -31,7 +31,7 @@ export default function CategoryVerticalPage() {
 
   const navLinks = [
     { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
+    { name: "Tools", href: "/tools" },
     { name: "Industries", href: "/industries" },
     { name: "Research", href: "/research" },
     { name: "The Human Premium", href: "/human-premium" },

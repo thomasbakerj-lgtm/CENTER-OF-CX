@@ -166,8 +166,14 @@ for (const m of METHODOLOGY) {
 }
 /* The method changelog page was removed (TB, 27 Sep 2026): an old link lands on the Diagnostics hub, with no change list. */
 {
-  const v = await open("/changelog", /CX Pro Tools/);
-  report(v.errors.length === 0 && /\/how-to-choose\/?$/.test(new URL(v.page.url()).pathname) && !/What changed in how the tools calculate/.test(v.text), "/changelog lands on the Diagnostics hub", v.errors[0] || v.page.url());
+  const v = await open("/changelog", /free contact center tools/i);
+  report(v.errors.length === 0 && /\/tools\/?$/.test(new URL(v.page.url()).pathname) && !/What changed in how the tools calculate/.test(v.text), "/changelog lands on the Diagnostics hub", v.errors[0] || v.page.url());
+  await v.ctx.close();
+}
+/* The tools hub moved to /tools (TB, 1 Oct 2026): the old path lands on it. */
+{
+  const v = await open("/how-to-choose", /free contact center tools/i);
+  report(v.errors.length === 0 && /\/tools\/?$/.test(new URL(v.page.url()).pathname) && /free contact center tools/i.test(v.text), "/how-to-choose lands on /tools", v.errors[0] || v.page.url());
   await v.ctx.close();
 }
 /* The hidden internal method log: renders its dated changes, and tells search engines to stay out. */

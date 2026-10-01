@@ -139,7 +139,7 @@ function NotFound() {
         That address does not exist on The Center of CX. The tools, vendor profiles, and research are all reachable from the links below.
       </p>
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
-        <a href="/how-to-choose" style={{ ...NF_LINK, background: HOUSE.action, color: HOUSE.paper, fontWeight: 600 }}>Browse the tools</a>
+        <a href="/tools" style={{ ...NF_LINK, background: HOUSE.action, color: HOUSE.paper, fontWeight: 600 }}>Browse the tools</a>
         <a href="/vendors" style={{ ...NF_LINK, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist }}>Vendor intelligence</a>
         <a href="/" style={{ ...NF_LINK, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist }}>Home</a>
       </div>
@@ -289,7 +289,7 @@ export function AppRoutes() {
         <Route path="/platforms-and-tech" element={<PlatformsTech />} />
         <Route path="/about" element={<About />} />
         {/* The method changelog page was removed (TB, 27 Sep 2026); old links land on the Diagnostics hub. */}
-        <Route path="/changelog" element={<LegacyRedirect to="/how-to-choose" />} />
+        <Route path="/changelog" element={<LegacyRedirect to="/tools" />} />
         {/* Hidden internal documentation: unlinked, outside the sitemap and metadata (noindex), X-Robots-Tag at the edge. */}
         <Route path="/internal/method-log" element={<RubricPage id="method-log" />} />
         <Route path="/methodology/cx-maturity" element={<RubricPage id="cx-maturity" />} />
@@ -318,7 +318,8 @@ export function AppRoutes() {
         <Route path="/advisory" element={<Advisory />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />
-        <Route path="/how-to-choose" element={<HowToChoose />} />
+        <Route path="/tools" element={<HowToChoose />} />
+        <Route path="/how-to-choose" element={<LegacyRedirect to="/tools" />} />
         <Route path="/research" element={<Research />} />
         <Route path="/vendors" element={<Vendors />} />
         <Route path="/vendors/ccaas" element={<CCaaSCategory />} />
