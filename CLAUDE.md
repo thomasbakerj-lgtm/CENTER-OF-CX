@@ -1927,6 +1927,22 @@ dashboard, the 12-phase growth program.
    Phase 1 review" (was "What's Actually True", "Seven things the market won't tell you"). "actually" is not banned: most
    uses contrast a claim with reality. `freeze.test.mjs` 11 pins each retired line. Suite 27,562; live check 257 of 257; ten
    pages at 1440 and 390 clean.
+117. S24 (1 Oct), copy audit batch 4 with the audit's pass two (TB: "go"; TB on analyst coverage: "We can source content but
+   need to cite or quote"). Omilia's "Named Leader in Forrester 2026 Wave" sentence became an `analyst` field, rendered as
+   "Analyst coverage, as Omilia states it" with the vendor's own words in quotes, the link and the check date, "We have not
+   read the report", never scored and changing no list or order (section 13: analyst inclusion shown as a dated fact).
+   Rank and score lines left in Phase 1 profile prose rewritten (Sprinklr "#1", Verint "tied at 6/6", NICE "the analytics
+   benchmark", Level AI "most accurate ... in the market", Gong "leader", Five9 "one of the strongest ... in the market",
+   and "leaders" comparisons in Analytics, Agent Assist, WEM and VendorData). Homepage vendors door: "No vendor pays to
+   appear or to move" (was "Never ranked", which Vendor Match's order contradicted); Vendor Match heading "A Phase 1
+   starting list, ordered by fit on that model". Back links name the page they open (was "IVA Market Intelligence" and
+   six like it); a layer with one vendor says "the vendor". Market Watch FCC item: the vote was set for 30 September and
+   the item says we have not read the FCC's record of it yet (fcc.gov refuses this network; update from the FCC's release
+   when it can be read). Researched profiles: a class id inside research text reads as the class's name
+   (`src/lib/research/classWords.js` `readableIds`, applied in the view model; the snapshot is unchanged); "Compared on"
+   is a plain-words line per class (`PLAIN[id].compared`) with the research's own wording beside it on the profile and
+   once per class on the CCaaS page. Gates: `freeze.test.mjs` 12 (every category's profile prose, analyst lines quoted
+   and linked, back links, the plural), `profile.test.mjs` 4, home and vendormatch pins. Suite 27,575; live check 257 of 257.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

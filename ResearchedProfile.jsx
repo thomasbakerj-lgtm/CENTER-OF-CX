@@ -11,6 +11,7 @@ import { FONT } from "./src/lib/type.js";
 import { K } from "./src/lib/frameKit.jsx";
 import { Crumbs, HEADER_HEIGHT } from "./src/lib/Shell.jsx";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
+import { PLAIN } from "./src/lib/research/classWords.js";
 import { buildProfile, VIEWS, FILTERS, capability, evidence, words } from "./src/lib/research/profileView.js";
 import { fmtDate } from "./src/lib/researchStatus.js";
 import { CCAAS_TAGS, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
@@ -151,7 +152,8 @@ function FitView({ p }) {
         <p style={K.body}>{p.klass.job}</p>
         <dl className="cx-dl" style={dl}>
           <Pair label="Typical buyer" value={p.klass.buyer} />
-          <Pair label="Compared on" value={p.klass.boundary} />
+          <Pair label="Compared on" value={(PLAIN[p.klass.id] || {}).compared || p.klass.boundary} />
+          <Pair label="In the research's words" value={p.klass.boundary} />
           <Pair label="Class status" value={p.klass.status} />
         </dl>
         <p style={{ ...K.small, marginTop: 10 }}>The class is context for comparison, never a quality grade. {p.vendor.Class_Rationale}</p>

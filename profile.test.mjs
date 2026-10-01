@@ -27,6 +27,9 @@ const { buildProfile, VIEWS, FILTERS } = await import("./src/lib/research/profil
 const { CCAAS_RESEARCH } = await import("./src/lib/researchStatus.js");
 const DIR = "./src/data/research/ccaas";
 const shared = JSON.parse(readFileSync(DIR + "/shared.json", "utf8"));
+const { readableIds, PLAIN } = await import("./src/lib/research/classWords.js");
+const CLASSES = shared.competitive_classes.map((c) => ({ id: c.Competitive_Class_ID, name: c.Class_Name }));
+const rd = (t) => readableIds(t, CLASSES); // a class id in research text reads as the class's name
 const bySlug = Object.entries(CCAAS_RESEARCH.complete);
 const text = (html) => html.replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/\s+/g, " ");
 const norm = (s) => String(s).replace(/\s+/g, " ").trim();
@@ -75,7 +78,7 @@ for (const [slug, { vendorId }] of bySlug) {
   const prose = legacy ? [...(legacy.strengths || []), ...(legacy.weaknesses || []), legacy.summary].filter((x) => typeof x === "string" && x.length > 30) : [];
   if (prose.some((x) => all.includes(norm(x)))) problems.push(`${slug} shows Phase 1 prose`);
   // every published finding reaches the findings view, under the all filter
-  const missing = file.claims.filter((c) => !views.findings.t.includes(norm(c.Publishable_Summary)));
+  const missing = file.claims.filter((c) => !views.findings.t.includes(norm(rd(c.Publishable_Summary))));
   if (missing.length) problems.push(`${slug} findings missing ${missing.length} (${missing[0].Claim_ID})`);
   // every source reaches the sources view; outbound links are https and open safely
   const srcMissing = file.evidence.filter((e) => !views.sources.t.includes(norm(e.Source_Title)));
@@ -119,7 +122,7 @@ section("2. The state filter narrows findings and counts nothing");
   const file = JSON.parse(readFileSync(`${DIR}/vendors/${vendorId}.json`, "utf8"));
   for (const f of FILTERS) {
     const t = text(renderToString(React.createElement(Page, { slug, file, shared, initialView: "findings", initialFilter: f.id })));
-    const shown = file.claims.filter((c) => t.includes(norm(c.Publishable_Summary)));
+    const shown = file.claims.filter((c) => t.includes(norm(rd(c.Publishable_Summary))));
     const want = file.claims.filter(f.test);
     ok(`filter "${f.label}" shows exactly its findings (${want.length})`, shown.length === want.length && want.every((c) => shown.includes(c)));
   }
@@ -153,6 +156,23 @@ section("3. The profile route uses the research for exactly the researched vendo
   ok("every product type and release state reads as words, with acronyms kept", raw.length === 0, raw.slice(0, 3).join("; "));
   ok("GA stays GA and early access stays EAP", W("GA") === "GA" && W("EAP") === "EAP" && W("PRE_GA_END_OF_SEPTEMBER_2026_TARGET") === "Pre GA end of September 2026 target");
   ok("the product line passes the type through the same words", /\[words\(x\.type\), x\.role\]/.test(readFileSync("./ResearchedProfile.jsx", "utf8")));
+}
+
+section("4. Copy audit batch 4: class ids read as names, the comparison line in plain words");
+{
+  const ids = [];
+  for (const [slug, r] of bySlug) {
+    const file = JSON.parse(readFileSync(`${DIR}/vendors/${r.vendorId}.json`, "utf8"));
+    const html = renderToString(React.createElement(Page, { slug, file, shared, manifestDate: "2026-09-23", initialView: "fit" }))
+      + renderToString(React.createElement(Page, { slug, file, shared, manifestDate: "2026-09-23", initialView: "findings" }));
+    if (/CLS-CC-\d{3}/.test(html.replace(/(id|href)="[^"]*"/g, ""))) ids.push(slug);
+  }
+  ok(`no profile prints a class id as text (${ids.join(", ") || "none"})`, ids.length === 0);
+  ok("a bare id reads as its class, an id before its own name keeps the name once",
+    rd("CLS-CC-004 is the rational peer class.") === "The Midmarket / unified-stack CCaaS class is the rational peer class."
+    && rd("best normalized in CLS-CC-004 Midmarket / unified-stack CCaaS rather") === "best normalized in Midmarket / unified-stack CCaaS rather");
+  ok("every class has a plain comparison line with no dash and no instruction to researchers",
+    CLASSES.every((c) => PLAIN[c.id] && PLAIN[c.id].compared && !/[\u2013\u2014]|Do not penalize|must not be conflated|Judge build burden/i.test(PLAIN[c.id].compared)));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

@@ -415,7 +415,7 @@ export default function VendorMatchEngine() {
         </section>
         <section aria-label="Your vendor shortlist" style={K.panel}>
           <span style={K.kicker}>Your Vendor Shortlist</span>
-          <h2 style={{...K.h2,marginTop:6}}>Ordered by fit on the Phase 1 model</h2>
+          <h2 style={{...K.h2,marginTop:6}}>A Phase 1 starting list, ordered by fit on that model</h2>
           <p style={K.small}>{d.size} in {d.vertical||"your vertical"}{d.currentPlatform&&d.currentPlatform!=="None / Greenfield"?`, migrating from ${d.currentPlatform}`:""}. {d.priorities.length} priorities. {d.compliance.length} compliance requirements.</p>
         </section>
 

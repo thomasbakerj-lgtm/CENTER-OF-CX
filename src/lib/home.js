@@ -96,7 +96,7 @@ const INDUSTRY_ROUTES = Object.values(VERTICALS).map((v) => {
 export const DOORS = [
   { pillar: "diagnostics", event: "diagnostics", line: "Run the numbers on your own operation: cost, staffing, AI proposals, renewals, readiness.",
     meta: `${TOOL_COUNT} tools. ${METHOD_COUNT} published methods.`, question: "What are you trying to work out?", routes: DIAGNOSTIC_ROUTES, cols: 2 },
-  { pillar: "vendors", event: "vendors", line: `Vendor profiles in ${CATEGORY_COUNT} categories, listed A to Z. Never ranked, never paid for.`,
+  { pillar: "vendors", event: "vendors", line: `Vendor profiles in ${CATEGORY_COUNT} categories, listed A to Z. No vendor pays to appear or to move.`,
     meta: `${VENDOR_PROFILE_COUNT} profiles. ${CCAAS_COMPLETE_COUNT} CCaaS researched in full.`, question: "How do you want to look at the market?", routes: VENDOR_ROUTES, cols: 1 },
   { pillar: "industries", event: "industries", line: "What your sector demands, sourced: regulation, published benchmarks, failure modes.",
     meta: `${INDUSTRY_COUNT} industries. ${SEGMENT_COUNT} segments.`, question: "Which industry are you in?", routes: INDUSTRY_ROUTES, cols: 5 },

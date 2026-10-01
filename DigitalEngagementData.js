@@ -5,7 +5,7 @@
 export const deVendors = [
   // ═══ LEADERS (85 to 100) ═══
   { name: "NICE·Cognigy", slug: "nice-cognigy-de", score: 94, tier: "Leader", ch: 5, ai: 5, desk: 4, orch: 5, intg: 5, anl: 5, ent: 5, cost: 3, archetype: "CCaaS Native with Digital", strength: "Best AI orchestration + CCaaS ecosystem", weakness: "Requires NICE stack for full value" },
-  { name: "Sprinklr Service", slug: "sprinklr-de", score: 90, tier: "Leader", ch: 5, ai: 4, desk: 4, orch: 4, intg: 5, anl: 5, ent: 5, cost: 3, archetype: "Digital Engagement Suite", strength: "#1 social + digital care suite", weakness: "Heavy, complex, expensive" },
+  { name: "Sprinklr Service", slug: "sprinklr-de", score: 90, tier: "Leader", ch: 5, ai: 4, desk: 4, orch: 4, intg: 5, anl: 5, ent: 5, cost: 3, archetype: "Digital Engagement Suite", strength: "Social and digital care in one suite", weakness: "Heavy, complex, expensive" },
   { name: "Ada", slug: "ada-de", score: 88, tier: "Leader", ch: 5, ai: 5, desk: 3, orch: 4, intg: 4, anl: 4, ent: 5, cost: 4, archetype: "AI Automation Layer", strength: "AI-native automation + top deflection", weakness: "Not an agent desktop" },
   { name: "Intercom", slug: "intercom-de", score: 86, tier: "Leader", ch: 4, ai: 4, desk: 5, orch: 4, intg: 4, anl: 4, ent: 4, cost: 4, archetype: "Helpdesk / Support Suite", strength: "Best agent UX + in-app messaging", weakness: "Weak in social + telephony" },
   { name: "Salesforce Digital Engagement", slug: "salesforce-de", score: 86, tier: "Leader", ch: 5, ai: 4, desk: 4, orch: 4, intg: 5, anl: 4, ent: 5, cost: 3, archetype: "CRM / Service Platform", strength: "Unified CRM + channels + automation", weakness: "Dependent on SFDC ecosystem" },
