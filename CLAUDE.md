@@ -437,7 +437,7 @@ Binding. None of this is in code comments beyond what is noted.
   reports protected.
 - Disclosure page (12-06): TB, S23: no disclosure text wanted; the site states facts and perspective only.
 
-**Open with TB (snapshot 1 Oct 2026, after PR #107).** Decisions from the site audit (2 Oct audit doc and S24 notes):
+**Open with TB (snapshot 1 Oct 2026, after PR #107).** Decisions from the site audit (30 Sep audit doc and S24 notes):
 1. Tools hub from `/how-to-choose` to `/tools` with a 301.
 2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods.
 3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds.
