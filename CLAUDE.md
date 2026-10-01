@@ -1901,6 +1901,16 @@ dashboard, the 12-phase growth program.
    entries overridden by the live counts now say so; the prerender counts fallbacks by `seo.known`. `freeze.test.mjs` 9
    gates each (the profile rule reads every profile-type field in the eight category data files; "scoring" alone names a
    QA capability and passes). Suite 27,546; build green; live check 257 of 257.
+115. S24 (30 Sep), copy audit batch 2 (TB: "go"): the tools hub (/how-to-choose; URL kept, the /tools move is a TB
+   decision). H1 "CX Pro Tools" became "{count} free contact center tools" with "Each runs in your browser, publishes its
+   method and gives you a report. No sign-in."; six "Popular" badges removed (no usage data behind them); "Launch" became
+   "Open"; each tool shows its method version. Descriptions restated from each published method, retiring "The math
+   behind 85% occupancy", "The ROI narrative for your board", "Tier classification", "Go/no-go", "8-category ... annual
+   cost", "what really happens", "actually". Groups follow the decision: workforce and quality, cost and savings, AI and
+   automation, vendors, renewals and contracts, readiness and planning (Transformation Readiness moved out of vendor
+   selection). TCO links `/tools/tco-calculator` directly. The dead "/how-to-choose" SEO_MAP entry says it is overridden.
+   `freeze.test.mjs` 10: retired lines, the heading derived, every live tool route listed once, every method stamp
+   published. Suite 27,550; live check 257 of 257; hub at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

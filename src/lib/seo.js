@@ -35,8 +35,8 @@ export const SEO_MAP = {
     desc: "CX technology intelligence delivered. Vendor updates, framework releases, and market analysis from The Center of CX.",
   },
   "/how-to-choose": {
-    title: `CX Pro Tools | 30 Free Interactive Tools for Contact Center Professionals | ${SITE}`,
-    desc: "30 free tools for CX operators. Staffing calculators, TCO models, QA scorecards, vendor matching, AHT decomposition, and more. Immediate output. No sales call required.",
+    title: `Contact Center Tools | ${SITE}`,
+    desc: "Set below with the live counts.",
   },
   "/research": {
     title: `Research: Vendors, Methods and Industries | ${SITE}`,
