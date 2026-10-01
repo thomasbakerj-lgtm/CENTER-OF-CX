@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CATEGORIES } from "./src/lib/verticals.js";
 import { useParams } from "react-router-dom";
 import { track } from "./src/lib/track";
 import { HOUSE, PILLARS, LINE, FINDINGS, alpha } from "./src/lib/tokens.js";
@@ -24,9 +25,9 @@ const reports = {
     ],
     pdf: "/IVA-Conversational-AI-Buyer-Guide-2026.pdf",
     formspree: "https://formspree.io/f/xojydbwe",
-    category: "IVA + Conversational AI",
+    category: CATEGORIES.iva.name,
     backLink: "/vendors/iva",
-    backLabel: "IVA and conversational AI vendors",
+    backLabel: CATEGORIES.iva.name,
   },
   "ccaas-buyer-guide": {
     title: "CCaaS Platform Buyer's Guide 2026",
@@ -43,9 +44,9 @@ const reports = {
     ],
     pdf: "/CCaaS-Platform-Buyer-Guide-2026.pdf",
     formspree: "https://formspree.io/f/myklwvjy",
-    category: "CCaaS Platforms",
+    category: CATEGORIES.ccaas.name,
     backLink: "/vendors/ccaas",
-    backLabel: "contact center platforms (CCaaS)",
+    backLabel: CATEGORIES.ccaas.name,
     /* Public summary layer. Every figure here is taken from the published PDF,
        and the harness reconciles it against that source. The full guide stays
        one click away; the email form is optional. */
@@ -88,7 +89,7 @@ const reports = {
 
 
 function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
-const links=[{name:"Platforms & Tech",href:"/platforms-and-tech"},{name:"How to Choose",href:"/how-to-choose"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"Advisory",href:"/advisory"}];
+const links=[{name:"Platforms & Tech",href:"/platforms-and-tech"},{name:"Tools",href:"/tools"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"Advisory",href:"/advisory"}];
 return(<><style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.gate-grid{grid-template-columns:1fr!important}}`}</style>
 </>)}
 

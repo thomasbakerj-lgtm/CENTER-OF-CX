@@ -16,15 +16,52 @@
 // self-described vertical strings are not fit scores and must never be treated
 // as such.
 
+/* One name per category (TB, 1 Oct 2026). Every heading, breadcrumb, card, back link, title and structured data
+   name reads `name`. `also` holds terms that mean exactly the same thing (shown as "Also called" and given to search
+   engines as alternate names); `related` holds what buyers search for part of the category or the outcome it serves
+   (shown as "Related searches", never as a synonym). Each name describes the vendors profiled today: routing is
+   "Routing and Orchestration" and payments "Payment Technology" until research of a wider category lands. */
 export const CATEGORIES = {
-  ccaas: { name: "CCaaS Platforms", full: "Core CX Platforms (CCaaS)", page: "/vendors/ccaas", vendorCount: 24 },
-  iva: { name: "IVA + Conversational AI", full: "Customer Automation", page: "/vendors/iva", vendorCount: 50 },
-  "agent-assist": { name: "Agent Assist + Knowledge", full: "Agent Assist + Knowledge AI", page: "/vendors/agent-assist", vendorCount: 15 },
-  "wem-qm": { name: "WEM + Quality Management", full: "Workforce + Quality Management", page: "/vendors/wem-qm", vendorCount: 25 },
-  analytics: { name: "CX Analytics", full: "Experience Analytics", page: "/vendors/analytics", vendorCount: 41 },
-  "acd-routing": { name: "ACD + Routing", full: "Routing + Orchestration", page: "/vendors/acd-routing", vendorCount: 44 },
-  "digital-engagement": { name: "Digital Engagement", full: "Digital Engagement", page: "/vendors/digital-engagement", vendorCount: 46 },
-  payments: { name: "Payments + Identity", full: "Payments + Identity", page: "/vendors/payments", vendorCount: 33 },
+  ccaas: {
+    name: "Contact Center Platforms (CCaaS)", page: "/vendors/ccaas", vendorCount: 24,
+    also: ["CCaaS", "contact center as a service", "cloud contact center"],
+    related: ["call center software", "contact center software", "UCaaS and CCaaS"],
+  },
+  iva: {
+    name: "IVA and Conversational AI", page: "/vendors/iva", vendorCount: 50,
+    also: ["intelligent virtual agents", "conversational AI platforms"],
+    related: ["customer self-service AI", "AI agents for customer service", "chatbots", "voicebots"],
+  },
+  "agent-assist": {
+    name: "Agent Assist and Knowledge", page: "/vendors/agent-assist", vendorCount: 15,
+    also: [],
+    related: ["agent assist software", "real-time agent guidance", "agent copilot", "contact center knowledge management"],
+  },
+  "wem-qm": {
+    name: "Workforce and Quality Management", page: "/vendors/wem-qm", vendorCount: 25,
+    also: ["WFM and QM"],
+    related: ["WEM", "workforce engagement management", "workforce management software", "contact center quality assurance", "auto QA"],
+  },
+  analytics: {
+    name: "CX Analytics", page: "/vendors/analytics", vendorCount: 41,
+    also: ["customer experience analytics"],
+    related: ["speech analytics", "interaction analytics", "conversation intelligence", "product and journey analytics"],
+  },
+  "acd-routing": {
+    name: "Routing and Orchestration", page: "/vendors/acd-routing", vendorCount: 44,
+    also: [],
+    related: ["ACD", "automatic call distribution", "skills-based routing", "Microsoft Teams contact center", "CX orchestration"],
+  },
+  "digital-engagement": {
+    name: "Digital Engagement", page: "/vendors/digital-engagement", vendorCount: 46,
+    also: [],
+    related: ["live chat software", "messaging", "social customer care", "helpdesk software", "WhatsApp for customer service"],
+  },
+  payments: {
+    name: "Payment Technology", page: "/vendors/payments", vendorCount: 33,
+    also: [],
+    related: ["payment processing", "payment gateways", "payment orchestration", "point of sale", "PCI compliance"],
+  },
 };
 
 export const VERTICALS = {

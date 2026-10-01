@@ -34,7 +34,7 @@ export const SEO_MAP = {
     title: `Subscribe | ${SITE}`,
     desc: "CX technology intelligence delivered. Vendor updates, framework releases, and market analysis from The Center of CX.",
   },
-  "/how-to-choose": {
+  "/tools": {
     title: `Contact Center Tools | ${SITE}`,
     desc: "Set below with the live counts.",
   },
@@ -47,28 +47,28 @@ export const SEO_MAP = {
     desc: "24 CCaaS vendors and 4 adjacent suites by the job each does. For the 18 researched: where it fits, where it breaks, and sources. Scores withdrawn.",
   },
   "/vendors/iva": {
-    title: `IVA + Conversational AI: 50 Vendors Profiled | ${SITE}`,
-    desc: "50 IVA and conversational AI vendors in 7 groups, from enterprise IVA and voice-native to helpdesk and CRM AI. Phase 1 scores withdrawn.",
+    title: `IVA and Conversational AI: 50 Vendors Profiled | ${SITE}`,
+    desc: "50 intelligent virtual agent and conversational AI vendors in 7 groups, from enterprise IVA and voicebots to helpdesk AI. Phase 1 scores withdrawn.",
   },
   "/vendors/acd-routing": {
-    title: `ACD + Routing: 44 Vendors Profiled | ${SITE}`,
-    desc: "44 ACD and routing vendors by segment: routing logic, AI routing, failover and global scale. Phase 1 scores withdrawn until current research.",
+    title: `Routing and Orchestration: 44 Vendors Profiled | ${SITE}`,
+    desc: "44 routing and orchestration vendors, ACD included: skills-based and AI routing, Teams contact centers, failover and scale. Phase 1 scores withdrawn.",
   },
   "/vendors/analytics": {
-    title: `Advanced Analytics: 41 Vendors Profiled | ${SITE}`,
-    desc: "41 analytics vendors in 6 groups: CCaaS-embedded, AI-native, WEM, LLM infrastructure, agent assist and product analytics. Phase 1 scores withdrawn.",
+    title: `CX Analytics: 41 Vendors Profiled | ${SITE}`,
+    desc: "41 CX analytics vendors in 6 groups: speech and interaction analytics, conversation intelligence, LLM infrastructure and journey analytics. Scores withdrawn.",
   },
   "/vendors/payments": {
     title: `Payment Technology: 33 Vendors Profiled | ${SITE}`,
-    desc: "33 payment providers: unified commerce, digital-first, in-store, orchestration, regional and specialty. Phase 1 scores withdrawn.",
+    desc: "33 payment technology providers: processing, gateways, orchestration, point of sale, regional and specialty. Phase 1 scores withdrawn.",
   },
   "/vendors/digital-engagement": {
     title: `Digital Engagement: 46 Platforms Profiled | ${SITE}`,
-    desc: "46 digital engagement platforms: CCaaS-native, messaging, social care, AI automation and helpdesk. Phase 1 scores withdrawn.",
+    desc: "46 digital engagement platforms: live chat, messaging and WhatsApp, social customer care, AI automation and helpdesk. Phase 1 scores withdrawn.",
   },
   "/vendors/agent-assist": {
-    title: `Agent Assist: 15 Vendors Profiled | ${SITE}`,
-    desc: "15 agent assist vendors by type: real-time guidance, knowledge grounding, workflow, coaching and compliance. Phase 1 scores withdrawn.",
+    title: `Agent Assist and Knowledge: 15 Vendors Profiled | ${SITE}`,
+    desc: "15 agent assist and knowledge vendors by type: real-time agent guidance, copilots, knowledge grounding, coaching and compliance. Scores withdrawn.",
   },
   "/cx-ecosystem": {
     title: `CX Industry Publications and Communities | ${SITE}`,
@@ -211,7 +211,7 @@ export const SEO_MAP = {
     desc: "Wireless, broadband, cable and enterprise communications contact centers: CPNI, billing disputes, retention and the technology they need.",
   },
   "/research/iva-buyer-guide": {
-    title: `IVA + Conversational AI Buyer's Guide 2026 | ${SITE}`,
+    title: `IVA and Conversational AI Buyer's Guide 2026 | ${SITE}`,
     desc: "Phase 1 edition, April 2026: 43 IVA and conversational AI vendors, architecture eras, demo questions and cost traps. Its scores and tiers are withdrawn on the site until the category is researched under the current methodology.",
   },
   "/research/ccaas-buyer-guide": {
@@ -330,8 +330,8 @@ export const SEO_MAP = {
     desc: "The terms for using The Center of CX: tools and research as decision support, vendor information and introductions, submissions and liability.",
   },
   "/vendors/wem-qm": {
-    title: `Workforce + Quality Management: 25 Vendors Profiled | ${SITE}`,
-    desc: "25 WEM, WFM and QA vendors across 3 market layers, with the demo checks each should pass. Phase 1 scores withdrawn.",
+    title: `Workforce and Quality Management: 25 Vendors Profiled | ${SITE}`,
+    desc: "25 workforce and quality management vendors (WFM, WEM, QA and auto QA) in 3 market layers, with demo checks for each. Phase 1 scores withdrawn.",
   },
   "/industries/education": {
     title: `Education Contact Center CX | ${SITE}`,
@@ -378,7 +378,7 @@ import { METHOD_VERSIONS } from "./methodVersions.js";
    claim a buyer can disprove. */
 export const TOOL_COUNT = Object.keys(SEO_MAP).filter((p) => p.startsWith("/tools/")).length;
 /* The tools hub states the live count, never a hand-written one (it said 30 after the retirements). */
-Object.assign(SEO_MAP, { "/how-to-choose": {
+Object.assign(SEO_MAP, { "/tools": {
   title: `${TOOL_COUNT} Free Contact Center Tools and Calculators | ${SITE}`,
   desc: `${TOOL_COUNT} free tools for contact center teams: staffing, TCO, QA, handle time, vendor fit and more, each with a published method. No sign-up.`,
 } });
@@ -398,16 +398,6 @@ Object.assign(SEO_MAP, {
   },
 });
 
-const LEGACY_CAT_NAMES = {
-  ccaas: "CCaaS Platforms",
-  iva: "IVA + Conversational AI",
-  "agent-assist": "Agent Assist",
-  "wem-qm": "WEM + Quality",
-  analytics: "CX Analytics",
-  "acd-routing": "ACD + Routing",
-  "digital-engagement": "Digital Engagement",
-  payments: "Payments + Identity",
-};
 
 const LEGACY_VERT_NAMES = {
   "financial-services": "Financial Services",
@@ -423,7 +413,7 @@ const LEGACY_VERT_NAMES = {
 };
 
 /* Names come from the shared vertical module so they cannot drift from the pages
-   themselves. The legacy maps remain only as a fallback for slugs that predate it. */
+   themselves. The vertical legacy map remains only as a fallback for slugs that predate it. */
 const CAT_NAMES = Object.fromEntries(Object.entries(CATEGORIES).map(([k, v]) => [k, v.name]));
 const VERT_NAMES = Object.fromEntries(Object.entries(VERTICALS).map(([k, v]) => [k, v.name]));
 
@@ -432,7 +422,7 @@ const VERT_NAMES = Object.fromEntries(Object.entries(VERTICALS).map(([k, v]) => 
    printed native code into the title and let /vendors/ccaas/toString claim the
    scored, indexable branch. */
 const own = (o, k) => (Object.prototype.hasOwnProperty.call(o, k) ? o[k] : undefined);
-const catName = (s) => own(CAT_NAMES, s) || own(LEGACY_CAT_NAMES, s);
+const catName = (s) => own(CAT_NAMES, s);
 const vertName = (s) => own(VERT_NAMES, s) || own(LEGACY_VERT_NAMES, s);
 
 const titleCase = (slug) =>
@@ -953,7 +943,7 @@ export function structuredData(pathname, seo, extra = {}) {
     graphs.push({
       "@context": "https://schema.org", "@type": "Organization", name: SITE, url: BASE, foundingDate: "2026",
       description: `Free tools and research for contact center decisions. ${VENDOR_PROFILE_COUNT} vendor profiles across ${CATEGORY_COUNT} categories. ${TOOL_COUNT} free tools with published methods.`,
-      knowsAbout: ["Contact Center Technology", "Customer Experience", "CCaaS", "IVA", "Conversational AI", "Workforce Management", "CX Analytics", "Digital Engagement"],
+      knowsAbout: ["Contact Center Technology", "Customer Experience", ...Object.values(CATEGORIES).map((c) => c.name)],
     });
     graphs.push({
       "@context": "https://schema.org", "@type": "WebSite", name: SITE, url: BASE,
@@ -1000,12 +990,12 @@ export function structuredData(pathname, seo, extra = {}) {
   }
 
   /* A vendor category page: an ItemList of its profiles, A to Z and marked unordered, so no ranking is implied (audit
-     30 Sep). Built from the same name table as the page titles. */
+     30 Sep). Named from CATEGORIES; the exact other names travel as alternateName. */
   const cat = Object.entries(CATEGORIES).find(([, c]) => c.page === pathname);
   if (cat) {
     const items = Object.entries(VENDOR_NAMES).filter(([, v]) => v[1] === cat[0])
       .sort((a, b) => a[1][0].localeCompare(b[1][0]) || a[0].localeCompare(b[0]));
-    graphs.push({ "@context": "https://schema.org", "@type": "ItemList", name, description: seo.desc, url,
+    graphs.push({ "@context": "https://schema.org", "@type": "ItemList", name: cat[1].name, ...(cat[1].also.length ? { alternateName: cat[1].also } : {}), description: seo.desc, url,
       itemListOrder: "https://schema.org/ItemListUnordered", numberOfItems: items.length,
       itemListElement: items.map(([slug, v], i) => ({ "@type": "ListItem", position: i + 1, name: v[0], url: `${BASE}/vendors/${slug}` })) });
   }

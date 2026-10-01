@@ -17,7 +17,12 @@
     },
     {
       "source": "/changelog",
-      "destination": "/how-to-choose",
+      "destination": "/tools",
+      "permanent": true
+    },
+    {
+      "source": "/how-to-choose",
+      "destination": "/tools",
       "permanent": true
     },
     {

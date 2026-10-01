@@ -82,7 +82,7 @@ export default function Research() {
 
         <Section id="methods" kicker="Diagnostics" title="Published methods">
           <p style={K.body}>{METHOD_COUNT} tools publish their method: the formulas in words, every constant with its kind and source, a worked example and the cases each is checked against. Each tool and report carries its method version.</p>
-          <p style={K.body}><a href="/how-to-choose" style={link}>See every tool and its method</a></p>
+          <p style={K.body}><a href="/tools" style={link}>See every tool and its method</a></p>
         </Section>
 
         <Section id="industries" kicker="Industry Insights" title="Industry research">

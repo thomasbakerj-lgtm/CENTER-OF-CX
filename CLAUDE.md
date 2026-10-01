@@ -438,21 +438,23 @@ Binding. None of this is in code comments beyond what is noted.
 - Disclosure page (12-06): TB, S23: no disclosure text wanted; the site states facts and perspective only.
 
 **Open with TB (snapshot 1 Oct 2026, after PR #107).** Decisions from the site audit (30 Sep audit doc and S24 notes):
-1. Tools hub from `/how-to-choose` to `/tools` with a 301.
-2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods.
-3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds.
-4. Site search (static index built at prerender).
-5. Advisory and Contact as one page: how consultants are chosen, how the site is paid (referral fees), no scored work.
-6. Migration article: keep TB's first-person essay (author line and dek) or rewrite; its figures carry no links.
-7. Provenance strip under every H1 and a `/standards` page.
-8. QR code on the PDF cover (the scenario link itself shipped in item 118).
-9. Class comparison and "alternatives to X" pages from the research, A to Z, no order.
-10. Opt-in benchmark exchange (consent design and storage).
-11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`).
-12. One name per category across pages, schema and llms.txt (CCaaS today has four).
+1. ~~Tools hub from `/how-to-choose` to `/tools` with a 301.~~ Done (item 119).
+2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods. Held (TB, 1 Oct: revisit).
+3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds. Held (TB, 1 Oct).
+4. Site search (static index built at prerender). TB: yes; matches the words people search, not only exact text.
+5. Advisory and Contact as one page. TB: keep how consultants are chosen; never state how the site is paid (referrals).
+6. Migration article. TB: rewrite to current standards in TB's voice as a journalist and market maker: genuine,
+   factual, every figure sourced.
+7. ~~Provenance strip under every H1 and a `/standards` page.~~ Disregarded (TB, 1 Oct).
+8. ~~QR code on the PDF cover.~~ Disregarded (TB, 1 Oct: online we use links, downloads and email copies; QR codes are for
+   presentations and hard copy). The scenario link on the cover (item 118) stays.
+9. Class comparison and "alternatives to X" pages from the research, A to Z, no order. Held (TB, 1 Oct).
+10. Opt-in benchmark exchange (consent design and storage). Held: needs a dedicated session.
+11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`). Held: needs its own sessions.
+12. ~~One name per category across pages, schema and llms.txt.~~ Done (item 120).
 13. Nav "Coming soon" on Research moved to the studies card; Phase 1 profiles rebuilt or noindexed (reverses 29 Sep);
-    the 95 split vendor pages merged into 38; naming who runs the site.
-14. Homepage stack hover (item 113), when TB says the time is right.
+    the 95 split vendor pages merged into 38; naming who runs the site. Held: needs a dedicated session.
+14. Homepage stack hover (item 113). TB: build it when ready.
 TB actions: the private corpus repository and the `RESEARCH_TOKEN` secret (D1 setup; not confirmed from here); a postal
 address before the first newsletter; a lawyer's read of the Privacy Policy and Terms (Arizona venue and county); the
 PostHog funnels in `docs/MEASUREMENT.md` and numbers for the measurement review; whether to filter TB's own browsers
@@ -1987,6 +1989,31 @@ dashboard, the 12-phase growth program.
    8-word run shared with the regulation. Held by TB: the FTC investigation of OpenAI and Anthropic (news only, no FTC
    release); not published: a Nextiva sponsored opinion piece and a CX Network forecast piece. Gates: `cite.test.mjs` (34, registered), seo L1 expects ItemList on category pages, export pin for
    the reopen argument. Suite 27,609; build green; live check 257 of 257; browser at 1440 and 390 clean.
+
+119. S24 (1 Oct), the tools hub moved to `/tools` (TB: "Yes to tools"). `/how-to-choose` 301s at the edge (`vercel.json`)
+   and in the app (`LegacyRedirect`); `/changelog` now 301s straight to `/tools`. Every link, crumb, the header and footer,
+   the sitemap line and the metadata key moved; labels that read "How to Choose" read "Tools". `methods.test.mjs` gates the
+   route, both redirects, sitemap and metadata, and fails on any tracked file that links the old path (proven on a planted
+   link); the live checker opens `/how-to-choose` and requires it to land on `/tools`. Suite green; local live check 258 of
+   258; `/tools` at 1440 and 390 clean.
+
+120. S24 (1 Oct), one name per vendor category (TB: "intelligent consistency"; keep the searched-for names, but only call a
+   term the same thing when it is). Each category went by four to ten names across titles, headings, crumbs, cards, back
+   links and structured data. `CATEGORIES` in `src/lib/verticals.js` now holds `name`, `also` (exact other names) and
+   `related` (what buyers search for part of the category); `full` and `LEGACY_CAT_NAMES` are gone. Names: Contact Center
+   Platforms (CCaaS), IVA and Conversational AI, Agent Assist and Knowledge, Workforce and Quality Management, CX Analytics,
+   Routing and Orchestration (TB's choice), Digital Engagement, Payment Technology. Each describes the vendors profiled
+   today: payments carries no identity or trust vendor and analytics no survey VoC vendor, so neither takes the research
+   program's wider name, and neither lists those as related searches. Every category page shows "Also called" and
+   "Related searches" under its heading (`src/lib/CategoryTerms.jsx`); the ItemList takes the name with `also` as
+   alternateName; llms.txt lists every category with its terms; the Organization's knowsAbout lists the names. Headings,
+   crumbs, vendor hub and Platforms and Tech cards (broader technology areas keep their own title; the link names the
+   category), profile crumbs, back links, chips and all-vendor links, the gated guide pages, the footer, Phase 1 labels and
+   Platform Decision's layer links all read the registry. Analytics' "CCaaS Platforms" sub-group became "Analytics in
+   contact center platforms"; the cross-links name their real targets. URLs unchanged. `catnames.test.mjs` (84) fails on
+   any retired label in a rendered file (proven on a planted one). The research program's own category registry
+   (`categoryRegistry.js`) keeps the research names. Suite 27,694; live check 258 of 258; eight category pages and six
+   profiles at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

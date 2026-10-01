@@ -39,7 +39,7 @@ const PRIORITIES = [
   { id: "agentexp", name: "Agent Experience", desc: "Desktop unification, knowledge access, career tooling" },
   { id: "vertical", name: "Vertical Specialization", desc: "Industry-specific workflows and compliance" },
   { id: "global", name: "Global Scale", desc: "Multi-region, multi-language, follow-the-sun" },
-  { id: "analytics", name: "Advanced Analytics", desc: "Interaction analytics, journey, predictive insights" },
+  { id: "analytics", name: "CX Analytics", desc: "Interaction analytics, journey, predictive insights" },
   { id: "integration", name: "Deep Integration", desc: "CRM, ERP, ITSM, custom API, event-driven" },
 ];
 
@@ -531,7 +531,7 @@ export default function VendorMatchEngine() {
           <Button kind="secondary" href="/tools/platform-decision">Platform Decision</Button>
           <Button kind="secondary" href="/tools/contract-risk">Contract Risk Scanner</Button>
           <Button kind="secondary" href="/tools/transformation-readiness">Transformation Readiness</Button>
-          <Button kind="secondary" href="/how-to-choose">Explore all the tools</Button>
+          <Button kind="secondary" href="/tools">Explore all the tools</Button>
         </div>
       </>)}
     </ToolFrame>

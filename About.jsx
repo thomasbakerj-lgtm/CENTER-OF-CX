@@ -43,7 +43,7 @@ export const FOR_YOU = [
 
 /* What a reader can use, each with the count its registry holds. */
 export const OFFER = [
-  { n: TOOL_COUNT, title: "diagnostics", text: `Calculators, assessments and procurement tools. Each has a published method (${METHOD_COUNT} in all) and a report you can download with no sign-in.`, href: "/how-to-choose", cta: "See the diagnostics" },
+  { n: TOOL_COUNT, title: "diagnostics", text: `Calculators, assessments and procurement tools. Each has a published method (${METHOD_COUNT} in all) and a report you can download with no sign-in.`, href: "/tools", cta: "See the diagnostics" },
   { n: VENDOR_PROFILE_COUNT, title: "vendor profiles", text: `Across ${CATEGORY_COUNT} technology categories, listed A to Z. ${CCAAS_COMPLETE_COUNT} contact center platforms are researched finding by finding, each finding with its public sources and validation date.`, href: "/vendors", cta: "Browse the vendors" },
   { n: INDUSTRY_COUNT, title: "industries", text: `With ${SEGMENT_COUNT} segments: what each one requires, the regulation it answers to and the published benchmarks that exist for it. Where no public benchmark exists, the page says so.`, href: "/industries", cta: "Find your industry" },
 ];

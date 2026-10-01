@@ -53,9 +53,9 @@ section("1. The header");
 
 section("2. The pillar a path belongs to");
 {
-  const cases = { "/tools/cost-per-contact": "diagnostics", "/methodology/tco-calculator": "diagnostics", "/how-to-choose": "diagnostics",
+  const cases = { "/tools/cost-per-contact": "diagnostics", "/methodology/tco-calculator": "diagnostics", "/tools": "diagnostics",
     "/vendors": "vendors", "/vendors/ccaas": "vendors", "/vendors/genesys": "vendors", "/industries": "industries", "/industries/healthcare/payer": "industries",
-    "/research": "research", "/research/ccaas-migration-costs": "research", "/": null, "/about": null, "/vendorsx": null, "/tools": null };
+    "/research": "research", "/research/ccaas-migration-costs": "research", "/": null, "/about": null, "/vendorsx": null };
   for (const [p, want] of Object.entries(cases)) ok(`${p} is ${want}`, S.pillarFor(p) === want, String(S.pillarFor(p)));
   // The header sits over the pages that were built to clear a fixed bar, and in the flow
   // everywhere else (a sub-vertical page, a tool on the frame and a method page carry no clearance).

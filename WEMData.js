@@ -2,7 +2,7 @@
 // 25 active vendors across 3 market layers, 3 scoring modes, 8 weighted criteria
 
 export const categoryMeta = {
-  name: "Workforce & Quality Management",
+  name: "Workforce and Quality Management",
   slug: "wem-qm",
   vendorCount: 25,
   lastUpdated: "April 2026",

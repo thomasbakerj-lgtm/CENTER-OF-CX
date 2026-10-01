@@ -11,6 +11,8 @@ import { HOUSE, PILLARS, RADIUS, TOUCH } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
 import { K } from "./src/lib/frameKit.jsx";
 import { Crumbs, HEADER_HEIGHT } from "./src/lib/Shell.jsx";
+import { CATEGORIES } from "./src/lib/verticals.js";
+import CategoryTerms from "./src/lib/CategoryTerms.jsx";
 import { VendorIntroLink } from "./src/lib/VendorIntro.jsx";
 import { getCoreVendors, getAdjacentVendors } from "./VendorData";
 import { ccaasResearchStatus, CCAAS_RESEARCH, fmtDate } from "./src/lib/researchStatus";
@@ -99,13 +101,14 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
   return (
     <div className="cx-cat" style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT, minHeight: "100vh", paddingTop: HEADER_HEIGHT }}>
       <style>{CSS}</style>
-      <Crumbs items={[["Vendor Intelligence", "/vendors"], ["CCaaS"]]} />
+      <Crumbs items={[["Vendor Intelligence", "/vendors"], [CATEGORIES.ccaas.name]]} />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 20px 64px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 24 }}>
         <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={{ ...K.kicker, color: ACCENT }}>Vendor Intelligence</span>
-          <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>Contact center platforms (CCaaS)</h1>
+          <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>{CATEGORIES.ccaas.name}</h1>
           <p style={{ ...K.body, maxWidth: 760 }}>A contact center platform runs customer conversations: it routes calls and digital contacts to agents and bots, gives agents their desktop and gives supervisors the controls to run the operation. The category ends where a product only adds one piece around it: a digital-only channel, a CRM, workforce and quality tools, or a virtual agent. Those have their own categories.</p>
           <p style={{ ...K.small, maxWidth: 760 }}>Phase 1 scores and tiers are withdrawn. Vendors are compared only with peers that do the same job, and nothing on this page ranks them.</p>
+          <CategoryTerms category="ccaas" />
         </header>
 
         <section aria-label="Where the research stands" style={K.lead}>

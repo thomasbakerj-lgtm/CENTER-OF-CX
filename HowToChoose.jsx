@@ -73,7 +73,7 @@ export default function HowToChoose() {
   const totalTools = CATEGORIES.reduce((a, c) => a + c.tools.length, 0);
   const navLinks = [
     { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
+    { name: "Tools", href: "/tools" },
     { name: "Industries", href: "/industries" },
     { name: "Research", href: "/research" },
     { name: "The Human Premium", href: "/human-premium" },

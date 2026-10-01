@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import { HOUSE, PILLARS, LINE, LAYERS, alpha } from "./src/lib/tokens.js";
 const LAYER = (n) => LAYERS.find((l) => l.n === n).color;
 import { FONT } from "./src/lib/type.js";
+import { CATEGORIES } from "./src/lib/verticals.js";
+
+/* A card covers a technology area; its link names the vendor category it opens, so the area and the category can differ
+   (routing cards cover iPaaS and RPA too; the payments card covers fraud and identity). */
+const catLink = (href) => { const c = Object.values(CATEGORIES).find((x) => x.page === href); return c ? `See ${c.name} vendors →` : "Explore the vendors →"; };
 
 const NAVY = HOUSE.mist;
 const DEEP = HOUSE.ink;
@@ -27,7 +32,7 @@ function Nav() {
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   const links = [
     { name: "Vendors", href: "/vendors" },
-    { name: "Tools", href: "/how-to-choose" },
+    { name: "Tools", href: "/tools" },
     { name: "Research", href: "/research" },
     { name: "Vendors", href: "/vendors" },
     { name: "The Human Premium", href: "/human-premium" },
@@ -100,7 +105,7 @@ function OrchestrationLayers() {
   const [active, setActive] = useState(null);
   const layers = [
     { n: 7, name: "Analytics, Feedback & Governance", color: LAYER(7), href: "/vendors/analytics", categories: [{t:"WEM (QM/WFM/Coaching)"}, {t:"Recording & Compliance"}, {t:"Speech Analytics",h:"/vendors/analytics"}, {t:"Text Analytics",h:"/vendors/analytics"}, {t:"Journey Analytics",h:"/vendors/analytics"}], roles: "WFM Analyst, QA Leader, Data Analyst, Compliance Officer" },
-    { n: 6, name: "Routing & Experience Orchestration", color: LAYER(6), href: "/vendors/acd-routing", categories: [{t:"ACD / Routing",h:"/vendors/acd-routing"}, {t:"Outbound Notifications"}, {t:"Agent Desktop / Workspace"}], roles: "CX Architect, Routing Specialist, Product Manager" },
+    { n: 6, name: "Routing & Experience Orchestration", color: LAYER(6), href: "/vendors/acd-routing", categories: [{t:CATEGORIES["acd-routing"].name,h:"/vendors/acd-routing"}, {t:"Outbound Notifications"}, {t:"Agent Desktop / Workspace"}], roles: "CX Architect, Routing Specialist, Product Manager" },
     { n: 5, name: "Conversation Management", color: LAYER(5), href: "/vendors/digital-engagement", categories: [{t:"Digital Engagement (chat, messaging, social)",h:"/vendors/digital-engagement"}, {t:"Voice/Telephony"}, {t:"Mobile/App Engagement"}, {t:"IVA (legacy bots)",h:"/vendors/iva"}, {t:"Agent Desktop / Workspace"}], roles: "Conversation Engineer, CX Designer, Telephony Architect" },
     { n: 4, name: "Reasoning & Planning", color: LAYER(4), href: "/vendors/iva", categories: [{t:"Virtual Assistants (LLM-native)",h:"/vendors/iva"}, {t:"Agent Assist"}, {t:"Knowledge AI"}, {t:"Autonomous Agents / AI Workers"}], roles: "Conversation Engineer, AI Trainer, CX Architect" },
     { n: 3, name: "Policy & Guardrails", color: LAYER(3), href: "/vendors/payments", categories: [{t:"Payments & PCI Vaults",h:"/vendors/payments"}, {t:"Fraud/Risk Systems"}], roles: "Compliance Officer, Fraud Ops, Risk Analyst" },
@@ -248,38 +253,38 @@ function OrchestrationLayers() {
 function Categories() {
   const cats = [
     {
-      t: "Core CX Platforms", s: "CCaaS", layers: "5, 6, 7", href: "/vendors/ccaas",
+      t: CATEGORIES.ccaas.name, s: "Voice · Digital · Agent desktop", layers: "5, 6, 7", href: "/vendors/ccaas",
       d: "The foundational platform for voice, digital channels, routing, and workforce management. Most enterprises already have one: the real question is whether to optimize, extend, or replace.",
       questions: ["Should we switch platforms at all?", "When do add-ons beat a replacement?", "Platform-native AI or a specialist?"],
       vendors: "8x8, Amazon Connect, Cisco, Five9, Genesys, NICE, Talkdesk, Zoom",
     },
     {
-      t: "Customer Automation & Self-Service AI", s: "IVA · Bots · Autonomous Resolution", layers: "4, 5", href: "/vendors/iva",
+      t: CATEGORIES.iva.name, s: "IVA · Bots · Autonomous Resolution", layers: "4, 5", href: "/vendors/iva",
       d: "The fastest-moving category in the stack. From legacy intent-based IVAs to LLM-native virtual assistants and fully autonomous AI workers handling multi-step tasks.",
       questions: ["Platform-native AI or a specialist?", "Where could it fail in production?", "What containment is realistic for us?"],
       vendors: "Ada, Cognigy, Google CCAI, Kore.ai, Microsoft (Nuance), PolyAI",
     },
     {
-      t: "Agent Assist & Knowledge", s: "Real-time Intelligence · RAG · Knowledge AI", layers: "4", href: "/vendors/agent-assist",
+      t: CATEGORIES["agent-assist"].name, s: "Real-time Intelligence · RAG · Knowledge AI", layers: "4", href: "/vendors/agent-assist",
       d: "Real-time guidance, knowledge retrieval, summarization, and next-best-action delivered to agents during live interactions. The adoption gap here is enormous.",
       questions: ["Real-time help or after-contact work?", "How is each answer grounded in our knowledge?", "What will make agents use it?"],
       vendors: "Coveo, Cresta, Guru, Observe.AI, Shelf, Uniphore",
     },
     {
-      t: "Workforce & Quality Management", s: "WEM · QM · WFM · Coaching", layers: "7", href: "/vendors/wem-qm",
+      t: CATEGORIES["wem-qm"].name, s: "WEM · QM · WFM · Coaching", layers: "7", href: "/vendors/wem-qm",
       d: "Forecasting, scheduling, quality monitoring, coaching, and performance management. AI is moving QA from reviewing a small sample of contacts toward evaluating every one.",
       questions: ["Which contacts need AI QA and which need people?", "How good is our forecast when volume swings?", "Which schedule levers control cost?"],
       vendors: "Calabrio, Five9, Genesys WEM, NICE, Verint",
     },
     {
-      t: "Experience Analytics & VoC", s: "Speech · Text · Journey Analytics", layers: "7", href: "/vendors/analytics",
+      t: "Experience Analytics and VoC", s: "Speech · Text · Journey Analytics", layers: "7", href: "/vendors/analytics",
       d: "Understanding what's actually happening in customer interactions, sentiment, topics, root cause, journey patterns, versus what your dashboards claim is happening.",
       questions: ["Which metrics point to a root cause?", "Can we see a journey across our systems?", "What would speech analytics have to change to pay back?"],
       vendors: "CallMiner, Genesys, Observe.AI, Qualtrics, Verint",
     },
     {
-      t: "CX Orchestration & Workflow", s: "Routing · Integration · Process Automation", layers: "2, 6", href: "/vendors/acd-routing",
-      d: "The glue layer. How interactions get routed, how systems share data, how workflows execute across CRM, CCaaS, and back-office systems. Routing as a standalone category is dead.",
+      t: "CX Orchestration and Workflow", s: "Routing · Integration · Process Automation", layers: "2, 6", href: "/vendors/acd-routing",
+      d: "The glue layer. How interactions get routed, how systems share data, how workflows execute across CRM, CCaaS, and back-office systems.",
       questions: ["Where should routing decisions live?", "How do CCaaS, CRM and ITSM share data?", "Integration platform, RPA or a workflow engine?"],
       vendors: "Camunda, MuleSoft, Pega, UiPath, Workato",
     },
@@ -290,7 +295,7 @@ function Categories() {
       vendors: "BMC, Freshservice, Jira Service Management, ServiceNow",
     },
     {
-      t: "Payments, Identity & Trust", s: "PCI · Authentication · Fraud", layers: "3", href: "/vendors/payments",
+      t: "Payments, Identity and Trust", s: "PCI · Authentication · Fraud", layers: "3", href: "/vendors/payments",
       d: "The compliance and security layer that most CX strategies ignore until something breaks. PCI, authentication friction, fraud prevention, and identity verification within the service workflow.",
       questions: ["How is card data kept out of scope?", "How much authentication effort is right?", "How do we stop fraud without blocking customers?"],
       vendors: "Adyen, BioCatch, Forter, PCI Proxy, Sift, Stripe",
@@ -349,7 +354,7 @@ function Categories() {
                   <div style={{ borderLeft: `1px solid ${BORDER}`, paddingLeft: 24 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1.2, textTransform: "uppercase", marginBottom: 8, fontFamily: FONT }}>Vendors named here (A to Z)</div>
                     <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, marginBottom: 16, fontFamily: FONT }}>{c.vendors}</p>
-                    <a href={c.href || "/vendors"} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT }}>Explore category →</a>
+                    <a href={c.href || "/vendors"} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT }}>{catLink(c.href)}</a>
                   </div>
                 </div>
               </div>
@@ -474,7 +479,7 @@ function CTA() {
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT, boxShadow: "none" }}>Connect with a Consultant →</a>
-              <a href="/how-to-choose" style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT }}>Download Buyer Guide</a>
+              <a href="/tools" style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT }}>Download Buyer Guide</a>
             </div>
           </div>
         </FadeIn>

@@ -16,7 +16,7 @@ import { ccaasResearchStatus, CCAAS_RESEARCH, fmtDate } from "./src/lib/research
 import { KIND } from "./src/lib/research/ccaasIndustry.js";
 import { evidence } from "./src/lib/research/profileView.js";
 import { encodeScenario } from "./src/lib/scenarioUrl.js";
-import { VERTICALS } from "./src/lib/verticals";
+import { VERTICALS, CATEGORIES } from "./src/lib/verticals";
 import INDEX from "./src/data/research/ccaas/industry.json";
 
 const ACCENT = PILLARS.vendors.onDark;
@@ -77,7 +77,7 @@ export default function CCaaSIndustry({ verticalSlug }) {
   return (
     <div className="cx-ind" style={{ background: HOUSE.ink, color: HOUSE.mist, fontFamily: FONT, minHeight: "100vh", paddingTop: HEADER_HEIGHT }}>
       <style>{CSS}</style>
-      <Crumbs items={[["Vendor Intelligence", "/vendors"], ["CCaaS", "/vendors/ccaas"], [vert.name]]} />
+      <Crumbs items={[["Vendor Intelligence", "/vendors"], [CATEGORIES.ccaas.name, "/vendors/ccaas"], [vert.name]]} />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 20px 64px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 24 }}>
         <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <span style={{ ...K.kicker, color: ACCENT }}>Vendor Intelligence · by industry</span>

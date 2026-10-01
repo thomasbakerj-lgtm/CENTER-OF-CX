@@ -1,3 +1,4 @@
+import { CATEGORIES } from "./verticals.js";
 /* researchStatus.js
  *
  * Which CCaaS vendors have passed the Phase 2 research completion gate, and nothing
@@ -81,16 +82,9 @@ export const CCAAS_COMPLETE_COUNT = Object.keys(CCAAS_RESEARCH.complete).length;
 
 /* Integrity freeze, extended to the seven other categories (TB, S23). No category beyond
    CCaaS has current research yet, so every vendor there is Phase 1 context and carries the
-   same label. The categories follow the research program's order after CCaaS. */
-export const PHASE1_CATEGORIES = {
-  iva: "IVA and Conversational AI",
-  "agent-assist": "Agent Assist",
-  "wem-qm": "WFM and QM",
-  analytics: "Experience Analytics and VoC",
-  "digital-engagement": "Digital Engagement",
-  payments: "Payments, Identity and Trust",
-  "acd-routing": "ACD and Routing",
-};
+   same label. Names come from CATEGORIES, the one name per category (TB, 1 Oct 2026). */
+export const PHASE1_CATEGORIES = Object.fromEntries(
+  Object.entries(CATEGORIES).filter(([k]) => k !== "ccaas").map(([k, c]) => [k, c.name]));
 
 /** Research status for any vendor: CCaaS reads the registry; every other category is Phase 1. */
 export function researchStatus(category, slug) {

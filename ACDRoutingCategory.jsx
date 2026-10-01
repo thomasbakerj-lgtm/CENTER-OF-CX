@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { CATEGORIES } from "./src/lib/verticals.js";
+import CategoryTerms from "./src/lib/CategoryTerms.jsx";
 import { getAllACD } from "./ACDRoutingData";
 import { ScoresWithdrawn, Phase1Directory } from "./src/lib/Phase1Directory.jsx";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
@@ -25,7 +27,7 @@ function FadeIn({ children, style = {} }) { return <div style={style}>{children}
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 50); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
-  const links = [{ name: "Vendors", href: "/vendors" },{ name: "Tools", href: "/how-to-choose" },{ name: "Research", href: "/research" },{ name: "Vendors", href: "/vendors" },{ name: "The Human Premium", href: "/human-premium" }];
+  const links = [{ name: "Vendors", href: "/vendors" },{ name: "Tools", href: "/tools" },{ name: "Research", href: "/research" },{ name: "Vendors", href: "/vendors" },{ name: "The Human Premium", href: "/human-premium" }];
   return (<><style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}.bell-tiers{flex-direction:column!important}.quad-grid{grid-template-columns:1fr!important}.method-grid{grid-template-columns:1fr 1fr!important}}`}</style>
     </>);
 }
@@ -51,16 +53,17 @@ export default function ACDRoutingCategory() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
               <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>ACD / Routing</span>
+              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{CATEGORIES["acd-routing"].name}</span>
             </div>
           </FadeIn>
           <FadeIn delay={0.05}>
             <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 20px" }}>
-              ACD & Routing{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Market Intelligence</span>
+              {CATEGORIES["acd-routing"].name}
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 620 }}>
               {all.length} ACD and routing vendors: routing logic, data inputs, queue architecture, failover, observability, AI routing, integrations and global scale. Listed by segment and name; scores are withdrawn until this category is researched under the current methodology.
             </p>
+            <CategoryTerms category="acd-routing" />
           </FadeIn>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 20, marginTop: 32, flexWrap: "wrap" }}>
@@ -75,7 +78,7 @@ export default function ACDRoutingCategory() {
         </div>
       </section>
 
-      <ScoresWithdrawn category="ACD and routing" />
+      <ScoresWithdrawn category={CATEGORIES["acd-routing"].name} />
       <Phase1Directory groups={groups} />
 
       {/* CTA */}
@@ -89,7 +92,7 @@ export default function ACDRoutingCategory() {
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>Routing is the control plane of your operation. The right architecture decision affects every interaction, every queue, every SLA. We can help you evaluate which vendors fit your complexity level.</p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Routing Briefing</a>
-                  <a href="/vendors/ccaas" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Compare CCaaS Platforms →</a>
+                  <a href="/vendors/ccaas" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See {CATEGORIES.ccaas.name} →</a>
                 </div>
               </div>
             </div>

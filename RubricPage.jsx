@@ -52,7 +52,7 @@ function RubricBody({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Take the assessment", r.route]} />
+      <Crumbs items={[["Diagnostics", "/tools"], ["Method"]]} action={["Take the assessment", r.route]} />
 
       <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
@@ -141,7 +141,7 @@ function OwnershipPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
+      <Crumbs items={[["Diagnostics", "/tools"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published model</span>
@@ -215,7 +215,7 @@ function QAPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
+      <Crumbs items={[["Diagnostics", "/tools"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -283,7 +283,7 @@ function RenewalPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
+      <Crumbs items={[["Diagnostics", "/tools"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -349,7 +349,7 @@ function TermsPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
+      <Crumbs items={[["Diagnostics", "/tools"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -412,7 +412,7 @@ function RfpPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
+      <Crumbs items={[["Diagnostics", "/tools"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>
@@ -472,7 +472,7 @@ function CalcPage({ r }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", background: HOUSE.ink, color: HOUSE.mist }}>
       <style>{`${FONT_IMPORT_CSS}*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}a{text-decoration:none;color:inherit}@media(max-width:600px){table{display:block;overflow-x:auto}}`}</style>
-      <Crumbs items={[["Diagnostics", "/how-to-choose"], ["Method"]]} action={["Open the tool", r.route]} />
+      <Crumbs items={[["Diagnostics", "/tools"], ["Method"]]} action={["Open the tool", r.route]} />
       <header style={{ background: HOUSE.navy, borderBottom: `1px solid ${BORDER}`, padding: "56px 0 44px" }}>
         <div style={WRAP}>
           <span style={{ ...TYPE.eyebrow, color: LIGHT }}>Published method</span>

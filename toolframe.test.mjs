@@ -43,7 +43,7 @@ section("1. The page");
   ok("exactly one h1, and it is the question", (p.match(/<h1/g) || []).length === 1 && /<h1[^>]*>What does one contact cost you\?<\/h1>/.test(p));
   ok("the tool's inputs and result render where the tool put them", p.includes("INPUTS-NODE") && p.includes("RESULT-NODE") && p.indexOf("INPUTS-NODE") < p.indexOf("RESULT-NODE"));
   ok("the result is a named region the phone bar can jump to", new RegExp(`<section id="${F.RESULT_ID}" aria-label="Result"`).test(p) && p.includes(`href="#${F.RESULT_ID}"`));
-  ok("the breadcrumb starts at Diagnostics and names the section", /aria-label="Breadcrumb"[\s\S]*href="\/how-to-choose"[^>]*>Diagnostics[\s\S]*Cost and staffing/.test(p));
+  ok("the breadcrumb starts at Diagnostics and names the section", /aria-label="Breadcrumb"[\s\S]*href="\/tools"[^>]*>Diagnostics[\s\S]*Cost and staffing/.test(p));
   ok("the method stamp links the published method with its version and date", /href="\/methodology\/cost-per-contact"[^>]*>Method 1.0, 25 Sep 2026/.test(p) && live.has("/methodology/cost-per-contact"));
   ok("the report action sits in the breadcrumb row", p.indexOf("Download report") < p.indexOf("<h1"));
   const bare = h(F.ToolFrame, { ...base, method: null, pinned: null, lede: null, name: null });
@@ -68,7 +68,7 @@ section("2. The route rail");
     if (hrefs.includes(J.JOURNEY[id].route)) bad.push(`${id} links to itself`);
     if (hrefs.join() !== steps.slice(1).map((s) => s.href).join()) bad.push(`${id} links differ from the route`);
     if (!hrefs.every((x) => live.has(x))) bad.push(`${id} dead link`);
-    if (!html.includes(F.privacyFor(id)) || !/href="\/how-to-choose"[^>]*>Change route/.test(html)) bad.push(`${id} privacy or change route`);
+    if (!html.includes(F.privacyFor(id)) || !/href="\/tools"[^>]*>Change route/.test(html)) bad.push(`${id} privacy or change route`);
   }
   ok(`every tool's rail: one current step (this tool, not a link), the rest link the route's live steps, change route and the privacy line (${ids.length} tools) [${bad.slice(0, 4).join("; ")}]`, bad.length === 0);
   let n = 0; const off = [];
