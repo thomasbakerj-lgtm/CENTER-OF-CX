@@ -193,7 +193,7 @@ export default function ArticleCCaaSCosts() {
             </div>
 
             <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 32 }}>
-              <a href="/vendors/ccaas" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Browse CCaaS Platforms by Job</a>
+              <a href="/vendors/ccaas" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Browse contact center platforms (CCaaS) by job</a>
               <a href="/research/ccaas-buyer-guide" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Download CCaaS Buyer Guide</a>
               <a href="/tools/tco-calculator" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Use TCO Calculator</a>
             </div>

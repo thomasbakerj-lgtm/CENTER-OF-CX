@@ -2,6 +2,7 @@ import { useState, useEffect, Suspense } from "react";
 import { Assent } from "./src/lib/Assent.jsx";
 import { useParams, Link } from "react-router-dom";
 import { getVendor, getAllSlugs } from "./VendorData";
+import { CATEGORIES } from "./src/lib/verticals.js";
 import { ccaasResearchLabel, phase1Label, CCAAS_RESEARCH } from "./src/lib/researchStatus";
 import { researchedProfile } from "./src/lib/research/loadProfile.js";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
@@ -139,7 +140,7 @@ export default function VendorProfile() {
               <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a>
               <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <a href="/vendors/iva" style={{ color: HOUSE.body, fontSize: 13 }}>IVA</a>
+              <a href="/vendors/iva" style={{ color: HOUSE.body, fontSize: 13 }}>{CATEGORIES.iva.name}</a>
               <span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{iv.name}</span>
             </div>
@@ -194,7 +195,7 @@ export default function VendorProfile() {
               <Section label="Research status" title="Phase 1 context." dark>
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginBottom: 20 }}>{phase1Label().text}</p>
                 <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to IVA and conversational AI vendors</a>
+                  <a href="/vendors/iva" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to {CATEGORIES.iva.name}</a>
                   
                 </div>
               </Section>
@@ -227,7 +228,7 @@ export default function VendorProfile() {
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {iv.name} fits your operation, your industry's requirements and the systems you run.</p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
-                  <a href="/vendors/iva" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All IVA Vendors →</a>
+                  <a href="/vendors/iva" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>All {CATEGORIES.iva.name} vendors →</a>
                 </div>
               </div>
             </FadeIn>
@@ -250,14 +251,14 @@ export default function VendorProfile() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
               <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <a href="/vendors/agent-assist" style={{ color: HOUSE.body, fontSize: 13 }}>Agent Assist</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/agent-assist" style={{ color: HOUSE.body, fontSize: 13 }}>{CATEGORIES["agent-assist"].name}</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{aa.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
               <div style={{ maxWidth: 600 }}>
                 <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{aa.type}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>Agent Assist & Knowledge</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{CATEGORIES["agent-assist"].name}</span>
                 </div>
                 <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{aa.name}</h1>
                 <div style={{ margin: "0 0 16px" }}><VendorIntro slug={slug} name={aa.name} from="vendor" surface="vendor" /></div>
@@ -319,7 +320,7 @@ export default function VendorProfile() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-                <a href="/vendors/agent-assist" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to agent assist vendors</a>
+                <a href="/vendors/agent-assist" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to {CATEGORIES["agent-assist"].name}</a>
                 
               </div>
             </FadeIn>
@@ -347,7 +348,7 @@ export default function VendorProfile() {
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {aa.name} fits your operation, your industry's requirements and the systems you run.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
-              <a href="/vendors/agent-assist" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Agent Assist Vendors →</a>
+              <a href="/vendors/agent-assist" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>All {CATEGORIES["agent-assist"].name} vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -374,7 +375,7 @@ export default function VendorProfile() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
               <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <a href="/vendors/wem-qm" style={{ color: HOUSE.body, fontSize: 13 }}>WEM/QM</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/wem-qm" style={{ color: HOUSE.body, fontSize: 13 }}>{CATEGORIES["wem-qm"].name}</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{wv.vendor}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
@@ -407,7 +408,7 @@ export default function VendorProfile() {
                 ))}
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-                <a href="/vendors/wem-qm" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to WEM and QM vendors</a>
+                <a href="/vendors/wem-qm" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to {CATEGORIES["wem-qm"].name}</a>
                 
               </div>
             </Section>
@@ -434,8 +435,8 @@ export default function VendorProfile() {
             <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {wv.vendor} for workforce or quality management?</h2>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>The right shortlist depends on whether you're buying a workforce control plane, a balanced WEM suite, or a QA modernization overlay. We can help.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a WEM/QM Briefing</a>
-              <a href="/vendors/wem-qm" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All WEM/QM Vendors →</a>
+              <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Workforce and Quality Management Briefing</a>
+              <a href="/vendors/wem-qm" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>All {CATEGORIES["wem-qm"].name} vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -456,7 +457,7 @@ export default function VendorProfile() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
               <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <a href="/vendors/analytics" style={{ color: HOUSE.body, fontSize: 13 }}>Analytics</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/analytics" style={{ color: HOUSE.body, fontSize: 13 }}>{CATEGORIES.analytics.name}</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{av.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
@@ -482,7 +483,7 @@ export default function VendorProfile() {
             <Section label="Market Position" title={`${av.catLabel}, ${av.segment}`} dark>
               <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.7, marginBottom: 20 }}>This vendor is categorized within the {av.catLabel} segment. Vendors are best compared within the same platform category: a CCaaS platform and an AI-native overlay serve different buying motions.</p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to analytics vendors</a>
+                <a href="/vendors/analytics" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to {CATEGORIES.analytics.name}</a>
                 
               </div>
             </Section>
@@ -510,7 +511,7 @@ export default function VendorProfile() {
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your analytics architecture and operational workflow requirements.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
-              <a href="/vendors/analytics" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Analytics Vendors →</a>
+              <a href="/vendors/analytics" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>All {CATEGORIES.analytics.name} vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -531,7 +532,7 @@ export default function VendorProfile() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
               <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <a href="/vendors/acd-routing" style={{ color: HOUSE.body, fontSize: 13 }}>ACD/Routing</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/acd-routing" style={{ color: HOUSE.body, fontSize: 13 }}>{CATEGORIES["acd-routing"].name}</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{av.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
@@ -551,7 +552,7 @@ export default function VendorProfile() {
         <section style={{ background: HOUSE.navy, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
           <Section label="Market Position" title={av.segment} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to ACD and routing vendors</a>
+              <a href="/vendors/acd-routing" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to {CATEGORIES["acd-routing"].name}</a>
               
             </div>
           </Section>
@@ -577,7 +578,7 @@ export default function VendorProfile() {
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {av.name} fits your routing architecture and orchestration requirements.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
-              <a href="/vendors/acd-routing" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All ACD/Routing Vendors →</a>
+              <a href="/vendors/acd-routing" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>All {CATEGORIES["acd-routing"].name} vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -597,7 +598,7 @@ export default function VendorProfile() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
               <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <a href="/vendors/digital-engagement" style={{ color: HOUSE.body, fontSize: 13 }}>Digital Engagement</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/digital-engagement" style={{ color: HOUSE.body, fontSize: 13 }}>{CATEGORIES["digital-engagement"].name}</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{dv.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
@@ -620,7 +621,7 @@ export default function VendorProfile() {
         <section style={{ background: HOUSE.navy, padding: "64px 28px" }}><div style={WRAP}><FadeIn>
           <Section label="Market Position" title={dv.archetype} dark>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to digital engagement vendors</a>
+              <a href="/vendors/digital-engagement" style={{ fontSize: 13, fontWeight: 600, color: LIGHT, background: HOUSE.navy, padding: "8px 16px", borderRadius: 6, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}` }}>← Back to {CATEGORIES["digital-engagement"].name}</a>
               
             </div>
           </Section>
@@ -646,7 +647,7 @@ export default function VendorProfile() {
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {dv.name} fits your digital engagement and channel strategy.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
-              <a href="/vendors/digital-engagement" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Digital Engagement Vendors →</a>
+              <a href="/vendors/digital-engagement" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>All {CATEGORIES["digital-engagement"].name} vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -666,7 +667,7 @@ export default function VendorProfile() {
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}>
               <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <a href="/vendors/payments" style={{ color: HOUSE.body, fontSize: 13 }}>Payments</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+              <a href="/vendors/payments" style={{ color: HOUSE.body, fontSize: 13 }}>{CATEGORIES.payments.name}</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
               <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{pv.name}</span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
@@ -699,7 +700,7 @@ export default function VendorProfile() {
                 {/* Back navigation */}
         <section style={{ background: WARM, padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
           <div style={WRAP}>
-            <a href="/vendors/payments" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>← Back to payment vendors</a>
+            <a href="/vendors/payments" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC }}>← Back to {CATEGORIES.payments.name}</a>
           </div>
         </section>
 
@@ -723,7 +724,7 @@ export default function VendorProfile() {
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {pv.name} fits your payment architecture, PCI requirements, and channel strategy.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Vendor Briefing</a>
-              <a href="/vendors/payments" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Payment Vendors →</a>
+              <a href="/vendors/payments" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>All {CATEGORIES.payments.name} vendors →</a>
             </div>
           </div>
         </FadeIn></div></section>
@@ -765,7 +766,7 @@ export default function VendorProfile() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", flexWrap: "wrap", gap: 32 }}>
             <div style={{ maxWidth: 600 }}>
               <div style={{ display: "flex", gap: 10, marginBottom: 12, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{v.category}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", fontFamily: FONT, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{CATEGORIES[v.categorySlug]?.name || v.category}</span>
                 <span style={{ fontSize: 11, fontWeight: 600, color: HOUSE.body, fontFamily: FONT, background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>{v.segment}</span>
               </div>
               <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4vw, 48px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 16px" }}>{v.name}</h1>
@@ -966,7 +967,7 @@ export default function VendorProfile() {
       {/* Back navigation */}
       <section style={{ background: HOUSE.ink, padding: "24px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={WRAP}>
-          <a href="/vendors/ccaas" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT }}>← Back to contact center platforms (CCaaS)</a>
+          <a href="/vendors/ccaas" style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, fontFamily: FONT }}>← Back to {CATEGORIES.ccaas.name}</a>
         </div>
       </section>
 
@@ -1149,7 +1150,7 @@ export default function VendorProfile() {
                 </p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT, boxShadow: "none" }}>Request a Vendor Briefing</a>
-                  <a href="/vendors/ccaas" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8, fontFamily: FONT }}>See All CCaaS Vendors →</a>
+                  <a href="/vendors/ccaas" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8, fontFamily: FONT }}>All {CATEGORIES.ccaas.name} vendors →</a>
                 </div>
               </div>
             </div>

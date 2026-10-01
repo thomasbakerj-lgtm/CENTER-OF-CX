@@ -118,33 +118,33 @@ function BrowseByCategory() {
      Payments 51 against 33, and WEM rendered "25+" over a page headed 25.
      Governance carries no key because it is not a scored category yet. */
   const categories = [
-    { key: "ccaas", title: "Core CX Platforms", sub: "CCaaS", vendors: [
+    { key: "ccaas", sub: "Voice · Digital · Agent desktop", vendors: [
       { name: "8x8", slug: "8x8" }, { name: "Amazon Connect", slug: "amazon-connect" }, { name: "Cisco Webex", slug: "cisco" },
       { name: "Five9", slug: "five9" }, { name: "Genesys", slug: "genesys" }, { name: "NICE CXone", slug: "nice-cxone" }, { name: "Talkdesk", slug: "talkdesk" }, { name: "Zoom", slug: "zoom" },
     ], desc: "The foundational platform for voice, digital, routing, and workforce management." },
-    { key: "iva", title: "Customer Automation & Self-Service AI", sub: "IVA · Bots · Autonomous Resolution", vendors: [
+    { key: "iva", sub: "IVA · Bots · Autonomous Resolution", vendors: [
       { name: "Kore.ai", slug: "kore-ai" }, { name: "NICE Cognigy", slug: "nice-cognigy" }, { name: "Yellow.ai", slug: "yellow-ai" }, { name: "LivePerson", slug: "liveperson" }, { name: "Google Dialogflow CX", slug: "google-dialogflow" }, { name: "Microsoft Copilot Studio", slug: "microsoft-copilot" }, { name: "Amelia / SoundHound", slug: "amelia-soundhound" },
     ], desc: "From legacy IVAs to LLM-native virtual assistants and autonomous AI workers." },
-    { key: "agent-assist", title: "Agent Assist & Knowledge", sub: "Real-time Intelligence", vendors: [
+    { key: "agent-assist", sub: "Real-time Intelligence", vendors: [
       { name: "Balto", slug: "balto-aa" }, { name: "Cresta", slug: "cresta-aa" }, { name: "Genesys", slug: "genesys-aa" }, { name: "Google Cloud Agent Assist", slug: "google-aa" }, { name: "NICE", slug: "nice-aa" }, { name: "Observe.AI", slug: "observeai-aa" }, { name: "Verint", slug: "verint-aa" },
     ], desc: "Real-time guidance, knowledge retrieval, summarization, and next-best-action." },
-    { key: "wem-qm", title: "Workforce & Quality Management", sub: "WEM · QM · WFM", vendors: [
+    { key: "wem-qm", sub: "WEM · QM · WFM", vendors: [
       { name: "Assembled", slug: "assembled-wem" }, { name: "Calabrio", slug: "calabrio-wem" }, { name: "Five9", slug: "five9-wem" }, { name: "Genesys", slug: "genesys-wem" }, { name: "NICE", slug: "nice-wem" }, { name: "Verint", slug: "verint-wem" },
     ], desc: "Forecasting, scheduling, quality monitoring, coaching, and AI-powered QA." },
-    { key: "analytics", title: "Experience Analytics & VoC", sub: "Speech · Text · Journey", vendors: [
+    { key: "analytics", sub: "Speech · Text · Journey", vendors: [
       { name: "Calabrio", slug: "calabrio-analytics" }, { name: "CallMiner", slug: "callminer-analytics" }, { name: "Genesys Cloud CX", slug: "genesys-analytics" }, { name: "NICE CXone", slug: "nice-analytics" }, { name: "Observe.AI", slug: "observeai-analytics" }, { name: "Verint Speech Analytics", slug: "verint-analytics" },
     ], desc: "Sentiment, topic analysis, root cause detection, and cross-channel journey patterns." },
-    { key: "acd-routing", title: "CX Orchestration & Workflow", sub: "ACD · Routing · Integration", vendors: [
+    { key: "acd-routing", sub: "ACD · Routing · Integration", vendors: [
       { name: "Amazon Connect", slug: "amazon-acd" }, { name: "Five9", slug: "five9-acd" }, { name: "Genesys Cloud", slug: "genesys-acd" }, { name: "NICE CXone", slug: "nice-acd" }, { name: "Salesforce Voice", slug: "salesforce-acd" }, { name: "Talkdesk", slug: "talkdesk-acd" },
     ], desc: "How interactions get routed, how systems share data, and how workflows execute." },
-    { key: "digital-engagement", title: "Digital Engagement", sub: "Chat · Messaging · Social", vendors: [
+    { key: "digital-engagement", sub: "Chat · Messaging · Social", vendors: [
       { name: "Ada", slug: "ada-de" }, { name: "Gladly", slug: "gladly-de" }, { name: "Intercom", slug: "intercom-de" }, { name: "Khoros", slug: "khoros-de" }, { name: "Salesforce Digital Engagement", slug: "salesforce-de" }, { name: "Sprinklr Service", slug: "sprinklr-de" }, { name: "Zendesk Messaging", slug: "zendesk-de" },
     ], desc: "Multi-channel digital engagement platforms, CPaaS, and conversational messaging." },
-    { key: "payments", title: "Payments, Identity & Trust", sub: "PCI · Auth · Fraud", vendors: [
+    { key: "payments", sub: "Processing · Gateways · Point of sale", vendors: [
       { name: "Adyen", slug: "adyen-pay" }, { name: "Braintree", slug: "braintree-pay" }, { name: "Checkout.com", slug: "checkout-pay" }, { name: "CyberSource", slug: "cybersource-pay" }, { name: "Stripe", slug: "stripe-pay" }, { name: "Worldpay (FIS)", slug: "worldpay-pay" },
-    ], desc: "Payment processing, PCI compliance, authentication, and fraud prevention in CX." },
+    ], desc: "Payment processing, gateways, orchestration and point of sale, with the PCI compliance each carries." },
     { title: "CX & AI Governance", sub: "Compliance · Model Risk", count: "Emerging", vendors: [], desc: "Compliance, model evaluation, escalation design, and AI auditability. Governance tooling is still consolidating." },
-  ].map((c) => (c.key ? { ...c, count: String(CATEGORIES[c.key].vendorCount), href: CATEGORIES[c.key].page } : c));
+  ].map((c) => (c.key ? { ...c, title: CATEGORIES[c.key].name, count: String(CATEGORIES[c.key].vendorCount), href: CATEGORIES[c.key].page } : c));
 
   const VendorLink = ({ v }) => {
     const s = v.slug;

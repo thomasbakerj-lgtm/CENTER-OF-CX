@@ -451,8 +451,7 @@ Binding. None of this is in code comments beyond what is noted.
 9. Class comparison and "alternatives to X" pages from the research, A to Z, no order. Held (TB, 1 Oct).
 10. Opt-in benchmark exchange (consent design and storage). Held: needs a dedicated session.
 11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`). Held: needs its own sessions.
-12. One name per category across pages, schema and llms.txt (CCaaS today has four). TB: intelligent consistency;
-    other names only where they mean exactly the same thing.
+12. ~~One name per category across pages, schema and llms.txt.~~ Done (item 120).
 13. Nav "Coming soon" on Research moved to the studies card; Phase 1 profiles rebuilt or noindexed (reverses 29 Sep);
     the 95 split vendor pages merged into 38; naming who runs the site. Held: needs a dedicated session.
 14. Homepage stack hover (item 113). TB: build it when ready.
@@ -1997,6 +1996,24 @@ dashboard, the 12-phase growth program.
    route, both redirects, sitemap and metadata, and fails on any tracked file that links the old path (proven on a planted
    link); the live checker opens `/how-to-choose` and requires it to land on `/tools`. Suite green; local live check 258 of
    258; `/tools` at 1440 and 390 clean.
+
+120. S24 (1 Oct), one name per vendor category (TB: "intelligent consistency"; keep the searched-for names, but only call a
+   term the same thing when it is). Each category went by four to ten names across titles, headings, crumbs, cards, back
+   links and structured data. `CATEGORIES` in `src/lib/verticals.js` now holds `name`, `also` (exact other names) and
+   `related` (what buyers search for part of the category); `full` and `LEGACY_CAT_NAMES` are gone. Names: Contact Center
+   Platforms (CCaaS), IVA and Conversational AI, Agent Assist and Knowledge, Workforce and Quality Management, CX Analytics,
+   Routing and Orchestration (TB's choice), Digital Engagement, Payment Technology. Each describes the vendors profiled
+   today: payments carries no identity or trust vendor and analytics no survey VoC vendor, so neither takes the research
+   program's wider name, and neither lists those as related searches. Every category page shows "Also called" and
+   "Related searches" under its heading (`src/lib/CategoryTerms.jsx`); the ItemList takes the name with `also` as
+   alternateName; llms.txt lists every category with its terms; the Organization's knowsAbout lists the names. Headings,
+   crumbs, vendor hub and Platforms and Tech cards (broader technology areas keep their own title; the link names the
+   category), profile crumbs, back links, chips and all-vendor links, the gated guide pages, the footer, Phase 1 labels and
+   Platform Decision's layer links all read the registry. Analytics' "CCaaS Platforms" sub-group became "Analytics in
+   contact center platforms"; the cross-links name their real targets. URLs unchanged. `catnames.test.mjs` (84) fails on
+   any retired label in a rendered file (proven on a planted one). The research program's own category registry
+   (`categoryRegistry.js`) keeps the research names. Suite 27,694; live check 258 of 258; eight category pages and six
+   profiles at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

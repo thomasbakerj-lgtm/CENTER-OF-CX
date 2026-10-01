@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { CATEGORIES } from "./src/lib/verticals.js";
+import CategoryTerms from "./src/lib/CategoryTerms.jsx";
 import { IVA_CATEGORIES, getAllIVAVendors } from "./IVAData";
 import { ScoresWithdrawn, Phase1Directory } from "./src/lib/Phase1Directory.jsx";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
@@ -33,10 +35,11 @@ export default function IVACategory() {
         <div style={WRAP}>
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.2, textTransform: "uppercase" }}>Vendor Intelligence</span>
-            <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "8px 0 12px" }}>IVA + Conversational AI</h1>
+            <h1 style={{ fontFamily: FONT, fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "8px 0 12px" }}>{CATEGORIES.iva.name}</h1>
             <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.65, maxWidth: 600 }}>
               {allVendors.length} vendors in {groups.length} market categories: {groups.map((g) => g.name).join(", ")}. Listed by category and name; scores are withdrawn until this category is researched under the current methodology.
             </p>
+            <CategoryTerms category="iva" />
           </FadeIn>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 8, marginTop: 20, flexWrap: "wrap" }}>
@@ -57,7 +60,7 @@ export default function IVACategory() {
         </div>
       </section>
 
-      <ScoresWithdrawn category="IVA and conversational AI" />
+      <ScoresWithdrawn category={CATEGORIES.iva.name} />
       <Phase1Directory groups={groups} />
 
       {/* Tools */}

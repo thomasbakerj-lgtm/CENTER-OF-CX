@@ -9,6 +9,7 @@
 // clears a fixed bar; the default sits in the flow and sticks to the top as the page scrolls.
 
 import React, { useState, useEffect } from "react";
+import { CATEGORIES } from "./verticals.js";
 import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_SANS, alpha, LINE } from "./tokens.js";
 import { Icon } from "./Icon.jsx";
 import { editionFor, todayUtc } from "./editions.js";
@@ -29,7 +30,7 @@ export const NAV = [
 
 export const FOOTER = [
   { head: "Diagnostics", links: [["All tools", "/tools"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },
-  { head: "Vendor Intelligence", links: [["All categories", "/vendors"], ["Contact center platforms", "/vendors/ccaas"], ["Conversational AI", "/vendors/iva"]] },
+  { head: "Vendor Intelligence", links: [["All categories", "/vendors"], [CATEGORIES.ccaas.name, "/vendors/ccaas"], [CATEGORIES.iva.name, "/vendors/iva"]] },
   { head: "Industry Insights", links: [["All industries", "/industries"], ["Healthcare", "/industries/healthcare"], ["Financial Services", "/industries/financial-services"]] },
   { head: "Research", links: [["Research", "/research"], ["Market Watch", "/market-watch"], ["Contributor perspectives", "/perspectives"], ["Write for us", "/contribute"]] },
   { head: "The Center of CX", links: [["About", "/about"], ["Advisory", "/advisory"], ["The Human Premium", "/human-premium"], ["Subscribe", "/subscribe"], ["Corrections", "/corrections"], ["Contact", "/contact"]] },

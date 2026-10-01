@@ -8,7 +8,7 @@ export const vendors = {
   // ═══════════════════════════════════════════════════════════
 
   "genesys": {
-    name: "Genesys Cloud CX", slug: "genesys", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Genesys Cloud CX", slug: "genesys", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Strategic Foundation", score: 94, website: "genesys.com",
     summary: "The broadest all-around enterprise CCaaS foundation with strong orchestration, ecosystem depth, and native WEM. Genesys has the widest functional footprint in the market and the architecture to support complex, multi-site, multi-region operations. AI investment is accelerating across routing, agent assist, QA, and journey orchestration.",
     strengths: [
@@ -47,7 +47,7 @@ export const vendors = {
   },
 
   "nice-cxone": {
-    name: "NICE CXone", slug: "nice-cxone", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "NICE CXone", slug: "nice-cxone", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Strategic Foundation", score: 90, website: "nice.com",
     summary: "Ops-heavy posture with AI, WEM, QA, analytics, and regulated-market strength. Following the Cognigy acquisition, NICE is building toward an AI orchestration layer that could redefine how digital and voice interactions are managed. The strongest platform for organizations where quality management, compliance, and interaction analytics are mission-critical.",
     strengths: [
@@ -90,7 +90,7 @@ export const vendors = {
   // ═══════════════════════════════════════════════════════════
 
   "five9": {
-    name: "Five9", slug: "five9", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Five9", slug: "five9", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Strategic Foundation", score: 78, website: "five9.com",
     summary: "Pragmatic enterprise CCaaS with strong outbound heritage and solid market credibility. Five9 balances capability depth with implementation speed and has a broad partner ecosystem. The AI portfolio is growing rapidly, and the platform handles the mid-market to large enterprise range well.",
     strengths: [
@@ -127,7 +127,7 @@ export const vendors = {
   },
 
   "cisco": {
-    name: "Cisco Webex Contact Center", slug: "cisco", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Cisco Webex Contact Center", slug: "cisco", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Strong Contender", score: 75, website: "cisco.com",
     summary: "Secure enterprise-ready CCaaS with strong collaboration adjacency and telecom/government relevance. Cisco wins in estates where security, network infrastructure, and collaboration stack consolidation drive the decision. The platform is credible for enterprise operations where Cisco already has strategic weight.",
     strengths: [
@@ -162,7 +162,7 @@ export const vendors = {
   },
 
   "talkdesk": {
-    name: "Talkdesk", slug: "talkdesk", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Talkdesk", slug: "talkdesk", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Growth Challenger", tier: "Strong Contender", score: 75, website: "talkdesk.com",
     summary: "Clear verticalized modernization story with strong business-value packaging and industry clouds. Talkdesk differentiates through its Experience Clouds for financial services, healthcare, and retail. The platform is modern, API-first, and appeals to organizations that want a CCaaS vendor with genuine vertical understanding.",
     strengths: [
@@ -199,7 +199,7 @@ export const vendors = {
   },
 
   "amazon-connect": {
-    name: "Amazon Connect", slug: "amazon-connect", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Amazon Connect", slug: "amazon-connect", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Strong Contender", score: 74, website: "aws.amazon.com/connect",
     summary: "Powerful programmable cloud foundation with strong extensibility and AWS leverage. Connect takes a fundamentally different approach, consumption-based pricing, deep AWS service integration, and a build-it-yourself architecture that gives engineering-led organizations maximum flexibility. The tradeoff: you're assembling a contact center from infrastructure components, which means more control and more engineering lift.",
     strengths: [
@@ -236,7 +236,7 @@ export const vendors = {
   },
 
   "content-guru": {
-    name: "Content Guru", slug: "content-guru", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Content Guru", slug: "content-guru", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Strong Contender", score: 74, website: "contentguru.com",
     summary: "High-resilience, mission-critical CCaaS with strong public-sector credibility and compliance depth. Content Guru wins where uptime guarantees, sovereignty requirements, and government-grade security matter more than broad-market brand recognition. A specialist core vendor with genuine enterprise depth in defined environments.",
     strengths: [
@@ -270,7 +270,7 @@ export const vendors = {
   },
 
   "zoom": {
-    name: "Zoom Contact Center", slug: "zoom", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Zoom Contact Center", slug: "zoom", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Growth Challenger", tier: "Strong Contender", score: 63, website: "zoom.com",
     summary: "Modern UX and practical AI momentum with strong ecosystem pull from the Zoom installed base. Zoom Contact Center has evolved rapidly from a meeting-adjacent add-on into a credible mid-market CCaaS platform that's beginning to win enterprise deals. The brand familiarity, UX quality, and AI investment are creating real momentum, particularly in digital-first and media/hospitality environments.",
     strengths: [
@@ -311,7 +311,7 @@ export const vendors = {
   // ═══════════════════════════════════════════════════════════
 
   "ringcentral": {
-    name: "RingCentral RingCX", slug: "ringcentral", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "RingCentral RingCX", slug: "ringcentral", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Growth Challenger", tier: "Strong Contender", score: 64, website: "ringcentral.com",
     summary: "Good UC+CC simplification story and strong channel motion. RingCentral's current RingCX platform should be evaluated separately from the legacy RingCentral Contact Center product. The platform is most compelling in distributed service environments and UC consolidation scenarios where simplicity and channel accessibility matter more than deep enterprise complexity.",
     strengths: [
@@ -345,7 +345,7 @@ export const vendors = {
   },
 
   "bright-pattern": {
-    name: "Bright Pattern", slug: "bright-pattern", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Bright Pattern", slug: "bright-pattern", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Growth Challenger", tier: "Strong Contender", score: 66, website: "brightpattern.com",
     summary: "Useful broad feature set for midmarket service operations where functionality matters more than brand power. Bright Pattern delivers practical omnichannel capability with integrated QM and AI at a competitive price point. A solid midmarket comparator that tends to underperform in high-stakes enterprise selections where ecosystem gravity and prestige signal matter.",
     strengths: [
@@ -375,7 +375,7 @@ export const vendors = {
   },
 
   "8x8": {
-    name: "8x8", slug: "8x8", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "8x8", slug: "8x8", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Growth Challenger", tier: "Strong Contender", score: 63, website: "8x8.com",
     summary: "Value-oriented unified UC+CC platform with practical fit for SMB and midmarket buyers. 8x8 delivers omnichannel contact center capability bundled with unified communications, making it compelling for cost-conscious organizations seeking consolidation. Enterprise gravity is limited.",
     strengths: [
@@ -405,7 +405,7 @@ export const vendors = {
   },
 
   "odigo": {
-    name: "Odigo", slug: "odigo", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Odigo", slug: "odigo", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Growth Challenger", tier: "Strong Contender", score: 64, website: "odigo.com",
     summary: "Strong regional relevance in Europe, especially in regulated and sovereignty-sensitive sectors. Odigo delivers a credible CCaaS foundation for organizations where European data sovereignty, regulated-industry fit, and regional go-to-market strength matter more than global-market scale.",
     strengths: [
@@ -434,7 +434,7 @@ export const vendors = {
   },
 
   "ujet": {
-    name: "UJET", slug: "ujet", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "UJET", slug: "ujet", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "CCaaS Growth Specialist", tier: "Strong Contender", score: 61, website: "ujet.cx",
     summary: "Modern CCaaS story with mobile-first and digital-native relevance. UJET appeals to organizations redesigning customer service around app-centric and digital-native journeys. The platform has genuine AI substance and growing WFM capabilities, but its market footprint is smaller than the largest CCaaS vendors.",
     strengths: [
@@ -463,7 +463,7 @@ export const vendors = {
   },
 
   "avaya": {
-    name: "Avaya", slug: "avaya", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Avaya", slug: "avaya", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Situational Specialist", score: 61, website: "avaya.com",
     summary: "Still relevant in incumbent accounts with hybrid and migration demands. Avaya carries significant legacy baggage and uneven market confidence, but its installed base remains massive. The platform matters for migration strategy and hybrid coexistence scenarios where ripping and replacing would be more disruptive than staged modernization.",
     strengths: [
@@ -497,7 +497,7 @@ export const vendors = {
   },
 
   "enghouse": {
-    name: "Enghouse Interactive", slug: "enghouse", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Enghouse Interactive", slug: "enghouse", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Enterprise Core", tier: "Situational Specialist", score: 61, website: "enghouseinteractive.com",
     summary: "Useful flexibility in mixed estates and migration-led strategies. Enghouse's portfolio approach provides contact center solutions that bridge legacy and cloud environments. Strongest when the problem is migration, coexistence, and gradual transformation rather than greenfield inspiration.",
     strengths: [
@@ -526,7 +526,7 @@ export const vendors = {
   },
 
   "dialpad": {
-    name: "Dialpad", slug: "dialpad", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Dialpad", slug: "dialpad", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "SMB / Midmarket Challenger", tier: "Situational Specialist", score: 61, website: "dialpad.com",
     summary: "AI-forward narrative and simple operations that appeal to lean teams. Dialpad has built a strong brand around AI-native communications and contact center capability. The AI substance is real for its segment, particularly agent copilot, but enterprise control-plane depth has limits that require honest qualification.",
     strengths: [
@@ -555,7 +555,7 @@ export const vendors = {
   },
 
   "anywhere-now": {
-    name: "AnywhereNow", slug: "anywhere-now", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "AnywhereNow", slug: "anywhere-now", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Teams-Native Specialist", tier: "Strong Contender", score: 58, website: "anywhere365.io",
     summary: "Relevant Teams-native foundation for Microsoft-standardized enterprise environments. AnywhereNow is compelling when Microsoft Teams is a true strategic constraint and the organization wants contact center capability built natively on Azure and Teams infrastructure. Outside that specific context, its relevance drops significantly.",
     strengths: [
@@ -584,7 +584,7 @@ export const vendors = {
   },
 
   "puzzel": {
-    name: "Puzzel", slug: "puzzel", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Puzzel", slug: "puzzel", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Growth Challenger", tier: "Situational Specialist", score: 59, website: "puzzel.com",
     summary: "Practical regional contact center platform with usable AI story. Puzzel serves Nordic, UK, and regional service organizations well. The platform delivers solid omnichannel capability for regional operations but lacks the global scale and enterprise governance depth for larger transformations.",
     strengths: [
@@ -613,7 +613,7 @@ export const vendors = {
   },
 
   "alvaria": {
-    name: "Alvaria", slug: "alvaria", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Alvaria", slug: "alvaria", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Legacy / Specialist", tier: "Limited Fit", score: 59, website: "alvaria.com",
     summary: "Relevant for outreach-heavy and legacy enterprise environments. Alvaria (formerly Aspect + Noble Systems) carries strong outbound and compliant-dialing heritage that remains valuable in collections, outreach, and compliance-intensive outbound scenarios. The broader modern CCaaS narrative is weaker.",
     strengths: [
@@ -642,7 +642,7 @@ export const vendors = {
   },
 
   "vonage": {
-    name: "Vonage", slug: "vonage", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Vonage", slug: "vonage", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Growth Challenger", tier: "Situational Specialist", score: 56, website: "vonage.com",
     summary: "Communications adjacency and integration flexibility that help in specific midmarket cases. Vonage's CCaaS capability is best understood as part of a broader communications platform play rather than a standalone contact center leadership position. CRM-friendly and integration-rich, but lacking enterprise control-plane depth.",
     strengths: [
@@ -671,7 +671,7 @@ export const vendors = {
   },
 
   "luware": {
-    name: "Luware", slug: "luware", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Luware", slug: "luware", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "Teams-Native Specialist", tier: "Strong Contender", score: 55, website: "luware.com",
     summary: "Useful Teams-native customer service platform, especially in Europe. Like AnywhereNow, Luware is only compelling when Microsoft Teams is the mandated communication standard. European-market strength and managed service models are differentiators within this narrow lane.",
     strengths: [
@@ -703,7 +703,7 @@ export const vendors = {
   // ═══════════════════════════════════════════════════════════
 
   "nextiva": {
-    name: "Nextiva", slug: "nextiva", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Nextiva", slug: "nextiva", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "SMB / Midmarket Challenger", tier: "Limited Fit", score: 55, website: "nextiva.com",
     summary: "Unified communications plus service value for smaller firms. Nextiva offers all-in-one CX and business phone capability targeted at SMB and lower midmarket buyers. The platform is more SMB-weighted than a true enterprise CCaaS foundation.",
     strengths: ["All-in-one simplicity for SMB buyers", "Competitive bundled pricing", "Growing QM capabilities"],
@@ -723,7 +723,7 @@ export const vendors = {
   },
 
   "aircall": {
-    name: "Aircall", slug: "aircall", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "Aircall", slug: "aircall", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "SMB / Midmarket Challenger", tier: "Limited Fit", score: 49, website: "aircall.io",
     summary: "Fast, modern customer communications for SMB support and sales teams. Aircall delivers easy SMB sale, modern integrations, speed, and usability. It is not a serious enterprise CCaaS foundation, keep evaluation strictly in the SMB lane.",
     strengths: ["Fast modern deployment for SMB", "Strong integrations with CRM and productivity tools", "Good AI agents for its segment"],
@@ -743,7 +743,7 @@ export const vendors = {
   },
 
   "goto": {
-    name: "GoTo Contact Center", slug: "goto", category: "Core CX Platforms (CCaaS)", categorySlug: "ccaas",
+    name: "GoTo Contact Center", slug: "goto", category: "Contact Center Platforms (CCaaS)", categorySlug: "ccaas",
     segment: "SMB / Midmarket Challenger", tier: "Limited Fit", score: 43, website: "goto.com",
     summary: "Simple all-in-one contact center fit for smaller organizations. GoTo delivers fast SMB-midmarket consolidation and cost control. Enterprise credibility and regulated-market relevance are weak.",
     strengths: ["Simple all-in-one value for SMB", "Fast consolidation and cost control"],

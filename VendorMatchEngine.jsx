@@ -39,7 +39,7 @@ const PRIORITIES = [
   { id: "agentexp", name: "Agent Experience", desc: "Desktop unification, knowledge access, career tooling" },
   { id: "vertical", name: "Vertical Specialization", desc: "Industry-specific workflows and compliance" },
   { id: "global", name: "Global Scale", desc: "Multi-region, multi-language, follow-the-sun" },
-  { id: "analytics", name: "Advanced Analytics", desc: "Interaction analytics, journey, predictive insights" },
+  { id: "analytics", name: "CX Analytics", desc: "Interaction analytics, journey, predictive insights" },
   { id: "integration", name: "Deep Integration", desc: "CRM, ERP, ITSM, custom API, event-driven" },
 ];
 

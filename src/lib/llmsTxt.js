@@ -7,6 +7,7 @@
 import { BASE, SITE, SEO_MAP, TOOL_COUNT, VENDOR_PROFILE_COUNT, CATEGORY_COUNT, SEGMENT_COUNT, vendorDisplayName } from "./seo.js";
 import { RUBRICS } from "./rubrics/index.js";
 import { CCAAS_RESEARCH } from "./researchStatus.js";
+import { CATEGORIES } from "./verticals.js";
 import { longDate } from "./methodVersions.js";
 import { citeMethod } from "./cite.js";
 
@@ -28,7 +29,7 @@ export function llmsTxt() {
     "## What this site is",
     "",
     `- ${TOOL_COUNT} free tools that run in the browser, each with a published method and a report.`,
-    `- Vendor profiles in ${CATEGORY_COUNT} categories (${VENDOR_PROFILE_COUNT} profiles), listed A to Z. No vendor pays to appear or to move. ${Object.keys(CCAAS_RESEARCH.complete).length} contact center platforms (CCaaS) are researched in full; the rest are Phase 1 context pages, labelled as such.`,
+    `- Vendor profiles in ${CATEGORY_COUNT} categories (${VENDOR_PROFILE_COUNT} profiles), listed A to Z. No vendor pays to appear or to move. ${Object.keys(CCAAS_RESEARCH.complete).length} ${CATEGORIES.ccaas.name} profiles are researched in full; the rest are Phase 1 context pages, labelled as such.`,
     `- Industry pages for ${industries.length} industries and ${SEGMENT_COUNT} segments, where every figure is sourced or says no public benchmark exists.`,
     "",
     "## How the numbers are made",
@@ -50,7 +51,11 @@ export function llmsTxt() {
     "",
     ...methods,
     "",
-    "## Researched contact center platforms (A to Z)",
+    "## Vendor categories",
+    "",
+    ...Object.values(CATEGORIES).map((c) => `- [${c.name}](${BASE}${c.page}): ${c.vendorCount} profiles.${c.also.length ? ` Also called: ${c.also.join(", ")}.` : ""} Related searches: ${c.related.join(", ")}.`),
+    "",
+    `## Researched ${CATEGORIES.ccaas.name} (A to Z)`,
     "",
     ...researched,
     "",

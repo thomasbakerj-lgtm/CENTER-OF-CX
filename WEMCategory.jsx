@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { CATEGORIES } from "./src/lib/verticals.js";
+import CategoryTerms from "./src/lib/CategoryTerms.jsx";
 import { categoryMeta, marketLayers, demoGates, brutalConclusions } from "./WEMData";
 import { ScoresWithdrawn, Phase1Directory } from "./src/lib/Phase1Directory.jsx";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
@@ -25,10 +27,11 @@ export default function WEMCategory() {
       <section style={{ background: HOUSE.navy, padding: "130px 28px 80px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "none", backgroundSize: "64px 64px" }} />
         <div style={{ ...WRAP, position: "relative", zIndex: 1 }}>
-          <FadeIn><div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}><a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span><a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span><span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Workforce & Quality Management</span></div></FadeIn>
+          <FadeIn><div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 20 }}><a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span><a href="/vendors" style={{ color: HOUSE.body, fontSize: 13 }}>Vendors</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span><span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>{CATEGORIES["wem-qm"].name}</span></div></FadeIn>
           <FadeIn delay={0.05}>
-            <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 20px" }}>Workforce & Quality{" "}<span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Management</span></h1>
+            <h1 style={{ fontFamily: FONT, fontSize: "clamp(32px, 4.5vw, 52px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, margin: "0 0 20px" }}>{CATEGORIES["wem-qm"].name}</h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 640 }}>{categoryMeta.executiveTake}</p>
+            <CategoryTerms category="wem-qm" />
           </FadeIn>
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", gap: 24, marginTop: 32, flexWrap: "wrap" }}>
@@ -40,7 +43,7 @@ export default function WEMCategory() {
         </div>
       </section>
 
-      <ScoresWithdrawn category="workforce and quality management" />
+      <ScoresWithdrawn category={CATEGORIES["wem-qm"].name} />
       <Phase1Directory groups={groups} />
 
       {/* Demo Gates */}
@@ -91,8 +94,8 @@ export default function WEMCategory() {
           <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px" }}>Evaluating WEM, WFM, or QA technology?</h2>
           <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>The right shortlist depends on whether you're buying a workforce control plane, a balanced WEM suite, or a QA modernization overlay. We can help you decide which layer to prioritize and which 3-5 vendors to evaluate.</p>
           <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
-            <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a WEM/QM Briefing</a>
-            <a href="/vendors/ccaas" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>Browse CCaaS Platforms by Job →</a>
+            <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8 }}>Request a Workforce and Quality Management Briefing</a>
+            <a href="/vendors/ccaas" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See {CATEGORIES.ccaas.name} →</a>
           </div>
         </div>
       </FadeIn></div></section>
