@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+import { CiteLine } from "./src/lib/CiteLine.jsx";
+import { citeMethod } from "./src/lib/cite.js";
 import { Crumbs } from "./src/lib/Shell.jsx";
 import { FIXTURE_KIND, fixturesFor } from "./src/lib/fixtures.js";
 import { CHANGELOG } from "./src/lib/changelog.js";
@@ -28,12 +30,17 @@ export default function RubricPage({ id }) {
   const r = RUBRICS[id];
   useEffect(() => { window.scrollTo(0, 0); }, [id]);
   if (!r) return null;
-  if (r.kind === "ownership") return <OwnershipPage r={r} />;
-  if (r.kind === "qa") return <QAPage r={r} />;
-  if (r.kind === "renewal") return <RenewalPage r={r} />;
-  if (r.kind === "terms") return <TermsPage r={r} />;
-  if (r.kind === "rfp") return <RfpPage r={r} />;
-  if (r.kind === "calc") return <CalcPage r={r} />;
+  const KIND = { ownership: OwnershipPage, qa: QAPage, renewal: RenewalPage, terms: TermsPage, rfp: RfpPage, calc: CalcPage };
+  const Page = KIND[r.kind] || RubricBody;
+  return (<>
+    <Page r={r} />
+    <div style={{ background: HOUSE.ink, padding: "0 24px 56px" }}>
+      <div style={{ maxWidth: 860, margin: "0 auto" }}><CiteLine text={citeMethod({ title: r.title, version: r.version, published: r.published, id })} /></div>
+    </div>
+  </>);
+}
+
+function RubricBody({ r }) {
   const totalWeight = r.dims.reduce((s, d) => s + d.weight, 0);
   const paired = r.kind === "paired";
   const statements = r.dims.reduce((s, d) => s + (paired ? d.pairs.length * 2 : d.criteria.length), 0);

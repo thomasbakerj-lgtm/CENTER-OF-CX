@@ -19,6 +19,8 @@ import { Tags, TagNotes } from "./src/lib/VendorTags.jsx";
 import { encodeScenario } from "./src/lib/scenarioUrl.js";
 import { correctionsFor, correctionHref } from "./src/lib/research/corrections.js";
 import { trackVendor } from "./src/lib/track.js";
+import { CiteLine } from "./src/lib/CiteLine.jsx";
+import { citeResearch } from "./src/lib/cite.js";
 
 const tab = (on) => ({ minHeight: TOUCH, padding: "0 14px", fontFamily: FONT, fontSize: 14, fontWeight: on ? 700 : 500, borderRadius: RADIUS.field, cursor: "pointer",
   border: `${on ? 2 : 1}px solid ${on ? PILLARS.vendors.onDark : K.firm}`, background: "transparent", color: HOUSE.mist });
@@ -412,6 +414,7 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
         {view === "ask" && <AskView p={p} />}
         {view === "sources" && <SourcesView p={p} manifestDate={manifestDate} />}
         <CorrectionsNote vendorId={v.Vendor_ID} slug={slug} />
+        <CiteLine text={citeResearch({ name: v.Supplier_Name, validated: v.Last_Validated_Date, slug })} />
       </div>
     </div>
   );

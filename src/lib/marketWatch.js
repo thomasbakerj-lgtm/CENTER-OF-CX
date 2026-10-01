@@ -28,14 +28,37 @@ export const KINDS = {
 /* Launch set, researched 27 September 2026 from the page each item cites (July to September 2026). */
 export const ITEMS = [
   {
+    "id": "mw-2026-09-30-fcc-tcpa-revocation-adopted",
+    "date": "2026-09-30",
+    "label": "verified",
+    "kind": "regulation",
+    "who": "Federal Communications Commission",
+    "vendors": [],
+    "headline": "FCC adopts narrower robocall consent revocation rules and seeks comment on more",
+    "summary": "The FCC adopted its Report and Order in CG Docket 02-278 (FCC 26-67) on 30 September 2026, three commissioners approving. Consumers can stop one category of informational robocall and keep the others, and callers can designate the method for revoking consent. A further notice asks about shorter honoring times and revocation by reply text.",
+    "source": {
+      "publisher": "Federal Communications Commission",
+      "title": "FCC Votes to Give Consumers More Choice in the Calls They Receive (news release, FCC 26-67)",
+      "url": "https://docs.fcc.gov/public/attachments/DOC-425498A1.pdf",
+      "published": "2026-09-30"
+    },
+    "also": {
+      "publisher": "Federal Communications Commission",
+      "title": "Statement of Chairman Brendan Carr, FCC 26-67",
+      "url": "https://docs.fcc.gov/public/attachments/DOC-425498A2.pdf",
+      "published": "2026-09-30"
+    },
+    "checked": "2026-10-01"
+  },
+  {
     "id": "mw-2026-09-09-fcc-tcpa-revocation-draft",
     "date": "2026-09-09",
     "label": "verified",
     "kind": "regulation",
     "who": "Federal Communications Commission",
     "vendors": [],
-    "headline": "FCC draft order would narrow robocall consent revocations; vote was set for 30 September",
-    "summary": "The FCC circulated a draft order in CG Docket 02-278 for its 30 September 2026 meeting. Callers could treat an opt-out as covering only the category of informational calls it targets and name exclusive opt-out methods. We have not yet read the FCC's record of the vote and will update this item from it.",
+    "headline": "FCC circulates draft order narrowing how robocall consent revocations must be honored",
+    "summary": "The FCC circulated a draft order in CG Docket 02-278 for its 30 September 2026 meeting. Callers could treat an opt-out as covering only the category of informational calls it targets and name exclusive opt-out methods. The Commission adopted the order on 30 September 2026; the item of that date records the vote.",
     "source": {
       "publisher": "Federal Communications Commission",
       "title": "FCC Fact Sheet: Rules and Regulations Implementing the Telephone Consumer Protection Act of 1991, Report and Order and Further Notice of Proposed Rulemaking (FCC-CIRC 2609-05)",

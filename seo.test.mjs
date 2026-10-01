@@ -675,10 +675,11 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
 {
   const sitemap = [...readFileSync("./public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
   const typeOf = (p) => structuredData(p, resolveSeo(p)).map((g) => g["@type"]);
+  const CATEGORY_PAGES = new Set(Object.values((await import("./src/lib/verticals.js")).CATEGORIES).map((c) => c.page)); // ItemList, A to Z (cite.test.mjs 5)
   const wrong = [];
   for (const p of sitemap) {
     const t = typeOf(p);
-    const want = p === "/" ? ["Organization", "WebSite"] : p.startsWith("/tools/") ? ["WebApplication"] : p.startsWith("/methodology/") ? ["TechArticle"] : p.startsWith("/industries/") || /^\/vendors\/ccaas\/[a-z-]+$/.test(p) ? ["Article"] : [];
+    const want = p === "/" ? ["Organization", "WebSite"] : p.startsWith("/tools/") ? ["WebApplication"] : p.startsWith("/methodology/") ? ["TechArticle"] : p.startsWith("/industries/") || /^\/vendors\/ccaas\/[a-z-]+$/.test(p) ? ["Article"] : CATEGORY_PAGES.has(p) ? ["ItemList"] : [];
     if (JSON.stringify(t) !== JSON.stringify(want)) wrong.push(`${p}: ${t.join(",")}`);
   }
   ok(`L1 every sitemap URL gets the structured data for its page type [${wrong.slice(0, 3).join(" | ")}]`, wrong.length === 0);

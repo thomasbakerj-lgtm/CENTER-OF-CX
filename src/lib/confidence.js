@@ -42,6 +42,14 @@ export const GRADES = ["Directional", "Planning-grade", "Finance-grade"];
 
 export const GRADE_RANK = { "Directional": 0, "Planning-grade": 1, "Finance-grade": 2 };
 
+/* What each grade word means, in one line for a reader meeting it for the first time (audit 30 Sep: gloss the grade
+   words on first use). The page shows it under the grade; the confidence section names the axis and the reason. */
+export const GRADE_MEANING = {
+  "Directional": "Shows the direction and rough size. Something behind it is still a default, an estimate or an open choice.",
+  "Planning-grade": "Firm enough to plan and budget around. It rests on your own figures; a document would make it firmer.",
+  "Finance-grade": "Firm enough for a finance review. The inputs behind it come from documents you attested.",
+};
+
 /** Fixed display order. Evidence, then Realization, then Completeness. */
 export const AXES = ["evidence", "realization", "completeness"];
 

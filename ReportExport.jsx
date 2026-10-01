@@ -78,7 +78,11 @@ export function orderSections(sections, audience, toolId) {
    roadmap item carrying markup cannot run in the report window. Pure, so the harness
    can build it without a browser. */
 const e = (v) => String(v === undefined || v === null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "", method = "", audience = "advisor", how = null, toolId = "" }) {
+/* The scenario link printed on the cover (audit 30 Sep: a checkable PDF). Only an https link to this site prints; it
+   is escaped like every other value. */
+export const safeReopen = (u) => (typeof u === "string" && /^https:\/\/(www\.)?contactcentercx\.com\/[^\s"'<>]*$|^http:\/\/localhost:\d+\/[^\s"'<>]*$/.test(u) && u.length <= 2100 ? u : "");
+
+export function reportHtml({ toolName, subtitle, reportName, company, logo, today, sections = [], origin = "", method = "", audience = "advisor", how = null, toolId = "", reopen = "" }) {
   // Resolve relative next-step links against the live origin so they work in the
   // popup preview (whose own URL is about:blank) and remain clickable in the PDF.
   const absUrl = (href) => !href ? null : (/^https?:\/\//i.test(href) ? href : origin + (href.startsWith("/") ? href : "/" + href));
@@ -178,6 +182,7 @@ body { font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe U
 .cover .subtitle { font-size: 11pt; color: ${SLATE}; margin-bottom: 10px; }
 .cover .meta { font-size: 8.5pt; color: ${QUIET}; line-height: 1.6; }
 .cover .meta strong { color: ${INK}; font-weight: 600; }
+.cover .meta .reopen { overflow-wrap: anywhere; word-break: break-all; }
 .company-logo { max-width: 150px; max-height: 56px; object-fit: contain; display: block; margin-bottom: 10px; }
 .reader { display: flex; gap: 14px; align-items: baseline; padding: 10px 14px; background: ${PANEL}; border-radius: 8px; margin-bottom: 22px; }
 .reader .who { font-size: 7.5pt; font-weight: 600; text-transform: uppercase; letter-spacing: 0.16em; color: ${LABEL}; white-space: nowrap; }
@@ -272,6 +277,7 @@ td.value { font-weight: 600; text-align: right; }
     ${company ? `<div><strong>Organization:</strong> ${e(company)}</div>` : ""}
     <div><strong>Date:</strong> ${e(today)}</div>
     ${method ? `<div><strong>Method:</strong> ${e(method)}</div>` : ""}
+    ${safeReopen(reopen) ? `<div class="reopen"><strong>Reopen this scenario:</strong> ${e(safeReopen(reopen))}</div>` : ""}
   </div>
 </div>
 ${howBlock}
@@ -285,6 +291,7 @@ ${plan.appendix.length ? `<div class="appendix"><h2>Appendix: the detail</h2><p>
 <div class="report-footer">
 <div class="row"><span>The Center of CX. Diagnose before you buy.</span><span>${e(today)}</span></div>
 <div>Every figure is computed from the inputs listed, under the assumptions stated. Change an input and the figure moves with it.</div>
+${safeReopen(reopen) ? `<div>To check or change it, open the scenario link on the cover: the tool reopens with these inputs. Anyone with the link sees them.</div>` : ""}
 </div>
 
 </body>
@@ -306,7 +313,7 @@ function evidenceMark(axes) {
   return `<svg class="arcs" width="64" height="64" viewBox="-64 -64 128 128" role="img" aria-label="Evidence mark"><g transform="rotate(60)">${ring(56, axes.evidence, ARCS_PRINT.evidence)}${ring(42, axes.realization, ARCS_PRINT.realization)}${ring(28, axes.completeness, ARCS_PRINT.completeness)}</g></svg>`;
 }
 
-export default function ReportExport({ toolId, grade, toolName, subtitle, userName, userEmail, sections = [], method = "", how = null }) {
+export default function ReportExport({ toolId, grade, toolName, subtitle, userName, userEmail, sections = [], method = "", how = null, reopen = "" }) {
   const [showModal, setShowModal] = useState(false);
   const [logo, setLogo] = useState(null);
   const [reportName, setReportName] = useState(userName || "");
@@ -344,7 +351,7 @@ export default function ReportExport({ toolId, grade, toolName, subtitle, userNa
     if (!win) { alert("Please allow pop-ups to download your report."); return; }
 
     const origin = (typeof window !== "undefined" && window.location && window.location.origin) ? window.location.origin : "";
-    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin, method, audience, how, toolId });
+    const html = reportHtml({ toolName, subtitle, reportName, company, logo, today, sections, origin, method, audience, how, toolId, reopen });
 
     win.document.write(html);
     win.document.close();
