@@ -211,7 +211,7 @@ export default function VendorProfile() {
             <FadeIn>
               <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
                 <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {iv.name} for your organization?</h2>
-                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {iv.name} fits your operating model, vertical requirements, and integration landscape.</p>
+                <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {iv.name} fits your operation, your industry's requirements and the systems you run.</p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
                   <a href="/vendors/iva" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All IVA Vendors →</a>
@@ -331,7 +331,7 @@ export default function VendorProfile() {
         <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}><FadeIn>
           <div style={{ background: HOUSE.navy, borderRadius: 14, padding: "48px 36px", textAlign: "center" }}>
             <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: HOUSE.mist, margin: "0 0 12px", overflowWrap: "break-word" }}>Evaluating {aa.name} for agent assist?</h2>
-            <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {aa.name} fits your operating model, vertical requirements, and integration landscape.</p>
+            <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px" }}>We can help you evaluate whether {aa.name} fits your operation, your industry's requirements and the systems you run.</p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, boxShadow: "none" }}>Request a Vendor Briefing</a>
               <a href="/vendors/agent-assist" style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, color: HOUSE.mist, fontSize: 15, fontWeight: 500, padding: "14px 28px", borderRadius: 8 }}>See All Agent Assist Vendors →</a>
@@ -1132,7 +1132,7 @@ export default function VendorProfile() {
                   Evaluating {v.name} for your organization?
                 </h2>
                 <p style={{ fontSize: 15, color: HOUSE.body, lineHeight: 1.6, maxWidth: 500, margin: "0 auto 28px", fontFamily: FONT }}>
-                  We can help you evaluate whether {v.name} fits your operating model, vertical requirements, and integration landscape. We'll come prepared with competitive context and the questions you should be asking.
+                  We can help you evaluate whether {v.name} fits your operation, your industry's requirements and the systems you run. We'll come prepared with the questions you should be asking.
                 </p>
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
                   <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT, boxShadow: "none" }}>Request a Vendor Briefing</a>

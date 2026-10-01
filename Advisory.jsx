@@ -62,11 +62,11 @@ function Hero() {
         <FadeIn delay={0.05}>
           <div style={{ maxWidth: 680 }}>
             <h1 style={{ fontFamily: FONT, fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 24px" }}>
-              Independent guidance for{" "}
-              <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>high-stakes CX decisions.</span>
+              Get help with a{" "}
+              <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>contact center decision.</span>
             </h1>
             <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 560, fontFamily: FONT }}>
-              Platform selection. AI readiness. Vendor evaluation. Operating model design. We bring the strategic clarity that vendor sales teams and internal politics make difficult.
+              The tools and research are free and stay free. When you want a person to work through a decision with you, we introduce you to an independent consultant who has done that work before.
             </p>
           </div>
         </FadeIn>
@@ -120,7 +120,7 @@ function Offerings() {
   const services = [
     {
       title: "Platform selection",
-      desc: "CCaaS evaluation, vendor shortlisting, and architecture-level comparison tailored to your operating model, vertical requirements, and integration landscape. We go deeper than feature matrices: we assess orchestration readiness, AI maturity, and long-term vendor trajectory.",
+      desc: "CCaaS evaluation, vendor shortlisting, and architecture-level comparison fitted to your operating model, your industry's requirements and the systems you integrate with, including orchestration readiness, AI maturity and where each vendor's product is heading.",
       who: "CX leaders, CIOs, and transformation leads evaluating CCaaS platforms",
       output: "A shortlist with the reasons behind each vendor on it, architecture fit analysis, and negotiation guidance",
     },
@@ -144,7 +144,7 @@ function Offerings() {
     },
     {
       title: "Executive briefings",
-      desc: "A focused session for leadership teams who need to understand where the CX technology landscape is heading and what that means for their investment decisions. Covers CCaaS evolution, AI's operational impact, orchestration architecture, and vendor market dynamics.",
+      desc: "A focused session for leadership teams who need to understand where contact center technology is heading and what that means for their investment decisions. Covers CCaaS evolution, AI's operational impact, orchestration architecture, and vendor market dynamics.",
       who: "C-suite, board members, PE operating partners, and senior leadership teams",
       output: "Executive briefing deck, market context summary, and strategic recommendation",
     },

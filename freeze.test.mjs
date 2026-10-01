@@ -261,5 +261,25 @@ section("10. Audit 30 Sep, batch 2: the tools hub says what each tool gives you"
   ok("every method stamp on the hub names a published method", methods.length >= 20 && methods.every((m) => METHOD_VERSIONS[m]));
 }
 
+section("11. Audit 30 Sep, batch 3: the essay pages say what they hold");
+{
+  const R = (f) => readFileSync("./" + f, "utf8");
+  const RETIRED = {
+    "Industries.jsx": /Generic advice fails|2,135|checkpoints|strongest operators|change every recommendation|StateRAMP|moment of truth|generic CCaaS/,
+    "HealthcareVertical.jsx": /generic platforms consistently underserve/,
+    "HumanPremium.jsx": /exponentially|isn't a displacement story|Every analyst firm|changes everything|will outperform|Nobody talks/,
+    "PlatformsTech.jsx": /isn't a vendor diagram|decision domains|CX technology landscape|vendor landscape/,
+    "IVACategory.jsx": /no longer chatbot vs IVA/,
+    "CXEcosystem.jsx": /take: "Best |that matter for CX|without vendor influence|can't replicate|Essential reference/,
+    "Advisory.jsx": /strategic clarity|integration landscape|technology landscape/,
+    "VendorProfile.jsx": /integration landscape|competitive context and the questions/,
+    "ReportActions.jsx": /numbers\s+actually support/,
+    "WEMCategory.jsx": /What's Actually True|the market won't tell you/,
+    "HCSubVerticalData.js": /exponentially harder/,
+  };
+  for (const [f, re] of Object.entries(RETIRED)) ok(`${f} carries none of the retired lines`, !re.test(R(f)));
+  ok("the industries hub counts its segments from the sitemap", /\{SEGMENT_COUNT\} segments/.test(R("Industries.jsx")) && /import \{ SEGMENT_COUNT \} from "\.\/src\/lib\/seo\.js"/.test(R("Industries.jsx")));
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

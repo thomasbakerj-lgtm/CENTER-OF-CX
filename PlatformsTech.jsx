@@ -64,11 +64,11 @@ function Hero() {
           <FadeIn delay={0.05}>
             <div>
               <h1 style={{ fontFamily: FONT, fontSize: "clamp(34px, 4.5vw, 56px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.1, letterSpacing: "-0.02em", margin: "0 0 20px" }}>
-                The CX technology landscape,{" "}
+                Contact center technology,{" "}
                 <span style={{ background: `linear-gradient(135deg, ${ELECTRIC}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>organized for decisions.</span>
               </h1>
               <p style={{ fontSize: "clamp(15px, 1.6vw, 17px)", color: HOUSE.body, lineHeight: 1.7, maxWidth: 520, margin: "0 0 32px", fontFamily: FONT }}>
-                Nine decision domains mapped to seven orchestration layers. A framework for understanding what you actually need, who owns it, and what breaks when you choose wrong.
+                Nine technology categories mapped to the seven layers of the stack: what each one does, which layers it serves, and what breaks when the choice is wrong.
               </p>
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 <a href="#categories" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: "13px 24px", borderRadius: 7, fontFamily: FONT, boxShadow: "none" }}>Explore Categories</a>
@@ -116,7 +116,7 @@ function OrchestrationLayers() {
             <Label>The Orchestration Model</Label>
             <Title>Seven layers. Every CX technology maps to at least one.</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4, fontFamily: FONT }}>
-              This isn't a vendor diagram. It's an operating architecture. Understanding which layer a technology lives in tells you who should own it, what it depends on, and what governance it requires.
+              Each layer of the stack has its own owner, dependencies and governance. Knowing which layer a technology lives in tells you who should own it, what it depends on, and what governance it requires.
             </p>
           </div>
         </FadeIn>
@@ -297,7 +297,7 @@ function Categories() {
     },
     {
       t: "Digital Engagement", s: "Chat · Messaging · Social · CPaaS", layers: "5", href: "/vendors/digital-engagement",
-      d: "Multi-channel digital engagement platforms, conversational messaging, social media management, and CPaaS. The layer that connects your brand to customers on the channels they actually use.",
+      d: "Multi-channel digital engagement platforms, conversational messaging, social media management, and CPaaS. The layer that connects your brand to customers on the channels they use.",
       questions: ["Messaging or live chat?", "How will we handle service on social channels?", "CPaaS or the platform's own digital channels?"],
       vendors: "Ada, Gladly, Intercom, Khoros, Sprinklr, Zendesk",
     },
@@ -311,7 +311,7 @@ function Categories() {
             <Label>Nine Decision Domains</Label>
             <Title>These are buying decisions. Each one carries real risk.</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4, fontFamily: FONT }}>
-              Every category is framed around the decision a CX leader actually faces. Each one maps to specific orchestration layers, has distinct budget owners, and carries different risks when you choose wrong.
+              Every category is framed around the decision a CX leader faces. Each one maps to specific orchestration layers, has distinct budget owners, and carries different risks when you choose wrong.
             </p>
           </div>
         </FadeIn>
@@ -470,7 +470,7 @@ function CTA() {
           <div style={{ textAlign: "center", maxWidth: 560, margin: "0 auto" }}>
             <Title>Need help navigating the stack?</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, margin: "8px 0 32px", fontFamily: FONT }}>
-              Whether you're evaluating platforms, planning an AI pilot, or trying to make sense of your current vendor landscape, we connect you with vetted consultants who specialize in your stack, vertical, and transformation stage.
+              Whether you're evaluating platforms, planning an AI pilot, or trying to make sense of the vendors you have today, we connect you with vetted consultants who specialize in your stack, vertical, and transformation stage.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap" }}>
               <a href="/contact" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 15, fontWeight: 600, padding: "14px 28px", borderRadius: 8, fontFamily: FONT, boxShadow: "none" }}>Connect with a Consultant →</a>
