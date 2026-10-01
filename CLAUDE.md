@@ -1958,7 +1958,12 @@ dashboard, the 12-phase growth program.
    adopted 30 September 2026, FCC 26-67, Carr, Gomez and Trusty approving. New verified item of that date (category
    opt-outs for informational robocalls, a designated revocation method, the further notice on honoring time and reply
    texts); the 9 September draft item points to it. No effective date is stated: the full order (FCC-26-67A1) is not
-   posted yet. Both items share no 8-word run with the release, the statement or the draft order. Gates: `cite.test.mjs` (34, registered), seo L1 expects ItemList on category pages, export pin for
+   posted yet. Both items share no 8-word run with the release, the statement or the draft order. The EU Digital Omnibus item
+   moved to verified (1 Oct): TB supplied the Official Journal PDF (EUR-Lex refuses this network); its text confirms OJ L
+   of 24 July 2026, signed 8 July 2026, in force on the third day after publication (Article 4), high-risk rules from 2
+   December 2027 (Annex III) and 2 August 2028 (Annex I), general application 2 August 2026. Source now the ELI link; no
+   8-word run shared with the regulation. Held by TB: the FTC investigation of OpenAI and Anthropic (news only, no FTC
+   release); not published: a Nextiva sponsored opinion piece and a CX Network forecast piece. Gates: `cite.test.mjs` (34, registered), seo L1 expects ItemList on category pages, export pin for
    the reopen argument. Suite 27,609; build green; live check 257 of 257; browser at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
