@@ -8,6 +8,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { HOUSE, PILLARS, LAYERS, ARCS, FINDINGS, TYPE_SCALE, RADIUS, MOTION, TOUCH, alpha, LINE, onFill } from "./tokens.js";
 import { Icon } from "./Icon.jsx";
+import { GRADE_MEANING } from "./confidence.js";
 
 const T = TYPE_SCALE;
 const hair = alpha(HOUSE.mist, LINE.hair), soft = alpha(HOUSE.mist, LINE.soft), firm = alpha(HOUSE.mist, LINE.firm);
@@ -146,6 +147,7 @@ export function GradeBadge({ grade, heldBy, lift }) {
       <span style={{ alignSelf: "flex-start", fontSize: 15, fontWeight: weight, padding: "3px 10px", borderRadius: RADIUS.chip,
         background: filled ? HOUSE.mist : "transparent", color: filled ? HOUSE.ink : HOUSE.mist, border: `1.5px ${grade === "Directional" ? "dashed" : "solid"} ${HOUSE.mist}` }}>{grade}</span>
       {heldBy && <span style={{ fontSize: 13, color: HOUSE.muted }}>Held by {heldBy}</span>}
+      {GRADE_MEANING[grade] && <span style={{ fontSize: 13, color: HOUSE.body, maxWidth: 260, lineHeight: 1.45 }}>{GRADE_MEANING[grade]}</span>}
       {lift && <span style={{ fontSize: 13, color: HOUSE.body }}>To raise it: {lift}</span>}
     </span>
   );

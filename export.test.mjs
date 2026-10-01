@@ -169,7 +169,7 @@ section("5. Reports written for each reader (TB, 30 Sep 2026)");
   }
   const plain = reportHtml({ toolName: "t", today: "d", sections: [{ title: "A", type: "text", content: "x" }], audience: "finance", toolId: "roadmap-builder" });
   ok("a tool without a brief prints no questions and no appendix", !plain.includes("What to check first") && !plain.includes("Appendix"));
-  ok("the popup passes the tool id to the renderer", /reportHtml\(\{[^}]*toolId \}\)/.test(SRC));
+  ok("the popup passes the tool id to the renderer", /reportHtml\(\{[^}]*toolId, reopen \}\)/.test(SRC));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

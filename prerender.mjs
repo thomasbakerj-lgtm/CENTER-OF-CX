@@ -180,6 +180,11 @@ for (const loc of locs) {
   written++;
 }
 
+/* /llms.txt: a plain-text map of the site from the same records the pages render (src/lib/llmsTxt.js). */
+{
+  const { llmsTxt } = await import("./src/lib/llmsTxt.js");
+  writeFileSync(join(DIST, "llms.txt"), llmsTxt(), "utf8");
+}
 console.log(`prerender: wrote ${written} route files from ${locs.length} sitemap URLs, and ${cardsWritten.size} share cards.`);
 if (fallbackCount > 0) {
   console.warn(

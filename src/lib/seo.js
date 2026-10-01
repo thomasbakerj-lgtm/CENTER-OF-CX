@@ -999,6 +999,17 @@ export function structuredData(pathname, seo, extra = {}) {
       publisher: ORG, datePublished: piece.published, isAccessibleForFree: true });
   }
 
+  /* A vendor category page: an ItemList of its profiles, A to Z and marked unordered, so no ranking is implied (audit
+     30 Sep). Built from the same name table as the page titles. */
+  const cat = Object.entries(CATEGORIES).find(([, c]) => c.page === pathname);
+  if (cat) {
+    const items = Object.entries(VENDOR_NAMES).filter(([, v]) => v[1] === cat[0])
+      .sort((a, b) => a[1][0].localeCompare(b[1][0]) || a[0].localeCompare(b[0]));
+    graphs.push({ "@context": "https://schema.org", "@type": "ItemList", name, description: seo.desc, url,
+      itemListOrder: "https://schema.org/ItemListUnordered", numberOfItems: items.length,
+      itemListElement: items.map(([slug, v], i) => ({ "@type": "ListItem", position: i + 1, name: v[0], url: `${BASE}/vendors/${slug}` })) });
+  }
+
   /* A rebuilt CCaaS by industry page open to search: an Article gathering the research, published by the site. */
   const ci = pathname.match(CCAAS_INDUSTRY_PATH);
   if (ci && CCAAS_INDEXED_INDUSTRIES.includes(ci[1])) {

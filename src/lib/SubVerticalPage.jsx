@@ -66,6 +66,8 @@ export default function SubVerticalPage({ industry, href, getSubVertical, initia
   const getStatus = (layerIdx, capIdx) => statuses[`${layerIdx}-${capIdx}`];
 
   const totalCaps = sv.layers.reduce((a, l) => a + l.capabilities.length, 0);
+  /* Every figure tile is a single claim with no public benchmark: the list replaces the tiles. */
+  const noneAll = sv.kpis.length > 0 && sv.kpis.every((k) => { const ids = claimIds([k.avg]); const c = ids.length === 1 ? claim(ids[0]) : null; return !!c && c.kind === "none"; });
   const assessed = Object.keys(statuses).length;
   const haveCount = Object.values(statuses).filter(s => s === "Have").length;
   const needCount = Object.values(statuses).filter(s => s === "Need").length;
@@ -115,6 +117,25 @@ export default function SubVerticalPage({ industry, href, getSubVertical, initia
             <p style={{ ...K.small, maxWidth: 760 }}>Map your current capabilities across all 7 layers: {totalCaps} checkpoints. Mark what you have, what you need and what is planned. Your answers stay in this browser tab.</p>
           </header>
 
+          {/* When no figure in the segment has a public benchmark (59 of 61 segments, audit 30 Sep), one compact list says
+              so once, keeping each figure's note and its measuring tool, in place of four tiles that each say the same. */}
+          {noneAll ? (
+          <section aria-label="Figures for this segment" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
+            <h2 style={{ ...K.h2, margin: 0 }}>Figures for this segment</h2>
+            <p style={K.body}>No public benchmark exists for these figures in this segment. Measure your own with the tool named beside each.</p>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+              {sv.kpis.map((k, i) => {
+                const t = TESTS[claim(claimIds([k.avg])[0]).test];
+                return (
+                  <li key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <span style={{ ...K.body, color: HOUSE.mist, fontWeight: 600 }}>{k.metric}{t && <> · <a href={t.href} aria-label={`Measure your ${k.metric} in ${t.label}`} style={K.link}>Measure yours in {t.label}</a></>}</span>
+                    {k.note && <span style={K.small}><ClaimText text={k.note} /></span>}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+          ) : (
           <section aria-label="Figures for this segment" style={K.grid(200)}>
             {sv.kpis.map((k, i) => {
               const ids = claimIds([k.avg]); const c = ids.length === 1 ? claim(ids[0]) : null; const t = c && TESTS[c.test];
@@ -129,6 +150,7 @@ export default function SubVerticalPage({ industry, href, getSubVertical, initia
               );
             })}
           </section>
+          )}
 
           {sv.measures && (
             <section aria-label={sv.measures.title} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>

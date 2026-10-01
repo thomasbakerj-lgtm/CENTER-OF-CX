@@ -487,6 +487,7 @@ export default function ReportActions({
             sections={exportSections}
             method={stamp ? `${stamp.text}, contactcentercx.com${stamp.href}` : ""}
             how={reportHow}
+            reopen={link || ""}
           /></span>
 
           {link ? (
@@ -504,9 +505,10 @@ export default function ReportActions({
 
         {link && (
           <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.6, margin: "0 0 18px" }}>
-            The scenario link reopens this tool with every input exactly as you left it. Bookmark it,
-            or send it to a colleague so they can change one assumption and see what moves.
-            It carries your numbers only. It never carries your name or email.
+            <strong style={{ color: NAVY }}>Save this link.</strong> It is how you keep this scenario: it reopens this tool with
+            every input exactly as you left it, and the report prints it on the cover. We keep no account for you, so
+            bookmark it or paste it into your notes, or send it to a colleague so they can change one assumption and see
+            what moves. It carries your numbers only, never your name or email, and anyone with the link sees them.
           </p>
         )}
 

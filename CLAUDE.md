@@ -1943,6 +1943,19 @@ dashboard, the 12-phase growth program.
    is a plain-words line per class (`PLAIN[id].compared`) with the research's own wording beside it on the profile and
    once per class on the CCaaS page. Gates: `freeze.test.mjs` 12 (every category's profile prose, analyst lines quoted
    and linked, back links, the plural), `profile.test.mjs` 4, home and vendormatch pins. Suite 27,575; live check 257 of 257.
+118. S24 (1 Oct), copy audit batch 5 (TB: "go"): save, cite and find. The result's link panel now says "Save this link":
+   the scenario link is how a reader keeps a scenario (no account), and anyone with it sees the numbers. The report cover
+   prints "Reopen this scenario" with the link and the footer says how to use it (`safeReopen`: only an https link to this
+   site, or localhost for checks, escaped). Each grade word carries one line of meaning under the badge
+   (`GRADE_MEANING` in confidence.js). "How to cite" (`src/lib/cite.js`, `CiteLine.jsx`) on all 23 method pages (version and
+   publish date from the method record) and the 18 researched profiles (validation date). `/llms.txt` written by the
+   prerender from `src/lib/llmsTxt.js`: what the site is, how numbers are made, how to cite, every tool, method,
+   researched platform and industry page, the crawler policy (robots allows all, deliberately). The eight category pages
+   carry an ItemList of their profiles, A to Z, marked unordered. A segment page whose every figure has no public benchmark
+   (most of the 61) shows one list naming each figure, its note and its measuring tool, in place of four identical tiles.
+   The FCC item stays as is: the link TB sent (29 Sep) is the FCC's ultra-wideband notice, not the TCPA order, and fcc.gov
+   refuses this network. Gates: `cite.test.mjs` (34, registered), seo L1 expects ItemList on category pages, export pin for
+   the reopen argument. Suite 27,609; build green; live check 257 of 257; browser at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
