@@ -437,6 +437,28 @@ Binding. None of this is in code comments beyond what is noted.
   reports protected.
 - Disclosure page (12-06): TB, S23: no disclosure text wanted; the site states facts and perspective only.
 
+**Open with TB (snapshot 1 Oct 2026, after PR #107).** Decisions from the site audit (2 Oct audit doc and S24 notes):
+1. Tools hub from `/how-to-choose` to `/tools` with a 301.
+2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods.
+3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds.
+4. Site search (static index built at prerender).
+5. Advisory and Contact as one page: how consultants are chosen, how the site is paid (referral fees), no scored work.
+6. Migration article: keep TB's first-person essay (author line and dek) or rewrite; its figures carry no links.
+7. Provenance strip under every H1 and a `/standards` page.
+8. QR code on the PDF cover (the scenario link itself shipped in item 118).
+9. Class comparison and "alternatives to X" pages from the research, A to Z, no order.
+10. Opt-in benchmark exchange (consent design and storage).
+11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`).
+12. One name per category across pages, schema and llms.txt (CCaaS today has four).
+13. Nav "Coming soon" on Research moved to the studies card; Phase 1 profiles rebuilt or noindexed (reverses 29 Sep);
+    the 95 split vendor pages merged into 38; naming who runs the site.
+14. Homepage stack hover (item 113), when TB says the time is right.
+TB actions: the private corpus repository and the `RESEARCH_TOKEN` secret (D1 setup; not confirmed from here); a postal
+address before the first newsletter; a lawyer's read of the Privacy Policy and Terms (Arizona venue and county); the
+PostHog funnels in `docs/MEASUREMENT.md` and numbers for the measurement review; whether to filter TB's own browsers
+(`?me=1`, left to TB); notes in TB's own words per tool for the audit session's section 2b; the FTC item when the FTC
+publishes (held).
+
 ---
 
 ## 7. Parallel research program. Do not collide.
