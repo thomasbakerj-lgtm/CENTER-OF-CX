@@ -30,7 +30,7 @@ export default function HumanPremium() {
               The Human{" "}<span style={{ background: `linear-gradient(135deg, ${GREEN}, ${LIGHT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Premium</span>
             </h1>
             <p style={{ fontSize: "clamp(16px, 1.8vw, 19px)", color: HOUSE.body, lineHeight: 1.75, maxWidth: 580, margin: "0 auto 36px" }}>
-              As AI handles more of the routine, the humans who remain become exponentially more important. This isn't a displacement story. It's a transformation story: and the people who lean in will build careers that didn't exist two years ago.
+              When software takes the routine contacts, the ones left for people are longer, harder and more consequential. This page lays out the roles that work creates, the skills it asks for, and certifications we checked on each provider's page, with prices and dates.
             </p>
             <div style={{ width: 60, height: 2, background: GREEN, margin: "0 auto", borderRadius: 1 }} />
           </FadeIn>
@@ -46,7 +46,7 @@ export default function HumanPremium() {
           </FadeIn>
           <FadeIn delay={0.05}>
             <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.8, marginBottom: 16 }}>
-              Every analyst firm, every vendor, every conference keynote frames the conversation the same way: <em>"How much can we automate?"</em> Containment rates. Cost-per-interaction. Agent labor reduction. The metrics all point in one direction: fewer humans, more machines.
+              Much of the conversation about AI in service starts from one question: <em>"How much can we automate?"</em> Containment rates. Cost-per-interaction. Agent labor reduction. The metrics all point in one direction: fewer humans, more machines.
             </p>
             <p style={{ fontSize: 16, color: SLATE, lineHeight: 1.8, marginBottom: 16 }}>
               That framing is incomplete. It measures what AI replaces. It ignores what humans create.
@@ -55,7 +55,7 @@ export default function HumanPremium() {
               When your IVA handles most routine interactions, what remains is not residual volume you haven't automated yet. It is the highest-stakes, most emotionally charged, most commercially consequential work in your entire operation. A patient who needs clinical empathy. A business customer whose large account depends on someone understanding their specific situation. A fraud victim who needs a human being to say "I believe you, and here's what we're going to do."
             </p>
             <p style={{ fontSize: 16, color: NAVY, lineHeight: 1.8, fontWeight: 500 }}>
-              The companies that treat this remaining work as the premium layer, and invest in the humans who operate it, will outperform the ones that treat it as a cost line to be further compressed. This is not a sentimental argument. It is a commercial one.
+              The companies that treat this remaining work as the premium layer, and invest in the humans who operate it, are, in our view, better placed than the ones that treat it as a cost line to compress further. The case for it is commercial as well as human.
             </p>
           </FadeIn>
         </div>
@@ -66,7 +66,7 @@ export default function HumanPremium() {
         <div style={WRAP}>
           <FadeIn>
             <span style={{ color: ELECTRIC, fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase", display: "block", marginBottom: 10 }}>The Economics</span>
-            <h2 style={{ fontFamily: FONT, fontSize: 30, fontWeight: 400, color: NAVY, lineHeight: 1.2, margin: "0 0 12px" }}>The compensation paradox that changes everything.</h2>
+            <h2 style={{ fontFamily: FONT, fontSize: 30, fontWeight: 400, color: NAVY, lineHeight: 1.2, margin: "0 0 12px" }}>Harder work, and what it should pay.</h2>
             <p style={{ fontSize: 15, color: MUTED, maxWidth: 600, marginBottom: 36 }}>If AI handles the easy work, the humans who remain handle only the hard work. Hard work requires more skill. More skill commands higher compensation. The math creates a new kind of career.</p>
           </FadeIn>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }} className="hp-grid">
@@ -151,7 +151,7 @@ export default function HumanPremium() {
               { n: "04", title: "Get certified in something that compounds", desc: "Not every certification matters. The ones that compound are the ones that position you at the intersection of domain expertise and AI capability. A CX professional with an AI certification is rare. An AI engineer who understands contact center operations is even rarer. You can become both.", action: "This quarter: Start one certification from the list below. Choose based on where you want to go rather than where you are." },
               { n: "05", title: "Teach AI what you know", desc: "This is the most powerful reframe available: you're not being replaced by AI, you're training it. Your decade of handling insurance claims IS the knowledge base that makes the IVA work. Your understanding of when a customer is about to churn IS the signal the model needs. That expertise has value: learn to capture it, structure it, and position yourself as the person who makes AI actually function in production.", action: "This month: Write down the 10 things you know about your domain that no AI could figure out on its own. That's your intellectual property." },
               { n: "06", title: "Explore the side path", desc: "A 15-year contact center veteran with deep vertical expertise, healthcare billing, insurance claims, financial services compliance, is a consultant who doesn't know they're a consultant yet. Companies paying for CX consulting are buying expertise you already have. The side hustle isn't gig work: it's monetizing knowledge that companies desperately need during their own AI transformations.", action: "This month: Join 2 CX communities (CCW, ICMI, CX Network). Answer questions. Offer perspective. Build visibility. Your first consulting client will come from being known." },
-              { n: "07", title: "Protect your mental game", desc: "Everyone talks about upskilling. Nobody talks about the emotional reality of being told your job is being automated. The anxiety is real. The uncertainty is real. The grief for how things used to be is real. Acknowledging that, and building resilience deliberately, is not weakness. It's the foundation that makes everything else possible. The people who thrive through transformation are the ones who process the emotion and then channel it into action.", action: "Ongoing: Find one person, a mentor, a coach, a peer, who you can be honest with about how this feels. The real threat is isolation, more than AI." },
+              { n: "07", title: "Protect your mental game", desc: "Most advice stops at upskilling. Little of it covers the emotional reality of being told your job is being automated. The anxiety is real. The uncertainty is real. The grief for how things used to be is real. Acknowledging that, and building resilience deliberately, is not weakness. It's the foundation that makes everything else possible. The people who thrive through transformation are the ones who process the emotion and then channel it into action.", action: "Ongoing: Find one person, a mentor, a coach, a peer, who you can be honest with about how this feels. The real threat is isolation, more than AI." },
             ].map((m, i) => (
               <FadeIn key={i} delay={i * 0.04}>
                 <div style={{ background: HOUSE.navy, border: `1px solid ${alpha(HOUSE.mist, LINE.hair)}`, borderRadius: 10, padding: "24px 28px" }}>

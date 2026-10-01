@@ -10,6 +10,7 @@ import { HOUSE, PILLARS } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
 import { K } from "./src/lib/frameKit.jsx";
 import { CCAAS_INDEXED_INDUSTRIES } from "./src/lib/verticals.js";
+import { SEGMENT_COUNT } from "./src/lib/seo.js";
 
 const ACCENT = PILLARS.industries.onDark;
 const WRAP = { maxWidth: 1080, margin: "0 auto", padding: "28px 20px 64px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 32 };
@@ -25,16 +26,16 @@ const DIMENSIONS = [
 
 export default function Industries() {
   const industries = [
-    { name: "Financial Services", href: "/industries/financial-services", subs: 7, checks: 245, sub: "Retail Banking · Credit Unions · Insurance · Wealth · Lending · Fintech · Payments", stat: "[[fs.bench.fcr.fs]] FCR, financial", why: "Trust-sensitive, compliance-heavy, multi-system authentication, and core banking integration complexity that generic CCaaS deployments underestimate." },
-    { name: "Healthcare", href: "/industries/healthcare", subs: 6, checks: 210, sub: "Health Systems · Health Insurance · Provider Groups · Digital Health · Pharma · Home Health", stat: "[[hc.bench.fcr.hc]] FCR, health insurance", why: "Emotionally charged patient interactions, HIPAA at every layer, EHR integration, and scheduling fragmentation across clinical and administrative systems." },
-    { name: "Retail & eCommerce", href: "/industries/retail", subs: 6, checks: 210, sub: "eCommerce/DTC · Omnichannel · Subscription · Marketplace · Luxury · Grocery/Delivery", stat: "[[retail.bench.fcr.retail]] FCR", why: "High-volume speed-sensitive service, returns and fulfillment complexity, seasonal surges, and commerce platform integration." },
-    { name: "Telecommunications", href: "/industries/telecom", subs: 6, checks: 210, sub: "Mobile/Wireless · Broadband/ISP · Cable/Pay TV · Enterprise Comms · MSPs · Fiber", stat: "[[tel.bench.nps.tel]] NPS, global telecom", why: "Billing complexity, BSS/OSS integration, outage surges, SIM swap fraud, and CPNI authentication rules on every call." },
-    { name: "Travel & Hospitality", href: "/industries/travel", subs: 6, checks: 210, sub: "Airlines · Hotels & Resorts · OTAs · Car Rental · Cruise Lines · Tours & Experiences", stat: "[[trv.dot.refund.card]] US card refund deadline", why: "Disruption volume spikes, multilingual support across timezones, GDS integration, and loyalty recognition failures." },
-    { name: "Insurance", href: "/industries/insurance", subs: 6, checks: 210, sub: "Personal Lines P&C · Commercial · Life & Annuities · Workers' Comp · Specialty · Insurtech", stat: "[[ins.natcat.2025]] insured cat losses, 2025", why: "FNOL is the moment of truth. CAT surge capacity, state DOI compliance in every jurisdiction, and claims adjudication stakes." },
-    { name: "Utilities & Energy", href: "/industries/utilities", subs: 6, checks: 210, sub: "Electric IOU · Natural Gas · Water · Municipal/Co-Op · Renewable/DER · Energy Retail", stat: "[[utl.eia.hours]] without power per customer, 2024", why: "Storm-driven volume swings, outage communication, PUC compliance, and payment difficulty as a public health issue." },
-    { name: "Government & Public Sector", href: "/industries/government", subs: 6, checks: 210, sub: "Federal · State · Local/Municipal · Courts & Justice · Public Safety/911 · Social Services", stat: "[[gov.bench.fcr.gov]] FCR, government", why: "FedRAMP, StateRAMP, Section 508, Title VI language access, CJIS: legal mandates checked before functionality is evaluated." },
-    { name: "Manufacturing & Automotive", href: "/industries/manufacturing", subs: 6, checks: 210, sub: "Automotive OEM · Dealer/Retail · Industrial B2B · Consumer Electronics · Aerospace · Food & Beverage", stat: "[[mfg.nhtsa.recalled]] vehicles under recall, 2025", why: "Warranty adjudication, recall surge routing, connected vehicle telemetry, parts logistics, and NHTSA/ITAR compliance." },
-    { name: "Education", href: "/industries/education", subs: 6, checks: 210, sub: "Undergrad Admissions · Graduate Programs · Financial Aid · Student Services · IT Help Desk · Online Education", stat: "[[edu.nsc.persist]] of fall 2024 starters still enrolled a year later", why: "FERPA governs every interaction. FAFSA season creates surges. Siloed departments create a runaround. Retention signals hidden in service data." },
+    { name: "Financial Services", href: "/industries/financial-services", subs: 7, sub: "Retail Banking · Credit Unions · Insurance · Wealth · Lending · Fintech · Payments", stat: "[[fs.bench.fcr.fs]] FCR, financial", why: "Trust-sensitive, compliance-heavy, multi-system authentication, and core banking integration." },
+    { name: "Healthcare", href: "/industries/healthcare", subs: 6, sub: "Health Systems · Health Insurance · Provider Groups · Digital Health · Pharma · Home Health", stat: "[[hc.bench.fcr.hc]] FCR, health insurance", why: "Emotionally charged patient interactions, HIPAA at every layer, EHR integration, and scheduling fragmentation across clinical and administrative systems." },
+    { name: "Retail & eCommerce", href: "/industries/retail", subs: 6, sub: "eCommerce/DTC · Omnichannel · Subscription · Marketplace · Luxury · Grocery/Delivery", stat: "[[retail.bench.fcr.retail]] FCR", why: "High-volume speed-sensitive service, returns and fulfillment complexity, seasonal surges, and commerce platform integration." },
+    { name: "Telecommunications", href: "/industries/telecom", subs: 6, sub: "Mobile/Wireless · Broadband/ISP · Cable/Pay TV · Enterprise Comms · MSPs · Fiber", stat: "[[tel.bench.nps.tel]] NPS, global telecom", why: "Billing complexity, BSS/OSS integration, outage surges, SIM swap fraud, and CPNI authentication rules on every call." },
+    { name: "Travel & Hospitality", href: "/industries/travel", subs: 6, sub: "Airlines · Hotels & Resorts · OTAs · Car Rental · Cruise Lines · Tours & Experiences", stat: "[[trv.dot.refund.card]] US card refund deadline", why: "Disruption volume spikes, multilingual support across timezones, GDS integration, and loyalty recognition failures." },
+    { name: "Insurance", href: "/industries/insurance", subs: 6, sub: "Personal Lines P&C · Commercial · Life & Annuities · Workers' Comp · Specialty · Insurtech", stat: "[[ins.natcat.2025]] insured cat losses, 2025", why: "First notice of loss (FNOL) sets the course of a claim. Catastrophe surge capacity, state DOI compliance in every jurisdiction, and claims adjudication stakes." },
+    { name: "Utilities & Energy", href: "/industries/utilities", subs: 6, sub: "Electric IOU · Natural Gas · Water · Municipal/Co-Op · Renewable/DER · Energy Retail", stat: "[[utl.eia.hours]] without power per customer, 2024", why: "Storm-driven volume swings, outage communication, PUC compliance, and payment difficulty as a public health issue." },
+    { name: "Government & Public Sector", href: "/industries/government", subs: 6, sub: "Federal · State · Local/Municipal · Courts & Justice · Public Safety/911 · Social Services", stat: "[[gov.bench.fcr.gov]] FCR, government", why: "FedRAMP, GovRAMP, Section 508, Title VI language access, CJIS: legal mandates checked before functionality is evaluated." },
+    { name: "Manufacturing & Automotive", href: "/industries/manufacturing", subs: 6, sub: "Automotive OEM · Dealer/Retail · Industrial B2B · Consumer Electronics · Aerospace · Food & Beverage", stat: "[[mfg.nhtsa.recalled]] vehicles under recall, 2025", why: "Warranty adjudication, recall surge routing, connected vehicle telemetry, parts logistics, and NHTSA/ITAR compliance." },
+    { name: "Education", href: "/industries/education", subs: 6, sub: "Undergrad Admissions · Graduate Programs · Financial Aid · Student Services · IT Help Desk · Online Education", stat: "[[edu.nsc.persist]] of fall 2024 starters still enrolled a year later", why: "FERPA governs every interaction. FAFSA season creates surges. Siloed departments create a runaround. Retention signals hidden in service data." },
   ];
 
   return (
@@ -44,34 +45,21 @@ export default function Industries() {
       <div style={WRAP}>
         <header style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 760 }}>
           <span style={{ ...K.kicker, color: ACCENT }}>Industry Insights</span>
-          <h1 style={{ margin: 0, fontSize: "clamp(32px, 4.5vw, 50px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>CX changes by context. Generic advice fails.</h1>
-          <p style={{ ...K.body, fontSize: 17, lineHeight: "28px" }}>Ten verticals. 61 sub-verticals. 2,135 capability checkpoints. Each vertical has dedicated CX intelligence: benchmarks, failure modes, 7-layer technology stack mapping, the platforms named, and integration pitfalls. Every figure is sourced, labelled as a planning assumption, or marked as having no public benchmark.</p>
+          <h1 style={{ margin: 0, fontSize: "clamp(32px, 4.5vw, 50px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>Contact center requirements by industry.</h1>
+          <p style={{ ...K.body, fontSize: 17, lineHeight: "28px" }}>Rules, published figures and failure points for {industries.length} industries and {SEGMENT_COUNT} segments, with what each layer of the technology stack has to do. Every figure is sourced, labelled as a planning assumption, or marked as having no public benchmark.</p>
         </header>
-
-        <section aria-labelledby="model" style={{ ...K.panel, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))", gap: 24, alignItems: "center" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <span style={K.kicker}>The two-layer model</span>
-            <h2 id="model" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Every vertical needs a CCaaS platform and a vertical CX overlay.</h2>
-            <p style={K.body}>Layer 1 is the CCaaS platform that handles routing, voice, digital channels, and workforce management. Layer 2 is the vertical-specific CX stack: the overlays and adjacent solutions purpose-built for your industry's unique compliance, workflow, and customer interaction patterns.</p>
-            <p style={K.body}>Most organizations pick Layer 1 first and hope Layer 2 works itself out. The strongest operators evaluate both layers together because the integration points between them determine whether the system actually delivers.</p>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ ...K.box, borderLeft: `3px solid ${ACCENT}` }}><p style={{ ...K.kicker, color: ACCENT }}>Layer 2: Vertical CX Stack</p><p style={{ ...K.body, marginTop: 4 }}>Industry-specific overlays: digital service, AI, WEM, analytics, and bot platforms purpose-built for your vertical</p></div>
-            <div style={K.box}><p style={K.kicker}>Layer 1: CCaaS Platform</p><p style={{ ...K.body, marginTop: 4 }}>Full-suite contact center platform: routing, voice, digital channels, workforce management, core analytics</p></div>
-          </div>
-        </section>
 
         <section aria-labelledby="ten" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6, maxWidth: 760 }}>
             <span style={K.kicker}>Ten verticals</span>
-            <h2 id="ten" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Each one mapped with sub-vertical frameworks, vendor stacks, and integration pitfalls.</h2>
-            <p style={K.body}>Every vertical page includes sourced statistics, failure modes, 7-layer technology stack mapping, benchmark tables, BPO analysis, the platforms named, and 6-7 clickable sub-verticals: each with its own interactive CX stack assessment.</p>
+            <h2 id="ten" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>What each industry page covers.</h2>
+            <p style={K.body}>Each page has sourced figures, where operations fail, what each of the seven layers needs, benchmark tables, outsourcing notes, the platforms named, and its segments, each with a stack check you can mark as in place, needed or planned.</p>
           </div>
           <div style={K.grid(320)}>
             {industries.map((ind) => (
               <a key={ind.href} href={ind.href} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 8, textDecoration: "none", color: HOUSE.mist }}>
                 <span style={{ fontSize: 19, fontWeight: 700 }}>{ind.name}</span>
-                <span style={K.small}>{ind.subs} sub-verticals · {ind.checks} checkpoints</span>
+                <span style={K.small}>{ind.subs} segments</span>
                 <span style={K.small}>{ind.sub}</span>
                 <span style={K.body}>{ind.why}</span>
                 <span style={{ ...K.strong, fontSize: 15 }}><ClaimText text={ind.stat} links={false} /></span>
@@ -83,8 +71,8 @@ export default function Industries() {
 
         <section aria-labelledby="why" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={K.kicker}>Why vertical specificity matters</span>
-            <h2 id="why" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Five dimensions that change every recommendation.</h2>
+            <span style={K.kicker}>Why industry matters</span>
+            <h2 id="why" style={{ ...K.h2, fontSize: 22, lineHeight: "30px", margin: 0 }}>Five things that change from one industry to the next.</h2>
           </div>
           <div style={K.grid(200)}>
             {DIMENSIONS.map((item) => (

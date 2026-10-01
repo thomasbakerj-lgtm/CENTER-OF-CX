@@ -70,8 +70,8 @@ export default function WEMCategory() {
       {/* Brutal Conclusions */}
       <section style={{ background: HOUSE.ink, padding: "80px 28px" }}><div style={WRAP}>
         <FadeIn>
-          <span style={{ color: NAVY, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>What's Actually True</span>
-          <h2 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 24px" }}>Seven things the market won't tell you.</h2>
+          <span style={{ color: NAVY, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Phase 1 assessment</span>
+          <h2 style={{ fontFamily: FONT, fontSize: 32, fontWeight: 400, color: NAVY, margin: "0 0 24px" }}>Seven observations from the Phase 1 review.</h2>
         </FadeIn>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {brutalConclusions.map((bc, i) => (

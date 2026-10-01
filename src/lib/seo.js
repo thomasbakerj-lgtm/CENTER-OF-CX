@@ -16,7 +16,7 @@ export const SEO_MAP = {
   },
   "/platforms-and-tech": {
     title: `Platforms + Tech | ${SITE}`,
-    desc: "Nine CX technology decision domains mapped to seven orchestration layers. Understand what you need, who owns it, and what breaks when you choose wrong.",
+    desc: "Nine contact center technology categories mapped to the seven layers of the stack: what each does, which layers it serves, what breaks when the choice is wrong.",
   },
   "/about": {
     title: `About | ${SITE}`,
@@ -191,7 +191,7 @@ export const SEO_MAP = {
     desc: "Model the ROI of your CX transformation. Calculate savings from AHT reduction, self-service containment, attrition improvement, and FCR gains.",
   },
   "/industries": {
-    title: `Industries | ${SITE}`,
+    title: `Contact Center Requirements by Industry | ${SITE}`,
     desc: "Ten industries and their segments: what their contact centers handle, the rules that apply, sourced figures and the technology each layer needs.",
   },
   "/industries/financial-services": {

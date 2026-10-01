@@ -49,7 +49,7 @@ export default function HealthcareVertical() {
     <IndustryPage
       slug="healthcare"
       name="Healthcare"
-      intro={"Patient access, scheduling complexity, payer-provider friction, and HIPAA compliance define every interaction. Healthcare CX operates under emotional and regulatory constraints that generic platforms consistently underserve. This is the vertical-specific intelligence layer for health systems, payers, providers, and digital health."}
+      intro={"Health system and payer contact centers schedule across specialties, explain bills, handle prior authorization and follow up after discharge. HIPAA governs what can be recorded, automated and shared. This page covers the rules, the published figures and what each layer of the technology stack needs, for health systems, payers, providers and digital health."}
       stats={stats}
       segments={{ title: "Six distinct service models under one vertical.", intro: "A health system contact center managing patient access for 50 hospitals has fundamentally different requirements than a payer handling benefits verification for 3 million members. The technology, compliance, and staffing models diverge completely.", items: subVerticals }}
       failures={{ title: "Five failure modes unique to healthcare CX.", intro: "Healthcare contact centers absorb the friction of fragmented systems, regulatory constraints, and emotionally charged interactions. These are the patterns that generic CX strategies consistently miss.", items: failureModes }}

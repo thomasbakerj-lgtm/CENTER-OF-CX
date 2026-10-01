@@ -574,7 +574,7 @@ export default function ReportActions({
         <h3 style={h3}>Have someone read it</h3>
         <p style={sub}>
           Send this analysis for an independent review. You get a written read on what the numbers
-          actually support, what they do not, and which diagnostic is worth running next.
+          support, what they do not, and which diagnostic is worth running next.
           No sales call. No vendor introduction.
         </p>
 

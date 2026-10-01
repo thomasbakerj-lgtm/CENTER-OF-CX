@@ -52,7 +52,7 @@ export default function IVACategory() {
       <section style={{ background: `${ELECTRIC}06`, padding: "20px 28px", borderBottom: `1px solid ${BORDER}` }}>
         <div style={{ ...WRAP, maxWidth: 800 }}>
           <p style={{ fontSize: 13, color: SLATE, lineHeight: 1.6, fontStyle: "italic", textAlign: "center" }}>
-            The market is no longer chatbot vs IVA vs voicebot. The decision is now: which AI operating layer can resolve customer work, integrate with the enterprise stack, govern behavior, protect compliance, support agents, and improve cost per resolved interaction?
+            Conversational AI products now overlap: virtual agents, voice bots and agent assist often share one platform. The questions that separate them are what they resolve, what they connect to, how they are governed, and what each resolved interaction costs.
           </p>
         </div>
       </section>

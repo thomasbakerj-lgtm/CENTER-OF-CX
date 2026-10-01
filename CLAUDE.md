@@ -1911,6 +1911,22 @@ dashboard, the 12-phase growth program.
    selection). TCO links `/tools/tco-calculator` directly. The dead "/how-to-choose" SEO_MAP entry says it is overridden.
    `freeze.test.mjs` 10: retired lines, the heading derived, every live tool route listed once, every method stamp
    published. Suite 27,550; live check 257 of 257; hub at 1440 and 390 clean.
+116. S24 (1 Oct), copy audit batch 3 (TB: "go"): the essay pages. Industries hub: H1 "Contact center requirements by
+   industry." (was "CX changes by context. Generic advice fails."), the sub counts industries and segments (`SEGMENT_COUNT`),
+   the unsourced two-layer section ("The strongest operators evaluate both layers together") and the checkpoint counts
+   removed, "every recommendation", "moment of truth", "generic CCaaS" and StateRAMP (now GovRAMP) retired; title "Contact
+   Center Requirements by Industry". Healthcare intro says what its contact centers handle (was "generic platforms
+   consistently underserve"). Human Premium: intro in plain words (no "exponentially", no "displacement story"), "Every
+   analyst firm, every vendor" and "will outperform" softened to a stated view, H2 "Harder work, and what it should pay."
+   Platforms and Tech: "Contact center technology, organized for decisions."; nine categories (was "decision domains");
+   "This isn't a vendor diagram" gone. IVA intro restated without the trend claim. CX Ecosystem: every "Best ..." judgment of
+   another publisher became a plain line on what it publishes; the intro says none pays to appear and nothing is ranked.
+   Advisory: H1 "Get help with a contact center decision.", hero sub from the audit, "integration landscape" gone.
+   Phase 1 profiles' three briefing lines drop "integration landscape" and "competitive context". ReportActions' review
+   line drops "actually" (every tool). WEM page's Phase 1 list labelled "Phase 1 assessment", "Seven observations from the
+   Phase 1 review" (was "What's Actually True", "Seven things the market won't tell you"). "actually" is not banned: most
+   uses contrast a claim with reality. `freeze.test.mjs` 11 pins each retired line. Suite 27,562; live check 257 of 257; ten
+   pages at 1440 and 390 clean.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
