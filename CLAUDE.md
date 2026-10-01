@@ -439,20 +439,23 @@ Binding. None of this is in code comments beyond what is noted.
 
 **Open with TB (snapshot 1 Oct 2026, after PR #107).** Decisions from the site audit (30 Sep audit doc and S24 notes):
 1. ~~Tools hub from `/how-to-choose` to `/tools` with a 301.~~ Done (item 119).
-2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods.
-3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds.
-4. Site search (static index built at prerender).
-5. Advisory and Contact as one page: how consultants are chosen, how the site is paid (referral fees), no scored work.
-6. Migration article: keep TB's first-person essay (author line and dek) or rewrite; its figures carry no links.
-7. Provenance strip under every H1 and a `/standards` page.
-8. QR code on the PDF cover (the scenario link itself shipped in item 118).
-9. Class comparison and "alternatives to X" pages from the research, A to Z, no order.
-10. Opt-in benchmark exchange (consent design and storage).
-11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`).
-12. One name per category across pages, schema and llms.txt (CCaaS today has four).
+2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods. Held (TB, 1 Oct: revisit).
+3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds. Held (TB, 1 Oct).
+4. Site search (static index built at prerender). TB: yes; matches the words people search, not only exact text.
+5. Advisory and Contact as one page. TB: keep how consultants are chosen; never state how the site is paid (referrals).
+6. Migration article. TB: rewrite to current standards in TB's voice as a journalist and market maker: genuine,
+   factual, every figure sourced.
+7. ~~Provenance strip under every H1 and a `/standards` page.~~ Disregarded (TB, 1 Oct).
+8. ~~QR code on the PDF cover.~~ Disregarded (TB, 1 Oct: online we use links, downloads and email copies; QR codes are for
+   presentations and hard copy). The scenario link on the cover (item 118) stays.
+9. Class comparison and "alternatives to X" pages from the research, A to Z, no order. Held (TB, 1 Oct).
+10. Opt-in benchmark exchange (consent design and storage). Held: needs a dedicated session.
+11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`). Held: needs its own sessions.
+12. One name per category across pages, schema and llms.txt (CCaaS today has four). TB: intelligent consistency;
+    other names only where they mean exactly the same thing.
 13. Nav "Coming soon" on Research moved to the studies card; Phase 1 profiles rebuilt or noindexed (reverses 29 Sep);
-    the 95 split vendor pages merged into 38; naming who runs the site.
-14. Homepage stack hover (item 113), when TB says the time is right.
+    the 95 split vendor pages merged into 38; naming who runs the site. Held: needs a dedicated session.
+14. Homepage stack hover (item 113). TB: build it when ready.
 TB actions: the private corpus repository and the `RESEARCH_TOKEN` secret (D1 setup; not confirmed from here); a postal
 address before the first newsletter; a lawyer's read of the Privacy Policy and Terms (Arizona venue and county); the
 PostHog funnels in `docs/MEASUREMENT.md` and numbers for the measurement review; whether to filter TB's own browsers
