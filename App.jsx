@@ -58,7 +58,6 @@ const Perspectives = lazy(() => import('./Perspectives'))
 const PerspectiveRoute = lazy(() => import('./Perspectives').then((m) => ({ default: m.PerspectiveRoute })))
 const ContributorRoute = lazy(() => import('./Perspectives').then((m) => ({ default: m.ContributorRoute })))
 const MarketWatch = lazy(() => import('./MarketWatch'))
-const Advisory = lazy(() => import('./Advisory'))
 const Contact = lazy(() => import('./Contact'))
 const Subscribe = lazy(() => import('./Subscribe'))
 const HowToChoose = lazy(() => import('./HowToChoose'))
@@ -315,7 +314,7 @@ export function AppRoutes() {
         <Route path="/methodology/channel-shift" element={<RubricPage id="channel-shift" />} />
         <Route path="/methodology/cost-per-contact" element={<RubricPage id="cost-per-contact" />} />
         <Route path="/methodology/staffing-calculator" element={<RubricPage id="staffing-calculator" />} />
-        <Route path="/advisory" element={<Advisory />} />
+        <Route path="/advisory" element={<LegacyRedirect to="/contact" />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/subscribe" element={<Subscribe />} />
         <Route path="/tools" element={<HowToChoose />} />

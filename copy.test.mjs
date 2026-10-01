@@ -94,7 +94,7 @@ console.log("\n6. Retired unsourced figures stay retired");
   const RETIRED_FIGURES = {
     "HumanPremium.jsx": ["60-80%", "20-40%", "2-3x", "$200/hour", "$2M", "10-15 years", "this 20%", "$995", "~$1,500", "$165", "CCCA", "gold standard", "Fastest path", "Qualtrics XM Certification", "AI-900", "demand is highest"],
     "PlatformsTech.jsx": ["$450 to $800", "$305 to $540", "$325 to $600", "5 to 10% containment", "20 to 40% automation", "50 to 70%+", "2% sample", "~500-seat"],
-    "Advisory.jsx": ["350+", "50+ implementations", "3-5 vendors"],
+    "Contact.jsx": ["350+", "50+ implementations", "3-5 vendors"],
   };
   ok("the rule fires on a planted page", ["60-80%"].some((x) => "When your IVA handles 60-80% of".includes(x)));
   for (const [f, list] of Object.entries(RETIRED_FIGURES)) {
@@ -110,7 +110,6 @@ console.log("\n6. Retired unsourced figures stay retired");
     ok("the certification prices carry the date they were checked", /checked on 28 September 2026/.test(hp));
   }
   ok("Platforms and Tech points to the TCO calculator for real numbers", /href="\/tools\/tco-calculator"/.test(readFileSync("PlatformsTech.jsx", "utf8")));
-  ok("Advisory's vendor count is derived", /\$\{VENDOR_PROFILE_COUNT\} vendor profiles/.test(readFileSync("Advisory.jsx", "utf8")));
 }
 
 /* 7. The "X, not Y" cadence (fix list item 8, TB 29 Sep 2026: "Go"). 342 matches were rewritten to say what a thing is.

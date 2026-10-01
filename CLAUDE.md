@@ -442,7 +442,7 @@ Binding. None of this is in code comments beyond what is noted.
 2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods. Held (TB, 1 Oct: revisit).
 3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds. Held (TB, 1 Oct).
 4. Site search (static index built at prerender). TB: yes; matches the words people search, not only exact text.
-5. Advisory and Contact as one page. TB: keep how consultants are chosen; never state how the site is paid (referrals).
+5. ~~Advisory and Contact as one page.~~ Done (item 121).
 6. Migration article. TB: rewrite to current standards in TB's voice as a journalist and market maker: genuine,
    factual, every figure sourced.
 7. ~~Provenance strip under every H1 and a `/standards` page.~~ Disregarded (TB, 1 Oct).
@@ -2014,6 +2014,21 @@ dashboard, the 12-phase growth program.
    any retired label in a rendered file (proven on a planted one). The research program's own category registry
    (`categoryRegistry.js`) keeps the research names. Suite 27,694; live check 258 of 258; eight category pages and six
    profiles at 1440 and 390 clean.
+
+121. S24 (1 Oct), Advisory and Contact as one page (TB: keep how consultants are chosen; never state how the site is paid).
+   `/contact` is the page (every vendor introduction link already lands there); `/advisory` 301s to it at the edge and in
+   the app, `Advisory.jsx` is deleted, out of the sitemap (431 URLs) and the metadata. The page: "Get help with a contact
+   center decision.", how consultants are chosen (matched on the problem, industry and systems; vetted by us; independent
+   and working for the reader; an introduction never moves a list, finding or result; nothing reaches a consultant or vendor
+   until the reader asks), how it works (one business day reply; matching free; scope and price agreed with the
+   consultant), the unchanged form, and six kinds of help in one line each. Every line restates copy TB had approved;
+   no vetting criteria were invented (TB can add them). Retired from Advisory: "we hold a strategy session" and "we deliver
+   a recommendation" (the consultant does the work), deliverable promises on a consultant's behalf, the we-do and
+   partners-do lists, the "seen many implementations" scenarios. The footer's Advisory and Contact links became one "Get
+   help"; the framework PDF's Related line points to `/contact` (reprinted). `freeze.test.mjs` 13: the redirect, sitemap and
+   metadata, the chosen section, no page linking `/advisory`, and no payment wording (referral, commission, fee share and
+   the like; the "How did you find us" placeholder no longer says "referral"). Suite 27,693; live check 258 of 258; page at
+   1440 and 390 clean, the introduction link preselects its topic.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

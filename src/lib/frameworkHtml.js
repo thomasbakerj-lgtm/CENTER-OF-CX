@@ -83,7 +83,7 @@ function checklist() {
 function about() {
   return `<div class="kicker">Section 5</div><h2>About this framework</h2><p><b>What it is.</b> ${esc(ABOUT.is)}</p><p><b>What it is not.</b> ${esc(ABOUT.isnt)}</p><p><b>Figures.</b> ${esc(ABOUT.figures)}</p>
   <h3 style="margin-top:12pt">What changed from ${esc(GUIDE.replaces)}</h3><ul>${ABOUT.changes.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>
-  <p style="margin-top:14pt">Related: ${link("/platforms-and-tech", "Platforms and Tech")}, ${link("/tools/platform-decision", "Platform Decision")}, ${link("/tools/tco-calculator", "TCO Calculator")}, ${link("/vendors", "Vendor profiles")}, ${link("/advisory", "Advisory")}.</p>
+  <p style="margin-top:14pt">Related: ${link("/platforms-and-tech", "Platforms and Tech")}, ${link("/tools/platform-decision", "Platform Decision")}, ${link("/tools/tco-calculator", "TCO Calculator")}, ${link("/vendors", "Vendor profiles")}, ${link("/contact", "Get help")}.</p>
   <p class="src">Published by The Center of CX, ${esc(GUIDE.updated)}. Report an error at ${link("/corrections", "contactcentercx.com/corrections")}.</p>`;
 }
 
