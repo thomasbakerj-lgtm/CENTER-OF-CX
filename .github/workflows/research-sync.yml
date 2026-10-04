@@ -8,7 +8,7 @@ on:
       corpus:
         description: "Corpus file path inside the research repository"
         required: true
-        default: "ccaas/CCaaS_Master_Research_Corpus_v1.0_Production_Cohort3_Normalized_1.json"
+        default: "corpus/ccaas.v1.1.json"
       category:
         description: "Category slug"
         required: true

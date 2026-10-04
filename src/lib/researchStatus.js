@@ -1,11 +1,12 @@
 import { CATEGORIES } from "./verticals.js";
 /* researchStatus.js
  *
- * Which CCaaS vendors have passed the Phase 2 research completion gate, and nothing
- * more. Source: CCaaS Master Research Corpus v1.0, checkpoint
- * PRODUCTION_COHORT3_NORMALIZED (generated 23 Sep 2026, received 26 Sep 2026), vendors
- * collection, every record Completion_Status GATE_PASSED. The corpus itself is not in this
- * public repo. Cohort 3 passed its five-vendor normalization gate with no schema change.
+ * Which CCaaS vendors have passed a research completion gate, and nothing more. Source:
+ * CCaaS Master Research Corpus, schema 1.1 (Research Method v2), checkpoint
+ * V1_1_MIGRATED_PRE_GOTO (generated 1 Oct 2026, private research repository). Every vendor
+ * passed the 1.0 gate and awaits the 1.1 re-audit (GATE_PASSED_V1_0_REAUDIT_REQUIRED); TB
+ * decided on 1 Oct 2026 that they publish meanwhile, with the method noted at the page foot.
+ * The corpus itself is not in this public repo.
  *
  * Only three facts travel: the durable corpus Vendor_ID, the site slug it maps to,
  * and the vendor's Last_Validated_Date. No rating, class, claim or finding: Phase 2
@@ -19,9 +20,9 @@ import { CATEGORIES } from "./verticals.js";
  */
 
 export const CCAAS_RESEARCH = {
-  checkpoint: "PRODUCTION_COHORT3_NORMALIZED",
-  schemaVersion: "1.0",
-  asOf: "2026-09-23",
+  checkpoint: "V1_1_MIGRATED_PRE_GOTO",
+  schemaVersion: "1.1",
+  asOf: "2026-10-01",
   phase2RatingsLocked: true,
   /* site slug -> corpus identity. Durable IDs are never renumbered. */
   complete: {
@@ -43,9 +44,13 @@ export const CCAAS_RESEARCH = {
     ujet: { vendorId: "VEN-CC-0016", validated: "2026-09-23" },
     "bright-pattern": { vendorId: "VEN-CC-0017", validated: "2026-09-23" },
     vonage: { vendorId: "VEN-CC-0018", validated: "2026-09-23" },
+    "anywhere-now": { vendorId: "VEN-CC-0019", validated: "2026-09-24" },
+    aircall: { vendorId: "VEN-CC-0020", validated: "2026-09-24" },
+    luware: { vendorId: "VEN-CC-0021", validated: "2026-09-24" },
+    alvaria: { vendorId: "VEN-CC-0022", validated: "2026-09-24" },
   },
-  /* The next vendor in the research queue (Cohort 4, one at a time under schema v1.0). A plan, not a finding. */
-  next: "anywhere-now",
+  /* The next vendor in the research queue (one at a time under Research Method v2). A plan, not a finding. */
+  next: "goto",
 };
 
 const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);

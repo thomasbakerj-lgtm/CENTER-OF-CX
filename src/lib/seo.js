@@ -313,6 +313,10 @@ export const SEO_MAP = {
     title: `Write for The Center of CX | Contributor Rules | ${SITE}`,
     desc: "Publish under your own name: who may write, how review works, disclosure of vendor ties, no product promotion, you keep copyright, and how to propose a piece.",
   },
+  "/research/vendor-method": {
+    title: `How We Research Contact Center Vendors | ${SITE}`,
+    desc: "How vendor research is done: what a profile answers, how findings are labelled, which sources count, and how each vendor is challenged and signed off.",
+  },
   "/corrections": {
     title: `How Corrections Work | Vendor Research | ${SITE}`,
     desc: "How anyone, including a vendor, can report an error in our research: what to send, when we answer, and why only public evidence changes a finding.",
