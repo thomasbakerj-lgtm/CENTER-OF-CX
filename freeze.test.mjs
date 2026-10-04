@@ -32,10 +32,10 @@ section("1. The research status registry matches the corpus checkpoint and the s
 {
   const R = RS.CCAAS_RESEARCH;
   const slugs = Object.keys(R.complete);
-  ok("the checkpoint is the one the registry was built from", R.checkpoint === "PRODUCTION_COHORT3_NORMALIZED");
-  ok("schema version 1.0", R.schemaVersion === "1.0");
+  ok("the checkpoint is the one the registry was built from", R.checkpoint === "V1_1_MIGRATED_PRE_GOTO");
+  ok("schema version 1.1 (Research Method v2)", R.schemaVersion === "1.1");
   ok("Phase 2 ratings are recorded as locked", R.phase2RatingsLocked === true);
-  ok("exactly eighteen vendors passed the completion gate", slugs.length === 18 && RS.CCAAS_COMPLETE_COUNT === 18);
+  ok("exactly twenty-two vendors passed a completion gate", slugs.length === 22 && RS.CCAAS_COMPLETE_COUNT === 22);
   for (const slug of slugs) {
     const rec = R.complete[slug];
     ok(`${slug}: resolves to a site profile`, Object.prototype.hasOwnProperty.call(vendors, slug));
@@ -46,7 +46,7 @@ section("1. The research status registry matches the corpus checkpoint and the s
   }
   const ids = slugs.map((s) => R.complete[s].vendorId);
   ok("Vendor_IDs are unique", new Set(ids).size === ids.length);
-  ok("Vendor_IDs run VEN-CC-0001 to VEN-CC-0018 with no gap", ids.slice().sort().join(",") === Array.from({ length: 18 }, (_, i) => `VEN-CC-${String(i + 1).padStart(4, "0")}`).join(","));
+  ok("Vendor_IDs run VEN-CC-0001 to VEN-CC-0022 with no gap", ids.slice().sort().join(",") === Array.from({ length: 22 }, (_, i) => `VEN-CC-${String(i + 1).padStart(4, "0")}`).join(","));
 }
 
 /* ------------------------------------------------------- 2. the labels */
@@ -56,8 +56,8 @@ section("2. Every CCaaS profile gets exactly one research status and one label")
   ok("28 CCaaS and adjacent profiles are covered", all.length === 28);
   const complete = all.filter((v) => RS.ccaasResearchStatus(v.slug) === "complete");
   const phase1 = all.filter((v) => RS.ccaasResearchStatus(v.slug) === "phase1");
-  ok("18 read as current research complete", complete.length === 18);
-  ok("10 read as Phase 1 context", phase1.length === 10);
+  ok("22 read as current research complete", complete.length === 22);
+  ok("6 read as Phase 1 context", phase1.length === 6);
   ok("no adjacent suite reads as researched", getAdjacentVendors().every((v) => RS.ccaasResearchStatus(v.slug) === "phase1"));
   for (const v of all) {
     const L = RS.ccaasResearchLabel(v.slug);
@@ -68,7 +68,7 @@ section("2. Every CCaaS profile gets exactly one research status and one label")
   }
   ok("a researched label names its validation date", /22 September 2026/.test(RS.ccaasResearchLabel("dialpad").text));
   ok("a Cohort 3 label names its own validation date", /23 September 2026/.test(RS.ccaasResearchLabel("vonage").text));
-  ok("an unresearched label says so", /not yet researched/.test(RS.ccaasResearchLabel("aircall").text));
+  ok("an unresearched label says so", /not yet researched/.test(RS.ccaasResearchLabel("goto").text));
   for (const k of ["__proto__", "toString", "constructor", "hasOwnProperty", "", "undefined"])
     ok(`prototype or empty key "${k}" reads as Phase 1`, RS.ccaasResearchStatus(k) === "phase1");
 }
@@ -150,7 +150,7 @@ for (const f of ["CCaaSCategory.jsx", "CategoryVerticalPage.jsx", "CCaaSIndustry
 /* ----------------------------------- 7. the freeze extended to every category */
 section("7. S23: the seven other categories, their profiles and the industry pages carry no Phase 1 score");
 {
-  ok("the status registry reads CCaaS from the corpus and every other category as Phase 1", RS.researchStatus("ccaas", "genesys") === "complete" && RS.researchStatus("ccaas", "aircall") === "phase1" && Object.keys(RS.PHASE1_CATEGORIES).every((c) => RS.researchStatus(c, "anything") === "phase1"));
+  ok("the status registry reads CCaaS from the corpus and every other category as Phase 1", RS.researchStatus("ccaas", "genesys") === "complete" && RS.researchStatus("ccaas", "goto") === "phase1" && Object.keys(RS.PHASE1_CATEGORIES).every((c) => RS.researchStatus(c, "anything") === "phase1"));
   ok("seven categories are named, CCaaS is not among them", Object.keys(RS.PHASE1_CATEGORIES).length === 7 && !("ccaas" in RS.PHASE1_CATEGORIES));
   const L = RS.phase1Label();
   ok("one Phase 1 label, saying scores, tiers and rankings are withdrawn", L.status === "phase1" && L.short === "Phase 1 context" && /scores, tiers and rankings are withdrawn/.test(L.text) && noDash(L.text));

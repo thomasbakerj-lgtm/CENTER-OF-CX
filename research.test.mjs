@@ -75,7 +75,8 @@ function corpus(over = {}) {
 section("1. The loader refuses what it cannot vouch for [12]");
 {
   const bad = (over) => { try { deriveSnapshot(corpus(over)); return false; } catch { return true; } };
-  ok("a different schema version is refused", bad({ schema_version: "1.1" }));
+  ok("a schema version the loader does not read is refused", bad({ schema_version: "2.0" }));
+  ok("schema 1.0 and 1.1 are both read", !bad({ schema_version: "1.0" }) && !bad({ schema_version: "1.1" }));
   ok("a different category is refused", bad({ category: "IVA" }));
   ok("a corpus not marked as the system of record is refused", bad({ system_of_record: false }));
   ok("a corpus with no metadata is refused", (() => { try { deriveSnapshot({}); return false; } catch { return true; } })());
@@ -100,6 +101,36 @@ section("2. Nothing restricted publishes, not even its existence [9]");
 section("3. Only vendors past the completion gate publish [13]");
 ok("a vendor whose gate is open publishes nothing", !text.includes("VEN-X") && !text.includes("CLM-X") && !text.includes("EVD-X"));
 ok("the gated count is recorded", snap.manifest.withheld.vendors_gate_not_passed === 1);
+
+section("3b. Schema 1.1 (Research Method v2): what publishes and what stays in the research program");
+{
+  const base = corpus({ schema_version: "1.1" });
+  const c11 = {
+    ...base,
+    vendors: [V("VEN-A", "GATE_PASSED_V1_0_REAUDIT_REQUIRED"), { ...V("VEN-B", "GATE_PASSED_V1_1"), Human_Reviewer: "REVIEWER-NAME-MARKER", Legacy_Class_ID: "CLS-CC-003" }, V("VEN-X", "IN_PROGRESS")],
+    claims: [...base.claims, C("CLM-SNAKE", "VEN-A", { Permitted_Consumers: "VENDOR_INTELLIGENCE;VENDOR_MATCH", Claim_Topic: "TOPIC-MARKER" })],
+    evidence: [...base.evidence, E("EVD-RP", "VEN-A", { Source_Independence: "REVIEW_PLATFORM", Source_Title: "RP-TITLE-MARKER", Source_Type: "Product page" })],
+    claim_evidence: [...base.claim_evidence, L("CLM-SNAKE", "EVD-A1"), L("CLM-RP", "EVD-RP")],
+    criteria_registry: [{ ...base.criteria_registry[0], Rating_Role: "DIFFERENTIATOR" }],
+    strengths: [{ Strength_ID: "STR-1", Vendor_ID: "VEN-A", Strength_Summary: "Wins here", Claim_IDs: "CLM-OK" }, { Strength_ID: "STR-2", Vendor_ID: "VEN-A", Claim_IDs: "CLM-INT" }],
+    admin_change_tests: [{ Test_ID: "ACT-1", Vendor_ID: "VEN-A", Change_Scenario: "Add a queue", Environment: "DOCUMENTATION_WALKTHROUGH" }, { Test_ID: "ACT-X", Vendor_ID: "VEN-X" }],
+    search_log: [{ Search_ID: "SRC-1", Vendor_ID: "VEN-A", Query: "SEARCH-LOG-MARKER" }],
+    review_log: [{ Review_ID: "REV-1", Vendor_ID: "VEN-A", Reviewer: "REVIEW-LOG-MARKER" }],
+    gate_definitions: [{ Gate_Item: "G1", Criterion: "GATE-DEF-MARKER" }],
+    category_break_library: [{ Archetype_ID: "CBL-1", Archetype_Name: "ARCHETYPE-MARKER" }],
+    public_glossary: [{ Internal_Term: "DOCUMENTED", Public_Term: "Vendor-documented" }],
+  };
+  c11.claims.push(C("CLM-RP", "VEN-A"));
+  const s11 = deriveSnapshot(c11);
+  const t11 = JSON.stringify(s11);
+  ok("a vendor awaiting the 1.1 re-audit publishes, marked method 1; a 1.1 gated vendor is method 2; an open gate publishes nothing",
+    s11.data.vendors.map((v) => `${v.Vendor_ID}:${v.Method_Version}`).join() === "VEN-A:1,VEN-B:2" && !t11.includes("VEN-X") && !t11.includes("ACT-X"));
+  for (const m of ["SEARCH-LOG-MARKER", "REVIEW-LOG-MARKER", "GATE-DEF-MARKER", "ARCHETYPE-MARKER", "REVIEWER-NAME-MARKER", "TOPIC-MARKER", "RP-TITLE-MARKER", "CLM-RP", "Legacy_Class_ID", "Rating_Role"])
+    ok(`${m} never publishes`, !t11.includes(m));
+  ok("a claim whose consumers are written VENDOR_INTELLIGENCE publishes, with the consumer in words", s11.data.claims.some((c) => c.Claim_ID === "CLM-SNAKE" && c.Permitted_Consumers.includes("Vendor Intelligence")));
+  ok("strengths keep only published claims; admin change tests publish for published vendors", s11.data.strengths.map((r) => r.Strength_ID).join() === "STR-1" && s11.data.admin_change_tests.map((r) => r.Test_ID).join() === "ACT-1");
+  ok("the public glossary travels with the shared file", splitByVendor(s11).shared.public_glossary.length === 1);
+}
 
 section("4. Derived records keep only published claims");
 {
@@ -159,7 +190,7 @@ const DIR = "./src/data/research/ccaas";
   const manifest = JSON.parse(readFileSync(DIR + "/manifest.json", "utf8"));
   const shared = JSON.parse(readFileSync(DIR + "/shared.json", "utf8"));
   const files = readdirSync(DIR + "/vendors");
-  ok("manifest names the checkpoint, locked schema, source hash and loader", manifest.checkpoint === "PRODUCTION_COHORT3_NORMALIZED" && manifest.schema_version === "1.0" && /^[0-9a-f]{64}$/.test(manifest.source.sha256) && manifest.phase2_ratings_locked === true && !!manifest.loader_version);
+  ok("manifest names the checkpoint, schema, source hash and loader, as the status registry does", manifest.checkpoint === CCAAS_RESEARCH.checkpoint && manifest.schema_version === CCAAS_RESEARCH.schemaVersion && /^[0-9a-f]{64}$/.test(manifest.source.sha256) && manifest.phase2_ratings_locked === true && !!manifest.loader_version);
   const registry = Object.values(CCAAS_RESEARCH.complete).map((v) => v.vendorId).sort();
   ok(`the vendors equal the research status registry (${files.length})`, JSON.stringify(files.map((f) => f.replace(".json", "")).sort()) === JSON.stringify(registry) && JSON.stringify(shared.vendors.map((v) => v.Vendor_ID).sort()) === JSON.stringify(registry));
   let all = JSON.stringify(shared);
@@ -208,7 +239,7 @@ section("11b. Vendor tags (size served, UCaaS + CCaaS) rest on published records
   for (const [id, t] of Object.entries(CCAAS_TAGS)) {
     const f = JSON.parse(readFileSync(`${DIR}/vendors/${id}.json`, "utf8"));
     const rec = (x) => { const p = f.products.find((y) => y.Product_ID === x); if (p) return `${p.Primary_Target_Segment} ; ${p.Product_Type} ; ${p.Product_or_SKU}`; const c = f.claims.find((y) => y.Claim_ID === x); return c ? c.Publishable_Summary : null; };
-    const cited = [...t.from, ...(t.uc ? t.uc.from : []), ...(t.publicSector ? t.publicSector.from : []), t.core];
+    const cited = [...t.from, ...(t.uc ? t.uc.from : []), ...(t.publicSector ? t.publicSector.from : []), ...(t.ccNote ? t.ccNote.from : []), t.core];
     ok(`${id}: every cited record is published in its own file`, cited.every((x) => rec(x) !== null));
     const txt = t.from.map(rec).join(" ; ");
     ok(`${id}: each size is tagged exactly when its records state it`, SIZES.every((z) => !!t.segments[z] === SIZE_TEST[z].test(txt)) && Object.keys(t.segments).every((z) => SIZES.includes(z)));
@@ -217,7 +248,7 @@ section("11b. Vendor tags (size served, UCaaS + CCaaS) rest on published records
     const usPublicOnly = t.uc && t.uc.from.every((x) => /U\.S\. public sector|United States government/i.test(rec(x) || ""));
     ok(`${id}: a UCaaS tag the research limits to US public sector says so in its own label`, !usPublicOnly || /US public sector/.test(tagsFor(id).category));
     ok(`${id}: the core product is published and carries where it runs`, !!f.products.find((p) => p.Product_ID === t.core && p.Geographic_Scope));
-    const psRecords = f.products.filter((p) => /^GA/.test(p.GA_Status) && PS_TEST.test(p.Primary_Target_Segment || ""));
+    const psRecords = f.products.filter((p) => /^(CURRENT_)?GA\b/.test(p.GA_Status) && PS_TEST.test(p.Primary_Target_Segment || ""));
     ok(`${id}: a public sector tag exactly when a GA product is sold to government or public sector`, !!t.publicSector === psRecords.length > 0 && (!t.publicSector || (t.publicSector.from.every((x) => PS_TEST.test(rec(x) || "")) && !!t.publicSector.note)));
     ok(`${id}: a CCaaS-only tag has no UCaaS product in the research`, !!t.uc || !f.products.some((p) => /UCaaS|UC\/contact-center/i.test(p.Product_Type)));
     ok(`${id}: tags carry no grade`, !/score|rank|tier|grade|best/i.test(JSON.stringify(tagsFor(id))));
@@ -235,7 +266,7 @@ section("11c. The corrections log (decision D2)");
 section("12. Separation: nothing reads the snapshot outside the research layer yet [1] [3] [18]");
 {
   const tracked = execSync("git ls-files", { encoding: "utf8" }).split("\n").filter((f) => /\.(jsx?|mjs)$/.test(f));
-  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs", "CCaaSIndustry.jsx", "industry.test.mjs", "Corrections.jsx", "corrections.test.mjs", "Research.jsx", "researchpage.test.mjs"];
+  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs", "CCaaSIndustry.jsx", "industry.test.mjs", "Corrections.jsx", "corrections.test.mjs", "Research.jsx", "researchpage.test.mjs", "ResearchMethod.jsx"];
   const readers = tracked.filter((f) => !f.startsWith("src/lib/research/") && f !== "scripts/research-sync.mjs" && f !== "research.test.mjs" && !PAGES.includes(f) && /data\/research|lib\/research\//.test(readFileSync(f, "utf8")));
   ok(`only the research layer and the Vendor Intelligence pages (profile, category) read research data [${readers.join(", ")}]`, readers.length === 0);
   ok("Vendor Match reads no research snapshot, Market Position value or Phase 1 baseline file", !/data\/research|market.?position|phase1_baseline/i.test(readFileSync("./VendorMatchEngine.jsx", "utf8")));

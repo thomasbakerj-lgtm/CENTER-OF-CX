@@ -65,7 +65,7 @@ for (const [slug, { vendorId }] of bySlug) {
   for (const x of researchStrings) own = own.split(x).join(" ");
   if (/\b(NaN|Infinity|undefined|null)\b/.test(own)) problems.push(`${slug} prints ${(own.match(/.{0,30}\b(NaN|Infinity|undefined|null)\b.{0,20}/) || [""])[0]}`);
   const head = views.fit.t;
-  if (!head.includes(file.vendor.Supplier_Name) || !/Current research complete/.test(head)) problems.push(`${slug} header`);
+  if (!head.includes(file.vendor.Supplier_Name) || !/Researched · validated/.test(head)) problems.push(`${slug} header`);
   if (!views.fit.html.includes(`href="/contact?intro=${slug}&amp;from=vendor"`)) problems.push(`${slug} introduction`);
   { const tg = (await import("./src/lib/research/ccaasTags.js")).tagsFor(file.vendor.Vendor_ID);
     if (!tg || !head.includes(tg.category) || !tg.sizes.every((z) => head.includes(z.label)) || !head.includes("Who it is sold to") || !head.includes("Sizes, in the research's words") || !head.includes("Where it runs") || !head.includes("Take it further") || !tg.notes.every((n) => head.includes(n.text))) problems.push(`${slug} tags`); }
@@ -90,12 +90,12 @@ for (const [slug, { vendorId }] of bySlug) {
   // unknown reads as not yet proven, never coerced
   if (file.claims.some((c) => c.Capability_State === "UNKNOWN") && !views.findings.t.includes("Not yet proven")) problems.push(`${slug} unknown label`);
   // breaks, effort, ask and fit views carry their records
-  if (file.breaks.length && !file.breaks.every((b) => views.breaks.t.includes(norm(b.Break_Summary)))) problems.push(`${slug} breaks missing`);
+  if (file.breaks.length && !file.breaks.every((b) => views.breaks.t.includes(norm(rd(b.Break_Summary))))) problems.push(`${slug} breaks missing`);
   if (file.proof_requirements.length && !views.ask.t.includes("Proof to ask for")) problems.push(`${slug} proof missing`);
-  if (file.decision_intelligence.length && !file.decision_intelligence.every((d) => views.fit.t.includes(norm(d.Statement)))) problems.push(`${slug} decisions missing`);
-  if (p.klass && p.klass.draft && !/Draft class/.test(views.fit.t)) problems.push(`${slug} draft class unmarked`);
+  if (file.decision_intelligence.length && !file.decision_intelligence.every((d) => views.fit.t.includes(norm(rd(d.Statement))))) problems.push(`${slug} decisions missing`);
+  if (p.klass && p.klass.draft && !/Provisional peer group|Draft class/.test(views.fit.t)) problems.push(`${slug} draft class unmarked`);
 }
-ok(`18 researched vendors render all six views cleanly [${problems.slice(0, 4).join("; ")}]`, bySlug.length === 18 && problems.length === 0);
+ok(`22 researched vendors render all ${VIEWS.length} views cleanly [${problems.slice(0, 4).join("; ")}]`, bySlug.length === 22 && problems.length === 0);
 
 section("1b. Take it further: tool links from the profile");
 {
@@ -169,10 +169,34 @@ section("4. Copy audit batch 4: class ids read as names, the comparison line in 
   }
   ok(`no profile prints a class id as text (${ids.join(", ") || "none"})`, ids.length === 0);
   ok("a bare id reads as its class, an id before its own name keeps the name once",
-    rd("CLS-CC-004 is the rational peer class.") === "The Midmarket / unified-stack CCaaS class is the rational peer class."
-    && rd("best normalized in CLS-CC-004 Midmarket / unified-stack CCaaS rather") === "best normalized in Midmarket / unified-stack CCaaS rather");
+    rd("CLS-CC-004 is the rational peer class.") === "The UC-attached CCaaS class is the rational peer class."
+    && rd("best normalized in CLS-CC-004 UC-attached CCaaS rather") === "best normalized in UC-attached CCaaS rather");
   ok("every class has a plain comparison line with no dash and no instruction to researchers",
     CLASSES.every((c) => PLAIN[c.id] && PLAIN[c.id].compared && !/[\u2013\u2014]|Do not penalize|must not be conflated|Judge build burden/i.test(PLAIN[c.id].compared)));
+}
+
+section("5. Research Method v2: the method note at the foot, the cost view, the method page (TB, 1 Oct 2026)");
+{
+  const bad = [];
+  for (const [slug, r] of bySlug) {
+    const file = JSON.parse(readFileSync(`${DIR}/vendors/${r.vendorId}.json`, "utf8"));
+    const html = renderToString(React.createElement(Page, { slug, file, shared, manifestDate: "2026-10-01", initialView: "fit" }));
+    const at = html.indexOf("data-method-note=");
+    const want = file.vendor.Method_Version === "2" ? "Researched under Research Method 2." : "Researched under Research Method 1. A re-audit under Research Method 2 is in progress.";
+    /* At the foot: after the corrections note and the citation line, with nothing but the link and closing tags after it. */
+    const foot = html.indexOf('aria-label="Corrections"');
+    if (at < 0 || foot < 0 || at < foot || !html.slice(at).includes(want) || !html.slice(at).includes('href="/research/vendor-method"')) bad.push(slug + " foot");
+    if (/re-audit|Research Method/i.test(text(html.slice(0, foot)))) bad.push(slug + " method named above the foot");
+    const cost = text(renderToString(React.createElement(Page, { slug, file, shared, manifestDate: "2026-10-01", initialView: "cost" })));
+    if (file.tco.length && (!file.tco.every((x) => cost.includes(norm(x.Cost_Component))) || !/are not added up/.test(cost))) bad.push(slug + " cost");
+    if (file.tco.some((x) => x.Price_Points_Verified !== "YES" && Array.isArray(x.Public_Price_Points) && x.Public_Price_Points.length) && /Published price:/.test(cost)) bad.push(slug + " unverified price shown");
+  }
+  ok(`every profile names its method once, quietly, at the foot, and shows cost by layer [${bad.slice(0, 3).join(", ")}]`, bad.length === 0);
+  const methodSrc = readFileSync("./src/lib/research/methodPage.js", "utf8") + readFileSync("./ResearchMethod.jsx", "utf8");
+  ok("the method page leaves out what is proprietary", !/\bagents?\b|\d+\s?%|25[- ]item|\bweights?\b|weighted|Rating_Role|DIFFERENTIATOR|QUALIFICATION_GATE|archetype|founder/i.test(methodSrc.replace(/^\s*\/\/.*$/gm, "")));
+  const APP = readFileSync("./App.jsx", "utf8"), SEO = readFileSync("./src/lib/seo.js", "utf8"), MAP = readFileSync("./public/sitemap.xml", "utf8");
+  ok("the method page is routed, in the sitemap and the metadata", APP.includes('path="/research/vendor-method"') && MAP.includes("/research/vendor-method</loc>") && SEO.includes('"/research/vendor-method": {'));
+  ok("the CCaaS page links the method page quietly", /href="\/research\/vendor-method"/.test(readFileSync("./CCaaSCategory.jsx", "utf8")));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);
