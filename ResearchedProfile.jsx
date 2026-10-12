@@ -94,7 +94,7 @@ function SoldTo({ p }) {
       <Quote label="Sizes, in the research's words:" ids={t.from} />
       {t.uc && <Quote label={`${UC_LABEL}, in the research's words:`} ids={t.uc.from} />}
       {t.publicSector && <Quote label={`${PS_LABEL}, in the research's words:`} ids={t.publicSector.from} />}
-      <p style={{ ...K.small, marginTop: 10 }}>A size is the buyer size the research says the platform is sold to. Where a tag holds only for some buyers, the note says which. It describes the offer and carries no grade.</p>
+      <p style={{ ...K.small, marginTop: 10 }}>Sizes show who the research says the platform is sold to. They describe the offer and carry no grade. Any limit on a tag is noted beside it.</p>
     </section>
   );
 }
