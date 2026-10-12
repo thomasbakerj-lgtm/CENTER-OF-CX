@@ -53,6 +53,7 @@ function Researched({ v, klass }) {
         ? <p style={K.body}><strong style={K.strong}>Where the research says it fits:</strong> {v.bestWhen.statement}</p>
         : <p style={K.small}>No best-when statement is published for this vendor yet. Its profile carries the full research.</p>}
       <p style={K.small}>Compared on: {(PLAIN[klass.id] || {}).compared || klass.boundary}</p>
+      {v.also && PLAIN[v.also] && <p style={K.small}>Also compared in: {PLAIN[v.also].name}{PLAIN[v.also].provisional ? " (provisional)" : ""}</p>}
       <p style={K.small}>Research validated {fmtDate(v.validated)}</p>
       <div><VendorIntroLink slug={v.slug} name={v.name} from="category" surface="category" color={ACCENT} /></div>
     </li>
@@ -114,8 +115,8 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
         <section aria-label="Where the research stands" style={K.lead}>
           <span style={K.kicker}>Where the research stands</span>
           <ul style={{ ...K.body, margin: "10px 0 0", paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>
-            <li>{researched} of {core.length} core platforms researched under the current method; {notYet.length} not yet.</li>
-            <li>{classes.length} competitive classes: {calibrated} calibrated, {classes.length - calibrated} still in draft.</li>
+            <li>{researched} of {core.length} core platforms researched; {notYet.length} not yet.</li>
+            <li>{classes.length} peer groups{classes.length - calibrated ? `, ${classes.length - calibrated} of them provisional` : ""}.</li>
             <li>Research validated between {fmtDate(INDEX.validatedFrom)} and {fmtDate(INDEX.validatedTo)}.</li>
             <li>Numeric ratings stay locked until each class has enough validated peers to support them.</li>
           </ul>
@@ -131,8 +132,8 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
                 <button key={c.id} type="button" aria-pressed={pick === c.id} onClick={() => choose(pick === c.id ? "all" : c.id)} style={btn(pick === c.id)}>
                   <span style={{ fontSize: 16, fontWeight: 700 }}>{pl.name}</span>
                   <span style={K.body}>{pl.job}</span>
-                  <span style={K.small}>Typical buyer: {c.buyer}</span>
-                  <span style={K.small}>{c.draft ? "Class in draft" : "Class calibrated"} · {c.vendors.length === 1 ? "1 vendor" : `${c.vendors.length} vendors`}</span>
+                  {c.buyer && <span style={K.small}>Typical buyer: {c.buyer}</span>}
+                  <span style={K.small}>{c.draft ? "Provisional peer group" : "Peer group"} · {c.vendors.length === 1 ? "1 vendor" : `${c.vendors.length} vendors`}</span>
                 </button>
               );
             })}
@@ -151,10 +152,10 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
           <section key={c.id} id={c.id.toLowerCase()} aria-labelledby={`h-${c.id}`} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
               <h2 id={`h-${c.id}`} style={{ ...K.h2, margin: 0 }}>{plain(c).name}</h2>
-              <span style={{ ...chip, borderStyle: c.draft ? "dashed" : "solid" }}>{c.draft ? "Draft class" : "Calibrated class"}</span>
+              {c.draft && <span style={{ ...chip, borderStyle: "dashed" }}>Provisional peer group</span>}
             </div>
             <p style={K.small}>Research class: {c.name}. {c.definition}</p>
-            <p style={K.small}>How the research compares this class, in its own words: {c.boundary}</p>
+            {c.boundary && <p style={K.small}>How the research compares this class, in its own words: {c.boundary}</p>}
             {c.kept.length
               ? <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>{c.kept.map((v) => <Researched key={v.id} v={v} klass={c} />)}</ul>
               : <p style={K.small}>No researched vendor in this class matches these filters.</p>}
@@ -196,6 +197,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
               <div key={h} style={K.box}><p style={{ ...K.body, ...K.strong }}>{h}</p><p style={{ ...K.small, marginTop: 6 }}>{t}</p></div>
             ))}
           </div>
+          <p style={{ ...K.small, fontSize: 13 }}><a href="/research/vendor-method" style={{ ...K.link, fontSize: 13, fontWeight: 400 }}>How we research vendors</a></p>
         </section>
 
         <section aria-labelledby="tools" style={{ display: "flex", flexDirection: "column", gap: 10 }}>

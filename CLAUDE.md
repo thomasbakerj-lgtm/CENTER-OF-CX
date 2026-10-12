@@ -2030,6 +2030,26 @@ dashboard, the 12-phase growth program.
    the like; the "How did you find us" placeholder no longer says "referral"). Suite 27,693; live check 258 of 258; page at
    1440 and 390 clean, the introduction link preselects its topic.
 
+122. S24 (4 Oct), research schema 1.1 on the site (TB: "a, go"; label at the foot, not prominent; a high-level method page
+   behind a quiet link, leaving out what is proprietary). Truth surface: Vendor Intelligence; presentation only.
+   - Loader 1.1.0 (`snapshot.js`): reads schema 1.0 and 1.1; publishes `GATE_PASSED`, `GATE_PASSED_V1_0_REAUDIT_REQUIRED`
+     (method 1) and `GATE_PASSED_V1_1` (method 2); withholds search_log, review_log, gate_definitions, category_break_library,
+     review platform evidence and the internal 1.1 fields (Human_Reviewer, Rating_Role, legacy and normalization notes);
+     publishes strengths (linked by claims), admin_change_tests per vendor and the public_glossary; reads consumer lists in
+     either spelling (Luware's 61 claims were withheld until then). Snapshot: 22 vendors, 1,447 claims, 755 sources.
+   - Profile: the research glossary's words (Independently confirmed, Vendor-documented, Strong fit when, Be careful if,
+     Rule it out if); seven questions (Who runs it? and What does it really cost? added; How do I prove it?); cost by its
+     five layers, never added up, a price only when verified; where it wins; the admin change test; peer group status and
+     "Also compared in"; class re-cut notes in plain words. Method label at the foot only, linking the method page.
+   - `/research/vendor-method` ("How we research vendors", `ResearchMethod.jsx`, `src/lib/research/methodPage.js`;
+     sitemap 432): what a profile answers, the five labels, which sources count and never count, research, challenge,
+     audit, sign-off, revisit, peer groups, the two method versions. Left out as proprietary: agent setup, the completion
+     checklist item by item, criteria with roles and weights, the break library, review sampling rates, the procedure.
+   - CCaaS page: 22 of 24 researched, peer groups with provisional marked, GoTo researching next, quiet method link.
+   - Open: strengths and admin_change_tests field names are inferred; align them when GoTo's first records arrive.
+   Gates: research (3b), profile (5), category, freeze pins. Suite 27,794; live check 258 of 258; new profiles, the
+   method page and the CCaaS page at 1440 and 390 clean.
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the
@@ -2248,17 +2268,20 @@ Never allow a lower-authority artifact to silently override a higher-authority a
 
 ### Current CCaaS checkpoint
 
-- Schema: v1.0.
-- Schema status: locked after three-vendor calibration.
-- Current checkpoint: `PRODUCTION_COHORT3_NORMALIZED` (corpus generated 2026-09-23, received S24 on 26 Sep 2026; system of record
-  `CCaaS_Master_Research_Corpus_v1.0_Production_Cohort3_Normalized_1.json`, kept outside the repository).
-- 18 vendors completed (VEN-CC-0001 to 0018): the 12 above plus Puzzel, Avaya, Enghouse Interactive, UJET, Bright Pattern, Vonage.
-  `src/lib/researchStatus.js` lists all 18 (S24 redesign session 1); 10 CCaaS and adjacent profiles remain Phase 1 context.
-- Cohort 3 five-vendor normalization gate passed: no schema, criterion or class change; CLS-CC-004 not split.
-- Phase 2 numeric ratings remain locked/unapplied (peer-class coverage thin in CLS-CC-002, 003, 005, 006).
-- Next research vendor: AnywhereNow (Cohort 4), one at a time under schema v1.0.
+- Methodology authority: Research Method v2 (`METHOD.md` in the private repository `thomasbakerj-lgtm/center-of-cx-research`,
+  attached read-only; the raw corpus never enters this repository, only the derived snapshot does).
+- Schema: v1.1 (the loader reads 1.0 and 1.1 and refuses any other).
+- Current checkpoint: `V1_1_MIGRATED_PRE_GOTO` (`corpus/ccaas.v1.1.json` in the research repository; asOf 2026-10-01).
+- 22 vendors published (VEN-CC-0001 to 0022: the 18 of Cohort 3 plus AnywhereNow, Aircall, Luware, Alvaria), all
+  `GATE_PASSED_V1_0_REAUDIT_REQUIRED`. TB (1 Oct, option a): publish them all, each labelled at the foot of its page only
+  ("Researched under Research Method 1. A re-audit under Research Method 2 is in progress."); a vendor that passes
+  `GATE_PASSED_V1_1` reads "Research Method 2". No method label above the foot.
+- Peer groups: CLS-CC-003 retired; 007 (inside Microsoft Teams) and 008 (standalone midmarket) added; 009 (outbound) provisional.
+  Status words ACTIVE, RETIRED, PROVISIONAL. Retired classes and classes with no primary vendor do not render as cards.
+- Phase 2 numeric ratings remain locked/unapplied.
+- Next research vendor: GoTo, one at a time under Method 2.
 - Two evidence objects are `INTERNAL_RESEARCH_ONLY`; never render them or their existence.
-- Do not silently change competitive-class status/definitions. In the current corpus, classes 001 to 003 are calibrated/locked; later classes may still carry draft metadata pending normalization.
+- Do not silently change competitive-class status/definitions.
 
 ### System of record
 

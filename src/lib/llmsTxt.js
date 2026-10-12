@@ -37,6 +37,7 @@ export function llmsTxt() {
     "- Every displayed number is one of four kinds: a historical fact, an assumption, a conditional forecast or a measured outcome.",
     "- Results carry a grade: Directional, Planning-grade or Finance-grade, on three axes (evidence, realization, completeness). The headline is the weakest applicable axis.",
     "- Vendor research compares platforms within their competitive class. Unknown or unverified is not treated as weak. No scores, ranks or tiers are published.",
+    `- How vendors are researched: ${BASE}/research/vendor-method`,
     `- Corrections: ${BASE}/corrections`,
     "",
     "## How to cite",

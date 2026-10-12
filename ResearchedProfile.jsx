@@ -2,8 +2,9 @@
 //
 // The profile of a vendor whose current research passed its completion gate (redesign Phase 7 part 2, the design TB
 // approved on 26 Sep 2026). Truth surface: Vendor Intelligence. Everything on the page comes from the published research
-// snapshot through buildProfile; the page adds words, never a score, rank, tier or count of states. Six questions switch
-// the view. The Phase 1 profile prose (strengths, weaknesses, beats, loses to) does not appear here; it stays in the data
+// snapshot through buildProfile; the page adds words, never a score, rank, tier or count of states. Seven questions switch
+// the view, the Ownership Report's four among them (Research Method v2). The method a vendor was researched under is
+// said once, quietly, at the foot of the page (TB, 1 Oct 2026), with a link to the method page. The Phase 1 profile prose (strengths, weaknesses, beats, loses to) does not appear here; it stays in the data
 // for lineage. Tokens only.
 import { useState, useEffect } from "react";
 import { HOUSE, PILLARS, RADIUS, TOUCH } from "./src/lib/tokens.js";
@@ -13,7 +14,7 @@ import { Crumbs, HEADER_HEIGHT } from "./src/lib/Shell.jsx";
 import { CATEGORIES } from "./src/lib/verticals.js";
 import { VendorIntro } from "./src/lib/VendorIntro.jsx";
 import { PLAIN } from "./src/lib/research/classWords.js";
-import { buildProfile, VIEWS, FILTERS, capability, evidence, words } from "./src/lib/research/profileView.js";
+import { buildProfile, VIEWS, FILTERS, capability, words, METHOD_PAGE } from "./src/lib/research/profileView.js";
 import { fmtDate } from "./src/lib/researchStatus.js";
 import { CCAAS_TAGS, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
 import { Tags, TagNotes } from "./src/lib/VendorTags.jsx";
@@ -63,7 +64,7 @@ function Claim({ c }) {
       <p style={{ ...K.body, color: HOUSE.mist }}>{c.Publishable_Summary}</p>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
         <span style={chip}>{capability(c.Capability_State)}</span>
-        {evidence(c.Evidence_State) && <span style={{ ...chip, fontWeight: 500 }}>{evidence(c.Evidence_State)}</span>}
+        {c.evidenceWords && <span style={{ ...chip, fontWeight: 500 }}>{c.evidenceWords}</span>}
         {c.Applicability_State === "CONDITIONAL" && c.Applicability_Context && <span style={{ ...chip, fontWeight: 500, borderStyle: "dashed" }}>Applies to: {c.Applicability_Context}</span>}
         {c.Stale && <span style={{ ...chip, borderStyle: "dashed" }}>Source due for review</span>}
       </div>
@@ -157,12 +158,31 @@ function FitView({ p }) {
           <Pair label="Typical buyer" value={p.klass.buyer} />
           <Pair label="Compared on" value={(PLAIN[p.klass.id] || {}).compared || p.klass.boundary} />
           <Pair label="In the research's words" value={p.klass.boundary} />
-          <Pair label="Class status" value={p.klass.status} />
+          <Pair label="Peer group status" value={p.klass.status} />
+          {p.alsoIn && <Pair label="Also compared in" value={`${p.alsoIn.name} (${p.alsoIn.status.toLowerCase()})`} />}
         </dl>
         <p style={{ ...K.small, marginTop: 10 }}>The class is context for comparison, never a quality grade. {p.vendor.Class_Rationale}</p>
       </section>
     )}
     <SoldTo p={p} />
+    {p.strengths.length > 0 && (
+      <section aria-label="Where it wins" style={K.panel}>
+        <h2 style={K.h2}>Where it wins</h2>
+        <ul style={{ padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+          {p.strengths.map((r) => (
+            <li key={r.Strength_ID} style={{ listStyle: "none", ...K.box }}>
+              <p style={{ ...K.body, color: HOUSE.mist }}>{r.Strength_Summary}</p>
+              <dl className="cx-dl" style={dl}>
+                <Pair label="When it shows" value={r.Trigger_Condition} />
+                <Pair label="What the buyer gains" value={r.Buyer_Benefit} />
+                <Pair label="How to check it" value={r.Verification_Method || r.How_To_Verify} />
+                <Pair label="When the advantage fades" value={r.Advantage_Disappears_When || r.Erosion_Condition} />
+              </dl>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
     {p.decisions.map((g) => (
       <section key={g.id} aria-label={g.label} style={K.panel}>
         <h2 style={K.h2}>{g.label}</h2>
@@ -276,9 +296,20 @@ function EffortView({ p }) {
           <Pair label="What speeds it up" value={i.Accelerators} />
           <Pair label="Who you need in-house" value={i.Buyer_Operating_Capacity_Required} />
           <Pair label="Outside services" value={i.External_Services_Dependency} />
+          {(i.Year2_Run_FTE_Low != null || i.Year2_Run_FTE_High != null) && <Pair label="People to run it in year two" value={`${[i.Year2_Run_FTE_Low, i.Year2_Run_FTE_High].filter((x) => x != null).join(" to ")} full-time equivalents${i.Year2_Run_FTE_Basis ? `. ${i.Year2_Run_FTE_Basis}` : ""}`} />}
         </dl>
       </section>
     )}
+    {list("The admin change test", p.effort.admin, "Test_ID", (r) => (<>
+      <span style={K.kicker}>{words(r.Environment)}</span>
+      <p style={{ ...K.body, color: HOUSE.mist, marginTop: 4 }}>{r.Change_Scenario}</p>
+      <dl className="cx-dl" style={dl}>
+        <Pair label="Minutes" value={r.Minutes} />
+        <Pair label="Steps" value={r.Steps} />
+        <Pair label="Role needed" value={words(r.Role_Required)} />
+        <Pair label="Needs paid services" value={words(r.Professional_Services_Required)} />
+      </dl>
+    </>))}
     {list("Put this in the statement of work", p.effort.sow, "SOW_ID", (r) => (<>
       <span style={K.kicker}>{words(r.Workstream)}</span>
       <p style={{ ...K.body, color: HOUSE.mist, marginTop: 4 }}>{r.Required_SOW_Content || r.Required_SOW_Language || r.Typical_Assumption_or_Exclusion}</p>
@@ -293,16 +324,6 @@ function EffortView({ p }) {
         <Pair label="What can go wrong" value={r.Failure_Risk} />
       </dl>
     </>))}
-    {list("What drives the cost", p.effort.tco, "TCO_ID", (r) => (<>
-      <span style={K.kicker}>{words(r.Cost_Layer)}</span>
-      <p style={{ ...K.body, color: HOUSE.mist, marginTop: 4 }}>{r.Cost_Component}</p>
-      <dl className="cx-dl" style={dl}>
-        <Pair label="Required" value={r.Required_or_Optional} />
-        <Pair label="How predictable" value={r.Predictability} />
-        <Pair label="Exit or lock-in cost" value={r.Lock_in_or_Exit_Cost} />
-        <Pair label="Note" value={r.Cost_Risk_Notes} />
-      </dl>
-    </>))}
     {list("Integrations", p.effort.integrations, "Integration_ID", (r) => (<>
       <span style={K.kicker}>{words(r.Integration_Category || r.Integration_Type)}</span>
       <p style={{ ...K.body, color: HOUSE.mist, marginTop: 4 }}>{r.Integration_Target || r.Integration_Name}</p>
@@ -312,6 +333,34 @@ function EffortView({ p }) {
         <Pair label="When it fails" value={r.Failure_Behavior} />
       </dl>
     </>))}
+  </>);
+}
+
+function CostView({ p }) {
+  if (!p.cost.length) return <p style={K.body}>The research records no cost driver for this vendor yet.</p>;
+  return (<>
+    <p style={K.small}>Each layer lists what drives the cost. The layers are not added up: a subscription price is only the first layer of what it costs to own the platform. To price your own case, use the TCO calculator.</p>
+    {p.cost.map((g) => (
+      <section key={g.id} aria-label={g.label} style={K.panel}>
+        <h2 style={K.h2}>{g.label}</h2>
+        <ul style={{ padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+          {g.rows.map((r) => (
+            <li key={r.TCO_ID} style={{ listStyle: "none", ...K.box }}>
+              <p style={{ ...K.body, color: HOUSE.mist }}>{r.Cost_Component}</p>
+              {r.prices.length > 0 && <p style={{ ...K.small, marginTop: 4 }}>Published price: {r.prices.map((x) => typeof x === "string" ? x : [x.Price || x.price, x.Unit || x.unit, x.Date || x.date ? `as of ${x.Date || x.date}` : null].filter(Boolean).join(" ")).join("; ")}</p>}
+              <dl className="cx-dl" style={dl}>
+                <Pair label="Driven by" value={r.Unit_or_Driver} />
+                <Pair label="Required" value={words(r.Required_or_Optional)} />
+                <Pair label="How predictable" value={words(r.Predictability)} />
+                <Pair label="Exit or lock-in cost" value={r.Lock_in_or_Exit_Cost} />
+                <Pair label="Note" value={r.Cost_Risk_Notes} />
+              </dl>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+    <p style={K.small}><a href="/tools/tco-calculator" style={K.link}>Price your own case in the TCO calculator</a></p>
   </>);
 }
 
@@ -365,7 +414,7 @@ function SourcesView({ p, manifestDate }) {
       <ul style={{ padding: 0, margin: 0, display: "flex", gap: 8, flexWrap: "wrap" }}>
         {p.publishers.map((x) => <li key={x.name} style={{ listStyle: "none", ...chip, fontSize: 13 }}>{x.name}: {x.count}</li>)}
       </ul>
-      <p style={{ ...K.small, marginTop: 10 }}>{p.publishers[0] ? `${p.publishers[0].name} published ${p.publishers[0].count} of the ${p.sources.length} sources behind this page. ` : ""}A source published by the vendor documents what is offered; it does not show how the platform runs in your operation. The proof list under "What should I ask for?" covers that.</p>
+      <p style={{ ...K.small, marginTop: 10 }}>{p.publishers[0] ? `${p.publishers[0].name} published ${p.publishers[0].count} of the ${p.sources.length} sources behind this page. ` : ""}A source published by the vendor documents what is offered; it does not show how the platform runs in your operation. The proof list under "How do I prove it?" covers that.</p>
     </section>
     <section aria-label="Sources" style={K.panel}>
       <h2 style={K.h2}>Every source</h2>
@@ -396,7 +445,7 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
       <Crumbs items={[["Vendor Intelligence", "/vendors"], [CATEGORIES.ccaas.name, "/vendors/ccaas"], [v.Supplier_Name]]} />
       <div style={{ maxWidth: 1080, margin: "0 auto", padding: "28px 20px 64px", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 20 }}>
         <header style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <span style={{ ...K.kicker, color: PILLARS.vendors.onDark }}>Current research complete · validated {fmtDate(v.Last_Validated_Date)}</span>
+          <span style={{ ...K.kicker, color: PILLARS.vendors.onDark }}>Researched · validated {fmtDate(v.Last_Validated_Date)}</span>
           <h1 style={{ margin: 0, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.1, color: HOUSE.mist }}>{v.Supplier_Name}</h1>
           <p style={{ ...K.body, maxWidth: 720 }}>{[v.Legal_Name, v.HQ, v.Ownership_Status].filter(Boolean).join(" · ")}</p>
           <Tags vendorId={v.Vendor_ID} />
@@ -412,10 +461,16 @@ export default function ResearchedProfile({ slug, file, shared, manifestDate, in
         {view === "findings" && <FindingsView p={p} initialFilter={initialFilter} />}
         {view === "breaks" && <BreaksView p={p} />}
         {view === "effort" && <EffortView p={p} />}
+        {view === "cost" && <CostView p={p} />}
         {view === "ask" && <AskView p={p} />}
         {view === "sources" && <SourcesView p={p} manifestDate={manifestDate} />}
         <CorrectionsNote vendorId={v.Vendor_ID} slug={slug} />
         <CiteLine text={citeResearch({ name: v.Supplier_Name, validated: v.Last_Validated_Date, slug })} />
+        {p.method && (
+          <p data-method-note={p.method.version} style={{ ...K.small, fontSize: 13, margin: "8px 0 0" }}>
+            {p.method.text} <a href={METHOD_PAGE} style={{ ...K.link, fontSize: 13, fontWeight: 400 }}>How we research vendors</a>
+          </p>
+        )}
       </div>
     </div>
   );

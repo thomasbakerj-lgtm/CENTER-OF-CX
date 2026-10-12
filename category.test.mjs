@@ -41,8 +41,9 @@ const html = render(), t = text(html);
 ok("one h1", (html.match(/<h1[\s>]/g) || []).length === 1);
 ok("no bad text", !/\[object Object\]|>\s*(null|undefined|NaN)\s*</.test(html) && !/\b(NaN|undefined|Infinity)\b/.test(t.split("Avaya Infinity").join("")));
 ok("states that Phase 1 scores are withdrawn", /Phase 1 scores and tiers are withdrawn/.test(t));
-ok("states where the research stands", t.includes(`18 of ${core.length} core platforms researched`) && t.includes("6 not yet") && /6 competitive classes: 3 calibrated, 3 still in draft/.test(t)
-  && t.includes(`between ${fmtDate("2026-09-19")} and ${fmtDate("2026-09-23")}`) && /ratings stay locked/i.test(t));
+ok("states where the research stands", t.includes(`${Object.keys(CCAAS_RESEARCH.complete).length} of ${core.length} core platforms researched; ${core.length - Object.keys(CCAAS_RESEARCH.complete).length} not yet`)
+  && t.includes(`${INDEX.classes.length} peer groups`) && (INDEX.classes.some((c) => c.draft) ? /of them provisional/.test(t) : !/of them provisional/.test(t))
+  && t.includes(`between ${fmtDate("2026-09-19")} and ${fmtDate("2026-09-24")}`) && /ratings stay locked/i.test(t));
 ok("every class has a plain name and job", INDEX.classes.every((c) => PLAIN[c.id] && t.includes(PLAIN[c.id].name) && t.includes(PLAIN[c.id].job)));
 
 section("2. Classes and researched vendors");
@@ -50,8 +51,8 @@ let seen = [];
 for (const c of INDEX.classes) {
   const card = `${PLAIN[c.id].name}`;
   const count = c.vendors.length === 1 ? "1 vendor" : `${c.vendors.length} vendors`;
-  ok(`${c.id} card: job, buyer, status and count`, t.includes(`${card} ${PLAIN[c.id].job} Typical buyer: ${c.buyer} ${c.draft ? "Class in draft" : "Class calibrated"} · ${count}`));
-  ok(`${c.id}: status follows the corpus`, c.draft === (c.status !== "LOCKED_CALIBRATED"));
+  ok(`${c.id} card: job, buyer, status and count`, t.includes(`${card} ${PLAIN[c.id].job} ${c.buyer ? `Typical buyer: ${c.buyer} ` : ""}${c.draft ? "Provisional peer group" : "Peer group"} · ${count}`));
+  ok(`${c.id}: status follows the corpus`, c.draft === !["LOCKED_CALIBRATED", "ACTIVE"].includes(c.status) && c.status !== "RETIRED");
   const names = c.vendors.map((v) => v.name);
   ok(`${c.id}: vendors A to Z`, JSON.stringify(names) === JSON.stringify([...names].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))));
   const only = render({ initialClass: c.id }), ot = text(only);
@@ -69,18 +70,18 @@ for (const c of INDEX.classes) {
     ok(`${v.name}: validation date equals the registry`, v.validated === CCAAS_RESEARCH.complete[SLUG[v.id]].validated);
   }
 }
-ok("every researched vendor appears exactly once", seen.length === 18 && new Set(seen).size === 18 && Object.values(CCAAS_RESEARCH.complete).every((x) => seen.includes(x.vendorId)));
+ok("every researched vendor appears exactly once", seen.length === Object.keys(CCAAS_RESEARCH.complete).length && new Set(seen).size === seen.length && Object.values(CCAAS_RESEARCH.complete).every((x) => seen.includes(x.vendorId)));
 ok("no vendor falls outside a class", INDEX.unclassed.length === 0);
 
 section("3. Not yet researched");
 const notYet = core.filter((v) => ccaasResearchStatus(v.slug) !== "complete");
-ok("six vendors not yet researched", notYet.length === 6);
+ok("the core vendors not yet researched (two)", notYet.length === 2);
 const nyAt = t.indexOf("Not yet researched");
 for (const v of notYet) {
   const i = t.indexOf(v.name, nyAt);
   ok(`${v.slug}: listed, with no class`, i > nyAt && !INDEX.classes.some((c) => c.vendors.some((x) => x.name === v.name)));
 }
-ok("the next vendor is marked researching next", CCAAS_RESEARCH.next === "anywhere-now" && /AnywhereNow Researching next/.test(t));
+ok("the next vendor is marked researching next", CCAAS_RESEARCH.next === "goto" && /GoTo Contact Center Researching next/.test(t));
 ok("every other not yet researched vendor offers a research request", notYet.filter((v) => v.slug !== CCAAS_RESEARCH.next).every((v) => t.includes(`Ask us to research ${v.name}`)));
 const SRC = readFileSync("./CCaaSCategory.jsx", "utf8");
 ok("the request sends one anonymous event and nothing else", /trackVendor\.action\(v\.slug, "request", "category"\)/.test(SRC) && !/fetch\(|formspree|localStorage/i.test(SRC));
@@ -123,7 +124,7 @@ section("4b. Tags: what each vendor sells and the sizes it is sold to");
   ok(`public sector filter keeps exactly those vendors (${wantPs.length})`, JSON.stringify(vendorsIn(hps)) === JSON.stringify(wantPs) && wantPs.length > 0);
   ok("every caveat renders under its vendor", INDEX.classes.every((c) => c.vendors.every((v) => tagsFor(v.id).notes.every((n) => t.includes(`${n.tag}: ${n.text}`)))));
   ok("Avaya's UCaaS tag carries its US public sector scope in the label", t.includes("UCaaS + CCaaS (US public sector)"));
-  const hp = renderToString(React.createElement(Page, { initialSize: "SMB", initialClass: "CLS-CC-003" }));
+  const hp = renderToString(React.createElement(Page, { initialSize: "SMB", initialClass: (INDEX.classes.find((c) => c.vendors.every((v) => !tagsFor(v.id).sizes.some((x) => x.size === "SMB"))) || INDEX.classes[0]).id }));
   ok("a class with no match after filtering says so", text(hp).includes("No researched vendor in this class matches these filters") || vendorsIn(hp).length > 0);
   ok("filters never reorder: a filtered class keeps A to Z", INDEX.classes.every((c) => { const h = text(renderToString(React.createElement(Page, { initialClass: c.id, initialSize: "Midmarket" }))); const names = c.vendors.filter((v) => tagsFor(v.id).sizes.some((x) => x.size === "Midmarket")).map((v) => v.name); let at = 0; return names.every((n) => { const k = h.indexOf(n, at); if (k < 0) return false; at = k; return true; }); }));
   ok("the not yet researched carry the Phase 1 description, labelled", core.filter((v) => ccaasResearchStatus(v.slug) !== "complete" && v.segment).every((v) => t.includes(`Earlier Phase 1 description: ${v.segment}`)));
@@ -131,7 +132,7 @@ section("4b. Tags: what each vendor sells and the sizes it is sold to");
 
 section("5. Introductions, links and tokens");
 const intros = (html.match(/href="\/contact\?intro=[^"&]+&amp;from=category"/g) || []).length;
-ok(`every vendor offers an introduction (${intros})`, intros === 18 + 6 + adjacent.length);
+ok(`every vendor offers an introduction (${intros})`, intros === core.length + adjacent.length);
 ok("every profile link resolves to a site profile", [...html.matchAll(/href="\/vendors\/([^"#]+)"/g)].every(([, s]) => vmod.exports.getVendor(s)));
 ok("tokens only: no colour literal", !/#[0-9a-fA-F]{3,8}\b|rgba?\(/.test(SRC));
 ok("no dash in the page or the index", !/[\u2013\u2014]/.test(SRC + readFileSync("./src/data/research/ccaas/category.json", "utf8") + readFileSync("./src/lib/research/categoryView.js", "utf8")));

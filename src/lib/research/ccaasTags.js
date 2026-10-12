@@ -19,6 +19,8 @@
 // uc: { from, note, scope? }: the records showing the vendor's own unified communications sold with its contact
 //   center, what they rest on, and any buyer scope; null when the research lists none.
 // publicSector: { from, note }: a product or offer the research says is sold to government or public sector.
+// ccNote: { from, note }: a caveat on a CCaaS tag, such as a platform that runs on a phone system bought from someone
+//   else (Microsoft Teams), resting on the records it cites.
 
 export const SIZES = ["SMB", "Midmarket", "Enterprise"];
 export const SIZE_WORDS = { SMB: "SMB", Midmarket: "Midmarket", Enterprise: "Enterprise" };
@@ -61,6 +63,13 @@ export const CCAAS_TAGS = {
   "VEN-CC-0017": { core: "PRD-CC-0110", segments: { Midmarket: "yes", Enterprise: "yes" }, from: ["PRD-CC-0110"], uc: null },
   "VEN-CC-0018": { core: "PRD-CC-0117", segments: { SMB: "yes", Midmarket: "yes", Enterprise: "yes" }, from: ["PRD-CC-0117"],
     uc: { from: ["PRD-CC-0123"], note: "Vonage Fusion is the combined UC and contact center offer." } },
+  "VEN-CC-0019": { core: "PRD-CC-0125", segments: { Midmarket: "yes", Enterprise: "yes" }, from: ["PRD-CC-0125"], uc: null,
+    ccNote: { from: ["CLM-CC-001226"], note: "Runs on Microsoft Teams; calling comes through Microsoft (Direct Routing, Operator Connect or Calling Plans)." } },
+  "VEN-CC-0020": { core: "PRD-CC-0128", segments: { SMB: "yes", Midmarket: "yes" }, from: ["PRD-CC-0128"], uc: null },
+  "VEN-CC-0021": { core: "PRD-CC-0132", segments: { Midmarket: "yes", Enterprise: "yes" }, from: ["PRD-CC-0132"], uc: null,
+    ccNote: { from: ["CLM-CC-001348"], note: "Runs on Microsoft Teams Phone, so the buyer also carries Microsoft's Teams Phone licensing and calling." } },
+  "VEN-CC-0022": { core: "PRD-CC-0135", segments: { Midmarket: "yes", Enterprise: "yes" }, from: ["PRD-CC-0135"], uc: null,
+    sizeNote: "Enterprise and upper midmarket, especially outbound-heavy and regulated operations." },
 };
 
 /* The words each tag needs to find in the records it cites. "Midmarket through enterprise" covers midmarket and
@@ -82,6 +91,7 @@ export function tagsFor(vendorId) {
   if (!t) return null;
   const notes = [];
   if (t.uc) notes.push({ tag: UC_LABEL, text: t.uc.note });
+  if (t.ccNote) notes.push({ tag: CC_LABEL, text: t.ccNote.note });
   if (t.sizeNote) notes.push({ tag: "Sizes", text: t.sizeNote });
   if (t.publicSector) notes.push({ tag: PS_LABEL, text: t.publicSector.note });
   return {

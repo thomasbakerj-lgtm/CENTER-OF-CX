@@ -9,7 +9,10 @@
 //
 // Rules, in order (CLAUDE.md section 13):
 //   1. Refuse the wrong category or schema version, and a corpus that does not say it is the system of record.
-//   2. Only vendors whose completion gate passed are published.
+//      Schema 1.0 and 1.1 (Research Method v2, 1 Oct 2026) are both read.
+//   2. Only vendors whose completion gate passed are published. Under 1.1 a vendor that passed the 1.0 gate and awaits
+//      the 1.1 re-audit still publishes (TB, 1 Oct 2026); each vendor carries Method_Version ("1" or "2"), and the page
+//      says which at its foot.
 //   3. Evidence is published only when it is PUBLIC and carries a publishable permission state. Anything else,
 //      including an unknown or missing state, is treated as confidential and dropped, with no trace of its existence.
 //      Practitioner review aggregations (G2, Gartner Peer Insights) are dropped too: review content never reaches
@@ -28,10 +31,12 @@
 //      the manifest. IDs, states and dates are never rewritten; "None" reads as null, never as zero.
 // Numeric Phase 2 ratings stay locked: no rating or score field exists in the output while phase2_ratings_locked.
 
-export const LOADER_VERSION = "1.0.0";
+export const LOADER_VERSION = "1.1.0";
 
 const CATEGORIES = { ccaas: "CCaaS" };
-const SCHEMA_VERSION = "1.0";
+const SCHEMA_VERSIONS = new Set(["1.0", "1.1"]);
+/* Gate states that publish, and the method each one was researched under. */
+export const PUBLISHED_GATES = { GATE_PASSED: "1", GATE_PASSED_V1_0_REAUDIT_REQUIRED: "1", GATE_PASSED_V1_1: "2" };
 
 const PUBLISHABLE_PERMISSIONS = new Set([
   "PUBLISHABLE", "PUBLIC_CITABLE", "PUBLIC_LINK_CITABLE", "PUBLIC_CITABLE_AS_VENDOR_STATED",
@@ -41,11 +46,15 @@ const REVIEW_SOURCE = /practitioner review|peer insights|\bG2\b|review aggregati
 
 /* Tables that never publish, whatever they hold. */
 export const WITHHELD_TABLES = ["phase1_baseline", "claim_migration", "score_deltas", "completion_gates", "normalization_log",
-  "framework_changes", "calibration_plan", "refresh_triggers", "surface_permissions", "market_position_capture"];
+  "framework_changes", "calibration_plan", "refresh_triggers", "surface_permissions", "market_position_capture",
+  /* 1.1: the research program's own process records and its internal break library. */
+  "search_log", "review_log", "gate_definitions", "category_break_library"];
 
 /* Fields that never publish, in any table. */
 export const WITHHELD_FIELDS = new Set(["Research_Note", "Notes", "Researcher", "Evidence_Confidence_Notes", "Relevant_Excerpt_or_Paraphrase",
-  "Claim_Text", "Lineage_Source", "Resolution_Notes", "Refresh_Trigger_Summary", "Double_Counting_Check"]);
+  "Claim_Text", "Lineage_Source", "Resolution_Notes", "Refresh_Trigger_Summary", "Double_Counting_Check",
+  /* 1.1: reviewer names, migration lineage and internal working notes. */
+  "Human_Reviewer", "Rating_Role", "Legacy_Evidence_State", "Legacy_Class_ID", "Normalization_Notes", "Claim_Topic", "Contradiction_Resolution"]);
 const WITHHELD_BY_TABLE = { unresolved_questions: new Set(["Owner"]) };
 
 /* Derived tables and the field that links each record to claims. */
@@ -53,8 +62,10 @@ export const LINKED_TABLES = {
   criteria_assessments: "Claim_IDs", breaks: "Claim_IDs", implementation: "Claim_IDs", sow_exposure: "Claim_IDs",
   day2_change: "Claim_IDs", integrations: "Claim_IDs", ai_governance: "Claim_IDs", bpo_fit: "Claim_IDs", tco: "Claim_IDs",
   fit_sensitivity: "Claim_IDs", decision_intelligence: "Linked_Claim_IDs", proof_requirements: "Linked_Claim_ID",
-  contract_requirements: "Linked_Claim_ID", unresolved_questions: "Linked_Claim_ID",
+  contract_requirements: "Linked_Claim_ID", unresolved_questions: "Linked_Claim_ID", strengths: "Claim_IDs",
 };
+/* 1.1 tables that belong to a vendor and carry no claim link (the admin change test is our own test). */
+export const VENDOR_TABLES = ["admin_change_tests"];
 
 const isNone = (v) => v === null || v === undefined || v === "None" || v === "";
 const ids = (v) => (isNone(v) ? [] : String(v).split(/[;,\s]+/).map((x) => x.trim()).filter(Boolean));
@@ -86,6 +97,7 @@ const tierOf = (t) => { const m = /(?:TIER[_ ]|Tier )(\d)/i.exec(String(t || "")
 
 export function publishableEvidence(e) {
   return !!e && e.Confidentiality_State === "PUBLIC" && PUBLISHABLE_PERMISSIONS.has(e.Publication_Permission_State)
+    && e.Source_Independence !== "REVIEW_PLATFORM"
     && !REVIEW_SOURCE.test(`${e.Source_Type || ""} ${e.Publisher_or_Owner || ""}`);
 }
 
@@ -99,7 +111,7 @@ export function deriveSnapshot(corpus, opts = {}) {
   const m = corpus && corpus.metadata;
   if (!m) throw new Error("research: corpus has no metadata");
   if (m.category !== CATEGORIES[category]) throw new Error(`research: corpus category ${m.category} is not ${CATEGORIES[category] || category}`);
-  if (m.schema_version !== SCHEMA_VERSION) throw new Error(`research: schema ${m.schema_version} is not the locked ${SCHEMA_VERSION}`);
+  if (!SCHEMA_VERSIONS.has(m.schema_version)) throw new Error(`research: schema ${m.schema_version} is not one this loader reads (${[...SCHEMA_VERSIONS].join(", ")})`);
   if (m.system_of_record !== true) throw new Error("research: corpus is not marked as the system of record");
   const asOf = opts.asOf || m.generated_date;
   const counter = { dashes: 0 };
@@ -107,7 +119,7 @@ export function deriveSnapshot(corpus, opts = {}) {
   const note = (t, n = 1) => { withheld[t] = (withheld[t] || 0) + n; };
 
   // 2. vendors past the gate
-  const vendors = (corpus.vendors || []).filter((v) => v.Completion_Status === "GATE_PASSED");
+  const vendors = (corpus.vendors || []).filter((v) => v.Completion_Status in PUBLISHED_GATES);
   note("vendors_gate_not_passed", (corpus.vendors || []).length - vendors.length);
   const vendorIds = new Set(vendors.map((v) => v.Vendor_ID));
 
@@ -122,7 +134,7 @@ export function deriveSnapshot(corpus, opts = {}) {
     supportOf.set(l.Claim_ID, (supportOf.get(l.Claim_ID) || 0) + 1);
   }
   const claims = (corpus.claims || []).filter((c) => {
-    const ok = vendorIds.has(c.Vendor_ID) && c.Record_Status === "ACTIVE" && /Vendor Intelligence/.test(String(c.Permitted_Consumers))
+    const ok = vendorIds.has(c.Vendor_ID) && c.Record_Status === "ACTIVE" && /vendor[ _]intelligence/i.test(String(c.Permitted_Consumers))
       && !isNone(c.Publishable_Summary) && supportOf.has(c.Claim_ID);
     if (!ok) note("claims");
     return ok;
@@ -139,7 +151,7 @@ export function deriveSnapshot(corpus, opts = {}) {
   for (const l of keptLinks) { if (!claimSources.has(l.Claim_ID)) claimSources.set(l.Claim_ID, []); claimSources.get(l.Claim_ID).push(l.Evidence_ID); }
 
   const out = { category, vendors: [], products: [], competitive_classes: [], criteria: [], claims: [], evidence: [], claim_evidence: [] };
-  out.vendors = vendors.map((v) => clean(v, "vendors", counter));
+  out.vendors = vendors.map((v) => ({ ...clean(v, "vendors", counter), Method_Version: PUBLISHED_GATES[v.Completion_Status] }));
   /* A product publishes when its vendor passed the gate and its lineage does not rest only on dropped evidence. The
      lineage field itself never publishes (rule 7): it can name a restricted source. */
   const allEvidenceIds = (corpus.evidence || []).map((e) => e.Evidence_ID);
@@ -148,9 +160,13 @@ export function deriveSnapshot(corpus, opts = {}) {
   note("products", (corpus.products || []).length - out.products.length);
   out.competitive_classes = (corpus.competitive_classes || []).map((c) => clean(c, "competitive_classes", counter));
   out.criteria = (corpus.criteria_registry || []).map((c) => clean(c, "criteria_registry", counter));
+  /* The research's own public words for its internal terms (1.1). */
+  out.public_glossary = (corpus.public_glossary || []).map((g) => clean(g, "public_glossary", counter));
   out.claims = claims.map((c) => ({
     ...clean(c, "claims", counter),
-    Permitted_Consumers: String(c.Permitted_Consumers).split(";").map((s) => s.trim()).filter(Boolean),
+    /* One spelling on the page, whichever the corpus used ("Vendor Intelligence" or "VENDOR_INTELLIGENCE"). */
+    Permitted_Consumers: String(c.Permitted_Consumers).split(";").map((s) => s.trim()).filter(Boolean)
+      .map((s) => /^[A-Z_]+$/.test(s) ? s.toLowerCase().split("_").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") : s),
     Stale: (claimSources.get(c.Claim_ID) || []).every((id) => staleEvidence.has(id)),
   }));
   out.evidence = [...citedEvidence].sort().map((id) => ({ ...clean(evidenceOk.get(id), "evidence", counter), Tier: tierOf(evidenceOk.get(id).Evidence_Tier) }));
@@ -175,6 +191,11 @@ export function deriveSnapshot(corpus, opts = {}) {
     }
   }
 
+  for (const table of VENDOR_TABLES) {
+    out[table] = (corpus[table] || []).filter((r) => vendorIds.has(r.Vendor_ID)).map((r) => clean(r, table, counter));
+    note(table, (corpus[table] || []).length - out[table].length);
+  }
+
   const manifest = {
     category, checkpoint: m.checkpoint, corpus_version: m.corpus_version, schema_version: m.schema_version,
     generated_date: m.generated_date, last_vendor_validated_date: m.last_vendor_validated_date,
@@ -189,13 +210,14 @@ export function deriveSnapshot(corpus, opts = {}) {
 
 /* Per-vendor files, so a profile page loads its own research and nothing else. `shared` holds what every page needs. */
 export function splitByVendor({ manifest, data }) {
-  const shared = { category: data.category, competitive_classes: data.competitive_classes, criteria: data.criteria, vendors: data.vendors };
-  const tables = ["products", "claims", ...Object.keys(LINKED_TABLES)];
+  const shared = { category: data.category, competitive_classes: data.competitive_classes, criteria: data.criteria, vendors: data.vendors,
+    public_glossary: data.public_glossary || [] };
+  const tables = ["products", "claims", ...Object.keys(LINKED_TABLES), ...VENDOR_TABLES];
   const vendors = {};
   for (const v of data.vendors) {
     const id = v.Vendor_ID;
     const f = { vendor: v };
-    for (const t of tables) f[t] = data[t].filter((r) => r.Vendor_ID === id);
+    for (const t of tables) f[t] = (data[t] || []).filter((r) => r.Vendor_ID === id);
     const claimSet = new Set(f.claims.map((c) => c.Claim_ID));
     f.claim_evidence = data.claim_evidence.filter((l) => claimSet.has(l.Claim_ID));
     const evSet = new Set(f.claim_evidence.map((l) => l.Evidence_ID));
