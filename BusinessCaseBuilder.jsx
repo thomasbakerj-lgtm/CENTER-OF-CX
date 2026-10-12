@@ -1239,7 +1239,7 @@ export default function BusinessCaseBuilder() {
           <NumField tone="dark" label="New Hire Training Days" value={d.trainingDays} onChange={v => set("trainingDays", v)} min={0} />
         </div>
         <div style={{ marginTop: 18, paddingTop: 14, borderTop: `1px solid ${hair}` }}>
-          <div style={{ ...strong, display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>Where do your baselines come from?<InfoDot text={DEFS.baseline} title="Baseline evidence" /></div>
+          <div style={{ ...strong, display: "flex", alignItems: "center", gap: 6, marginBottom: 8, paddingRight: 8 }}>Where do your baselines come from?<InfoDot text={DEFS.baseline} title="Baseline evidence" /></div>
           <Choice label="Baseline evidence" options={Object.entries(BASELINE_EVIDENCE).map(([k, v]) => [k, v.label, v.note])} value={conf.baselineEvidence} onPick={(k) => set("baselineEvidence", k)} />
           {conf.baselineEvidence === "report" && (
             <label style={{ display: "flex", alignItems: "center", gap: 10, minHeight: TOUCH, cursor: "pointer", marginTop: 6 }}>
