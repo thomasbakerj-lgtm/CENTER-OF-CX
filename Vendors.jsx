@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { VENDOR_PROFILE_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, isVendorSlug } from "./src/lib/seo.js";
 import { CCAAS_RESEARCH } from "./src/lib/researchStatus.js";
+import { QUESTIONS } from "./src/lib/research/methodPage.js";
 import { CATEGORIES } from "./src/lib/verticals.js";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
@@ -235,28 +236,21 @@ function VendorPagePreview() {
         <FadeIn>
           <div style={{ textAlign: "center", maxWidth: 580, margin: "0 auto 48px" }}>
             <Label>Researched vendor pages</Label>
-            <Title>Six questions a researched profile answers.</Title>
+            <Title>The questions a researched profile answers.</Title>
             <p style={{ fontSize: 15, color: SLATE, lineHeight: 1.65, marginTop: 4, fontFamily: FONT }}>
-              Each researched CCaaS profile answers the same six questions from its sources. Phase 1 profiles show the earlier assessment, labelled as such, until their category is researched.
+              Each researched CCaaS profile answers the same {QUESTIONS.length} questions from its sources. Phase 1 profiles show the earlier assessment, labelled as such, until their category is researched.
             </p>
           </div>
         </FadeIn>
         <FadeIn delay={0.1}>
-          <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "40px 36px", maxWidth: 700, margin: "0 auto" }}>
+          <div style={{ background: HOUSE.ink, border: `1px solid ${BORDER}`, borderRadius: 14, padding: "clamp(20px, 5vw, 40px) clamp(16px, 5vw, 36px)", maxWidth: 700, margin: "0 auto" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              {[
-                { label: "Is it a fit?", desc: "Its competitive class and the job that class does, who it is sold to, when it is the rational choice, and when to rule it out." },
-                { label: "What does it do?", desc: "Each finding by capability, with its evidence state, its conditions, the date it was checked and its public sources." },
-                { label: "Where does it break?", desc: "What triggers the break, who it hits, how it is mitigated, what that adds in build and cost, and who owns it after go-live." },
-                { label: "What will it take?", desc: "Implementation, services terms, life after go-live, cost drivers and integrations." },
-                { label: "What should I ask for?", desc: "The proof to request, the contract terms to raise, the AI controls to check and the open questions." },
-                { label: "Where does this come from?", desc: "Who published the evidence, and every source with its publisher, tier and date. Any reader can ask for an introduction or report an error." },
-              ].map((item, i) => (
-                <div key={i} style={{ display: "flex", gap: 16, padding: "12px 0", borderBottom: i < 5 ? `1px solid ${BORDER}` : "none" }}>
+              {QUESTIONS.map((x) => ({ label: x.q, desc: x.a })).map((item, i) => (
+                <div key={i} style={{ display: "flex", gap: 16, padding: "12px 0", borderBottom: i < QUESTIONS.length - 1 ? `1px solid ${BORDER}` : "none" }}>
                   <div style={{ width: 24, height: 24, borderRadius: 6, background: `${ELECTRIC}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: ELECTRIC }}>{i + 1}</span>
                   </div>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <h4 style={{ fontSize: 14.5, fontWeight: 600, color: NAVY, margin: "0 0 3px", fontFamily: FONT }}>{item.label}</h4>
                     <p style={{ fontSize: 13, color: MUTED, lineHeight: 1.55, margin: 0, fontFamily: FONT }}>{item.desc}</p>
                   </div>
