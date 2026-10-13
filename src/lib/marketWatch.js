@@ -27,6 +27,174 @@ export const KINDS = {
      source: { publisher, title, url, published }, also: source | null, checked: "YYYY-MM-DD" } */
 /* Launch set, researched 27 September 2026 from the page each item cites (July to September 2026). */
 export const ITEMS = [
+  /* Set of 13 October 2026: researched from the page each item cites, 1 to 13 October 2026. */
+  {
+    "id": "mw-2026-10-01-fcc-26-67-full-text",
+    "date": "2026-10-01",
+    "label": "verified",
+    "kind": "regulation",
+    "who": "Federal Communications Commission",
+    "vendors": [],
+    "headline": "FCC releases full robocall consent order; changes start 30 days after Federal Register",
+    "summary": "The FCC released the full text of FCC 26-67 on 1 October. Callers that disclose it clearly may name one method for opting out, such as a key press, set reply words or a website. The changes start 30 days after Federal Register publication, which had not happened by 13 October.",
+    "source": {
+      "publisher": "Federal Communications Commission",
+      "title": "Report and Order and Further Notice of Proposed Rulemaking, FCC 26-67",
+      "url": "https://docs.fcc.gov/public/attachments/FCC-26-67A1.pdf",
+      "published": "2026-10-01"
+    },
+    "also": null,
+    "checked": "2026-10-13"
+  },
+  {
+    "id": "mw-2026-10-08-fcc-robocall-mitigation-orders",
+    "date": "2026-10-08",
+    "label": "verified",
+    "kind": "regulation",
+    "who": "Federal Communications Commission",
+    "vendors": [],
+    "headline": "FCC orders traffic blocked from one voice provider and warns two more",
+    "summary": "On 5 October the FCC Enforcement Bureau removed Digital Solutions Inc. from the Robocall Mitigation Database and told the next providers in the call path to stop accepting its traffic 30 days later. On 8 October it gave Aspireistic Inc. and Callsto, LLC 14 days to answer before the same steps.",
+    "source": {
+      "publisher": "Federal Communications Commission",
+      "title": "Final Determination Order and Removal Order, Digital Solutions Inc., DA 26-1073",
+      "url": "https://docs.fcc.gov/public/attachments/DA-26-1073A1.pdf",
+      "published": "2026-10-05"
+    },
+    "also": {
+      "publisher": "Federal Communications Commission",
+      "title": "Initial Determination Order and Order to Show Cause, Aspireistic Inc., DA 26-1084",
+      "url": "https://docs.fcc.gov/public/attachments/DA-26-1084A1.pdf",
+      "published": "2026-10-08"
+    },
+    "checked": "2026-10-13"
+  },
+  {
+    "id": "mw-2026-10-07-automation-anywhere-boost-ai",
+    "date": "2026-10-07",
+    "label": "news",
+    "kind": "deal",
+    "who": "Automation Anywhere",
+    "vendors": [
+      "Automation Anywhere",
+      "Boost.ai"
+    ],
+    "headline": "Automation Anywhere agrees to buy conversational and voice AI company Boost.ai",
+    "summary": "Automation Anywhere signed a definitive agreement on 7 October to buy Boost.ai from Nordic Capital. Both companies expect the deal to close in the fourth quarter of 2026, subject to regulatory approval, and neither disclosed the price.",
+    "source": {
+      "publisher": "SiliconANGLE",
+      "title": "Automation Anywhere acquires Boost.ai to expand customer-facing voice AI",
+      "url": "https://siliconangle.com/2026/10/08/automation-anywhere-acquires-boost-ai-to-expand-customer-facing-voice-ai",
+      "published": "2026-10-08"
+    },
+    "also": {
+      "publisher": "Nordic Capital",
+      "title": "Nordic Capital to sell Boost.ai to Automation Anywhere",
+      "url": "https://www.nordiccapital.com/insights/press-releases/nordic-capital-agrees-to-sell-boostai-a-leading-conversational-and-voice-ai-company-for-regulated-industries-to-automation-anywhere/",
+      "published": "2026-10-07"
+    },
+    "checked": "2026-10-13"
+  },
+  {
+    "id": "mw-2026-10-09-genesys-cloud-us-east-errors",
+    "date": "2026-10-09",
+    "label": "verified",
+    "kind": "outage",
+    "who": "Genesys",
+    "vendors": [
+      "Genesys"
+    ],
+    "headline": "Genesys Cloud reports elevated errors in its US East region on 9 October",
+    "summary": "Genesys says that for 34 minutes on 9 October, from 18:25 Eastern, some customers in its US East region saw errors with bot flows, accepting interactions, WebRTC calls and analytics. It worked with its platform provider on the cause and will send a root cause report to affected customers.",
+    "source": {
+      "publisher": "Genesys",
+      "title": "Genesys Cloud Status: Elevated Error Rates, Americas (US-East)",
+      "url": "https://status.mypurecloud.com/incidents/bdn6vylmq1md",
+      "published": "2026-10-09"
+    },
+    "also": null,
+    "checked": "2026-10-13"
+  },
+  {
+    "id": "mw-2026-10-12-aircall-calling-issues",
+    "date": "2026-10-12",
+    "label": "verified",
+    "kind": "outage",
+    "who": "Aircall",
+    "vendors": [
+      "Aircall"
+    ],
+    "headline": "Aircall reports some customers unable to make or receive calls on 12 October",
+    "summary": "Aircall's status page recorded a major incident on 12 October affecting inbound and outbound calls for a subset of customers. It opened at 09:29 UTC, a fix was in place by 10:05 UTC and the incident was marked resolved at 10:17 UTC.",
+    "source": {
+      "publisher": "Aircall",
+      "title": "Aircall Status: Calling Issues",
+      "url": "https://status.aircall.com/incidents/2yc546pjqbhd",
+      "published": "2026-10-12"
+    },
+    "also": null,
+    "checked": "2026-10-13"
+  },
+  {
+    "id": "mw-2026-10-01-webex-personalized-ai-routing",
+    "date": "2026-10-01",
+    "label": "verified",
+    "kind": "product",
+    "who": "Cisco",
+    "vendors": [
+      "Cisco"
+    ],
+    "headline": "Webex Contact Center makes Personalized AI Routing available",
+    "summary": "Cisco's administrator release notes for 1 October 2026 list Personalized AI Routing as available in Webex Contact Center. It pairs each contact with an agent using the customer's intent and what is known about agents, and can be pointed at a business measure the customer chooses.",
+    "source": {
+      "publisher": "Cisco",
+      "title": "What's new for administrators in Webex Contact Center",
+      "url": "https://help.webex.com/en-us/article/nv7abhz/What's-new-for-administrators-in-Webex-Contact-Center",
+      "published": "2026-10"
+    },
+    "also": null,
+    "checked": "2026-10-13"
+  },
+  {
+    "id": "mw-2026-10-12-amazon-connect-prefilled-guides",
+    "date": "2026-10-12",
+    "label": "verified",
+    "kind": "product",
+    "who": "Amazon Web Services",
+    "vendors": [
+      "Amazon Connect"
+    ],
+    "headline": "Amazon Connect fills in after-contact guides from the conversation",
+    "summary": "AWS said on 12 October that Amazon Connect Customer can now complete the step-by-step guides agents fill in after a contact, using details drawn from the conversation such as booking or claim numbers and a summary. Managers choose the fields and agents check and submit. Nine AWS Regions at launch.",
+    "source": {
+      "publisher": "Amazon Web Services",
+      "title": "Amazon Connect Customer now prefills step-by-step guides for after contact work",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/connect-customer-prefills-guides-acw",
+      "published": "2026-10-12"
+    },
+    "also": null,
+    "checked": "2026-10-13"
+  },
+  {
+    "id": "mw-2026-10-06-zendesk-voice-ai-agents-ga",
+    "date": "2026-10-06",
+    "label": "verified",
+    "kind": "product",
+    "who": "Zendesk",
+    "vendors": [
+      "Zendesk"
+    ],
+    "headline": "Zendesk makes voice AI agents generally available to its voice customers",
+    "summary": "Zendesk's October 2026 release roundup, posted 6 October, lists voice AI agents as generally available to Zendesk voice customers. They automate phone conversations and pass calls to people with the transcript, summary and recording. The same roundup adds voicemail for its contact center.",
+    "source": {
+      "publisher": "Zendesk",
+      "title": "October 2026 Release roundup: Channels, Voice, and Messaging",
+      "url": "https://community.zendesk.com/product-updates/october-2026-release-roundup-channels-voice-and-messaging-22627",
+      "published": "2026-10-06"
+    },
+    "also": null,
+    "checked": "2026-10-13"
+  },
   {
     "id": "mw-2026-09-30-fcc-tcpa-revocation-adopted",
     "date": "2026-09-30",
