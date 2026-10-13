@@ -12,6 +12,7 @@
  */
 
 import { LAYERS } from "./tokens.js";
+import { LAYER_TOOLS } from "./layerTools.js";
 import { GROUPS, rowSource } from "./comparisons.js";
 
 export const GUIDE = {
@@ -41,7 +42,7 @@ export const LAYER_GUIDE = [
     ],
     check: "List every system an agent or automated flow reads during a contact, with who owns it, how fresh its data is and whether it can be written back to. The gaps agents complain about most are usually the first integrations to fix.",
     breaks: "Every layer above loses context: automated answers cannot personalise, routing cannot prioritise, and agents ask customers for what the company already knows.",
-    tools: [["/tools/cx-it-alignment", "CX IT Alignment"]] },
+    tools: LAYER_TOOLS[1] },
   { n: 2, what: "The workflows that carry out a request across systems: process engines, integration platforms and robotic automation.",
     owners: "Automation and integration engineers, with the operations owner of each process.",
     questions: [
@@ -51,7 +52,7 @@ export const LAYER_GUIDE = [
     ],
     check: "Map your highest-volume workflows from start to finish: every system, every handoff and every point where one fails. Mark each as automated, partly automated or manual.",
     breaks: "The request is understood but not fulfilled. Agents complete it by hand and customers wait longer.",
-    tools: [["/tools/tco-calculator", "TCO Calculator"], ["/tools/aht-decomposition", "AHT Decomposition"]] },
+    tools: LAYER_TOOLS[2] },
   { n: 3, what: "The rules every interaction must respect: payment security, identity verification, fraud controls, privacy and the guardrails on automated decisions.",
     owners: "Compliance, security, fraud and risk teams, with legal review of contracts.",
     questions: [
@@ -61,7 +62,7 @@ export const LAYER_GUIDE = [
     ],
     check: "Document every point where an automated system makes or shapes a customer-facing decision, and the guardrail on each. If you serve customers in the EU, check which obligations of the AI Act apply to you and when, as amended by Regulation (EU) 2026/1744.",
     breaks: "Automated answers go ungoverned, payment flows fail and compliance exposure grows.",
-    tools: [["/tools/contract-risk", "Contract Risk"], ["/tools/governance-model", "Governance Model"]] },
+    tools: LAYER_TOOLS[3] },
   { n: 4, what: "The reasoning that decides the next step: virtual agents, agent assist, knowledge retrieval and automated agents that act on a customer's behalf.",
     owners: "Conversation designers, knowledge owners and the CX architect, with risk review for anything that acts on its own.",
     questions: [
@@ -72,7 +73,7 @@ export const LAYER_GUIDE = [
     check: "Review your knowledge base on a schedule you set and keep: who owns each article, when it was last checked, and what the automated layer does when the answer is not there.",
     breaks: "Self-service fails, contacts that could have been resolved flow to agents, and queues grow.",
     figures: ["deflection"],
-    tools: [["/tools/ai-deflection", "AI Deflection Reality Check"], ["/tools/ai-readiness", "AI Readiness"]] },
+    tools: LAYER_TOOLS[4] },
   { n: 5, what: "The conversation itself: voice, chat, messaging, email, social and in-app support, and the agent workspace where they meet.",
     owners: "Channel and telephony owners, CX designers and the operations leaders who staff each channel.",
     questions: [
@@ -83,7 +84,7 @@ export const LAYER_GUIDE = [
     check: "Test continuity yourself: start a conversation in one channel, move it to another, and see what carries over. Count the applications an agent opens on a typical contact.",
     breaks: "Customers repeat themselves, channels fall out of step, and the measurement layer loses the thread.",
     figures: ["channels"],
-    tools: [["/tools/channel-shift", "Channel Shift"], ["/tools/fcr-leakage", "FCR Leakage"]] },
+    tools: LAYER_TOOLS[5] },
   { n: 6, what: "Routing and orchestration: which person or automated agent takes each contact, in what order, with what context and with what authority.",
     owners: "Routing and workforce specialists and the CX architect.",
     questions: [
@@ -94,7 +95,7 @@ export const LAYER_GUIDE = [
     check: "List your routing rules and when each was last reviewed, and check that the staffing plan behind them matches the demand the rules create.",
     breaks: "Contacts reach the wrong person or the wrong automated agent, transfers rise and customer effort climbs.",
     figures: ["service"],
-    tools: [["/tools/staffing-calculator", "Staffing Calculator"], ["/tools/occupancy-risk", "Occupancy Risk"]] },
+    tools: LAYER_TOOLS[6] },
   { n: 7, what: "Measurement and governance: quality management, workforce management, speech and text analytics, journey analytics and compliance monitoring.",
     owners: "Workforce, quality and analytics leads, with compliance.",
     questions: [
@@ -105,7 +106,7 @@ export const LAYER_GUIDE = [
     check: "Measure your forecast accuracy by interval, calibrate your quality evaluators against each other, and trace one recent finding from the dashboard to the change it produced.",
     breaks: "Nothing stops at once, but quality drifts unseen, staffing falls out of step with demand and compliance gaps widen.",
     figures: ["adherence"],
-    tools: [["/tools/forecast-accuracy", "Forecast Accuracy"], ["/tools/qa-scorecard", "QA Scorecard"], ["/tools/schedule-adherence", "Schedule Adherence"]] },
+    tools: LAYER_TOOLS[7] },
 ];
 
 /* What each layer depends on: if the first fails, the others feel it. Our reading of the stack, in words. */

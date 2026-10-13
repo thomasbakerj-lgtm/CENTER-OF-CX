@@ -113,6 +113,23 @@ section("5. The stack reads Platform Decision's layer map");
     if (i && (!live(i.tool.href) || !live(i.category.href))) bad.push(`l${l.n} dead`);
   }
   ok(`every layer's tool, vendor category and technical name are the published model's, and live [${bad.join(", ")}]`, bad.length === 0 && Object.keys(H.LAYER_INFO).length === 7);
+  /* Hover and the fuller panel (item 113, TB: build it when ready). */
+  const { LAYER_TOOLS } = await import("./src/lib/layerTools.js");
+  const off = [];
+  for (const l of PD.PLATFORM_DECISION.layers) {
+    const i = H.LAYER_INFO[`l${l.n}`];
+    const want = [J.JOURNEY[l.tool].route, ...LAYER_TOOLS[l.n].map(([r]) => r)].filter((r, k, a) => a.indexOf(r) === k);
+    if (JSON.stringify(i.tools.map((t) => t.href)) !== JSON.stringify(want)) off.push(`l${l.n} tools`);
+    for (const t of i.tools) { if (!live(t.href)) off.push(`${t.href} dead`); if (t.method && !live(t.method)) off.push(`${t.method} dead`); }
+    for (const m of i.more) if (!live(m.href)) off.push(`${m.href} dead`);
+  }
+  ok(`each layer lists Platform Decision's tool then the framework guide's, each with its method, all live [${off.join(", ")}]`, off.length === 0);
+  const FG = readFileSync("./src/lib/frameworkGuide.js", "utf8");
+  ok("the framework guide and the homepage read one tool list", (FG.match(/tools: LAYER_TOOLS\[\d\]/g) || []).length === 7);
+  const UI = readFileSync("./src/lib/ui.jsx", "utf8");
+  ok("hover is mouse only and a preview fires no event", /e\.pointerType === "mouse"/.test(UI) && SRC.includes("onPreview={door.routes ? setPreview : undefined}") && !/setPreview[^;]*trackHome/.test(SRC));
+  ok("the hovered layer grows and reduced motion drops the glide", UI.includes('scale(1.1)') && UI.includes("prefers-reduced-motion: reduce"));
+  ok("the panel follows the preview, then the choice", SRC.includes("layer={door.routes ? preview || layer : null}"));
 }
 
 section("6. No change log on the homepage (removed, TB, 27 Sep 2026)");

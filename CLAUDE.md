@@ -453,7 +453,7 @@ Binding. None of this is in code comments beyond what is noted.
 12. ~~One name per category across pages, schema and llms.txt.~~ Done (item 120).
 13. Nav "Coming soon" on Research moved to the studies card; Phase 1 profiles rebuilt or noindexed (reverses 29 Sep);
     the 95 split vendor pages merged into 38; naming who runs the site. Held: needs a dedicated session.
-14. Homepage stack hover (item 113). TB: build it when ready.
+14. ~~Homepage stack hover (item 113).~~ Done (item 125).
 TB actions: the private corpus repository and the `RESEARCH_TOKEN` secret (D1 setup; not confirmed from here); a postal
 address before the first newsletter; a lawyer's read of the Privacy Policy and Terms (Arizona venue and county); the
 PostHog funnels in `docs/MEASUREMENT.md` and numbers for the measurement review; whether to filter TB's own browsers
@@ -2079,6 +2079,19 @@ dashboard, the 12-phase growth program.
    Header: a search icon link on every width (named for screen readers); the header row tightens at 420 px and below so it
    fits at 320. `search.test.mjs` (49, registered): stems, typos, synonyms, 16 reader queries land the intended page in
    the top three, partial and empty queries, ties, wiring, privacy, and the built index when present.
+
+125. S24 (13 Oct), the homepage stack hover (TB: "merge and next"; open item 14, the item 113 design). A mouse resting on a
+   layer, or keyboard focus, parts the stack and grows that layer (scale 1.1) with no click; leaving restores the chosen
+   layer. Hover is mouse only (`pointerType`), so a tap on a phone stays one choice; a preview fires no event
+   (`layer_select` still fires only on a click); reduced motion drops the glide. The panel follows the preview, then the
+   choice, and lists every tool that tests the layer: Platform Decision's tool first, then the 7-Layer framework guide's
+   published list, each with its method page; the layer's vendor category; requirements by industry; the framework guide.
+   The guide's per-layer tool list moved to `src/lib/layerTools.js`, read by both the guide and the homepage (values
+   unchanged; `framework.test` passes, the PDF is unchanged), so the homepage carries no hand mapping and loads no guide.
+   The panel keeps a 410 px minimum (the fullest layer, L5, is about 400) so a hover never moves the page below.
+   `home.test.mjs` 42: tools equal model plus guide in order, every tool, method and link live, one shared list, mouse-only
+   hover with no event, the grow and reduced-motion rules, the panel source. Suite 27,852; live check 258 of 258;
+   containment clean at 390, 360 and 320; browser: hover L5, L7, L1, leave, click L4, focus L2, no page error.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

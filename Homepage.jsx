@@ -46,7 +46,7 @@ function LayerPanel({ layer, door }) {
     return (
       <div>
         <div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{door.pillar === "industries" ? "All seven layers, for your sector" : "The stack every contact center runs on"}</div>
-        <p style={{ margin: "6px 0 0", fontSize: 14, lineHeight: 1.55, color: HOUSE.body }}>Seven layers, from customer data to governance. Choose a layer to see what it does and the tool that tests it.</p>
+        <p style={{ margin: "6px 0 0", fontSize: 14, lineHeight: 1.55, color: HOUSE.body }}>Seven layers, from customer data to governance. Choose a layer, or rest the pointer on one, to see what it does and the tools that test it.</p>
       </div>
     );
   }
@@ -55,9 +55,18 @@ function LayerPanel({ layer, door }) {
     <div>
       <div style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}><span style={{ color: L.color }}>L{L.n}</span> {L.name}</div>
       <p style={{ margin: "6px 0 10px", fontSize: 14, lineHeight: 1.55, color: HOUSE.body }}>{info.what} {info.technical}.</p>
+      <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: HOUSE.muted }}>Test it with your numbers</div>
+      <ul style={{ listStyle: "none", margin: "2px 0 8px", padding: 0 }}>
+        {info.tools.map((t) => (
+          <li key={t.id} style={{ display: "flex", alignItems: "center", columnGap: 12, flexWrap: "wrap" }}>
+            <a href={t.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark, textDecoration: "none" }}>{t.name}<Icon name="next" size={16} /></a>
+            {t.method && <a href={t.method} style={{ display: "inline-flex", alignItems: "center", minHeight: TOUCH, fontSize: 13, color: HOUSE.body }}>Method</a>}
+          </li>
+        ))}
+      </ul>
       <div style={{ display: "flex", columnGap: 20, flexWrap: "wrap" }}>
-        <a href={info.tool.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.diagnostics.onDark, textDecoration: "none" }}>Test it: {info.tool.name}<Icon name="next" size={16} /></a>
         <a href={info.category.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.vendors.onDark, textDecoration: "none" }}>{info.category.name}<Icon name="next" size={16} /></a>
+        {info.more.map((m) => <a key={m.href} href={m.href} style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: TOUCH, fontSize: 14, fontWeight: 600, color: PILLARS.industries.onDark, textDecoration: "none" }}>{m.name}<Icon name="next" size={16} /></a>)}
       </div>
     </div>
   );
@@ -99,12 +108,13 @@ export default function Homepage() {
   const [doorIx, setDoor] = useState(0);
   const [routeIx, setRoute] = useState(0);
   const [picked, setPicked] = useState(null);
+  const [preview, setPreview] = useState(null);
   const door = DOORS[doorIx];
   const route = door.routes ? door.routes[Math.min(routeIx, door.routes.length - 1)] : null;
   const layer = picked || (route && route.layer) || null;
   const pillar = PILLARS[door.pillar];
 
-  const pickDoor = (i) => { setDoor(i); setRoute(0); setPicked(null); trackHome.door(DOORS[i].event); };
+  const pickDoor = (i) => { setDoor(i); setRoute(0); setPicked(null); setPreview(null); trackHome.door(DOORS[i].event); };
   const pickRoute = (i) => { setRoute(i); setPicked(null); trackHome.route(door.event, door.routes[i].id); };
   const pickLayer = (id) => { setPicked(id); if (id) trackHome.layer(id, "home"); };
 
@@ -129,9 +139,10 @@ export default function Homepage() {
           </div>
           <div className="cx-home-stack"><div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
             {/* The plates draw below the component's box; the margin keeps the panel clear of the bottom layer. */}
-            <div style={{ marginBottom: 56 }}><Stack active={door.routes ? layer : null} onSelect={pickLayer} width={340} /></div>
-            <div style={{ width: "100%", maxWidth: 440, padding: 16, borderRadius: RADIUS.card, background: alpha(HOUSE.navy, 0.8), border: `1px solid ${hair}`, minHeight: 120, boxSizing: "border-box" }}>
-              <LayerPanel layer={door.routes ? layer : null} door={door} />
+            <div style={{ marginBottom: 56 }}><Stack active={door.routes ? layer : null} preview={door.routes ? preview : null} onPreview={door.routes ? setPreview : undefined} onSelect={pickLayer} width={340} /></div>
+            {/* Tall enough for the fullest layer (L5, about 400 px), so a hover never moves the page below it. */}
+            <div style={{ width: "100%", maxWidth: 440, padding: 16, borderRadius: RADIUS.card, background: alpha(HOUSE.navy, 0.8), border: `1px solid ${hair}`, minHeight: 410, boxSizing: "border-box" }}>
+              <LayerPanel layer={door.routes ? preview || layer : null} door={door} />
             </div>
           </div></div>
         </div>
