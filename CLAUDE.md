@@ -440,7 +440,7 @@ Binding. None of this is in code comments beyond what is noted.
 **Open with TB (snapshot 1 Oct 2026, after PR #107).** Decisions from the site audit (30 Sep audit doc and S24 notes):
 1. ~~Tools hub from `/how-to-choose` to `/tools` with a 301.~~ Done (item 119).
 2. ~~Reference library (metric pages, glossary, Erlang C explainer).~~ Done (item 126).
-3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds. Held (TB, 1 Oct).
+3. ~~An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds.~~ Done (item 127).
 4. ~~Site search.~~ Done (item 124).
 5. ~~Advisory and Contact as one page.~~ Done (item 121).
 6. ~~Migration article.~~ Done (item 123).
@@ -2106,6 +2106,16 @@ dashboard, the 12-phase growth program.
    DefinedTermSet on the glossary (seo L1); footer "Metrics reference"; llms.txt; search kind "Reference".
    `reference.test.mjs` (155, registered). Suite 28,087; live check 258 of 258; 16 pages at 1440 and 390 with no overflow,
    page error or axe violation; containment clean at 390, 360 and 320.
+
+127. S24 (13 Oct), the Updates hub and feeds (TB: "3. go"; open item 3). `src/lib/updates.js` derives one dated list from
+   records the site already publishes: Market Watch items that pass `itemProblems`, researched profiles at their validation
+   date, accepted research corrections. Method changes are left out (TB, 27 Sep). `/updates` (`Updates.jsx`) groups them by
+   week (Monday start), newest first, and states the cadence as practice: the market is reviewed weekly and items that pass
+   the source rules are added; a quiet week adds none. The prerender writes `/feed.xml` (RSS 2.0, escaped, self link) and
+   `/feed.json` (JSON Feed 1.1), 50 entries at most; both linked from the page, the Market Watch header, `index.html`
+   (alternate links), the footer and llms.txt. Sitemap 449. `updates.test.mjs` (28, registered): entries exactly the
+   published records, a failing item never reaches a feed, corrections, weeks, both formats and escaping, wiring, built feeds
+   equal a fresh render. The cadence needs items: the newest Market Watch item is 30 Sep.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

@@ -298,6 +298,10 @@ export const SEO_MAP = {
     title: `RFP Requirement Builder for Contact Centers | ${SITE}`,
     desc: "Build weighted RFP requirements by layer for your industry and size, then score vendor responses: must-haves met, what is GA, what to verify in a demo.",
   },
+  "/updates": {
+    title: `Updates: New Research and Market Watch | ${SITE}`,
+    desc: "Every update by week: new Market Watch items, newly researched vendor profiles and research corrections, with RSS and JSON feeds.",
+  },
   "/market-watch": {
     title: `Market Watch: Contact Center and CX Technology News | ${SITE}`,
     desc: "Dated items on launches, retirements, deals, outages and rules in contact center technology, each written from its source and labelled by it.",

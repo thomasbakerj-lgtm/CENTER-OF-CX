@@ -67,7 +67,7 @@ export function MarketWatchView({ items = ITEMS }) {
           <span style={{ ...K.kicker, color: ACCENT }}>Market Watch</span>
           <h1 style={{ margin: 0, fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 700, lineHeight: 1.12 }}>What is new in the market</h1>
           <p style={K.body}>Launches, retirements, deals, outages and rules that touch contact center and CX technology. Each item is dated, written in our words from the page it cites, and labelled for the source it rests on.</p>
-          {latest && <p style={K.small}>{all.length} items. Latest {longDate(latest)}.</p>}
+          {latest && <p style={K.small}>{all.length} items. Latest {longDate(latest)}. Follow with the <a href="/feed.xml" style={{ color: ACCENT }}>RSS feed</a> or see <a href="/updates" style={{ color: ACCENT }}>every update by week</a>.</p>}
         </header>
 
         <section aria-labelledby="labels" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 10 }}>
