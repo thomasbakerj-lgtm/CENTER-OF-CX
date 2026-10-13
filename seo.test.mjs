@@ -324,7 +324,10 @@ const vertKeys = new Set(Object.keys(VERTICALS));
 const sitemapVendorRoutes = locs.filter((p) => p.startsWith("/vendors/"));
 for (const p of sitemapVendorRoutes) {
   const parts = p.replace("/vendors/", "").split("/");
-  if (parts.length === 1) {
+  if (parts[1] === "alternatives" || (parts[0] === "ccaas" && parts[1] === "compare")) {
+    /* Alternatives and peer group comparison pages (compare.test.mjs gates their names and metadata). */
+    ok(`F4  ${p}: a researched vendor's alternatives or a published peer group`, resolveSeo(p).known);
+  } else if (parts.length === 1) {
     ok(`F1  ${p}: resolves as a known category or a mapped vendor`,
        catKeys.has(parts[0]) || dataSlugs.has(parts[0]));
   } else {
@@ -628,7 +631,7 @@ section("I. server-side redirects and indexed demand URLs");
     ok(`I8  /vendors/${cv} is noindex and out of the sitemap`, !smLocs.includes(`https://www.contactcentercx.com/vendors/${cv}`) && resolveSeo(`/vendors/${cv}`).known === false);
     ok(`I9  /vendors/${cv} is a valid category and vertical`, !!CATEGORIES[c] && !!VERTICALS[v]);
   }
-  const cvLocs = smLocs.map((u) => u.replace("https://www.contactcentercx.com", "")).filter((p) => p.split("/").length === 4 && p.startsWith("/vendors/"));
+  const cvLocs = smLocs.map((u) => u.replace("https://www.contactcentercx.com", "")).filter((p) => p.split("/").length === 4 && p.startsWith("/vendors/") && !p.endsWith("/alternatives"));
   ok("I10 no sitemap category-vertical URL renders the not-found message", cvLocs.every((p) => { const [, , c, v] = p.split("/"); return !!CATEGORIES[c] && !!VERTICALS[v]; }));
   for (const [from, to] of [["/vendors/ccaas/travel-hospitality", "/vendors/ccaas/travel"], ["/vendors/ccaas/retail-ecommerce", "/vendors/ccaas/retail"]]) {
     const rr = (vj.redirects || []).find((x) => x.source === from);
@@ -695,7 +698,7 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   /* TB, 27 Sep 2026: the three CCaaS by industry pages with research substance are indexable; the other 77 are not. */
   const open = CCAAS_INDEXED_INDUSTRIES.map((v) => `/vendors/ccaas/${v}`);
   ok(`N1 all ${pairs.length - open.length} other category-by-industry pages are noindex`, pairs.length === 80 && pairs.filter((p) => !open.includes(p)).every((p) => resolveSeo(p).known === false));
-  ok("N2 only the three indexed CCaaS industry pages are in the sitemap", JSON.stringify(sitemap.filter((p) => /^\/vendors\/[a-z-]+\/[a-z-]+$/.test(p)).sort()) === JSON.stringify([...open].sort()));
+  ok("N2 only the three indexed CCaaS industry pages are in the sitemap", JSON.stringify(sitemap.filter((p) => /^\/vendors\/[a-z-]+\/[a-z-]+$/.test(p) && !p.endsWith("/alternatives")).sort()) === JSON.stringify([...open].sort()));
   ok("N2b the three are indexable, titled from the research and claim no score", open.length === 3 && open.every((p) => resolveSeo(p).known === true && /^CCaaS Research: /.test(resolveSeo(p).title) && !/scored|fit score|ranking of/i.test(resolveSeo(p).desc)));
   const noindexed = sitemap.filter((p) => !resolveSeo(p).known);
   ok(`N3 every sitemap URL is indexable [${noindexed.slice(0, 3).join(" ")}]`, noindexed.length === 0);

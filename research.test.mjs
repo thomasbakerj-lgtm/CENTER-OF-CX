@@ -212,6 +212,9 @@ const DIR = "./src/data/research/ccaas";
   const vf = Object.fromEntries(files.map((f) => [f.replace(".json", ""), JSON.parse(readFileSync(DIR + "/vendors/" + f, "utf8"))]));
   ok("the category index equals a fresh build from the committed snapshot", readFileSync(DIR + "/category.json", "utf8") === categoryIndexJson(shared, vf));
   all += readFileSync(DIR + "/category.json", "utf8");
+  const { compareIndexJson } = await import("./src/lib/research/compareView.js");
+  ok("the compare index equals a fresh build from the committed snapshot", readFileSync(DIR + "/compare.json", "utf8") === compareIndexJson(shared, vf));
+  all += readFileSync(DIR + "/compare.json", "utf8");
   const { industryIndexJson, THEMES, recordsOf, matches } = await import("./src/lib/research/ccaasIndustry.js");
   const { VERTICALS } = await import("./src/lib/verticals.js");
   ok("the industry index equals a fresh build from the committed snapshot", readFileSync(DIR + "/industry.json", "utf8") === industryIndexJson(shared, vf));
@@ -266,7 +269,7 @@ section("11c. The corrections log (decision D2)");
 section("12. Separation: nothing reads the snapshot outside the research layer yet [1] [3] [18]");
 {
   const tracked = execSync("git ls-files", { encoding: "utf8" }).split("\n").filter((f) => /\.(jsx?|mjs)$/.test(f));
-  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs", "CCaaSIndustry.jsx", "industry.test.mjs", "Corrections.jsx", "corrections.test.mjs", "Research.jsx", "researchpage.test.mjs", "ResearchMethod.jsx", "Vendors.jsx", "src/lib/updates.js", "updates.test.mjs"]; // updates: the published corrections log only
+  const PAGES = ["VendorProfile.jsx", "ResearchedProfile.jsx", "profile.test.mjs", "CCaaSCategory.jsx", "category.test.mjs", "CCaaSIndustry.jsx", "industry.test.mjs", "Corrections.jsx", "corrections.test.mjs", "Research.jsx", "researchpage.test.mjs", "ResearchMethod.jsx", "Vendors.jsx", "src/lib/updates.js", "updates.test.mjs", "Compare.jsx", "compare.test.mjs"]; // updates: the published corrections log only
   const readers = tracked.filter((f) => !f.startsWith("src/lib/research/") && f !== "scripts/research-sync.mjs" && f !== "research.test.mjs" && !PAGES.includes(f) && /data\/research|lib\/research\//.test(readFileSync(f, "utf8")));
   ok(`only the research layer and the Vendor Intelligence pages (profile, category) read research data [${readers.join(", ")}]`, readers.length === 0);
   ok("Vendor Match reads no research snapshot, Market Position value or Phase 1 baseline file", !/data\/research|market.?position|phase1_baseline/i.test(readFileSync("./VendorMatchEngine.jsx", "utf8")));
@@ -283,6 +286,7 @@ if (process.env.RESEARCH_CORPUS && existsSync(process.env.RESEARCH_CORPUS)) {
   const fresh = splitByVendor(deriveSnapshot(JSON.parse(raw.toString("utf8")), { category: "ccaas", source: manifest.source }));
   ok("every vendor file equals a fresh derivation", Object.entries(fresh.vendors).every(([id, f]) => stableJson(f) === readFileSync(`${DIR}/vendors/${id}.json`, "utf8")) && stableJson(fresh.shared) === readFileSync(DIR + "/shared.json", "utf8"));
   ok("the category index equals a fresh derivation", (await import("./src/lib/research/categoryView.js")).categoryIndexJson(fresh.shared, fresh.vendors) === readFileSync(DIR + "/category.json", "utf8"));
+  ok("the compare index equals a fresh derivation", (await import("./src/lib/research/compareView.js")).compareIndexJson(fresh.shared, fresh.vendors) === readFileSync(DIR + "/compare.json", "utf8"));
   ok("the industry index equals a fresh derivation", (await import("./src/lib/research/ccaasIndustry.js")).industryIndexJson(fresh.shared, fresh.vendors) === readFileSync(DIR + "/industry.json", "utf8"));
 } else console.log("  skipped: RESEARCH_CORPUS is not set (the private corpus is not in this repository)");
 
