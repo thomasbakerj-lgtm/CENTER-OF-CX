@@ -54,6 +54,246 @@
       "source": "/advisory",
       "destination": "/contact",
       "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(8x8-ai|8x8-wem|8x8-acd)",
+      "destination": "/vendors/8x8",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(ada-analytics|ada-de)",
+      "destination": "/vendors/ada",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(aircall-acd)",
+      "destination": "/vendors/aircall",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(alvaria-acd)",
+      "destination": "/vendors/alvaria",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(amazon-connect-ai|amazon-lex|amazon-aa|amazon-wem|amazon-acd)",
+      "destination": "/vendors/amazon-connect",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(avaya-analytics|avaya-acd)",
+      "destination": "/vendors/avaya",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(balto-aa|balto-analytics)",
+      "destination": "/vendors/balto",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(bright-acd)",
+      "destination": "/vendors/bright-pattern",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(calabrio-analytics)",
+      "destination": "/vendors/calabrio-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(callminer-analytics)",
+      "destination": "/vendors/callminer-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(cisco-cc-ai|cisco-analytics|cisco-acd)",
+      "destination": "/vendors/cisco",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(clickatell-plat-de)",
+      "destination": "/vendors/clickatell-de",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(contentguru-acd)",
+      "destination": "/vendors/contentguru-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(cresta-aa|cresta-wem|cresta-analytics)",
+      "destination": "/vendors/cresta",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(dialpad-aa)",
+      "destination": "/vendors/dialpad",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(egain-de)",
+      "destination": "/vendors/egain",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(emplifi-light-de)",
+      "destination": "/vendors/emplifi-de",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(enghouse-wem)",
+      "destination": "/vendors/enghouse",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(five9-iva|five9-aa|five9-wem|five9-analytics|five9-acd)",
+      "destination": "/vendors/five9",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(genesys-ai|genesys-copilot|genesys-aa|genesys-wem|genesys-analytics|genesys-acd)",
+      "destination": "/vendors/genesys",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(gladly-de)",
+      "destination": "/vendors/gladly",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(google-aa|google-analytics)",
+      "destination": "/vendors/google-dialogflow",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(gorgias-de)",
+      "destination": "/vendors/gorgias",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(intercom-de)",
+      "destination": "/vendors/intercom-fin",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(koreai-acd)",
+      "destination": "/vendors/koreai-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(kustomer-de)",
+      "destination": "/vendors/kustomer",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(liveperson-de)",
+      "destination": "/vendors/liveperson",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(luware-acd)",
+      "destination": "/vendors/luware",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(mitel-acd)",
+      "destination": "/vendors/mitel-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nextiva-acd)",
+      "destination": "/vendors/nextiva",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nice-autopilot|nice-cognigy|nice-copilot|nice-aa|nice-wem|nice-analytics|nice-wem-analytics|nice-acd|nice-cognigy-de)",
+      "destination": "/vendors/nice-cxone",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(observeai-wem|observeai-analytics)",
+      "destination": "/vendors/observeai-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(odigo-acd)",
+      "destination": "/vendors/odigo",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(puzzel-acd)",
+      "destination": "/vendors/puzzel",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(pypestream-de)",
+      "destination": "/vendors/pypestream",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(ringcentral-ai|ringcentral-wem|ringcentral-analytics|ringcentral-acd|ringcentral-de)",
+      "destination": "/vendors/ringcentral",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(salesforce-acd|salesforce-de)",
+      "destination": "/vendors/salesforce-service",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(sprinklr-iva|sprinklr-de)",
+      "destination": "/vendors/sprinklr",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(talkdesk-autopilot|talkdesk-aa|talkdesk-wem|talkdesk-analytics|talkdesk-acd)",
+      "destination": "/vendors/talkdesk",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(teneo-de)",
+      "destination": "/vendors/teneo-ai",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(tidio-de)",
+      "destination": "/vendors/tidio-lyro",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(twilio-acd)",
+      "destination": "/vendors/twilio-flex",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(ujet-va|ujet-acd)",
+      "destination": "/vendors/ujet",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(uniphore-analytics)",
+      "destination": "/vendors/uniphore",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(verint-aa|verint-wem|verint-analytics|verint-wfo|verint-de)",
+      "destination": "/vendors/verint",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(vonage-analytics|vonage-acd)",
+      "destination": "/vendors/vonage",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zendesk-ai|zendesk-aa|zendesk-wem|zendesk-analytics|zendesk-acd|zendesk-de)",
+      "destination": "/vendors/zendesk",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zoom-va|zoom-aa|zoom-analytics|zoom-acd)",
+      "destination": "/vendors/zoom",
+      "permanent": true
     }
   ],
   "rewrites": [

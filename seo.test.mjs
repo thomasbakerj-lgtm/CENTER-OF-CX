@@ -30,7 +30,7 @@
  */
 
 import { readFileSync, readdirSync } from "node:fs";
-import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE,
+import { resolveSeo, vendorDisplayName, vendorCategoryLabel, SITE, isMergedSlug, vendorPage,
          TOOL_COUNT, CATEGORY_COUNT, ADJACENT_PROFILE_COUNT, VENDOR_PROFILE_COUNT, SEO_MAP, structuredData } from "./src/lib/seo.js";
 import * as SEO from "./src/lib/seo.js";
 import { CATEGORIES, VERTICALS, CCAAS_INDEXED_INDUSTRIES } from "./src/lib/verticals.js";
@@ -352,8 +352,10 @@ const sitemapProfiles = new Set(
     .filter((s) => !s.includes("/") && !catKeys.has(s))
 );
 
-eq("G1  sitemap profile count equals data file entry count", sitemapProfiles.size, rows.length);
-for (const r of rows) ok(`G2  ${r.slug} appears in the sitemap`, sitemapProfiles.has(r.slug));
+/* One page per vendor (open item 13): a merged category profile is a section of its family page, which is in the
+   sitemap; the merged slug itself redirects and is not. */
+eq("G1  sitemap profile count equals data file entries less merged sections", sitemapProfiles.size, rows.filter((r) => !isMergedSlug(r.slug)).length);
+for (const r of rows) ok(`G2  ${r.slug} reaches the sitemap through its page`, sitemapProfiles.has(vendorPage(r.slug)) && (sitemapProfiles.has(r.slug) === !isMergedSlug(r.slug)));
 for (const s of sitemapProfiles) ok(`G3  sitemap route /vendors/${s} has a data entry`, dataSlugs.has(s));
 for (const c of catKeys) ok(`G4  category page /vendors/${c} is in the sitemap`, locs.includes(`/vendors/${c}`));
 
@@ -723,7 +725,7 @@ section("W. Every sitemap page fits a search result");
     if (r.desc.length < 70) shortD.push(u);
     if (RETIRED.test(r.title + " " + r.desc)) words.push(u);
   }
-  ok(`W1 every page name fits within 55 characters [${longT.slice(0, 3).join(" ")}]`, sitemapW.length > 400 && longT.length === 0);
+  ok(`W1 every page name fits within 55 characters [${longT.slice(0, 3).join(" ")}]`, sitemapW.length > 350 && longT.length === 0);
   ok(`W2 every description fits within 160 characters [${longD.slice(0, 3).join(" ")}]`, longD.length === 0);
   ok(`W3 every description says something (70 or more) [${shortD.slice(0, 3).join(" ")}]`, shortD.length === 0);
   ok(`W4 no retired sales word in any title or description [${words.slice(0, 3).join(" ")}]`, words.length === 0);

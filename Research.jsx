@@ -132,7 +132,7 @@ export default function Research() {
           </ul>
         </Section>
 
-        <Section id="studies" kicker="Coming" title="Studies of our own">
+        <Section id="studies" kicker="Coming soon" title="Studies of our own">
           <p style={K.body}>Studies we run ourselves, starting from what professionals choose to share through the diagnostics. Nothing is collected until the consent design is published, participation will be opt-in and anonymous, and every study will publish its data, its method and its limits.</p>
         </Section>
 

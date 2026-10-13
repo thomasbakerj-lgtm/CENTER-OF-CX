@@ -365,31 +365,11 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/8x8-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/8x8-ai</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/8x8-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/acquireio-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/ada</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/ada-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/ada-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -405,10 +385,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/aircall-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/aisera</loc>
     <priority>0.7</priority>
   </url>
@@ -417,31 +393,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/alvaria-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/amazon-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/amazon-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/amazon-connect</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/amazon-connect-ai</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/amazon-lex</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/amazon-wem</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -489,14 +441,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/avaya-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/avaya-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/aws-analytics</loc>
     <priority>0.7</priority>
   </url>
@@ -506,14 +450,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/balto</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/balto-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/balto-analytics</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -533,23 +469,11 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/bright-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/bright-pattern</loc>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/calabrio-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/calabrio-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/callminer-analytics</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -577,27 +501,11 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/cisco-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/cisco-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/cisco-cc-ai</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/claude-analytics</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/clickatell-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/clickatell-plat-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -625,10 +533,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/contentguru-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/contentguru-wem</loc>
     <priority>0.7</priority>
   </url>
@@ -638,18 +542,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/cresta</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/cresta-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/cresta-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/cresta-wem</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -669,10 +561,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/dialpad-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/digitalriver-pay</loc>
     <priority>0.7</priority>
   </url>
@@ -686,10 +574,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/egain</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/egain-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -709,15 +593,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/emplifi-light-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/enghouse</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/enghouse-wem</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -726,26 +602,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/five9</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/five9-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/five9-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/five9-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/five9-iva</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/five9-wem</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -781,35 +637,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/genesys-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/genesys-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/genesys-ai</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/genesys-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/genesys-copilot</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/genesys-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/gladly</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/gladly-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -833,23 +661,11 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/google-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/google-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/google-dialogflow</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/gorgias</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/gorgias-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -901,10 +717,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/intercom-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/intercom-fin</loc>
     <priority>0.7</priority>
   </url>
@@ -933,19 +745,11 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/koreai-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/koreai-analytics</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/kustomer</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/kustomer-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -973,15 +777,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/liveperson-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/luware</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/luware-acd</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1006,10 +802,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/microsoft-copilot</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/mitel-acd</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1041,47 +833,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/nextiva-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-autopilot</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-cognigy</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-cognigy-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-copilot</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/nice-cxone</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/nice-wem-analytics</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1101,19 +853,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/observeai-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/observeai-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/odigo</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/odigo-acd</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1169,15 +909,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/puzzel-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/pypestream</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/pypestream-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1201,35 +933,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/ringcentral-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/ringcentral-ai</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/ringcentral-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/ringcentral-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/ringcentral-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/roger365-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/salesforce-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/salesforce-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1269,14 +973,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/sprinklr-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/sprinklr-iva</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/sprout-de</loc>
     <priority>0.7</priority>
   </url>
@@ -1297,39 +993,11 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/talkdesk-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/talkdesk-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/talkdesk-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/talkdesk-autopilot</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/talkdesk-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/tcn-acd</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/teneo-ai</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/teneo-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/tidio-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1341,10 +1009,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/twilio-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/twilio-flex</loc>
     <priority>0.7</priority>
   </url>
@@ -1353,19 +1017,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/ujet-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/ujet-va</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/uniphore</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/uniphore-analytics</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1374,26 +1026,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/verint</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/verint-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/verint-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/verint-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/verint-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/verint-wfo</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1406,14 +1038,6 @@
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/vonage</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/vonage-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/vonage-analytics</loc>
     <priority>0.7</priority>
   </url>
   <url>
@@ -1433,51 +1057,11 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.contactcentercx.com/vendors/zendesk-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zendesk-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zendesk-ai</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zendesk-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zendesk-de</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zendesk-wem</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.contactcentercx.com/vendors/zenvia-de</loc>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.contactcentercx.com/vendors/zoom</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zoom-aa</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zoom-acd</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zoom-analytics</loc>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.contactcentercx.com/vendors/zoom-va</loc>
     <priority>0.7</priority>
   </url>
   <url>

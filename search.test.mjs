@@ -39,7 +39,7 @@ const docs = paths.map((p) => {
   const cat = CATS.find((c) => c.page === p);
   return buildDoc({ path: p, title: seo.title.replace(/ \| The Center of CX$/, ""), desc: seo.desc, html: "", kind: kindOf(p, CATS.map((c) => c.page)), extra: cat ? [cat.name, ...cat.also, ...cat.related] : [] });
 });
-ok(`one record per sitemap page (${docs.length})`, docs.length === paths.length && docs.length > 400);
+ok(`one record per sitemap page (${docs.length})`, docs.length === paths.length && docs.length > 350);
 const top = (q, n = 3) => search(docs, q).results.slice(0, n).map((r) => r.doc.p);
 const CASES = [
   ["WFM", "/vendors/wem-qm"],

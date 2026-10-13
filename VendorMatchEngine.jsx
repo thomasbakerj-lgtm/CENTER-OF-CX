@@ -10,6 +10,7 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { useScenarioHash } from "./src/lib/useScenarioHash.js";
 import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { getVendor } from "./VendorData";
+import { vendorHref } from "./src/lib/seo.js";
 
 /* A fit band is a word on the page. The PDF's fit tiles keep the colours they printed. */
 const GREEN = "#10B981"; const AMBER = "#F59E0B"; const MUTED = "#5B6E88";
@@ -427,7 +428,7 @@ export default function VendorMatchEngine() {
                 <div style={{flex:1,minWidth:200}}>
                   <div style={{display:"flex",alignItems:"baseline",gap:10,marginBottom:4}}>
                     <span style={K.small}>{v.lead?"Leading group":`#${i+1}`}</span>
-                    <a href={`/vendors/${v.slug}`} style={{...K.link,fontSize:isTop?20:16}}>{v.name}</a>
+                    <a href={vendorHref(v.slug)} style={{...K.link,fontSize:isTop?20:16}}>{v.name}</a>
                   </div>
                   {isTop&&(<>
                     <ul style={{listStyle:"none",padding:0,margin:"8px 0 4px"}}>
@@ -465,7 +466,7 @@ export default function VendorMatchEngine() {
                 )}
                 <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:10}}>
                   <VendorIntro slug={v.slug} name={v.name} from={TOOL_ID} surface="tool"/>
-                  <Button kind="secondary" href={`/vendors/${v.slug}`}>View the full profile</Button>
+                  <Button kind="secondary" href={vendorHref(v.slug)}>View the full profile</Button>
                 </div>
               </>)}
               {!isTop&&(<div style={{marginTop:8}}><VendorIntro slug={v.slug} name={v.name} from={TOOL_ID} surface="tool" kind="text"/></div>)}

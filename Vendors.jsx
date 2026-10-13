@@ -5,6 +5,7 @@ import { QUESTIONS } from "./src/lib/research/methodPage.js";
 import { CATEGORIES } from "./src/lib/verticals.js";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
+import { vendorHref } from "./src/lib/seo.js";
 
 const NAVY = HOUSE.mist;
 const DEEP = HOUSE.ink;
@@ -151,7 +152,7 @@ function BrowseByCategory() {
     const s = v.slug;
     const exists = isVendorSlug(s);
     return exists ? (
-      <a href={`/vendors/${s}`} style={{ color: ELECTRIC, fontWeight: 600, borderBottom: `1px solid ${ELECTRIC}30`, transition: "border-color 0.2s" }}
+      <a href={vendorHref(s)} style={{ color: ELECTRIC, fontWeight: 600, borderBottom: `1px solid ${ELECTRIC}30`, transition: "border-color 0.2s" }}
         onMouseOver={e => e.target.style.borderColor = ELECTRIC}
         onMouseOut={e => e.target.style.borderColor = `${ELECTRIC}30`}>{v.name}</a>
     ) : <span>{v.name}</span>;

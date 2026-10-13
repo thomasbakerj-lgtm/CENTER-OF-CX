@@ -451,8 +451,9 @@ Binding. None of this is in code comments beyond what is noted.
 10. Opt-in benchmark exchange (consent design and storage). Held: needs a dedicated session.
 11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`). Held: needs its own sessions.
 12. ~~One name per category across pages, schema and llms.txt.~~ Done (item 120).
-13. Nav "Coming soon" on Research moved to the studies card; Phase 1 profiles rebuilt or noindexed (reverses 29 Sep);
-    the 95 split vendor pages merged into 38; naming who runs the site. Held: needs a dedicated session.
+13. ~~Nav "Coming soon" on Research moved to the studies card; the split vendor pages merged.~~ Done (item 130). Phase 1
+    profiles stay indexed (TB 29 Sep decision kept) and the site stays unnamed (TB 28 Sep), per the recommendations TB
+    approved with "13. go".
 14. ~~Homepage stack hover (item 113).~~ Done (item 125).
 TB actions: the private corpus repository and the `RESEARCH_TOKEN` secret (D1 setup; not confirmed from here); a postal
 address before the first newsletter; a lawyer's read of the Privacy Policy and Terms (Arizona venue and county); the
@@ -2146,6 +2147,23 @@ dashboard, the 12-phase growth program.
    party, an FTC impersonation ANPRM (platforms, not contact centers), beta or announced-only releases. Our 30 Sep item's
    approval line matches the FCC release. No shared run of 8 words with any cited page (originality record). Feeds carry
    the new items. Suite 28,451; live check 258 of 258.
+
+130. S24 (13 Oct), one page per vendor and the Research nav (TB: "13. go", on the recommendations: merge, keep Phase 1
+   profiles indexed, stay unnamed). A vendor profiled in several categories held one page per category under suffixed
+   slugs. `src/lib/seo.js` now derives `VENDOR_FAMILIES` from the vendor name map (slugs sharing the part before the first
+   hyphen; the page is the contact center platform profile when there is one, else the family-name slug, else the first in
+   category order): 48 families, 152 pages, 104 merged. `vendorPage`, `vendorHref` (a merged slug opens `#<slug>` on its
+   family page), `familyMembers`, `isMergedSlug`. `src/lib/VendorFamily.jsx` adds "X in other categories" below the family
+   page's own profile: one anchored section per merged profile with the words that category's page showed (Phase 1 context,
+   labelled; no score, tier, rank or quadrant) and an introduction; it scrolls to the anchor on arrival. `VendorProfile.jsx`
+   sends a merged slug to its section; `scripts/vendor-families.mjs` writes one permanent redirect per family into
+   `vercel.json` and takes merged slugs out of the sitemap (478 to 374; `--check` in the test). Merged slugs are noindex;
+   family descriptions say how many categories. Category lists, the vendor hub, competitor chips, Vendor Match links and
+   category ItemLists go through `vendorHref`. Two Phase 1 lines that used tier words reworded ("mid-tier", "top-tier").
+   Research nav: the header marks no pillar soon; "Coming soon" moved to Research's studies card (the homepage Research
+   door keeps its in preparation card). Chunk gate re-based with attribution (+4,035 raw: the family derivation in seo.js).
+   `vendorfamily.test.mjs` (113, registered); seo G, cite, prerender, search, intro and shell pins moved. Suite 27,837;
+   live check 258 of 258; family pages clean at 390, 360 and 320; old addresses land on their section.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

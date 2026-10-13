@@ -1,6 +1,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { Assent } from "./src/lib/Assent.jsx";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
+import { isMergedSlug, vendorHref, familyMembers } from "./src/lib/seo.js";
+import VendorFamily from "./src/lib/VendorFamily.jsx";
 import { getVendor, getAllSlugs } from "./VendorData";
 import { CATEGORIES } from "./src/lib/verticals.js";
 import { ccaasResearchLabel, phase1Label, CCAAS_RESEARCH } from "./src/lib/researchStatus";
@@ -110,7 +112,15 @@ function AnalystNote({ a }) {
   );
 }
 
+/* One page per vendor (open item 13): a merged category slug goes to its family page's section; a family page adds its
+   other category profiles below its own (src/lib/VendorFamily.jsx). The edge redirects merged slugs too (vercel.json). */
 export default function VendorProfile() {
+  const { slug } = useParams();
+  if (isMergedSlug(slug)) return <Navigate to={vendorHref(slug)} replace />;
+  return <><ProfileBody />{familyMembers(slug).length > 0 && <VendorFamily slug={slug} />}</>;
+}
+
+function ProfileBody() {
   const { slug } = useParams();
   const vendor = getVendor(slug);
   const ivaVendor = !vendor ? getIVAVendor(slug) : null;
@@ -901,7 +911,7 @@ export default function VendorProfile() {
                 const compSlug = c.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
                 const exists = getAllSlugs().includes(compSlug);
                 return exists ? (
-                  <a key={i} href={`/vendors/${compSlug}`} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: `${ELECTRIC}08`, padding: "6px 14px", borderRadius: 6, border: `1px solid ${ELECTRIC}20`, fontFamily: FONT, transition: "background 0.2s" }}
+                  <a key={i} href={vendorHref(compSlug)} style={{ fontSize: 13, fontWeight: 600, color: ELECTRIC, background: `${ELECTRIC}08`, padding: "6px 14px", borderRadius: 6, border: `1px solid ${ELECTRIC}20`, fontFamily: FONT, transition: "background 0.2s" }}
                     onMouseOver={e => e.target.style.background = `${ELECTRIC}15`}
                     onMouseOut={e => e.target.style.background = `${ELECTRIC}08`}>
                     {c} →

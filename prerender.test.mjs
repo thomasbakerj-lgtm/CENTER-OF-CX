@@ -38,7 +38,7 @@ try {
   await build({ logLevel: "silent", build: { ssr: "entry-server.jsx", outDir: out, copyPublicDir: false } });
   const { render, citationsOf } = await import(pathToFileURL(join(out, "entry-server.js")).href);
   const paths = [...readFileSync("public/sitemap.xml", "utf8").matchAll(/<loc>\s*https?:\/\/[^/<]+([^<\s]*)\s*<\/loc>/g)].map((m) => m[1] || "/");
-  ok("sitemap parsed", paths.length > 400, String(paths.length));
+  ok("sitemap parsed", paths.length > 350, String(paths.length));
   const bad = { render: [], h1: [], text: [], script: [], nested: [], style: [], shell: [], empty: [] };
   /* Audit, 30 Sep 2026: every IVA profile printed three attribute tiles and two hero chips with no value (the page read
      field names the data does not carry). A vendor page never renders an empty attribute value or chip. */
