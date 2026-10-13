@@ -441,7 +441,7 @@ Binding. None of this is in code comments beyond what is noted.
 1. ~~Tools hub from `/how-to-choose` to `/tools` with a 301.~~ Done (item 119).
 2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods. Held (TB, 1 Oct: revisit).
 3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds. Held (TB, 1 Oct).
-4. Site search (static index built at prerender). TB: yes; matches the words people search, not only exact text.
+4. ~~Site search.~~ Done (item 124).
 5. ~~Advisory and Contact as one page.~~ Done (item 121).
 6. ~~Migration article.~~ Done (item 123).
 7. ~~Provenance strip under every H1 and a `/standards` page.~~ Disregarded (TB, 1 Oct).
@@ -2062,6 +2062,23 @@ dashboard, the 12-phase growth program.
    against six weeks, thirty-seven integrations, add 50%, 120 days). TB can add personal experience back in their own
    words. Originality record added (two quoted matches). `freeze.test.mjs` 14: retired figures, every citation declared,
    https, year, check date and a vendor-funding note on every source (fails on the old article). Suite 27,798.
+
+124. S24 (13 Oct), site search (TB: "next. go"; open item 4: matches the words people search, not only exact text).
+   `src/lib/search.js` (pure, shared by build and page): the prerender writes `dist/search-index.json`, one record per
+   sitemap page (title, description, kind, and stemmed words of the title, a category's other names, headings,
+   description and the page's 160 most frequent body words; header and footer stripped): 432 records, 536 KB, about 96 KB
+   compressed, loaded only on the search page. Matching: light stems (forecasting and forecast, routing and route),
+   synonym groups for acronyms and common names (`SYNONYMS`: WFM, AHT, FCR, CCaaS and call center software, IVA and
+   chatbot, TCO, RFP and more) plus each category's `also` and `related` terms, one typo on words of five letters or more,
+   the last word as a prefix while typing. Every word must match; if none match all, pages matching some show, marked.
+   Score: title and other names 10, headings 5, description 4, body 1, plus title coverage, an exact page name (+6), an
+   exact other name (+4) and a small lift for hub kinds (category 3, tool 2, method and industry 1); ties A to Z.
+   Relevance to the query, never a judgment of a vendor. `/search` (`Search.jsx`): labelled box, suggestions, results with
+   kind, title and description, `?q=` in the address so a search can be shared; noindex (`noindex: true` in SEO_MAP; the
+   resolver marks it unknown) and out of the sitemap. The query never leaves the browser: one same-origin fetch, no event.
+   Header: a search icon link on every width (named for screen readers); the header row tightens at 420 px and below so it
+   fits at 320. `search.test.mjs` (49, registered): stems, typos, synonyms, 16 reader queries land the intended page in
+   the top three, partial and empty queries, ties, wiring, privacy, and the built index when present.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

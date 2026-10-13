@@ -54,6 +54,7 @@ const PlatformsTech = lazy(() => import('./PlatformsTech'))
 const About = lazy(() => import('./About'))
 const Corrections = lazy(() => import('./Corrections'))
 const ResearchMethod = lazy(() => import('./ResearchMethod'))
+const Search = lazy(() => import('./Search'))
 const Contribute = lazy(() => import('./Contribute'))
 const Perspectives = lazy(() => import('./Perspectives'))
 const PerspectiveRoute = lazy(() => import('./Perspectives').then((m) => ({ default: m.PerspectiveRoute })))
@@ -322,6 +323,7 @@ export function AppRoutes() {
         <Route path="/how-to-choose" element={<LegacyRedirect to="/tools" />} />
         <Route path="/research" element={<Research />} />
         <Route path="/research/vendor-method" element={<ResearchMethod />} />
+        <Route path="/search" element={<Search />} />
         <Route path="/vendors" element={<Vendors />} />
         <Route path="/vendors/ccaas" element={<CCaaSCategory />} />
         <Route path="/vendors/iva" element={<IVACategory />} />
