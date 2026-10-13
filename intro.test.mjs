@@ -29,7 +29,7 @@ section("1. The link carries a known profile or a plain short name, nothing else
 {
   const sitemap = read("public/sitemap.xml");
   const slugs = [...sitemap.matchAll(/\/vendors\/([a-z0-9-]+)<\/loc>/g)].map((m) => m[1]).filter((s) => SEO.isVendorSlug(s));
-  ok(`every vendor profile in the sitemap is a known slug (${slugs.length})`, slugs.length >= 280);
+  ok(`every vendor profile in the sitemap is a known slug, merged sections on their family page (${slugs.length})`, slugs.length + Object.values(SEO.VENDOR_FAMILIES).reduce((a, m) => a + m.length - 1, 0) >= 280);
   const bad = slugs.filter((s) => { const r = readIntro(introHref({ slug: s, from: "vendor" }).slice("/contact".length)); return !r || r.slug !== s || r.name !== SEO.vendorDisplayName(s) || r.from !== "vendor"; });
   ok(`every profile slug round-trips with its display name [${bad.slice(0, 3).join(", ")}]`, bad.length === 0);
   ok("an unknown slug opens a plain contact form", introHref({ slug: "not-a-vendor" }) === "/contact" && readIntro("?intro=not-a-vendor") === null);

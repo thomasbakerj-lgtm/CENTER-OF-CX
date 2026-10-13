@@ -97,7 +97,7 @@ section("5. Category pages carry an unordered ItemList, A to Z");
     const g = S.structuredData(c.page, S.resolveSeo(c.page)).find((x) => x["@type"] === "ItemList");
     const names = g ? g.itemListElement.map((x) => x.name) : [];
     ok(`${id}: ItemList, unordered, A to Z, every item a real profile`, !!g && g.itemListOrder === "https://schema.org/ItemListUnordered" && g.numberOfItems === names.length && names.length > 5
-      && names.join("\n") === [...names].sort((a, b) => a.localeCompare(b)).join("\n") && g.itemListElement.every((x) => SITEMAP.has(x.url)));
+      && names.join("\n") === [...names].sort((a, b) => a.localeCompare(b)).join("\n") && g.itemListElement.every((x) => SITEMAP.has(x.url.split("#")[0])));
   }
   ok("no other page carries one", !S.structuredData("/vendors", S.resolveSeo("/vendors")).some((x) => x["@type"] === "ItemList"));
 }

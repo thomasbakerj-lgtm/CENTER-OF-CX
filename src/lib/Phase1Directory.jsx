@@ -10,6 +10,7 @@ import { phase1Label, byName } from "./researchStatus.js";
 import { VendorIntroLink } from "./VendorIntro.jsx";
 import { HOUSE, PILLARS, LINE, alpha } from "./tokens.js";
 import { FONT } from "./type.js";
+import { vendorHref } from "./seo.js";
 
 const NAVY = HOUSE.mist; const ELECTRIC = PILLARS.vendors.onDark; const WARM = HOUSE.navy; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair);
 const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
@@ -45,7 +46,7 @@ export function Phase1Directory({ groups }) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
               {[...g.vendors].sort(byName).map((v) => (
                 <div key={v.slug} style={{ display: "flex", flexDirection: "column" }}>
-                <a href={`/vendors/${v.slug}`} style={{ display: "block", padding: "12px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, flex: 1 }}>
+                <a href={vendorHref(v.slug)} style={{ display: "block", padding: "12px 14px", background: WARM, border: `1px solid ${BORDER}`, borderRadius: 8, flex: 1 }}>
                   <div style={{ fontSize: 14, fontWeight: 600, color: NAVY }}>{v.name}</div>
                   {v.line && <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{v.line}</div>}
                   <div style={{ fontSize: 11, color: SLATE, marginTop: 6 }}>{label.short}</div>

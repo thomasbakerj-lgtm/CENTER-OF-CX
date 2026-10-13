@@ -18,15 +18,16 @@ import { trackShare } from "./track.js";
 
 export const HEADER_HEIGHT = 64;
 
-/* The five pillars in order. Research stays marked soon until the first study of our own is published; its landing
-   gathers what exists today. A pillar without a page would be a label, never a link that goes nowhere. */
+/* The five pillars in order. A pillar without a page would be a label, never a link that goes nowhere. The header marks
+   no pillar soon (open item 13, TB 13 Oct 2026): Research's landing gathers what exists today, and "Coming soon" sits on
+   its studies card instead, the part still to come. */
 export const NAV = [
   { id: "diagnostics", href: "/tools" },
   { id: "vendors", href: "/vendors" },
   { id: "industries", href: "/industries" },
   { id: "research", href: "/research" },
   { id: "marketWatch", href: "/market-watch" },
-].map((n) => ({ ...n, name: PILLARS[n.id].name, soon: PILLARS[n.id].soon }));
+].map((n) => ({ ...n, name: PILLARS[n.id].name, soon: false }));
 
 export const FOOTER = [
   { head: "Diagnostics", links: [["All tools", "/tools"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },

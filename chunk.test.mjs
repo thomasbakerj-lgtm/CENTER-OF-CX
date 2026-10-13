@@ -48,7 +48,15 @@ const section = (s) => console.log(`\n${s}`);
  *
  * The numbers are argued, not rounded.
  *
- * Measured entry on 27 September 2026, redesign Phase 10 (Market Watch, contributors, the Research landing): 270,220
+ * Measured entry on 13 October 2026, open item 13 (one page per vendor): 278,300 bytes raw, 90,157 gzipped. Reset from
+ * 270,220 raw, 87,478 gzipped. main at 80608a0 measured 274,265 raw, 88,760 gzipped: the 4,045 raw bytes from Phase 10
+ * to main are src/lib/seo.js metadata and resolvers for pages added since (the reference library, Updates, the peer group
+ * comparisons and alternatives, search, the tools hub move) and App.jsx routes for them. This change adds 4,035: the
+ * family derivation in src/lib/seo.js (VENDOR_FAMILIES, vendorPage, vendorHref, familyMembers, isMergedSlug, the family
+ * descriptions), derived from the vendor name map already in the entry, so no hand list or data file entered. Checked
+ * against the built entry: no family section text, VendorFamily component or category data string is in it.
+ *
+ * Before that, measured on 27 September 2026, redesign Phase 10 (Market Watch, contributors, the Research landing): 270,220
  * bytes raw, 87,478 gzipped. Reset from main at 99de2e0, which measured 267,708 raw (Phases 5 to 9 had used most of the
  * headroom above the Phase 4 base with routes and metadata: the corrections page, the three indexed CCaaS by industry
  * pages, the changelog redirect and the internal method log, taxonomy 1.1 and 1.2). Attributed module by module against
@@ -115,8 +123,8 @@ const section = (s) => console.log(`\n${s}`);
  * this paragraph. Do not raise it to make a build pass. A run that reports this
  * harness UNPARSED has not measured anything and is a failure, never a pass.
  */
-const BASE_RAW = 270220;
-const BASE_GZ = 87478;
+const BASE_RAW = 278300;
+const BASE_GZ = 90157;
 const SMALLEST_SPLIT_RAW = 8931;
 const SMALLEST_SPLIT_GZ = 3100;
 const RAW_CEILING = BASE_RAW + Math.floor((SMALLEST_SPLIT_RAW * 2) / 3);   // 268,294
