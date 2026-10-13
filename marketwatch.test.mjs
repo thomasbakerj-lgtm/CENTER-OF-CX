@@ -111,12 +111,12 @@ const door = H.DOORS.find((d) => d.pillar === "marketWatch");
 ok("the homepage door opens the page", door.page && door.page.href === "/market-watch" && !door.soon && !door.routes);
 
 section("5. Nothing outside the Market Watch surfaces reads the data");
-const ALLOWED = new Set(["MarketWatch.jsx", "Research.jsx", "src/lib/home.js"]);
+const ALLOWED = new Set(["MarketWatch.jsx", "Research.jsx", "src/lib/home.js", "src/lib/updates.js"]);
 const files = [];
 const walk = (d) => { for (const f of readdirSync(d)) { if (["node_modules", "dist", "dist-ssr", ".git", "public"].includes(f)) continue; const p = join(d, f); if (statSync(p).isDirectory()) walk(p); else if (/\.(jsx?|mjs)$/.test(f) && !/\.test\.mjs$|\.report\.mjs$/.test(f)) files.push(p.replace(/^\.\//, "")); } };
 walk(".");
 const readers = files.filter((f) => /from\s+["'][^"']*marketWatch\.js["']/.test(readFileSync(f, "utf8")) && f !== "src/lib/marketWatch.js");
-ok("only the page, the Research landing and the homepage door import it", readers.length > 0 && readers.every((f) => ALLOWED.has(f)), readers.join());
+ok("only the page, the Research landing, the homepage door and the Updates feed import it", readers.length > 0 && readers.every((f) => ALLOWED.has(f)), readers.join());
 ok("no research, tool, grade or Vendor Match file imports it", !readers.some((f) => /research\/|Vendor|Calculator|rubric|journey|toolData|confidence/.test(f)));
 
 console.log(`\n${pass} passed, ${fail} failed`);

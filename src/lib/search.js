@@ -93,7 +93,7 @@ export function kindOf(path, categoryPages = []) {
   if (/^\/industries\/[a-z-]+\/[a-z-]+/.test(path)) return "Industry segment";
   if (path.startsWith("/industries")) return "Industry";
   if (path.startsWith("/reference")) return "Reference";
-  if (path.startsWith("/research") || path === "/market-watch") return "Research";
+  if (path.startsWith("/research") || path === "/market-watch" || path === "/updates") return "Research";
   return "Page";
 }
 

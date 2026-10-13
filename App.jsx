@@ -61,6 +61,7 @@ const PerspectiveRoute = lazy(() => import('./Perspectives').then((m) => ({ defa
 const ContributorRoute = lazy(() => import('./Perspectives').then((m) => ({ default: m.ContributorRoute })))
 const MarketWatch = lazy(() => import('./MarketWatch'))
 const Reference = lazy(() => import('./Reference'))
+const Updates = lazy(() => import('./Updates'))
 const Contact = lazy(() => import('./Contact'))
 const Subscribe = lazy(() => import('./Subscribe'))
 const HowToChoose = lazy(() => import('./HowToChoose'))
@@ -369,6 +370,7 @@ export function AppRoutes() {
         <Route path="/perspectives/:slug" element={<PerspectiveRoute />} />
         <Route path="/contributors/:slug" element={<ContributorRoute />} />
         <Route path="/market-watch" element={<MarketWatch />} />
+        <Route path="/updates" element={<Updates />} />
         <Route path="/reference" element={<Reference />} />
         <Route path="/reference/:id" element={<Reference />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />

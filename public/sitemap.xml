@@ -1765,6 +1765,10 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/updates</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/market-watch</loc>
     <priority>0.4</priority>
   </url>

@@ -32,7 +32,7 @@ export const FOOTER = [
   { head: "Diagnostics", links: [["All tools", "/tools"], ["Cost per Contact", "/tools/cost-per-contact"], ["Platform Decision", "/tools/platform-decision"]] },
   { head: "Vendor Intelligence", links: [["All categories", "/vendors"], [CATEGORIES.ccaas.name, "/vendors/ccaas"], [CATEGORIES.iva.name, "/vendors/iva"]] },
   { head: "Industry Insights", links: [["All industries", "/industries"], ["Healthcare", "/industries/healthcare"], ["Financial Services", "/industries/financial-services"]] },
-  { head: "Research", links: [["Research", "/research"], ["Metrics reference", "/reference"], ["Market Watch", "/market-watch"], ["Contributor perspectives", "/perspectives"], ["Write for us", "/contribute"]] },
+  { head: "Research", links: [["Research", "/research"], ["Metrics reference", "/reference"], ["Market Watch", "/market-watch"], ["Updates", "/updates"], ["Contributor perspectives", "/perspectives"], ["Write for us", "/contribute"]] },
   { head: "The Center of CX", links: [["About", "/about"], ["Get help", "/contact"], ["The Human Premium", "/human-premium"], ["Subscribe", "/subscribe"], ["Corrections", "/corrections"]] },
 ];
 

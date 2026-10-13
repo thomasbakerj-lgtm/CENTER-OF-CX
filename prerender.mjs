@@ -191,6 +191,13 @@ for (const loc of locs) {
 
 writeFileSync(join(DIST, "search-index.json"), JSON.stringify({ v: SEARCH_INDEX_VERSION, docs: searchDocs }), "utf8");
 
+/* /feed.xml and /feed.json: the Updates feeds (src/lib/updates.js), the same entries as /updates. */
+{
+  const { rssXml, jsonFeed } = await import("./src/lib/updates.js");
+  writeFileSync(join(DIST, "feed.xml"), rssXml(), "utf8");
+  writeFileSync(join(DIST, "feed.json"), jsonFeed(), "utf8");
+}
+
 /* /llms.txt: a plain-text map of the site from the same records the pages render (src/lib/llmsTxt.js). */
 {
   const { llmsTxt } = await import("./src/lib/llmsTxt.js");
