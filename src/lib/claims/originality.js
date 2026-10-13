@@ -22,6 +22,14 @@ const MFG_METHOD = "55 distinctive 8 to 12 word runs (main page and hub card 7, 
 const MW_METHOD = "Market Watch launch set (12 items). Each headline and summary was written from the page it cites, then compared by machine against the text of every cited page for any shared run of 8 or more words (normalised case and punctuation). Pages were read with curl, headless Chromium or, for PDFs, extracted text. 19 of 20 cited pages were compared; the Cisco end of life page refuses every client from this network (Access Denied), so that item was written from a read of the page and could not be compared by machine.";
 
 export const ORIGINALITY = {
+  "ArticleCCaaSCosts.jsx": {
+    checked: "2026-10-13",
+    method: "Rewrite of TB's migration essay to the site's standards. Its two figures were read on the publishers' own pages (Puzzel's report PDF as extracted text; SuccessKPI's study page). Every prose string was compared by script with the text of both pages for shared runs of 8 words. Figures with no traceable publisher (Blackchair 62%, InflectionCX 60%), a lapsed forecast (Gartner, through 2024, page withdrawn) and a general cloud study (Forrester 2017) were removed.",
+    matches: [
+      { text: "40% report having limited success with their CCaaS migration efforts", near: "https://successkpi.com/cloud-success", kind: "publisher's headline finding", resolution: "quoted" },
+      { text: "The Frustrating Journey to Cloud Contact Center Success", near: "https://successkpi.com/cloud-success", kind: "study title", resolution: "quoted" },
+    ],
+  },
   "src/lib/marketWatch.js": {
     checked: "2026-10-01",
     method: MW_METHOD,
