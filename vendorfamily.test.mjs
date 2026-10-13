@@ -43,7 +43,7 @@ try { execFileSync("node", ["scripts/vendor-families.mjs", "--check"], { stdio: 
 ok("vercel.json and the sitemap are in step with the families", inSync);
 const vercel = JSON.parse(readFileSync("./vercel.json", "utf8"));
 const rx = vercel.redirects.filter((r) => r.source.startsWith("/vendors/:merged(")).map((r) => ({ re: new RegExp("^/vendors/(" + r.source.slice(17, -1) + ")$"), to: r.destination, permanent: r.permanent }));
-ok("every merged slug redirects permanently to its family page, and only those", merged.every((m) => { const hit = rx.filter((r) => r.re.test(`/vendors/${m}`)); return hit.length === 1 && hit[0].to === `/vendors/${S.vendorPage(m)}` && hit[0].permanent; }) && Object.keys(F).every((main) => !rx.some((r) => r.re.test(`/vendors/${main}`))));
+ok("every merged slug redirects permanently to its own section on its family page, and only those", merged.every((m) => { const hit = rx.filter((r) => r.re.test(`/vendors/${m}`)); return hit.length === 1 && hit[0].to === `/vendors/${S.vendorPage(m)}#${m}` && hit[0].permanent; }) && Object.keys(F).every((main) => !rx.some((r) => r.re.test(`/vendors/${main}`))));
 const sitemap = readFileSync("./public/sitemap.xml", "utf8");
 ok("no merged slug in the sitemap; every family page is", merged.every((m) => !sitemap.includes(`/vendors/${m}</loc>`)) && Object.keys(F).every((m) => sitemap.includes(`/vendors/${m}</loc>`)));
 ok("a merged slug is not indexable; its family page is", merged.every((m) => !S.resolveSeo(`/vendors/${m}`).known) && Object.keys(F).every((m) => S.resolveSeo(`/vendors/${m}`).known));
