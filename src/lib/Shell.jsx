@@ -62,7 +62,8 @@ const SoonTag = ({ id }) => (
   <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "1px 5px", borderRadius: 4, border: `1px solid ${PILLARS[id].onDark}`, color: PILLARS[id].onDark, whiteSpace: "nowrap" }}>Coming soon</span>
 );
 
-const CSS = `body{margin:0}.cx-nav{display:flex}.cx-menu-btn{display:none}
+const CSS = `body{margin:0}.cx-nav{display:flex}.cx-menu-btn{display:none}.cx-hrow{gap:28px}
+@media (max-width:420px){.cx-hrow{gap:4px;padding:0 12px!important}}
 @media (max-width:1100px){.cx-nav{display:none}.cx-menu-btn{display:flex}}
 .cx-nav a:hover,.cx-foot a:hover{color:${HOUSE.paper}}`;
 
@@ -85,12 +86,13 @@ export function SiteHeader({ active = null, fixed = false }) {
   return (
     <header style={{ ...place, zIndex: 1000, background: HOUSE.ink, borderBottom: `1px solid ${hair}`, fontFamily: FONT_SANS }}>
       <style>{CSS}</style>
-      <div style={{ maxWidth: 1280, margin: "0 auto", height: HEADER_HEIGHT, padding: "0 20px", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 28 }}>
+      <div className="cx-hrow" style={{ maxWidth: 1280, margin: "0 auto", height: HEADER_HEIGHT, padding: "0 20px", boxSizing: "border-box", display: "flex", alignItems: "center" }}>
         <a href="/" title={edition ? `${edition.name}: ${edition.why}` : undefined} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", color: HOUSE.mist, minHeight: TOUCH }}>
           <Mark size={40} edition={edition} /><span style={{ fontSize: 16, fontWeight: 600, whiteSpace: "nowrap" }}>The Center of CX</span>
         </a>
         <nav aria-label="Primary" className="cx-nav" style={{ alignItems: "center", gap: 22 }}>{NAV.map((n) => item(n, false))}</nav>
         <div style={{ flexGrow: 1 }} />
+        <a href="/search" aria-label="Search the site" title="Search" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: TOUCH, height: TOUCH, color: HOUSE.mist, flexShrink: 0 }}><Icon name="search" size={20} /></a>
         <a href="/subscribe" className="cx-nav" style={{ alignItems: "center", minHeight: 40, padding: "0 14px", borderRadius: RADIUS.field, border: `1px solid ${soft}`, color: HOUSE.mist, fontSize: 14, fontWeight: 600, textDecoration: "none" }}>Subscribe</a>
         <button type="button" className="cx-menu-btn" aria-expanded={open} aria-controls="cx-menu" aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}
           style={{ width: TOUCH, height: TOUCH, alignItems: "center", justifyContent: "center", background: "none", border: "none", color: HOUSE.mist, cursor: "pointer" }}>

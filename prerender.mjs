@@ -18,6 +18,8 @@ import { pathToFileURL } from "node:url";
 import { rawStyles, nestedLinks } from "./src/lib/prerenderHtml.js";
 import { cardSvg, cardKind, cardFile, firstSentence, CARD_W, CARD_H } from "./src/lib/shareCard.js";
 import { Resvg } from "@resvg/resvg-js";
+import { buildDoc, kindOf, SEARCH_INDEX_VERSION } from "./src/lib/search.js";
+import { CATEGORIES } from "./src/lib/verticals.js";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DIST = join(ROOT, "dist");
@@ -133,6 +135,10 @@ const seen = new Set();
 let written = 0;
 let fallbackCount = 0;
 const fallbacks = [];
+/* Site search: one small record per sitemap page, written as dist/search-index.json (src/lib/search.js). */
+const searchDocs = [];
+const CATEGORY_PAGES = Object.values(CATEGORIES).map((c) => c.page);
+const SITE_SUFFIX = / \| The Center of CX$/;
 
 for (const loc of locs) {
   if (!loc.startsWith(BASE)) {
@@ -178,7 +184,12 @@ for (const loc of locs) {
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "index.html"), html, "utf8");
   written++;
+  const cat = Object.values(CATEGORIES).find((c) => c.page === path);
+  searchDocs.push(buildDoc({ path, title: seo.title.replace(SITE_SUFFIX, ""), desc: seo.desc, html: body, kind: kindOf(path, CATEGORY_PAGES),
+    extra: cat ? [cat.name, ...cat.also, ...cat.related] : [] }));
 }
+
+writeFileSync(join(DIST, "search-index.json"), JSON.stringify({ v: SEARCH_INDEX_VERSION, docs: searchDocs }), "utf8");
 
 /* /llms.txt: a plain-text map of the site from the same records the pages render (src/lib/llmsTxt.js). */
 {

@@ -313,6 +313,12 @@ export const SEO_MAP = {
     title: `Write for The Center of CX | Contributor Rules | ${SITE}`,
     desc: "Publish under your own name: who may write, how review works, disclosure of vendor ties, no product promotion, you keep copyright, and how to propose a piece.",
   },
+  /* Site search: titled, kept out of the sitemap and marked noindex (a results page is not a page of its own). */
+  "/search": {
+    title: `Search | ${SITE}`,
+    desc: "Search the site's tools, methods, vendor profiles, industry pages and research, with acronyms and other names matched.",
+    noindex: true,
+  },
   "/research/vendor-method": {
     title: `How We Research Contact Center Vendors | ${SITE}`,
     desc: "How vendor research is done: what a profile answers, how findings are labelled, which sources count, and how each vendor is challenged and signed off.",
@@ -836,7 +842,7 @@ export function resolveSeo(rawPath) {
   if (pathname.length > 1 && pathname.endsWith("/")) pathname = pathname.slice(0, -1);
 
   const mapped = own(SEO_MAP, pathname);
-  if (mapped) return { title: mapped.title, desc: mapped.desc, path: pathname, known: true };
+  if (mapped) return { title: mapped.title, desc: mapped.desc, path: pathname, known: !mapped.noindex };
 
   const seo = {
     title: `${SITE} | Contact Center Tools and Research`,
