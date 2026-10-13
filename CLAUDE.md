@@ -2133,6 +2133,20 @@ dashboard, the 12-phase growth program.
    updated. Suite 28,451; live check 258 of 258; 31 pages clean at 1440 and 390 (overflow, errors, axe) and containment
    at 390, 360 and 320.
 
+129. S24 (13 Oct), Market Watch set of 13 October (TB: "research this fortnight's Market Watch items here"; the weekly
+   routine's first run opened no PR: its session had no repository attached, so TB adds the repository to the routine in
+   claude.ai Routines). Eight items, 1 to 13 Oct, each read on its own page: FCC 26-67 full text released 1 Oct (changes
+   start 30 days after Federal Register publication, not yet published); FCC Enforcement Bureau removes Digital Solutions
+   from the Robocall Mitigation Database (5 Oct) and gives Aspireistic and Callsto 14 days (8 Oct); Automation Anywhere
+   agrees to buy Boost.ai (7 Oct, news: SiliconANGLE, with Nordic Capital's release); Genesys Cloud US East errors (9 Oct)
+   and Aircall calling incident (12 Oct) from their status feeds; Webex Contact Center Personalized AI Routing (1 Oct);
+   Amazon Connect prefilled after-contact guides (12 Oct); Zendesk voice AI agents generally available (6 Oct roundup).
+   Left out: Genesys's Salesforce credential retirement (two-per-vendor rule), the CallTower and Momentum deal (UC, no
+   contact center scope), minor Zoom and Aircall incidents, a Salesforce Agentforce packaging change dated only by a third
+   party, an FTC impersonation ANPRM (platforms, not contact centers), beta or announced-only releases. Our 30 Sep item's
+   approval line matches the FCC release. No shared run of 8 words with any cited page (originality record). Feeds carry
+   the new items. Suite 28,451; live check 258 of 258.
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the
