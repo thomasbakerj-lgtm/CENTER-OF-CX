@@ -16,6 +16,7 @@ import { VERTICALS, CATEGORIES } from "./verticals.js";
 import { CLAIMS, TESTS } from "./claims.js";
 import { JOURNEY } from "./journey.js";
 import { PLATFORM_DECISION } from "./rubrics/platformDecision.js";
+import { LAYER_TOOLS } from "./layerTools.js";
 import { publishedItems, latestDate } from "./marketWatch.js";
 
 const MW_COUNT = publishedItems().length;
@@ -122,9 +123,19 @@ const LAYER_WHAT = {
   l2: "The workflows that finish the job in other systems.",
   l1: "The customer data every other layer reads.",
 };
-export const LAYER_INFO = Object.fromEntries(PLATFORM_DECISION.layers.map((l) => [`l${l.n}`, {
-  what: LAYER_WHAT[`l${l.n}`], technical: l.name, tool: { name: JOURNEY[l.tool].name, href: JOURNEY[l.tool].route }, category: { name: l.categoryLabel, href: l.category },
-}]));
+/* Every tool that tests a layer: Platform Decision's tool first, then the framework guide's published list for that
+   layer (layerTools.js), each with its published method when it has one. Every layer also points to the industry
+   requirements and the framework guide, which map all seven layers. */
+const BY_ROUTE = Object.fromEntries(Object.entries(JOURNEY).map(([id, j]) => [j.route, id]));
+const toolEntry = (id) => ({ id, name: JOURNEY[id].name, href: JOURNEY[id].route, method: METHOD_VERSIONS[id] ? `/methodology/${id}` : null });
+export const LAYER_INFO = Object.fromEntries(PLATFORM_DECISION.layers.map((l) => {
+  const ids = [l.tool, ...LAYER_TOOLS[l.n].map(([route]) => BY_ROUTE[route])].filter((id, i, a) => id && a.indexOf(id) === i);
+  return [`l${l.n}`, {
+    what: LAYER_WHAT[`l${l.n}`], technical: l.name, tool: { name: JOURNEY[l.tool].name, href: JOURNEY[l.tool].route }, category: { name: l.categoryLabel, href: l.category },
+    tools: ids.map(toolEntry),
+    more: [{ name: "Requirements by industry", href: "/industries" }, { name: "The 7-layer framework guide", href: "/research/orchestration-framework" }],
+  }];
+}));
 
 /* Proof, from the registries. */
 export const PROOFS = [

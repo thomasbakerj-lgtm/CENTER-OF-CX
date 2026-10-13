@@ -248,21 +248,30 @@ export function Readout({ parts = [], score, max = 100, size = 180 }) {
 /* -------------------------------------------------------------------- Stack */
 
 /** The seven layers, top first. The chosen layer lifts and glows; the others part. */
-export function Stack({ active = null, onSelect, width = 300 }) {
+export function Stack({ active = null, onSelect, onPreview, preview = null, width = 300 }) {
+  /* A layer the pointer or keyboard focus rests on parts the stack and grows a little (preview); a click or tap chooses
+     it (active). Hover is mouse only, so a tap on a phone is one choice. Reduced motion keeps the parting, drops the glide. */
   const plate = width * 0.55;
+  const shown = preview || active;
+  const hover = (id) => (e) => { if (onPreview && e.pointerType === "mouse") onPreview(id); };
   return (
-    <div role="group" aria-label="The seven layer stack" style={{ position: "relative", width, height: width * 0.82 }}>
+    <div role="group" aria-label="The seven layer stack" onPointerLeave={(e) => { if (onPreview && e.pointerType === "mouse") onPreview(null); }} style={{ position: "relative", width, height: width * 0.82 }}>
+      <style>{`@media (prefers-reduced-motion: reduce){.cx-plate{transition:none!important}}`}</style>
       {LAYERS.map((l, i) => {
-        const idx = LAYERS.findIndex((x) => x.id === active);
+        const idx = LAYERS.findIndex((x) => x.id === shown);
         const on = l.id === active;
+        const lit = l.id === shown;
+        const grow = l.id === preview;
         let top = 8 + i * (width * 0.085);
         if (idx >= 0) { if (i < idx) top -= 10; if (i > idx) top += 10; }
         return (
-          <button key={l.id} type="button" aria-label={`L${l.n} ${l.name}`} aria-pressed={on} onClick={() => onSelect && onSelect(on ? null : l.id)}
+          <button key={l.id} type="button" className="cx-plate" aria-label={`L${l.n} ${l.name}`} aria-pressed={on} onClick={() => onSelect && onSelect(on ? null : l.id)}
+            onPointerEnter={hover(l.id)} onFocus={() => onPreview && onPreview(l.id)} onBlur={() => onPreview && onPreview(null)}
             style={{ position: "absolute", left: (width - plate) / 2, top, width: plate, height: plate, padding: 0, borderRadius: RADIUS.card, cursor: "pointer",
-              transform: "rotateX(60deg) rotateZ(45deg)", transition: `top ${MOTION.count} ${MOTION.curve}, background ${MOTION.count} ${MOTION.curve}`,
-              background: alpha(l.color, on ? 0.42 : 0.16), border: `${on ? 2 : 1}px solid ${on ? l.color : alpha(l.color, 0.55)}`,
-              boxShadow: on ? `0 0 60px ${alpha(l.color, 0.55)}` : "none", opacity: idx >= 0 && !on ? 0.7 : 1 }} />
+              transform: `rotateX(60deg) rotateZ(45deg)${grow ? " scale(1.1)" : ""}`, zIndex: grow ? 2 : 1,
+              transition: `top ${MOTION.count} ${MOTION.curve}, transform ${MOTION.count} ${MOTION.curve}, background ${MOTION.count} ${MOTION.curve}`,
+              background: alpha(l.color, lit ? 0.42 : 0.16), border: `${lit ? 2 : 1}px solid ${lit ? l.color : alpha(l.color, 0.55)}`,
+              boxShadow: lit ? `0 0 60px ${alpha(l.color, 0.55)}` : "none", opacity: idx >= 0 && !lit ? 0.7 : 1 }} />
         );
       })}
     </div>
