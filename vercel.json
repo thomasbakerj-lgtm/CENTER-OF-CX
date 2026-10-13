@@ -56,243 +56,523 @@
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(8x8-ai|8x8-wem|8x8-acd)",
-      "destination": "/vendors/8x8",
+      "source": "/vendors/:merged(8x8-ai)",
+      "destination": "/vendors/8x8#8x8-ai",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(ada-analytics|ada-de)",
-      "destination": "/vendors/ada",
+      "source": "/vendors/:merged(8x8-wem)",
+      "destination": "/vendors/8x8#8x8-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(8x8-acd)",
+      "destination": "/vendors/8x8#8x8-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(ada-analytics)",
+      "destination": "/vendors/ada#ada-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(ada-de)",
+      "destination": "/vendors/ada#ada-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(aircall-acd)",
-      "destination": "/vendors/aircall",
+      "destination": "/vendors/aircall#aircall-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(alvaria-acd)",
-      "destination": "/vendors/alvaria",
+      "destination": "/vendors/alvaria#alvaria-acd",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(amazon-connect-ai|amazon-lex|amazon-aa|amazon-wem|amazon-acd)",
-      "destination": "/vendors/amazon-connect",
+      "source": "/vendors/:merged(amazon-connect-ai)",
+      "destination": "/vendors/amazon-connect#amazon-connect-ai",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(avaya-analytics|avaya-acd)",
-      "destination": "/vendors/avaya",
+      "source": "/vendors/:merged(amazon-lex)",
+      "destination": "/vendors/amazon-connect#amazon-lex",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(balto-aa|balto-analytics)",
-      "destination": "/vendors/balto",
+      "source": "/vendors/:merged(amazon-aa)",
+      "destination": "/vendors/amazon-connect#amazon-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(amazon-wem)",
+      "destination": "/vendors/amazon-connect#amazon-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(amazon-acd)",
+      "destination": "/vendors/amazon-connect#amazon-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(avaya-analytics)",
+      "destination": "/vendors/avaya#avaya-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(avaya-acd)",
+      "destination": "/vendors/avaya#avaya-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(balto-aa)",
+      "destination": "/vendors/balto#balto-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(balto-analytics)",
+      "destination": "/vendors/balto#balto-analytics",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(bright-acd)",
-      "destination": "/vendors/bright-pattern",
+      "destination": "/vendors/bright-pattern#bright-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(calabrio-analytics)",
-      "destination": "/vendors/calabrio-wem",
+      "destination": "/vendors/calabrio-wem#calabrio-analytics",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(callminer-analytics)",
-      "destination": "/vendors/callminer-wem",
+      "destination": "/vendors/callminer-wem#callminer-analytics",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(cisco-cc-ai|cisco-analytics|cisco-acd)",
-      "destination": "/vendors/cisco",
+      "source": "/vendors/:merged(cisco-cc-ai)",
+      "destination": "/vendors/cisco#cisco-cc-ai",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(cisco-analytics)",
+      "destination": "/vendors/cisco#cisco-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(cisco-acd)",
+      "destination": "/vendors/cisco#cisco-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(clickatell-plat-de)",
-      "destination": "/vendors/clickatell-de",
+      "destination": "/vendors/clickatell-de#clickatell-plat-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(contentguru-acd)",
-      "destination": "/vendors/contentguru-wem",
+      "destination": "/vendors/contentguru-wem#contentguru-acd",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(cresta-aa|cresta-wem|cresta-analytics)",
-      "destination": "/vendors/cresta",
+      "source": "/vendors/:merged(cresta-aa)",
+      "destination": "/vendors/cresta#cresta-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(cresta-wem)",
+      "destination": "/vendors/cresta#cresta-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(cresta-analytics)",
+      "destination": "/vendors/cresta#cresta-analytics",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(dialpad-aa)",
-      "destination": "/vendors/dialpad",
+      "destination": "/vendors/dialpad#dialpad-aa",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(egain-de)",
-      "destination": "/vendors/egain",
+      "destination": "/vendors/egain#egain-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(emplifi-light-de)",
-      "destination": "/vendors/emplifi-de",
+      "destination": "/vendors/emplifi-de#emplifi-light-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(enghouse-wem)",
-      "destination": "/vendors/enghouse",
+      "destination": "/vendors/enghouse#enghouse-wem",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(five9-iva|five9-aa|five9-wem|five9-analytics|five9-acd)",
-      "destination": "/vendors/five9",
+      "source": "/vendors/:merged(five9-iva)",
+      "destination": "/vendors/five9#five9-iva",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(genesys-ai|genesys-copilot|genesys-aa|genesys-wem|genesys-analytics|genesys-acd)",
-      "destination": "/vendors/genesys",
+      "source": "/vendors/:merged(five9-aa)",
+      "destination": "/vendors/five9#five9-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(five9-wem)",
+      "destination": "/vendors/five9#five9-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(five9-analytics)",
+      "destination": "/vendors/five9#five9-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(five9-acd)",
+      "destination": "/vendors/five9#five9-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(genesys-ai)",
+      "destination": "/vendors/genesys#genesys-ai",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(genesys-copilot)",
+      "destination": "/vendors/genesys#genesys-copilot",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(genesys-aa)",
+      "destination": "/vendors/genesys#genesys-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(genesys-wem)",
+      "destination": "/vendors/genesys#genesys-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(genesys-analytics)",
+      "destination": "/vendors/genesys#genesys-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(genesys-acd)",
+      "destination": "/vendors/genesys#genesys-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(gladly-de)",
-      "destination": "/vendors/gladly",
+      "destination": "/vendors/gladly#gladly-de",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(google-aa|google-analytics)",
-      "destination": "/vendors/google-dialogflow",
+      "source": "/vendors/:merged(google-aa)",
+      "destination": "/vendors/google-dialogflow#google-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(google-analytics)",
+      "destination": "/vendors/google-dialogflow#google-analytics",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(gorgias-de)",
-      "destination": "/vendors/gorgias",
+      "destination": "/vendors/gorgias#gorgias-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(intercom-de)",
-      "destination": "/vendors/intercom-fin",
+      "destination": "/vendors/intercom-fin#intercom-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(koreai-acd)",
-      "destination": "/vendors/koreai-analytics",
+      "destination": "/vendors/koreai-analytics#koreai-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(kustomer-de)",
-      "destination": "/vendors/kustomer",
+      "destination": "/vendors/kustomer#kustomer-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(liveperson-de)",
-      "destination": "/vendors/liveperson",
+      "destination": "/vendors/liveperson#liveperson-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(luware-acd)",
-      "destination": "/vendors/luware",
+      "destination": "/vendors/luware#luware-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(mitel-acd)",
-      "destination": "/vendors/mitel-analytics",
+      "destination": "/vendors/mitel-analytics#mitel-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(nextiva-acd)",
-      "destination": "/vendors/nextiva",
+      "destination": "/vendors/nextiva#nextiva-acd",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(nice-autopilot|nice-cognigy|nice-copilot|nice-aa|nice-wem|nice-analytics|nice-wem-analytics|nice-acd|nice-cognigy-de)",
-      "destination": "/vendors/nice-cxone",
+      "source": "/vendors/:merged(nice-autopilot)",
+      "destination": "/vendors/nice-cxone#nice-autopilot",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(observeai-wem|observeai-analytics)",
-      "destination": "/vendors/observeai-aa",
+      "source": "/vendors/:merged(nice-cognigy)",
+      "destination": "/vendors/nice-cxone#nice-cognigy",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nice-copilot)",
+      "destination": "/vendors/nice-cxone#nice-copilot",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nice-aa)",
+      "destination": "/vendors/nice-cxone#nice-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nice-wem)",
+      "destination": "/vendors/nice-cxone#nice-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nice-analytics)",
+      "destination": "/vendors/nice-cxone#nice-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nice-wem-analytics)",
+      "destination": "/vendors/nice-cxone#nice-wem-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nice-acd)",
+      "destination": "/vendors/nice-cxone#nice-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(nice-cognigy-de)",
+      "destination": "/vendors/nice-cxone#nice-cognigy-de",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(observeai-wem)",
+      "destination": "/vendors/observeai-aa#observeai-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(observeai-analytics)",
+      "destination": "/vendors/observeai-aa#observeai-analytics",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(odigo-acd)",
-      "destination": "/vendors/odigo",
+      "destination": "/vendors/odigo#odigo-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(puzzel-acd)",
-      "destination": "/vendors/puzzel",
+      "destination": "/vendors/puzzel#puzzel-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(pypestream-de)",
-      "destination": "/vendors/pypestream",
+      "destination": "/vendors/pypestream#pypestream-de",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(ringcentral-ai|ringcentral-wem|ringcentral-analytics|ringcentral-acd|ringcentral-de)",
-      "destination": "/vendors/ringcentral",
+      "source": "/vendors/:merged(ringcentral-ai)",
+      "destination": "/vendors/ringcentral#ringcentral-ai",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(salesforce-acd|salesforce-de)",
-      "destination": "/vendors/salesforce-service",
+      "source": "/vendors/:merged(ringcentral-wem)",
+      "destination": "/vendors/ringcentral#ringcentral-wem",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(sprinklr-iva|sprinklr-de)",
-      "destination": "/vendors/sprinklr",
+      "source": "/vendors/:merged(ringcentral-analytics)",
+      "destination": "/vendors/ringcentral#ringcentral-analytics",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(talkdesk-autopilot|talkdesk-aa|talkdesk-wem|talkdesk-analytics|talkdesk-acd)",
-      "destination": "/vendors/talkdesk",
+      "source": "/vendors/:merged(ringcentral-acd)",
+      "destination": "/vendors/ringcentral#ringcentral-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(ringcentral-de)",
+      "destination": "/vendors/ringcentral#ringcentral-de",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(salesforce-acd)",
+      "destination": "/vendors/salesforce-service#salesforce-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(salesforce-de)",
+      "destination": "/vendors/salesforce-service#salesforce-de",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(sprinklr-iva)",
+      "destination": "/vendors/sprinklr#sprinklr-iva",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(sprinklr-de)",
+      "destination": "/vendors/sprinklr#sprinklr-de",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(talkdesk-autopilot)",
+      "destination": "/vendors/talkdesk#talkdesk-autopilot",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(talkdesk-aa)",
+      "destination": "/vendors/talkdesk#talkdesk-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(talkdesk-wem)",
+      "destination": "/vendors/talkdesk#talkdesk-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(talkdesk-analytics)",
+      "destination": "/vendors/talkdesk#talkdesk-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(talkdesk-acd)",
+      "destination": "/vendors/talkdesk#talkdesk-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(teneo-de)",
-      "destination": "/vendors/teneo-ai",
+      "destination": "/vendors/teneo-ai#teneo-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(tidio-de)",
-      "destination": "/vendors/tidio-lyro",
+      "destination": "/vendors/tidio-lyro#tidio-de",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(twilio-acd)",
-      "destination": "/vendors/twilio-flex",
+      "destination": "/vendors/twilio-flex#twilio-acd",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(ujet-va|ujet-acd)",
-      "destination": "/vendors/ujet",
+      "source": "/vendors/:merged(ujet-va)",
+      "destination": "/vendors/ujet#ujet-va",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(ujet-acd)",
+      "destination": "/vendors/ujet#ujet-acd",
       "permanent": true
     },
     {
       "source": "/vendors/:merged(uniphore-analytics)",
-      "destination": "/vendors/uniphore",
+      "destination": "/vendors/uniphore#uniphore-analytics",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(verint-aa|verint-wem|verint-analytics|verint-wfo|verint-de)",
-      "destination": "/vendors/verint",
+      "source": "/vendors/:merged(verint-aa)",
+      "destination": "/vendors/verint#verint-aa",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(vonage-analytics|vonage-acd)",
-      "destination": "/vendors/vonage",
+      "source": "/vendors/:merged(verint-wem)",
+      "destination": "/vendors/verint#verint-wem",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(zendesk-ai|zendesk-aa|zendesk-wem|zendesk-analytics|zendesk-acd|zendesk-de)",
-      "destination": "/vendors/zendesk",
+      "source": "/vendors/:merged(verint-analytics)",
+      "destination": "/vendors/verint#verint-analytics",
       "permanent": true
     },
     {
-      "source": "/vendors/:merged(zoom-va|zoom-aa|zoom-analytics|zoom-acd)",
-      "destination": "/vendors/zoom",
+      "source": "/vendors/:merged(verint-wfo)",
+      "destination": "/vendors/verint#verint-wfo",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(verint-de)",
+      "destination": "/vendors/verint#verint-de",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(vonage-analytics)",
+      "destination": "/vendors/vonage#vonage-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(vonage-acd)",
+      "destination": "/vendors/vonage#vonage-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zendesk-ai)",
+      "destination": "/vendors/zendesk#zendesk-ai",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zendesk-aa)",
+      "destination": "/vendors/zendesk#zendesk-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zendesk-wem)",
+      "destination": "/vendors/zendesk#zendesk-wem",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zendesk-analytics)",
+      "destination": "/vendors/zendesk#zendesk-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zendesk-acd)",
+      "destination": "/vendors/zendesk#zendesk-acd",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zendesk-de)",
+      "destination": "/vendors/zendesk#zendesk-de",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zoom-va)",
+      "destination": "/vendors/zoom#zoom-va",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zoom-aa)",
+      "destination": "/vendors/zoom#zoom-aa",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zoom-analytics)",
+      "destination": "/vendors/zoom#zoom-analytics",
+      "permanent": true
+    },
+    {
+      "source": "/vendors/:merged(zoom-acd)",
+      "destination": "/vendors/zoom#zoom-acd",
       "permanent": true
     }
   ],

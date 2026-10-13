@@ -2,7 +2,7 @@
 //
 // One page per vendor (open item 13, TB 13 Oct 2026). Keeps two files in step with the families seo.js derives from the
 // vendor name map (VENDOR_FAMILIES):
-//   vercel.json   one permanent redirect per family, sending every merged category slug to the family page;
+//   vercel.json   one permanent redirect per merged category slug, to its section on the family page (#slug);
 //   sitemap.xml   merged slugs out (each redirects), family pages in.
 // Run after adding or renaming a vendor (after gen-seo-names.mjs): node scripts/vendor-families.mjs
 // With --check it writes nothing and exits 1 if either file is out of step (vendorfamily.test.mjs runs it).
@@ -14,7 +14,7 @@ const MARK = (r) => typeof r.source === "string" && r.source.startsWith("/vendor
 
 export function redirects() {
   return Object.entries(VENDOR_FAMILIES).sort(([a], [b]) => a.localeCompare(b))
-    .map(([main, members]) => ({ source: `/vendors/:merged(${members.slice(1).join("|")})`, destination: `/vendors/${main}`, permanent: true }));
+    .flatMap(([main, members]) => members.slice(1).map((m) => ({ source: `/vendors/:merged(${m})`, destination: `/vendors/${main}#${m}`, permanent: true })));
 }
 
 export function vercelJson(text) {
