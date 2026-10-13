@@ -1701,6 +1701,70 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://www.contactcentercx.com/reference</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/glossary</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/erlang-c</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/average-handle-time</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/first-contact-resolution</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/service-level</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/average-speed-of-answer</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/abandonment-rate</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/offered-load</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/occupancy</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/shrinkage</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/schedule-adherence</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/cost-per-contact</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/agent-attrition</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/forecast-accuracy</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.contactcentercx.com/reference/containment-rate</loc>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://www.contactcentercx.com/market-watch</loc>
     <priority>0.4</priority>
   </url>

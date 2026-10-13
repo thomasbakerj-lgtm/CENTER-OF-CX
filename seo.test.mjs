@@ -679,7 +679,7 @@ section("J. CCaaS buyer guide summary layer reconciles with the published PDF");
   const wrong = [];
   for (const p of sitemap) {
     const t = typeOf(p);
-    const want = p === "/" ? ["Organization", "WebSite"] : p.startsWith("/tools/") ? ["WebApplication"] : p.startsWith("/methodology/") ? ["TechArticle"] : p.startsWith("/industries/") || /^\/vendors\/ccaas\/[a-z-]+$/.test(p) ? ["Article"] : CATEGORY_PAGES.has(p) ? ["ItemList"] : [];
+    const want = p === "/" ? ["Organization", "WebSite"] : p.startsWith("/tools/") ? ["WebApplication"] : p.startsWith("/methodology/") ? ["TechArticle"] : p.startsWith("/industries/") || /^\/vendors\/ccaas\/[a-z-]+$/.test(p) ? ["Article"] : CATEGORY_PAGES.has(p) ? ["ItemList"] : p === "/reference/glossary" ? ["DefinedTermSet"] : /^\/reference\/[a-z0-9-]+$/.test(p) ? ["Article"] : [];
     if (JSON.stringify(t) !== JSON.stringify(want)) wrong.push(`${p}: ${t.join(",")}`);
   }
   ok(`L1 every sitemap URL gets the structured data for its page type [${wrong.slice(0, 3).join(" | ")}]`, wrong.length === 0);

@@ -7,7 +7,7 @@
 import { useState, useId } from "react";
 import { HOUSE, RADIUS, alpha, LINE } from "./tokens.js";
 import { K, selectStyle, optionCss } from "./frameKit.jsx";
-import { groupsFor, rowSource, KIND_LABEL, TOOL_GROUPS, SOURCES } from "./comparisons.js";
+import { groupsFor, rowSource, KIND_LABEL, TOOL_GROUPS, SOURCES, GROUPS } from "./comparisons.js";
 import { STATE_WAGES, STATE_WAGE_SOURCE, NATIONAL_WAGE } from "./comparisons/stateWages.js";
 
 const hair = alpha(HOUSE.mist, LINE.hair);
@@ -78,7 +78,19 @@ function WagePicker() {
 export function HowOthersReport({ toolId }) {
   const conf = TOOL_GROUPS[toolId];
   if (!conf) return null;
-  const groups = groupsFor(toolId);
+  return <Panel groups={groupsFor(toolId)} wage={conf.wage} title="How others report it"
+    intro="Published figures to hold your result against. Each measures something slightly different, so read what it counts before you compare. None of them changes your result or its grade." />;
+}
+
+/** The same figures by group id, for a reference page (src/lib/reference.js). */
+export function PublishedFigures({ groupIds, wage = false }) {
+  const groups = (groupIds || []).filter((g) => GROUPS[g]).map((g) => GROUPS[g]());
+  if (!groups.length && !wage) return null;
+  return <Panel groups={groups} wage={wage} title="Published figures"
+    intro="What publishers report for this measure. Each counts something slightly different, so read the definition before you compare; nothing here is averaged across publishers." />;
+}
+
+function Panel({ groups, wage, title, intro }) {
   const blocks = groups.map((g) => {
     /* The group's main source is named once under its note; a row names its own only when it cites another page. */
     const main = g.src ? SOURCES[g.src] : rowSource(g.rows[0], g);
@@ -86,12 +98,12 @@ export function HowOthersReport({ toolId }) {
     return { key: g.id, kind: g.kind, title: g.title, note: g.note, shared,
       body: <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>{g.rows.map((r, i) => <Row key={i} row={r} group={g} shared={!!shared && rowSource(r, g).url === main.url} />)}</ul> };
   });
-  if (conf.wage) blocks.push({ key: "wage", kind: "official", title: "Agent pay where your agents work", note: "The US Bureau of Labor Statistics median for customer service representatives, May 2025. The tool opens at the national median; if you know your own pay, enter it in the tool.", body: <WagePicker /> });
+  if (wage) blocks.push({ key: "wage", kind: "official", title: "Agent pay where your agents work", note: "The US Bureau of Labor Statistics median for customer service representatives, May 2025. The tool opens at the national median; if you know your own pay, enter it in the tool.", body: <WagePicker /> });
   return (
-    <section className="cx-hor" aria-label="How others report it" style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 4 }}>
+    <section className="cx-hor" aria-label={title} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 4 }}>
       <style>{CSS}</style>
-      <h2 style={{ ...K.h2, margin: 0 }}>How others report it</h2>
-      <p style={{ ...K.body, marginBottom: 8 }}>Published figures to hold your result against. Each measures something slightly different, so read what it counts before you compare. None of them changes your result or its grade.</p>
+      <h2 style={{ ...K.h2, margin: 0 }}>{title}</h2>
+      <p style={{ ...K.body, marginBottom: 8 }}>{intro}</p>
       {blocks.map((b, i) => (
         <details key={b.key} open={i === 0} style={{ borderTop: `1px solid ${hair}` }}>
           <summary><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{b.title}</span><span style={chip}>{KIND_LABEL[b.kind]}</span></summary>
