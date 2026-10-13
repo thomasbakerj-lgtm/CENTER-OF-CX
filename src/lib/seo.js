@@ -319,6 +319,71 @@ export const SEO_MAP = {
     desc: "Search the site's tools, methods, vendor profiles, industry pages and research, with acronyms and other names matched.",
     noindex: true,
   },
+  /* The reference library (src/lib/reference.js); reference.test.mjs requires one entry per page and no other. */
+  "/reference": {
+    title: `Contact Center Metrics, Defined | ${SITE}`,
+    desc: "What each contact center metric means, how it is calculated, what to check before comparing, and what publishers report, with the formulas our tools use.",
+  },
+  "/reference/glossary": {
+    title: `Contact Center Glossary | ${SITE}`,
+    desc: "Contact center terms in plain words: handle time, shrinkage, occupancy, Erlang, CCaaS, IVR, WFM, capacity action, the evidence grades and more.",
+  },
+  "/reference/erlang-c": {
+    title: `Erlang C, Explained with a Worked Example | ${SITE}`,
+    desc: "How the Erlang C formula sizes a contact center queue: what it assumes, the formulas, a worked table at 10 Erlangs, published checks and where it falls short.",
+  },
+  "/reference/average-handle-time": {
+    title: `Average Handle Time (AHT): Definition and Formula | ${SITE}`,
+    desc: "What average handle time counts, how it is calculated, why definitions differ between publishers, and published voice handle time figures.",
+  },
+  "/reference/first-contact-resolution": {
+    title: `First Contact Resolution (FCR): Definition and Formula | ${SITE}`,
+    desc: "What first contact resolution measures, three ways to count it, how repeat contacts follow from it, and published FCR averages by industry.",
+  },
+  "/reference/service-level": {
+    title: `Service Level: Definition, Formula and Targets | ${SITE}`,
+    desc: "What a contact center service level is, how Erlang C calculates it, how abandoned calls change the count, and published targets and standards.",
+  },
+  "/reference/average-speed-of-answer": {
+    title: `Average Speed of Answer (ASA): Definition and Formula | ${SITE}`,
+    desc: "What average speed of answer measures, how it is calculated from Erlang C, why an average hides long waits, and a published US figure.",
+  },
+  "/reference/abandonment-rate": {
+    title: `Call Abandonment Rate: Definition and Formula | ${SITE}`,
+    desc: "What the abandonment rate counts, the short-abandon threshold, how abandonment changes staffing models, and a published industry standard.",
+  },
+  "/reference/offered-load": {
+    title: `Offered Load in Erlangs: Definition and Formula | ${SITE}`,
+    desc: "What offered load is, how contacts and handle time convert to Erlangs, and why a contact center always needs more agents than its load.",
+  },
+  "/reference/occupancy": {
+    title: `Agent Occupancy: Definition, Formula and Ranges | ${SITE}`,
+    desc: "What agent occupancy measures, how it differs from utilization, why small teams run lower, and published practice ranges with their sources.",
+  },
+  "/reference/shrinkage": {
+    title: `Contact Center Shrinkage: Definition and Formula | ${SITE}`,
+    desc: "What shrinkage counts, planned against unplanned, how it turns agents needed into agents scheduled, and published practice figures.",
+  },
+  "/reference/schedule-adherence": {
+    title: `Schedule Adherence: Definition and Formula | ${SITE}`,
+    desc: "What schedule adherence measures, how it differs from conformance, how it changes the agents a schedule needs, and published practice targets.",
+  },
+  "/reference/cost-per-contact": {
+    title: `Cost per Contact: Definition and Formula | ${SITE}`,
+    desc: "What cost per contact includes, how cost per resolution counts repeat contacts, marginal against average cost, and a published US call cost.",
+  },
+  "/reference/agent-attrition": {
+    title: `Agent Attrition Rate: Definition and Formula | ${SITE}`,
+    desc: "How agent attrition is counted, why publishers' definitions differ, what a departure costs, and published attrition and hiring figures.",
+  },
+  "/reference/forecast-accuracy": {
+    title: `Forecast Accuracy (WAPE, MAPE): Definition | ${SITE}`,
+    desc: "How contact center forecast accuracy is measured interval by interval, WAPE against MAPE, bias, the tracking signal, and why totals mislead.",
+  },
+  "/reference/containment-rate": {
+    title: `Containment Rate and AI Resolution: Definition | ${SITE}`,
+    desc: "What containment and AI resolution rates count, why the denominator matters, durable resolution, and published self-service figures.",
+  },
   "/research/vendor-method": {
     title: `How We Research Contact Center Vendors | ${SITE}`,
     desc: "How vendor research is done: what a profile answers, how findings are labelled, which sources count, and how each vendor is challenged and signed off.",
@@ -984,6 +1049,13 @@ export function structuredData(pathname, seo, extra = {}) {
       ...(extra.checked ? { dateModified: extra.checked } : {}),
       ...(citation.length ? { citation } : {}),
     });
+  }
+
+  /* The reference library: a metric page or the Erlang C explainer is an Article; the glossary a DefinedTermSet. */
+  if (/^\/reference\/[a-z0-9-]+$/.test(pathname)) {
+    graphs.push(pathname === "/reference/glossary"
+      ? { "@context": "https://schema.org", "@type": "DefinedTermSet", name, description: seo.desc, url, publisher: ORG }
+      : { "@context": "https://schema.org", "@type": "Article", headline: name, description: seo.desc, url, author: ORG, publisher: ORG, isAccessibleForFree: true });
   }
 
   /* A published contributor piece: an Article by its author, a person, published by the site. The prerender passes the

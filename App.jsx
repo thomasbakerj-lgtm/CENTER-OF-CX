@@ -60,6 +60,7 @@ const Perspectives = lazy(() => import('./Perspectives'))
 const PerspectiveRoute = lazy(() => import('./Perspectives').then((m) => ({ default: m.PerspectiveRoute })))
 const ContributorRoute = lazy(() => import('./Perspectives').then((m) => ({ default: m.ContributorRoute })))
 const MarketWatch = lazy(() => import('./MarketWatch'))
+const Reference = lazy(() => import('./Reference'))
 const Contact = lazy(() => import('./Contact'))
 const Subscribe = lazy(() => import('./Subscribe'))
 const HowToChoose = lazy(() => import('./HowToChoose'))
@@ -368,6 +369,8 @@ export function AppRoutes() {
         <Route path="/perspectives/:slug" element={<PerspectiveRoute />} />
         <Route path="/contributors/:slug" element={<ContributorRoute />} />
         <Route path="/market-watch" element={<MarketWatch />} />
+        <Route path="/reference" element={<Reference />} />
+        <Route path="/reference/:id" element={<Reference />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/vendors/:categorySlug/:verticalSlug" element={<CategoryVerticalPage />} />

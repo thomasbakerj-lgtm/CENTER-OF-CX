@@ -68,6 +68,7 @@ export function llmsTxt() {
     "",
     `- [About](${BASE}/about)`,
     `- [Vendor directory](${BASE}/vendors)`,
+    `- [Metrics reference](${BASE}/reference): contact center metrics defined, with the formulas the tools use; a glossary and an Erlang C explainer`,
     `- [Market Watch](${BASE}/market-watch): dated items about the market, each labelled by the source it rests on`,
     `- [Research](${BASE}/research)`,
     "",

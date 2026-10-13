@@ -439,7 +439,7 @@ Binding. None of this is in code comments beyond what is noted.
 
 **Open with TB (snapshot 1 Oct 2026, after PR #107).** Decisions from the site audit (30 Sep audit doc and S24 notes):
 1. ~~Tools hub from `/how-to-choose` to `/tools` with a 301.~~ Done (item 119).
-2. Reference library (metric pages, glossary, Erlang C explainer) from the registry and methods. Held (TB, 1 Oct: revisit).
+2. ~~Reference library (metric pages, glossary, Erlang C explainer).~~ Done (item 126).
 3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds. Held (TB, 1 Oct).
 4. ~~Site search.~~ Done (item 124).
 5. ~~Advisory and Contact as one page.~~ Done (item 121).
@@ -2092,6 +2092,20 @@ dashboard, the 12-phase growth program.
    `home.test.mjs` 42: tools equal model plus guide in order, every tool, method and link live, one shared list, mouse-only
    hover with no event, the grow and reduced-motion rules, the panel source. Suite 27,852; live check 258 of 258;
    containment clean at 390, 360 and 320; browser: hover L5, L7, L1, leave, click L4, focus L2, no page error.
+
+126. S24 (13 Oct), the reference library (TB: "2. go"; open item 2). `/reference` (hub), 13 metric pages
+   (`/reference/<id>`: handle time, FCR, service level, ASA, abandonment, offered load, occupancy, shrinkage, adherence,
+   cost per contact, attrition, forecast accuracy, containment), `/reference/glossary` (43 terms) and
+   `/reference/erlang-c`. Content in `src/lib/reference.js`, rendered by `Reference.jsx`. No formula is typed: each metric
+   names [method, formula] and the page reads it from the published method model with its version, so the reference cannot
+   drift from the tools. No figure is typed: published figures render through `PublishedFigures` (new export of
+   `HowOthersReport.jsx`, same sourced comparison groups as the tools; a measure with none says so). The Erlang C table (10
+   Erlangs, 180 s, 20 s target, 11 to 16 agents) is computed by the shipped `adherence.js` engine and matches the published
+   fixtures. Each page: definition in our words, why it matters, the formulas, "Before you compare", published figures, the
+   tools that measure it, related pages. Grade terms read `GRADE_MEANING`. Sitemap 448; Article on metric pages and Erlang C,
+   DefinedTermSet on the glossary (seo L1); footer "Metrics reference"; llms.txt; search kind "Reference".
+   `reference.test.mjs` (155, registered). Suite 28,087; live check 258 of 258; 16 pages at 1440 and 390 with no overflow,
+   page error or axe violation; containment clean at 390, 360 and 320.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

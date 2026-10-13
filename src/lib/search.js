@@ -92,6 +92,7 @@ export function kindOf(path, categoryPages = []) {
   if (path === "/vendors") return "Vendors";
   if (/^\/industries\/[a-z-]+\/[a-z-]+/.test(path)) return "Industry segment";
   if (path.startsWith("/industries")) return "Industry";
+  if (path.startsWith("/reference")) return "Reference";
   if (path.startsWith("/research") || path === "/market-watch") return "Research";
   return "Page";
 }
@@ -130,7 +131,7 @@ export function buildDoc({ path, title, desc, html, kind, extra = [] }) {
 /* A page's other names (a category's also and related terms) count like its title. */
 const FIELDS = [["tt", 10], ["aa", 10], ["hh", 5], ["dd", 4], ["bb", 1]];
 /* Hub pages first when a query names what a hub collects: a small lift that never outranks a better match. */
-const KIND_LIFT = { "Vendor category": 3, Tool: 2, Method: 1, Industry: 1 };
+const KIND_LIFT = { "Vendor category": 3, Tool: 2, Method: 1, Industry: 1, Reference: 1 };
 
 /** Damerau one-edit check (insert, delete, substitute or swap two neighbours). */
 export function oneEdit(a, b) {
