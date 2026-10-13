@@ -443,8 +443,7 @@ Binding. None of this is in code comments beyond what is noted.
 3. An Updates hub with a weekly Market Watch cadence, RSS and JSON feeds. Held (TB, 1 Oct).
 4. Site search (static index built at prerender). TB: yes; matches the words people search, not only exact text.
 5. ~~Advisory and Contact as one page.~~ Done (item 121).
-6. Migration article. TB: rewrite to current standards in TB's voice as a journalist and market maker: genuine,
-   factual, every figure sourced.
+6. ~~Migration article.~~ Done (item 123).
 7. ~~Provenance strip under every H1 and a `/standards` page.~~ Disregarded (TB, 1 Oct).
 8. ~~QR code on the PDF cover.~~ Disregarded (TB, 1 Oct: online we use links, downloads and email copies; QR codes are for
    presentations and hard copy). The scenario link on the cover (item 118) stays.
@@ -2049,6 +2048,20 @@ dashboard, the 12-phase growth program.
    - Open: strengths and admin_change_tests field names are inferred; align them when GoTo's first records arrive.
    Gates: research (3b), profile (5), category, freeze pins. Suite 27,794; live check 258 of 258; new profiles, the
    method page and the CCaaS page at 1440 and 390 clean.
+
+123. S24 (13 Oct), the migration article rewritten to the site's standards (TB: "next. go"; open item 6).
+   `/research/ccaas-migration-costs`, "Where the money goes in a cloud contact center migration": TB's first-person
+   argument kept (for cloud, against business cases that leave costs out; integration, add-on modules, running both
+   systems, training, internal labor; why it keeps happening; how to price it before signing, linked to TCO, License Gap
+   and Contract Risk). Every figure now in `SOURCES` in the page, read on the publisher's own page on 13 Oct: Forrester
+   Consulting for SuccessKPI (2023), 40% report limited success with CCaaS migration (quoted, vendor-commissioned);
+   Puzzel State of Contact Centres 2026 (1,505 respondents, UK, NL, Nordics): 3.9 platforms, 3% unified, 50% maintenance,
+   44% integration complexity. Removed: Blackchair 62% and InflectionCX 60% (no traceable publisher), Gartner's 60%
+   overrun forecast (through 2024, page withdrawn), Forrester 2017 (general cloud), Business Research Insights, and the
+   career and practice figures the page cannot show (five migrations, twenty years, 40 to 100%, 14 against 6 months, two
+   against six weeks, thirty-seven integrations, add 50%, 120 days). TB can add personal experience back in their own
+   words. Originality record added (two quoted matches). `freeze.test.mjs` 14: retired figures, every citation declared,
+   https, year, check date and a vendor-funding note on every source (fails on the old article). Suite 27,798.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

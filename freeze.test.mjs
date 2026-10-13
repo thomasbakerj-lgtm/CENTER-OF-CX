@@ -327,5 +327,19 @@ console.log("\n13. Advisory and Contact are one page (TB, 1 Oct 2026)");
   ok(`no page links /advisory [${stale.join(", ")}]`, stale.length === 0);
 }
 
+section("14. The migration article: every figure linked to its publisher, no untraceable figure (TB, 13 Oct 2026)");
+{
+  const src = readFileSync("./ArticleCCaaSCosts.jsx", "utf8");
+  const RETIRED = ["Blackchair", "InflectionCX", "Business Research Insights", "60 percent of infrastructure", "3.9 different contact center technologies", "five platform migrations", "twenty years", "40 to 100 percent", "14 months instead of 6", "thirty-seven", "Add 50 percent", "8 min read", "Didn't Cut Costs"];
+  const left = RETIRED.filter((r) => src.includes(r));
+  ok(`no retired figure, untraceable source or career count [${left.join(", ")}]`, left.length === 0);
+  const ids = [...src.matchAll(/<(?:Cite|Stat)[^>]*\bid="([a-z]+)"/g)].map((m) => m[1]);
+  const declared = [...src.matchAll(/^  ([a-z]+): \{\n    publisher:/gm)].map((m) => m[1]);
+  ok(`every cited id is declared in SOURCES (${ids.length} citations)`, ids.length >= 5 && ids.every((i) => declared.includes(i)));
+  const blocks = src.slice(src.indexOf("export const SOURCES"), src.indexOf("const link"));
+  ok("every source has an https link, a year and a check date", (blocks.match(/url: "https:\/\//g) || []).length === declared.length && (blocks.match(/checked: "2026-\d\d-\d\d"/g) || []).length === declared.length && (blocks.match(/year: 20\d\d/g) || []).length === declared.length);
+  ok("every vendor-funded source says so", (blocks.match(/note: "[^"]*vendor/g) || []).length === declared.length);
+}
+
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

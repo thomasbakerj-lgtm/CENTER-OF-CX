@@ -1,208 +1,172 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { HOUSE, PILLARS, LINE, alpha } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
 
-const NAVY = HOUSE.mist; const DEEP = HOUSE.ink; const ELECTRIC = PILLARS.research.onDark; const LIGHT = PILLARS.research.onDark; const WARM = HOUSE.navy; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair); const GREEN = HOUSE.mist; const AMBER = HOUSE.mist; const RED = HOUSE.mist;
-const WRAP = { maxWidth: 1220, margin: "0 auto", padding: "0 28px" };
-const NARROW = { maxWidth: 720, margin: "0 auto", padding: "0 28px" };
-/* Content is visible from the first paint: no reveal on scroll, so a served page, a print and a quick scroll never show an empty band. */
-function FadeIn({ children, style = {} }) { return <div style={style}>{children}</div>; }
-function Nav(){const[scrolled,setScrolled]=useState(false);useEffect(()=>{const fn=()=>setScrolled(window.scrollY>50);window.addEventListener("scroll",fn,{passive:true});return()=>window.removeEventListener("scroll",fn)},[]);
-const links=[{name:"Platforms + Tech",href:"/platforms-and-tech"},{name:"Tools",href:"/tools"},{name:"Research",href:"/research"},{name:"Vendors",href:"/vendors"},{name:"The Human Premium",href:"/human-premium"},{name:"Get help",href:"/contact"}];
-return(<><style>{`*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth};-webkit-font-smoothing:antialiased}a{text-decoration:none;color:inherit}@media(max-width:860px){.nav-links{display:none!important}}`}</style>
-</>)}
+/* Where the money goes in a cloud contact center migration (TB's essay, rewritten 13 Oct 2026 to the site's standards:
+   TB's voice, facts only, every figure linked to the publisher's own page and dated; no career counts or practice
+   figures the page cannot show). Figures and sources live in SOURCES; the originality record is in
+   src/lib/claims/originality.js. */
 
+const NAVY = HOUSE.mist; const ELECTRIC = PILLARS.research.onDark; const LIGHT = PILLARS.research.onDark; const WARM = HOUSE.navy; const SLATE = HOUSE.body; const MUTED = HOUSE.muted; const BORDER = alpha(HOUSE.mist, LINE.hair);
+const NARROW = { maxWidth: 720, margin: "0 auto", padding: "0 28px" };
+
+export const UPDATED = "13 October 2026";
+
+/* Every figure on the page, as its publisher states it, read on the publisher's own page on the date given. */
+export const SOURCES = {
+  forrester: {
+    publisher: "Forrester Consulting, commissioned by SuccessKPI",
+    title: "The Frustrating Journey to Cloud Contact Center Success",
+    year: 2023,
+    url: "https://successkpi.com/cloud-success",
+    checked: "2026-10-13",
+    shows: "40% report having limited success with their CCaaS migration efforts",
+    quote: true,
+    note: "Commissioned by a contact center analytics vendor.",
+  },
+  puzzel: {
+    publisher: "Puzzel",
+    title: "State of Contact Centres 2026",
+    year: 2026,
+    url: "https://www.puzzel.com/hubfs/State%20of%20Contact%20Centres%202026%20-%20Report.pdf",
+    checked: "2026-10-13",
+    shows: "Survey by OnePoll of 1,505 contact centre professionals in the UK, the Netherlands, Sweden, Norway and Denmark: contact centres rely on 3.9 platforms on average; 3% have a single, unified platform; 50% say multiple vendors raise maintenance and support costs; 44% name integration complexity.",
+    note: "Published by a contact center platform vendor; European respondents.",
+  },
+};
+
+const link = { color: ELECTRIC, fontWeight: 600 };
+const Cite = ({ id, children }) => <a href={SOURCES[id].url} target="_blank" rel="noopener noreferrer" style={link}>{children}</a>;
 const P = ({ children }) => <p style={{ fontSize: 16.5, color: SLATE, lineHeight: 1.85, margin: "0 0 20px" }}>{children}</p>;
 const H2 = ({ children }) => <h2 style={{ fontFamily: FONT, fontSize: 26, fontWeight: 400, color: NAVY, lineHeight: 1.25, margin: "40px 0 16px" }}>{children}</h2>;
 const Callout = ({ children }) => <div style={{ background: WARM, borderLeft: `3px solid ${ELECTRIC}`, padding: "20px 24px", margin: "28px 0", borderRadius: "0 8px 8px 0" }}><p style={{ fontSize: 14, color: SLATE, lineHeight: 1.7, margin: 0 }}>{children}</p></div>;
-const Stat = ({ n, label }) => <div style={{ textAlign: "center", padding: "20px 16px" }}><div style={{ fontFamily: FONT, fontSize: 32, color: ELECTRIC }}>{n}</div><div style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>{label}</div></div>;
+const Stat = ({ n, label, id }) => (
+  <div style={{ textAlign: "center", padding: "20px 16px" }}>
+    <div style={{ fontFamily: FONT, fontSize: 32, color: ELECTRIC }}>{n}</div>
+    <div style={{ fontSize: 12, color: MUTED, marginTop: 4, lineHeight: 1.5 }}>{label} <Cite id={id}>({SOURCES[id].publisher.split(",")[0]}, {SOURCES[id].year})</Cite></div>
+  </div>
+);
 
 export default function ArticleCCaaSCosts() {
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   return (
     <div>
-      <Nav />
-
-      {/* Header */}
       <section style={{ background: HOUSE.navy, padding: "140px 28px 60px" }}>
         <div style={NARROW}>
-          <FadeIn>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-              <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <a href="/research" style={{ color: HOUSE.body, fontSize: 13 }}>Research</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
-              <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>CX Reality Check</span>
-            </div>
-            <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: RED, letterSpacing: 1.5, textTransform: "uppercase", background: HOUSE.navy, padding: "3px 10px", borderRadius: 4 }}>CX Reality Check</span>
-              <span style={{ fontSize: 11, color: HOUSE.body, padding: "3px 0" }}>8 min read</span>
-            </div>
-            <h1 style={{ fontFamily: FONT, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.15, margin: "0 0 20px" }}>
-              Why Your CCaaS Migration Didn't Cut Costs
-            </h1>
-            <p style={{ fontSize: 16, color: HOUSE.body, lineHeight: 1.7 }}>
-              The pitch was compelling. The math looked clean. Two years later, most organizations are spending the same or more. I have been part of five CCaaS migrations. Here is where the money actually went.
-            </p>
-          </FadeIn>
+          <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+            <a href="/" style={{ color: HOUSE.body, fontSize: 13 }}>Home</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+            <a href="/research" style={{ color: HOUSE.body, fontSize: 13 }}>Research</a><span style={{ color: HOUSE.body, fontSize: 13 }}>/</span>
+            <span style={{ color: LIGHT, fontSize: 13, fontWeight: 600 }}>Migration costs</span>
+          </nav>
+          <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: LIGHT, letterSpacing: 1.5, textTransform: "uppercase", padding: "3px 0" }}>Analysis</span>
+            <span style={{ fontSize: 11, color: HOUSE.body, padding: "3px 0" }}>Updated {UPDATED}</span>
+          </div>
+          <h1 style={{ fontFamily: FONT, fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 400, color: HOUSE.mist, lineHeight: 1.15, margin: "0 0 20px" }}>
+            Where the money goes in a cloud contact center migration
+          </h1>
+          <p style={{ fontSize: 16, color: HOUSE.body, lineHeight: 1.7 }}>
+            The business case for moving a contact center to the cloud usually compares two price lists. The bill covers more than that. Here is what the quote tends to leave out, what the published research shows, and how to price each cost before you sign.
+          </p>
         </div>
       </section>
 
-      {/* Article Body */}
       <section style={{ background: HOUSE.ink, padding: "56px 28px 80px" }}>
         <div style={NARROW}>
-          <FadeIn>
+          <P>
+            I am for cloud contact centers. I have worked on moves from on-premises systems to cloud platforms, and I would make the move again. The reasons are real: vendors are retiring their on-premises products, the people who know how to run them are harder to find, and most new AI features reach cloud platforms first. My argument is narrower. The business case that gets a migration approved often leaves out costs the organization will pay anyway.
+          </P>
 
-            <P>
-              I need to say this upfront: I am not anti-cloud. I am not anti-CCaaS. I have led or been deeply involved in five platform migrations over the last two decades, from legacy Avaya and Cisco environments to Genesys, NICE, Five9, and two I will not name because the NDAs are still active. I believe cloud contact center platforms are better than what came before. That is not the argument.
-            </P>
+          <H2>The comparison that gets approved</H2>
+          <P>
+            The usual business case puts today's on-premises costs beside the new platform's price per seat. Servers, data center space and the team that kept the old system running come off one side. The subscription goes on the other. The gap between them is labelled savings. That slide compares two price lists. What the organization will pay is the new price list plus everything it takes to make the new platform do what the old one did.
+          </P>
 
-            <P>
-              The argument is that the business case you were sold is probably not the business case you are living. And nobody on the vendor side is rushing to have that conversation with you.
-            </P>
+          <H2>What the quote tends to leave out</H2>
+          <P>
+            <strong>Integration.</strong> Every system the contact center touches has to be reconnected, tested and then maintained: the CRM, workforce management, quality management, the knowledge base, identity checks, payments, recording and reporting. Nobody can price that work well until each connection is on a list with an owner. It is also where complexity piles up. In Puzzel's 2026 survey of contact centre professionals in the UK, the Netherlands and the Nordics, 44% named integration complexity as a problem of running several technology vendors <Cite id="puzzel">(Puzzel, 2026)</Cite>.
+          </P>
+          <P>
+            <strong>Add-on modules.</strong> Cloud platforms are sold in modules. The seat price buys a base. Recording, speech analytics, quality management, workforce management, outbound dialing and AI features may each carry a separate price, depending on the vendor and the tier. Capabilities the old system included in one licence can each become a line of their own.
+          </P>
+          <P>
+            <strong>Running both systems.</strong> Until cutover is complete, the old platform and the new one are both paid for. Each month the project runs past its plan adds a month of paying for both.
+          </P>
+          <P>
+            <strong>Training and the productivity dip.</strong> Agents, supervisors, quality analysts and planners have years of habits, reports and workarounds built around the old system. Rebuilding them takes time, and output falls while people learn.
+          </P>
+          <P>
+            <strong>Internal labor.</strong> The people running the migration usually keep their day jobs too. Their time is a cost even when no invoice arrives for it.
+          </P>
+          <P>
+            Nobody has to mislead anyone for this to happen. These costs land on different budgets at different times, and the business case usually sees only the first of them.
+          </P>
 
-            <H2>The pitch that got the budget approved</H2>
+          <H2>What the published research shows</H2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 1, background: BORDER, borderRadius: 10, overflow: "hidden", margin: "24px 0" }}>
+            <div style={{ background: HOUSE.ink }}><Stat n="40%" id="forrester" label="of contact center decision makers report limited success with their CCaaS migration efforts" /></div>
+            <div style={{ background: HOUSE.ink }}><Stat n="3.9" id="puzzel" label="platforms the average contact centre relies on" /></div>
+            <div style={{ background: HOUSE.ink }}><Stat n="3%" id="puzzel" label="of contact centres have a single, unified platform" /></div>
+          </div>
+          <P>
+            A Forrester Consulting study commissioned by SuccessKPI, which sells contact center analytics, found that 40% of contact center decision makers reported limited success with their CCaaS migration efforts <Cite id="forrester">(Forrester Consulting for SuccessKPI, 2023)</Cite>. A vendor paid for the study, so I read it as one data point. It is consistent with what buyers describe.
+          </P>
+          <P>
+            Puzzel's 2026 survey of 1,505 contact centre professionals found that contact centres rely on 3.9 platforms on average and that only 3% run on a single, unified platform. Half of the leaders surveyed said that using several vendors raises maintenance and support costs <Cite id="puzzel">(Puzzel, 2026)</Cite>. Puzzel sells a contact center platform and its respondents are in Europe. Even so, the finding is plain: a migration rarely ends with one system.
+          </P>
 
-            <P>
-              You remember the slide. Everyone who has been through this remembers the slide. The one that showed your current on-prem costs on the left, the shiny new CCaaS costs on the right, and a beautiful gap in the middle labeled "savings." The per-seat price looked lower. The infrastructure line item disappeared entirely. Someone said the words "OpEx vs CapEx" like it was a magic spell, and finance nodded along because it sounded like someone else's problem now.
-            </P>
+          <H2>Why it keeps happening</H2>
+          <P>
+            Each party to a migration is measured on something other than the total cost. A vendor's sales team is paid on contract value. A partner billing by the hour earns more when the project runs long. The internal sponsor needs the project to read as a success. By the time the full cost is visible, the people who approved the business case have often moved on. None of that requires bad faith. It does mean nobody in the room is paid to raise the full cost, so the buyer has to.
+          </P>
 
-            <P>
-              Here is what that slide left out.
-            </P>
+          <H2>How to price it before you sign</H2>
+          <P>
+            <strong>List every integration.</strong> Every system the contact center reads from or writes to, who owns it, and what it costs to rebuild the connection and keep it running. Price each one before the contract is signed.
+          </P>
+          <P>
+            <strong>Build your own total cost.</strong> Platform, integration, internal labor, training time, the months of running both systems, and every module you expect to use. The <a href="/tools/tco-calculator" style={link}>TCO Calculator</a> does the arithmetic with your numbers and shows where each figure comes from.
+          </P>
+          <P>
+            <strong>Get every module priced in the first contract.</strong> Recording, analytics, quality, workforce management and AI features: a written price for each module you expect to use, with protection on price at renewal. <a href="/tools/license-gap" style={link}>License Gap</a> shows what a bundle leaves out, and <a href="/tools/contract-risk" style={link}>Contract Risk</a> checks the clauses that decide what you pay later.
+          </P>
+          <P>
+            <strong>Plan training as a program.</strong> Cover the new platform, the new workflows and the new reports, and budget for the dip in output while people learn.
+          </P>
+          <P>
+            <strong>Keep leverage after go-live.</strong> Write the performance you were promised into the contract, with remedies that apply if the platform misses it.
+          </P>
 
-            <H2>Where the money actually went</H2>
+          <Callout>
+            <strong>If you are partway through a migration:</strong> what has been spent is spent. What has not been spent can still be negotiated: the integration scope, the training time, and module pricing before renewal.
+          </Callout>
 
-            <P>
-              <strong>Integration ate the savings.</strong> This is the big one. On every single migration I have been part of, integration costs exceeded the original estimate by 40 to 100 percent. Not because anyone was lying. Because nobody fully maps the integration landscape before they sign. Your CRM. Your WFM platform. Your quality management tool. Your knowledge base. Your identity verification system. Your payment processor. Your compliance recording. Your reporting warehouse. Each one of those connections has to be rebuilt, retested, and maintained. Industry data confirms this is not just my experience. Blackchair's research found that 62 percent of organizations cite integration challenges as the primary cause of CCaaS migration delays and cost overruns.
-            </P>
+          <H2>Still worth doing</H2>
+          <P>
+            I would still move off an aging on-premises platform. The case for moving is strong. The case for stating the full cost is stronger, because an understated business case costs more than money. It makes finance more skeptical of the next request, including the good ones. Build the business case on the whole cost, and the migration can be judged on what it delivers.
+          </P>
 
-            <Callout>
-              <strong>The number that should be on every business case:</strong> The advertised price on a CCaaS contract typically accounts for about 60 percent of what your organization will actually spend. The other 40 percent (and sometimes it is closer to 100 percent more) is integration, customization, training, and the internal labor required to make the platform actually work in your environment. (Source: InflectionCX TCO analysis, 2026)
-            </Callout>
+          <div style={{ width: 60, height: 2, background: ELECTRIC, margin: "40px 0", borderRadius: 1 }} />
 
-            <P>
-              <strong>You did not eliminate infrastructure costs. You redistributed them.</strong> Yes, you stopped buying servers. You stopped paying for data center space. You stopped employing the team that maintained the PBX. But you started paying per-seat licensing that scales with headcount. You started paying for WFM as a separate line item that used to be bundled. You started paying for analytics that used to be included. You started paying for API calls, storage overages, and premium support tiers. The line items changed. The total did not shrink the way the business case promised.
-            </P>
+          <section aria-labelledby="sources" style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px", marginTop: 32 }}>
+            <h2 id="sources" style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", margin: "0 0 12px" }}>Sources</h2>
+            <ol style={{ fontSize: 13, color: MUTED, lineHeight: 1.7, margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+              {Object.values(SOURCES).map((s) => (
+                <li key={s.url} style={{ overflowWrap: "anywhere" }}>
+                  {s.publisher}, <a href={s.url} target="_blank" rel="noopener noreferrer" style={{ ...link, fontWeight: 500 }}>{s.title}</a> ({s.year}). {s.quote ? <>In the publisher's words: &ldquo;{s.shows}&rdquo;.</> : s.shows} {s.note} Read on the publisher's page on {s.checked}.
+                </li>
+              ))}
+            </ol>
+          </section>
 
-            <P>
-              <strong>The "easy" migration took 14 months instead of 6.</strong> Every migration timeline I have been part of has slipped. Every single one. The first migration, I thought it was us. By the third one, I realized it is structural. The vendor's implementation team is juggling multiple customers. Your internal team is doing migration work on top of their day jobs. Testing takes twice as long as planned because production call flows are more complex than anyone documented. And every week the project runs long, you are paying dual costs for the old platform and the new one running in parallel.
-            </P>
-
-            <P>
-              <strong>Training was treated as an afterthought.</strong> You budgeted two weeks for agent training on the new platform. It needed six. Not because the platform is hard to use, but because your team had built ten years of muscle memory on the old system. Supervisors had workarounds for every quirk. QA analysts had custom reports. Workforce managers had templates. All of that institutional knowledge has to be rebuilt. Nobody budgets for the productivity dip during the transition, but it is real and it is expensive.
-            </P>
-
-            <P>
-              <strong>The add-on architecture is working exactly as designed.</strong> This one took me three migrations to fully understand. CCaaS platforms are built on a modular pricing model. The base seat price gets you voice and maybe basic digital. But recording? That is an add-on. Speech analytics? Add-on. Screen recording? Add-on. AI-powered QA? Add-on. Advanced reporting? Add-on. Workforce management? Sometimes bundled, sometimes not. Outbound dialer? Depends on the tier. Every one of those capabilities existed in your old platform, sometimes clumsily, but they were paid for. Now each one is a separate commercial conversation.
-            </P>
-
-          </FadeIn>
-
-          <FadeIn delay={0.05}>
-
-            <H2>The data that confirms you are not alone</H2>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, background: BORDER, borderRadius: 10, overflow: "hidden", margin: "24px 0" }}>
-              <div style={{ background: HOUSE.ink }}><Stat n="< 40%" label="Of companies meet desired outcomes from cloud migration (Forrester)" /></div>
-              <div style={{ background: HOUSE.ink }}><Stat n="62%" label="Cite integration challenges as primary cause of delays (Blackchair)" /></div>
-              <div style={{ background: HOUSE.ink }}><Stat n="3.9" label="Average number of contact center technologies per org (Puzzel, 2026)" /></div>
-            </div>
-
-            <P>
-              Forrester's research shows that fewer than 40 percent of companies achieve their desired outcomes from cloud migration projects. Not contact center specifically. Cloud migration broadly. And contact center migrations are among the most complex cloud transitions an enterprise can undertake because of the real-time nature of the workload and the number of systems that have to work together.
-            </P>
-
-            <P>
-              Gartner's projections suggest that 60 percent of infrastructure and operations leaders will face public cloud cost overruns significant enough to negatively impact their on-premises budgets. Read that again. The cloud migration is supposed to reduce costs. Instead, it is creating overruns that pull budget away from other priorities.
-            </P>
-
-            <P>
-              And here is the stat that haunts me: according to Puzzel's 2026 State of Contact Centers report, only 3 percent of contact centers operate on a single, unified platform. The average organization is running 3.9 different contact center technologies. So even after migration, most organizations end up in a hybrid state that is more complex than before.
-            </P>
-
-            <H2>So why does this keep happening?</H2>
-
-            <P>
-              Because the incentive structure is broken.
-            </P>
-
-            <P>
-              The vendor's sales team is compensated on contract value. Deployment success does not enter into it. The implementation partner bills by the hour, so a longer project is a more profitable project. Your internal champion needs the migration to look like a win, so the post-mortem focuses on what went right rather than what cost more than planned. And by the time the real costs are clear, everyone who approved the original business case has either been promoted or moved to a different company.
-            </P>
-
-            <P>
-              I am not saying anyone is acting in bad faith. I am saying the system does not reward honesty about total cost. And until buyers demand a different kind of conversation, the slide with the beautiful savings gap will keep getting presented in boardrooms, and operators like me will keep cleaning up the math on the other side.
-            </P>
-
-            <H2>What I wish I had known before migration number one</H2>
-
-            <P>
-              <strong>Map every integration before you sign anything.</strong> I mean every single one. Not the five your vendor asks about during discovery. The thirty-seven your operation actually depends on. Print the list. Tape it to the wall. Price each connection. Add 50 percent. That is your real integration budget.
-            </P>
-
-            <P>
-              <strong>Build the real TCO, your own version of it.</strong> The vendor's TCO model includes their platform costs. Your TCO model needs to include their platform costs plus your integration costs, your internal labor, your training time, your parallel-run period, your productivity dip, your WFM and QM and analytics add-ons, and the cost of the two contractors you will hire in month four when the project falls behind. Use our <a href="/tools/tco-calculator" style={{ color: ELECTRIC, fontWeight: 600 }}>TCO Calculator</a> to build the honest version.
-            </P>
-
-            <P>
-              <strong>Negotiate the contract knowing what the add-ons will cost.</strong> The base per-seat price is only a starting point. Before you sign, get written pricing for every module you will need in the first 18 months. Recording. Analytics. QA. WFM. AI features. Get it all in writing, in the initial contract, with rate locks. The vendors who resist this are the ones whose add-on revenue model depends on you not asking.
-            </P>
-
-            <P>
-              <strong>Budget for a real training program.</strong> Not the vendor's two-day certification course. A 6-8 week internal program that covers the new platform, the new workflows, the new reporting, and the new muscle memory your team needs to build. Budget for the productivity dip during that period. It will happen. Plan for it rather than pretending it will not.
-            </P>
-
-            <P>
-              <strong>Keep your leverage after you sign.</strong> The moment ink hits paper, your leverage drops dramatically. Build performance milestones into the contract with teeth. If the platform does not meet agreed performance benchmarks within 120 days of go-live, you need contractual remedies that matter. Not just a sternly worded letter from your account manager.
-            </P>
-
-            <Callout>
-              <strong>A note on timing:</strong> If you are mid-migration right now and recognizing some of these patterns, you are not stuck. The costs that have already happened are sunk. The costs that have not happened yet are negotiable. The integration scope can be re-prioritized. The training timeline can be extended. The add-on modules can be renegotiated before renewal. The worst thing you can do is accept the current trajectory as inevitable.
-            </Callout>
-
-            <H2>The migration was probably still worth it</H2>
-
-            <P>
-              I want to end here because this matters. Despite everything I just said, I would still migrate off legacy on-prem. Every time. The old platforms were reaching end of life. The vendors were sunsetting support. The talent pool for maintaining legacy Avaya and Cisco UCCE is shrinking every year. Remote work requirements made cloud inevitable. And the AI capabilities that are reshaping this industry require a cloud-native foundation.
-            </P>
-
-            <P>
-              The migration was worth it. The business case just was not honest about what it would cost. And that dishonesty has consequences. It erodes trust between CX leaders and finance. It makes the next technology investment harder to get approved. It creates cynicism about vendor promises that spills over into legitimate AI opportunities.
-            </P>
-
-            <P>
-              The fix is not to stop migrating. The fix is to start telling the truth about what migration actually costs, what it actually delivers, and how long it actually takes. And to build business cases that survive contact with reality as well as contact with a boardroom presentation.
-            </P>
-
-            <P>
-              I have been doing this for twenty years. Five migrations. Multiple platforms. The technology keeps getting better. The sales process has not changed at all. Maybe it is time for that to change too.
-            </P>
-
-            <div style={{ width: 60, height: 2, background: ELECTRIC, margin: "40px 0", borderRadius: 1 }} />
-
-            <div style={{ background: WARM, border: `1px solid ${BORDER}`, borderRadius: 12, padding: "28px 24px", marginTop: 32 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: ELECTRIC, letterSpacing: 1.5, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Sources + Further Reading</span>
-              <div style={{ fontSize: 13, color: MUTED, lineHeight: 1.7 }}>
-                <p style={{ margin: "0 0 6px" }}>Forrester: Cloud migration outcome rates across enterprise categories</p>
-                <p style={{ margin: "0 0 6px" }}>Gartner: Public cloud cost overrun projections for I+O leaders</p>
-                <p style={{ margin: "0 0 6px" }}>Puzzel: State of Contact Centers 2026 (platform fragmentation data)</p>
-                <p style={{ margin: "0 0 6px" }}>Blackchair: Integration challenge survey data on CCaaS migration delays</p>
-                <p style={{ margin: "0 0 6px" }}>InflectionCX: CCaaS Total Cost of Ownership analysis, 2026</p>
-                <p style={{ margin: "0 0 6px" }}>Business Research Insights: CCaaS Software Market analysis (cost overrun data)</p>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 32 }}>
-              <a href="/vendors/ccaas" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Browse contact center platforms (CCaaS) by job</a>
-              <a href="/research/ccaas-buyer-guide" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Download CCaaS Buyer Guide</a>
-              <a href="/tools/tco-calculator" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Use TCO Calculator</a>
-            </div>
-
-          </FadeIn>
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 32 }}>
+            <a href="/tools/tco-calculator" style={{ background: HOUSE.action, color: HOUSE.paper, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Build your total cost</a>
+            <a href="/vendors/ccaas" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Browse contact center platforms (CCaaS) by job</a>
+            <a href="/tools/contract-risk" style={{ background: WARM, border: `1px solid ${BORDER}`, color: NAVY, fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 8 }}>Check the contract</a>
+          </div>
         </div>
       </section>
-
-      
     </div>
   );
 }
