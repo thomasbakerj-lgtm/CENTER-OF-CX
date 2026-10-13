@@ -447,7 +447,7 @@ Binding. None of this is in code comments beyond what is noted.
 7. ~~Provenance strip under every H1 and a `/standards` page.~~ Disregarded (TB, 1 Oct).
 8. ~~QR code on the PDF cover.~~ Disregarded (TB, 1 Oct: online we use links, downloads and email copies; QR codes are for
    presentations and hard copy). The scenario link on the cover (item 118) stays.
-9. Class comparison and "alternatives to X" pages from the research, A to Z, no order. Held (TB, 1 Oct).
+9. ~~Class comparison and "alternatives to X" pages from the research, A to Z, no order.~~ Done (item 128).
 10. Opt-in benchmark exchange (consent design and storage). Held: needs a dedicated session.
 11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`). Held: needs its own sessions.
 12. ~~One name per category across pages, schema and llms.txt.~~ Done (item 120).
@@ -2116,6 +2116,22 @@ dashboard, the 12-phase growth program.
    (alternate links), the footer and llms.txt. Sitemap 449. `updates.test.mjs` (28, registered): entries exactly the
    published records, a failing item never reaches a feed, corrections, weeks, both formats and escaping, wiring, built feeds
    equal a fresh render. The cadence needs items: the newest Market Watch item is 30 Sep.
+
+128. S24 (13 Oct), peer group comparison and alternatives pages (TB: "9. go"; open item 9). Truth surface: Vendor
+   Intelligence; presentation only (no schema or method change). `src/lib/research/compareView.js` builds `compare.json`
+   (written by research-sync beside category.json; research.test proves it equals a fresh build): each researched vendor's
+   published decision statements (strong fit when, be careful if, rule it out if) word for word, vendors A to Z; it reads
+   no rating, Phase 1, Market Position or state count. `Compare.jsx`: `/vendors/ccaas/compare/<group>` (7 published peer
+   groups: what the group is, the research's definition, buyer and boundary word for word, each platform with tags,
+   notes, fit statements and an introduction, then each kind of statement side by side, A to Z) and
+   `/vendors/<slug>/alternatives` (22 researched vendors: the vendor's own rule-out and caution statements, the platforms
+   researched for the same job, its second group where it has one, other groups by job). Every page says it lists A to Z
+   and ranks nothing. Linked from each researched profile ("See alternatives to X", replacing the category hash link) and
+   from each group on the CCaaS page. Sitemap 478; titles and descriptions from `seo.js` (`COMPARE_GROUPS`, tested equal to
+   the research's groups). `compare.test.mjs` (155, registered): every statement on its pages, A to Z, no rank or score in
+   the page's own words, no rating or Phase 1 source, live links, metadata; seo F, I10 and N2, profile and category pins
+   updated. Suite 28,451; live check 258 of 258; 31 pages clean at 1440 and 390 (overflow, errors, axe) and containment
+   at 390, 360 and 320.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

@@ -108,7 +108,7 @@ section("1b. Take it further: tool links from the profile");
     if (!st || st.vendors.length !== 1 || st.vendors[0] !== file.vendor.Supplier_Name) bad.push(slug);
     const html = renderToString(React.createElement(Page, { slug, file, shared, manifestDate: "2026-09-23", initialView: "fit" }));
     for (const path of ["/tools/platform-decision", "/tools/contract-risk", "/tools/tco-calculator", "/tools/license-gap", "/tools/vendor-match"]) if (!html.includes(`href="${path}"`)) bad.push(slug + path);
-    if (!html.includes(`href="/vendors/ccaas#${file.vendor.Competitive_Class_ID.toLowerCase()}"`)) bad.push(slug + " peers");
+    if (!html.includes(`href="/vendors/${slug}/alternatives"`)) bad.push(slug + " peers");
     if (!/does not read this research yet/.test(html)) bad.push(slug + " vendor match note");
   }
   ok(`every profile links RFP Builder with the vendor entered, its peers and the tools [${bad.slice(0, 3).join(", ")}]`, bad.length === 0);

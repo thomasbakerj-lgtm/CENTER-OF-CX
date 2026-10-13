@@ -439,6 +439,19 @@ export const SEO_MAP = {
 };
 import { CATEGORIES, VERTICALS, hasScoredVerticalFit, CCAAS_INDEXED_INDUSTRIES } from "./verticals.js";
 import { METHOD_VERSIONS } from "./methodVersions.js";
+import { CCAAS_RESEARCH } from "./researchStatus.js";
+
+/* Peer group comparison pages (/vendors/ccaas/compare/<group>), by the group's plain name. compare.test.mjs proves this
+   map equals the groups the research publishes and their names in classWords.js, so it cannot drift. */
+export const COMPARE_GROUPS = {
+  "full-enterprise-suites": "Full Enterprise Suites",
+  "build-on-cloud-services": "Build on Cloud Services",
+  "phone-system-plus-contact-center": "Phone System Plus Contact Center",
+  "regional-and-data-sovereignty": "Regional and Data Sovereignty",
+  "moving-off-an-existing-system": "Moving Off an Existing System",
+  "inside-microsoft-teams": "Inside Microsoft Teams",
+  "standalone-for-mid-size-centers": "Standalone for Mid-Size Centers",
+};
 
 /* Derived counts. Every surface that states a tool or vendor count reads these
    rather than carrying its own literal, so a number on the homepage cannot
@@ -922,6 +935,18 @@ export function resolveSeo(rawPath) {
 
   if (pathname.startsWith("/vendors/")) {
     const parts = pathname.replace("/vendors/", "").split("/");
+    /* Alternatives to a researched platform, and a peer group compared side by side (open item 9, 13 Oct 2026). */
+    if (parts.length === 2 && parts[1] === "alternatives" && own(CCAAS_RESEARCH.complete, parts[0])) {
+      const n = vendorDisplayName(parts[0]);
+      return { ...seo, known: true, title: `${n} Alternatives and Peers | ${SITE}`,
+        desc: `Platforms researched for the same job as ${n}, A to Z, with when to look beyond it and each peer's fit statements. No ranking.` };
+    }
+    if (parts.length === 3 && parts[0] === "ccaas" && parts[1] === "compare") {
+      if (!own(COMPARE_GROUPS, parts[2])) return seo;
+      const g = COMPARE_GROUPS[parts[2]];
+      return { ...seo, known: true, title: `Compare CCaaS: ${g} | ${SITE}`,
+        desc: `${g} contact center platforms side by side, A to Z: strong fit when, be careful if and rule it out if, in the research's own words.` };
+    }
     if (parts.length === 2) {
       const cName = catName(parts[0]) || titleCase(parts[0]);
       const vName = vertName(parts[1]) || titleCase(parts[1]);

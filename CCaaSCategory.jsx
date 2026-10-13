@@ -21,6 +21,7 @@ import INDEX from "./src/data/research/ccaas/category.json";
 import { tagsFor, SIZES, UC_LABEL, PS_LABEL } from "./src/lib/research/ccaasTags.js";
 import { Tags, TagNotes } from "./src/lib/VendorTags.jsx";
 import { PLAIN } from "./src/lib/research/classWords.js";
+import { comparePath } from "./src/lib/research/compareView.js";
 
 const ACCENT = PILLARS.vendors.onDark;
 
@@ -156,6 +157,7 @@ export default function CCaaSCategory({ initialClass = "all", initialSize = "all
             </div>
             <p style={K.small}>Research class: {c.name}. {c.definition}</p>
             {c.boundary && <p style={K.small}>How the research compares this class, in its own words: {c.boundary}</p>}
+            <p style={K.small}><a href={comparePath(c.id)} style={K.link}>Compare this group side by side</a></p>
             {c.kept.length
               ? <ul style={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>{c.kept.map((v) => <Researched key={v.id} v={v} klass={c} />)}</ul>
               : <p style={K.small}>No researched vendor in this class matches these filters.</p>}

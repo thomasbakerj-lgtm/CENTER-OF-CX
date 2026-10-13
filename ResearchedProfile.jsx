@@ -128,7 +128,7 @@ function TakeItFurther({ p, slug }) {
   const go = (action) => () => trackVendor.action(slug, action, "vendor");
   const rows = [
     [rfpHref(name), `Test ${name}'s answers against your requirements`, "RFP Builder, with this vendor already entered.", "rfp"],
-    [`/vendors/ccaas#${p.klass ? p.klass.id.toLowerCase() : ""}`, "See the peers it is compared with", "The other vendors researched for the same job.", "peer"],
+    [`/vendors/${slug}/alternatives`, `See alternatives to ${name}`, "The other platforms researched for the same job, A to Z, and when to look beyond this one.", "peer"],
     ["/tools/platform-decision", "Decide whether to renew your current platform", "Platform Decision, layer by layer.", "test-it"],
     ["/tools/contract-risk", "Check the contract before you sign", "Contract Risk: the clauses to find.", "test-it"],
     ["/tools/tco-calculator", "Model the cost over the term", "TCO Calculator.", "test-it"],
