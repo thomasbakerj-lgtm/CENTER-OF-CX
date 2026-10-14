@@ -127,9 +127,11 @@ section("5. The stack reads Platform Decision's layer map");
   const FG = readFileSync("./src/lib/frameworkGuide.js", "utf8");
   ok("the framework guide and the homepage read one tool list", (FG.match(/tools: LAYER_TOOLS\[\d\]/g) || []).length === 7);
   const UI = readFileSync("./src/lib/ui.jsx", "utf8");
-  ok("hover is mouse only and a preview fires no event", /e\.pointerType === "mouse"/.test(UI) && SRC.includes("onPreview={door.routes ? setPreview : undefined}") && !/setPreview[^;]*trackHome/.test(SRC));
+  ok("hover is mouse only and a preview fires no event", /e\.pointerType === "mouse"/.test(UI) && SRC.includes("onPreview={door.routes ? peek : undefined}") && !/setPreview[^;]*trackHome/.test(SRC));
   ok("the hovered layer grows and reduced motion drops the glide", UI.includes('scale(1.1)') && UI.includes("prefers-reduced-motion: reduce"));
-  ok("the panel follows the preview, then the choice", SRC.includes("layer={door.routes ? preview || layer : null}"));
+  ok("the layer card is a pop-up: shown only on a hover, focus or click, over the page", SRC.includes("{door.routes && (preview || picked) && (") && SRC.includes('<LayerPanel layer={preview || picked} door={door} />') && SRC.includes('role="dialog" aria-label="About this layer"') && SRC.includes('position: "absolute", top: STACK_W * 0.82 + 40') && !SRC.includes("minHeight: 410"));
+  ok("the card waits for the pointer to reach it, and Escape or Close dismisses it", SRC.includes("setTimeout(() => setPreview(null), 250)") && SRC.includes('e.key === "Escape"') && SRC.includes(">Close</button>"));
+  ok("the stack is drawn larger, stepping down as the hero column narrows", /STACK_STEPS = \[\[1200, 460\], \[1000, 400\], \[0, 340\]\]/.test(SRC) && SRC.includes("width={STACK_W}"));
 }
 
 section("6. No change log on the homepage (removed, TB, 27 Sep 2026)");

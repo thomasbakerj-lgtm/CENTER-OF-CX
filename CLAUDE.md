@@ -2182,6 +2182,16 @@ dashboard, the 12-phase growth program.
    `helpoffers.test.mjs` (59, registered); track, toolframe and intro pins moved. Suite 27,902; live check 258 of 258;
    browser at 1440 and 390: each offer appears on its trigger, none on opening, no overflow or page error.
 
+132. S24 (14 Oct), the homepage stack card as a pop-up (TB: "the content box is now too large. Not sure we need that
+   visible. This should be a pop up only after user hovers over area of the stack. Stack looks too small now."). The
+   always-open 410 px panel under the stack is gone; the layer card opens only while the pointer or focus rests on a layer
+   (or after a click, with Close and Escape), floats over the page so nothing below moves, and stays open for 250 ms after
+   the pointer leaves so the reader can reach its links. One muted line under the stack says what to do. The stack is
+   drawn at 460 px (was 340), stepping to 400 below 1200 px and 340 below 1000 as the hero column narrows; the phone home
+   still has no stack. Events unchanged (`layer_select` on click only). `home.test.mjs` 44. Suite 27,904; live check 258
+   of 258; browser at 1440, 1100 and 960: no card on load, hover opens it, the page does not move, it survives the move
+   onto the card, leaves on exit, pins on click, Escape closes; containment clean at 1440, 1100, 960 and 390.
+
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a
    mute; Headset dropped: it ties the brand to one channel). A solid C for the contact center, a C of 17 blue bars for the
