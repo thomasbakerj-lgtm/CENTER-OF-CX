@@ -1,0 +1,26 @@
+{
+  "pooled": null,
+  "minGroup": 5,
+  "quartilesFrom": 10,
+  "metrics": {
+    "fcr": {
+      "contributions": 0,
+      "groups": []
+    },
+    "aht": {
+      "contributions": 0,
+      "groups": []
+    },
+    "cpc": {
+      "contributions": 0,
+      "groups": []
+    },
+    "attrition": {
+      "contributions": 0,
+      "groups": []
+    }
+  },
+  "dropped": {
+    "invalid": 0
+  }
+}

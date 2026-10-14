@@ -22,6 +22,7 @@ import { HOUSE, PILLARS, RADIUS, TOUCH, alpha, LINE, onFill } from "./src/lib/to
 import { methodStamp } from "./src/lib/methodVersions.js";
 import { TwoToolsNote } from "./src/lib/TwoToolsNote.jsx";
 import { repeatSideBySide, perYear } from "./src/lib/crossTool.js";
+import BenchmarkContribute from "./src/lib/BenchmarkContribute.jsx";
 
 const { green: GREEN, amber: AMBER, red: RED, electric: ELECTRIC, navy: NAVY, muted: MUTED } = COLORS;
 const DEEP = "#061325"; const LIGHT = "#00AAFF"; const WARM = "#F8FAFB"; const SLATE = "#3A4F6A"; const BORDER = "#D8E3ED";
@@ -912,6 +913,7 @@ export default function FCRLeakageDiagnostic() {
               reasons={[...x.reasons.slice(0, 2), "Cost per Contact asks for M directly, so an M of 2 there gives the one-callback row above, and the geometric row's M gives the geometric one.", x.reasons[2]]}
               links={[["Open Cost per Contact", "/tools/cost-per-contact"], ["How FCR Leakage works", "/methodology/fcr-leakage"]]} />;
           })()}
+          <BenchmarkContribute metric="fcr" value={N.fcrPct} voided={G.voided} />
           <HowOthersReport toolId={TOOL_ID} />
           {/* The report is paper (Brand Guide section 13). */}
           <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>

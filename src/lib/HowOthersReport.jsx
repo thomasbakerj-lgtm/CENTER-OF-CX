@@ -9,6 +9,8 @@ import { HOUSE, RADIUS, alpha, LINE } from "./tokens.js";
 import { K, selectStyle, optionCss } from "./frameKit.jsx";
 import { groupsFor, rowSource, KIND_LABEL, TOOL_GROUPS, SOURCES, GROUPS } from "./comparisons.js";
 import { STATE_WAGES, STATE_WAGE_SOURCE, NATIONAL_WAGE } from "./comparisons/stateWages.js";
+import { METRICS, MIN_GROUP, QUARTILES_FROM, READER_LABEL, metricForTool, show } from "./benchmarkExchange.js";
+import READERS from "../data/benchmarks/readers.json";
 
 const hair = alpha(HOUSE.mist, LINE.hair);
 const chip = { display: "inline-block", fontSize: 12, fontWeight: 600, lineHeight: "18px", padding: "1px 8px", borderRadius: RADIUS.field, border: `1px solid ${alpha(HOUSE.mist, LINE.firm)}`, color: HOUSE.mist, maxWidth: "100%" };
@@ -74,11 +76,33 @@ function WagePicker() {
   );
 }
 
+/* The reader benchmark's pooled groups for one figure (open item 10). Its own block, labelled, never mixed with the
+   published rows and never averaged with them. Below the minimum it says so and shows no figure. */
+function ReaderRows({ metric }) {
+  const m = READERS.metrics[metric] || { groups: [] };
+  if (!m.groups.length) {
+    return <p style={{ ...K.body, fontSize: 14 }}>{READERS.pooled ? `No group has reached ${MIN_GROUP} contributions yet (pooled ${READERS.pooled}).` : `No reader figures yet. A group is published once ${MIN_GROUP} readers have added theirs.`} You can add yours from this tool.</p>;
+  }
+  return (
+    <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+      {m.groups.map((g) => (
+        <li key={g.id} style={{ display: "grid", gridTemplateColumns: "fit-content(40%) minmax(0, 1fr)", gap: "4px 16px", padding: "12px 0", borderTop: `1px solid ${hair}` }}>
+          <span style={{ fontSize: 18, fontWeight: 700, lineHeight: "26px", color: HOUSE.mist, fontVariantNumeric: "tabular-nums" }}>{show(metric, g.median)}</span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, lineHeight: "22px", color: HOUSE.mist }}>{g.label}, median</span>
+            <span style={{ ...K.body, display: "block", fontSize: 14, lineHeight: "22px", marginTop: 2 }}>{g.n} contributions{g.p25 != null ? `; middle half ${show(metric, g.p25)} to ${show(metric, g.p75)}` : ""}.</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** The panel for one tool. Renders nothing for a tool with no published comparison. */
 export function HowOthersReport({ toolId }) {
   const conf = TOOL_GROUPS[toolId];
   if (!conf) return null;
-  return <Panel groups={groupsFor(toolId)} wage={conf.wage} title="How others report it"
+  return <Panel groups={groupsFor(toolId)} wage={conf.wage} readers={metricForTool(toolId)} title="How others report it"
     intro="Published figures to hold your result against. Each measures something slightly different, so read what it counts before you compare. None of them changes your result or its grade." />;
 }
 
@@ -90,7 +114,7 @@ export function PublishedFigures({ groupIds, wage = false }) {
     intro="What publishers report for this measure. Each counts something slightly different, so read the definition before you compare; nothing here is averaged across publishers." />;
 }
 
-function Panel({ groups, wage, title, intro }) {
+function Panel({ groups, wage, readers, title, intro }) {
   const blocks = groups.map((g) => {
     /* The group's main source is named once under its note; a row names its own only when it cites another page. */
     const main = g.src ? SOURCES[g.src] : rowSource(g.rows[0], g);
@@ -98,6 +122,7 @@ function Panel({ groups, wage, title, intro }) {
     return { key: g.id, kind: g.kind, title: g.title, note: g.note, shared,
       body: <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>{g.rows.map((r, i) => <Row key={i} row={r} group={g} shared={!!shared && rowSource(r, g).url === main.url} />)}</ul> };
   });
+  if (readers) blocks.push({ key: "readers", chip: "Reported by readers", title: `${METRICS[readers].label}, Center of CX readers`, note: `${READER_LABEL}. Pooled from figures readers added in this tool, rounded, with no name or company. A group shows from ${MIN_GROUP} contributions (the median), and the middle half from ${QUARTILES_FROM}.${READERS.pooled ? ` Last pooled ${READERS.pooled}.` : ""}`, body: <ReaderRows metric={readers} /> });
   if (wage) blocks.push({ key: "wage", kind: "official", title: "Agent pay where your agents work", note: "The US Bureau of Labor Statistics median for customer service representatives, May 2025. The tool opens at the national median; if you know your own pay, enter it in the tool.", body: <WagePicker /> });
   return (
     <section className="cx-hor" aria-label={title} style={{ ...K.panel, display: "flex", flexDirection: "column", gap: 4 }}>
@@ -106,7 +131,7 @@ function Panel({ groups, wage, title, intro }) {
       <p style={{ ...K.body, marginBottom: 8 }}>{intro}</p>
       {blocks.map((b, i) => (
         <details key={b.key} open={i === 0} style={{ borderTop: `1px solid ${hair}` }}>
-          <summary><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{b.title}</span><span style={chip}>{KIND_LABEL[b.kind]}</span></summary>
+          <summary><span style={{ fontSize: 16, fontWeight: 600, color: HOUSE.mist }}>{b.title}</span><span style={chip}>{b.chip || KIND_LABEL[b.kind]}</span></summary>
           <div style={{ padding: "0 0 12px 26px" }}>
             <p style={{ ...K.small, marginBottom: 4 }}>{b.note}</p>
             {b.shared && <SourceLine s={b.shared} />}

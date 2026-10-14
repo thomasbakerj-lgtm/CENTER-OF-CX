@@ -20,6 +20,7 @@ import { HOUSE, PILLARS, RADIUS, TOUCH, FONT_MONO, alpha, LINE, onFill } from ".
 import { methodStamp } from "./src/lib/methodVersions.js";
 import { TwoToolsNote } from "./src/lib/TwoToolsNote.jsx";
 import { repeatSideBySide, perYear } from "./src/lib/crossTool.js";
+import BenchmarkContribute from "./src/lib/BenchmarkContribute.jsx";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -583,6 +584,7 @@ export default function CostPerContactCalculator() {
           rows={x.rows.map((w) => ({ value: perYear(w.yearly), tool: w.tool, label: w.label, own: w.own }))}
           reasons={x.reasons} links={[["Open FCR Leakage", "/tools/fcr-leakage"], ["How Cost per Contact works", "/methodology/cost-per-contact"]]} />;
       })()}
+      <BenchmarkContribute metric="cpc" value={r.loaded} voided={graded.voided} />
       <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13): the actions sit on a paper panel until ReportActions moves onto the house in a later batch. */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>

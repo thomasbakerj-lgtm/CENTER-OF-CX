@@ -1,8 +1,8 @@
 # Measurement: event taxonomy, UTM convention and funnels
 
-Taxonomy version 1.6, 14 October 2026 (1.5 and 1.4 on 28 September 2026; 1.3 frozen 27 September 2026; 1.2 and 1.1 frozen the same day at redesign Phase 5;
+Taxonomy version 1.7, 14 October 2026 (1.6 the same day; 1.5 and 1.4 on 28 September 2026; 1.3 frozen 27 September 2026; 1.2 and 1.1 frozen the same day at redesign Phase 5;
 1.0 frozen 25 September 2026, P2 task 7, tracker 11-01 to 11-03). The sections below are 1.0; sections "Taxonomy 1.1" to
-"Taxonomy 1.6" list what each adds. Source of truth in code:
+"Taxonomy 1.7" list what each adds. Source of truth in code:
 `src/lib/track.js`; pins in `track.test.mjs` section P. PostHog (free tier) is the event store; Vercel Analytics counts
 page views only.
 
@@ -125,6 +125,27 @@ the link went.
 What it answers: which results lead readers to ask for help, and how often an offer seen becomes a request. Funnel for
 PostHog: `help_offer_view` then `help_offer_click`, broken down by `offer`. A sent request is counted in the inbox by its
 `help_offer` field; the form sends no event of its own. No offer event carries a figure or anything typed.
+
+## Taxonomy 1.7 (14 October 2026, the reader benchmark, open item 10)
+
+1.7 only adds. Every earlier name keeps its meaning.
+
+| Change | Detail |
+|---|---|
+| New event `benchmark_contribute` | A reader chose to add one figure to the reader benchmark: ticked the consent box and pressed Add my figure. Carries `tool`, `metric`, `value`, `industry` and `size_band`. Sent with a random id and visit id made for that one event, and no `repeat`, so it is not linked to the browser's other events |
+| New property `metric` | `fcr` (FCR Leakage), `aht` (AHT Decomposition), `cpc` (Cost per Contact), `attrition` (Attrition) |
+| New property `value` | The figure rounded in the browser: FCR and attrition to whole percents, handle time to 10 seconds, cost per contact to $0.10; inside the tool's valid range or not sent |
+| New property `industry` | One of the site's ten industry ids, or `other` |
+| New property `size_band` | `s1` under 50 agents, `s2` 50 to 199, `s3` 200 to 499, `s4` 500 to 1,999, `s5` 2,000 or more |
+
+All four properties travel on `benchmark_contribute` only. It is the second event that carries something the reader entered
+(Roadmap's milestone code is the first); the four tools' pages say so, and so does the Privacy Policy.
+
+Pooling: export the event from PostHog (JSON or CSV) to a folder outside the repository, then
+`node scripts/benchmark-pool.mjs <file> --date YYYY-MM-DD`. It writes `src/data/benchmarks/readers.json` with pooled
+groups only: from 5 contributions the median and the count, from 10 the 25th to 75th percentile too; all industries first,
+then each industry and size band that reaches 5. "How others report it" on the four tools renders it, labelled "Reported
+by Center of CX readers and unverified". No tool reads it.
 
 ## Rules
 

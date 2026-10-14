@@ -6,7 +6,7 @@
 // this file types no count. Tokens only. Events are taxonomy 1.1: door_select, route_select, route_start and
 // layer_select (surface home). The initial state is fixed, so the prerendered page and the first client render agree.
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { HOUSE, PILLARS, LAYERS, RADIUS, TOUCH, FONT_SANS, TYPE_SCALE, alpha, LINE } from "./src/lib/tokens.js";
 import { Door, RouteCard, Stack, EvidenceMark, GradeBadge } from "./src/lib/ui.jsx";
 import { Icon } from "./src/lib/Icon.jsx";
@@ -33,6 +33,11 @@ const CSS = `.cx-home{background-image:${CONTOUR("76% 260px")}}
 @media (max-width:1100px){.cx-home-doors{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:900px){.cx-home-hero,.cx-home-step2{grid-template-columns:minmax(0,1fr)}.cx-home-stack{display:none}.cx-home-three{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:640px){.cx-home-doors{grid-template-columns:minmax(0,1fr)}.cx-home-doors>button{min-height:0 !important}.cx-home-opts{grid-template-columns:minmax(0,1fr) !important}}`;
+
+/* The stack's drawn width on the homepage (TB, 14 Oct 2026: larger; the layer card is now a pop-up). The hero column
+   narrows below 1200 px, so the stack steps down with it; the first render uses the widest, as the prerender does. */
+const STACK_STEPS = [[1200, 460], [1000, 400], [0, 340]];
+const stackWidth = (w) => STACK_STEPS.find(([min]) => w >= min)[1];
 
 /** The panel beside the stack: the chosen layer, or what the current route touches. */
 function LayerPanel({ layer, door }) {
@@ -109,6 +114,24 @@ export default function Homepage() {
   const [routeIx, setRoute] = useState(0);
   const [picked, setPicked] = useState(null);
   const [preview, setPreview] = useState(null);
+  /* The layer card is a pop-up (TB, 14 Oct 2026: the always-open panel was too large). It opens while the pointer or
+     focus rests on a layer, or after a click, and closes a moment after the pointer leaves both the stack and the card,
+     so the reader can move onto the card's links. */
+  const [STACK_W, setStackW] = useState(STACK_STEPS[0][1]);
+  useEffect(() => {
+    const fit = () => setStackW(stackWidth(window.innerWidth));
+    fit(); window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
+  const leave = useRef(null);
+  const peek = (id) => { clearTimeout(leave.current); if (id) setPreview(id); else leave.current = setTimeout(() => setPreview(null), 250); };
+  const hold = () => clearTimeout(leave.current);
+  useEffect(() => () => clearTimeout(leave.current), []);
+  useEffect(() => {
+    const esc = (e) => { if (e.key === "Escape") { setPicked(null); setPreview(null); } };
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, []);
   const door = DOORS[doorIx];
   const route = door.routes ? door.routes[Math.min(routeIx, door.routes.length - 1)] : null;
   const layer = picked || (route && route.layer) || null;
@@ -137,13 +160,18 @@ export default function Homepage() {
             <p style={{ margin: "20px 0 0", fontSize: 19, lineHeight: 1.55, color: HOUSE.body, maxWidth: 620 }}>Run the numbers on your own operation, read vendor profiles, and check what your industry demands. Every figure says where it came from and how sure it is.</p>
             <p style={{ margin: "18px 0 0", fontSize: 14, color: HOUSE.muted }}>No sign in. No email. Every report free. Vendors cannot pay to appear.</p>
           </div>
-          <div className="cx-home-stack"><div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-            {/* The plates draw below the component's box; the margin keeps the panel clear of the bottom layer. */}
-            <div style={{ marginBottom: 56 }}><Stack active={door.routes ? layer : null} preview={door.routes ? preview : null} onPreview={door.routes ? setPreview : undefined} onSelect={pickLayer} width={340} /></div>
-            {/* Tall enough for the fullest layer (L5, about 400 px), so a hover never moves the page below it. */}
-            <div style={{ width: "100%", maxWidth: 440, padding: 16, borderRadius: RADIUS.card, background: alpha(HOUSE.navy, 0.8), border: `1px solid ${hair}`, minHeight: 410, boxSizing: "border-box" }}>
-              <LayerPanel layer={door.routes ? preview || layer : null} door={door} />
-            </div>
+          <div className="cx-home-stack"><div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <Stack active={door.routes ? layer : null} preview={door.routes ? preview : null} onPreview={door.routes ? peek : undefined} onSelect={pickLayer} width={STACK_W} />
+            {/* The plates draw below the component's box; the hint sits clear of the bottom layer. */}
+            <p style={{ margin: "64px 0 0", fontSize: 13, color: HOUSE.muted, textAlign: "center" }}>{door.routes ? "Point at a layer to see what it does and the tools that test it." : "The seven layers every contact center runs on."}</p>
+            {door.routes && (preview || picked) && (
+              <div role="dialog" aria-label="About this layer" onPointerEnter={hold} onPointerLeave={(e) => { if (e.pointerType === "mouse" && !picked) peek(null); }} onFocus={hold} onBlur={() => { if (!picked) peek(null); }}
+                style={{ position: "absolute", top: STACK_W * 0.82 + 40, left: "50%", transform: "translateX(-50%)", zIndex: 5, width: "min(440px, 100%)", padding: 16, borderRadius: RADIUS.card,
+                  background: HOUSE.navy, border: `1px solid ${soft}`, boxShadow: `0 18px 48px ${alpha(HOUSE.ink, 0.7)}`, boxSizing: "border-box" }}>
+                <LayerPanel layer={preview || picked} door={door} />
+                {picked && !preview && <button type="button" onClick={() => setPicked(null)} style={{ marginTop: 4, minHeight: TOUCH, padding: "0 12px", fontSize: 14, fontWeight: 600, color: HOUSE.mist, background: "transparent", border: `1px solid ${soft}`, borderRadius: RADIUS.field, cursor: "pointer", fontFamily: "inherit" }}>Close</button>}
+              </div>
+            )}
           </div></div>
         </div>
       </section>
