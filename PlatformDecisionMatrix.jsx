@@ -11,6 +11,8 @@ import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { JOURNEY } from "./src/lib/journey";
 import { PLATFORM_DECISION as MODEL } from "./src/lib/rubrics/platformDecision";
 import { scoreRenewal, renewalNeeds, renewalVars } from "./src/lib/renewal";
+import HelpOffer from "./src/lib/HelpOffer.jsx";
+import { offerFor } from "./src/lib/helpOffers.js";
 
 /* Platform Decision: the renewal gate. The rules, thresholds and outcomes live in the
    published model (src/lib/rubrics/platformDecision.js) and the engine
@@ -80,6 +82,7 @@ export default function PlatformDecisionMatrix() {
   /* A refresh or Back reopens the answers given so far (the report sits on a later step). */
   useScenarioHash(TOOL_ID, state, DEFAULTS);
   const R = scoreRenewal(MODEL, state);
+  const helpId = offerFor(TOOL_ID, { gate: R.complete ? R.gate : null });
   const [phase, setPhase] = useState(() => (scoreRenewal(MODEL, init).complete ? "results" : "intro"));
   const [currentLayer, setCurrentLayer] = useState(0);
   useEffect(() => { window.scrollTo(0, 0); }, [phase]);
@@ -203,6 +206,8 @@ export default function PlatformDecisionMatrix() {
           {next && <p style={{ ...K.body, marginTop: 14 }}>Next diagnostic: <a href={next.href} style={K.link}>{next.name}</a>, because {NEXT_WHY[R.next.because]}.</p>}
           <p style={{ ...K.small, marginTop: 14 }}>Every rule, outcome and threshold is in the <a href={MODEL.methodology} style={K.link}>published method</a>. <button type="button" onClick={() => { setPhase("assess"); setCurrentLayer(0); }} style={{ ...K.link, background: "none", border: "none", cursor: "pointer", padding: 0, font: "inherit" }}>Change your answers</button>.</p>
         </section>
+
+        {helpId && <HelpOffer id={helpId} tool={TOOL_ID} fact={`Your renewal gate: ${gateOf(R.gate).label}.`} />}
 
         <Paper>
         <ReportActions next={R.next ? { to: R.next.tool, because: "Because " + NEXT_WHY[R.next.because] + "." } : null} toolId={TOOL_ID} toolName="Platform Decision" subtitle="Renewal Gate" routePath={ROUTE} state={state} defaults={DEFAULTS}

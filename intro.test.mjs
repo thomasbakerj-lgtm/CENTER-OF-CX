@@ -67,7 +67,7 @@ section("3. The contact form receives it");
   const C = read("Contact.jsx");
   ok("the form reads the introduction after first paint", /useEffect\(\(\) => \{ try \{ setIntro\(readIntro\(window\.location\.search\)\)/.test(C));
   ok("the vendor, profile and origin travel as named fields", /name="intro_vendor"/.test(C) && /name="intro_profile"/.test(C) && /name="intro_from"/.test(C));
-  ok("the topic list offers the introduction and preselects it", C.includes("<option value={INTRO_TOPIC}>") && /defaultValue=\{intro \? INTRO_TOPIC : ""\}/.test(C) && INTRO_TOPIC === "Vendor introduction");
+  ok("the topic list offers the introduction and preselects it", C.includes("<option value={INTRO_TOPIC}>") && /defaultValue=\{intro \? INTRO_TOPIC : help \? help\.topic : ""\}/.test(C) && INTRO_TOPIC === "Vendor introduction");
   ok("the email subject names the introduction", /name="_subject" value=\{intro \? `Vendor introduction request: \$\{intro\.name\}`/.test(C));
   ok("a sent introduction fires intro_submit", /if \(intro\) trackVendor\.introSent\(intro\.slug \|\| undefined\)/.test(C));
   ok("no introduction value reaches an HTML sink", !/dangerouslySetInnerHTML/.test(C + read("src/lib/VendorIntro.jsx") + read("src/lib/intro.js")));

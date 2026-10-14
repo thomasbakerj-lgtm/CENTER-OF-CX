@@ -12,6 +12,8 @@ import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { JOURNEY } from "./src/lib/journey";
 import { RFP_BUILDER as MODEL } from "./src/lib/rubrics/rfpBuilder";
 import { rfpRequirements, scoreRfp } from "./src/lib/rfp";
+import HelpOffer from "./src/lib/HelpOffer.jsx";
+import { offerFor } from "./src/lib/helpOffers.js";
 
 /* RFP Requirement Builder. The requirements, weights, response credits and rules live in
    the published model (src/lib/rubrics/rfpBuilder.js) and the engine (src/lib/rfp.js);
@@ -202,6 +204,7 @@ export default function RFPRequirementBuilder() {
   ));
 
   const met = R.vendors.filter((v) => v.status === "meets").length;
+  const helpId = offerFor(TOOL_ID, { vendors: R.vendors.length });
   const result = phase === "results"
     ? <Result label={scoring ? "Vendors meeting every must-have" : "Requirements"} value={scoring ? `${met} of ${R.vendors.length}` : String(all.length)} change={scoring ? `${all.length} requirements, ${R.counts.must} must-haves.` : `${R.counts.must} must, ${R.counts.should} should, ${R.counts.nice} nice to have. Add vendors to score their responses.`} />
     : <Result label="Requirements so far" value={String(all.length)} change="Set your environment and focus areas, then review the priorities." />;
@@ -352,8 +355,10 @@ export default function RFPRequirementBuilder() {
           <span style={K.kicker}>Next move</span>
           {next && <p style={{ ...K.body, color: K.strong.color, margin: "8px 0" }}><a href={next.href} style={K.link}>{next.name}</a>, because {NEXT_WHY[R.next]}.</p>}
           {R.next !== "vendor-match" && toolOf("vendor-match") && <p style={K.small}>Looking for more vendors to send this to? <a href={toolOf("vendor-match").href} style={K.link}>Vendor Match</a> builds a starting list from your operation.</p>}
-          <p style={{ ...K.small, marginTop: 6 }}>For help with the demos, references and negotiation, use the review request below. Your requirements and scores travel with it.</p>
+          {!helpId && <p style={{ ...K.small, marginTop: 6 }}>For help with the demos, references and negotiation, use the review request below. Your requirements and scores travel with it.</p>}
         </section>
+
+        {helpId && <HelpOffer id={helpId} tool={TOOL_ID} fact={`${R.vendors.length} vendors' responses entered; ${met} of ${R.vendors.length} meet${met === 1 ? "s" : ""} every must-have.`} />}
 
         <Paper>
           <ReportActions next={R.next ? { to: R.next, because: "Because " + NEXT_WHY[R.next] + "." } : null}

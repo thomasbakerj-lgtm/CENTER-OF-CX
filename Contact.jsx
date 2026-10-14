@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Assent } from "./src/lib/Assent.jsx";
 import { readIntro, INTRO_TOPIC } from "./src/lib/intro.js";
+import { readHelp, HELP_TOPICS } from "./src/lib/helpOffers.js";
 import { trackVendor } from "./src/lib/track.js";
 import { HOUSE, PILLARS, LINE, FINDINGS, alpha } from "./src/lib/tokens.js";
 import { FONT } from "./src/lib/type.js";
@@ -65,6 +66,10 @@ function ContactPage() {
      first paint, so the prerendered page and the hydrated page match. */
   const [intro, setIntro] = useState(null);
   useEffect(() => { try { setIntro(readIntro(window.location.search)); } catch { setIntro(null); } }, []);
+  /* A help offer from a tool arrives as ?help=<offer id>&from=<tool>, checked by readHelp; an introduction wins. */
+  const [helpReq, setHelpReq] = useState(null);
+  useEffect(() => { try { setHelpReq(readHelp(window.location.search)); } catch { setHelpReq(null); } }, []);
+  const help = intro ? null : helpReq;
   const [sending, setSending] = useState(false);
   /* "" | "missing" | "failed": a request that did not send says so, and keeps what the reader typed. */
   const [problem, setProblem] = useState("");
@@ -165,7 +170,8 @@ function ContactPage() {
                 </div>
               ) : (
                 <div>
-                  <h2 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>{intro ? `Request an introduction to ${intro.name}.` : "Tell us about your situation."}</h2>
+                  <h2 style={{ fontFamily: FONT, fontSize: 22, fontWeight: 400, color: NAVY, margin: "0 0 4px" }}>{intro ? `Request an introduction to ${intro.name}.` : help ? help.title : "Tell us about your situation."}</h2>
+                  {help && <p style={{ fontSize: 14, color: SLATE, margin: "0 0 8px", lineHeight: 1.6, fontFamily: FONT }}>{help.body} Your answers in the tool stay in your browser; describe what matters below, and paste the tool's scenario link if you want us to see your numbers.</p>}
                   {intro && <p style={{ fontSize: 14, color: SLATE, margin: "0 0 8px", lineHeight: 1.6, fontFamily: FONT }}>Tell us what you want to see and who should join. We arrange the introduction and a demo run on your scenarios.</p>}
                   <p style={{ fontSize: 13, color: MUTED, margin: "0 0 28px", fontFamily: FONT }}>All fields are required unless marked optional.</p>
 
@@ -173,8 +179,10 @@ function ContactPage() {
                     {intro && <input type="hidden" name="intro_vendor" value={intro.name} />}
                     {intro && intro.slug && <input type="hidden" name="intro_profile" value={intro.slug} />}
                     {intro && intro.from && <input type="hidden" name="intro_from" value={intro.from} />}
+                    {help && <input type="hidden" name="help_offer" value={help.id} />}
+                    {help && help.from && <input type="hidden" name="help_from" value={help.from} />}
                     {/* Hidden Formspree helper */}
-                    <input type="hidden" name="_subject" value={intro ? `Vendor introduction request: ${intro.name}` : "New Consultant Match Request: Center of CX"} />
+                    <input type="hidden" name="_subject" value={intro ? `Vendor introduction request: ${intro.name}` : help ? `Help request: ${help.topic}` : "New Consultant Match Request: Center of CX"} />
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                       <div>
@@ -204,7 +212,7 @@ function ContactPage() {
 
                     <div>
                       <label htmlFor="ct-topic" style={labelStyle}>What are you working on?</label>
-                      <select key={intro ? "intro" : "none"} id="ct-topic" name="topic" required defaultValue={intro ? INTRO_TOPIC : ""} style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
+                      <select key={intro ? "intro" : help ? help.id : "none"} id="ct-topic" name="topic" required defaultValue={intro ? INTRO_TOPIC : help ? help.topic : ""} style={{ ...inputStyle, cursor: "pointer", appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7F99' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}>
                         <option value="" disabled>Select a topic</option>
                         <option value="Platform selection">Platform selection</option>
                         <option value="AI readiness">AI readiness</option>
@@ -212,6 +220,7 @@ function ContactPage() {
                         <option value="Operating model">Operating model</option>
                         <option value="Executive briefing">Executive briefing</option>
                         <option value="Workshop">Workshop</option>
+                        {HELP_TOPICS.filter((t) => t !== "Platform selection").map((t) => <option key={t} value={t}>{t}</option>)}
                         <option value={INTRO_TOPIC}>{INTRO_TOPIC}</option>
                         <option value="General inquiry">General inquiry</option>
                       </select>
@@ -219,7 +228,7 @@ function ContactPage() {
 
                     <div>
                       <label htmlFor="ct-message" style={labelStyle}>Describe your situation <span style={{ fontWeight: 400, color: MUTED }}>(the more context, the better we can prepare)</span></label>
-                      <textarea key={intro ? "intro" : "none"} id="ct-message" name="message" required rows={5} style={{ ...inputStyle, resize: "vertical", minHeight: 120 }} placeholder={intro ? "What you want to see in the demo, your timeline, and who should join the call..." : "We're evaluating CCaaS platforms and need help narrowing from 8 vendors to 3. Currently on legacy Avaya with 400 agents across two sites..."} />
+                      <textarea key={intro ? "intro" : help ? help.id : "none"} id="ct-message" name="message" required rows={5} style={{ ...inputStyle, resize: "vertical", minHeight: 120 }} placeholder={intro ? "What you want to see in the demo, your timeline, and who should join the call..." : help ? help.prompt : "We're evaluating CCaaS platforms and need help narrowing from 8 vendors to 3. Currently on legacy Avaya with 400 agents across two sites..."} />
                     </div>
 
                     <div>

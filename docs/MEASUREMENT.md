@@ -1,8 +1,8 @@
 # Measurement: event taxonomy, UTM convention and funnels
 
-Taxonomy version 1.5, 28 September 2026 (1.4 the same day; 1.3 frozen 27 September 2026; 1.2 and 1.1 frozen the same day at redesign Phase 5;
+Taxonomy version 1.6, 14 October 2026 (1.5 and 1.4 on 28 September 2026; 1.3 frozen 27 September 2026; 1.2 and 1.1 frozen the same day at redesign Phase 5;
 1.0 frozen 25 September 2026, P2 task 7, tracker 11-01 to 11-03). The sections below are 1.0; sections "Taxonomy 1.1" to
-"Taxonomy 1.5" list what each adds. Source of truth in code:
+"Taxonomy 1.6" list what each adds. Source of truth in code:
 `src/lib/track.js`; pins in `track.test.mjs` section P. PostHog (free tier) is the event store; Vercel Analytics counts
 page views only.
 
@@ -111,6 +111,20 @@ initiative name and anything typed never travel; the tool's page says what is re
 What it answers: which kinds of page people pass on, and whether they do it from a phone's share sheet or a copied link.
 The address shared is the page's own path and view hash; the query is never included, and the event never says where
 the link went.
+
+## Taxonomy 1.6 (14 October 2026, help offers, open item 11)
+
+1.6 only adds. Every earlier name keeps its meaning.
+
+| Change | Detail |
+|---|---|
+| New event `help_offer_view` | A help offer appeared because a tool's result called for it. Carries `tool` and `offer`; once per offer per page view |
+| New event `help_offer_click` | The reader chose the offer's button, which opens the contact form with the offer's topic chosen. Carries `tool` and `offer` |
+| New property `offer` | One of five ids: `contract-review` (Contract Risk reads Do not sign as written or Negotiate before signing), `renewal-evaluation` (Platform Decision's gate is Run an evaluation), `rfp-evaluation` (two or more vendors' responses in RFP Builder), `ai-pilot` (AI Deflection's decision is Run a bounded pilot), `license-review` (License Gap shows cost above the quote on the reader's own entries). Travels on the two help events only |
+
+What it answers: which results lead readers to ask for help, and how often an offer seen becomes a request. Funnel for
+PostHog: `help_offer_view` then `help_offer_click`, broken down by `offer`. A sent request is counted in the inbox by its
+`help_offer` field; the form sends no event of its own. No offer event carries a figure or anything typed.
 
 ## Rules
 
