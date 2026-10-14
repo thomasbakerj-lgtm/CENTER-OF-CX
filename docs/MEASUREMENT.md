@@ -145,7 +145,7 @@ Pooling: export the event from PostHog (JSON or CSV) to a folder outside the rep
 `node scripts/benchmark-pool.mjs <file> --date YYYY-MM-DD`. It writes `src/data/benchmarks/readers.json` with pooled
 groups only: from 5 contributions the median and the count, from 10 the 25th to 75th percentile too; all industries first,
 then each industry and size band that reaches 5. "How others report it" on the four tools renders it, labelled "Reported
-by Center of CX readers, not verified". No tool reads it.
+by Center of CX readers and unverified". No tool reads it.
 
 ## Rules
 

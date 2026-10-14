@@ -16,7 +16,7 @@
 //   - Sent with a fresh random id, so a contribution cannot be linked to the browser's other events.
 //   - Published only as pooled groups: 5 to 9 contributions show the median and the count; from 10 the middle half
 //     (25th to 75th percentile) shows too. All industries first; an industry or size group shows once it reaches 5.
-//   - Labelled "Reported by Center of CX readers, not verified", beside the sourced rows, never averaged with them, and
+//   - Labelled "Reported by Center of CX readers and unverified", beside the sourced rows, never averaged with them, and
 //     never read by any tool's arithmetic, default, flag or grade.
 
 export const METRICS = {
@@ -40,7 +40,7 @@ const SIZE_IDS = new Set(SIZE_BANDS.map(([k]) => k));
 export const MIN_GROUP = 5;
 export const QUARTILES_FROM = 10;
 export const REPEAT_DAYS = 90;
-export const READER_LABEL = "Reported by Center of CX readers, not verified";
+export const READER_LABEL = "Reported by Center of CX readers and unverified";
 
 /** A figure rounded to its metric's step, at the metric's places. Null when it is not a finite number. */
 export function roundValue(metric, v) {

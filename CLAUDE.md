@@ -2206,7 +2206,7 @@ dashboard, the 12-phase growth program.
    `scripts/benchmark-pool.mjs <PostHog export outside the repo> --date` (refuses a file inside the public repository)
    writes `src/data/benchmarks/readers.json`, groups only: from 5 the median and the count, from 10 the 25th to 75th
    percentile; all industries first, then each industry and size band at 5; other never alone; never a single extreme.
-   How others report it on the four tools renders it as its own block, "Reported by Center of CX readers, not verified",
+   How others report it on the four tools renders it as its own block, "Reported by Center of CX readers and unverified",
    apart from the sourced rows; no engine, default, flag or grade reads it. Privacy line on the four tools and the Privacy
    Policy (updated 14 October 2026) name the exception; no lawyer's read for now (TB). `benchmark.test.mjs` (49,
    registered); track and toolframe pins moved. Suite 27,959; live check 258 of 258; browser at 1440 and 390: no box at

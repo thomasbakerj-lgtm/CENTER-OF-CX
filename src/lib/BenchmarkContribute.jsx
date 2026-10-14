@@ -73,7 +73,7 @@ export default function BenchmarkContribute({ metric, value, voided = false }) {
           </label>
           <Button kind="secondary" onClick={send} disabled={!c || !agree}>Add my figure</Button>
           {state === "off" && <p role="alert" style={{ ...K.body, marginTop: 10 }}>Nothing was sent: analytics are switched off or blocked in this browser, so there is no way to add the figure from here.</p>}
-          <p style={{ ...K.small, marginTop: 12 }}>It goes to our analytics service, PostHog, with a random id used only for this, so it cannot be tied to anything else you do on the site. We publish pooled groups only: from {MIN_GROUP} contributions the median and the count, from {QUARTILES_FROM} the middle half too, never a single reader's figure. One figure per tool every {REPEAT_DAYS} days from this browser. Figures are reported by readers and not verified. <a href="/privacy" style={K.link}>Privacy Policy</a></p>
+          <p style={{ ...K.small, marginTop: 12 }}>It goes to our analytics service, PostHog, with a random id used only for this, so it cannot be tied to anything else you do on the site. We publish pooled groups only: from {MIN_GROUP} contributions the median and the count, from {QUARTILES_FROM} the middle half too, never a single reader's figure. One figure per tool every {REPEAT_DAYS} days from this browser. Readers report these figures; we do not verify them. <a href="/privacy" style={K.link}>Privacy Policy</a></p>
         </>
       )}
     </section>

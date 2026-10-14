@@ -125,7 +125,7 @@ section("7. The panel labels reader figures apart from published ones");
   const rows = (n, base) => Array.from({ length: n }, (_, i) => ({ metric: "cpc", value: Number((base + i * 0.5).toFixed(1)), industry: i < 8 ? "retail" : "telecom", size_band: "s3" }));
   const full = await html(render(rows(12, 5), "2026-11-02"));
   const h = full("cost-per-contact").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-  ok("pooled groups show the median, the count, the middle half from 10, the label and the pooled date", /All industries, all sizes, median/.test(h) && /12 contributions; middle half \$/.test(h) && /Retail and ecommerce, median/.test(h) && /8 contributions\./.test(h) && /not verified/.test(h) && /Last pooled 2026-11-02/.test(h) && !/Telecom, median/.test(h));
+  ok("pooled groups show the median, the count, the middle half from 10, the label and the pooled date", /All industries, all sizes, median/.test(h) && /12 contributions; middle half \$/.test(h) && /Retail and ecommerce, median/.test(h) && /8 contributions\./.test(h) && /unverified/.test(h) && /Last pooled 2026-11-02/.test(h) && !/Telecom, median/.test(h));
   ok("another tool's block stays empty", /No group has reached 5 contributions yet \(pooled 2026-11-02\)/.test(full("fcr-leakage")));
 }
 
