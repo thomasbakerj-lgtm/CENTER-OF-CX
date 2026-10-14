@@ -19,6 +19,8 @@ import { readScenario, clearScenarioParam } from "./src/lib/scenarioUrl";
 import { MECH, MECH_ORDER, MECH_INITIAL, isNoActionFlag } from "./src/lib/mech";
 import { createGuards } from "./src/lib/guards";
 import { severityBucket } from "./src/lib/track";
+import HelpOffer from "./src/lib/HelpOffer.jsx";
+import { offerFor } from "./src/lib/helpOffers.js";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -636,6 +638,7 @@ export default function AIDeflectionRealityCheck() {
   const scenarios = buildScenarios(inputA);
   const analyst = buildAnalystRead(R);
   const winner = R.netSavings >= RB.netSavings ? "A" : "B";
+  const helpId = offerFor(TOOL_ID, { verdict: G.voided ? null : R.verdict });
 
   useEffect(() => {
     /* This tool publishes what it OWNS and nothing else. It does not republish the volume
@@ -986,6 +989,8 @@ export default function AIDeflectionRealityCheck() {
         <h2 style={h2}>What it means</h2>
         {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "6px 0 0" }}>{t}</p>)}
       </section>
+
+      {helpId && <HelpOffer id={helpId} tool={TOOL_ID} fact={`The decision: ${R.verdict}.`} />}
 
       <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}

@@ -18,6 +18,8 @@ import { ToolFrame } from "./src/lib/ToolFrame.jsx";
 import { Result, Finding, Button, resultHow } from "./src/lib/ui.jsx";
 import { HOUSE, PILLARS, ARCS, RADIUS, TOUCH, alpha, LINE } from "./src/lib/tokens.js";
 import { methodStamp } from "./src/lib/methodVersions.js";
+import HelpOffer from "./src/lib/HelpOffer.jsx";
+import { offerFor } from "./src/lib/helpOffers.js";
 
 const NAVY = COLORS.navy, DEEP = "#061325", ELECTRIC = COLORS.electric, LIGHT = "#00AAFF";
 const ICE = "#E8F4FD", WARM = "#F8FAFB", SLATE = "#3A4F6A", MUTED = COLORS.muted, BORDER = "#D8E3ED";
@@ -483,6 +485,9 @@ export default function LicenseBundleGapChecker() {
     uplift: n(uplift), seats18mo: n(seats18mo),
     evidence, confirmed, dblAck, modules, usage,
   };
+  /* A help offer reads the reader's own entries: at the opening defaults it stays away. */
+  const real = Object.keys(scenario).some((k) => k in DEFAULTS && JSON.stringify(scenario[k]) !== JSON.stringify(DEFAULTS[k]));
+  const helpId = offerFor(TOOL_ID, { real, voided, hiddenAnnual });
 
 
   const stamp = methodStamp(TOOL_ID);
@@ -692,6 +697,8 @@ export default function LicenseBundleGapChecker() {
         <span style={kicker}>What it means · the platform seat-equivalent is a comparison figure</span>
         {analyst.map((t, i) => <p key={i} style={{ ...body, margin: i ? "10px 0 0" : "8px 0 0" }}>{t}</p>)}
       </section>}
+
+      {helpId && <HelpOffer id={helpId} tool={TOOL_ID} fact={`Your entries put the license ${fmtK(hiddenAnnual)} a year above the quoted seat price.`} />}
 
       <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}

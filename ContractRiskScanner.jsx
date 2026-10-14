@@ -10,6 +10,8 @@ import { FONT, FONT_IMPORT_CSS } from "./src/lib/type";
 import { JOURNEY } from "./src/lib/journey";
 import { CONTRACT_RISK as MODEL } from "./src/lib/rubrics/contractRisk";
 import { scoreTerms } from "./src/lib/terms";
+import HelpOffer from "./src/lib/HelpOffer.jsx";
+import { offerFor } from "./src/lib/helpOffers.js";
 
 /* Contract Risk Scanner. The clauses, options, severities and reading rule live in the
    published model (src/lib/rubrics/contractRisk.js) and the engine (src/lib/terms.js);
@@ -37,6 +39,7 @@ export default function ContractRiskScanner() {
   const setTerm = (id, val) => setSelections((prev) => ({ ...prev, [id]: val }));
   const R = scoreTerms(MODEL, { selections });
   const reading = R.reading ? readingOf(R.reading) : null;
+  const helpId = offerFor(TOOL_ID, { reading: R.reading });
   const next = R.next ? toolOf(R.next) : null;
   const NEXT_WHY = { "license-gap": "add-on pricing is unpriced or not known, and it changes what the contract costs", "platform-decision": "the renewal terms are the problem, and the renewal gate decides what to do about them", "tco-calculator": "the next question is what the contract costs over its full term" };
 
@@ -106,7 +109,9 @@ export default function ContractRiskScanner() {
         </section>
       )}
       {next && <p style={K.body}>Next diagnostic: <a href={next.href} style={K.link}>{next.name}</a>, because {NEXT_WHY[R.next]}.</p>}
-      <p style={K.small}>For a second opinion before you sign, use the review request below. Your answers travel with it.</p>
+      {helpId
+        ? <HelpOffer id={helpId} tool={TOOL_ID} fact={`Your reading: ${reading.label}.`} />
+        : <p style={K.small}>For a second opinion before you sign, use the review request below. Your answers travel with it.</p>}
 
       <Paper>
         <ReportActions next={R.next ? { to: R.next, because: "Because " + NEXT_WHY[R.next] + "." } : null}

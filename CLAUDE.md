@@ -449,7 +449,7 @@ Binding. None of this is in code comments beyond what is noted.
    presentations and hard copy). The scenario link on the cover (item 118) stays.
 9. ~~Class comparison and "alternatives to X" pages from the research, A to Z, no order.~~ Done (item 128).
 10. Opt-in benchmark exchange (consent design and storage). Held: needs a dedicated session.
-11. Help offers at five trigger moments (`help_offer_view`, `help_offer_click`). Held: needs its own sessions.
+11. ~~Help offers at five trigger moments (`help_offer_view`, `help_offer_click`).~~ Done (item 131).
 12. ~~One name per category across pages, schema and llms.txt.~~ Done (item 120).
 13. ~~Nav "Coming soon" on Research moved to the studies card; the split vendor pages merged.~~ Done (item 130). Phase 1
     profiles stay indexed (TB 29 Sep decision kept) and the site stays unnamed (TB 28 Sep), per the recommendations TB
@@ -2164,6 +2164,23 @@ dashboard, the 12-phase growth program.
    door keeps its in preparation card). Chunk gate re-based with attribution (+4,035 raw: the family derivation in seo.js).
    `vendorfamily.test.mjs` (113, registered); seo G, cite, prerender, search, intro and shell pins moved. Suite 27,837;
    live check 258 of 258; family pages clean at 390, 360 and 320; old addresses land on their section.
+
+131. S24 (14 Oct), help offers at five moments (TB: "11. go"; site audit section 12, change 18). `src/lib/helpOffers.js`
+   (pure rules, ids, copy, links) and `src/lib/HelpOffer.jsx` (tokens through the frame kit). An offer appears only when
+   the tool's own result calls for it, after the tool's work and before the report, with the fact that triggered it:
+   Contract Risk reads Do not sign as written or Negotiate before signing (`contract-review`); Platform Decision's gate is
+   Run an evaluation (`renewal-evaluation`); RFP Builder has two or more vendors' responses (`rfp-evaluation`); AI
+   Deflection's decision is Run a bounded pilot (`ai-pilot`); License Gap shows cost above the quote on the reader's own
+   entries, never at the defaults or on a void (`license-review`). No offer on any opening state. The copy names no
+   vendor and carries no figure of its own; it states the cost of asking (matching free, scope and price with the
+   consultant, nothing sent until the form). The button is secondary so the tool's next step stays the lead; Contract
+   Risk's and RFP's generic review lines give way to the offer when it shows. The button opens `/contact?help=<id>&from=
+   <tool>`: the form titles itself with the offer, chooses its topic (new: Contract review, Vendor evaluation, AI pilot
+   design, License and pricing review; renewal uses Platform selection), and sends `help_offer` and `help_from`
+   (Privacy Policy field list updated); an introduction wins over an offer. Taxonomy 1.6: `help_offer_view` (once per
+   offer per page view) and `help_offer_click`, with `tool` and `offer` (closed set, scoped to the two events).
+   `helpoffers.test.mjs` (59, registered); track, toolframe and intro pins moved. Suite 27,902; live check 258 of 258;
+   browser at 1440 and 390: each offer appears on its trigger, none on opening, no overflow or page error.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

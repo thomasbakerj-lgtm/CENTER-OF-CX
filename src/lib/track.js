@@ -101,6 +101,9 @@ export const EV = {
   ROADMAP_SNAPSHOT: "roadmap_snapshot", // the Roadmap Builder summary opened: one status letter per fixed milestone
   // Taxonomy 1.5: added, nothing renamed or removed.
   PAGE_SHARE: "page_shared",           // the Share action on a page's breadcrumb row was used
+  // Taxonomy 1.6: added, nothing renamed or removed.
+  HELP_VIEW: "help_offer_view",        // a help offer appeared because a tool's result called for it
+  HELP_CLICK: "help_offer_click",      // the reader chose a help offer's button
 };
 
 const EVENT_NAMES = new Set(Object.values(EV));
@@ -108,7 +111,7 @@ const EVENT_NAMES = new Set(Object.values(EV));
 /* Frozen taxonomy (11-01 to 11-03, P2 task 7). Event names and property keys do not change without a new version,
    a line in docs/MEASUREMENT.md and the pins in track.test.mjs; PostHog funnels are built on these names. 1.1 (redesign
    Phase 5) adds the homepage, stack, honest exit and vendor profile events; every 1.0 name is unchanged. */
-export const TAXONOMY_VERSION = "1.5";
+export const TAXONOMY_VERSION = "1.6";
 
 /* ---------------------------------------------------------------- severity */
 
@@ -170,6 +173,8 @@ export const PAGE_TYPES = new Set(["home", "tool", "method", "industry", "catego
 /* Taxonomy 1.1 vocabularies. Closed sets: a value outside them is dropped. */
 export const PILLAR_IDS = new Set(["diagnostics", "vendors", "industries", "research", "market-watch"]);
 export const LAYER_IDS = new Set(["l1", "l2", "l3", "l4", "l5", "l6", "l7"]);
+/* The five help offer ids (helpOffers.js OFFER_IDS; track.test proves the two lists equal). Kept here so this file imports nothing. */
+export const HELP_OFFER_IDS = new Set(["contract-review", "renewal-evaluation", "rfp-evaluation", "ai-pilot", "license-review"]);
 export const SURFACES = new Set(["home", "tool", "vendor", "industry", "category", "market-watch"]);
 export const RESEARCH_STATES = new Set(["complete", "phase1"]);
 export const VENDOR_ACTIONS = new Set(["test-it", "rfp", "brief", "method", "peer", "request", "intro"]);
@@ -238,6 +243,8 @@ export const ALLOWED_PROPS = {
   milestones: (v) => typeof v === "string" && ROADMAP_CODE.test(v),
   // Taxonomy 1.5. How a page was shared: the device's share sheet or a copied link. Never where it went.
   via: isOneOf(SHARE_VIA),
+  // Taxonomy 1.6. Which help offer: one of the five fixed ids.
+  offer: isOneOf(HELP_OFFER_IDS),
 };
 
 export const ALLOWED_PROP_KEYS = Object.keys(ALLOWED_PROPS);
@@ -293,6 +300,7 @@ export const EVENT_SCOPED = {
   audience: ["report_export"],
   milestones: ["roadmap_snapshot"],
   via: ["page_shared"],
+  offer: ["help_offer_view", "help_offer_click"],
 };
 
 export function scopeProps(event, props) {
@@ -638,6 +646,12 @@ export const trackVendor = {
    copied link. The address shared is the page's own, which the event already carries as its current URL. */
 export const trackShare = {
   page: (pathname, via) => track(EV.PAGE_SHARE, { page_type: pageType(pathname), via }),
+};
+
+/* Taxonomy 1.6: a help offer seen and chosen, with the tool whose result called for it. Nothing the reader entered. */
+export const trackHelp = {
+  view: (tool, offer) => track(EV.HELP_VIEW, { tool, offer }),
+  click: (tool, offer) => track(EV.HELP_CLICK, { tool, offer }),
 };
 
 /* Taxonomy 1.4: the Roadmap Builder's milestone statuses as one code, sent when the reader opens the summary. It says
