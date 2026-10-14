@@ -448,7 +448,7 @@ Binding. None of this is in code comments beyond what is noted.
 8. ~~QR code on the PDF cover.~~ Disregarded (TB, 1 Oct: online we use links, downloads and email copies; QR codes are for
    presentations and hard copy). The scenario link on the cover (item 118) stays.
 9. ~~Class comparison and "alternatives to X" pages from the research, A to Z, no order.~~ Done (item 128).
-10. Opt-in benchmark exchange (consent design and storage). Held: needs a dedicated session.
+10. ~~Opt-in benchmark exchange (consent design and storage).~~ Done (item 133).
 11. ~~Help offers at five trigger moments (`help_offer_view`, `help_offer_click`).~~ Done (item 131).
 12. ~~One name per category across pages, schema and llms.txt.~~ Done (item 120).
 13. ~~Nav "Coming soon" on Research moved to the studies card; the split vendor pages merged.~~ Done (item 130). Phase 1
@@ -2191,6 +2191,30 @@ dashboard, the 12-phase growth program.
    still has no stack. Events unchanged (`layer_select` on click only). `home.test.mjs` 44. Suite 27,904; live check 258
    of 258; browser at 1440, 1100 and 960: no card on load, hover opens it, the page does not move, it survives the move
    onto the card, leaves on exit, pins on click, Escape closes; containment clean at 1440, 1100, 960 and 390.
+
+133. S24 (14 Oct), the reader benchmark (open item 10; TB: "1. YES 2. [storage] 3. FIVE 4. BEST RECOMMENDATION 5. NOT
+   NOW", then "A. go": PostHog). `src/lib/benchmarkExchange.js` (pure): four figures from four tools (first contact
+   resolution from FCR Leakage, handle time from AHT Decomposition, cost per contact from Cost per Contact, annual attrition
+   from Attrition), rounded in the browser (whole percents, 10 seconds, $0.10) and dropped outside each tool's valid range;
+   industry (the site's ten or other) and an agent count band (five). `src/lib/BenchmarkContribute.jsx` on the four tools,
+   before How others report it: shown only once the figure differs from the one the page opened with, never on a void; it
+   shows exactly what would be sent; industry, size, a consent box and "Add my figure" are all required; one figure per
+   tool every 90 days per browser (local storage). Taxonomy 1.7: `benchmark_contribute` with `tool`, `metric`, `value`,
+   `industry`, `size_band` (scoped to that event; value must be finite, 0 to 100,000, at most two places), sent by
+   `trackContribution` with a random id and visit id made for that one event and no repeat flag, so it is not linked to
+   the browser's other events; blocked browsers and builds without a key send nothing, and the page says so. Pooling:
+   `scripts/benchmark-pool.mjs <PostHog export outside the repo> --date` (refuses a file inside the public repository)
+   writes `src/data/benchmarks/readers.json`, groups only: from 5 the median and the count, from 10 the 25th to 75th
+   percentile; all industries first, then each industry and size band at 5; other never alone; never a single extreme.
+   How others report it on the four tools renders it as its own block, "Reported by Center of CX readers, not verified",
+   apart from the sourced rows; no engine, default, flag or grade reads it. Privacy line on the four tools and the Privacy
+   Policy (updated 14 October 2026) name the exception; no lawyer's read for now (TB). `benchmark.test.mjs` (49,
+   registered); track and toolframe pins moved. Suite 27,959; live check 258 of 258; browser at 1440 and 390: no box at
+   open, box after the reader edits the figure, button disabled until industry, size and consent, rounding shown; the
+   automated browser is refused by the site's own bot filter, so the send path is proven by the payload harness, not in the
+   browser. One run of the suite reported an unparsed harness that did not recur in two further runs.
+   To confirm in production: add one figure from a real browser (not one marked internal) and look for
+   `benchmark_contribute` in PostHog.
 
 94. S24 (29 Sep), the new mark (TB: "Go and ship it"). TB chose Voice in blue from eight concepts, their full builds and two
    finalist rounds on the canvas "Center of CX Logo Concepts" (Woven dropped: a stroke across the voice reads as a break or a

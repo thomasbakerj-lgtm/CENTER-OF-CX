@@ -23,8 +23,14 @@ const D = PILLARS.diagnostics;
 export const RESULT_ID = "cx-result";
 export const PRIVACY = "Your numbers stay in this browser tab unless you ask for a review or share a scenario link.";
 /* A tool that sends any part of what the reader entered says exactly what, on its own page (taxonomy 1.4). */
+/* The four tools that offer the reader benchmark say so (open item 10). */
+export const BENCHMARK_LINE = "Your numbers stay in this browser tab unless you ask for a review, share a scenario link, or choose to add one rounded figure to the reader benchmark.";
 export const PRIVACY_BY_TOOL = {
   "roadmap-builder": "Your notes and initiative name stay in this browser tab. When you open the summary we record the status you set for each of the 18 milestones, with no text, to learn where 90-day plans stall.",
+  "fcr-leakage": BENCHMARK_LINE,
+  "aht-decomposition": BENCHMARK_LINE,
+  "cost-per-contact": BENCHMARK_LINE,
+  "attrition-cost": BENCHMARK_LINE,
 };
 export const privacyFor = (toolId) => PRIVACY_BY_TOOL[toolId] || PRIVACY;
 

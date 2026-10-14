@@ -11,6 +11,7 @@ import { createGuards, guardLine } from "./src/lib/guards";
 import { benchmark } from "./src/lib/benchmarks";
 import { publishToolResult } from "./src/lib/toolData";
 import { runAHT, AHT_COMPONENTS, AHT_LEVERS } from "./src/lib/aht";
+import BenchmarkContribute from "./src/lib/BenchmarkContribute.jsx";
 
 /* AHT Decomposition. The arithmetic lives in src/lib/aht.js between engine markers; every
    lever share opens at its registered heuristic and the buyer can change it. */
@@ -202,6 +203,7 @@ export default function AHTDecomposition() {
 
       <Assumptions items={assumptions} />
 
+      <BenchmarkContribute metric="aht" value={R.total} />
       <HowOthersReport toolId={TOOL_ID} />
 
       <Paper>

@@ -22,6 +22,7 @@ import { methodStamp } from "./src/lib/methodVersions.js";
 import { scoreRubric } from "./src/lib/rubric.js";
 import { ATTRITION_DRIVERS, DRIVER_TOOL_NAMES } from "./src/lib/rubrics/attritionDrivers.js";
 import { StatementStep } from "./src/lib/frameKit.jsx";
+import BenchmarkContribute from "./src/lib/BenchmarkContribute.jsx";
 
 const NAVY = COLORS.navy, ELECTRIC = COLORS.electric, GREEN = COLORS.green, AMBER = COLORS.amber, RED = COLORS.red, MUTED = COLORS.muted;
 const DEEP = "#061325", LIGHT = "#00AAFF", WARM = "#F8FAFB", SLATE = "#3A4F6A", BORDER = "#D8E3ED";
@@ -719,6 +720,7 @@ export default function AttritionCostCalculator() {
 
       <DriverCheck answers={drivers} setAnswer={(k, v) => setDrivers((p) => ({ ...p, [k]: v }))} scored={driverScore} />
 
+      <BenchmarkContribute metric="attrition" value={r.attritionRate} voided={r.voided} />
       <HowOthersReport toolId={TOOL_ID} />
       {/* The report is paper (Brand Guide section 13). */}
       <div style={{ background: HOUSE.paper, color: HOUSE.paperInk, borderRadius: RADIUS.card, padding: "8px 20px 20px" }}>
