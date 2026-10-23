@@ -245,7 +245,8 @@ section("9. Audit 30 Sep, batch 1: no withdrawn score wording on profiles, offer
   ok("the CCaaS guide page says the edition chose its 12 vendors", !/top 12 vendors/.test(G) && /12 vendors, as that edition chose them/.test(G));
   ok("the guide pages make one independence statement, linked", !/No vendor sponsorship|No pay-to-play/.test(G) && /No vendor paid for, previewed or approved this guide\. <a href="\/about#independence"/.test(G));
   ok("site metadata makes no bare independence claims and types no profile count", ["index.html", "src/lib/seo.js", "src/lib/shareCard.js"].every((f) => !/Independent CX|Technology Intelligence|No vendor sponsorship|No pay-to-play|"282 vendor/.test(R(f))));
-  ok("the tagline says what the site is in plain nouns", ["Homepage.jsx", "src/lib/Shell.jsx"].every((f) => !/Independent intelligence/.test(R(f)) && /Free tools and research for contact center decisions/.test(R(f))));
+  ok("the tagline says what the site is in plain nouns", !/Independent intelligence/.test(R("src/lib/Shell.jsx")) && /Free tools and research for contact center decisions/.test(R("src/lib/Shell.jsx")));
+  ok("the homepage says what the site is in plain nouns, once", !/Independent intelligence/.test(R("Homepage.jsx")) && /What this is/.test(R("Homepage.jsx")) && /Free tools and research for the people who run contact centers and buy their technology\./.test(R("Homepage.jsx")) && (R("Homepage.jsx").match(/Free tools and research/g) || []).length === 1);
 }
 
 section("10. Audit 30 Sep, batch 2: the tools hub says what each tool gives you");

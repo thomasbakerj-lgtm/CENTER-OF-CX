@@ -155,7 +155,7 @@ export default function Homepage() {
       <section style={{ ...WRAP, padding: "56px 20px 40px" }}>
         <div className="cx-home-hero">
           <div>
-            <span style={{ ...LABEL, color: pillar.onDark, display: "block", marginBottom: 16 }}>Free tools and research for contact center decisions</span>
+            <span style={{ ...LABEL, color: pillar.onDark, display: "block", marginBottom: 16 }}>Contact center tools and research</span>
             <h1 style={{ margin: 0, fontSize: `clamp(44px, 6.4vw, ${TYPE_SCALE.display.size}px)`, fontWeight: TYPE_SCALE.display.weight, letterSpacing: TYPE_SCALE.display.tracking, lineHeight: TYPE_SCALE.display.line }}>Diagnose before you buy.</h1>
             <div aria-labelledby="cx-what" role="group" style={{ margin: "24px 0 0", maxWidth: 620 }}>
               <span id="cx-what" style={{ ...LABEL, display: "block", marginBottom: 8 }}>What this is</span>
