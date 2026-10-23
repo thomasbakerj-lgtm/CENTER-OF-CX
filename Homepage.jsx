@@ -157,7 +157,12 @@ export default function Homepage() {
           <div>
             <span style={{ ...LABEL, color: pillar.onDark, display: "block", marginBottom: 16 }}>Free tools and research for contact center decisions</span>
             <h1 style={{ margin: 0, fontSize: `clamp(44px, 6.4vw, ${TYPE_SCALE.display.size}px)`, fontWeight: TYPE_SCALE.display.weight, letterSpacing: TYPE_SCALE.display.tracking, lineHeight: TYPE_SCALE.display.line }}>Diagnose before you buy.</h1>
-            <p style={{ margin: "20px 0 0", fontSize: 19, lineHeight: 1.55, color: HOUSE.body, maxWidth: 620 }}>Run the numbers on your own operation, read vendor profiles, and check what your industry demands. Every figure says where it came from and how sure it is.</p>
+            <div aria-labelledby="cx-what" role="group" style={{ margin: "24px 0 0", maxWidth: 620 }}>
+              <span id="cx-what" style={{ ...LABEL, display: "block", marginBottom: 8 }}>What this is</span>
+              <p style={{ margin: 0, fontSize: 19, lineHeight: 1.55, color: HOUSE.mist }}>Free tools and research for the people who run contact centers and buy their technology.</p>
+              <p style={{ margin: "10px 0 0", fontSize: 17, lineHeight: 1.6, color: HOUSE.body }}>Bring your own numbers. Each tool shows its working, where every figure comes from, and how far you can rely on the answer.</p>
+              <p style={{ margin: "10px 0 0", fontSize: 17, lineHeight: 1.6, color: HOUSE.body }}>Use it before a vendor call, a budget request or a renewal.</p>
+            </div>
             <p style={{ margin: "18px 0 0", fontSize: 14, color: HOUSE.muted }}>No sign in. No email. Every report free. Vendors cannot pay to appear.</p>
           </div>
           <div className="cx-home-stack"><div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
