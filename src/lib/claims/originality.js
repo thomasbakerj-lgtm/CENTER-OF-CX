@@ -23,6 +23,8 @@ const MW_METHOD = "Market Watch launch set (12 items). Each headline and summary
 
 const MW_METHOD_1013 = "Set of 13 October 2026 (8 items, 1 to 13 October): each headline and summary written from the page it cites, then compared by machine against the text of every cited page (FCC order and Enforcement Bureau orders as text from docs.fcc.gov, status page incidents from each Statuspage feed, the Cisco, AWS and Zendesk pages, and for the Boost.ai deal the SiliconANGLE report and both companies' releases) for any shared run of 8 or more words. No shared run.";
 
+const MW_METHOD_1026 = "Set of 26 October 2026 (7 items, 1 to 26 October): each headline and summary written from the page it cites, then compared by machine against the text of every cited page (Genesys security notice, TMC Insight deal report, Salesforce Service Cloud blog, AWS What's New post, Webex Contact Center administrator release notes, Dialpad October release post, Braiin release as carried by The Manila Times), each read with curl, for any shared run of 8 or more words. No shared run.";
+
 export const ORIGINALITY = {
   "ArticleCCaaSCosts.jsx": {
     checked: "2026-10-13",
@@ -33,8 +35,8 @@ export const ORIGINALITY = {
     ],
   },
   "src/lib/marketWatch.js": {
-    checked: "2026-10-13",
-    method: MW_METHOD + " " + MW_METHOD_1013,
+    checked: "2026-10-26",
+    method: MW_METHOD + " " + MW_METHOD_1013 + " " + MW_METHOD_1026,
     matches: [
       { text: "Regulation (EU) 2026/1744 was published in the Official Journal on 24 July 2026", near: "https://lawandtechnology.eu/en/digital-omnibus-on-ai-official-journal-regulation-2026-1744/", kind: "shared factual phrase", resolution: "rewritten" },
       { text: "The FCC released a draft Report and Order in CG Docket 02-278", near: "https://www.insideglobaltech.com/2026/09/11/fcc-releases-draft-rules-and-proposals-on-tcpa-consent-revocation/", kind: "shared opening phrase", resolution: "rewritten" },
