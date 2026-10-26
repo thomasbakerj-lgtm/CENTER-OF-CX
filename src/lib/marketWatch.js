@@ -70,6 +70,31 @@ export const ITEMS = [
     "checked": "2026-10-26"
   },
   {
+    "id": "mw-2026-10-21-microsoft-contact-center-intelligence-preview",
+    "date": "2026-10-21",
+    "label": "vendor-supplied",
+    "kind": "product",
+    "who": "Microsoft",
+    "vendors": [
+      "Microsoft"
+    ],
+    "headline": "Microsoft previews AI agents that run on top of other contact center platforms",
+    "summary": "Microsoft opened Contact Center Intelligence in public preview on 21 October, everywhere except Austria. Connectors attach its self-service and quality review agents to Five9, Cisco Webex Contact Center and Avaya. Usage is billed in Copilot Credits; Microsoft says the contact center vendor may charge separately for API or voice access.",
+    "source": {
+      "publisher": "Microsoft",
+      "title": "Introducing Microsoft Contact Center Intelligence",
+      "url": "https://www.microsoft.com/en-us/dynamics-365/blog/business-leader/2026/10/21/microsoft-contact-center-intelligence-transforming-customer-experience-at-agentic-speed/",
+      "published": "2026-10-21"
+    },
+    "also": {
+      "publisher": "The Futurum Group",
+      "title": "Microsoft Contact Center Intelligence Takes Aim at CCaaS AI",
+      "url": "https://futurumgroup.com/insights/microsoft-contact-center-intelligence-takes-aim-at-ccaas-ai/",
+      "published": "2026-10-22"
+    },
+    "checked": "2026-10-26"
+  },
+  {
     "id": "mw-2026-10-21-amazon-connect-workspace-layouts",
     "date": "2026-10-21",
     "label": "verified",
