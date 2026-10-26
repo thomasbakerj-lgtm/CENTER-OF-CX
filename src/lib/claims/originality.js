@@ -23,7 +23,7 @@ const MW_METHOD = "Market Watch launch set (12 items). Each headline and summary
 
 const MW_METHOD_1013 = "Set of 13 October 2026 (8 items, 1 to 13 October): each headline and summary written from the page it cites, then compared by machine against the text of every cited page (FCC order and Enforcement Bureau orders as text from docs.fcc.gov, status page incidents from each Statuspage feed, the Cisco, AWS and Zendesk pages, and for the Boost.ai deal the SiliconANGLE report and both companies' releases) for any shared run of 8 or more words. No shared run.";
 
-const MW_METHOD_1026 = "Set of 26 October 2026 (7 items, 1 to 26 October): each headline and summary written from the page it cites, then compared by machine against the text of every cited page (Genesys security notice, TMC Insight deal report, Salesforce Service Cloud blog, AWS What's New post, Webex Contact Center administrator release notes, Dialpad October release post, Braiin release as carried by The Manila Times), each read with curl, for any shared run of 8 or more words. No shared run.";
+const MW_METHOD_1026 = "Set of 26 October 2026 (8 items, 1 to 26 October; the Microsoft item added the same day at TB's request): each headline and summary written from the page it cites, then compared by machine against the text of every cited page (Genesys security notice, TMC Insight deal report, Salesforce Service Cloud blog, AWS What's New post, Webex Contact Center administrator release notes, Dialpad October release post, Braiin release as carried by The Manila Times, the Microsoft Dynamics 365 blog post and The Futurum Group's analysis), each read with curl, for any shared run of 8 or more words. No shared run.";
 
 export const ORIGINALITY = {
   "ArticleCCaaSCosts.jsx": {
