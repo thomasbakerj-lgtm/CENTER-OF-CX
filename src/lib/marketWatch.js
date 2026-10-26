@@ -20,6 +20,7 @@ export const KINDS = {
   deal: "Deals",
   outage: "Outages",
   pricing: "Pricing and packaging",
+  security: "Security",
 };
 
 /* The items, newest first on the page. Shape:
@@ -27,6 +28,148 @@ export const KINDS = {
      source: { publisher, title, url, published }, also: source | null, checked: "YYYY-MM-DD" } */
 /* Launch set, researched 27 September 2026 from the page each item cites (July to September 2026). */
 export const ITEMS = [
+  /* Set of 26 October 2026: researched from the page each item cites, 1 to 26 October 2026. */
+  {
+    "id": "mw-2026-10-26-braiin-force-ai",
+    "date": "2026-10-26",
+    "label": "vendor-supplied",
+    "kind": "product",
+    "who": "Braiin",
+    "vendors": [
+      "Braiin"
+    ],
+    "headline": "Braiin adds an AI orchestration layer to its RADIUS contact center platform",
+    "summary": "Braiin, listed on Nasdaq, said on 26 October that a new layer called Force AI now runs its RADIUS contact center platform, covering self-service agents, live agent help and interaction analytics. It says customers can choose among several AI model providers and run it in the cloud, on premises or both. No pricing was given.",
+    "source": {
+      "publisher": "Braiin (GlobeNewswire release, via The Manila Times)",
+      "title": "Braiin Targets USD 56.9 Billion CX Software Market with Agentic AI Expansion and Major Upgrade to RADIUS CX Platform",
+      "url": "https://www.manilatimes.net/2026/10/26/tmt-newswire/globenewswire/braiin-targets-usd-569-billion-cx-software-market-with-agentic-ai-expansion-and-major-upgrade-to-radius-cx-platform/2454083",
+      "published": "2026-10-26"
+    },
+    "also": null,
+    "checked": "2026-10-26"
+  },
+  {
+    "id": "mw-2026-10-26-webex-ai-agent-reporting",
+    "date": "2026-10-26",
+    "label": "verified",
+    "kind": "product",
+    "who": "Cisco",
+    "vendors": [
+      "Cisco"
+    ],
+    "headline": "Webex Contact Center adds reporting on how its AI agents perform",
+    "summary": "Cisco's administrator release notes for 26 October add AI agent reporting to Analyzer in Webex Contact Center. Ready-made dashboards track how often AI agents contain or escalate a session, errors, abandonment, session length and response time, filtered by entry point, flow, site, language or channel.",
+    "source": {
+      "publisher": "Cisco",
+      "title": "What's new for administrators in Webex Contact Center",
+      "url": "https://help.webex.com/en-us/article/nv7abhz/What's-new-for-administrators-in-Webex-Contact-Center",
+      "published": "2026-10"
+    },
+    "also": null,
+    "checked": "2026-10-26"
+  },
+  {
+    "id": "mw-2026-10-21-amazon-connect-workspace-layouts",
+    "date": "2026-10-21",
+    "label": "verified",
+    "kind": "product",
+    "who": "Amazon Web Services",
+    "vendors": [
+      "Amazon Connect"
+    ],
+    "headline": "Amazon Connect lets administrators pick a workspace layout for each agent team",
+    "summary": "AWS said on 21 October that Amazon Connect Customer now offers two agent workspace layouts, set per team. A Modern option moves contact controls to the top, freeing room for other applications and giving chat and email a larger reply area. A Classic option keeps the current design. Nine AWS Regions at launch.",
+    "source": {
+      "publisher": "Amazon Web Services",
+      "title": "Amazon Connect Customer launches two new layouts for agent workspace",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/connect-customer-new-layouts-agent-workspace/",
+      "published": "2026-10-21"
+    },
+    "also": null,
+    "checked": "2026-10-26"
+  },
+  {
+    "id": "mw-2026-10-16-genesys-internal-systems-incident",
+    "date": "2026-10-16",
+    "label": "verified",
+    "kind": "security",
+    "who": "Genesys",
+    "vendors": [
+      "Genesys"
+    ],
+    "headline": "Genesys says an intruder copied business contact data from internal systems",
+    "summary": "Genesys found on 16 October that an outside party had reached internal systems, including a learning platform and a CRM, and taken business contact and account details. Its 23 October update says the incident is contained and that Genesys Cloud, Engage and Engage Cloud, and customer data held in them, were not accessed.",
+    "source": {
+      "publisher": "Genesys",
+      "title": "Security Update: Incident Affecting Certain Genesys Internal Business Systems",
+      "url": "https://www.genesys.com/blog/post/security-update-incident-affecting-certain-genesys-internal-business-systems",
+      "published": "2026-10-19"
+    },
+    "also": null,
+    "checked": "2026-10-26"
+  },
+  {
+    "id": "mw-2026-10-16-salesforce-contact-center-europe",
+    "date": "2026-10-16",
+    "label": "vendor-supplied",
+    "kind": "product",
+    "who": "Salesforce",
+    "vendors": [
+      "Salesforce"
+    ],
+    "headline": "Salesforce makes its own contact center product available in Europe",
+    "summary": "Salesforce said its native contact center would become generally available in more than 30 European countries on 16 October, among them the UK, Germany and France, with Australia and New Zealand due in November. It also named Core, Advanced and Max editions that bundle it with Service Cloud and usage credits. No prices were published.",
+    "source": {
+      "publisher": "Salesforce",
+      "title": "What's New in Service Cloud: 10 Launches That Help Resolve Customer Service Cases Faster",
+      "url": "https://www.salesforce.com/blog/service-cloud-fall-2026-releases/",
+      "published": "2026-10-13"
+    },
+    "also": null,
+    "checked": "2026-10-26"
+  },
+  {
+    "id": "mw-2026-10-01-tcn-buys-abstrakt",
+    "date": "2026-10-01",
+    "label": "news",
+    "kind": "deal",
+    "who": "TCN",
+    "vendors": [
+      "TCN",
+      "Abstrakt"
+    ],
+    "headline": "TCN buys Abstrakt to add live agent guidance and automated quality review",
+    "summary": "TCN announced on 1 October that it has bought Abstrakt, whose software guides agents during conversations and scores interactions automatically. TMC Insight reports that TCN plans to combine it with its contact center, workforce optimization and virtual agent products. No price was disclosed.",
+    "source": {
+      "publisher": "TMC Insight",
+      "title": "TCN Buys Abstrakt to Expand Real-Time Contact Center AI",
+      "url": "https://insight.tmcnet.com/insight/tcn-buys-abstrakt-to-expand-real-time-contact-center-ai-murfioay",
+      "published": "2026-10-02"
+    },
+    "also": null,
+    "checked": "2026-10-26"
+  },
+  {
+    "id": "mw-2026-10-01-dialpad-digital-wfm",
+    "date": "2026-10-01",
+    "label": "verified",
+    "kind": "product",
+    "who": "Dialpad",
+    "vendors": [
+      "Dialpad"
+    ],
+    "headline": "Dialpad adds digital channels to workforce forecasts and intraday staffing alerts",
+    "summary": "Dialpad's October 2026 release, posted 1 October, feeds digital conversations into workforce forecasts, adherence and reports. New intraday tools flag queues running above forecast, suggest extra staff and can move schedules within limits managers set. Its AI features gained full support for eight more languages.",
+    "source": {
+      "publisher": "Dialpad",
+      "title": "What's new at Dialpad: October 2026",
+      "url": "https://www.dialpad.com/blog/whats-new-at-dialpad-october-2026/",
+      "published": "2026-10-01"
+    },
+    "also": null,
+    "checked": "2026-10-26"
+  },
   /* Set of 13 October 2026: researched from the page each item cites, 1 to 13 October 2026. */
   {
     "id": "mw-2026-10-01-fcc-26-67-full-text",

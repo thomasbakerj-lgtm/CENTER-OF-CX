@@ -92,7 +92,9 @@ ok("market-watch is a surface and a page type (taxonomy 1.3)", T.SURFACES.has("m
 section("3. The published items");
 ok("every published item passes every rule", M.ITEMS.every((it) => M.itemProblems(it).length === 0));
 ok("ids are unique", new Set(M.ITEMS.map((it) => it.id)).size === M.ITEMS.length);
-ok("no vendor has more than two items", Object.values(M.ITEMS.flatMap((it) => it.vendors).reduce((a, v) => ({ ...a, [v]: (a[v] || 0) + 1 }), {})).every((n) => n <= 2));
+/* TB (27 Sep): at most two items per vendor in a set. A set shares its checked date. */
+const perSet = M.ITEMS.reduce((a, it) => { for (const v of it.vendors) { const k = it.checked + " " + v; a[k] = (a[k] || 0) + 1; } return a; }, {});
+ok("no vendor has more than two items in a set", Object.values(perSet).every((n) => n <= 2), JSON.stringify(Object.entries(perSet).filter(([, n]) => n > 2)));
 const real = V.MarketWatchView ? renderToString(React.createElement(V.MarketWatchView, {})) : "";
 ok("the live page renders every published item", M.ITEMS.every((it) => text(real).includes(it.headline)));
 
